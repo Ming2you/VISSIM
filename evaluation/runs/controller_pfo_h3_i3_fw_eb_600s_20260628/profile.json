@@ -1,0 +1,21 @@
+{
+  "controllers": [
+    "no-control",
+    "pfo"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "fw_eb_heavy",
+      "category": "2_vsl",
+      "demand_profile": "fw_eb_heavy",
+      "urban_volume_vph": 1800.0,
+      "freeway_volume_vph": 3400.0
+    }
+  ],
+  "sim_period_sec": 600,
+  "control_interval_sec": 60,
+  "seed": 13,
+  "timeout_sec": 900.0,
+  "tuning": "evaluation\\configs\\pfo_h3_i3_medium.json",
+  "case_count": 2
+}

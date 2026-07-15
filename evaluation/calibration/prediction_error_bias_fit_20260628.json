@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-28",
+  "source": "prediction_error_components_20260628",
+  "status": "diagnostic_fit_not_applied_to_controller",
+  "sample_runs": [
+    "diagnostic-vsl-rm_ramp_d_bias_u2200_fw3000_seed13_300s",
+    "pfo_fw_eb_heavy_u1800_fw3400_seed13_600s",
+    "pfo_ramp_d_bias_u2200_fw3000_seed13_300s",
+    "pfo_sym_high_u2600_fw3400_seed13_600s"
+  ],
+  "one_step_bias": {
+    "freeway_total_observed_over_predicted_mean": 0.6506866111845979,
+    "freeway_total_observed_over_predicted_range": [0.6288134255623004, 0.677303838280592],
+    "urban_queue_plus_storage_observed_over_predicted_mean": 1.0126470050769243,
+    "urban_queue_plus_storage_observed_over_predicted_range": [0.9393233571403157, 1.0421465418531468]
+  },
+  "interpretation": {
+    "primary_bias": "The one-step freeway state prediction retains too many vehicles relative to Vissim.",
+    "urban_note": "Urban queue and storage are badly decomposed, but their combined mass is close to Vissim. Do not tune urban total capacity from movement_queue error alone.",
+    "vsl_rm_note": "PFO sees zero spillback violation and therefore has little reason to choose restrictive VSL/ramp-metering actions."
+  },
+  "recommended_next_fit": {
+    "freeway_retention_scale_initial": 0.65,
+    "urban_queue_storage_split_requires_new_mapping": true,
+    "spillback_observability_requires_storage_mapping": true
+  }
+}

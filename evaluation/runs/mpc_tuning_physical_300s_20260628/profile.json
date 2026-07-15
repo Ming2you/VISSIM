@@ -1,0 +1,30 @@
+{
+  "profile": "grid-smoke",
+  "network": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\Network_Vissim_Work\\modi_eval_vsl_segmented.inpx",
+  "runner": "scripts\\run_stackelberg_vissim_controller.vbs",
+  "adapter": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+  "calibration_json": "evaluation\\calibration\\vissim_network_calibration_v2_20260628.json",
+  "tuning_dir": "evaluation\\configs\\mpc_tuning",
+  "tunings": "00_calibrated_base,04_smooth_low,05_activation_early,07_boundary_queue_priority,08_mfd_strong",
+  "demand_profiles": "sym,d_ramp_bias,urban_d_heavy",
+  "max_workers": 1,
+  "startup_stagger_sec": 30.0,
+  "case_timeout_sec": 900.0,
+  "startup_timeout_sec": 60.0,
+  "reset_vissim_on_startup_timeout": true,
+  "resume_existing_ok": true,
+  "case_count": 1,
+  "cases": [
+    {
+      "case_id": "mpc_05_activation_early_d_ramp_bias_u2600_fw3400_seed13_300s",
+      "tuning_name": "05_activation_early",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\05_activation_early.json",
+      "demand_profile": "d_ramp_bias",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 3400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    }
+  ]
+}

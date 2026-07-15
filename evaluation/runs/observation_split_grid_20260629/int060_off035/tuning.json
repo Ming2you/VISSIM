@@ -1,0 +1,18 @@
+{
+  "name": "obs_split_int060_off035",
+  "description": "PFO medium-horizon Vissim profile: 3-step prediction horizon, 2-step control horizon, 3 distributed iterations, and modest freeway action candidate expansion for local-observation runs.",
+  "mpc": {
+    "horizon_steps": 3,
+    "control_horizon_steps": 2,
+    "max_nash_iter": 3
+  },
+  "freeway_follower": {
+    "horizon_beam_width": 2,
+    "horizon_ramp_candidate_limit": 3,
+    "horizon_vsl_candidate_limit_per_link": 3
+  },
+  "urban_follower": {
+    "allocation_pso_particles": 8,
+    "allocation_pso_iterations": 8
+  }
+}

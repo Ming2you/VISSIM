@@ -1,0 +1,60 @@
+# Prediction error component diagnostics
+
+`error` is observed minus predicted. Positive means the model under-predicted the observed value.
+
+| run | controller | scenario | metric | mean observed | mean predicted | mean error | mean abs error | rel error | density excess | spillback |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_mean_speed_kph` | 70.684 | 89.831 | -19.147 | 19.147 | -0.195 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_segment_total_veh` | 130.000 | 120.750 | 9.250 | 16.849 | 0.104 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_total_veh` | 130.000 | 120.750 | 9.250 | 16.849 | 0.104 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `protected_accumulation_veh` | 215.080 | 273.375 | -58.295 | 58.295 | -0.263 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `ramp_queue_total_veh` | 6.600 | 7.447 | -0.847 | 9.458 | 1.183 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `total_model_vehicles` | 652.800 | 675.608 | -22.808 | 51.864 | -0.008 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_link_occupancy_total_veh` | 86.120 | 212.863 | -126.743 | 126.743 | -0.625 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_movement_queue_total_veh` | 436.680 | 341.996 | 94.684 | 94.684 | 0.392 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_queue_plus_link_occupancy_total_veh` | 522.800 | 561.876 | -39.076 | 57.451 | -0.048 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_mean_speed_kph` | 95.284 | 102.911 | -7.628 | 11.616 | -0.068 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_segment_total_veh` | 79.400 | 100.975 | -21.575 | 22.346 | -0.189 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_total_veh` | 79.400 | 100.975 | -21.575 | 22.346 | -0.189 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `protected_accumulation_veh` | 233.475 | 306.517 | -73.042 | 73.042 | -0.309 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `ramp_queue_total_veh` | 24.600 | 18.293 | 6.307 | 11.769 | 2.527 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `total_model_vehicles` | 835.600 | 815.047 | 20.553 | 22.504 | 0.028 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_link_occupancy_total_veh` | 112.120 | 271.552 | -159.432 | 159.432 | -0.624 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_movement_queue_total_veh` | 644.080 | 442.520 | 201.560 | 201.560 | 0.499 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_queue_plus_link_occupancy_total_veh` | 756.200 | 723.103 | 33.097 | 35.230 | 0.045 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_mean_speed_kph` | 105.907 | 107.751 | -1.844 | 4.577 | -0.014 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_segment_total_veh` | 89.200 | 85.923 | 3.277 | 8.532 | 0.052 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_total_veh` | 89.200 | 85.923 | 3.277 | 8.532 | 0.052 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `protected_accumulation_veh` | 208.962 | 285.017 | -76.054 | 76.054 | -0.320 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `ramp_queue_total_veh` | 4.600 | 7.976 | -3.376 | 7.097 | -0.017 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `total_model_vehicles` | 586.400 | 695.476 | -109.076 | 109.076 | -0.143 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_link_occupancy_total_veh` | 82.830 | 225.552 | -142.722 | 142.722 | -0.654 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_movement_queue_total_veh` | 414.370 | 384.002 | 30.368 | 78.748 | 0.165 | 0.000 | 0.000 |
+| prediction_holdout_v2_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_queue_plus_link_occupancy_total_veh` | 497.200 | 617.262 | -120.062 | 120.062 | -0.180 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_mean_speed_kph` | 70.684 | 89.831 | -19.147 | 19.147 | -0.195 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_segment_total_veh` | 130.000 | 144.196 | -14.196 | 21.669 | -0.076 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `freeway_total_veh` | 130.000 | 144.196 | -14.196 | 21.669 | -0.076 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `protected_accumulation_veh` | 215.080 | 273.375 | -58.295 | 58.295 | -0.263 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `ramp_queue_total_veh` | 6.600 | 7.447 | -0.847 | 9.458 | 1.183 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `total_model_vehicles` | 652.800 | 699.055 | -46.255 | 59.452 | -0.046 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_link_occupancy_total_veh` | 86.120 | 212.863 | -126.743 | 126.743 | -0.625 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_movement_queue_total_veh` | 436.680 | 341.996 | 94.684 | 94.684 | 0.392 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_fw_eb_heavy_u1800_fw3400_seed47_300s | no-control | fw_eb_heavy | `urban_queue_plus_link_occupancy_total_veh` | 522.800 | 529.486 | -6.686 | 33.848 | 0.010 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_mean_speed_kph` | 95.284 | 102.911 | -7.628 | 11.616 | -0.068 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_segment_total_veh` | 79.400 | 120.582 | -41.182 | 41.182 | -0.321 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `freeway_total_veh` | 79.400 | 120.582 | -41.182 | 41.182 | -0.321 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `protected_accumulation_veh` | 233.475 | 306.517 | -73.042 | 73.042 | -0.309 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `ramp_queue_total_veh` | 24.600 | 18.293 | 6.307 | 11.769 | 2.527 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `total_model_vehicles` | 835.600 | 834.654 | 0.946 | 23.493 | 0.000 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_link_occupancy_total_veh` | 112.120 | 271.552 | -159.432 | 159.432 | -0.624 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_movement_queue_total_veh` | 644.080 | 442.520 | 201.560 | 201.560 | 0.499 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_ramp_d_bias_u2200_fw3000_seed47_300s | no-control | ramp_d_bias | `urban_queue_plus_link_occupancy_total_veh` | 756.200 | 681.419 | 74.781 | 74.781 | 0.109 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_mean_speed_kph` | 105.907 | 107.751 | -1.844 | 4.577 | -0.014 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_segment_total_veh` | 89.200 | 102.607 | -13.407 | 13.407 | -0.119 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `freeway_total_veh` | 89.200 | 102.607 | -13.407 | 13.407 | -0.119 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `protected_accumulation_veh` | 208.962 | 285.017 | -76.054 | 76.054 | -0.320 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `ramp_queue_total_veh` | 4.600 | 7.976 | -3.376 | 7.097 | -0.017 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `total_model_vehicles` | 586.400 | 712.160 | -125.760 | 125.760 | -0.165 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_link_occupancy_total_veh` | 82.830 | 225.552 | -142.722 | 142.722 | -0.654 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_movement_queue_total_veh` | 414.370 | 384.002 | 30.368 | 78.748 | 0.165 | 0.000 | 0.000 |
+| prediction_holdout_v3_no_control_20260629/no-control_urban_d_heavy_u2400_fw2600_seed47_300s | no-control | urban_d_heavy | `urban_queue_plus_link_occupancy_total_veh` | 497.200 | 581.680 | -84.480 | 84.480 | -0.130 | 0.000 | 0.000 |

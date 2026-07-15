@@ -1,0 +1,24 @@
+{
+  "name": "02_urban_priority",
+  "description": "Stronger protected-region and urban queue protection; useful if the network forms an urban MFD/hysteresis loop.",
+  "leader": {
+    "w_P": 1.6,
+    "w_F": 0.8,
+    "N_P_crit_veh": 390.0,
+    "mfd_penalty_mode": "all_urban_halfcap",
+    "mfd_storage_weight": 1.6,
+    "mfd_storage_threshold_ratio": 0.45
+  },
+  "freeway_follower": {
+    "ramp_queue_penalty": 9.0,
+    "density_penalty": 9.0,
+    "metering_smoothness_weight": 0.08,
+    "vsl_smoothness_weight": 0.08,
+    "vsl_max_km_h": 120.0
+  },
+  "urban_follower": {
+    "boundary_balance_weight": 14.0,
+    "green_smoothness_weight": 0.06,
+    "offset_smoothness_weight": 0.08
+  }
+}

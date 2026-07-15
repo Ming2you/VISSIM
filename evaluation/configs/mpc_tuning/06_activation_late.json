@@ -1,0 +1,18 @@
+{
+  "name": "06_activation_late",
+  "description": "Later/less intrusive activation. Checks if the calibrated plant prefers near-free-flow operation until congestion is clear.",
+  "leader": {
+    "N_P_crit_veh": 430.0,
+    "mfd_penalty_mode": "all_urban_halfcap",
+    "vsl_activation_density_ratio": 1.0,
+    "metering_activation_density_ratio": 1.0,
+    "mfd_storage_threshold_ratio": 0.55
+  },
+  "freeway_follower": {
+    "ramp_queue_penalty": 8.0,
+    "density_penalty": 8.0,
+    "metering_smoothness_weight": 0.12,
+    "vsl_smoothness_weight": 0.12,
+    "vsl_max_km_h": 120.0
+  }
+}

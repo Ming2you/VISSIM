@@ -1,0 +1,561 @@
+{
+  "schema_version": 2,
+  "network": "C:/Users/TRLAB/Desktop/찐찐막/Network_Vissim_Work/modi_eval_vsl_8seg.inpx",
+  "control_action": "speed_limit_kph_by_segment_id",
+  "notes": [
+    "8 control segments per direction; one ramp junction per segment.",
+    "Model geometry: off_ramp_segment_index {OR_D:2, OR_F:4} (EB) / {OR_F:2, OR_D:4} (WB order),",
+    "ramp_merge_segment_index {R_D:3, R_F:5} (EB) / {R_F:3, R_D:5} (WB order)",
+    "matching Numerical-Sim feature/segment-agents-13p default.yaml (segments 8, off 2/4, merge 3/5).",
+    "Links 33/34 unchanged from the 5-seg network; mainline extended with entry/exit links + 4 m gap connectors.",
+    "S0 lives on the entry extension link; S7 spans the main-link tail + exit extension link.",
+    "segment_start_m/segment_end_m are corridor coordinates (0 = entry link start).",
+    "dsd pos_m is in the DSD's own link coordinates."
+  ],
+  "mainline_extension": {
+    "EB_entry_link": 35,
+    "EB_exit_link": 36,
+    "WB_entry_link": 37,
+    "WB_exit_link": 38,
+    "connectors": {
+      "FW_E entry->main": 10074,
+      "FW_E main->exit": 10075,
+      "FW_W entry->main": 10076,
+      "FW_W main->exit": 10077
+    },
+    "gap_m": 4.0
+  },
+  "runner_binning": {
+    "main_link_bounds": {
+      "33": [
+        0.0,
+        350.0,
+        800.0,
+        1300.0,
+        1800.0,
+        2300.0,
+        2600.0,
+        2900.003
+      ],
+      "34": [
+        0.0,
+        350.0,
+        850.0,
+        1350.0,
+        1900.0,
+        2450.0,
+        2750.0,
+        2900.003
+      ]
+    },
+    "main_link_segment_offset": 1,
+    "link_to_segment": {
+      "35": {
+        "model_link": "FW_E",
+        "segment": 0
+      },
+      "10074": {
+        "model_link": "FW_E",
+        "segment": 0
+      },
+      "36": {
+        "model_link": "FW_E",
+        "segment": 7
+      },
+      "10075": {
+        "model_link": "FW_E",
+        "segment": 7
+      },
+      "37": {
+        "model_link": "FW_W",
+        "segment": 0
+      },
+      "10076": {
+        "model_link": "FW_W",
+        "segment": 0
+      },
+      "38": {
+        "model_link": "FW_W",
+        "segment": 7
+      },
+      "10077": {
+        "model_link": "FW_W",
+        "segment": 7
+      }
+    },
+    "entry_len_m": {
+      "EB": 500.0,
+      "WB": 350.0
+    },
+    "exit_len_m": {
+      "EB": 200.0,
+      "WB": 250.0
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "EB_S0_W_EXT_ENTRY",
+      "model_link": "FW_E",
+      "model_segment_index": 0,
+      "direction": "EB",
+      "link": 35,
+      "segment_start_m": 0.0,
+      "segment_end_m": 504.0,
+      "length_m": 504.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 1,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S0_W_EXT_ENTRY_L35_LN1"
+        },
+        "2": {
+          "dsd_no": 2,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S0_W_EXT_ENTRY_L35_LN2"
+        }
+      },
+      "purpose": "EB entry extension segment (upstream warmup)"
+    },
+    {
+      "segment_id": "EB_S1_W_APPROACH",
+      "model_link": "FW_E",
+      "model_segment_index": 1,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 500.0,
+      "segment_end_m": 850.0,
+      "length_m": 350.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 3,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S1_W_APPROACH_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 4,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S1_W_APPROACH_L33_LN2"
+        }
+      },
+      "purpose": "EB approach segment before D diverge"
+    },
+    {
+      "segment_id": "EB_S2_D_DIVERGE",
+      "model_link": "FW_E",
+      "model_segment_index": 2,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 850.0,
+      "segment_end_m": 1300.0,
+      "length_m": 450.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 5,
+          "pos_m": 350.0,
+          "name": "EVAL_VSL_SEG_EB_S2_D_DIVERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 6,
+          "pos_m": 350.0,
+          "name": "EVAL_VSL_SEG_EB_S2_D_DIVERGE_L33_LN2"
+        }
+      },
+      "purpose": "off_ramp OR_D diverge at 499.03 (model off_ramp_segment_index 2)"
+    },
+    {
+      "segment_id": "EB_S3_D_MERGE",
+      "model_link": "FW_E",
+      "model_segment_index": 3,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 1300.0,
+      "segment_end_m": 1800.0,
+      "length_m": 500.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 7,
+          "pos_m": 800.0,
+          "name": "EVAL_VSL_SEG_EB_S3_D_MERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 8,
+          "pos_m": 800.0,
+          "name": "EVAL_VSL_SEG_EB_S3_D_MERGE_L33_LN2"
+        }
+      },
+      "purpose": "on_ramp R_D merge at 812.39, metering (model ramp_merge_segment_index 3)"
+    },
+    {
+      "segment_id": "EB_S4_F_DIVERGE",
+      "model_link": "FW_E",
+      "model_segment_index": 4,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 1800.0,
+      "segment_end_m": 2300.0,
+      "length_m": 500.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 9,
+          "pos_m": 1300.0,
+          "name": "EVAL_VSL_SEG_EB_S4_F_DIVERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 10,
+          "pos_m": 1300.0,
+          "name": "EVAL_VSL_SEG_EB_S4_F_DIVERGE_L33_LN2"
+        }
+      },
+      "purpose": "off_ramp OR_F diverge at 1735.61 (model off_ramp_segment_index 4)"
+    },
+    {
+      "segment_id": "EB_S5_F_MERGE",
+      "model_link": "FW_E",
+      "model_segment_index": 5,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 2300.0,
+      "segment_end_m": 2800.0,
+      "length_m": 500.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 11,
+          "pos_m": 1800.0,
+          "name": "EVAL_VSL_SEG_EB_S5_F_MERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 12,
+          "pos_m": 1800.0,
+          "name": "EVAL_VSL_SEG_EB_S5_F_MERGE_L33_LN2"
+        }
+      },
+      "purpose": "on_ramp R_F merge at 2029.15, metering (model ramp_merge_segment_index 5)"
+    },
+    {
+      "segment_id": "EB_S6_POST_F",
+      "model_link": "FW_E",
+      "model_segment_index": 6,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 2800.0,
+      "segment_end_m": 3100.0,
+      "length_m": 300.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 13,
+          "pos_m": 2300.0,
+          "name": "EVAL_VSL_SEG_EB_S6_POST_F_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 14,
+          "pos_m": 2300.0,
+          "name": "EVAL_VSL_SEG_EB_S6_POST_F_L33_LN2"
+        }
+      },
+      "purpose": "EB post-F mainline segment"
+    },
+    {
+      "segment_id": "EB_S7_E_EXIT",
+      "model_link": "FW_E",
+      "model_segment_index": 7,
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 3100.0,
+      "segment_end_m": 3604.003,
+      "length_m": 504.003,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 15,
+          "pos_m": 2600.0,
+          "name": "EVAL_VSL_SEG_EB_S7_E_EXIT_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 16,
+          "pos_m": 2600.0,
+          "name": "EVAL_VSL_SEG_EB_S7_E_EXIT_L33_LN2"
+        }
+      },
+      "purpose": "EB exit segment (tail of main link + exit extension)"
+    },
+    {
+      "segment_id": "WB_S0_E_EXT_ENTRY",
+      "model_link": "FW_W",
+      "model_segment_index": 0,
+      "direction": "WB",
+      "link": 37,
+      "segment_start_m": 0.0,
+      "segment_end_m": 354.0,
+      "length_m": 354.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 17,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S0_E_EXT_ENTRY_L37_LN1"
+        },
+        "2": {
+          "dsd_no": 18,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S0_E_EXT_ENTRY_L37_LN2"
+        }
+      },
+      "purpose": "WB entry extension segment (upstream warmup)"
+    },
+    {
+      "segment_id": "WB_S1_E_APPROACH",
+      "model_link": "FW_W",
+      "model_segment_index": 1,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 350.0,
+      "segment_end_m": 700.0,
+      "length_m": 350.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 19,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S1_E_APPROACH_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 20,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S1_E_APPROACH_L34_LN2"
+        }
+      },
+      "purpose": "WB approach segment before F diverge"
+    },
+    {
+      "segment_id": "WB_S2_F_DIVERGE",
+      "model_link": "FW_W",
+      "model_segment_index": 2,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 700.0,
+      "segment_end_m": 1200.0,
+      "length_m": 500.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 21,
+          "pos_m": 350.0,
+          "name": "EVAL_VSL_SEG_WB_S2_F_DIVERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 22,
+          "pos_m": 350.0,
+          "name": "EVAL_VSL_SEG_WB_S2_F_DIVERGE_L34_LN2"
+        }
+      },
+      "purpose": "off_ramp OR_F diverge at 537.74 (model off_ramp_segment_index 2)"
+    },
+    {
+      "segment_id": "WB_S3_F_MERGE",
+      "model_link": "FW_W",
+      "model_segment_index": 3,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 1200.0,
+      "segment_end_m": 1700.0,
+      "length_m": 500.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 23,
+          "pos_m": 850.0,
+          "name": "EVAL_VSL_SEG_WB_S3_F_MERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 24,
+          "pos_m": 850.0,
+          "name": "EVAL_VSL_SEG_WB_S3_F_MERGE_L34_LN2"
+        }
+      },
+      "purpose": "on_ramp R_F merge at 1155.25, metering (model ramp_merge_segment_index 3)"
+    },
+    {
+      "segment_id": "WB_S4_D_DIVERGE",
+      "model_link": "FW_W",
+      "model_segment_index": 4,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 1700.0,
+      "segment_end_m": 2250.0,
+      "length_m": 550.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 25,
+          "pos_m": 1350.0,
+          "name": "EVAL_VSL_SEG_WB_S4_D_DIVERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 26,
+          "pos_m": 1350.0,
+          "name": "EVAL_VSL_SEG_WB_S4_D_DIVERGE_L34_LN2"
+        }
+      },
+      "purpose": "off_ramp OR_D diverge at 1743.46 (model off_ramp_segment_index 4)"
+    },
+    {
+      "segment_id": "WB_S5_D_MERGE",
+      "model_link": "FW_W",
+      "model_segment_index": 5,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 2250.0,
+      "segment_end_m": 2800.0,
+      "length_m": 550.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 27,
+          "pos_m": 1900.0,
+          "name": "EVAL_VSL_SEG_WB_S5_D_MERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 28,
+          "pos_m": 1900.0,
+          "name": "EVAL_VSL_SEG_WB_S5_D_MERGE_L34_LN2"
+        }
+      },
+      "purpose": "on_ramp R_D merge at 2398.24, metering (model ramp_merge_segment_index 5)"
+    },
+    {
+      "segment_id": "WB_S6_POST_D",
+      "model_link": "FW_W",
+      "model_segment_index": 6,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 2800.0,
+      "segment_end_m": 3100.0,
+      "length_m": 300.0,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 29,
+          "pos_m": 2450.0,
+          "name": "EVAL_VSL_SEG_WB_S6_POST_D_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 30,
+          "pos_m": 2450.0,
+          "name": "EVAL_VSL_SEG_WB_S6_POST_D_L34_LN2"
+        }
+      },
+      "purpose": "WB post-D mainline segment"
+    },
+    {
+      "segment_id": "WB_S7_W_EXIT",
+      "model_link": "FW_W",
+      "model_segment_index": 7,
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 3100.0,
+      "segment_end_m": 3504.003,
+      "length_m": 404.003,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 31,
+          "pos_m": 2750.0,
+          "name": "EVAL_VSL_SEG_WB_S7_W_EXIT_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 32,
+          "pos_m": 2750.0,
+          "name": "EVAL_VSL_SEG_WB_S7_W_EXIT_L34_LN2"
+        }
+      },
+      "purpose": "WB exit segment (tail of main link + exit extension)"
+    }
+  ]
+}

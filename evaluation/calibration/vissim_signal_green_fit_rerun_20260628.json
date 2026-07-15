@@ -1,0 +1,235 @@
+{
+  "batch_dir": "evaluation\\runs\\calibration_signal_vector_20260626",
+  "signal_manifest": "evaluation\\signal_install\\signal_manifest.csv",
+  "warmup_sec": 300.0,
+  "model": "q_vph * cycle_sec = saturation_flow_vph * (green_sec - lost_time_sec)",
+  "network_cycle_overhead_sec": 10.0,
+  "approach_count": 20,
+  "summary": {
+    "median_fit_saturation_flow_vph_approach": 829.290465631929,
+    "median_fit_lost_time_sec": 6.008749936899492,
+    "note": "Approach values are total for the two-lane approach; divide by observed active lanes if a per-lane value is needed."
+  },
+  "by_approach": {
+    "A_L1": {
+      "node": "A",
+      "link": 1,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 729.3348115299333,
+      "fit_lost_time_sec": -69.52737664548692,
+      "fit_r2": 0.052357443953956806,
+      "direct_sat_flow_median_vph_approach": 1399.4805194805194,
+      "avg_flow_max_vph": 1498.5365853658536
+    },
+    "A_L3": {
+      "node": "A",
+      "link": 3,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 2414.2128603104215,
+      "fit_lost_time_sec": -2.0684233245469787,
+      "fit_r2": 0.5397308527905357,
+      "direct_sat_flow_median_vph_approach": 2444.3348115299336,
+      "avg_flow_max_vph": 1533.658536585366
+    },
+    "A_L6": {
+      "node": "A",
+      "link": 6,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 1729.667405764967,
+      "fit_lost_time_sec": -40.59978463747306,
+      "fit_r2": 0.3160239785827338,
+      "direct_sat_flow_median_vph_approach": 3054.2508710801394,
+      "avg_flow_max_vph": 1855.609756097561
+    },
+    "A_L8": {
+      "node": "A",
+      "link": 8,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 512.5720620842571,
+      "fit_lost_time_sec": 18.09542760738849,
+      "fit_r2": 0.2508560535405454,
+      "direct_sat_flow_median_vph_approach": 227.61184296334943,
+      "avg_flow_max_vph": 409.7560975609756
+    },
+    "B_L12": {
+      "node": "B",
+      "link": 12,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": -223.68070953436782,
+      "fit_lost_time_sec": 0.0,
+      "fit_r2": 0.0057427233397673305,
+      "direct_sat_flow_median_vph_approach": 3196.1807095343684,
+      "avg_flow_max_vph": 1697.560975609756
+    },
+    "B_L14": {
+      "node": "B",
+      "link": 14,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": -47.893569844789326,
+      "fit_lost_time_sec": 0.0,
+      "fit_r2": 0.00580625677032609,
+      "direct_sat_flow_median_vph_approach": 215.22648083623693,
+      "avg_flow_max_vph": 275.1219512195122
+    },
+    "B_L5": {
+      "node": "B",
+      "link": 5,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 93.05986696230617,
+      "fit_lost_time_sec": -2125.135096497494,
+      "fit_r2": 0.00038169653079633825,
+      "direct_sat_flow_median_vph_approach": 3746.8272186923555,
+      "avg_flow_max_vph": 3020.487804878049
+    },
+    "B_L9": {
+      "node": "B",
+      "link": 9,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 1589.5565410199563,
+      "fit_lost_time_sec": -13.404957524864319,
+      "fit_r2": 0.4361397232608867,
+      "direct_sat_flow_median_vph_approach": 1952.2117516629712,
+      "avg_flow_max_vph": 1164.8780487804877
+    },
+    "C_L11": {
+      "node": "C",
+      "link": 11,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 929.2461197339247,
+      "fit_lost_time_sec": -54.11171824667732,
+      "fit_r2": 0.2602619319541475,
+      "direct_sat_flow_median_vph_approach": 1895.5875831485591,
+      "avg_flow_max_vph": 1106.341463414634
+    },
+    "C_L15": {
+      "node": "C",
+      "link": 15,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 2635.4323725055433,
+      "fit_lost_time_sec": 6.008749936899492,
+      "fit_r2": 0.22441208672174484,
+      "direct_sat_flow_median_vph_approach": 2019.9113082039912,
+      "avg_flow_max_vph": 2265.3658536585367
+    },
+    "C_L18": {
+      "node": "C",
+      "link": 18,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 1183.4589800443464,
+      "fit_lost_time_sec": -15.076629070333844,
+      "fit_r2": 0.3344103619114306,
+      "direct_sat_flow_median_vph_approach": 1458.2926829268295,
+      "avg_flow_max_vph": 919.0243902439025
+    },
+    "C_L20": {
+      "node": "C",
+      "link": 20,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 382.23946784922396,
+      "fit_lost_time_sec": -4.726028191890484,
+      "fit_r2": 0.2534206523374589,
+      "direct_sat_flow_median_vph_approach": 323.31625333060055,
+      "avg_flow_max_vph": 310.2439024390244
+    },
+    "D_L21": {
+      "node": "D",
+      "link": 21,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 1309.1352549889136,
+      "fit_lost_time_sec": -17.75075370075539,
+      "fit_r2": 0.26313879755902725,
+      "direct_sat_flow_median_vph_approach": 1702.9181184668992,
+      "avg_flow_max_vph": 1147.3170731707319
+    },
+    "D_L24": {
+      "node": "D",
+      "link": 24,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 590.3325942350332,
+      "fit_lost_time_sec": -18.936448317307697,
+      "fit_r2": 0.15319838571036204,
+      "direct_sat_flow_median_vph_approach": 773.2855093256817,
+      "avg_flow_max_vph": 608.780487804878
+    },
+    "D_L26": {
+      "node": "D",
+      "link": 26,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 150.509977827051,
+      "fit_lost_time_sec": 17.431349440188566,
+      "fit_r2": 0.26852173253856737,
+      "direct_sat_flow_median_vph_approach": 102.02090592334496,
+      "avg_flow_max_vph": 87.8048780487805
+    },
+    "D_L7": {
+      "node": "D",
+      "link": 7,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 30.576496674057623,
+      "fit_lost_time_sec": -1652.3857868020318,
+      "fit_r2": 0.00019223980527960371,
+      "direct_sat_flow_median_vph_approach": 866.9133019061284,
+      "avg_flow_max_vph": 1041.9512195121952
+    },
+    "F_L19": {
+      "node": "F",
+      "link": 19,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 360.0443458980044,
+      "fit_lost_time_sec": -83.73666707722627,
+      "fit_r2": 0.06015745812988493,
+      "direct_sat_flow_median_vph_approach": 803.4146341463415,
+      "avg_flow_max_vph": 614.6341463414634
+    },
+    "F_L27": {
+      "node": "F",
+      "link": 27,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 1753.5476718403547,
+      "fit_lost_time_sec": -2.1697667067079784,
+      "fit_r2": 0.4653919775276184,
+      "direct_sat_flow_median_vph_approach": 1739.8669623059868,
+      "avg_flow_max_vph": 1118.0487804878048
+    },
+    "F_L30": {
+      "node": "F",
+      "link": 30,
+      "phase": "major",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 987.4722838137475,
+      "fit_lost_time_sec": -40.12286965308181,
+      "fit_r2": 0.15308819540090746,
+      "direct_sat_flow_median_vph_approach": 1623.934114665822,
+      "avg_flow_max_vph": 1182.4390243902437
+    },
+    "F_L32": {
+      "node": "F",
+      "link": 32,
+      "phase": "minor",
+      "samples": 12,
+      "fit_saturation_flow_vph_approach": 64.70066518847007,
+      "fit_lost_time_sec": 23.289924605894445,
+      "fit_r2": 0.3193583251293902,
+      "direct_sat_flow_median_vph_approach": 26.07538802660754,
+      "avg_flow_max_vph": 40.97560975609756
+    }
+  }
+}

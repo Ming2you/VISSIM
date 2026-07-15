@@ -1,0 +1,19 @@
+{
+  "status": "ok",
+  "follower_solver_mode": "distributed",
+  "agent_count": 15,
+  "D_ramp_queue": 40.0,
+  "F_ramp_queue": 0.0,
+  "U_D_movement_queue": 100.0,
+  "U_F_movement_queue": 0.0,
+  "total_movement_queue": 100.0,
+  "global_urban_input": 9999,
+  "global_boundary_input": 8888,
+  "checks": [
+    "local_observation_overrides_global_aggregates",
+    "D_ramp_does_not_leak_to_F_ramp_agents",
+    "D_urban_link_does_not_leak_to_U_F",
+    "runtime_agent_state_masking_blocks_cross_agent_state",
+    "distributed_mode_enabled_for_local_observation"
+  ]
+}

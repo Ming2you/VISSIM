@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "date": "2026-06-25",
+  "purpose": "Topology calibration profile that aligns the Numerical-Sim MPC abstraction with the staged 5-segment Vissim freeway plant.",
+  "vissim_network": "C:/Users/TRLAB/Desktop/찐찐막/Network_Vissim_Work/modi_eval_vsl_segmented.inpx",
+  "source_mapping": "evaluation/vsl_install/vsl_segment_mapping.json",
+  "applied_in": "evaluation/controllers/vissim_stackelberg_adapter.py",
+  "freeway_model": {
+    "links": {
+      "FW_E": {
+        "vissim_link": 33,
+        "direction": "EB",
+        "segments": [
+          {
+            "index": 0,
+            "segment_id": "EB_S0_W_ENTRY_TO_D_DIVERGE",
+            "role": "upstream of D",
+            "start_m": 1.0,
+            "end_m": 499.032
+          },
+          {
+            "index": 1,
+            "segment_id": "EB_S1_D_DIVERGE_TO_D_MERGE",
+            "role": "D weave / D ramp influence",
+            "start_m": 499.032,
+            "end_m": 812.391
+          },
+          {
+            "index": 2,
+            "segment_id": "EB_S2_D_MERGE_TO_F_DIVERGE",
+            "role": "mid-mainline between D and F",
+            "start_m": 812.391,
+            "end_m": 1735.615
+          },
+          {
+            "index": 3,
+            "segment_id": "EB_S3_F_DIVERGE_TO_F_MERGE",
+            "role": "F weave / F ramp influence",
+            "start_m": 1735.615,
+            "end_m": 2029.15
+          },
+          {
+            "index": 4,
+            "segment_id": "EB_S4_F_MERGE_TO_E_EXIT",
+            "role": "downstream of F",
+            "start_m": 2029.15,
+            "end_m": 2900.003
+          }
+        ]
+      },
+      "FW_W": {
+        "vissim_link": 34,
+        "direction": "WB",
+        "segments": [
+          {
+            "index": 0,
+            "segment_id": "WB_S0_E_ENTRY_TO_F_DIVERGE",
+            "role": "upstream of F",
+            "start_m": 1.0,
+            "end_m": 537.739
+          },
+          {
+            "index": 1,
+            "segment_id": "WB_S1_F_DIVERGE_TO_F_MERGE",
+            "role": "F weave / F ramp influence",
+            "start_m": 537.739,
+            "end_m": 1155.25
+          },
+          {
+            "index": 2,
+            "segment_id": "WB_S2_F_MERGE_TO_D_DIVERGE",
+            "role": "mid-mainline between F and D",
+            "start_m": 1155.25,
+            "end_m": 1743.46
+          },
+          {
+            "index": 3,
+            "segment_id": "WB_S3_D_DIVERGE_TO_D_MERGE",
+            "role": "D weave / D ramp influence",
+            "start_m": 1743.46,
+            "end_m": 2398.245
+          },
+          {
+            "index": 4,
+            "segment_id": "WB_S4_D_MERGE_TO_W_EXIT",
+            "role": "downstream of D",
+            "start_m": 2398.245,
+            "end_m": 2900.003
+          }
+        ]
+      }
+    },
+    "mpc_overrides": {
+      "freeway_segments_per_link": 5,
+      "freeway_segment_length_km": 0.58,
+      "freeway_lanes": 2,
+      "ramp_merge_segment_index": {
+        "R_D_W": 3,
+        "R_F_W": 1,
+        "R_D_E": 1,
+        "R_F_E": 3
+      },
+      "off_ramp_segment_index": {
+        "OR_D_W": 3,
+        "OR_F_W": 1,
+        "OR_D_E": 1,
+        "OR_F_E": 3
+      }
+    }
+  },
+  "numeric_calibration_targets": {
+    "network.v_free": "Estimate from low-demand no-control Vissim runs.",
+    "network.rho_crit": "Estimate from freeway demand sweep density-flow peak.",
+    "network.rho_max": "Estimate from queue/spillback or high-demand jam-density observations.",
+    "network.freeway_capacity_veh_h": "Estimate from max observed mainline flow per direction.",
+    "network.ramp_capacity_veh_h": "Estimate from ramp-meter green sweep and passage/release counts.",
+    "network.movement_capacity_veh_h": "Estimate from signal saturation-flow runs at A/B/C/D/F.",
+    "leader.N_P_crit_veh": "Recalibrate from Vissim urban protected accumulation-production curve.",
+    "freeway_follower.vsl_set": "Constrain to Vissim Desired Speed distributions that are actually installed/read back reliably.",
+    "leader/freeway/urban weights": "Tune only after physical FD/MFD/actuator parameters are matched."
+  },
+  "status": {
+    "topology_profile": "applied",
+    "fd_numeric_fit": "pending",
+    "mfd_numeric_fit": "pending",
+    "actuator_response_fit": "pending",
+    "closed_loop_weight_tuning": "pending"
+  }
+}

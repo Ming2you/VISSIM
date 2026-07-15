@@ -1,0 +1,126 @@
+{
+  "profile": "asym-smoke",
+  "network": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\Network_Vissim_Work\\modi_eval_vsl_segmented.inpx",
+  "runner": "scripts\\run_stackelberg_vissim_controller.vbs",
+  "adapter": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+  "calibration_json": "evaluation\\calibration\\vissim_calibrated_overrides_vector_20260626.json",
+  "tuning_dir": "evaluation\\configs\\mpc_tuning",
+  "tunings": "00_calibrated_base",
+  "demand_profiles": "sym,fw_eb_heavy,fw_wb_heavy,d_ramp_bias,f_ramp_bias,urban_west_heavy,urban_east_heavy,urban_north_heavy,urban_d_heavy,urban_f_heavy",
+  "max_workers": 1,
+  "startup_stagger_sec": 30.0,
+  "case_timeout_sec": 360.0,
+  "case_count": 10,
+  "cases": [
+    {
+      "case_id": "mpc_00_calibrated_base_sym_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "sym",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_fw_eb_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "fw_eb_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_fw_wb_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "fw_wb_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_d_ramp_bias_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "d_ramp_bias",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_f_ramp_bias_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "f_ramp_bias",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_urban_west_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "urban_west_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_urban_east_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "urban_east_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_urban_north_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "urban_north_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_urban_d_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "urban_d_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_00_calibrated_base_urban_f_heavy_u2200_fw3000_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "demand_profile": "urban_f_heavy",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2200.0,
+      "freeway_volume_vph": 3000.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    }
+  ]
+}

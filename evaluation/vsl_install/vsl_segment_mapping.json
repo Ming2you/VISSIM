@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "network": "C:/Users/TRLAB/Desktop/???/Network_Vissim_Work/modi_eval_vsl_segmented.inpx",
+  "control_action": "speed_limit_kph_by_segment_id",
+  "notes": [
+    "Desired Speed Decisions are installed at control-segment starts, one per lane.",
+    "Controller can set all lane DSDs for a segment using DesSpeedDistr(10/20/30).",
+    "Positions are link-coordinate metres in each freeway link direction."
+  ],
+  "segments": [
+    {
+      "segment_id": "EB_S0_W_ENTRY_TO_D_DIVERGE",
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 1.0,
+      "segment_end_m": 499.032,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 1,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S0_W_ENTRY_TO_D_DIVERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 2,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_EB_S0_W_ENTRY_TO_D_DIVERGE_L33_LN2"
+        }
+      },
+      "purpose": "Start of EB entry/upstream segment before D off-ramp diverge"
+    },
+    {
+      "segment_id": "EB_S1_D_DIVERGE_TO_D_MERGE",
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 499.032,
+      "segment_end_m": 812.391,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 3,
+          "pos_m": 499.032,
+          "name": "EVAL_VSL_SEG_EB_S1_D_DIVERGE_TO_D_MERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 4,
+          "pos_m": 499.032,
+          "name": "EVAL_VSL_SEG_EB_S1_D_DIVERGE_TO_D_MERGE_L33_LN2"
+        }
+      },
+      "purpose": "Start of EB D weave/ramp influence segment"
+    },
+    {
+      "segment_id": "EB_S2_D_MERGE_TO_F_DIVERGE",
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 812.391,
+      "segment_end_m": 1735.615,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 5,
+          "pos_m": 812.391,
+          "name": "EVAL_VSL_SEG_EB_S2_D_MERGE_TO_F_DIVERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 6,
+          "pos_m": 812.391,
+          "name": "EVAL_VSL_SEG_EB_S2_D_MERGE_TO_F_DIVERGE_L33_LN2"
+        }
+      },
+      "purpose": "Start of EB mid-mainline segment between D and F"
+    },
+    {
+      "segment_id": "EB_S3_F_DIVERGE_TO_F_MERGE",
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 1735.615,
+      "segment_end_m": 2029.15,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 7,
+          "pos_m": 1735.615,
+          "name": "EVAL_VSL_SEG_EB_S3_F_DIVERGE_TO_F_MERGE_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 8,
+          "pos_m": 1735.615,
+          "name": "EVAL_VSL_SEG_EB_S3_F_DIVERGE_TO_F_MERGE_L33_LN2"
+        }
+      },
+      "purpose": "Start of EB F weave/ramp influence segment"
+    },
+    {
+      "segment_id": "EB_S4_F_MERGE_TO_E_EXIT",
+      "direction": "EB",
+      "link": 33,
+      "segment_start_m": 2029.15,
+      "segment_end_m": 2900.003,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 9,
+          "pos_m": 2029.15,
+          "name": "EVAL_VSL_SEG_EB_S4_F_MERGE_TO_E_EXIT_L33_LN1"
+        },
+        "2": {
+          "dsd_no": 10,
+          "pos_m": 2029.15,
+          "name": "EVAL_VSL_SEG_EB_S4_F_MERGE_TO_E_EXIT_L33_LN2"
+        }
+      },
+      "purpose": "Start of EB downstream segment after F on-ramp merge"
+    },
+    {
+      "segment_id": "WB_S0_E_ENTRY_TO_F_DIVERGE",
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 1.0,
+      "segment_end_m": 537.739,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 11,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S0_E_ENTRY_TO_F_DIVERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 12,
+          "pos_m": 1.0,
+          "name": "EVAL_VSL_SEG_WB_S0_E_ENTRY_TO_F_DIVERGE_L34_LN2"
+        }
+      },
+      "purpose": "Start of WB entry/upstream segment before F off-ramp diverge"
+    },
+    {
+      "segment_id": "WB_S1_F_DIVERGE_TO_F_MERGE",
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 537.739,
+      "segment_end_m": 1155.25,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 13,
+          "pos_m": 537.739,
+          "name": "EVAL_VSL_SEG_WB_S1_F_DIVERGE_TO_F_MERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 14,
+          "pos_m": 537.739,
+          "name": "EVAL_VSL_SEG_WB_S1_F_DIVERGE_TO_F_MERGE_L34_LN2"
+        }
+      },
+      "purpose": "Start of WB F weave/ramp influence segment"
+    },
+    {
+      "segment_id": "WB_S2_F_MERGE_TO_D_DIVERGE",
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 1155.25,
+      "segment_end_m": 1743.46,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 15,
+          "pos_m": 1155.25,
+          "name": "EVAL_VSL_SEG_WB_S2_F_MERGE_TO_D_DIVERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 16,
+          "pos_m": 1155.25,
+          "name": "EVAL_VSL_SEG_WB_S2_F_MERGE_TO_D_DIVERGE_L34_LN2"
+        }
+      },
+      "purpose": "Start of WB mid-mainline segment between F and D"
+    },
+    {
+      "segment_id": "WB_S3_D_DIVERGE_TO_D_MERGE",
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 1743.46,
+      "segment_end_m": 2398.245,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 17,
+          "pos_m": 1743.46,
+          "name": "EVAL_VSL_SEG_WB_S3_D_DIVERGE_TO_D_MERGE_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 18,
+          "pos_m": 1743.46,
+          "name": "EVAL_VSL_SEG_WB_S3_D_DIVERGE_TO_D_MERGE_L34_LN2"
+        }
+      },
+      "purpose": "Start of WB D weave/ramp influence segment"
+    },
+    {
+      "segment_id": "WB_S4_D_MERGE_TO_W_EXIT",
+      "direction": "WB",
+      "link": 34,
+      "segment_start_m": 2398.245,
+      "segment_end_m": 2900.003,
+      "default_speed_kph": 120,
+      "veh_classes": [
+        10,
+        20,
+        30
+      ],
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 19,
+          "pos_m": 2398.245,
+          "name": "EVAL_VSL_SEG_WB_S4_D_MERGE_TO_W_EXIT_L34_LN1"
+        },
+        "2": {
+          "dsd_no": 20,
+          "pos_m": 2398.245,
+          "name": "EVAL_VSL_SEG_WB_S4_D_MERGE_TO_W_EXIT_L34_LN2"
+        }
+      },
+      "purpose": "Start of WB downstream segment after D on-ramp merge"
+    }
+  ],
+  "segment_ids": [
+    "EB_S0_W_ENTRY_TO_D_DIVERGE",
+    "EB_S1_D_DIVERGE_TO_D_MERGE",
+    "EB_S2_D_MERGE_TO_F_DIVERGE",
+    "EB_S3_F_DIVERGE_TO_F_MERGE",
+    "EB_S4_F_MERGE_TO_E_EXIT",
+    "WB_S0_E_ENTRY_TO_F_DIVERGE",
+    "WB_S1_F_DIVERGE_TO_F_MERGE",
+    "WB_S2_F_MERGE_TO_D_DIVERGE",
+    "WB_S3_D_DIVERGE_TO_D_MERGE",
+    "WB_S4_D_MERGE_TO_W_EXIT"
+  ]
+}

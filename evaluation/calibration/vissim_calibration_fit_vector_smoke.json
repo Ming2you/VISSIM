@@ -1,0 +1,45 @@
+{
+  "batch_dir": "evaluation\\runs\\calibration_probe_vector_smoke",
+  "warmup_sec": 60.0,
+  "fd": {
+    "sample_count": 0,
+    "moving_sample_count": 0,
+    "free_speed_p85_kph": 0.0,
+    "free_speed_p50_kph": 0.0,
+    "max_flow_proxy_veh_h": 0.0,
+    "rho_at_max_flow_veh_km_lane": 0.0,
+    "speed_at_max_flow_kph": 0.0,
+    "suggested_initial_overrides": {
+      "network.v_free": null,
+      "network.freeway_capacity_veh_h": null,
+      "network.rho_crit": null,
+      "network.rho_max": 0.0
+    },
+    "by_demand": {},
+    "by_link": {},
+    "caveat": "flow_proxy_veh_h is density*speed*lanes from instantaneous vehicle states; use detector/passage flow for final FD calibration."
+  },
+  "ramp_metering": {
+    "sample_count": 0,
+    "by_site_green": {},
+    "suggested_green_to_rate_vph": {},
+    "caveat": "Short or underfed ramp runs can underestimate capacity; final fit needs sustained queue at the meter."
+  },
+  "signal_saturation": {
+    "sample_count": 0,
+    "by_approach": {},
+    "candidate_movement_capacity_veh_h": 0.0,
+    "caveat": "Use high-demand saturated approaches before treating this as signal saturation flow."
+  },
+  "urban_mfd": {
+    "sample_count": 0,
+    "by_urban_demand": {},
+    "candidate_N_P_crit_veh": 0.0,
+    "max_signal_production_vph": 0.0,
+    "caveat": "This uses signal stopline discharge as a production proxy; final MFD should use validated protected-region production counts."
+  },
+  "mpc_weight_tuning": {
+    "status": "pending",
+    "next": "Tune after FD, ramp, signal, and MFD physical calibration pass acceptance checks."
+  }
+}

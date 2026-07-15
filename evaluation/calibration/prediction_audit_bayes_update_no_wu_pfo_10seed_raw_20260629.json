@@ -1,0 +1,64 @@
+{
+  "schema_version": 2,
+  "calibration_json": "evaluation\\calibration\\vissim_network_calibration_v2_20260628.json",
+  "decision_count": 180,
+  "ratio_basis": "observed / source prediction.state_summary raw value",
+  "ratio_targets": {
+    "freeway_total_veh": "freeway_total_scale",
+    "urban_queue_plus_link_occupancy_total_veh": "urban_queue_plus_storage_scale"
+  },
+  "updates": {
+    "freeway_total_veh": {
+      "status": "ok",
+      "sample_count": 150,
+      "prior_scale": 0.6506866111845979,
+      "posterior_scale": 0.7770344478226261,
+      "posterior_sigma_log": 0.028482596056990578,
+      "ratio_mean": 0.7805974964081999,
+      "ratio_median": 0.7783584125979883,
+      "ratio_min": 0.6592040806871986,
+      "ratio_max": 0.9307656021585374,
+      "ratio_p10": 0.6946590853884955,
+      "ratio_p90": 0.8680751459847166,
+      "active_calibrated_ratio_median": 1.1962108935681948,
+      "active_calibrated_ratio_mean": 1.199652002962063,
+      "raw_abs_error_mean": 42.344766745630004,
+      "active_calibrated_abs_error_mean": 23.951921189908713,
+      "posterior_abs_error_mean": 9.629513971537765,
+      "posterior_abs_error_median": 8.593739755900529,
+      "posterior_vs_active_abs_error_pct": -59.79648607229545,
+      "active_calibration_improved_abs_error": true
+    },
+    "urban_queue_plus_link_occupancy_total_veh": {
+      "status": "ok",
+      "sample_count": 150,
+      "prior_scale": 1.0126470050769243,
+      "posterior_scale": 0.9542722511553158,
+      "posterior_sigma_log": 0.028482596056990578,
+      "ratio_mean": 0.9568099665456323,
+      "ratio_median": 0.9502209064245322,
+      "ratio_min": 0.804420246720536,
+      "ratio_max": 1.118889880922225,
+      "ratio_p10": 0.8397907263146426,
+      "ratio_p90": 1.0602782101654178,
+      "active_calibrated_ratio_median": 0.9383535443847484,
+      "active_calibrated_ratio_mean": 0.9448603133655143,
+      "raw_abs_error_mean": 56.83125581405431,
+      "active_calibrated_abs_error_mean": 63.06788412515319,
+      "posterior_abs_error_mean": 43.870272064892,
+      "posterior_abs_error_median": 31.63233061422997,
+      "posterior_vs_active_abs_error_pct": -30.439600640739844,
+      "active_calibration_improved_abs_error": false
+    }
+  },
+  "calibration_patch": {
+    "prediction": {
+      "audit_calibration": {
+        "enabled": true,
+        "mode": "bayesian_summary_scale_patch_not_controller_dynamics",
+        "freeway_total_scale": 0.7770344478226261,
+        "urban_queue_plus_storage_scale": 0.9542722511553158
+      }
+    }
+  }
+}

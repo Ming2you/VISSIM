@@ -1,0 +1,19 @@
+{
+  "name": "01_freeway_priority",
+  "description": "Earlier/stronger freeway congestion response; useful if mainline density or stopped vehicles dominate.",
+  "leader": {
+    "w_P": 0.8,
+    "w_F": 1.6,
+    "N_P_crit_veh": 390.0,
+    "mfd_penalty_mode": "all_urban_halfcap",
+    "vsl_activation_density_ratio": 0.9,
+    "metering_activation_density_ratio": 0.9
+  },
+  "freeway_follower": {
+    "ramp_queue_penalty": 12.0,
+    "density_penalty": 18.0,
+    "metering_smoothness_weight": 0.05,
+    "vsl_smoothness_weight": 0.05,
+    "vsl_max_km_h": 120.0
+  }
+}

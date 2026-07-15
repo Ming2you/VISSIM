@@ -1,0 +1,25 @@
+{
+  "profile": "smoke",
+  "network": "C:\\missing\\network.inpx",
+  "runner": "C:\\missing\\runner.vbs",
+  "adapter": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+  "calibration_json": "evaluation\\calibration\\vissim_calibrated_overrides_vector_20260626.json",
+  "tuning_dir": "evaluation\\configs\\mpc_tuning",
+  "tunings": "00_calibrated_base",
+  "max_workers": 1,
+  "startup_stagger_sec": 30.0,
+  "case_timeout_sec": 1.0,
+  "case_count": 1,
+  "cases": [
+    {
+      "case_id": "mpc_00_calibrated_base_u2600_fw2400_seed13_300s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "sim_period_sec": 300,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    }
+  ]
+}

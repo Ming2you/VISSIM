@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "source_inventory": "evaluation/current_inventory/inventory.json",
+  "geometry_policy": "Do not rewrite current link/connector geometry. Add these only to a separate evaluation INPX copy.",
+  "phase_1_global_state": {
+    "detectors_required": false,
+    "existing_data_collection_points": 64,
+    "existing_queue_counters": 23,
+    "runner": "scripts/run_global_state_smoke.vbs",
+    "status": "smoke runnable with GLOBAL_NOOP"
+  },
+  "route_objects_missing": {
+    "current_static_route_decisions": 0,
+    "current_static_routes": 0,
+    "minimum_origin_route_decisions": [
+      {"id": "RD_VI_A_W", "vehicle_input": "VI_A_W", "link": 1, "pos_m": 25, "purpose": "urban origin split from AW into A"},
+      {"id": "RD_VI_A_N", "vehicle_input": "VI_A_N", "link": 3, "pos_m": 25, "purpose": "urban origin split from AN into A"},
+      {"id": "RD_VI_B_N", "vehicle_input": "VI_B_N", "link": 9, "pos_m": 25, "purpose": "urban origin split from BN into B"},
+      {"id": "RD_VI_C_N", "vehicle_input": "VI_C_N", "link": 15, "pos_m": 25, "purpose": "urban origin split from CN into C"},
+      {"id": "RD_VI_C_E", "vehicle_input": "VI_C_E", "link": 18, "pos_m": 25, "purpose": "urban origin split from CE into C"},
+      {"id": "RD_VI_D_W", "vehicle_input": "VI_D_W", "link": 21, "pos_m": 25, "purpose": "urban origin split from DW into D"},
+      {"id": "RD_VI_F_E", "vehicle_input": "VI_F_E", "link": 30, "pos_m": 25, "purpose": "urban origin split from FE into F"},
+      {"id": "RD_VI_FW_E", "vehicle_input": "VI_FW_E", "link": 33, "pos_m": 50, "purpose": "eastbound freeway through/off-ramp split"},
+      {"id": "RD_VI_FW_W", "vehicle_input": "VI_FW_W", "link": 34, "pos_m": 50, "purpose": "westbound freeway through/off-ramp split"}
+    ],
+    "supplemental_branch_route_decisions": [
+      {"id": "RD_FW_E_BEFORE_D_OFFRAMP", "link": 33, "pos_m": 450, "related_connector": 10067, "purpose": "EB mainline choose D off-ramp vs continue"},
+      {"id": "RD_FW_E_BEFORE_F_OFFRAMP", "link": 33, "pos_m": 1690, "related_connector": 10072, "purpose": "EB mainline choose F off-ramp vs continue"},
+      {"id": "RD_FW_W_BEFORE_F_OFFRAMP", "link": 34, "pos_m": 490, "related_connector": 10069, "purpose": "WB mainline choose F off-ramp vs continue"},
+      {"id": "RD_FW_W_BEFORE_D_OFFRAMP", "link": 34, "pos_m": 1690, "related_connector": 10071, "purpose": "WB mainline choose D off-ramp vs continue"},
+      {"id": "RD_D_TRUMPET_TO_FREEWAY", "link": 25, "pos_m": 25, "related_connectors": [10066, 10068], "purpose": "D ramp choose EB/WB freeway"},
+      {"id": "RD_F_TRUMPET_TO_FREEWAY", "link": 31, "pos_m": 25, "related_connectors": [10070, 10073], "purpose": "F ramp choose EB/WB freeway"}
+    ],
+    "destination_candidates": {
+      "urban_exit_links": [2, 4, 10, 16, 17, 22, 29],
+      "freeway_through_links": [33, 34],
+      "ramp_links": [25, 26, 31, 32]
+    }
+  },
+  "signal_objects_missing": {
+    "current_signal_controllers": 0,
+    "current_signal_heads": 0,
+    "controlled_intersections": ["A", "B", "C", "D", "F"],
+    "signal_head_approach_links": {
+      "A": [1, 3, 6, 8],
+      "B": [5, 9, 12, 14],
+      "C": [11, 15, 18, 20],
+      "D": [7, 21, 24, 26],
+      "F": [19, 27, 30, 32]
+    },
+    "initial_signal_groups": {
+      "recommended": "two-ring/two-phase placeholder per intersection",
+      "major_phase": "east-west or arterial-main movement group",
+      "minor_phase": "north-south/ramp-stem movement group",
+      "clearance": "amber/all-red handled before adaptive controller comparisons"
+    }
+  },
+  "detector_objects_optional_phase_2": {
+    "already_present": {
+      "freeway_mainline_data_collection_points": "2 lanes at 250..2650 m on links 33/34",
+      "urban_midlink_data_collection_points": "2 lanes on internal urban links",
+      "approach_queue_counters": "available on controlled approaches and ramp stems"
+    },
+    "recommended_additions_before_detector_controller": [
+      {"id": "D_RAMP_MERGE_DCP", "links": [25, 26], "purpose": "ramp flow/speed near D trumpet"},
+      {"id": "F_RAMP_MERGE_DCP", "links": [31, 32], "purpose": "ramp flow/speed near F trumpet"},
+      {"id": "MAINLINE_PRE_POST_RAMP_DCP", "links": [33, 34], "purpose": "density/speed around D/F merge-diverge zones"}
+    ]
+  }
+}

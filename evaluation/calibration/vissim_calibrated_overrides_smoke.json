@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "date": "2026-06-26",
+  "status": "preliminary_smoke_not_final",
+  "source_fit": "evaluation/calibration/vissim_calibration_fit_smoke.json",
+  "notes": [
+    "These values are from short smoke/probe calibration runs, not final production calibration.",
+    "network.rho_max was not truly calibrated because the smoke runs did not produce a sustained jam-density observation.",
+    "Ramp metering F is underfed or misaligned; do not use its release-rate curve as a capacity fit yet.",
+    "The active MPC adapter has not been changed to consume these numeric values automatically."
+  ],
+  "fd_candidate_observed": {
+    "network.v_free_p85_kph": 125.17,
+    "network.freeway_capacity_veh_h_proxy": 4491.689,
+    "network.rho_crit_at_max_flow_proxy_veh_km_lane": 20.926,
+    "network.max_observed_density_veh_km_lane": 38.15
+  },
+  "safe_next_smoke_override_candidate": {
+    "network": {
+      "v_free": 120.0,
+      "freeway_capacity_veh_h": 4400.0,
+      "rho_crit": 21.0
+    },
+    "keep_existing_until_jam_run": [
+      "network.rho_max"
+    ]
+  },
+  "ramp_metering_release_lookup_preliminary": {
+    "D": {
+      "1_sec_green_rate_vph": 246.316,
+      "2_sec_green_rate_vph": 331.579,
+      "4_sec_green_rate_vph": 360.0,
+      "6_sec_green_rate_vph": 360.0,
+      "8_sec_green_rate_vph": 378.947,
+      "10_sec_green_rate_vph": 506.25
+    },
+    "F": {
+      "status": "invalid_underfed_or_alignment_issue",
+      "1_sec_green_rate_vph": 37.895,
+      "2_sec_green_rate_vph": 28.421,
+      "4_sec_green_rate_vph": 37.895,
+      "6_sec_green_rate_vph": 18.947,
+      "8_sec_green_rate_vph": 0.0,
+      "10_sec_green_rate_vph": 56.25
+    }
+  },
+  "parallel_execution_observation": {
+    "max_workers_2": "mostly works but one Vissim instance froze during simultaneous COM startup",
+    "mitigation_added": "scripts/run_vissim_calibration_batch.py --startup-stagger-sec",
+    "recommended_next": "max_workers=2 with 20-30 sec startup stagger; test max_workers=3 only after stable 2-worker runs"
+  }
+}

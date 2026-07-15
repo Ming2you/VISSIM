@@ -1,0 +1,305 @@
+{
+  "N_P_star": 0.0,
+  "N_UF_star": 0.0,
+  "ramp_metering": {
+    "R_D_W": 1253.0,
+    "R_D_E": 1253.0,
+    "R_F_W": 284.0,
+    "R_F_E": 284.0
+  },
+  "vsl": {
+    "FW_W": 80.0,
+    "FW_E": 80.0
+  },
+  "green_times": {
+    "A_p1": 57.0,
+    "A_p2": 57.0,
+    "B_p1": 57.0,
+    "B_p2": 57.0,
+    "C_p1": 57.0,
+    "C_p2": 57.0,
+    "D_p1": 57.0,
+    "D_p2": 57.0,
+    "F_p1": 57.0,
+    "F_p2": 57.0
+  },
+  "offsets": {
+    "A": 0.0,
+    "B": 0.0,
+    "C": 0.0,
+    "D": 0.0,
+    "F": 0.0
+  },
+  "inflow_outflow_allocation": {
+    "A_N_to_S": 900.0,
+    "A_N_to_E": 900.0,
+    "A_N_to_W": 900.0,
+    "A_S_to_N": 900.0,
+    "A_S_to_W": 900.0,
+    "A_E_to_W": 900.0,
+    "A_E_to_N": 900.0,
+    "A_W_to_E": 900.0,
+    "A_W_to_N": 900.0,
+    "A_W_to_S": 900.0,
+    "B_N_to_S": 900.0,
+    "B_N_to_E": 900.0,
+    "B_N_to_W": 900.0,
+    "B_S_to_N": 900.0,
+    "B_E_to_N": 900.0,
+    "B_W_to_N": 900.0,
+    "C_N_to_S": 900.0,
+    "C_N_to_E": 900.0,
+    "C_N_to_W": 900.0,
+    "C_S_to_N": 900.0,
+    "C_S_to_E": 900.0,
+    "C_E_to_W": 900.0,
+    "C_E_to_N": 900.0,
+    "C_E_to_S": 900.0,
+    "C_W_to_E": 900.0,
+    "C_W_to_N": 900.0,
+    "D_N_to_onW": 900.0,
+    "D_N_to_onE": 900.0,
+    "D_N_to_W": 900.0,
+    "D_offW_to_N": 900.0,
+    "D_offW_to_E": 900.0,
+    "D_offW_to_W": 900.0,
+    "D_offE_to_N": 900.0,
+    "D_offE_to_E": 900.0,
+    "D_offE_to_W": 900.0,
+    "D_E_to_W": 900.0,
+    "D_E_to_onW": 900.0,
+    "D_E_to_onE": 900.0,
+    "D_W_to_E": 900.0,
+    "D_W_to_N": 900.0,
+    "D_W_to_onW": 900.0,
+    "D_W_to_onE": 900.0,
+    "F_N_to_onW": 900.0,
+    "F_N_to_onE": 900.0,
+    "F_N_to_E": 900.0,
+    "F_offW_to_N": 900.0,
+    "F_offW_to_E": 900.0,
+    "F_offW_to_W": 900.0,
+    "F_offE_to_N": 900.0,
+    "F_offE_to_E": 900.0,
+    "F_offE_to_W": 900.0,
+    "F_E_to_W": 900.0,
+    "F_E_to_N": 900.0,
+    "F_E_to_onW": 900.0,
+    "F_E_to_onE": 900.0,
+    "F_W_to_E": 900.0,
+    "F_W_to_onW": 900.0,
+    "F_W_to_onE": 900.0,
+    "in_A_top": 2700.0,
+    "in_A_left": 2700.0,
+    "in_B_top": 2700.0,
+    "in_C_top": 2700.0,
+    "in_C_right": 2700.0,
+    "in_D_left": 3600.0,
+    "in_F_right": 3600.0,
+    "out_A_top": 1800.0,
+    "out_A_left": 1800.0,
+    "out_B_top": 2700.0,
+    "out_C_top": 1800.0,
+    "out_C_right": 1800.0,
+    "out_D_left": 1800.0,
+    "out_F_right": 1800.0
+  },
+  "diagnostics": {
+    "diagnostic_forced_vsl_rm_active": 1.0,
+    "diagnostic_forced_vsl_kph": 80.0,
+    "diagnostic_forced_ramp_green_target_sec": 4.0
+  },
+  "metadata": {
+    "controller": "DiagnosticVslRampMetering",
+    "controller_variant": "diagnostic-vsl-rm",
+    "adapter_mode": "fast-smoke",
+    "controller_status": "ok",
+    "sim_sec": 60.0,
+    "calibration_version": "vector_getmultiatt_long_sweeps_v1",
+    "tuning_name": "diagnostic_vsl_rm_metered_f",
+    "F_ramp_mode": "metered",
+    "observation_mode": "detector_local_v2_storage_split",
+    "follower_solver_mode": "distributed",
+    "local_observation_runtime_guard": 1.0,
+    "mpc_horizon_steps": 1.0,
+    "mpc_control_horizon_steps": 1.0,
+    "mpc_max_nash_iter": 1.0,
+    "freeway_horizon_beam_width": 1.0,
+    "freeway_horizon_ramp_candidate_limit": 1.0,
+    "freeway_horizon_vsl_candidate_limit_per_link": 1.0,
+    "local_observation_agent_count": 15.0,
+    "local_observation_total_movement_queue": 223.55,
+    "local_observation_total_ramp_queue": 6.0,
+    "local_observation_total_storage_occupancy": 13.45,
+    "local_observation_offramp_storage_occupancy": 4.0,
+    "local_observation_internal_storage_fraction": 0.35,
+    "local_observation_offramp_storage_fraction": 0.5,
+    "prediction_audit_available": 1.0,
+    "prediction_total_model_vehicles_error": -63.294945910003776,
+    "prediction_total_model_vehicles_abs_error": 63.294945910003776,
+    "prediction_protected_accumulation_abs_error": 56.27638618660254,
+    "prediction_freeway_total_abs_error": 45.34464991319371,
+    "diagnostic_forced_vsl_rm_active": 1.0,
+    "prediction_status": "ok",
+    "prediction_wall_sec": 0.046262,
+    "decision_wall_sec": 0.343803
+  },
+  "prediction": {
+    "schema_version": 1,
+    "status": "ok",
+    "mode": "coupled_interval_one_step",
+    "from_sim_sec": 60.0,
+    "target_sim_sec": 120.0,
+    "control_interval_sec": 60.0,
+    "wall_sec": 0.046262,
+    "state_summary": {
+      "time_sec": 120.0,
+      "total_model_vehicles": 632.4981555005156,
+      "urban_total_veh": 440.61111111111126,
+      "protected_accumulation_veh": 138.13055555555556,
+      "urban_queue_plus_link_occupancy_total_veh": 452.05789446731933,
+      "urban_movement_queue_total_veh": 312.6555555555557,
+      "urban_link_occupancy_total_veh": 139.40233891176368,
+      "boundary_queue_total_veh": 330.42083333333346,
+      "freeway_total_veh": 180.4402610331962,
+      "freeway_segment_total_veh": 167.02359436652955,
+      "off_ramp_storage_veh": 11.446783356208144,
+      "ramp_queue_total_veh": 13.41666666666666,
+      "mainline_origin_queue_total_veh": 0.0,
+      "freeway_mean_density_veh_km_lane": 14.399715046511165,
+      "freeway_mean_speed_kph": 90.8816199411103,
+      "ramp_queue": {
+        "R_D_E": 1.1111111111111112,
+        "R_D_W": 1.1111111111111112,
+        "R_F_E": 5.597222222222219,
+        "R_F_W": 5.597222222222219
+      },
+      "freeway_segment_vehicles": {
+        "FW_W": [
+          17.310312903780154,
+          19.15217395907655,
+          16.71460768936562,
+          15.646946956012895,
+          10.46854964924902
+        ],
+        "FW_E": [
+          18.14559179244553,
+          21.847299843058586,
+          18.93804933992791,
+          17.894602067415835,
+          10.90546016619747
+        ]
+      }
+    }
+  },
+  "prediction_error": {
+    "schema_version": 1,
+    "status": "ok",
+    "source_action_json": "evaluation\\runs\\observation_v2_prediction_pair\\action_000001.json",
+    "predicted_from_sim_sec": 1.0,
+    "predicted_for_sim_sec": 61.0,
+    "observed_sim_sec": 60.0,
+    "target_lag_sec": -1.0,
+    "mean_abs_scalar_error": 29.801068397549052,
+    "scalar_errors": {
+      "total_model_vehicles": {
+        "predicted": 360.8533145444334,
+        "observed": 297.5583686344296,
+        "error": -63.294945910003776,
+        "abs_error": 63.294945910003776,
+        "relative_error": -0.17540353201386488
+      },
+      "urban_total_veh": {
+        "predicted": 253.93471951993592,
+        "observed": 233.00000000000003,
+        "error": -20.934719519935896,
+        "abs_error": 20.934719519935896,
+        "relative_error": -0.0824413438206206
+      },
+      "protected_accumulation_veh": {
+        "predicted": 81.10138618660255,
+        "observed": 24.825000000000017,
+        "error": -56.27638618660254,
+        "abs_error": 56.27638618660254,
+        "relative_error": -0.6939016560964657
+      },
+      "urban_queue_plus_link_occupancy_total_veh": {
+        "predicted": 254.9502959968101,
+        "observed": 237.00000000000003,
+        "error": -17.95029599681007,
+        "abs_error": 17.95029599681007,
+        "relative_error": -0.07040704121023912
+      },
+      "urban_movement_queue_total_veh": {
+        "predicted": 172.83333333333337,
+        "observed": 223.55,
+        "error": 50.71666666666664,
+        "abs_error": 50.71666666666664,
+        "relative_error": 0.29344262295081947
+      },
+      "urban_link_occupancy_total_veh": {
+        "predicted": 82.11696266347671,
+        "observed": 13.450000000000017,
+        "error": -68.6669626634767,
+        "abs_error": 68.6669626634767,
+        "relative_error": -0.8362092366333687
+      },
+      "boundary_queue_total_veh": {
+        "predicted": 183.61111111111117,
+        "observed": 202.0,
+        "error": 18.38888888888883,
+        "abs_error": 18.38888888888883,
+        "relative_error": 0.10015128593040812
+      },
+      "freeway_total_veh": {
+        "predicted": 105.90301854762328,
+        "observed": 60.55836863442956,
+        "error": -45.34464991319371,
+        "abs_error": 45.34464991319371,
+        "relative_error": -0.42817145851987953
+      },
+      "freeway_segment_total_veh": {
+        "predicted": 104.51412965873439,
+        "observed": 54.55836863442956,
+        "error": -49.95576102430483,
+        "abs_error": 49.95576102430483,
+        "relative_error": -0.47798093126186175
+      },
+      "off_ramp_storage_veh": {
+        "predicted": 1.015576476874159,
+        "observed": 4.0,
+        "error": 2.984423523125841,
+        "abs_error": 2.984423523125841,
+        "relative_error": 2.9386497138173113
+      },
+      "ramp_queue_total_veh": {
+        "predicted": 1.3888888888888888,
+        "observed": 6.0,
+        "error": 4.611111111111111,
+        "abs_error": 4.611111111111111,
+        "relative_error": 3.32
+      },
+      "mainline_origin_queue_total_veh": {
+        "predicted": 0.0,
+        "observed": 0.0,
+        "error": 0.0,
+        "abs_error": 0.0,
+        "relative_error": 0.0
+      },
+      "freeway_mean_density_veh_km_lane": {
+        "predicted": 9.009838763684,
+        "observed": 4.7033076408991,
+        "error": -4.3065311227849,
+        "abs_error": 4.3065311227849,
+        "relative_error": -0.4779809312618618
+      },
+      "freeway_mean_speed_kph": {
+        "predicted": 96.25301761291708,
+        "observed": 82.46940257413517,
+        "error": -13.783615038781903,
+        "abs_error": 13.783615038781903,
+        "relative_error": -0.14320190037275415
+      }
+    }
+  }
+}

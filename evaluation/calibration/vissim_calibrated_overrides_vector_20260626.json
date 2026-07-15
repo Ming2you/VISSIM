@@ -1,0 +1,82 @@
+{
+  "created_at": "2026-06-26",
+  "calibration_version": "vector_getmultiatt_long_sweeps_v1",
+  "source_runs": {
+    "fd": "evaluation/runs/calibration_fd_vector_20260626",
+    "ramp_general": "evaluation/runs/calibration_ramp_vector_20260626",
+    "ramp_D_saturated": "evaluation/runs/calibration_rampD_bias_vector_20260626",
+    "ramp_F_saturated": "evaluation/runs/calibration_rampF_bias_vector_20260626",
+    "signal": "evaluation/runs/calibration_signal_vector_20260626",
+    "mfd": "evaluation/runs/calibration_mfd_vector_20260626"
+  },
+  "fit_outputs": {
+    "fd": "evaluation/calibration/vissim_calibration_fit_fd_vector_20260626.json",
+    "ramp_general": "evaluation/calibration/vissim_calibration_fit_ramp_vector_20260626.json",
+    "ramp_D_saturated": "evaluation/calibration/vissim_calibration_fit_rampD_bias_vector_20260626.json",
+    "ramp_F_saturated": "evaluation/calibration/vissim_calibration_fit_rampF_bias_vector_20260626.json",
+    "signal_basic": "evaluation/calibration/vissim_calibration_fit_signal_vector_20260626.json",
+    "signal_green_fit": "evaluation/calibration/vissim_signal_green_fit_20260626.json",
+    "mfd": "evaluation/calibration/vissim_calibration_fit_mfd_vector_20260626.json"
+  },
+  "network": {
+    "v_free_kph": 123.825,
+    "freeway_capacity_veh_h": 4574.818,
+    "rho_crit_veh_km_lane": 20.401,
+    "rho_max_observed_veh_km_lane": 33.13,
+    "rho_max_note": "Observed max density only; do not treat as calibrated jam density yet."
+  },
+  "ramp_metering": {
+    "cycle_sec": 10,
+    "D_green_to_release_vph_raw": {
+      "1": 690.732,
+      "2": 684.878,
+      "4": 1252.683,
+      "6": 1363.902,
+      "8": 1311.22,
+      "10": 1413.659
+    },
+    "D_green_to_release_vph_initial_mpc": {
+      "1": 691,
+      "2": 691,
+      "4": 1253,
+      "6": 1364,
+      "8": 1364,
+      "10": 1414
+    },
+    "F_green_to_release_vph_raw": {
+      "1": 96.585,
+      "2": 122.927,
+      "4": 283.902,
+      "6": 307.317,
+      "8": 316.098,
+      "10": 237.073
+    },
+    "F_status": "invalid_for_physical_metering_fit",
+    "F_note": "F ramp remains discharge-limited despite sustained queue under route bias. Treat as network route/lane/connector issue before using for controller calibration."
+  },
+  "signal": {
+    "amber_sec": 3,
+    "all_red_sec": 2,
+    "median_fit_lost_time_sec": 6.009,
+    "median_fit_saturation_flow_vph_approach": 829.29,
+    "recommended_initial_saturation_flow_vph_approach": 1800,
+    "recommended_initial_lost_time_sec": 6.0,
+    "note": "15-sec burst max rates are not used directly. The median fitted value is low because several approaches are underfed; use 1800 vph/approach as a conservative initial controller value and refine with detector/output-based saturated approach runs."
+  },
+  "urban_mfd": {
+    "N_P_crit_veh_initial": 390,
+    "candidate_peak_row_N_P_crit_veh": 376,
+    "median_peak_production_demand_vph": 3000,
+    "median_peak_signal_production_vph": 12360,
+    "production_proxy_note": "Production is measured as aggregated signal stop-line discharge, not completed trips."
+  },
+  "mpc_tuning_next": {
+    "status": "ready_for_initial_controller_tuning",
+    "recommended_order": [
+      "Apply FD values and D ramp green-to-release map.",
+      "Use F ramp metering in monitor-only or conservative fallback until F ramp route/lane/connector issue is fixed.",
+      "Use N_P_crit_veh_initial=390 for urban accumulation activation.",
+      "Start MPC with mild smoothness penalty, then sweep weight/smoothness/activation ratio under fixed seeds."
+    ]
+  }
+}

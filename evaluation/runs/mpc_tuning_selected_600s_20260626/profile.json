@@ -1,0 +1,65 @@
+{
+  "profile": "grid-smoke",
+  "network": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\Network_Vissim_Work\\modi_eval_vsl_segmented.inpx",
+  "runner": "scripts\\run_stackelberg_vissim_controller.vbs",
+  "adapter": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+  "calibration_json": "evaluation\\calibration\\vissim_calibrated_overrides_vector_20260626.json",
+  "tuning_dir": "evaluation\\configs\\mpc_tuning",
+  "tunings": "00_calibrated_base,04_smooth_low,05_activation_early,07_boundary_queue_priority,08_mfd_strong",
+  "max_workers": 1,
+  "startup_stagger_sec": 30.0,
+  "case_timeout_sec": 480.0,
+  "case_count": 5,
+  "cases": [
+    {
+      "case_id": "mpc_00_calibrated_base_u2600_fw2400_seed13_600s",
+      "tuning_name": "00_calibrated_base",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\00_calibrated_base.json",
+      "sim_period_sec": 600,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_04_smooth_low_u2600_fw2400_seed13_600s",
+      "tuning_name": "04_smooth_low",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\04_smooth_low.json",
+      "sim_period_sec": 600,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_05_activation_early_u2600_fw2400_seed13_600s",
+      "tuning_name": "05_activation_early",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\05_activation_early.json",
+      "sim_period_sec": 600,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_07_boundary_queue_priority_u2600_fw2400_seed13_600s",
+      "tuning_name": "07_boundary_queue_priority",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\07_boundary_queue_priority.json",
+      "sim_period_sec": 600,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    },
+    {
+      "case_id": "mpc_08_mfd_strong_u2600_fw2400_seed13_600s",
+      "tuning_name": "08_mfd_strong",
+      "tuning_json": "evaluation\\configs\\mpc_tuning\\08_mfd_strong.json",
+      "sim_period_sec": 600,
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 2400.0,
+      "control_interval_sec": 60,
+      "rand_seed": 13
+    }
+  ]
+}

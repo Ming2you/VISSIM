@@ -1,0 +1,18 @@
+{
+  "name": "05_activation_early",
+  "description": "Earlier urban and freeway activation. Checks if control should intervene before the calibrated critical point.",
+  "leader": {
+    "N_P_crit_veh": 350.0,
+    "mfd_penalty_mode": "all_urban_halfcap",
+    "vsl_activation_density_ratio": 0.85,
+    "metering_activation_density_ratio": 0.85,
+    "mfd_storage_threshold_ratio": 0.42
+  },
+  "freeway_follower": {
+    "ramp_queue_penalty": 12.0,
+    "density_penalty": 14.0,
+    "metering_smoothness_weight": 0.06,
+    "vsl_smoothness_weight": 0.06,
+    "vsl_max_km_h": 120.0
+  }
+}

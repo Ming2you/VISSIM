@@ -1,0 +1,83 @@
+{
+  "route_objects": {
+    "status": "missing_or_not_configured",
+    "route_decisions_static": 0,
+    "vehicle_routes_static": 0,
+    "needed_for_smoke_test": [
+      "boundary input to plausible exits",
+      "freeway through EB/WB routes",
+      "urban cross-network routes",
+      "ramp on/off routes at D/F trumpets"
+    ]
+  },
+  "signal_objects": {
+    "status": "missing_or_not_configured",
+    "signal_controllers": 9,
+    "signal_heads": 0,
+    "needed_for_baseline": [
+      "fixed-time signal controllers at A/B/C/D/F or COM-only virtual signal control",
+      "signal heads on controlled approaches",
+      "fallback all-green/no-signal smoke mode if route connectivity is the first target"
+    ]
+  },
+  "detector_objects": {
+    "status": "present_for_detector_phase",
+    "data_collection_points": 104,
+    "queue_counters": 29,
+    "detectors": 120,
+    "phase_1": "not required; use global vehicle/link state",
+    "phase_2_needed": [
+      "approach queue/detection near A/B/C/D/F",
+      "ramp queues and merge detectors at D/F",
+      "freeway mainline density/flow detectors"
+    ]
+  },
+  "global_state_controller": {
+    "recommended_first": true,
+    "control_interval_sec": 5,
+    "state_groups": {
+      "urban_links": [
+        5,
+        6,
+        7,
+        8,
+        11,
+        12,
+        13,
+        14,
+        19,
+        20,
+        23,
+        24,
+        27,
+        28
+      ],
+      "freeway_links": [
+        33,
+        34
+      ],
+      "ramp_links": [
+        25,
+        26,
+        31,
+        32
+      ],
+      "boundary_links": [
+        1,
+        2,
+        3,
+        4,
+        9,
+        10,
+        15,
+        16,
+        17,
+        18,
+        21,
+        22,
+        29,
+        30
+      ]
+    }
+  }
+}

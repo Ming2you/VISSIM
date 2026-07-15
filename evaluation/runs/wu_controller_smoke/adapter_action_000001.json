@@ -1,0 +1,129 @@
+{
+  "N_P_star": 0.0,
+  "N_UF_star": 0.0,
+  "ramp_metering": {
+    "R_D_W": 1414.0,
+    "R_F_W": 316.098,
+    "R_D_E": 1414.0,
+    "R_F_E": 316.098
+  },
+  "vsl": {
+    "FW_W": 120.0,
+    "FW_E": 120.0,
+    "FW_W__seg0": 120.0,
+    "FW_W__seg1": 120.0,
+    "FW_W__seg2": 120.0,
+    "FW_W__seg3": 120.0,
+    "FW_W__seg4": 120.0,
+    "FW_E__seg0": 120.0,
+    "FW_E__seg1": 120.0,
+    "FW_E__seg2": 120.0,
+    "FW_E__seg3": 120.0,
+    "FW_E__seg4": 120.0
+  },
+  "green_times": {
+    "A_p1": 57.0,
+    "A_p2": 57.0,
+    "B_p1": 57.0,
+    "B_p2": 57.0,
+    "C_p1": 57.0,
+    "C_p2": 57.0,
+    "D_p1": 57.0,
+    "D_p2": 57.0,
+    "F_p1": 57.0,
+    "F_p2": 57.0
+  },
+  "offsets": {
+    "A": 0.0,
+    "B": 0.0,
+    "C": 0.0,
+    "D": 0.0,
+    "F": 0.0
+  },
+  "inflow_outflow_allocation": {},
+  "diagnostics": {
+    "green_quantization_residual_sec": 0.9907712590639406,
+    "green_repair_count": 28.0,
+    "vsl_quantization_residual_km_h": 10.0,
+    "vsl_repair_count": 10.0,
+    "urban_uncontrolled_node_movement_queue_veh": 0.0,
+    "urban_uncontrolled_node_storage_occupancy_veh": 0.0,
+    "urban_uncontrolled_node_vehicles_veh": 0.0,
+    "urban_uncontrolled_node_objective_tts": 0.0,
+    "urban_uncontrolled_node_objective_covered": 1.0
+  },
+  "metadata": {
+    "controller": "WuDistributedController",
+    "controller_variant": "wu",
+    "adapter_mode": "fast-smoke",
+    "controller_status": "ok",
+    "sim_sec": 60.0,
+    "calibration_version": "vector_getmultiatt_long_sweeps_v1",
+    "tuning_name": "",
+    "F_ramp_mode": "always_green",
+    "observation_mode": "detector_local_v1",
+    "follower_solver_mode": "distributed",
+    "local_observation_runtime_guard": 1.0,
+    "local_observation_agent_count": 15.0,
+    "local_observation_total_movement_queue": 100.0,
+    "local_observation_total_ramp_queue": 40.0,
+    "wu_leader_enabled": 0.0,
+    "wu_iterations": 1.0,
+    "wu_converged": 1.0,
+    "wu_coupling_residual": 0.0,
+    "wu_solver_evaluations": 43.0,
+    "wu_computation_time_sec": 0.33261929999571294,
+    "wu_leader_candidates": 0.0,
+    "wu_leader_objective": 0.0,
+    "prediction_status": "ok",
+    "prediction_wall_sec": 0.042226,
+    "decision_wall_sec": 0.689928
+  },
+  "prediction": {
+    "schema_version": 1,
+    "status": "ok",
+    "mode": "coupled_interval_one_step",
+    "from_sim_sec": 60.0,
+    "target_sim_sec": 120.0,
+    "control_interval_sec": 60.0,
+    "wall_sec": 0.042226,
+    "state_summary": {
+      "time_sec": 120.0,
+      "total_model_vehicles": 482.39590450759624,
+      "urban_total_veh": 309.8611111111108,
+      "protected_accumulation_veh": 159.44444444444412,
+      "urban_movement_queue_total_veh": 170.4166666666667,
+      "urban_link_occupancy_total_veh": 145.10006052820057,
+      "boundary_queue_total_veh": 165.4166666666667,
+      "freeway_total_veh": 166.87917731272898,
+      "freeway_segment_total_veh": 136.12634397939564,
+      "off_ramp_storage_veh": 5.655616083756456,
+      "ramp_queue_total_veh": 30.752833333333356,
+      "mainline_origin_queue_total_veh": 0.0,
+      "freeway_mean_density_veh_km_lane": 11.735202948408453,
+      "freeway_mean_speed_kph": 111.2613998891432,
+      "ramp_queue": {
+        "R_D_E": 13.10000000000001,
+        "R_D_W": 13.10000000000001,
+        "R_F_E": 2.276416666666667,
+        "R_F_W": 2.276416666666667
+      },
+      "freeway_segment_vehicles": {
+        "FW_W": [
+          14.88975931910266,
+          14.949191090227043,
+          11.339092411087378,
+          14.2476689458326,
+          9.42815077011733
+        ],
+        "FW_E": [
+          15.469153764756165,
+          21.21177537926974,
+          15.289199378212277,
+          12.008539868750338,
+          7.293813052040106
+        ]
+      }
+    }
+  }
+}

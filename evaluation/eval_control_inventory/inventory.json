@@ -1,0 +1,6215 @@
+{
+  "source": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\Network_Vissim_Work\\modi_eval_control.inpx",
+  "summary": {
+    "road_links": 34,
+    "connectors": 74,
+    "all_link_objects": 108,
+    "by_type": {
+      "boundary": 14,
+      "urban_internal": 14,
+      "ramp": 4,
+      "freeway_mainline": 2,
+      "turn_connector": 74
+    },
+    "vehicle_inputs": 9,
+    "data_collection_points": 104,
+    "queue_counters": 29,
+    "route_decisions_static": 0,
+    "vehicle_routes_static": 0,
+    "signal_controllers": 9,
+    "signal_heads": 0,
+    "detectors": 120,
+    "desired_speed_decisions": 0,
+    "nodes": 8
+  },
+  "links": [
+    {
+      "no": 1,
+      "name": "A west boundary AW to A",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        -1120.0,
+        495.0
+      ],
+      "end_xy": [
+        -632.0,
+        495.0
+      ]
+    },
+    {
+      "no": 2,
+      "name": "A west boundary A to AW",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        -632.0,
+        505.0
+      ],
+      "end_xy": [
+        -1120.0,
+        505.0
+      ]
+    },
+    {
+      "no": 3,
+      "name": "A north boundary AN to A",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        -605.0,
+        980.0
+      ],
+      "end_xy": [
+        -605.0,
+        532.0
+      ]
+    },
+    {
+      "no": 4,
+      "name": "A north boundary A to AN",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        -595.0,
+        532.0
+      ],
+      "end_xy": [
+        -595.0,
+        980.0
+      ]
+    },
+    {
+      "no": 5,
+      "name": "A-B arterial A to B",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        -568.0,
+        495.0
+      ],
+      "end_xy": [
+        -32.0,
+        495.0
+      ]
+    },
+    {
+      "no": 6,
+      "name": "A-B arterial B to A",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        -32.0,
+        505.0
+      ],
+      "end_xy": [
+        -568.0,
+        505.0
+      ]
+    },
+    {
+      "no": 7,
+      "name": "A-D arterial A to D",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        -605.0,
+        468.0
+      ],
+      "end_xy": [
+        -605.0,
+        32.0
+      ]
+    },
+    {
+      "no": 8,
+      "name": "A-D arterial D to A",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        -595.0,
+        32.0
+      ],
+      "end_xy": [
+        -595.0,
+        468.0
+      ]
+    },
+    {
+      "no": 9,
+      "name": "B north boundary BN to B",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        -5.0,
+        980.0
+      ],
+      "end_xy": [
+        -5.0,
+        532.0
+      ]
+    },
+    {
+      "no": 10,
+      "name": "B north boundary B to BN",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        5.0,
+        532.0
+      ],
+      "end_xy": [
+        5.0,
+        980.0
+      ]
+    },
+    {
+      "no": 11,
+      "name": "B-C arterial B to C",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        32.0,
+        495.0
+      ],
+      "end_xy": [
+        568.0,
+        495.0
+      ]
+    },
+    {
+      "no": 12,
+      "name": "B-C arterial C to B",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        568.0,
+        505.0
+      ],
+      "end_xy": [
+        32.0,
+        505.0
+      ]
+    },
+    {
+      "no": 13,
+      "name": "B-E arterial B to E",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        -5.0,
+        468.0
+      ],
+      "end_xy": [
+        -5.0,
+        32.0
+      ]
+    },
+    {
+      "no": 14,
+      "name": "B-E arterial E to B",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        5.0,
+        32.0
+      ],
+      "end_xy": [
+        5.0,
+        468.0
+      ]
+    },
+    {
+      "no": 15,
+      "name": "C north boundary CN to C",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        595.0,
+        980.0
+      ],
+      "end_xy": [
+        595.0,
+        532.0
+      ]
+    },
+    {
+      "no": 16,
+      "name": "C north boundary C to CN",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 448.0,
+      "start_xy": [
+        605.0,
+        532.0
+      ],
+      "end_xy": [
+        605.0,
+        980.0
+      ]
+    },
+    {
+      "no": 17,
+      "name": "C east boundary C to CE",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        632.0,
+        495.0
+      ],
+      "end_xy": [
+        1120.0,
+        495.0
+      ]
+    },
+    {
+      "no": 18,
+      "name": "C east boundary CE to C",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        1120.0,
+        505.0
+      ],
+      "end_xy": [
+        632.0,
+        505.0
+      ]
+    },
+    {
+      "no": 19,
+      "name": "C-F arterial C to F",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        595.0,
+        468.0
+      ],
+      "end_xy": [
+        595.0,
+        32.0
+      ]
+    },
+    {
+      "no": 20,
+      "name": "C-F arterial F to C",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 436.014,
+      "start_xy": [
+        605.0,
+        32.0
+      ],
+      "end_xy": [
+        605.0,
+        468.0
+      ]
+    },
+    {
+      "no": 21,
+      "name": "D west boundary DW to D",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        -1120.0,
+        -5.0
+      ],
+      "end_xy": [
+        -632.0,
+        -5.0
+      ]
+    },
+    {
+      "no": 22,
+      "name": "D west boundary D to DW",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        -632.0,
+        5.0
+      ],
+      "end_xy": [
+        -1120.0,
+        5.0
+      ]
+    },
+    {
+      "no": 23,
+      "name": "D-E arterial D to E",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        -568.0,
+        -5.0
+      ],
+      "end_xy": [
+        -32.0,
+        -5.0
+      ]
+    },
+    {
+      "no": 24,
+      "name": "D-E arterial E to D",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        -32.0,
+        5.0
+      ],
+      "end_xy": [
+        -568.0,
+        5.0
+      ]
+    },
+    {
+      "no": 25,
+      "name": "D trumpet stem D to DT",
+      "type": "ramp",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 191.1,
+      "start_xy": [
+        -605.0,
+        -32.0
+      ],
+      "end_xy": [
+        -601.939,
+        -222.857
+      ]
+    },
+    {
+      "no": 26,
+      "name": "D trumpet stem DT to D",
+      "type": "ramp",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 191.1,
+      "start_xy": [
+        -591.939,
+        -222.857
+      ],
+      "end_xy": [
+        -595.0,
+        -32.0
+      ]
+    },
+    {
+      "no": 27,
+      "name": "E-F arterial E to F",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        32.0,
+        -5.0
+      ],
+      "end_xy": [
+        568.0,
+        -5.0
+      ]
+    },
+    {
+      "no": 28,
+      "name": "E-F arterial F to E",
+      "type": "urban_internal",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 536.011,
+      "start_xy": [
+        568.0,
+        5.0
+      ],
+      "end_xy": [
+        32.0,
+        5.0
+      ]
+    },
+    {
+      "no": 29,
+      "name": "F east boundary F to FE",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        632.0,
+        -5.0
+      ],
+      "end_xy": [
+        1120.0,
+        -5.0
+      ]
+    },
+    {
+      "no": 30,
+      "name": "F east boundary FE to F",
+      "type": "boundary",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 488.0,
+      "start_xy": [
+        1120.0,
+        5.0
+      ],
+      "end_xy": [
+        632.0,
+        5.0
+      ]
+    },
+    {
+      "no": 31,
+      "name": "F trumpet stem F to FT",
+      "type": "ramp",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 286.477,
+      "start_xy": [
+        595.0,
+        -32.0
+      ],
+      "end_xy": [
+        590.592,
+        -318.286
+      ]
+    },
+    {
+      "no": 32,
+      "name": "F trumpet stem FT to F",
+      "type": "ramp",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.5,
+        3.5
+      ],
+      "length_m": 286.477,
+      "start_xy": [
+        600.592,
+        -318.286
+      ],
+      "end_xy": [
+        605.0,
+        -32.0
+      ]
+    },
+    {
+      "no": 33,
+      "name": "FW_E eastbound mainline",
+      "type": "freeway_mainline",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.65,
+        3.65
+      ],
+      "length_m": 2900.003,
+      "start_xy": [
+        -1450.0,
+        -512.0
+      ],
+      "end_xy": [
+        1450.0,
+        -512.0
+      ]
+    },
+    {
+      "no": 34,
+      "name": "FW_W westbound mainline",
+      "type": "freeway_mainline",
+      "is_connector": false,
+      "lane_count": 2,
+      "lane_widths": [
+        3.65,
+        3.65
+      ],
+      "length_m": 2900.003,
+      "start_xy": [
+        1450.0,
+        -488.0
+      ],
+      "end_xy": [
+        -1450.0,
+        -488.0
+      ]
+    }
+  ],
+  "connectors": [
+    {
+      "no": 10000,
+      "name": "A AW-LT-AN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.424,
+      "start_xy": [
+        -632.0,
+        496.75
+      ],
+      "end_xy": [
+        -596.75,
+        532.0
+      ],
+      "from": {
+        "link": 1,
+        "lane": 2,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 4,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10001,
+      "name": "A AW-TH-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -632.0,
+        495.0
+      ],
+      "end_xy": [
+        -568.0,
+        495.0
+      ],
+      "from": {
+        "link": 1,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 5,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10002,
+      "name": "A AW-RT-D",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.281,
+      "start_xy": [
+        -632.0,
+        493.25
+      ],
+      "end_xy": [
+        -606.75,
+        467.978
+      ],
+      "from": {
+        "link": 1,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 7,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10003,
+      "name": "A AN-RT-AW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.26,
+      "start_xy": [
+        -606.75,
+        532.0
+      ],
+      "end_xy": [
+        -632.0,
+        506.75
+      ],
+      "from": {
+        "link": 3,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 2,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10004,
+      "name": "A AN-LT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.442,
+      "start_xy": [
+        -603.25,
+        532.0
+      ],
+      "end_xy": [
+        -567.982,
+        496.75
+      ],
+      "from": {
+        "link": 3,
+        "lane": 2,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 5,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10005,
+      "name": "A AN-TH-D",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -605.0,
+        532.0
+      ],
+      "end_xy": [
+        -605.0,
+        468.0
+      ],
+      "from": {
+        "link": 3,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 7,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10006,
+      "name": "A B-TH-AW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -568.0,
+        505.0
+      ],
+      "end_xy": [
+        -632.0,
+        505.0
+      ],
+      "from": {
+        "link": 6,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 2,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10007,
+      "name": "A B-RT-AN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.277,
+      "start_xy": [
+        -567.982,
+        506.75
+      ],
+      "end_xy": [
+        -593.25,
+        532.0
+      ],
+      "from": {
+        "link": 6,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 4,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10008,
+      "name": "A B-LT-D",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.384,
+      "start_xy": [
+        -568.018,
+        503.25
+      ],
+      "end_xy": [
+        -603.25,
+        468.022
+      ],
+      "from": {
+        "link": 6,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 7,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10009,
+      "name": "A D-LT-AW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.446,
+      "start_xy": [
+        -596.75,
+        467.978
+      ],
+      "end_xy": [
+        -632.0,
+        503.25
+      ],
+      "from": {
+        "link": 8,
+        "lane": 2,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 2,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10010,
+      "name": "A D-TH-AN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -595.0,
+        468.0
+      ],
+      "end_xy": [
+        -595.0,
+        532.0
+      ],
+      "from": {
+        "link": 8,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 4,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10011,
+      "name": "A D-RT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.221,
+      "start_xy": [
+        -593.25,
+        468.022
+      ],
+      "end_xy": [
+        -568.018,
+        493.25
+      ],
+      "from": {
+        "link": 8,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 5,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10012,
+      "name": "B A-LT-BN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.442,
+      "start_xy": [
+        -32.018,
+        496.75
+      ],
+      "end_xy": [
+        3.25,
+        532.0
+      ],
+      "from": {
+        "link": 5,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 10,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10013,
+      "name": "B A-TH-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -32.0,
+        495.0
+      ],
+      "end_xy": [
+        32.0,
+        495.0
+      ],
+      "from": {
+        "link": 5,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 11,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10014,
+      "name": "B A-RT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.221,
+      "start_xy": [
+        -31.982,
+        493.25
+      ],
+      "end_xy": [
+        -6.75,
+        468.022
+      ],
+      "from": {
+        "link": 5,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 13,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10015,
+      "name": "B BN-RT-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.277,
+      "start_xy": [
+        -6.75,
+        532.0
+      ],
+      "end_xy": [
+        -32.018,
+        506.75
+      ],
+      "from": {
+        "link": 9,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 6,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10016,
+      "name": "B BN-LT-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.406,
+      "start_xy": [
+        -3.25,
+        532.0
+      ],
+      "end_xy": [
+        31.982,
+        496.75
+      ],
+      "from": {
+        "link": 9,
+        "lane": 2,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 11,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10017,
+      "name": "B BN-TH-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -5.0,
+        532.0
+      ],
+      "end_xy": [
+        -5.0,
+        468.0
+      ],
+      "from": {
+        "link": 9,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 13,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10018,
+      "name": "B C-TH-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        32.0,
+        505.0
+      ],
+      "end_xy": [
+        -32.0,
+        505.0
+      ],
+      "from": {
+        "link": 12,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 6,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10019,
+      "name": "B C-RT-BN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.243,
+      "start_xy": [
+        31.982,
+        506.75
+      ],
+      "end_xy": [
+        6.75,
+        532.0
+      ],
+      "from": {
+        "link": 12,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 10,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10020,
+      "name": "B C-LT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.464,
+      "start_xy": [
+        32.018,
+        503.25
+      ],
+      "end_xy": [
+        -3.25,
+        467.978
+      ],
+      "from": {
+        "link": 12,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 13,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10021,
+      "name": "B E-LT-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.384,
+      "start_xy": [
+        3.25,
+        468.022
+      ],
+      "end_xy": [
+        -31.982,
+        503.25
+      ],
+      "from": {
+        "link": 14,
+        "lane": 2,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 6,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10022,
+      "name": "B E-TH-BN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        5.0,
+        468.0
+      ],
+      "end_xy": [
+        5.0,
+        532.0
+      ],
+      "from": {
+        "link": 14,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 10,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10023,
+      "name": "B E-RT-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.299,
+      "start_xy": [
+        6.75,
+        467.978
+      ],
+      "end_xy": [
+        32.018,
+        493.25
+      ],
+      "from": {
+        "link": 14,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 11,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10024,
+      "name": "C B-LT-CN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.406,
+      "start_xy": [
+        568.018,
+        496.75
+      ],
+      "end_xy": [
+        603.25,
+        532.0
+      ],
+      "from": {
+        "link": 11,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 16,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10025,
+      "name": "C B-TH-CE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        568.0,
+        495.0
+      ],
+      "end_xy": [
+        632.0,
+        495.0
+      ],
+      "from": {
+        "link": 11,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 17,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10026,
+      "name": "C B-RT-F",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.299,
+      "start_xy": [
+        567.982,
+        493.25
+      ],
+      "end_xy": [
+        593.25,
+        467.978
+      ],
+      "from": {
+        "link": 11,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 19,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10027,
+      "name": "C CN-RT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.243,
+      "start_xy": [
+        593.25,
+        532.0
+      ],
+      "end_xy": [
+        568.018,
+        506.75
+      ],
+      "from": {
+        "link": 15,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 12,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10028,
+      "name": "C CN-LT-CE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.424,
+      "start_xy": [
+        596.75,
+        532.0
+      ],
+      "end_xy": [
+        632.0,
+        496.75
+      ],
+      "from": {
+        "link": 15,
+        "lane": 2,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 17,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10029,
+      "name": "C CN-TH-F",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        595.0,
+        532.0
+      ],
+      "end_xy": [
+        595.0,
+        468.0
+      ],
+      "from": {
+        "link": 15,
+        "lane": 1,
+        "pos": 448.0
+      },
+      "to": {
+        "link": 19,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10030,
+      "name": "C CE-TH-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        632.0,
+        505.0
+      ],
+      "end_xy": [
+        568.0,
+        505.0
+      ],
+      "from": {
+        "link": 18,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 12,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10031,
+      "name": "C CE-RT-CN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.26,
+      "start_xy": [
+        632.0,
+        506.75
+      ],
+      "end_xy": [
+        606.75,
+        532.0
+      ],
+      "from": {
+        "link": 18,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 16,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10032,
+      "name": "C CE-LT-F",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.402,
+      "start_xy": [
+        632.0,
+        503.25
+      ],
+      "end_xy": [
+        596.75,
+        468.022
+      ],
+      "from": {
+        "link": 18,
+        "lane": 2,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 19,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10033,
+      "name": "C F-LT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.464,
+      "start_xy": [
+        603.25,
+        467.978
+      ],
+      "end_xy": [
+        567.982,
+        503.25
+      ],
+      "from": {
+        "link": 20,
+        "lane": 2,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 12,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10034,
+      "name": "C F-TH-CN",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        605.0,
+        468.0
+      ],
+      "end_xy": [
+        605.0,
+        532.0
+      ],
+      "from": {
+        "link": 20,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 16,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10035,
+      "name": "C F-RT-CE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.239,
+      "start_xy": [
+        606.75,
+        468.022
+      ],
+      "end_xy": [
+        632.0,
+        493.25
+      ],
+      "from": {
+        "link": 20,
+        "lane": 1,
+        "pos": 436.0136898019239
+      },
+      "to": {
+        "link": 17,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10036,
+      "name": "D A-RT-DW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.281,
+      "start_xy": [
+        -606.75,
+        32.022
+      ],
+      "end_xy": [
+        -632.0,
+        6.75
+      ],
+      "from": {
+        "link": 7,
+        "lane": 1,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 22,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10037,
+      "name": "D A-LT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.42,
+      "start_xy": [
+        -603.25,
+        31.978
+      ],
+      "end_xy": [
+        -567.982,
+        -3.25
+      ],
+      "from": {
+        "link": 7,
+        "lane": 2,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 23,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10038,
+      "name": "D A-TH-DT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.001,
+      "start_xy": [
+        -605.0,
+        32.0
+      ],
+      "end_xy": [
+        -605.0,
+        -32.0
+      ],
+      "from": {
+        "link": 7,
+        "lane": 1,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 25,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10039,
+      "name": "D DW-LT-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.446,
+      "start_xy": [
+        -632.0,
+        -3.25
+      ],
+      "end_xy": [
+        -596.75,
+        32.022
+      ],
+      "from": {
+        "link": 21,
+        "lane": 2,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 8,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10040,
+      "name": "D DW-TH-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -632.0,
+        -5.0
+      ],
+      "end_xy": [
+        -568.0,
+        -5.0
+      ],
+      "from": {
+        "link": 21,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 23,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10041,
+      "name": "D DW-RT-DT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.296,
+      "start_xy": [
+        -632.0,
+        -6.75
+      ],
+      "end_xy": [
+        -606.75,
+        -32.036
+      ],
+      "from": {
+        "link": 21,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 25,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10042,
+      "name": "D E-RT-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.256,
+      "start_xy": [
+        -567.982,
+        6.75
+      ],
+      "end_xy": [
+        -593.25,
+        31.978
+      ],
+      "from": {
+        "link": 24,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 8,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10043,
+      "name": "D E-TH-DW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -568.0,
+        5.0
+      ],
+      "end_xy": [
+        -632.0,
+        5.0
+      ],
+      "from": {
+        "link": 24,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 22,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10044,
+      "name": "D E-LT-DT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.371,
+      "start_xy": [
+        -568.018,
+        3.25
+      ],
+      "end_xy": [
+        -603.25,
+        -31.964
+      ],
+      "from": {
+        "link": 24,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 25,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10045,
+      "name": "D DT-TH-A",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.001,
+      "start_xy": [
+        -595.0,
+        -32.0
+      ],
+      "end_xy": [
+        -595.0,
+        32.0
+      ],
+      "from": {
+        "link": 26,
+        "lane": 1,
+        "pos": 190.88277570116128
+      },
+      "to": {
+        "link": 8,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10046,
+      "name": "D DT-LT-DW",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.461,
+      "start_xy": [
+        -596.75,
+        -32.036
+      ],
+      "end_xy": [
+        -632.0,
+        3.25
+      ],
+      "from": {
+        "link": 26,
+        "lane": 2,
+        "pos": 190.88277570116128
+      },
+      "to": {
+        "link": 22,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10047,
+      "name": "D DT-RT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.209,
+      "start_xy": [
+        -593.25,
+        -31.964
+      ],
+      "end_xy": [
+        -568.018,
+        -6.75
+      ],
+      "from": {
+        "link": 26,
+        "lane": 1,
+        "pos": 190.88277570116128
+      },
+      "to": {
+        "link": 23,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10048,
+      "name": "E B-RT-D",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.256,
+      "start_xy": [
+        -6.75,
+        31.978
+      ],
+      "end_xy": [
+        -32.018,
+        6.75
+      ],
+      "from": {
+        "link": 13,
+        "lane": 1,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 24,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10049,
+      "name": "E B-LT-F",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.428,
+      "start_xy": [
+        -3.25,
+        32.022
+      ],
+      "end_xy": [
+        31.982,
+        -3.25
+      ],
+      "from": {
+        "link": 13,
+        "lane": 2,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 27,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10050,
+      "name": "E D-LT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.42,
+      "start_xy": [
+        -32.018,
+        -3.25
+      ],
+      "end_xy": [
+        3.25,
+        31.978
+      ],
+      "from": {
+        "link": 23,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 14,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10051,
+      "name": "E D-TH-F",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        -32.0,
+        -5.0
+      ],
+      "end_xy": [
+        32.0,
+        -5.0
+      ],
+      "from": {
+        "link": 23,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 27,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10052,
+      "name": "E F-RT-B",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.264,
+      "start_xy": [
+        31.982,
+        6.75
+      ],
+      "end_xy": [
+        6.75,
+        32.022
+      ],
+      "from": {
+        "link": 28,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 14,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10053,
+      "name": "E F-TH-D",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        32.0,
+        5.0
+      ],
+      "end_xy": [
+        -32.0,
+        5.0
+      ],
+      "from": {
+        "link": 28,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 24,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10054,
+      "name": "F C-RT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.264,
+      "start_xy": [
+        593.25,
+        32.022
+      ],
+      "end_xy": [
+        568.018,
+        6.75
+      ],
+      "from": {
+        "link": 19,
+        "lane": 1,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 28,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10055,
+      "name": "F C-LT-FE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.402,
+      "start_xy": [
+        596.75,
+        31.978
+      ],
+      "end_xy": [
+        632.0,
+        -3.25
+      ],
+      "from": {
+        "link": 19,
+        "lane": 2,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 29,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10056,
+      "name": "F C-TH-FT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.001,
+      "start_xy": [
+        595.0,
+        32.0
+      ],
+      "end_xy": [
+        595.0,
+        -32.0
+      ],
+      "from": {
+        "link": 19,
+        "lane": 1,
+        "pos": 436.01368980192376
+      },
+      "to": {
+        "link": 31,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10057,
+      "name": "F E-LT-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.428,
+      "start_xy": [
+        568.018,
+        -3.25
+      ],
+      "end_xy": [
+        603.25,
+        32.022
+      ],
+      "from": {
+        "link": 27,
+        "lane": 2,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 20,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10058,
+      "name": "F E-TH-FE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        568.0,
+        -5.0
+      ],
+      "end_xy": [
+        632.0,
+        -5.0
+      ],
+      "from": {
+        "link": 27,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 29,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10059,
+      "name": "F E-RT-FT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.237,
+      "start_xy": [
+        567.982,
+        -6.75
+      ],
+      "end_xy": [
+        593.251,
+        -31.956
+      ],
+      "from": {
+        "link": 27,
+        "lane": 1,
+        "pos": 536.0111358528629
+      },
+      "to": {
+        "link": 31,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10060,
+      "name": "F FE-RT-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.239,
+      "start_xy": [
+        632.0,
+        6.75
+      ],
+      "end_xy": [
+        606.75,
+        31.978
+      ],
+      "from": {
+        "link": 30,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 20,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10061,
+      "name": "F FE-TH-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.0,
+      "start_xy": [
+        632.0,
+        5.0
+      ],
+      "end_xy": [
+        568.0,
+        5.0
+      ],
+      "from": {
+        "link": 30,
+        "lane": 1,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 28,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10062,
+      "name": "F FE-LT-FT",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.468,
+      "start_xy": [
+        632.0,
+        3.25
+      ],
+      "end_xy": [
+        596.749,
+        -32.044
+      ],
+      "from": {
+        "link": 30,
+        "lane": 2,
+        "pos": 488.0
+      },
+      "to": {
+        "link": 31,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10063,
+      "name": "F FT-TH-C",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 2,
+      "lane_widths": [
+        null,
+        null
+      ],
+      "length_m": 64.001,
+      "start_xy": [
+        605.0,
+        -32.0
+      ],
+      "end_xy": [
+        605.0,
+        32.0
+      ],
+      "from": {
+        "link": 32,
+        "lane": 1,
+        "pos": 286.3261204900838
+      },
+      "to": {
+        "link": 20,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10064,
+      "name": "F FT-LT-E",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 62.4,
+      "start_xy": [
+        603.251,
+        -31.956
+      ],
+      "end_xy": [
+        567.982,
+        3.25
+      ],
+      "from": {
+        "link": 32,
+        "lane": 2,
+        "pos": 286.3261204900838
+      },
+      "to": {
+        "link": 28,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10065,
+      "name": "F FT-RT-FE",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 43.303,
+      "start_xy": [
+        606.749,
+        -32.044
+      ],
+      "end_xy": [
+        632.0,
+        -6.75
+      ],
+      "from": {
+        "link": 32,
+        "lane": 1,
+        "pos": 286.3261204900838
+      },
+      "to": {
+        "link": 29,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10066,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 474.974,
+      "start_xy": [
+        -603.689,
+        -222.877
+      ],
+      "end_xy": [
+        -948.242,
+        -487.016
+      ],
+      "from": {
+        "link": 25,
+        "lane": 1,
+        "pos": 190.88277570116128
+      },
+      "to": {
+        "link": 34,
+        "lane": 1,
+        "pos": 2398.244756343526
+      }
+    },
+    {
+      "no": 10067,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 820.165,
+      "start_xy": [
+        -950.97,
+        -514.665
+      ],
+      "end_xy": [
+        -593.689,
+        -222.877
+      ],
+      "from": {
+        "link": 33,
+        "lane": 1,
+        "pos": 499.0317957686363
+      },
+      "to": {
+        "link": 26,
+        "lane": 2,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10068,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 855.587,
+      "start_xy": [
+        -600.205,
+        -221.442
+      ],
+      "end_xy": [
+        -637.608,
+        -514.619
+      ],
+      "from": {
+        "link": 25,
+        "lane": 2,
+        "pos": 189.48745358014364
+      },
+      "to": {
+        "link": 33,
+        "lane": 1,
+        "pos": 812.3914617342674
+      }
+    },
+    {
+      "no": 10069,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 385.217,
+      "start_xy": [
+        912.262,
+        -485.321
+      ],
+      "end_xy": [
+        602.363,
+        -314.586
+      ],
+      "from": {
+        "link": 34,
+        "lane": 1,
+        "pos": 537.7388621546322
+      },
+      "to": {
+        "link": 32,
+        "lane": 1,
+        "pos": 3.7102252598487873
+      }
+    },
+    {
+      "no": 10070,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 369.339,
+      "start_xy": [
+        588.856,
+        -315.8
+      ],
+      "end_xy": [
+        294.749,
+        -485.741
+      ],
+      "from": {
+        "link": 31,
+        "lane": 1,
+        "pos": 283.85028457932196
+      },
+      "to": {
+        "link": 34,
+        "lane": 1,
+        "pos": 1155.2495503139976
+      }
+    },
+    {
+      "no": 10071,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 433.989,
+      "start_xy": [
+        -293.46,
+        -486.607
+      ],
+      "end_xy": [
+        -590.189,
+        -222.837
+      ],
+      "from": {
+        "link": 34,
+        "lane": 1,
+        "pos": 1743.4595824891098
+      },
+      "to": {
+        "link": 26,
+        "lane": 1,
+        "pos": 0.0
+      }
+    },
+    {
+      "no": 10072,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 660.136,
+      "start_xy": [
+        285.615,
+        -513.403
+      ],
+      "end_xy": [
+        598.849,
+        -317.009
+      ],
+      "from": {
+        "link": 33,
+        "lane": 1,
+        "pos": 1735.614696463941
+      },
+      "to": {
+        "link": 32,
+        "lane": 2,
+        "pos": 1.2670708312934642
+      }
+    },
+    {
+      "no": 10073,
+      "name": "",
+      "type": "turn_connector",
+      "is_connector": true,
+      "lane_count": 1,
+      "lane_widths": [
+        null
+      ],
+      "length_m": 669.507,
+      "start_xy": [
+        592.419,
+        -304.849
+      ],
+      "end_xy": [
+        579.149,
+        -513.074
+      ],
+      "from": {
+        "link": 31,
+        "lane": 2,
+        "pos": 272.8777049778295
+      },
+      "to": {
+        "link": 33,
+        "lane": 1,
+        "pos": 2029.1497729629073
+      }
+    }
+  ],
+  "vehicle_inputs": [
+    {
+      "anmFlag": "false",
+      "link": "1",
+      "name": "VI_A_W",
+      "no": "1"
+    },
+    {
+      "anmFlag": "false",
+      "link": "3",
+      "name": "VI_A_N",
+      "no": "2"
+    },
+    {
+      "anmFlag": "false",
+      "link": "9",
+      "name": "VI_B_N",
+      "no": "3"
+    },
+    {
+      "anmFlag": "false",
+      "link": "15",
+      "name": "VI_C_N",
+      "no": "4"
+    },
+    {
+      "anmFlag": "false",
+      "link": "18",
+      "name": "VI_C_E",
+      "no": "5"
+    },
+    {
+      "anmFlag": "false",
+      "link": "21",
+      "name": "VI_D_W",
+      "no": "6"
+    },
+    {
+      "anmFlag": "false",
+      "link": "30",
+      "name": "VI_F_E",
+      "no": "7"
+    },
+    {
+      "anmFlag": "false",
+      "link": "33",
+      "name": "VI_FW_E",
+      "no": "8"
+    },
+    {
+      "anmFlag": "false",
+      "link": "34",
+      "name": "VI_FW_W",
+      "no": "9"
+    }
+  ],
+  "data_collection_points": [
+    {
+      "lane": "33 1",
+      "name": "FW_E_250_L1",
+      "no": "9",
+      "pos": "250"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_250_L2",
+      "no": "10",
+      "pos": "250"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_550_L1",
+      "no": "11",
+      "pos": "550"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_550_L2",
+      "no": "12",
+      "pos": "550"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_850_L1",
+      "no": "13",
+      "pos": "850"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_850_L2",
+      "no": "14",
+      "pos": "850"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_1150_L1",
+      "no": "15",
+      "pos": "1150"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_1150_L2",
+      "no": "16",
+      "pos": "1150"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_1450_L1",
+      "no": "17",
+      "pos": "1450"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_1450_L2",
+      "no": "18",
+      "pos": "1450"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_1750_L1",
+      "no": "19",
+      "pos": "1750"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_1750_L2",
+      "no": "20",
+      "pos": "1750"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_2050_L1",
+      "no": "21",
+      "pos": "2050"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_2050_L2",
+      "no": "22",
+      "pos": "2050"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_2350_L1",
+      "no": "23",
+      "pos": "2350"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_2350_L2",
+      "no": "24",
+      "pos": "2350"
+    },
+    {
+      "lane": "33 1",
+      "name": "FW_E_2650_L1",
+      "no": "25",
+      "pos": "2650"
+    },
+    {
+      "lane": "33 2",
+      "name": "FW_E_2650_L2",
+      "no": "26",
+      "pos": "2650"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_250_L1",
+      "no": "27",
+      "pos": "250"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_250_L2",
+      "no": "28",
+      "pos": "250"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_550_L1",
+      "no": "29",
+      "pos": "550"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_550_L2",
+      "no": "30",
+      "pos": "550"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_850_L1",
+      "no": "31",
+      "pos": "850"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_850_L2",
+      "no": "32",
+      "pos": "850"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_1150_L1",
+      "no": "33",
+      "pos": "1150"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_1150_L2",
+      "no": "34",
+      "pos": "1150"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_1450_L1",
+      "no": "35",
+      "pos": "1450"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_1450_L2",
+      "no": "36",
+      "pos": "1450"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_1750_L1",
+      "no": "37",
+      "pos": "1750"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_1750_L2",
+      "no": "38",
+      "pos": "1750"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_2050_L1",
+      "no": "39",
+      "pos": "2050"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_2050_L2",
+      "no": "40",
+      "pos": "2050"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_2350_L1",
+      "no": "41",
+      "pos": "2350"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_2350_L2",
+      "no": "42",
+      "pos": "2350"
+    },
+    {
+      "lane": "34 1",
+      "name": "FW_W_2650_L1",
+      "no": "43",
+      "pos": "2650"
+    },
+    {
+      "lane": "34 2",
+      "name": "FW_W_2650_L2",
+      "no": "44",
+      "pos": "2650"
+    },
+    {
+      "lane": "5 1",
+      "name": "URB_A_B_L1",
+      "no": "45",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "5 2",
+      "name": "URB_A_B_L2",
+      "no": "46",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "6 1",
+      "name": "URB_B_A_L1",
+      "no": "47",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "6 2",
+      "name": "URB_B_A_L2",
+      "no": "48",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "11 1",
+      "name": "URB_B_C_L1",
+      "no": "49",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "11 2",
+      "name": "URB_B_C_L2",
+      "no": "50",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "12 1",
+      "name": "URB_C_B_L1",
+      "no": "51",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "12 2",
+      "name": "URB_C_B_L2",
+      "no": "52",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "7 1",
+      "name": "URB_A_D_L1",
+      "no": "53",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "7 2",
+      "name": "URB_A_D_L2",
+      "no": "54",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "8 1",
+      "name": "URB_D_A_L1",
+      "no": "55",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "8 2",
+      "name": "URB_D_A_L2",
+      "no": "56",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "13 1",
+      "name": "URB_B_E_L1",
+      "no": "57",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "13 2",
+      "name": "URB_B_E_L2",
+      "no": "58",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "14 1",
+      "name": "URB_E_B_L1",
+      "no": "59",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "14 2",
+      "name": "URB_E_B_L2",
+      "no": "60",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "19 1",
+      "name": "URB_C_F_L1",
+      "no": "61",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "19 2",
+      "name": "URB_C_F_L2",
+      "no": "62",
+      "pos": "218.00684490096188"
+    },
+    {
+      "lane": "20 1",
+      "name": "URB_F_C_L1",
+      "no": "63",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "20 2",
+      "name": "URB_F_C_L2",
+      "no": "64",
+      "pos": "218.00684490096194"
+    },
+    {
+      "lane": "23 1",
+      "name": "URB_D_E_L1",
+      "no": "65",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "23 2",
+      "name": "URB_D_E_L2",
+      "no": "66",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "24 1",
+      "name": "URB_E_D_L1",
+      "no": "67",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "24 2",
+      "name": "URB_E_D_L2",
+      "no": "68",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "27 1",
+      "name": "URB_E_F_L1",
+      "no": "69",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "27 2",
+      "name": "URB_E_F_L2",
+      "no": "70",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "28 1",
+      "name": "URB_F_E_L1",
+      "no": "71",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "28 2",
+      "name": "URB_F_E_L2",
+      "no": "72",
+      "pos": "268.00556792643147"
+    },
+    {
+      "lane": "25 1",
+      "name": "EVAL_DCP_RAMP_D_ON_P25_L1",
+      "no": "73",
+      "pos": "47.72069392529032"
+    },
+    {
+      "lane": "25 2",
+      "name": "EVAL_DCP_RAMP_D_ON_P25_L2",
+      "no": "74",
+      "pos": "47.72069392529032"
+    },
+    {
+      "lane": "25 1",
+      "name": "EVAL_DCP_RAMP_D_ON_P50_L1",
+      "no": "75",
+      "pos": "95.441387850580639"
+    },
+    {
+      "lane": "25 2",
+      "name": "EVAL_DCP_RAMP_D_ON_P50_L2",
+      "no": "76",
+      "pos": "95.441387850580639"
+    },
+    {
+      "lane": "25 1",
+      "name": "EVAL_DCP_RAMP_D_ON_P75_L1",
+      "no": "77",
+      "pos": "143.16208177587094"
+    },
+    {
+      "lane": "25 2",
+      "name": "EVAL_DCP_RAMP_D_ON_P75_L2",
+      "no": "78",
+      "pos": "143.16208177587094"
+    },
+    {
+      "lane": "26 1",
+      "name": "EVAL_DCP_RAMP_D_OFF_P25_L1",
+      "no": "79",
+      "pos": "47.72069392529032"
+    },
+    {
+      "lane": "26 2",
+      "name": "EVAL_DCP_RAMP_D_OFF_P25_L2",
+      "no": "80",
+      "pos": "47.72069392529032"
+    },
+    {
+      "lane": "26 1",
+      "name": "EVAL_DCP_RAMP_D_OFF_P50_L1",
+      "no": "81",
+      "pos": "95.441387850580639"
+    },
+    {
+      "lane": "26 2",
+      "name": "EVAL_DCP_RAMP_D_OFF_P50_L2",
+      "no": "82",
+      "pos": "95.441387850580639"
+    },
+    {
+      "lane": "26 1",
+      "name": "EVAL_DCP_RAMP_D_OFF_P75_L1",
+      "no": "83",
+      "pos": "143.16208177587094"
+    },
+    {
+      "lane": "26 2",
+      "name": "EVAL_DCP_RAMP_D_OFF_P75_L2",
+      "no": "84",
+      "pos": "143.16208177587094"
+    },
+    {
+      "lane": "31 1",
+      "name": "EVAL_DCP_RAMP_F_ON_P25_L1",
+      "no": "85",
+      "pos": "71.581530122520945"
+    },
+    {
+      "lane": "31 2",
+      "name": "EVAL_DCP_RAMP_F_ON_P25_L2",
+      "no": "86",
+      "pos": "71.581530122520945"
+    },
+    {
+      "lane": "31 1",
+      "name": "EVAL_DCP_RAMP_F_ON_P50_L1",
+      "no": "87",
+      "pos": "143.16306024504189"
+    },
+    {
+      "lane": "31 2",
+      "name": "EVAL_DCP_RAMP_F_ON_P50_L2",
+      "no": "88",
+      "pos": "143.16306024504189"
+    },
+    {
+      "lane": "31 1",
+      "name": "EVAL_DCP_RAMP_F_ON_P75_L1",
+      "no": "89",
+      "pos": "214.74459036756284"
+    },
+    {
+      "lane": "31 2",
+      "name": "EVAL_DCP_RAMP_F_ON_P75_L2",
+      "no": "90",
+      "pos": "214.74459036756284"
+    },
+    {
+      "lane": "32 1",
+      "name": "EVAL_DCP_RAMP_F_OFF_P25_L1",
+      "no": "91",
+      "pos": "71.581530122520945"
+    },
+    {
+      "lane": "32 2",
+      "name": "EVAL_DCP_RAMP_F_OFF_P25_L2",
+      "no": "92",
+      "pos": "71.581530122520945"
+    },
+    {
+      "lane": "32 1",
+      "name": "EVAL_DCP_RAMP_F_OFF_P50_L1",
+      "no": "93",
+      "pos": "143.16306024504189"
+    },
+    {
+      "lane": "32 2",
+      "name": "EVAL_DCP_RAMP_F_OFF_P50_L2",
+      "no": "94",
+      "pos": "143.16306024504189"
+    },
+    {
+      "lane": "32 1",
+      "name": "EVAL_DCP_RAMP_F_OFF_P75_L1",
+      "no": "95",
+      "pos": "214.74459036756284"
+    },
+    {
+      "lane": "32 2",
+      "name": "EVAL_DCP_RAMP_F_OFF_P75_L2",
+      "no": "96",
+      "pos": "214.74459036756284"
+    },
+    {
+      "lane": "33 1",
+      "name": "EVAL_DCP_FW_E_BOT_430_L1",
+      "no": "97",
+      "pos": "430"
+    },
+    {
+      "lane": "33 2",
+      "name": "EVAL_DCP_FW_E_BOT_430_L2",
+      "no": "98",
+      "pos": "430"
+    },
+    {
+      "lane": "33 1",
+      "name": "EVAL_DCP_FW_E_BOT_880_L1",
+      "no": "99",
+      "pos": "880"
+    },
+    {
+      "lane": "33 2",
+      "name": "EVAL_DCP_FW_E_BOT_880_L2",
+      "no": "100",
+      "pos": "880"
+    },
+    {
+      "lane": "33 1",
+      "name": "EVAL_DCP_FW_E_BOT_1680_L1",
+      "no": "101",
+      "pos": "1680"
+    },
+    {
+      "lane": "33 2",
+      "name": "EVAL_DCP_FW_E_BOT_1680_L2",
+      "no": "102",
+      "pos": "1680"
+    },
+    {
+      "lane": "33 1",
+      "name": "EVAL_DCP_FW_E_BOT_2070_L1",
+      "no": "103",
+      "pos": "2070"
+    },
+    {
+      "lane": "33 2",
+      "name": "EVAL_DCP_FW_E_BOT_2070_L2",
+      "no": "104",
+      "pos": "2070"
+    },
+    {
+      "lane": "34 1",
+      "name": "EVAL_DCP_FW_W_BOT_430_L1",
+      "no": "105",
+      "pos": "430"
+    },
+    {
+      "lane": "34 2",
+      "name": "EVAL_DCP_FW_W_BOT_430_L2",
+      "no": "106",
+      "pos": "430"
+    },
+    {
+      "lane": "34 1",
+      "name": "EVAL_DCP_FW_W_BOT_1200_L1",
+      "no": "107",
+      "pos": "1200"
+    },
+    {
+      "lane": "34 2",
+      "name": "EVAL_DCP_FW_W_BOT_1200_L2",
+      "no": "108",
+      "pos": "1200"
+    },
+    {
+      "lane": "34 1",
+      "name": "EVAL_DCP_FW_W_BOT_1680_L1",
+      "no": "109",
+      "pos": "1680"
+    },
+    {
+      "lane": "34 2",
+      "name": "EVAL_DCP_FW_W_BOT_1680_L2",
+      "no": "110",
+      "pos": "1680"
+    },
+    {
+      "lane": "34 1",
+      "name": "EVAL_DCP_FW_W_BOT_2430_L1",
+      "no": "111",
+      "pos": "2430"
+    },
+    {
+      "lane": "34 2",
+      "name": "EVAL_DCP_FW_W_BOT_2430_L2",
+      "no": "112",
+      "pos": "2430"
+    }
+  ],
+  "queue_counters": [
+    {
+      "link": "1",
+      "name": "QC_AW_A",
+      "no": "5",
+      "pos": "476"
+    },
+    {
+      "link": "3",
+      "name": "QC_AN_A",
+      "no": "6",
+      "pos": "436"
+    },
+    {
+      "link": "6",
+      "name": "QC_B_A",
+      "no": "7",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "8",
+      "name": "QC_D_A",
+      "no": "8",
+      "pos": "424.01368980192387"
+    },
+    {
+      "link": "5",
+      "name": "QC_A_B",
+      "no": "9",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "9",
+      "name": "QC_BN_B",
+      "no": "10",
+      "pos": "436"
+    },
+    {
+      "link": "12",
+      "name": "QC_C_B",
+      "no": "11",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "14",
+      "name": "QC_E_B",
+      "no": "12",
+      "pos": "424.01368980192387"
+    },
+    {
+      "link": "11",
+      "name": "QC_B_C",
+      "no": "13",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "15",
+      "name": "QC_CN_C",
+      "no": "14",
+      "pos": "436"
+    },
+    {
+      "link": "18",
+      "name": "QC_CE_C",
+      "no": "15",
+      "pos": "476"
+    },
+    {
+      "link": "20",
+      "name": "QC_F_C",
+      "no": "16",
+      "pos": "424.01368980192387"
+    },
+    {
+      "link": "7",
+      "name": "QC_A_D",
+      "no": "17",
+      "pos": "424.01368980192376"
+    },
+    {
+      "link": "21",
+      "name": "QC_DW_D",
+      "no": "18",
+      "pos": "476"
+    },
+    {
+      "link": "24",
+      "name": "QC_E_D",
+      "no": "19",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "26",
+      "name": "QC_DT_D",
+      "no": "20",
+      "pos": "178.88277570116128"
+    },
+    {
+      "link": "13",
+      "name": "QC_B_E",
+      "no": "21",
+      "pos": "424.01368980192376"
+    },
+    {
+      "link": "23",
+      "name": "QC_D_E",
+      "no": "22",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "28",
+      "name": "QC_F_E",
+      "no": "23",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "19",
+      "name": "QC_C_F",
+      "no": "24",
+      "pos": "424.01368980192376"
+    },
+    {
+      "link": "27",
+      "name": "QC_E_F",
+      "no": "25",
+      "pos": "524.01113585286294"
+    },
+    {
+      "link": "30",
+      "name": "QC_FE_F",
+      "no": "26",
+      "pos": "476"
+    },
+    {
+      "link": "32",
+      "name": "QC_FT_F",
+      "no": "27",
+      "pos": "274.32612049008378"
+    },
+    {
+      "link": "25",
+      "name": "EVAL_QC_RM_D_ON",
+      "no": "28",
+      "pos": "170.88277570116128"
+    },
+    {
+      "link": "31",
+      "name": "EVAL_QC_RM_F_ON",
+      "no": "29",
+      "pos": "266.32612049008378"
+    },
+    {
+      "link": "33",
+      "name": "EVAL_QC_FW_E_D",
+      "no": "30",
+      "pos": "880"
+    },
+    {
+      "link": "33",
+      "name": "EVAL_QC_FW_E_F",
+      "no": "31",
+      "pos": "2070"
+    },
+    {
+      "link": "34",
+      "name": "EVAL_QC_FW_W_F",
+      "no": "32",
+      "pos": "1200"
+    },
+    {
+      "link": "34",
+      "name": "EVAL_QC_FW_W_D",
+      "no": "33",
+      "pos": "2430"
+    }
+  ],
+  "route_decisions_static": [],
+  "vehicle_routes_static": [],
+  "signal_controllers": [
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_A",
+      "no": "1",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_B",
+      "no": "2",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_C",
+      "no": "3",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_D",
+      "no": "4",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_F",
+      "no": "5",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_RM_D",
+      "no": "6",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_RM_F",
+      "no": "7",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_VSL_EB",
+      "no": "8",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    },
+    {
+      "active": "true",
+      "cycTm": "0",
+      "cycTmIsVar": "false",
+      "debug": "false",
+      "guiFile": "#exe#vissig_gui.dll",
+      "name": "EVAL_SC_VSL_WB",
+      "no": "9",
+      "offset": "0",
+      "progFile": "#exe#vissig_controller.dll",
+      "progNo": "1",
+      "scDetRecLabelDet": "PORTNUMBER",
+      "scDetRecLabelSG": "NUMBER",
+      "scDetRecShortNam": "false",
+      "sigTmsTabAutoConfig": "true",
+      "sigTmsTabLabelDet": "PORTNUMBER",
+      "sigTmsTabLabelSG": "NUMBER",
+      "supplyFile1": "#exe#vissig.config",
+      "supplyFile2": "",
+      "supplyFile3": "",
+      "type": "FIXEDTIME"
+    }
+  ],
+  "signal_heads": [],
+  "detectors": [
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "1 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L1_STOP_L1",
+      "no": "1",
+      "portNo": "1000",
+      "pos": "470",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "1 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L1_STOP_L2",
+      "no": "2",
+      "portNo": "1001",
+      "pos": "470",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "1 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L1_ADV_L1",
+      "no": "3",
+      "portNo": "1002",
+      "pos": "368",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "1 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L1_ADV_L2",
+      "no": "4",
+      "portNo": "1003",
+      "pos": "368",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "3 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L3_STOP_L1",
+      "no": "5",
+      "portNo": "1004",
+      "pos": "430",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "3 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L3_STOP_L2",
+      "no": "6",
+      "portNo": "1005",
+      "pos": "430",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "3 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L3_ADV_L1",
+      "no": "7",
+      "portNo": "1006",
+      "pos": "328",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "3 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L3_ADV_L2",
+      "no": "8",
+      "portNo": "1007",
+      "pos": "328",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "6 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L6_STOP_L1",
+      "no": "9",
+      "portNo": "1008",
+      "pos": "518.01113585286294",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "6 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L6_STOP_L2",
+      "no": "10",
+      "portNo": "1009",
+      "pos": "518.01113585286294",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "6 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L6_ADV_L1",
+      "no": "11",
+      "portNo": "1010",
+      "pos": "416.01113585286294",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "6 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L6_ADV_L2",
+      "no": "12",
+      "portNo": "1011",
+      "pos": "416.01113585286294",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "8 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L8_STOP_L1",
+      "no": "13",
+      "portNo": "1012",
+      "pos": "418.01368980192387",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "8 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L8_STOP_L2",
+      "no": "14",
+      "portNo": "1013",
+      "pos": "418.01368980192387",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "8 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L8_ADV_L1",
+      "no": "15",
+      "portNo": "1014",
+      "pos": "316.01368980192387",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "8 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_A_L8_ADV_L2",
+      "no": "16",
+      "portNo": "1015",
+      "pos": "316.01368980192387",
+      "sc": "1",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "5 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L5_STOP_L1",
+      "no": "17",
+      "portNo": "1016",
+      "pos": "518.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "5 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L5_STOP_L2",
+      "no": "18",
+      "portNo": "1017",
+      "pos": "518.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "5 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L5_ADV_L1",
+      "no": "19",
+      "portNo": "1018",
+      "pos": "416.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "5 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L5_ADV_L2",
+      "no": "20",
+      "portNo": "1019",
+      "pos": "416.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "9 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L9_STOP_L1",
+      "no": "21",
+      "portNo": "1020",
+      "pos": "430",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "9 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L9_STOP_L2",
+      "no": "22",
+      "portNo": "1021",
+      "pos": "430",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "9 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L9_ADV_L1",
+      "no": "23",
+      "portNo": "1022",
+      "pos": "328",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "9 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L9_ADV_L2",
+      "no": "24",
+      "portNo": "1023",
+      "pos": "328",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "12 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L12_STOP_L1",
+      "no": "25",
+      "portNo": "1024",
+      "pos": "518.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "12 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L12_STOP_L2",
+      "no": "26",
+      "portNo": "1025",
+      "pos": "518.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "12 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L12_ADV_L1",
+      "no": "27",
+      "portNo": "1026",
+      "pos": "416.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "12 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L12_ADV_L2",
+      "no": "28",
+      "portNo": "1027",
+      "pos": "416.01113585286294",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "14 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L14_STOP_L1",
+      "no": "29",
+      "portNo": "1028",
+      "pos": "418.01368980192387",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "14 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L14_STOP_L2",
+      "no": "30",
+      "portNo": "1029",
+      "pos": "418.01368980192387",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "14 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L14_ADV_L1",
+      "no": "31",
+      "portNo": "1030",
+      "pos": "316.01368980192387",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "14 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_B_L14_ADV_L2",
+      "no": "32",
+      "portNo": "1031",
+      "pos": "316.01368980192387",
+      "sc": "2",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "11 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L11_STOP_L1",
+      "no": "33",
+      "portNo": "1032",
+      "pos": "518.01113585286294",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "11 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L11_STOP_L2",
+      "no": "34",
+      "portNo": "1033",
+      "pos": "518.01113585286294",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "11 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L11_ADV_L1",
+      "no": "35",
+      "portNo": "1034",
+      "pos": "416.01113585286294",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "11 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L11_ADV_L2",
+      "no": "36",
+      "portNo": "1035",
+      "pos": "416.01113585286294",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "15 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L15_STOP_L1",
+      "no": "37",
+      "portNo": "1036",
+      "pos": "430",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "15 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L15_STOP_L2",
+      "no": "38",
+      "portNo": "1037",
+      "pos": "430",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "15 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L15_ADV_L1",
+      "no": "39",
+      "portNo": "1038",
+      "pos": "328",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "15 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L15_ADV_L2",
+      "no": "40",
+      "portNo": "1039",
+      "pos": "328",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "18 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L18_STOP_L1",
+      "no": "41",
+      "portNo": "1040",
+      "pos": "470",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "18 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L18_STOP_L2",
+      "no": "42",
+      "portNo": "1041",
+      "pos": "470",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "18 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L18_ADV_L1",
+      "no": "43",
+      "portNo": "1042",
+      "pos": "368",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "18 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L18_ADV_L2",
+      "no": "44",
+      "portNo": "1043",
+      "pos": "368",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "20 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L20_STOP_L1",
+      "no": "45",
+      "portNo": "1044",
+      "pos": "418.01368980192387",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "20 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L20_STOP_L2",
+      "no": "46",
+      "portNo": "1045",
+      "pos": "418.01368980192387",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "20 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L20_ADV_L1",
+      "no": "47",
+      "portNo": "1046",
+      "pos": "316.01368980192387",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "20 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_C_L20_ADV_L2",
+      "no": "48",
+      "portNo": "1047",
+      "pos": "316.01368980192387",
+      "sc": "3",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "7 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L7_STOP_L1",
+      "no": "49",
+      "portNo": "1048",
+      "pos": "418.01368980192376",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "7 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L7_STOP_L2",
+      "no": "50",
+      "portNo": "1049",
+      "pos": "418.01368980192376",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "7 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L7_ADV_L1",
+      "no": "51",
+      "portNo": "1050",
+      "pos": "316.01368980192376",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "7 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L7_ADV_L2",
+      "no": "52",
+      "portNo": "1051",
+      "pos": "316.01368980192376",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "21 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L21_STOP_L1",
+      "no": "53",
+      "portNo": "1052",
+      "pos": "470",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "21 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L21_STOP_L2",
+      "no": "54",
+      "portNo": "1053",
+      "pos": "470",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "21 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L21_ADV_L1",
+      "no": "55",
+      "portNo": "1054",
+      "pos": "368",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "21 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L21_ADV_L2",
+      "no": "56",
+      "portNo": "1055",
+      "pos": "368",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "24 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L24_STOP_L1",
+      "no": "57",
+      "portNo": "1056",
+      "pos": "518.01113585286294",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "24 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L24_STOP_L2",
+      "no": "58",
+      "portNo": "1057",
+      "pos": "518.01113585286294",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "24 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L24_ADV_L1",
+      "no": "59",
+      "portNo": "1058",
+      "pos": "416.01113585286294",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "24 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L24_ADV_L2",
+      "no": "60",
+      "portNo": "1059",
+      "pos": "416.01113585286294",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L26_STOP_L1",
+      "no": "61",
+      "portNo": "1060",
+      "pos": "172.88277570116128",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L26_STOP_L2",
+      "no": "62",
+      "portNo": "1061",
+      "pos": "172.88277570116128",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L26_ADV_L1",
+      "no": "63",
+      "portNo": "1062",
+      "pos": "70.882775701161279",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_D_L26_ADV_L2",
+      "no": "64",
+      "portNo": "1063",
+      "pos": "70.882775701161279",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "19 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L19_STOP_L1",
+      "no": "65",
+      "portNo": "1064",
+      "pos": "418.01368980192376",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "19 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L19_STOP_L2",
+      "no": "66",
+      "portNo": "1065",
+      "pos": "418.01368980192376",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "19 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L19_ADV_L1",
+      "no": "67",
+      "portNo": "1066",
+      "pos": "316.01368980192376",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "19 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L19_ADV_L2",
+      "no": "68",
+      "portNo": "1067",
+      "pos": "316.01368980192376",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "27 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L27_STOP_L1",
+      "no": "69",
+      "portNo": "1068",
+      "pos": "518.01113585286294",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "27 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L27_STOP_L2",
+      "no": "70",
+      "portNo": "1069",
+      "pos": "518.01113585286294",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "27 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L27_ADV_L1",
+      "no": "71",
+      "portNo": "1070",
+      "pos": "416.01113585286294",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "27 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L27_ADV_L2",
+      "no": "72",
+      "portNo": "1071",
+      "pos": "416.01113585286294",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "30 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L30_STOP_L1",
+      "no": "73",
+      "portNo": "1072",
+      "pos": "470",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "30 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L30_STOP_L2",
+      "no": "74",
+      "portNo": "1073",
+      "pos": "470",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "30 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L30_ADV_L1",
+      "no": "75",
+      "portNo": "1074",
+      "pos": "368",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "30 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L30_ADV_L2",
+      "no": "76",
+      "portNo": "1075",
+      "pos": "368",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L32_STOP_L1",
+      "no": "77",
+      "portNo": "1076",
+      "pos": "268.32612049008378",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L32_STOP_L2",
+      "no": "78",
+      "portNo": "1077",
+      "pos": "268.32612049008378",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L32_ADV_L1",
+      "no": "79",
+      "portNo": "1078",
+      "pos": "166.32612049008378",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_F_L32_ADV_L2",
+      "no": "80",
+      "portNo": "1079",
+      "pos": "166.32612049008378",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 1",
+      "length": "20",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_QUEUE_L1",
+      "no": "81",
+      "portNo": "1080",
+      "pos": "47.72069392529032",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 2",
+      "length": "20",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_QUEUE_L2",
+      "no": "82",
+      "portNo": "1081",
+      "pos": "47.72069392529032",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_PRES_L1",
+      "no": "83",
+      "portNo": "1082",
+      "pos": "155.88277570116128",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_PRES_L2",
+      "no": "84",
+      "portNo": "1083",
+      "pos": "155.88277570116128",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 1",
+      "length": "4",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_PASS_L1",
+      "no": "85",
+      "portNo": "1084",
+      "pos": "175.88277570116128",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "25 2",
+      "length": "4",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_D_PASS_L2",
+      "no": "86",
+      "portNo": "1085",
+      "pos": "175.88277570116128",
+      "sc": "6",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 1",
+      "length": "20",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_QUEUE_L1",
+      "no": "87",
+      "portNo": "1086",
+      "pos": "71.581530122520945",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 2",
+      "length": "20",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_QUEUE_L2",
+      "no": "88",
+      "portNo": "1087",
+      "pos": "71.581530122520945",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_PRES_L1",
+      "no": "89",
+      "portNo": "1088",
+      "pos": "251.32612049008378",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_PRES_L2",
+      "no": "90",
+      "portNo": "1089",
+      "pos": "251.32612049008378",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 1",
+      "length": "4",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_PASS_L1",
+      "no": "91",
+      "portNo": "1090",
+      "pos": "271.32612049008378",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "31 2",
+      "length": "4",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_RM_F_PASS_L2",
+      "no": "92",
+      "portNo": "1091",
+      "pos": "271.32612049008378",
+      "sc": "7",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_OFF_D_ENTRY_L1",
+      "no": "93",
+      "portNo": "1092",
+      "pos": "35",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "26 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_OFF_D_ENTRY_L2",
+      "no": "94",
+      "portNo": "1093",
+      "pos": "35",
+      "sc": "4",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 1",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_OFF_F_ENTRY_L1",
+      "no": "95",
+      "portNo": "1094",
+      "pos": "35",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "32 2",
+      "length": "8",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_OFF_F_ENTRY_L2",
+      "no": "96",
+      "portNo": "1095",
+      "pos": "35",
+      "sc": "5",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_430_L1",
+      "no": "97",
+      "portNo": "1096",
+      "pos": "430",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_430_L2",
+      "no": "98",
+      "portNo": "1097",
+      "pos": "430",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_880_L1",
+      "no": "99",
+      "portNo": "1098",
+      "pos": "880",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_880_L2",
+      "no": "100",
+      "portNo": "1099",
+      "pos": "880",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_1450_L1",
+      "no": "101",
+      "portNo": "1100",
+      "pos": "1450",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_1450_L2",
+      "no": "102",
+      "portNo": "1101",
+      "pos": "1450",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_1680_L1",
+      "no": "103",
+      "portNo": "1102",
+      "pos": "1680",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_1680_L2",
+      "no": "104",
+      "portNo": "1103",
+      "pos": "1680",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_2070_L1",
+      "no": "105",
+      "portNo": "1104",
+      "pos": "2070",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_2070_L2",
+      "no": "106",
+      "portNo": "1105",
+      "pos": "2070",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_2450_L1",
+      "no": "107",
+      "portNo": "1106",
+      "pos": "2450",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "33 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_EB_2450_L2",
+      "no": "108",
+      "portNo": "1107",
+      "pos": "2450",
+      "sc": "8",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_430_L1",
+      "no": "109",
+      "portNo": "1108",
+      "pos": "430",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_430_L2",
+      "no": "110",
+      "portNo": "1109",
+      "pos": "430",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1200_L1",
+      "no": "111",
+      "portNo": "1110",
+      "pos": "1200",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1200_L2",
+      "no": "112",
+      "portNo": "1111",
+      "pos": "1200",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1450_L1",
+      "no": "113",
+      "portNo": "1112",
+      "pos": "1450",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1450_L2",
+      "no": "114",
+      "portNo": "1113",
+      "pos": "1450",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1680_L1",
+      "no": "115",
+      "portNo": "1114",
+      "pos": "1680",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_1680_L2",
+      "no": "116",
+      "portNo": "1115",
+      "pos": "1680",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_2430_L1",
+      "no": "117",
+      "portNo": "1116",
+      "pos": "2430",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_2430_L2",
+      "no": "118",
+      "portNo": "1117",
+      "pos": "2430",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 1",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_2600_L1",
+      "no": "119",
+      "portNo": "1118",
+      "pos": "2600",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    },
+    {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "lane": "34 2",
+      "length": "10",
+      "maxPedSpeed": "3.6",
+      "name": "EVAL_DET_VSL_WB_2600_L2",
+      "no": "120",
+      "portNo": "1119",
+      "pos": "2600",
+      "sc": "9",
+      "smthFactDecr": "0.25",
+      "smthFactIncr": "0.25",
+      "soundFile": "",
+      "tmBefDep": "0",
+      "type": "STANDARD"
+    }
+  ],
+  "desired_speed_decisions": [],
+  "nodes": [
+    {
+      "no": "1",
+      "name": "A",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "2",
+      "name": "B",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "3",
+      "name": "C",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "4",
+      "name": "D",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "5",
+      "name": "E",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "6",
+      "name": "F",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "7",
+      "name": "D trumpet",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    },
+    {
+      "no": "8",
+      "name": "F trumpet",
+      "anmConnNodeNo": "0",
+      "anmConnZoneNo": "0",
+      "anmZoneNo": "0",
+      "hasUserDefOrient": "false",
+      "showClsfValues": "true",
+      "showTurnValVisual": "true",
+      "turnValVisualSize": "70",
+      "useForDynAssign": "false",
+      "useForEval": "true",
+      "useForMeso": "false"
+    }
+  ]
+}

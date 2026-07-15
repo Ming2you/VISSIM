@@ -1,0 +1,226 @@
+{
+  "schema_version": 1,
+  "notes": [
+    "Draft mapping generated from current user-edited Vissim network.",
+    "Geometry is treated as frozen; downstream scripts should not rewrite link shapes.",
+    "Controller phase 1 uses global vehicle state, so detector lists are optional."
+  ],
+  "freeway": {
+    "EB": [
+      33
+    ],
+    "WB": [
+      34
+    ]
+  },
+  "urban_internal": {
+    "A_B": {
+      "A_to_B": 5,
+      "B_to_A": 6
+    },
+    "B_C": {
+      "B_to_C": 11,
+      "C_to_B": 12
+    },
+    "A_D": {
+      "A_to_D": 7,
+      "D_to_A": 8
+    },
+    "B_E": {
+      "B_to_E": 13,
+      "E_to_B": 14
+    },
+    "C_F": {
+      "C_to_F": 19,
+      "F_to_C": 20
+    },
+    "D_E": {
+      "D_to_E": 23,
+      "E_to_D": 24
+    },
+    "E_F": {
+      "E_to_F": 27,
+      "F_to_E": 28
+    }
+  },
+  "boundary_inputs": {
+    "AW_to_A": {
+      "entry_link": 1,
+      "exit_link": 2
+    },
+    "AN_to_A": {
+      "entry_link": 3,
+      "exit_link": 4
+    },
+    "BN_to_B": {
+      "entry_link": 9,
+      "exit_link": 10
+    },
+    "CN_to_C": {
+      "entry_link": 15,
+      "exit_link": 16
+    },
+    "CE_to_C": {
+      "entry_link": 18,
+      "exit_link": 17
+    },
+    "DW_to_D": {
+      "entry_link": 21,
+      "exit_link": 22
+    },
+    "FE_to_F": {
+      "entry_link": 30,
+      "exit_link": 29
+    }
+  },
+  "trumpet_ramps": {
+    "D": [
+      25,
+      26
+    ],
+    "F": [
+      31,
+      32
+    ]
+  },
+  "connectors": {
+    "intersection_turns": [
+      10000,
+      10001,
+      10002,
+      10003,
+      10004,
+      10005,
+      10006,
+      10007,
+      10008,
+      10009,
+      10010,
+      10011,
+      10012,
+      10013,
+      10014,
+      10015,
+      10016,
+      10017,
+      10018,
+      10019,
+      10020,
+      10021,
+      10022,
+      10023,
+      10024,
+      10025,
+      10026,
+      10027,
+      10028,
+      10029,
+      10030,
+      10031,
+      10032,
+      10033,
+      10034,
+      10035,
+      10036,
+      10037,
+      10039,
+      10040,
+      10042,
+      10043,
+      10048,
+      10049,
+      10050,
+      10051,
+      10052,
+      10053,
+      10054,
+      10055,
+      10057,
+      10058,
+      10060,
+      10061
+    ],
+    "ramp_merge_diverge": [
+      10038,
+      10041,
+      10044,
+      10045,
+      10046,
+      10047,
+      10056,
+      10059,
+      10062,
+      10063,
+      10064,
+      10065,
+      10066,
+      10067,
+      10068,
+      10069,
+      10070,
+      10071,
+      10072,
+      10073
+    ]
+  },
+  "nodes": {
+    "controlled_intersections": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "F"
+    ],
+    "uncontrolled_intersections": [
+      "E"
+    ],
+    "trumpet_interchanges": [
+      "D",
+      "F"
+    ]
+  },
+  "global_state_groups": {
+    "urban_links": [
+      5,
+      6,
+      7,
+      8,
+      11,
+      12,
+      13,
+      14,
+      19,
+      20,
+      23,
+      24,
+      27,
+      28
+    ],
+    "freeway_links": [
+      33,
+      34
+    ],
+    "ramp_links": [
+      25,
+      26,
+      31,
+      32
+    ],
+    "boundary_links": [
+      1,
+      2,
+      3,
+      4,
+      9,
+      10,
+      15,
+      16,
+      17,
+      18,
+      21,
+      22,
+      29,
+      30
+    ]
+  }
+}

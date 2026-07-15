@@ -1,0 +1,463 @@
+{
+  "schema_version": 2,
+  "created_at": "2026-06-28",
+  "calibration_version": "vissim_network_calibration_v2_20260628",
+  "status": "physical_geometry_storage_and_guard_calibrated",
+  "source_network": {
+    "inpx": "C:/Users/TRLAB/Desktop/찐찐막/Network_Vissim_Work/modi_eval_vsl_segmented.inpx",
+    "layout": "C:/Users/TRLAB/Desktop/찐찐막/Network_Vissim_Work/modi_eval_vsl_segmented.layx",
+    "detector_mapping": "evaluation/detector_install/detector_local_mapping.json",
+    "vsl_segment_mapping": "evaluation/vsl_install/vsl_segment_mapping.json"
+  },
+  "source_runs": {
+    "fd": "evaluation/runs/calibration_fd_vector_20260626",
+    "ramp_general": "evaluation/runs/calibration_ramp_vector_20260626",
+    "ramp_D_saturated": "evaluation/runs/calibration_rampD_bias_vector_20260626",
+    "ramp_F_saturated": "evaluation/runs/calibration_rampF_bias_vector_20260626",
+    "signal": "evaluation/runs/calibration_signal_vector_20260626",
+    "mfd": "evaluation/runs/calibration_mfd_vector_20260626",
+    "prediction_error_components": "evaluation/runs/prediction_error_components_20260628.csv",
+    "observation_v2_check": "evaluation/runs/observation_v2_adapter_check/action_000060.json"
+  },
+  "fit_outputs": {
+    "legacy_vector_overrides": "evaluation/calibration/vissim_calibrated_overrides_vector_20260626.json",
+    "fd": "evaluation/calibration/vissim_calibration_fit_fd_vector_20260626.json",
+    "ramp_general": "evaluation/calibration/vissim_calibration_fit_ramp_vector_20260626.json",
+    "ramp_D_saturated": "evaluation/calibration/vissim_calibration_fit_rampD_bias_vector_20260626.json",
+    "ramp_F_saturated": "evaluation/calibration/vissim_calibration_fit_rampF_bias_vector_20260626.json",
+    "signal_basic": "evaluation/calibration/vissim_calibration_fit_signal_vector_20260626.json",
+    "signal_green_fit": "evaluation/calibration/vissim_signal_green_fit_20260626.json",
+    "mfd": "evaluation/calibration/vissim_calibration_fit_mfd_vector_20260626.json",
+    "prediction_bias": "evaluation/calibration/prediction_error_bias_fit_20260628.json"
+  },
+  "physical_inventory": {
+    "notes": [
+      "The previous off-ramp spillback capacity was not a physical Vissim storage value. It came from storage capacity plus three downstream movement capacities.",
+      "For this Vissim network the downstream approach space is shared, so summing every turning movement overcounts available storage.",
+      "The first v2 provisional value of 240 veh per model off-ramp was still too high when checked against actual Vissim connector/stem lane-metres.",
+      "This revised v2 uses direction-specific connector-plus-stem-to-signal physical storage estimates from the INPX geometry audit.",
+      "Freeway segment lengths, ordinary urban storage, boundary output storage, and on-ramp storage are now Vissim geometry based.",
+      "Signal q_sat/lost_time remain scalar engineering fallbacks because the per-approach signal regression is not robustly identified.",
+      "F ramp metering is guarded as invalid for physical metering calibration; it should stay always-green/monitor-only unless explicitly overridden for diagnostics."
+    ],
+    "off_ramp_storage_link": {
+      "OR_D_W": "OR_D_W_storage",
+      "OR_F_W": "OR_F_W_storage",
+      "OR_D_E": "OR_D_E_storage",
+      "OR_F_E": "OR_F_E_storage"
+    },
+    "off_ramp_storage_capacity_veh": {
+      "OR_D_W_storage": 95.0,
+      "OR_F_W_storage": 102.0,
+      "OR_D_E_storage": 154.0,
+      "OR_F_E_storage": 144.0
+    },
+    "off_ramp_shared_downstream_capacity_veh": {
+      "OR_D_W": 0.0,
+      "OR_F_W": 0.0,
+      "OR_D_E": 0.0,
+      "OR_F_E": 0.0
+    },
+    "off_ramp_combined_capacity_mode": "direction_specific_connector_plus_stem_to_signal_lane_metre",
+    "off_ramp_combined_capacity_veh": {
+      "OR_D_W": 95.0,
+      "OR_F_W": 102.0,
+      "OR_D_E": 154.0,
+      "OR_F_E": 144.0
+    },
+    "legacy_model_combined_capacity_veh": {
+      "status": "deprecated_not_physical_do_not_use",
+      "per_off_ramp": 480.0,
+      "two_off_ramps_seen_by_freeway_agent": 960.0
+    },
+    "calibrated_two_offramp_agent_capacity_veh": {
+      "FW_E_D_plus_F": 298.0,
+      "FW_W_D_plus_F": 197.0
+    },
+    "geometry_capacity_audit": {
+      "created_at": "2026-06-28",
+      "actual_vissim_links": {
+        "D_offramp_stem": {
+          "link": 26,
+          "name": "D trumpet stem DT to D",
+          "length_m": 191.1,
+          "lanes": 2,
+          "signal_head_pos_m": 180.883
+        },
+        "F_offramp_stem": {
+          "link": 32,
+          "name": "F trumpet stem FT to F",
+          "length_m": 286.477,
+          "lanes": 2,
+          "signal_head_pos_m": 276.326
+        }
+      },
+      "actual_vissim_connectors": {
+        "OR_D_E": {
+          "connector": 10067,
+          "from_link": 33,
+          "to_link": 26,
+          "length_m": 820.165
+        },
+        "OR_D_W": {
+          "connector": 10071,
+          "from_link": 34,
+          "to_link": 26,
+          "length_m": 433.989
+        },
+        "OR_F_E": {
+          "connector": 10072,
+          "from_link": 33,
+          "to_link": 32,
+          "length_m": 660.136
+        },
+        "OR_F_W": {
+          "connector": 10069,
+          "from_link": 34,
+          "to_link": 32,
+          "length_m": 385.217
+        }
+      },
+      "jam_spacing_m_per_veh": {
+        "tight_vehicle_plus_standdist": 4.99,
+        "central_vehicle_plus_w74ax": 6.49,
+        "conservative": 7.49
+      },
+      "rounding_rule": "nearest_integer_after_lane_m_divided_by_central_spacing_6_49_m_per_veh",
+      "central_capacity_veh": {
+        "OR_D_E": 154.0,
+        "OR_D_W": 95.0,
+        "OR_F_E": 144.0,
+        "OR_F_W": 102.0
+      },
+      "capacity_range_veh": {
+        "OR_D_E": [
+          134.0,
+          201.0
+        ],
+        "OR_D_W": [
+          82.0,
+          123.0
+        ],
+        "OR_F_E": [
+          125.0,
+          188.0
+        ],
+        "OR_F_W": [
+          88.0,
+          132.0
+        ]
+      }
+    },
+    "freeway_segment_length_profile_km": {
+      "FW_E": [
+        0.498032,
+        0.313359,
+        0.923224,
+        0.293535,
+        0.870853
+      ],
+      "FW_W": [
+        0.536739,
+        0.617511,
+        0.58821,
+        0.654785,
+        0.501758
+      ]
+    },
+    "freeway_segment_length_source": {
+      "mapping": "evaluation/vsl_install/vsl_segment_mapping.json",
+      "note": "Lengths are segment_end_m - segment_start_m. They replace the former uniform 0.58 km adapter abstraction for state summaries and adapter-side vehicle-count reconstruction."
+    },
+    "urban_link_storage_capacity_veh": {
+      "A_top_out": 138.1,
+      "A_left_out": 150.4,
+      "B_top_out": 138.1,
+      "C_top_out": 138.1,
+      "C_right_out": 150.4,
+      "D_left_out": 150.4,
+      "F_right_out": 150.4,
+      "A_to_B": 162.1,
+      "B_to_A": 162.1,
+      "B_to_C": 162.1,
+      "C_to_B": 162.1,
+      "A_to_D": 131.3,
+      "D_to_A": 131.3,
+      "B_to_E": 134.4,
+      "E_to_B": 131.3,
+      "C_to_F": 131.3,
+      "F_to_C": 131.3,
+      "D_to_E": 165.2,
+      "E_to_D": 162.1,
+      "E_to_F": 162.1,
+      "F_to_E": 165.2
+    },
+    "urban_link_storage_capacity_source": {
+      "inventory": "evaluation/eval_vsl_segmented_inventory/links.csv",
+      "signal_manifest": "evaluation/signal_install/signal_manifest.csv",
+      "jam_spacing_m_per_veh": 6.49,
+      "method": "storage_veh = effective_length_m * lane_count / jam_spacing. Signal-controlled internal approaches use stopline position; outbound boundary links and links ending at uncontrolled E use full link length."
+    },
+    "on_ramp_storage_capacity_veh": {
+      "D_R_W": 24.8,
+      "D_R_E": 24.8,
+      "F_R_W": 39.5,
+      "F_R_E": 39.5
+    },
+    "on_ramp_storage_capacity_source": {
+      "signal_manifest": "evaluation/signal_install/signal_manifest.csv",
+      "jam_spacing_m_per_veh": 6.49,
+      "method": "Per-direction model reservoir assumes one Vissim ramp lane per direction up to the ramp-meter signal head: D 160.883 m, F 256.326 m."
+    },
+    "boundary_queue_max_veh": 147.3,
+    "boundary_queue_capacity_source": {
+      "method": "Scalar fallback uses the largest inbound boundary stopline storage among 2-lane boundary approaches: 478 m * 2 / 6.49.",
+      "note": "Boundary queue is mainly diagnostic/compatibility in detector-local mode."
+    },
+    "ramp_queue_max_veh": 39.5,
+    "ramp_queue_capacity_source": {
+      "method": "Scalar fallback uses the largest one-lane on-ramp pre-meter storage, F: 256.326 m / 6.49.",
+      "note": "Core Numerical-Sim currently has only one ramp_queue_max_veh scalar; per-ramp queue maxima should be promoted into core config later."
+    }
+  },
+  "operational": {
+    "network": {
+      "v_free_kph": 123.825,
+      "freeway_capacity_veh_h": 4574.818,
+      "rho_crit_veh_km_lane": 20.401,
+      "rho_max_observed_veh_km_lane": 33.13,
+      "rho_max_note": "Observed max density only; do not treat as calibrated jam density yet."
+    },
+    "ramp_metering": {
+      "cycle_sec": 10,
+      "D_green_to_release_vph_raw": {
+        "1": 690.732,
+        "2": 684.878,
+        "4": 1252.683,
+        "6": 1363.902,
+        "8": 1311.22,
+        "10": 1413.659
+      },
+      "D_green_to_release_vph_initial_mpc": {
+        "1": 691,
+        "2": 691,
+        "4": 1253,
+        "6": 1364,
+        "8": 1364,
+        "10": 1414
+      },
+      "F_green_to_release_vph_raw": {
+        "1": 96.585,
+        "2": 122.927,
+        "4": 283.902,
+        "6": 307.317,
+        "8": 316.098,
+        "10": 237.073
+      },
+      "F_status": "invalid_for_physical_metering_fit",
+      "F_note": "F ramp remains discharge-limited despite sustained queue under route bias. Treat as network route/lane/connector issue before using for controller calibration."
+    },
+    "signal": {
+      "amber_sec": 3,
+      "all_red_sec": 2,
+      "median_fit_lost_time_sec": 6.009,
+      "median_fit_saturation_flow_vph_approach": 829.29,
+      "recommended_initial_saturation_flow_vph_approach": 1800,
+      "recommended_initial_lost_time_sec": 6.0,
+      "service_curve_fit_20260628": {
+        "artifact_json": "evaluation/calibration/vissim_signal_service_curve_fit_20260628.json",
+        "artifact_md": "evaluation/calibration/vissim_signal_service_curve_fit_20260628.md",
+        "approach_count": 20,
+        "valid_regression_count": 0,
+        "upper_envelope_or_better_count": 16,
+        "promote_per_approach_service_curve": false,
+        "recommended_controller_policy": "keep_scalar_1800_veh_h_approach_and_6s_lost_time"
+      },
+      "note": "15-sec burst max rates are not used directly. The median fitted value is low because several approaches are underfed; use 1800 vph/approach as a conservative initial controller value and refine with detector/output-based saturated approach runs."
+    },
+    "urban_mfd": {
+      "N_P_crit_veh_initial": 390,
+      "candidate_peak_row_N_P_crit_veh": 376,
+      "median_peak_production_demand_vph": 3000,
+      "median_peak_signal_production_vph": 12360,
+      "production_proxy_note": "Production is measured as aggregated signal stop-line discharge, not completed trips."
+    }
+  },
+  "observation": {
+    "mode": "detector_local_v2_storage_split",
+    "internal_storage_fraction": 0.2,
+    "offramp_storage_fraction": 0.8,
+    "boundary_storage_fraction": 0.0,
+    "status": "candidate_observation_split_grid_fit_20260629",
+    "note": "Queue/storage decomposition is provisional. Combined urban queue+storage mass is the trusted diagnostic until per-link detector calibration is refined.",
+    "fit_candidate": "int020_off080"
+  },
+  "prediction": {
+    "status": "audit_calibration_initial_only",
+    "audit_calibration": {
+      "enabled": true,
+      "mode": "summary_scale_only_not_controller_dynamics",
+      "freeway_total_observed_over_predicted_mean": 0.6506866111845979,
+      "freeway_total_scale": 0.6506866111845979,
+      "freeway_total_observed_over_predicted_range": [
+        0.6288134255623004,
+        0.677303838280592
+      ],
+      "urban_queue_plus_storage_observed_over_predicted_mean": 1.0126470050769243,
+      "urban_queue_plus_storage_scale": 1.0126470050769243,
+      "urban_queue_plus_storage_observed_over_predicted_range": [
+        0.9393233571403157,
+        1.0421465418531468
+      ]
+    },
+    "route_bias_forecast": {
+      "enabled": true,
+      "status": "promoted_20260629",
+      "target_share": 0.98,
+      "target_share_basis": "Vissim route-bias profiles set static route relative flow to 100.0 for routes containing the target D/F ramp link and 0.01 otherwise; the model forecast approximates this as 98% of total on-ramp arrival assigned to the target D or F ramp pair while preserving total ramp demand.",
+      "profiles": {
+        "d_ramp_bias": {
+          "target_node": "D",
+          "target_ramps": [
+            "R_D_W",
+            "R_D_E"
+          ],
+          "other_ramps": [
+            "R_F_W",
+            "R_F_E"
+          ]
+        },
+        "d_ramp_heavy": {
+          "target_node": "D",
+          "target_ramps": [
+            "R_D_W",
+            "R_D_E"
+          ],
+          "other_ramps": [
+            "R_F_W",
+            "R_F_E"
+          ]
+        },
+        "f_ramp_bias": {
+          "target_node": "F",
+          "target_ramps": [
+            "R_F_W",
+            "R_F_E"
+          ],
+          "other_ramps": [
+            "R_D_W",
+            "R_D_E"
+          ]
+        },
+        "f_ramp_heavy": {
+          "target_node": "F",
+          "target_ramps": [
+            "R_F_W",
+            "R_F_E"
+          ],
+          "other_ramps": [
+            "R_D_W",
+            "R_D_E"
+          ]
+        }
+      }
+    },
+    "candidate_bayesian_update_20260628": {
+      "status": "candidate_not_promoted",
+      "artifact_json": "evaluation/calibration/prediction_audit_bayes_update_20260628.json",
+      "artifact_md": "evaluation/calibration/prediction_audit_bayes_update_20260628.md",
+      "source_decision_count": 531,
+      "posterior_freeway_total_scale": 0.7234,
+      "posterior_urban_queue_plus_storage_scale": 0.921,
+      "promotion_guard": "Promote only after held-out demand profile or seed reduces one-step prediction error."
+    },
+    "candidate_bayesian_update_no_wu_pfo_10seed_20260629": {
+      "status": "superseded_wrong_ratio_basis",
+      "artifact_json": "evaluation/calibration/prediction_audit_bayes_update_no_wu_pfo_10seed_20260629.json",
+      "artifact_md": "evaluation/calibration/prediction_audit_bayes_update_no_wu_pfo_10seed_20260629.md",
+      "source_decision_count": 180,
+      "scenario": "sym_high",
+      "controllers": [
+        "no-control",
+        "wu",
+        "pfo"
+      ],
+      "posterior_freeway_total_scale": 1.1908,
+      "posterior_urban_queue_plus_storage_scale": 0.9424,
+      "promotion_guard": "Do not promote. This artifact used observed/already-calibrated-predicted ratios, not observed/raw-predicted ratios."
+    },
+    "candidate_raw_source_bayesian_update_20260629": {
+      "status": "candidate_v3_created",
+      "artifact_json": "evaluation/calibration/prediction_audit_bayes_update_no_wu_pfo_10seed_raw_20260629.json",
+      "artifact_md": "evaluation/calibration/prediction_audit_bayes_update_no_wu_pfo_10seed_raw_20260629.md",
+      "calibration_json": "evaluation/calibration/vissim_network_calibration_v3_prediction_audit_20260629.json",
+      "source_decision_count": 180,
+      "ratio_basis": "observed / source prediction.state_summary raw value",
+      "posterior_freeway_total_scale": 0.7770344478226261,
+      "posterior_urban_queue_plus_storage_scale": 0.9542722511553158,
+      "promotion_guard": "Validate v3 on held-out freeway-heavy and ramp-biased scenarios before replacing v2 as default."
+    },
+    "note": "This v2 step stores calibrated one-step audit summaries and does not silently scale the controller's METANET propagation dynamics."
+  },
+  "network": {
+    "v_free_kph": 123.825,
+    "freeway_capacity_veh_h": 4574.818,
+    "rho_crit_veh_km_lane": 20.401,
+    "rho_max_observed_veh_km_lane": 33.13,
+    "rho_max_note": "Observed max density only; do not treat as calibrated jam density yet."
+  },
+  "ramp_metering": {
+    "cycle_sec": 10,
+    "D_green_to_release_vph_raw": {
+      "1": 690.732,
+      "2": 684.878,
+      "4": 1252.683,
+      "6": 1363.902,
+      "8": 1311.22,
+      "10": 1413.659
+    },
+    "D_green_to_release_vph_initial_mpc": {
+      "1": 691,
+      "2": 691,
+      "4": 1253,
+      "6": 1364,
+      "8": 1364,
+      "10": 1414
+    },
+    "F_green_to_release_vph_raw": {
+      "1": 96.585,
+      "2": 122.927,
+      "4": 283.902,
+      "6": 307.317,
+      "8": 316.098,
+      "10": 237.073
+    },
+    "F_status": "invalid_for_physical_metering_fit",
+    "F_note": "F ramp remains discharge-limited despite sustained queue under route bias. Treat as network route/lane/connector issue before using for controller calibration."
+  },
+  "signal": {
+    "amber_sec": 3,
+    "all_red_sec": 2,
+    "median_fit_lost_time_sec": 6.009,
+    "median_fit_saturation_flow_vph_approach": 829.29,
+    "recommended_initial_saturation_flow_vph_approach": 1800,
+    "recommended_initial_lost_time_sec": 6.0,
+    "service_curve_fit_20260628": {
+      "artifact_json": "evaluation/calibration/vissim_signal_service_curve_fit_20260628.json",
+      "artifact_md": "evaluation/calibration/vissim_signal_service_curve_fit_20260628.md",
+      "approach_count": 20,
+      "valid_regression_count": 0,
+      "upper_envelope_or_better_count": 16,
+      "promote_per_approach_service_curve": false,
+      "recommended_controller_policy": "keep_scalar_1800_veh_h_approach_and_6s_lost_time"
+    },
+    "note": "15-sec burst max rates are not used directly. The median fitted value is low because several approaches are underfed; use 1800 vph/approach as a conservative initial controller value and refine with detector/output-based saturated approach runs."
+  },
+  "urban_mfd": {
+    "N_P_crit_veh_initial": 390,
+    "candidate_peak_row_N_P_crit_veh": 376,
+    "median_peak_production_demand_vph": 3000,
+    "median_peak_signal_production_vph": 12360,
+    "production_proxy_note": "Production is measured as aggregated signal stop-line discharge, not completed trips."
+  }
+}

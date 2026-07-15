@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "calibration_json": "evaluation\\calibration\\vissim_network_calibration_v2_20260628.json",
+  "decision_count": 531,
+  "ratio_targets": {
+    "freeway_total_veh": "freeway_total_scale",
+    "urban_queue_plus_link_occupancy_total_veh": "urban_queue_plus_storage_scale"
+  },
+  "updates": {
+    "freeway_total_veh": {
+      "status": "ok",
+      "sample_count": 495,
+      "prior_scale": 0.6506866111845979,
+      "posterior_scale": 0.7234320419434983,
+      "posterior_sigma_log": 0.015715463927342802,
+      "ratio_mean": 0.7466309147602076,
+      "ratio_median": 0.6753427323063852,
+      "ratio_min": 0.4390906900282818,
+      "ratio_max": 1.3198841024116479,
+      "ratio_p10": 0.5526866625556487,
+      "ratio_p90": 1.079331791411588
+    },
+    "urban_queue_plus_link_occupancy_total_veh": {
+      "status": "ok",
+      "sample_count": 75,
+      "prior_scale": 1.0126470050769243,
+      "posterior_scale": 0.9210058023197822,
+      "posterior_sigma_log": 0.04014775342734831,
+      "ratio_mean": 0.925202984142136,
+      "ratio_median": 0.9323653547279325,
+      "ratio_min": 0.7321081445855505,
+      "ratio_max": 1.131398249436364,
+      "ratio_p10": 0.8221219715113603,
+      "ratio_p90": 1.1046577957146162
+    }
+  },
+  "calibration_patch": {
+    "prediction": {
+      "audit_calibration": {
+        "enabled": true,
+        "mode": "bayesian_summary_scale_patch_not_controller_dynamics",
+        "freeway_total_scale": 0.7234320419434983,
+        "urban_queue_plus_storage_scale": 0.9210058023197822
+      }
+    }
+  }
+}

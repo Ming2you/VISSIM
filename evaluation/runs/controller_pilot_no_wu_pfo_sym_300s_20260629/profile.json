@@ -1,0 +1,28 @@
+{
+  "controllers": [
+    "no-control",
+    "wu",
+    "pfo"
+  ],
+  "scenarios": [
+    {
+      "scenario_id": "sym_high",
+      "category": "4_symmetric_high",
+      "demand_profile": "sym",
+      "urban_volume_vph": 2600.0,
+      "freeway_volume_vph": 3400.0
+    }
+  ],
+  "sim_period_sec": 300,
+  "control_interval_sec": 60,
+  "seed": 13,
+  "seeds": [
+    13
+  ],
+  "timeout_sec": 900.0,
+  "startup_timeout_sec": 60.0,
+  "reset_vissim_on_startup_timeout": true,
+  "resume_existing_ok": true,
+  "tuning": "evaluation\\configs\\pfo_h3_i3_medium.json",
+  "case_count": 1
+}
