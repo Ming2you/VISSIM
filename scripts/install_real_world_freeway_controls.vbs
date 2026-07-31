@@ -31,7 +31,7 @@ EnsureParentFolder manifestPath
 Set manifest = fso.CreateTextFile(manifestPath, True)
 manifest.WriteLine "object_type,category,control_id,segment_id,model_link,model_segment_index,direction,name,no,link,lane,pos,segment_start_m,segment_end_m,default_speed_kph,veh_classes,sc_no,sg_no,connector,from_link,from_pos,to_link,to_pos,default_green_sec,capacity_vph,model_ramp_key,purpose"
 
-Set Vissim = CreateObject("Vissim.Vissim")
+Set Vissim = CreateVissimCom()
 WScript.Echo "STAGE=COM_CREATED"
 Vissim.LoadNet sourceNet, False
 WScript.Echo "STAGE=SOURCE_NET_LOADED"
@@ -271,3 +271,42 @@ Sub EnsureParentFolder(path)
         fso.CreateFolder parent
     End If
 End Sub
+
+' 2026-08-01: create the VISSIM COM object with a ProgID fallback chain.
+' NOTE: this file stays pure ASCII on purpose. cscript reads .vbs as the system
+' ANSI codepage (CP949 here), so non-ASCII bytes corrupt string literals.
+'
+' Why the fallback: the generic ProgID "Vissim.Vissim" points at whichever VISSIM
+' version registered last. On a machine where 2026 was installed and then removed,
+' it still resolves to a missing Vissim260.exe and every script dies with
+' "ActiveX component can't create object" even though 2020 is installed and fine.
+' The proper repair is re-registering the wanted build as admin:
+'     "C:\Program Files\PTV Vision\PTV Vissim 2020\exe\Vissim200.exe" /regserver
+' That is a system-level change, so the repo also falls back to version-specific
+' ProgIDs. Set VISSIM_PROGID to pin a specific one.
+Function CreateVissimCom()
+    Dim candidates, i, obj, forced, shell
+    Set shell = CreateObject("WScript.Shell")
+    forced = shell.ExpandEnvironmentStrings("%VISSIM_PROGID%")
+    If forced <> "%VISSIM_PROGID%" And forced <> "" Then
+        Set CreateVissimCom = CreateObject(forced)
+        WScript.Echo "STAGE=COM_PROGID " & forced & " (VISSIM_PROGID)"
+        Exit Function
+    End If
+    candidates = Array("Vissim.Vissim", "Vissim.Vissim.2020", "Vissim.Vissim-64.20", "Vissim.Vissim.200")
+    For i = 0 To UBound(candidates)
+        On Error Resume Next
+        Set obj = CreateObject(candidates(i))
+        If Err.Number = 0 Then
+            Err.Clear
+            On Error GoTo 0
+            WScript.Echo "STAGE=COM_PROGID " & candidates(i)
+            Set CreateVissimCom = obj
+            Exit Function
+        End If
+        Err.Clear
+        On Error GoTo 0
+    Next
+    WScript.Echo "ERROR=NO_VISSIM_COM no registered VISSIM COM ProgID could be created"
+    WScript.Quit 3
+End Function

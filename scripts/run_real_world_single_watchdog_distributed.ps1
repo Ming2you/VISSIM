@@ -7,6 +7,7 @@ killed and the case is retried up to MaxAttempts.
 #>
 param(
   [Parameter(Mandatory=$true)][string]$Name,
+  [string]$Network = "",
   [string]$OutDir = "",
   [int]$SimPeriod = 1800,
   [int]$ControlIntervalSec = 60,
@@ -27,6 +28,7 @@ param(
   [int]$IncidentStartSec = -1,
   [int]$IncidentEndSec = -1,
   [string]$IncidentName = "",
+  [switch]$ForceStepwise,
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
   [int]$DoneRows = 0
@@ -51,7 +53,7 @@ if ($Tuning -eq "") {
 }
 $Tuning = Resolve-RepoPath $Tuning
 if ($Calibration -eq "") {
-  $Calibration = Join-Path $repo "evaluation\calibration\real_world_modi_control_v0_20260719.json"
+  $Calibration = Join-Path $repo "evaluation\calibration\real_world_prediction_calibration_pshb4500fix_20260724.json"
 }
 $Calibration = Resolve-RepoPath $Calibration
 if ($Mapping -eq "") {
@@ -73,7 +75,10 @@ if ($StateLogIntervalSec -le 0) {
 }
 
 $runner = Join-Path $repo "scripts\run_real_world_stackelberg_controller.vbs"
-$net = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control.inpx"
+if ($Network -eq "") {
+  $Network = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control.inpx"
+}
+$net = Resolve-RepoPath $Network
 $adapter = Join-Path $repo "evaluation\controllers\vissim_stackelberg_adapter.py"
 $vbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config_distributed_19sc_20260728.vbs"
 
@@ -127,6 +132,20 @@ $decisionDir = Join-Path $OutDir "decisions_$Name"
 $log = Join-Path $OutDir "runlog_$Name.txt"
 New-Item -ItemType Directory -Force -Path $decisionDir | Out-Null
 
+function Archive-AttemptOutputs([int]$Attempt) {
+  $archive = Join-Path $OutDir ("attempt_{0:00}_{1}" -f $Attempt, $Name)
+  New-Item -ItemType Directory -Force -Path $archive | Out-Null
+  foreach ($path in @($stateCsv, $actionCsv, $bottleneckLinkCsv, $bottleneckSegmentCsv, $log, "$log.err")) {
+    if (Test-Path $path) {
+      Copy-Item -LiteralPath $path -Destination (Join-Path $archive ([System.IO.Path]::GetFileName($path))) -Force -ErrorAction SilentlyContinue
+    }
+  }
+  if (Test-Path $decisionDir) {
+    $decisionArchive = Join-Path $archive ([System.IO.Path]::GetFileName($decisionDir))
+    Copy-Item -LiteralPath $decisionDir -Destination $decisionArchive -Recurse -Force -ErrorAction SilentlyContinue
+  }
+}
+
 if ($DoneRows -gt 0 -and (Test-Path $stateCsv)) {
   $rows = (Get-Content $stateCsv | Measure-Object -Line).Lines
   if ($rows -ge $DoneRows) {
@@ -148,10 +167,17 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
 
   $t0 = Get-Date
   Normalize-ProcessPathEnv
+  $oldForceStepwise = [Environment]::GetEnvironmentVariable("RW_FORCE_STEPWISE", "Process")
+  if ($ForceStepwise) {
+    [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", "1", "Process")
+  } else {
+    [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", $null, "Process")
+  }
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
     -RedirectStandardError "$log.err" -WorkingDirectory $repo -PassThru -WindowStyle Hidden
+  [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", $oldForceStepwise, "Process")
   if (-not $proc -or -not $proc.Id) {
     throw "Failed to start cscript for $Name attempt=$attempt"
   }
@@ -166,6 +192,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
         exit 0
       }
       Log "EXIT_NO_DONE $Name attempt=$attempt"
+      Archive-AttemptOutputs $attempt
       break
     }
 
@@ -188,6 +215,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
       Log "WATCHDOG_KILL $Name attempt=$attempt idle=${idle}s"
       try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch {}
       Kill-Vissim
+      Archive-AttemptOutputs $attempt
       break
     }
   }

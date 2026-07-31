@@ -81,31 +81,61 @@ xlsx의 SC별 신호헤드 수와 네트워크 인벤토리(`modi.inpx` 파싱)�
 1. 선택된 SC가 인벤토리에 없거나 비활성 → 인벤토리 재생성 명령 안내
 2. 선택된 SC가 eval 네트워크에 없음 → movement가 빈 채로 생성되던 경로. 네트워크 재빌드 순서 안내
 
-## 남은 작업 — eval 네트워크 재빌드
+## 파이프라인 재빌드 — 완료
 
-SC 1001~1005는 사용자가 수정한 `modi.inpx`에 새로 추가된 신호기다. 파이프라인 진행 상황:
+SC 1001~1005는 사용자가 수정한 `modi.inpx`에 새로 추가된 신호기다. 전 단계 완료.
 
-| 단계 | 산출물 | 상태 |
+| 단계 | 산출물 | 결과 |
 |---|---|---|
-| 1. 인벤토리 재생성 | `evaluation/real_world_modi_inventory/*` | ✅ 완료 (SC 1001~1005 반영 확인) |
-| 2. sanitize | `modi_eval_sanitized.inpx` | ✅ 완료 (SC 1001~1005 전파 확인) |
-| 3. freeway 제어층 설치 | `modi_eval_rw_control.inpx` | ⛔ **VISSIM COM 필요** |
-| 4. base control mapping | `evaluation/real_world_modi_control/*` | 3번 대기 |
-| 5. 분산 플레이어 재생성 | `*_distributed_{19sc,15core}_*` | 3~4번 대기 |
+| 1. 인벤토리 재생성 | `evaluation/real_world_modi_inventory/*` | ✅ SC 1001~1005 반영 |
+| 2. sanitize | `modi_eval_sanitized.inpx` | ✅ 전파 확인 |
+| 3. freeway 제어층 설치 | `modi_eval_rw_control.inpx` | ✅ DSD 37→101, SC 37→45, SH 475→485 |
+| 4. base control mapping | `evaluation/real_world_modi_control/*` | ✅ SEGMENTS=16 RAMP_METERS=8 |
+| 5. 분산 플레이어 재생성 | `*_distributed_{19sc,15core}_*` | ✅ 19/15개 |
 
-3번 명령 (PowerShell에서 실행, CodeMeter 서비스 확인 필요).
+### 검증
+
+| 항목 | 19sc | 15core |
+|---|---|---|
+| signals 집합이 UF 매핑과 일치 | ✅ | ✅ |
+| urban_movements 총계 | 84 | 60 |
+| movement 0개인 signal | 없음 | 없음 |
+| 신규 SC 1001~1005 movement 수 | 각 4 | 각 4 |
+
+이전 구현에서 신규 SC는 eval 네트워크에 없어 **빈 movement로 조용히 생성**됐을 경로였다.
+지금은 각 4개씩 정상 배정됐고, 새 가드가 이 상황을 애초에 차단한다.
+
+## 부수 발견 — VISSIM COM ProgID 파손 (31개 스크립트 전체 영향)
+
+재빌드 중 `CreateObject("Vissim.Vissim")`이 `ActiveX component can't create object`로 실패했다.
+원인은 저장소가 아니라 머신 등록 상태다.
+
+| ProgID | 대상 실행파일 | 존재 |
+|---|---|---|
+| `Vissim.Vissim` (전 스크립트가 사용) | `PTV Vissim 2026\exe\Vissim260.exe` | ❌ |
+| `Vissim.Vissim.2020` | `PTV Vissim 2020\exe\Vissim200.exe` | ✅ |
+
+VISSIM 2026을 설치했다 제거하면서 일반 ProgID가 사라진 실행파일을 계속 가리키게 됐다.
+저장소의 VBS **31개 전부**가 이 ProgID를 쓰므로 COM 툴체인 전체가 죽어 있었다
+(메인 러너 `run_real_world_stackelberg_controller.vbs` 포함).
+
+**조치**: `install_real_world_freeway_controls.vbs`에 ProgID 폴백 체인
+(`Vissim.Vissim` → `Vissim.Vissim.2020` → `Vissim.Vissim-64.20` → `Vissim.Vissim.200`)과
+`VISSIM_PROGID` 환경변수 우선 지정을 추가했다. 이 경로로 재빌드가 통과했다
+(`STAGE=COM_PROGID Vissim.Vissim.2020`).
+
+**남은 선택**: 근본 해결은 관리자 권한 재등록이다 — 31개 전부가 한 번에 복구된다.
 
 ```bash
-cscript //nologo scripts\install_real_world_freeway_controls.vbs network\real_world_gaepo_modi\modi_eval_sanitized.inpx network\real_world_gaepo_modi\modi_eval_sanitized.layx network\real_world_gaepo_modi\modi_eval_rw_control.inpx network\real_world_gaepo_modi\modi_eval_rw_control.layx evaluation\real_world_modi_control\freeway_control_manifest.csv
+& "C:\Program Files\PTV Vision\PTV Vissim 2020\exe\Vissim200.exe" /regserver
 ```
 
-이후 4~5번.
+재등록을 하지 않을 경우, 나머지 30개 VBS(특히 실제 런에 쓰는
+`run_real_world_stackelberg_controller.vbs`)에도 같은 폴백을 넣어야 한다.
 
-```bash
-python scripts/generate_real_world_control_mapping.py
-python scripts/generate_real_world_distributed_players.py --selector primary19
-python scripts/generate_real_world_distributed_players.py --selector core15
-```
+> ⚠️ VBS 파일은 **순수 ASCII를 유지할 것**. cscript가 .vbs를 시스템 ANSI 코드페이지(CP949)로
+> 읽어서 비ASCII 바이트가 문자열 상수를 깨뜨린다. 실제로 한글 주석을 넣었다가
+> "종료되지 않은 문자열 상수"로 실패했다. 저장소의 VBS 31개가 전부 ASCII인 것은 우연이 아니다.
 
 ## 주의 사항
 

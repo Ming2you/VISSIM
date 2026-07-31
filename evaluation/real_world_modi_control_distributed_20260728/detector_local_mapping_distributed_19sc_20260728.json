@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
-  "mapping_version": "real_world_modi_distributed_19sc_v1_20260728",
-  "description": "Distributed connector/local observation mapping. Base freeway/ramp/off-ramp observations are preserved; SC1-SC19 signal-head links are added as urban-agent local queues.",
+  "mapping_version": "real_world_modi_distributed_primary19_v1_20260728",
+  "description": "Distributed connector/local observation mapping. Base freeway/ramp/off-ramp observations are preserved; selected core signal-head links are added as urban-agent local queues and peripheral signal-head links are monitored only.",
   "observable_links": [
     2,
+    21,
     26,
     29,
     30,
@@ -14,6 +15,8 @@
     46,
     47,
     52,
+    57,
+    62,
     66,
     71,
     72,
@@ -23,6 +26,10 @@
     118,
     122,
     128,
+    173,
+    176,
+    178,
+    183,
     187,
     189,
     209,
@@ -35,9 +42,19 @@
     256,
     257,
     259,
+    268,
+    271,
     329,
     341,
     343,
+    353,
+    354,
+    358,
+    359,
+    364,
+    382,
+    403,
+    416,
     425,
     427,
     461,
@@ -69,6 +86,7 @@
     1210008501,
     1210008603,
     1210008703,
+    1210009402,
     1210009403,
     1210009502,
     1210009503,
@@ -80,11 +98,27 @@
     1210012700,
     1210014303,
     1210015600,
+    1210015700,
     1210018202,
     1210018302,
+    1210019201,
     1210021204,
+    1210021304,
+    1210021904,
+    1220000201,
+    1220000704,
+    1220001200,
+    1220001501,
+    1220002001,
+    1220002202,
+    1220006503,
     1220006903,
+    1220007001,
+    1220007004,
+    1220007101,
     1220007104,
+    1220007200,
+    1220007401,
     1220007402,
     1220007501,
     1220007502,
@@ -101,29 +135,45 @@
     1220011101,
     1220011103,
     1220011200,
+    1220011503,
     1220012001,
     1220012002,
     1220012102,
     1220012103,
+    1220012502,
     1220013100,
     1220013600,
     1220013700,
     1220014100,
+    1220014201,
     1220014203,
     1220014303,
     1220015000,
+    1220016001,
+    1220017202,
     1220018301,
     1220018401,
     1220018403,
     1220018502,
     1220018504,
     1220019201,
+    1220019301,
+    1220019303,
+    1220020904,
     1220021201,
     1220021303,
     1220021801,
     1220021802,
     1220021803,
-    1220021903
+    1220021903,
+    1220022501,
+    1220022604,
+    1220023101,
+    1220024201,
+    1220024801,
+    1220043200,
+    1220044500,
+    1220061200
   ],
   "link_to_origins": {
     "10479": [
@@ -150,88 +200,6 @@
     "10483": [
       "OR_D_E"
     ],
-    "29": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "30": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "32": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "37": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "40": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "46": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "52": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "66": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "71": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "72": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "329": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out",
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "427": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
-    "10696": [
-      "SC1_N_out",
-      "SC1_S_out",
-      "SC1_E_out",
-      "SC1_W_out"
-    ],
     "1210008401": [
       "SC1_N_out",
       "SC1_S_out",
@@ -255,138 +223,6 @@
       "SC1_S_out",
       "SC1_E_out",
       "SC1_W_out"
-    ],
-    "240": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "242": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "245": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "251": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "1210008202": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "1210008203": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "1220008202": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "1220008301": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "1220008302": [
-      "SC2_N_out",
-      "SC2_S_out",
-      "SC2_E_out",
-      "SC2_W_out"
-    ],
-    "213": [
-      "SC3_N_out",
-      "SC3_S_out",
-      "SC3_E_out",
-      "SC3_W_out"
-    ],
-    "217": [
-      "SC3_N_out",
-      "SC3_S_out",
-      "SC3_E_out",
-      "SC3_W_out"
-    ],
-    "1210012101": [
-      "SC3_N_out",
-      "SC3_S_out",
-      "SC3_E_out",
-      "SC3_W_out"
-    ],
-    "1220012002": [
-      "SC3_N_out",
-      "SC3_S_out",
-      "SC3_E_out",
-      "SC3_W_out"
-    ],
-    "1220012102": [
-      "SC3_N_out",
-      "SC3_S_out",
-      "SC3_E_out",
-      "SC3_W_out"
-    ],
-    "118": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "122": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "128": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "467": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "469": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "121008402": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "1220018403": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
-    ],
-    "1220018502": [
-      "SC4_N_out",
-      "SC4_S_out",
-      "SC4_E_out",
-      "SC4_W_out"
     ],
     "256": [
       "SC5_N_out",
@@ -472,132 +308,6 @@
       "SC6_E_out",
       "SC6_W_out"
     ],
-    "1210009600": [
-      "SC7_N_out",
-      "SC7_S_out",
-      "SC7_E_out",
-      "SC7_W_out"
-    ],
-    "1220007502": [
-      "SC7_N_out",
-      "SC7_S_out",
-      "SC7_E_out",
-      "SC7_W_out"
-    ],
-    "1220008601": [
-      "SC7_N_out",
-      "SC7_S_out",
-      "SC7_E_out",
-      "SC7_W_out"
-    ],
-    "1220008602": [
-      "SC7_N_out",
-      "SC7_S_out",
-      "SC7_E_out",
-      "SC7_W_out"
-    ],
-    "1220008701": [
-      "SC7_N_out",
-      "SC7_S_out",
-      "SC7_E_out",
-      "SC7_W_out"
-    ],
-    "187": [
-      "SC8_N_out",
-      "SC8_S_out",
-      "SC8_E_out",
-      "SC8_W_out"
-    ],
-    "189": [
-      "SC8_N_out",
-      "SC8_S_out",
-      "SC8_E_out",
-      "SC8_W_out"
-    ],
-    "1220007402": [
-      "SC8_N_out",
-      "SC8_S_out",
-      "SC8_E_out",
-      "SC8_W_out"
-    ],
-    "1220007501": [
-      "SC8_N_out",
-      "SC8_S_out",
-      "SC8_E_out",
-      "SC8_W_out"
-    ],
-    "39": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "47": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "94": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "97": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "425": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "461": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "462": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "1220021802": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "1220021803": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "1220021903": [
-      "SC9_N_out",
-      "SC9_S_out",
-      "SC9_E_out",
-      "SC9_W_out"
-    ],
-    "1210018202": [
-      "SC10_N_out",
-      "SC10_S_out",
-      "SC10_E_out",
-      "SC10_W_out"
-    ],
-    "1220018301": [
-      "SC10_N_out",
-      "SC10_S_out",
-      "SC10_E_out",
-      "SC10_W_out"
-    ],
     "1210008303": [
       "SC11_N_out",
       "SC11_S_out",
@@ -620,11 +330,7 @@
       "SC11_N_out",
       "SC11_S_out",
       "SC11_E_out",
-      "SC11_W_out",
-      "SC18_N_out",
-      "SC18_S_out",
-      "SC18_E_out",
-      "SC18_W_out"
+      "SC11_W_out"
     ],
     "1220012001": [
       "SC11_N_out",
@@ -648,11 +354,7 @@
       "SC12_N_out",
       "SC12_S_out",
       "SC12_E_out",
-      "SC12_W_out",
-      "SC13_N_out",
-      "SC13_S_out",
-      "SC13_E_out",
-      "SC13_W_out"
+      "SC12_W_out"
     ],
     "1220015000": [
       "SC12_N_out",
@@ -660,126 +362,417 @@
       "SC12_E_out",
       "SC12_W_out"
     ],
-    "1210015600": [
-      "SC13_N_out",
-      "SC13_S_out",
-      "SC13_E_out",
-      "SC13_W_out"
+    "1220011503": [
+      "SC101_N_out",
+      "SC101_S_out",
+      "SC101_E_out",
+      "SC101_W_out"
     ],
-    "1220013100": [
-      "SC13_N_out",
-      "SC13_S_out",
-      "SC13_E_out",
-      "SC13_W_out"
+    "1220012502": [
+      "SC101_N_out",
+      "SC101_S_out",
+      "SC101_E_out",
+      "SC101_W_out"
     ],
-    "1220013700": [
-      "SC13_N_out",
-      "SC13_S_out",
-      "SC13_E_out",
-      "SC13_W_out"
+    "1220014201": [
+      "SC101_N_out",
+      "SC101_S_out",
+      "SC101_E_out",
+      "SC101_W_out"
     ],
-    "91": [
-      "SC14_N_out",
-      "SC14_S_out",
-      "SC14_E_out",
-      "SC14_W_out"
+    "1220016001": [
+      "SC101_N_out",
+      "SC101_S_out",
+      "SC101_E_out",
+      "SC101_W_out"
     ],
-    "1210021204": [
-      "SC14_N_out",
-      "SC14_S_out",
-      "SC14_E_out",
-      "SC14_W_out"
+    "271": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "1220021303": [
-      "SC14_N_out",
-      "SC14_S_out",
-      "SC14_E_out",
-      "SC14_W_out"
+    "1210019201": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "341": [
-      "SC15_N_out",
-      "SC15_S_out",
-      "SC15_E_out",
-      "SC15_W_out"
+    "1220019303": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "343": [
-      "SC15_N_out",
-      "SC15_S_out",
-      "SC15_E_out",
-      "SC15_W_out"
+    "1220020904": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "1210008501": [
-      "SC15_N_out",
-      "SC15_S_out",
-      "SC15_E_out",
-      "SC15_W_out"
+    "1220022501": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "1220008402": [
-      "SC15_N_out",
-      "SC15_S_out",
-      "SC15_E_out",
-      "SC15_W_out"
+    "1220023101": [
+      "SC102_N_out",
+      "SC102_S_out",
+      "SC102_E_out",
+      "SC102_W_out"
     ],
-    "1210009503": [
-      "SC16_N_out",
-      "SC16_S_out",
-      "SC16_E_out",
-      "SC16_W_out"
+    "1210021904": [
+      "SC103_N_out",
+      "SC103_S_out",
+      "SC103_E_out",
+      "SC103_W_out"
     ],
-    "1210009700": [
-      "SC16_N_out",
-      "SC16_S_out",
-      "SC16_E_out",
-      "SC16_W_out"
+    "1220022604": [
+      "SC103_N_out",
+      "SC103_S_out",
+      "SC103_E_out",
+      "SC103_W_out"
     ],
-    "1210012600": [
-      "SC16_N_out",
-      "SC16_S_out",
-      "SC16_E_out",
-      "SC16_W_out"
+    "1220024201": [
+      "SC103_N_out",
+      "SC103_S_out",
+      "SC103_E_out",
+      "SC103_W_out"
     ],
-    "1220011200": [
-      "SC16_N_out",
-      "SC16_S_out",
-      "SC16_E_out",
-      "SC16_W_out"
+    "1220024801": [
+      "SC103_N_out",
+      "SC103_S_out",
+      "SC103_E_out",
+      "SC103_W_out"
     ],
-    "1210009403": [
-      "SC17_N_out",
-      "SC17_S_out",
-      "SC17_E_out",
-      "SC17_W_out"
+    "1210021304": [
+      "SC104_N_out",
+      "SC104_S_out",
+      "SC104_E_out",
+      "SC104_W_out"
     ],
-    "1210009502": [
-      "SC17_N_out",
-      "SC17_S_out",
-      "SC17_E_out",
-      "SC17_W_out"
+    "1220002001": [
+      "SC104_N_out",
+      "SC104_S_out",
+      "SC104_E_out",
+      "SC104_W_out"
     ],
-    "1220011101": [
-      "SC18_N_out",
-      "SC18_S_out",
-      "SC18_E_out",
-      "SC18_W_out"
+    "1220002202": [
+      "SC104_N_out",
+      "SC104_S_out",
+      "SC104_E_out",
+      "SC104_W_out"
     ],
-    "209": [
-      "SC19_N_out",
-      "SC19_S_out",
-      "SC19_E_out",
-      "SC19_W_out"
+    "1220061200": [
+      "SC104_N_out",
+      "SC104_S_out",
+      "SC104_E_out",
+      "SC104_W_out"
     ],
-    "1210008603": [
-      "SC19_N_out",
-      "SC19_S_out",
-      "SC19_E_out",
-      "SC19_W_out"
+    "416": [
+      "SC105_N_out",
+      "SC105_S_out",
+      "SC105_E_out",
+      "SC105_W_out"
     ],
-    "1220008702": [
-      "SC19_N_out",
-      "SC19_S_out",
-      "SC19_E_out",
-      "SC19_W_out"
-    ]
+    "1220006503": [
+      "SC105_N_out",
+      "SC105_S_out",
+      "SC105_E_out",
+      "SC105_W_out"
+    ],
+    "1220007001": [
+      "SC105_N_out",
+      "SC105_S_out",
+      "SC105_E_out",
+      "SC105_W_out"
+    ],
+    "1220007200": [
+      "SC105_N_out",
+      "SC105_S_out",
+      "SC105_E_out",
+      "SC105_W_out"
+    ],
+    "1210015700": [
+      "SC106_N_out",
+      "SC106_S_out",
+      "SC106_E_out",
+      "SC106_W_out"
+    ],
+    "1220001200": [
+      "SC106_N_out",
+      "SC106_S_out",
+      "SC106_E_out",
+      "SC106_W_out"
+    ],
+    "1220001501": [
+      "SC106_N_out",
+      "SC106_S_out",
+      "SC106_E_out",
+      "SC106_W_out"
+    ],
+    "1220017202": [
+      "SC106_N_out",
+      "SC106_S_out",
+      "SC106_E_out",
+      "SC106_W_out"
+    ],
+    "183": [
+      "SC107_N_out",
+      "SC107_S_out",
+      "SC107_E_out",
+      "SC107_W_out"
+    ],
+    "382": [
+      "SC107_N_out",
+      "SC107_S_out",
+      "SC107_E_out",
+      "SC107_W_out"
+    ],
+    "1220000201": [
+      "SC107_N_out",
+      "SC107_S_out",
+      "SC107_E_out",
+      "SC107_W_out"
+    ],
+    "1220043200": [
+      "SC107_N_out",
+      "SC107_S_out",
+      "SC107_E_out",
+      "SC107_W_out"
+    ],
+    "21": [
+      "SC108_N_out",
+      "SC108_S_out",
+      "SC108_E_out",
+      "SC108_W_out"
+    ],
+    "176": [
+      "SC108_N_out",
+      "SC108_S_out",
+      "SC108_E_out",
+      "SC108_W_out"
+    ],
+    "178": [
+      "SC108_N_out",
+      "SC108_S_out",
+      "SC108_E_out",
+      "SC108_W_out"
+    ],
+    "1220007401": [
+      "SC108_N_out",
+      "SC108_S_out",
+      "SC108_E_out",
+      "SC108_W_out"
+    ],
+    "1220044500": [
+      "SC108_N_out",
+      "SC108_S_out",
+      "SC108_E_out",
+      "SC108_W_out"
+    ],
+    "173": [
+      "SC109_N_out",
+      "SC109_S_out",
+      "SC109_E_out",
+      "SC109_W_out"
+    ],
+    "1210009402": [
+      "SC109_N_out",
+      "SC109_S_out",
+      "SC109_E_out",
+      "SC109_W_out"
+    ],
+    "1220000704": [
+      "SC109_N_out",
+      "SC109_S_out",
+      "SC109_E_out",
+      "SC109_W_out"
+    ],
+    "29": [
+      "SC1001_N_out",
+      "SC1001_S_out",
+      "SC1001_E_out",
+      "SC1001_W_out"
+    ],
+    "32": [
+      "SC1001_N_out",
+      "SC1001_S_out",
+      "SC1001_E_out",
+      "SC1001_W_out"
+    ],
+    "37": [
+      "SC1001_N_out",
+      "SC1001_S_out",
+      "SC1001_E_out",
+      "SC1001_W_out"
+    ],
+    "40": [
+      "SC1001_N_out",
+      "SC1001_S_out",
+      "SC1001_E_out",
+      "SC1001_W_out"
+    ],
+    "10696": [
+      "SC1001_N_out",
+      "SC1001_S_out",
+      "SC1001_E_out",
+      "SC1001_W_out"
+    ],
+    "30": [
+      "SC1002_N_out",
+      "SC1002_S_out",
+      "SC1002_E_out",
+      "SC1002_W_out"
+    ],
+    "72": [
+      "SC1002_N_out",
+      "SC1002_S_out",
+      "SC1002_E_out",
+      "SC1002_W_out"
+    ],
+    "329": [
+      "SC1002_N_out",
+      "SC1002_S_out",
+      "SC1002_E_out",
+      "SC1002_W_out"
+    ],
+    "427": [
+      "SC1002_N_out",
+      "SC1002_S_out",
+      "SC1002_E_out",
+      "SC1002_W_out"
+    ],
+    "39": [
+      "SC1003_N_out",
+      "SC1003_S_out",
+      "SC1003_E_out",
+      "SC1003_W_out"
+    ],
+    "47": [
+      "SC1003_N_out",
+      "SC1003_S_out",
+      "SC1003_E_out",
+      "SC1003_W_out"
+    ],
+    "425": [
+      "SC1003_N_out",
+      "SC1003_S_out",
+      "SC1003_E_out",
+      "SC1003_W_out"
+    ],
+    "46": [
+      "SC1004_N_out",
+      "SC1004_S_out",
+      "SC1004_E_out",
+      "SC1004_W_out"
+    ],
+    "52": [
+      "SC1004_N_out",
+      "SC1004_S_out",
+      "SC1004_E_out",
+      "SC1004_W_out"
+    ],
+    "66": [
+      "SC1004_N_out",
+      "SC1004_S_out",
+      "SC1004_E_out",
+      "SC1004_W_out"
+    ],
+    "71": [
+      "SC1004_N_out",
+      "SC1004_S_out",
+      "SC1004_E_out",
+      "SC1004_W_out"
+    ],
+    "57": [
+      "SC1005_N_out",
+      "SC1005_S_out",
+      "SC1005_E_out",
+      "SC1005_W_out"
+    ],
+    "62": [
+      "SC1005_N_out",
+      "SC1005_S_out",
+      "SC1005_E_out",
+      "SC1005_W_out"
+    ],
+    "403": [
+      "SC1005_N_out",
+      "SC1005_S_out",
+      "SC1005_E_out",
+      "SC1005_W_out"
+    ],
+    "240": [],
+    "242": [],
+    "245": [],
+    "251": [],
+    "1210008202": [],
+    "1210008203": [],
+    "1220008202": [],
+    "1220008301": [],
+    "1220008302": [],
+    "213": [],
+    "217": [],
+    "1210012101": [],
+    "1220012002": [],
+    "1220012102": [],
+    "118": [],
+    "122": [],
+    "128": [],
+    "467": [],
+    "469": [],
+    "121008402": [],
+    "1220018403": [],
+    "1220018502": [],
+    "1210009600": [],
+    "1220007502": [],
+    "1220008601": [],
+    "1220008602": [],
+    "1220008701": [],
+    "187": [],
+    "189": [],
+    "1220007402": [],
+    "1220007501": [],
+    "94": [],
+    "97": [],
+    "461": [],
+    "462": [],
+    "1220021802": [],
+    "1220021803": [],
+    "1220021903": [],
+    "1210018202": [],
+    "1220018301": [],
+    "1210015600": [],
+    "1220013100": [],
+    "1220013700": [],
+    "91": [],
+    "1210021204": [],
+    "1220021303": [],
+    "341": [],
+    "343": [],
+    "1210008501": [],
+    "1220008402": [],
+    "1210009503": [],
+    "1210009700": [],
+    "1210012600": [],
+    "1220011200": [],
+    "1210009403": [],
+    "1210009502": [],
+    "1220011101": [],
+    "209": [],
+    "1210008603": [],
+    "1220008702": [],
+    "354": [],
+    "358": [],
+    "359": [],
+    "364": [],
+    "1220007101": [],
+    "353": [],
+    "1220007004": [],
+    "268": [],
+    "1220019301": []
   },
   "link_to_movements": {
     "10479": [
@@ -990,2450 +983,1644 @@
         "origin": "OR_D_E"
       }
     ],
-    "29": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "30": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "32": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "37": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "40": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "46": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "52": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "66": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "71": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "72": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "329": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "427": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "10696": [
-      {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
     "1210008401": [
       {
         "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220006903": [
       {
         "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_on_R_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_on_R_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220007104": [
       {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220008201": [
       {
-        "movement": "SC1_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC1_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_D_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_on_R_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_on_R_F_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_on_R_F_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_D_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_off_OR_D_E",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC1_off_OR_F_W",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC1_off_OR_F_E",
-        "weight": 1.0
-      }
-    ],
-    "240": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "242": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "245": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "251": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1210008202": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1210008203": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008202": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008301": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008302": [
-      {
-        "movement": "SC2_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC2_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "213": [
-      {
-        "movement": "SC3_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "217": [
-      {
-        "movement": "SC3_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1210012101": [
-      {
-        "movement": "SC3_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220012002": [
-      {
-        "movement": "SC3_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220012102": [
-      {
-        "movement": "SC3_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC3_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "118": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "122": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "128": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "467": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "469": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "121008402": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220018403": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220018502": [
-      {
-        "movement": "SC4_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC4_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "256": [
       {
         "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "257": [
       {
-        "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "259": [
       {
         "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1210014303": [
       {
-        "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220011103": [
       {
         "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220014100": [
       {
         "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220014203": [
       {
-        "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220014303": [
       {
-        "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220018401": [
       {
-        "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220019201": [
       {
         "movement": "SC5_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC5_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC5_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1210018302": [
       {
         "movement": "SC6_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC6_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220018504": [
       {
-        "movement": "SC6_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC6_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC6_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220021201": [
       {
-        "movement": "SC6_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC6_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC6_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220021801": [
       {
         "movement": "SC6_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC6_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC6_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1210009600": [
-      {
-        "movement": "SC7_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220007502": [
-      {
-        "movement": "SC7_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008601": [
-      {
-        "movement": "SC7_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008602": [
-      {
-        "movement": "SC7_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220008701": [
-      {
-        "movement": "SC7_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC7_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "187": [
-      {
-        "movement": "SC8_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "189": [
-      {
-        "movement": "SC8_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220007402": [
-      {
-        "movement": "SC8_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220007501": [
-      {
-        "movement": "SC8_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC8_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "39": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "47": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "94": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "97": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "425": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "461": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "462": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220021802": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220021803": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220021903": [
-      {
-        "movement": "SC9_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC9_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1210018202": [
-      {
-        "movement": "SC10_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_EW_W_to_out",
-        "weight": 1.0
-      }
-    ],
-    "1220018301": [
-      {
-        "movement": "SC10_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC10_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1210008303": [
       {
-        "movement": "SC11_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC11_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC11_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1210008703": [
       {
         "movement": "SC11_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC11_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1210012001": [
       {
-        "movement": "SC11_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC11_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC11_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220011001": [
       {
         "movement": "SC11_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC11_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220012001": [
       {
-        "movement": "SC11_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC11_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC11_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC11_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1210012700": [
       {
         "movement": "SC12_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC12_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
     "1220012103": [
       {
-        "movement": "SC12_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC12_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC12_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220013600": [
       {
-        "movement": "SC12_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
         "movement": "SC12_EW_E_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
         "movement": "SC12_EW_W_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_NS_N_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
     "1220015000": [
       {
         "movement": "SC12_NS_N_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
         "movement": "SC12_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC12_EW_W_to_out",
-        "weight": 1.0
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1210015600": [
+    "1220011503": [
       {
-        "movement": "SC13_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC101_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC13_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC101_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1220013100": [
+    "1220012502": [
       {
-        "movement": "SC13_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC101_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC13_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC101_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1220013700": [
+    "1220014201": [
       {
-        "movement": "SC13_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC101_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC13_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC13_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC101_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "91": [
+    "1220016001": [
       {
-        "movement": "SC14_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC101_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC14_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC101_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1210021204": [
+    "271": [
       {
-        "movement": "SC14_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC14_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1220021303": [
+    "1210019201": [
       {
-        "movement": "SC14_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC14_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC14_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "341": [
+    "1220019303": [
       {
-        "movement": "SC15_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC15_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "343": [
+    "1220020904": [
       {
-        "movement": "SC15_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC15_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1210008501": [
+    "1220022501": [
       {
-        "movement": "SC15_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC15_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1220008402": [
+    "1220023101": [
       {
-        "movement": "SC15_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC15_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC15_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC102_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1210009503": [
+    "1210021904": [
       {
-        "movement": "SC16_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC103_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC16_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC103_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1210009700": [
+    "1220022604": [
       {
-        "movement": "SC16_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC103_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC16_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC103_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1210012600": [
+    "1220024201": [
       {
-        "movement": "SC16_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC103_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC16_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC103_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1220011200": [
+    "1220024801": [
       {
-        "movement": "SC16_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC103_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC16_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC16_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC103_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1210009403": [
+    "1210021304": [
       {
-        "movement": "SC17_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC104_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC17_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC17_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC17_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC104_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1210009502": [
+    "1220002001": [
       {
-        "movement": "SC17_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC104_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC17_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC17_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC17_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC104_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "1220011101": [
+    "1220002202": [
       {
-        "movement": "SC18_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC104_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC18_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC18_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC104_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ],
-    "209": [
+    "1220061200": [
       {
-        "movement": "SC19_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC104_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC19_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC19_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC19_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC104_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1210008603": [
+    "416": [
       {
-        "movement": "SC19_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC105_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC19_NS_S_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC19_EW_E_to_out",
-        "weight": 1.0
-      },
-      {
-        "movement": "SC19_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC105_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       }
     ],
-    "1220008702": [
+    "1220006503": [
       {
-        "movement": "SC19_NS_N_to_out",
-        "weight": 1.0
+        "movement": "SC105_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC19_NS_S_to_out",
-        "weight": 1.0
+        "movement": "SC105_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220007001": [
+      {
+        "movement": "SC105_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
       },
       {
-        "movement": "SC19_EW_E_to_out",
-        "weight": 1.0
+        "movement": "SC105_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "1220007200": [
+      {
+        "movement": "SC105_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       },
       {
-        "movement": "SC19_EW_W_to_out",
-        "weight": 1.0
+        "movement": "SC105_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1210015700": [
+      {
+        "movement": "SC106_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC106_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "1220001200": [
+      {
+        "movement": "SC106_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC106_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220001501": [
+      {
+        "movement": "SC106_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC106_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220017202": [
+      {
+        "movement": "SC106_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC106_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "183": [
+      {
+        "movement": "SC107_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC107_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "382": [
+      {
+        "movement": "SC107_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC107_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220000201": [
+      {
+        "movement": "SC107_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC107_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "1220043200": [
+      {
+        "movement": "SC107_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC107_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "21": [
+      {
+        "movement": "SC108_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC108_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "176": [
+      {
+        "movement": "SC108_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC108_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "178": [
+      {
+        "movement": "SC108_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC108_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "1220007401": [
+      {
+        "movement": "SC108_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC108_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220044500": [
+      {
+        "movement": "SC108_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC108_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "173": [
+      {
+        "movement": "SC109_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC109_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "1210009402": [
+      {
+        "movement": "SC109_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC109_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "1220000704": [
+      {
+        "movement": "SC109_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC109_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "29": [
+      {
+        "movement": "SC1001_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1001_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "32": [
+      {
+        "movement": "SC1001_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1001_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "37": [
+      {
+        "movement": "SC1001_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1001_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "40": [
+      {
+        "movement": "SC1001_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1001_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "10696": [
+      {
+        "movement": "SC1001_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1001_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "30": [
+      {
+        "movement": "SC1002_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1002_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "72": [
+      {
+        "movement": "SC1002_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1002_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "329": [
+      {
+        "movement": "SC1002_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1002_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "427": [
+      {
+        "movement": "SC1002_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1002_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "39": [
+      {
+        "movement": "SC1003_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1003_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "47": [
+      {
+        "movement": "SC1003_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1003_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "425": [
+      {
+        "movement": "SC1003_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1003_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "46": [
+      {
+        "movement": "SC1004_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1004_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "52": [
+      {
+        "movement": "SC1004_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1004_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "66": [
+      {
+        "movement": "SC1004_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1004_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      }
+    ],
+    "71": [
+      {
+        "movement": "SC1004_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1004_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "57": [
+      {
+        "movement": "SC1005_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1005_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "62": [
+      {
+        "movement": "SC1005_EW_E_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      },
+      {
+        "movement": "SC1005_EW_W_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "EW"
+        ]
+      }
+    ],
+    "403": [
+      {
+        "movement": "SC1005_NS_N_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
+      },
+      {
+        "movement": "SC1005_NS_S_to_out",
+        "weight": 1.0,
+        "source": "signal_head_phase_axis",
+        "axes": [
+          "NS"
+        ]
       }
     ]
   },
@@ -3647,9 +2834,7 @@
       ],
       "visible_movements": [],
       "visible_ramps": [],
-      "visible_off_ramps": [
-        "OR_F_E"
-      ]
+      "visible_off_ramps": []
     },
     "F_E2": {
       "kind": "freeway",
@@ -3659,9 +2844,7 @@
         "2"
       ],
       "visible_movements": [],
-      "visible_ramps": [
-        "R_F_E"
-      ],
+      "visible_ramps": [],
       "visible_off_ramps": []
     },
     "F_E3": {
@@ -3672,8 +2855,12 @@
         "2"
       ],
       "visible_movements": [],
-      "visible_ramps": [],
-      "visible_off_ramps": []
+      "visible_ramps": [
+        "R_F_E"
+      ],
+      "visible_off_ramps": [
+        "OR_F_E"
+      ]
     },
     "F_E4": {
       "kind": "freeway",
@@ -3683,12 +2870,8 @@
         "2"
       ],
       "visible_movements": [],
-      "visible_ramps": [
-        "R_D_E"
-      ],
-      "visible_off_ramps": [
-        "OR_D_E"
-      ]
+      "visible_ramps": [],
+      "visible_off_ramps": []
     },
     "F_E5": {
       "kind": "freeway",
@@ -3720,8 +2903,12 @@
         "2"
       ],
       "visible_movements": [],
-      "visible_ramps": [],
-      "visible_off_ramps": []
+      "visible_ramps": [
+        "R_D_E"
+      ],
+      "visible_off_ramps": [
+        "OR_D_E"
+      ]
     },
     "F_W0": {
       "kind": "freeway",
@@ -3823,21 +3010,10 @@
       "kind": "urban",
       "signal": "SC1",
       "sc_no": 1,
-      "name": "구룡초교",
+      "name": "\uad6c\ub8e1\ucd08\uad50",
+      "control_enabled": true,
+      "monitoring_only": false,
       "visible_links": [
-        "29",
-        "30",
-        "32",
-        "37",
-        "40",
-        "46",
-        "52",
-        "66",
-        "71",
-        "72",
-        "329",
-        "427",
-        "10696",
         "1210008401",
         "1220006903",
         "1220007104",
@@ -3857,6 +3033,20 @@
         "SC1_off_OR_F_W",
         "SC1_off_OR_F_E"
       ],
+      "visible_link_axes": {
+        "1210008401": [
+          "NS"
+        ],
+        "1220006903": [
+          "NS"
+        ],
+        "1220007104": [
+          "EW"
+        ],
+        "1220008201": [
+          "EW"
+        ]
+      },
       "visible_ramps": [
         "R_D_W",
         "R_D_E",
@@ -3870,82 +3060,13 @@
         "OR_F_E"
       ]
     },
-    "U_SC2": {
-      "kind": "urban",
-      "signal": "SC2",
-      "sc_no": 2,
-      "name": "개원초교(보)",
-      "visible_links": [
-        "240",
-        "242",
-        "245",
-        "251",
-        "329",
-        "1210008202",
-        "1210008203",
-        "1220008202",
-        "1220008301",
-        "1220008302"
-      ],
-      "visible_movements": [
-        "SC2_NS_N_to_out",
-        "SC2_NS_S_to_out",
-        "SC2_EW_E_to_out",
-        "SC2_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC3": {
-      "kind": "urban",
-      "signal": "SC3",
-      "sc_no": 3,
-      "name": "수도공고(보)",
-      "visible_links": [
-        "213",
-        "217",
-        "1210012101",
-        "1220012002",
-        "1220012102"
-      ],
-      "visible_movements": [
-        "SC3_NS_N_to_out",
-        "SC3_NS_S_to_out",
-        "SC3_EW_E_to_out",
-        "SC3_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC4": {
-      "kind": "urban",
-      "signal": "SC4",
-      "sc_no": 4,
-      "name": "청실종합",
-      "visible_links": [
-        "118",
-        "122",
-        "128",
-        "467",
-        "469",
-        "121008402",
-        "1220018403",
-        "1220018502"
-      ],
-      "visible_movements": [
-        "SC4_NS_N_to_out",
-        "SC4_NS_S_to_out",
-        "SC4_EW_E_to_out",
-        "SC4_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
     "U_SC5": {
       "kind": "urban",
       "signal": "SC5",
       "sc_no": 5,
-      "name": "도곡역",
+      "name": "\ub3c4\uace1\uc5ed",
+      "control_enabled": true,
+      "monitoring_only": false,
       "visible_links": [
         "256",
         "257",
@@ -3964,6 +3085,38 @@
         "SC5_EW_E_to_out",
         "SC5_EW_W_to_out"
       ],
+      "visible_link_axes": {
+        "256": [
+          "NS"
+        ],
+        "257": [
+          "EW"
+        ],
+        "259": [
+          "NS"
+        ],
+        "1210014303": [
+          "EW"
+        ],
+        "1220011103": [
+          "NS"
+        ],
+        "1220014100": [
+          "NS"
+        ],
+        "1220014203": [
+          "EW"
+        ],
+        "1220014303": [
+          "EW"
+        ],
+        "1220018401": [
+          "EW"
+        ],
+        "1220019201": [
+          "NS"
+        ]
+      },
       "visible_ramps": [],
       "visible_off_ramps": []
     },
@@ -3971,7 +3124,9 @@
       "kind": "urban",
       "signal": "SC6",
       "sc_no": 6,
-      "name": "대치역",
+      "name": "\ub300\uce58\uc5ed",
+      "control_enabled": true,
+      "monitoring_only": false,
       "visible_links": [
         "1210018302",
         "1220018504",
@@ -3984,91 +3139,20 @@
         "SC6_EW_E_to_out",
         "SC6_EW_W_to_out"
       ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC7": {
-      "kind": "urban",
-      "signal": "SC7",
-      "sc_no": 7,
-      "name": "개포도서관",
-      "visible_links": [
-        "1210009600",
-        "1220007502",
-        "1220008601",
-        "1220008602",
-        "1220008701"
-      ],
-      "visible_movements": [
-        "SC7_NS_N_to_out",
-        "SC7_NS_S_to_out",
-        "SC7_EW_E_to_out",
-        "SC7_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC8": {
-      "kind": "urban",
-      "signal": "SC8",
-      "sc_no": 8,
-      "name": "개포중(보)",
-      "visible_links": [
-        "187",
-        "189",
-        "1220007402",
-        "1220007501"
-      ],
-      "visible_movements": [
-        "SC8_NS_N_to_out",
-        "SC8_NS_S_to_out",
-        "SC8_EW_E_to_out",
-        "SC8_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC9": {
-      "kind": "urban",
-      "signal": "SC9",
-      "sc_no": 9,
-      "name": "대치은마아파트",
-      "visible_links": [
-        "39",
-        "47",
-        "94",
-        "97",
-        "425",
-        "461",
-        "462",
-        "1220021802",
-        "1220021803",
-        "1220021903"
-      ],
-      "visible_movements": [
-        "SC9_NS_N_to_out",
-        "SC9_NS_S_to_out",
-        "SC9_EW_E_to_out",
-        "SC9_EW_W_to_out"
-      ],
-      "visible_ramps": [],
-      "visible_off_ramps": []
-    },
-    "U_SC10": {
-      "kind": "urban",
-      "signal": "SC10",
-      "sc_no": 10,
-      "name": "대치선경아파트",
-      "visible_links": [
-        "1210018202",
-        "1220018301"
-      ],
-      "visible_movements": [
-        "SC10_NS_N_to_out",
-        "SC10_NS_S_to_out",
-        "SC10_EW_E_to_out",
-        "SC10_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "1210018302": [
+          "NS"
+        ],
+        "1220018504": [
+          "EW"
+        ],
+        "1220021201": [
+          "EW"
+        ],
+        "1220021801": [
+          "NS"
+        ]
+      },
       "visible_ramps": [],
       "visible_off_ramps": []
     },
@@ -4076,7 +3160,9 @@
       "kind": "urban",
       "signal": "SC11",
       "sc_no": 11,
-      "name": "개포고교",
+      "name": "\uac1c\ud3ec\uace0\uad50",
+      "control_enabled": true,
+      "monitoring_only": false,
       "visible_links": [
         "1210008303",
         "1210008703",
@@ -4090,6 +3176,23 @@
         "SC11_EW_E_to_out",
         "SC11_EW_W_to_out"
       ],
+      "visible_link_axes": {
+        "1210008303": [
+          "EW"
+        ],
+        "1210008703": [
+          "NS"
+        ],
+        "1210012001": [
+          "EW"
+        ],
+        "1220011001": [
+          "NS"
+        ],
+        "1220012001": [
+          "EW"
+        ]
+      },
       "visible_ramps": [],
       "visible_off_ramps": []
     },
@@ -4097,7 +3200,9 @@
       "kind": "urban",
       "signal": "SC12",
       "sc_no": 12,
-      "name": "영동5교",
+      "name": "\uc601\ub3d95\uad50",
+      "control_enabled": true,
+      "monitoring_only": false,
       "visible_links": [
         "1210012700",
         "1220012103",
@@ -4110,140 +3215,1067 @@
         "SC12_EW_E_to_out",
         "SC12_EW_W_to_out"
       ],
+      "visible_link_axes": {
+        "1210012700": [
+          "NS"
+        ],
+        "1220012103": [
+          "EW"
+        ],
+        "1220013600": [
+          "EW"
+        ],
+        "1220015000": [
+          "NS"
+        ]
+      },
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC13": {
+    "U_SC101": {
       "kind": "urban",
+      "signal": "SC101",
+      "sc_no": 101,
+      "name": "\ub9e4\ubd09\ud130\ub110",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "1220011503",
+        "1220012502",
+        "1220014201",
+        "1220016001"
+      ],
+      "visible_movements": [
+        "SC101_NS_N_to_out",
+        "SC101_NS_S_to_out",
+        "SC101_EW_E_to_out",
+        "SC101_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "1220011503": [
+          "NS"
+        ],
+        "1220012502": [
+          "EW"
+        ],
+        "1220014201": [
+          "EW"
+        ],
+        "1220016001": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC102": {
+      "kind": "urban",
+      "signal": "SC102",
+      "sc_no": 102,
+      "name": "\ud55c\ud2f0\uc5ed",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "271",
+        "1210019201",
+        "1220019303",
+        "1220020904",
+        "1220022501",
+        "1220023101"
+      ],
+      "visible_movements": [
+        "SC102_NS_N_to_out",
+        "SC102_NS_S_to_out",
+        "SC102_EW_E_to_out",
+        "SC102_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "271": [
+          "NS"
+        ],
+        "1210019201": [
+          "NS"
+        ],
+        "1220019303": [
+          "NS"
+        ],
+        "1220020904": [
+          "EW"
+        ],
+        "1220022501": [
+          "EW"
+        ],
+        "1220023101": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC103": {
+      "kind": "urban",
+      "signal": "SC103",
+      "sc_no": 103,
+      "name": "\uc740\ub9c8\uc544\ud30c\ud2b8\uc785\uad6c",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "1210021904",
+        "1220022604",
+        "1220024201",
+        "1220024801"
+      ],
+      "visible_movements": [
+        "SC103_NS_N_to_out",
+        "SC103_NS_S_to_out",
+        "SC103_EW_E_to_out",
+        "SC103_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "1210021904": [
+          "NS"
+        ],
+        "1220022604": [
+          "EW"
+        ],
+        "1220024201": [
+          "EW"
+        ],
+        "1220024801": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC104": {
+      "kind": "urban",
+      "signal": "SC104",
+      "sc_no": 104,
+      "name": "\ud559\uc5ec\uc6b8\uc5ed",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "1210021304",
+        "1220002001",
+        "1220002202",
+        "1220061200"
+      ],
+      "visible_movements": [
+        "SC104_NS_N_to_out",
+        "SC104_NS_S_to_out",
+        "SC104_EW_E_to_out",
+        "SC104_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "1210021304": [
+          "EW"
+        ],
+        "1220002001": [
+          "NS"
+        ],
+        "1220002202": [
+          "NS"
+        ],
+        "1220061200": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC105": {
+      "kind": "urban",
+      "signal": "SC105",
+      "sc_no": 105,
+      "name": "\ud3ec\uc774\uc0ac\uac70\ub9ac",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "416",
+        "1220006503",
+        "1220007001",
+        "1220007200"
+      ],
+      "visible_movements": [
+        "SC105_NS_N_to_out",
+        "SC105_NS_S_to_out",
+        "SC105_EW_E_to_out",
+        "SC105_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "416": [
+          "EW"
+        ],
+        "1220006503": [
+          "NS"
+        ],
+        "1220007001": [
+          "EW"
+        ],
+        "1220007200": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC106": {
+      "kind": "urban",
+      "signal": "SC106",
+      "sc_no": 106,
+      "name": "\ub300\ubaa8\uc0b0\uc0ac\uac70\ub9ac",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "1210015700",
+        "1220001200",
+        "1220001501",
+        "1220017202"
+      ],
+      "visible_movements": [
+        "SC106_NS_N_to_out",
+        "SC106_NS_S_to_out",
+        "SC106_EW_E_to_out",
+        "SC106_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "1210015700": [
+          "EW"
+        ],
+        "1220001200": [
+          "NS"
+        ],
+        "1220001501": [
+          "NS"
+        ],
+        "1220017202": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC107": {
+      "kind": "urban",
+      "signal": "SC107",
+      "sc_no": 107,
+      "name": "\uad6c\ub8e1\ud130\ub110",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "183",
+        "382",
+        "1220000201",
+        "1220043200"
+      ],
+      "visible_movements": [
+        "SC107_NS_N_to_out",
+        "SC107_NS_S_to_out",
+        "SC107_EW_E_to_out",
+        "SC107_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "183": [
+          "EW"
+        ],
+        "382": [
+          "NS"
+        ],
+        "1220000201": [
+          "EW"
+        ],
+        "1220043200": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC108": {
+      "kind": "urban",
+      "signal": "SC108",
+      "sc_no": 108,
+      "name": "\uad6c\ub8e1\ub9c8\uc744\uc785\uad6c",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "21",
+        "176",
+        "178",
+        "1220007401",
+        "1220044500"
+      ],
+      "visible_movements": [
+        "SC108_NS_N_to_out",
+        "SC108_NS_S_to_out",
+        "SC108_EW_E_to_out",
+        "SC108_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "21": [
+          "EW"
+        ],
+        "176": [
+          "EW"
+        ],
+        "178": [
+          "EW"
+        ],
+        "1220007401": [
+          "NS"
+        ],
+        "1220044500": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC109": {
+      "kind": "urban",
+      "signal": "SC109",
+      "sc_no": 109,
+      "name": "\uac1c\ud3ec3,4\ub2e8\uc9c0",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "173",
+        "1210009402",
+        "1220000704"
+      ],
+      "visible_movements": [
+        "SC109_NS_N_to_out",
+        "SC109_NS_S_to_out",
+        "SC109_EW_E_to_out",
+        "SC109_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "173": [
+          "EW"
+        ],
+        "1210009402": [
+          "NS"
+        ],
+        "1220000704": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1001": {
+      "kind": "urban",
+      "signal": "SC1001",
+      "sc_no": 1001,
+      "name": "",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "29",
+        "32",
+        "37",
+        "40",
+        "10696"
+      ],
+      "visible_movements": [
+        "SC1001_NS_N_to_out",
+        "SC1001_NS_S_to_out",
+        "SC1001_EW_E_to_out",
+        "SC1001_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "29": [
+          "EW"
+        ],
+        "32": [
+          "EW"
+        ],
+        "37": [
+          "NS"
+        ],
+        "40": [
+          "NS"
+        ],
+        "10696": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1002": {
+      "kind": "urban",
+      "signal": "SC1002",
+      "sc_no": 1002,
+      "name": "",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "30",
+        "72",
+        "329",
+        "427"
+      ],
+      "visible_movements": [
+        "SC1002_NS_N_to_out",
+        "SC1002_NS_S_to_out",
+        "SC1002_EW_E_to_out",
+        "SC1002_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "30": [
+          "EW"
+        ],
+        "72": [
+          "NS"
+        ],
+        "329": [
+          "EW"
+        ],
+        "427": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1003": {
+      "kind": "urban",
+      "signal": "SC1003",
+      "sc_no": 1003,
+      "name": "",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "39",
+        "47",
+        "425"
+      ],
+      "visible_movements": [
+        "SC1003_NS_N_to_out",
+        "SC1003_NS_S_to_out",
+        "SC1003_EW_E_to_out",
+        "SC1003_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "39": [
+          "NS"
+        ],
+        "47": [
+          "NS"
+        ],
+        "425": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1004": {
+      "kind": "urban",
+      "signal": "SC1004",
+      "sc_no": 1004,
+      "name": "",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "46",
+        "52",
+        "66",
+        "71"
+      ],
+      "visible_movements": [
+        "SC1004_NS_N_to_out",
+        "SC1004_NS_S_to_out",
+        "SC1004_EW_E_to_out",
+        "SC1004_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "46": [
+          "NS"
+        ],
+        "52": [
+          "EW"
+        ],
+        "66": [
+          "NS"
+        ],
+        "71": [
+          "EW"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1005": {
+      "kind": "urban",
+      "signal": "SC1005",
+      "sc_no": 1005,
+      "name": "",
+      "control_enabled": true,
+      "monitoring_only": false,
+      "visible_links": [
+        "57",
+        "62",
+        "403"
+      ],
+      "visible_movements": [
+        "SC1005_NS_N_to_out",
+        "SC1005_NS_S_to_out",
+        "SC1005_EW_E_to_out",
+        "SC1005_EW_W_to_out"
+      ],
+      "visible_link_axes": {
+        "57": [
+          "EW"
+        ],
+        "62": [
+          "EW"
+        ],
+        "403": [
+          "NS"
+        ]
+      },
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC2": {
+      "kind": "urban_monitor",
+      "signal": "SC2",
+      "sc_no": 2,
+      "name": "\uac1c\uc6d0\ucd08\uad50(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "240",
+        "242",
+        "245",
+        "251",
+        "1210008202",
+        "1210008203",
+        "1220008202",
+        "1220008301",
+        "1220008302"
+      ],
+      "visible_link_axes": {
+        "240": [
+          "NS"
+        ],
+        "242": [
+          "NS"
+        ],
+        "245": [
+          "EW"
+        ],
+        "251": [
+          "NS"
+        ],
+        "1210008202": [
+          "EW"
+        ],
+        "1210008203": [
+          "EW"
+        ],
+        "1220008202": [
+          "EW"
+        ],
+        "1220008301": [
+          "EW"
+        ],
+        "1220008302": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC3": {
+      "kind": "urban_monitor",
+      "signal": "SC3",
+      "sc_no": 3,
+      "name": "\uc218\ub3c4\uacf5\uace0(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "213",
+        "217",
+        "1210012101",
+        "1220012002",
+        "1220012102"
+      ],
+      "visible_link_axes": {
+        "213": [
+          "EW"
+        ],
+        "217": [
+          "NS"
+        ],
+        "1210012101": [
+          "EW"
+        ],
+        "1220012002": [
+          "EW"
+        ],
+        "1220012102": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC4": {
+      "kind": "urban_monitor",
+      "signal": "SC4",
+      "sc_no": 4,
+      "name": "\uccad\uc2e4\uc885\ud569",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "118",
+        "122",
+        "128",
+        "467",
+        "469",
+        "121008402",
+        "1220018403",
+        "1220018502"
+      ],
+      "visible_link_axes": {
+        "118": [
+          "EW"
+        ],
+        "122": [
+          "EW"
+        ],
+        "128": [
+          "EW"
+        ],
+        "467": [
+          "EW"
+        ],
+        "469": [
+          "NS"
+        ],
+        "121008402": [
+          "EW"
+        ],
+        "1220018403": [
+          "EW"
+        ],
+        "1220018502": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC7": {
+      "kind": "urban_monitor",
+      "signal": "SC7",
+      "sc_no": 7,
+      "name": "\uac1c\ud3ec\ub3c4\uc11c\uad00",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "1210009600",
+        "1220007502",
+        "1220008601",
+        "1220008602",
+        "1220008701"
+      ],
+      "visible_link_axes": {
+        "1210009600": [
+          "EW"
+        ],
+        "1220007502": [
+          "NS"
+        ],
+        "1220008601": [
+          "NS"
+        ],
+        "1220008602": [
+          "NS"
+        ],
+        "1220008701": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC8": {
+      "kind": "urban_monitor",
+      "signal": "SC8",
+      "sc_no": 8,
+      "name": "\uac1c\ud3ec\uc911(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "187",
+        "189",
+        "1220007402",
+        "1220007501"
+      ],
+      "visible_link_axes": {
+        "187": [
+          "EW"
+        ],
+        "189": [
+          "EW"
+        ],
+        "1220007402": [
+          "NS"
+        ],
+        "1220007501": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC9": {
+      "kind": "urban_monitor",
+      "signal": "SC9",
+      "sc_no": 9,
+      "name": "\ub300\uce58\uc740\ub9c8\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "94",
+        "97",
+        "461",
+        "462",
+        "1220021802",
+        "1220021803",
+        "1220021903"
+      ],
+      "visible_link_axes": {
+        "94": [
+          "NS"
+        ],
+        "97": [
+          "NS"
+        ],
+        "461": [
+          "EW"
+        ],
+        "462": [
+          "EW"
+        ],
+        "1220021802": [
+          "NS"
+        ],
+        "1220021803": [
+          "NS"
+        ],
+        "1220021903": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC10": {
+      "kind": "urban_monitor",
+      "signal": "SC10",
+      "sc_no": 10,
+      "name": "\ub300\uce58\uc120\uacbd\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "1210018202",
+        "1220018301"
+      ],
+      "visible_link_axes": {
+        "1210018202": [
+          "NS"
+        ],
+        "1220018301": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC13": {
+      "kind": "urban_monitor",
       "signal": "SC13",
       "sc_no": 13,
-      "name": "개포주민센터",
+      "name": "\uac1c\ud3ec\uc8fc\ubbfc\uc13c\ud130",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "1210015600",
         "1220013100",
         "1220013600",
         "1220013700"
       ],
-      "visible_movements": [
-        "SC13_NS_N_to_out",
-        "SC13_NS_S_to_out",
-        "SC13_EW_E_to_out",
-        "SC13_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "1210015600": [
+          "EW"
+        ],
+        "1220013100": [
+          "NS"
+        ],
+        "1220013600": [
+          "EW"
+        ],
+        "1220013700": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC14": {
-      "kind": "urban",
+    "MON_SC14": {
+      "kind": "urban_monitor",
       "signal": "SC14",
       "sc_no": 14,
-      "name": "대치미도아파트",
+      "name": "\ub300\uce58\ubbf8\ub3c4\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "91",
         "1210021204",
         "1220021303"
       ],
-      "visible_movements": [
-        "SC14_NS_N_to_out",
-        "SC14_NS_S_to_out",
-        "SC14_EW_E_to_out",
-        "SC14_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "91": [
+          "NS"
+        ],
+        "1210021204": [
+          "EW"
+        ],
+        "1220021303": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC15": {
-      "kind": "urban",
+    "MON_SC15": {
+      "kind": "urban_monitor",
       "signal": "SC15",
       "sc_no": 15,
-      "name": "개포경남아파트",
+      "name": "\uac1c\ud3ec\uacbd\ub0a8\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "341",
         "343",
         "1210008501",
         "1220008402"
       ],
-      "visible_movements": [
-        "SC15_NS_N_to_out",
-        "SC15_NS_S_to_out",
-        "SC15_EW_E_to_out",
-        "SC15_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "341": [
+          "EW"
+        ],
+        "343": [
+          "EW"
+        ],
+        "1210008501": [
+          "NS"
+        ],
+        "1220008402": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC16": {
-      "kind": "urban",
+    "MON_SC16": {
+      "kind": "urban_monitor",
       "signal": "SC16",
       "sc_no": 16,
-      "name": "경기여고",
+      "name": "\uacbd\uae30\uc5ec\uace0",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "1210009503",
         "1210009700",
         "1210012600",
         "1220011200"
       ],
-      "visible_movements": [
-        "SC16_NS_N_to_out",
-        "SC16_NS_S_to_out",
-        "SC16_EW_E_to_out",
-        "SC16_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "1210009503": [
+          "NS"
+        ],
+        "1210009700": [
+          "EW"
+        ],
+        "1210012600": [
+          "NS"
+        ],
+        "1220011200": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC17": {
-      "kind": "urban",
+    "MON_SC17": {
+      "kind": "urban_monitor",
       "signal": "SC17",
       "sc_no": 17,
-      "name": "개포주공3단지(보)",
+      "name": "\uac1c\ud3ec\uc8fc\uacf53\ub2e8\uc9c0(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "1210009403",
         "1210009502"
       ],
-      "visible_movements": [
-        "SC17_NS_N_to_out",
-        "SC17_NS_S_to_out",
-        "SC17_EW_E_to_out",
-        "SC17_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "1210009403": [
+          "NS"
+        ],
+        "1210009502": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC18": {
-      "kind": "urban",
+    "MON_SC18": {
+      "kind": "urban_monitor",
       "signal": "SC18",
       "sc_no": 18,
-      "name": "구룡중(보)",
+      "name": "\uad6c\ub8e1\uc911(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "1220011001",
         "1220011101"
       ],
-      "visible_movements": [
-        "SC18_NS_N_to_out",
-        "SC18_NS_S_to_out",
-        "SC18_EW_E_to_out",
-        "SC18_EW_W_to_out"
-      ],
+      "visible_link_axes": {
+        "1220011001": [
+          "NS"
+        ],
+        "1220011101": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     },
-    "U_SC19": {
-      "kind": "urban",
+    "MON_SC19": {
+      "kind": "urban_monitor",
       "signal": "SC19",
       "sc_no": 19,
-      "name": "개포우체국(보)",
+      "name": "\uac1c\ud3ec\uc6b0\uccb4\uad6d(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
       "visible_links": [
         "209",
         "1210008603",
         "1220008702"
       ],
-      "visible_movements": [
-        "SC19_NS_N_to_out",
-        "SC19_NS_S_to_out",
-        "SC19_EW_E_to_out",
-        "SC19_EW_W_to_out"
+      "visible_link_axes": {
+        "209": [
+          "EW"
+        ],
+        "1210008603": [
+          "NS"
+        ],
+        "1220008702": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC9001": {
+      "kind": "urban_monitor",
+      "signal": "SC9001",
+      "sc_no": 9001,
+      "name": "\uc6b0\ub9ac\uc740\ud589\ud3ec\uc774",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "354",
+        "358",
+        "359",
+        "364",
+        "1220007101"
       ],
+      "visible_link_axes": {
+        "354": [
+          "EW"
+        ],
+        "358": [
+          "EW"
+        ],
+        "359": [
+          "EW"
+        ],
+        "364": [
+          "NS"
+        ],
+        "1220007101": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC9002": {
+      "kind": "urban_monitor",
+      "signal": "SC9002",
+      "sc_no": 9002,
+      "name": "\ubd80\ub3d9\uc0b0\uc11c\ube0c(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "353",
+        "1220007004"
+      ],
+      "visible_link_axes": {
+        "353": [
+          "EW"
+        ],
+        "1220007004": [
+          "EW"
+        ]
+      },
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "MON_SC9003": {
+      "kind": "urban_monitor",
+      "signal": "SC9003",
+      "sc_no": 9003,
+      "name": "\ub300\ub3c4\ucd08\uad50",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "visible_links": [
+        "268",
+        "1220019301"
+      ],
+      "visible_link_axes": {
+        "268": [
+          "NS"
+        ],
+        "1220019301": [
+          "NS"
+        ]
+      },
+      "visible_movements": [],
       "visible_ramps": [],
       "visible_off_ramps": []
     }
@@ -4256,8 +4288,48 @@
     "urban_signal_actuation": "freeway_interface_sc1_enabled",
     "distributed_urban_signal_players": {
       "enabled": true,
-      "selector": "SC1-SC19",
-      "note": "Each VISSIM signal controller is represented as a separate urban follower agent."
+      "selector": "primary19",
+      "controlled_signal_controllers": [
+        1,
+        5,
+        6,
+        11,
+        12,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        1001,
+        1002,
+        1003,
+        1004,
+        1005
+      ],
+      "monitoring_only_signal_controllers": [
+        2,
+        3,
+        4,
+        7,
+        8,
+        9,
+        10,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        9001,
+        9002,
+        9003
+      ],
+      "note": "Only controlled_signal_controllers enter the P-Stack urban follower/action space."
     }
   }
 }

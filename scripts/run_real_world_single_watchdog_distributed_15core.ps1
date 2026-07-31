@@ -7,6 +7,7 @@ killed and the case is retried up to MaxAttempts.
 #>
 param(
   [Parameter(Mandatory=$true)][string]$Name,
+  [string]$Network = "",
   [string]$OutDir = "",
   [int]$SimPeriod = 1800,
   [int]$ControlIntervalSec = 60,
@@ -74,7 +75,10 @@ if ($StateLogIntervalSec -le 0) {
 }
 
 $runner = Join-Path $repo "scripts\run_real_world_stackelberg_controller.vbs"
-$net = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control.inpx"
+if ($Network -eq "") {
+  $Network = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control.inpx"
+}
+$net = Resolve-RepoPath $Network
 $adapter = Join-Path $repo "evaluation\controllers\vissim_stackelberg_adapter.py"
 $vbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config_distributed_15core_20260728.vbs"
 
