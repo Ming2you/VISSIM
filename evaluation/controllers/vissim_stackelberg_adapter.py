@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import math
+import os
 import sys
 import time
 from pathlib import Path
@@ -11,11 +12,18 @@ from typing import Any, Mapping
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
-# Re-pointed to the tracked git clone at GitHub HEAD 0e07c1c (2026-06-29 audit follow-up).
-# The former path "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim" is a stale, non-git snapshot
-# (default.yaml nu_cong=65/capacity_drop=false) and is kept only as the A/B baseline for the
-# nu_cong isolation replay; pass --repo-root explicitly to use it.
-DEFAULT_REPO_ROOT = Path("C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim-git")
+# 2026-07-31: 기본 모델 저장소를 NUMSIM_REPO_ROOT env → NumSim-mine(flagship-ms-adapt-clean,
+# HEAD 7f10393) 순서로 결정한다. 과거 경로 이력(재현용):
+#   - "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim": 비-git 스냅샷(default.yaml nu_cong=65/
+#     capacity_drop=false). nu_cong 격리 재현의 A/B 기준으로만 --repo-root로 명시 지정.
+#   - "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim-git": GitHub HEAD 0e07c1c 추적 클론
+#     (2026-06-29 audit follow-up). 이 머신에는 없음.
+DEFAULT_REPO_ROOT = Path(
+    os.environ.get(
+        "NUMSIM_REPO_ROOT",
+        "C:/Users/alsrj/Desktop/학술/찐찐막/Claude/NumSim-mine",
+    )
+)
 DEFAULT_MAPPING = WORKSPACE_ROOT / "evaluation/vsl_install/vsl_segment_mapping_8seg.json"
 DEFAULT_CALIBRATION = WORKSPACE_ROOT / "evaluation/calibration/vissim_network_calibration_v2_8seg_20260714.json"
 DEFAULT_DETECTOR_MAPPING = WORKSPACE_ROOT / "evaluation/detector_install/detector_local_mapping.json"
@@ -1034,6 +1042,396 @@ def adapter_actuation_settings(calibration: Mapping[str, Any], tuning: Mapping[s
     return actuation
 
 
+# ---------------------------------------------------------------------------
+# P-Stack flagship (2026-07-31): NumSim flagship-ms-adapt-clean(HEAD 7f10393)의
+# 최종 P-Stack(P-STACK-WU-FAITHFUL-ALLPRICE-JOINT) 운영점을 `pstack-flagship`
+# 모드로 이식한 구간. 기준 원문(레시피 문서와 다르면 러너가 정답):
+#   NumSim-mine/work/run_claude_style_five_controller.py
+#     - make_controller ALLPRICE-JOINT 분기 L244-316 (BIAS_SAMPLE L268-273 포함)
+#     - env→cfg 번역 L560-726 (METER_BOX/VSL_BOX/BOX_WALK/NP_PD_ITER/NP_BIAS/FAR_*)
+#     - SEG13 L829-844, SUP_PFO L925-959·L1151-1176, FAR_GATE L1001-1099,
+#       MS_ADAPT L1018-1026·L1106-1116
+#   NumSim-mine/work/run_job.sh (플래그십 env 고정값, NASH_SMAX=10)
+# 어댑터는 결정 1회마다 재기동되므로 러너 루프의 스텝 간 상태(직전 링크평균 밀도,
+# MS 래치, fargate 래치)는 out-action-json 옆 사이드카 JSON에 영속화한다.
+# ---------------------------------------------------------------------------
+
+FLAGSHIP_RUNTIME_FILENAME = "pstack_flagship_runtime.json"
+# 플래그십 채택값(2026-07-27 확정 셀): thr10 / hold5 / w0.013.
+# 주의 — 러너 코드 기본은 MS_HOLD=3이지만 플래그십 채택 런은 MS_HOLD=5로 실행됐다.
+# 여기서는 채택값 5를 하드코딩하고 tuning `adapter.flagship.ms_adapt`로만 조정한다.
+FLAGSHIP_MS_ADAPT_DEFAULTS: dict[str, Any] = {"enabled": True, "thr": 10.0, "hold": 5, "w": 0.013}
+# FAR_GATE=3(하이브리드). 폐쇄 예보 입력이 VISSIM forecast에 없으므로(아래
+# freeway_lane_loss 항상 빈 dict) 실질적으로 mode 2(capdrop 상태 트리거)로 동작한다.
+FLAGSHIP_FAR_GATE_DEFAULTS: dict[str, Any] = {"enabled": True, "thr": 0.95}
+
+
+def flagship_settings(tuning: Mapping[str, Any]) -> Mapping[str, Any]:
+    return _mapping(_mapping(tuning.get("adapter")).get("flagship"))
+
+
+def flagship_config_overrides() -> dict[str, Any]:
+    """플래그십 cfg 정식 키(적용 순서 base < flagship < calibration < tuning의 flagship 층).
+
+    러너 build_cfg(L76-99) + run_job.sh env + default.yaml 실효값을 그대로 옮긴다.
+    주의: plan.md 레시피는 leader_search_mode='continuous'라고 적었지만 러너 build_cfg
+    L81이 "grid"를 강제한다 — 러너 원문이 정답이므로 grid를 쓴다(문서화: context-notes).
+    OPT12 2종(leader_skip_local_refinement/leader_rollout_early_stop)은 MPCConfig
+    dataclass 필드가 아니라 여기 넣으면 TypeError — build_pstack_flagship_controller의
+    setattr로만 주입한다. 플랜트 env(VFREE/RHO_CRIT/TAU_H 등)는 수치실험 플랜트 물리라
+    복사 금지(VISSIM 캘리브레이션이 예측모델 기준).
+    """
+    return {
+        "mpc": {
+            # 러너 build_cfg L77-84 원문(HORIZON env 미설정 → default.yaml 3 유지).
+            "horizon_steps": 3,
+            "control_horizon_steps": 3,
+            "leader_search_mode": "grid",
+            "relaxed_quantized_controls": True,
+            "stackelberg_leader_parallel_backend": "serial",
+            "grid_parallel_backend": "serial",
+            "grid_reuse_process_pool": False,
+            # default.yaml 실효값(어댑터 base가 축소해 둔 예산 복원).
+            "leader_candidate_count": 49,
+            "leader_refinement_candidate_count": 25,
+            "max_nash_iter": 10,
+            "stackelberg_enable_fallback": True,
+            "stackelberg_enable_pfo_incumbent": True,
+            "stackelberg_allocation_mode": "direct",
+            # make_controller L252-255: LEADER_V_DEPTH env 없고 cfg 0이면 depth 3.
+            "leader_value_depth": 3,
+            # run_job.sh env → cfg 번역(러너 L679-704, L894-896, L872-874, L602-628).
+            "seg13_meter_box_veh_h": 300.0,     # METER_BOX=300
+            "seg13_vsl_box_kmh": 20.0,          # VSL_BOX=15의 VISSIM DSD(20 간격) 보정값
+            "leader_rollout_box_walk": True,    # BOX_WALK=1
+            "leader_rollout_box_walk_vg": True, # BOX_WALK_VG=1
+            "baseline_move_box": True,          # BASELINE_BOX=1
+            "np_primal_dual_iters": 4,          # NP_PD_ITER=4
+            "np_bias_correction": True,         # NP_BIAS=1
+            "leader_mfd_far_state_aware": True, # FAR_STATE_AWARE=1
+            "leader_mfd_far_real_speed": True,  # FAR_REAL_V=1
+            # BIAS_SAMPLE=1 + BIAS_POW=0.4 (make_controller L268-273; 활성화 자체는
+            # build_pstack_flagship_controller의 enable_biased_sampling에서).
+            "leader_bias_sample_pow": 0.4,
+        },
+        "freeway_follower": {
+            # 러너 실효 기본(default.yaml): VSL smoothness 0.0.
+            # segment_metering_smoothness_weight는 여기서 건드리지 않는다 —
+            # 러너와 동일하게 MS_ADAPT per-step 주입만 그 값을 결정한다.
+            "vsl_smoothness_weight": 0.0,
+        },
+    }
+
+
+def build_pstack_flagship_controller(cfg, tuning: Mapping[str, Any]):
+    """P-STACK-WU-FAITHFUL-ALLPRICE-JOINT 컨트롤러 구성(러너 make_controller L244-316 이식).
+
+    cfg 정식 키는 flagship_config_overrides()가 build_config 단계에서 이미 주입했다는
+    전제. 여기서는 (1) 프로세스 env, (2) cfg.mpc 동적 속성, (3) controller/nash_solver
+    인스턴스 속성을 러너와 같은 순서로 채운다.
+    """
+    settings = flagship_settings(tuning)
+    # NASH_SMAX: src 내부에서 env로만 소비(wu_faithful_follower.py:3908-3912) —
+    # min(max_nash_iter, 5) 하드캡 해제. 어댑터는 1회 실행 프로세스라 부작용 없음.
+    os.environ["NASH_SMAX"] = str(int(_as_float(settings.get("nash_smax"), 10.0)))
+    # OPT12(러너 L259-261): dataclass 필드가 아닌 동적 속성(stackelberg_mpc getattr 소비).
+    if bool(settings.get("opt12", True)):
+        cfg.mpc.leader_skip_local_refinement = True
+        cfg.mpc.leader_rollout_early_stop = True
+
+    from src.controllers.f1_wu_faithful_follower import F1StackelbergWuMeteredController
+
+    controller = F1StackelbergWuMeteredController(cfg)
+    # BIAS_SAMPLE(러너 L268-273): Halton 상단 warp. leader_bias_sample_pow(0.4)는 cfg
+    # override로 주입 완료. 러너 build_cfg가 grid 검색을 강제하므로 continuous 샘플
+    # 경로가 호출되지 않아 사실상 불활성이지만, 러너 원문 그대로 이식해 둔다
+    # (tuning으로 leader_search_mode를 continuous로 바꾸면 그대로 발화).
+    if bool(settings.get("bias_sample", True)):
+        from src.controllers.biasedsample_mpc import enable_biased_sampling
+
+        enable_biased_sampling(controller)
+    controller.nash_solver.f1_spillback_weight = 0.0
+    controller.signal_price_enabled = True
+    controller.metering_price_enabled = True
+    controller.vsl_price_enabled = True
+    # cross 2종 기본 OFF(2026-07-16 동결 + run_job.sh CROSS_OFF=1).
+    controller.green_offset_cross_price_enabled = False
+    controller.vsl_meter_cross_price_enabled = False
+    controller.nash_solver.joint_green_offset_enabled = True
+    # OFFSET_PRICE 기본 ON + SQP식 inner-walk 4회(러너 L298-300).
+    controller.offset_price_enabled = True
+    controller.offset_price_inner_iters = 4
+    # RAMP_OFFSET 기본 ON(러너 L303-304): D/F ramp-aware offset 탐색.
+    controller.nash_solver.ramp_offset_enabled = True
+    # metering δ=300 + trust_frac=0.20 — 반드시 짝(러너 L305-315).
+    controller.metering_price_delta_veh_h = 300.0
+    controller.metering_price_trust_frac = 0.20
+    # SEG13(러너 L829-834): freeway를 segment agent로 분해 + 예산 simplex 사영.
+    if hasattr(controller.nash_solver, "segment_agents"):
+        controller.nash_solver.segment_agents = True
+    return controller
+
+
+def load_flagship_runtime(path: Path) -> dict[str, Any]:
+    """사이드카 읽기. 부재/파손 시 빈 dict → 러너 첫 스텝과 동일(래치 0, prev 없음)."""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            return raw
+    except Exception:
+        pass
+    return {}
+
+
+def save_flagship_runtime(path: Path, data: Mapping[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(dict(data), ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def flagship_link_mean_density(state) -> dict[str, float]:
+    """러너 L1107-1108: 링크별 세그먼트 평균 밀도."""
+    return {
+        str(link): float(sum(values)) / len(values)
+        for link, values in (getattr(state, "freeway_density", {}) or {}).items()
+        if values
+    }
+
+
+def flagship_ms_adapt_update(
+    prev_rho: Mapping[str, float],
+    rho_now: Mapping[str, float],
+    latch: int,
+    thr: float,
+    hold: int,
+    w: float,
+) -> tuple[float, int, float]:
+    """MS_ADAPT 래치 갱신(러너 L1109-1113과 동일한 순수 함수 — 단위검증 대상).
+
+    첫 스텝(prev 비어 있음)은 dmax=0 → latch max(0,-1)=0 → weight=w (러너와 동일).
+    """
+    dmax = max(
+        (abs(float(v) - float(prev_rho[lk])) for lk, v in rho_now.items() if lk in prev_rho),
+        default=0.0,
+    )
+    new_latch = int(hold) if dmax > float(thr) else max(0, int(latch) - 1)
+    weight = 0.0 if new_latch else float(w)
+    return float(dmax), new_latch, float(weight)
+
+
+def flagship_far_gate_update(
+    cfg,
+    state,
+    forecast,
+    stress: bool,
+    thr: float,
+) -> tuple[bool, bool, bool, bool]:
+    """FAR_GATE=3 갱신(러너 L1064-1096): capdrop 실측 히스테리시스 + 폐쇄 예보 선제 ON.
+
+    반환: (fg_new, stress_latch, drop_seen, all_sub).
+    VISSIM forecast는 freeway_lane_loss가 항상 비어 있어 예보 분기는 발화하지 않는다
+    (실질 mode 2). 폐쇄 예보 입력이 생기면 그대로 mode 3으로 동작한다.
+    """
+    from src.models.metanet import desired_speed_kmh, segment_flow_veh_h
+
+    rc = float(cfg.network.rho_crit)
+    vf = float(cfg.network.v_free)
+    all_sub = True
+    drop_seen = False
+    for link in cfg.network.freeway_links:
+        dens = state.freeway_density.get(link, [])
+        spds = state.freeway_speed.get(link, [])
+        lns = getattr(state, "freeway_effective_lanes", {}).get(link, [])
+        for i in range(len(dens)):
+            rho = float(dens[i])
+            if rho <= rc:
+                continue
+            all_sub = False
+            lam = float(lns[i]) if i < len(lns) else float(cfg.network.freeway_lanes)
+            v = float(spds[i]) if i < len(spds) else 0.0
+            flow = segment_flow_veh_h(rho, v, lam)
+            cap = segment_flow_veh_h(rc, desired_speed_kmh(rc, vf, rc), lam)
+            if flow < float(thr) * cap:
+                drop_seen = True
+    if drop_seen:
+        stress = True  # drop 발생 → ON 래치
+    elif all_sub:
+        stress = False  # 전 세그 임계 아래 = 회복 완료 → OFF
+    fg_new = bool(stress)
+    # mode 3 하이브리드: 예보 지평 내 차선 폐쇄가 있으면 선제 ON(래치는 불변 — 러너 동일).
+    try:
+        from src.models.demand import merge_freeway_lane_loss
+
+        merged = merge_freeway_lane_loss(list(forecast))
+        if any(float(v) > 0.0 for segs in merged.values() for v in segs.values()):
+            fg_new = True
+    except Exception:
+        pass
+    return fg_new, bool(stress), drop_seen, all_sub
+
+
+def flagship_sup_score(control, state, forecast, cfg) -> float:
+    """감독자 공통 채점(러너 _sup_score L947-959): h스텝 결합 rollout TTT + far cost-to-go."""
+    from src.controllers.stackelberg_mpc import mfd_far_cost_to_go
+    from src.simulation.coupling import run_coupled_interval
+
+    s = state.copy()
+    total = 0.0
+    h = max(1, int(cfg.mpc.horizon_steps))
+    for k in range(min(h, len(forecast))):
+        res = run_coupled_interval(s, control, forecast[k], cfg)
+        total += float(res.urban_ttt + res.freeway_ttt)
+        s.time_sec += cfg.simulation.control_interval
+    total += float(mfd_far_cost_to_go(cfg, s))
+    return float(total)
+
+
+def run_pstack_flagship_decision(
+    cfg,
+    state,
+    forecast,
+    previous,
+    tuning: Mapping[str, Any],
+    runtime_path: Path,
+):
+    """pstack-flagship 결정 1회: 사이드카 복원 → FAR_GATE/MS_ADAPT → decide → SUP_PFO.
+
+    러너 run_one 루프(L1034-1176)의 한 스텝과 동일한 순서. 반환:
+    (control, controller, metadata).
+    """
+    import copy as _copy
+
+    metadata: dict[str, Any] = {}
+    settings = flagship_settings(tuning)
+    runtime = load_flagship_runtime(runtime_path)
+    first_step = not bool(runtime)
+    metadata["flagship_runtime_first_step"] = float(first_step)
+
+    controller = build_pstack_flagship_controller(cfg, tuning)
+    metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
+    metadata["flagship_nash_smax_env"] = _as_float(os.environ.get("NASH_SMAX"), 0.0)
+
+    # SUP_PFO 준비(러너 L931-945): per-step cfg 변형(FAR_GATE/MS_ADAPT) **이전** 사본.
+    # seg13 전용 박스는 `is not None` 가드라 반드시 None으로 되돌린다. 링크-PFO 이동
+    # 한계는 baseline_move_box로 walk-MVG와 동일화.
+    sup_settings = _mapping(settings.get("sup_pfo"))
+    sup_enabled = bool(sup_settings.get("enabled", True))
+    sup_gate = str(sup_settings.get("gate", "fargate"))
+    sup_cfg = None
+    if sup_enabled:
+        sup_cfg = _copy.deepcopy(cfg)
+        sup_cfg.mpc.seg13_meter_box_veh_h = None
+        if hasattr(sup_cfg.mpc, "seg13_meter_box_up_veh_h"):
+            sup_cfg.mpc.seg13_meter_box_up_veh_h = None
+        sup_cfg.mpc.seg13_vsl_box_kmh = None
+        sup_cfg.mpc.baseline_move_box = True
+
+    # FAR_GATE=3 (러너 L1048-1099).
+    fg_settings = dict(FLAGSHIP_FAR_GATE_DEFAULTS)
+    fg_settings.update(_mapping(settings.get("far_gate")))
+    fargate_stress = bool(runtime.get("fargate_stress", False))
+    if bool(fg_settings.get("enabled", True)):
+        fg_new, fargate_stress, drop_seen, all_sub = flagship_far_gate_update(
+            cfg,
+            state,
+            forecast,
+            fargate_stress,
+            _as_float(fg_settings.get("thr"), 0.95),
+        )
+        cfg.mpc.leader_mfd_far_enabled = bool(fg_new)
+        metadata.update({
+            "flagship_fargate_enabled": 1.0,
+            "flagship_fargate_capdrop_seen": float(drop_seen),
+            "flagship_fargate_all_subcritical": float(all_sub),
+            "flagship_fargate_stress_latch": float(fargate_stress),
+        })
+    else:
+        metadata["flagship_fargate_enabled"] = 0.0
+    metadata["flagship_fargate_on"] = float(bool(cfg.mpc.leader_mfd_far_enabled))
+
+    # MS_ADAPT (러너 L1106-1116). 결정 전에 마찰 가중을 주입한다.
+    ms_settings = dict(FLAGSHIP_MS_ADAPT_DEFAULTS)
+    ms_settings.update(_mapping(settings.get("ms_adapt")))
+    ms_prev = {
+        str(k): _as_float(v)
+        for k, v in _mapping(runtime.get("ms_prev_rho")).items()
+    }
+    ms_latch = int(_as_float(runtime.get("ms_latch"), 0.0))
+    rho_now = flagship_link_mean_density(state)
+    if bool(ms_settings.get("enabled", True)):
+        ms_dmax, ms_latch, ms_weight = flagship_ms_adapt_update(
+            ms_prev,
+            rho_now,
+            ms_latch,
+            _as_float(ms_settings.get("thr"), 10.0),
+            int(_as_float(ms_settings.get("hold"), 5.0)),
+            _as_float(ms_settings.get("w"), 0.013),
+        )
+        cfg.freeway_follower.segment_metering_smoothness_weight = float(ms_weight)
+        metadata.update({
+            "flagship_ms_adapt_enabled": 1.0,
+            "flagship_ms_dmax": float(ms_dmax),
+            "flagship_ms_latch": float(ms_latch),
+        })
+    else:
+        metadata["flagship_ms_adapt_enabled"] = 0.0
+    metadata["flagship_ms_friction"] = float(
+        getattr(cfg.freeway_follower, "segment_metering_smoothness_weight", 0.0)
+    )
+
+    # 사이드카는 decide 이전에 저장 — 결정이 실패(fallback_fixed)해도 상태 전이
+    # 관측치(직전 밀도·래치)는 다음 스텝에 이어진다.
+    save_flagship_runtime(runtime_path, {
+        "schema_version": 1,
+        "sim_sec": float(getattr(state, "time_sec", 0.0)),
+        "ms_prev_rho": rho_now,
+        "ms_latch": int(ms_latch),
+        "fargate_stress": bool(fargate_stress),
+    })
+
+    result = controller.decide_with_info(state.copy(), forecast, previous, cfg)
+    control = result.control
+    metadata["leader_objective"] = float(getattr(result, "leader_objective", 0.0))
+    metadata["nash_objective"] = float(getattr(getattr(result, "nash", None), "objective_value", 0.0))
+    metadata.update({
+        f"meta_{k}": float(v)
+        for k, v in getattr(result, "metadata", {}).items()
+        if isinstance(v, (int, float, bool))
+    })
+
+    # SUP_PFO + SUP_GATE=fargate (러너 L1151-1176): far 게이트 ON 스텝은 감독자 OFF
+    # (동일한 물리 조건이 far를 부르고 감독자를 쫓아낸다 — 단일 게이트, 이중 스위치).
+    sup_off = sup_gate == "fargate" and bool(cfg.mpc.leader_mfd_far_enabled)
+    metadata["flagship_sup_enabled"] = float(sup_enabled)
+    metadata["flagship_sup_gated_off"] = float(bool(sup_enabled and sup_off))
+    if sup_enabled and not sup_off and sup_cfg is not None:
+        from src.controllers.wu_faithful_follower import WuFaithfulFollower
+
+        sup_pfo = WuFaithfulFollower(sup_cfg)
+        try:
+            pfo_control = sup_pfo.solve(state.copy(), None, forecast, previous).control
+        finally:
+            if hasattr(sup_pfo, "close"):
+                try:
+                    sup_pfo.close()
+                except Exception:
+                    pass
+        v_ps = flagship_sup_score(control, state, forecast, cfg)
+        v_pfo = flagship_sup_score(pfo_control, state, forecast, cfg)
+        if v_pfo < v_ps - 1.0e-9:
+            pfo_control.diagnostics["sup_pick_pfo"] = 1.0
+            pfo_control.diagnostics["sup_v_pstack"] = v_ps
+            pfo_control.diagnostics["sup_v_pfo"] = v_pfo
+            control = pfo_control
+        else:
+            control.diagnostics["sup_pick_pfo"] = 0.0
+            control.diagnostics["sup_v_pstack"] = v_ps
+            control.diagnostics["sup_v_pfo"] = v_pfo
+        metadata["flagship_sup_pick_pfo"] = float(control.diagnostics["sup_pick_pfo"])
+        metadata["flagship_sup_v_pstack"] = float(v_ps)
+        metadata["flagship_sup_v_pfo"] = float(v_pfo)
+    return control, controller, metadata
+
+
 def build_config(
     repo_root: Path,
     control_interval: float,
@@ -1042,6 +1440,7 @@ def build_config(
     calibration: Mapping[str, Any],
     tuning: Mapping[str, Any],
     local_observation: bool = False,
+    flagship: bool = False,
 ):
     _, _, _, ExperimentConfig, _, _ = repo_imports(repo_root)
     config_path = repo_root / "src/config/default.yaml"
@@ -1131,6 +1530,9 @@ def build_config(
             "allocation_pso_iterations": 4 if local_observation else 24,
         },
     }
+    if flagship:
+        # 적용 순서: base < flagship < calibration < tuning (plan.md 결정).
+        overrides = deep_update(overrides, flagship_config_overrides())
     overrides = deep_update(overrides, calibration_to_config_overrides(calibration))
     overrides = deep_update(overrides, tuning_to_config_overrides(tuning))
     if mode == "fuller-smoke":
@@ -3365,6 +3767,7 @@ def main() -> None:
         choices=[
             "stackelberg",
             "stackelberg-wu-metered",
+            "pstack-flagship",
             "pfo",
             "wu",
             "wu-leader",
@@ -3434,6 +3837,7 @@ def main() -> None:
         calibration,
         tuning,
         local_observation=local_observation,
+        flagship=(args.controller == "pstack-flagship"),
     )
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
@@ -3441,11 +3845,16 @@ def main() -> None:
     state = traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping, calibration)
     if local_observation:
         install_local_observation_runtime_guards()
+    forecast_horizon_steps = int(cfg.mpc.horizon_steps)
+    if args.controller == "pstack-flagship":
+        # 러너 L1044: 리더 value-depth rollout이 horizon 밖 수요를 소비한다 —
+        # forecast 길이 = horizon_steps + max(0, leader_value_depth).
+        forecast_horizon_steps += max(0, int(getattr(cfg.mpc, "leader_value_depth", 0)))
     forecast = demand_from_state(
         state_json,
         cfg,
         DemandStep,
-        cfg.mpc.horizon_steps,
+        forecast_horizon_steps,
         calibration,
         detector_mapping,
     )
@@ -3460,6 +3869,8 @@ def main() -> None:
             if args.controller == "stackelberg"
             else "StackelbergWuMeteredController"
             if args.controller == "stackelberg-wu-metered"
+            else "F1StackelbergWuMeteredController"
+            if args.controller == "pstack-flagship"
             else "DistributedCoordinator"
             if args.controller == "pfo"
             else "NoControl"
@@ -3724,6 +4135,18 @@ def main() -> None:
                 })
             else:
                 control = controller.decide(state, forecast, previous, cfg)
+        elif args.controller == "pstack-flagship":
+            # NumSim flagship P-Stack(P-STACK-WU-FAITHFUL-ALLPRICE-JOINT) 이식 모드.
+            # 구성·per-step 로직·사이드카는 run_pstack_flagship_decision 참조.
+            control, controller, flagship_metadata = run_pstack_flagship_decision(
+                cfg,
+                state,
+                forecast,
+                previous,
+                tuning,
+                out_json.parent / FLAGSHIP_RUNTIME_FILENAME,
+            )
+            metadata.update(flagship_metadata)
         elif args.controller == "pfo":
             from src.controllers.distributed_coordinator import DistributedCoordinator
 
@@ -3773,6 +4196,18 @@ def main() -> None:
     metadata.update(policy_guard_metadata)
     metadata.update(apply_actuation_guards_to_control(control, cfg, actuation))
     prediction = build_one_step_prediction(state, control, forecast, cfg, calibration)
+    post_guard_tuning: Mapping[str, Any] = tuning
+    if args.controller == "pstack-flagship" and not bool(
+        flagship_settings(tuning).get("post_guard_pfo_baseline", False)
+    ):
+        # SUP_PFO가 flagship의 정식 PFO 기권 메커니즘이므로 post_guard의 PFO 기준선
+        # 평가(폴백 포함)는 기본 OFF — 이중 개입 방지. tuning
+        # adapter.flagship.post_guard_pfo_baseline=true로만 재활성.
+        post_guard_tuning = deep_update(
+            dict(tuning),
+            {"adapter": {"post_guard_safety": {"pfo_baseline": {"enabled": False}}}},
+        )
+        metadata["flagship_post_guard_pfo_baseline_forced_off"] = 1.0
     control, post_guard_safety_metadata, prediction = apply_post_guard_safety_evaluation(
         control,
         cfg,
@@ -3781,7 +4216,7 @@ def main() -> None:
         forecast,
         previous,
         calibration,
-        tuning,
+        post_guard_tuning,
         actuation,
         ControlAction,
         prediction,
