@@ -20,26 +20,40 @@ CONFIG_DIR = ROOT / "evaluation/configs"
 GENERATED_DIR = ROOT / "evaluation/generated"
 OUTPUTS_DIR = ROOT / "outputs"
 
-# Manual interpretation of the user's 2026-07-28 marked-up 15-player core.
-# These are the VISSIM signal controllers treated as controllable urban
-# followers; every other active signal controller remains observable only.
-CORE15_SC_NUMBERS = [
-    1,
-    4,
-    5,
-    6,
-    7,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    107,
-    108,
-]
+# ---------------------------------------------------------------------------
+# Urban Follower ID ↔ VISSIM SC (2026-07-31 정정)
+#
+# 이전 구현은 사용자가 표시한 플레이어 번호를 VISSIM SC 번호로 착각해 그대로
+# 박아넣었다(구 CORE15_SC_NUMBERS 주석 "Manual interpretation of the user's
+# 2026-07-28 marked-up 15-player core"). 두 체계는 다르다 — UF1→SC1004,
+# UF8→SC1, UF15→SC5. 그 결과 15core는 15개 중 8개가, primary19는 SC 1~19를
+# 그대로 써서 19개 중 14개가 엉뚱한 신호기를 제어하고 있었다.
+#
+# 이제 매핑은 사용자 검증 원본(Urban-Follower.xlsx)에서 기계 추출한 CSV가
+# 유일한 근거다(scripts/extract_urban_follower_map.py). 수동 해석 금지.
+# ---------------------------------------------------------------------------
+DEFAULT_URBAN_FOLLOWER_MAP = ROOT / "evaluation/real_world_modi_inventory/urban_follower_sc_map.csv"
+
+# 사용자 지정 코어 15 플레이어 = Urban Follower ID 1~16 중 11 제외.
+# ★ 이 값은 UF ID다. SC 번호가 아니다.
+CORE15_URBAN_FOLLOWER_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16]
+
+
+def load_urban_follower_sc_map(path: Path = DEFAULT_URBAN_FOLLOWER_MAP) -> dict[int, int]:
+    """UF ID → SC 번호. CSV가 없으면 추출 스크립트를 실행하라고 알린다."""
+    if not path.exists():
+        raise SystemExit(
+            f"UF→SC 매핑 CSV가 없다: {path}\n"
+            "  python scripts/extract_urban_follower_map.py 를 먼저 실행할 것."
+        )
+    return {int(row["urban_follower_id"]): int(row["sc_no"]) for row in read_csv(path)}
+
+
+def urban_follower_scs(uf_ids: list[int], uf_map: dict[int, int]) -> list[int]:
+    unknown = sorted(set(uf_ids) - set(uf_map))
+    if unknown:
+        raise ValueError(f"매핑에 없는 Urban Follower ID: {unknown}")
+    return sorted(uf_map[uf] for uf in uf_ids)
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -183,26 +197,30 @@ def active_fixedtime_signal_rows(rows: list[dict[str, str]]) -> list[dict[str, s
     )
 
 
+def _select_by_sc(rows: list[dict[str, str]], wanted: set[int], label: str) -> list[dict[str, str]]:
+    """지정 SC만 고른다. 하나라도 인벤토리에 없으면 조용히 빠뜨리지 않고 실패시킨다."""
+    selected = [
+        row for row in active_fixedtime_signal_rows(rows) if int(row.get("no", "0")) in wanted
+    ]
+    missing = sorted(wanted - {int(row["no"]) for row in selected})
+    if missing:
+        raise ValueError(
+            f"{label}: 인벤토리에 없거나 비활성인 signal controller {missing}\n"
+            "  네트워크를 수정했다면 인벤토리를 먼저 재생성할 것:\n"
+            "  python scripts/inventory_real_world_modi.py --inpx network/real_world_gaepo_modi/modi.inpx"
+        )
+    return selected
+
+
 def selected_signal_rows(rows: list[dict[str, str]], selector: str) -> list[dict[str, str]]:
     if selector == "primary19":
-        selected = [
-            row
-            for row in rows
-            if row.get("active", "").lower() == "true"
-            and row.get("type", "").upper() == "FIXEDTIME"
-            and 1 <= int(row.get("no", "0")) <= 19
-            and int(float(row.get("signal_head_count") or 0)) > 0
-        ]
+        # Urban Follower 1~19 전체(SC 번호 1~19가 아니다 — 위 매핑 주석 참조).
+        uf_map = load_urban_follower_sc_map()
+        selected = _select_by_sc(rows, set(uf_map.values()), "primary19")
     elif selector == "core15":
-        wanted = set(CORE15_SC_NUMBERS)
-        selected = [
-            row
-            for row in active_fixedtime_signal_rows(rows)
-            if int(row.get("no", "0")) in wanted
-        ]
-        missing = sorted(wanted - {int(row["no"]) for row in selected})
-        if missing:
-            raise ValueError(f"core15 signal controllers not found or inactive: {missing}")
+        uf_map = load_urban_follower_sc_map()
+        wanted = set(urban_follower_scs(CORE15_URBAN_FOLLOWER_IDS, uf_map))
+        selected = _select_by_sc(rows, wanted, "core15")
     elif selector == "all-active-heads":
         selected = active_fixedtime_signal_rows(rows)
     else:
@@ -750,6 +768,22 @@ def main() -> None:
     base_detector = read_json(DEFAULT_DETECTOR_MAPPING)
     head_axes_by_sc = signal_head_link_axes(DEFAULT_NETWORK)
     head_pos_by_sc = signal_head_link_max_pos(DEFAULT_NETWORK)
+    # 인벤토리(modi.inpx 기준)에는 있지만 eval 네트워크에는 아직 없는 SC가 있으면
+    # movement가 빈 채로 조용히 생성된다 — 2026-07-31 UF/SC 혼동과 같은 부류의
+    # 침묵 실패라 여기서 끊는다. 네트워크 재빌드 순서는 아래 안내 참조.
+    stale = sorted(controlled_sc - set(head_axes_by_sc))
+    if stale:
+        raise SystemExit(
+            f"eval 네트워크에 없는 signal controller {stale}\n"
+            f"  네트워크: {DEFAULT_NETWORK}\n"
+            "  modi.inpx를 수정했다면 eval 네트워크를 먼저 재빌드할 것:\n"
+            "    1) python scripts/prepare_real_world_modi_eval_copy.py\n"
+            "    2) cscript //nologo scripts\\install_real_world_freeway_controls.vbs "
+            "<sanitized.inpx> <sanitized.layx> <rw_control.inpx> <rw_control.layx> "
+            "evaluation\\real_world_modi_control\\freeway_control_manifest.csv   (VISSIM COM 필요)\n"
+            "    3) python scripts/generate_real_world_control_mapping.py\n"
+            "    4) 이 스크립트 재실행"
+        )
     link_owner_by_link = controlled_link_owner(rows, head_pos_by_sc)
 
     include_sc1_coupling = args.selector != "core15"
