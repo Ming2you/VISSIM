@@ -1,0 +1,1636 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-19",
+  "network": "C:\\Users\\TRLAB\\Documents\\Codex\\2026-07-15\\ming2you-vissim-https-github-com-ming2you\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+  "manifest": "C:\\Users\\TRLAB\\Documents\\Codex\\2026-07-15\\ming2you-vissim-https-github-com-ming2you\\evaluation\\real_world_modi_control\\freeway_control_manifest.csv",
+  "description": "Distributed real-world Gaepo modi control mapping: freeway/ramp controls copied from the validated base mapping; selected core urban signals expanded to individual SC players while peripheral signals are monitored only.",
+  "freeway_model_links": {
+    "FW_E": {
+      "physical_link": 2,
+      "length_m": 8038.58,
+      "lanes": 4,
+      "segment_bounds_m": [
+        0.0,
+        1004.823,
+        2009.645,
+        3014.468,
+        4019.29,
+        5024.113,
+        6028.935,
+        7033.758,
+        8038.58
+      ],
+      "segment_length_profile_km": [
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822
+      ]
+    },
+    "FW_W": {
+      "physical_link": 26,
+      "length_m": 8029.342,
+      "lanes": 4,
+      "segment_bounds_m": [
+        0.0,
+        1003.668,
+        2007.336,
+        3011.003,
+        4014.671,
+        5018.339,
+        6022.007,
+        7025.674,
+        8029.342
+      ],
+      "segment_length_profile_km": [
+        1.003668,
+        1.003668,
+        1.003667,
+        1.003668,
+        1.003668,
+        1.003668,
+        1.003667,
+        1.003668
+      ]
+    }
+  },
+  "segments": [
+    {
+      "segment_id": "RW_FW_E_S0",
+      "model_link": "FW_E",
+      "model_segment_index": 0,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 0.0,
+      "segment_end_m": 1004.823,
+      "length_km": 1.004823,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 43,
+          "lane": 1,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 44,
+          "lane": 2,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 45,
+          "lane": 3,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 46,
+          "lane": 4,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 43,
+          "lane": 1,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN1"
+        },
+        {
+          "dsd_no": 44,
+          "lane": 2,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN2"
+        },
+        {
+          "dsd_no": 45,
+          "lane": 3,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN3"
+        },
+        {
+          "dsd_no": 46,
+          "lane": 4,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S0_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S1",
+      "model_link": "FW_E",
+      "model_segment_index": 1,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 1004.823,
+      "segment_end_m": 2009.645,
+      "length_km": 1.004822,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 47,
+          "lane": 1,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 48,
+          "lane": 2,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 49,
+          "lane": 3,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 50,
+          "lane": 4,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 47,
+          "lane": 1,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN1"
+        },
+        {
+          "dsd_no": 48,
+          "lane": 2,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN2"
+        },
+        {
+          "dsd_no": 49,
+          "lane": 3,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN3"
+        },
+        {
+          "dsd_no": 50,
+          "lane": 4,
+          "pos_m": 1004.823,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S1_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S2",
+      "model_link": "FW_E",
+      "model_segment_index": 2,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 2009.645,
+      "segment_end_m": 3014.468,
+      "length_km": 1.004823,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 51,
+          "lane": 1,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 52,
+          "lane": 2,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 53,
+          "lane": 3,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 54,
+          "lane": 4,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 51,
+          "lane": 1,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN1"
+        },
+        {
+          "dsd_no": 52,
+          "lane": 2,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN2"
+        },
+        {
+          "dsd_no": 53,
+          "lane": 3,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN3"
+        },
+        {
+          "dsd_no": 54,
+          "lane": 4,
+          "pos_m": 2019.645,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S2_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S3",
+      "model_link": "FW_E",
+      "model_segment_index": 3,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 3014.468,
+      "segment_end_m": 4019.29,
+      "length_km": 1.004822,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 55,
+          "lane": 1,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 56,
+          "lane": 2,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 57,
+          "lane": 3,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 58,
+          "lane": 4,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 55,
+          "lane": 1,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN1"
+        },
+        {
+          "dsd_no": 56,
+          "lane": 2,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN2"
+        },
+        {
+          "dsd_no": 57,
+          "lane": 3,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN3"
+        },
+        {
+          "dsd_no": 58,
+          "lane": 4,
+          "pos_m": 3014.468,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S3_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S4",
+      "model_link": "FW_E",
+      "model_segment_index": 4,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 4019.29,
+      "segment_end_m": 5024.113,
+      "length_km": 1.004823,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 59,
+          "lane": 1,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 60,
+          "lane": 2,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 61,
+          "lane": 3,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 62,
+          "lane": 4,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 59,
+          "lane": 1,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN1"
+        },
+        {
+          "dsd_no": 60,
+          "lane": 2,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN2"
+        },
+        {
+          "dsd_no": 61,
+          "lane": 3,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN3"
+        },
+        {
+          "dsd_no": 62,
+          "lane": 4,
+          "pos_m": 4019.29,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S4_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S5",
+      "model_link": "FW_E",
+      "model_segment_index": 5,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 5024.113,
+      "segment_end_m": 6028.935,
+      "length_km": 1.004822,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 63,
+          "lane": 1,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 64,
+          "lane": 2,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 65,
+          "lane": 3,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 66,
+          "lane": 4,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 63,
+          "lane": 1,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN1"
+        },
+        {
+          "dsd_no": 64,
+          "lane": 2,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN2"
+        },
+        {
+          "dsd_no": 65,
+          "lane": 3,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN3"
+        },
+        {
+          "dsd_no": 66,
+          "lane": 4,
+          "pos_m": 5024.113,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S5_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S6",
+      "model_link": "FW_E",
+      "model_segment_index": 6,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 6028.935,
+      "segment_end_m": 7033.758,
+      "length_km": 1.004823,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 67,
+          "lane": 1,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 68,
+          "lane": 2,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 69,
+          "lane": 3,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 70,
+          "lane": 4,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 67,
+          "lane": 1,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN1"
+        },
+        {
+          "dsd_no": 68,
+          "lane": 2,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN2"
+        },
+        {
+          "dsd_no": 69,
+          "lane": 3,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN3"
+        },
+        {
+          "dsd_no": 70,
+          "lane": 4,
+          "pos_m": 6028.935,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S6_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_E_S7",
+      "model_link": "FW_E",
+      "model_segment_index": 7,
+      "link": 2,
+      "direction": "E",
+      "segment_start_m": 7033.758,
+      "segment_end_m": 8038.58,
+      "length_km": 1.004822,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 71,
+          "lane": 1,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN1"
+        },
+        "2": {
+          "dsd_no": 72,
+          "lane": 2,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN2"
+        },
+        "3": {
+          "dsd_no": 73,
+          "lane": 3,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN3"
+        },
+        "4": {
+          "dsd_no": 74,
+          "lane": 4,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 71,
+          "lane": 1,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN1"
+        },
+        {
+          "dsd_no": 72,
+          "lane": 2,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN2"
+        },
+        {
+          "dsd_no": 73,
+          "lane": 3,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN3"
+        },
+        {
+          "dsd_no": 74,
+          "lane": 4,
+          "pos_m": 7033.758,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_E_S7_L2_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S0",
+      "model_link": "FW_W",
+      "model_segment_index": 0,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 0.0,
+      "segment_end_m": 1003.668,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 75,
+          "lane": 1,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 76,
+          "lane": 2,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 77,
+          "lane": 3,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 78,
+          "lane": 4,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [
+        {
+          "dsd_no": 40,
+          "lane": 1,
+          "pos_m": 2.616,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 41,
+          "lane": 2,
+          "pos_m": 1.605,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 42,
+          "lane": 3,
+          "pos_m": 2.569,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        }
+      ],
+      "dsds": [
+        {
+          "dsd_no": 75,
+          "lane": 1,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN1"
+        },
+        {
+          "dsd_no": 76,
+          "lane": 2,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN2"
+        },
+        {
+          "dsd_no": 77,
+          "lane": 3,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN3"
+        },
+        {
+          "dsd_no": 78,
+          "lane": 4,
+          "pos_m": 1.0,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S0_L26_LN4"
+        },
+        {
+          "dsd_no": 40,
+          "lane": 1,
+          "pos_m": 2.616,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 41,
+          "lane": 2,
+          "pos_m": 1.605,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 42,
+          "lane": 3,
+          "pos_m": 2.569,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S1",
+      "model_link": "FW_W",
+      "model_segment_index": 1,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 1003.668,
+      "segment_end_m": 2007.336,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 79,
+          "lane": 1,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 80,
+          "lane": 2,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 81,
+          "lane": 3,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 82,
+          "lane": 4,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 79,
+          "lane": 1,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN1"
+        },
+        {
+          "dsd_no": 80,
+          "lane": 2,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN2"
+        },
+        {
+          "dsd_no": 81,
+          "lane": 3,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN3"
+        },
+        {
+          "dsd_no": 82,
+          "lane": 4,
+          "pos_m": 1003.668,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S1_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S2",
+      "model_link": "FW_W",
+      "model_segment_index": 2,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 2007.336,
+      "segment_end_m": 3011.003,
+      "length_km": 1.003667,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 83,
+          "lane": 1,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 84,
+          "lane": 2,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 85,
+          "lane": 3,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 86,
+          "lane": 4,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 83,
+          "lane": 1,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN1"
+        },
+        {
+          "dsd_no": 84,
+          "lane": 2,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN2"
+        },
+        {
+          "dsd_no": 85,
+          "lane": 3,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN3"
+        },
+        {
+          "dsd_no": 86,
+          "lane": 4,
+          "pos_m": 2007.336,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S2_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S3",
+      "model_link": "FW_W",
+      "model_segment_index": 3,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 3011.003,
+      "segment_end_m": 4014.671,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 87,
+          "lane": 1,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 88,
+          "lane": 2,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 89,
+          "lane": 3,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 90,
+          "lane": 4,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 87,
+          "lane": 1,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN1"
+        },
+        {
+          "dsd_no": 88,
+          "lane": 2,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN2"
+        },
+        {
+          "dsd_no": 89,
+          "lane": 3,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN3"
+        },
+        {
+          "dsd_no": 90,
+          "lane": 4,
+          "pos_m": 3011.003,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S3_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S4",
+      "model_link": "FW_W",
+      "model_segment_index": 4,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 4014.671,
+      "segment_end_m": 5018.339,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 91,
+          "lane": 1,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 92,
+          "lane": 2,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 93,
+          "lane": 3,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 94,
+          "lane": 4,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 91,
+          "lane": 1,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN1"
+        },
+        {
+          "dsd_no": 92,
+          "lane": 2,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN2"
+        },
+        {
+          "dsd_no": 93,
+          "lane": 3,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN3"
+        },
+        {
+          "dsd_no": 94,
+          "lane": 4,
+          "pos_m": 4014.671,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S4_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S5",
+      "model_link": "FW_W",
+      "model_segment_index": 5,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 5018.339,
+      "segment_end_m": 6022.007,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 95,
+          "lane": 1,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 96,
+          "lane": 2,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 97,
+          "lane": 3,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 98,
+          "lane": 4,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 95,
+          "lane": 1,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN1"
+        },
+        {
+          "dsd_no": 96,
+          "lane": 2,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN2"
+        },
+        {
+          "dsd_no": 97,
+          "lane": 3,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN3"
+        },
+        {
+          "dsd_no": 98,
+          "lane": 4,
+          "pos_m": 5018.339,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S5_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S6",
+      "model_link": "FW_W",
+      "model_segment_index": 6,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 6022.007,
+      "segment_end_m": 7025.674,
+      "length_km": 1.003667,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 99,
+          "lane": 1,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 100,
+          "lane": 2,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 101,
+          "lane": 3,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 102,
+          "lane": 4,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 99,
+          "lane": 1,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN1"
+        },
+        {
+          "dsd_no": 100,
+          "lane": 2,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN2"
+        },
+        {
+          "dsd_no": 101,
+          "lane": 3,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN3"
+        },
+        {
+          "dsd_no": 102,
+          "lane": 4,
+          "pos_m": 6022.007,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S6_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    },
+    {
+      "segment_id": "RW_FW_W_S7",
+      "model_link": "FW_W",
+      "model_segment_index": 7,
+      "link": 26,
+      "direction": "W",
+      "segment_start_m": 7025.674,
+      "segment_end_m": 8029.342,
+      "length_km": 1.003668,
+      "lanes": 4,
+      "dsd_by_lane": {
+        "1": {
+          "dsd_no": 103,
+          "lane": 1,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN1"
+        },
+        "2": {
+          "dsd_no": 104,
+          "lane": 2,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN2"
+        },
+        "3": {
+          "dsd_no": 105,
+          "lane": 3,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN3"
+        },
+        "4": {
+          "dsd_no": 106,
+          "lane": 4,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN4"
+        }
+      },
+      "extra_dsd_controls": [],
+      "dsds": [
+        {
+          "dsd_no": 103,
+          "lane": 1,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN1"
+        },
+        {
+          "dsd_no": 104,
+          "lane": 2,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN2"
+        },
+        {
+          "dsd_no": 105,
+          "lane": 3,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN3"
+        },
+        {
+          "dsd_no": 106,
+          "lane": 4,
+          "pos_m": 7025.674,
+          "source": "installed_real_world_segment_start",
+          "name": "RW_VSL_RW_FW_W_S7_L26_LN4"
+        }
+      ],
+      "default_speed_kph": 120.0
+    }
+  ],
+  "signals": [
+    {
+      "id": "SC1",
+      "sc_no": 1,
+      "name": "\uad6c\ub8e1\ucd08\uad50",
+      "role": "urban_freeway_interface_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC4",
+      "sc_no": 4,
+      "name": "\uccad\uc2e4\uc885\ud569",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC5",
+      "sc_no": 5,
+      "name": "\ub3c4\uace1\uc5ed",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC6",
+      "sc_no": 6,
+      "name": "\ub300\uce58\uc5ed",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC7",
+      "sc_no": 7,
+      "name": "\uac1c\ud3ec\ub3c4\uc11c\uad00",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC9",
+      "sc_no": 9,
+      "name": "\ub300\uce58\uc740\ub9c8\uc544\ud30c\ud2b8",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC10",
+      "sc_no": 10,
+      "name": "\ub300\uce58\uc120\uacbd\uc544\ud30c\ud2b8",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC11",
+      "sc_no": 11,
+      "name": "\uac1c\ud3ec\uace0\uad50",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC12",
+      "sc_no": 12,
+      "name": "\uc601\ub3d95\uad50",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC13",
+      "sc_no": 13,
+      "name": "\uac1c\ud3ec\uc8fc\ubbfc\uc13c\ud130",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC14",
+      "sc_no": 14,
+      "name": "\ub300\uce58\ubbf8\ub3c4\uc544\ud30c\ud2b8",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC15",
+      "sc_no": 15,
+      "name": "\uac1c\ud3ec\uacbd\ub0a8\uc544\ud30c\ud2b8",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC16",
+      "sc_no": 16,
+      "name": "\uacbd\uae30\uc5ec\uace0",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC107",
+      "sc_no": 107,
+      "name": "\uad6c\ub8e1\ud130\ub110",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    },
+    {
+      "id": "SC108",
+      "sc_no": 108,
+      "name": "\uad6c\ub8e1\ub9c8\uc744\uc785\uad6c",
+      "role": "urban_signal_controller",
+      "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+    }
+  ],
+  "ramp_meters": [
+    {
+      "id": "RM_C10480",
+      "connector": 10480,
+      "from_link": 31,
+      "from_pos_m": 734.931,
+      "to_link": 26,
+      "to_pos_m": 3525.124,
+      "to_model_link": "FW_W",
+      "to_model_segment_index": 3,
+      "sc_no": 9101,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_D_W",
+      "purpose": "Ramp meter on connector 10480 link 31 to freeway link 26"
+    },
+    {
+      "id": "RM_C10482",
+      "connector": 10482,
+      "from_link": 32,
+      "from_pos_m": 1028.621,
+      "to_link": 26,
+      "to_pos_m": 3829.779,
+      "to_model_link": "FW_W",
+      "to_model_segment_index": 3,
+      "sc_no": 9102,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_D_W",
+      "purpose": "Ramp meter on connector 10482 link 32 to freeway link 26"
+    },
+    {
+      "id": "RM_C10646",
+      "connector": 10646,
+      "from_link": 68,
+      "from_pos_m": 352.004,
+      "to_link": 26,
+      "to_pos_m": 6072.55,
+      "to_model_link": "FW_W",
+      "to_model_segment_index": 6,
+      "sc_no": 9103,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_F_W",
+      "purpose": "Ramp meter on connector 10646 link 68 to freeway link 26"
+    },
+    {
+      "id": "RM_C10644",
+      "connector": 10644,
+      "from_link": 69,
+      "from_pos_m": 1740.482,
+      "to_link": 26,
+      "to_pos_m": 6774.308,
+      "to_model_link": "FW_W",
+      "to_model_segment_index": 6,
+      "sc_no": 9104,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_F_W",
+      "purpose": "Ramp meter on connector 10644 link 69 to freeway link 26"
+    },
+    {
+      "id": "RM_C10639",
+      "connector": 10639,
+      "from_link": 70,
+      "from_pos_m": 180.143,
+      "to_link": 2,
+      "to_pos_m": 1876.292,
+      "to_model_link": "FW_E",
+      "to_model_segment_index": 1,
+      "sc_no": 9105,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_F_E",
+      "purpose": "Ramp meter on connector 10639 link 70 to freeway link 2"
+    },
+    {
+      "id": "RM_C10681",
+      "connector": 10681,
+      "from_link": 68,
+      "from_pos_m": 76.589,
+      "to_link": 2,
+      "to_pos_m": 2165.429,
+      "to_model_link": "FW_E",
+      "to_model_segment_index": 2,
+      "sc_no": 9106,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_F_E",
+      "purpose": "Ramp meter on connector 10681 link 68 to freeway link 2"
+    },
+    {
+      "id": "RM_C10490",
+      "connector": 10490,
+      "from_link": 32,
+      "from_pos_m": 1330.644,
+      "to_link": 2,
+      "to_pos_m": 4413.602,
+      "to_model_link": "FW_E",
+      "to_model_segment_index": 4,
+      "sc_no": 9107,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_D_E",
+      "purpose": "Ramp meter on connector 10490 link 32 to freeway link 2"
+    },
+    {
+      "id": "RM_C10484",
+      "connector": 10484,
+      "from_link": 31,
+      "from_pos_m": 412.087,
+      "to_link": 2,
+      "to_pos_m": 4702.918,
+      "to_model_link": "FW_E",
+      "to_model_segment_index": 4,
+      "sc_no": 9108,
+      "sg_no": 1,
+      "default_green_sec": 10.0,
+      "cycle_sec": 10.0,
+      "capacity_vph": 900.0,
+      "model_ramp_key": "R_D_E",
+      "purpose": "Ramp meter on connector 10484 link 31 to freeway link 2"
+    }
+  ],
+  "ramp_meter_groups": {
+    "R_D_E": {
+      "model_ramp_key": "R_D_E",
+      "physical_meter_ids": [
+        "RM_C10490",
+        "RM_C10484"
+      ],
+      "physical_connectors": [
+        10490,
+        10484
+      ],
+      "total_capacity_vph": 1800.0
+    },
+    "R_D_W": {
+      "model_ramp_key": "R_D_W",
+      "physical_meter_ids": [
+        "RM_C10480",
+        "RM_C10482"
+      ],
+      "physical_connectors": [
+        10480,
+        10482
+      ],
+      "total_capacity_vph": 1800.0
+    },
+    "R_F_E": {
+      "model_ramp_key": "R_F_E",
+      "physical_meter_ids": [
+        "RM_C10639",
+        "RM_C10681"
+      ],
+      "physical_connectors": [
+        10639,
+        10681
+      ],
+      "total_capacity_vph": 1800.0
+    },
+    "R_F_W": {
+      "model_ramp_key": "R_F_W",
+      "physical_meter_ids": [
+        "RM_C10646",
+        "RM_C10644"
+      ],
+      "physical_connectors": [
+        10646,
+        10644
+      ],
+      "total_capacity_vph": 1800.0
+    }
+  },
+  "model_topology_overrides": {
+    "ramp_merge_segment_index": {
+      "R_D_W": 3,
+      "R_F_W": 6,
+      "R_F_E": 2,
+      "R_D_E": 4
+    },
+    "off_ramp_segment_index": {
+      "OR_D_W": 3,
+      "OR_F_W": 6,
+      "OR_F_E": 1,
+      "OR_D_E": 4
+    },
+    "ramp_capacity_veh_h": {
+      "R_D_W": 1800.0,
+      "R_F_W": 1800.0,
+      "R_F_E": 1800.0,
+      "R_D_E": 1800.0
+    },
+    "freeway_lanes": 4,
+    "freeway_segment_length_km": 1.004245
+  },
+  "excluded_freeway_touching_connectors": [
+    {
+      "connector": 10699,
+      "from_link": 74,
+      "to_link": 2,
+      "reason": "Treated as freeway feeder/mainline entry, not isolated ramp metering authority."
+    }
+  ],
+  "detector_mapping_json": "C:\\Users\\TRLAB\\Documents\\Codex\\2026-07-15\\ming2you-vissim-https-github-com-ming2you\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_15core_20260728.json",
+  "urban_signal_selector": "core15",
+  "controlled_signal_controllers": [
+    1,
+    4,
+    5,
+    6,
+    7,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    107,
+    108
+  ],
+  "monitoring_only_signal_controllers": [
+    2,
+    3,
+    8,
+    17,
+    18,
+    19,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    109,
+    9001,
+    9002,
+    9003
+  ]
+}

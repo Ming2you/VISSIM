@@ -1,0 +1,36 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_guarded_terminal_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_decision_calibrated_20260716",
+  "description": "Decision-path calibration candidate: removes the PFO incumbent override, keeps the VISSIM terminal cost, and relaxes the plant-facing ramp-release guard so the leader can actually change the committed action while retaining a queue-risk floor.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_guarded_terminal_20260715.json",
+    "reason": "The guarded+terminal ladder showed terminal cost was active but selected actions were byte-identical to guarded. Diagnostics showed PFO incumbent/fallback selection and a very high ramp-release floor dominated the decision path. This candidate isolates the Stackelberg leader by disabling PFO incumbent and gives terminal-cost ranking room to move while retaining VISSIM queue protection."
+  },
+  "mpc": {
+    "stackelberg_enable_fallback": false,
+    "stackelberg_enable_pfo_incumbent": false,
+    "stackelberg_fallback_use_cached_pfo": false,
+    "leader_candidate_count": 5,
+    "leader_refinement_candidate_count": 3
+  },
+  "adapter": {
+    "terminal_cost": {
+      "weight": 0.75
+    }
+  },
+  "actuation": {
+    "ramp_release_guard": {
+      "min_release_ratio_of_capacity": 0.7,
+      "queue_high_release_ratio_of_capacity": 0.9,
+      "ramp_queue_threshold_veh": 12.0,
+      "boundary_queue_threshold_veh": 160.0,
+      "stopped_threshold_veh": 240.0,
+      "no_control_fallback": {
+        "enabled": true,
+        "min_release_ratio_of_uncontrolled": 0.6,
+        "max_density_ratio_for_fallback": 1.25,
+        "require_queue_or_stopped": true
+      }
+    }
+  }
+}

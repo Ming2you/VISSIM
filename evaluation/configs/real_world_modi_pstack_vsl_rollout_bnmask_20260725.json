@@ -1,0 +1,26 @@
+{
+  "extends": "real_world_modi_pstack_crossgate_predcal_20260724.json",
+  "name": "real_world_modi_pstack_vsl_rollout_bnmask_20260725",
+  "description": "Prediction-calibrated P-Stack candidate with VSL candidate-specific METANET rollout scoring enabled while keeping the 20260722 bottleneck lever mask.",
+  "adapter": {
+    "vsl_metanet_rollout": {
+      "enabled": true,
+      "method": "adapter runtime patch: rank freeway-follower VSL candidates using a link-level METANET/CTM rollout"
+    }
+  },
+  "config_overrides": {
+    "freeway_follower": {
+      "density_penalty": 80.0,
+      "vsl_smoothness_weight": 0.0,
+      "horizon_vsl_candidate_limit_per_link": 5,
+      "max_vsl_step": 30.0
+    },
+    "leader": {
+      "w_F": 3.0
+    }
+  },
+  "notes": [
+    "Keeps the existing active lever mask to isolate candidate-scoring changes from authority changes.",
+    "Compare against the unmasked config to decide whether the stale bottleneck mask is suppressing useful VSL."
+  ]
+}

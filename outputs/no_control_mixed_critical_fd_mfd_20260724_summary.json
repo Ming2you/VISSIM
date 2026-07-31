@@ -1,0 +1,38 @@
+{
+  "run_dir": "evaluation\\runs\\real_world_modi_congestion_ladder_20260724",
+  "run_name": "no_control_mixed_critical_warm900_eval300_seed13",
+  "window_sec": [
+    900.0,
+    1200.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 0,
+    "positive_point_count": 0,
+    "links": {}
+  },
+  "urban_mfd": {
+    "point_count": 0,
+    "state_aligned_peak_production_veh_km_h": 0.0,
+    "state_aligned_peak_accumulation_veh": 0.0,
+    "state_aligned_peak_time_sec": 0.0,
+    "core_peak_production_veh_km_h": 0.0,
+    "core_peak_accumulation_veh": 0.0,
+    "core_peak_time_sec": 0.0,
+    "state_aligned_accumulation_min": 0.0,
+    "state_aligned_accumulation_max": 0.0,
+    "core_accumulation_min": 0.0,
+    "core_accumulation_max": 0.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\no_control_mixed_critical_fd_mfd_20260724_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\no_control_mixed_critical_fd_mfd_20260724_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\no_control_mixed_critical_fd_mfd_20260724_urban_mfd_points.csv",
+    "summary_json": "outputs\\no_control_mixed_critical_fd_mfd_20260724_summary.json"
+  }
+}

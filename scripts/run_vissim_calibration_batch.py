@@ -4,8 +4,10 @@ import argparse
 import concurrent.futures as futures
 import csv
 import json
+import queue
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -131,6 +133,9 @@ def run_case(
     out_dir: Path,
     startup_delay_sec: float = 0.0,
     case_timeout_sec: float = 0.0,
+    stall_timeout_sec: float = 300.0,
+    max_attempts: int = 3,
+    reset_vissim_on_timeout: bool = True,
 ) -> dict[str, object]:
     paths = case_paths(out_dir, case)
     paths["case_dir"].mkdir(parents=True, exist_ok=True)
@@ -141,10 +146,10 @@ def run_case(
         "cscript.exe",
         "//nologo",
         str(runner.resolve()),
-        str(network),
-        str(paths["state_csv"]),
-        str(paths["segment_csv"]),
-        str(paths["ramp_csv"]),
+        str(network.resolve()),
+        str(paths["state_csv"].resolve()),
+        str(paths["segment_csv"].resolve()),
+        str(paths["ramp_csv"].resolve()),
         str(case.sim_period_sec),
         str(case.urban_volume_vph),
         str(case.freeway_volume_vph),
@@ -157,36 +162,209 @@ def run_case(
         str(case.minor_green_sec),
         str(case.route_bias),
     ]
-    started = time.perf_counter()
-    timeout = float(case_timeout_sec) if case_timeout_sec and case_timeout_sec > 0 else None
-    try:
-        proc = subprocess.run(
+
+    def kill_process_tree(proc: subprocess.Popen) -> None:
+        try:
+            subprocess.run(
+                ["taskkill.exe", "/PID", str(proc.pid), "/T", "/F"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=20,
+            )
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+
+    def kill_vissim() -> None:
+        if not reset_vissim_on_timeout:
+            return
+        for image in ("VISSIM200.exe", "VISSIM200CL.exe"):
+            try:
+                subprocess.run(
+                    ["taskkill.exe", "/IM", image, "/F"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=30,
+                )
+            except Exception:
+                pass
+
+    def run_attempt(attempt: int) -> dict[str, object]:
+        started = time.perf_counter()
+        timeout = float(case_timeout_sec) if case_timeout_sec and case_timeout_sec > 0 else None
+        stall_timeout = float(stall_timeout_sec) if stall_timeout_sec and stall_timeout_sec > 0 else 0.0
+        timed_out = False
+        timeout_reason = ""
+        first_progress_sec = 0.0
+        last_progress_sec = 0.0
+        progress_marker_count = 0
+        saw_sim_done = False
+        stdout_lines: list[str] = []
+        stderr_lines: list[str] = []
+        line_queue: "queue.Queue[tuple[str, str]]" = queue.Queue()
+
+        def reader(stream_name: str, pipe) -> None:
+            try:
+                for line in iter(pipe.readline, ""):
+                    line_queue.put((stream_name, line))
+            finally:
+                try:
+                    pipe.close()
+                except Exception:
+                    pass
+
+        proc = subprocess.Popen(
             cmd,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
             encoding="utf-8",
             errors="replace",
-            timeout=timeout,
+            bufsize=1,
         )
-        returncode = proc.returncode
-        stdout = proc.stdout
-        stderr = proc.stderr
-        timed_out = False
-    except subprocess.TimeoutExpired as exc:
-        returncode = 124
-        stdout = exc.stdout if isinstance(exc.stdout, str) else (exc.stdout or b"").decode("utf-8", errors="replace")
-        stderr = exc.stderr if isinstance(exc.stderr, str) else (exc.stderr or b"").decode("utf-8", errors="replace")
-        stderr = (stderr or "") + f"\nTIMEOUT after {timeout} sec\n"
-        timed_out = True
-    elapsed = time.perf_counter() - started
-    paths["stdout"].write_text(stdout or "", encoding="utf-8")
-    paths["stderr"].write_text(stderr or "", encoding="utf-8")
+        threads = [
+            threading.Thread(target=reader, args=("stdout", proc.stdout), daemon=True),
+            threading.Thread(target=reader, args=("stderr", proc.stderr), daemon=True),
+        ]
+        for thread in threads:
+            thread.start()
+
+        last_progress_wall = started
+        while proc.poll() is None:
+            now = time.perf_counter()
+            made_progress = False
+            while True:
+                try:
+                    stream_name, line = line_queue.get_nowait()
+                except queue.Empty:
+                    break
+                if stream_name == "stdout":
+                    stdout_lines.append(line)
+                else:
+                    stderr_lines.append(line)
+                if (
+                    "RUN_SINGLE_STEP" in line
+                    or "STAGE=NET_LOADED" in line
+                    or "STAGE=SIM_DONE" in line
+                ):
+                    made_progress = True
+                if "STAGE=SIM_DONE" in line:
+                    saw_sim_done = True
+            if made_progress:
+                progress_marker_count += 1
+                last_progress_wall = now
+                elapsed_progress = now - started
+                last_progress_sec = elapsed_progress
+                if first_progress_sec <= 0.0:
+                    first_progress_sec = elapsed_progress
+
+            elapsed = now - started
+            if stall_timeout > 0.0 and now - last_progress_wall > stall_timeout:
+                timed_out = True
+                timeout_reason = "stall_no_run_single_step_progress"
+                kill_process_tree(proc)
+                kill_vissim()
+                break
+            if timeout is not None and elapsed > timeout:
+                timed_out = True
+                timeout_reason = "case_timeout"
+                kill_process_tree(proc)
+                kill_vissim()
+                break
+            time.sleep(0.5)
+
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            kill_process_tree(proc)
+            kill_vissim()
+        for thread in threads:
+            thread.join(timeout=2)
+        while True:
+            try:
+                stream_name, line = line_queue.get_nowait()
+            except queue.Empty:
+                break
+            if stream_name == "stdout":
+                stdout_lines.append(line)
+            else:
+                stderr_lines.append(line)
+            if "STAGE=SIM_DONE" in line:
+                saw_sim_done = True
+
+        returncode = int(proc.returncode if proc.returncode is not None else 124)
+        stdout = "".join(stdout_lines)
+        stderr = "".join(stderr_lines)
+        if timed_out:
+            returncode = 124
+            stderr = (stderr or "") + (
+                f"\nTIMEOUT reason={timeout_reason} attempt={attempt} "
+                f"stall_timeout={stall_timeout} case_timeout={timeout}\n"
+            )
+        if returncode == 0 and not saw_sim_done:
+            returncode = 1
+            stderr = (stderr or "") + "\nMISSING_SIM_DONE marker in runner stdout\n"
+        elapsed = time.perf_counter() - started
+        return {
+            "returncode": returncode,
+            "elapsed_sec": round(elapsed, 3),
+            "timed_out": timed_out,
+            "timeout_reason": timeout_reason,
+            "stdout": stdout,
+            "stderr": stderr,
+            "attempt": attempt,
+            "first_progress_sec": round(first_progress_sec, 3) if first_progress_sec > 0.0 else "",
+            "last_progress_sec": round(last_progress_sec, 3) if last_progress_sec > 0.0 else "",
+            "progress_marker_count": progress_marker_count,
+        }
+
+    attempts = max(1, int(max_attempts))
+    final: dict[str, object] = {}
+    attempt_rows: list[dict[str, object]] = []
+    for attempt in range(1, attempts + 1):
+        final = run_attempt(attempt)
+        attempt_rows.append({
+            "attempt": final.get("attempt", attempt),
+            "returncode": final.get("returncode", ""),
+            "elapsed_sec": final.get("elapsed_sec", ""),
+            "timed_out": final.get("timed_out", ""),
+            "timeout_reason": final.get("timeout_reason", ""),
+            "first_progress_sec": final.get("first_progress_sec", ""),
+            "last_progress_sec": final.get("last_progress_sec", ""),
+            "progress_marker_count": final.get("progress_marker_count", ""),
+        })
+        if int(final.get("returncode", 1)) == 0:
+            break
+        if not final.get("timed_out"):
+            break
+
+    stdout = str(final.get("stdout", ""))
+    stderr = str(final.get("stderr", ""))
+    paths["stdout"].write_text(stdout, encoding="utf-8")
+    paths["stderr"].write_text(stderr, encoding="utf-8")
+    (paths["case_dir"] / "attempts.json").write_text(
+        json.dumps(attempt_rows, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     return {
         "case_id": case.case_id,
-        "returncode": returncode,
-        "elapsed_sec": round(elapsed, 3),
-        "timed_out": timed_out,
-        "case_timeout_sec": timeout or "",
+        "returncode": int(final.get("returncode", 1)),
+        "elapsed_sec": final.get("elapsed_sec", ""),
+        "timed_out": bool(final.get("timed_out", False)),
+        "timeout_reason": final.get("timeout_reason", ""),
+        "attempt": final.get("attempt", ""),
+        "max_attempts": attempts,
+        "case_timeout_sec": float(case_timeout_sec) if case_timeout_sec and case_timeout_sec > 0 else "",
+        "stall_timeout_sec": float(stall_timeout_sec) if stall_timeout_sec and stall_timeout_sec > 0 else "",
+        "first_progress_sec": final.get("first_progress_sec", ""),
+        "last_progress_sec": final.get("last_progress_sec", ""),
+        "progress_marker_count": final.get("progress_marker_count", ""),
         "state_csv": str(paths["state_csv"]),
         "segment_csv": str(paths["segment_csv"]),
         "ramp_csv": str(paths["ramp_csv"]),
@@ -199,7 +377,7 @@ def run_case(
 
 def append_manifest_row(out_dir: Path, row: dict[str, object]) -> None:
     manifest_csv = out_dir / "batch_manifest_partial.csv"
-    fields = ["case_id", "returncode", "elapsed_sec", "timed_out", "case_timeout_sec", "state_csv", "segment_csv", "ramp_csv", "signal_csv", "urban_csv", "stdout", "stderr"]
+    fields = manifest_fields()
     exists = manifest_csv.exists()
     with manifest_csv.open("a", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
@@ -213,11 +391,35 @@ def write_manifest(out_dir: Path, rows: list[dict[str, object]]) -> None:
     manifest_json = out_dir / "batch_manifest.json"
     manifest_json.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     manifest_csv = out_dir / "batch_manifest.csv"
-    fields = ["case_id", "returncode", "elapsed_sec", "timed_out", "case_timeout_sec", "state_csv", "segment_csv", "ramp_csv", "signal_csv", "urban_csv", "stdout", "stderr"]
+    fields = manifest_fields()
     with manifest_csv.open("w", newline="", encoding="utf-8-sig") as f:
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows({field: row.get(field, "") for field in fields} for row in rows)
+
+
+def manifest_fields() -> list[str]:
+    return [
+        "case_id",
+        "returncode",
+        "elapsed_sec",
+        "timed_out",
+        "timeout_reason",
+        "attempt",
+        "max_attempts",
+        "case_timeout_sec",
+        "stall_timeout_sec",
+        "first_progress_sec",
+        "last_progress_sec",
+        "progress_marker_count",
+        "state_csv",
+        "segment_csv",
+        "ramp_csv",
+        "signal_csv",
+        "urban_csv",
+        "stdout",
+        "stderr",
+    ]
 
 
 def main() -> int:
@@ -239,6 +441,23 @@ def main() -> int:
         default=0.0,
         help="Optional wall-clock timeout per case. Timed-out cases are recorded with returncode 124.",
     )
+    parser.add_argument(
+        "--stall-timeout-sec",
+        type=float,
+        default=300.0,
+        help="Kill and retry a case if no RUN_SINGLE_STEP/SIM_DONE progress appears for this many seconds.",
+    )
+    parser.add_argument(
+        "--max-attempts",
+        type=int,
+        default=3,
+        help="Maximum attempts per case after watchdog timeouts.",
+    )
+    parser.add_argument(
+        "--no-reset-vissim-on-timeout",
+        action="store_true",
+        help="Do not taskkill leftover VISSIM200 processes when a watchdog timeout fires.",
+    )
     args = parser.parse_args()
 
     network = Path(args.network)
@@ -253,6 +472,9 @@ def main() -> int:
             "runner": str(runner),
             "max_workers": args.max_workers,
             "case_timeout_sec": args.case_timeout_sec,
+            "stall_timeout_sec": args.stall_timeout_sec,
+            "max_attempts": args.max_attempts,
+            "reset_vissim_on_timeout": not args.no_reset_vissim_on_timeout,
             "case_count": len(cases),
             "cases": [asdict(case) for case in cases],
         }, ensure_ascii=False, indent=2),
@@ -264,7 +486,20 @@ def main() -> int:
         future_map = {}
         for idx, case in enumerate(cases):
             delay = (idx % max(1, int(args.max_workers))) * max(0.0, float(args.startup_stagger_sec))
-            future_map[pool.submit(run_case, case, network, runner, out_dir, delay, args.case_timeout_sec)] = case
+            future_map[
+                pool.submit(
+                    run_case,
+                    case,
+                    network,
+                    runner,
+                    out_dir,
+                    delay,
+                    args.case_timeout_sec,
+                    args.stall_timeout_sec,
+                    args.max_attempts,
+                    not args.no_reset_vissim_on_timeout,
+                )
+            ] = case
         for fut in futures.as_completed(future_map):
             row = fut.result()
             rows.append(row)

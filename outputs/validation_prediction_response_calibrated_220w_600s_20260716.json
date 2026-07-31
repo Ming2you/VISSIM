@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "status": "ok",
+  "run_dir": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716",
+  "cases": [
+    {
+      "case": "prcal_220w_fixed57_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/state_prcal_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/action_prcal_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/runlog_prcal_220w_fixed57_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/state_prcal_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11858,
+          "sha256": "5489fcd571981c60e4f055340f7b986cd136b7a1ed170294dc09e365429a6090"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/action_prcal_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "eb29a8325bbca575a465e302d2b1765b52dac90b725802175ff6613f20fe3ee9"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/runlog_prcal_220w_fixed57_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2800,
+          "sha256": "4399156edeac8c895854668b28047bafdad5403e161a58c8d618b53bd78757c0"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 11111,
+          "sha256": "438c304342cb9a9541aa0a097c651b455f4ee956732c8c0d83543d4886f75db1"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15359,
+          "sha256": "149f1dcbb4c0ee4e68632334b8e2c4f545246530e04705f0aaf51b832a781187"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15372,
+          "sha256": "f721a01bc427ad87d975a3ad3712b82413fabd9991566c6dbf3ae9d52f9852e6"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15298,
+          "sha256": "dccf3c0b33449df422e06b15690cfc61caed8f9e5b5690c446d9f4906e8a0744"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_fixed57_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        }
+      ]
+    },
+    {
+      "case": "prcal_220w_pstack_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/state_prcal_220w_pstack_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/action_prcal_220w_pstack_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/runlog_prcal_220w_pstack_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/state_prcal_220w_pstack_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12461,
+          "sha256": "d182c67393846f7f083ae178ce20fc2960d01a1a563d4458d43d2c6e7feb9fa8"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/action_prcal_220w_pstack_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7865,
+          "sha256": "7c3f2b94d6d69e0f5fd9ff133e3d4ff62fefdb53551ee96e986c6e6dfeaa5a48"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/runlog_prcal_220w_pstack_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2793,
+          "sha256": "f714a8f7fddb9c27330f326dfd63f9bcfae75c8da0caa5d07db176773b5a8984"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 41918,
+          "sha256": "14afa02f52ce655c933513195b996de940b6236ffd1545f147a8450623cc01a6"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 46874,
+          "sha256": "f539a3f4b062e98e87acb668548eae23b8da888b3ceeacc567ebc7d2058cddf4"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 46576,
+          "sha256": "6c0ec0021e462531d5736e24bdcc3130ef90f5c294034252abf769d8b7e6331d"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 46431,
+          "sha256": "5af9f53d9880ffcdd43122945403e17cd85980392a611a7742a7bdf8393500a5"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b688e9e9864b30928e5172010f7f66098131ee51b87e22e17a34916164679069"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/prediction_response_calibrated_220w_600s_20260716/decisions_prcal_220w_pstack_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "38eb9368f47430b5b584d812a38e47a563bb01363597f4164bc58373c2109bb4"
+        }
+      ]
+    }
+  ]
+}

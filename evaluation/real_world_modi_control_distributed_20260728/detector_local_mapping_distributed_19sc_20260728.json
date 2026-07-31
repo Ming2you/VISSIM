@@ -1,0 +1,4263 @@
+{
+  "schema_version": 1,
+  "mapping_version": "real_world_modi_distributed_19sc_v1_20260728",
+  "description": "Distributed connector/local observation mapping. Base freeway/ramp/off-ramp observations are preserved; SC1-SC19 signal-head links are added as urban-agent local queues.",
+  "observable_links": [
+    2,
+    26,
+    29,
+    30,
+    32,
+    37,
+    39,
+    40,
+    46,
+    47,
+    52,
+    66,
+    71,
+    72,
+    91,
+    94,
+    97,
+    118,
+    122,
+    128,
+    187,
+    189,
+    209,
+    213,
+    217,
+    240,
+    242,
+    245,
+    251,
+    256,
+    257,
+    259,
+    329,
+    341,
+    343,
+    425,
+    427,
+    461,
+    462,
+    467,
+    469,
+    10479,
+    10480,
+    10481,
+    10482,
+    10483,
+    10484,
+    10490,
+    10491,
+    10638,
+    10639,
+    10643,
+    10644,
+    10645,
+    10646,
+    10681,
+    10682,
+    10696,
+    121008402,
+    1210008202,
+    1210008203,
+    1210008303,
+    1210008401,
+    1210008501,
+    1210008603,
+    1210008703,
+    1210009403,
+    1210009502,
+    1210009503,
+    1210009600,
+    1210009700,
+    1210012001,
+    1210012101,
+    1210012600,
+    1210012700,
+    1210014303,
+    1210015600,
+    1210018202,
+    1210018302,
+    1210021204,
+    1220006903,
+    1220007104,
+    1220007402,
+    1220007501,
+    1220007502,
+    1220008201,
+    1220008202,
+    1220008301,
+    1220008302,
+    1220008402,
+    1220008601,
+    1220008602,
+    1220008701,
+    1220008702,
+    1220011001,
+    1220011101,
+    1220011103,
+    1220011200,
+    1220012001,
+    1220012002,
+    1220012102,
+    1220012103,
+    1220013100,
+    1220013600,
+    1220013700,
+    1220014100,
+    1220014203,
+    1220014303,
+    1220015000,
+    1220018301,
+    1220018401,
+    1220018403,
+    1220018502,
+    1220018504,
+    1220019201,
+    1220021201,
+    1220021303,
+    1220021801,
+    1220021802,
+    1220021803,
+    1220021903
+  ],
+  "link_to_origins": {
+    "10479": [
+      "OR_D_W"
+    ],
+    "10491": [
+      "OR_D_W"
+    ],
+    "10638": [
+      "OR_F_W"
+    ],
+    "10645": [
+      "OR_F_W"
+    ],
+    "10643": [
+      "OR_F_E"
+    ],
+    "10682": [
+      "OR_F_E"
+    ],
+    "10481": [
+      "OR_D_E"
+    ],
+    "10483": [
+      "OR_D_E"
+    ],
+    "29": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "30": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "32": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "37": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "40": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "46": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "52": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "66": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "71": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "72": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "329": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out",
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "427": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "10696": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "1210008401": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "1220006903": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "1220007104": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "1220008201": [
+      "SC1_N_out",
+      "SC1_S_out",
+      "SC1_E_out",
+      "SC1_W_out"
+    ],
+    "240": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "242": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "245": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "251": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "1210008202": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "1210008203": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "1220008202": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "1220008301": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "1220008302": [
+      "SC2_N_out",
+      "SC2_S_out",
+      "SC2_E_out",
+      "SC2_W_out"
+    ],
+    "213": [
+      "SC3_N_out",
+      "SC3_S_out",
+      "SC3_E_out",
+      "SC3_W_out"
+    ],
+    "217": [
+      "SC3_N_out",
+      "SC3_S_out",
+      "SC3_E_out",
+      "SC3_W_out"
+    ],
+    "1210012101": [
+      "SC3_N_out",
+      "SC3_S_out",
+      "SC3_E_out",
+      "SC3_W_out"
+    ],
+    "1220012002": [
+      "SC3_N_out",
+      "SC3_S_out",
+      "SC3_E_out",
+      "SC3_W_out"
+    ],
+    "1220012102": [
+      "SC3_N_out",
+      "SC3_S_out",
+      "SC3_E_out",
+      "SC3_W_out"
+    ],
+    "118": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "122": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "128": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "467": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "469": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "121008402": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "1220018403": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "1220018502": [
+      "SC4_N_out",
+      "SC4_S_out",
+      "SC4_E_out",
+      "SC4_W_out"
+    ],
+    "256": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "257": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "259": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1210014303": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220011103": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220014100": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220014203": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220014303": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220018401": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1220019201": [
+      "SC5_N_out",
+      "SC5_S_out",
+      "SC5_E_out",
+      "SC5_W_out"
+    ],
+    "1210018302": [
+      "SC6_N_out",
+      "SC6_S_out",
+      "SC6_E_out",
+      "SC6_W_out"
+    ],
+    "1220018504": [
+      "SC6_N_out",
+      "SC6_S_out",
+      "SC6_E_out",
+      "SC6_W_out"
+    ],
+    "1220021201": [
+      "SC6_N_out",
+      "SC6_S_out",
+      "SC6_E_out",
+      "SC6_W_out"
+    ],
+    "1220021801": [
+      "SC6_N_out",
+      "SC6_S_out",
+      "SC6_E_out",
+      "SC6_W_out"
+    ],
+    "1210009600": [
+      "SC7_N_out",
+      "SC7_S_out",
+      "SC7_E_out",
+      "SC7_W_out"
+    ],
+    "1220007502": [
+      "SC7_N_out",
+      "SC7_S_out",
+      "SC7_E_out",
+      "SC7_W_out"
+    ],
+    "1220008601": [
+      "SC7_N_out",
+      "SC7_S_out",
+      "SC7_E_out",
+      "SC7_W_out"
+    ],
+    "1220008602": [
+      "SC7_N_out",
+      "SC7_S_out",
+      "SC7_E_out",
+      "SC7_W_out"
+    ],
+    "1220008701": [
+      "SC7_N_out",
+      "SC7_S_out",
+      "SC7_E_out",
+      "SC7_W_out"
+    ],
+    "187": [
+      "SC8_N_out",
+      "SC8_S_out",
+      "SC8_E_out",
+      "SC8_W_out"
+    ],
+    "189": [
+      "SC8_N_out",
+      "SC8_S_out",
+      "SC8_E_out",
+      "SC8_W_out"
+    ],
+    "1220007402": [
+      "SC8_N_out",
+      "SC8_S_out",
+      "SC8_E_out",
+      "SC8_W_out"
+    ],
+    "1220007501": [
+      "SC8_N_out",
+      "SC8_S_out",
+      "SC8_E_out",
+      "SC8_W_out"
+    ],
+    "39": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "47": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "94": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "97": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "425": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "461": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "462": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "1220021802": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "1220021803": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "1220021903": [
+      "SC9_N_out",
+      "SC9_S_out",
+      "SC9_E_out",
+      "SC9_W_out"
+    ],
+    "1210018202": [
+      "SC10_N_out",
+      "SC10_S_out",
+      "SC10_E_out",
+      "SC10_W_out"
+    ],
+    "1220018301": [
+      "SC10_N_out",
+      "SC10_S_out",
+      "SC10_E_out",
+      "SC10_W_out"
+    ],
+    "1210008303": [
+      "SC11_N_out",
+      "SC11_S_out",
+      "SC11_E_out",
+      "SC11_W_out"
+    ],
+    "1210008703": [
+      "SC11_N_out",
+      "SC11_S_out",
+      "SC11_E_out",
+      "SC11_W_out"
+    ],
+    "1210012001": [
+      "SC11_N_out",
+      "SC11_S_out",
+      "SC11_E_out",
+      "SC11_W_out"
+    ],
+    "1220011001": [
+      "SC11_N_out",
+      "SC11_S_out",
+      "SC11_E_out",
+      "SC11_W_out",
+      "SC18_N_out",
+      "SC18_S_out",
+      "SC18_E_out",
+      "SC18_W_out"
+    ],
+    "1220012001": [
+      "SC11_N_out",
+      "SC11_S_out",
+      "SC11_E_out",
+      "SC11_W_out"
+    ],
+    "1210012700": [
+      "SC12_N_out",
+      "SC12_S_out",
+      "SC12_E_out",
+      "SC12_W_out"
+    ],
+    "1220012103": [
+      "SC12_N_out",
+      "SC12_S_out",
+      "SC12_E_out",
+      "SC12_W_out"
+    ],
+    "1220013600": [
+      "SC12_N_out",
+      "SC12_S_out",
+      "SC12_E_out",
+      "SC12_W_out",
+      "SC13_N_out",
+      "SC13_S_out",
+      "SC13_E_out",
+      "SC13_W_out"
+    ],
+    "1220015000": [
+      "SC12_N_out",
+      "SC12_S_out",
+      "SC12_E_out",
+      "SC12_W_out"
+    ],
+    "1210015600": [
+      "SC13_N_out",
+      "SC13_S_out",
+      "SC13_E_out",
+      "SC13_W_out"
+    ],
+    "1220013100": [
+      "SC13_N_out",
+      "SC13_S_out",
+      "SC13_E_out",
+      "SC13_W_out"
+    ],
+    "1220013700": [
+      "SC13_N_out",
+      "SC13_S_out",
+      "SC13_E_out",
+      "SC13_W_out"
+    ],
+    "91": [
+      "SC14_N_out",
+      "SC14_S_out",
+      "SC14_E_out",
+      "SC14_W_out"
+    ],
+    "1210021204": [
+      "SC14_N_out",
+      "SC14_S_out",
+      "SC14_E_out",
+      "SC14_W_out"
+    ],
+    "1220021303": [
+      "SC14_N_out",
+      "SC14_S_out",
+      "SC14_E_out",
+      "SC14_W_out"
+    ],
+    "341": [
+      "SC15_N_out",
+      "SC15_S_out",
+      "SC15_E_out",
+      "SC15_W_out"
+    ],
+    "343": [
+      "SC15_N_out",
+      "SC15_S_out",
+      "SC15_E_out",
+      "SC15_W_out"
+    ],
+    "1210008501": [
+      "SC15_N_out",
+      "SC15_S_out",
+      "SC15_E_out",
+      "SC15_W_out"
+    ],
+    "1220008402": [
+      "SC15_N_out",
+      "SC15_S_out",
+      "SC15_E_out",
+      "SC15_W_out"
+    ],
+    "1210009503": [
+      "SC16_N_out",
+      "SC16_S_out",
+      "SC16_E_out",
+      "SC16_W_out"
+    ],
+    "1210009700": [
+      "SC16_N_out",
+      "SC16_S_out",
+      "SC16_E_out",
+      "SC16_W_out"
+    ],
+    "1210012600": [
+      "SC16_N_out",
+      "SC16_S_out",
+      "SC16_E_out",
+      "SC16_W_out"
+    ],
+    "1220011200": [
+      "SC16_N_out",
+      "SC16_S_out",
+      "SC16_E_out",
+      "SC16_W_out"
+    ],
+    "1210009403": [
+      "SC17_N_out",
+      "SC17_S_out",
+      "SC17_E_out",
+      "SC17_W_out"
+    ],
+    "1210009502": [
+      "SC17_N_out",
+      "SC17_S_out",
+      "SC17_E_out",
+      "SC17_W_out"
+    ],
+    "1220011101": [
+      "SC18_N_out",
+      "SC18_S_out",
+      "SC18_E_out",
+      "SC18_W_out"
+    ],
+    "209": [
+      "SC19_N_out",
+      "SC19_S_out",
+      "SC19_E_out",
+      "SC19_W_out"
+    ],
+    "1210008603": [
+      "SC19_N_out",
+      "SC19_S_out",
+      "SC19_E_out",
+      "SC19_W_out"
+    ],
+    "1220008702": [
+      "SC19_N_out",
+      "SC19_S_out",
+      "SC19_E_out",
+      "SC19_W_out"
+    ]
+  },
+  "link_to_movements": {
+    "10479": [
+      {
+        "movement": "D_offW_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      }
+    ],
+    "10491": [
+      {
+        "movement": "D_offW_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      }
+    ],
+    "10638": [
+      {
+        "movement": "F_offW_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      }
+    ],
+    "10645": [
+      {
+        "movement": "F_offW_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      }
+    ],
+    "10643": [
+      {
+        "movement": "F_offE_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      }
+    ],
+    "10682": [
+      {
+        "movement": "F_offE_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      }
+    ],
+    "10481": [
+      {
+        "movement": "D_offE_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      }
+    ],
+    "10483": [
+      {
+        "movement": "D_offE_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      }
+    ],
+    "29": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "30": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "32": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "37": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "40": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "46": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "52": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "66": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "71": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "72": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "329": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "427": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "10696": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "1210008401": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "1220006903": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "1220007104": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "1220008201": [
+      {
+        "movement": "SC1_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_on_R_F_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_D_E",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_W",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC1_off_OR_F_E",
+        "weight": 1.0
+      }
+    ],
+    "240": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "242": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "245": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "251": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008202": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008203": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008202": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008301": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008302": [
+      {
+        "movement": "SC2_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC2_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "213": [
+      {
+        "movement": "SC3_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "217": [
+      {
+        "movement": "SC3_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210012101": [
+      {
+        "movement": "SC3_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220012002": [
+      {
+        "movement": "SC3_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220012102": [
+      {
+        "movement": "SC3_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC3_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "118": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "122": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "128": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "467": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "469": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "121008402": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220018403": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220018502": [
+      {
+        "movement": "SC4_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC4_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "256": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "257": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "259": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210014303": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220011103": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220014100": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220014203": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220014303": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220018401": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220019201": [
+      {
+        "movement": "SC5_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC5_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210018302": [
+      {
+        "movement": "SC6_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220018504": [
+      {
+        "movement": "SC6_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021201": [
+      {
+        "movement": "SC6_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021801": [
+      {
+        "movement": "SC6_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC6_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210009600": [
+      {
+        "movement": "SC7_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220007502": [
+      {
+        "movement": "SC7_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008601": [
+      {
+        "movement": "SC7_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008602": [
+      {
+        "movement": "SC7_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008701": [
+      {
+        "movement": "SC7_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC7_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "187": [
+      {
+        "movement": "SC8_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "189": [
+      {
+        "movement": "SC8_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220007402": [
+      {
+        "movement": "SC8_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220007501": [
+      {
+        "movement": "SC8_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC8_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "39": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "47": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "94": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "97": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "425": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "461": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "462": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021802": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021803": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021903": [
+      {
+        "movement": "SC9_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC9_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210018202": [
+      {
+        "movement": "SC10_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220018301": [
+      {
+        "movement": "SC10_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC10_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008303": [
+      {
+        "movement": "SC11_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008703": [
+      {
+        "movement": "SC11_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210012001": [
+      {
+        "movement": "SC11_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220011001": [
+      {
+        "movement": "SC11_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220012001": [
+      {
+        "movement": "SC11_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC11_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210012700": [
+      {
+        "movement": "SC12_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220012103": [
+      {
+        "movement": "SC12_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220013600": [
+      {
+        "movement": "SC12_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_W_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220015000": [
+      {
+        "movement": "SC12_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC12_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210015600": [
+      {
+        "movement": "SC13_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220013100": [
+      {
+        "movement": "SC13_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220013700": [
+      {
+        "movement": "SC13_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC13_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "91": [
+      {
+        "movement": "SC14_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210021204": [
+      {
+        "movement": "SC14_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220021303": [
+      {
+        "movement": "SC14_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC14_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "341": [
+      {
+        "movement": "SC15_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "343": [
+      {
+        "movement": "SC15_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008501": [
+      {
+        "movement": "SC15_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008402": [
+      {
+        "movement": "SC15_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC15_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210009503": [
+      {
+        "movement": "SC16_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210009700": [
+      {
+        "movement": "SC16_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210012600": [
+      {
+        "movement": "SC16_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220011200": [
+      {
+        "movement": "SC16_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC16_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210009403": [
+      {
+        "movement": "SC17_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210009502": [
+      {
+        "movement": "SC17_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC17_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220011101": [
+      {
+        "movement": "SC18_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC18_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "209": [
+      {
+        "movement": "SC19_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1210008603": [
+      {
+        "movement": "SC19_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_W_to_out",
+        "weight": 1.0
+      }
+    ],
+    "1220008702": [
+      {
+        "movement": "SC19_NS_N_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_NS_S_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_E_to_out",
+        "weight": 1.0
+      },
+      {
+        "movement": "SC19_EW_W_to_out",
+        "weight": 1.0
+      }
+    ]
+  },
+  "ramp_link_to_queues": {
+    "10480": [
+      "R_D_W"
+    ],
+    "10482": [
+      "R_D_W"
+    ],
+    "10646": [
+      "R_F_W"
+    ],
+    "10644": [
+      "R_F_W"
+    ],
+    "10639": [
+      "R_F_E"
+    ],
+    "10681": [
+      "R_F_E"
+    ],
+    "10490": [
+      "R_D_E"
+    ],
+    "10484": [
+      "R_D_E"
+    ]
+  },
+  "boundary_link_to_queue": {},
+  "freeway_link_to_model_link": {
+    "2": "FW_E",
+    "26": "FW_W"
+  },
+  "off_ramp_connectors": {
+    "OR_D_W": [
+      {
+        "connector": 10479,
+        "from_link": 26,
+        "from_pos_m": 3425.401,
+        "to_link": 31,
+        "to_pos_m": 871.099,
+        "lanes": 1
+      },
+      {
+        "connector": 10491,
+        "from_link": 26,
+        "from_pos_m": 3650.905,
+        "to_link": 32,
+        "to_pos_m": 1270.042,
+        "lanes": 1
+      }
+    ],
+    "OR_F_W": [
+      {
+        "connector": 10638,
+        "from_link": 26,
+        "from_pos_m": 6222.033,
+        "to_link": 70,
+        "to_pos_m": 40.267,
+        "lanes": 2
+      },
+      {
+        "connector": 10645,
+        "from_link": 26,
+        "from_pos_m": 5906.933,
+        "to_link": 68,
+        "to_pos_m": 573.19,
+        "lanes": 1
+      }
+    ],
+    "OR_F_E": [
+      {
+        "connector": 10643,
+        "from_link": 2,
+        "from_pos_m": 1651.806,
+        "to_link": 70,
+        "to_pos_m": 330.291,
+        "lanes": 2
+      },
+      {
+        "connector": 10682,
+        "from_link": 2,
+        "from_pos_m": 2012.357,
+        "to_link": 68,
+        "to_pos_m": 237.43,
+        "lanes": 1
+      }
+    ],
+    "OR_D_E": [
+      {
+        "connector": 10481,
+        "from_link": 2,
+        "from_pos_m": 4092.316,
+        "to_link": 32,
+        "to_pos_m": 1543.856,
+        "lanes": 2
+      },
+      {
+        "connector": 10483,
+        "from_link": 2,
+        "from_pos_m": 4500.507,
+        "to_link": 31,
+        "to_pos_m": 614.468,
+        "lanes": 1
+      }
+    ]
+  },
+  "agents": {
+    "U_A": {
+      "kind": "urban",
+      "signal": "A",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_B": {
+      "kind": "urban",
+      "signal": "B",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_C": {
+      "kind": "urban",
+      "signal": "C",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_D": {
+      "kind": "urban",
+      "signal": "D",
+      "visible_links": [
+        "10479",
+        "10480",
+        "10481",
+        "10482",
+        "10483",
+        "10484",
+        "10490",
+        "10491"
+      ],
+      "visible_movements": [
+        "D_offE_to_E",
+        "D_offE_to_N",
+        "D_offE_to_W",
+        "D_offW_to_E",
+        "D_offW_to_N",
+        "D_offW_to_W"
+      ],
+      "visible_ramps": [
+        "R_D_E",
+        "R_D_W"
+      ],
+      "visible_off_ramps": [
+        "OR_D_E",
+        "OR_D_W"
+      ]
+    },
+    "U_F": {
+      "kind": "urban",
+      "signal": "F",
+      "visible_links": [
+        "10638",
+        "10639",
+        "10643",
+        "10644",
+        "10645",
+        "10646",
+        "10681",
+        "10682"
+      ],
+      "visible_movements": [
+        "F_offE_to_E",
+        "F_offE_to_N",
+        "F_offE_to_W",
+        "F_offW_to_E",
+        "F_offW_to_N",
+        "F_offW_to_W"
+      ],
+      "visible_ramps": [
+        "R_F_E",
+        "R_F_W"
+      ],
+      "visible_off_ramps": [
+        "OR_F_E",
+        "OR_F_W"
+      ]
+    },
+    "F_E0": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 0,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E1": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 1,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": [
+        "OR_F_E"
+      ]
+    },
+    "F_E2": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 2,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_F_E"
+      ],
+      "visible_off_ramps": []
+    },
+    "F_E3": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 3,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E4": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 4,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_D_E"
+      ],
+      "visible_off_ramps": [
+        "OR_D_E"
+      ]
+    },
+    "F_E5": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 5,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E6": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 6,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E7": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 7,
+      "visible_links": [
+        "2"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W0": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 0,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W1": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 1,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W2": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 2,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W3": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 3,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_D_W"
+      ],
+      "visible_off_ramps": [
+        "OR_D_W"
+      ]
+    },
+    "F_W4": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 4,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W5": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 5,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W6": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 6,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_F_W"
+      ],
+      "visible_off_ramps": [
+        "OR_F_W"
+      ]
+    },
+    "F_W7": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 7,
+      "visible_links": [
+        "26"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC1": {
+      "kind": "urban",
+      "signal": "SC1",
+      "sc_no": 1,
+      "name": "구룡초교",
+      "visible_links": [
+        "29",
+        "30",
+        "32",
+        "37",
+        "40",
+        "46",
+        "52",
+        "66",
+        "71",
+        "72",
+        "329",
+        "427",
+        "10696",
+        "1210008401",
+        "1220006903",
+        "1220007104",
+        "1220008201"
+      ],
+      "visible_movements": [
+        "SC1_NS_N_to_out",
+        "SC1_NS_S_to_out",
+        "SC1_EW_E_to_out",
+        "SC1_EW_W_to_out",
+        "SC1_on_R_D_W",
+        "SC1_on_R_D_E",
+        "SC1_on_R_F_W",
+        "SC1_on_R_F_E",
+        "SC1_off_OR_D_W",
+        "SC1_off_OR_D_E",
+        "SC1_off_OR_F_W",
+        "SC1_off_OR_F_E"
+      ],
+      "visible_ramps": [
+        "R_D_W",
+        "R_D_E",
+        "R_F_W",
+        "R_F_E"
+      ],
+      "visible_off_ramps": [
+        "OR_D_W",
+        "OR_D_E",
+        "OR_F_W",
+        "OR_F_E"
+      ]
+    },
+    "U_SC2": {
+      "kind": "urban",
+      "signal": "SC2",
+      "sc_no": 2,
+      "name": "개원초교(보)",
+      "visible_links": [
+        "240",
+        "242",
+        "245",
+        "251",
+        "329",
+        "1210008202",
+        "1210008203",
+        "1220008202",
+        "1220008301",
+        "1220008302"
+      ],
+      "visible_movements": [
+        "SC2_NS_N_to_out",
+        "SC2_NS_S_to_out",
+        "SC2_EW_E_to_out",
+        "SC2_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC3": {
+      "kind": "urban",
+      "signal": "SC3",
+      "sc_no": 3,
+      "name": "수도공고(보)",
+      "visible_links": [
+        "213",
+        "217",
+        "1210012101",
+        "1220012002",
+        "1220012102"
+      ],
+      "visible_movements": [
+        "SC3_NS_N_to_out",
+        "SC3_NS_S_to_out",
+        "SC3_EW_E_to_out",
+        "SC3_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC4": {
+      "kind": "urban",
+      "signal": "SC4",
+      "sc_no": 4,
+      "name": "청실종합",
+      "visible_links": [
+        "118",
+        "122",
+        "128",
+        "467",
+        "469",
+        "121008402",
+        "1220018403",
+        "1220018502"
+      ],
+      "visible_movements": [
+        "SC4_NS_N_to_out",
+        "SC4_NS_S_to_out",
+        "SC4_EW_E_to_out",
+        "SC4_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC5": {
+      "kind": "urban",
+      "signal": "SC5",
+      "sc_no": 5,
+      "name": "도곡역",
+      "visible_links": [
+        "256",
+        "257",
+        "259",
+        "1210014303",
+        "1220011103",
+        "1220014100",
+        "1220014203",
+        "1220014303",
+        "1220018401",
+        "1220019201"
+      ],
+      "visible_movements": [
+        "SC5_NS_N_to_out",
+        "SC5_NS_S_to_out",
+        "SC5_EW_E_to_out",
+        "SC5_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC6": {
+      "kind": "urban",
+      "signal": "SC6",
+      "sc_no": 6,
+      "name": "대치역",
+      "visible_links": [
+        "1210018302",
+        "1220018504",
+        "1220021201",
+        "1220021801"
+      ],
+      "visible_movements": [
+        "SC6_NS_N_to_out",
+        "SC6_NS_S_to_out",
+        "SC6_EW_E_to_out",
+        "SC6_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC7": {
+      "kind": "urban",
+      "signal": "SC7",
+      "sc_no": 7,
+      "name": "개포도서관",
+      "visible_links": [
+        "1210009600",
+        "1220007502",
+        "1220008601",
+        "1220008602",
+        "1220008701"
+      ],
+      "visible_movements": [
+        "SC7_NS_N_to_out",
+        "SC7_NS_S_to_out",
+        "SC7_EW_E_to_out",
+        "SC7_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC8": {
+      "kind": "urban",
+      "signal": "SC8",
+      "sc_no": 8,
+      "name": "개포중(보)",
+      "visible_links": [
+        "187",
+        "189",
+        "1220007402",
+        "1220007501"
+      ],
+      "visible_movements": [
+        "SC8_NS_N_to_out",
+        "SC8_NS_S_to_out",
+        "SC8_EW_E_to_out",
+        "SC8_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC9": {
+      "kind": "urban",
+      "signal": "SC9",
+      "sc_no": 9,
+      "name": "대치은마아파트",
+      "visible_links": [
+        "39",
+        "47",
+        "94",
+        "97",
+        "425",
+        "461",
+        "462",
+        "1220021802",
+        "1220021803",
+        "1220021903"
+      ],
+      "visible_movements": [
+        "SC9_NS_N_to_out",
+        "SC9_NS_S_to_out",
+        "SC9_EW_E_to_out",
+        "SC9_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC10": {
+      "kind": "urban",
+      "signal": "SC10",
+      "sc_no": 10,
+      "name": "대치선경아파트",
+      "visible_links": [
+        "1210018202",
+        "1220018301"
+      ],
+      "visible_movements": [
+        "SC10_NS_N_to_out",
+        "SC10_NS_S_to_out",
+        "SC10_EW_E_to_out",
+        "SC10_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC11": {
+      "kind": "urban",
+      "signal": "SC11",
+      "sc_no": 11,
+      "name": "개포고교",
+      "visible_links": [
+        "1210008303",
+        "1210008703",
+        "1210012001",
+        "1220011001",
+        "1220012001"
+      ],
+      "visible_movements": [
+        "SC11_NS_N_to_out",
+        "SC11_NS_S_to_out",
+        "SC11_EW_E_to_out",
+        "SC11_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC12": {
+      "kind": "urban",
+      "signal": "SC12",
+      "sc_no": 12,
+      "name": "영동5교",
+      "visible_links": [
+        "1210012700",
+        "1220012103",
+        "1220013600",
+        "1220015000"
+      ],
+      "visible_movements": [
+        "SC12_NS_N_to_out",
+        "SC12_NS_S_to_out",
+        "SC12_EW_E_to_out",
+        "SC12_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC13": {
+      "kind": "urban",
+      "signal": "SC13",
+      "sc_no": 13,
+      "name": "개포주민센터",
+      "visible_links": [
+        "1210015600",
+        "1220013100",
+        "1220013600",
+        "1220013700"
+      ],
+      "visible_movements": [
+        "SC13_NS_N_to_out",
+        "SC13_NS_S_to_out",
+        "SC13_EW_E_to_out",
+        "SC13_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC14": {
+      "kind": "urban",
+      "signal": "SC14",
+      "sc_no": 14,
+      "name": "대치미도아파트",
+      "visible_links": [
+        "91",
+        "1210021204",
+        "1220021303"
+      ],
+      "visible_movements": [
+        "SC14_NS_N_to_out",
+        "SC14_NS_S_to_out",
+        "SC14_EW_E_to_out",
+        "SC14_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC15": {
+      "kind": "urban",
+      "signal": "SC15",
+      "sc_no": 15,
+      "name": "개포경남아파트",
+      "visible_links": [
+        "341",
+        "343",
+        "1210008501",
+        "1220008402"
+      ],
+      "visible_movements": [
+        "SC15_NS_N_to_out",
+        "SC15_NS_S_to_out",
+        "SC15_EW_E_to_out",
+        "SC15_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC16": {
+      "kind": "urban",
+      "signal": "SC16",
+      "sc_no": 16,
+      "name": "경기여고",
+      "visible_links": [
+        "1210009503",
+        "1210009700",
+        "1210012600",
+        "1220011200"
+      ],
+      "visible_movements": [
+        "SC16_NS_N_to_out",
+        "SC16_NS_S_to_out",
+        "SC16_EW_E_to_out",
+        "SC16_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC17": {
+      "kind": "urban",
+      "signal": "SC17",
+      "sc_no": 17,
+      "name": "개포주공3단지(보)",
+      "visible_links": [
+        "1210009403",
+        "1210009502"
+      ],
+      "visible_movements": [
+        "SC17_NS_N_to_out",
+        "SC17_NS_S_to_out",
+        "SC17_EW_E_to_out",
+        "SC17_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC18": {
+      "kind": "urban",
+      "signal": "SC18",
+      "sc_no": 18,
+      "name": "구룡중(보)",
+      "visible_links": [
+        "1220011001",
+        "1220011101"
+      ],
+      "visible_movements": [
+        "SC18_NS_N_to_out",
+        "SC18_NS_S_to_out",
+        "SC18_EW_E_to_out",
+        "SC18_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_SC19": {
+      "kind": "urban",
+      "signal": "SC19",
+      "sc_no": 19,
+      "name": "개포우체국(보)",
+      "visible_links": [
+        "209",
+        "1210008603",
+        "1220008702"
+      ],
+      "visible_movements": [
+        "SC19_NS_N_to_out",
+        "SC19_NS_S_to_out",
+        "SC19_EW_E_to_out",
+        "SC19_EW_W_to_out"
+      ],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    }
+  },
+  "guardrails": {
+    "leader_visibility": "global_state_allowed",
+    "follower_visibility": "real_world_connector_local_links_only",
+    "adapter_global_fallback_allowed_only_when_local_observation_absent": true,
+    "vissim_internal_scan_is_masked_before_controller": true,
+    "urban_signal_actuation": "freeway_interface_sc1_enabled",
+    "distributed_urban_signal_players": {
+      "enabled": true,
+      "selector": "SC1-SC19",
+      "note": "Each VISSIM signal controller is represented as a separate urban follower agent."
+    }
+  }
+}

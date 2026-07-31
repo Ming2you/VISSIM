@@ -1,0 +1,90 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_prediction_response_calibrated_20260716.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_pstack_safe_component_guard_20260718",
+  "description": "Safe P-Stack candidate after the 2026-07-18 non-improvement audit. It keeps the prediction-response calibration, but prevents near-tie D-ramp restriction from being committed when no-control has comparable predicted terminal score, and adds component-aware post-guard scoring.",
+  "calibration_basis": {
+    "audit": "outputs/pstack_nonimprovement_audit_20260718.md",
+    "long_run": "outputs/long_warmup1800_eval3600_220w_20260716.md",
+    "diagnosis": [
+      "P-Stack acted mainly through D ramp release while VSL and signals stayed fixed.",
+      "Long-run loss concentrated in 4500-5400s, where lower D release increased total/stopped vehicles.",
+      "Post-guard no-control score gaps were typically 0-0.43, below the previous fallback margin of 2.0, so near-tie restrictive actions passed.",
+      "Component prediction was misaligned: protected accumulation was overpredicted while urban queue+storage was underpredicted."
+    ]
+  },
+  "calibration_override": {
+    "prediction": {
+      "status": "pstack_safe_component_guard_20260718",
+      "audit_calibration": {
+        "enabled": true,
+        "mode": "pstack_safe_component_guard_20260718",
+        "freeway_total_scale": 1.1,
+        "urban_queue_plus_storage_scale": 1.0,
+        "preserve_component_consistency": true,
+        "recompute_urban_queue_plus_storage_from_components": true,
+        "recompute_urban_total_from_components": true,
+        "recompute_total_model_vehicles_from_components": true,
+        "component_scales": {
+          "protected_accumulation_veh": 0.65,
+          "urban_movement_queue_total_veh": 0.96,
+          "urban_link_occupancy_total_veh": 0.72
+        }
+      }
+    }
+  },
+  "actuation": {
+    "ramp_release_guard": {
+      "enabled": true,
+      "min_release_ratio_of_capacity": 0.98,
+      "queue_high_release_ratio_of_capacity": 1.0,
+      "ramp_queue_threshold_veh": 8.0,
+      "boundary_queue_threshold_veh": 100.0,
+      "stopped_threshold_veh": 160.0,
+      "no_control_fallback": {
+        "enabled": true,
+        "min_release_ratio_of_uncontrolled": 0.98,
+        "max_density_ratio_for_fallback": 1.5,
+        "require_queue_or_stopped": true
+      }
+    }
+  },
+  "adapter": {
+    "post_guard_safety": {
+      "score": {
+        "use_calibrated_prediction": true,
+        "component_penalty": {
+          "enabled": true,
+          "use_calibrated_prediction": true,
+          "terms": [
+            {
+              "metric": "urban_queue_plus_link_occupancy_total_veh",
+              "mode": "above",
+              "target": 1000.0,
+              "weight": 0.015
+            },
+            {
+              "metric": "boundary_queue_total_veh",
+              "mode": "above",
+              "target": 650.0,
+              "weight": 0.02
+            },
+            {
+              "metric": "ramp_queue_total_veh",
+              "mode": "above",
+              "target": 90.0,
+              "weight": 0.04
+            }
+          ]
+        }
+      },
+      "no_control_baseline": {
+        "enabled": true,
+        "fallback_enabled": true,
+        "fallback_margin_score": 0.0,
+        "prefer_less_restrictive_on_tie": true,
+        "tie_margin_score": 0.5,
+        "min_release_gap_vph": 10.0
+      }
+    }
+  }
+}

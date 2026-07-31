@@ -1,0 +1,60 @@
+# Signed component prediction error audit
+
+`error` is observed minus predicted. Positive means the model under-predicted VISSIM.
+
+| case | controller | metric | n | observed | active pred | active error | active abs | raw pred | raw error | raw abs | raw obs/pred median |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `freeway_total_veh` | 3 | 263.667 | 200.297 | +63.370 | 63.370 | 307.824 | -44.157 | 44.157 | 0.818 |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `protected_accumulation_veh` | 3 | 298.567 | 408.922 | -110.356 | 113.522 | 408.922 | -110.356 | 113.522 | 0.706 |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `total_model_vehicles` | 3 | 893.029 | 1108.866 | -215.837 | 244.791 | 1216.393 | -323.364 | 323.364 | 0.689 |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `urban_link_occupancy_total_veh` | 3 | 227.000 | 400.107 | -173.107 | 173.107 | 400.107 | -173.107 | 173.107 | 0.559 |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `urban_movement_queue_total_veh` | 3 | 402.363 | 508.463 | -106.100 | 118.173 | 508.463 | -106.100 | 118.173 | 0.788 |
+| `decisions_auth_220w_combined_strong_seed13_600s` | `diagnostic-combined-strong` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 629.363 | 920.060 | -290.698 | 290.698 | 908.569 | -279.207 | 279.207 | 0.651 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `freeway_total_veh` | 3 | 248.667 | 153.940 | +94.727 | 94.727 | 236.581 | +12.086 | 32.470 | 1.116 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `protected_accumulation_veh` | 3 | 329.200 | 461.525 | -132.325 | 136.959 | 461.525 | -132.325 | 136.959 | 0.671 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `total_model_vehicles` | 3 | 794.683 | 983.621 | -188.938 | 188.938 | 1066.262 | -271.579 | 271.579 | 0.711 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `urban_link_occupancy_total_veh` | 3 | 279.867 | 407.270 | -127.404 | 127.976 | 407.270 | -127.404 | 127.976 | 0.638 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `urban_movement_queue_total_veh` | 3 | 266.150 | 422.411 | -156.261 | 156.261 | 422.411 | -156.261 | 156.261 | 0.588 |
+| `decisions_auth_220w_fixed57_seed13_600s` | `diagnostic-fixed57` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 546.017 | 840.174 | -294.158 | 294.158 | 829.681 | -283.665 | 283.665 | 0.604 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `freeway_total_veh` | 3 | 246.333 | 150.157 | +96.177 | 96.177 | 230.767 | +15.567 | 32.035 | 1.112 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `protected_accumulation_veh` | 3 | 330.800 | 463.208 | -132.408 | 134.986 | 463.208 | -132.408 | 134.986 | 0.690 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `total_model_vehicles` | 3 | 799.742 | 983.827 | -184.085 | 186.333 | 1064.437 | -264.695 | 264.695 | 0.723 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `urban_link_occupancy_total_veh` | 3 | 281.367 | 409.190 | -127.823 | 127.823 | 409.190 | -127.823 | 127.823 | 0.657 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `urban_movement_queue_total_veh` | 3 | 272.042 | 424.480 | -152.438 | 152.438 | 424.480 | -152.438 | 152.438 | 0.604 |
+| `decisions_auth_220w_ramp_hold_seed13_600s` | `diagnostic-ramp-hold` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 553.408 | 844.213 | -290.805 | 290.805 | 833.670 | -280.262 | 280.262 | 0.608 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `freeway_total_veh` | 3 | 249.000 | 156.040 | +92.960 | 92.960 | 239.809 | +9.191 | 31.173 | 1.121 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `protected_accumulation_veh` | 3 | 308.517 | 408.992 | -100.475 | 102.345 | 408.992 | -100.475 | 102.345 | 0.704 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `total_model_vehicles` | 3 | 888.358 | 1073.559 | -185.201 | 190.839 | 1157.327 | -268.969 | 268.969 | 0.744 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `urban_link_occupancy_total_veh` | 3 | 235.133 | 408.893 | -173.759 | 173.759 | 408.893 | -173.759 | 173.759 | 0.544 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `urban_movement_queue_total_veh` | 3 | 404.225 | 508.626 | -104.401 | 115.940 | 508.626 | -104.401 | 115.940 | 0.792 |
+| `decisions_auth_220w_signal_major_seed13_600s` | `diagnostic-signal-major` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 639.358 | 929.123 | -289.764 | 289.764 | 917.519 | -278.160 | 278.160 | 0.665 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `freeway_total_veh` | 3 | 247.333 | 154.388 | +92.946 | 92.946 | 237.269 | +10.065 | 25.739 | 1.083 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `protected_accumulation_veh` | 3 | 360.633 | 428.562 | -67.929 | 67.929 | 428.562 | -67.929 | 67.929 | 0.889 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `total_model_vehicles` | 3 | 932.538 | 1038.816 | -106.278 | 106.278 | 1121.697 | -189.159 | 189.159 | 0.832 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `urban_link_occupancy_total_veh` | 3 | 315.533 | 363.708 | -48.174 | 63.301 | 363.708 | -48.174 | 63.301 | 0.831 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `urban_movement_queue_total_veh` | 3 | 369.671 | 520.720 | -151.050 | 151.050 | 520.720 | -151.050 | 151.050 | 0.725 |
+| `decisions_auth_220w_signal_minor_seed13_600s` | `diagnostic-signal-minor` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 685.204 | 895.614 | -210.409 | 210.409 | 884.428 | -199.224 | 199.224 | 0.781 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `freeway_total_veh` | 3 | 262.667 | 202.805 | +59.862 | 59.862 | 311.679 | -49.012 | 49.012 | 0.810 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `protected_accumulation_veh` | 3 | 341.558 | 466.293 | -124.735 | 130.673 | 466.293 | -124.735 | 130.673 | 0.711 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `total_model_vehicles` | 3 | 822.954 | 1033.125 | -210.171 | 233.875 | 1141.999 | -319.044 | 319.044 | 0.671 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `urban_link_occupancy_total_veh` | 3 | 284.500 | 402.284 | -117.784 | 117.784 | 402.284 | -117.784 | 117.784 | 0.661 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `urban_movement_queue_total_veh` | 3 | 275.788 | 428.036 | -152.248 | 152.248 | 428.036 | -152.248 | 152.248 | 0.586 |
+| `decisions_auth_220w_vsl80_seed13_600s` | `diagnostic-vsl80` | `urban_queue_plus_link_occupancy_total_veh` | 3 | 560.288 | 840.821 | -280.533 | 280.533 | 830.320 | -270.032 | 270.032 | 0.621 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `freeway_total_veh` | 10 | 288.800 | 164.120 | +124.680 | 124.680 | 252.226 | +36.574 | 48.544 | 1.115 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `protected_accumulation_veh` | 10 | 481.563 | 822.607 | -341.044 | 341.044 | 822.607 | -341.044 | 341.044 | 0.576 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `total_model_vehicles` | 10 | 1144.120 | 1287.618 | -143.498 | 148.568 | 1375.724 | -231.604 | 231.604 | 0.853 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `urban_link_occupancy_total_veh` | 10 | 405.240 | 677.820 | -272.580 | 272.580 | 677.820 | -272.580 | 272.580 | 0.582 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `urban_movement_queue_total_veh` | 10 | 450.080 | 445.678 | +4.402 | 44.312 | 445.678 | +4.402 | 44.312 | 1.029 |
+| `decisions_pstack_220w_decision_balanced_postguard_seed13` | `stackelberg-wu-metered` | `urban_queue_plus_link_occupancy_total_veh` | 10 | 855.320 | 1137.707 | -282.387 | 282.387 | 1123.498 | -268.178 | 268.178 | 0.762 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `freeway_total_veh` | 10 | 288.800 | 164.120 | +124.680 | 124.680 | 252.226 | +36.574 | 48.544 | 1.115 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `protected_accumulation_veh` | 10 | 481.563 | 822.607 | -341.044 | 341.044 | 822.607 | -341.044 | 341.044 | 0.576 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `total_model_vehicles` | 10 | 1144.120 | 1287.618 | -143.498 | 148.568 | 1375.724 | -231.604 | 231.604 | 0.853 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `urban_link_occupancy_total_veh` | 10 | 405.240 | 677.820 | -272.580 | 272.580 | 677.820 | -272.580 | 272.580 | 0.582 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `urban_movement_queue_total_veh` | 10 | 450.080 | 445.678 | +4.402 | 44.312 | 445.678 | +4.402 | 44.312 | 1.029 |
+| `decisions_pstack_220w_decision_balanced_seed13` | `stackelberg-wu-metered` | `urban_queue_plus_link_occupancy_total_veh` | 10 | 855.320 | 1137.707 | -282.387 | 282.387 | 1123.498 | -268.178 | 268.178 | 0.762 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `freeway_total_veh` | 10 | 284.000 | 161.828 | +122.172 | 122.172 | 248.703 | +35.297 | 46.940 | 1.122 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `protected_accumulation_veh` | 10 | 487.082 | 823.614 | -336.531 | 336.531 | 823.614 | -336.531 | 336.531 | 0.570 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `total_model_vehicles` | 10 | 1139.096 | 1284.931 | -145.835 | 150.905 | 1371.806 | -232.710 | 232.710 | 0.852 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `urban_link_occupancy_total_veh` | 10 | 408.940 | 678.005 | -269.065 | 269.065 | 678.005 | -269.065 | 269.065 | 0.581 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `urban_movement_queue_total_veh` | 10 | 446.156 | 445.098 | +1.058 | 43.193 | 445.098 | +1.058 | 43.193 | 1.018 |
+| `decisions_pstack_220w_guarded_terminal_seed13` | `stackelberg-wu-metered` | `urban_queue_plus_link_occupancy_total_veh` | 10 | 855.096 | 1137.307 | -282.211 | 282.211 | 1123.103 | -268.007 | 268.007 | 0.759 |

@@ -1,0 +1,12 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_combined_20260715",
+  "description": "Second 2026-07-15 P-Stack recalibration candidate. Uses the MFD smoke N_P_crit=277 candidate and switches the leader MFD penalty to combined mode so protected-exceed uses N_P_crit while retaining all-urban half-cap storage pressure.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_20260715.json",
+    "reason": "mfd277-only smoke left leader_target_penalty at 0 because all_urban_halfcap ignores N_P_crit; combined mode activates protected_exceed without removing storage canary coverage."
+  },
+  "leader": {
+    "mfd_penalty_mode": "combined"
+  }
+}

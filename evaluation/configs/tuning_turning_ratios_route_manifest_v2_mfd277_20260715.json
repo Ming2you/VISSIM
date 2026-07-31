@@ -1,0 +1,16 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_20260715",
+  "description": "8-seg VISSIM MFD smoke recalibration candidate. Keeps route-manifest v2 turning ratios and changes only the leader protected-accumulation setpoint/range from the 2026-07-15 MFD smoke peak.",
+  "calibration_basis": {
+    "mfd_smoke_run": "evaluation/runs/calibration_mfd_smoke_8seg_watchdog_20260715",
+    "fit_json": "evaluation/calibration/vissim_mfd_fit_smoke_8seg_20260715.json",
+    "candidate_N_P_crit_veh": 277.0,
+    "previous_N_P_crit_veh": 390.0,
+    "caveat": "Smoke fit uses aggregate signal stopline discharge as production proxy; validate with held-out seed/cell before promotion."
+  },
+  "leader": {
+    "N_P_crit_veh": 277.0,
+    "N_P_star_range": [0.0, 554.0]
+  }
+}

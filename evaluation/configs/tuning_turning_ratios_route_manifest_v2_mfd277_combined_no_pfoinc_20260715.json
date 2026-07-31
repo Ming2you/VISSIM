@@ -1,0 +1,12 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_combined_no_pfoinc_20260715",
+  "description": "Diagnostic P-Stack recalibration candidate: activates N_P_crit protected-exceed via combined MFD mode and disables the PFO incumbent so the Stackelberg leader candidate can actually be committed during smoke testing.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_20260715.json",
+    "reason": "combined mode activated leader_target_penalty, but PFO incumbent was still selected in every smoke decision and produced identical actions to mfd277-only."
+  },
+  "mpc": {
+    "stackelberg_enable_pfo_incumbent": false
+  }
+}

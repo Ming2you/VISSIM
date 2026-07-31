@@ -1,0 +1,35 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_decision_calibrated_balanced_postguard_20260716.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_prediction_response_calibrated_20260716",
+  "description": "Prediction-response calibration candidate fitted from 220w authority and existing P-Stack decision JSON counterfactual replay, then refined with saved-authority adapter replay. It applies prediction audit scales plus a higher urban propagation speed candidate to reduce component prediction error.",
+  "calibration_basis": {
+    "source": "outputs/authority_replay_parameter_grid_20260716.json",
+    "scale_source": "outputs/prediction_response_calibration_grid_20260716.json",
+    "selected_candidate": "speed130_scale",
+    "freeway_total_scale": 1.1,
+    "urban_queue_plus_storage_scale": 0.7,
+    "urban_avg_speed_km_h": 130.0,
+    "note": "Scales are absolute multipliers against raw one-step prediction summaries. The urban speed override is a replay-fitted propagation candidate, not a plant actuation change."
+  },
+  "network": {
+    "urban_avg_speed_km_h": 130.0
+  },
+  "calibration_override": {
+    "prediction": {
+      "status": "prediction_response_counterfactual_grid_20260716",
+      "audit_calibration": {
+        "enabled": true,
+        "mode": "prediction_response_counterfactual_grid_20260716",
+        "freeway_total_scale": 1.1,
+        "urban_queue_plus_storage_scale": 0.7
+      }
+    }
+  },
+  "adapter": {
+    "post_guard_safety": {
+      "score": {
+        "use_calibrated_prediction": true
+      }
+    }
+  }
+}

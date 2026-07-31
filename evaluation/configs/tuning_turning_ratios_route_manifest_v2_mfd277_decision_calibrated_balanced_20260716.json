@@ -1,0 +1,28 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_decision_calibrated_20260716.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_decision_calibrated_balanced_20260716",
+  "description": "Balanced decision-path calibration: keeps PFO incumbent disabled and terminal-cost scoring active, but restores a high queue-risk ramp-release floor after the first decision-calibrated run improved 155w slightly and worsened 190w by over-holding ramp/urban queues.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_decision_calibrated_20260716.json",
+    "first_pass_result": {
+      "155w_ttt_veh_h": 312.6436111111111,
+      "190w_ttt_veh_h": 482.3236111111111,
+      "diagnosis": "PFO removal made actions responsive, but the relaxed 0.70/0.90 ramp-release floor reduced mean ramp release to about 785 vph and raised 190w stopped vehicle-hours. Keep decision responsiveness while restoring queue-risk release protection."
+    }
+  },
+  "actuation": {
+    "ramp_release_guard": {
+      "min_release_ratio_of_capacity": 0.82,
+      "queue_high_release_ratio_of_capacity": 0.95,
+      "ramp_queue_threshold_veh": 10.0,
+      "boundary_queue_threshold_veh": 120.0,
+      "stopped_threshold_veh": 180.0,
+      "no_control_fallback": {
+        "enabled": true,
+        "min_release_ratio_of_uncontrolled": 0.78,
+        "max_density_ratio_for_fallback": 1.35,
+        "require_queue_or_stopped": true
+      }
+    }
+  }
+}

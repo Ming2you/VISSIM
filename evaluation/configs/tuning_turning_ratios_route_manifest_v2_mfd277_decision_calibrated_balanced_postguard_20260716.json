@@ -1,0 +1,39 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_decision_calibrated_balanced_20260716.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_decision_calibrated_balanced_postguard_20260716",
+  "description": "Opt-in post-guard safety calibration candidate. Keeps the balanced decision-path calibration, then evaluates the final guarded plant-facing action against an explicit no-control safety baseline before writing the action.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_decision_calibrated_balanced_20260716.json",
+    "terminal_cost_fit": "evaluation/calibration/vissim_terminal_cost_fit_20260715.json",
+    "reason": "Leader candidates are scored before adapter policy/actuation guards, so this candidate adds a conservative post-guard terminal-score check and commits no-control only when the guarded action is worse than no-control by a configured margin."
+  },
+  "adapter": {
+    "post_guard_safety": {
+      "enabled": true,
+      "score": {
+        "fit_json": "evaluation/calibration/vissim_terminal_cost_fit_20260715.json",
+        "weight": 0.75,
+        "features": [
+          "total_vehicles",
+          "urban_vehicles",
+          "ramp_vehicles",
+          "boundary_vehicles",
+          "stopped_vehicles"
+        ],
+        "coefficient_mode": "positive_only",
+        "include_intercept": false,
+        "clamp_nonnegative": true,
+        "use_calibrated_prediction": true
+      },
+      "no_control_baseline": {
+        "enabled": true,
+        "fallback_enabled": true,
+        "fallback_margin_score": 2.0
+      },
+      "pfo_baseline": {
+        "enabled": false,
+        "fallback_enabled": false
+      }
+    }
+  }
+}

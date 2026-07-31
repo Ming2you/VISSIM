@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-24",
+  "calibration_version": "real_world_prediction_calibration_pshb4500fix_20260724",
+  "status": "candidate_prediction_audit_calibration_from_real_world_4500s_replay",
+  "fit_basis": {
+    "source_decision_dir": "evaluation\\runs\\rw_cg_hb_4500_fixguard_0723\\decisions_pshb4500fixs13",
+    "source_summary_json": "outputs\\real_world_prediction_accuracy_pshb4500fix_20260724_summary.json",
+    "warmup_sec": 900.0,
+    "end_sec": 4500.0,
+    "sample_count_per_metric": 61,
+    "method": "mean observed / mean predicted scale from one-step prediction_error scalar metrics"
+  },
+  "prediction": {
+    "audit_calibration": {
+      "enabled": true,
+      "method": "componentwise observed_over_predicted_mean with consistency recompute",
+      "freeway_total_scale": 1.06374965106,
+      "urban_queue_plus_storage_scale": 0.179051736293,
+      "component_scales": {
+        "freeway_mean_speed_kph": 0.613090858943,
+        "protected_accumulation_veh": 0.183347858615,
+        "urban_movement_queue_total_veh": 0.244583629234,
+        "urban_link_occupancy_total_veh": 0.141215515999,
+        "off_ramp_storage_veh": 0.380019257126,
+        "boundary_queue_total_veh": 0.05
+      },
+      "recompute_urban_queue_plus_storage_from_components": true,
+      "recompute_urban_total_from_components": true,
+      "recompute_total_model_vehicles_from_components": true,
+      "notes": [
+        "METANET mass/density error is small; this applies a 1.064 freeway mass scale and a separate speed scale because mean speed was overpredicted by about 39.7 kph.",
+        "Kashani/local urban components were strongly overpredicted; queue and storage are scaled independently, then urban mass terms are recomputed from calibrated components.",
+        "Ramp queue was underpredicted by about 61x, which exceeds the adapter's safe component scale range; it is intentionally left for a separate ramp-arrival/queue-state calibration."
+      ]
+    }
+  }
+}

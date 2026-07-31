@@ -1,0 +1,1060 @@
+{
+  "schema_version": 1,
+  "status": "ok",
+  "run_dir": "evaluation/runs/pstack_decision_balanced_ladder_20260716",
+  "cases": [
+    {
+      "case": "pstack_155w_decision_balanced_seed13",
+      "status": "ok",
+      "counts": {
+        "state_rows": 361,
+        "action_rows": 429,
+        "decision_count_action_csv": 11,
+        "decision_json_count": 11,
+        "decision_csv_count": 11,
+        "prediction_error_count": 10
+      },
+      "completed_sim_sec": 1800,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_155w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_155w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_155w_decision_balanced_seed13.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 361
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 429
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 1800,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 1800.0,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 429,
+          "action_rows": 429
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 10,
+          "actual": 10
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_155w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 37095,
+          "sha256": "ef7982063245cab70730ce3045b4af38f835bcb4db51176bbfbf4bfa3b25e2e7"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_155w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 21762,
+          "sha256": "ee6510e724eff0fa5d9a30bb0389722ce84fcd2d66e881fe335317d27ffcd2ca"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_155w_decision_balanced_seed13.txt",
+          "exists": true,
+          "bytes": 6820,
+          "sha256": "7ccf80a9aa6cc84e7f3a150ab8b83ab6fad19a9b05436ed2f052cd38d26f3c7a"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000001.json",
+          "exists": true,
+          "bytes": 39281,
+          "sha256": "5a499400c7a725a521794e9c9a47aa1c2a31b0ac1a3314ff8813209135218925"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000180.json",
+          "exists": true,
+          "bytes": 44410,
+          "sha256": "3a6973101a69c15c4159a45816ee491f59b60ee29455b6ae5ccdaa4ab8dac647"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000360.json",
+          "exists": true,
+          "bytes": 44536,
+          "sha256": "41f8fa9a9382ef88e8262f2f77ec7f7afb2eca1bf8c982d710672f71e9e5690b"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000540.json",
+          "exists": true,
+          "bytes": 44630,
+          "sha256": "201ef1411d054baac25def186eee388fe85996e54c703bdc5be5dff80a5d007d"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000720.json",
+          "exists": true,
+          "bytes": 44403,
+          "sha256": "79830ddc29a4ca560e27e542f1f798e195d938c8d45507dce105a3c753b8afb2"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000900.json",
+          "exists": true,
+          "bytes": 44384,
+          "sha256": "1829c3d886c5c2a049161973107b982a0e4f9ba77d9511bdb229442382c5685c"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001080.json",
+          "exists": true,
+          "bytes": 44436,
+          "sha256": "8069a31e9e313e0e1d98120f897ea659837a7a878adc4918cdad60788d8b6b25"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001260.json",
+          "exists": true,
+          "bytes": 44563,
+          "sha256": "e47f764f326b5249f0c50484aeb2138e6e4f30a8f14e743410664ee60f99179d"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001440.json",
+          "exists": true,
+          "bytes": 44612,
+          "sha256": "dcd5358afae6542b1b78d13f62ac9ebc323abfb9441b512e4025d0bb48f74142"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001620.json",
+          "exists": true,
+          "bytes": 44506,
+          "sha256": "6d0e6714f0130ef41d0cb7a07e95dc218d58164d4191003d23a0f5e7e7a8a47c"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001800.json",
+          "exists": true,
+          "bytes": 44215,
+          "sha256": "6f051b46115dbad7055838dd35745e1b2b54c69cf8487737a4bb2f5824eb173d"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000001.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b688e9e9864b30928e5172010f7f66098131ee51b87e22e17a34916164679069"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000180.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b688e9e9864b30928e5172010f7f66098131ee51b87e22e17a34916164679069"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000360.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "f1bf4e1ab556749d824971090fd28610a1daec108638ccfa823a27de23408593"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000720.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "94ef197c4612778c392ad5a7b62a65f5f318171bd07c505f22fe7c5fd3d8050b"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_000900.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001080.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "b5deb99101677c1a39a3f9a696dba3c9a75845eba1979c8737bde47496ddd017"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001260.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001440.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "bd2f18c3f5f0f3dd9dede6b763b80a76e66af6947553416273ae23c162859a1d"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001620.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "59e0f5039812c85e84955cfbf745dcd4a9bd482a222e5e2a32d71b853622b717"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_155w_decision_balanced_seed13/action_001800.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b6aed6e9a40a899fb2c4786a05926246aac843aaa409e8268f15f6dc39a6a0d7"
+        }
+      ]
+    },
+    {
+      "case": "pstack_190w_decision_balanced_seed13",
+      "status": "ok",
+      "counts": {
+        "state_rows": 361,
+        "action_rows": 429,
+        "decision_count_action_csv": 11,
+        "decision_json_count": 11,
+        "decision_csv_count": 11,
+        "prediction_error_count": 10
+      },
+      "completed_sim_sec": 1800,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_190w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_190w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_190w_decision_balanced_seed13.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 361
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 429
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 1800,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 1800.0,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 429,
+          "action_rows": 429
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 10,
+          "actual": 10
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_190w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 37243,
+          "sha256": "f96545b3ffaa444d3df3be94b9ad197d9d4172ea5f44125480ca02aca0538b2e"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_190w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 21756,
+          "sha256": "ed21118ae617aa39d61812d24622d4c3ef6eb969dd57e1afea823d25518c07b3"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_190w_decision_balanced_seed13.txt",
+          "exists": true,
+          "bytes": 6819,
+          "sha256": "c6f98e0f96ecac09e2fc82f7b565be2a9ecf579a80e0ec1cac4b3153e19710a6"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000001.json",
+          "exists": true,
+          "bytes": 39266,
+          "sha256": "4e50375496f899a9f9c3c6d3c37e06f91a45cad84308825408d7e8a9a74d9b2e"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000180.json",
+          "exists": true,
+          "bytes": 44412,
+          "sha256": "7f42cc2c02d3e9b5bf3e8203787095bbac61c6376f3a870d408251f6ab1de005"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000360.json",
+          "exists": true,
+          "bytes": 44481,
+          "sha256": "d25b1f6f36c1251c4e6dc5e70cbbd960eed0c3cfe7547009aa34bae7af5b50ec"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000540.json",
+          "exists": true,
+          "bytes": 44385,
+          "sha256": "bd96186bfc3d953ed4c7abb6b271f1464e7e9e2252eecd5c0c520a1042333ff6"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000720.json",
+          "exists": true,
+          "bytes": 44448,
+          "sha256": "7fb9eb39ca71fd1e1818bf0a512858e8c77d4fba213b47688a491759ea661d30"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000900.json",
+          "exists": true,
+          "bytes": 44438,
+          "sha256": "16ea03eacf018294c50ff1169a700765a052b3568fe00ab02622576b33d01172"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001080.json",
+          "exists": true,
+          "bytes": 28317,
+          "sha256": "972681a96d70b8386e4787f15ac735b01cc35d18dc0ecac6af1cd056d2dfbf4b"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001260.json",
+          "exists": true,
+          "bytes": 44204,
+          "sha256": "a93472694cdfc875d969637a097dcfc0fcf944046e858e9fec1532527dade401"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001440.json",
+          "exists": true,
+          "bytes": 44429,
+          "sha256": "ed17a80878effd397968112d5179876bb8ae2f00a01f962207dbabdad06b7c57"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001620.json",
+          "exists": true,
+          "bytes": 44503,
+          "sha256": "d4dbb17a10a16cd7aa2dd416f903d3e134c8370873560faee1b19c8d28f76bb9"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001800.json",
+          "exists": true,
+          "bytes": 44226,
+          "sha256": "9fd4567f01bf9efe655382810c58df6f49bb4a07d6602f6fe3253ead087f140e"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000001.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b688e9e9864b30928e5172010f7f66098131ee51b87e22e17a34916164679069"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000360.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "36be2bda4bfaa341222041a08d21f8408eb97226c26ed15a07f8baffdc2ee6f4"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000540.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "523e2f0651c06bb7080ca7154b6f048a9a36ba9164102e5284eeca12e437300e"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000720.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_000900.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "40670d6099073cf932b4141ffc251591281e95c767d31e1e1b3dae48bde03e29"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001080.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001260.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001440.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "38eb9368f47430b5b584d812a38e47a563bb01363597f4164bc58373c2109bb4"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001620.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_190w_decision_balanced_seed13/action_001800.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "f69759ebe5a0507720be5e3fc4b2babf5081247fe99fee89e57bd8abe39af9a7"
+        }
+      ]
+    },
+    {
+      "case": "pstack_220w_decision_balanced_seed13",
+      "status": "ok",
+      "counts": {
+        "state_rows": 361,
+        "action_rows": 429,
+        "decision_count_action_csv": 11,
+        "decision_json_count": 11,
+        "decision_csv_count": 11,
+        "prediction_error_count": 10
+      },
+      "completed_sim_sec": 1800,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_220w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_220w_decision_balanced_seed13.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_220w_decision_balanced_seed13.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 361
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 429
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 11
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 1800,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540,
+            720,
+            900,
+            1080,
+            1260,
+            1440,
+            1620,
+            1800
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 11,
+          "actual": 11
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 1800.0,
+          "sim_period_sec": 1800.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 429,
+          "action_rows": 429
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 10,
+          "actual": 10
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/state_pstack_220w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 37446,
+          "sha256": "3b74bbabecd13645ab01f1f01a7e5a4139b5fe6864e5af0c2d2652171ba5dd0b"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/action_pstack_220w_decision_balanced_seed13.csv",
+          "exists": true,
+          "bytes": 21752,
+          "sha256": "d7c6301f5df664ab36fae5b1ff6e6039302beac5916a3b08cdc2a4a5f56623a4"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/runlog_pstack_220w_decision_balanced_seed13.txt",
+          "exists": true,
+          "bytes": 6818,
+          "sha256": "df47526c8afd3ca616a83764fc5a1408c2ee619ec74f04ad99021a2fd0c4b7cc"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000001.json",
+          "exists": true,
+          "bytes": 39801,
+          "sha256": "6c426851a1dab0b9ce5dd8239c9dd532a77d97852a28131c737a212e24310641"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000180.json",
+          "exists": true,
+          "bytes": 44751,
+          "sha256": "dafcc3a176299f61d635f53afc52546ce0537fed58f3502eb74c5c3335361f8e"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000360.json",
+          "exists": true,
+          "bytes": 44510,
+          "sha256": "cca5752424d67ac95ac3e3555c51111b999ca717e0861cc67ba65d79aa503697"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000540.json",
+          "exists": true,
+          "bytes": 44376,
+          "sha256": "d469018001651119f4a9d8a5e364a30734b4a44cccf1f4c0cedc9b1b10c36e4a"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000720.json",
+          "exists": true,
+          "bytes": 44347,
+          "sha256": "7f47d2c9e9606986f554b2a121cb77e74aa6f49da3655d0f9140ba5a701bd268"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000900.json",
+          "exists": true,
+          "bytes": 44430,
+          "sha256": "3169693da478ba6084c4e3083c5c750ab5f16385b60c49ce61ff84a8fb53d7dd"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001080.json",
+          "exists": true,
+          "bytes": 44455,
+          "sha256": "30839760192ea2a59fd803020b72ed147ded4e1ed71583bd08880e8e148a8037"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001260.json",
+          "exists": true,
+          "bytes": 44428,
+          "sha256": "dbe80fbf7e0955d85006524428b945d9d62dfcfb2f99050df37e8f7d80c99c05"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001440.json",
+          "exists": true,
+          "bytes": 44442,
+          "sha256": "d8781c33f2d92a2ed24a47a4b7df8a3e7043bc2cd3f00654262da8e3e04e32ff"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001620.json",
+          "exists": true,
+          "bytes": 44578,
+          "sha256": "6fc8a9911c04c8bfbcfb9793f64652c2d4c3c7691304d93faeb274ac9386ebc0"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001800.json",
+          "exists": true,
+          "bytes": 44355,
+          "sha256": "6aa2ecc64db12eec52e44a02fbac0d4790c4afd3c5668a6116aa3212f8bf7246"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000001.csv",
+          "exists": true,
+          "bytes": 1729,
+          "sha256": "b688e9e9864b30928e5172010f7f66098131ee51b87e22e17a34916164679069"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000540.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "38eb9368f47430b5b584d812a38e47a563bb01363597f4164bc58373c2109bb4"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000720.csv",
+          "exists": true,
+          "bytes": 1728,
+          "sha256": "dd6fa1a998f5f8738c6bccc8d48a8a6458842df01de796cee94c324c9ee304b2"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_000900.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001080.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001260.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001440.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "38eb9368f47430b5b584d812a38e47a563bb01363597f4164bc58373c2109bb4"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001620.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        },
+        {
+          "path": "evaluation/runs/pstack_decision_balanced_ladder_20260716/decisions_pstack_220w_decision_balanced_seed13/action_001800.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "93a9f3b76d5c850c6a0c2ea9ce4ae1ee1a47ca4d0c3e289d23e9b65e74c79cde"
+        }
+      ]
+    }
+  ]
+}

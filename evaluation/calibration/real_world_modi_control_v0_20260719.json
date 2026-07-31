@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-19",
+  "calibration_version": "real_world_modi_control_v0_20260719",
+  "status": "geometry_and_control_authority_defined_uncalibrated_response",
+  "source_network": "C:\\Users\\TRLAB\\Documents\\Codex\\2026-07-15\\ming2you-vissim-https-github-com-ming2you\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+  "source_mapping": "C:\\Users\\TRLAB\\Documents\\Codex\\2026-07-15\\ming2you-vissim-https-github-com-ming2you\\evaluation\\real_world_modi_control\\control_mapping.json",
+  "physical_inventory": {
+    "notes": [
+      "Initial real-world geometry/control-authority profile for Gaepo modi.",
+      "Response curves are engineering defaults; run dedicated VISSIM response calibration before treating them as fitted.",
+      "Connector 10699 is excluded from ramp metering because it is a freeway feeder/mainline entry."
+    ],
+    "freeway_segment_length_profile_km": {
+      "FW_E": [
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822,
+        1.004823,
+        1.004822
+      ],
+      "FW_W": [
+        1.003668,
+        1.003668,
+        1.003667,
+        1.003668,
+        1.003668,
+        1.003668,
+        1.003667,
+        1.003668
+      ]
+    },
+    "freeway_segment_bounds_m": {
+      "FW_E": [
+        0.0,
+        1004.823,
+        2009.645,
+        3014.468,
+        4019.29,
+        5024.113,
+        6028.935,
+        7033.758,
+        8038.58
+      ],
+      "FW_W": [
+        0.0,
+        1003.668,
+        2007.336,
+        3011.003,
+        4014.671,
+        5018.339,
+        6022.007,
+        7025.674,
+        8029.342
+      ]
+    },
+    "ramp_meter_connectors": [
+      {
+        "id": "RM_C10480",
+        "connector": 10480,
+        "from_link": 31,
+        "from_pos_m": 734.931,
+        "to_link": 26,
+        "to_pos_m": 3525.124,
+        "to_model_link": "FW_W",
+        "to_model_segment_index": 3,
+        "sc_no": 9101,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_D_W",
+        "purpose": "Ramp meter on connector 10480 link 31 to freeway link 26"
+      },
+      {
+        "id": "RM_C10482",
+        "connector": 10482,
+        "from_link": 32,
+        "from_pos_m": 1028.621,
+        "to_link": 26,
+        "to_pos_m": 3829.779,
+        "to_model_link": "FW_W",
+        "to_model_segment_index": 3,
+        "sc_no": 9102,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_D_W",
+        "purpose": "Ramp meter on connector 10482 link 32 to freeway link 26"
+      },
+      {
+        "id": "RM_C10646",
+        "connector": 10646,
+        "from_link": 68,
+        "from_pos_m": 352.004,
+        "to_link": 26,
+        "to_pos_m": 6072.55,
+        "to_model_link": "FW_W",
+        "to_model_segment_index": 6,
+        "sc_no": 9103,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_F_W",
+        "purpose": "Ramp meter on connector 10646 link 68 to freeway link 26"
+      },
+      {
+        "id": "RM_C10644",
+        "connector": 10644,
+        "from_link": 69,
+        "from_pos_m": 1740.482,
+        "to_link": 26,
+        "to_pos_m": 6774.308,
+        "to_model_link": "FW_W",
+        "to_model_segment_index": 6,
+        "sc_no": 9104,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_F_W",
+        "purpose": "Ramp meter on connector 10644 link 69 to freeway link 26"
+      },
+      {
+        "id": "RM_C10639",
+        "connector": 10639,
+        "from_link": 70,
+        "from_pos_m": 180.143,
+        "to_link": 2,
+        "to_pos_m": 1876.292,
+        "to_model_link": "FW_E",
+        "to_model_segment_index": 1,
+        "sc_no": 9105,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_F_E",
+        "purpose": "Ramp meter on connector 10639 link 70 to freeway link 2"
+      },
+      {
+        "id": "RM_C10681",
+        "connector": 10681,
+        "from_link": 68,
+        "from_pos_m": 76.589,
+        "to_link": 2,
+        "to_pos_m": 2165.429,
+        "to_model_link": "FW_E",
+        "to_model_segment_index": 2,
+        "sc_no": 9106,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_F_E",
+        "purpose": "Ramp meter on connector 10681 link 68 to freeway link 2"
+      },
+      {
+        "id": "RM_C10490",
+        "connector": 10490,
+        "from_link": 32,
+        "from_pos_m": 1330.644,
+        "to_link": 2,
+        "to_pos_m": 4413.602,
+        "to_model_link": "FW_E",
+        "to_model_segment_index": 4,
+        "sc_no": 9107,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_D_E",
+        "purpose": "Ramp meter on connector 10490 link 32 to freeway link 2"
+      },
+      {
+        "id": "RM_C10484",
+        "connector": 10484,
+        "from_link": 31,
+        "from_pos_m": 412.087,
+        "to_link": 2,
+        "to_pos_m": 4702.918,
+        "to_model_link": "FW_E",
+        "to_model_segment_index": 4,
+        "sc_no": 9108,
+        "sg_no": 1,
+        "default_green_sec": 10.0,
+        "cycle_sec": 10.0,
+        "capacity_vph": 900.0,
+        "model_ramp_key": "R_D_E",
+        "purpose": "Ramp meter on connector 10484 link 31 to freeway link 2"
+      }
+    ]
+  },
+  "operational": {
+    "network": {
+      "v_free_kph": 100.0,
+      "rho_crit_veh_km_lane": 24.0,
+      "freeway_capacity_veh_h": 7600.0
+    },
+    "ramp_metering": {
+      "D_green_to_release_vph_initial_mpc": {
+        "0": 0.0,
+        "10": 1800.0
+      },
+      "F_green_to_release_vph_raw": {
+        "0": 0.0,
+        "10": 1800.0
+      },
+      "F_status": "real_world_metering_available"
+    },
+    "signal": {
+      "recommended_initial_lost_time_sec": 6.0,
+      "recommended_initial_saturation_flow_vph_approach": 1800.0
+    },
+    "urban_mfd": {
+      "N_P_crit_veh_initial": 600.0
+    }
+  }
+}

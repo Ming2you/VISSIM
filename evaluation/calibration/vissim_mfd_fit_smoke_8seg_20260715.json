@@ -1,0 +1,286 @@
+{
+  "batch_dir": "evaluation\\runs\\calibration_mfd_smoke_8seg_watchdog_20260715",
+  "warmup_sec": 60.0,
+  "fd": {
+    "sample_count": 1240,
+    "moving_sample_count": 1172,
+    "free_speed_p85_kph": 123.87274225000002,
+    "free_speed_p50_kph": 116.8325325,
+    "max_flow_proxy_veh_h": 4809.136219,
+    "rho_at_max_flow_veh_km_lane": 27.106703,
+    "speed_at_max_flow_kph": 88.707509,
+    "suggested_initial_overrides": {
+      "network.v_free": 123.873,
+      "network.freeway_capacity_veh_h": 4809.136,
+      "network.rho_crit": 27.107,
+      "network.rho_max": 34.134
+    },
+    "by_demand": {
+      "1000": {
+        "samples": 1172,
+        "median_density_veh_km_lane": 5.741496,
+        "median_speed_kph": 115.6104225,
+        "max_flow_proxy_veh_h": 4809.136219,
+        "rho_at_max_flow_veh_km_lane": 27.106703
+      }
+    },
+    "by_link": {
+      "FW_E": {
+        "samples": 580,
+        "free_speed_p85_kph": 123.5925814,
+        "max_flow_proxy_veh_h": 4809.136219,
+        "rho_at_max_flow_veh_km_lane": 27.106703
+      },
+      "FW_W": {
+        "samples": 592,
+        "free_speed_p85_kph": 123.96918994999999,
+        "max_flow_proxy_veh_h": 4215.848497,
+        "rho_at_max_flow_veh_km_lane": 20.494137
+      }
+    },
+    "caveat": "flow_proxy_veh_h is density*speed*lanes from instantaneous vehicle states; use detector/passage flow for final FD calibration."
+  },
+  "ramp_metering": {
+    "sample_count": 248,
+    "by_site_green": {
+      "D_g10": {
+        "site": "D",
+        "green_sec": 10.0,
+        "samples": 124,
+        "total_passage_count": 99.0,
+        "total_interval_sec": 1240.0,
+        "release_rate_vph": 287.41935483870964,
+        "median_logged_release_rate_vph": 0.0,
+        "median_queue_count": 2.0,
+        "max_queue_count": 8.0
+      },
+      "F_g10": {
+        "site": "F",
+        "green_sec": 10.0,
+        "samples": 124,
+        "total_passage_count": 6.0,
+        "total_interval_sec": 1240.0,
+        "release_rate_vph": 17.41935483870968,
+        "median_logged_release_rate_vph": 0.0,
+        "median_queue_count": 2.0,
+        "max_queue_count": 8.0
+      }
+    },
+    "suggested_green_to_rate_vph": {
+      "D": {
+        "10.0": 287.41935483870964
+      },
+      "F": {
+        "10.0": 17.41935483870968
+      }
+    },
+    "caveat": "Short or underfed ramp runs can underestimate capacity; final fit needs sustained queue at the meter."
+  },
+  "signal_saturation": {
+    "sample_count": 2480,
+    "by_approach": {
+      "A_L1": {
+        "node": "A",
+        "samples": 124,
+        "total_discharge_count": 175.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 508.0645161290323,
+        "max_logged_discharge_rate_vph": 3240.0
+      },
+      "A_L3": {
+        "node": "A",
+        "samples": 124,
+        "total_discharge_count": 275.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 798.3870967741935,
+        "max_logged_discharge_rate_vph": 3600.0
+      },
+      "A_L6": {
+        "node": "A",
+        "samples": 124,
+        "total_discharge_count": 350.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 1016.1290322580646,
+        "max_logged_discharge_rate_vph": 5760.0
+      },
+      "A_L8": {
+        "node": "A",
+        "samples": 124,
+        "total_discharge_count": 84.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 243.87096774193552,
+        "max_logged_discharge_rate_vph": 1800.0
+      },
+      "B_L12": {
+        "node": "B",
+        "samples": 124,
+        "total_discharge_count": 345.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 1001.6129032258063,
+        "max_logged_discharge_rate_vph": 4320.0
+      },
+      "B_L14": {
+        "node": "B",
+        "samples": 124,
+        "total_discharge_count": 24.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 69.67741935483872,
+        "max_logged_discharge_rate_vph": 720.0
+      },
+      "B_L5": {
+        "node": "B",
+        "samples": 124,
+        "total_discharge_count": 258.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 749.0322580645161,
+        "max_logged_discharge_rate_vph": 3960.0
+      },
+      "B_L9": {
+        "node": "B",
+        "samples": 124,
+        "total_discharge_count": 226.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 656.1290322580645,
+        "max_logged_discharge_rate_vph": 3600.0
+      },
+      "C_L11": {
+        "node": "C",
+        "samples": 124,
+        "total_discharge_count": 280.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 812.9032258064516,
+        "max_logged_discharge_rate_vph": 3240.0
+      },
+      "C_L15": {
+        "node": "C",
+        "samples": 124,
+        "total_discharge_count": 239.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 693.8709677419355,
+        "max_logged_discharge_rate_vph": 3240.0
+      },
+      "C_L18": {
+        "node": "C",
+        "samples": 124,
+        "total_discharge_count": 185.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 537.0967741935484,
+        "max_logged_discharge_rate_vph": 2880.0
+      },
+      "C_L20": {
+        "node": "C",
+        "samples": 124,
+        "total_discharge_count": 172.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 499.3548387096774,
+        "max_logged_discharge_rate_vph": 2520.0
+      },
+      "D_L21": {
+        "node": "D",
+        "samples": 124,
+        "total_discharge_count": 251.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 728.7096774193549,
+        "max_logged_discharge_rate_vph": 3240.0
+      },
+      "D_L24": {
+        "node": "D",
+        "samples": 124,
+        "total_discharge_count": 90.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 261.2903225806452,
+        "max_logged_discharge_rate_vph": 2160.0
+      },
+      "D_L26": {
+        "node": "D",
+        "samples": 124,
+        "total_discharge_count": 46.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 133.54838709677418,
+        "max_logged_discharge_rate_vph": 1800.0
+      },
+      "D_L7": {
+        "node": "D",
+        "samples": 124,
+        "total_discharge_count": 102.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 296.1290322580645,
+        "max_logged_discharge_rate_vph": 1440.0
+      },
+      "F_L19": {
+        "node": "F",
+        "samples": 124,
+        "total_discharge_count": 152.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 441.2903225806451,
+        "max_logged_discharge_rate_vph": 2520.0
+      },
+      "F_L27": {
+        "node": "F",
+        "samples": 124,
+        "total_discharge_count": 210.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 609.6774193548387,
+        "max_logged_discharge_rate_vph": 3960.0
+      },
+      "F_L30": {
+        "node": "F",
+        "samples": 124,
+        "total_discharge_count": 229.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 664.8387096774194,
+        "max_logged_discharge_rate_vph": 3600.0
+      },
+      "F_L32": {
+        "node": "F",
+        "samples": 124,
+        "total_discharge_count": 79.0,
+        "total_interval_sec": 1240.0,
+        "mean_discharge_rate_vph": 229.3548387096774,
+        "max_logged_discharge_rate_vph": 2160.0
+      }
+    },
+    "candidate_movement_capacity_veh_h": 5760.0,
+    "caveat": "Use high-demand saturated approaches before treating this as signal saturation flow."
+  },
+  "urban_mfd": {
+    "sample_count": 124,
+    "by_urban_demand": {
+      "800": {
+        "samples": 31,
+        "median_urban_accumulation_veh": 124.0,
+        "max_urban_accumulation_veh": 188.0,
+        "median_signal_production_vph": 9000.0,
+        "max_signal_production_vph": 19800.0
+      },
+      "1600": {
+        "samples": 31,
+        "median_urban_accumulation_veh": 230.0,
+        "max_urban_accumulation_veh": 325.0,
+        "median_signal_production_vph": 11520.0,
+        "max_signal_production_vph": 25560.0
+      },
+      "2400": {
+        "samples": 31,
+        "median_urban_accumulation_veh": 270.0,
+        "max_urban_accumulation_veh": 355.0,
+        "median_signal_production_vph": 11160.0,
+        "max_signal_production_vph": 24480.0
+      },
+      "3000": {
+        "samples": 31,
+        "median_urban_accumulation_veh": 285.0,
+        "max_urban_accumulation_veh": 409.0,
+        "median_signal_production_vph": 10800.0,
+        "max_signal_production_vph": 23400.0
+      }
+    },
+    "candidate_N_P_crit_veh": 277.0,
+    "max_signal_production_vph": 25560.0,
+    "caveat": "This uses signal stopline discharge as a production proxy; final MFD should use validated protected-region production counts."
+  },
+  "mpc_weight_tuning": {
+    "status": "pending",
+    "next": "Tune after FD, ramp, signal, and MFD physical calibration pass acceptance checks."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "source_inpx": "network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+  "output_inpx": "network\\real_world_gaepo_modi\\modi_eval_rw_control_peakhold4500_recovery_20260729.inpx",
+  "output_layx": "network\\real_world_gaepo_modi\\modi_eval_rw_control_peakhold4500_recovery_20260729.layx",
+  "plateau_start_sec": 1800,
+  "recovery_shift_sec": 1800,
+  "scale": 1.0,
+  "summary_csv": "outputs\\real_world_peakhold4500_recovery_demand_20260729.csv",
+  "changes_count": 155,
+  "after_label": "peakhold_recovery",
+  "before": [
+    {
+      "sec": 0,
+      "total_vph": 16461.76,
+      "urban_vph": 10301.76,
+      "freeway_vph": 6160.0,
+      "total_vs_peak_pct": 66.667
+    },
+    {
+      "sec": 900,
+      "total_vph": 23516.8,
+      "urban_vph": 14716.8,
+      "freeway_vph": 8800.0,
+      "total_vs_peak_pct": 95.238
+    },
+    {
+      "sec": 1800,
+      "total_vph": 24692.64,
+      "urban_vph": 15452.64,
+      "freeway_vph": 9240.0,
+      "total_vs_peak_pct": 100.0
+    },
+    {
+      "sec": 2700,
+      "total_vph": 21165.12,
+      "urban_vph": 13245.12,
+      "freeway_vph": 7920.0,
+      "total_vs_peak_pct": 85.714
+    },
+    {
+      "sec": 3600,
+      "total_vph": 16461.76,
+      "urban_vph": 10301.76,
+      "freeway_vph": 6160.0,
+      "total_vs_peak_pct": 66.667
+    },
+    {
+      "sec": 4500,
+      "total_vph": 11758.4,
+      "urban_vph": 7358.4,
+      "freeway_vph": 4400.0,
+      "total_vs_peak_pct": 47.619
+    }
+  ],
+  "after": [
+    {
+      "sec": 0,
+      "total_vph": 16461.76,
+      "urban_vph": 10301.76,
+      "freeway_vph": 6160.0,
+      "total_vs_peak_pct": 66.667
+    },
+    {
+      "sec": 900,
+      "total_vph": 23516.8,
+      "urban_vph": 14716.8,
+      "freeway_vph": 8800.0,
+      "total_vs_peak_pct": 95.238
+    },
+    {
+      "sec": 1800,
+      "total_vph": 24692.64,
+      "urban_vph": 15452.64,
+      "freeway_vph": 9240.0,
+      "total_vs_peak_pct": 100.0
+    },
+    {
+      "sec": 2700,
+      "total_vph": 24692.64,
+      "urban_vph": 15452.64,
+      "freeway_vph": 9240.0,
+      "total_vs_peak_pct": 100.0
+    },
+    {
+      "sec": 3600,
+      "total_vph": 24692.64,
+      "urban_vph": 15452.64,
+      "freeway_vph": 9240.0,
+      "total_vs_peak_pct": 100.0
+    },
+    {
+      "sec": 4500,
+      "total_vph": 21165.12,
+      "urban_vph": 13245.12,
+      "freeway_vph": 7920.0,
+      "total_vs_peak_pct": 85.714
+    },
+    {
+      "sec": 5400,
+      "total_vph": 16461.76,
+      "urban_vph": 10301.76,
+      "freeway_vph": 6160.0,
+      "total_vs_peak_pct": 66.667
+    },
+    {
+      "sec": 6300,
+      "total_vph": 11758.4,
+      "urban_vph": 7358.4,
+      "freeway_vph": 4400.0,
+      "total_vs_peak_pct": 47.619
+    }
+  ],
+  "note": "If recovery_shift_sec is positive, intervals after plateau_start_sec are delayed while preserving their original volumes, creating an extended peak with recovery. Otherwise, intervals at or after plateau_start_sec are set to each input's peak volume. Routes, signals, geometry, and control objects are unchanged."
+}

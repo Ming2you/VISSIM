@@ -1,0 +1,16 @@
+{
+  "extends": "real_world_modi_pstack_vsl_rollout_consensus_20260725.json",
+  "name": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725",
+  "description": "VISSIM-compatible VSL diagnostic config. It keeps VSL-aware METANET rollout and consensus finalization, but limits VSL candidates to desired-speed distributions observed to apply cleanly in modi.inpx.",
+  "config_overrides": {
+    "freeway_follower": {
+      "vsl_set": [80.0, 100.0, 120.0],
+      "max_vsl_step": 40.0,
+      "horizon_vsl_candidate_limit_per_link": 3
+    }
+  },
+  "notes": [
+    "110 kph is intentionally excluded because VISSIM reported missing Desired Speed Distribution 110 during the first P-Stack smoke.",
+    "Use this config for VISSIM runs; keep the consensus config for offline diagnosis only."
+  ]
+}

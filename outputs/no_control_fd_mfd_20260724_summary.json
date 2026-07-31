@@ -1,0 +1,61 @@
+{
+  "run_dir": "evaluation\\runs\\real_world_modi_lever_authority_warm900_eval3600_20260722",
+  "run_name": "no_control_scale135_warm900_eval3600_seed13",
+  "window_sec": [
+    900.0,
+    4500.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 976,
+    "positive_point_count": 976,
+    "links": {
+      "FW_E": {
+        "points": 488,
+        "density_min": 2.488003,
+        "density_max": 40.056846,
+        "speed_mean": 67.89552693237705,
+        "observed_flow_max_vph": 7251.304981547375,
+        "observed_flow_max_density": 29.607234,
+        "binned_capacity_mean_vph": 6352.245836448715,
+        "binned_critical_density": 31.0
+      },
+      "FW_W": {
+        "points": 488,
+        "density_min": 2.989036,
+        "density_max": 40.850162,
+        "speed_mean": 66.38097914139344,
+        "observed_flow_max_vph": 6965.968603834241,
+        "observed_flow_max_density": 32.630312,
+        "binned_capacity_mean_vph": 6451.392064166455,
+        "binned_critical_density": 41.0
+      }
+    }
+  },
+  "urban_mfd": {
+    "point_count": 61,
+    "state_aligned_peak_production_veh_km_h": 67140.89259999998,
+    "state_aligned_peak_accumulation_veh": 2725.0,
+    "state_aligned_peak_time_sec": 2400.0,
+    "core_peak_production_veh_km_h": 55277.580438000005,
+    "core_peak_accumulation_veh": 2534.0,
+    "core_peak_time_sec": 2400.0,
+    "state_aligned_accumulation_min": 1831.0,
+    "state_aligned_accumulation_max": 2761.0,
+    "core_accumulation_min": 1647.0,
+    "core_accumulation_max": 2572.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\no_control_fd_mfd_20260724_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\no_control_fd_mfd_20260724_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\no_control_fd_mfd_20260724_urban_mfd_points.csv",
+    "summary_json": "outputs\\no_control_fd_mfd_20260724_summary.json",
+    "freeway_fd_png": "outputs\\no_control_fd_mfd_20260724_freeway_fd.png",
+    "urban_mfd_png": "outputs\\no_control_fd_mfd_20260724_urban_mfd.png"
+  }
+}

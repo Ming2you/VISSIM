@@ -1,0 +1,15 @@
+{
+  "extends": "real_world_modi_pstack_crossgate_high_budget_20260723.json",
+  "name": "real_world_modi_pstack_crossgate_high_budget_nofallback_probe_20260723",
+  "description": "Offline-only diagnostic probe: same cross-gate high-budget settings, but disables Stackelberg fallback guard so the raw selected leader/follower action can be inspected.",
+  "config_overrides": {
+    "mpc": {
+      "stackelberg_enable_fallback": false,
+      "stackelberg_enable_pfo_incumbent": false
+    }
+  },
+  "notes": [
+    "Do not use as the default VISSIM safety run.",
+    "Use this to verify whether the high-budget controller can produce nontrivial lever commands before fallback guard suppression."
+  ]
+}

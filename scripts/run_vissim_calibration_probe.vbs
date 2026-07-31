@@ -118,6 +118,7 @@ For stepNo = 2 To CLng(simPeriod)
     UpdateCrossingCounts
     If stepNo Mod CLng(logInterval) = 0 Or stepNo = CLng(simPeriod) Then
         LogAll stepNo
+        WScript.Echo "RUN_SINGLE_STEP sim_sec=" & CStr(stepNo)
     End If
 Next
 

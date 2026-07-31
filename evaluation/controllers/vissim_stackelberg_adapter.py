@@ -72,7 +72,18 @@ def load_optional_json(path_text: str) -> dict[str, Any]:
     if not path.exists():
         return {}
     data = json.loads(path.read_text(encoding="utf-8"))
-    return data if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return {}
+    extends = data.get("extends", "")
+    if not extends:
+        return data
+    parent_path = Path(str(extends))
+    if not parent_path.is_absolute():
+        parent_path = path.parent / parent_path
+    parent = load_optional_json(str(parent_path))
+    child = dict(data)
+    child.pop("extends", None)
+    return deep_update(parent, child)
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -149,6 +160,305 @@ def _freeway_vehicle_count_by_link(state, cfg) -> dict[str, list[float]]:
             for i, rho in enumerate(densities)
         ]
     return counts
+
+
+def _vsl_rollout_tuning(tuning: Mapping[str, Any]) -> Mapping[str, Any]:
+    adapter = _mapping(tuning.get("adapter"))
+    return _mapping(adapter.get("vsl_metanet_rollout"))
+
+
+def _is_enabled(settings: Mapping[str, Any]) -> bool:
+    return str(settings.get("enabled", False)).lower() in {"1", "true", "yes", "on"}
+
+
+def _off_ramp_ratio_by_segment(cfg, link: str, count: int) -> list[float]:
+    net = cfg.network
+    out = [0.0 for _ in range(count)]
+    for off_ramp in getattr(net, "off_ramps", []):
+        if str(net.off_ramp_from_freeway.get(off_ramp, "")) != str(link):
+            continue
+        raw_idx = getattr(net, "off_ramp_segment_index", {}).get(off_ramp, count - 1)
+        idx = int(clamp(_as_float(raw_idx), 0.0, float(max(0, count - 1))))
+        out[idx] = clamp(out[idx] + _as_float(net.off_ramp_split_ratio.get(off_ramp), 0.0), 0.0, 1.0)
+    return out
+
+
+def _vsl_aware_link_rollout_terms(
+    context: Mapping[str, Any],
+    vsl_kph: float,
+    cfg,
+    metanet_module,
+) -> tuple[float, float, float, float, float] | None:
+    """Small Vissim-only link rollout used to rank VSL candidates.
+
+    The stock local follower computes candidate freeway TTS before the VSL loop,
+    so all VSL candidates inherit the same freeway/density terms. This helper
+    gives the adapter a candidate-specific METANET/CTM approximation without
+    editing the external Numerical-Sim checkout.
+    """
+    agent = context.get("agent")
+    state = context.get("state")
+    forecast = list(context.get("forecast") or [])
+    lane_profile = _mapping(context.get("lane_profile"))
+    ramp_metering = _mapping(context.get("ramp_metering"))
+    upper = _mapping(context.get("upper"))
+    if agent is None or state is None or not forecast:
+        return None
+
+    net = cfg.network
+    link = str(agent.link)
+    rhos = [max(0.0, _as_float(value)) for value in state.freeway_density.get(link, [])]
+    if not rhos:
+        return None
+    speeds_raw = state.freeway_speed.get(link, [])
+    speeds = [
+        max(float(getattr(net, "v_min", 5.0)), _as_float(speeds_raw[i], getattr(net, "v_free", 120.0)))
+        if i < len(speeds_raw)
+        else float(getattr(net, "v_free", 120.0))
+        for i in range(len(rhos))
+    ]
+    raw_lanes = lane_profile.get(link, []) if isinstance(lane_profile, Mapping) else []
+    lanes = [
+        max(1.0e-9, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 4)))
+        if i < len(raw_lanes)
+        else max(1.0e-9, float(getattr(net, "freeway_lanes", 4)))
+        for i in range(len(rhos))
+    ]
+    lengths = _freeway_segment_lengths_km(cfg, link, len(rhos))
+    off_ratios = _off_ramp_ratio_by_segment(cfg, link, len(rhos))
+    dt_h = float(cfg.simulation.T_c_h)
+    horizon_steps = forecast[: max(1, int(getattr(cfg.mpc, "horizon_steps", 1)))]
+    max_vsl = max(float(value) for value in cfg.freeway_follower.vsl_set)
+    vsl_active = float(vsl_kph) < max_vsl - 0.5
+    merge_idx = int(clamp(
+        getattr(agent, "segment_index", len(rhos) // 2),
+        0.0,
+        float(max(0, len(rhos) - 1)),
+    ))
+    release = sum(
+        min(
+            max(0.0, _as_float(ramp_metering.get(ramp))),
+            max(0.0, _as_float(upper.get(ramp), ramp_metering.get(ramp, 0.0))),
+        )
+        for ramp in getattr(agent, "ramps", [])
+    )
+
+    vehicle_tts = 0.0
+    density_excess_tts = 0.0
+    peak_density = max(rhos)
+    capacity = max(0.0, float(getattr(net, "freeway_capacity_veh_h", 0.0)))
+    for step in horizon_steps:
+        q_values = [
+            metanet_module.segment_flow_veh_h(rho, speed, lane)
+            for rho, speed, lane in zip(rhos, speeds, lanes)
+        ]
+        if capacity > 0.0:
+            q_values = [min(q, capacity) for q in q_values]
+        receiving = [
+            max(0.0, (float(net.rho_max) - rhos[i]) * lengths[i] * lanes[i] / max(dt_h, 1.0e-9))
+            for i in range(len(rhos))
+        ]
+        sending = [
+            (1.0 - off_ratios[i]) * q_values[i]
+            for i in range(len(rhos))
+        ]
+        q_inter = [
+            min(sending[i], receiving[i + 1])
+            for i in range(len(rhos) - 1)
+        ]
+        mainline_demand = max(0.0, _as_float(step.freeway_mainline.get(link, 0.0)))
+        entry_flow = min(mainline_demand, capacity if capacity > 0.0 else mainline_demand, receiving[0])
+        next_rhos: list[float] = []
+        next_speeds: list[float] = []
+        for i, rho in enumerate(rhos):
+            q_in = entry_flow if i == 0 else q_inter[i - 1]
+            if i == merge_idx:
+                q_in += release
+            q_out = sending[i] if i == len(rhos) - 1 else q_inter[i]
+            veh_per_density = max(1.0e-9, lengths[i] * lanes[i])
+            rho_next = clamp(
+                rho + (q_in - q_out) * dt_h / veh_per_density,
+                0.0,
+                float(net.rho_max),
+            )
+            vehicle_tts += 0.5 * (rho + rho_next) * veh_per_density * dt_h
+            density_excess_tts += 0.5 * (
+                max(0.0, rho - float(net.rho_crit)) + max(0.0, rho_next - float(net.rho_crit))
+            ) * dt_h
+            upstream_speed = float(net.v_free) if i == 0 else speeds[i - 1]
+            downstream_rho = rhos[i + 1] if i + 1 < len(rhos) else rhos[i]
+            v_eff = metanet_module.effective_desired_speed_kmh(
+                rho,
+                float(net.v_free),
+                float(net.rho_crit),
+                float(vsl_kph),
+                float(getattr(net, "alpha_vsl", 0.0)),
+                bool(vsl_active),
+                float(getattr(net, "metanet_a_m", 1.867)),
+            )
+            v_next = metanet_module.metanet_speed_update_kmh(
+                speeds[i],
+                upstream_speed,
+                rho,
+                downstream_rho,
+                v_eff,
+                dt_h,
+                lengths[i],
+                float(net.metanet_tau_h),
+                metanet_module.select_anticipation_nu(rho, net),
+                float(net.metanet_kappa_veh_km_lane),
+                float(net.v_min),
+            )
+            next_rhos.append(float(rho_next))
+            next_speeds.append(float(v_next))
+        rhos = next_rhos
+        speeds = next_speeds
+        peak_density = max(peak_density, max(rhos) if rhos else 0.0)
+    return (
+        float(vehicle_tts),
+        float(density_excess_tts),
+        float(rhos[merge_idx] if rhos else 0.0),
+        float(peak_density),
+        float(release),
+    )
+
+
+def install_vsl_metanet_rollout_runtime_patch(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    settings = _vsl_rollout_tuning(tuning)
+    if not _is_enabled(settings):
+        setattr(cfg, "_vissim_vsl_rollout_enabled", False)
+        return {"vsl_metanet_rollout_patch_enabled": 0.0}
+    try:
+        from src.controllers import distributed_coordinator as dc
+        from src.models import metanet as metanet_module
+    except Exception:
+        return {"vsl_metanet_rollout_patch_enabled": 0.0, "vsl_metanet_rollout_patch_failed": 1.0}
+
+    cls = dc.DistributedCoordinator
+    if not hasattr(cls, "_vissim_original_candidate_freeway_tts_terms"):
+        cls._vissim_original_candidate_freeway_tts_terms = cls._candidate_freeway_tts_terms
+    if not hasattr(cls, "_vissim_original_freeway_agent_objective"):
+        cls._vissim_original_freeway_agent_objective = cls._freeway_agent_objective
+    if not hasattr(cls, "_vissim_original_solve_for_vsl_consensus"):
+        cls._vissim_original_solve_for_vsl_consensus = cls.solve
+    original_terms = cls._vissim_original_candidate_freeway_tts_terms
+    original_objective = cls._vissim_original_freeway_agent_objective
+    original_solve = cls._vissim_original_solve_for_vsl_consensus
+    finalize_agent_consensus = str(settings.get("finalize_agent_consensus", False)).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+    def patched_candidate_freeway_tts_terms(self, agent, state, ramp_metering, upper, forecast, lane_profile):
+        result = original_terms(self, agent, state, ramp_metering, upper, forecast, lane_profile)
+        if getattr(self.cfg, "_vissim_vsl_rollout_enabled", False):
+            self._vissim_vsl_rollout_context = {
+                "agent": agent,
+                "state": state,
+                "ramp_metering": dict(ramp_metering),
+                "upper": dict(upper),
+                "forecast": list(forecast),
+                "lane_profile": lane_profile,
+            }
+        return result
+
+    def patched_freeway_agent_objective(
+        self,
+        rhos,
+        density_excess,
+        metering_error,
+        ramp_metering,
+        vsl,
+        previous_vsl,
+        offramp_forecast_veh,
+        offramp_storage_veh,
+        offramp_capacity_veh=0.0,
+        ramp_queue_tts=0.0,
+        onramp_urban_queue_tts=0.0,
+        horizon_h=1.0,
+        freeway_vehicle_tts=None,
+        density_excess_tts=None,
+    ):
+        if getattr(self.cfg, "_vissim_vsl_rollout_enabled", False):
+            context = getattr(self, "_vissim_vsl_rollout_context", None)
+            terms = _vsl_aware_link_rollout_terms(context or {}, float(vsl), self.cfg, metanet_module)
+            if terms is not None:
+                freeway_vehicle_tts = terms[0]
+                density_excess_tts = terms[1]
+                self._vissim_vsl_rollout_eval_count = (
+                    int(getattr(self, "_vissim_vsl_rollout_eval_count", 0)) + 1
+                )
+        return original_objective(
+            self,
+            rhos,
+            density_excess,
+            metering_error,
+            ramp_metering,
+            vsl,
+            previous_vsl,
+            offramp_forecast_veh,
+            offramp_storage_veh,
+            offramp_capacity_veh,
+            ramp_queue_tts=ramp_queue_tts,
+            onramp_urban_queue_tts=onramp_urban_queue_tts,
+            horizon_h=horizon_h,
+            freeway_vehicle_tts=freeway_vehicle_tts,
+            density_excess_tts=density_excess_tts,
+        )
+
+    def patched_solve(self, *args, **kwargs):
+        result = original_solve(self, *args, **kwargs)
+        if not getattr(self.cfg, "_vissim_vsl_rollout_consensus_enabled", False):
+            return result
+        control = getattr(result, "control", None)
+        if control is None:
+            return result
+        diagnostics: dict[str, Any] = {}
+        raw_result_diag = getattr(result, "diagnostics", None)
+        if isinstance(raw_result_diag, Mapping):
+            diagnostics.update(raw_result_diag)
+        raw_control_diag = getattr(control, "diagnostics", None)
+        if isinstance(raw_control_diag, Mapping):
+            diagnostics.update(raw_control_diag)
+        by_link: dict[str, list[float]] = {str(link): [] for link in self.cfg.network.freeway_links}
+        for agent in getattr(self, "freeway_agents", []):
+            key = f"agent_{agent.id}_vsl_selected"
+            if key not in diagnostics:
+                continue
+            try:
+                by_link.setdefault(str(agent.link), []).append(float(diagnostics[key]))
+            except (TypeError, ValueError):
+                continue
+        selected = {link: float(min(values)) for link, values in by_link.items() if values}
+        if not selected:
+            return result
+        for key in list(getattr(control, "vsl", {}).keys()):
+            if "__seg" in str(key):
+                control.vsl.pop(key, None)
+        control.vsl.update(selected)
+        consensus_diag = {
+            "vsl_agent_consensus_finalize_active": 1.0,
+            "vsl_agent_consensus_finalize_link_count": float(len(selected)),
+            "vsl_agent_consensus_finalize_min_kph": float(min(selected.values())),
+        }
+        for link, value in selected.items():
+            consensus_diag[f"vsl_agent_consensus_{link}_kph"] = float(value)
+        control.diagnostics.update(consensus_diag)
+        if isinstance(raw_result_diag, Mapping):
+            raw_result_diag.update(consensus_diag)
+        return result
+
+    cls._candidate_freeway_tts_terms = patched_candidate_freeway_tts_terms
+    cls._freeway_agent_objective = patched_freeway_agent_objective
+    cls.solve = patched_solve
+    setattr(cfg, "_vissim_vsl_rollout_enabled", True)
+    setattr(cfg, "_vissim_vsl_rollout_consensus_enabled", finalize_agent_consensus)
+    return {
+        "vsl_metanet_rollout_patch_enabled": 1.0,
+        "vsl_agent_consensus_finalize_enabled": float(finalize_agent_consensus),
+    }
 
 
 def _observation_split_parameters(calibration: Mapping[str, Any] | None = None) -> dict[str, float]:
@@ -297,7 +607,7 @@ def build_local_observation_summary(
         visible_links = [str(v) for v in spec.get("visible_links", [])]
         visible_movements = [str(v) for v in spec.get("visible_movements", [])]
         visible_ramps = [str(v) for v in spec.get("visible_ramps", [])]
-        agents[str(agent_id)] = {
+        agent_summary = {
             "visible_links": visible_links,
             "visible_movements": visible_movements,
             "visible_ramps": visible_ramps,
@@ -311,6 +621,11 @@ def build_local_observation_summary(
                 for ramp in visible_ramps
             },
         }
+        if "control_enabled" in spec:
+            agent_summary["control_enabled"] = bool(spec.get("control_enabled", True))
+        if "monitoring_only" in spec:
+            agent_summary["monitoring_only"] = bool(spec.get("monitoring_only", False))
+        agents[str(agent_id)] = agent_summary
 
     return {
         "mode": "detector_local_v2_storage_split",
@@ -830,6 +1145,7 @@ def profiled_demand_rates(
     state_json: Mapping[str, Any],
     cfg,
     calibration: Mapping[str, Any] | None = None,
+    detector_mapping: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, float], dict[str, float], dict[str, float], str]:
     """Mirror the Vissim runner's demand-profile multipliers in the model forecast.
 
@@ -847,6 +1163,7 @@ def profiled_demand_rates(
     freeway_vph = float(demand.get("freeway_volume_vph", 1200.0))
     ramp_vph = float(demand.get("ramp_volume_vph", max(120.0, freeway_vph * 0.12)))
     profile = str(demand.get("demand_profile", "")).lower()
+    urban_west_east_ratio = max(1.0e-6, _as_float(demand.get("urban_west_east_ratio"), 1.0))
 
     freeway_mainline = {str(link): freeway_vph for link in cfg.network.freeway_links}
     urban_boundary = {
@@ -880,6 +1197,16 @@ def profiled_demand_rates(
         set_urban_profile({"in_D_left"}, 2.2, 0.65)
     elif profile == "urban_f_heavy":
         set_urban_profile({"in_F_right"}, 2.2, 0.65)
+
+    if abs(urban_west_east_ratio - 1.0) > 1.0e-9:
+        west_factor = 2.0 * urban_west_east_ratio / (1.0 + urban_west_east_ratio)
+        east_factor = 2.0 / (1.0 + urban_west_east_ratio)
+        for link in cfg.network.boundary_in_links:
+            key = str(link)
+            if key in {"in_A_left", "in_D_left"}:
+                urban_boundary[key] = urban_boundary.get(key, urban_vph) * west_factor
+            elif key in {"in_C_right", "in_F_right"}:
+                urban_boundary[key] = urban_boundary.get(key, urban_vph) * east_factor
 
     # Route-aware on-ramp forecast (2026-06-30): the hardcoded uniform ramp_vph (250/ramp) under-sizes
     # and mis-directs the on-ramp arrival. The VISSIM static routes send a fixed fraction of each urban
@@ -967,6 +1294,61 @@ def profiled_demand_rates(
         elif profile in {"f_ramp_bias", "f_ramp_heavy"}:
             apply_ramp_route_bias("F")
 
+    local_fc = _mapping(_mapping(calibration or {}).get("prediction")).get(
+        "local_ramp_arrival_forecast",
+        {},
+    )
+    local_fc = _mapping(local_fc)
+    if bool(local_fc.get("enabled", False)):
+        observed_counts = {str(ramp): 0.0 for ramp in cfg.network.ramps}
+        direct_counts = _mapping(state_json.get("ramp_counts"))
+        has_model_ramp_counts = any(str(ramp) in direct_counts for ramp in observed_counts)
+        if has_model_ramp_counts:
+            for ramp in observed_counts:
+                observed_counts[ramp] = max(0.0, _as_float(direct_counts.get(ramp), 0.0))
+        else:
+            d_count = max(0.0, _as_float(direct_counts.get("D"), 0.0))
+            f_count = max(0.0, _as_float(direct_counts.get("F"), 0.0))
+            for ramp in observed_counts:
+                if ramp.startswith("R_D_"):
+                    observed_counts[ramp] = d_count / 2.0
+                elif ramp.startswith("R_F_"):
+                    observed_counts[ramp] = f_count / 2.0
+        if not any(value > 0.0 for value in observed_counts.values()) and detector_mapping:
+            link_counts = _link_counts_from_local_observation(state_json)
+            for link, ramps in _mapping(detector_mapping.get("ramp_link_to_queues")).items():
+                count = max(0.0, _as_float(link_counts.get(str(link)), 0.0))
+                if count <= 0.0 or not isinstance(ramps, list) or not ramps:
+                    continue
+                share = count / float(len(ramps))
+                for ramp in ramps:
+                    ramp_key = str(ramp)
+                    if ramp_key in observed_counts:
+                        observed_counts[ramp_key] += share
+        queue_drain_horizon_sec = max(1.0, _as_float(local_fc.get("queue_drain_horizon_sec"), 120.0))
+        multiplier = max(0.0, _as_float(local_fc.get("multiplier"), 1.0))
+        min_vph = max(0.0, _as_float(local_fc.get("min_vph_if_observed"), 120.0))
+        max_default = max(0.0, _as_float(local_fc.get("max_vph_per_ramp"), 900.0))
+        max_by_ramp = _mapping(local_fc.get("max_vph_by_ramp"))
+        blend = str(local_fc.get("blend", "max")).lower()
+        for ramp, count in observed_counts.items():
+            if count <= 0.0:
+                continue
+            observed_vph = count * 3600.0 / queue_drain_horizon_sec * multiplier
+            if observed_vph > 0.0:
+                observed_vph = max(min_vph, observed_vph)
+            cap_fallback = float(cfg.network.ramp_capacity_veh_h.get(ramp, max_default))
+            cap = max(0.0, _as_float(max_by_ramp.get(ramp), max_default or cap_fallback))
+            if cap <= 0.0:
+                cap = cap_fallback
+            observed_vph = clamp(observed_vph, 0.0, cap)
+            if blend == "replace":
+                ramp_arrival[ramp] = observed_vph
+            elif blend == "add":
+                ramp_arrival[ramp] = max(0.0, float(ramp_arrival.get(ramp, 0.0)) + observed_vph)
+            else:
+                ramp_arrival[ramp] = max(float(ramp_arrival.get(ramp, 0.0)), observed_vph)
+
     return freeway_mainline, urban_boundary, ramp_arrival, profile
 
 
@@ -976,11 +1358,13 @@ def demand_from_state(
     DemandStep,
     horizon_steps: int,
     calibration: Mapping[str, Any] | None = None,
+    detector_mapping: Mapping[str, Any] | None = None,
 ):
     freeway_mainline, urban_boundary, ramp_arrival, _profile = profiled_demand_rates(
         state_json,
         cfg,
         calibration,
+        detector_mapping,
     )
     step = DemandStep(
         freeway_mainline=freeway_mainline,
@@ -1051,14 +1435,18 @@ def traffic_state_from_vissim(
         state.local_observation_summary = local_summary
     else:
         ramp_counts = state_json.get("ramp_counts", {})
-        d_queue = max(0.0, float(ramp_counts.get("D", 0.0)))
-        f_queue = max(0.0, float(ramp_counts.get("F", 0.0)))
-        state.ramp_queue.update({
-            "R_D_W": d_queue / 2.0,
-            "R_D_E": d_queue / 2.0,
-            "R_F_W": f_queue / 2.0,
-            "R_F_E": f_queue / 2.0,
-        })
+        if isinstance(ramp_counts, Mapping) and any(str(key) in ramp_counts for key in state.ramp_queue):
+            for key in state.ramp_queue:
+                state.ramp_queue[key] = max(0.0, _as_float(ramp_counts.get(str(key), 0.0)))
+        else:
+            d_queue = max(0.0, float(ramp_counts.get("D", 0.0)))
+            f_queue = max(0.0, float(ramp_counts.get("F", 0.0)))
+            state.ramp_queue.update({
+                "R_D_W": d_queue / 2.0,
+                "R_D_E": d_queue / 2.0,
+                "R_F_W": f_queue / 2.0,
+                "R_F_E": f_queue / 2.0,
+            })
 
         # Legacy global-state fallback for old state files. Local detector
         # observation must be preferred whenever it is present.
@@ -1251,6 +1639,7 @@ def apply_prediction_audit_calibration(
         urban_mass_scale = 1.0
 
     calibrated = dict(summary)
+    metadata: dict[str, float] = {}
     old_freeway = _as_float(summary.get("freeway_total_veh"), 0.0)
     old_freeway_segment = _as_float(summary.get("freeway_segment_total_veh"), old_freeway)
     new_freeway = old_freeway * freeway_scale
@@ -1274,16 +1663,331 @@ def apply_prediction_audit_calibration(
             if isinstance(values, list)
         }
 
-    if "urban_queue_plus_link_occupancy_total_veh" in summary:
-        calibrated["urban_queue_plus_link_occupancy_total_veh"] = float(
-            _as_float(summary.get("urban_queue_plus_link_occupancy_total_veh"), 0.0)
-            * urban_mass_scale
+    component_scales = _mapping(audit.get("component_scales"))
+    recompute_queue_storage = bool(
+        audit.get(
+            "recompute_urban_queue_plus_storage_from_components",
+            audit.get("preserve_component_consistency", False),
         )
+    )
+    recompute_urban_total = bool(
+        audit.get(
+            "recompute_urban_total_from_components",
+            audit.get("preserve_component_consistency", False),
+        )
+    )
+    recompute_model_total = bool(
+        audit.get(
+            "recompute_total_model_vehicles_from_components",
+            audit.get("preserve_component_consistency", False),
+        )
+    )
+    scale_aliases = {
+        "total_model_vehicles": "total_model_vehicles_scale",
+        "urban_total_veh": "urban_total_scale",
+        "protected_accumulation_veh": "protected_accumulation_scale",
+        "urban_movement_queue_total_veh": "urban_movement_queue_scale",
+        "urban_link_occupancy_total_veh": "urban_link_occupancy_scale",
+        "boundary_queue_total_veh": "boundary_queue_scale",
+        "off_ramp_storage_veh": "off_ramp_storage_scale",
+        "ramp_queue_total_veh": "ramp_queue_scale",
+        "mainline_origin_queue_total_veh": "mainline_origin_queue_scale",
+        "freeway_mean_speed_kph": "freeway_mean_speed_scale",
+    }
+    already_scaled = {
+        "freeway_total_veh",
+        "freeway_segment_total_veh",
+        "freeway_mean_density_veh_km_lane",
+        "urban_queue_plus_link_occupancy_total_veh",
+    }
+    scaled_metrics: set[str] = set()
+    for metric, alias in scale_aliases.items():
+        raw_scale = component_scales.get(metric, audit.get(alias))
+        if raw_scale is None or metric in already_scaled or metric not in summary:
+            continue
+        scale = _as_float(raw_scale, 1.0)
+        if not (0.05 <= scale <= 5.0):
+            continue
+        calibrated[metric] = float(_as_float(summary.get(metric), 0.0) * scale)
+        metadata[f"prediction_audit_{metric}_scale"] = float(scale)
+        scaled_metrics.add(metric)
 
-    return calibrated, {
+    if "urban_queue_plus_link_occupancy_total_veh" in summary:
+        if recompute_queue_storage and {
+            "urban_movement_queue_total_veh",
+            "urban_link_occupancy_total_veh",
+        } & scaled_metrics:
+            calibrated["urban_queue_plus_link_occupancy_total_veh"] = float(
+                _as_float(calibrated.get("urban_movement_queue_total_veh"), 0.0)
+                + _as_float(calibrated.get("urban_link_occupancy_total_veh"), 0.0)
+            )
+            metadata["prediction_audit_urban_queue_plus_storage_recomputed"] = 1.0
+        else:
+            calibrated["urban_queue_plus_link_occupancy_total_veh"] = float(
+                _as_float(summary.get("urban_queue_plus_link_occupancy_total_veh"), 0.0)
+                * urban_mass_scale
+            )
+
+    if recompute_urban_total and {
+        "urban_movement_queue_total_veh",
+        "urban_link_occupancy_total_veh",
+        "off_ramp_storage_veh",
+    } & scaled_metrics:
+        movement = _as_float(calibrated.get("urban_movement_queue_total_veh"), 0.0)
+        link_occupancy = _as_float(calibrated.get("urban_link_occupancy_total_veh"), 0.0)
+        off_ramp_storage = _as_float(calibrated.get("off_ramp_storage_veh"), 0.0)
+        calibrated["urban_total_veh"] = float(movement + max(0.0, link_occupancy - off_ramp_storage))
+        metadata["prediction_audit_urban_total_recomputed"] = 1.0
+
+    if recompute_model_total and {
+        "urban_total_veh",
+        "freeway_total_veh",
+        "off_ramp_storage_veh",
+        "urban_movement_queue_total_veh",
+        "urban_link_occupancy_total_veh",
+    } & (scaled_metrics | {"freeway_total_veh"}):
+        calibrated["total_model_vehicles"] = float(
+            _as_float(calibrated.get("urban_total_veh"), 0.0)
+            + _as_float(calibrated.get("freeway_total_veh"), 0.0)
+            + _as_float(calibrated.get("off_ramp_storage_veh"), 0.0)
+        )
+        metadata["prediction_audit_total_model_vehicles_recomputed"] = 1.0
+
+    metadata.update({
         "prediction_audit_calibration_applied": 1.0,
         "prediction_audit_freeway_total_scale": float(freeway_scale),
         "prediction_audit_urban_queue_plus_storage_scale": float(urban_mass_scale),
+    })
+    return calibrated, metadata
+
+
+def _workspace_path(path_text: str, default: Path | None = None) -> Path:
+    if not path_text:
+        return default if default is not None else WORKSPACE_ROOT
+    path = Path(path_text)
+    if path.is_absolute():
+        return path
+    return WORKSPACE_ROOT / path
+
+
+def install_adapter_calibration_fingerprints(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """Mark canary-protected components as calibrated for the current VISSIM geometry.
+
+    The upstream controller stores component calibration fingerprints as module
+    globals. In this workspace we cannot edit the external Numerical-Sim checkout,
+    so VISSIM-specific tuning can explicitly declare that those components have
+    been revalidated against the current 8-seg merge map.
+    """
+    settings = _mapping(_mapping(tuning.get("adapter")).get("calibration_fingerprints"))
+    if str(settings.get("mode", "")).lower() != "current_vissim_geometry":
+        return {}
+    components = settings.get("components", ["leader_hinge", "np_deadband", "leader_mfd_far"])
+    if not isinstance(components, list):
+        components = ["leader_hinge", "np_deadband", "leader_mfd_far"]
+    merge_map = {
+        str(key): int(value)
+        for key, value in dict(getattr(cfg.network, "ramp_merge_segment_index", {}) or {}).items()
+    }
+    if not merge_map:
+        return {}
+    try:
+        from src.controllers import stackelberg_mpc as stackelberg_module
+
+        for component in components:
+            stackelberg_module.CALIBRATION_FINGERPRINTS[str(component)] = {
+                "ramp_merge": dict(merge_map),
+            }
+        if hasattr(stackelberg_module, "_calib_fingerprint_warned"):
+            stackelberg_module._calib_fingerprint_warned.clear()
+    except Exception:
+        return {"adapter_calibration_fingerprint_override_failed": 1.0}
+    return {
+        "adapter_calibration_fingerprint_override_active": 1.0,
+        "adapter_calibration_fingerprint_component_count": float(len(components)),
+        "adapter_calibration_fingerprint_merge_R_D_W": float(merge_map.get("R_D_W", -1)),
+        "adapter_calibration_fingerprint_merge_R_F_W": float(merge_map.get("R_F_W", -1)),
+        "adapter_calibration_fingerprint_merge_R_D_E": float(merge_map.get("R_D_E", -1)),
+        "adapter_calibration_fingerprint_merge_R_F_E": float(merge_map.get("R_F_E", -1)),
+    }
+
+
+def _freeway_excess_vehicle_proxy(state, cfg) -> float:
+    net = cfg.network
+    state.ensure_freeway_lane_profile(net)
+    excess = 0.0
+    for link, densities in getattr(state, "freeway_density", {}).items():
+        lanes = getattr(state, "freeway_effective_lanes", {}).get(link, [])
+        for idx, rho in enumerate(densities):
+            lane_count = float(lanes[idx]) if idx < len(lanes) else float(net.freeway_lanes)
+            excess += (
+                max(0.0, _as_float(rho) - float(net.rho_crit))
+                * float(net.freeway_segment_length_km)
+                * max(1.0e-9, lane_count)
+            )
+    return float(excess)
+
+
+def vissim_terminal_feature_vector(state, cfg) -> dict[str, float]:
+    """Map a model-predicted state to the aggregate fields used by VISSIM CSV fits."""
+    net = cfg.network
+    summary = summarize_model_state(state, cfg)
+    freeway = max(0.0, _as_float(summary.get("freeway_segment_total_veh")))
+    ramp = max(0.0, _as_float(summary.get("ramp_queue_total_veh"))) + max(
+        0.0, _as_float(summary.get("off_ramp_storage_veh"))
+    )
+    boundary = max(0.0, _boundary_in_queue_veh(state, cfg))
+    urban_total = max(0.0, _as_float(summary.get("urban_total_veh")))
+    urban = max(0.0, urban_total - boundary)
+    mainline_origin = max(0.0, _as_float(summary.get("mainline_origin_queue_total_veh")))
+    total = freeway + urban + ramp + boundary + mainline_origin
+    urban_queue = max(0.0, _as_float(summary.get("urban_movement_queue_total_veh")))
+    stopped = min(
+        total,
+        ramp
+        + boundary
+        + 0.5 * max(0.0, urban_queue - boundary)
+        + _freeway_excess_vehicle_proxy(state, cfg),
+    )
+    freeway_speed = max(0.0, _as_float(summary.get("freeway_mean_speed_kph"), float(net.v_free)))
+    urban_speed = max(0.0, float(getattr(net, "urban_avg_speed_km_h", 50.0)))
+    ramp_speed = 15.0
+    boundary_speed = 5.0
+    mean_speed = (
+        freeway * freeway_speed
+        + urban * urban_speed
+        + ramp * ramp_speed
+        + boundary * boundary_speed
+    ) / max(total, 1.0e-9)
+    return {
+        "total_vehicles": float(total),
+        "urban_vehicles": float(urban),
+        "freeway_vehicles": float(freeway),
+        "ramp_vehicles": float(ramp),
+        "boundary_vehicles": float(boundary),
+        "stopped_vehicles": float(stopped),
+        "mean_speed_kph": float(mean_speed),
+        "freeway_mean_speed_kph": float(freeway_speed),
+    }
+
+
+def vissim_terminal_feature_vector_from_summary(summary: Mapping[str, Any], cfg) -> dict[str, float]:
+    """Best-effort terminal features from a serialized prediction summary."""
+    net = cfg.network
+    freeway = max(0.0, _as_float(summary.get("freeway_segment_total_veh")))
+    ramp = max(0.0, _as_float(summary.get("ramp_queue_total_veh"))) + max(
+        0.0, _as_float(summary.get("off_ramp_storage_veh"))
+    )
+    boundary = max(0.0, _as_float(summary.get("boundary_queue_total_veh")))
+    urban_total = max(0.0, _as_float(summary.get("urban_total_veh")))
+    urban = max(0.0, urban_total - boundary)
+    mainline_origin = max(0.0, _as_float(summary.get("mainline_origin_queue_total_veh")))
+    total = freeway + urban + ramp + boundary + mainline_origin
+    urban_queue = max(0.0, _as_float(summary.get("urban_movement_queue_total_veh")))
+    stopped = _as_float(summary.get("stopped_vehicles"), -1.0)
+    if stopped < 0.0:
+        stopped = min(total, ramp + boundary + 0.5 * max(0.0, urban_queue - boundary))
+    else:
+        stopped = max(0.0, stopped)
+    freeway_speed = max(0.0, _as_float(summary.get("freeway_mean_speed_kph"), float(net.v_free)))
+    urban_speed = max(0.0, float(getattr(net, "urban_avg_speed_km_h", 50.0)))
+    ramp_speed = 15.0
+    boundary_speed = 5.0
+    mean_speed = (
+        freeway * freeway_speed
+        + urban * urban_speed
+        + ramp * ramp_speed
+        + boundary * boundary_speed
+    ) / max(total, 1.0e-9)
+    return {
+        "total_vehicles": float(total),
+        "urban_vehicles": float(urban),
+        "freeway_vehicles": float(freeway),
+        "ramp_vehicles": float(ramp),
+        "boundary_vehicles": float(boundary),
+        "stopped_vehicles": float(stopped),
+        "mean_speed_kph": float(mean_speed),
+        "freeway_mean_speed_kph": float(freeway_speed),
+    }
+
+
+def install_vissim_terminal_cost_objective(controller, cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    settings = _mapping(_mapping(tuning.get("adapter")).get("terminal_cost"))
+    if not bool(settings.get("enabled", False)):
+        return {}
+    fit_path = _workspace_path(
+        str(settings.get("fit_json", "evaluation/calibration/vissim_terminal_cost_fit_20260715.json"))
+    )
+    try:
+        fit = json.loads(fit_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {"adapter_vissim_terminal_cost_load_failed": 1.0}
+    raw_coefficients = _mapping(fit.get("raw_coefficients"))
+    features = settings.get("features", fit.get("features", []))
+    if not isinstance(features, list):
+        features = list(raw_coefficients)
+    coefficient_mode = str(settings.get("coefficient_mode", "positive_only")).lower()
+    include_intercept = bool(settings.get("include_intercept", False))
+    clamp_nonnegative = bool(settings.get("clamp_nonnegative", True))
+    weight = _as_float(settings.get("weight"), 1.0)
+    intercept = _as_float(fit.get("raw_intercept"), 0.0) if include_intercept else 0.0
+    used: dict[str, float] = {}
+    for feature in features:
+        name = str(feature)
+        coef = _as_float(raw_coefficients.get(name), 0.0)
+        if coefficient_mode == "positive_only" and coef <= 0.0:
+            continue
+        used[name] = float(coef)
+    if not used and abs(intercept) <= 1.0e-12:
+        return {"adapter_vissim_terminal_cost_empty": 1.0}
+
+    original_objective_terms = controller.leader.objective_terms
+
+    def objective_terms_with_vissim_terminal(
+        predicted_states,
+        action,
+        previous,
+        follower_objective,
+        nash_converged,
+        nash_residual_objective=0.0,
+        nash_residual_control=0.0,
+    ):
+        states = list(predicted_states)
+        terms = original_objective_terms(
+            states,
+            action,
+            previous,
+            follower_objective,
+            nash_converged,
+            nash_residual_objective,
+            nash_residual_control,
+        )
+        if not states:
+            return terms
+        vector = vissim_terminal_feature_vector(states[-1], cfg)
+        raw = float(intercept)
+        for feature, coef in used.items():
+            value = float(vector.get(feature, 0.0))
+            raw += coef * value
+            terms[f"leader_vissim_terminal_feature_{feature}"] = value
+            terms[f"leader_vissim_terminal_coef_{feature}"] = float(coef)
+        if clamp_nonnegative:
+            raw = max(0.0, raw)
+        penalty = weight * raw
+        terms["leader_vissim_terminal_cost_active"] = 1.0
+        terms["leader_vissim_terminal_cost_raw_veh_h"] = float(raw)
+        terms["leader_vissim_terminal_cost_weight"] = float(weight)
+        terms["leader_vissim_terminal_cost_penalty"] = float(penalty)
+        terms["leader_vissim_terminal_cost_feature_count"] = float(len(used))
+        terms["leader_total_objective"] = float(terms.get("leader_total_objective", 0.0)) + penalty
+        return terms
+
+    controller.leader.objective_terms = objective_terms_with_vissim_terminal
+    return {
+        "adapter_vissim_terminal_cost_active": 1.0,
+        "adapter_vissim_terminal_cost_weight": float(weight),
+        "adapter_vissim_terminal_cost_feature_count": float(len(used)),
+        "adapter_vissim_terminal_cost_horizon_sec": _as_float(fit.get("horizon_sec"), 0.0),
+        "adapter_vissim_terminal_cost_fit_r2": _as_float(_mapping(fit.get("metrics")).get("r2"), 0.0),
     }
 
 
@@ -1297,6 +2001,10 @@ def build_one_step_prediction(state, control, forecast, cfg, calibration: Mappin
         run_coupled_interval(predicted, control, demand, cfg)
         predicted.time_sec = float(getattr(state, "time_sec", 0.0)) + float(cfg.simulation.control_interval)
         state_summary = summarize_model_state(predicted, cfg)
+        try:
+            terminal_features = vissim_terminal_feature_vector(predicted, cfg)
+        except Exception:
+            terminal_features = vissim_terminal_feature_vector_from_summary(state_summary, cfg)
         calibrated_summary, audit_metadata = apply_prediction_audit_calibration(state_summary, calibration)
         payload = {
             "schema_version": 1,
@@ -1307,6 +2015,7 @@ def build_one_step_prediction(state, control, forecast, cfg, calibration: Mappin
             "control_interval_sec": float(cfg.simulation.control_interval),
             "wall_sec": round(time.perf_counter() - started, 6),
             "state_summary": state_summary,
+            "terminal_features": terminal_features,
         }
         if calibrated_summary:
             payload["calibrated_state_summary"] = calibrated_summary
@@ -1434,6 +2143,115 @@ def physical_ramp_actions(control, cfg, actuation: Mapping[str, Any]) -> dict[st
     return out
 
 
+def real_world_ramp_meter_actions(
+    control,
+    cfg,
+    actuation: Mapping[str, Any],
+    mapping: Mapping[str, Any],
+) -> dict[str, dict[str, float | str]]:
+    """Map model ramp releases to physical real-world ramp-meter controllers."""
+    meters = mapping.get("ramp_meters", [])
+    if not isinstance(meters, list) or not meters:
+        return {}
+
+    settings = _mapping(actuation.get("real_world_ramp_metering"))
+    cycle = max(1.0e-6, _as_float(settings.get("cycle_sec"), 10.0))
+    min_green = clamp(_as_float(settings.get("min_green_sec"), 0.0), 0.0, cycle)
+    max_green = clamp(_as_float(settings.get("max_green_sec"), cycle), min_green, cycle)
+    default_per_meter_capacity = max(1.0e-6, _as_float(settings.get("per_meter_capacity_vph"), 900.0))
+    distribute = bool(settings.get("distribute_model_rate_across_meters", True))
+
+    group_counts: dict[str, int] = {}
+    for meter in meters:
+        if not isinstance(meter, Mapping):
+            continue
+        key = str(meter.get("model_ramp_key", ""))
+        if key:
+            group_counts[key] = group_counts.get(key, 0) + 1
+
+    capacities = getattr(cfg.network, "ramp_capacity_veh_h", {}) or {}
+    out: dict[str, dict[str, float | str]] = {}
+    for meter in meters:
+        if not isinstance(meter, Mapping):
+            continue
+        meter_id = str(meter.get("id", meter.get("control_id", "")))
+        if not meter_id:
+            continue
+        key = str(meter.get("model_ramp_key", ""))
+        group_count = max(1, int(group_counts.get(key, 1)))
+        per_meter_capacity = max(
+            1.0e-6,
+            _as_float(meter.get("capacity_vph"), default_per_meter_capacity),
+        )
+        default_group_capacity = per_meter_capacity * group_count
+        group_capacity = max(
+            1.0e-6,
+            _as_float(capacities.get(key, default_group_capacity), default_group_capacity),
+        )
+        group_rate = clamp(
+            _as_float(control.ramp_metering.get(key, group_capacity), group_capacity),
+            0.0,
+            group_capacity,
+        )
+        per_meter_rate = group_rate / float(group_count) if distribute else group_rate
+        green = cycle * per_meter_rate / per_meter_capacity
+        green = clamp(round(green), min_green, max_green)
+        out[meter_id] = {
+            "sc_no": float(_as_float(meter.get("sc_no"), 0.0)),
+            "sg_no": float(_as_float(meter.get("sg_no"), 1.0)),
+            "rate_vph": float(per_meter_rate),
+            "group_rate_vph": float(group_rate),
+            "green_sec": float(green),
+            "model_ramp_key": key,
+        }
+    return out
+
+
+def _segment_model_coordinates(segment_id: str, segment: Mapping[str, Any]) -> tuple[str, int]:
+    model_link = segment.get("model_link")
+    model_idx = segment.get("model_segment_index")
+    if model_link is not None and model_idx is not None:
+        return str(model_link), int(_as_float(model_idx))
+    return SEGMENT_TO_MODEL[segment_id]
+
+
+def _segment_dsd_controls(segment: Mapping[str, Any]) -> list[dict[str, Any]]:
+    controls: list[dict[str, Any]] = []
+    by_lane = segment.get("dsd_by_lane", {})
+    if isinstance(by_lane, Mapping):
+        for lane_key, value in by_lane.items():
+            if not isinstance(value, Mapping):
+                continue
+            row = dict(value)
+            row.setdefault("lane", lane_key)
+            controls.append(row)
+    extras = segment.get("extra_dsd_controls", [])
+    if isinstance(extras, list):
+        for value in extras:
+            if isinstance(value, Mapping):
+                controls.append(dict(value))
+
+    def sort_key(item: Mapping[str, Any]) -> tuple[int, int]:
+        lane = int(_as_float(item.get("lane"), 9999.0))
+        dsd_no = int(_as_float(item.get("dsd_no"), 0.0))
+        return lane, dsd_no
+
+    return sorted(controls, key=sort_key)
+
+
+def _signal_rows_for_mapping(mapping: Mapping[str, Any]) -> list[dict[str, Any]]:
+    if "signals" not in mapping:
+        return [{"id": signal, "sc_no": sc_no} for signal, sc_no in {"A": 1, "B": 2, "C": 3, "D": 4, "F": 5}.items()]
+    raw = mapping.get("signals", [])
+    if not isinstance(raw, list):
+        return []
+    rows: list[dict[str, Any]] = []
+    for item in raw:
+        if isinstance(item, Mapping):
+            rows.append({"id": str(item.get("id", "")), "sc_no": int(_as_float(item.get("sc_no"), 0.0))})
+    return [row for row in rows if row["id"] and row["sc_no"] > 0]
+
+
 def _release_at_largest_green(curve: Any, fallback: float) -> float:
     if not isinstance(curve, Mapping) or not curve:
         return float(fallback)
@@ -1452,6 +2270,68 @@ def _release_at_largest_green(curve: Any, fallback: float) -> float:
 def apply_actuation_guards_to_control(control, cfg, actuation: Mapping[str, Any]) -> dict[str, float]:
     """Force action JSON/prediction to respect calibration-level actuator guards."""
     metadata: dict[str, float] = {}
+    active_mask = _mapping(actuation.get("active_lever_mask"))
+    active_mask_enabled = bool(active_mask.get("enabled", False))
+    vsl_segment_override_policy = str(actuation.get("vsl_segment_override_policy", "")).strip().lower()
+    if vsl_segment_override_policy in {"clear_all", "clear_when_mask_disabled"}:
+        if vsl_segment_override_policy == "clear_all" or not active_mask_enabled:
+            stale_vsl_segments = [key for key in list(getattr(control, "vsl", {}).keys()) if "__seg" in str(key)]
+            for key in stale_vsl_segments:
+                control.vsl.pop(key, None)
+            if stale_vsl_segments:
+                control.diagnostics["vsl_segment_overrides_cleared"] = float(len(stale_vsl_segments))
+                metadata["vsl_segment_overrides_cleared"] = float(len(stale_vsl_segments))
+    if active_mask_enabled:
+        allowed_vsl_links = {str(value) for value in active_mask.get("allowed_vsl_links", []) or []}
+        allowed_vsl_segments = {str(value) for value in active_mask.get("allowed_vsl_segments", []) or []}
+        max_vsl = max(float(value) for value in cfg.freeway_follower.vsl_set)
+        disabled_vsl_segments = 0
+        for link in cfg.network.freeway_links:
+            link_key = str(link)
+            for idx in range(int(cfg.network.freeway_segments_per_link)):
+                segment_key = f"{link_key}__seg{idx}"
+                readable_key = f"RW_{link_key}_S{idx}"
+                if link_key in allowed_vsl_links or segment_key in allowed_vsl_segments or readable_key in allowed_vsl_segments:
+                    continue
+                control.vsl[segment_key] = float(max_vsl)
+                disabled_vsl_segments += 1
+        allowed_ramps = {str(value) for value in active_mask.get("allowed_ramps", []) or []}
+        if "allowed_ramps" in active_mask:
+            for ramp, capacity in _ramp_capacities(cfg).items():
+                if ramp not in allowed_ramps:
+                    control.ramp_metering[ramp] = float(capacity)
+        control.diagnostics["active_lever_mask_enabled"] = 1.0
+        control.diagnostics["active_lever_mask_disabled_vsl_segments"] = float(disabled_vsl_segments)
+        control.diagnostics["active_lever_mask_allowed_ramp_count"] = float(len(allowed_ramps))
+        metadata.update({
+            "active_lever_mask_enabled": 1.0,
+            "active_lever_mask_disabled_vsl_segments": float(disabled_vsl_segments),
+            "active_lever_mask_allowed_ramp_count": float(len(allowed_ramps)),
+        })
+    signal_freeze = _mapping(actuation.get("signal_green_freeze"))
+    if bool(signal_freeze.get("enabled", False)):
+        green = _as_float(signal_freeze.get("green_sec"), 57.0)
+        major = _as_float(signal_freeze.get("major_green_sec"), green)
+        minor = _as_float(signal_freeze.get("minor_green_sec"), green)
+        offset = _as_float(signal_freeze.get("offset_sec"), 0.0)
+        signals = signal_freeze.get("signals")
+        if not isinstance(signals, list) or not signals:
+            signals = _controlled_signal_names(cfg)
+        for signal in signals:
+            name = str(signal)
+            control.green_times[f"{name}_p1"] = float(minor)
+            control.green_times[f"{name}_p2"] = float(major)
+            control.offsets[name] = float(offset)
+        control.diagnostics["signal_green_freeze_active"] = 1.0
+        control.diagnostics["signal_green_freeze_major_sec"] = float(major)
+        control.diagnostics["signal_green_freeze_minor_sec"] = float(minor)
+        control.diagnostics["signal_green_freeze_offset_sec"] = float(offset)
+        metadata.update({
+            "signal_green_freeze_active": 1.0,
+            "signal_green_freeze_major_sec": float(major),
+            "signal_green_freeze_minor_sec": float(minor),
+            "signal_green_freeze_offset_sec": float(offset),
+        })
     if bool(actuation.get("F_ramp_invalid_guard_active", False)):
         cap = cfg.network.ramp_capacity_veh_h
         fallback = (
@@ -1470,6 +2350,718 @@ def apply_actuation_guards_to_control(control, cfg, actuation: Mapping[str, Any]
     return metadata
 
 
+def _total_ramp_queue_veh(state) -> float:
+    ramp_queue = getattr(state, "ramp_queue", {})
+    if not isinstance(ramp_queue, Mapping):
+        return 0.0
+    return float(sum(max(0.0, _as_float(value)) for value in ramp_queue.values()))
+
+
+def _boundary_in_queue_veh(state, cfg) -> float:
+    try:
+        return float(state.boundary_in_queue_vehicles(cfg.network))
+    except Exception:
+        return 0.0
+
+
+def _max_freeway_density_ratio(state, cfg) -> float:
+    rho_crit = max(1.0e-9, float(getattr(cfg.network, "rho_crit", 1.0)))
+    values: list[float] = []
+    freeway_density = getattr(state, "freeway_density", {})
+    if isinstance(freeway_density, Mapping):
+        for densities in freeway_density.values():
+            if isinstance(densities, list):
+                values.extend(max(0.0, _as_float(value)) / rho_crit for value in densities)
+    return float(max(values)) if values else 0.0
+
+
+def _ramp_capacities(cfg) -> dict[str, float]:
+    raw = getattr(cfg.network, "ramp_capacity_veh_h", {})
+    if not isinstance(raw, Mapping):
+        return {}
+    return {str(key): max(0.0, _as_float(value)) for key, value in raw.items()}
+
+
+def _release_sum(control, capacities: Mapping[str, float]) -> float:
+    return float(sum(
+        max(0.0, _as_float(control.ramp_metering.get(ramp, capacities.get(ramp, 0.0))))
+        for ramp in capacities
+    ))
+
+
+def _release_floor_ratio(
+    guard: Mapping[str, Any],
+    ramp_queue_veh: float,
+    boundary_queue_veh: float,
+    stopped_veh: float,
+) -> float:
+    ratio = clamp(_as_float(guard.get("min_release_ratio_of_capacity"), 0.0), 0.0, 1.0)
+    high_ratio = clamp(
+        _as_float(guard.get("queue_high_release_ratio_of_capacity"), ratio),
+        0.0,
+        1.0,
+    )
+    if ramp_queue_veh >= _as_float(guard.get("ramp_queue_threshold_veh"), float("inf")):
+        ratio = max(ratio, high_ratio)
+    if boundary_queue_veh >= _as_float(guard.get("boundary_queue_threshold_veh"), float("inf")):
+        ratio = max(ratio, high_ratio)
+    if stopped_veh >= _as_float(guard.get("stopped_threshold_veh"), float("inf")):
+        ratio = max(ratio, high_ratio)
+    return float(ratio)
+
+
+def _make_no_control(ControlAction, cfg):
+    if hasattr(ControlAction, "uncontrolled"):
+        return ControlAction.uncontrolled(cfg)
+    return ControlAction.fixed(cfg)
+
+
+def apply_vissim_policy_guards(
+    control,
+    cfg,
+    state,
+    state_json: Mapping[str, Any],
+    actuation: Mapping[str, Any],
+    ControlAction,
+) -> tuple[Any, dict[str, float]]:
+    """Plant-aware action guards applied before bridge-level actuator guards.
+
+    These guards are intentionally conservative. They do not try to improve the
+    Stackelberg objective; they prevent Vissim-facing ramp actions from hiding
+    too much queue in ramp/boundary storage when the predicted benefit is small.
+    """
+    if bool(_mapping(getattr(control, "diagnostics", {})).get("diagnostic_bypass_policy_guards", False)):
+        return control, {"ramp_release_guard_bypassed_for_diagnostic": 1.0}
+
+    guard = _mapping(actuation.get("ramp_release_guard"))
+    if not bool(guard.get("enabled", False)):
+        return control, {}
+
+    capacities = _ramp_capacities(cfg)
+    if not capacities:
+        return control, {}
+
+    ramp_queue_veh = _total_ramp_queue_veh(state)
+    boundary_queue_veh = _boundary_in_queue_veh(state, cfg)
+    stopped_veh = max(0.0, _as_float(state_json.get("stopped_vehicles")))
+    density_ratio = _max_freeway_density_ratio(state, cfg)
+    floor_ratio = _release_floor_ratio(guard, ramp_queue_veh, boundary_queue_veh, stopped_veh)
+    before_sum = _release_sum(control, capacities)
+    cap_sum = float(sum(capacities.values()))
+    no_control_sum = cap_sum
+    mean_ratio_before = before_sum / max(no_control_sum, 1.0e-9)
+
+    fallback = _mapping(guard.get("no_control_fallback"))
+    fallback_enabled = bool(fallback.get("enabled", False))
+    fallback_release_ratio = clamp(
+        _as_float(
+            fallback.get("min_release_ratio_of_uncontrolled"),
+            guard.get("fallback_min_release_ratio_of_uncontrolled", 0.0),
+        ),
+        0.0,
+        1.0,
+    )
+    density_limit = _as_float(
+        fallback.get("max_density_ratio_for_fallback"),
+        guard.get("max_density_ratio_for_fallback", float("inf")),
+    )
+    queue_required = bool(fallback.get("require_queue_or_stopped", False))
+    has_queue_risk = (
+        ramp_queue_veh >= _as_float(guard.get("ramp_queue_threshold_veh"), float("inf"))
+        or boundary_queue_veh >= _as_float(guard.get("boundary_queue_threshold_veh"), float("inf"))
+        or stopped_veh >= _as_float(guard.get("stopped_threshold_veh"), float("inf"))
+    )
+    should_fallback = (
+        fallback_enabled
+        and mean_ratio_before < fallback_release_ratio
+        and density_ratio <= density_limit
+        and (has_queue_risk or not queue_required)
+    )
+
+    metadata: dict[str, float] = {
+        "ramp_release_guard_active": 1.0,
+        "ramp_release_guard_floor_ratio": float(floor_ratio),
+        "ramp_release_guard_before_sum_vph": float(before_sum),
+        "ramp_release_guard_before_ratio": float(mean_ratio_before),
+        "ramp_release_guard_ramp_queue_veh": float(ramp_queue_veh),
+        "ramp_release_guard_boundary_queue_veh": float(boundary_queue_veh),
+        "ramp_release_guard_stopped_veh": float(stopped_veh),
+        "ramp_release_guard_density_ratio_max": float(density_ratio),
+        "ramp_release_guard_no_control_fallback": float(should_fallback),
+    }
+
+    if should_fallback:
+        control = _make_no_control(ControlAction, cfg)
+        control.diagnostics["ramp_release_guard_no_control_fallback"] = 1.0
+        control.diagnostics["ramp_release_guard_before_ratio"] = float(mean_ratio_before)
+    else:
+        adjusted = 0
+        ramp_overrides = _mapping(guard.get("per_ramp_min_release_ratio_of_capacity"))
+        for ramp, capacity in capacities.items():
+            ratio = clamp(_as_float(ramp_overrides.get(ramp), floor_ratio), 0.0, 1.0)
+            floor = float(capacity) * ratio
+            current = max(0.0, _as_float(control.ramp_metering.get(ramp), capacity))
+            if current < floor:
+                control.ramp_metering[ramp] = float(floor)
+                adjusted += 1
+        control.diagnostics["ramp_release_guard_adjusted_count"] = float(adjusted)
+        control.diagnostics["ramp_release_guard_floor_ratio"] = float(floor_ratio)
+        metadata["ramp_release_guard_adjusted_count"] = float(adjusted)
+
+    after_sum = _release_sum(control, capacities)
+    control.N_UF_star = float(after_sum)
+    control.diagnostics["ramp_release_guard_after_sum_vph"] = float(after_sum)
+    control.diagnostics["ramp_release_guard_N_UF_resynced"] = 1.0
+    metadata.update({
+        "ramp_release_guard_after_sum_vph": float(after_sum),
+        "ramp_release_guard_after_ratio": float(after_sum / max(no_control_sum, 1.0e-9)),
+        "ramp_release_guard_N_UF_resynced": 1.0,
+    })
+    return control, metadata
+
+
+def _post_guard_safety_settings(tuning: Mapping[str, Any]) -> Mapping[str, Any]:
+    return _mapping(_mapping(tuning.get("adapter")).get("post_guard_safety"))
+
+
+def _post_guard_terminal_score_settings(
+    tuning: Mapping[str, Any],
+    safety: Mapping[str, Any],
+) -> Mapping[str, Any]:
+    base = dict(_mapping(_mapping(tuning.get("adapter")).get("terminal_cost")))
+    score = _mapping(safety.get("score"))
+    if not score:
+        score = _mapping(safety.get("terminal_cost"))
+    if score:
+        base = deep_update(base, score)
+    if "fit_json" not in base:
+        base["fit_json"] = "evaluation/calibration/vissim_terminal_cost_fit_20260715.json"
+    return base
+
+
+def _load_terminal_score_spec(settings: Mapping[str, Any]) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    fit_path = _workspace_path(
+        str(settings.get("fit_json", "evaluation/calibration/vissim_terminal_cost_fit_20260715.json"))
+    )
+    try:
+        fit = json.loads(fit_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return None, {
+            "post_guard_safety_status": "terminal_fit_load_failed",
+            "post_guard_safety_error_type": type(exc).__name__,
+        }
+
+    raw_coefficients = _mapping(fit.get("raw_coefficients"))
+    features = settings.get("features", fit.get("features", []))
+    if not isinstance(features, list):
+        features = list(raw_coefficients)
+    coefficient_mode = str(settings.get("coefficient_mode", "positive_only")).lower()
+    include_intercept = bool(settings.get("include_intercept", False))
+    intercept = _as_float(fit.get("raw_intercept"), 0.0) if include_intercept else 0.0
+    used: dict[str, float] = {}
+    for feature in features:
+        name = str(feature)
+        coef = _as_float(raw_coefficients.get(name), 0.0)
+        if coefficient_mode == "positive_only" and coef <= 0.0:
+            continue
+        used[name] = float(coef)
+    if not used and abs(intercept) <= 1.0e-12:
+        return None, {"post_guard_safety_status": "terminal_fit_empty"}
+
+    return {
+        "coefficients": used,
+        "intercept": float(intercept),
+        "weight": _as_float(settings.get("weight"), 1.0),
+        "clamp_nonnegative": bool(settings.get("clamp_nonnegative", True)),
+        "use_calibrated_prediction": bool(settings.get("use_calibrated_prediction", True)),
+        "component_penalty": _mapping(settings.get("component_penalty")),
+        "fit_path": str(fit_path),
+        "fit_r2": _as_float(_mapping(fit.get("metrics")).get("r2"), 0.0),
+    }, {
+        "post_guard_terminal_score_feature_count": float(len(used)),
+        "post_guard_terminal_score_fit_r2": _as_float(_mapping(fit.get("metrics")).get("r2"), 0.0),
+        "post_guard_terminal_score_weight": _as_float(settings.get("weight"), 1.0),
+    }
+
+
+def _prediction_terminal_features(
+    prediction: Mapping[str, Any],
+    cfg,
+    spec: Mapping[str, Any],
+) -> tuple[dict[str, float], str]:
+    if bool(spec.get("use_calibrated_prediction", True)):
+        calibrated = _mapping(prediction.get("calibrated_state_summary"))
+        if calibrated:
+            return vissim_terminal_feature_vector_from_summary(calibrated, cfg), "calibrated_state_summary"
+    terminal_features = _mapping(prediction.get("terminal_features"))
+    if terminal_features:
+        return {str(k): _as_float(v) for k, v in terminal_features.items()}, "terminal_features"
+    summary = _mapping(prediction.get("state_summary"))
+    return vissim_terminal_feature_vector_from_summary(summary, cfg), "state_summary"
+
+
+def _prediction_component_summary(
+    prediction: Mapping[str, Any],
+    settings: Mapping[str, Any],
+) -> tuple[Mapping[str, Any], str]:
+    if bool(settings.get("use_calibrated_prediction", True)):
+        calibrated = _mapping(prediction.get("calibrated_state_summary"))
+        if calibrated:
+            return calibrated, "calibrated_state_summary"
+    summary = _mapping(prediction.get("state_summary"))
+    return summary, "state_summary"
+
+
+def _component_penalty_score(
+    prediction: Mapping[str, Any],
+    settings: Mapping[str, Any],
+) -> tuple[float, str, int]:
+    component = _mapping(settings.get("component_penalty"))
+    if not bool(component.get("enabled", False)):
+        return 0.0, "disabled", 0
+    terms = component.get("terms", [])
+    if not isinstance(terms, list):
+        return 0.0, "empty", 0
+    summary, summary_kind = _prediction_component_summary(prediction, component)
+    total = 0.0
+    used = 0
+    for raw_term in terms:
+        term = _mapping(raw_term)
+        metric = str(term.get("metric", ""))
+        if not metric:
+            continue
+        value = _as_float(summary.get(metric), 0.0)
+        target = _as_float(term.get("target", term.get("threshold", 0.0)), 0.0)
+        mode = str(term.get("mode", "above")).lower()
+        if mode in ("above", "excess", "over"):
+            amount = max(0.0, value - target)
+        elif mode in ("below", "deficit", "under"):
+            amount = max(0.0, target - value)
+        elif mode in ("absolute", "abs"):
+            amount = abs(value - target)
+        elif mode in ("value", "raw"):
+            amount = max(0.0, value)
+        else:
+            amount = 0.0
+        weight = _as_float(term.get("weight"), 0.0)
+        total += weight * amount
+        used += 1
+    return float(total), summary_kind, used
+
+
+def _score_prediction_with_terminal_fit(
+    prediction: Mapping[str, Any],
+    cfg,
+    spec: Mapping[str, Any],
+) -> tuple[dict[str, Any] | None, str]:
+    if str(prediction.get("status", "")) != "ok":
+        return None, "prediction_unavailable"
+    features, summary_kind = _prediction_terminal_features(prediction, cfg, spec)
+    raw = _as_float(spec.get("intercept"), 0.0)
+    for feature, coef in _mapping(spec.get("coefficients")).items():
+        raw += float(coef) * float(features.get(str(feature), 0.0))
+    if bool(spec.get("clamp_nonnegative", True)):
+        raw = max(0.0, raw)
+    component_penalty, component_summary_kind, component_term_count = _component_penalty_score(prediction, spec)
+    weight = _as_float(spec.get("weight"), 1.0)
+    return {
+        "score": float(weight * raw + component_penalty),
+        "raw_veh_h": float(raw),
+        "summary_kind": summary_kind,
+        "component_penalty": float(component_penalty),
+        "component_summary_kind": component_summary_kind,
+        "component_term_count": float(component_term_count),
+    }, "ok"
+
+
+def _add_score_metadata(
+    metadata: dict[str, Any],
+    prefix: str,
+    score: Mapping[str, Any] | None,
+    status: str,
+) -> None:
+    metadata[f"{prefix}_score_status"] = status
+    if score is None:
+        return
+    metadata[f"{prefix}_terminal_score"] = float(score.get("score", 0.0))
+    metadata[f"{prefix}_terminal_score_raw_veh_h"] = float(score.get("raw_veh_h", 0.0))
+    metadata[f"{prefix}_score_summary_kind"] = str(score.get("summary_kind", ""))
+    metadata[f"{prefix}_component_penalty"] = float(score.get("component_penalty", 0.0))
+    metadata[f"{prefix}_component_penalty_term_count"] = float(score.get("component_term_count", 0.0))
+    metadata[f"{prefix}_component_penalty_summary_kind"] = str(score.get("component_summary_kind", ""))
+
+
+def _physical_action_metadata(prefix: str, control, cfg, actuation: Mapping[str, Any]) -> dict[str, float]:
+    metadata: dict[str, float] = {}
+    try:
+        actions = physical_ramp_actions(control, cfg, actuation)
+    except Exception:
+        return metadata
+    for ramp, spec in actions.items():
+        metadata[f"{prefix}_physical_ramp_{ramp}_rate_vph"] = _as_float(spec.get("rate_vph"))
+        metadata[f"{prefix}_physical_ramp_{ramp}_green_sec"] = _as_float(spec.get("green_sec"))
+    return metadata
+
+
+def _guarded_no_control_baseline(ControlAction, cfg, state, state_json, actuation: Mapping[str, Any]):
+    control = _make_no_control(ControlAction, cfg)
+    control.diagnostics["post_guard_no_control_baseline"] = 1.0
+    control, _ = apply_vissim_policy_guards(control, cfg, state, state_json, actuation, ControlAction)
+    apply_actuation_guards_to_control(control, cfg, actuation)
+    return control
+
+
+def _guarded_pfo_baseline(cfg, state, forecast, previous, state_json, actuation: Mapping[str, Any], ControlAction):
+    started = time.perf_counter()
+    metadata: dict[str, Any] = {}
+    controller = None
+    try:
+        from src.controllers.distributed_coordinator import DistributedCoordinator
+
+        controller = DistributedCoordinator(cfg)
+        result = controller.solve(state.copy(), None, forecast, previous)
+        control = result.control
+        control.diagnostics["post_guard_pfo_baseline"] = 1.0
+        metadata.update({
+            "post_guard_pfo_iterations": float(getattr(result, "iterations", 0)),
+            "post_guard_pfo_converged": float(bool(getattr(result, "converged", False))),
+            "post_guard_pfo_objective": float(getattr(result, "objective_value", 0.0)),
+        })
+        control, _ = apply_vissim_policy_guards(control, cfg, state, state_json, actuation, ControlAction)
+        apply_actuation_guards_to_control(control, cfg, actuation)
+        metadata["post_guard_pfo_baseline_status"] = "ok"
+        metadata["post_guard_pfo_wall_sec"] = round(time.perf_counter() - started, 6)
+        return control, metadata
+    except Exception as exc:
+        metadata.update({
+            "post_guard_pfo_baseline_status": "error",
+            "post_guard_pfo_error_type": type(exc).__name__,
+            "post_guard_pfo_wall_sec": round(time.perf_counter() - started, 6),
+        })
+        return None, metadata
+    finally:
+        if controller is not None and hasattr(controller, "close"):
+            try:
+                controller.close()
+            except Exception:
+                pass
+
+
+def apply_post_guard_safety_evaluation(
+    control,
+    cfg,
+    state,
+    state_json: Mapping[str, Any],
+    forecast,
+    previous,
+    calibration: Mapping[str, Any],
+    tuning: Mapping[str, Any],
+    actuation: Mapping[str, Any],
+    ControlAction,
+    prediction: Mapping[str, Any],
+) -> tuple[Any, dict[str, Any], Mapping[str, Any]]:
+    """Evaluate guarded plant-facing action against explicit safety baselines."""
+    if bool(_mapping(getattr(control, "diagnostics", {})).get("diagnostic_bypass_policy_guards", False)):
+        return control, {"post_guard_safety_bypassed_for_diagnostic": 1.0}, prediction
+
+    safety = _post_guard_safety_settings(tuning)
+    if not bool(safety.get("enabled", False)):
+        return control, {}, prediction
+
+    metadata: dict[str, Any] = {
+        "post_guard_safety_enabled": 1.0,
+        "post_guard_safety_status": "ok",
+        "post_guard_safety_fallback_occurred": 0.0,
+        "post_guard_no_control_fallback": 0.0,
+    }
+    metadata.update(_physical_action_metadata("post_guard", control, cfg, actuation))
+
+    spec, spec_metadata = _load_terminal_score_spec(_post_guard_terminal_score_settings(tuning, safety))
+    metadata.update(spec_metadata)
+    if spec is None:
+        return control, metadata, prediction
+
+    post_score, post_status = _score_prediction_with_terminal_fit(prediction, cfg, spec)
+    _add_score_metadata(metadata, "post_guard", post_score, post_status)
+    if post_score is None:
+        metadata["post_guard_safety_status"] = post_status
+        return control, metadata, prediction
+
+    no_control_settings = _mapping(safety.get("no_control_baseline"))
+    if not no_control_settings:
+        no_control_settings = _mapping(safety.get("no_control"))
+    no_control_enabled = bool(no_control_settings.get("enabled", True))
+    metadata["post_guard_no_control_baseline_enabled"] = float(no_control_enabled)
+    no_control_prediction: Mapping[str, Any] | None = None
+    no_control_control = None
+    if no_control_enabled:
+        no_control_control = _guarded_no_control_baseline(ControlAction, cfg, state, state_json, actuation)
+        metadata.update(_physical_action_metadata("post_guard_no_control", no_control_control, cfg, actuation))
+        no_control_prediction = build_one_step_prediction(state, no_control_control, forecast, cfg, calibration)
+        no_score, no_status = _score_prediction_with_terminal_fit(no_control_prediction, cfg, spec)
+        _add_score_metadata(metadata, "post_guard_no_control", no_score, no_status)
+        if no_score is not None:
+            gap = float(post_score["score"] - no_score["score"])
+            metadata["post_guard_no_control_score_gap"] = gap
+            metadata["post_guard_vs_no_control_score_gap"] = gap
+            margin = max(
+                0.0,
+                _as_float(
+                    no_control_settings.get(
+                        "fallback_margin_score",
+                        safety.get("no_control_fallback_margin_score", 0.0),
+                    ),
+                ),
+            )
+            metadata["post_guard_no_control_fallback_margin_score"] = float(margin)
+            fallback_enabled = bool(
+                no_control_settings.get(
+                    "fallback_enabled",
+                    safety.get("fallback_to_no_control", False),
+                )
+            )
+            prefer_less_restrictive = bool(
+                no_control_settings.get(
+                    "prefer_less_restrictive_on_tie",
+                    no_control_settings.get("prefer_no_control_on_tie", False),
+                )
+            )
+            tie_margin = max(
+                0.0,
+                _as_float(
+                    no_control_settings.get(
+                        "tie_margin_score",
+                        no_control_settings.get("prefer_no_control_tie_margin_score", 0.0),
+                    ),
+                ),
+            )
+            min_release_gap = max(
+                0.0,
+                _as_float(
+                    no_control_settings.get(
+                        "min_release_gap_vph",
+                        no_control_settings.get("prefer_no_control_min_release_gap_vph", 0.0),
+                    ),
+                ),
+            )
+            post_physical = physical_ramp_actions(control, cfg, actuation)
+            no_physical = physical_ramp_actions(no_control_control, cfg, actuation)
+            release_gap = 0.0
+            for ramp in sorted(set(post_physical) | set(no_physical)):
+                release_gap += max(
+                    0.0,
+                    _as_float(_mapping(no_physical.get(ramp)).get("rate_vph"))
+                    - _as_float(_mapping(post_physical.get(ramp)).get("rate_vph")),
+                )
+            tie_fallback = (
+                prefer_less_restrictive
+                and gap >= -tie_margin
+                and release_gap >= min_release_gap
+            )
+            metadata["post_guard_no_control_prefer_less_restrictive_on_tie"] = float(prefer_less_restrictive)
+            metadata["post_guard_no_control_tie_margin_score"] = float(tie_margin)
+            metadata["post_guard_no_control_release_gap_vph"] = float(release_gap)
+            metadata["post_guard_no_control_tie_fallback"] = float(tie_fallback)
+            should_fallback = fallback_enabled and (gap > margin or tie_fallback)
+            metadata["post_guard_no_control_fallback"] = float(should_fallback)
+            if should_fallback and no_control_prediction is not None:
+                no_control_control.diagnostics["post_guard_safety_no_control_fallback"] = 1.0
+                no_control_control.diagnostics["post_guard_no_control_score_gap"] = float(gap)
+                no_control_control.diagnostics["post_guard_no_control_tie_fallback"] = float(tie_fallback)
+                metadata["post_guard_safety_fallback_occurred"] = 1.0
+                metadata["post_guard_safety_fallback_baseline"] = "no_control"
+                metadata["post_guard_safety_status"] = "fallback_no_control"
+                metadata.update(_physical_action_metadata("post_guard_final", no_control_control, cfg, actuation))
+                return no_control_control, metadata, no_control_prediction
+    else:
+        metadata["post_guard_no_control_score_status"] = "disabled"
+
+    pfo_settings = _mapping(safety.get("pfo_baseline"))
+    pfo_enabled = bool(pfo_settings.get("enabled", False))
+    metadata["post_guard_pfo_baseline_enabled"] = float(pfo_enabled)
+    if pfo_enabled:
+        pfo_control, pfo_metadata = _guarded_pfo_baseline(
+            cfg,
+            state,
+            forecast,
+            previous,
+            state_json,
+            actuation,
+            ControlAction,
+        )
+        metadata.update(pfo_metadata)
+        if pfo_control is not None:
+            metadata.update(_physical_action_metadata("post_guard_pfo", pfo_control, cfg, actuation))
+            pfo_prediction = build_one_step_prediction(state, pfo_control, forecast, cfg, calibration)
+            pfo_score, pfo_status = _score_prediction_with_terminal_fit(pfo_prediction, cfg, spec)
+            _add_score_metadata(metadata, "post_guard_pfo", pfo_score, pfo_status)
+            if pfo_score is not None:
+                gap = float(post_score["score"] - pfo_score["score"])
+                metadata["post_guard_pfo_score_gap"] = gap
+                metadata["post_guard_vs_pfo_score_gap"] = gap
+    metadata.update(_physical_action_metadata("post_guard_final", control, cfg, actuation))
+    return control, metadata, prediction
+
+
+DIAGNOSTIC_SIGNALS = ("A", "B", "C", "D", "F")
+
+
+def _controlled_signal_names(cfg) -> list[str]:
+    signals = getattr(getattr(cfg, "network", None), "signals", None)
+    out = [str(signal) for signal in (signals or []) if str(signal)]
+    return out if out else list(DIAGNOSTIC_SIGNALS)
+
+
+def _diagnostic_fixed_control(
+    cfg,
+    ControlAction,
+    *,
+    vsl_kph: float = 120.0,
+    d_ramp_rate_vph: float | None = None,
+    f_ramp_rate_vph: float | None = None,
+    major_green_sec: float = 57.0,
+    minor_green_sec: float = 57.0,
+    offset_sec: float = 0.0,
+):
+    control = ControlAction.fixed(cfg)
+    cap = cfg.network.ramp_capacity_veh_h
+    control.vsl = {link: float(vsl_kph) for link in cfg.network.freeway_links}
+    for link in cfg.network.freeway_links:
+        for i in range(int(getattr(cfg.network, "freeway_segments_per_link", 0))):
+            control.vsl[f"{link}__seg{i}"] = float(vsl_kph)
+    d_rate = (
+        float(d_ramp_rate_vph)
+        if d_ramp_rate_vph is not None
+        else (float(cap.get("R_D_W", 0.0)) + float(cap.get("R_D_E", 0.0))) / 2.0
+    )
+    f_rate = (
+        float(f_ramp_rate_vph)
+        if f_ramp_rate_vph is not None
+        else (float(cap.get("R_F_W", 0.0)) + float(cap.get("R_F_E", 0.0))) / 2.0
+    )
+    control.ramp_metering = {
+        "R_D_W": float(d_rate),
+        "R_D_E": float(d_rate),
+        "R_F_W": float(f_rate),
+        "R_F_E": float(f_rate),
+    }
+    for signal in _controlled_signal_names(cfg):
+        control.green_times[f"{signal}_p1"] = float(minor_green_sec)
+        control.green_times[f"{signal}_p2"] = float(major_green_sec)
+        control.offsets[signal] = float(offset_sec)
+    control.diagnostics.update({
+        "diagnostic_fixed_actuation_active": 1.0,
+        "diagnostic_forced_vsl_kph": float(vsl_kph),
+        "diagnostic_forced_d_ramp_rate_vph": float(d_rate),
+        "diagnostic_forced_f_ramp_rate_vph": float(f_rate),
+        "diagnostic_forced_signal_major_green_sec": float(major_green_sec),
+        "diagnostic_forced_signal_minor_green_sec": float(minor_green_sec),
+        "diagnostic_bypass_policy_guards": 1.0,
+    })
+    return control
+
+
+def _force_all_vsl(control, cfg, vsl_kph: float) -> None:
+    control.vsl = {link: float(vsl_kph) for link in cfg.network.freeway_links}
+    for link in cfg.network.freeway_links:
+        for i in range(int(getattr(cfg.network, "freeway_segments_per_link", 0))):
+            control.vsl[f"{link}__seg{i}"] = float(vsl_kph)
+
+
+def _force_open_ramps(control, cfg) -> None:
+    cap = getattr(cfg.network, "ramp_capacity_veh_h", {}) or {}
+    ramps = list(getattr(cfg.network, "ramps", ()) or cap.keys())
+    control.ramp_metering = {
+        str(ramp): float(cap.get(str(ramp), 1800.0))
+        for ramp in ramps
+    }
+
+
+def _diagnostic_open_ramp_original_signal_control(cfg, ControlAction):
+    control = ControlAction.uncontrolled(cfg)
+    _force_all_vsl(control, cfg, 120.0)
+    _force_open_ramps(control, cfg)
+    control.diagnostics.update({
+        "diagnostic_pure_lever_baseline": 1.0,
+        "diagnostic_forced_vsl_kph": 120.0,
+        "diagnostic_ramps_forced_open": 1.0,
+        "diagnostic_signal_original_vissim": 1.0,
+    })
+    return control
+
+
+def diagnostic_vsl60_only_control(cfg, ControlAction):
+    control = _diagnostic_open_ramp_original_signal_control(cfg, ControlAction)
+    _force_all_vsl(control, cfg, 60.0)
+    control.diagnostics["diagnostic_vsl60_only_active"] = 1.0
+    control.diagnostics["diagnostic_forced_vsl_kph"] = 60.0
+    return control
+
+
+def diagnostic_vsl80_only_control(cfg, ControlAction):
+    control = _diagnostic_open_ramp_original_signal_control(cfg, ControlAction)
+    _force_all_vsl(control, cfg, 80.0)
+    control.diagnostics["diagnostic_vsl80_only_active"] = 1.0
+    control.diagnostics["diagnostic_forced_vsl_kph"] = 80.0
+    return control
+
+
+def _diagnostic_signal_only_control(
+    cfg,
+    ControlAction,
+    *,
+    major_green_sec: float,
+    minor_green_sec: float,
+    offset_sec: float = 0.0,
+):
+    control = _diagnostic_open_ramp_original_signal_control(cfg, ControlAction)
+    for signal in _controlled_signal_names(cfg):
+        control.green_times[f"{signal}_p1"] = float(minor_green_sec)
+        control.green_times[f"{signal}_p2"] = float(major_green_sec)
+        control.offsets[signal] = float(offset_sec)
+    control.diagnostics.update({
+        "diagnostic_signal_only_active": 1.0,
+        "diagnostic_forced_signal_major_green_sec": float(major_green_sec),
+        "diagnostic_forced_signal_minor_green_sec": float(minor_green_sec),
+        "diagnostic_forced_signal_offset_sec": float(offset_sec),
+    })
+    return control
+
+
+def diagnostic_signal_major90_only_control(cfg, ControlAction):
+    control = _diagnostic_signal_only_control(
+        cfg,
+        ControlAction,
+        major_green_sec=90.0,
+        minor_green_sec=5.0,
+    )
+    control.diagnostics["diagnostic_signal_major90_only_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_minor90_only_control(cfg, ControlAction):
+    control = _diagnostic_signal_only_control(
+        cfg,
+        ControlAction,
+        major_green_sec=5.0,
+        minor_green_sec=90.0,
+    )
+    control.diagnostics["diagnostic_signal_minor90_only_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_offset60_only_control(cfg, ControlAction):
+    control = _diagnostic_signal_only_control(
+        cfg,
+        ControlAction,
+        major_green_sec=57.0,
+        minor_green_sec=57.0,
+        offset_sec=60.0,
+    )
+    control.diagnostics["diagnostic_signal_offset60_only_active"] = 1.0
+    return control
+
+
 def diagnostic_vsl_rm_control(cfg, ControlAction):
     """Forced actuator diagnostic: lower VSL and meter both D/F ramps together.
 
@@ -1477,17 +3069,181 @@ def diagnostic_vsl_rm_control(cfg, ControlAction):
     bridge can apply VSL and ramp-metering actuation simultaneously before we
     attribute non-movement to the controller objective/calibration.
     """
-    control = ControlAction.fixed(cfg)
-    control.vsl = {link: 80.0 for link in cfg.network.freeway_links}
-    control.ramp_metering = {
-        "R_D_W": min(1253.0, float(cfg.network.ramp_capacity_veh_h.get("R_D_W", 1253.0))),
-        "R_D_E": min(1253.0, float(cfg.network.ramp_capacity_veh_h.get("R_D_E", 1253.0))),
-        "R_F_W": min(284.0, float(cfg.network.ramp_capacity_veh_h.get("R_F_W", 284.0))),
-        "R_F_E": min(284.0, float(cfg.network.ramp_capacity_veh_h.get("R_F_E", 284.0))),
-    }
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        vsl_kph=80.0,
+        d_ramp_rate_vph=min(1253.0, float(cfg.network.ramp_capacity_veh_h.get("R_D_W", 1253.0))),
+        f_ramp_rate_vph=min(284.0, float(cfg.network.ramp_capacity_veh_h.get("R_F_W", 284.0))),
+    )
     control.diagnostics["diagnostic_forced_vsl_rm_active"] = 1.0
-    control.diagnostics["diagnostic_forced_vsl_kph"] = 80.0
     control.diagnostics["diagnostic_forced_ramp_green_target_sec"] = 4.0
+    return control
+
+
+def diagnostic_fixed57_control(cfg, ControlAction):
+    return _diagnostic_fixed_control(cfg, ControlAction)
+
+
+def diagnostic_ramp_hold_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        d_ramp_rate_vph=691.0,
+    )
+    control.diagnostics["diagnostic_ramp_hold_active"] = 1.0
+    control.diagnostics["diagnostic_ramp_hold_target_green_sec"] = 2.0
+    return control
+
+
+def diagnostic_ramp_d1364_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        d_ramp_rate_vph=1364.0,
+    )
+    control.diagnostics["diagnostic_ramp_d1364_active"] = 1.0
+    control.diagnostics["diagnostic_ramp_d1364_target_green_sec"] = 6.0
+    return control
+
+
+def diagnostic_ramp_d1253_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        d_ramp_rate_vph=1253.0,
+    )
+    control.diagnostics["diagnostic_ramp_d1253_active"] = 1.0
+    control.diagnostics["diagnostic_ramp_d1253_target_green_sec"] = 4.0
+    return control
+
+
+def diagnostic_vsl80_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=80.0)
+    control.diagnostics["diagnostic_vsl80_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl80_original_signal_control(cfg, ControlAction):
+    control = diagnostic_vsl80_control(cfg, ControlAction)
+    control.diagnostics["diagnostic_original_signal_active"] = 1.0
+    return control
+
+
+def diagnostic_ramp_all735_original_signal_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        d_ramp_rate_vph=735.0,
+        f_ramp_rate_vph=735.0,
+    )
+    control.diagnostics["diagnostic_ramp_all735_original_signal_active"] = 1.0
+    return control
+
+
+def diagnostic_ramp_all360_original_signal_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        d_ramp_rate_vph=360.0,
+        f_ramp_rate_vph=360.0,
+    )
+    control.diagnostics["diagnostic_ramp_all360_original_signal_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl110_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=110.0)
+    control.diagnostics["diagnostic_vsl110_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl100_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=100.0)
+    control.diagnostics["diagnostic_vsl100_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_major_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        major_green_sec=75.0,
+        minor_green_sec=25.0,
+    )
+    control.diagnostics["diagnostic_signal_major_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_minor_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        major_green_sec=25.0,
+        minor_green_sec=75.0,
+    )
+    control.diagnostics["diagnostic_signal_minor_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_major62_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        major_green_sec=62.0,
+        minor_green_sec=52.0,
+    )
+    control.diagnostics["diagnostic_signal_major62_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_minor62_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        major_green_sec=52.0,
+        minor_green_sec=62.0,
+    )
+    control.diagnostics["diagnostic_signal_minor62_active"] = 1.0
+    return control
+
+
+def diagnostic_signal_offset30_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        major_green_sec=57.0,
+        minor_green_sec=57.0,
+        offset_sec=30.0,
+    )
+    control.diagnostics["diagnostic_signal_offset30_active"] = 1.0
+    return control
+
+
+def diagnostic_combined_strong_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        vsl_kph=80.0,
+        d_ramp_rate_vph=691.0,
+        major_green_sec=75.0,
+        minor_green_sec=25.0,
+    )
+    control.diagnostics["diagnostic_combined_strong_active"] = 1.0
+    return control
+
+
+def diagnostic_combined_extreme_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(
+        cfg,
+        ControlAction,
+        vsl_kph=60.0,
+        d_ramp_rate_vph=360.0,
+        f_ramp_rate_vph=360.0,
+        major_green_sec=90.0,
+        minor_green_sec=5.0,
+    )
+    control.diagnostics["diagnostic_combined_extreme_active"] = 1.0
     return control
 
 
@@ -1525,9 +3281,10 @@ def write_action_csv(
         writer.writeheader()
         for seg in mapping["segments"]:
             segment_id = seg["segment_id"]
-            model_link, idx = SEGMENT_TO_MODEL[segment_id]
+            model_link, idx = _segment_model_coordinates(str(segment_id), seg)
             value = nearest(segment_vsl_func(control, model_link, idx, cfg), vsl_set)
-            for lane, dsd in sorted(seg["dsd_by_lane"].items(), key=lambda item: int(item[0])):
+            for dsd in _segment_dsd_controls(seg):
+                lane = dsd.get("lane", "")
                 writer.writerow({
                     "kind": "vsl",
                     "id": segment_id,
@@ -1537,35 +3294,60 @@ def write_action_csv(
                     "speed_kph": value,
                     "metadata": metadata.get("controller_status", ""),
                 })
-        signal_to_sc = {"A": 1, "B": 2, "C": 3, "D": 4, "F": 5}
-        for signal, sc_no in signal_to_sc.items():
-            # Phase-axis fix (2026-06-30): VISSIM SG1(MAJOR) controls the E-W/arterial approaches,
-            # which the model serves in phase p2; SG2(MINOR) controls the N-S/cross approaches = model
-            # phase p1. Verified against evaluation/signal_install/signal_manifest.csv (20/20 approach
-            # links). The previous mapping (major<-p1, minor<-p2) axis-swapped every signal's green
-            # allocation in VISSIM, so the controller's green was applied to the wrong axis.
-            major = clamp(float(control.green_times.get(f"{signal}_p2", 40.0)), 5.0, 90.0)
-            minor = clamp(float(control.green_times.get(f"{signal}_p1", 40.0)), 5.0, 90.0)
-            offset = float(control.offsets.get(signal, 0.0))
-            writer.writerow({
-                "kind": "signal",
-                "id": signal,
-                "sc_no": sc_no,
-                "major_green": round(major, 3),
-                "minor_green": round(minor, 3),
-                "offset": round(offset, 3),
-                "metadata": metadata.get("controller_status", ""),
-            })
-        ramp_to_sc = {"D": 6, "F": 7}
-        for ramp, spec in physical_ramp_actions(control, cfg, actuation).items():
-            writer.writerow({
-                "kind": "ramp_meter",
-                "id": ramp,
-                "sc_no": ramp_to_sc[ramp],
-                "rate_vph": round(spec["rate_vph"], 3),
-                "green_sec": round(spec["green_sec"], 3),
-                "metadata": metadata.get("controller_status", ""),
-            })
+        signal_settings = _mapping(actuation.get("real_world_signal_control"))
+        write_signal_rows = bool(signal_settings.get("enabled", True))
+        if str(metadata.get("controller_variant", "")) == "no-control" and not bool(
+            signal_settings.get("apply_to_no_control", False)
+        ):
+            write_signal_rows = False
+        if bool(metadata.get("suppress_signal_rows", False)):
+            write_signal_rows = False
+        if write_signal_rows:
+            for signal_row in _signal_rows_for_mapping(mapping):
+                signal = str(signal_row["id"])
+                sc_no = int(signal_row["sc_no"])
+                # Phase-axis fix (2026-06-30): VISSIM SG1(MAJOR) controls the E-W/arterial approaches,
+                # which the model serves in phase p2; SG2(MINOR) controls the N-S/cross approaches = model
+                # phase p1. Verified against evaluation/signal_install/signal_manifest.csv (20/20 approach
+                # links). The previous mapping (major<-p1, minor<-p2) axis-swapped every signal's green
+                # allocation in VISSIM, so the controller's green was applied to the wrong axis.
+                major = clamp(float(control.green_times.get(f"{signal}_p2", 40.0)), 5.0, 90.0)
+                minor = clamp(float(control.green_times.get(f"{signal}_p1", 40.0)), 5.0, 90.0)
+                offset = float(control.offsets.get(signal, 0.0))
+                writer.writerow({
+                    "kind": "signal",
+                    "id": signal,
+                    "sc_no": sc_no,
+                    "major_green": round(major, 3),
+                    "minor_green": round(minor, 3),
+                    "offset": round(offset, 3),
+                    "metadata": metadata.get("controller_status", ""),
+                })
+        if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
+            for ramp, spec in real_world_ramp_meter_actions(control, cfg, actuation, mapping).items():
+                writer.writerow({
+                    "kind": "ramp_meter",
+                    "id": ramp,
+                    "sc_no": int(_as_float(spec.get("sc_no"), 0.0)),
+                    "rate_vph": round(_as_float(spec.get("rate_vph"), 0.0), 3),
+                    "green_sec": round(_as_float(spec.get("green_sec"), 10.0), 3),
+                    "metadata": (
+                        f"{metadata.get('controller_status', '')};"
+                        f"model_ramp_key={spec.get('model_ramp_key', '')};"
+                        f"group_rate_vph={round(_as_float(spec.get('group_rate_vph'), 0.0), 3)}"
+                    ),
+                })
+        else:
+            ramp_to_sc = {"D": 6, "F": 7}
+            for ramp, spec in physical_ramp_actions(control, cfg, actuation).items():
+                writer.writerow({
+                    "kind": "ramp_meter",
+                    "id": ramp,
+                    "sc_no": ramp_to_sc[ramp],
+                    "rate_vph": round(spec["rate_vph"], 3),
+                    "green_sec": round(spec["green_sec"], 3),
+                    "metadata": metadata.get("controller_status", ""),
+                })
 
 
 def main() -> None:
@@ -1580,7 +3362,37 @@ def main() -> None:
     parser.add_argument("--mode", choices=["fast-smoke", "fuller-smoke"], default="fast-smoke")
     parser.add_argument(
         "--controller",
-        choices=["stackelberg", "stackelberg-wu-metered", "pfo", "wu", "wu-leader", "no-control", "diagnostic-vsl-rm"],
+        choices=[
+            "stackelberg",
+            "stackelberg-wu-metered",
+            "pfo",
+            "wu",
+            "wu-leader",
+            "no-control",
+            "diagnostic-vsl-rm",
+            "diagnostic-fixed57",
+            "diagnostic-ramp-hold",
+            "diagnostic-ramp-d1364",
+            "diagnostic-ramp-d1253",
+            "diagnostic-vsl60-only",
+            "diagnostic-vsl80-only",
+            "diagnostic-vsl110",
+            "diagnostic-vsl100",
+            "diagnostic-vsl80",
+            "diagnostic-vsl80-original",
+            "diagnostic-ramp-all735-original",
+            "diagnostic-ramp-all360-original",
+            "diagnostic-signal-major90-only",
+            "diagnostic-signal-minor90-only",
+            "diagnostic-signal-offset60-only",
+            "diagnostic-signal-major62",
+            "diagnostic-signal-minor62",
+            "diagnostic-signal-major",
+            "diagnostic-signal-minor",
+            "diagnostic-signal-offset30",
+            "diagnostic-combined-strong",
+            "diagnostic-combined-extreme",
+        ],
         default="stackelberg",
     )
     parser.add_argument("--calibration-json", default=str(DEFAULT_CALIBRATION))
@@ -1598,6 +3410,9 @@ def main() -> None:
     detector_mapping = load_optional_json(args.detector_mapping_json)
     calibration = load_optional_json(args.calibration_json)
     tuning = load_optional_json(args.tuning_json)
+    calibration_override = tuning.get("calibration_override", {})
+    if isinstance(calibration_override, Mapping):
+        calibration = deep_update(dict(calibration), calibration_override)
     actuation = adapter_actuation_settings(calibration, tuning)
     control_interval = float(state_json.get("control_interval_sec", 60.0))
     sim_period = float(state_json.get("sim_period_sec", max(180.0, control_interval)))
@@ -1620,11 +3435,20 @@ def main() -> None:
         tuning,
         local_observation=local_observation,
     )
+    adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
+    runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     state = traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping, calibration)
     if local_observation:
         install_local_observation_runtime_guards()
-    forecast = demand_from_state(state_json, cfg, DemandStep, cfg.mpc.horizon_steps, calibration)
+    forecast = demand_from_state(
+        state_json,
+        cfg,
+        DemandStep,
+        cfg.mpc.horizon_steps,
+        calibration,
+        detector_mapping,
+    )
     previous_path = Path(args.previous_action_json) if args.previous_action_json else Path("__missing_previous.json")
     previous = control_from_json(previous_path, cfg, ControlAction)
     observed_summary = summarize_model_state(state, cfg)
@@ -1642,6 +3466,8 @@ def main() -> None:
             if args.controller == "no-control"
             else "DiagnosticVslRampMetering"
             if args.controller == "diagnostic-vsl-rm"
+            else "DiagnosticFixedActuation"
+            if args.controller.startswith("diagnostic-")
             else "WuDistributedController"
         ),
         "controller_variant": args.controller,
@@ -1681,6 +3507,7 @@ def main() -> None:
         metadata.update({
             "demand_profile_forecast_profile_aware": 1.0,
             "demand_profile": forecast_profile,
+            "demand_urban_west_east_ratio": float(_as_float(demand_payload.get("urban_west_east_ratio"), 1.0)),
             "demand_profile_route_bias_forecast_applied": float(route_bias_applied),
             "route_bias_forecast_target_share": float(_as_float(route_bias_forecast.get("target_share"), 0.98)),
             "forecast_freeway_FW_E_vph": float(forecast0.freeway_mainline.get("FW_E", 0.0)),
@@ -1717,10 +3544,26 @@ def main() -> None:
         "network_ramp_capacity_R_F_W_veh_h": float(cfg.network.ramp_capacity_veh_h.get("R_F_W", 0.0)),
         "network_ramp_capacity_R_F_E_veh_h": float(cfg.network.ramp_capacity_veh_h.get("R_F_E", 0.0)),
     })
+    metadata.update(adapter_runtime_metadata)
     metadata.update(runtime_patch_metadata)
     if hasattr(state, "local_observation_summary"):
         summary = state.local_observation_summary
-        metadata["local_observation_agent_count"] = float(len(summary.get("agents", {})))
+        summary_agents = summary.get("agents", {})
+        metadata["local_observation_agent_count"] = float(len(summary_agents))
+        if isinstance(summary_agents, Mapping):
+            flagged_agents = [
+                agent
+                for agent in summary_agents.values()
+                if isinstance(agent, Mapping)
+                and ("control_enabled" in agent or "monitoring_only" in agent)
+            ]
+            if flagged_agents:
+                metadata["local_observation_control_agent_count"] = float(
+                    sum(1 for agent in flagged_agents if bool(agent.get("control_enabled", True)))
+                )
+                metadata["local_observation_monitoring_agent_count"] = float(
+                    sum(1 for agent in flagged_agents if bool(agent.get("monitoring_only", False)))
+                )
         metadata["local_observation_total_movement_queue"] = float(
             sum(max(0.0, _as_float(v)) for v in summary.get("urban_movement_queue", {}).values())
         )
@@ -1770,8 +3613,80 @@ def main() -> None:
         elif args.controller == "diagnostic-vsl-rm":
             control = diagnostic_vsl_rm_control(cfg, ControlAction)
             metadata["diagnostic_forced_vsl_rm_active"] = 1.0
+        elif args.controller == "diagnostic-fixed57":
+            control = diagnostic_fixed57_control(cfg, ControlAction)
+            metadata["diagnostic_fixed57_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-hold":
+            control = diagnostic_ramp_hold_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_hold_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-d1364":
+            control = diagnostic_ramp_d1364_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_d1364_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-d1253":
+            control = diagnostic_ramp_d1253_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_d1253_active"] = 1.0
+        elif args.controller == "diagnostic-vsl60-only":
+            control = diagnostic_vsl60_only_control(cfg, ControlAction)
+            metadata["diagnostic_vsl60_only_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == "diagnostic-vsl80-only":
+            control = diagnostic_vsl80_only_control(cfg, ControlAction)
+            metadata["diagnostic_vsl80_only_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == "diagnostic-vsl110":
+            control = diagnostic_vsl110_control(cfg, ControlAction)
+            metadata["diagnostic_vsl110_active"] = 1.0
+        elif args.controller == "diagnostic-vsl100":
+            control = diagnostic_vsl100_control(cfg, ControlAction)
+            metadata["diagnostic_vsl100_active"] = 1.0
+        elif args.controller == "diagnostic-vsl80":
+            control = diagnostic_vsl80_control(cfg, ControlAction)
+            metadata["diagnostic_vsl80_active"] = 1.0
+        elif args.controller == "diagnostic-vsl80-original":
+            control = diagnostic_vsl80_original_signal_control(cfg, ControlAction)
+            metadata["diagnostic_vsl80_original_signal_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == "diagnostic-ramp-all735-original":
+            control = diagnostic_ramp_all735_original_signal_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_all735_original_signal_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == "diagnostic-ramp-all360-original":
+            control = diagnostic_ramp_all360_original_signal_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_all360_original_signal_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == "diagnostic-signal-major90-only":
+            control = diagnostic_signal_major90_only_control(cfg, ControlAction)
+            metadata["diagnostic_signal_major90_only_active"] = 1.0
+        elif args.controller == "diagnostic-signal-minor90-only":
+            control = diagnostic_signal_minor90_only_control(cfg, ControlAction)
+            metadata["diagnostic_signal_minor90_only_active"] = 1.0
+        elif args.controller == "diagnostic-signal-offset60-only":
+            control = diagnostic_signal_offset60_only_control(cfg, ControlAction)
+            metadata["diagnostic_signal_offset60_only_active"] = 1.0
+        elif args.controller == "diagnostic-signal-major62":
+            control = diagnostic_signal_major62_control(cfg, ControlAction)
+            metadata["diagnostic_signal_major62_active"] = 1.0
+        elif args.controller == "diagnostic-signal-minor62":
+            control = diagnostic_signal_minor62_control(cfg, ControlAction)
+            metadata["diagnostic_signal_minor62_active"] = 1.0
+        elif args.controller == "diagnostic-signal-major":
+            control = diagnostic_signal_major_control(cfg, ControlAction)
+            metadata["diagnostic_signal_major_active"] = 1.0
+        elif args.controller == "diagnostic-signal-minor":
+            control = diagnostic_signal_minor_control(cfg, ControlAction)
+            metadata["diagnostic_signal_minor_active"] = 1.0
+        elif args.controller == "diagnostic-signal-offset30":
+            control = diagnostic_signal_offset30_control(cfg, ControlAction)
+            metadata["diagnostic_signal_offset30_active"] = 1.0
+        elif args.controller == "diagnostic-combined-strong":
+            control = diagnostic_combined_strong_control(cfg, ControlAction)
+            metadata["diagnostic_combined_strong_active"] = 1.0
+        elif args.controller == "diagnostic-combined-extreme":
+            control = diagnostic_combined_extreme_control(cfg, ControlAction)
+            metadata["diagnostic_combined_extreme_active"] = 1.0
         elif args.controller == "stackelberg":
             controller = StackelbergMPCController(cfg)
+            metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
             if hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)
                 control = result.control
@@ -1795,6 +3710,7 @@ def main() -> None:
             from src.controllers.stackelberg_wu_metered import StackelbergWuMeteredController
 
             controller = StackelbergWuMeteredController(cfg)
+            metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
             if hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)
                 control = result.control
@@ -1846,8 +3762,31 @@ def main() -> None:
         metadata["controller_error_type"] = type(exc).__name__
         metadata["controller_error"] = str(exc)
 
+    control, policy_guard_metadata = apply_vissim_policy_guards(
+        control,
+        cfg,
+        state,
+        state_json,
+        actuation,
+        ControlAction,
+    )
+    metadata.update(policy_guard_metadata)
     metadata.update(apply_actuation_guards_to_control(control, cfg, actuation))
     prediction = build_one_step_prediction(state, control, forecast, cfg, calibration)
+    control, post_guard_safety_metadata, prediction = apply_post_guard_safety_evaluation(
+        control,
+        cfg,
+        state,
+        state_json,
+        forecast,
+        previous,
+        calibration,
+        tuning,
+        actuation,
+        ControlAction,
+        prediction,
+    )
+    metadata.update(post_guard_safety_metadata)
     metadata["prediction_status"] = str(prediction.get("status", ""))
     metadata["prediction_wall_sec"] = float(prediction.get("wall_sec", 0.0))
     audit_calibration = prediction.get("audit_calibration", {})

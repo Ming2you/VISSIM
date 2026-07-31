@@ -1,0 +1,1729 @@
+{
+  "schema_version": 1,
+  "status": "ok",
+  "run_dir": "evaluation/runs/forced_local_response_surface_220w_600s_20260716",
+  "cases": [
+    {
+      "case": "flrs_220w_fixed57_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_fixed57_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11822,
+          "sha256": "59ef02b8f66d85126ad8bd9280797e6eed6f778d97943b97a7eeef4ca76cb16c"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "eb29a8325bbca575a465e302d2b1765b52dac90b725802175ff6613f20fe3ee9"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_fixed57_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2777,
+          "sha256": "9f7eafd8b40a973c85d3e2d6631b289fbf2f6d6ecd937ea06128c7e9290e215f"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10830,
+          "sha256": "d85ff32dd82c496a04df90b07c843f4b0da96c23e169db63917c0e0d1d6ed2e0"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15106,
+          "sha256": "7e84a4ed19e306476a6a89613ae24b5eb686f7e4e6e743c96273f8ee859800e2"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15081,
+          "sha256": "69324f54a2766b78630eb96cb684acf76532ea3a1359e233d49c3aaceb281dce"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14972,
+          "sha256": "192fca8227bcf88693250043b34b9c80b3faf440694c478c5ee418006fd95a9d"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_fixed57_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_ramp_d1364_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_ramp_d1364_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_ramp_d1364_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_ramp_d1364_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_ramp_d1364_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12220,
+          "sha256": "9ad1513f8732aa13bcbcf7eb40713d7f55a5e10dea8c0b2db10cd90b3342957b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_ramp_d1364_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7860,
+          "sha256": "f6a8e0d80d52208d6fb1401be364cd6fde717236b9593cf836fd5a4d4e1ebb7d"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_ramp_d1364_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2811,
+          "sha256": "40dcbd5eb53872c81005c095f0600a8aff4a2cf05683acac77a44e35e10e3985"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10925,
+          "sha256": "4cd34e8a16bccbf2ef1a7ae5fcec184100c4416a03d98862f222a5735ede7054"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15205,
+          "sha256": "b274fa096c101cc359321cdb1c7c2b6e45e2a3a7f18b563bfce61858cd8ccbd1"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15097,
+          "sha256": "f224f9a842b6b2bc3583f8c3b59b9d7de07c394bb4640a1aa64fdb3aa841dfc5"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15090,
+          "sha256": "03148e3bb0cbf9d01d8b62ea42ed36b398a0eac54e327f5a24daa32b08819592"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "9ea574ea68bba03bf72f4d57de714170d252a5e89eb7976c5b5b95ee79bc7854"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "9ea574ea68bba03bf72f4d57de714170d252a5e89eb7976c5b5b95ee79bc7854"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "9ea574ea68bba03bf72f4d57de714170d252a5e89eb7976c5b5b95ee79bc7854"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1364_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "9ea574ea68bba03bf72f4d57de714170d252a5e89eb7976c5b5b95ee79bc7854"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_ramp_d1253_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_ramp_d1253_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_ramp_d1253_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_ramp_d1253_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_ramp_d1253_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12224,
+          "sha256": "5d6e9eebfa82989eea181af850652019acab5e1184e5d26ad2eb854477c26a05"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_ramp_d1253_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7860,
+          "sha256": "f0548fd513c552fccc3ab248809914102c32f81d140efcc91b24693843641b69"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_ramp_d1253_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2811,
+          "sha256": "ce090724e735926396d6af3110835526e3d06e31eb5abae9a2db5a9d3e4c92f8"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10931,
+          "sha256": "d564ffd2271c137e3631f88df6bec23391a6384813e0d2c39d1228a1834c16ea"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15179,
+          "sha256": "9a4c753feee4a714d933f5904653134328b1eb7b83cbaea1cb350285240f5213"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15158,
+          "sha256": "fb87a63c842b91884c4d04171aaf44802b47516792ec56bd47d2689e226d830a"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15116,
+          "sha256": "17cb48b2bc170348efa50da07cbd70a935173a0e7379c50cf615bbdae3bb2b91"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "395c987bff0873f87ab07269e1d45e11f8c203cf633ee3e4f307a98b36860f07"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "395c987bff0873f87ab07269e1d45e11f8c203cf633ee3e4f307a98b36860f07"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "395c987bff0873f87ab07269e1d45e11f8c203cf633ee3e4f307a98b36860f07"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_ramp_d1253_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1726,
+          "sha256": "395c987bff0873f87ab07269e1d45e11f8c203cf633ee3e4f307a98b36860f07"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_vsl110_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_vsl110_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_vsl110_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_vsl110_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_vsl110_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11731,
+          "sha256": "b8c4a1dba38a854f8a8c07022c2cc64b75991cb68adc141ee37bc2746dec124b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_vsl110_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "0bfcce4dc7c1914468e52229325a147b142d16cb669b9e18cb032cd5e577f59b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_vsl110_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2767,
+          "sha256": "03561bbe83046e2cbd2b7b325f141e325403aa2f7c24974875255a5d8ce25b3c"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10871,
+          "sha256": "b620e1725b50cae963e6f0c7bca9de4c2a719bc2a1abea07ade2cae2b13fdd7d"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15120,
+          "sha256": "198031ff63958f05ef1851ce96d0ebe1281af381c64a0fa426c16cb553abc80c"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15070,
+          "sha256": "e2da4811d1e47c2361706e6765e2244a0772e093d78358fa37312aa5e3901077"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15032,
+          "sha256": "8785c58ea2d9f9ca477e0f87a0b50d6bd2a88e6f39d3c7456a62c94bed3ba577"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c533edee326e6b441fa59e79b7c63ac38ef01df84ace7df372feeb9fee5cfb5b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c533edee326e6b441fa59e79b7c63ac38ef01df84ace7df372feeb9fee5cfb5b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c533edee326e6b441fa59e79b7c63ac38ef01df84ace7df372feeb9fee5cfb5b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl110_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c533edee326e6b441fa59e79b7c63ac38ef01df84ace7df372feeb9fee5cfb5b"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_vsl100_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_vsl100_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_vsl100_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_vsl100_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_vsl100_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11626,
+          "sha256": "5b739a6a88ba60c8382e8257894384fadebf0919437fc60b1b69a80a2c6d819a"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_vsl100_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "9cfadb2caaaef28e0e0850a7e1a582b1e581b0e06f8e81959a46be448d4ad537"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_vsl100_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2764,
+          "sha256": "43878fed25059862879d9b25fc60f8eeca344f3c68a818d8fc953053281e687f"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10878,
+          "sha256": "bcf61c6125e85ab956af5708cf81f41cb35467102377024b23bdb5319bc279bc"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15063,
+          "sha256": "438a3670a4e7f5bc73877ca98ca77cd04ad98f363f7b41042392b02af16300f7"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15115,
+          "sha256": "797b693d74529bcf3271875c5de23edf13f5e113f45356643517ef205de6ddd5"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15145,
+          "sha256": "a1f7fd51ab8b64e99cce179c955927117ddba6519c5df20fbce9ba67f6e0c20e"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "ee2f877bcde2acae70cb5acc431bcfa13a3f57dddf1e478a53b7520c04e0b2f3"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "ee2f877bcde2acae70cb5acc431bcfa13a3f57dddf1e478a53b7520c04e0b2f3"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "ee2f877bcde2acae70cb5acc431bcfa13a3f57dddf1e478a53b7520c04e0b2f3"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_vsl100_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "ee2f877bcde2acae70cb5acc431bcfa13a3f57dddf1e478a53b7520c04e0b2f3"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_signal_major62_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_signal_major62_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_signal_major62_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_signal_major62_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_signal_major62_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12705,
+          "sha256": "931adb9e8ac4fd1cd5e5c2c67406314d0b202a58a3a85cbd26655fa91a7757be"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_signal_major62_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "30069a75b7a0b9044f37ad5cf21ef268e7437516d02bc2a862f53b6289387dd6"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_signal_major62_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2855,
+          "sha256": "437b6190384eb29229940dac9ede9e6523d0703c3752b3291b8aaa6c3ec5634e"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10888,
+          "sha256": "d4048bcce6a7d0550384e3cb9af223919b95dea33280abea42c934387c3f58b0"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15151,
+          "sha256": "fbedd8a0991109dc8bdfceac8b5c49de109ab515eba623845479c0df8fc40e9e"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15044,
+          "sha256": "e0896494d5faeafd67c0e5b2f88106527a3fc305158d7e98c52835fa40609221"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15031,
+          "sha256": "219e63c62d8db693f4d571bac89fc2f52284e6e94d89fa1d87dccbc4a713a2ce"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "64fb286796ca5786eda667bf424bb7fa047c4bebcde6725390d565ac0df9618a"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "64fb286796ca5786eda667bf424bb7fa047c4bebcde6725390d565ac0df9618a"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "64fb286796ca5786eda667bf424bb7fa047c4bebcde6725390d565ac0df9618a"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_major62_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "64fb286796ca5786eda667bf424bb7fa047c4bebcde6725390d565ac0df9618a"
+        }
+      ]
+    },
+    {
+      "case": "flrs_220w_signal_minor62_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_signal_minor62_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_signal_minor62_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_signal_minor62_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/state_flrs_220w_signal_minor62_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12668,
+          "sha256": "6be3a19e65f28964aa46eecbd43440cdeb97ae33a06228ede2b26f7bec5984bb"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/action_flrs_220w_signal_minor62_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "440e642d7e148cd52cdc2c0037b1ac26270697e462449738ff9b4e3d77600e48"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/runlog_flrs_220w_signal_minor62_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2854,
+          "sha256": "27f208cbe6bfd6f88c98f09a84597fe25c72fbae53eda5877fa739a9a54dcea1"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10883,
+          "sha256": "aaad276c8af64444c057af90d59685ee2a4ef7fd1d261902e956018d4d46f6f3"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 15157,
+          "sha256": "11a45e15423f621cdc09952f199efe5b9f72a340479ca4c315007e91307babf8"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 15005,
+          "sha256": "4bcbec27aef9762af49049a9db0e9a81547c17f29aa9b8bc28e771b7a8b89440"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 15059,
+          "sha256": "ba5a6cc423269b1e2cb7676ff8e133c84b82657e094fafbbd424db9a871c011b"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "8c0998900c2604f7812863975371c030440369b9f68323062ff70307e97d514f"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "8c0998900c2604f7812863975371c030440369b9f68323062ff70307e97d514f"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "8c0998900c2604f7812863975371c030440369b9f68323062ff70307e97d514f"
+        },
+        {
+          "path": "evaluation/runs/forced_local_response_surface_220w_600s_20260716/decisions_flrs_220w_signal_minor62_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "8c0998900c2604f7812863975371c030440369b9f68323062ff70307e97d514f"
+        }
+      ]
+    }
+  ]
+}

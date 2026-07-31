@@ -1,0 +1,115 @@
+{
+  "horizon_sec": 300.0,
+  "min_sim_sec": 0.0,
+  "ridge": 0.001,
+  "features": [
+    "total_vehicles",
+    "urban_vehicles",
+    "ramp_vehicles",
+    "boundary_vehicles",
+    "stopped_vehicles"
+  ],
+  "state_csvs": [
+    "evaluation\\runs\\pstack_mfd277_smoke_20260715\\state_no_control_155w_mfd277_smoke.csv",
+    "evaluation\\runs\\pstack_mfd277_combined_smoke_20260715\\state_pstack_155w_mfd277_combined_smoke.csv",
+    "evaluation\\runs\\pstack_mfd277_combined_no_pfoinc_smoke_20260715\\state_pstack_155w_mfd277_combined_no_pfoinc_smoke.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_no_control_190w_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_190w_combined_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_190w_no_pfoinc_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_no_control_220w_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_220w_combined_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_220w_no_pfoinc_seed13.csv"
+  ],
+  "metrics": {
+    "n": 2709.0,
+    "mae": 5.238960417693543,
+    "rmse": 6.4378614562994745,
+    "r2": 0.9464964998332858
+  },
+  "per_case_metrics": {
+    "state_no_control_155w_mfd277_smoke": {
+      "n": 301.0,
+      "mae": 6.305828704893209,
+      "rmse": 6.721534124073403,
+      "r2": -0.8883626994508906
+    },
+    "state_no_control_190w_seed13": {
+      "n": 301.0,
+      "mae": 2.808318426098824,
+      "rmse": 3.985707813370592,
+      "r2": 0.90664851208832
+    },
+    "state_no_control_220w_seed13": {
+      "n": 301.0,
+      "mae": 6.5634228621295305,
+      "rmse": 8.033880841988337,
+      "r2": 0.8673113584095649
+    },
+    "state_pstack_155w_mfd277_combined_no_pfoinc_smoke": {
+      "n": 301.0,
+      "mae": 6.317178924641218,
+      "rmse": 6.7278237814250685,
+      "r2": -0.8548735773233718
+    },
+    "state_pstack_155w_mfd277_combined_smoke": {
+      "n": 301.0,
+      "mae": 6.2584970581727,
+      "rmse": 6.7079150774001475,
+      "r2": -0.8411026465902314
+    },
+    "state_pstack_190w_combined_seed13": {
+      "n": 301.0,
+      "mae": 2.9333431437186928,
+      "rmse": 4.075447265045992,
+      "r2": 0.9160084529304793
+    },
+    "state_pstack_190w_no_pfoinc_seed13": {
+      "n": 301.0,
+      "mae": 3.095195695463991,
+      "rmse": 4.19823492365518,
+      "r2": 0.9320210654090589
+    },
+    "state_pstack_220w_combined_seed13": {
+      "n": 301.0,
+      "mae": 6.612637490029647,
+      "rmse": 8.032982765803666,
+      "r2": 0.8841941644181736
+    },
+    "state_pstack_220w_no_pfoinc_seed13": {
+      "n": 301.0,
+      "mae": 6.256221454094079,
+      "rmse": 7.640904103380381,
+      "r2": 0.909276125979832
+    }
+  },
+  "feature_means": {
+    "total_vehicles": 901.0527870062754,
+    "urban_vehicles": 317.50535252860834,
+    "ramp_vehicles": 52.65448504983389,
+    "boundary_vehicles": 266.5976375046142,
+    "stopped_vehicles": 285.8870431893688
+  },
+  "feature_stds": {
+    "total_vehicles": 363.990175802879,
+    "urban_vehicles": 139.65442395191897,
+    "ramp_vehicles": 35.52368645011065,
+    "boundary_vehicles": 119.34954978205114,
+    "stopped_vehicles": 211.0627920570678
+  },
+  "raw_intercept": 23.87587871413082,
+  "raw_coefficients": {
+    "total_vehicles": 0.08583805875698074,
+    "urban_vehicles": -0.09045929082080018,
+    "ramp_vehicles": 0.022097284729007252,
+    "boundary_vehicles": -0.015325463899377036,
+    "stopped_vehicles": 0.04370247594299003
+  },
+  "standardized_intercept": 82.07095207333589,
+  "standardized_coefficients": {
+    "total_vehicles": 31.244210097531273,
+    "urban_vehicles": -12.63304015067796,
+    "ramp_vehicles": 0.784977014112072,
+    "boundary_vehicles": -1.8290872165917271,
+    "stopped_vehicles": 9.223966592334314
+  }
+}

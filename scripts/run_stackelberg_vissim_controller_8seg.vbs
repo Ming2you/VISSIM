@@ -1,7 +1,7 @@
 Option Explicit
 
 If WScript.Arguments.Count < 4 Then
-    WScript.Echo "Usage: cscript run_stackelberg_vissim_controller.vbs <network.inpx> <state_output.csv> <action_output.csv> <decision_dir> [sim_period_sec] [urban_volume_vph] [freeway_volume_vph] [control_interval_sec] [rand_seed] [adapter_py] [calibration_json] [tuning_json] [demand_profile] [controller]"
+    WScript.Echo "Usage: cscript run_stackelberg_vissim_controller.vbs <network.inpx> <state_output.csv> <action_output.csv> <decision_dir> [sim_period_sec] [urban_volume_vph] [freeway_volume_vph] [control_interval_sec] [rand_seed] [adapter_py] [calibration_json] [tuning_json] [demand_profile] [controller] [pulse_spec] [urban_west_east_ratio] [control_start_sec] [warmup_controller]"
     WScript.Quit 2
 End If
 
@@ -9,7 +9,7 @@ Dim fso, shell, stateFile, actionFile, Vissim
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
 
-Dim netPath, stateOutPath, actionOutPath, decisionDir, simPeriod, urbanVol, freewayVol, controlInterval, randSeed, adapterPath, calibrationPath, tuningPath, demandProfile, controllerName
+Dim netPath, stateOutPath, actionOutPath, decisionDir, simPeriod, urbanVol, freewayVol, controlInterval, randSeed, adapterPath, calibrationPath, tuningPath, demandProfile, controllerName, urbanWestEastRatio, controlStartSec, warmupControllerName
 netPath = WScript.Arguments(0)
 stateOutPath = WScript.Arguments(1)
 actionOutPath = WScript.Arguments(2)
@@ -24,6 +24,9 @@ calibrationPath = ArgOrDefaultText(10, "evaluation/calibration/vissim_calibrated
 tuningPath = ArgOrDefaultText(11, "")
 demandProfile = LCase(ArgOrDefaultText(12, "sym"))
 controllerName = LCase(Replace(ArgOrDefaultText(13, "stackelberg"), "_", "-"))
+urbanWestEastRatio = PositiveRatio(ArgOrDefault(15, 1.0))
+controlStartSec = CLng(ArgOrDefault(16, -1))
+warmupControllerName = LCase(Replace(ArgOrDefaultText(17, "diagnostic-fixed57"), "_", "-"))
 If IsControllerName(demandProfile) And controllerName = "stackelberg" Then
     controllerName = demandProfile
     If tuningPath <> "" And Not LooksLikeJsonPath(tuningPath) Then
@@ -70,6 +73,9 @@ MODE_NAME = "VISSIM_ADAPTER_" & UCase(controllerName)
 If pulseEnabled Then
     WScript.Echo "PULSE_ENABLED base=" & pulseBaseFrac & " start=" & pulseStartSec & " up=" & pulseUpSec & " plateau=" & pulsePlateauSec & " down=" & pulseDownSec
 End If
+If controlStartSec >= 0 Then
+    WScript.Echo "CONTROL_START start=" & controlStartSec & " warmup_controller=" & warmupControllerName
+End If
 Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
 Const RAMP_CYCLE_SEC = 10
@@ -107,7 +113,7 @@ Vissim.SuspendUpdateGUI
 Err.Clear
 On Error GoTo 0
 
-SetDemandVolumes CDbl(urbanVol) * DemandFactor(0), CDbl(freewayVol) * DemandFactor(0), demandProfile
+SetDemandVolumes CDbl(urbanVol) * DemandFactor(0), CDbl(freewayVol) * DemandFactor(0), demandProfile, urbanWestEastRatio
 ApplyRouteBiasForDemandProfile demandProfile
 ActivateSignalControllers
 Vissim.Simulation.AttValue("RandSeed") = CLng(randSeed)
@@ -126,7 +132,7 @@ LogStateCsv 1
 Dim stepNo
 For stepNo = 2 To CLng(simPeriod)
     If pulseEnabled And (stepNo Mod 60 = 0) Then
-        SetDemandVolumes CDbl(urbanVol) * DemandFactor(stepNo), CDbl(freewayVol) * DemandFactor(stepNo), demandProfile
+        SetDemandVolumes CDbl(urbanVol) * DemandFactor(stepNo), CDbl(freewayVol) * DemandFactor(stepNo), demandProfile, urbanWestEastRatio
     End If
     If stepNo Mod CLng(controlInterval) = 0 Then
         RunControllerDecision stepNo
@@ -203,7 +209,10 @@ Sub RunControllerDecision(simSec)
     WriteStateJson simSec, stateJsonPath
     Dim effController
     effController = controllerName
-    If pulseEnabled And simSec < pulseStartSec Then
+    If controlStartSec >= 0 And simSec < controlStartSec Then
+        effController = warmupControllerName
+        WScript.Echo "WARMUP_CONTROLLER sim_sec=" & simSec & " controller=" & effController
+    ElseIf pulseEnabled And simSec < pulseStartSec Then
         effController = "no-control"
         WScript.Echo "WARMUP_NC sim_sec=" & simSec
     End If
@@ -359,7 +368,7 @@ Sub WriteStateJson(simSec, path)
     ' (one-step prediction bias ~150-190 veh).
     Dim demandScaleNow
     demandScaleNow = DemandFactor(simSec)
-    ts.WriteLine "  ""demand"": {""urban_volume_vph"": " & Num(CDbl(urbanVol) * demandScaleNow) & ", ""freeway_volume_vph"": " & Num(CDbl(freewayVol) * demandScaleNow) & ", ""ramp_volume_vph"": 250, ""demand_profile"": """ & JsonEscape(demandProfile) & """},"
+    ts.WriteLine "  ""demand"": {""urban_volume_vph"": " & Num(CDbl(urbanVol) * demandScaleNow) & ", ""freeway_volume_vph"": " & Num(CDbl(freewayVol) * demandScaleNow) & ", ""ramp_volume_vph"": 250, ""demand_profile"": """ & JsonEscape(demandProfile) & """, ""urban_west_east_ratio"": " & Num(urbanWestEastRatio) & "},"
     ts.WriteLine "  ""ramp_counts"": {""D"": " & DictCount(localCounts, 25) & ", ""F"": " & DictCount(localCounts, 31) & "},"
     ts.WriteLine "  ""local_observation"": {""schema_version"": 1, ""mode"": ""detector_local_v1"", ""source"": ""vehicle_scan_masked_by_detector_mapping"", ""global_vehicle_scan_masked"": true, ""link_counts"": " & RelevantLinkCountsJson(localCounts) & "},"
     ts.WriteLine "  ""freeway_segments"": {"
@@ -546,7 +555,7 @@ Function RelevantLinkCountsJson(counts)
     RelevantLinkCountsJson = s
 End Function
 
-Sub SetDemandVolumes(urbanVolume, freewayVolume, profile)
+Sub SetDemandVolumes(urbanVolume, freewayVolume, profile, westEastRatio)
     Dim viArray, vi, name, volume, linkNo
     viArray = Vissim.Net.VehicleInputs.GetAll
     For Each vi In viArray
@@ -555,12 +564,12 @@ Sub SetDemandVolumes(urbanVolume, freewayVolume, profile)
         name = CStr(vi.AttValue("Name"))
         On Error GoTo 0
         linkNo = ObjectLinkNo(vi)
-        volume = DemandVolumeForInput(linkNo, name, urbanVolume, freewayVolume, profile)
+        volume = DemandVolumeForInput(linkNo, name, urbanVolume, freewayVolume, profile, westEastRatio)
         TrySetAtt vi, "Volume(1)", CDbl(volume)
     Next
 End Sub
 
-Function DemandVolumeForInput(linkNo, name, urbanVolume, freewayVolume, profile)
+Function DemandVolumeForInput(linkNo, name, urbanVolume, freewayVolume, profile, westEastRatio)
     Dim volume, p
     p = LCase(CStr(profile))
     If InCsvInt(linkNo, FREEWAY_INPUT_LINKS) Or (linkNo = 0 And InStr(1, name, "VI_FW_", vbTextCompare) > 0) Then
@@ -612,7 +621,42 @@ Function DemandVolumeForInput(linkNo, name, urbanVolume, freewayVolume, profile)
             volume = urbanVolume * 0.65
         End If
     End If
+    If Not InCsvInt(linkNo, FREEWAY_INPUT_LINKS) Then
+        If IsWestUrbanInput(linkNo, name) Then
+            volume = CDbl(volume) * WestEastScale(True, westEastRatio)
+        ElseIf IsEastUrbanInput(linkNo, name) Then
+            volume = CDbl(volume) * WestEastScale(False, westEastRatio)
+        End If
+    End If
     DemandVolumeForInput = CDbl(volume)
+End Function
+
+Function IsWestUrbanInput(linkNo, name)
+    IsWestUrbanInput = (linkNo = 1 Or linkNo = 21 Or InStr(1, name, "VI_A_W", vbTextCompare) > 0 Or InStr(1, name, "VI_D_W", vbTextCompare) > 0)
+End Function
+
+Function IsEastUrbanInput(linkNo, name)
+    IsEastUrbanInput = (linkNo = 18 Or linkNo = 30 Or InStr(1, name, "VI_C_E", vbTextCompare) > 0 Or InStr(1, name, "VI_F_E", vbTextCompare) > 0)
+End Function
+
+Function WestEastScale(isWest, ratio)
+    Dim r
+    r = PositiveRatio(ratio)
+    If isWest Then
+        WestEastScale = 2.0 * r / (1.0 + r)
+    Else
+        WestEastScale = 2.0 / (1.0 + r)
+    End If
+End Function
+
+Function PositiveRatio(value)
+    Dim r
+    r = ToDbl(value)
+    If r <= 0 Then
+        PositiveRatio = 1.0
+    Else
+        PositiveRatio = r
+    End If
 End Function
 
 Sub ApplyRouteBiasForDemandProfile(profile)

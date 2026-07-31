@@ -8,7 +8,7 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-from summarize_vissim_controller_run import summarize, to_float
+from summarize_vissim_controller_run import summarize, summarize_files, to_float
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -21,7 +21,7 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 def read_manifest(out_dir: Path) -> list[dict[str, Any]]:
     path = out_dir / "batch_manifest.json"
     if path.exists():
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        raw = json.loads(path.read_text(encoding="utf-8-sig"))
         return raw if isinstance(raw, list) else []
     csv_path = out_dir / "batch_manifest.csv"
     if csv_path.exists():
@@ -58,8 +58,19 @@ def fmt(value: Any, ndigits: int = 3) -> str:
 def build_case_rows(manifest: list[dict[str, Any]], warmup_sec: float) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for item in manifest:
-        run_dir = Path(str(item.get("state_csv", ""))).parent
-        metrics = summarize(run_dir, warmup_sec=warmup_sec)
+        state_csv_text = str(item.get("state_csv", "")).strip()
+        action_csv_text = str(item.get("action_csv", "")).strip()
+        decision_dir_text = str(item.get("decision_dir", "")).strip()
+        if state_csv_text and action_csv_text and decision_dir_text:
+            metrics = summarize_files(
+                Path(state_csv_text),
+                Path(action_csv_text),
+                Path(decision_dir_text),
+                warmup_sec=warmup_sec,
+            )
+        else:
+            run_dir = Path(state_csv_text).parent
+            metrics = summarize(run_dir, warmup_sec=warmup_sec)
         returncode = int(to_float(item.get("returncode"), 999.0))
         if returncode != 0 or not bool(metrics.get("ok", False)):
             continue

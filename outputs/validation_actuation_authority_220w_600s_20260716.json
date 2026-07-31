@@ -1,0 +1,1483 @@
+{
+  "schema_version": 1,
+  "status": "ok",
+  "run_dir": "evaluation/runs/actuation_authority_220w_600s_20260716",
+  "cases": [
+    {
+      "case": "auth_220w_fixed57_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_fixed57_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_fixed57_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11845,
+          "sha256": "42a7734575632f13a95a91eef26cc8cfa668bffa4121d0979f64a8833bae5167"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_fixed57_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "eb29a8325bbca575a465e302d2b1765b52dac90b725802175ff6613f20fe3ee9"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_fixed57_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2667,
+          "sha256": "3fc462f51b43ebb49bc4cbbf2cace1cb53b1fee949b05d9115a1c3b05836c478"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 9923,
+          "sha256": "fdf9ed96ac7019a6eed4226021fd7d679d8c0e9bf9fb9679ba742c2b8dd65551"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14207,
+          "sha256": "94fc2e50904f8519281dcbcecb57b9503486a4465eec88d3daf8e5a0af36d7e6"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14171,
+          "sha256": "b7a0583a9d652058c8cc1272375085c7a05cef941dfecf8a6480c01bfbd5ce5c"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14098,
+          "sha256": "69d173333c2238e94884a2205718db22b12403bdd9f2908e200b956eead6ed8d"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_fixed57_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "0bd26255d79f13de0e425883e3f5fe7ac03e1f09e454b2373b0e3f0a79c56820"
+        }
+      ]
+    },
+    {
+      "case": "auth_220w_ramp_hold_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_ramp_hold_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_ramp_hold_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_ramp_hold_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_ramp_hold_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12113,
+          "sha256": "9479eea240fbfe44e28b55bf032be7941098fad14d03f408873b52f8b7fd1830"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_ramp_hold_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7856,
+          "sha256": "a22eeffc715d3a3d3fcf53e49c510d163d68cb2ed9e9437635b0e71f8fed14b7"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_ramp_hold_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2690,
+          "sha256": "a7ebf11dda897a56b9099af352e51fe6ac443a9c9180448a0c85bda7299423a3"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10051,
+          "sha256": "aad59c4838d2838d153a479ab0266d1bc400f84dc5d811511c8def98047678f7"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14340,
+          "sha256": "3dbd39b8606609a3aaba5f57947ee7e71289df972cd515bce28a316445f71264"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14256,
+          "sha256": "b4f9b58daddb11108fc644b0ee69b563ae23ef8a99295882ca5adf2ec98a10b9"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14219,
+          "sha256": "517a286a8bf99ee5464af80b8664ee0e9e9528df2fe48a1a6cfcb158f1b975a8"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1725,
+          "sha256": "e0a13fea3b284820bbd51aeafd2d4a51f3ec9b8e6f7b0a5dc720626f2caa0964"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1725,
+          "sha256": "e0a13fea3b284820bbd51aeafd2d4a51f3ec9b8e6f7b0a5dc720626f2caa0964"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1725,
+          "sha256": "e0a13fea3b284820bbd51aeafd2d4a51f3ec9b8e6f7b0a5dc720626f2caa0964"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_ramp_hold_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1725,
+          "sha256": "e0a13fea3b284820bbd51aeafd2d4a51f3ec9b8e6f7b0a5dc720626f2caa0964"
+        }
+      ]
+    },
+    {
+      "case": "auth_220w_vsl80_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_vsl80_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_vsl80_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_vsl80_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_vsl80_seed13_600s.csv",
+          "exists": true,
+          "bytes": 11611,
+          "sha256": "13a5474d4be1529789523ec63a56aa9ba384de9b90123eb69972ab4edaf7cc0e"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_vsl80_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7608,
+          "sha256": "1de9573470f7c6094c83da510e7d0fa3f366f8f157274741e7816eeadae3e39a"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_vsl80_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2646,
+          "sha256": "d4dd5cbd3e4e3683927754b0243a2d6c98c101261d84a987053c087a1a39d092"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 9972,
+          "sha256": "3a71dc6c6608d88195c8e91799567a6b9c53a29de4be9efb5670114ee1899d37"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14213,
+          "sha256": "fca180ff040792416de5368143bb6989efaf9b1ec7ee8c902bd62130d0e514eb"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14144,
+          "sha256": "48ecad6b1b6230c336853e4eb290bf7921d585c53ed88021203e4cba759d1c46"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14120,
+          "sha256": "3164e4c54e650322e7ff9b629cdc5ed81841d6c7e5ee46a0c1a2eb58cc17e810"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1695,
+          "sha256": "5a7aec2293f032b17f901577af61eb6b98a2d53302aa07eb32145cda056006ef"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1695,
+          "sha256": "5a7aec2293f032b17f901577af61eb6b98a2d53302aa07eb32145cda056006ef"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1695,
+          "sha256": "5a7aec2293f032b17f901577af61eb6b98a2d53302aa07eb32145cda056006ef"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_vsl80_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1695,
+          "sha256": "5a7aec2293f032b17f901577af61eb6b98a2d53302aa07eb32145cda056006ef"
+        }
+      ]
+    },
+    {
+      "case": "auth_220w_signal_major_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_signal_major_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_signal_major_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_signal_major_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_signal_major_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12565,
+          "sha256": "726b5cd3bc59d8ded3b3d3bf366e9996a8e5eaedbf819cf247b443d07157702f"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_signal_major_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "d8bcdf585a8b96643de9d3bd4ecf2d411e1447a166968d4684273abdbcd75b21"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_signal_major_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2723,
+          "sha256": "0dc5e599d4309b879c7e3107b3e25f59fc143dc189accd683942cd67484cc1c1"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10019,
+          "sha256": "fb6bd030a48c8c2910245b721f039eec076fb02b06a38b106163384d3da9c516"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14195,
+          "sha256": "85f9a8fd047339e79475e87fb642301baffa54597c5a43a8907587e8176c60cf"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14233,
+          "sha256": "c0bf3851a409aaa687bc9392405ec62f2bd5b9e56a7169fe1f5e0380077ab54e"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14182,
+          "sha256": "6ce7ae191d0841ecf32ee0fbb14d92094d1fc5717f7c98685fe2345fc326b9a8"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "513cf01842979035b14a8288d8b760babda8df6c830abf91f8accb2653884f76"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "513cf01842979035b14a8288d8b760babda8df6c830abf91f8accb2653884f76"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "513cf01842979035b14a8288d8b760babda8df6c830abf91f8accb2653884f76"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_major_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "513cf01842979035b14a8288d8b760babda8df6c830abf91f8accb2653884f76"
+        }
+      ]
+    },
+    {
+      "case": "auth_220w_signal_minor_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_signal_minor_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_signal_minor_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_signal_minor_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_signal_minor_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12373,
+          "sha256": "f65408f07365e045b7b4e93fb1bc56aa077a221b9189ffdd05b3820b80e3b118"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_signal_minor_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7864,
+          "sha256": "fdf913f01160e9573658a8fce1f1f13bcd936ba754492bde7463549b84673e7f"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_signal_minor_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2721,
+          "sha256": "4470bf27d047cf48a35b44ad99471c56f4f66467ba2929c9c4bb649e338d431c"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 9987,
+          "sha256": "43c5b4ae1dc8a6749d55840bc974d131ef756e7517f857e5861776793ef15417"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14195,
+          "sha256": "5dbaba79322ff011db94d9a9a3ecc7013418a067af1963ed10014a92bedaadaf"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14181,
+          "sha256": "1b16fbd033abf5575bb29823dabf8959a5ce6688ec4afa52963aa4ee792bcf23"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14182,
+          "sha256": "59d96cda4b78067190055116c1d4297bf85890511057028be16f82442102ad43"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c6ed7d8280444772d365ecdb6c290b53a68c2803a25b8014ef3daa035f3a6610"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c6ed7d8280444772d365ecdb6c290b53a68c2803a25b8014ef3daa035f3a6610"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c6ed7d8280444772d365ecdb6c290b53a68c2803a25b8014ef3daa035f3a6610"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_signal_minor_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1727,
+          "sha256": "c6ed7d8280444772d365ecdb6c290b53a68c2803a25b8014ef3daa035f3a6610"
+        }
+      ]
+    },
+    {
+      "case": "auth_220w_combined_strong_seed13_600s",
+      "status": "ok",
+      "counts": {
+        "state_rows": 121,
+        "action_rows": 156,
+        "decision_count_action_csv": 4,
+        "decision_json_count": 4,
+        "decision_csv_count": 4,
+        "prediction_error_count": 3
+      },
+      "completed_sim_sec": 600,
+      "checks": [
+        {
+          "ok": true,
+          "code": "state_csv_exists",
+          "message": "state_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_combined_strong_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "action_csv_exists",
+          "message": "action_csv exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_combined_strong_seed13_600s.csv"
+        },
+        {
+          "ok": true,
+          "code": "decision_dir_exists",
+          "message": "decision_dir exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s"
+        },
+        {
+          "ok": true,
+          "code": "runlog_exists",
+          "message": "runlog exists",
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_combined_strong_seed13_600s.txt"
+        },
+        {
+          "ok": true,
+          "code": "state_rows_nonzero",
+          "message": "state CSV has rows",
+          "count": 121
+        },
+        {
+          "ok": true,
+          "code": "action_rows_nonzero",
+          "message": "action CSV has rows",
+          "count": 156
+        },
+        {
+          "ok": true,
+          "code": "decision_json_nonzero",
+          "message": "decision JSON files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_nonzero",
+          "message": "decision CSV files exist",
+          "count": 4
+        },
+        {
+          "ok": true,
+          "code": "state_completed_sim_period",
+          "message": "state CSV reaches requested sim period",
+          "completed_sim_sec": 600,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "state_controller_status_ok",
+          "message": "state controller_status values are ok",
+          "statuses": [
+            "ok"
+          ]
+        },
+        {
+          "ok": true,
+          "code": "action_sim_sec_parse",
+          "message": "action sim_sec values parse",
+          "bad_rows": 0
+        },
+        {
+          "ok": true,
+          "code": "decision_sec_sets_match",
+          "message": "action CSV, decision JSON, and decision CSV seconds match",
+          "action_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "json_secs": [
+            1,
+            180,
+            360,
+            540
+          ],
+          "csv_secs": [
+            1,
+            180,
+            360,
+            540
+          ]
+        },
+        {
+          "ok": true,
+          "code": "decision_json_count_expected",
+          "message": "decision JSON count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_count_expected",
+          "message": "decision CSV count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "action_decision_count_expected",
+          "message": "action decision count matches expected",
+          "expected": 4,
+          "actual": 4
+        },
+        {
+          "ok": true,
+          "code": "sim_done",
+          "message": "run log contains STAGE=SIM_DONE"
+        },
+        {
+          "ok": true,
+          "code": "log_sim_sec_reaches_period",
+          "message": "run log SIM_SEC reaches requested sim period",
+          "log_sim_sec": 600.0,
+          "sim_period_sec": 600.0
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_matches_action_csv",
+          "message": "per-decision CSV rows match final action CSV rows",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "decision_csv_row_total_matches_action",
+          "message": "sum of decision CSV rows matches action CSV rows",
+          "decision_csv_rows": 156,
+          "action_rows": 156
+        },
+        {
+          "ok": true,
+          "code": "json_sim_sec_matches_filename",
+          "message": "decision JSON sim_sec matches filename",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "json_status_ok",
+          "message": "decision JSON status is ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_status_ok",
+          "message": "prediction_error statuses are ok",
+          "samples": []
+        },
+        {
+          "ok": true,
+          "code": "prediction_error_count_expected",
+          "message": "prediction_error_count matches expectation",
+          "expected": 3,
+          "actual": 3
+        }
+      ],
+      "files": [
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/state_auth_220w_combined_strong_seed13_600s.csv",
+          "exists": true,
+          "bytes": 12936,
+          "sha256": "53d04dbfbda59e2c60e6f3d614fe919425f52c1aee0c09b4ddf6191c7e21f8d1"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/action_auth_220w_combined_strong_seed13_600s.csv",
+          "exists": true,
+          "bytes": 7600,
+          "sha256": "e826ca46f40a1d1c1807666c49bfa37567ab9ae8a40ff0a223e1860dea143354"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/runlog_auth_220w_combined_strong_seed13_600s.txt",
+          "exists": true,
+          "bytes": 2756,
+          "sha256": "457a9a0e40949381555394d1bb3882f678b14b5281c338b23e735cfc920447f1"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000001.json",
+          "exists": true,
+          "bytes": 10031,
+          "sha256": "2b3e000fbb75e1e528a07b6c57a17cc7a5045610ef86383e0b42d761c7200efe"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000180.json",
+          "exists": true,
+          "bytes": 14289,
+          "sha256": "eacb4cd83873a8ca9102b21d9cb369ffa82f16cca0a322c49b83d8e916ebaee5"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000360.json",
+          "exists": true,
+          "bytes": 14270,
+          "sha256": "f86e6bdb4b4de68445caf55eca02049fa65e20ebd074021fa9386ea6da0e3195"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000540.json",
+          "exists": true,
+          "bytes": 14180,
+          "sha256": "06503f1bbd92477c0576d5399017a17527d2b1da905a5de77afe901d0fe4bb70"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000001.csv",
+          "exists": true,
+          "bytes": 1693,
+          "sha256": "a7a4a677518e8495302fc3d2a90a814f141d491fd2beac4ce8446da6f8dcfbf9"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000180.csv",
+          "exists": true,
+          "bytes": 1693,
+          "sha256": "a7a4a677518e8495302fc3d2a90a814f141d491fd2beac4ce8446da6f8dcfbf9"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000360.csv",
+          "exists": true,
+          "bytes": 1693,
+          "sha256": "a7a4a677518e8495302fc3d2a90a814f141d491fd2beac4ce8446da6f8dcfbf9"
+        },
+        {
+          "path": "evaluation/runs/actuation_authority_220w_600s_20260716/decisions_auth_220w_combined_strong_seed13_600s/action_000540.csv",
+          "exists": true,
+          "bytes": 1693,
+          "sha256": "a7a4a677518e8495302fc3d2a90a814f141d491fd2beac4ce8446da6f8dcfbf9"
+        }
+      ]
+    }
+  ]
+}

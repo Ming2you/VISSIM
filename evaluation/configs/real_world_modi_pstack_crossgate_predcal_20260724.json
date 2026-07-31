@@ -1,0 +1,38 @@
+{
+  "extends": "real_world_modi_pstack_crossgate_high_budget_20260723.json",
+  "name": "real_world_modi_pstack_crossgate_predcal_20260724",
+  "description": "Cross-gate high-budget P-Stack config with replay-fitted METANET and Kashani/local prediction audit calibration from the 4500s real-world fixguard run.",
+  "calibration_override": {
+    "calibration_version": "real_world_prediction_calibration_pshb4500fix_20260724",
+    "status": "prediction_audit_calibrated_from_rw_cg_hb_4500_fixguard_0723",
+    "prediction": {
+      "audit_calibration": {
+        "enabled": true,
+        "method": "componentwise observed_over_predicted_mean with consistency recompute",
+        "freeway_total_scale": 1.06374965106,
+        "urban_queue_plus_storage_scale": 0.179051736293,
+        "component_scales": {
+          "freeway_mean_speed_kph": 0.613090858943,
+          "protected_accumulation_veh": 0.183347858615,
+          "urban_movement_queue_total_veh": 0.244583629234,
+          "urban_link_occupancy_total_veh": 0.141215515999,
+          "off_ramp_storage_veh": 0.380019257126,
+          "boundary_queue_total_veh": 0.05
+        },
+        "recompute_urban_queue_plus_storage_from_components": true,
+        "recompute_urban_total_from_components": true,
+        "recompute_total_model_vehicles_from_components": true
+      }
+    }
+  },
+  "calibration_artifacts": {
+    "calibration_json": "evaluation\\calibration\\real_world_prediction_calibration_pshb4500fix_20260724.json",
+    "calibration_report": "evaluation\\calibration\\real_world_prediction_calibration_pshb4500fix_20260724.md",
+    "source_prediction_audit": "outputs\\real_world_prediction_accuracy_pshb4500fix_20260724_summary.md"
+  },
+  "notes": [
+    "This is a prediction-calibrated candidate, not yet a new VISSIM validation result.",
+    "The parent high-budget config and bottleneck lever mask are unchanged.",
+    "Ramp queue underprediction is intentionally left out because its fitted scale exceeds the adapter's safe component range."
+  ]
+}

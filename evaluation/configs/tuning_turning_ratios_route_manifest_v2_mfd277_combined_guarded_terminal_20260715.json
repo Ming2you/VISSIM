@@ -1,0 +1,42 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_guarded_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_combined_guarded_terminal_20260715",
+  "description": "Guarded P-Stack candidate with VISSIM-observed terminal-cost proxy added to leader candidate scoring and current 8-seg merge geometry calibration fingerprints.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_guarded_20260715.json",
+    "terminal_cost_fit": "evaluation/calibration/vissim_terminal_cost_fit_20260715.json",
+    "terminal_cost_fit_r2": 0.9606458454877063,
+    "reason": "The guarded ladder removed most harm from ramp over-closure but stayed near no-control. This candidate adds a VISSIM-observed 300s future vehicle-hour proxy to the leader objective so candidate scoring can see queue/storage terminal risk directly instead of relying only on the one-step follower response."
+  },
+  "mpc": {
+    "leader_hinge_enabled": false,
+    "leader_mfd_far_enabled": false,
+    "leader_mfd_far_at_d0": false,
+    "np_dual_deadband_frac": 0.9
+  },
+  "adapter": {
+    "calibration_fingerprints": {
+      "mode": "current_vissim_geometry",
+      "components": [
+        "leader_hinge",
+        "np_deadband",
+        "leader_mfd_far"
+      ]
+    },
+    "terminal_cost": {
+      "enabled": true,
+      "fit_json": "evaluation/calibration/vissim_terminal_cost_fit_20260715.json",
+      "weight": 0.35,
+      "features": [
+        "total_vehicles",
+        "urban_vehicles",
+        "ramp_vehicles",
+        "boundary_vehicles",
+        "stopped_vehicles"
+      ],
+      "coefficient_mode": "positive_only",
+      "include_intercept": false,
+      "clamp_nonnegative": true
+    }
+  }
+}

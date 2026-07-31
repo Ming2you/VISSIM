@@ -1,0 +1,130 @@
+{
+  "horizon_sec": 300.0,
+  "min_sim_sec": 0.0,
+  "ridge": 0.001,
+  "features": [
+    "total_vehicles",
+    "urban_vehicles",
+    "freeway_vehicles",
+    "ramp_vehicles",
+    "boundary_vehicles",
+    "stopped_vehicles",
+    "mean_speed_kph",
+    "freeway_mean_speed_kph"
+  ],
+  "state_csvs": [
+    "evaluation\\runs\\pstack_mfd277_smoke_20260715\\state_no_control_155w_mfd277_smoke.csv",
+    "evaluation\\runs\\pstack_mfd277_combined_smoke_20260715\\state_pstack_155w_mfd277_combined_smoke.csv",
+    "evaluation\\runs\\pstack_mfd277_combined_no_pfoinc_smoke_20260715\\state_pstack_155w_mfd277_combined_no_pfoinc_smoke.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_no_control_190w_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_190w_combined_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_190w_no_pfoinc_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_no_control_220w_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_220w_combined_seed13.csv",
+    "evaluation\\runs\\pstack_congestion_ladder_no_pfoinc_20260715_v2\\state_pstack_220w_no_pfoinc_seed13.csv"
+  ],
+  "metrics": {
+    "n": 2709.0,
+    "mae": 4.41754452210715,
+    "rmse": 5.521356921094876,
+    "r2": 0.9606458454877063
+  },
+  "per_case_metrics": {
+    "state_no_control_155w_mfd277_smoke": {
+      "n": 301.0,
+      "mae": 4.6111647802357325,
+      "rmse": 5.253180598002135,
+      "r2": -0.1534353592146782
+    },
+    "state_no_control_190w_seed13": {
+      "n": 301.0,
+      "mae": 3.215025124321196,
+      "rmse": 4.007216194829333,
+      "r2": 0.9056382739900465
+    },
+    "state_no_control_220w_seed13": {
+      "n": 301.0,
+      "mae": 5.664113132508833,
+      "rmse": 7.158626425825436,
+      "r2": 0.8946480994943367
+    },
+    "state_pstack_155w_mfd277_combined_no_pfoinc_smoke": {
+      "n": 301.0,
+      "mae": 4.582391434290509,
+      "rmse": 5.230716885340101,
+      "r2": -0.12121145976528513
+    },
+    "state_pstack_155w_mfd277_combined_smoke": {
+      "n": 301.0,
+      "mae": 4.525364172992463,
+      "rmse": 5.19522593727235,
+      "r2": -0.10436280150286881
+    },
+    "state_pstack_190w_combined_seed13": {
+      "n": 301.0,
+      "mae": 3.3411865306245416,
+      "rmse": 4.150809870171489,
+      "r2": 0.9128734120511712
+    },
+    "state_pstack_190w_no_pfoinc_seed13": {
+      "n": 301.0,
+      "mae": 2.9095489005422865,
+      "rmse": 3.662598498258382,
+      "r2": 0.9482608242614718
+    },
+    "state_pstack_220w_combined_seed13": {
+      "n": 301.0,
+      "mae": 5.4166574078323135,
+      "rmse": 6.876027760369183,
+      "r2": 0.9151499667490471
+    },
+    "state_pstack_220w_no_pfoinc_seed13": {
+      "n": 301.0,
+      "mae": 5.492449215616475,
+      "rmse": 6.869820969008662,
+      "r2": 0.9266630359947294
+    }
+  },
+  "feature_means": {
+    "total_vehicles": 901.0527870062754,
+    "urban_vehicles": 317.50535252860834,
+    "freeway_vehicles": 194.17718715393133,
+    "ramp_vehicles": 52.65448504983389,
+    "boundary_vehicles": 266.5976375046142,
+    "stopped_vehicles": 285.8870431893688,
+    "mean_speed_kph": 43.70097194056848,
+    "freeway_mean_speed_kph": 87.36147647397564
+  },
+  "feature_stds": {
+    "total_vehicles": 363.990175802879,
+    "urban_vehicles": 139.65442395191897,
+    "freeway_vehicles": 68.24117695263746,
+    "ramp_vehicles": 35.52368645011065,
+    "boundary_vehicles": 119.34954978205114,
+    "stopped_vehicles": 211.0627920570678,
+    "mean_speed_kph": 11.537603720091484,
+    "freeway_mean_speed_kph": 15.948176680344602
+  },
+  "raw_intercept": 21.932638016717927,
+  "raw_coefficients": {
+    "total_vehicles": 0.03812875300884702,
+    "urban_vehicles": 0.013769546512723607,
+    "freeway_vehicles": -0.0008411426420187933,
+    "ramp_vehicles": 0.08725634155796543,
+    "boundary_vehicles": 0.02063251489649553,
+    "stopped_vehicles": 0.04955358779520845,
+    "mean_speed_kph": 0.6808820231497744,
+    "freeway_mean_speed_kph": -0.3713677099557198
+  },
+  "standardized_intercept": 82.07095207333585,
+  "standardized_coefficients": {
+    "total_vehicles": 13.878491510834778,
+    "urban_vehicles": 1.9229780863135701,
+    "freeway_vehicles": -0.05740056387641346,
+    "ramp_vehicles": 3.099666918288923,
+    "boundary_vehicles": 2.4624813637682053,
+    "stopped_vehicles": 10.458918596501734,
+    "mean_speed_kph": 7.855746963236253,
+    "freeway_mean_speed_kph": -5.922637851748789
+  }
+}

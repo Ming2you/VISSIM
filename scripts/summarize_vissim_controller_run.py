@@ -34,6 +34,24 @@ def positive_median(values: Iterable[float], default: float = 5.0) -> float:
     return float(median(vals)) if vals else float(default)
 
 
+def integration_intervals(secs: list[float], sim_period_sec: float | None = None) -> tuple[list[float], float]:
+    if not secs:
+        return [], 0.0
+    fallback_end = max(secs)
+    if sim_period_sec is None or not math.isfinite(float(sim_period_sec)) or float(sim_period_sec) <= 0.0:
+        sim_end = fallback_end
+    else:
+        sim_end = float(sim_period_sec)
+    dts: list[float] = []
+    for i, sec in enumerate(secs):
+        if sec >= sim_end:
+            dts.append(0.0)
+            continue
+        next_sec = secs[i + 1] if i + 1 < len(secs) else sim_end
+        dts.append(max(0.0, min(next_sec, sim_end) - sec))
+    return dts, sim_end
+
+
 def weighted_mean(rows: list[dict[str, str]], key: str, dts: list[float]) -> float:
     den = sum(dts)
     if den <= 0.0:
@@ -41,19 +59,15 @@ def weighted_mean(rows: list[dict[str, str]], key: str, dts: list[float]) -> flo
     return float(sum(to_float(row.get(key)) * dt for row, dt in zip(rows, dts)) / den)
 
 
-def state_metrics(path: Path, warmup_sec: float) -> dict[str, Any]:
+def state_metrics(path: Path, warmup_sec: float, sim_period_sec: float | None = None) -> dict[str, Any]:
     rows = read_csv(path)
     if not rows:
         return {"state_rows": 0, "completed_sim_sec": 0.0, "ok": False}
     rows = sorted(rows, key=lambda row: to_float(row.get("sim_sec")))
     secs = [to_float(row.get("sim_sec")) for row in rows]
-    default_dt = positive_median((b - a for a, b in zip(secs, secs[1:])), default=5.0)
     rows_after = [row for row in rows if to_float(row.get("sim_sec")) >= warmup_sec] or rows
     secs_after = [to_float(row.get("sim_sec")) for row in rows_after]
-    dts = [
-        max(0.0, secs_after[i + 1] - sec) if i + 1 < len(secs_after) else default_dt
-        for i, sec in enumerate(secs_after)
-    ]
+    dts, integration_end_sec = integration_intervals(secs_after, sim_period_sec=sim_period_sec)
     decision_walls = [to_float(row.get("decision_wall_sec")) for row in rows if to_float(row.get("decision_wall_sec")) > 0.0]
     statuses = sorted({str(row.get("controller_status", "")).strip() for row in rows if str(row.get("controller_status", "")).strip()})
     final = rows[-1]
@@ -61,6 +75,7 @@ def state_metrics(path: Path, warmup_sec: float) -> dict[str, Any]:
         "ok": True,
         "state_rows": len(rows),
         "completed_sim_sec": max(secs),
+        "integration_end_sec": integration_end_sec,
         "warmup_sec": float(warmup_sec),
         "analysis_time_h": sum(dts) / 3600.0,
         "vehicle_hours_total": sum(to_float(row.get("total_vehicles")) * dt for row, dt in zip(rows_after, dts)) / 3600.0,
@@ -130,18 +145,22 @@ def action_metrics(path: Path) -> dict[str, Any]:
     signal_green = per_decision_mean("signal_green")
     signal_split_abs = per_decision_mean("signal_split_abs")
     signal_offset_abs = per_decision_mean("signal_offset_abs")
+    mean_ramp_rate = mean(ramp_rate) if ramp_rate else 0.0
+    ramp_rate_step = mean_abs_step(ramp_rate)
     return {
         "action_rows": len(rows),
         "decision_count_action_csv": len(secs),
         "mean_vsl_kph": mean(vsl) if vsl else 0.0,
         "mean_ramp_green_sec": mean(ramp_green) if ramp_green else 0.0,
-        "mean_ramp_rate_vph": mean(ramp_rate) if ramp_rate else 0.0,
+        "mean_ramp_rate_vph": mean_ramp_rate,
+        "mean_ramp_meter_rate_vph": mean_ramp_rate,
         "mean_signal_green_sec": mean(signal_green) if signal_green else 0.0,
         "mean_signal_split_abs_sec": mean(signal_split_abs) if signal_split_abs else 0.0,
         "mean_signal_offset_abs_sec": mean(signal_offset_abs) if signal_offset_abs else 0.0,
         "vsl_mean_abs_step_kph": mean_abs_step(vsl),
         "ramp_green_abs_step_sec": mean_abs_step(ramp_green),
-        "ramp_rate_abs_step_vph": mean_abs_step(ramp_rate),
+        "ramp_rate_abs_step_vph": ramp_rate_step,
+        "ramp_meter_rate_abs_step_vph": ramp_rate_step,
         "signal_green_abs_step_sec": mean_abs_step(signal_green),
         "signal_split_abs_step_sec": mean_abs_step(signal_split_abs),
         "signal_offset_abs_step_sec": mean_abs_step(signal_offset_abs),
@@ -247,7 +266,32 @@ def decision_metrics(decision_dir: Path) -> dict[str, Any]:
     }
 
 
-def summarize(run_dir: Path, warmup_sec: float) -> dict[str, Any]:
+def summarize_files(
+    state_csv: Path,
+    action_csv: Path,
+    decision_dir: Path,
+    warmup_sec: float,
+    sim_period_sec: float | None = None,
+) -> dict[str, Any]:
+    out = {
+        "run_dir": str(state_csv.parent),
+        "state_csv": str(state_csv),
+        "action_csv": str(action_csv),
+        "decision_dir": str(decision_dir),
+    }
+    out.update(state_metrics(state_csv, warmup_sec=warmup_sec, sim_period_sec=sim_period_sec))
+    out.update(action_metrics(action_csv))
+    out.update(decision_metrics(decision_dir))
+    out["primary_rank_key"] = (
+        to_float(out.get("vehicle_hours_total"))
+        + 0.25 * to_float(out.get("stopped_vehicle_hours"))
+        + 1000.0 * to_float(out.get("fallback_state_rows"))
+        + 1000.0 * to_float(out.get("controller_error_count"))
+    )
+    return out
+
+
+def summarize(run_dir: Path, warmup_sec: float, sim_period_sec: float | None = None) -> dict[str, Any]:
     out = {
         "run_dir": str(run_dir),
         "state_csv": str(run_dir / "state.csv"),
@@ -259,15 +303,16 @@ def summarize(run_dir: Path, warmup_sec: float) -> dict[str, Any]:
     if not action_csv.exists() and (run_dir / "actions.csv").exists():
         action_csv = run_dir / "actions.csv"
         out["action_csv"] = str(action_csv)
-    out.update(state_metrics(run_dir / "state.csv", warmup_sec=warmup_sec))
-    out.update(action_metrics(action_csv))
-    out.update(decision_metrics(run_dir / "decisions"))
-    out["primary_rank_key"] = (
-        to_float(out.get("vehicle_hours_total"))
-        + 0.25 * to_float(out.get("stopped_vehicle_hours"))
-        + 1000.0 * to_float(out.get("fallback_state_rows"))
-        + 1000.0 * to_float(out.get("controller_error_count"))
+    out.update(
+        summarize_files(
+            run_dir / "state.csv",
+            action_csv,
+            run_dir / "decisions",
+            warmup_sec=warmup_sec,
+            sim_period_sec=sim_period_sec,
+        )
     )
+    out["run_dir"] = str(run_dir)
     return out
 
 
@@ -288,11 +333,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("run_dirs", nargs="+")
     parser.add_argument("--warmup-sec", type=float, default=300.0)
+    parser.add_argument("--sim-period-sec", type=float, default=None)
     parser.add_argument("--out-json", default="")
     parser.add_argument("--out-csv", default="")
     args = parser.parse_args()
 
-    rows = [summarize(Path(item), warmup_sec=float(args.warmup_sec)) for item in args.run_dirs]
+    rows = [
+        summarize(Path(item), warmup_sec=float(args.warmup_sec), sim_period_sec=args.sim_period_sec)
+        for item in args.run_dirs
+    ]
     payload = {"status": "ok", "warmup_sec": float(args.warmup_sec), "runs": rows}
     if args.out_json:
         out = Path(args.out_json)
