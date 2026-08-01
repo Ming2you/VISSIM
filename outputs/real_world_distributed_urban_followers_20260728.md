@@ -62,7 +62,7 @@ Generated on 2026-07-28.
 - Urban follower count in model config: `19`
 - Controlled urban SC agent count in detector mapping: `19`
 - Monitoring-only SC agent count in detector mapping: `17`
-- Observable links scanned by VBS: `171`
+- Observable links scanned by VBS: `175`
 - Freeway/ramp VSL and metering mapping are copied from the validated base mapping.
 - Signal-head link queue attribution is derived from `.inpx` signal-head/SG names: EB/WB links feed EW/major movements and NB/SB links feed NS/minor movements.
 - In `core15`, SC1 is strict approach-only; ramp/off-ramp observations stay in freeway/base local observation rather than the SC1 urban follower.

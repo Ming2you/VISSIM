@@ -975,6 +975,9 @@ def calibration_to_config_overrides(calibration: Mapping[str, Any]) -> dict[str,
         "network": {
             "v_free": float(network.get("v_free_kph", 100.0)),
             "rho_crit": float(network.get("rho_crit_veh_km_lane", 33.5)),
+            # 지수형 속도-밀도식 V(rho)=v_free*exp(-(1/a)*(rho/rho_crit)^a)의 형상 a.
+            # 키가 없는 구 캘리브레이션 파일은 NetworkConfig 기본값 1.867을 그대로 받는다(비트 동일).
+            "metanet_a_m": float(network.get("desired_speed_shape_a", 1.867)),
             "freeway_capacity_veh_h": float(network.get("freeway_capacity_veh_h", 4000.0)),
             "lost_time": float(signal.get("recommended_initial_lost_time_sec", 8.0)),
             "movement_capacity_veh_h": float(

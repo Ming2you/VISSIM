@@ -125,10 +125,10 @@ def part_gain():
 
 def _zone_groups():
     return {
-        "FW_E": [{"id": "fw_yangjae_E", "segments": [0, 1, 2, 3, 4, 5]},
-                 {"id": "fw_seocho_E", "segments": [6, 7]}],
-        "FW_W": [{"id": "fw_seocho_W", "segments": [0, 1, 2, 3, 4]},
-                 {"id": "fw_yangjae_W", "segments": [5, 6, 7]}],
+        "FW_E": [{"id": "fw_yangjae_E", "segments": [0, 1, 2, 3]},
+                 {"id": "fw_seocho_E", "segments": [4, 5, 6, 7]}],
+        "FW_W": [{"id": "fw_seocho_W", "segments": [0, 1, 2, 3]},
+                 {"id": "fw_yangjae_W", "segments": [4, 5, 6, 7]}],
     }
 
 

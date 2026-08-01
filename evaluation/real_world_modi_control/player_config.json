@@ -6,7 +6,7 @@
     {
       "id": "leader_network_manager",
       "kind": "leader",
-      "state_scope": "whole network split into freeway links 2/26 and urban remainder",
+      "state_scope": "whole network split into the FW_E/FW_W mainline link chains ([2, 24, 26, 74, 10699, 10702]) and urban remainder",
       "controlled_followers": [
         "freeway_follower_real_world",
         "urban_follower_monitor"
@@ -16,12 +16,16 @@
       "id": "freeway_follower_real_world",
       "kind": "freeway_follower",
       "model_links": [
-        "FW_W",
-        "FW_E"
+        "FW_E",
+        "FW_W"
       ],
       "physical_links": [
+        2,
+        24,
         26,
-        2
+        74,
+        10699,
+        10702
       ],
       "vsl_segments": [
         "RW_FW_E_S0",

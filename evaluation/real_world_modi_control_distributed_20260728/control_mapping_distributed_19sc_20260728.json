@@ -4,57 +4,88 @@
   "network": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
   "manifest": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control\\freeway_control_manifest.csv",
   "description": "Distributed real-world Gaepo modi control mapping: freeway/ramp controls copied from the validated base mapping; selected core urban signals expanded to individual SC players while peripheral signals are monitored only.",
+  "freeway_mainline_chain_source": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control\\freeway_mainline_chain.csv",
   "freeway_model_links": {
     "FW_E": {
       "physical_link": 2,
-      "length_m": 4691.599,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
+      "chain_offsets_m": [
+        0.0,
+        2701.577,
+        2734.527,
+        7426.126,
+        7427.128
+      ],
+      "chain_lengths_m": [
+        2701.577,
+        32.95,
+        4691.599,
+        1.002,
+        3345.981
+      ],
+      "length_m": 10773.109,
       "lanes": 4,
       "segment_bounds_m": [
         0.0,
-        586.45,
-        1172.9,
-        1759.35,
-        2345.8,
-        2932.249,
-        3518.699,
-        4105.149,
-        4691.599
+        1346.639,
+        2693.277,
+        4039.916,
+        5386.555,
+        6733.193,
+        8079.832,
+        9426.471,
+        10773.109
       ],
       "segment_length_profile_km": [
-        0.58645,
-        0.58645,
-        0.58645,
-        0.58645,
-        0.586449,
-        0.58645,
-        0.58645,
-        0.58645
+        1.346639,
+        1.346639,
+        1.346639,
+        1.346639,
+        1.346639,
+        1.346639,
+        1.346639,
+        1.346639
       ]
     },
     "FW_W": {
       "physical_link": 26,
-      "length_m": 8029.342,
+      "chain_links": [
+        26
+      ],
+      "chain_offsets_m": [
+        0.0
+      ],
+      "chain_lengths_m": [
+        10777.693
+      ],
+      "length_m": 10777.693,
       "lanes": 4,
       "segment_bounds_m": [
         0.0,
-        1003.668,
-        2007.336,
-        3011.003,
-        4014.671,
-        5018.339,
-        6022.007,
-        7025.674,
-        8029.342
+        1347.212,
+        2694.423,
+        4041.635,
+        5388.847,
+        6736.058,
+        8083.27,
+        9430.481,
+        10777.693
       ],
       "segment_length_profile_km": [
-        1.003668,
-        1.003668,
-        1.003667,
-        1.003668,
-        1.003668,
-        1.003668,
-        1.003667,
-        1.003668
+        1.347212,
+        1.347212,
+        1.347212,
+        1.347212,
+        1.347212,
+        1.347212,
+        1.347212,
+        1.347212
       ]
     }
   },
@@ -63,71 +94,153 @@
       "segment_id": "RW_FW_E_S0",
       "model_link": "FW_E",
       "model_segment_index": 0,
-      "link": 2,
+      "link": 74,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
       "segment_start_m": 0.0,
-      "segment_end_m": 586.45,
-      "length_km": 0.58645,
+      "segment_end_m": 1346.639,
+      "dsd_chain_pos_m": 40.0,
+      "dsd_snap_offset_m": 40.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 43,
           "lane": 1,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN1"
         },
         "2": {
           "dsd_no": 44,
           "lane": 2,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN2"
         },
         "3": {
           "dsd_no": 45,
           "lane": 3,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN3"
         },
         "4": {
           "dsd_no": 46,
           "lane": 4,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN4"
         }
       },
-      "extra_dsd_controls": [],
+      "extra_dsd_controls": [
+        {
+          "dsd_no": 36,
+          "lane": 4,
+          "link": 74,
+          "pos_m": 11.869,
+          "chain_pos_m": 11.869,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 37,
+          "lane": 3,
+          "link": 74,
+          "pos_m": 11.848,
+          "chain_pos_m": 11.848,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 38,
+          "lane": 2,
+          "link": 74,
+          "pos_m": 11.588,
+          "chain_pos_m": 11.588,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 39,
+          "lane": 1,
+          "link": 74,
+          "pos_m": 11.528,
+          "chain_pos_m": 11.528,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        }
+      ],
       "dsds": [
         {
           "dsd_no": 43,
           "lane": 1,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN1"
         },
         {
           "dsd_no": 44,
           "lane": 2,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN2"
         },
         {
           "dsd_no": 45,
           "lane": 3,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN3"
         },
         {
           "dsd_no": 46,
           "lane": 4,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S0_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S0_L74_LN4"
+        },
+        {
+          "dsd_no": 36,
+          "lane": 4,
+          "link": 74,
+          "pos_m": 11.869,
+          "chain_pos_m": 11.869,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 37,
+          "lane": 3,
+          "link": 74,
+          "pos_m": 11.848,
+          "chain_pos_m": 11.848,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 38,
+          "lane": 2,
+          "link": 74,
+          "pos_m": 11.588,
+          "chain_pos_m": 11.588,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
+        },
+        {
+          "dsd_no": 39,
+          "lane": 1,
+          "link": 74,
+          "pos_m": 11.528,
+          "chain_pos_m": 11.528,
+          "source": "existing_freeway_mainline_dsd",
+          "name": ""
         }
       ],
       "default_speed_kph": 120.0
@@ -136,40 +249,49 @@
       "segment_id": "RW_FW_E_S1",
       "model_link": "FW_E",
       "model_segment_index": 1,
-      "link": 2,
+      "link": 74,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 586.45,
-      "segment_end_m": 1172.9,
-      "length_km": 0.58645,
+      "segment_start_m": 1346.639,
+      "segment_end_m": 2693.277,
+      "dsd_chain_pos_m": 1346.639,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 47,
           "lane": 1,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN1"
         },
         "2": {
           "dsd_no": 48,
           "lane": 2,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN2"
         },
         "3": {
           "dsd_no": 49,
           "lane": 3,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN3"
         },
         "4": {
           "dsd_no": 50,
           "lane": 4,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN4"
         }
       },
       "extra_dsd_controls": [],
@@ -177,30 +299,30 @@
         {
           "dsd_no": 47,
           "lane": 1,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN1"
         },
         {
           "dsd_no": 48,
           "lane": 2,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN2"
         },
         {
           "dsd_no": 49,
           "lane": 3,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN3"
         },
         {
           "dsd_no": 50,
           "lane": 4,
-          "pos_m": 586.45,
+          "pos_m": 1346.639,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S1_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S1_L74_LN4"
         }
       ],
       "default_speed_kph": 120.0
@@ -210,37 +332,46 @@
       "model_link": "FW_E",
       "model_segment_index": 2,
       "link": 2,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 1172.9,
-      "segment_end_m": 1759.35,
-      "length_km": 0.58645,
+      "segment_start_m": 2693.277,
+      "segment_end_m": 4039.916,
+      "dsd_chain_pos_m": 2782.713,
+      "dsd_snap_offset_m": 89.436,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 51,
           "lane": 1,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN1"
         },
         "2": {
           "dsd_no": 52,
           "lane": 2,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN2"
         },
         "3": {
           "dsd_no": 53,
           "lane": 3,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN3"
         },
         "4": {
           "dsd_no": 54,
           "lane": 4,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN4"
         }
@@ -250,28 +381,28 @@
         {
           "dsd_no": 51,
           "lane": 1,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN1"
         },
         {
           "dsd_no": 52,
           "lane": 2,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN2"
         },
         {
           "dsd_no": 53,
           "lane": 3,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN3"
         },
         {
           "dsd_no": 54,
           "lane": 4,
-          "pos_m": 1182.9,
+          "pos_m": 48.186,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S2_L2_LN4"
         }
@@ -283,37 +414,46 @@
       "model_link": "FW_E",
       "model_segment_index": 3,
       "link": 2,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 1759.35,
-      "segment_end_m": 2345.8,
-      "length_km": 0.58645,
+      "segment_start_m": 4039.916,
+      "segment_end_m": 5386.555,
+      "dsd_chain_pos_m": 4039.916,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 55,
           "lane": 1,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN1"
         },
         "2": {
           "dsd_no": 56,
           "lane": 2,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN2"
         },
         "3": {
           "dsd_no": 57,
           "lane": 3,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN3"
         },
         "4": {
           "dsd_no": 58,
           "lane": 4,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN4"
         }
@@ -323,28 +463,28 @@
         {
           "dsd_no": 55,
           "lane": 1,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN1"
         },
         {
           "dsd_no": 56,
           "lane": 2,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN2"
         },
         {
           "dsd_no": 57,
           "lane": 3,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN3"
         },
         {
           "dsd_no": 58,
           "lane": 4,
-          "pos_m": 1759.35,
+          "pos_m": 1305.389,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S3_L2_LN4"
         }
@@ -356,37 +496,46 @@
       "model_link": "FW_E",
       "model_segment_index": 4,
       "link": 2,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 2345.8,
-      "segment_end_m": 2932.249,
-      "length_km": 0.586449,
+      "segment_start_m": 5386.555,
+      "segment_end_m": 6733.193,
+      "dsd_chain_pos_m": 5386.554,
+      "dsd_snap_offset_m": -0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 59,
           "lane": 1,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN1"
         },
         "2": {
           "dsd_no": 60,
           "lane": 2,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN2"
         },
         "3": {
           "dsd_no": 61,
           "lane": 3,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN3"
         },
         "4": {
           "dsd_no": 62,
           "lane": 4,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN4"
         }
@@ -396,28 +545,28 @@
         {
           "dsd_no": 59,
           "lane": 1,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN1"
         },
         {
           "dsd_no": 60,
           "lane": 2,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN2"
         },
         {
           "dsd_no": 61,
           "lane": 3,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN3"
         },
         {
           "dsd_no": 62,
           "lane": 4,
-          "pos_m": 2345.8,
+          "pos_m": 2652.027,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S4_L2_LN4"
         }
@@ -429,37 +578,46 @@
       "model_link": "FW_E",
       "model_segment_index": 5,
       "link": 2,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 2932.249,
-      "segment_end_m": 3518.699,
-      "length_km": 0.58645,
+      "segment_start_m": 6733.193,
+      "segment_end_m": 8079.832,
+      "dsd_chain_pos_m": 6733.193,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 63,
           "lane": 1,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN1"
         },
         "2": {
           "dsd_no": 64,
           "lane": 2,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN2"
         },
         "3": {
           "dsd_no": 65,
           "lane": 3,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN3"
         },
         "4": {
           "dsd_no": 66,
           "lane": 4,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN4"
         }
@@ -469,28 +627,28 @@
         {
           "dsd_no": 63,
           "lane": 1,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN1"
         },
         {
           "dsd_no": 64,
           "lane": 2,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN2"
         },
         {
           "dsd_no": 65,
           "lane": 3,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN3"
         },
         {
           "dsd_no": 66,
           "lane": 4,
-          "pos_m": 2932.249,
+          "pos_m": 3998.666,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_E_S5_L2_LN4"
         }
@@ -501,40 +659,49 @@
       "segment_id": "RW_FW_E_S6",
       "model_link": "FW_E",
       "model_segment_index": 6,
-      "link": 2,
+      "link": 24,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 3518.699,
-      "segment_end_m": 4105.149,
-      "length_km": 0.58645,
+      "segment_start_m": 8079.832,
+      "segment_end_m": 9426.471,
+      "dsd_chain_pos_m": 8079.832,
+      "dsd_snap_offset_m": -0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 67,
           "lane": 1,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN1"
         },
         "2": {
           "dsd_no": 68,
           "lane": 2,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN2"
         },
         "3": {
           "dsd_no": 69,
           "lane": 3,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN3"
         },
         "4": {
           "dsd_no": 70,
           "lane": 4,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN4"
         }
       },
       "extra_dsd_controls": [],
@@ -542,30 +709,30 @@
         {
           "dsd_no": 67,
           "lane": 1,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN1"
         },
         {
           "dsd_no": 68,
           "lane": 2,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN2"
         },
         {
           "dsd_no": 69,
           "lane": 3,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN3"
         },
         {
           "dsd_no": 70,
           "lane": 4,
-          "pos_m": 3518.699,
+          "pos_m": 652.704,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S6_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S6_L24_LN4"
         }
       ],
       "default_speed_kph": 120.0
@@ -574,40 +741,49 @@
       "segment_id": "RW_FW_E_S7",
       "model_link": "FW_E",
       "model_segment_index": 7,
-      "link": 2,
+      "link": 24,
+      "chain_links": [
+        74,
+        10699,
+        2,
+        10702,
+        24
+      ],
       "direction": "E",
-      "segment_start_m": 4105.149,
-      "segment_end_m": 4691.599,
-      "length_km": 0.58645,
+      "segment_start_m": 9426.471,
+      "segment_end_m": 10773.109,
+      "dsd_chain_pos_m": 9426.471,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.346639,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 71,
           "lane": 1,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN1"
         },
         "2": {
           "dsd_no": 72,
           "lane": 2,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN2"
         },
         "3": {
           "dsd_no": 73,
           "lane": 3,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN3"
         },
         "4": {
           "dsd_no": 74,
           "lane": 4,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN4"
         }
       },
       "extra_dsd_controls": [],
@@ -615,30 +791,30 @@
         {
           "dsd_no": 71,
           "lane": 1,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN1"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN1"
         },
         {
           "dsd_no": 72,
           "lane": 2,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN2"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN2"
         },
         {
           "dsd_no": 73,
           "lane": 3,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN3"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN3"
         },
         {
           "dsd_no": 74,
           "lane": 4,
-          "pos_m": 4105.149,
+          "pos_m": 1999.343,
           "source": "installed_real_world_segment_start",
-          "name": "RW_VSL_RW_FW_E_S7_L2_LN4"
+          "name": "RW_VSL_RW_FW_E_S7_L24_LN4"
         }
       ],
       "default_speed_kph": 120.0
@@ -648,37 +824,42 @@
       "model_link": "FW_W",
       "model_segment_index": 0,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
       "segment_start_m": 0.0,
-      "segment_end_m": 1003.668,
-      "length_km": 1.003668,
+      "segment_end_m": 1347.212,
+      "dsd_chain_pos_m": 40.0,
+      "dsd_snap_offset_m": 40.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 75,
           "lane": 1,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN1"
         },
         "2": {
           "dsd_no": 76,
           "lane": 2,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN2"
         },
         "3": {
           "dsd_no": 77,
           "lane": 3,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN3"
         },
         "4": {
           "dsd_no": 78,
           "lane": 4,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN4"
         }
@@ -687,21 +868,27 @@
         {
           "dsd_no": 40,
           "lane": 1,
+          "link": 26,
           "pos_m": 2.616,
+          "chain_pos_m": 2.616,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         },
         {
           "dsd_no": 41,
           "lane": 2,
+          "link": 26,
           "pos_m": 1.605,
+          "chain_pos_m": 1.605,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         },
         {
           "dsd_no": 42,
           "lane": 3,
+          "link": 26,
           "pos_m": 2.569,
+          "chain_pos_m": 2.569,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         }
@@ -710,49 +897,55 @@
         {
           "dsd_no": 75,
           "lane": 1,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN1"
         },
         {
           "dsd_no": 76,
           "lane": 2,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN2"
         },
         {
           "dsd_no": 77,
           "lane": 3,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN3"
         },
         {
           "dsd_no": 78,
           "lane": 4,
-          "pos_m": 1.0,
+          "pos_m": 40.0,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S0_L26_LN4"
         },
         {
           "dsd_no": 40,
           "lane": 1,
+          "link": 26,
           "pos_m": 2.616,
+          "chain_pos_m": 2.616,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         },
         {
           "dsd_no": 41,
           "lane": 2,
+          "link": 26,
           "pos_m": 1.605,
+          "chain_pos_m": 1.605,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         },
         {
           "dsd_no": 42,
           "lane": 3,
+          "link": 26,
           "pos_m": 2.569,
+          "chain_pos_m": 2.569,
           "source": "existing_freeway_mainline_dsd",
           "name": ""
         }
@@ -764,37 +957,42 @@
       "model_link": "FW_W",
       "model_segment_index": 1,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 1003.668,
-      "segment_end_m": 2007.336,
-      "length_km": 1.003668,
+      "segment_start_m": 1347.212,
+      "segment_end_m": 2694.423,
+      "dsd_chain_pos_m": 1347.212,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 79,
           "lane": 1,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN1"
         },
         "2": {
           "dsd_no": 80,
           "lane": 2,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN2"
         },
         "3": {
           "dsd_no": 81,
           "lane": 3,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN3"
         },
         "4": {
           "dsd_no": 82,
           "lane": 4,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN4"
         }
@@ -804,28 +1002,28 @@
         {
           "dsd_no": 79,
           "lane": 1,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN1"
         },
         {
           "dsd_no": 80,
           "lane": 2,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN2"
         },
         {
           "dsd_no": 81,
           "lane": 3,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN3"
         },
         {
           "dsd_no": 82,
           "lane": 4,
-          "pos_m": 1003.668,
+          "pos_m": 1347.212,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S1_L26_LN4"
         }
@@ -837,37 +1035,42 @@
       "model_link": "FW_W",
       "model_segment_index": 2,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 2007.336,
-      "segment_end_m": 3011.003,
-      "length_km": 1.003667,
+      "segment_start_m": 2694.423,
+      "segment_end_m": 4041.635,
+      "dsd_chain_pos_m": 2694.423,
+      "dsd_snap_offset_m": -0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 83,
           "lane": 1,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN1"
         },
         "2": {
           "dsd_no": 84,
           "lane": 2,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN2"
         },
         "3": {
           "dsd_no": 85,
           "lane": 3,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN3"
         },
         "4": {
           "dsd_no": 86,
           "lane": 4,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN4"
         }
@@ -877,28 +1080,28 @@
         {
           "dsd_no": 83,
           "lane": 1,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN1"
         },
         {
           "dsd_no": 84,
           "lane": 2,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN2"
         },
         {
           "dsd_no": 85,
           "lane": 3,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN3"
         },
         {
           "dsd_no": 86,
           "lane": 4,
-          "pos_m": 2007.336,
+          "pos_m": 2694.423,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S2_L26_LN4"
         }
@@ -910,37 +1113,42 @@
       "model_link": "FW_W",
       "model_segment_index": 3,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 3011.003,
-      "segment_end_m": 4014.671,
-      "length_km": 1.003668,
+      "segment_start_m": 4041.635,
+      "segment_end_m": 5388.847,
+      "dsd_chain_pos_m": 4041.635,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 87,
           "lane": 1,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN1"
         },
         "2": {
           "dsd_no": 88,
           "lane": 2,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN2"
         },
         "3": {
           "dsd_no": 89,
           "lane": 3,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN3"
         },
         "4": {
           "dsd_no": 90,
           "lane": 4,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN4"
         }
@@ -950,28 +1158,28 @@
         {
           "dsd_no": 87,
           "lane": 1,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN1"
         },
         {
           "dsd_no": 88,
           "lane": 2,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN2"
         },
         {
           "dsd_no": 89,
           "lane": 3,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN3"
         },
         {
           "dsd_no": 90,
           "lane": 4,
-          "pos_m": 3011.003,
+          "pos_m": 4041.635,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S3_L26_LN4"
         }
@@ -983,37 +1191,42 @@
       "model_link": "FW_W",
       "model_segment_index": 4,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 4014.671,
-      "segment_end_m": 5018.339,
-      "length_km": 1.003668,
+      "segment_start_m": 5388.847,
+      "segment_end_m": 6736.058,
+      "dsd_chain_pos_m": 5388.847,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 91,
           "lane": 1,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN1"
         },
         "2": {
           "dsd_no": 92,
           "lane": 2,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN2"
         },
         "3": {
           "dsd_no": 93,
           "lane": 3,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN3"
         },
         "4": {
           "dsd_no": 94,
           "lane": 4,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN4"
         }
@@ -1023,28 +1236,28 @@
         {
           "dsd_no": 91,
           "lane": 1,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN1"
         },
         {
           "dsd_no": 92,
           "lane": 2,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN2"
         },
         {
           "dsd_no": 93,
           "lane": 3,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN3"
         },
         {
           "dsd_no": 94,
           "lane": 4,
-          "pos_m": 4014.671,
+          "pos_m": 5388.847,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S4_L26_LN4"
         }
@@ -1056,37 +1269,42 @@
       "model_link": "FW_W",
       "model_segment_index": 5,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 5018.339,
-      "segment_end_m": 6022.007,
-      "length_km": 1.003668,
+      "segment_start_m": 6736.058,
+      "segment_end_m": 8083.27,
+      "dsd_chain_pos_m": 6736.058,
+      "dsd_snap_offset_m": -0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 95,
           "lane": 1,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN1"
         },
         "2": {
           "dsd_no": 96,
           "lane": 2,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN2"
         },
         "3": {
           "dsd_no": 97,
           "lane": 3,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN3"
         },
         "4": {
           "dsd_no": 98,
           "lane": 4,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN4"
         }
@@ -1096,28 +1314,28 @@
         {
           "dsd_no": 95,
           "lane": 1,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN1"
         },
         {
           "dsd_no": 96,
           "lane": 2,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN2"
         },
         {
           "dsd_no": 97,
           "lane": 3,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN3"
         },
         {
           "dsd_no": 98,
           "lane": 4,
-          "pos_m": 5018.339,
+          "pos_m": 6736.058,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S5_L26_LN4"
         }
@@ -1129,37 +1347,42 @@
       "model_link": "FW_W",
       "model_segment_index": 6,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 6022.007,
-      "segment_end_m": 7025.674,
-      "length_km": 1.003667,
+      "segment_start_m": 8083.27,
+      "segment_end_m": 9430.481,
+      "dsd_chain_pos_m": 8083.27,
+      "dsd_snap_offset_m": 0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 99,
           "lane": 1,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN1"
         },
         "2": {
           "dsd_no": 100,
           "lane": 2,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN2"
         },
         "3": {
           "dsd_no": 101,
           "lane": 3,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN3"
         },
         "4": {
           "dsd_no": 102,
           "lane": 4,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN4"
         }
@@ -1169,28 +1392,28 @@
         {
           "dsd_no": 99,
           "lane": 1,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN1"
         },
         {
           "dsd_no": 100,
           "lane": 2,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN2"
         },
         {
           "dsd_no": 101,
           "lane": 3,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN3"
         },
         {
           "dsd_no": 102,
           "lane": 4,
-          "pos_m": 6022.007,
+          "pos_m": 8083.27,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S6_L26_LN4"
         }
@@ -1202,37 +1425,42 @@
       "model_link": "FW_W",
       "model_segment_index": 7,
       "link": 26,
+      "chain_links": [
+        26
+      ],
       "direction": "W",
-      "segment_start_m": 7025.674,
-      "segment_end_m": 8029.342,
-      "length_km": 1.003668,
+      "segment_start_m": 9430.481,
+      "segment_end_m": 10777.693,
+      "dsd_chain_pos_m": 9430.481,
+      "dsd_snap_offset_m": -0.0,
+      "length_km": 1.347212,
       "lanes": 4,
       "dsd_by_lane": {
         "1": {
           "dsd_no": 103,
           "lane": 1,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN1"
         },
         "2": {
           "dsd_no": 104,
           "lane": 2,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN2"
         },
         "3": {
           "dsd_no": 105,
           "lane": 3,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN3"
         },
         "4": {
           "dsd_no": 106,
           "lane": 4,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN4"
         }
@@ -1242,28 +1470,28 @@
         {
           "dsd_no": 103,
           "lane": 1,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN1"
         },
         {
           "dsd_no": 104,
           "lane": 2,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN2"
         },
         {
           "dsd_no": 105,
           "lane": 3,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN3"
         },
         {
           "dsd_no": 106,
           "lane": 4,
-          "pos_m": 7025.674,
+          "pos_m": 9430.481,
           "source": "installed_real_world_segment_start",
           "name": "RW_VSL_RW_FW_W_S7_L26_LN4"
         }
@@ -1414,8 +1642,9 @@
       "from_pos_m": 734.931,
       "to_link": 26,
       "to_pos_m": 3525.124,
+      "to_chain_pos_m": 3525.124,
       "to_model_link": "FW_W",
-      "to_model_segment_index": 3,
+      "to_model_segment_index": 2,
       "sc_no": 9101,
       "sg_no": 1,
       "default_green_sec": 10.0,
@@ -1431,8 +1660,9 @@
       "from_pos_m": 1028.621,
       "to_link": 26,
       "to_pos_m": 3829.779,
+      "to_chain_pos_m": 3829.779,
       "to_model_link": "FW_W",
-      "to_model_segment_index": 3,
+      "to_model_segment_index": 2,
       "sc_no": 9102,
       "sg_no": 1,
       "default_green_sec": 10.0,
@@ -1448,8 +1678,9 @@
       "from_pos_m": 352.004,
       "to_link": 26,
       "to_pos_m": 6072.55,
+      "to_chain_pos_m": 6072.55,
       "to_model_link": "FW_W",
-      "to_model_segment_index": 6,
+      "to_model_segment_index": 4,
       "sc_no": 9103,
       "sg_no": 1,
       "default_green_sec": 10.0,
@@ -1465,8 +1696,9 @@
       "from_pos_m": 1740.482,
       "to_link": 26,
       "to_pos_m": 6774.308,
+      "to_chain_pos_m": 6774.308,
       "to_model_link": "FW_W",
-      "to_model_segment_index": 6,
+      "to_model_segment_index": 5,
       "sc_no": 9104,
       "sg_no": 1,
       "default_green_sec": 10.0,
@@ -1482,6 +1714,7 @@
       "from_pos_m": 180.143,
       "to_link": 2,
       "to_pos_m": 1876.292,
+      "to_chain_pos_m": 4610.819,
       "to_model_link": "FW_E",
       "to_model_segment_index": 3,
       "sc_no": 9105,
@@ -1499,6 +1732,7 @@
       "from_pos_m": 76.589,
       "to_link": 2,
       "to_pos_m": 2165.429,
+      "to_chain_pos_m": 4899.956,
       "to_model_link": "FW_E",
       "to_model_segment_index": 3,
       "sc_no": 9106,
@@ -1516,8 +1750,9 @@
       "from_pos_m": 1330.644,
       "to_link": 2,
       "to_pos_m": 4413.602,
+      "to_chain_pos_m": 7148.13,
       "to_model_link": "FW_E",
-      "to_model_segment_index": 7,
+      "to_model_segment_index": 5,
       "sc_no": 9107,
       "sg_no": 1,
       "default_green_sec": 10.0,
@@ -1531,17 +1766,18 @@
       "connector": 10484,
       "from_link": 31,
       "from_pos_m": 412.087,
-      "to_link": 2,
-      "to_pos_m": 4702.918,
+      "to_link": 24,
+      "to_pos_m": 10.319,
+      "to_chain_pos_m": 7437.447,
       "to_model_link": "FW_E",
-      "to_model_segment_index": 7,
+      "to_model_segment_index": 5,
       "sc_no": 9108,
       "sg_no": 1,
       "default_green_sec": 10.0,
       "cycle_sec": 10.0,
       "capacity_vph": 900.0,
       "model_ramp_key": "R_D_E",
-      "purpose": "Ramp meter on connector 10484 link 31 to freeway link 2"
+      "purpose": "Ramp meter on connector 10484 link 31 to freeway link 24"
     }
   ],
   "ramp_meter_groups": {
@@ -1555,6 +1791,12 @@
         10490,
         10484
       ],
+      "physical_segment_indices": [
+        5,
+        5
+      ],
+      "representative_segment_index": 5,
+      "segment_straddle": false,
       "total_capacity_vph": 1800.0
     },
     "R_D_W": {
@@ -1567,6 +1809,12 @@
         10480,
         10482
       ],
+      "physical_segment_indices": [
+        2,
+        2
+      ],
+      "representative_segment_index": 2,
+      "segment_straddle": false,
       "total_capacity_vph": 1800.0
     },
     "R_F_E": {
@@ -1579,6 +1827,12 @@
         10639,
         10681
       ],
+      "physical_segment_indices": [
+        3,
+        3
+      ],
+      "representative_segment_index": 3,
+      "segment_straddle": false,
       "total_capacity_vph": 1800.0
     },
     "R_F_W": {
@@ -1591,21 +1845,27 @@
         10646,
         10644
       ],
+      "physical_segment_indices": [
+        4,
+        5
+      ],
+      "representative_segment_index": 4,
+      "segment_straddle": true,
       "total_capacity_vph": 1800.0
     }
   },
   "model_topology_overrides": {
     "ramp_merge_segment_index": {
-      "R_D_W": 3,
-      "R_F_W": 6,
+      "R_D_W": 2,
+      "R_F_W": 4,
       "R_F_E": 3,
-      "R_D_E": 7
+      "R_D_E": 5
     },
     "off_ramp_segment_index": {
-      "OR_D_W": 3,
-      "OR_F_W": 6,
+      "OR_D_W": 2,
+      "OR_F_W": 4,
       "OR_F_E": 3,
-      "OR_D_E": 7
+      "OR_D_E": 5
     },
     "ramp_capacity_veh_h": {
       "R_D_W": 1800.0,
@@ -1614,14 +1874,44 @@
       "R_D_E": 1800.0
     },
     "freeway_lanes": 4,
-    "freeway_segment_length_km": 0.795059
+    "freeway_segment_length_km": 1.346925
   },
   "excluded_freeway_touching_connectors": [
     {
       "connector": 10699,
       "from_link": 74,
       "to_link": 2,
-      "reason": "Treated as freeway feeder/mainline entry, not isolated ramp metering authority."
+      "reason": "FW_E mainline chain member (link 74 -> link 2), not isolated ramp metering authority."
+    }
+  ],
+  "known_approximations": [
+    {
+      "id": "vsl_dsd_edge_snap",
+      "source": "scripts/install_real_world_freeway_controls.vbs (DSD_EDGE_CLEARANCE_M)",
+      "what": "\uccb4\uc778 \uba64\ubc84\uac00 \ub05d\ub098\ub294 \uc9c0\uc810(\ucee4\ub125\ud130 fromLinkEndPt) 40 m \uc548\uc5d0 \ub5a8\uc5b4\uc9c0\ub294 \uc138\uadf8\uba3c\ud2b8 \uc2dc\uc791\uc740 DSD\ub97c \ub2e4\uc74c \uc2e4\ud638\uc2a4\ud2b8 \uba64\ubc84\uc758 \uc9c4\uc785\uc810+40 m \ub85c \uc62e\uae34\ub2e4. 40 m = SimRes 1(dt 1.0 s) x \uc790\uc720\ub958 \uc0c1\ub2e8 130 km/h(36.1 m/s) \ud55c \uc2a4\ud15d + \uc5ec\uc720.",
+      "cost": "\uc138\uadf8\uba3c\ud2b8 \uc2dc\uc791\uacfc \uc2e4\uc81c DSD \uc0ac\uc774 \uad6c\uac04\uc758 \ucc28\ub7c9\uc740 \uc0c1\ub958 \uc138\uadf8\uba3c\ud2b8\uc758 VSL\uc744 \ubc1b\ub294\ub2e4. \uc138\uadf8\uba3c\ud2b8\ubcc4 dsd_snap_offset_m \uc5d0 \ud06c\uae30\uac00 \uc801\ud600 \uc788\ub2e4.",
+      "why_accepted": "\ub9c1\ud06c \uacbd\uacc4 \uc9c1\uc804 \ubc30\uce58\ub294 \ud1b5\uacfc \ud310\uc815 \ub204\ub77d\uc73c\ub85c VSL \ucc44\ub110\uc774 \uc870\uc6a9\ud788 \uc8fd\uc744 \uc218 \uc788\uace0, \uc561\uc158 CSV readback\uc740 DSD \uc18d\uc131\uc744 \ub418\uc77d\uc73c\ubbc0\ub85c \uc774\ub97c \uc7a1\uc9c0 \ubabb\ud55c\ub2e4."
+    },
+    {
+      "id": "ramp_group_segment_straddle",
+      "source": "scripts/generate_real_world_control_mapping.py (build_ramp_meters)",
+      "what": "\ud55c model_ramp_key \uc758 \ubb3c\ub9ac \ubbf8\ud130\uac00 \uc11c\ub85c \ub2e4\ub978 \uc138\uadf8\uba3c\ud2b8\uc5d0 \ud569\ub958\ud558\uba74 \uc6a9\ub7c9 \uac00\uc911 \ub2e4\uc218\uacb0\ub85c \ub300\ud45c \uc138\uadf8\uba3c\ud2b8 \ud558\ub098\ub97c \uace0\ub978\ub2e4(\ub3d9\ub960\uc774\uba74 \uc0c1\ub958). \uc0b0\uc220\ud3c9\uade0\uc740 \ubbf8\ud130\uac00 \uc5c6\ub294 \uc138\uadf8\uba3c\ud2b8\ub97c \uace0\ub97c \uc218 \uc788\uc5b4 \uc4f0\uc9c0 \uc54a\ub294\ub2e4.",
+      "cost": "\ub300\ud45c\uac00 \uc544\ub2cc \uc138\uadf8\uba3c\ud2b8\ub85c \ub4e4\uc5b4\uac00\ub294 \uc720\uc785\uc774 \ubaa8\ub378\uc5d0\uc11c\ub294 \ub300\ud45c \uc138\uadf8\uba3c\ud2b8\uc5d0 \uc8fc\uc785\ub41c\ub2e4. ramp_meter_groups[*].segment_straddle \ub85c \uc2dd\ubcc4\ud55c\ub2e4.",
+      "why_accepted": "\uc81c\uc5b4 \ubc30\ubd84\uc5d0\ub294 \uc601\ud5a5\uc774 \uc5c6\ub2e4 - straddle \ud558\ub294 \ub450 \uc138\uadf8\uba3c\ud2b8\uac00 \uac19\uc740 zone \uc18c\uc720\uc774\ubbc0\ub85c \uc608\uce21 \uc815\ud655\ub3c4 \ud56d\ubaa9\uc774\ub2e4."
+    },
+    {
+      "id": "vsl_segment0_entry_clearance",
+      "source": "scripts/install_real_world_freeway_controls.vbs (segment 0 exception removed)",
+      "what": "\uc138\uadf8\uba3c\ud2b8 0\uc758 DSD\ub3c4 \ub2e4\ub978 \uc138\uadf8\uba3c\ud2b8\uc640 \ub3d9\uc77c\ud558\uac8c \uccb4\uc778 \uc9c4\uc785\uc810 + DSD_EDGE_CLEARANCE_M(40 m)\uc5d0 \ub193\uc778\ub2e4. \uc774\uc804\uc5d0\ub294 \uc138\uadf8\uba3c\ud2b8 0\ub9cc pos 1.0\uc73c\ub85c \uac15\uc81c\ub410\uace0, \uadf8 \uc790\ub9ac\ub294 \uc6d0 \ub124\ud2b8\uc6cc\ud06c\uc758 \uc9c4\uc785\ubd80 DSD(no 36~42, pos 1.5~11.9, \ubd84\ud3ec 100)\ubcf4\ub2e4 \uc0c1\ub958\ub77c \uc6b0\ub9ac VSL\uc774 10 m \ub4a4\uc5d0\uc11c \ub36e\uc5ec \uc0ac\ub77c\uc84c\ub2e4(\uc2e4\uce21 \uc790\uae30\uc9c0\ubb38 FW_E S0 1.3%, FW_W S0 21.8%).",
+      "cost": "\uccb4\uc778 [0, \uc9c4\uc785\uc810+40 m) \uad6c\uac04\uc5d0\ub294 VSL\uc774 \uc801\uc6a9\ub418\uc9c0 \uc54a\ub294\ub2e4. \uc0c1\ub958 \uc138\uadf8\uba3c\ud2b8\uac00 \uc5c6\uc73c\ubbc0\ub85c \uadf8 \uad6c\uac04\uc758 \ucc28\ub7c9\uc740 \uc720\uc785 \uad6c\uc131\uc758 \uc6d0 \ud76c\ub9dd\uc18d\ub3c4 \ubd84\ud3ec\ub97c \uc720\uc9c0\ud558\uace0, \ub808\uac70\uc2dc DSD 36~42\ub97c \ub9cc\ub098\ub294 \uc9c0\uc810\ubd80\ud130\ub294 \uadf8 \ubd84\ud3ec\ub97c \ub530\ub978\ub2e4(\ub808\uac70\uc2dc DSD\ub3c4 extra_dsd_controls \ub85c \uac19\uc740 VSL\uc744 \ubc1b\uc73c\ubbc0\ub85c \uc2e4\uc9c8 \uac1c\uc2dc\uc810\uc740 \ub808\uac70\uc2dc DSD \uc704\uce58\ub2e4). \uce21\uc815 \uaca9\uc790(segment_bounds_m)\ub294 \uc190\ub300\uc9c0 \uc54a\uc558\ub2e4 - \uc6c0\uc9c1\uc778 \uac83\uc740 \ubb3c\ub9ac DSD \uc704\uce58\ubfd0\uc774\uba70 \ud06c\uae30\ub294 \uc138\uadf8\uba3c\ud2b8\ubcc4 dsd_snap_offset_m \uc5d0 \uc801\ud600 \uc788\ub2e4.",
+      "why_accepted": "40 m \ubbf8\uc801\uc6a9 \uad6c\uac04\uc740 \uc138\uadf8\uba3c\ud2b8 \uae38\uc774 \uc57d 1347 m\uc758 3%\uc774\uace0, \uadf8 \ub300\uac00\ub85c S0 \ucc44\ub110 \uc804\uccb4\uac00 \ub808\uac70\uc2dc DSD \ub36e\uc5b4\uc4f0\uae30\uc5d0\uc11c \ubc97\uc5b4\ub09c\ub2e4."
+    },
+    {
+      "id": "vsl_taxi_class70_included",
+      "source": "scripts/install_real_world_freeway_controls.vbs (AddVslDsds), scripts/run_real_world_stackelberg_controller.vbs (ApplyActionCsv)",
+      "what": "\ucc28\ub7c9 \ud074\ub798\uc2a4 70(TAXI, \ucc28\uc885 150)\uc774 VSL \ub300\uc0c1\uc5d0 \ud3b8\uc785\ub410\ub2e4. RW DSD 64\uac1c\uc640 \ub7f0\ud0c0\uc784\uc5d0\uc11c \uac12\uc744 \ubc1b\ub294 \ub808\uac70\uc2dc DSD(extra_dsd_controls) \ubaa8\ub450 \ud074\ub798\uc2a4 10/20/30/70 \ub124 \uac1c\uc5d0 \uac19\uc740 \ubd84\ud3ec\ub97c \uc9c0\uc815\ud55c\ub2e4. \uc774\uc804\uc5d0\ub294 \ubcf8\uc120 \uccb4\uc778 \uc704 71\uac1c DSD \uc804\ubd80\uac00 \ud074\ub798\uc2a4 70\uc744 \ube44\uc6cc \ub450\uc5b4 \ud0dd\uc2dc\uac00 \uc720\uc785 \uad6c\uc131\uc758 \ubd84\ud3ec 40(40~45 km/h)\uc744 \ubcf8\uc120 \uc804 \uad6c\uac04\uc5d0\uc11c \uc720\uc9c0\ud588\ub2e4.",
+      "cost": "\uc6d0 \ub124\ud2b8\uc6cc\ud06c\ub294 \ud0dd\uc2dc\ub97c \ubcf8\uc120\uc5d0\uc11c 40~45 km/h\ub97c \ud76c\ub9dd\ud558\ub294 \uc774\ub3d9 \uc7a5\uc560\ubb3c\ub85c \ubaa8\ub378\ub9c1\ud588\ub294\ub370, \uc774\uc81c \ud0dd\uc2dc\ub3c4 \uc9c0\uc2dc VSL(\ubb34\uc81c\uc5b4 \uae30\ubcf8 120)\uc744 \ud76c\ub9dd\ud55c\ub2e4. \uc989 \ud50c\ub79c\ud2b8\uc758 \uc790\uc720\ub958 \uc18d\ub3c4\uc640 \uc6a9\ub7c9\uc774 \uc62c\ub77c\uac04\ub2e4. \uc774 \ubcc0\uacbd \uc774\uc804\uc758 \ubaa8\ub4e0 VISSIM \ub7f0\uacfc \ube44\uad50 \ubd88\uac00\ub2e4(outputs/vsl_class70_plant_change_20260801.md).",
+      "why_accepted": "\ubcf8\uc120 \ud45c\ubcf8\uc758 14.45%\uac00 \ud074\ub798\uc2a4 70\uc774\ub77c \ud3b8\uc785\ud558\uc9c0 \uc54a\uc73c\uba74 VSL\uc758 \uc774\ub860\uc801 \ucd5c\ub300 \uc801\uc6a9\ub960\uc774 \uc57d 85%\ub85c \ubb36\uc778\ub2e4. \uc81c\uc5b4 \uad8c\ud55c(authority) \ubd84\uc11d\uc774 \uc131\ub9bd\ud558\ub824\uba74 \ub300\uc0c1 \uc9d1\ud569\uc774 \ubcf8\uc120 \ucc28\ub7c9 \uc804\uccb4\uc5ec\uc57c \ud55c\ub2e4\ub294 \uc0ac\uc6a9\uc790 \uacb0\uc815. \ub2e4\ub978 \ud074\ub798\uc2a4\uc640 \ub2e4\ub978 \ubd84\ud3ec\ub97c \ubb3c\ub9ac\uba74(\uc608: min(VSL, 40)) VSL \uba54\ub274 \ud558\ud55c\uc774 50 km/h\ub77c \ud0dd\uc2dc\ub294 \uc0ac\uc2e4\uc0c1 \uc601\uc6d0\ud788 \ubbf8\uc801\uc6a9\uc774 \ub418\uc5b4 \ud3b8\uc785 \uacb0\uc815\uacfc \ubaa8\uc21c\ub41c\ub2e4."
     }
   ],
   "detector_mapping_json": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_19sc_20260728.json",

@@ -50,14 +50,17 @@ from src.models.metanet import desired_speed_kmh  # noqa: E402
 from src.models.state import ControlAction, TrafficState  # noqa: E402
 
 # plan.md 4-zone 표(2026-08-01 좌표 검증) — zone id → (소유 세그먼트, 소유 ramp).
+# 2026-08-01 본선 체인 격자 반영: FW_E가 link 74+10699+2+10702+24(10773.1 m), FW_W가
+# link 26(10777.7 m)로 정정되면서 램프 합류 세그먼트가 R_F_E@3 / R_D_E@5 / R_D_W@2 /
+# R_F_W@4로 옮겨갔고, 분할이 4:4로 균형을 되찾았다(구 격자는 6:2 / 5:3).
 EXPECTED_ZONES: dict[str, list[tuple[str, list[int], list[str]]]] = {
     "FW_E": [
-        ("fw_yangjae_E", [0, 1, 2, 3, 4, 5], ["R_F_E"]),
-        ("fw_seocho_E", [6, 7], ["R_D_E"]),
+        ("fw_yangjae_E", [0, 1, 2, 3], ["R_F_E"]),
+        ("fw_seocho_E", [4, 5, 6, 7], ["R_D_E"]),
     ],
     "FW_W": [
-        ("fw_seocho_W", [0, 1, 2, 3, 4], ["R_D_W"]),
-        ("fw_yangjae_W", [5, 6, 7], ["R_F_W"]),
+        ("fw_seocho_W", [0, 1, 2, 3], ["R_D_W"]),
+        ("fw_yangjae_W", [4, 5, 6, 7], ["R_F_W"]),
     ],
 }
 
@@ -466,10 +469,10 @@ def test_budget_projection_scope() -> list[str]:
 # ---------------------------------------------------------------------------
 
 _ZONE_GROUPS = {
-    "FW_E": [{"id": "fw_yangjae_E", "segments": [0, 1, 2, 3, 4, 5]},
-             {"id": "fw_seocho_E", "segments": [6, 7]}],
-    "FW_W": [{"id": "fw_seocho_W", "segments": [0, 1, 2, 3, 4]},
-             {"id": "fw_yangjae_W", "segments": [5, 6, 7]}],
+    "FW_E": [{"id": "fw_yangjae_E", "segments": [0, 1, 2, 3]},
+             {"id": "fw_seocho_E", "segments": [4, 5, 6, 7]}],
+    "FW_W": [{"id": "fw_seocho_W", "segments": [0, 1, 2, 3]},
+             {"id": "fw_yangjae_W", "segments": [4, 5, 6, 7]}],
 }
 
 
@@ -526,13 +529,21 @@ def _ratchet_trajectory(
 
 # 수정 **전** 코드(strict '<' + vsl_set 오름차순)로 실측한 결정. 플래그 OFF는 이 값을
 # 그대로 재현해야 한다(§6 P1 게이팅 계약: 기본값에서 비트 동일).
+#
+# 2026-08-01 본선 체인 격자로 재실측. ρ=35 두 행의 seg4가 100 -> 80으로 내려간 것 외에는
+# 구 골든과 동일하고 evals/metering/래칫 궤적은 전부 불변이다. 코드 변경이 아니라 기하
+# 변경의 귀결임을 다음으로 확인했다 — cfg.network의 freeway_segment_length_km(0.795059)와
+# ramp_merge/off_ramp_segment_index(구 격자값)를 되돌리면 **현재 코드가** 구 골든 6행 +
+# evals + metering + 래칫을 그대로 재현한다. 즉 OFF 분기의 결정 표현식은 손대지 않았다.
+# 주 원인은 세그먼트 길이(0.795059 -> 1.346925 km, TTS/METANET 항 스케일)이고, seg6의
+# 동률 해소는 R_D_E 합류 세그먼트가 7 -> 5로 옮겨간 결과다.
 _TIE_OFF_GOLDEN: dict[tuple[float, float], list[float]] = {
     (12.0, 120.0): [120.0] * 8,
     (12.0, 100.0): [120.0] * 8,
     (12.0, 80.0): [100.0] * 8,
     (35.0, 120.0): [120.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],
-    (35.0, 100.0): [120.0, 80.0, 80.0, 80.0, 100.0, 80.0, 80.0, 80.0],
-    (35.0, 80.0): [100.0, 80.0, 80.0, 80.0, 100.0, 80.0, 80.0, 80.0],
+    (35.0, 100.0): [120.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0],
+    (35.0, 80.0): [100.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0],
 }
 _TIE_OFF_GOLDEN_EVALS: dict[tuple[float, float], int] = {
     (12.0, 120.0): 32, (12.0, 100.0): 48, (12.0, 80.0): 32,

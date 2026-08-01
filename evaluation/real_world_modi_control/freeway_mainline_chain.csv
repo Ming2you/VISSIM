@@ -1,0 +1,15 @@
+# 정본 freeway 본선 체인 정의 - 설치 스크립트/생성기/상태 기록기가 공유하는 유일한 근거
+# link_no 순서(chain_order)대로 이어붙인 것이 모델 링크 FW_E / FW_W 본선이다.
+# 길이는 여기에 적지 않는다 - 항상 VISSIM 네트워크에서 읽는다(사용자가 기하를 다시 고칠 수 있다).
+# role: primary = 매니페스트/CSV의 대표 physical_link, mainline = 본선 링크, connector = 본선 연결자
+# 주의: 8등분 세그먼트 경계(측정 격자)는 여기서 계산되는 체인 산술이 전부이고 절대 움직이지 않는다.
+# 다만 물리 DSD는 링크 경계에서 한 시뮬 스텝(SimRes 1 -> 40 m) 안쪽에 놓이면 통과 판정이 누락될 수
+# 있어 다음 체인 멤버로 스냅된다(install_real_world_freeway_controls.vbs 의 DSD_EDGE_CLEARANCE_M).
+# 스냅량은 control_mapping.json 의 segments[*].dsd_snap_offset_m 와 known_approximations 에 남는다.
+model_link,direction,chain_order,link_no,role
+FW_E,E,0,74,mainline
+FW_E,E,1,10699,connector
+FW_E,E,2,2,primary
+FW_E,E,3,10702,connector
+FW_E,E,4,24,mainline
+FW_W,W,0,26,primary
