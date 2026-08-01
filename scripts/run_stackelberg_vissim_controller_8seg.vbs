@@ -80,6 +80,18 @@ Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
 Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
+
+' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
+' interpreter here means every decision fails, so failing now costs seconds
+' instead of surfacing after a multi-hour run. This runner has no generated
+' config, so the config-constant slot is empty.
+Dim RW_PYTHON_EXE, pythonExe, decisionsOk, decisionsFailed
+RW_PYTHON_EXE = ""
+pythonExe = ""
+decisionsOk = 0
+decisionsFailed = 0
+ResolvePythonInterpreter
+
 EnsureParentFolder stateOutPath
 EnsureParentFolder actionOutPath
 EnsureFolder decisionDir
@@ -156,6 +168,17 @@ Vissim.ResumeUpdateGUI True
 Err.Clear
 On Error GoTo 0
 
+' The watchdog treats STAGE=SIM_DONE as success, so a run that produced no
+' control at all must not print it - otherwise a silent no-control run is
+' archived as a controller result.
+WScript.Echo "DECISIONS_OK=" & CStr(decisionsOk)
+WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
+If decisionsOk = 0 And decisionsFailed > 0 Then
+    WScript.Echo "ERROR=ALL_DECISIONS_FAILED decisions_failed=" & CStr(decisionsFailed) & " python=" & pythonExe
+    Set Vissim = Nothing
+    WScript.Quit 3
+End If
+
 WScript.Echo "STAGE=SIM_DONE"
 WScript.Echo "SIM_SEC=" & SafeAtt(Vissim.Simulation, "SimSec")
 WScript.Echo "SIM_STEPS=" & simPeriod
@@ -203,6 +226,7 @@ End Sub
 
 Sub RunControllerDecision(simSec)
     Dim stateJsonPath, outJsonPath, outCsvPath, cmd, result
+    Dim wallT0, wallSec, exitCode, outText, errText
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
     outCsvPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".csv")
@@ -216,7 +240,7 @@ Sub RunControllerDecision(simSec)
         effController = "no-control"
         WScript.Echo "WARMUP_NC sim_sec=" & simSec
     End If
-    cmd = "python " & Q(adapterPath) & " --state-json " & Q(stateJsonPath) & _
+    cmd = pythonExe & " " & Q(adapterPath) & " --state-json " & Q(stateJsonPath) & _
         " --out-action-json " & Q(outJsonPath) & " --out-action-csv " & Q(outCsvPath) & _
         " --controller " & Q(effController)
     If calibrationPath <> "" Then
@@ -228,13 +252,23 @@ Sub RunControllerDecision(simSec)
     If lastActionJson <> "" Then
         cmd = cmd & " --previous-action-json " & Q(lastActionJson)
     End If
-    result = RunAndCapture(cmd)
-    WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " result=" & result
-    If fso.FileExists(outCsvPath) Then
+    wallT0 = Timer
+    exitCode = RunCapture3(cmd, outText, errText)
+    wallSec = ElapsedSec(wallT0)
+    result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
+    WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " wall_sec=" & CStr(Round(wallSec, 2)) & " result=" & result
+    ' A failed decision leaves the plant uncontrolled for this interval. That is
+    ' an error, not a warning - see the DECISIONS_OK/DECISIONS_FAILED summary.
+    If exitCode <> 0 Then
+        decisionsFailed = decisionsFailed + 1
+        WScript.Echo "ERROR=DECISION_EXIT_NONZERO sim_sec=" & simSec & " exit=" & exitCode & " stderr=" & OneLine(errText)
+    ElseIf Not fso.FileExists(outCsvPath) Then
+        decisionsFailed = decisionsFailed + 1
+        WScript.Echo "ERROR=ACTION_CSV_MISSING sim_sec=" & simSec & " path=" & outCsvPath
+    Else
+        decisionsOk = decisionsOk + 1
         ApplyActionCsv simSec, outCsvPath
         lastActionJson = outJsonPath
-    Else
-        WScript.Echo "WARN=ACTION_CSV_MISSING sim_sec=" & simSec & " path=" & outCsvPath
     End If
 End Sub
 
@@ -349,7 +383,8 @@ Sub WriteStateJson(simSec, path)
 
     Dim ts
     EnsureParentFolder path
-    Set ts = fso.CreateTextFile(path, True)
+    Set ts = New Utf8LineWriter
+    ts.TargetPath = path
     ts.WriteLine "{"
     ts.WriteLine "  ""sim_sec"": " & Num(simSec) & ","
     ts.WriteLine "  ""sim_period_sec"": " & Num(simPeriod) & ","
@@ -789,23 +824,249 @@ Function ReadAllText(path)
     ts.Close
 End Function
 
-Function RunAndCapture(cmd)
-    Dim exec, stdoutText, stderrText
+' ---------------------------------------------------------------------------
+' Python interpreter resolution. Keep this block identical in the three
+' controller runners:
+'   scripts\run_real_world_stackelberg_controller.vbs
+'   scripts\run_stackelberg_vissim_controller.vbs
+'   scripts\run_stackelberg_vissim_controller_8seg.vbs
+'
+' 2026-08-01: the runners used to shell out to a bare "python". On this machine
+' PATH resolves that to the Microsoft Store stub under
+' %LOCALAPPDATA%\Microsoft\WindowsApps, which exits 9009 with "Python" on
+' stderr. Every decision therefore failed, no action CSV was ever written, the
+' failure was logged as WARN=ACTION_CSV_MISSING, and the run still ended with
+' STAGE=SIM_DONE - a controller run silently degraded into a no-control run.
+' The interpreter is now resolved and verified once before the simulation
+' starts, and a failed decision is an ERROR that feeds a run-level summary.
+' ---------------------------------------------------------------------------
+
+Function RunnerEnvValue(name)
+    Dim v
+    v = ""
+    On Error Resume Next
+    v = CStr(shell.Environment("PROCESS")(CStr(name)))
+    If Err.Number <> 0 Then
+        v = ""
+        Err.Clear
+    End If
+    On Error GoTo 0
+    RunnerEnvValue = Trim(v)
+End Function
+
+Function OneLine(text)
+    Dim s
+    s = Replace(CStr(text), vbCrLf, " ")
+    s = Replace(s, vbCr, " ")
+    s = Replace(s, vbLf, " ")
+    OneLine = Trim(s)
+End Function
+
+Function ElapsedSec(t0)
+    Dim d
+    d = Timer - CDbl(t0)
+    If d < 0 Then d = d + 86400.0
+    ElapsedSec = d
+End Function
+
+Function RunCapture3(cmd, ByRef outText, ByRef errText)
+    Dim exec
+    outText = ""
+    errText = ""
     On Error Resume Next
     Set exec = shell.Exec(cmd)
     If Err.Number <> 0 Then
-        RunAndCapture = "EXEC_FAILED err=" & Err.Description
+        errText = "EXEC_FAILED " & Err.Description
         Err.Clear
         On Error GoTo 0
+        RunCapture3 = -1
         Exit Function
     End If
     On Error GoTo 0
     Do While exec.Status = 0
-        WScript.Sleep 100
+        WScript.Sleep 50
     Loop
-    stdoutText = exec.StdOut.ReadAll
-    stderrText = exec.StdErr.ReadAll
-    RunAndCapture = "exit=" & exec.ExitCode & " stdout=" & Replace(Trim(stdoutText), vbCrLf, " ") & " stderr=" & Replace(Trim(stderrText), vbCrLf, " ")
+    outText = exec.StdOut.ReadAll
+    errText = exec.StdErr.ReadAll
+    RunCapture3 = exec.ExitCode
+End Function
+
+Function IsPythonPathCandidate(cand)
+    IsPythonPathCandidate = (InStr(cand, "\") > 0 Or InStr(cand, "/") > 0 Or LCase(Right(cand, 4)) = ".exe")
+End Function
+
+Function PythonCommandPrefix(cand)
+    If IsPythonPathCandidate(cand) Then
+        PythonCommandPrefix = """" & cand & """"
+    Else
+        PythonCommandPrefix = cand
+    End If
+End Function
+
+Sub AddPythonCandidate(list, cand)
+    Dim c
+    c = Trim(CStr(cand))
+    If c = "" Then Exit Sub
+    ' The Store stub lives under ...\AppData\Local\Microsoft\WindowsApps and only
+    ' exists to open the Store page. It must never be selected.
+    If InStr(1, c, "\WindowsApps\", 1) > 0 Or InStr(1, c, "/WindowsApps/", 1) > 0 Then
+        WScript.Echo "PYTHON_CANDIDATE_SKIPPED reason=windowsapps_stub path=" & c
+        Exit Sub
+    End If
+    If IsPythonPathCandidate(c) Then
+        If Not fso.FileExists(c) Then Exit Sub
+    End If
+    If list.Exists(LCase(c)) Then Exit Sub
+    list.Add LCase(c), c
+End Sub
+
+Sub AddPythonWhereCandidates(list, exeName)
+    Dim exitCode, outText, errText, lines, i
+    exitCode = RunCapture3("cmd /c where " & exeName, outText, errText)
+    If exitCode <> 0 Then Exit Sub
+    lines = Split(Replace(outText, vbCrLf, vbLf), vbLf)
+    For i = 0 To UBound(lines)
+        AddPythonCandidate list, Trim(lines(i))
+    Next
+End Sub
+
+Sub AddPythonDirCandidates(list, rootDir)
+    Dim folder, child
+    If Trim(CStr(rootDir)) = "" Then Exit Sub
+    If Not fso.FolderExists(rootDir) Then Exit Sub
+    Set folder = fso.GetFolder(rootDir)
+    For Each child In folder.SubFolders
+        AddPythonCandidate list, fso.BuildPath(child.Path, "python.exe")
+    Next
+End Sub
+
+Function PythonCandidates()
+    Dim list, home, localApp, condaPrefix
+    Set list = CreateObject("Scripting.Dictionary")
+    ' 1) explicit operator override
+    AddPythonCandidate list, RunnerEnvValue("RW_PYTHON")
+    ' 2) generated-config constant, when the loaded config carries one
+    AddPythonCandidate list, RW_PYTHON_EXE
+    ' 3) the conda environment this process was launched from
+    condaPrefix = RunnerEnvValue("CONDA_PREFIX")
+    If condaPrefix <> "" Then AddPythonCandidate list, fso.BuildPath(condaPrefix, "python.exe")
+    ' 4) conda roots - the model stack is developed against a conda interpreter,
+    '    so prefer one when it exists and passes the probe below
+    home = RunnerEnvValue("USERPROFILE")
+    If home <> "" Then
+        AddPythonCandidate list, fso.BuildPath(home, "anaconda3\python.exe")
+        AddPythonCandidate list, fso.BuildPath(home, "miniconda3\python.exe")
+        AddPythonCandidate list, fso.BuildPath(home, "miniforge3\python.exe")
+    End If
+    AddPythonCandidate list, "C:\ProgramData\Anaconda3\python.exe"
+    ' 5) whatever PATH resolves, minus the store stubs
+    AddPythonWhereCandidates list, "python.exe"
+    AddPythonWhereCandidates list, "python3.exe"
+    ' 6) per-user and machine-wide CPython installs
+    localApp = RunnerEnvValue("LOCALAPPDATA")
+    If localApp <> "" Then AddPythonDirCandidates list, fso.BuildPath(localApp, "Programs\Python")
+    AddPythonDirCandidates list, "C:\Program Files\Python"
+    ' 7) the py launcher, last resort (a command, not a file path)
+    AddPythonCandidate list, "py -3"
+    PythonCandidates = list.Items
+End Function
+
+' Empty string on success, else a short reason. Loads the adapter as a module and
+' pulls in the model repo, so a candidate that cannot reach the controller code
+' is rejected here rather than at the first decision.
+Function AdapterImportProbe(prefix)
+    Dim absAdapter, adapterDir, moduleName, cmd, exitCode, outText, errText
+    absAdapter = fso.GetAbsolutePathName(adapterPath)
+    adapterDir = fso.GetParentFolderName(absAdapter)
+    moduleName = fso.GetBaseName(absAdapter)
+    cmd = prefix & " -c ""import sys;sys.path.insert(0,r'" & adapterDir & "');import " & moduleName & _
+        " as m;m.repo_imports(m.DEFAULT_REPO_ROOT);print('ADAPTER_IMPORT_OK')"""
+    exitCode = RunCapture3(cmd, outText, errText)
+    If exitCode = 0 And InStr(outText, "ADAPTER_IMPORT_OK") > 0 Then
+        AdapterImportProbe = ""
+    Else
+        AdapterImportProbe = "exit=" & exitCode & " err=" & OneLine(errText)
+    End If
+End Function
+
+Sub ResolvePythonInterpreter()
+    Dim cands, i, cand, prefix, exitCode, outText, errText, verText, probeErr
+    If Not fso.FileExists(fso.GetAbsolutePathName(adapterPath)) Then
+        WScript.Echo "ERROR=ADAPTER_NOT_FOUND path=" & adapterPath
+        WScript.Quit 3
+    End If
+    cands = PythonCandidates()
+    For i = 0 To UBound(cands)
+        cand = cands(i)
+        prefix = PythonCommandPrefix(cand)
+        exitCode = RunCapture3(prefix & " --version", outText, errText)
+        verText = OneLine(outText & " " & errText)
+        If exitCode <> 0 Or InStr(1, verText, "Python 3", 1) <> 1 Then
+            WScript.Echo "PYTHON_CANDIDATE_REJECTED reason=version path=" & cand & " exit=" & exitCode & " out=" & verText
+        Else
+            probeErr = AdapterImportProbe(prefix)
+            If probeErr = "" Then
+                pythonExe = prefix
+                WScript.Echo "PYTHON=" & cand
+                WScript.Echo "PYTHON_VERSION=" & verText
+                WScript.Echo "PYTHON_ADAPTER_IMPORT=OK adapter=" & fso.GetAbsolutePathName(adapterPath)
+                Exit Sub
+            End If
+            WScript.Echo "PYTHON_CANDIDATE_REJECTED reason=adapter_import path=" & cand & " " & probeErr
+        End If
+    Next
+    WScript.Echo "ERROR=NO_USABLE_PYTHON candidates=" & CStr(UBound(cands) + 1) & _
+        " hint=set RW_PYTHON to a python.exe that can import " & adapterPath
+    WScript.Quit 3
+End Sub
+
+' The adapter reads the state JSON with encoding="utf-8" and this workspace path
+' contains non-ASCII characters, so the state JSON must not go through the
+' FileSystemObject ANSI text writer (CP949 on this machine). Writing it as ANSI
+' made every decision die with UnicodeDecodeError - another failure the old
+' WARN-only decision handling hid.
+Class Utf8LineWriter
+    Public TargetPath
+    Private buf
+    Private Sub Class_Initialize()
+        buf = ""
+    End Sub
+    Public Sub WriteLine(text)
+        buf = buf & CStr(text) & vbCrLf
+    End Sub
+    Public Sub Close()
+        WriteUtf8NoBom TargetPath, buf
+        buf = ""
+    End Sub
+End Class
+
+Sub WriteUtf8NoBom(path, text)
+    Dim textStream, binStream
+    Set textStream = CreateObject("ADODB.Stream")
+    textStream.Type = 2
+    textStream.Charset = "utf-8"
+    textStream.Open
+    textStream.WriteText text
+    ' ADODB emits a UTF-8 BOM that json.loads rejects, so copy out past it.
+    textStream.Position = 3
+    Set binStream = CreateObject("ADODB.Stream")
+    binStream.Type = 1
+    binStream.Open
+    textStream.CopyTo binStream
+    binStream.SaveToFile path, 2
+    binStream.Close
+    textStream.Close
+End Sub
+
+Function ReadAllTextUtf8(path)
+    Dim st
+    Set st = CreateObject("ADODB.Stream")
+    st.Type = 2
+    st.Charset = "utf-8"
+    st.Open
+    st.LoadFromFile path
+    ReadAllTextUtf8 = st.ReadText
+    st.Close
 End Function
 
 Function ReadVehicleLanePos(ByRef laneArray, ByRef posArray)
