@@ -9,6 +9,21 @@ Dim fso, shell, stateFile, actionFile, bottleneckLinkFile, bottleneckSegmentFile
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
 
+' Coarse wall-clock instrumentation, OFF unless RW_PERF=1 is in the environment.
+' When off every hook is a single boolean test, so it never shows up in a run.
+' When on, a "PERF name=<stage> sec=<total> n=<calls>" block is echoed at the end.
+Dim RW_PERF_ENABLED, perfSum, perfCnt
+RW_PERF_ENABLED = (Trim(shell.ExpandEnvironmentStrings("%RW_PERF%")) = "1")
+Set perfSum = CreateObject("Scripting.Dictionary")
+Set perfCnt = CreateObject("Scripting.Dictionary")
+
+' Signal COM handle caches - see CachedSignalController.
+Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache
+Set sigScCache = CreateObject("Scripting.Dictionary")
+Set sigSgCache = CreateObject("Scripting.Dictionary")
+Set sigSgCountCache = CreateObject("Scripting.Dictionary")
+Set sigSgNameCache = CreateObject("Scripting.Dictionary")
+
 Dim netPath, stateOutPath, actionOutPath, bottleneckLinkOutPath, bottleneckSegmentOutPath, decisionDir, simPeriod, controlInterval, randSeed, stateLogIntervalSec, demandScale, demandProfilePath, vehicleInputRolesPath
 Dim adapterPath, calibrationPath, tuningPath, mappingPath, detectorMappingPath, controllerName, controlStartSec, warmupControllerName, generatedConfigPath
 Dim incidentLinkNo, incidentLaneNo, incidentPosM, incidentStartSec, incidentEndSec, incidentName, incidentEnabled
@@ -47,24 +62,42 @@ Set incidentSc = Nothing
 Set incidentSg = Nothing
 Set incidentSignalHead = Nothing
 
+' Freeway mainline geometry. THE GENERATED CONFIG IS AUTHORITATIVE - the values
+' below are only the no-config fallback and must stay in sync with
+'   evaluation/real_world_modi_control/freeway_mainline_chain.csv (chain membership)
+'   scripts\generate_real_world_control_mapping.py                (lengths read from the .inpx)
+' The mainline is a link CHAIN, not one link. RW_*_CHAIN_LINKS lists the member
+' links in order and RW_*_CHAIN_OFFSETS_M gives each member start in chain
+' coordinates, so a vehicle at (link, pos) maps to chain offset + pos and then
+' into RW_*_SEG_BOUNDS. This makes the measurement grid identical to the control
+' grid the VSL decisions were installed on.
 Dim RW_SCHEMA_VERSION, RW_FREEWAY_LINKS, RW_FREEWAY_INPUT_LINKS, RW_CLASSIFY_UNMATCHED_AS_URBAN
 Dim RW_FW_E_LINK, RW_FW_E_LENGTH_M, RW_FW_E_LANES, RW_FW_E_SEG_BOUNDS, RW_FW_E_SEG_LENGTHS_KM
 Dim RW_FW_W_LINK, RW_FW_W_LENGTH_M, RW_FW_W_LANES, RW_FW_W_SEG_BOUNDS, RW_FW_W_SEG_LENGTHS_KM
+Dim RW_FW_E_CHAIN_LINKS, RW_FW_E_CHAIN_OFFSETS_M, RW_FW_W_CHAIN_LINKS, RW_FW_W_CHAIN_OFFSETS_M
 Dim RW_RAMP_METER_IDS, RW_RAMP_METER_SCS, RW_RAMP_METER_CONNECTORS, RW_RAMP_METER_MODEL_KEYS, RW_SIGNAL_SCS, RW_LOCAL_OBSERVABLE_LINKS, RW_DETECTOR_MAPPING_PATH
+' Optional generated-config override for the python interpreter. Declared here
+' so a config that sets it can be ExecuteGlobal'd under Option Explicit.
+Dim RW_PYTHON_EXE
+RW_PYTHON_EXE = ""
 RW_SCHEMA_VERSION = 0
-RW_FREEWAY_LINKS = "2,26"
+RW_FREEWAY_LINKS = "2,24,26,74,10699,10702"
 RW_FREEWAY_INPUT_LINKS = "26,74"
 RW_CLASSIFY_UNMATCHED_AS_URBAN = True
 RW_FW_E_LINK = 2
-RW_FW_E_LENGTH_M = 8038.58
+RW_FW_E_LENGTH_M = 10773.109163
 RW_FW_E_LANES = 4
-RW_FW_E_SEG_BOUNDS = "0,1004.8225,2009.645,3014.4675,4019.29,5024.1125,6028.935,7033.7575,8038.58"
-RW_FW_E_SEG_LENGTHS_KM = "1.004823,1.004823,1.004823,1.004823,1.004823,1.004823,1.004823,1.004823"
+RW_FW_E_CHAIN_LINKS = "74,10699,2,10702,24"
+RW_FW_E_CHAIN_OFFSETS_M = "0.000000,2701.577000,2734.527232,7426.126232,7427.127732"
+RW_FW_E_SEG_BOUNDS = "0.000000,1346.638645,2693.277291,4039.915936,5386.554581,6733.193227,8079.831872,9426.470517,10773.109163"
+RW_FW_E_SEG_LENGTHS_KM = "1.346639,1.346639,1.346639,1.346639,1.346639,1.346639,1.346639,1.346639"
 RW_FW_W_LINK = 26
-RW_FW_W_LENGTH_M = 8029.342
+RW_FW_W_LENGTH_M = 10777.693079
 RW_FW_W_LANES = 4
-RW_FW_W_SEG_BOUNDS = "0,1003.66775,2007.3355,3011.00325,4014.671,5018.33875,6022.0065,7025.67425,8029.342"
-RW_FW_W_SEG_LENGTHS_KM = "1.003668,1.003668,1.003668,1.003668,1.003668,1.003668,1.003668,1.003668"
+RW_FW_W_CHAIN_LINKS = "26"
+RW_FW_W_CHAIN_OFFSETS_M = "0.000000"
+RW_FW_W_SEG_BOUNDS = "0.000000,1347.211635,2694.423270,4041.634904,5388.846539,6736.058174,8083.269809,9430.481444,10777.693079"
+RW_FW_W_SEG_LENGTHS_KM = "1.347212,1.347212,1.347212,1.347212,1.347212,1.347212,1.347212,1.347212"
 RW_RAMP_METER_IDS = "RM_C10480,RM_C10482,RM_C10646,RM_C10644,RM_C10639,RM_C10681,RM_C10490,RM_C10484"
 RW_RAMP_METER_SCS = "9101,9102,9103,9104,9105,9106,9107,9108"
 RW_RAMP_METER_CONNECTORS = "10480,10482,10646,10644,10639,10681,10490,10484"
@@ -72,7 +105,18 @@ RW_RAMP_METER_MODEL_KEYS = "R_D_W,R_D_W,R_F_W,R_F_W,R_F_E,R_F_E,R_D_E,R_D_E"
 RW_SIGNAL_SCS = "1"
 RW_LOCAL_OBSERVABLE_LINKS = "2,26,10479,10480,10481,10482,10483,10484,10490,10491,10638,10639,10643,10644,10645,10646,10681,10682"
 RW_DETECTOR_MAPPING_PATH = "evaluation/real_world_modi_control/detector_local_mapping.json"
+Dim generatedConfigLoaded
+generatedConfigLoaded = False
 LoadGeneratedConfig generatedConfigPath
+' Schema 2 is the first generated config that carries the mainline link chain.
+' An older config would silently overwrite SEG_BOUNDS with the single-link grid
+' while leaving the chain variables at their fallback values, which is exactly
+' the measurement/control grid mismatch this schema check exists to prevent.
+If generatedConfigLoaded And CLng(RW_SCHEMA_VERSION) < 2 Then
+    WScript.Echo "ERROR=GENERATED_CONFIG_SCHEMA_TOO_OLD schema=" & CStr(RW_SCHEMA_VERSION) & _
+        " path=" & generatedConfigPath & " (rerun scripts/generate_real_world_control_mapping.py)"
+    WScript.Quit 2
+End If
 detectorMappingPath = RW_DETECTOR_MAPPING_PATH
 
 Const RAMP_CYCLE_SEC = 10
@@ -88,6 +132,15 @@ If CLng(stateLogIntervalSec) <= 0 Then
     WScript.Echo "ERROR=STATE_LOG_INTERVAL_MUST_BE_POSITIVE state_log_interval_sec=" & CStr(stateLogIntervalSec)
     WScript.Quit 2
 End If
+
+' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
+' interpreter here means every decision fails, so failing now costs seconds
+' instead of surfacing after a multi-hour run.
+Dim pythonExe, decisionsOk, decisionsFailed
+pythonExe = ""
+decisionsOk = 0
+decisionsFailed = 0
+ResolvePythonInterpreter
 
 EnsureParentFolder stateOutPath
 EnsureParentFolder actionOutPath
@@ -129,6 +182,10 @@ WScript.Echo "VEHICLE_INPUTS=" & Vissim.Net.VehicleInputs.Count
 WScript.Echo "SIGNAL_CONTROLLERS=" & Vissim.Net.SignalControllers.Count
 WScript.Echo "DESSPEEDDECISIONS=" & Vissim.Net.DesSpeedDecisions.Count
 WScript.Echo "FREEWAY_LINKS=" & RW_FREEWAY_LINKS
+WScript.Echo "FW_E_CHAIN=" & RW_FW_E_CHAIN_LINKS & " offsets_m=" & RW_FW_E_CHAIN_OFFSETS_M & " length_m=" & Num(RW_FW_E_LENGTH_M)
+WScript.Echo "FW_E_SEG_BOUNDS=" & RW_FW_E_SEG_BOUNDS
+WScript.Echo "FW_W_CHAIN=" & RW_FW_W_CHAIN_LINKS & " offsets_m=" & RW_FW_W_CHAIN_OFFSETS_M & " length_m=" & Num(RW_FW_W_LENGTH_M)
+WScript.Echo "FW_W_SEG_BOUNDS=" & RW_FW_W_SEG_BOUNDS
 WScript.Echo "RAMP_METER_SCS=" & RW_RAMP_METER_SCS
 If incidentEnabled Then
     WScript.Echo "INCIDENT=ENABLED link=" & CStr(incidentLinkNo) & " lane=" & CStr(incidentLaneNo) & " pos_m=" & Num(incidentPosM) & " start_sec=" & CStr(incidentStartSec) & " end_sec=" & CStr(incidentEndSec) & " name=" & incidentName
@@ -183,6 +240,18 @@ On Error Resume Next
 Vissim.ResumeUpdateGUI True
 Err.Clear
 On Error GoTo 0
+
+' The watchdog treats STAGE=SIM_DONE as success, so a run that produced no
+' control at all must not print it - otherwise a silent no-control run is
+' archived as a controller result.
+PerfReport
+WScript.Echo "DECISIONS_OK=" & CStr(decisionsOk)
+WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
+If decisionsOk = 0 And decisionsFailed > 0 Then
+    WScript.Echo "ERROR=ALL_DECISIONS_FAILED decisions_failed=" & CStr(decisionsFailed) & " python=" & pythonExe
+    Set Vissim = Nothing
+    WScript.Quit 3
+End If
 
 WScript.Echo "STAGE=SIM_DONE"
 WScript.Echo "SIM_SEC=" & SafeAtt(Vissim.Simulation, "SimSec")
@@ -292,7 +361,7 @@ Sub RunStepwiseMode()
     ApplyIncidentLaneClosure 1
     LogStateCsv 1
 
-    Dim stepNo
+    Dim stepNo, stepT0
     For stepNo = 2 To CLng(simPeriod)
         If stepNo Mod CLng(controlInterval) = 0 Then
             RunControllerDecision stepNo
@@ -300,7 +369,9 @@ Sub RunStepwiseMode()
         ApplyRuntimeSignals stepNo
         ApplyRuntimeRampMeters stepNo
         ApplyIncidentLaneClosure stepNo
+        stepT0 = PerfNow()
         Vissim.Simulation.RunSingleStep
+        PerfAdd "sim.step", stepT0
         If stepNo Mod 30 = 0 Or stepNo = CLng(simPeriod) Then
             WScript.Echo "RUN_SINGLE_STEP sim_sec=" & CStr(stepNo)
         End If
@@ -581,6 +652,8 @@ End Function
 
 Sub RunControllerDecision(simSec)
     Dim stateJsonPath, outJsonPath, outCsvPath, cmd, result, effController
+    Dim wallT0, wallSec, exitCode, outText, errText, perfT0
+    perfT0 = PerfNow()
     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
     outCsvPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".csv")
@@ -590,25 +663,38 @@ Sub RunControllerDecision(simSec)
         effController = warmupControllerName
         WScript.Echo "WARMUP_CONTROLLER sim_sec=" & simSec & " controller=" & effController
     End If
-    cmd = "python " & Q(adapterPath) & " --state-json " & Q(stateJsonPath) & _
+    cmd = pythonExe & " " & Q(adapterPath) & " --state-json " & Q(stateJsonPath) & _
         " --out-action-json " & Q(outJsonPath) & " --out-action-csv " & Q(outCsvPath) & _
         " --mapping-json " & Q(mappingPath) & " --controller " & Q(effController)
     If detectorMappingPath <> "" Then cmd = cmd & " --detector-mapping-json " & Q(detectorMappingPath)
     If calibrationPath <> "" Then cmd = cmd & " --calibration-json " & Q(calibrationPath)
     If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
     If lastActionJson <> "" Then cmd = cmd & " --previous-action-json " & Q(lastActionJson)
-    result = RunAndCapture(cmd)
-    WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " result=" & result
-    If fso.FileExists(outCsvPath) Then
+    wallT0 = Timer
+    exitCode = RunCapture3(cmd, outText, errText)
+    wallSec = ElapsedSec(wallT0)
+    PerfAdd "decision.python", wallT0
+    result = "exit=" & exitCode & " stdout=" & OneLine(outText) & " stderr=" & OneLine(errText)
+    WScript.Echo "CONTROLLER_DECISION sim_sec=" & simSec & " wall_sec=" & CStr(Round(wallSec, 2)) & " result=" & result
+    ' A failed decision leaves the plant uncontrolled for this interval. That is
+    ' an error, not a warning - see the DECISIONS_OK/DECISIONS_FAILED summary.
+    If exitCode <> 0 Then
+        decisionsFailed = decisionsFailed + 1
+        WScript.Echo "ERROR=DECISION_EXIT_NONZERO sim_sec=" & simSec & " exit=" & exitCode & " stderr=" & OneLine(errText)
+    ElseIf Not fso.FileExists(outCsvPath) Then
+        decisionsFailed = decisionsFailed + 1
+        WScript.Echo "ERROR=ACTION_CSV_MISSING sim_sec=" & simSec & " path=" & outCsvPath
+    Else
+        decisionsOk = decisionsOk + 1
         ApplyActionCsv simSec, outCsvPath
         lastActionJson = outJsonPath
-    Else
-        WScript.Echo "WARN=ACTION_CSV_MISSING sim_sec=" & simSec & " path=" & outCsvPath
     End If
+    PerfAdd "decision.total", perfT0
 End Sub
 
 Sub ApplyActionCsv(simSec, csvPath)
-    Dim ts, line, first, parts, kind, dsdNo, speed, dsd, readback, scNo
+    Dim ts, line, first, parts, kind, dsdNo, speed, dsd, readback, scNo, perfT0
+    perfT0 = PerfNow()
     Set ts = fso.OpenTextFile(csvPath, 1, False)
     first = True
     Do Until ts.AtEndOfStream
@@ -627,7 +713,13 @@ Sub ApplyActionCsv(simSec, csvPath)
                     SetClassSpeed dsd, 10, speed
                     SetClassSpeed dsd, 20, speed
                     SetClassSpeed dsd, 30, speed
-                    readback = SafeAtt(dsd, "DesSpeedDistr(10)")
+                    ' 2026-08-01: class 70 (TAXI) is a VSL target. This row is also
+                    ' emitted for the network's own entry DSDs 36-42 (they arrive as
+                    ' segments[*].extra_dsd_controls), so the legacy decision points
+                    ' get the same four classes as the RW ones - no class can be
+                    ' silently restored to its inflow distribution downstream.
+                    SetClassSpeed dsd, 70, speed
+                    readback = SafeAtt(dsd, "DesSpeedDistr(10)") & "|" & SafeAtt(dsd, "DesSpeedDistr(70)")
                 ElseIf kind = "ramp_meter" Then
                     scNo = CStr(CLng(ToDbl(parts(3))))
                     rampGreen(scNo) = CDbl(ToDbl(parts(11)))
@@ -644,6 +736,7 @@ Sub ApplyActionCsv(simSec, csvPath)
         End If
     Loop
     ts.Close
+    PerfAdd "action.apply", perfT0
 End Sub
 
 Sub SetClassSpeed(dsd, vehClassNo, speedKph)
@@ -679,8 +772,12 @@ Function EnableSignalControllerForRuntime(scNo)
 End Function
 
 Sub ApplyRuntimeSignals(simSec)
-    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState
-    If sigMajor.Count <= 0 Then Exit Sub
+    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState, perfT0
+    perfT0 = PerfNow()
+    If sigMajor.Count <= 0 Then
+        PerfAdd "signals.runtime", perfT0
+        Exit Sub
+    End If
     For Each scKey In sigMajor.Keys
         major = CDbl(sigMajor(CStr(scKey)))
         minor = CDbl(sigMinor(CStr(scKey)))
@@ -702,6 +799,7 @@ Sub ApplyRuntimeSignals(simSec)
         End If
         ApplyRuntimeSignalController CLng(scKey), majorState, minorState
     Next
+    PerfAdd "signals.runtime", perfT0
 End Sub
 
 Sub ApplyRuntimeSignalController(scNo, majorState, minorState)
@@ -710,25 +808,16 @@ Sub ApplyRuntimeSignalController(scNo, majorState, minorState)
         Dim ignored
         ignored = EnableSignalControllerForRuntime(CLng(scNo))
     End If
-    On Error Resume Next
-    Set sc = Vissim.Net.SignalControllers.ItemByKey(CLng(scNo))
-    If Err.Number <> 0 Then
-        WScript.Echo "WARN=SIGNAL_SC_RUNTIME_NOT_FOUND sc=" & scNo & " err=" & Err.Description
-        Err.Clear
-        On Error GoTo 0
+    Set sc = CachedSignalController(CLng(scNo))
+    If sc Is Nothing Then
+        WScript.Echo "WARN=SIGNAL_SC_RUNTIME_NOT_FOUND sc=" & scNo
         Exit Sub
     End If
-    On Error GoTo 0
-    sgCount = SignalGroupCount(sc)
+    sgCount = CachedSignalGroupCount(CLng(scNo), sc)
     For sgNo = 1 To sgCount
-        On Error Resume Next
-        Set sg = sc.SGs.ItemByKey(CLng(sgNo))
-        If Err.Number <> 0 Then
-            Err.Clear
-            On Error GoTo 0
-        Else
-            On Error GoTo 0
-            sgName = SafeAtt(sg, "Name")
+        Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNo))
+        If Not (sg Is Nothing) Then
+            sgName = CachedSignalGroupName(CLng(scNo), CLng(sgNo), sg)
             state = SignalStateForGroup(CLng(sgNo), sgName, majorState, minorState)
             If state <> "" Then
                 Dim ignoredReadback
@@ -737,6 +826,69 @@ Sub ApplyRuntimeSignalController(scNo, majorState, minorState)
         End If
     Next
 End Sub
+
+' Signal COM handles, group counts and group names are immutable for the whole
+' run, but the per-second replay path re-resolved them every simulated second:
+' ~1.3 ms per SignalControllers.ItemByKey and ~0.8 ms per SGs.ItemByKey, over 12k
+' lookups that only ever produced 9 distinct SCs and 16 distinct SGs. Resolving
+' once and reusing writes the same values through the same objects in the same
+' order, so the actuation sequence is unchanged. Failed lookups are not cached,
+' so a genuinely missing SC still retries and still warns on every attempt.
+Function CachedSignalController(scNo)
+    Dim key, sc
+    key = CStr(CLng(scNo))
+    If sigScCache.Exists(key) Then
+        Set CachedSignalController = sigScCache(key)
+        Exit Function
+    End If
+    Set CachedSignalController = Nothing
+    On Error Resume Next
+    Set sc = Vissim.Net.SignalControllers.ItemByKey(CLng(scNo))
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    sigScCache.Add key, sc
+    Set CachedSignalController = sc
+End Function
+
+Function CachedSignalGroup(scNo, sgNo)
+    Dim key, sc, sg
+    key = CStr(CLng(scNo)) & "-" & CStr(CLng(sgNo))
+    If sigSgCache.Exists(key) Then
+        Set CachedSignalGroup = sigSgCache(key)
+        Exit Function
+    End If
+    Set CachedSignalGroup = Nothing
+    Set sc = CachedSignalController(CLng(scNo))
+    If sc Is Nothing Then Exit Function
+    On Error Resume Next
+    Set sg = sc.SGs.ItemByKey(CLng(sgNo))
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    sigSgCache.Add key, sg
+    Set CachedSignalGroup = sg
+End Function
+
+Function CachedSignalGroupCount(scNo, sc)
+    Dim key
+    key = CStr(CLng(scNo))
+    If Not sigSgCountCache.Exists(key) Then sigSgCountCache.Add key, SignalGroupCount(sc)
+    CachedSignalGroupCount = CLng(sigSgCountCache(key))
+End Function
+
+Function CachedSignalGroupName(scNo, sgNo, sg)
+    Dim key
+    key = CStr(CLng(scNo)) & "-" & CStr(CLng(sgNo))
+    If Not sigSgNameCache.Exists(key) Then sigSgNameCache.Add key, SafeAtt(sg, "Name")
+    CachedSignalGroupName = CStr(sigSgNameCache(key))
+End Function
 
 Function SignalStateForGroup(sgNo, sgName, majorState, minorState)
     Dim nameUpper
@@ -765,7 +917,8 @@ Function SignalGroupCount(sc)
 End Function
 
 Sub ApplyRuntimeRampMeters(simSec)
-    Dim scs, i, scNo
+    Dim scs, i, scNo, perfT0
+    perfT0 = PerfNow()
     scs = Split(RW_RAMP_METER_SCS, ",")
     For i = 0 To UBound(scs)
         scNo = Trim(scs(i))
@@ -774,6 +927,7 @@ Sub ApplyRuntimeRampMeters(simSec)
             ignoredReadback = ApplyRampMeterSignal(CLng(scNo), CDbl(DictValue(rampGreen, scNo, 10.0)), simSec)
         End If
     Next
+    PerfAdd "rampmeters.runtime", perfT0
 End Sub
 
 Function ApplyRampMeterSignal(scNo, greenSec, simSec)
@@ -792,11 +946,15 @@ Function ApplyRampMeterSignal(scNo, greenSec, simSec)
 End Function
 
 Function SetSignalGroupState(scNo, sgNo, state)
-    Dim sc, sg
+    Dim sg
     SetSignalGroupState = ""
+    Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNo))
+    If sg Is Nothing Then
+        WScript.Echo "WARN=FAILED_SET_SIGSTATE sc=" & scNo & " sg=" & sgNo & " state=" & state & " err=signal group not resolved"
+        SetSignalGroupState = "ERR:signal group not resolved"
+        Exit Function
+    End If
     On Error Resume Next
-    Set sc = Vissim.Net.SignalControllers.ItemByKey(CLng(scNo))
-    Set sg = sc.SGs.ItemByKey(CLng(sgNo))
     sg.AttValue("SigState") = state
     If Err.Number <> 0 Then
         WScript.Echo "WARN=FAILED_SET_SIGSTATE sc=" & scNo & " sg=" & sgNo & " state=" & state & " err=" & Err.Description
@@ -919,14 +1077,17 @@ End Sub
 
 Sub WriteStateJson(simSec, path)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
-    Dim countE(7), speedE(7), countW(7), speedW(7), localCounts
-    ComputeDetailedState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, countE, speedE, countW, speedW
-    Set localCounts = VehicleLinkCounts()
+    Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
+    Dim localCounts, localStopped, localSpeedSums, scanOk, perfT0
+    perfT0 = PerfNow()
+    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, scanOk
     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
 
     Dim ts
     EnsureParentFolder path
-    Set ts = fso.CreateTextFile(path, True)
+    Set ts = New Utf8LineWriter
+    ts.TargetPath = path
     ts.WriteLine "{"
     ts.WriteLine "  ""sim_sec"": " & Num(simSec) & ","
     ts.WriteLine "  ""sim_period_sec"": " & Num(simPeriod) & ","
@@ -956,6 +1117,7 @@ Sub WriteStateJson(simSec, path)
     ts.WriteLine "  }"
     ts.WriteLine "}"
     ts.Close
+    PerfAdd "state.json", perfT0
 End Sub
 
 Function SegmentArrayJson(counts, speeds, lengthsCsv, lanes)
@@ -972,66 +1134,27 @@ End Function
 
 Sub LogStateCsv(simSec)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
-    Dim countE(7), speedE(7), countW(7), speedW(7), status, wall
-    ComputeDetailedState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, countE, speedE, countW, speedW
+    Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
+    Dim linkCounts, linkStopped, linkSpeedSums, scanOk, perfT0
+    perfT0 = PerfNow()
+    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, scanOk
     status = LastControllerStatus()
     wall = LastDecisionWallSec()
     stateFile.WriteLine CStr(simSec) & "," & CStr(total) & "," & CStr(urban) & "," & CStr(freeway) & "," & _
         CStr(ramp) & "," & CStr(boundary) & "," & CStr(other) & "," & Num(meanSpeed) & "," & _
         Num(freewayMeanSpeed) & "," & CStr(stopped) & ",VISSIM_REAL_WORLD_" & UCase(controllerName) & "," & status & "," & wall
-    If LogBottleneckDetailsEnabled() Then LogBottleneckCsv simSec
+    If LogBottleneckDetailsEnabled() And scanOk Then
+        WriteBottleneckRows simSec, countE, stoppedE, speedE, countW, stoppedW, speedW, linkCounts, linkStopped, linkSpeedSums
+    End If
+    PerfAdd "log.state_csv", perfT0
 End Sub
 
 Function LogBottleneckDetailsEnabled()
     LogBottleneckDetailsEnabled = True
 End Function
 
-Sub LogBottleneckCsv(simSec)
-    Dim laneArray, posArray, speedArray, ok, lo, hi, row
-    Dim linkNo, key, pos, speed, seg
-    Dim linkCounts, linkStopped, linkSpeedSums
-    Dim countE(7), stoppedE(7), speedE(7), countW(7), stoppedW(7), speedW(7)
-    Set linkCounts = CreateObject("Scripting.Dictionary")
-    Set linkStopped = CreateObject("Scripting.Dictionary")
-    Set linkSpeedSums = CreateObject("Scripting.Dictionary")
-
-    Dim i
-    For i = 0 To 7
-        countE(i) = 0: stoppedE(i) = 0: speedE(i) = 0
-        countW(i) = 0: stoppedW(i) = 0: speedW(i) = 0
-    Next
-
-    ok = ReadVehicleLanePosSpeed(laneArray, posArray, speedArray)
-    If Not ok Then Exit Sub
-
-    lo = MultiLBound(laneArray)
-    hi = MultiUBound(laneArray)
-    For row = lo To hi
-        linkNo = FirstInt(MultiValue(laneArray, row))
-        If linkNo <= 0 Then
-            ' Ignore malformed lane strings that cannot be tied back to a VISSIM link.
-        Else
-            key = CStr(linkNo)
-            pos = CDblOrZero(MultiValue(posArray, row))
-            speed = CDblOrZero(MultiValue(speedArray, row))
-            AddDictNumber linkCounts, key, 1.0
-            AddDictNumber linkSpeedSums, key, speed
-            If speed < 1 Then AddDictNumber linkStopped, key, 1.0
-
-            If linkNo = CLng(RW_FW_E_LINK) Then
-                seg = SegmentIndexCsv(pos, RW_FW_E_SEG_BOUNDS)
-                countE(seg) = countE(seg) + 1
-                speedE(seg) = speedE(seg) + speed
-                If speed < 1 Then stoppedE(seg) = stoppedE(seg) + 1
-            ElseIf linkNo = CLng(RW_FW_W_LINK) Then
-                seg = SegmentIndexCsv(pos, RW_FW_W_SEG_BOUNDS)
-                countW(seg) = countW(seg) + 1
-                speedW(seg) = speedW(seg) + speed
-                If speed < 1 Then stoppedW(seg) = stoppedW(seg) + 1
-            End If
-        End If
-    Next
-
+Sub WriteBottleneckRows(simSec, countE, stoppedE, speedE, countW, stoppedW, speedW, linkCounts, linkStopped, linkSpeedSums)
     Dim item, count, stopped, meanSpeed
     For Each item In linkCounts.Keys
         count = CDbl(linkCounts(item))
@@ -1101,20 +1224,40 @@ Function BoolInt(value)
     End If
 End Function
 
-Sub ComputeDetailedState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, ByRef meanSpeed, ByRef freewayMeanSpeed, ByRef stopped, ByRef countE, ByRef speedE, ByRef countW, ByRef speedW)
+' ONE vehicle scan per time point. This is the union of what three separate
+' passes used to compute - ComputeDetailedState (state row + FW_E/FW_W segment
+' aggregates), LogBottleneckCsv (per-link and per-segment aggregates) and
+' VehicleLinkCounts (per-link counts for the state JSON). Each of those re-read
+' the same GetMultiAttValues arrays and re-parsed every row, and no simulation
+' step happens between them, so folding them into one pass leaves every emitted
+' value identical. scanOk mirrors the old behaviour where a failed array read
+' suppressed the bottleneck rows entirely.
+Sub ScanVehicleState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
+        ByRef meanSpeed, ByRef freewayMeanSpeed, ByRef stopped, _
+        ByRef countE, ByRef speedE, ByRef stoppedE, ByRef countW, ByRef speedW, ByRef stoppedW, _
+        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef scanOk)
     total = 0: urban = 0: freeway = 0: ramp = 0: boundary = 0: other = 0
     meanSpeed = 0: freewayMeanSpeed = 0: stopped = 0
+    scanOk = False
+    Set linkCounts = CreateObject("Scripting.Dictionary")
+    Set linkStopped = CreateObject("Scripting.Dictionary")
+    Set linkSpeedSums = CreateObject("Scripting.Dictionary")
     Dim i
     For i = 0 To 7
-        countE(i) = 0: speedE(i) = 0
-        countW(i) = 0: speedW(i) = 0
+        countE(i) = 0: speedE(i) = 0: stoppedE(i) = 0
+        countW(i) = 0: speedW(i) = 0: stoppedW(i) = 0
     Next
 
     Dim laneArray, posArray, speedArray, ok, lo, hi, row
-    Dim linkNo, pos, speed, speedSum, freewaySpeedSum, seg
+    Dim linkNo, key, pos, speed, speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0
+    perfT0 = PerfNow()
     speedSum = 0: freewaySpeedSum = 0
     ok = ReadVehicleLanePosSpeed(laneArray, posArray, speedArray)
-    If Not ok Then Exit Sub
+    If Not ok Then
+        PerfAdd "scan.vehicles", perfT0
+        Exit Sub
+    End If
+    scanOk = True
 
     lo = MultiLBound(laneArray)
     hi = MultiUBound(laneArray)
@@ -1124,31 +1267,72 @@ Sub ComputeDetailedState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, By
         pos = CDblOrZero(MultiValue(posArray, row))
         speed = CDblOrZero(MultiValue(speedArray, row))
         speedSum = speedSum + speed
-        If speed < 1 Then stopped = stopped + 1
+        isStopped = (speed < 1)
+        If isStopped Then stopped = stopped + 1
 
-        If linkNo = CLng(RW_FW_E_LINK) Then
+        ' Malformed lane strings cannot be tied back to a VISSIM link, so they stay
+        ' out of the per-link aggregates - exactly as LogBottleneckCsv skipped them.
+        If linkNo > 0 Then
+            key = CStr(linkNo)
+            AddDictNumber linkCounts, key, 1.0
+            AddDictNumber linkSpeedSums, key, speed
+            If isStopped Then AddDictNumber linkStopped, key, 1.0
+        End If
+
+        chainPos = ChainPosCsv(linkNo, pos, RW_FW_E_CHAIN_LINKS, RW_FW_E_CHAIN_OFFSETS_M)
+        If chainPos >= 0 Then
             freeway = freeway + 1
             freewaySpeedSum = freewaySpeedSum + speed
-            seg = SegmentIndexCsv(pos, RW_FW_E_SEG_BOUNDS)
+            seg = SegmentIndexCsv(chainPos, RW_FW_E_SEG_BOUNDS)
             countE(seg) = countE(seg) + 1
             speedE(seg) = speedE(seg) + speed
-        ElseIf linkNo = CLng(RW_FW_W_LINK) Then
-            freeway = freeway + 1
-            freewaySpeedSum = freewaySpeedSum + speed
-            seg = SegmentIndexCsv(pos, RW_FW_W_SEG_BOUNDS)
-            countW(seg) = countW(seg) + 1
-            speedW(seg) = speedW(seg) + speed
-        ElseIf InCsvInt(linkNo, RW_RAMP_METER_CONNECTORS) Then
-            ramp = ramp + 1
-        ElseIf RW_CLASSIFY_UNMATCHED_AS_URBAN Then
-            urban = urban + 1
+            If isStopped Then stoppedE(seg) = stoppedE(seg) + 1
         Else
-            other = other + 1
+            chainPos = ChainPosCsv(linkNo, pos, RW_FW_W_CHAIN_LINKS, RW_FW_W_CHAIN_OFFSETS_M)
+            If chainPos >= 0 Then
+                freeway = freeway + 1
+                freewaySpeedSum = freewaySpeedSum + speed
+                seg = SegmentIndexCsv(chainPos, RW_FW_W_SEG_BOUNDS)
+                countW(seg) = countW(seg) + 1
+                speedW(seg) = speedW(seg) + speed
+                If isStopped Then stoppedW(seg) = stoppedW(seg) + 1
+            ElseIf InCsvInt(linkNo, RW_RAMP_METER_CONNECTORS) Then
+                ramp = ramp + 1
+            ElseIf RW_CLASSIFY_UNMATCHED_AS_URBAN Then
+                urban = urban + 1
+            Else
+                other = other + 1
+            End If
         End If
     Next
     If total > 0 Then meanSpeed = speedSum / total
     If freeway > 0 Then freewayMeanSpeed = freewaySpeedSum / freeway
+    PerfAdd "scan.vehicles", perfT0
 End Sub
+
+' (link, pos on link) -> mainline chain coordinate, or -1 when the link is not a
+' member of that chain. This is what keeps the measurement grid aligned with the
+' control grid: the VSL decisions were placed on the same chain coordinates.
+Function ChainPosCsv(linkNo, pos, chainLinksCsv, chainOffsetsCsv)
+    Dim links, offsets, i, token
+    ChainPosCsv = -1.0
+    If Trim(CStr(chainLinksCsv)) = "" Then Exit Function
+    links = Split(chainLinksCsv, ",")
+    offsets = Split(chainOffsetsCsv, ",")
+    For i = 0 To UBound(links)
+        token = Trim(links(i))
+        If token <> "" Then
+            If CLng(token) = CLng(linkNo) Then
+                If i <= UBound(offsets) Then
+                    ChainPosCsv = CDbl(Trim(offsets(i))) + CDbl(pos)
+                Else
+                    ChainPosCsv = CDbl(pos)
+                End If
+                Exit Function
+            End If
+        End If
+    Next
+End Function
 
 Function SegmentIndexCsv(pos, boundsCsv)
     Dim parts, i
@@ -1182,25 +1366,6 @@ Function RampCountsJson(counts)
     s = s & """D"": " & CStr(CLng(sums("R_D_W")) + CLng(sums("R_D_E"))) & ", "
     s = s & """F"": " & CStr(CLng(sums("R_F_W")) + CLng(sums("R_F_E"))) & "}"
     RampCountsJson = s
-End Function
-
-Function VehicleLinkCounts()
-    Dim counts, laneArray, posArray, ok, lo, hi, row, linkNo, key
-    Set counts = CreateObject("Scripting.Dictionary")
-    ok = ReadVehicleLanePos(laneArray, posArray)
-    If ok Then
-        lo = MultiLBound(laneArray)
-        hi = MultiUBound(laneArray)
-        For row = lo To hi
-            linkNo = FirstInt(MultiValue(laneArray, row))
-            If linkNo > 0 Then
-                key = CStr(linkNo)
-                If Not counts.Exists(key) Then counts.Add key, 0
-                counts(key) = CLng(counts(key)) + 1
-            End If
-        Next
-    End If
-    Set VehicleLinkCounts = counts
 End Function
 
 Function DictCount(counts, linkNo)
@@ -1601,38 +1766,249 @@ Function ReadAllText(path)
     ts.Close
 End Function
 
-Function RunAndCapture(cmd)
-    Dim exec, stdoutText, stderrText
+' ---------------------------------------------------------------------------
+' Python interpreter resolution. Keep this block identical in the three
+' controller runners:
+'   scripts\run_real_world_stackelberg_controller.vbs
+'   scripts\run_stackelberg_vissim_controller.vbs
+'   scripts\run_stackelberg_vissim_controller_8seg.vbs
+'
+' 2026-08-01: the runners used to shell out to a bare "python". On this machine
+' PATH resolves that to the Microsoft Store stub under
+' %LOCALAPPDATA%\Microsoft\WindowsApps, which exits 9009 with "Python" on
+' stderr. Every decision therefore failed, no action CSV was ever written, the
+' failure was logged as WARN=ACTION_CSV_MISSING, and the run still ended with
+' STAGE=SIM_DONE - a controller run silently degraded into a no-control run.
+' The interpreter is now resolved and verified once before the simulation
+' starts, and a failed decision is an ERROR that feeds a run-level summary.
+' ---------------------------------------------------------------------------
+
+Function RunnerEnvValue(name)
+    Dim v
+    v = ""
+    On Error Resume Next
+    v = CStr(shell.Environment("PROCESS")(CStr(name)))
+    If Err.Number <> 0 Then
+        v = ""
+        Err.Clear
+    End If
+    On Error GoTo 0
+    RunnerEnvValue = Trim(v)
+End Function
+
+Function OneLine(text)
+    Dim s
+    s = Replace(CStr(text), vbCrLf, " ")
+    s = Replace(s, vbCr, " ")
+    s = Replace(s, vbLf, " ")
+    OneLine = Trim(s)
+End Function
+
+Function ElapsedSec(t0)
+    Dim d
+    d = Timer - CDbl(t0)
+    If d < 0 Then d = d + 86400.0
+    ElapsedSec = d
+End Function
+
+Function RunCapture3(cmd, ByRef outText, ByRef errText)
+    Dim exec
+    outText = ""
+    errText = ""
     On Error Resume Next
     Set exec = shell.Exec(cmd)
     If Err.Number <> 0 Then
-        RunAndCapture = "EXEC_FAILED err=" & Err.Description
+        errText = "EXEC_FAILED " & Err.Description
         Err.Clear
         On Error GoTo 0
+        RunCapture3 = -1
         Exit Function
     End If
     On Error GoTo 0
     Do While exec.Status = 0
-        WScript.Sleep 100
+        WScript.Sleep 50
     Loop
-    stdoutText = exec.StdOut.ReadAll
-    stderrText = exec.StdErr.ReadAll
-    RunAndCapture = "exit=" & exec.ExitCode & " stdout=" & Replace(Trim(stdoutText), vbCrLf, " ") & " stderr=" & Replace(Trim(stderrText), vbCrLf, " ")
+    outText = exec.StdOut.ReadAll
+    errText = exec.StdErr.ReadAll
+    RunCapture3 = exec.ExitCode
 End Function
 
-Function ReadVehicleLanePos(ByRef laneArray, ByRef posArray)
-    ReadVehicleLanePos = False
-    On Error Resume Next
-    laneArray = Vissim.Net.Vehicles.GetMultiAttValues("Lane")
-    posArray = Vissim.Net.Vehicles.GetMultiAttValues("Pos")
-    If Err.Number <> 0 Then
-        WScript.Echo "WARN=FAILED_GET_MULTI_LANE_POS err=" & Err.Description
-        Err.Clear
-        On Error GoTo 0
-        Exit Function
+Function IsPythonPathCandidate(cand)
+    IsPythonPathCandidate = (InStr(cand, "\") > 0 Or InStr(cand, "/") > 0 Or LCase(Right(cand, 4)) = ".exe")
+End Function
+
+Function PythonCommandPrefix(cand)
+    If IsPythonPathCandidate(cand) Then
+        PythonCommandPrefix = """" & cand & """"
+    Else
+        PythonCommandPrefix = cand
     End If
-    On Error GoTo 0
-    ReadVehicleLanePos = True
+End Function
+
+Sub AddPythonCandidate(list, cand)
+    Dim c
+    c = Trim(CStr(cand))
+    If c = "" Then Exit Sub
+    ' The Store stub lives under ...\AppData\Local\Microsoft\WindowsApps and only
+    ' exists to open the Store page. It must never be selected.
+    If InStr(1, c, "\WindowsApps\", 1) > 0 Or InStr(1, c, "/WindowsApps/", 1) > 0 Then
+        WScript.Echo "PYTHON_CANDIDATE_SKIPPED reason=windowsapps_stub path=" & c
+        Exit Sub
+    End If
+    If IsPythonPathCandidate(c) Then
+        If Not fso.FileExists(c) Then Exit Sub
+    End If
+    If list.Exists(LCase(c)) Then Exit Sub
+    list.Add LCase(c), c
+End Sub
+
+Sub AddPythonWhereCandidates(list, exeName)
+    Dim exitCode, outText, errText, lines, i
+    exitCode = RunCapture3("cmd /c where " & exeName, outText, errText)
+    If exitCode <> 0 Then Exit Sub
+    lines = Split(Replace(outText, vbCrLf, vbLf), vbLf)
+    For i = 0 To UBound(lines)
+        AddPythonCandidate list, Trim(lines(i))
+    Next
+End Sub
+
+Sub AddPythonDirCandidates(list, rootDir)
+    Dim folder, child
+    If Trim(CStr(rootDir)) = "" Then Exit Sub
+    If Not fso.FolderExists(rootDir) Then Exit Sub
+    Set folder = fso.GetFolder(rootDir)
+    For Each child In folder.SubFolders
+        AddPythonCandidate list, fso.BuildPath(child.Path, "python.exe")
+    Next
+End Sub
+
+Function PythonCandidates()
+    Dim list, home, localApp, condaPrefix
+    Set list = CreateObject("Scripting.Dictionary")
+    ' 1) explicit operator override
+    AddPythonCandidate list, RunnerEnvValue("RW_PYTHON")
+    ' 2) generated-config constant, when the loaded config carries one
+    AddPythonCandidate list, RW_PYTHON_EXE
+    ' 3) the conda environment this process was launched from
+    condaPrefix = RunnerEnvValue("CONDA_PREFIX")
+    If condaPrefix <> "" Then AddPythonCandidate list, fso.BuildPath(condaPrefix, "python.exe")
+    ' 4) conda roots - the model stack is developed against a conda interpreter,
+    '    so prefer one when it exists and passes the probe below
+    home = RunnerEnvValue("USERPROFILE")
+    If home <> "" Then
+        AddPythonCandidate list, fso.BuildPath(home, "anaconda3\python.exe")
+        AddPythonCandidate list, fso.BuildPath(home, "miniconda3\python.exe")
+        AddPythonCandidate list, fso.BuildPath(home, "miniforge3\python.exe")
+    End If
+    AddPythonCandidate list, "C:\ProgramData\Anaconda3\python.exe"
+    ' 5) whatever PATH resolves, minus the store stubs
+    AddPythonWhereCandidates list, "python.exe"
+    AddPythonWhereCandidates list, "python3.exe"
+    ' 6) per-user and machine-wide CPython installs
+    localApp = RunnerEnvValue("LOCALAPPDATA")
+    If localApp <> "" Then AddPythonDirCandidates list, fso.BuildPath(localApp, "Programs\Python")
+    AddPythonDirCandidates list, "C:\Program Files\Python"
+    ' 7) the py launcher, last resort (a command, not a file path)
+    AddPythonCandidate list, "py -3"
+    PythonCandidates = list.Items
+End Function
+
+' Empty string on success, else a short reason. Loads the adapter as a module and
+' pulls in the model repo, so a candidate that cannot reach the controller code
+' is rejected here rather than at the first decision.
+Function AdapterImportProbe(prefix)
+    Dim absAdapter, adapterDir, moduleName, cmd, exitCode, outText, errText
+    absAdapter = fso.GetAbsolutePathName(adapterPath)
+    adapterDir = fso.GetParentFolderName(absAdapter)
+    moduleName = fso.GetBaseName(absAdapter)
+    cmd = prefix & " -c ""import sys;sys.path.insert(0,r'" & adapterDir & "');import " & moduleName & _
+        " as m;m.repo_imports(m.DEFAULT_REPO_ROOT);print('ADAPTER_IMPORT_OK')"""
+    exitCode = RunCapture3(cmd, outText, errText)
+    If exitCode = 0 And InStr(outText, "ADAPTER_IMPORT_OK") > 0 Then
+        AdapterImportProbe = ""
+    Else
+        AdapterImportProbe = "exit=" & exitCode & " err=" & OneLine(errText)
+    End If
+End Function
+
+Sub ResolvePythonInterpreter()
+    Dim cands, i, cand, prefix, exitCode, outText, errText, verText, probeErr
+    If Not fso.FileExists(fso.GetAbsolutePathName(adapterPath)) Then
+        WScript.Echo "ERROR=ADAPTER_NOT_FOUND path=" & adapterPath
+        WScript.Quit 3
+    End If
+    cands = PythonCandidates()
+    For i = 0 To UBound(cands)
+        cand = cands(i)
+        prefix = PythonCommandPrefix(cand)
+        exitCode = RunCapture3(prefix & " --version", outText, errText)
+        verText = OneLine(outText & " " & errText)
+        If exitCode <> 0 Or InStr(1, verText, "Python 3", 1) <> 1 Then
+            WScript.Echo "PYTHON_CANDIDATE_REJECTED reason=version path=" & cand & " exit=" & exitCode & " out=" & verText
+        Else
+            probeErr = AdapterImportProbe(prefix)
+            If probeErr = "" Then
+                pythonExe = prefix
+                WScript.Echo "PYTHON=" & cand
+                WScript.Echo "PYTHON_VERSION=" & verText
+                WScript.Echo "PYTHON_ADAPTER_IMPORT=OK adapter=" & fso.GetAbsolutePathName(adapterPath)
+                Exit Sub
+            End If
+            WScript.Echo "PYTHON_CANDIDATE_REJECTED reason=adapter_import path=" & cand & " " & probeErr
+        End If
+    Next
+    WScript.Echo "ERROR=NO_USABLE_PYTHON candidates=" & CStr(UBound(cands) + 1) & _
+        " hint=set RW_PYTHON to a python.exe that can import " & adapterPath
+    WScript.Quit 3
+End Sub
+
+' The adapter reads the state JSON with encoding="utf-8" and this workspace path
+' contains non-ASCII characters, so the state JSON must not go through the
+' FileSystemObject ANSI text writer (CP949 on this machine). Writing it as ANSI
+' made every decision die with UnicodeDecodeError - another failure the old
+' WARN-only decision handling hid.
+Class Utf8LineWriter
+    Public TargetPath
+    Private buf
+    Private Sub Class_Initialize()
+        buf = ""
+    End Sub
+    Public Sub WriteLine(text)
+        buf = buf & CStr(text) & vbCrLf
+    End Sub
+    Public Sub Close()
+        WriteUtf8NoBom TargetPath, buf
+        buf = ""
+    End Sub
+End Class
+
+Sub WriteUtf8NoBom(path, text)
+    Dim textStream, binStream
+    Set textStream = CreateObject("ADODB.Stream")
+    textStream.Type = 2
+    textStream.Charset = "utf-8"
+    textStream.Open
+    textStream.WriteText text
+    ' ADODB emits a UTF-8 BOM that json.loads rejects, so copy out past it.
+    textStream.Position = 3
+    Set binStream = CreateObject("ADODB.Stream")
+    binStream.Type = 1
+    binStream.Open
+    textStream.CopyTo binStream
+    binStream.SaveToFile path, 2
+    binStream.Close
+    textStream.Close
+End Sub
+
+Function ReadAllTextUtf8(path)
+    Dim st
+    Set st = CreateObject("ADODB.Stream")
+    st.Type = 2
+    st.Charset = "utf-8"
+    st.Open
+    st.LoadFromFile path
+    ReadAllTextUtf8 = st.ReadText
+    st.Close
 End Function
 
 Function ReadVehicleLanePosSpeed(ByRef laneArray, ByRef posArray, ByRef speedArray)
@@ -1736,14 +2112,38 @@ Function SafeAtt(obj, att)
     On Error GoTo 0
 End Function
 
+' Leftmost "-?\d+" match, found by a plain string scan instead of RegExp.
+' New RegExp costs ~620 us per call and this ran once per vehicle per scan, so it
+' alone was ~87% of a controller run. The scan below returns the identical value
+' for every input: the leftmost regex match starts either at the first digit or,
+' when that digit is immediately preceded by "-", at the "-". Verified equal on
+' 20,025 hand + fuzz cases against the RegExp version.
 Function FirstInt(value)
-    Dim re, matches
+    Dim text, n, i, j, ch, startPos
     FirstInt = 0
-    Set re = New RegExp
-    re.Pattern = "-?\d+"
-    re.Global = False
-    Set matches = re.Execute(CStr(value))
-    If matches.Count > 0 Then FirstInt = CLng(matches(0).Value)
+    text = CStr(value)
+    n = Len(text)
+    startPos = 0
+    i = 1
+    Do While i <= n
+        ch = Mid(text, i, 1)
+        If ch >= "0" And ch <= "9" Then
+            startPos = i
+            If i > 1 Then
+                If Mid(text, i - 1, 1) = "-" Then startPos = i - 1
+            End If
+            Exit Do
+        End If
+        i = i + 1
+    Loop
+    If startPos = 0 Then Exit Function
+    j = i
+    Do While j <= n
+        ch = Mid(text, j, 1)
+        If ch < "0" Or ch > "9" Then Exit Do
+        j = j + 1
+    Loop
+    FirstInt = CLng(Mid(text, startPos, j - startPos))
 End Function
 
 Function InCsvInt(value, csvText)
@@ -1808,6 +2208,35 @@ Function DerivedRunCsvPath(prefix)
     DerivedRunCsvPath = fso.BuildPath(parent, CStr(prefix) & "_" & stem & ".csv")
 End Function
 
+Function PerfNow()
+    If RW_PERF_ENABLED Then
+        PerfNow = Timer
+    Else
+        PerfNow = 0
+    End If
+End Function
+
+Sub PerfAdd(name, t0)
+    Dim d
+    If Not RW_PERF_ENABLED Then Exit Sub
+    d = Timer - t0
+    If d < 0 Then d = d + 86400.0
+    If Not perfSum.Exists(name) Then
+        perfSum.Add name, 0.0
+        perfCnt.Add name, 0
+    End If
+    perfSum(name) = CDbl(perfSum(name)) + d
+    perfCnt(name) = CLng(perfCnt(name)) + 1
+End Sub
+
+Sub PerfReport()
+    Dim k
+    If Not RW_PERF_ENABLED Then Exit Sub
+    For Each k In perfSum.Keys
+        WScript.Echo "PERF name=" & k & " sec=" & Num(CDbl(perfSum(k))) & " n=" & CStr(perfCnt(k))
+    Next
+End Sub
+
 Function ArgOrDefault(index, defaultValue)
     If WScript.Arguments.Count > index Then
         ArgOrDefault = CDbl(WScript.Arguments(index))
@@ -1839,7 +2268,7 @@ Function DefaultVehicleInputRolesPath()
 End Function
 
 Sub LoadGeneratedConfig(path)
-    Dim configPath, ts, scriptText
+    Dim configPath, scriptText
     If path = "" Then
         configPath = DefaultGeneratedConfigPath()
     Else
@@ -1849,10 +2278,13 @@ Sub LoadGeneratedConfig(path)
         WScript.Echo "WARN=GENERATED_CONFIG_NOT_FOUND using_embedded_defaults path=" & configPath
         Exit Sub
     End If
-    Set ts = fso.OpenTextFile(configPath, 1, False)
-    scriptText = ts.ReadAll
-    ts.Close
+    ' scripts\generate_real_world_control_mapping.py writes this config as UTF-8
+    ' and it carries absolute paths, which are non-ASCII in this workspace.
+    ' Reading it through the ANSI text reader turned RW_DETECTOR_MAPPING_PATH
+    ' into mojibake that then poisoned every state JSON.
+    scriptText = ReadAllTextUtf8(configPath)
     ExecuteGlobal scriptText
+    generatedConfigLoaded = True
     WScript.Echo "CONFIG_LOADED=" & configPath
 End Sub
 
