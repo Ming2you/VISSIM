@@ -1323,6 +1323,11 @@ def run_pstack_flagship_decision(
         if hasattr(sup_cfg.mpc, "seg13_meter_box_up_veh_h"):
             sup_cfg.mpc.seg13_meter_box_up_veh_h = None
         sup_cfg.mpc.seg13_vsl_box_kmh = None
+        # ZONE-4(2026-08-01): 감독자 PFO는 링크 모드(segment_agents=False)라 zone 구조를
+        # 쓰지 않는다. 남겨두면 follower 진입부 가드가 "groups인데 SEG13이 꺼져 있다"로
+        # 즉사시킨다 — seg13 박스 키와 동일 규약으로 되돌린다.
+        if hasattr(sup_cfg.mpc, "freeway_agent_groups"):
+            sup_cfg.mpc.freeway_agent_groups = None
         sup_cfg.mpc.baseline_move_box = True
 
     # FAR_GATE=3 (러너 L1048-1099).

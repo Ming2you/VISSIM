@@ -1,0 +1,21 @@
+{
+  "extends": "real_world_modi_pstack_flagship_20260731.json",
+  "name": "real_world_modi_pstack_flagship_segvsl_20260801",
+  "description": "flagship과 동일한 컨트롤러 구성에 actuation 정책만 바꿔 세그먼트별 VSL이 실제로 VISSIM DSD까지 도달하게 한 대조군 tuning. zone4(freeway_agent_groups)와 이 파일의 차이는 zone 구조 하나뿐이므로, zone 효과와 actuation 정책 변화를 분리해 A/B할 수 있다.",
+  "actuation": {
+    "vsl_segment_override_policy": "keep"
+  },
+  "config_overrides": {
+    "mpc": {
+      "vsl_tie_prefer_no_control": true
+    }
+  },
+  "notes": [
+    "mpc.vsl_tie_prefer_no_control=true (2026-08-01, outputs/vsl_sensitivity_20260801.md §6 P1). 비구속 레짐에서 VSL 후보 비용이 정확히 동률이 되는데 기존 strict '<' + 오름차순 열거가 최저 VSL을 고르고 VSL-BOX 20과 맞물려 스텝당 한 칸씩 내려가 80에 고착했다(실측 ρ=35: 120→100→80→80→80). 동률이면 무제어 쪽을 유지하도록 바꾼다 — metering이 이미 쓰는 규약(m 후보 내림차순=전량 방류 우선)을 VSL 축에 맞춘 것이고, 단일 세그먼트 경로와 zone 좌표하강 경로에 동일 적용된다. NumSim 기본값은 False(현행 동작 비트 동일)라 수치모델 재현성은 유지된다.",
+    "이 플래그는 자식 tuning(zone4)에 상속된다 — 두 경로가 같은 동률 규약을 써야 zone A/B에서 zone 효과와 tie-break 차이가 분리된다.",
+    "상위 체인(real_world_modi_pstack_vsl_rollout_unmasked_20260725)이 actuation.vsl_segment_override_policy='clear_when_mask_disabled' + active_lever_mask.enabled=false를 물려준다. 이 조합에서 apply_actuation_guards_to_control(vissim_stackelberg_adapter.py)이 control.vsl의 {link}__seg{i} 키 16개를 전부 삭제하고(metadata.vsl_segment_overrides_cleared=16), action csv의 kind=vsl 행은 링크 대표값 1개로 균질화된다.",
+    "정책을 'keep'으로 되돌리면 clear 분기가 아예 타지 않는다(policy가 {clear_all, clear_when_mask_disabled}에 없으면 no-op). active_lever_mask는 여전히 disabled라 mask 강제 상향(120 고정) 경로도 타지 않는다.",
+    "flagship(부모)은 캘리브레이션된 운영점이라 건드리지 않는다. 세그먼트 VSL 실집행이 필요한 실험은 이 파일이나 이걸 상속한 tuning(zone4)을 쓴다.",
+    "이 파일에는 freeway_agent_groups가 없다 — 세그먼트당 1 에이전트(SEG13 full distribution) 그대로다. zone4와의 차이는 오직 zone 구조다."
+  ]
+}
