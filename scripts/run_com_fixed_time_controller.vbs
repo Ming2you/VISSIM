@@ -305,7 +305,7 @@ Sub SetDemandVolumes(urbanVolume, freewayVolume)
         Else
             volume = urbanVolume
         End If
-        TrySetAtt vi, "Volume(1)", CDbl(volume)
+        SetInputVolumeAllIntervals vi, CDbl(volume)
     Next
 End Sub
 
@@ -435,4 +435,29 @@ Sub EnsureParentFolder(path)
         EnsureParentFolder parent
         fso.CreateFolder parent
     End If
+End Sub
+
+' Set the same volume on every VEHICLEINPUT time interval of this input.
+' The networks these runners drive have a single time interval, so this is
+' identical to the old Volume(1) write. It stays correct if the network ever
+' gains intervals: Volume(1) is only the FIRST interval, and writing it alone
+' silently leaves every later interval at its .inpx value. That exact bug hit
+' run_real_world_stackelberg_controller.vbs (six intervals) before 2026-08-02.
+Sub SetInputVolumeAllIntervals(vi, volume)
+    Dim arr, item, n
+    n = 0
+    On Error Resume Next
+    arr = vi.TimeIntVehVols.GetAll
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        TrySetAtt vi, "Volume(1)", CDbl(volume)
+        Exit Sub
+    End If
+    On Error GoTo 0
+    For Each item In arr
+        TrySetAtt item, "Volume", CDbl(volume)
+        n = n + 1
+    Next
+    If n = 0 Then TrySetAtt vi, "Volume(1)", CDbl(volume)
 End Sub

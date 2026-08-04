@@ -1611,61 +1611,219 @@ Function ActiveDemandScheduleKey(simSec)
     End If
 End Function
 
+' ---------------------------------------------------------------------------
+' Vehicle input demand scaling.
+'
+' Bug fixed 2026-08-02: these two entry points used to write only "Volume(1)".
+' Volume(n) indexes the n-th VEHICLEINPUT time interval, and this network has
+' six of them (start 0 / 900 / 1800 / 2700 / 3600 / 4500 s). Volume(1) is the
+' 0-900 s warmup alone, so the 900-4500 s analysis window always ran at the
+' original .inpx demand while the runner reported the scale as applied. Every
+' -DemandScale / -DemandProfile run before this date was unscaled in its
+' analysis window.
+'
+' COM schema, confirmed by direct probe against modi_eval_rw_control.inpx
+' (scripts/probe_vehicle_input_time_interval_api.vbs):
+'   Vissim.Net.TimeIntervalSets.ItemByKey(1).TimeInts -> 6 items,
+'       AttValue("Index") = 1..6, AttValue("Start") = 0,900,...,4500 (seconds).
+'   vehicleInput.TimeIntVehVols -> one item per (time interval, veh composition).
+'       item.AttValue("TimeInt") = "<intervalSetNo>-<intervalIndex>", e.g. "1-2".
+'       item.AttValue("Volume")  is readable AND writable for every interval.
+'   vi.AttValue("Volume(k)") is the same storage as the k-th TimeIntVehVols item
+'       (write to either is visible through the other); k > interval count raises
+'       "Object k not found".
+' The .inpx spelling timeInt="1 900000" is "<intervalSetNo> <start in ms>";
+' COM reports the same interval as "1-2".
+'
+' The interval count is read from the network per input, never assumed.
+' Any COM failure or readback mismatch is fatal: the original bug was a silent
+' partial write, so a half-applied demand must not reach the simulation.
+' ---------------------------------------------------------------------------
+
 Sub ScaleVehicleInputDemand(scale)
-    Dim viArray, vi, baseVolume, newVolume, scaledCount
-    scaledCount = 0
-    On Error Resume Next
-    viArray = Vissim.Net.VehicleInputs.GetAll
-    If Err.Number <> 0 Then
-        WScript.Echo "WARN=DEMAND_SCALE_GET_INPUTS_FAILED err=" & Err.Description
-        Err.Clear
-        On Error GoTo 0
-        Exit Sub
-    End If
-    On Error GoTo 0
-    For Each vi In viArray
-        baseVolume = ToDbl(SafeAtt(vi, "Volume(1)"))
-        If CDbl(baseVolume) >= 0 Then
-            newVolume = CDbl(baseVolume) * CDbl(scale)
-            TrySetAtt vi, "Volume(1)", newVolume
-            scaledCount = scaledCount + 1
-        End If
-    Next
+    Dim roleMultipliers, inputRoles, scaledCount
+    Set roleMultipliers = CreateObject("Scripting.Dictionary")
+    Set inputRoles = CreateObject("Scripting.Dictionary")
+    scaledCount = ApplyDemandMultipliers(scale, roleMultipliers, inputRoles, 1.0, "DEMAND_SCALE")
     WScript.Echo "DEMAND_SCALE_APPLIED scale=" & Num(scale) & " vehicle_inputs=" & CStr(scaledCount)
 End Sub
 
 Sub ApplyVehicleInputDemandProfile(scale, profilePath, rolesPath)
-    Dim roleMultipliers, inputRoles, viArray, vi, viNo, role, roleKey, baseVolume, newVolume, multiplier, defaultMultiplier, scaledCount
+    Dim roleMultipliers, inputRoles, defaultMultiplier, scaledCount
     Set roleMultipliers = LoadRoleMultipliers(profilePath)
     Set inputRoles = LoadVehicleInputRoles(rolesPath)
     defaultMultiplier = 1.0
     If roleMultipliers.Exists("__default__") Then defaultMultiplier = CDbl(roleMultipliers("__default__"))
-    scaledCount = 0
+    scaledCount = ApplyDemandMultipliers(scale, roleMultipliers, inputRoles, defaultMultiplier, "DEMAND_PROFILE")
+    WScript.Echo "DEMAND_PROFILE_APPLIED scale=" & Num(scale) & " vehicle_inputs=" & CStr(scaledCount) & " profile_roles=" & CStr(roleMultipliers.Count) & " mapped_inputs=" & CStr(inputRoles.Count)
+End Sub
+
+' Multiply every time interval of every vehicle input by scale * role multiplier.
+' Returns the number of vehicle inputs touched. Freeway inputs are echoed with
+' per-interval before/after volumes; all inputs are echoed as per-interval totals.
+Function ApplyDemandMultipliers(scale, roleMultipliers, inputRoles, defaultMultiplier, tag)
+    Dim viArray, vi, viNo, linkNo, role, roleKey, multiplier, factor
+    Dim beforeText, afterText, nIntervals, scaledCount, maxIntervals
+    Dim totalsBefore, totalsAfter, i, key, totalBeforeText, totalAfterText
+
+    EchoDemandIntervalSchedule
+
     On Error Resume Next
     viArray = Vissim.Net.VehicleInputs.GetAll
-    If Err.Number <> 0 Then
-        WScript.Echo "WARN=DEMAND_PROFILE_GET_INPUTS_FAILED err=" & Err.Description
-        Err.Clear
-        On Error GoTo 0
-        Exit Sub
-    End If
+    If Err.Number <> 0 Then FatalDemandError tag & "_GET_INPUTS_FAILED err=" & Err.Description
+    Err.Clear
     On Error GoTo 0
+
+    Set totalsBefore = CreateObject("Scripting.Dictionary")
+    Set totalsAfter = CreateObject("Scripting.Dictionary")
+    scaledCount = 0
+    maxIntervals = 0
     For Each vi In viArray
         viNo = CStr(CLng(ToDbl(SafeAtt(vi, "No"))))
+        linkNo = ObjectLinkNo(vi)
         role = ""
         If inputRoles.Exists(viNo) Then role = CStr(inputRoles(viNo))
         roleKey = LCase(Trim(role))
         multiplier = defaultMultiplier
         If roleMultipliers.Exists(roleKey) Then multiplier = CDbl(roleMultipliers(roleKey))
         If roleMultipliers.Exists("no:" & viNo) Then multiplier = CDbl(roleMultipliers("no:" & viNo))
-        baseVolume = ToDbl(SafeAtt(vi, "Volume(1)"))
-        If CDbl(baseVolume) >= 0 Then
-            newVolume = CDbl(baseVolume) * CDbl(scale) * CDbl(multiplier)
-            TrySetAtt vi, "Volume(1)", newVolume
-            scaledCount = scaledCount + 1
+        factor = CDbl(scale) * CDbl(multiplier)
+        ScaleInputAllIntervals vi, factor, totalsBefore, totalsAfter, beforeText, afterText, nIntervals
+        If CLng(nIntervals) > maxIntervals Then maxIntervals = CLng(nIntervals)
+        scaledCount = scaledCount + 1
+        If Left(roleKey, 7) = "freeway" Or InCsvInt(linkNo, RW_FREEWAY_INPUT_LINKS) Then
+            WScript.Echo tag & "_INPUT no=" & viNo & " link=" & CStr(linkNo) & _
+                " role=" & roleKey & " factor=" & Num(factor) & _
+                " intervals=" & CStr(nIntervals) & _
+                " before=" & beforeText & " after=" & afterText
         End If
     Next
-    WScript.Echo "DEMAND_PROFILE_APPLIED scale=" & Num(scale) & " vehicle_inputs=" & CStr(scaledCount) & " profile_roles=" & CStr(roleMultipliers.Count) & " mapped_inputs=" & CStr(inputRoles.Count)
+
+    totalBeforeText = ""
+    totalAfterText = ""
+    For i = 1 To maxIntervals
+        key = CStr(i)
+        If i > 1 Then
+            totalBeforeText = totalBeforeText & ","
+            totalAfterText = totalAfterText & ","
+        End If
+        If totalsBefore.Exists(key) Then
+            totalBeforeText = totalBeforeText & Num(totalsBefore(key))
+            totalAfterText = totalAfterText & Num(totalsAfter(key))
+        Else
+            totalBeforeText = totalBeforeText & "0"
+            totalAfterText = totalAfterText & "0"
+        End If
+    Next
+    WScript.Echo tag & "_TOTALS vehicle_inputs=" & CStr(scaledCount) & _
+        " intervals=" & CStr(maxIntervals) & _
+        " before_vph=" & totalBeforeText & " after_vph=" & totalAfterText
+
+    ApplyDemandMultipliers = scaledCount
+End Function
+
+' Scale one vehicle input across all of its time intervals, verifying each write
+' by readback. Fills beforeText/afterText (comma separated, interval order),
+' accumulates per-interval sums into totalsBefore/totalsAfter, and returns the
+' interval row count in nIntervals.
+Sub ScaleInputAllIntervals(vi, factor, totalsBefore, totalsAfter, beforeText, afterText, nIntervals)
+    Dim col, arr, item, viNo, timeInt, before, target, after, idx, key, tol
+    viNo = SafeAtt(vi, "No")
+    beforeText = ""
+    afterText = ""
+    nIntervals = 0
+
+    On Error Resume Next
+    Set col = vi.TimeIntVehVols
+    If Err.Number <> 0 Then FatalDemandError "DEMAND_INTERVAL_CONTAINER_MISSING no=" & viNo & " err=" & Err.Description
+    arr = col.GetAll
+    If Err.Number <> 0 Then FatalDemandError "DEMAND_INTERVAL_GETALL_FAILED no=" & viNo & " err=" & Err.Description
+    Err.Clear
+    On Error GoTo 0
+
+    For Each item In arr
+        timeInt = SafeAtt(item, "TimeInt")
+        before = ToDbl(SafeAtt(item, "Volume"))
+        target = CDbl(before) * CDbl(factor)
+        On Error Resume Next
+        item.AttValue("Volume") = target
+        If Err.Number <> 0 Then FatalDemandError "DEMAND_INTERVAL_SET_FAILED no=" & viNo & " time_int=" & timeInt & " target=" & Num(target) & " err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        after = ToDbl(SafeAtt(item, "Volume"))
+        tol = 0.001 + Abs(CDbl(target)) * 0.000001
+        If Abs(CDbl(after) - CDbl(target)) > tol Then
+            FatalDemandError "DEMAND_INTERVAL_READBACK_MISMATCH no=" & viNo & " time_int=" & timeInt & _
+                " target=" & Num(target) & " readback=" & Num(after)
+        End If
+
+        nIntervals = nIntervals + 1
+        idx = TimeIntIndex(timeInt)
+        If idx <= 0 Then idx = nIntervals
+        key = CStr(idx)
+        If Not totalsBefore.Exists(key) Then
+            totalsBefore(key) = 0.0
+            totalsAfter(key) = 0.0
+        End If
+        totalsBefore(key) = CDbl(totalsBefore(key)) + CDbl(before)
+        totalsAfter(key) = CDbl(totalsAfter(key)) + CDbl(after)
+
+        If nIntervals > 1 Then
+            beforeText = beforeText & ","
+            afterText = afterText & ","
+        End If
+        beforeText = beforeText & Num(before)
+        afterText = afterText & Num(after)
+    Next
+
+    If nIntervals = 0 Then FatalDemandError "DEMAND_INTERVAL_EMPTY no=" & viNo
+End Sub
+
+' "1-2" -> 2. Returns 0 when the key does not carry an interval index.
+Function TimeIntIndex(value)
+    Dim text, p
+    text = Trim(CStr(value))
+    p = InStrRev(text, "-")
+    If p > 0 And p < Len(text) Then
+        TimeIntIndex = CLng(ToDbl(Mid(text, p + 1)))
+    Else
+        TimeIntIndex = 0
+    End If
+End Function
+
+' Echo the VEHICLEINPUT time interval schedule read from the network, so the
+' runlog records how many intervals the demand write had to cover.
+Sub EchoDemandIntervalSchedule()
+    Dim tis, arr, ti, line, cnt
+    On Error Resume Next
+    Set tis = Vissim.Net.TimeIntervalSets.ItemByKey(1)
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        WScript.Echo "WARN=DEMAND_INTERVAL_SCHEDULE_UNAVAILABLE"
+        Exit Sub
+    End If
+    arr = tis.TimeInts.GetAll
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        WScript.Echo "WARN=DEMAND_INTERVAL_SCHEDULE_UNAVAILABLE"
+        Exit Sub
+    End If
+    On Error GoTo 0
+    line = ""
+    cnt = 0
+    For Each ti In arr
+        cnt = cnt + 1
+        If cnt > 1 Then line = line & ","
+        line = line & CStr(CLng(ToDbl(SafeAtt(ti, "Start"))))
+    Next
+    WScript.Echo "DEMAND_INTERVAL_SCHEDULE set=1 count=" & CStr(cnt) & " start_sec=" & line
+End Sub
+
+Sub FatalDemandError(detail)
+    WScript.Echo "ERROR=" & detail
+    WScript.Quit 12
 End Sub
 
 Function LoadRoleMultipliers(profilePath)

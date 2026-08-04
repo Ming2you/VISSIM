@@ -152,14 +152,44 @@ Sub SetDemandVolumes(urbanVolume, freewayVolume)
         Else
             volume = urbanVolume
         End If
-        On Error Resume Next
-        vi.AttValue("Volume(1)") = CDbl(volume)
-        If Err.Number <> 0 Then
-            WScript.Echo "WARN=FAILED_SET_VOLUME input=" & name & " err=" & Err.Description
-            Err.Clear
-        End If
-        On Error GoTo 0
+        SetInputVolumeAllIntervals vi, name, CDbl(volume)
     Next
+End Sub
+
+' Set the same volume on every VEHICLEINPUT time interval of this input.
+' This network has a single time interval, so this is identical to the old
+' Volume(1) write. It stays correct if the network ever gains intervals:
+' Volume(1) is only the FIRST interval, and writing it alone silently leaves
+' every later interval at its .inpx value. That exact bug hit
+' run_real_world_stackelberg_controller.vbs (six intervals) before 2026-08-02.
+Sub SetInputVolumeAllIntervals(vi, name, volume)
+    Dim arr, item, n
+    n = 0
+    On Error Resume Next
+    arr = vi.TimeIntVehVols.GetAll
+    If Err.Number = 0 Then
+        On Error GoTo 0
+        For Each item In arr
+            On Error Resume Next
+            item.AttValue("Volume") = CDbl(volume)
+            If Err.Number <> 0 Then
+                WScript.Echo "WARN=FAILED_SET_VOLUME input=" & name & " time_int=" & CStr(item.AttValue("TimeInt")) & " err=" & Err.Description
+                Err.Clear
+            End If
+            On Error GoTo 0
+            n = n + 1
+        Next
+    End If
+    Err.Clear
+    On Error GoTo 0
+    If n > 0 Then Exit Sub
+    On Error Resume Next
+    vi.AttValue("Volume(1)") = CDbl(volume)
+    If Err.Number <> 0 Then
+        WScript.Echo "WARN=FAILED_SET_VOLUME input=" & name & " err=" & Err.Description
+        Err.Clear
+    End If
+    On Error GoTo 0
 End Sub
 
 Sub LogState(simSec, action)
