@@ -1,0 +1,30 @@
+{
+  "_comment": "G5/G6 채점 전용 구성 (a) — 현행 채택 FD_A + 토폴로지 정정 '전' 기하. 운영 채택이 아니다.",
+  "_topology_pre_source": "outputs/strict_plant_3way_readiness_20260801.md §1-1 (control_mapping FW_E 가 link:2 만 덮던 시절, 0.58645 km/seg) + outputs/vsl_sensitivity_20260801.md §(0.795059 = FW_E 0.58645 와 FW_W 1.003668 의 산술평균)",
+  "_isolation_note": "모델 dynamics 의 셀 길이만 정정 전으로 되돌린다. 채점 쪽 count 환산(L,n)은 g5_metrics 가 관측 state JSON 기하를 양쪽에 공통 적용하므로 이 파일과 무관하다. 따라서 여기서 나오는 차이는 순수하게 '모델이 어떤 격자 위에서 굴러가는가' 의 효과다.",
+  "extends": "../real_world_modi_pstack_flagship_segvsl_fdrefit_20260802.json",
+  "name": "gates_cfgA_pre",
+  "description": "FD_A(119.505/16.354/2.154, q_cap 4914) + topology pre-correction (FW_E 0.58645 / FW_W 1.003668, scalar 0.795059)",
+  "calibration_override": {
+    "calibration_version": "gates_cfgA_pre_20260802",
+    "physical_inventory": {
+      "freeway_segment_length_profile_km": {
+        "FW_E": [0.58645, 0.58645, 0.58645, 0.58645, 0.58645, 0.58645, 0.58645, 0.58645],
+        "FW_W": [1.003668, 1.003668, 1.003668, 1.003668, 1.003668, 1.003668, 1.003668, 1.003668]
+      }
+    },
+    "operational": {
+      "network": {
+        "v_free_kph": 119.505,
+        "rho_crit_veh_km_lane": 16.354,
+        "desired_speed_shape_a": 2.154,
+        "freeway_capacity_veh_h": 4914.0
+      }
+    }
+  },
+  "config_overrides": {
+    "network": {
+      "freeway_segment_length_km": 0.795059
+    }
+  }
+}

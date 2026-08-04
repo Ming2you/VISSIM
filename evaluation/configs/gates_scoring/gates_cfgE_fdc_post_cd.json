@@ -1,0 +1,14 @@
+{
+  "_comment": "G5/G6 채점 전용 구성 (e, 보조) — FD_C + 토폴로지 정정 후 + capacity drop phi=0.6. (c)x(d) 교차항을 분리한다.",
+  "extends": "gates_cfgC_fdc_post.json",
+  "name": "gates_cfgE_fdc_post_cd",
+  "description": "FD_C + topology post-correction + capacity_drop_discharge_phi=0.6",
+  "calibration_override": {
+    "calibration_version": "gates_cfgE_fdc_post_cd_20260802"
+  },
+  "config_overrides": {
+    "network": {
+      "capacity_drop_discharge_phi": 0.6
+    }
+  }
+}

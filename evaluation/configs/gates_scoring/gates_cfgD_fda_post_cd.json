@@ -1,0 +1,15 @@
+{
+  "_comment": "G5/G6 채점 전용 구성 (d) — 현행 FD_A + 토폴로지 정정 후 + queue-discharge capacity drop phi=0.6.",
+  "_phi_source": "metanet_calibration_20260802.md §1-1 fold 적합값 0.400~0.619 의 상단(0.6). 운영 채택은 §1-3 에서 기각됐고 여기서는 '국소 용량 제약 부재' 가 순위를 뒤집는지 보는 탐침으로만 쓴다.",
+  "extends": "gates_cfgB_post.json",
+  "name": "gates_cfgD_fda_post_cd",
+  "description": "FD_A + topology post-correction + capacity_drop_discharge_phi=0.6",
+  "calibration_override": {
+    "calibration_version": "gates_cfgD_fda_post_cd_20260802"
+  },
+  "config_overrides": {
+    "network": {
+      "capacity_drop_discharge_phi": 0.6
+    }
+  }
+}

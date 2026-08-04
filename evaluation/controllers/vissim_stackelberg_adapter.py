@@ -1478,18 +1478,25 @@ def build_config(
                 "R_D_E": 1414.0,
                 "R_F_E": 316.0,
             },
-            # Vissim 8-seg mainline topology (2026-07-14, one ramp junction per
-            # segment, indices in travel direction):
-            #   FW_E: S0/S1 entry+approach, S2 OR_D diverge, S3 R_D merge,
-            #         S4 OR_F diverge, S5 R_F merge, S6/S7 exit
-            #   FW_W: S0/S1 entry+approach, S2 OR_F diverge, S3 R_F merge,
-            #         S4 OR_D diverge, S5 R_D merge, S6/S7 exit
+            # 아래 두 인덱스는 **가상 8-seg 네트워크(modi_eval_vsl_8seg)** 기본값이다.
+            # 실제 개포 real-world 플랜트(modi_eval_rw_control.inpx)의 값이 아니므로
+            # tuning(config_overrides.network)이 없는 합성 스모크/계약 검증 경로에서만
+            # 쓰인다. 실 플랜트 값은 generate_real_world_control_mapping.py 가 .inpx
+            # 커넥터 기하에서 뽑아 control_mapping.json(model_topology_overrides)과
+            # evaluation/configs/real_world_modi_pstack_adapter_v0_20260719.json
+            # (config_overrides.network)에 쓰고, 후자가 base보다 나중에 적용된다.
             #
-            # Matches the 8-seg default.yaml (off 2/4, merge 3/5) except that
-            # the yaml's hypothetical network puts D first in BOTH directions;
-            # the Vissim plant passes F first westbound, so the _W indices are
-            # swapped relative to the yaml (same travel-direction convention as
-            # the 5-seg adapter override before it).
+            # 실측 개포 토폴로지(2026-08-02 .inpx 커넥터 전수조사 + Link Segment
+            # Results 유량 검증, 세그먼트는 진행방향 인덱스):
+            #   FW_E(체인 74-10699-2-10702-24): S3 에 OR_F_E(10643/10682) diverge 와
+            #        R_F_E(10639/10681) merge 가 **같은 세그먼트**에 있고,
+            #        S5 에 OR_D_E(10481/10483) diverge 와 R_D_E(10490/10484) merge.
+            #   FW_W(체인 26): S2 에 OR_D_W(10479/10491)+R_D_W(10480/10482),
+            #        S4 에 OR_F_W(10645/10638)+R_F_W(10646) — R_F_W 의 두 번째
+            #        물리 미터 10644 는 S5 에 합류한다(ramp_meter_groups 의
+            #        segment_straddle 참조).
+            # 즉 가상망은 각 인터체인지의 diverge/merge 를 다른 세그먼트로 분리했지만
+            # (off 2/4, merge 3/5), 실 플랜트는 1,347 m 세그먼트 하나에 둘 다 들어간다.
             "ramp_merge_segment_index": {
                 "R_D_W": 5,
                 "R_F_W": 3,
@@ -3366,6 +3373,7 @@ def _diagnostic_fixed_control(
         "diagnostic_forced_f_ramp_rate_vph": float(f_rate),
         "diagnostic_forced_signal_major_green_sec": float(major_green_sec),
         "diagnostic_forced_signal_minor_green_sec": float(minor_green_sec),
+        "diagnostic_forced_signal_offset_sec": float(offset_sec),
         "diagnostic_bypass_policy_guards": 1.0,
     })
     return control
@@ -3531,6 +3539,33 @@ def diagnostic_ramp_d1253_control(cfg, ControlAction):
 def diagnostic_vsl80_control(cfg, ControlAction):
     control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=80.0)
     control.diagnostics["diagnostic_vsl80_active"] = 1.0
+    return control
+
+
+# VSL 90/70/60/50 — 실측 속도 분포에 맞춘 선택지. 기존 [80,100,120] 은 상단이 무의미했다
+# (속도>120 표본 1.23%, 혼잡 구간 앵커 평균속도 75.3 km/h). 혼잡 하단(v최저 19.0)을 덮으려면
+# 50~70 이 필요하고, 그 결과 c01_vsl110 과 c02_vsl100 이 관측상 구분되지 않던 문제도 사라진다.
+def diagnostic_vsl90_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=90.0)
+    control.diagnostics["diagnostic_vsl90_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl70_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=70.0)
+    control.diagnostics["diagnostic_vsl70_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl60_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=60.0)
+    control.diagnostics["diagnostic_vsl60_active"] = 1.0
+    return control
+
+
+def diagnostic_vsl50_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=50.0)
+    control.diagnostics["diagnostic_vsl50_active"] = 1.0
     return control
 
 
@@ -3721,9 +3756,19 @@ def write_action_csv(
                 # phase p1. Verified against evaluation/signal_install/signal_manifest.csv (20/20 approach
                 # links). The previous mapping (major<-p1, minor<-p2) axis-swapped every signal's green
                 # allocation in VISSIM, so the controller's green was applied to the wrong axis.
-                major = clamp(float(control.green_times.get(f"{signal}_p2", 40.0)), 5.0, 90.0)
-                minor = clamp(float(control.green_times.get(f"{signal}_p1", 40.0)), 5.0, 90.0)
-                offset = float(control.offsets.get(signal, 0.0))
+                # 진단(fixed-action) 컨트롤러는 모델 신호명(cfg.network.signals)으로 green_times 를
+                # 채우는데, 매핑의 signal id 는 별개 이름공간이다. 기본 control_mapping.json 은
+                # id 가 "D" 라 모델 신호명과 우연히 일치했지만 distributed 매핑은 "SC1"/"SC5"/... 라
+                # 전부 기본값으로 떨어져 **앵커와 green 후보의 액션이 완전히 같아졌다**
+                # (2026-08-04 실측: 바뀐 셀 0 개, 관측 응답 0.000 km/h).
+                # 강제값이 diagnostics 에 있으면 그것을 기본값으로 쓴다.
+                _dg = getattr(control, "diagnostics", {}) or {}
+                _maj_default = float(_dg.get("diagnostic_forced_signal_major_green_sec", 40.0))
+                _min_default = float(_dg.get("diagnostic_forced_signal_minor_green_sec", 40.0))
+                _off_default = float(_dg.get("diagnostic_forced_signal_offset_sec", 0.0))
+                major = clamp(float(control.green_times.get(f"{signal}_p2", _maj_default)), 5.0, 90.0)
+                minor = clamp(float(control.green_times.get(f"{signal}_p1", _min_default)), 5.0, 90.0)
+                offset = float(control.offsets.get(signal, _off_default))
                 writer.writerow({
                     "kind": "signal",
                     "id": signal,
@@ -3789,7 +3834,11 @@ def main() -> None:
             "diagnostic-vsl80-only",
             "diagnostic-vsl110",
             "diagnostic-vsl100",
+            "diagnostic-vsl90",
             "diagnostic-vsl80",
+            "diagnostic-vsl70",
+            "diagnostic-vsl60",
+            "diagnostic-vsl50",
             "diagnostic-vsl80-original",
             "diagnostic-ramp-all735-original",
             "diagnostic-ramp-all360-original",
@@ -4058,9 +4107,21 @@ def main() -> None:
         elif args.controller == "diagnostic-vsl100":
             control = diagnostic_vsl100_control(cfg, ControlAction)
             metadata["diagnostic_vsl100_active"] = 1.0
+        elif args.controller == "diagnostic-vsl90":
+            control = diagnostic_vsl90_control(cfg, ControlAction)
+            metadata["diagnostic_vsl90_active"] = 1.0
         elif args.controller == "diagnostic-vsl80":
             control = diagnostic_vsl80_control(cfg, ControlAction)
             metadata["diagnostic_vsl80_active"] = 1.0
+        elif args.controller == "diagnostic-vsl70":
+            control = diagnostic_vsl70_control(cfg, ControlAction)
+            metadata["diagnostic_vsl70_active"] = 1.0
+        elif args.controller == "diagnostic-vsl60":
+            control = diagnostic_vsl60_control(cfg, ControlAction)
+            metadata["diagnostic_vsl60_active"] = 1.0
+        elif args.controller == "diagnostic-vsl50":
+            control = diagnostic_vsl50_control(cfg, ControlAction)
+            metadata["diagnostic_vsl50_active"] = 1.0
         elif args.controller == "diagnostic-vsl80-original":
             control = diagnostic_vsl80_original_signal_control(cfg, ControlAction)
             metadata["diagnostic_vsl80_original_signal_active"] = 1.0

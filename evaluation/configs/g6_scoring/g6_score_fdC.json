@@ -1,0 +1,18 @@
+{
+  "_comment": "G6 채점 전용 튜닝. 자유분지 재적합 FD(FD_C)를 모델 쪽에만 적용한다. 플랜트(VISSIM) 런은 FD 와 무관하므로 재실행하지 않는다.",
+  "_source": "outputs/metanet_calibration_draft_20260802.json blocked_candidate",
+  "extends": "../real_world_modi_pstack_flagship_segvsl_20260801.json",
+  "name": "g6_score_fdC",
+  "description": "G6 순위 정합 측정용 FD_C(자유분지 재적합) 채점 구성. 운영 채택이 아니다.",
+  "calibration_override": {
+    "calibration_version": "g6_score_fdC_20260802",
+    "operational": {
+      "network": {
+        "v_free_kph": 122.562,
+        "rho_crit_veh_km_lane": 21.419,
+        "desired_speed_shape_a": 1.724,
+        "freeway_capacity_veh_h": 6956.0
+      }
+    }
+  }
+}

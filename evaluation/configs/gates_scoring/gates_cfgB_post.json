@@ -1,0 +1,28 @@
+{
+  "_comment": "G5/G6 채점 전용 구성 (b) — 현행 채택 FD_A + 토폴로지 정정 '후' 기하(현행 운영값과 동일). (a) 와의 차이가 토폴로지 효과다.",
+  "extends": "../real_world_modi_pstack_flagship_segvsl_fdrefit_20260802.json",
+  "name": "gates_cfgB_post",
+  "description": "FD_A(119.505/16.354/2.154, q_cap 4914) + topology post-correction (FW_E 1.346639 / FW_W 1.347212, scalar 1.346925)",
+  "calibration_override": {
+    "calibration_version": "gates_cfgB_post_20260802",
+    "physical_inventory": {
+      "freeway_segment_length_profile_km": {
+        "FW_E": [1.346639, 1.346639, 1.346639, 1.346639, 1.346639, 1.346639, 1.346639, 1.346639],
+        "FW_W": [1.347212, 1.347212, 1.347212, 1.347212, 1.347212, 1.347212, 1.347212, 1.347212]
+      }
+    },
+    "operational": {
+      "network": {
+        "v_free_kph": 119.505,
+        "rho_crit_veh_km_lane": 16.354,
+        "desired_speed_shape_a": 2.154,
+        "freeway_capacity_veh_h": 4914.0
+      }
+    }
+  },
+  "config_overrides": {
+    "network": {
+      "freeway_segment_length_km": 1.346925
+    }
+  }
+}

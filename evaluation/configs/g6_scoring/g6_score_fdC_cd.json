@@ -1,0 +1,11 @@
+{
+  "_comment": "G6 채점 전용 튜닝. FD_C(자유분지 재적합) + capacity drop phi=0.6.",
+  "extends": "g6_score_fdC.json",
+  "name": "g6_score_fdC_cd",
+  "description": "G6 순위 정합 측정용 FD_C + capacity drop 채점 구성. 운영 채택이 아니다.",
+  "config_overrides": {
+    "network": {
+      "capacity_drop_discharge_phi": 0.6
+    }
+  }
+}

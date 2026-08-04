@@ -1,0 +1,14 @@
+{
+  "_comment": "G6 재채점 전용. 수리 후 FD(v3_postrepair) + capacity drop 변형. 운영 채택이 아니다.",
+  "_why": "혼잡 상태 G6 에서 VSL 80 이 VSL 100 보다 나쁘게 관측됐다(J +154 vs -73). 비단조다. 현행 모델은 capacity drop 두 메커니즘이 모두 꺼져 있어 이 현상을 재현할 수 없다. 이 변형들이 순위를 회복시키는지 시험한다.",
+  "extends": "../real_world_modi_pstack_postrepair_20260803.json",
+  "name": "g6_score_v3_cd06",
+  "description": "postrepair FD + phi=0.6 anticipation=false nu_cong=65",
+  "config_overrides": {
+    "network": {
+      "capacity_drop_discharge_phi": 0.6,
+      "capacity_drop_anticipation": false,
+      "metanet_nu_cong_km2_h": 65
+    }
+  }
+}
