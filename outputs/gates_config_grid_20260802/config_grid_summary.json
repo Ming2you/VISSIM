@@ -1,0 +1,1533 @@
+{
+  "protocol": "teacher_forced_rolling_origin",
+  "horizons_steps": [
+    1,
+    3,
+    5
+  ],
+  "horizon_sec": [
+    60,
+    180,
+    300
+  ],
+  "g5_run_dirs": [
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_stackelberg_scale135_warm900_eval3600_seed13",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_stackelberg_scale170_warm900_eval3600_seed13"
+  ],
+  "g6_run_dir": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\g6_branch_grid_20260802",
+  "g6_t0_plan": [
+    {
+      "t0_sec": 900,
+      "horizons": [
+        1,
+        3,
+        5
+      ]
+    },
+    {
+      "t0_sec": 960,
+      "horizons": [
+        1,
+        3
+      ]
+    },
+    {
+      "t0_sec": 1020,
+      "horizons": [
+        1,
+        3
+      ]
+    },
+    {
+      "t0_sec": 1080,
+      "horizons": [
+        1
+      ]
+    },
+    {
+      "t0_sec": 1140,
+      "horizons": [
+        1
+      ]
+    }
+  ],
+  "configs": {
+    "a_FDA_pre": {
+      "label": "(a) FD_A + 토폴로지 정정 전",
+      "tuning": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\gates_scoring\\gates_cfgA_pre.json",
+      "realized": {
+        "v_free": 119.505,
+        "rho_crit": 16.354,
+        "a_m": 2.154,
+        "q_cap_veh_h": 4914.0,
+        "seg_len_scalar_km": 0.795059,
+        "seg_len_FW_E_km": 0.58645,
+        "seg_len_FW_W_km": 1.003668,
+        "capacity_drop_phi": 1.0,
+        "control_interval_sec": 60.0
+      },
+      "g5": {
+        "episode_count": 672,
+        "initial": "FAIL",
+        "promotion": "FAIL",
+        "criteria": {
+          "freeway_mean_speed_mape_cell": {
+            "value": 0.13525784040422276,
+            "threshold": 0.1,
+            "verdict": "FAIL"
+          },
+          "freeway_mean_speed_mape_link": {
+            "value": 0.03479111275637768,
+            "threshold": 0.1,
+            "verdict": "PASS"
+          },
+          "cell_count_mae": {
+            "value": 11.367480505824522,
+            "threshold": 5.045492311507937,
+            "verdict": "FAIL"
+          },
+          "link_count_mae": {
+            "value": 43.06111486823963,
+            "threshold": 40.3639384920635,
+            "verdict": "FAIL"
+          },
+          "urban_one_step_queue_storage_error": {
+            "value": 2.041379731601785,
+            "threshold": 0.25,
+            "verdict": "NOT_EVALUATED"
+          }
+        },
+        "aggregate": {
+          "cell_count": {
+            "mae": 11.367480505824522,
+            "mape": 0.2578347577994938,
+            "bias": 4.821424119940063,
+            "mean_observed": 50.45492311507937,
+            "sample_count": 32256
+          },
+          "cell_speed": {
+            "mae": 12.668702067830816,
+            "mape": 0.13525784040422276,
+            "bias": -0.9243878712379502,
+            "mean_observed": 102.56567440225264,
+            "sample_count": 32256
+          },
+          "link_count": {
+            "mae": 43.06111486823963,
+            "mape": 0.12217956846436542,
+            "bias": 38.5713929595205,
+            "mean_observed": 403.63938492063494,
+            "sample_count": 4032
+          },
+          "link_speed": {
+            "mae": 3.4351776278484096,
+            "mape": 0.03479111275637768,
+            "bias": 1.0288259380199551,
+            "mean_observed": 99.9086235532715,
+            "sample_count": 4032
+          }
+        },
+        "by_horizon": {
+          "1": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13163780144241616,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03430101107996397,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 9.406096466478889,
+                "threshold": 5.110965401785715,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 27.43897737698629,
+                "threshold": 40.88772321428572,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0413797316017854,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.1136962420901162,
+              "cell_speed": -0.828542663924918,
+              "link_count": -1.136368068281171,
+              "link_speed": 0.11753805749364088
+            }
+          },
+          "3": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.1355118207301301,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03356967189521814,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 10.983246428084916,
+                "threshold": 5.064536830357143,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 37.48903418881257,
+                "threshold": 40.51629464285715,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0413797316017854,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.009877877129462309,
+              "cell_speed": -0.7868009570487067,
+              "link_count": -1.0357681595864277,
+              "link_speed": 0.14347258283206887
+            }
+          },
+          "5": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13582946000103968,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03562199760835615,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 11.990297760337409,
+                "threshold": 5.020970982142857,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 49.528790774146536,
+                "threshold": 40.167767857142856,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0413797316017854,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.07153931939919689,
+              "cell_speed": -0.7705326677469351,
+              "link_count": -1.1572360211959833,
+              "link_speed": 0.12645462598519097
+            }
+          }
+        },
+        "persistence_skill": {
+          "cell_count": -0.02471152594934356,
+          "cell_speed": -0.7819661378070106,
+          "link_count": -1.1190779679584804,
+          "link_speed": 0.13102206368775715
+        },
+        "urban": {
+          "coverage_ratio": 0.09302325581395349,
+          "evaluable": false,
+          "relative_error": {
+            "urban_storage": 2.041379731601785,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.944891527646801
+          }
+        },
+        "holdout": {
+          "seed": 1,
+          "demand": 2,
+          "policy": 2
+        },
+        "free_run_reference": [
+          {
+            "decision_dir": "decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 20.181108635655008,
+            "cell_speed_mape": 0.15481271734958438
+          },
+          {
+            "decision_dir": "decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 28.265190682009248,
+            "cell_speed_mape": 0.19991620305285682
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 37.88970275621152,
+            "cell_speed_mape": 0.23379557196057102
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 15.045133406028215,
+            "cell_speed_mape": 0.1411743541205165
+          }
+        ]
+      },
+      "g6": {
+        "decision_count": 12,
+        "all_decisions": {
+          "spearman_rho": 0.48062244468232046,
+          "pairwise": 0.38461538461538464,
+          "spillback_f1": 0.0,
+          "initial": "FAIL"
+        },
+        "complete_decisions_only": {
+          "decision_count": 3,
+          "spearman_rho": 0.48062244468232046,
+          "pairwise": 0.38461538461538464,
+          "spillback_f1": 0.0,
+          "spillback_oracle_complete": true,
+          "initial": "FAIL",
+          "release": "FAIL"
+        },
+        "by_horizon": {
+          "1": {
+            "horizon_sec": 60,
+            "decision_count": 1,
+            "spearman_rho": 0.27801249815010254,
+            "pairwise": 0.3076923076923077,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "3": {
+            "horizon_sec": 180,
+            "decision_count": 1,
+            "spearman_rho": 0.5981058711188174,
+            "pairwise": 0.46153846153846156,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "5": {
+            "horizon_sec": 300,
+            "decision_count": 1,
+            "spearman_rho": 0.5657489647780416,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": 0.0,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          }
+        },
+        "persistence_control": {
+          "decision_count": 12,
+          "spearman_rho": null,
+          "ranking_oracle_complete": false,
+          "verdict": "NOT_EVALUATED"
+        },
+        "t0_accepted": [
+          900,
+          960,
+          1020,
+          1080,
+          1140
+        ],
+        "t0_rejected_initial_state_mismatch": []
+      },
+      "elapsed_sec": 31.8
+    },
+    "b_FDA_post": {
+      "label": "(b) FD_A + 토폴로지 정정 후",
+      "tuning": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\gates_scoring\\gates_cfgB_post.json",
+      "realized": {
+        "v_free": 119.505,
+        "rho_crit": 16.354,
+        "a_m": 2.154,
+        "q_cap_veh_h": 4914.0,
+        "seg_len_scalar_km": 1.346925,
+        "seg_len_FW_E_km": 1.346639,
+        "seg_len_FW_W_km": 1.347212,
+        "capacity_drop_phi": 1.0,
+        "control_interval_sec": 60.0
+      },
+      "g5": {
+        "episode_count": 672,
+        "initial": "FAIL",
+        "promotion": "FAIL",
+        "criteria": {
+          "freeway_mean_speed_mape_cell": {
+            "value": 0.12895363948899466,
+            "threshold": 0.1,
+            "verdict": "FAIL"
+          },
+          "freeway_mean_speed_mape_link": {
+            "value": 0.033830403930339724,
+            "threshold": 0.1,
+            "verdict": "PASS"
+          },
+          "cell_count_mae": {
+            "value": 10.378927367539193,
+            "threshold": 5.045492311507937,
+            "verdict": "FAIL"
+          },
+          "link_count_mae": {
+            "value": 32.84590247145332,
+            "threshold": 40.3639384920635,
+            "verdict": "PASS"
+          },
+          "urban_one_step_queue_storage_error": {
+            "value": 2.007439599179364,
+            "threshold": 0.25,
+            "verdict": "NOT_EVALUATED"
+          }
+        },
+        "aggregate": {
+          "cell_count": {
+            "mae": 10.378927367539193,
+            "mape": 0.2306346207768342,
+            "bias": 3.6737386843558157,
+            "mean_observed": 50.45492311507937,
+            "sample_count": 32256
+          },
+          "cell_speed": {
+            "mae": 12.066782472111086,
+            "mape": 0.12895363948899466,
+            "bias": -0.9862205540453057,
+            "mean_observed": 102.56567440225264,
+            "sample_count": 32256
+          },
+          "link_count": {
+            "mae": 32.84590247145332,
+            "mape": 0.0922281538998588,
+            "bias": 29.389909474846526,
+            "mean_observed": 403.63938492063494,
+            "sample_count": 4032
+          },
+          "link_speed": {
+            "mae": 3.33761082927776,
+            "mape": 0.033830403930339724,
+            "bias": 0.7903395283159903,
+            "mean_observed": 99.9086235532715,
+            "sample_count": 4032
+          }
+        },
+        "by_horizon": {
+          "1": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.1206165972497852,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03426519823360579,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 8.080146336518608,
+                "threshold": 5.110965401785715,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 19.681130920630856,
+                "threshold": 40.88772321428572,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0074395991793645,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.238635911502716,
+              "cell_speed": -0.6818370720183045,
+              "link_count": -0.5323508259371956,
+              "link_speed": 0.11724585089068473
+            }
+          },
+          "3": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.12848841915683454,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03325702533213469,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 9.943990862618454,
+                "threshold": 5.064536830357143,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 28.46877497017431,
+                "threshold": 40.51629464285715,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0074395991793645,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.1035651064402312,
+              "cell_speed": -0.6946457742642467,
+              "link_count": -0.545940749895526,
+              "link_speed": 0.15155428186819486
+            }
+          },
+          "5": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13090018013613264,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.03408747222860952,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 11.099645476695752,
+                "threshold": 5.020970982142857,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 38.10513328238522,
+                "threshold": 40.167767857142856,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0074395991793645,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.008055779981209654,
+              "cell_speed": -0.7017128704839202,
+              "link_count": -0.6596764189959532,
+              "link_speed": 0.1653163007459637
+            }
+          }
+        },
+        "persistence_skill": {
+          "cell_count": 0.06440072669937091,
+          "cell_speed": -0.6973007686545809,
+          "link_count": -0.6163777570075524,
+          "link_speed": 0.15570299855039438
+        },
+        "urban": {
+          "coverage_ratio": 0.09302325581395349,
+          "evaluable": false,
+          "relative_error": {
+            "urban_storage": 2.007439599179364,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.944891527646801
+          }
+        },
+        "holdout": {
+          "seed": 1,
+          "demand": 2,
+          "policy": 2
+        },
+        "free_run_reference": [
+          {
+            "decision_dir": "decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 38.90544786906995,
+            "cell_speed_mape": 0.22860981429001806
+          },
+          {
+            "decision_dir": "decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 89.90670544757822,
+            "cell_speed_mape": 0.3436519479210252
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 38.04785691166801,
+            "cell_speed_mape": 0.23124459818626145
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 18.049368350548757,
+            "cell_speed_mape": 0.1522551845494559
+          }
+        ]
+      },
+      "g6": {
+        "decision_count": 12,
+        "all_decisions": {
+          "spearman_rho": 0.5231128843538827,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "initial": "NOT_EVALUATED"
+        },
+        "complete_decisions_only": {
+          "decision_count": 3,
+          "spearman_rho": 0.5231128843538827,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "spillback_oracle_complete": true,
+          "initial": "FAIL",
+          "release": "FAIL"
+        },
+        "by_horizon": {
+          "1": {
+            "horizon_sec": 60,
+            "decision_count": 1,
+            "spearman_rho": 0.31603130131592855,
+            "pairwise": 0.3076923076923077,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "3": {
+            "horizon_sec": 180,
+            "decision_count": 1,
+            "spearman_rho": 0.6632488611373714,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "5": {
+            "horizon_sec": 300,
+            "decision_count": 1,
+            "spearman_rho": 0.590058490608348,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          }
+        },
+        "persistence_control": {
+          "decision_count": 12,
+          "spearman_rho": null,
+          "ranking_oracle_complete": false,
+          "verdict": "NOT_EVALUATED"
+        },
+        "t0_accepted": [
+          900,
+          960,
+          1020,
+          1080,
+          1140
+        ],
+        "t0_rejected_initial_state_mismatch": []
+      },
+      "elapsed_sec": 31.7
+    },
+    "c_FDC_post": {
+      "label": "(c) FD_C 자유분지 재적합 + 토폴로지 정정 후",
+      "tuning": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\gates_scoring\\gates_cfgC_fdc_post.json",
+      "realized": {
+        "v_free": 122.562,
+        "rho_crit": 21.419,
+        "a_m": 1.724,
+        "q_cap_veh_h": 6956.0,
+        "seg_len_scalar_km": 1.346925,
+        "seg_len_FW_E_km": 1.346639,
+        "seg_len_FW_W_km": 1.347212,
+        "capacity_drop_phi": 1.0,
+        "control_interval_sec": 60.0
+      },
+      "g5": {
+        "episode_count": 672,
+        "initial": "FAIL",
+        "promotion": "FAIL",
+        "criteria": {
+          "freeway_mean_speed_mape_cell": {
+            "value": 0.13638953501141535,
+            "threshold": 0.1,
+            "verdict": "FAIL"
+          },
+          "freeway_mean_speed_mape_link": {
+            "value": 0.044651729641178646,
+            "threshold": 0.1,
+            "verdict": "PASS"
+          },
+          "cell_count_mae": {
+            "value": 14.359735027177885,
+            "threshold": 5.045492311507937,
+            "verdict": "FAIL"
+          },
+          "link_count_mae": {
+            "value": 70.74778507118404,
+            "threshold": 40.3639384920635,
+            "verdict": "FAIL"
+          },
+          "urban_one_step_queue_storage_error": {
+            "value": 2.097918477623421,
+            "threshold": 0.25,
+            "verdict": "NOT_EVALUATED"
+          }
+        },
+        "aggregate": {
+          "cell_count": {
+            "mae": 14.359735027177885,
+            "mape": 0.31062515477623176,
+            "bias": 8.828616018513491,
+            "mean_observed": 50.45492311507937,
+            "sample_count": 32256
+          },
+          "cell_speed": {
+            "mae": 12.539420390653532,
+            "mape": 0.13638953501141535,
+            "bias": 0.1828307259975172,
+            "mean_observed": 102.56567440225264,
+            "sample_count": 32256
+          },
+          "link_count": {
+            "mae": 70.74778507118404,
+            "mape": 0.18254042063270184,
+            "bias": 70.62892814810793,
+            "mean_observed": 403.63938492063494,
+            "sample_count": 4032
+          },
+          "link_speed": {
+            "mae": 4.417329749328856,
+            "mape": 0.044651729641178646,
+            "bias": 1.5802961070427488,
+            "mean_observed": 99.9086235532715,
+            "sample_count": 4032
+          }
+        },
+        "by_horizon": {
+          "1": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.126569909647475,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.04896582578782916,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 9.919897839117132,
+                "threshold": 5.110965401785715,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 36.621116735675464,
+                "threshold": 40.88772321428572,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0979184776234208,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.06528252562320425,
+              "cell_speed": -0.6899520349603308,
+              "link_count": -1.8512791619017395,
+              "link_speed": -0.26013109060855233
+            }
+          },
+          "3": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13503615404407995,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.041669937537946775,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 13.332478301207884,
+                "threshold": 5.064536830357143,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 60.004164630417236,
+                "threshold": 40.51629464285715,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0979184776234208,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.20190162400089862,
+              "cell_speed": -0.7391520375973792,
+              "link_count": -2.258407970233566,
+              "link_speed": -0.06641346041807017
+            }
+          },
+          "5": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13916548866460465,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.045577985673787666,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 15.864056500372037,
+                "threshold": 5.020970982142857,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 84.01929100274585,
+                "threshold": 40.167767857142856,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.0979184776234208,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.4177262854597119,
+              "cell_speed": -0.7918619423221924,
+              "link_count": -2.6594764013718075,
+              "link_speed": -0.11966635858316499
+            }
+          }
+        },
+        "persistence_skill": {
+          "cell_count": -0.29444567636497476,
+          "cell_speed": -0.7637815148096949,
+          "link_count": -2.4815650520182837,
+          "link_speed": -0.11742754099930286
+        },
+        "urban": {
+          "coverage_ratio": 0.09302325581395349,
+          "evaluable": false,
+          "relative_error": {
+            "urban_storage": 2.097918477623421,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.944891527646801
+          }
+        },
+        "holdout": {
+          "seed": 1,
+          "demand": 2,
+          "policy": 2
+        },
+        "free_run_reference": [
+          {
+            "decision_dir": "decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 37.11846033421684,
+            "cell_speed_mape": 0.1861469386472007
+          },
+          {
+            "decision_dir": "decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 130.40083562589314,
+            "cell_speed_mape": 0.35905368785137076
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 73.66300652609998,
+            "cell_speed_mape": 0.2971135707856313
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 102.86315971621192,
+            "cell_speed_mape": 0.3203453770520163
+          }
+        ]
+      },
+      "g6": {
+        "decision_count": 12,
+        "all_decisions": {
+          "spearman_rho": 0.535350399134516,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "initial": "NOT_EVALUATED"
+        },
+        "complete_decisions_only": {
+          "decision_count": 3,
+          "spearman_rho": 0.535350399134516,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "spillback_oracle_complete": true,
+          "initial": "FAIL",
+          "release": "FAIL"
+        },
+        "by_horizon": {
+          "1": {
+            "horizon_sec": 60,
+            "decision_count": 1,
+            "spearman_rho": 0.31603130131592855,
+            "pairwise": 0.3076923076923077,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "3": {
+            "horizon_sec": 180,
+            "decision_count": 1,
+            "spearman_rho": 0.6844917072236216,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "5": {
+            "horizon_sec": 300,
+            "decision_count": 1,
+            "spearman_rho": 0.6055281888639976,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          }
+        },
+        "persistence_control": {
+          "decision_count": 12,
+          "spearman_rho": null,
+          "ranking_oracle_complete": false,
+          "verdict": "NOT_EVALUATED"
+        },
+        "t0_accepted": [
+          900,
+          960,
+          1020,
+          1080,
+          1140
+        ],
+        "t0_rejected_initial_state_mismatch": []
+      },
+      "elapsed_sec": 31.6
+    },
+    "d_FDA_post_cd": {
+      "label": "(d) FD_A + 토폴로지 정정 후 + capacity drop phi=0.6",
+      "tuning": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\gates_scoring\\gates_cfgD_fda_post_cd.json",
+      "realized": {
+        "v_free": 119.505,
+        "rho_crit": 16.354,
+        "a_m": 2.154,
+        "q_cap_veh_h": 4914.0,
+        "seg_len_scalar_km": 1.346925,
+        "seg_len_FW_E_km": 1.346639,
+        "seg_len_FW_W_km": 1.347212,
+        "capacity_drop_phi": 0.6,
+        "control_interval_sec": 60.0
+      },
+      "g5": {
+        "episode_count": 672,
+        "initial": "FAIL",
+        "promotion": "FAIL",
+        "criteria": {
+          "freeway_mean_speed_mape_cell": {
+            "value": 0.13530739675312123,
+            "threshold": 0.1,
+            "verdict": "FAIL"
+          },
+          "freeway_mean_speed_mape_link": {
+            "value": 0.061431442796778965,
+            "threshold": 0.1,
+            "verdict": "PASS"
+          },
+          "cell_count_mae": {
+            "value": 13.383023947096381,
+            "threshold": 5.045492311507937,
+            "verdict": "FAIL"
+          },
+          "link_count_mae": {
+            "value": 39.87743204756446,
+            "threshold": 40.3639384920635,
+            "verdict": "PASS"
+          },
+          "urban_one_step_queue_storage_error": {
+            "value": 1.88482913468146,
+            "threshold": 0.25,
+            "verdict": "NOT_EVALUATED"
+          }
+        },
+        "aggregate": {
+          "cell_count": {
+            "mae": 13.383023947096381,
+            "mape": 0.27405404692030044,
+            "bias": 4.691231145947253,
+            "mean_observed": 50.45492311507937,
+            "sample_count": 32256
+          },
+          "cell_speed": {
+            "mae": 12.728210078058972,
+            "mape": 0.13530739675312123,
+            "bias": -2.136156634051094,
+            "mean_observed": 102.56567440225264,
+            "sample_count": 32256
+          },
+          "link_count": {
+            "mae": 39.87743204756446,
+            "mape": 0.1077900011186103,
+            "bias": 37.52984916757802,
+            "mean_observed": 403.63938492063494,
+            "sample_count": 4032
+          },
+          "link_speed": {
+            "mae": 6.015912545256585,
+            "mape": 0.061431442796778965,
+            "bias": -2.533637841430771,
+            "mean_observed": 99.9086235532715,
+            "sample_count": 4032
+          }
+        },
+        "by_horizon": {
+          "1": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.11921780909334766,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.040692107392800936,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 9.439133924114993,
+                "threshold": 5.110965401785715,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 21.364918125852164,
+                "threshold": 40.88772321428572,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 1.8848291346814599,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.11058323735334585,
+              "cell_speed": -0.6746269743928579,
+              "link_count": -0.6634486132050346,
+              "link_speed": -0.04575740776709614
+            }
+          },
+          "3": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.1321305227548782,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.05392697701259598,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 12.465564733116867,
+                "threshold": 5.064536830357143,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 33.169679216262445,
+                "threshold": 40.51629464285715,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 1.8848291346814599,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.12375075048606154,
+              "cell_speed": -0.7524205842893086,
+              "link_count": -0.8012140956224938,
+              "link_speed": -0.36758833721109885
+            }
+          },
+          "5": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.14043143868402175,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.07008198934808435,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 14.72227748008037,
+                "threshold": 5.020970982142857,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 47.60458653068813,
+                "threshold": 40.167767857142856,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 1.8848291346814599,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.31568869316949466,
+              "cell_speed": -0.833943746080652,
+              "link_count": -1.0734269347788485,
+              "link_speed": -0.6995381533499994
+            }
+          }
+        },
+        "persistence_skill": {
+          "cell_count": -0.2064009156311315,
+          "cell_speed": -0.790336471136114,
+          "link_count": -0.9624059416325521,
+          "link_speed": -0.5218122132119021
+        },
+        "urban": {
+          "coverage_ratio": 0.09302325581395349,
+          "evaluable": false,
+          "relative_error": {
+            "urban_storage": 1.88482913468146,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.944891527646801
+          }
+        },
+        "holdout": {
+          "seed": 1,
+          "demand": 2,
+          "policy": 2
+        },
+        "free_run_reference": [
+          {
+            "decision_dir": "decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 125.18769924480848,
+            "cell_speed_mape": 0.35125389209071034
+          },
+          {
+            "decision_dir": "decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 170.4376575687734,
+            "cell_speed_mape": 0.4317843867901343
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 88.27460300916283,
+            "cell_speed_mape": 0.2997179371983451
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 131.69809652290172,
+            "cell_speed_mape": 0.35888821643227514
+          }
+        ]
+      },
+      "g6": {
+        "decision_count": 12,
+        "all_decisions": {
+          "spearman_rho": 0.5231128843538827,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "initial": "NOT_EVALUATED"
+        },
+        "complete_decisions_only": {
+          "decision_count": 3,
+          "spearman_rho": 0.5231128843538827,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "spillback_oracle_complete": true,
+          "initial": "FAIL",
+          "release": "FAIL"
+        },
+        "by_horizon": {
+          "1": {
+            "horizon_sec": 60,
+            "decision_count": 1,
+            "spearman_rho": 0.31603130131592855,
+            "pairwise": 0.3076923076923077,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "3": {
+            "horizon_sec": 180,
+            "decision_count": 1,
+            "spearman_rho": 0.6632488611373714,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "5": {
+            "horizon_sec": 300,
+            "decision_count": 1,
+            "spearman_rho": 0.590058490608348,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          }
+        },
+        "persistence_control": {
+          "decision_count": 12,
+          "spearman_rho": null,
+          "ranking_oracle_complete": false,
+          "verdict": "NOT_EVALUATED"
+        },
+        "t0_accepted": [
+          900,
+          960,
+          1020,
+          1080,
+          1140
+        ],
+        "t0_rejected_initial_state_mismatch": []
+      },
+      "elapsed_sec": 31.6
+    },
+    "e_FDC_post_cd": {
+      "label": "(e) FD_C + 토폴로지 정정 후 + capacity drop phi=0.6",
+      "tuning": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\gates_scoring\\gates_cfgE_fdc_post_cd.json",
+      "realized": {
+        "v_free": 122.562,
+        "rho_crit": 21.419,
+        "a_m": 1.724,
+        "q_cap_veh_h": 6956.0,
+        "seg_len_scalar_km": 1.346925,
+        "seg_len_FW_E_km": 1.346639,
+        "seg_len_FW_W_km": 1.347212,
+        "capacity_drop_phi": 0.6,
+        "control_interval_sec": 60.0
+      },
+      "g5": {
+        "episode_count": 672,
+        "initial": "FAIL",
+        "promotion": "FAIL",
+        "criteria": {
+          "freeway_mean_speed_mape_cell": {
+            "value": 0.13668273919672816,
+            "threshold": 0.1,
+            "verdict": "FAIL"
+          },
+          "freeway_mean_speed_mape_link": {
+            "value": 0.04655628350536686,
+            "threshold": 0.1,
+            "verdict": "PASS"
+          },
+          "cell_count_mae": {
+            "value": 14.700864537099289,
+            "threshold": 5.045492311507937,
+            "verdict": "FAIL"
+          },
+          "link_count_mae": {
+            "value": 71.55088399608128,
+            "threshold": 40.3639384920635,
+            "verdict": "FAIL"
+          },
+          "urban_one_step_queue_storage_error": {
+            "value": 2.073910732152557,
+            "threshold": 0.25,
+            "verdict": "NOT_EVALUATED"
+          }
+        },
+        "aggregate": {
+          "cell_count": {
+            "mae": 14.700864537099289,
+            "mape": 0.31506751284744955,
+            "bias": 8.929003384125647,
+            "mean_observed": 50.45492311507937,
+            "sample_count": 32256
+          },
+          "cell_speed": {
+            "mae": 12.58060495885989,
+            "mape": 0.13668273919672816,
+            "bias": 0.11222945892166002,
+            "mean_observed": 102.56567440225264,
+            "sample_count": 32256
+          },
+          "link_count": {
+            "mae": 71.55088399608128,
+            "mape": 0.1841393461352983,
+            "bias": 71.43202707300516,
+            "mean_observed": 403.63938492063494,
+            "sample_count": 4032
+          },
+          "link_speed": {
+            "mae": 4.595380751499146,
+            "mape": 0.04655628350536686,
+            "bias": 1.344720135406508,
+            "mean_observed": 99.9086235532715,
+            "sample_count": 4032
+          }
+        },
+        "by_horizon": {
+          "1": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.12606468235348955,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.048657752192496205,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 10.073857373694944,
+                "threshold": 5.110965401785715,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 36.821606580505645,
+                "threshold": 40.88772321428572,
+                "verdict": "PASS"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.073910732152557,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": 0.05077545411392681,
+              "cell_speed": -0.6861359329597614,
+              "link_count": -1.86688907682769,
+              "link_speed": -0.2536474258271313
+            }
+          },
+          "3": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13485351536458773,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.04296805328605996,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 13.620851346888804,
+                "threshold": 5.064536830357143,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 60.567828575180066,
+                "threshold": 40.51629464285715,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.073910732152557,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.22789799347487572,
+              "cell_speed": -0.7394887964221755,
+              "link_count": -2.2890166305067474,
+              "link_speed": -0.09777015495302277
+            }
+          },
+          "5": {
+            "criteria": {
+              "freeway_mean_speed_mape_cell": {
+                "value": 0.13990388486466018,
+                "threshold": 0.1,
+                "verdict": "FAIL"
+              },
+              "freeway_mean_speed_mape_link": {
+                "value": 0.04828892789952514,
+                "threshold": 0.1,
+                "verdict": "PASS"
+              },
+              "cell_count_mae": {
+                "value": 16.27427388390645,
+                "threshold": 5.020970982142857,
+                "verdict": "FAIL"
+              },
+              "link_count_mae": {
+                "value": 85.08657273173714,
+                "threshold": 40.167767857142856,
+                "verdict": "FAIL"
+              },
+              "urban_one_step_queue_storage_error": {
+                "value": 2.073910732152557,
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED"
+              }
+            },
+            "verdict": "FAIL",
+            "persistence_skill": {
+              "cell_count": -0.45438626378086866,
+              "cell_speed": -0.8026305258102493,
+              "link_count": -2.7059620626318064,
+              "link_speed": -0.18222531926388785
+            }
+          }
+        },
+        "persistence_skill": {
+          "cell_count": -0.325196495816902,
+          "cell_speed": -0.7695744923026526,
+          "link_count": -2.5210863055447708,
+          "link_speed": -0.16246812090118534
+        },
+        "urban": {
+          "coverage_ratio": 0.09302325581395349,
+          "evaluable": false,
+          "relative_error": {
+            "urban_storage": 2.073910732152557,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.944891527646801
+          }
+        },
+        "holdout": {
+          "seed": 1,
+          "demand": 2,
+          "policy": 2
+        },
+        "free_run_reference": [
+          {
+            "decision_dir": "decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 114.87749821731543,
+            "cell_speed_mape": 0.32433621181373595
+          },
+          {
+            "decision_dir": "decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 174.4896243989878,
+            "cell_speed_mape": 0.38239079056320197
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale135_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 106.64626393022846,
+            "cell_speed_mape": 0.31816529283212064
+          },
+          {
+            "decision_dir": "decisions_stackelberg_scale170_warm900_eval3600_seed13",
+            "steps": 60,
+            "cell_count_mae": 139.78110863259025,
+            "cell_speed_mape": 0.3302681104205764
+          }
+        ]
+      },
+      "g6": {
+        "decision_count": 12,
+        "all_decisions": {
+          "spearman_rho": 0.535350399134516,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "initial": "NOT_EVALUATED"
+        },
+        "complete_decisions_only": {
+          "decision_count": 3,
+          "spearman_rho": 0.535350399134516,
+          "pairwise": 0.358974358974359,
+          "spillback_f1": null,
+          "spillback_oracle_complete": true,
+          "initial": "FAIL",
+          "release": "FAIL"
+        },
+        "by_horizon": {
+          "1": {
+            "horizon_sec": 60,
+            "decision_count": 1,
+            "spearman_rho": 0.31603130131592855,
+            "pairwise": 0.3076923076923077,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "3": {
+            "horizon_sec": 180,
+            "decision_count": 1,
+            "spearman_rho": 0.6844917072236216,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          },
+          "5": {
+            "horizon_sec": 300,
+            "decision_count": 1,
+            "spearman_rho": 0.6055281888639976,
+            "pairwise": 0.38461538461538464,
+            "spillback_f1": null,
+            "spillback_oracle_complete": true,
+            "g6_initial": "FAIL"
+          }
+        },
+        "persistence_control": {
+          "decision_count": 12,
+          "spearman_rho": null,
+          "ranking_oracle_complete": false,
+          "verdict": "NOT_EVALUATED"
+        },
+        "t0_accepted": [
+          900,
+          960,
+          1020,
+          1080,
+          1140
+        ],
+        "t0_rejected_initial_state_mismatch": []
+      },
+      "elapsed_sec": 31.6
+    }
+  }
+}

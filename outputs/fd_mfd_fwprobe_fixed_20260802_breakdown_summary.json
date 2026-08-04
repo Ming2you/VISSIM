@@ -1,0 +1,61 @@
+{
+  "run_dir": "evaluation\\runs\\freeway_congestion_probe_fixed_20260802",
+  "run_name": "no_control_fw_breakdown_warm900_eval3600_seed13",
+  "window_sec": [
+    900.0,
+    4500.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 976,
+    "positive_point_count": 976,
+    "links": {
+      "FW_E": {
+        "points": 488,
+        "density_min": 2.227769,
+        "density_max": 95.237105,
+        "speed_mean": 66.38404013319672,
+        "observed_flow_max_vph": 7788.259214214383,
+        "observed_flow_max_density": 17.822148,
+        "binned_capacity_mean_vph": 6239.5992267840575,
+        "binned_critical_density": 23.0
+      },
+      "FW_W": {
+        "points": 488,
+        "density_min": 4.824779,
+        "density_max": 62.722125,
+        "speed_mean": 71.89579372131148,
+        "observed_flow_max_vph": 8401.40735179704,
+        "observed_flow_max_density": 25.422873,
+        "binned_capacity_mean_vph": 7044.749149754022,
+        "binned_critical_density": 27.0
+      }
+    }
+  },
+  "urban_mfd": {
+    "point_count": 61,
+    "state_aligned_peak_production_veh_km_h": 74258.40932999997,
+    "state_aligned_peak_accumulation_veh": 3254.0,
+    "state_aligned_peak_time_sec": 2340.0,
+    "core_peak_production_veh_km_h": 74258.40932999997,
+    "core_peak_accumulation_veh": 3254.0,
+    "core_peak_time_sec": 2340.0,
+    "state_aligned_accumulation_min": 1723.0,
+    "state_aligned_accumulation_max": 3703.0,
+    "core_accumulation_min": 1723.0,
+    "core_accumulation_max": 3703.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_urban_mfd_points.csv",
+    "summary_json": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_summary.json",
+    "freeway_fd_png": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_freeway_fd.png",
+    "urban_mfd_png": "outputs\\fd_mfd_fwprobe_fixed_20260802_breakdown_urban_mfd.png"
+  }
+}

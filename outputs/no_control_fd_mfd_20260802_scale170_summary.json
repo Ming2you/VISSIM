@@ -1,0 +1,61 @@
+{
+  "run_dir": "evaluation\\runs\\no_control_fd_refit_20260801",
+  "run_name": "no_control_scale170_warm900_eval3600_seed13",
+  "window_sec": [
+    900.0,
+    4500.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 976,
+    "positive_point_count": 976,
+    "links": {
+      "FW_E": {
+        "points": 488,
+        "density_min": 2.970358,
+        "density_max": 22.463333,
+        "speed_mean": 103.2576140942623,
+        "observed_flow_max_vph": 6465.975241738177,
+        "observed_flow_max_density": 14.480496,
+        "binned_capacity_mean_vph": 5924.031436706648,
+        "binned_critical_density": 23.0
+      },
+      "FW_W": {
+        "points": 488,
+        "density_min": 3.154663,
+        "density_max": 31.361063,
+        "speed_mean": 101.54132617008197,
+        "observed_flow_max_vph": 7086.509509928001,
+        "observed_flow_max_density": 17.629,
+        "binned_capacity_mean_vph": 5838.2298987614495,
+        "binned_critical_density": 23.0
+      }
+    }
+  },
+  "urban_mfd": {
+    "point_count": 61,
+    "state_aligned_peak_production_veh_km_h": 67602.54071100007,
+    "state_aligned_peak_accumulation_veh": 2417.0,
+    "state_aligned_peak_time_sec": 1140.0,
+    "core_peak_production_veh_km_h": 67602.54071100007,
+    "core_peak_accumulation_veh": 2417.0,
+    "core_peak_time_sec": 1140.0,
+    "state_aligned_accumulation_min": 2335.0,
+    "state_aligned_accumulation_max": 2912.0,
+    "core_accumulation_min": 2335.0,
+    "core_accumulation_max": 2912.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\no_control_fd_mfd_20260802_scale170_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\no_control_fd_mfd_20260802_scale170_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\no_control_fd_mfd_20260802_scale170_urban_mfd_points.csv",
+    "summary_json": "outputs\\no_control_fd_mfd_20260802_scale170_summary.json",
+    "freeway_fd_png": "outputs\\no_control_fd_mfd_20260802_scale170_freeway_fd.png",
+    "urban_mfd_png": "outputs\\no_control_fd_mfd_20260802_scale170_urban_mfd.png"
+  }
+}

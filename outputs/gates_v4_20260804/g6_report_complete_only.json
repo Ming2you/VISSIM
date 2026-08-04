@@ -1,0 +1,418 @@
+{
+  "schema_version": "vissim-strict-shadow-report/v3",
+  "record_schema_version": "vissim-strict-shadow-record/v2",
+  "record_count": 60,
+  "decision_count": 4,
+  "aggregation_policy": {
+    "spearman": "macro_mean_of_complete_decisions",
+    "top_action_pairwise": "micro_agreement_for_deterministic_predicted_top",
+    "spillback": "micro_confusion_matrix",
+    "decision_runtime_fallback": "max_candidate_runtime_when_decision_runtime_missing"
+  },
+  "thresholds": {
+    "spearman_rho_min": 0.7,
+    "top_action_pairwise_agreement_min": 0.8,
+    "spillback_f1_initial_min": 0.8,
+    "spillback_f1_release_min": 0.9,
+    "decision_runtime_p95_sec_max": 30.0,
+    "decision_runtime_hard_sec_max": 45.0,
+    "fallback_rate_max_exclusive": 0.05,
+    "silent_fallback_rate_max": 0.0,
+    "stale_action_failures_max": 0,
+    "readback_failures_max": 0
+  },
+  "provenance": {
+    "complete": true,
+    "topology_hash": "06f033d24ae4d93bbae621d6b002b28944c155422ed7930fd57f2e0ec209b7a0",
+    "program_hashes": [
+      "44e909acacff066fc03690ae0702609b26b8b6b060e66a38a6ec2c0ed9f0e6c7"
+    ],
+    "action_hashes": [
+      "0867979a1ed07c8b05cc8b638c45825214b9b26d27fafac363ba0ea8b5b524c3",
+      "0982448911db41e8074bd404c9b5af6755ab668b40500f4c4d202a1d17e86d26",
+      "0f42bf7923876e9de84240a3749946f1fbb75fa661544fc4c1d46653efc20f8d",
+      "0f912ab3b2d7275e8d38b51d21b0435ed1518d019a1a70c127f6323a04dba6e2",
+      "11d799c2f2ec94b1c55b39d14fb933ae2959da5e48c537fe3115d81e36be5fb9",
+      "132b9550d5c1355cee39076b232ebaa197c42fc9d5990d68c5951b17a1bfbf04",
+      "13f3777363c3018376354e74fda5074bb83d14f4ad0b9668567fe9c970260407",
+      "184e8016e5af57565f98e964f07525db4ad7cffa320b0be3306ff737748f662d",
+      "200764d70558938f17c21b04b4a2344c1a740430ec27b3be373ca1f7441889a2",
+      "2161f4dade7cea47beab18f9e7fcef8c8d614dab6c516bfcc7bebf8564cd01e5",
+      "2714e7c02136c8a68799b72321b78d026b158a78a8eabce4e0f3948ef368ec53",
+      "27861b2e172347222367a8c4c99dc628d7ba47ff02142387496f19cf62cb2d70",
+      "2879727b4831efe82e489af3d62bc9f16125a346c008e26a68f7b2568fabe64e",
+      "28c132c698010ea43be51f30042bb5931a1c49e7699421c58c7aa887244265b7",
+      "29776e91a3e2ba40186e62c530f5236efbe3605f0ff2030385574e84ccba4f6e",
+      "2b1592239e6137dd6c73b94748354149c243ac3b815c92a13db67057bd4c162e",
+      "3a0ffc9213376f0b7793a737ba99a81b9079b49ff47f03fb19e000a39d127df1",
+      "3a64cdad253c67ca305157c4c9eb787e6a5bdc9682322e23440172c87233e717",
+      "3e035e099dd53432fa68056bce30a9c5f12316815af7ec387c96edcbe74cf78f",
+      "3e7af7a0a543da7b21ab4b0fcc6e3662b76e2e4b6a13a2b52b51e61c4c836720",
+      "411a3c6c1ec2c8237e453a29bead12d6f3849be03d2ca4f732412b8315a3b7ac",
+      "484b2c12cddf8c935716b3bda2441b4e03c76d7a4aabde4bffdf5ab98a360819",
+      "4ee57b5fad4552ae8169d5e3705ea74b8a835032d46612b3471d1055b2212a07",
+      "55b9c0c86e080535d0b6cc4a3792a22c89fb08dc6b8a4c3e8ff864de2c1983e4",
+      "5694f84327c543b2f5517a867d6056000c60b68cda4b36fa73abf9a8b90f644c",
+      "57ae56ed7d75564f761591a75fedec19bbf5b44ee8cd30df0ec28152a9a4f1fe",
+      "59f2641bded176ee5c368c130e31c0c8b5a5f93fc8db3821497465a4344b1e62",
+      "5e758ca4dfff5d905fbed3328f21eb31b1b69e6d112f797e0d34686510a7c729",
+      "5f17a4d4a7800849706b1055790b70c678802f2b6b7fb1e2341bb10e793b0065",
+      "6000fd86e28618e5f4dec36fcb13b67850292110d14d2747e9756bb5fb2380d9",
+      "6415b25de41a8e3d78d43a54f6c3bfbd45492706f0d730548d2d3edc0618ad83",
+      "64ace11db37ff9da6c1456999cf508ab59ac39490f383711fa48d4ead2363ea3",
+      "6c2ad5079dac739134e1c2a9e2400174ede8ddd457979b23afc0996236cf92ed",
+      "79760bf0e7b100f54e90a5b5baa427ae0f9daa396a33fe3369c8e37de04f4adb",
+      "82d1bbc10c1669cb39be76da8e5ddad9fc40a0db38dacea4e60fd7343b12e50d",
+      "83e1485b7b833036ff7bdade60ddac587064f2160a57efa0dddceaf7ad929ba4",
+      "848cc99cbfcdc873160d3961cb83f7319affd0fdf699549aabddaa92dcac6986",
+      "86207d90a4c90da24ff3a7e55b858de1947b98da74824feea162b5e6675954b6",
+      "87e3793771529702802656e756b4e94b010951921a6170c70393e0e9706ddc88",
+      "8b264cf37cfe967e8ae512182329393696c29d80ae7f31e1fcc87668733c15f0",
+      "8c3891f1774860234cd7f0f410ce00944996bf12858847e169ae7125d355d91a",
+      "92e4d2288679957d8ba98d095c0c946dc13046ce60861b09b63b0b586b205404",
+      "a5045d6bfa4eda4a2f09eeabc22e3a75e2b9d8ebb382c62b8faf185ddf1c06ae",
+      "a6e8e80b3bc03f78a230712d860fc115a5da201bd3db7042b18e57f1b5ee3d7a",
+      "a7f181fff9a6da808451e1752b623d65461480ef44826ae0c2f857549d81967a",
+      "ae453b57042e3955226fa91c0bbe60cd13fe1be4b0774520e63ff24ec1c85583",
+      "af9042f98433080714ee77e31265514a0a99036743e78cbf723bbb4f527f46e9",
+      "b1d44668447a25946b216f4f7c5a65b9fb1559c2fa18f622d06cdc3a7460b43e",
+      "c0b11ef0960ead1e879c48e8dfe6df7fa74b2acdd92f99e7c459de33fa70efc9",
+      "c680055ae938f5e9684100b0026e1f8147d5ec3b0e8ea486ded94e423147ea23",
+      "c7bf3bc26256ddb158e3463faf5d1aeade79cc4eefe362467bf3f34d4a9da867",
+      "ca8fb4639de1f54f68e16c80b18842c2ba9bb5b7dceac53c7d3eca54d0d55d8b",
+      "cbbf3943a4b0a99bf46aad94454fc4699f314f1cad193b35592c47ac8154a3f8",
+      "cc5ad0bb1d55cd3dac12ddc23bf52ba71d133e732f0a94bc2ff39e7a736dafeb",
+      "d01db88c083bc79f8cc776af99fc46a39036f78908b6129de37a5c60f1c50a4a",
+      "db2886e205254c97cee95c4dbfacad3b9dc804da56491901f1b884b64eb276bf",
+      "dbe464483b19a242915490602f0712a9dfe5d50303780f860d8c0474b624fcc2",
+      "e3bc806ad7f88a10ebfa46175a2c655f322a546466200f5509d4f454d54a50b7",
+      "ef5c5fe441419a735afed56c0f960711e67205a4474454c78d903ef54cc59e47",
+      "f8e05b041684589297fa29976a18bcfea1f1742cee34e921881cd2dc63c1740b"
+    ],
+    "action_set_sha256": "70c9809c9fb7448df2d26690cd09b6e69c5b9ad4ededa0490f380923e38c8951",
+    "policy_hash": "f49b37ccbb336f6772a22fcd927e70efd2cad15e8ee8172d4fb3261eb03d29ed",
+    "build_hash": "8d45758b67b0882ffc4e33faedbceedf04ff783bf9e73c0eccca9eef77ba23d6",
+    "action_schema_hash": "7bc0915fbb3dcba372e1f23d45cadb6ba2b62076d75ce2667e4a9004a07cc71a"
+  },
+  "per_decision": [
+    {
+      "decision_id": "v4_seed13_H1",
+      "candidate_count": 15,
+      "ranking_status": "FAIL",
+      "spearman_rho": 0.234137716371043,
+      "top_action_pairwise": {
+        "agreement_count": 13,
+        "comparison_count": 14,
+        "agreement": 0.9285714285714286
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 6,
+        "false_negative": 0,
+        "true_negative": 9,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 15
+      },
+      "runtime_sec": 0.013188600016292185,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    },
+    {
+      "decision_id": "v4_seed13_H10",
+      "candidate_count": 15,
+      "ranking_status": "FAIL",
+      "spearman_rho": 0.09472747303561281,
+      "top_action_pairwise": {
+        "agreement_count": 4,
+        "comparison_count": 14,
+        "agreement": 0.2857142857142857
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 13,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 15
+      },
+      "runtime_sec": 0.11507820000406355,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    },
+    {
+      "decision_id": "v4_seed13_H15",
+      "candidate_count": 15,
+      "ranking_status": "FAIL",
+      "spearman_rho": 0.06970512166771509,
+      "top_action_pairwise": {
+        "agreement_count": 4,
+        "comparison_count": 14,
+        "agreement": 0.2857142857142857
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 13,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 15
+      },
+      "runtime_sec": 0.17275000002700835,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    },
+    {
+      "decision_id": "v4_seed13_H5",
+      "candidate_count": 15,
+      "ranking_status": "FAIL",
+      "spearman_rho": 0.18051839201126216,
+      "top_action_pairwise": {
+        "agreement_count": 8,
+        "comparison_count": 14,
+        "agreement": 0.5714285714285714
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 13,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 15
+      },
+      "runtime_sec": 0.05825230001937598,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    }
+  ],
+  "aggregate": {
+    "spearman_rho": 0.14477217577140827,
+    "spearman_decision_count": 4,
+    "ranking_oracle_complete": true,
+    "top_action_pairwise": {
+      "agreement_count": 29,
+      "comparison_count": 56,
+      "agreement": 0.5178571428571429
+    },
+    "spillback": {
+      "true_positive": 0,
+      "false_positive": 45,
+      "false_negative": 0,
+      "true_negative": 15,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0,
+      "observation_count": 60
+    },
+    "spillback_oracle_complete": true,
+    "runtime": {
+      "decision_count": 4,
+      "p50_sec": 0.08666525001171976,
+      "p95_sec": 0.1640992300235666,
+      "max_sec": 0.17275000002700835
+    },
+    "fallback_decisions": 0,
+    "fallback_rate": 0.0,
+    "silent_fallback_decisions": 0,
+    "silent_fallback_rate": 0.0,
+    "shadow_contract": {
+      "shadow_mode_record_count": 60,
+      "actuation_attempt_count": 0
+    },
+    "fault_injection": {
+      "stale_observation_count": 0,
+      "fallback_observation_count": 0,
+      "readback_observation_count": 0
+    },
+    "stale_action": {
+      "observation_count": 0,
+      "failure_count": 0
+    },
+    "readback": {
+      "observation_count": 0,
+      "failure_count": 0
+    }
+  },
+  "gates": {
+    "g6_initial": {
+      "verdict": "FAIL",
+      "criteria": [
+        {
+          "name": "provenance_complete",
+          "value": 1,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "PASS"
+        },
+        {
+          "name": "spearman_rho",
+          "value": 0.14477217577140827,
+          "operator": ">=",
+          "threshold": 0.7,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "top_action_pairwise_agreement",
+          "value": 0.5178571428571429,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "spillback_f1",
+          "value": 0.0,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        }
+      ]
+    },
+    "g6_release": {
+      "verdict": "FAIL",
+      "criteria": [
+        {
+          "name": "provenance_complete",
+          "value": 1,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "PASS"
+        },
+        {
+          "name": "spearman_rho",
+          "value": 0.14477217577140827,
+          "operator": ">=",
+          "threshold": 0.7,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "top_action_pairwise_agreement",
+          "value": 0.5178571428571429,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "spillback_f1",
+          "value": 0.0,
+          "operator": ">=",
+          "threshold": 0.9,
+          "verdict": "FAIL"
+        }
+      ]
+    },
+    "g7_shadow_runtime": {
+      "verdict": "NOT_EVALUATED",
+      "criteria": [
+        {
+          "name": "shadow_mode_record_count",
+          "value": 60,
+          "operator": ">=",
+          "threshold": 60,
+          "verdict": "PASS"
+        },
+        {
+          "name": "actuation_attempt_count",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "decision_runtime_p95_sec",
+          "value": 0.1640992300235666,
+          "operator": "<=",
+          "threshold": 30.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "decision_runtime_max_sec",
+          "value": 0.17275000002700835,
+          "operator": "<=",
+          "threshold": 45.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "fallback_rate",
+          "value": 0.0,
+          "operator": "<",
+          "threshold": 0.05,
+          "verdict": "PASS"
+        },
+        {
+          "name": "silent_fallback_rate",
+          "value": 0.0,
+          "operator": "<=",
+          "threshold": 0.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "stale_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "fallback_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "readback_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "stale_action_failures",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "readback_failures",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "NOT_EVALUATED"
+        }
+      ]
+    }
+  },
+  "report_digest_sha256": "03bcfddda57be235081c34fac5939063cc4121349f49a74f768947af46555341"
+}

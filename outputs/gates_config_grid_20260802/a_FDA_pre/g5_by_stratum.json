@@ -1,0 +1,2007 @@
+{
+  "by_stratum": {
+    "seed=13|demand=scale135|policy=pstack_flagship": {
+      "seed": "13",
+      "demand": "scale135",
+      "policy": "pstack_flagship",
+      "decision_dir": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_pstack_flagship_scale135_warm900_eval3600_seed13",
+      "report": {
+        "schema_version": "vissim-gates-g5-report/v1",
+        "label": "seed=13|demand=scale135|policy=pstack_flagship",
+        "protocol": "teacher_forced_rolling_origin",
+        "episode_count": 168,
+        "horizons_steps": [
+          1,
+          3,
+          5
+        ],
+        "interval_sec": 60,
+        "horizon_sec": [
+          60,
+          180,
+          300
+        ],
+        "thresholds": {
+          "freeway_mean_speed_mape_max": 0.1,
+          "cell_count_mae_floor_veh": 5.0,
+          "cell_count_mae_ratio": 0.1,
+          "urban_queue_error_initial_max": 0.25,
+          "urban_queue_error_promotion_max": 0.15
+        },
+        "geometry_note": "count = rho x L x n, L/n 은 관측 state JSON 기하를 양쪽에 공통 적용",
+        "aggregate": {
+          "cell_count": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 10.981406352247983,
+            "rmse": 13.733732331704296,
+            "bias": 5.118821357622801,
+            "mape": 0.2536097074321245,
+            "mape_sample_count": 8064,
+            "mean_observed": 50.11644345238095
+          },
+          "cell_speed": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 12.801385834363314,
+            "rmse": 15.366610928579407,
+            "bias": -0.8477759429180682,
+            "mape": 0.13675562042905234,
+            "mape_sample_count": 8064,
+            "mean_observed": 102.74018275604591
+          },
+          "link_count": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 42.94521638299514,
+            "rmse": 51.97798011778693,
+            "bias": 40.95057086098242,
+            "mape": 0.11924111003187586,
+            "mape_sample_count": 1008,
+            "mean_observed": 400.9315476190476
+          },
+          "link_speed": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 3.289041298141091,
+            "rmse": 4.1031662645372435,
+            "bias": 1.2046154806890415,
+            "mape": 0.03333369542374757,
+            "mape_sample_count": 1008,
+            "mean_observed": 100.08312629686235
+          }
+        },
+        "by_horizon_step": {
+          "cell_count": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 9.331911878801394,
+              "rmse": 11.501293402874861,
+              "bias": 3.3694234150289923,
+              "mape": 0.21094026744404848,
+              "mape_sample_count": 2688,
+              "mean_observed": 50.53236607142857
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 10.861911170485572,
+              "rmse": 13.535838976728055,
+              "bias": 4.26712708457213,
+              "mape": 0.24788869827928378,
+              "mape_sample_count": 1792,
+              "mean_observed": 50.215401785714285
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 11.609477180020347,
+              "rmse": 14.528272010506488,
+              "bias": 5.529169659241163,
+              "mape": 0.26814314029886727,
+              "mape_sample_count": 1792,
+              "mean_observed": 49.957589285714285
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.449126458633797,
+              "rmse": 15.471914204358718,
+              "bias": 7.291140366349276,
+              "mape": 0.29339372552529913,
+              "mape_sample_count": 896,
+              "mean_observed": 49.6796875
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.44501837418203,
+              "rmse": 16.514841992452432,
+              "bias": 9.077388119542375,
+              "mape": 0.32420916187537385,
+              "mape_sample_count": 896,
+              "mean_observed": 49.425223214285715
+            }
+          },
+          "cell_speed": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 12.44186403692306,
+              "rmse": 14.900193432996126,
+              "bias": 0.15657123718324303,
+              "mape": 0.1347823055317672,
+              "mape_sample_count": 2688,
+              "mean_observed": 102.62906088387861
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.942585197311951,
+              "rmse": 15.552708573087527,
+              "bias": -0.32449840284355774,
+              "mape": 0.13919824809381384,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.71179529491322
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.921892236268942,
+              "rmse": 15.582308164204324,
+              "bias": -1.0131327325742994,
+              "mape": 0.1376898223418507,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.78282910340943
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.99370856641363,
+              "rmse": 15.589769555228331,
+              "bias": -2.1492599014944083,
+              "mape": 0.13646816370287002,
+              "mape_sample_count": 896,
+              "mean_observed": 102.85850898826823
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.164216964925231,
+              "rmse": 15.707203178750822,
+              "bias": -3.2751750254822207,
+              "mape": 0.13620936269197031,
+              "mape_sample_count": 896,
+              "mean_observed": 102.92670436786382
+            }
+          },
+          "link_count": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 27.350503918387485,
+              "rmse": 30.793973388514257,
+              "bias": 26.955387320231942,
+              "mape": 0.0731798811096654,
+              "mape_sample_count": 336,
+              "mean_observed": 404.25892857142856
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 36.65591576224578,
+              "rmse": 42.05647553119391,
+              "bias": 34.13701667657704,
+              "mape": 0.10116058406701599,
+              "mape_sample_count": 224,
+              "mean_observed": 401.7232142857143
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 47.590524858563036,
+              "rmse": 54.493657308993015,
+              "bias": 44.23335727392931,
+              "mape": 0.1334126330227415,
+              "mape_sample_count": 224,
+              "mean_observed": 399.6607142857143
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 61.210143264058686,
+              "rmse": 69.640789029706,
+              "bias": 58.32912293079421,
+              "mape": 0.1727741427774318,
+              "mape_sample_count": 112,
+              "mean_observed": 397.4375
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 74.7524111861175,
+              "rmse": 84.52299228172255,
+              "bias": 72.619104956339,
+              "mape": 0.21170977000093974,
+              "mape_sample_count": 112,
+              "mean_observed": 395.4017857142857
+            }
+          },
+          "link_speed": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 3.5192791462790147,
+              "rmse": 4.400224338191566,
+              "bias": 2.529210441077395,
+              "mape": 0.03581936214929483,
+              "mape_sample_count": 336,
+              "mean_observed": 99.92566407421957
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 3.2708671071070077,
+              "rmse": 4.015583103042223,
+              "bias": 1.8249264031059609,
+              "mape": 0.033389070140368016,
+              "mape_sample_count": 224,
+              "mean_observed": 100.02612763886741
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 2.8622522092095304,
+              "rmse": 3.6355839266771484,
+              "bias": 0.8308340122046494,
+              "mape": 0.029046107241872534,
+              "mape_sample_count": 224,
+              "mean_observed": 100.15701922161489
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 3.1790120861794287,
+              "rmse": 3.9082316639546737,
+              "bias": -0.4571386296088202,
+              "mape": 0.031888542552679124,
+              "mape_sample_count": 112,
+              "mean_observed": 100.26966558016325
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 3.598283525620272,
+              "rmse": 4.413480128067608,
+              "bias": -1.6004741980432142,
+              "mape": 0.03578627504868341,
+              "mape_sample_count": 112,
+              "mean_observed": 100.33518514797447
+            }
+          }
+        },
+        "urban": {
+          "coverage": {
+            "total_entities": 43,
+            "observed_entities": 4,
+            "ratio": 0.09302325581395349,
+            "observed_names": [
+              "OR_D_E_storage",
+              "OR_D_W_storage",
+              "OR_F_E_storage",
+              "OR_F_W_storage"
+            ],
+            "unobserved_sample": [
+              "A_left_out",
+              "A_to_B",
+              "A_to_D",
+              "A_top_out",
+              "B_to_A",
+              "B_to_C",
+              "B_to_E",
+              "B_top_out",
+              "C_right_out",
+              "C_to_B",
+              "C_to_F",
+              "C_top_out"
+            ]
+          },
+          "levels": {
+            "urban_storage": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 6.349502130494208,
+              "rmse": 9.195394324828577,
+              "bias": 5.230466461921086,
+              "mape": 3.382258579614433,
+              "mape_sample_count": 660,
+              "mean_observed": 2.939732142857143
+            },
+            "urban_queue": {
+              "sample_count": 0,
+              "mae": null,
+              "mape": null,
+              "mean_observed": null,
+              "rmse": null,
+              "bias": null
+            },
+            "interface_ramp_queue": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 6.110775993560888,
+              "rmse": 7.512383385703315,
+              "bias": -6.101957666899182,
+              "mape": 0.9072214151266594,
+              "mape_sample_count": 666,
+              "mean_observed": 6.522321428571429
+            }
+          },
+          "relative_error": {
+            "urban_storage": 2.159891385316177,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.936902000381683
+          },
+          "evaluable": false,
+          "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+        },
+        "gates": {
+          "g5_initial": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13675562042905234,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.03333369542374757,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 10.981406352247983,
+                "operator": "<=",
+                "threshold": 5.011644345238095,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 42.94521638299514,
+                "operator": "<=",
+                "threshold": 40.09315476190476,
+                "verdict": "FAIL",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 2.159891385316177,
+                "operator": "<=",
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          },
+          "g5_promotion": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13675562042905234,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.03333369542374757,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 10.981406352247983,
+                "operator": "<=",
+                "threshold": 5.011644345238095,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 42.94521638299514,
+                "operator": "<=",
+                "threshold": 40.09315476190476,
+                "verdict": "FAIL",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 2.159891385316177,
+                "operator": "<=",
+                "threshold": 0.15,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          }
+        },
+        "persistence_baseline": {
+          "aggregate": {
+            "cell_count": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 10.985863095238095,
+              "rmse": 14.334189827676799,
+              "bias": 0.7306547619047619,
+              "mape": 0.23968055147924724,
+              "mape_sample_count": 8064,
+              "mean_observed": 50.11644345238095
+            },
+            "cell_speed": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 6.794675768023784,
+              "rmse": 10.147406878943393,
+              "bias": -0.1973424030858411,
+              "mape": 0.07487946982526325,
+              "mape_sample_count": 8064,
+              "mean_observed": 102.74018275604591
+            },
+            "link_count": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 19.821428571428573,
+              "rmse": 25.459468254649856,
+              "bias": 5.845238095238095,
+              "mape": 0.051690790638455074,
+              "mape_sample_count": 1008,
+              "mean_observed": 400.9315476190476
+            },
+            "link_speed": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 3.8795583047290414,
+              "rmse": 4.814002064950504,
+              "bias": -0.24558228007545457,
+              "mape": 0.038903340854561784,
+              "mape_sample_count": 1008,
+              "mean_observed": 100.08312629686235
+            }
+          },
+          "skill_score": {
+            "cell_count": 0.00040567982246597634,
+            "cell_speed": -0.8840318907647551,
+            "link_count": -1.1666055112141693,
+            "link_speed": 0.15221243249988836
+          },
+          "note": "skill = 1 - MAE_model / MAE_persistence. 양수면 모델이 Delta=0 보다 낫다."
+        }
+      }
+    },
+    "seed=13|demand=scale170|policy=pstack_flagship": {
+      "seed": "13",
+      "demand": "scale170",
+      "policy": "pstack_flagship",
+      "decision_dir": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_pstack_flagship_scale170_warm900_eval3600_seed13",
+      "report": {
+        "schema_version": "vissim-gates-g5-report/v1",
+        "label": "seed=13|demand=scale170|policy=pstack_flagship",
+        "protocol": "teacher_forced_rolling_origin",
+        "episode_count": 168,
+        "horizons_steps": [
+          1,
+          3,
+          5
+        ],
+        "interval_sec": 60,
+        "horizon_sec": [
+          60,
+          180,
+          300
+        ],
+        "thresholds": {
+          "freeway_mean_speed_mape_max": 0.1,
+          "cell_count_mae_floor_veh": 5.0,
+          "cell_count_mae_ratio": 0.1,
+          "urban_queue_error_initial_max": 0.25,
+          "urban_queue_error_promotion_max": 0.15
+        },
+        "geometry_note": "count = rho x L x n, L/n 은 관측 state JSON 기하를 양쪽에 공통 적용",
+        "aggregate": {
+          "cell_count": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 12.103144356750002,
+            "rmse": 15.323800913748114,
+            "bias": 6.621982614270208,
+            "mape": 0.27930338302763813,
+            "mape_sample_count": 8064,
+            "mean_observed": 50.971602182539684
+          },
+          "cell_speed": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 13.162236844117391,
+            "rmse": 15.662279480409852,
+            "bias": -2.5260243650640497,
+            "mape": 0.13864763373208303,
+            "mape_sample_count": 8064,
+            "mean_observed": 102.82355295761089
+          },
+          "link_count": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 53.874201689939454,
+            "rmse": 68.60531870858087,
+            "bias": 52.97586091416166,
+            "mape": 0.15354455982216186,
+            "mape_sample_count": 1008,
+            "mean_observed": 407.77281746031747
+          },
+          "link_speed": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 3.174152981391351,
+            "rmse": 4.0119008021839,
+            "bias": -0.43860933712981176,
+            "mape": 0.03176419488462703,
+            "mape_sample_count": 1008,
+            "mean_observed": 99.96141973390692
+          }
+        },
+        "by_horizon_step": {
+          "cell_count": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 9.640760251085087,
+              "rmse": 11.948310270164518,
+              "bias": 3.9506825856881953,
+              "mape": 0.2131074089772667,
+              "mape_sample_count": 2688,
+              "mean_observed": 51.88169642857143
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 11.881018557420884,
+              "rmse": 14.825747969791125,
+              "bias": 5.375832618494679,
+              "mape": 0.266607709413557,
+              "mape_sample_count": 1792,
+              "mean_observed": 51.229910714285715
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.99718050013445,
+              "rmse": 16.433952737396982,
+              "bias": 7.407917970717199,
+              "mape": 0.30193302451743104,
+              "mape_sample_count": 1792,
+              "mean_observed": 50.595982142857146
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 14.406019778587062,
+              "rmse": 17.990991612314357,
+              "bias": 9.884342231727315,
+              "mape": 0.3458061796797618,
+              "mape_sample_count": 896,
+              "mean_observed": 49.984375
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 15.843600563797027,
+              "rmse": 19.535929079248795,
+              "bias": 12.29395236121621,
+              "mape": 0.39152057277520486,
+              "mape_sample_count": 896,
+              "mean_observed": 49.463169642857146
+            }
+          },
+          "cell_speed": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 12.669233169288226,
+              "rmse": 15.045383829133483,
+              "bias": -1.0334020108878348,
+              "mape": 0.13608240799464347,
+              "mape_sample_count": 2688,
+              "mean_observed": 102.47888792434671
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 13.170860460378382,
+              "rmse": 15.770774412750587,
+              "bias": -1.7665813286107677,
+              "mape": 0.14019766212684975,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.76267124705385
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 13.297495228743307,
+              "rmse": 15.87694490408945,
+              "bias": -2.8578602424847417,
+              "mape": 0.13942984026086608,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.95369126366678
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.53579401649205,
+              "rmse": 16.05544228487538,
+              "bias": -4.4158195969527645,
+              "mape": 0.13925308526234675,
+              "mape_sample_count": 896,
+              "mean_observed": 103.1822973679294
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.979926694456406,
+              "rmse": 16.4105339922462,
+              "bias": -5.969310513769161,
+              "mape": 0.14107338956703847,
+              "mape_sample_count": 896,
+              "mean_observed": 103.36029045608721
+            }
+          },
+          "link_count": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 31.897976308990273,
+              "rmse": 36.316050701561494,
+              "bias": 31.605460685505562,
+              "mape": 0.08587420559948626,
+              "mape_sample_count": 336,
+              "mean_observed": 415.05357142857144
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 44.25199432766669,
+              "rmse": 53.48642751381759,
+              "bias": 43.00666094795743,
+              "mape": 0.12503141711742569,
+              "mape_sample_count": 224,
+              "mean_observed": 409.8392857142857
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 60.99878231554759,
+              "rmse": 73.38425655374175,
+              "bias": 59.263343765737595,
+              "mape": 0.17576637184518476,
+              "mape_sample_count": 224,
+              "mean_observed": 404.76785714285717
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 80.24179755719409,
+              "rmse": 94.60004863290348,
+              "bias": 79.07473785381852,
+              "mape": 0.23386594868895852,
+              "mape_sample_count": 112,
+              "mean_observed": 399.875
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 98.43053543886164,
+              "rmse": 113.85243915989787,
+              "bias": 98.35161888972968,
+              "mape": 0.2888168949868185,
+              "mape_sample_count": 112,
+              "mean_observed": 395.70535714285717
+            }
+          },
+          "link_speed": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 3.154513331027304,
+              "rmse": 3.9738048671712916,
+              "bias": 1.4537599304276738,
+              "mape": 0.03217319286081076,
+              "mape_sample_count": 336,
+              "mean_observed": 99.49331889021724
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 2.64397906119382,
+              "rmse": 3.3856359490753047,
+              "bias": 0.4130550308441229,
+              "mape": 0.026909245828325604,
+              "mape_sample_count": 224,
+              "mean_observed": 99.88303183285737
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 2.61780951779816,
+              "rmse": 3.2582000685790433,
+              "bias": -0.9977915090872032,
+              "mape": 0.025960179916398853,
+              "mape_sample_count": 224,
+              "mean_observed": 100.13450032930697
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 3.732577722706932,
+              "rmse": 4.485327318844999,
+              "bias": -2.763268121823741,
+              "mape": 0.03647756658817473,
+              "mape_sample_count": 112,
+              "mean_observed": 100.46610441776724
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 4.847681958749356,
+              "rmse": 5.762794370938057,
+              "bias": -4.376022747141426,
+              "mape": 0.04714175730158732,
+              "mape_sample_count": 112,
+              "mean_observed": 100.6716521924146
+            }
+          }
+        },
+        "urban": {
+          "coverage": {
+            "total_entities": 43,
+            "observed_entities": 4,
+            "ratio": 0.09302325581395349,
+            "observed_names": [
+              "OR_D_E_storage",
+              "OR_D_W_storage",
+              "OR_F_E_storage",
+              "OR_F_W_storage"
+            ],
+            "unobserved_sample": [
+              "A_left_out",
+              "A_to_B",
+              "A_to_D",
+              "A_top_out",
+              "B_to_A",
+              "B_to_C",
+              "B_to_E",
+              "B_top_out",
+              "C_right_out",
+              "C_to_B",
+              "C_to_F",
+              "C_top_out"
+            ]
+          },
+          "levels": {
+            "urban_storage": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 7.9626769157057495,
+              "rmse": 10.907839689302328,
+              "bias": 7.3095054646546,
+              "mape": 4.473196013223315,
+              "mape_sample_count": 666,
+              "mean_observed": 2.5892857142857144
+            },
+            "urban_queue": {
+              "sample_count": 0,
+              "mae": null,
+              "mape": null,
+              "mean_observed": null,
+              "rmse": null,
+              "bias": null
+            },
+            "interface_ramp_queue": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 6.003698111619544,
+              "rmse": 7.160381802666903,
+              "bias": -6.001465968762401,
+              "mape": 0.9050435608549808,
+              "mape_sample_count": 669,
+              "mean_observed": 6.428571428571429
+            }
+          },
+          "relative_error": {
+            "urban_storage": 3.075240739858772,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.9339085951408179
+          },
+          "evaluable": false,
+          "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+        },
+        "gates": {
+          "g5_initial": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13864763373208303,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.03176419488462703,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 12.103144356750002,
+                "operator": "<=",
+                "threshold": 5.097160218253968,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 53.874201689939454,
+                "operator": "<=",
+                "threshold": 40.77728174603175,
+                "verdict": "FAIL",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 3.075240739858772,
+                "operator": "<=",
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          },
+          "g5_promotion": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13864763373208303,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.03176419488462703,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 12.103144356750002,
+                "operator": "<=",
+                "threshold": 5.097160218253968,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 53.874201689939454,
+                "operator": "<=",
+                "threshold": 40.77728174603175,
+                "verdict": "FAIL",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 3.075240739858772,
+                "operator": "<=",
+                "threshold": 0.15,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          }
+        },
+        "persistence_baseline": {
+          "aggregate": {
+            "cell_count": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 11.155753968253968,
+              "rmse": 14.718657849440243,
+              "bias": 1.542906746031746,
+              "mape": 0.23808947252191262,
+              "mape_sample_count": 8064,
+              "mean_observed": 50.971602182539684
+            },
+            "cell_speed": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 6.8360308231139495,
+              "rmse": 10.058751808509951,
+              "bias": -0.6161779597940068,
+              "mape": 0.07447852584129155,
+              "mape_sample_count": 8064,
+              "mean_observed": 102.82355295761089
+            },
+            "link_count": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 19.490079365079364,
+              "rmse": 26.29114311606109,
+              "bias": 12.343253968253968,
+              "mape": 0.04910907203821608,
+              "mape_sample_count": 1008,
+              "mean_observed": 407.77281746031747
+            },
+            "link_speed": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 3.672561910477401,
+              "rmse": 4.563461208766008,
+              "bias": -0.8877330331354429,
+              "mape": 0.03697440289676065,
+              "mape_sample_count": 1008,
+              "mean_observed": 99.96141973390692
+            }
+          },
+          "skill_score": {
+            "cell_count": -0.08492392277492233,
+            "cell_speed": -0.9254209328040637,
+            "link_count": -1.7641858548029612,
+            "link_speed": 0.13571151180982022
+          },
+          "note": "skill = 1 - MAE_model / MAE_persistence. 양수면 모델이 Delta=0 보다 낫다."
+        }
+      }
+    },
+    "seed=13|demand=scale135|policy=stackelberg": {
+      "seed": "13",
+      "demand": "scale135",
+      "policy": "stackelberg",
+      "decision_dir": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_stackelberg_scale135_warm900_eval3600_seed13",
+      "report": {
+        "schema_version": "vissim-gates-g5-report/v1",
+        "label": "seed=13|demand=scale135|policy=stackelberg",
+        "protocol": "teacher_forced_rolling_origin",
+        "episode_count": 168,
+        "horizons_steps": [
+          1,
+          3,
+          5
+        ],
+        "interval_sec": 60,
+        "horizon_sec": [
+          60,
+          180,
+          300
+        ],
+        "thresholds": {
+          "freeway_mean_speed_mape_max": 0.1,
+          "cell_count_mae_floor_veh": 5.0,
+          "cell_count_mae_ratio": 0.1,
+          "urban_queue_error_initial_max": 0.25,
+          "urban_queue_error_promotion_max": 0.15
+        },
+        "geometry_note": "count = rho x L x n, L/n 은 관측 state JSON 기하를 양쪽에 공통 적용",
+        "aggregate": {
+          "cell_count": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 10.439716223895191,
+            "rmse": 13.087177992181116,
+            "bias": 3.511402646318413,
+            "mape": 0.23538177093361415,
+            "mape_sample_count": 8064,
+            "mean_observed": 49.465897817460316
+          },
+          "cell_speed": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 12.08523053415259,
+            "rmse": 14.649715198214796,
+            "bias": 0.24461441923386268,
+            "mape": 0.1284880084868457,
+            "mape_sample_count": 8064,
+            "mean_observed": 102.51390708825123
+          },
+          "link_count": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 35.721591589634166,
+            "rmse": 44.66620211352541,
+            "bias": 28.091221170547303,
+            "mape": 0.10155335811501708,
+            "mape_sample_count": 1008,
+            "mean_observed": 395.72718253968253
+          },
+          "link_speed": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 3.7875204907979834,
+            "rmse": 4.732761942873827,
+            "bias": 1.806770330878709,
+            "mape": 0.038506630104420556,
+            "mape_sample_count": 1008,
+            "mean_observed": 100.31337695194219
+          }
+        },
+        "by_horizon_step": {
+          "cell_count": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 8.843826454116307,
+              "rmse": 10.886830081681723,
+              "bias": 2.9061476408324234,
+              "mape": 0.19886087603485966,
+              "mape_sample_count": 2688,
+              "mean_observed": 49.8671875
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 10.48612314825282,
+              "rmse": 13.010376205954586,
+              "bias": 3.084061300864402,
+              "mape": 0.233639483345814,
+              "mape_sample_count": 1792,
+              "mean_observed": 49.564732142857146
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 11.253008102888542,
+              "rmse": 14.088618370011773,
+              "bias": 3.5710990859626093,
+              "mape": 0.25235586830971796,
+              "mape_sample_count": 1792,
+              "mean_observed": 49.324776785714285
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 11.744138475213381,
+              "rmse": 14.727658059256644,
+              "bias": 4.382654570981097,
+              "mape": 0.2673373865863002,
+              "mape_sample_count": 896,
+              "mean_observed": 49.042410714285715
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.203565675211687,
+              "rmse": 15.279948213460859,
+              "bias": 5.19120554973333,
+              "mape": 0.2825252204005841,
+              "mape_sample_count": 896,
+              "mean_observed": 48.770089285714285
+            }
+          },
+          "cell_speed": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 11.54202559293393,
+              "rmse": 13.877646652900953,
+              "bias": 0.587418004303904,
+              "mape": 0.12365465307629465,
+              "mape_sample_count": 2688,
+              "mean_observed": 102.34369681159544
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.335101491928016,
+              "rmse": 14.90937437087974,
+              "bias": 0.47277883551643185,
+              "mape": 0.1314050261611685,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.49801917949165
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.40673188751556,
+              "rmse": 15.123113075027351,
+              "bias": 0.2649649793718201,
+              "mape": 0.1318952936322084,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.51770538038086
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.370237946907034,
+              "rmse": 15.052052375678961,
+              "bias": -0.2440289528222497,
+              "mape": 0.13026040461012287,
+              "mape_sample_count": 896,
+              "mean_observed": 102.67526493515736
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.287093322777332,
+              "rmse": 15.006661903585707,
+              "bias": -0.7921829167612021,
+              "mape": 0.1285670729558506,
+              "mape_sample_count": 896,
+              "mean_observed": 102.88735930457233
+            }
+          },
+          "link_count": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 24.11101163120925,
+              "rmse": 28.16560161552125,
+              "bias": 23.249181126659384,
+              "mape": 0.06662497086875144,
+              "mape_sample_count": 336,
+              "mean_observed": 398.9375
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 31.466221838524294,
+              "rmse": 37.626244947180915,
+              "bias": 24.672490406915216,
+              "mape": 0.08893234972342742,
+              "mape_sample_count": 224,
+              "mean_observed": 396.51785714285717
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 40.381547045300294,
+              "rmse": 48.75412385643071,
+              "bias": 28.56879268770087,
+              "mape": 0.1152706621529362,
+              "mape_sample_count": 224,
+              "mean_observed": 394.5982142857143
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 49.29196697962976,
+              "rmse": 58.702702460204335,
+              "bias": 35.06123656784877,
+              "mape": 0.14192175210532912,
+              "mape_sample_count": 112,
+              "mean_observed": 392.3392857142857
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 56.1737846658008,
+              "rmse": 67.41155745364283,
+              "bias": 41.52964439786664,
+              "mape": 0.16377753457084315,
+              "mape_sample_count": 112,
+              "mean_observed": 390.1607142857143
+            }
+          },
+          "link_speed": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 3.408617341697568,
+              "rmse": 4.085416655345112,
+              "bias": 2.498652223039,
+              "mape": 0.03467213001964846,
+              "mape_sample_count": 336,
+              "mean_observed": 100.09780104559047
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 3.942747846011101,
+              "rmse": 5.021379921892854,
+              "bias": 2.134433554939894,
+              "mape": 0.040307026725239704,
+              "mape_sample_count": 224,
+              "mean_observed": 100.25572289932185
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 3.9439101559570924,
+              "rmse": 5.0461000876223014,
+              "bias": 1.6142575551892164,
+              "mape": 0.040225726506981675,
+              "mape_sample_count": 224,
+              "mean_observed": 100.33603162640138
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 4.006160398738678,
+              "rmse": 5.035649834885552,
+              "bias": 0.9426290397242375,
+              "mape": 0.0405409499083566,
+              "mape_sample_count": 112,
+              "mean_observed": 100.54654568590135
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 4.082355989414084,
+              "rmse": 4.980652431133499,
+              "bias": 0.32496504880892335,
+              "mape": 0.04093682450804024,
+              "mape_sample_count": 112,
+              "mean_observed": 100.7969346933605
+            }
+          }
+        },
+        "urban": {
+          "coverage": {
+            "total_entities": 43,
+            "observed_entities": 4,
+            "ratio": 0.09302325581395349,
+            "observed_names": [
+              "OR_D_E_storage",
+              "OR_D_W_storage",
+              "OR_F_E_storage",
+              "OR_F_W_storage"
+            ],
+            "unobserved_sample": [
+              "A_left_out",
+              "A_to_B",
+              "A_to_D",
+              "A_top_out",
+              "B_to_A",
+              "B_to_C",
+              "B_to_E",
+              "B_top_out",
+              "C_right_out",
+              "C_to_B",
+              "C_to_F",
+              "C_top_out"
+            ]
+          },
+          "levels": {
+            "urban_storage": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 4.479919961183195,
+              "rmse": 6.404765608324416,
+              "bias": 3.569761051826953,
+              "mape": 2.540487777877816,
+              "mape_sample_count": 663,
+              "mean_observed": 2.7611607142857144
+            },
+            "urban_queue": {
+              "sample_count": 0,
+              "mae": null,
+              "mape": null,
+              "mean_observed": null,
+              "rmse": null,
+              "bias": null
+            },
+            "interface_ramp_queue": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 5.8528524945374505,
+              "rmse": 7.154975496067783,
+              "bias": -5.845734655357143,
+              "mape": 0.9284190659582552,
+              "mape_sample_count": 660,
+              "mean_observed": 6.285714285714286
+            }
+          },
+          "relative_error": {
+            "urban_storage": 1.622477075675078,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.9311356241309581
+          },
+          "evaluable": false,
+          "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+        },
+        "gates": {
+          "g5_initial": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.1284880084868457,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.038506630104420556,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 10.439716223895191,
+                "operator": "<=",
+                "threshold": 5.0,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 35.721591589634166,
+                "operator": "<=",
+                "threshold": 39.572718253968254,
+                "verdict": "PASS",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 1.622477075675078,
+                "operator": "<=",
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          },
+          "g5_promotion": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.1284880084868457,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.038506630104420556,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 10.439716223895191,
+                "operator": "<=",
+                "threshold": 5.0,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 35.721591589634166,
+                "operator": "<=",
+                "threshold": 39.572718253968254,
+                "verdict": "PASS",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 1.622477075675078,
+                "operator": "<=",
+                "threshold": 0.15,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          }
+        },
+        "persistence_baseline": {
+          "aggregate": {
+            "cell_count": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 10.53062996031746,
+              "rmse": 13.560915806095103,
+              "bias": 0.7015128968253969,
+              "mape": 0.2311634841961667,
+              "mape_sample_count": 8064,
+              "mean_observed": 49.465897817460316
+            },
+            "cell_speed": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 7.5435825429265115,
+              "rmse": 10.281264782415274,
+              "bias": -0.22167250128199043,
+              "mape": 0.07961486783494792,
+              "mape_sample_count": 8064,
+              "mean_observed": 102.51390708825123
+            },
+            "link_count": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 21.125992063492063,
+              "rmse": 26.99950396369745,
+              "bias": 5.612103174603175,
+              "mape": 0.05527277781918071,
+              "mape_sample_count": 1008,
+              "mean_observed": 395.72718253968253
+            },
+            "link_speed": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 4.4418602957102316,
+              "rmse": 5.530419691060151,
+              "bias": -0.2573251370086369,
+              "mape": 0.044271509019826856,
+              "mape_sample_count": 1008,
+              "mean_observed": 100.31337695194219
+            }
+          },
+          "skill_score": {
+            "cell_count": 0.008633266648325866,
+            "cell_speed": -0.6020545232165191,
+            "link_count": -0.6908835089152965,
+            "link_speed": 0.1473121082948473
+          },
+          "note": "skill = 1 - MAE_model / MAE_persistence. 양수면 모델이 Delta=0 보다 낫다."
+        }
+      }
+    },
+    "seed=13|demand=scale170|policy=stackelberg": {
+      "seed": "13",
+      "demand": "scale170",
+      "policy": "stackelberg",
+      "decision_dir": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\runs\\new_baseline_ab_20260801\\decisions_stackelberg_scale170_warm900_eval3600_seed13",
+      "report": {
+        "schema_version": "vissim-gates-g5-report/v1",
+        "label": "seed=13|demand=scale170|policy=stackelberg",
+        "protocol": "teacher_forced_rolling_origin",
+        "episode_count": 168,
+        "horizons_steps": [
+          1,
+          3,
+          5
+        ],
+        "interval_sec": 60,
+        "horizon_sec": [
+          60,
+          180,
+          300
+        ],
+        "thresholds": {
+          "freeway_mean_speed_mape_max": 0.1,
+          "cell_count_mae_floor_veh": 5.0,
+          "cell_count_mae_ratio": 0.1,
+          "urban_queue_error_initial_max": 0.25,
+          "urban_queue_error_promotion_max": 0.15
+        },
+        "geometry_note": "count = rho x L x n, L/n 은 관측 state JSON 기하를 양쪽에 공통 적용",
+        "aggregate": {
+          "cell_count": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 11.945655090404907,
+            "rmse": 15.313842335226528,
+            "bias": 4.033489861548828,
+            "mape": 0.2630441698045985,
+            "mape_sample_count": 8064,
+            "mean_observed": 51.265749007936506
+          },
+          "cell_speed": {
+            "sample_count": 8064,
+            "entity_count": 16,
+            "mae": 12.625955058689964,
+            "rmse": 15.559253198206413,
+            "bias": -0.5683655962035454,
+            "mape": 0.13714009896891,
+            "mape_sample_count": 8064,
+            "mean_observed": 102.18505480710255
+          },
+          "link_count": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 39.703449810389756,
+            "rmse": 53.40146734351352,
+            "bias": 32.267918892390625,
+            "mape": 0.11437924588840692,
+            "mape_sample_count": 1008,
+            "mean_observed": 410.12599206349205
+          },
+          "link_speed": {
+            "sample_count": 1008,
+            "entity_count": 2,
+            "mae": 3.489995741063213,
+            "rmse": 4.286311363491326,
+            "bias": 1.5425272776418817,
+            "mape": 0.035559930612715576,
+            "mape_sample_count": 1008,
+            "mean_observed": 99.27657123037453
+          }
+        },
+        "by_horizon_step": {
+          "cell_count": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 9.807887281912768,
+              "rmse": 12.404285916491856,
+              "bias": 3.1749220819332167,
+              "mape": 0.21292015822739493,
+              "mape_sample_count": 2688,
+              "mean_observed": 52.15736607142857
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.03926086421246,
+              "rmse": 15.314451091416377,
+              "bias": 3.4020638589420114,
+              "mape": 0.2597233717937109,
+              "mape_sample_count": 1792,
+              "mean_observed": 51.5234375
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 13.046591747688355,
+              "rmse": 16.657809648837336,
+              "bias": 4.198232485639698,
+              "mape": 0.2861516685883057,
+              "mape_sample_count": 1792,
+              "mean_observed": 50.893973214285715
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.725793208664681,
+              "rmse": 17.415732701595225,
+              "bias": 5.275412964959402,
+              "mape": 0.3089809369304942,
+              "mape_sample_count": 896,
+              "mean_observed": 50.300223214285715
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 14.189735535439556,
+              "rmse": 17.935639429063404,
+              "bias": 6.300636854016983,
+              "mape": 0.3279060358646743,
+              "mape_sample_count": 896,
+              "mean_observed": 49.784598214285715
+            }
+          },
+          "cell_speed": {
+            "1": {
+              "sample_count": 2688,
+              "entity_count": 16,
+              "mae": 12.10425521485586,
+              "rmse": 14.71155120494814,
+              "bias": -0.32145169269871227,
+              "mape": 0.13203183916695935,
+              "mape_sample_count": 2688,
+              "mean_observed": 101.83066229143205
+            },
+            "2": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.804241412031292,
+              "rmse": 15.789356236063197,
+              "bias": -0.2072250637516304,
+              "mape": 0.13989794248015625,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.09817384056423
+            },
+            "3": {
+              "sample_count": 1792,
+              "entity_count": 16,
+              "mae": 12.873155172628147,
+              "rmse": 16.019131856974077,
+              "bias": -0.5464244154809402,
+              "mape": 0.1398768078949829,
+              "mape_sample_count": 1792,
+              "mean_observed": 102.33407431072078
+            },
+            "4": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 12.946981932907423,
+              "rmse": 16.084897813558854,
+              "bias": -1.0767692710597496,
+              "mape": 0.13941738145597465,
+              "mape_sample_count": 896,
+              "mean_observed": 102.57630698609152
+            },
+            "5": {
+              "sample_count": 896,
+              "entity_count": 16,
+              "mae": 13.019054781415793,
+              "rmse": 16.092463295970138,
+              "bias": -1.56686705821088,
+              "mape": 0.13919849101305887,
+              "mape_sample_count": 896,
+              "mean_observed": 102.7327031009652
+            }
+          },
+          "link_count": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 26.396417649358156,
+              "rmse": 31.24135150891931,
+              "bias": 25.399376655465733,
+              "mape": 0.07173096676680048,
+              "mape_sample_count": 336,
+              "mean_observed": 417.25892857142856
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 34.2993261187844,
+              "rmse": 43.5821927875713,
+              "bias": 27.21651087153609,
+              "mape": 0.09743488975518906,
+              "mape_sample_count": 224,
+              "mean_observed": 412.1875
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 44.46818849117358,
+              "rmse": 58.39088082183028,
+              "bias": 33.585859885117586,
+              "mape": 0.1297715779484429,
+              "mape_sample_count": 224,
+              "mean_observed": 407.1517857142857
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 55.76867563139624,
+              "rmse": 72.28837720099175,
+              "bias": 42.20330371967521,
+              "mape": 0.16514751141284753,
+              "mape_sample_count": 112,
+              "mean_observed": 402.4017857142857
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 64.8380904941211,
+              "rmse": 83.02993337739227,
+              "bias": 50.40509483213587,
+              "mape": 0.19465986587514936,
+              "mape_sample_count": 112,
+              "mean_observed": 398.2767857142857
+            }
+          },
+          "link_speed": {
+            "1": {
+              "sample_count": 336,
+              "entity_count": 2,
+              "mae": 3.3657830678153937,
+              "rmse": 4.115097240094351,
+              "bias": 2.2136207024764016,
+              "mape": 0.034539359290101844,
+              "mape_sample_count": 336,
+              "mean_observed": 98.79565625988933
+            },
+            "2": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 3.33421835174387,
+              "rmse": 4.133061370338307,
+              "bias": 2.015309858398951,
+              "mape": 0.0342553015379181,
+              "mape_sample_count": 224,
+              "mean_observed": 99.16466803559797
+            },
+            "3": {
+              "sample_count": 224,
+              "entity_count": 2,
+              "mae": 3.4903211641497855,
+              "rmse": 4.26013800752692,
+              "bias": 1.3310871762212637,
+              "mape": 0.03553936052565727,
+              "mape_sample_count": 224,
+              "mean_observed": 99.46445405087205
+            },
+            "4": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 3.7634274675043216,
+              "rmse": 4.595099982757593,
+              "bias": 0.5601989427200227,
+              "mape": 0.037889689880283565,
+              "mape_sample_count": 112,
+              "mean_observed": 99.8184447727434
+            },
+            "5": {
+              "sample_count": 112,
+              "entity_count": 2,
+              "mae": 3.900105966831103,
+              "rmse": 4.793038904182,
+              "bias": -0.011109620612721091,
+              "mape": 0.038942283636700374,
+              "mape_sample_count": 112,
+              "mean_observed": 100.02548334801934
+            }
+          }
+        },
+        "urban": {
+          "coverage": {
+            "total_entities": 43,
+            "observed_entities": 4,
+            "ratio": 0.09302325581395349,
+            "observed_names": [
+              "OR_D_E_storage",
+              "OR_D_W_storage",
+              "OR_F_E_storage",
+              "OR_F_W_storage"
+            ],
+            "unobserved_sample": [
+              "A_left_out",
+              "A_to_B",
+              "A_to_D",
+              "A_top_out",
+              "B_to_A",
+              "B_to_C",
+              "B_to_E",
+              "B_top_out",
+              "C_right_out",
+              "C_to_B",
+              "C_to_F",
+              "C_top_out"
+            ]
+          },
+          "levels": {
+            "urban_storage": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 3.334999154800481,
+              "rmse": 4.325125082486902,
+              "bias": 2.7035920129091995,
+              "mape": 2.181997535690335,
+              "mape_sample_count": 651,
+              "mean_observed": 2.549107142857143
+            },
+            "urban_queue": {
+              "sample_count": 0,
+              "mae": null,
+              "mape": null,
+              "mean_observed": null,
+              "rmse": null,
+              "bias": null
+            },
+            "interface_ramp_queue": {
+              "sample_count": 672,
+              "entity_count": 4,
+              "mae": 6.097879495036582,
+              "rmse": 7.329709913024806,
+              "bias": -6.0927978140004955,
+              "mape": 0.9666236337108512,
+              "mape_sample_count": 666,
+              "mean_observed": 6.232142857142857
+            }
+          },
+          "relative_error": {
+            "urban_storage": 1.3083008943525531,
+            "urban_queue": null,
+            "interface_ramp_queue": 0.9784563086591651
+          },
+          "evaluable": false,
+          "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+        },
+        "gates": {
+          "g5_initial": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13714009896891,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.035559930612715576,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 11.945655090404907,
+                "operator": "<=",
+                "threshold": 5.126574900793651,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 39.703449810389756,
+                "operator": "<=",
+                "threshold": 41.01259920634921,
+                "verdict": "PASS",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 1.3083008943525531,
+                "operator": "<=",
+                "threshold": 0.25,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          },
+          "g5_promotion": {
+            "verdict": "FAIL",
+            "criteria": [
+              {
+                "name": "freeway_mean_speed_mape_cell",
+                "value": 0.13714009896891,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "FAIL",
+                "note": "셀(세그먼트) 수준 — 더 엄격한 독법"
+              },
+              {
+                "name": "freeway_mean_speed_mape_link",
+                "value": 0.035559930612715576,
+                "operator": "<=",
+                "threshold": 0.1,
+                "verdict": "PASS",
+                "note": "링크 수준 — 계약 문구의 자연스러운 독법"
+              },
+              {
+                "name": "cell_count_mae",
+                "value": 11.945655090404907,
+                "operator": "<=",
+                "threshold": 5.126574900793651,
+                "verdict": "FAIL",
+                "note": "계약이 'cell'로 명시한 판정 수준"
+              },
+              {
+                "name": "link_count_mae",
+                "value": 39.703449810389756,
+                "operator": "<=",
+                "threshold": 41.01259920634921,
+                "verdict": "PASS",
+                "note": "참고 — 링크 수준"
+              },
+              {
+                "name": "urban_one_step_queue_storage_error",
+                "value": 1.3083008943525531,
+                "operator": "<=",
+                "threshold": 0.15,
+                "verdict": "NOT_EVALUATED",
+                "note": "관측 채널이 도시부 엔티티 43개 중 4개만 덮는다(coverage=0.093). connector-local 관측에는 도시부 교차로 링크가 없어 계약 urban 항을 잴 수 없다."
+              }
+            ]
+          }
+        },
+        "persistence_baseline": {
+          "aggregate": {
+            "cell_count": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 11.701140873015873,
+              "rmse": 15.491869347274262,
+              "bias": 1.5143849206349207,
+              "mape": 0.2455056335831509,
+              "mape_sample_count": 8064,
+              "mean_observed": 51.265749007936506
+            },
+            "cell_speed": {
+              "sample_count": 8064,
+              "entity_count": 16,
+              "mae": 7.263292925540201,
+              "rmse": 10.33705782073721,
+              "bias": -0.6158016755706621,
+              "mape": 0.07933390875266291,
+              "mape_sample_count": 8064,
+              "mean_observed": 102.18505480710255
+            },
+            "link_count": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 20.845238095238095,
+              "rmse": 27.521744649847847,
+              "bias": 12.115079365079366,
+              "mape": 0.05231784896414899,
+              "mape_sample_count": 1008,
+              "mean_observed": 410.12599206349205
+            },
+            "link_speed": {
+              "sample_count": 1008,
+              "entity_count": 2,
+              "mae": 3.8185159141436507,
+              "rmse": 4.797087301854296,
+              "bias": -0.8929199270628253,
+              "mape": 0.03844730932642002,
+              "mape_sample_count": 1008,
+              "mean_observed": 99.27657123037453
+            }
+          },
+          "skill_score": {
+            "cell_count": -0.020896613419372656,
+            "cell_speed": -0.7383238137474568,
+            "link_count": -0.9046772039250368,
+            "link_speed": 0.08603346966909586
+          },
+          "note": "skill = 1 - MAE_model / MAE_persistence. 양수면 모델이 Delta=0 보다 낫다."
+        }
+      }
+    }
+  },
+  "holdout": {
+    "axes": {
+      "seed": {
+        "13": [
+          "seed=13|demand=scale135|policy=pstack_flagship",
+          "seed=13|demand=scale170|policy=pstack_flagship",
+          "seed=13|demand=scale135|policy=stackelberg",
+          "seed=13|demand=scale170|policy=stackelberg"
+        ]
+      },
+      "demand": {
+        "scale135": [
+          "seed=13|demand=scale135|policy=pstack_flagship",
+          "seed=13|demand=scale135|policy=stackelberg"
+        ],
+        "scale170": [
+          "seed=13|demand=scale170|policy=pstack_flagship",
+          "seed=13|demand=scale170|policy=stackelberg"
+        ]
+      },
+      "policy": {
+        "pstack_flagship": [
+          "seed=13|demand=scale135|policy=pstack_flagship",
+          "seed=13|demand=scale170|policy=pstack_flagship"
+        ],
+        "stackelberg": [
+          "seed=13|demand=scale135|policy=stackelberg",
+          "seed=13|demand=scale170|policy=stackelberg"
+        ]
+      }
+    },
+    "distinct_values": {
+      "seed": 1,
+      "demand": 2,
+      "policy": 2
+    },
+    "separable": {
+      "seed": false,
+      "demand": true,
+      "policy": true
+    },
+    "note": "계약 §11 G5 는 seed/demand profile/control policy 단위 holdout 분리를 요구한다. distinct_values 가 1 이면 그 축은 분리 불가(단일 값)다."
+  }
+}

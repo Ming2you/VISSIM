@@ -1,0 +1,91 @@
+{
+  "horizons_steps": [
+    1,
+    3,
+    5
+  ],
+  "protocol": "teacher_forced_rolling_origin",
+  "g5": {
+    "episode_count": 93,
+    "initial": "FAIL",
+    "promotion": "FAIL",
+    "criteria": {
+      "freeway_mean_speed_mape_cell": {
+        "value": 0.18190413900981808,
+        "threshold": 0.1,
+        "verdict": "FAIL"
+      },
+      "freeway_mean_speed_mape_link": {
+        "value": 0.05513394203692538,
+        "threshold": 0.1,
+        "verdict": "PASS"
+      },
+      "cell_count_mae": {
+        "value": 25.12070983618568,
+        "threshold": 10.306048387096775,
+        "verdict": "FAIL"
+      },
+      "link_count_mae": {
+        "value": 23.22899567592904,
+        "threshold": 82.4483870967742,
+        "verdict": "PASS"
+      },
+      "urban_one_step_queue_storage_error": {
+        "value": 1.4948335554875973,
+        "threshold": 0.25,
+        "verdict": "NOT_EVALUATED"
+      }
+    },
+    "by_horizon": {
+      "1": {
+        "freeway_mean_speed_mape_cell": "FAIL",
+        "freeway_mean_speed_mape_link": "PASS",
+        "cell_count_mae": "FAIL",
+        "link_count_mae": "PASS",
+        "urban_one_step_queue_storage_error": "NOT_EVALUATED"
+      },
+      "3": {
+        "freeway_mean_speed_mape_cell": "FAIL",
+        "freeway_mean_speed_mape_link": "PASS",
+        "cell_count_mae": "FAIL",
+        "link_count_mae": "PASS",
+        "urban_one_step_queue_storage_error": "NOT_EVALUATED"
+      },
+      "5": {
+        "freeway_mean_speed_mape_cell": "FAIL",
+        "freeway_mean_speed_mape_link": "PASS",
+        "cell_count_mae": "FAIL",
+        "link_count_mae": "PASS",
+        "urban_one_step_queue_storage_error": "NOT_EVALUATED"
+      }
+    },
+    "holdout": {
+      "seed": 1,
+      "demand": 1,
+      "policy": 1
+    }
+  },
+  "g6_persistence_control": {
+    "decision_count": 3,
+    "spearman_rho": null,
+    "ranking_oracle_complete": false,
+    "verdict": "NOT_EVALUATED",
+    "note": "Delta=0 는 후보마다 같은 목적함수 값을 내므로 Spearman 이 정의되지 않는다(rho=None, NOT_EVALUATED). G5 에서 persistence 가 이겼다는 사실이 G6 순위 판정에는 아무 근거도 되지 못한다는 것을 지표가 스스로 드러낸다."
+  },
+  "g6": {
+    "decision_count": 3,
+    "spearman_rho": -0.08002225728118677,
+    "pairwise": 0.20512820512820512,
+    "spillback_f1": 0.0,
+    "initial": "FAIL",
+    "release": "FAIL",
+    "complete_decisions_only": {
+      "decision_count": 3,
+      "spearman_rho": -0.08002225728118677,
+      "pairwise": 0.20512820512820512,
+      "spillback_f1": 0.0,
+      "initial": "FAIL",
+      "release": "FAIL"
+    }
+  }
+}

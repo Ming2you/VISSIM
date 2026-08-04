@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-02",
+  "calibration_version": "metanet_calibration_draft_20260802",
+  "status": "DRAFT_NOT_APPLIED",
+  "warning": "이 파일은 초안이다. 어떤 실행 경로도 읽지 않는다. evaluation/calibration/ 또는 evaluation/configs/ 로 복사하거나 참조 경로에 넣지 말 것.",
+  "report": "C:/Users/alsrj/Desktop/학술/찐찐막/Claude/VISSIM/outputs/metanet_calibration_20260802.md",
+  "validation": {
+    "design": "arm(수요 프로파일) 단위 leave-one-out, 3 fold. 2 arm 적합 / 1 arm 검증.",
+    "data": "freeway_congestion_probe_fixed_20260802 breakdown/lowurban/extreme, 2 링크 x 8 세그먼트 x 60 스텝",
+    "plant": "src.models.metanet.freeway_substep 원본 호출, T_f=10s",
+    "g5_verdict": "FAIL",
+    "g5_detail": {
+      "criterion": "freeway mean-speed MAPE <= 0.10, cell count MAE <= max(5 veh, 10% of 154 veh) = 15.4 veh",
+      "horizon_used": "simulation.control_interval=180s, leader.horizon_steps=3 -> H=1(180s), H=3(540s)",
+      "speed_mape_segment_H1": "0.2357 ~ 0.4331 (전 조합 FAIL)",
+      "speed_mape_link_H1": "0.0667 ~ 0.3522 (FD_C 계열만 통과, 차량가중 집계가 자유류 오차를 삼킴)",
+      "cell_count_mae_H1": "27.70 ~ 43.09 veh (임계의 1.9~2.8배, 전 조합 FAIL)",
+      "cell_count_mae_H3": "45.56 ~ 65 veh (임계의 3~4배, 전 조합 FAIL)",
+      "persistence_reference_H1": "mape_seg 0.1502 / cell MAE 22.66 — 모든 캘리브레이션 조합보다 우수",
+      "note": "자명한 predictor(persistence)를 이기는 조합이 없다."
+    }
+  },
+  "rejected": {
+    "_comment": "적용 금지. 각 항목은 현행값을 그대로 유지한다.",
+    "capacity_drop_discharge_phi": {
+      "keep": 1.0,
+      "fitted_would_be": "0.400 ~ 0.619 (fold별), 링크별 0.550(FW_E) / 0.850(FW_W)",
+      "reject_reason": [
+        "홀드아웃 정상상태 배출률 오차 -21.2% ~ -53.2% (phi=1 은 +0.8% ~ +4.2%)",
+        "freeway_capacity_veh_h 를 6956 으로 교정하면 최적 phi 가 0.88~0.92 로 이동하고 홀드아웃 이득이 완전 소멸(rmse_v 25.63 vs phi=1 의 25.60)",
+        "fold 간 산포 0.400~0.619 = 보고된 SE(3%)의 10배",
+        "적합 시 모형 상태가 평형면에서 RMSE 14~26 km/h 이탈, 상태의 20~37% 가 q_cap 초과 명목유량",
+        "결론: 물리 기전이 아니라 잘못된 링크 용량이 만든 진입 게이트 결핍을 흡수하던 보정항"
+      ]
+    },
+    "capacity_drop_anticipation": {
+      "keep": false,
+      "reject_reason": "혼잡셀의 75~77% 에서 하류 밀도가 더 낮아 anticipation 이 가속 방향. nu_cong 상향은 혼잡 속도를 올린다(capacity drop 의 반대)."
+    },
+    "metanet_nu_cong_km2_h": {
+      "keep": 65.0,
+      "reject_reason": "자유주행 J 가 nu_cong 에 대해 단조 증가(보상 능선 없음). 결합최적에서 하한 5 로 몰림, SE 368%. 겉보기 이득은 전역 nu 인상과 완전 별칭."
+    },
+    "metanet_delta_merge": {
+      "keep": 0.0,
+      "reject_reason": "문헌값(0.0122)에서 dJ 0.02%, 82배 값에서도 0.76%. SE 103~138%. 격자 L=1.347km, lambda=4 가 분모를 키워 항이 무력."
+    }
+  },
+  "unchanged": {
+    "_comment": "현행 기본값을 유지한다. 변경 근거 없음.",
+    "metanet_tau_h": {
+      "keep": 0.005,
+      "fold_estimates": [0.00909, 0.00954, 0.00681],
+      "note": "FD_G fold 적합값이 현행값과 1 sigma 정합. FD_C fold 는 0.00601~0.01388 로 발산해 신뢰 불가. 60s 로그로는 tau 가 직접 식별되지 않으며(총 변동 11%), 자유주행 누적오차를 통한 간접 식별값은 FD 오차를 흡수한다."
+    },
+    "metanet_nu_km2_h": {
+      "keep": 65.0,
+      "fold_estimates": [80.1, 83.6, 67.3],
+      "note": "FD_G fold 평균 77.0, 현행값과 1 sigma 정합."
+    },
+    "metanet_kappa_veh_km_lane": {
+      "keep": 40.0,
+      "fold_estimates": [35.7, 36.5, 33.4],
+      "note": "FD_G fold 평균 35.2, 현행값과 1 sigma 정합. FD_C fold 는 하한 2.0 까지 발산."
+    }
+  },
+  "blocked_candidate": {
+    "_comment": "적용 차단. 아래 gate 중 최소 하나가 선행되어야 재평가 대상이 된다.",
+    "operational": {
+      "network": {
+        "v_free_kph": 122.562,
+        "rho_crit_veh_km_lane": 21.419,
+        "desired_speed_shape_a": 1.724,
+        "freeway_capacity_veh_h": 6956.0
+      }
+    },
+    "current_for_comparison": {
+      "v_free_kph": 119.505,
+      "rho_crit_veh_km_lane": 16.354,
+      "desired_speed_shape_a": 2.154,
+      "freeway_capacity_veh_h": 4914.0
+    },
+    "parent_chain_original": {
+      "source": "real_world_modi_pstack_adapter_v1_response_calibrated_20260721.json",
+      "v_free_kph": 120.0,
+      "rho_crit_veh_km_lane": 30.0,
+      "freeway_capacity_veh_h": 6900.0,
+      "note": "부모 체인의 원래 값이 본 검증의 후보 대역과 정합한다. 20260802 fdrefit leaf 의 하향이 배출률/진입게이트 정합을 깼다."
+    },
+    "holdout_tradeoff": {
+      "improved": {
+        "discharge_rate_error": "-15.8% -> +0.8%",
+        "link_mean_speed_mape_H1": "0.283 -> 0.073"
+      },
+      "degraded": {
+        "cell_count_mae_H1_veh": "35.59 -> 39.88 (계약 지표)",
+        "freerun_rmse_rho": "16.97 -> 18.04",
+        "tstar_detection": "16/23 -> 14/23",
+        "bottleneck_speed_bias_FW_E_S3_kph": "+0.2 -> +26.9",
+        "bottleneck_speed_bias_FW_W_S2_kph": "-4.1 -> +19.5"
+      },
+      "unchanged": {
+        "segment_speed_mape_H1": "0.316 -> 0.322"
+      },
+      "verdict": "순개선이 아니다. 오차를 대역 간에 옮길 뿐이며 G5 는 양쪽 모두 FAIL."
+    },
+    "gates": [
+      "G-A. 세그먼트별 용량 또는 유효차로 프로파일 도입 (FW_E S3, FW_W S2 국소 병목). 이것이 없으면 breakdown 발화와 병목 감속을 동시에 맞출 수 없다.",
+      "G-B. 본선 진입 경계 재설계. S0 셀 MAE 90 veh 는 단일 최대 오차원이며 FD 선택과 무관하다(A 89.9 / C 90.4).",
+      "G-C. 세그먼트별 v_free 도입. 단일 v_free 가 S4/S5 계열에 +-20~25 km/h 편향을 강제한다."
+    ],
+    "out_of_scope_but_related": {
+      "vsl_fd_two_branch": "false 유지. VSL 이 capacity drop 트리거를 움직이려면 true 가 필요하지만 별도 결정 사항이며, 그것만으로도 G5 는 통과하지 못한다(보고서 4-4, 3-2).",
+      "fd_form_replacement": "S3 / two-branch 형태 교체는 gates G-A~G-C 처리 후 재평가해야 의미 있는 비교가 된다."
+    }
+  },
+  "invalidation_scope_if_applied": {
+    "must_remeasure": [
+      "기준선 재실행 (no-control, fixed-time). q_cap 4914->6956 은 진입 게이트 차단율을 71~79% -> 20% 로 바꾼다.",
+      "zone4 팔로워 튜닝 전체 (real_world_modi_pstack_zone4_20260801.json). rho_bind, 밀도 벌점, headroom 이 모두 이동.",
+      "예측 감사 (prediction_audit_bayes_update_*, prediction_error_bias_fit_20260628.json). FD 가 곧 예측 모형.",
+      "VSL 채널 진단 (scripts/recompute_vsl_fd_diagnostics_20260802.py). rho_bind(80) 15.28 -> 17.92.",
+      "램프 미터링 / N_UF 회귀. headroom_flow 혼잡 시 중앙값 0 -> 8417 veh/h.",
+      "G6 랭킹 (Spearman, top-action 일치도).",
+      "flagship 스모크 (real_world_modi_pstack_flagship_segvsl_*)."
+    ],
+    "not_affected": [
+      "G1~G4 (질량보존, 신호 semantics, 상태 투영) — FD 와 독립",
+      "NumSim-mine/src/config/default.yaml (v_free 100.0 / rho_crit 33.5 / rho_max 180.0 / q_cap 4000.0 / a 1.867) — 합성 실험 기본값, 변경 없음",
+      "NumSim 회귀·단위테스트·합성 실험 산출물"
+    ],
+    "flagship_reproducibility": {
+      "scope": "real_world tuning only",
+      "path": "VISSIM/evaluation/configs/real_world_modi_pstack_flagship_segvsl_fdrefit_20260802.json -> calibration_override.operational.network",
+      "rule": "기존 leaf 를 편집하지 말고 새 leaf 를 만들 것. 편집하면 20260802 flagship 산출물이 전부 무효가 된다.",
+      "numsim_default_change": false
+    }
+  },
+  "provenance": {
+    "inputs": [
+      "VISSIM/evaluation/runs/freeway_congestion_probe_fixed_20260802/bottleneck_segments_no_control_fw_{breakdown,lowurban,extreme}_warm900_eval3600_seed13.csv",
+      "VISSIM/evaluation/runs/freeway_congestion_probe_fixed_20260802/vissim_eval/modi_eval_rw_control_Link Segment Results_001.att",
+      "VISSIM/outputs/no_control_fd_mfd_20260802_scale{135,170}_freeway_fd_points.csv",
+      "VISSIM/outputs/fd_mfd_fwprobe_fixed_20260802_{breakdown,lowurban,extreme}_freeway_fd_points.csv",
+      "VISSIM/evaluation/calibration/real_world_modi_control_v2_fdrefit_20260802.json"
+    ],
+    "contract": "VISSIM/plant/docs/vissim_strict_plant_g0_contract.md section 11 G5",
+    "com_runs_executed": 0,
+    "repository_files_modified": 0
+  }
+}

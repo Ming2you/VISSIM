@@ -1,0 +1,339 @@
+{
+  "inputs": [
+    "outputs\\no_control_fd_mfd_20260802_scale135_freeway_fd_points.csv",
+    "outputs\\no_control_fd_mfd_20260802_scale170_freeway_fd_points.csv"
+  ],
+  "point_count_used": 1952,
+  "bin_width_veh_km_lane": 2.0,
+  "nominal_lanes": 4.0,
+  "observed_capacity": {
+    "q_cap_obs_veh_h_lane": 1266.4915941109984,
+    "q_cap_obs_veh_h_link": 5065.966376443994,
+    "bin_center_veh_km_lane": 19.0,
+    "bin_rho_mean": 18.7358114375,
+    "bin_n": 16,
+    "cap_min_n": 10,
+    "capacity_bin_is_interior_max": false,
+    "identifiability_note": "WARN: 관측 유량이 상단에서 잘려 최대 bin 이 절단점일 수 있다. 이 경우 용량 제약이 rho_crit 을 아래로, a 를 위로 당기므로 alt_unconstrained 를 우선 검토하라."
+  },
+  "method": {
+    "model": "V(rho) = v_free * exp(-(1/a) * (rho/rho_crit)**a)",
+    "primary": "binned mean (2 veh/km/lane) + bin-count-weighted least squares, capacity equality constraint q_cap_lane == observed binned-mean max",
+    "not_used": "low-density p95 upper envelope (source of the +35 km/h bias in v0)",
+    "excluded_points": "count == 0 or density == 0 or speed == 0 (empty segments)"
+  },
+  "fits": {
+    "primary": {
+      "v_free": 120.29972936241592,
+      "rho_crit": 17.439925925925927,
+      "a": 1.9812074074074075,
+      "bin_wrmse": 2.0111590492601996,
+      "capacity_veh_h_lane": 1266.4915941109984,
+      "capacity_veh_h_link": 5065.966376443994,
+      "point_metrics": {
+        "n": 1952,
+        "rmse_kph": 11.620203013053239,
+        "bias_model_minus_obs_kph": 0.13543872541896185,
+        "mae_kph": 9.225774815359719
+      }
+    },
+    "alt_equal_bin_weight": {
+      "v_free": 129.5490209678508,
+      "rho_crit": 20.629209876543207,
+      "a": 1.3391155555555554,
+      "bin_wrmse": 3.974889918226736,
+      "capacity_veh_h_lane": 1266.4915941109984,
+      "capacity_veh_h_link": 5065.966376443994,
+      "point_metrics": {
+        "n": 1952,
+        "rmse_kph": 12.089918917168191,
+        "bias_model_minus_obs_kph": -2.6154233421509834,
+        "mae_kph": 9.923541162528863
+      }
+    },
+    "alt_unconstrained": {
+      "v_free": 119.504715,
+      "rho_crit": 16.353642734374997,
+      "a": 2.1539961359375,
+      "bin_wrmse": 1.90073931950626,
+      "capacity_veh_h_lane": 1228.504813545691,
+      "capacity_veh_h_link": 4914.019254182764,
+      "point_metrics": {
+        "n": 1952,
+        "rmse_kph": 11.59682621712676,
+        "bias_model_minus_obs_kph": -0.057975800355543186,
+        "mae_kph": 9.185982096644574
+      }
+    }
+  },
+  "per_link_fits": {
+    "FW_E": {
+      "v_free": 119.39742893108952,
+      "rho_crit": 15.528074074074073,
+      "a": 2.314622222222222,
+      "bin_wrmse": 2.1650548705334907,
+      "capacity_veh_h_lane": 1203.5987886374996,
+      "capacity_veh_h_link": 4814.395154549999,
+      "observed_capacity_veh_h_lane": 1203.5987886374996,
+      "point_metrics": {
+        "n": 976,
+        "rmse_kph": 11.977200582699737,
+        "bias_model_minus_obs_kph": 0.02515718515718277,
+        "mae_kph": 9.37752494749764
+      }
+    },
+    "FW_W": {
+      "v_free": 118.73753057260225,
+      "rho_crit": 16.140296296296295,
+      "a": 2.19894074074074,
+      "bin_wrmse": 2.1662603452656883,
+      "capacity_veh_h_lane": 1216.1799503558696,
+      "capacity_veh_h_link": 4864.719801423478,
+      "observed_capacity_veh_h_lane": 1216.1799503558696,
+      "point_metrics": {
+        "n": 976,
+        "rmse_kph": 11.176557283593171,
+        "bias_model_minus_obs_kph": -0.4086615900410883,
+        "mae_kph": 8.91296109547389
+      }
+    }
+  },
+  "old_v0": {
+    "v_free_kph": 100.0,
+    "rho_crit_veh_km_lane": 24.0,
+    "metanet_a_m": 1.867,
+    "capacity_veh_h_link_declared": 7600.0,
+    "capacity_veh_h_link_implied_by_fd": 5618.948006594453,
+    "point_metrics": {
+      "n": 1952,
+      "rmse_kph": 17.645074431668053,
+      "bias_model_minus_obs_kph": -12.097887193394026,
+      "mae_kph": 15.694582034582414
+    }
+  },
+  "coverage": {
+    "speed_p50": 108.15361250000001,
+    "speed_p90": 117.94963039999999,
+    "speed_p95": 119.17940349999999,
+    "speed_max": 127.433385,
+    "rho_p50": 9.092852,
+    "rho_p90": 13.360926,
+    "rho_p95": 15.031042,
+    "rho_max": 31.361063,
+    "frac_speed_gt_80": 0.8816598360655737,
+    "frac_speed_gt_100": 0.6413934426229508,
+    "frac_speed_gt_120": 0.031762295081967214,
+    "frac_rho_gt_rho_crit_fit": 0.01639344262295082
+  },
+  "vsl_menu_binding": [
+    {
+      "vsl_kph": 80.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 15.663174385511244,
+      "frac_points_binding_new": 0.9631147540983607,
+      "binds_at_all_old": true,
+      "rho_bind_old": 15.015189691073454,
+      "frac_points_binding_old": 0.9492827868852459
+    },
+    {
+      "vsl_kph": 100.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 10.50292400329253,
+      "frac_points_binding_new": 0.6818647540983607,
+      "binds_at_all_old": false,
+      "rho_bind_old": 0.0,
+      "frac_points_binding_old": 0.0
+    },
+    {
+      "vsl_kph": 120.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 1.1955719721189684,
+      "frac_points_binding_new": 0.0,
+      "binds_at_all_old": false,
+      "rho_bind_old": 0.0,
+      "frac_points_binding_old": 0.0
+    }
+  ],
+  "bias_table": [
+    {
+      "rho_lo": 0,
+      "rho_hi": 5,
+      "n": 102,
+      "rho_mean": 4.2308429117647055,
+      "obs_speed": 115.75738971568627,
+      "model_new": 116.68520377578207,
+      "dev_new": -0.9278140600957983,
+      "model_old": 97.92510891827958,
+      "dev_old": 17.832280797406696
+    },
+    {
+      "rho_lo": 5,
+      "rho_hi": 10,
+      "n": 1111,
+      "rho_mean": 7.678288686768677,
+      "obs_speed": 109.2149252880288,
+      "model_new": 108.92154576703821,
+      "dev_new": 0.29337952099058384,
+      "model_old": 93.81968478753022,
+      "dev_old": 15.395240500498574
+    },
+    {
+      "rho_lo": 10,
+      "rho_hi": 15,
+      "n": 640,
+      "rho_mean": 11.7824326265625,
+      "obs_speed": 94.3977914015625,
+      "model_new": 95.38288188077465,
+      "dev_new": -0.9850904792121469,
+      "model_old": 86.77038898110209,
+      "dev_old": 7.627402420460413
+    },
+    {
+      "rho_lo": 15,
+      "rho_hi": 20,
+      "n": 87,
+      "rho_mean": 16.51515243678161,
+      "obs_speed": 72.37707074712644,
+      "model_new": 76.46934599724564,
+      "dev_new": -4.092275250119201,
+      "model_old": 76.6013284276478,
+      "dev_old": -4.224257680521362
+    },
+    {
+      "rho_lo": 20,
+      "rho_hi": 25,
+      "n": 10,
+      "rho_mean": 22.234831500000002,
+      "obs_speed": 60.6952305,
+      "model_new": 53.15859444582205,
+      "dev_new": 7.536636054177954,
+      "model_old": 62.849780607976015,
+      "dev_old": -2.1545501079760143
+    },
+    {
+      "rho_lo": 25,
+      "rho_hi": 30,
+      "n": 1,
+      "rho_mean": 26.907421,
+      "obs_speed": 40.419056,
+      "model_new": 36.533684421628436,
+      "dev_new": 3.8853715783715614,
+      "model_old": 51.52567466817061,
+      "dev_old": -11.106618668170611
+    },
+    {
+      "rho_lo": 30,
+      "rho_hi": 40,
+      "n": 1,
+      "rho_mean": 31.361063,
+      "obs_speed": 42.174575,
+      "model_new": 23.944238944970767,
+      "dev_new": 18.23033605502923,
+      "model_old": 41.37067618346997,
+      "dev_old": 0.8038988165300296
+    }
+  ],
+  "bins": [
+    {
+      "bin_center": 3.0,
+      "n": 29,
+      "rho_mean": 3.501214448275862,
+      "speed_mean": 117.12588500000001,
+      "q_lane_mean": 409.877020782958
+    },
+    {
+      "bin_center": 5.0,
+      "n": 245,
+      "rho_mean": 5.255423204081633,
+      "speed_mean": 113.2500712979592,
+      "q_lane_mean": 594.7572681346388
+    },
+    {
+      "bin_center": 7.0,
+      "n": 461,
+      "rho_mean": 7.074499915401302,
+      "speed_mean": 110.43665363991323,
+      "q_lane_mean": 780.7030029785373
+    },
+    {
+      "bin_center": 9.0,
+      "n": 478,
+      "rho_mean": 9.020222474895398,
+      "speed_mean": 106.88456126569038,
+      "q_lane_mean": 963.4892076107241
+    },
+    {
+      "bin_center": 11.0,
+      "n": 398,
+      "rho_mean": 10.889210582914572,
+      "speed_mean": 99.14000664572865,
+      "q_lane_mean": 1078.0987849120859
+    },
+    {
+      "bin_center": 13.0,
+      "n": 184,
+      "rho_mean": 12.88531416847826,
+      "speed_mean": 88.35829510869564,
+      "q_lane_mean": 1136.240278750758
+    },
+    {
+      "bin_center": 15.0,
+      "n": 101,
+      "rho_mean": 14.875928900990099,
+      "speed_mean": 78.38486977227723,
+      "q_lane_mean": 1163.5053864335057
+    },
+    {
+      "bin_center": 17.0,
+      "n": 28,
+      "rho_mean": 16.80463292857143,
+      "speed_mean": 71.29380821428572,
+      "q_lane_mean": 1197.3300882457759
+    },
+    {
+      "bin_center": 19.0,
+      "n": 16,
+      "rho_mean": 18.7358114375,
+      "speed_mean": 67.66526437499999,
+      "q_lane_mean": 1266.4915941109984
+    },
+    {
+      "bin_center": 21.0,
+      "n": 5,
+      "rho_mean": 21.047059400000002,
+      "speed_mean": 61.264455,
+      "q_lane_mean": 1291.1330862718498
+    },
+    {
+      "bin_center": 23.0,
+      "n": 4,
+      "rho_mean": 23.20088875,
+      "speed_mean": 61.74033875,
+      "q_lane_mean": 1431.711422639278
+    },
+    {
+      "bin_center": 25.0,
+      "n": 1,
+      "rho_mean": 24.309463,
+      "speed_mean": 53.668675,
+      "q_lane_mean": 1304.656669171525
+    },
+    {
+      "bin_center": 27.0,
+      "n": 1,
+      "rho_mean": 26.907421,
+      "speed_mean": 40.419056,
+      "q_lane_mean": 1087.5725562145758
+    },
+    {
+      "bin_center": 31.0,
+      "n": 1,
+      "rho_mean": 31.361063,
+      "speed_mean": 42.174575,
+      "q_lane_mean": 1322.639503573225
+    }
+  ],
+  "outputs": {
+    "png": "outputs\\fd_refit_20260802_fd_fit.png"
+  }
+}

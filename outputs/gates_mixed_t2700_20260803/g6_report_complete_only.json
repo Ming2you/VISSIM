@@ -1,0 +1,370 @@
+{
+  "schema_version": "vissim-strict-shadow-report/v3",
+  "record_schema_version": "vissim-strict-shadow-record/v2",
+  "record_count": 42,
+  "decision_count": 3,
+  "aggregation_policy": {
+    "spearman": "macro_mean_of_complete_decisions",
+    "top_action_pairwise": "micro_agreement_for_deterministic_predicted_top",
+    "spillback": "micro_confusion_matrix",
+    "decision_runtime_fallback": "max_candidate_runtime_when_decision_runtime_missing"
+  },
+  "thresholds": {
+    "spearman_rho_min": 0.7,
+    "top_action_pairwise_agreement_min": 0.8,
+    "spillback_f1_initial_min": 0.8,
+    "spillback_f1_release_min": 0.9,
+    "decision_runtime_p95_sec_max": 30.0,
+    "decision_runtime_hard_sec_max": 45.0,
+    "fallback_rate_max_exclusive": 0.05,
+    "silent_fallback_rate_max": 0.0,
+    "stale_action_failures_max": 0,
+    "readback_failures_max": 0
+  },
+  "provenance": {
+    "complete": true,
+    "topology_hash": "9f4955b1cda5fb3803a14c187263d41d761db76733b864f650e6e01206e43967",
+    "program_hashes": [
+      "842d1ae437f2da0c6e470bc68337109e003f84320ea2596792e2554bea3a24f7"
+    ],
+    "action_hashes": [
+      "07d51a2ff255d9ad27a3ab3321b74ba463ddb581b767d3bfb68a5d45a839572b",
+      "0867979a1ed07c8b05cc8b638c45825214b9b26d27fafac363ba0ea8b5b524c3",
+      "09fddb45a8cbec9bf7845d78f2730f939c4f21958c1fe570c2031a02adc343fc",
+      "0e69266911d0ec55a87276a30461dffe3e25159bf2143b18ad9dd2508dea7f19",
+      "0f42bf7923876e9de84240a3749946f1fbb75fa661544fc4c1d46653efc20f8d",
+      "12b6eb0c31be169f49c574f284b610195490c049abd7ec0ab02a5b151cdd9cb3",
+      "13f3777363c3018376354e74fda5074bb83d14f4ad0b9668567fe9c970260407",
+      "169f316759d731bdd23585b43989f5754dfe89e5bacbee1f6aa8ed91282db067",
+      "184e8016e5af57565f98e964f07525db4ad7cffa320b0be3306ff737748f662d",
+      "200764d70558938f17c21b04b4a2344c1a740430ec27b3be373ca1f7441889a2",
+      "2161f4dade7cea47beab18f9e7fcef8c8d614dab6c516bfcc7bebf8564cd01e5",
+      "217a75c1664779e1d9a17f48acf41f093014830bb7d30ea1f6bbedb248d5f6e0",
+      "2205a5aee14b4c33136a7c62f5cc24eed4d890e8951d4409dbefb3dec4a3535f",
+      "260b672c1d9fa9a83f6768e31e754f87fd3a0aacd5f7ae5cee860153c16d7b14",
+      "2879727b4831efe82e489af3d62bc9f16125a346c008e26a68f7b2568fabe64e",
+      "2a935a9884b3cca24701ef906587fc945242a1766c31d10f8ac95fdc8760714b",
+      "306591d22a94e002ebc56631558acb8581fab9d0182cc6b30b932ac72ea6f634",
+      "30c24075d2b116ceec168042b4d9f3ed23c263813795c08ea48aec3d73e0827b",
+      "3de76912ca475c73d06d530e8219f4a03e51817c706500bad2a9627e7e99f119",
+      "4023f2cc20e127988942e8a444cde3a87765600a57e80d412a725009f5488986",
+      "447b5162d491374f880035f6fdc748496d9ccd46847c9877adc7be98d3a60bcb",
+      "484b2c12cddf8c935716b3bda2441b4e03c76d7a4aabde4bffdf5ab98a360819",
+      "503d44fcde717086b80d0248abe22c482401acb358acae565e2268bac8646b75",
+      "55b9c0c86e080535d0b6cc4a3792a22c89fb08dc6b8a4c3e8ff864de2c1983e4",
+      "5694f84327c543b2f5517a867d6056000c60b68cda4b36fa73abf9a8b90f644c",
+      "6415b25de41a8e3d78d43a54f6c3bfbd45492706f0d730548d2d3edc0618ad83",
+      "6c2ad5079dac739134e1c2a9e2400174ede8ddd457979b23afc0996236cf92ed",
+      "6e46b661452ab6f043e4028d17bebf0e5c13b57b77ac5d410dc8384b5ae70311",
+      "792bda4086787eeec69054e1f89e32f6c6c03c219d4960a479596c3e141aae56",
+      "79760bf0e7b100f54e90a5b5baa427ae0f9daa396a33fe3369c8e37de04f4adb",
+      "86207d90a4c90da24ff3a7e55b858de1947b98da74824feea162b5e6675954b6",
+      "92e4d2288679957d8ba98d095c0c946dc13046ce60861b09b63b0b586b205404",
+      "a6e8e80b3bc03f78a230712d860fc115a5da201bd3db7042b18e57f1b5ee3d7a",
+      "ae453b57042e3955226fa91c0bbe60cd13fe1be4b0774520e63ff24ec1c85583",
+      "af9042f98433080714ee77e31265514a0a99036743e78cbf723bbb4f527f46e9",
+      "ba1d9cc3c4d0d7c68f0703c666cb76e7f9484f7efae97629bc7d17b8f127b5d1",
+      "c5fd4ead188e5ac978a7cd6c4a70f02088a8e7e8e32e41f05462c1c8958dc2e4",
+      "cbbf3943a4b0a99bf46aad94454fc4699f314f1cad193b35592c47ac8154a3f8",
+      "cc5ad0bb1d55cd3dac12ddc23bf52ba71d133e732f0a94bc2ff39e7a736dafeb",
+      "db2886e205254c97cee95c4dbfacad3b9dc804da56491901f1b884b64eb276bf",
+      "dbe464483b19a242915490602f0712a9dfe5d50303780f860d8c0474b624fcc2",
+      "f5592512568a491f8aa7dad80a936d56f11d34eabb3fe7234d3b3187360cb87b"
+    ],
+    "action_set_sha256": "f9272c43e05708e6e7ce5de133475ce030f169019709e96e0bfa6a4fed5dc0db",
+    "policy_hash": "abee632204b528525c49c0df49722a3eb66dc72284677836342a2cdb8dc529ce",
+    "build_hash": "b88e96e1d396485002f3ca72785e673f437fd7334e0f2353ea74d022263dbd84",
+    "action_schema_hash": "c2d6691c468276a130fc96e07b82d83517e68fff5d639327a1d5d9d6ec080733"
+  },
+  "per_decision": [
+    {
+      "decision_id": "mixed_seed13_H1",
+      "candidate_count": 14,
+      "ranking_status": "FAIL",
+      "spearman_rho": -0.422378453467687,
+      "top_action_pairwise": {
+        "agreement_count": 2,
+        "comparison_count": 13,
+        "agreement": 0.15384615384615385
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 12,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 14
+      },
+      "runtime_sec": 0.011889200017321855,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    },
+    {
+      "decision_id": "mixed_seed13_H3",
+      "candidate_count": 14,
+      "ranking_status": "FAIL",
+      "spearman_rho": -0.057256829873189655,
+      "top_action_pairwise": {
+        "agreement_count": 2,
+        "comparison_count": 13,
+        "agreement": 0.15384615384615385
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 12,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 14
+      },
+      "runtime_sec": 0.03427740000188351,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    },
+    {
+      "decision_id": "mixed_seed13_H5",
+      "candidate_count": 14,
+      "ranking_status": "FAIL",
+      "spearman_rho": -0.07048475248121926,
+      "top_action_pairwise": {
+        "agreement_count": 4,
+        "comparison_count": 13,
+        "agreement": 0.3076923076923077
+      },
+      "spillback": {
+        "true_positive": 0,
+        "false_positive": 12,
+        "false_negative": 0,
+        "true_negative": 2,
+        "precision": 0.0,
+        "recall": null,
+        "f1": 0.0,
+        "observation_count": 14
+      },
+      "runtime_sec": 0.05800199997611344,
+      "runtime_source": "max_candidate_runtime_sec",
+      "fallback_required": false,
+      "silent_fallback": false,
+      "stale_fault_injection_observations": 0,
+      "fallback_fault_injection_observations": 0,
+      "readback_fault_injection_observations": 0,
+      "stale_action_failures": 0,
+      "readback_failures": 0
+    }
+  ],
+  "aggregate": {
+    "spearman_rho": -0.18337334527403196,
+    "spearman_decision_count": 3,
+    "ranking_oracle_complete": true,
+    "top_action_pairwise": {
+      "agreement_count": 8,
+      "comparison_count": 39,
+      "agreement": 0.20512820512820512
+    },
+    "spillback": {
+      "true_positive": 0,
+      "false_positive": 36,
+      "false_negative": 0,
+      "true_negative": 6,
+      "precision": 0.0,
+      "recall": null,
+      "f1": 0.0,
+      "observation_count": 42
+    },
+    "spillback_oracle_complete": true,
+    "runtime": {
+      "decision_count": 3,
+      "p50_sec": 0.03427740000188351,
+      "p95_sec": 0.05562953997869045,
+      "max_sec": 0.05800199997611344
+    },
+    "fallback_decisions": 0,
+    "fallback_rate": 0.0,
+    "silent_fallback_decisions": 0,
+    "silent_fallback_rate": 0.0,
+    "shadow_contract": {
+      "shadow_mode_record_count": 42,
+      "actuation_attempt_count": 0
+    },
+    "fault_injection": {
+      "stale_observation_count": 0,
+      "fallback_observation_count": 0,
+      "readback_observation_count": 0
+    },
+    "stale_action": {
+      "observation_count": 0,
+      "failure_count": 0
+    },
+    "readback": {
+      "observation_count": 0,
+      "failure_count": 0
+    }
+  },
+  "gates": {
+    "g6_initial": {
+      "verdict": "FAIL",
+      "criteria": [
+        {
+          "name": "provenance_complete",
+          "value": 1,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "PASS"
+        },
+        {
+          "name": "spearman_rho",
+          "value": -0.18337334527403196,
+          "operator": ">=",
+          "threshold": 0.7,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "top_action_pairwise_agreement",
+          "value": 0.20512820512820512,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "spillback_f1",
+          "value": 0.0,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        }
+      ]
+    },
+    "g6_release": {
+      "verdict": "FAIL",
+      "criteria": [
+        {
+          "name": "provenance_complete",
+          "value": 1,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "PASS"
+        },
+        {
+          "name": "spearman_rho",
+          "value": -0.18337334527403196,
+          "operator": ">=",
+          "threshold": 0.7,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "top_action_pairwise_agreement",
+          "value": 0.20512820512820512,
+          "operator": ">=",
+          "threshold": 0.8,
+          "verdict": "FAIL"
+        },
+        {
+          "name": "spillback_f1",
+          "value": 0.0,
+          "operator": ">=",
+          "threshold": 0.9,
+          "verdict": "FAIL"
+        }
+      ]
+    },
+    "g7_shadow_runtime": {
+      "verdict": "NOT_EVALUATED",
+      "criteria": [
+        {
+          "name": "shadow_mode_record_count",
+          "value": 42,
+          "operator": ">=",
+          "threshold": 42,
+          "verdict": "PASS"
+        },
+        {
+          "name": "actuation_attempt_count",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "decision_runtime_p95_sec",
+          "value": 0.05562953997869045,
+          "operator": "<=",
+          "threshold": 30.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "decision_runtime_max_sec",
+          "value": 0.05800199997611344,
+          "operator": "<=",
+          "threshold": 45.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "fallback_rate",
+          "value": 0.0,
+          "operator": "<",
+          "threshold": 0.05,
+          "verdict": "PASS"
+        },
+        {
+          "name": "silent_fallback_rate",
+          "value": 0.0,
+          "operator": "<=",
+          "threshold": 0.0,
+          "verdict": "PASS"
+        },
+        {
+          "name": "stale_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "fallback_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "readback_fault_injection_observations",
+          "value": 0,
+          "operator": ">=",
+          "threshold": 1,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "stale_action_failures",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "NOT_EVALUATED"
+        },
+        {
+          "name": "readback_failures",
+          "value": 0,
+          "operator": "<=",
+          "threshold": 0,
+          "verdict": "NOT_EVALUATED"
+        }
+      ]
+    }
+  },
+  "report_digest_sha256": "2ee5bb545bbb85035740175f09fcd155d2fe720f99b103c18990b9faec458f23"
+}

@@ -1,0 +1,23 @@
+# 체크리스트 — FD 재적합 (2026-08-02)
+
+- [x] 새 체인 격자 확인 (FW_E 1.346639 / FW_W 1.347212 km, lanes 4, 76 스탬프 × 16 세그)
+- [x] scale 1.35 점군 추출 → `outputs/no_control_fd_mfd_20260802_scale135_*`
+- [x] scale 1.70 점군 추출 → `outputs/no_control_fd_mfd_20260802_scale170_*`
+- [x] 구 산출물 `no_control_fd_mfd_20260724_*` 미변경 확인
+- [x] pooled 적합 실행 → `outputs/fd_refit_20260802_fit.json`
+- [x] 식별성 판정 확인 — `capacity_bin_is_interior_max = false` (WARN)
+- [x] `--cap-min-n` 4/6/16 민감도로 용량 제약 비식별성 확증
+- [x] fit key `alt_unconstrained` 채택 근거 기록
+- [x] 방향별(FW_E / FW_W) 적합 차이 확인 — 무시 가능
+- [x] `frac_points_binding_*` 부호 버그 수정 (`r >= rb` → `r <= rb`)
+- [x] 하류 재계산 스크립트 작성 → `scripts/recompute_vsl_fd_diagnostics_20260802.py`
+- [x] 재계산 방법 검증 — 구 파라미터·구 점군에서 RMSE 36.44 / bias +35.08 / rho_bind 25.84 / 92.7 % 재현
+- [x] 캘리브레이션 v2 생성 → `evaluation/calibration/real_world_modi_control_v2_fdrefit_20260802.json`
+- [x] leaf tuning 생성 → `evaluation/configs/real_world_modi_pstack_flagship_segvsl_fdrefit_20260802.json`
+- [x] 배관 검증 — 어댑터 4조합 로드, 캘리브레이션 단독 갱신은 도달 실패 확인
+- [x] 러너 기본값 연결 → `scripts/run_new_baseline_ab_20260801.ps1`
+- [x] `outputs/vsl_sensitivity_20260801.md` §10 추가 (§1~§9 무변경)
+- [x] `scripts/test_freeway_zone_followers.py` 14/14 PASS
+- [x] `scripts/test_pstack_flagship_adapter.py` 4/4 PASS
+- [ ] (미착수, 별도 결정) VSL 메뉴/앵커 조정 — §10-4 방안 A~D
+- [ ] (미착수) 임계밀도를 확실히 넘기는 고수요 no-control 런으로 용량 실측

@@ -1,0 +1,4684 @@
+{
+  "prefix_replay_divergence": {
+    "arm_count": 14,
+    "by_t": {
+      "900": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 1,
+        "identical": true
+      },
+      "960": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 13,
+        "identical": false
+      },
+      "1020": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 13,
+        "identical": false
+      },
+      "1080": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 13,
+        "identical": false
+      },
+      "1140": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 13,
+        "identical": false
+      },
+      "1200": {
+        "arms_with_state": 14,
+        "distinct_state_hashes": 13,
+        "identical": false
+      }
+    }
+  },
+  "by_config": {
+    "a_FDA_pre": {
+      "H1": {
+        "table": [
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 480.5201,
+            "vissim_objective": 494.8808,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 481.7704,
+            "vissim_objective": 494.8808,
+            "model_rank": 2,
+            "vissim_rank": 7,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 496.8161,
+            "vissim_objective": 494.8808,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 496.8161,
+            "vissim_objective": 494.8808,
+            "model_rank": 4,
+            "vissim_rank": 5,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 496.8161,
+            "vissim_objective": 488.4453,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 496.8161,
+            "vissim_objective": 494.8808,
+            "model_rank": 6,
+            "vissim_rank": 8,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 496.8945,
+            "vissim_objective": 490.1873,
+            "model_rank": 7,
+            "vissim_rank": 3,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 497.3636,
+            "vissim_objective": 494.8808,
+            "model_rank": 8,
+            "vissim_rank": 9,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 498.1063,
+            "vissim_objective": 496.8547,
+            "model_rank": 9,
+            "vissim_rank": 11,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 498.4039,
+            "vissim_objective": 501.9891,
+            "model_rank": 10,
+            "vissim_rank": 13,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 500.9737,
+            "vissim_objective": 494.8808,
+            "model_rank": 11,
+            "vissim_rank": 10,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 503.5397,
+            "vissim_objective": 496.8547,
+            "model_rank": 12,
+            "vissim_rank": 12,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 514.6367,
+            "vissim_objective": 507.4246,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 540.8127,
+            "vissim_objective": 482.3762,
+            "model_rank": 14,
+            "vissim_rank": 1,
+            "rank_error": 13
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 1.2901,
+            "vissim_delta_vs_anchor": 1.9739,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 6.7235,
+            "vissim_delta_vs_anchor": 1.9739,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 17.8206,
+            "vissim_delta_vs_anchor": 12.5438,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -6.4355,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0783,
+            "vissim_delta_vs_anchor": -4.6935,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -16.2961,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -15.0457,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.5475,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 4.1576,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 1.5878,
+            "vissim_delta_vs_anchor": 7.1083,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 43.9965,
+            "vissim_delta_vs_anchor": -12.5046,
+            "sign_agrees": false
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -26.1759,
+            "vissim_delta": 25.0484,
+            "vissim_gap_abs": 25.048441341740386
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -42.4087,
+            "vissim_delta": 19.6129,
+            "vissim_gap_abs": 19.61294972149176
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -42.7064,
+            "vissim_delta": 14.4786,
+            "vissim_gap_abs": 14.478550807077681
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -37.273,
+            "vissim_delta": 14.4786,
+            "vissim_gap_abs": 14.478550807077681
+          },
+          {
+            "pair": "c00_anchor vs c41_combined_extreme",
+            "axes": "anchor/combined",
+            "model_delta": -43.9965,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          },
+          {
+            "pair": "c10_rampd1364 vs c41_combined_extreme",
+            "axes": "ramp/combined",
+            "model_delta": -43.9965,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          },
+          {
+            "pair": "c20_major75 vs c41_combined_extreme",
+            "axes": "green/combined",
+            "model_delta": -60.2926,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          },
+          {
+            "pair": "c21_minor75 vs c41_combined_extreme",
+            "axes": "green/combined",
+            "model_delta": -59.0422,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          },
+          {
+            "pair": "c22_major62 vs c41_combined_extreme",
+            "axes": "green/combined",
+            "model_delta": -43.9965,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          },
+          {
+            "pair": "c23_minor62 vs c41_combined_extreme",
+            "axes": "green/combined",
+            "model_delta": -43.449,
+            "vissim_delta": 12.5046,
+            "vissim_gap_abs": 12.50462517875252
+          }
+        ],
+        "discordant_pair_count": 23,
+        "oracle_tie_groups": 7,
+        "model_spread": 60.2926,
+        "vissim_spread": 25.0484,
+        "ablation_rho": {
+          "all": 0.27801249815010254,
+          "drop_ramp": 0.2590433063873256,
+          "drop_green": 0.24922239313961342,
+          "drop_combined": 0.5767607793927929,
+          "drop_vsl": -0.15626669481077785,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.2721655269759087,
+          "only_green_anchor": null
+        }
+      },
+      "H3": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 1719.9263,
+            "vissim_objective": 1603.4133,
+            "model_rank": 1,
+            "vissim_rank": 5,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 1762.925,
+            "vissim_objective": 1603.4133,
+            "model_rank": 2,
+            "vissim_rank": 4,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 1767.956,
+            "vissim_objective": 1603.4133,
+            "model_rank": 3,
+            "vissim_rank": 7,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 1769.9364,
+            "vissim_objective": 1603.4133,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 1769.9364,
+            "vissim_objective": 1603.9779,
+            "model_rank": 5,
+            "vissim_rank": 9,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 1769.9364,
+            "vissim_objective": 1592.0524,
+            "model_rank": 6,
+            "vissim_rank": 2,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 1770.2027,
+            "vissim_objective": 1587.5938,
+            "model_rank": 7,
+            "vissim_rank": 1,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 1777.0224,
+            "vissim_objective": 1645.7304,
+            "model_rank": 8,
+            "vissim_rank": 11,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 1798.7796,
+            "vissim_objective": 1603.4133,
+            "model_rank": 9,
+            "vissim_rank": 8,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 1814.7486,
+            "vissim_objective": 1645.7304,
+            "model_rank": 10,
+            "vissim_rank": 12,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 1822.3873,
+            "vissim_objective": 1603.4133,
+            "model_rank": 11,
+            "vissim_rank": 6,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 1895.2715,
+            "vissim_objective": 1674.9062,
+            "model_rank": 12,
+            "vissim_rank": 13,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 1905.8578,
+            "vissim_objective": 1711.1582,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 2060.1624,
+            "vissim_objective": 1612.2134,
+            "model_rank": 14,
+            "vissim_rank": 10,
+            "rank_error": 4
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 7.086,
+            "vissim_delta_vs_anchor": 42.3171,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 44.8122,
+            "vissim_delta_vs_anchor": 42.3171,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 135.9214,
+            "vissim_delta_vs_anchor": 107.7448,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.5645,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -11.361,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.2663,
+            "vissim_delta_vs_anchor": -15.8195,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -7.0114,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -50.0101,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 52.4509,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -1.9803,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 28.8432,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 125.3351,
+            "vissim_delta_vs_anchor": 71.4929,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 290.226,
+            "vissim_delta_vs_anchor": 8.8,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -154.3045,
+            "vissim_delta": 98.9448,
+            "vissim_gap_abs": 98.9448214044769
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -164.8909,
+            "vissim_delta": 62.6928,
+            "vissim_gap_abs": 62.692847589818484
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -45.3649,
+            "vissim_delta": 42.3171,
+            "vissim_gap_abs": 42.317078369584124
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -21.7572,
+            "vissim_delta": 42.3171,
+            "vissim_gap_abs": 42.317078369584124
+          },
+          {
+            "pair": "c02_vsl100 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -7.6387,
+            "vissim_delta": 42.3171,
+            "vissim_gap_abs": 42.317078369584124
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -283.1399,
+            "vissim_delta": 33.5171,
+            "vissim_gap_abs": 33.5170661894158
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -245.4137,
+            "vissim_delta": 33.5171,
+            "vissim_gap_abs": 33.5170661894158
+          },
+          {
+            "pair": "c10_rampd1364 vs c12_rampd691",
+            "axes": "ramp/ramp",
+            "model_delta": -0.2663,
+            "vissim_delta": 16.384,
+            "vissim_gap_abs": 16.384020426334473
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.2663,
+            "vissim_delta": 15.8195,
+            "vissim_gap_abs": 15.819512046583213
+          },
+          {
+            "pair": "c12_rampd691 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.2778,
+            "vissim_delta": -15.8195,
+            "vissim_gap_abs": 15.819512046583213
+          }
+        ],
+        "discordant_pair_count": 18,
+        "oracle_tie_groups": 6,
+        "model_spread": 340.236,
+        "vissim_spread": 123.5643,
+        "ablation_rho": {
+          "all": 0.5981058711188174,
+          "drop_ramp": 0.6660158219583182,
+          "drop_green": 0.6851982396884431,
+          "drop_combined": 0.440647492635505,
+          "drop_vsl": 0.40020015012510946,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": null
+        }
+      },
+      "H5": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 3233.5998,
+            "vissim_objective": 2850.5479,
+            "model_rank": 1,
+            "vissim_rank": 9,
+            "rank_error": -8
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 3321.8603,
+            "vissim_objective": 2840.7254,
+            "model_rank": 2,
+            "vissim_rank": 8,
+            "rank_error": -6
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 3328.0224,
+            "vissim_objective": 2828.2899,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 3328.0224,
+            "vissim_objective": 2822.3789,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 3328.0224,
+            "vissim_objective": 2801.1839,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 3328.5576,
+            "vissim_objective": 2792.9089,
+            "model_rank": 6,
+            "vissim_rank": 1,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 3338.7133,
+            "vissim_objective": 2920.9499,
+            "model_rank": 7,
+            "vissim_rank": 10,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 3372.2316,
+            "vissim_objective": 2840.2899,
+            "model_rank": 8,
+            "vissim_rank": 7,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 3384.2609,
+            "vissim_objective": 2839.8544,
+            "model_rank": 9,
+            "vissim_rank": 6,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 3414.205,
+            "vissim_objective": 2920.9499,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 3438.279,
+            "vissim_objective": 2829.2899,
+            "model_rank": 11,
+            "vissim_rank": 5,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 3657.8028,
+            "vissim_objective": 3104.7876,
+            "model_rank": 12,
+            "vissim_rank": 14,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 3684.9167,
+            "vissim_objective": 3030.4611,
+            "model_rank": 13,
+            "vissim_rank": 13,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 4291.5784,
+            "vissim_objective": 2965.8097,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 10.6909,
+            "vissim_delta_vs_anchor": 92.6601,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 86.1826,
+            "vissim_delta_vs_anchor": 92.6601,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 329.7804,
+            "vissim_delta_vs_anchor": 276.4978,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -5.911,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -27.106,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.5352,
+            "vissim_delta_vs_anchor": -35.381,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": 44.2092,
+            "vissim_delta_vs_anchor": 12.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -94.4226,
+            "vissim_delta_vs_anchor": 22.258,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 110.2566,
+            "vissim_delta_vs_anchor": 1.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -6.1621,
+            "vissim_delta_vs_anchor": 12.4355,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 56.2385,
+            "vissim_delta_vs_anchor": 11.5645,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 356.8943,
+            "vissim_delta_vs_anchor": 202.1713,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 963.556,
+            "vissim_delta_vs_anchor": 137.5198,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -633.7756,
+            "vissim_delta": 138.978,
+            "vissim_gap_abs": 138.9779526843654
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -99.5657,
+            "vissim_delta": 91.6601,
+            "vissim_gap_abs": 91.66007030985838
+          },
+          {
+            "pair": "c02_vsl100 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -24.074,
+            "vissim_delta": 91.6601,
+            "vissim_gap_abs": 91.66007030985838
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -45.5476,
+            "vissim_delta": 81.0956,
+            "vissim_gap_abs": 81.09556193010667
+          },
+          {
+            "pair": "c01_vsl110 vs c20_major75",
+            "axes": "vsl/green",
+            "model_delta": -33.5183,
+            "vissim_delta": 80.6601,
+            "vissim_gap_abs": 80.66007030985838
+          },
+          {
+            "pair": "c03_vsl80 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": -27.1139,
+            "vissim_delta": 74.3265,
+            "vissim_gap_abs": 74.32648952807403
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -606.6617,
+            "vissim_delta": 64.6515,
+            "vissim_gap_abs": 64.65146315629136
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 94.9579,
+            "vissim_delta": -57.639,
+            "vissim_gap_abs": 57.63902409316688
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 94.4226,
+            "vissim_delta": -49.364,
+            "vissim_gap_abs": 49.36400575900734
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.6973,
+            "vissim_delta": -47.8165,
+            "vissim_gap_abs": 47.81648219440967
+          }
+        ],
+        "discordant_pair_count": 28,
+        "oracle_tie_groups": 1,
+        "model_spread": 1057.9786,
+        "vissim_spread": 311.8787,
+        "ablation_rho": {
+          "all": 0.5657489647780416,
+          "drop_ramp": 0.523919354714936,
+          "drop_green": 0.8431128434425376,
+          "drop_combined": 0.3351016923383674,
+          "drop_vsl": 0.30276503540974914,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": -0.7
+        }
+      }
+    },
+    "b_FDA_post": {
+      "H1": {
+        "table": [
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 709.2131,
+            "vissim_objective": 746.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 710.0035,
+            "vissim_objective": 746.0,
+            "model_rank": 2,
+            "vissim_rank": 7,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 4,
+            "vissim_rank": 5,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 725.491,
+            "vissim_objective": 739.0,
+            "model_rank": 5,
+            "vissim_rank": 1,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 6,
+            "vissim_rank": 8,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 725.5226,
+            "vissim_objective": 743.0,
+            "model_rank": 7,
+            "vissim_rank": 3,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 725.913,
+            "vissim_objective": 746.0,
+            "model_rank": 8,
+            "vissim_rank": 9,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 726.092,
+            "vissim_objective": 765.0,
+            "model_rank": 9,
+            "vissim_rank": 13,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 727.2395,
+            "vissim_objective": 753.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 729.1633,
+            "vissim_objective": 746.0,
+            "model_rank": 11,
+            "vissim_rank": 10,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 732.2881,
+            "vissim_objective": 753.0,
+            "model_rank": 12,
+            "vissim_rank": 12,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 742.3485,
+            "vissim_objective": 771.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 768.3003,
+            "vissim_objective": 742.0,
+            "model_rank": 14,
+            "vissim_rank": 2,
+            "rank_error": 12
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 1.7485,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 6.7971,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 16.8575,
+            "vissim_delta_vs_anchor": 25.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -7.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0316,
+            "vissim_delta_vs_anchor": -3.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -16.2779,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -15.4875,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.422,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 3.6723,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 0.601,
+            "vissim_delta_vs_anchor": 19.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 42.8093,
+            "vissim_delta_vs_anchor": -4.0,
+            "sign_agrees": false
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -25.9518,
+            "vissim_delta": 29.0,
+            "vissim_gap_abs": 29.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -42.2083,
+            "vissim_delta": 23.0,
+            "vissim_gap_abs": 23.0
+          },
+          {
+            "pair": "c30_offset30 vs c40_combined_strong",
+            "axes": "offset/combined",
+            "model_delta": 3.0713,
+            "vissim_delta": -19.0,
+            "vissim_gap_abs": 19.0
+          },
+          {
+            "pair": "c01_vsl110 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 1.1475,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c02_vsl100 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 6.1961,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -41.0608,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -36.0122,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -1.9238,
+            "vissim_delta": 7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 16.2779,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 15.4875,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          }
+        ],
+        "discordant_pair_count": 23,
+        "oracle_tie_groups": 7,
+        "model_spread": 59.0873,
+        "vissim_spread": 32.0,
+        "ablation_rho": {
+          "all": 0.31603130131592855,
+          "drop_ramp": 0.24409850024959526,
+          "drop_green": 0.3302196709099878,
+          "drop_combined": 0.5767607793927929,
+          "drop_vsl": -0.08621610748180847,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.2721655269759087,
+          "only_green_anchor": null
+        }
+      },
+      "H3": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 2418.6453,
+            "vissim_objective": 2363.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 2461.8849,
+            "vissim_objective": 2363.0,
+            "model_rank": 2,
+            "vissim_rank": 5,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 2467.5452,
+            "vissim_objective": 2363.0,
+            "model_rank": 3,
+            "vissim_rank": 8,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2363.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2363.0,
+            "model_rank": 5,
+            "vissim_rank": 4,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2350.0,
+            "model_rank": 6,
+            "vissim_rank": 2,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 2469.7348,
+            "vissim_objective": 2348.0,
+            "model_rank": 7,
+            "vissim_rank": 1,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 2480.014,
+            "vissim_objective": 2434.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 2498.906,
+            "vissim_objective": 2363.0,
+            "model_rank": 9,
+            "vissim_rank": 9,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 2521.0561,
+            "vissim_objective": 2434.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 2522.0064,
+            "vissim_objective": 2363.0,
+            "model_rank": 11,
+            "vissim_rank": 7,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 2595.3529,
+            "vissim_objective": 2512.0,
+            "model_rank": 12,
+            "vissim_rank": 13,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 2607.8893,
+            "vissim_objective": 2550.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 2733.1748,
+            "vissim_objective": 2439.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 10.4471,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 51.4892,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 138.3224,
+            "vissim_delta_vs_anchor": 187.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.1679,
+            "vissim_delta_vs_anchor": -15.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -7.682,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -50.9216,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 52.4395,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -2.0217,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 29.3391,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 125.7859,
+            "vissim_delta_vs_anchor": 149.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 263.6079,
+            "vissim_delta_vs_anchor": 76.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -125.2855,
+            "vissim_delta": 111.0,
+            "vissim_gap_abs": 111.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -137.822,
+            "vissim_delta": 73.0,
+            "vissim_gap_abs": 73.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -41.9924,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -18.892,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c02_vsl100 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -0.9503,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.1679,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c10_rampd1364 vs c12_rampd691",
+            "axes": "ramp/ramp",
+            "model_delta": -0.1679,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.85,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 51.0896,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 2.1896,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          }
+        ],
+        "discordant_pair_count": 14,
+        "oracle_tie_groups": 7,
+        "model_spread": 314.5295,
+        "vissim_spread": 202.0,
+        "ablation_rho": {
+          "all": 0.6632488611373714,
+          "drop_ramp": 0.7654211685192612,
+          "drop_green": 0.816203337532234,
+          "drop_combined": 0.4643438650388586,
+          "drop_vsl": 0.41442486349116986,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.816496580927726,
+          "only_green_anchor": null
+        }
+      },
+      "H5": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 4447.3308,
+            "vissim_objective": 4185.0,
+            "model_rank": 1,
+            "vissim_rank": 9,
+            "rank_error": -8
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 4537.1075,
+            "vissim_objective": 4178.0,
+            "model_rank": 2,
+            "vissim_rank": 8,
+            "rank_error": -6
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4165.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4160.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4136.0,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 4543.909,
+            "vissim_objective": 4129.0,
+            "model_rank": 6,
+            "vissim_rank": 1,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 4566.5621,
+            "vissim_objective": 4321.0,
+            "model_rank": 7,
+            "vissim_rank": 10,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 4572.8301,
+            "vissim_objective": 4177.0,
+            "model_rank": 8,
+            "vissim_rank": 7,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 4599.8069,
+            "vissim_objective": 4176.0,
+            "model_rank": 9,
+            "vissim_rank": 6,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 4653.2036,
+            "vissim_objective": 4166.0,
+            "model_rank": 10,
+            "vissim_rank": 5,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 4669.9768,
+            "vissim_objective": 4321.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 4913.2857,
+            "vissim_objective": 4628.0,
+            "model_rank": 12,
+            "vissim_rank": 14,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 4916.5099,
+            "vissim_objective": 4553.0,
+            "model_rank": 13,
+            "vissim_rank": 13,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 5338.2628,
+            "vissim_objective": 4452.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 23.04,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 126.4546,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 369.7636,
+            "vissim_delta_vs_anchor": 463.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -5.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -29.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.3869,
+            "vissim_delta_vs_anchor": -36.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": 29.3079,
+            "vissim_delta_vs_anchor": 12.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -96.1913,
+            "vissim_delta_vs_anchor": 20.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 109.6814,
+            "vissim_delta_vs_anchor": 1.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -6.4146,
+            "vissim_delta_vs_anchor": 13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 56.2848,
+            "vissim_delta_vs_anchor": 11.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 372.9878,
+            "vissim_delta_vs_anchor": 388.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 794.7406,
+            "vissim_delta_vs_anchor": 287.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -424.977,
+            "vissim_delta": 176.0,
+            "vissim_gap_abs": 176.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -86.6415,
+            "vissim_delta": 155.0,
+            "vissim_gap_abs": 155.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -33.2448,
+            "vissim_delta": 145.0,
+            "vissim_gap_abs": 145.0
+          },
+          {
+            "pair": "c01_vsl110 vs c20_major75",
+            "axes": "vsl/green",
+            "model_delta": -6.268,
+            "vissim_delta": 144.0,
+            "vissim_gap_abs": 144.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -421.7529,
+            "vissim_delta": 101.0,
+            "vissim_gap_abs": 101.0
+          },
+          {
+            "pair": "c03_vsl80 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": -3.2241,
+            "vissim_delta": 75.0,
+            "vissim_gap_abs": 75.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.5782,
+            "vissim_delta": -56.0,
+            "vissim_gap_abs": 56.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.1913,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.8015,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.4146,
+            "vissim_delta": -42.0,
+            "vissim_gap_abs": 42.0
+          }
+        ],
+        "discordant_pair_count": 27,
+        "oracle_tie_groups": 1,
+        "model_spread": 890.932,
+        "vissim_spread": 499.0,
+        "ablation_rho": {
+          "all": 0.590058490608348,
+          "drop_ramp": 0.5740333799485385,
+          "drop_green": 0.8431128434425376,
+          "drop_combined": 0.3739029409249152,
+          "drop_vsl": 0.30276503540974914,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": -0.7
+        }
+      }
+    },
+    "c_FDC_post": {
+      "H1": {
+        "table": [
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 708.3779,
+            "vissim_objective": 746.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 709.1558,
+            "vissim_objective": 746.0,
+            "model_rank": 2,
+            "vissim_rank": 7,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 4,
+            "vissim_rank": 5,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 724.6562,
+            "vissim_objective": 739.0,
+            "model_rank": 5,
+            "vissim_rank": 1,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 6,
+            "vissim_rank": 8,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 724.6885,
+            "vissim_objective": 743.0,
+            "model_rank": 7,
+            "vissim_rank": 3,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 725.0746,
+            "vissim_objective": 746.0,
+            "model_rank": 8,
+            "vissim_rank": 9,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 726.0942,
+            "vissim_objective": 765.0,
+            "model_rank": 9,
+            "vissim_rank": 13,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 727.2189,
+            "vissim_objective": 753.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 728.2739,
+            "vissim_objective": 746.0,
+            "model_rank": 11,
+            "vissim_rank": 10,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 732.2914,
+            "vissim_objective": 753.0,
+            "model_rank": 12,
+            "vissim_rank": 12,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 742.3508,
+            "vissim_objective": 771.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 768.3016,
+            "vissim_objective": 742.0,
+            "model_rank": 14,
+            "vissim_rank": 2,
+            "rank_error": 12
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 2.5627,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 7.6352,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 17.6946,
+            "vissim_delta_vs_anchor": 25.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -7.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0323,
+            "vissim_delta_vs_anchor": -3.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -16.2783,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -15.5003,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.4185,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 3.6178,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 1.438,
+            "vissim_delta_vs_anchor": 19.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 43.6455,
+            "vissim_delta_vs_anchor": -4.0,
+            "sign_agrees": false
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -25.9509,
+            "vissim_delta": 29.0,
+            "vissim_gap_abs": 29.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -42.2075,
+            "vissim_delta": 23.0,
+            "vissim_gap_abs": 23.0
+          },
+          {
+            "pair": "c30_offset30 vs c40_combined_strong",
+            "axes": "offset/combined",
+            "model_delta": 2.1797,
+            "vissim_delta": -19.0,
+            "vissim_gap_abs": 19.0
+          },
+          {
+            "pair": "c01_vsl110 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 1.1247,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c02_vsl100 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 6.1972,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -41.0828,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -36.0102,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -1.0551,
+            "vissim_delta": 7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 16.2783,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 15.5003,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          }
+        ],
+        "discordant_pair_count": 23,
+        "oracle_tie_groups": 7,
+        "model_spread": 59.9237,
+        "vissim_spread": 32.0,
+        "ablation_rho": {
+          "all": 0.31603130131592855,
+          "drop_ramp": 0.24409850024959526,
+          "drop_green": 0.3302196709099878,
+          "drop_combined": 0.5767607793927929,
+          "drop_vsl": -0.08621610748180847,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.2721655269759087,
+          "only_green_anchor": null
+        }
+      },
+      "H3": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 2410.9695,
+            "vissim_objective": 2363.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 2454.9182,
+            "vissim_objective": 2363.0,
+            "model_rank": 2,
+            "vissim_rank": 5,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 2459.9302,
+            "vissim_objective": 2363.0,
+            "model_rank": 3,
+            "vissim_rank": 8,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2363.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2363.0,
+            "model_rank": 5,
+            "vissim_rank": 4,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2350.0,
+            "model_rank": 6,
+            "vissim_rank": 2,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 2462.1807,
+            "vissim_objective": 2348.0,
+            "model_rank": 7,
+            "vissim_rank": 1,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 2478.7128,
+            "vissim_objective": 2434.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 2491.1167,
+            "vissim_objective": 2363.0,
+            "model_rank": 9,
+            "vissim_rank": 9,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 2514.4945,
+            "vissim_objective": 2363.0,
+            "model_rank": 10,
+            "vissim_rank": 7,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 2521.0329,
+            "vissim_objective": 2434.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 2595.3762,
+            "vissim_objective": 2512.0,
+            "model_rank": 12,
+            "vissim_rank": 13,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 2607.8728,
+            "vissim_objective": 2550.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 2733.2489,
+            "vissim_objective": 2439.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 16.7032,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 59.0233,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 145.8632,
+            "vissim_delta_vs_anchor": 187.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.1711,
+            "vissim_delta_vs_anchor": -15.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -7.0914,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -51.0401,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 52.4849,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -2.0794,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 29.1071,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 133.3666,
+            "vissim_delta_vs_anchor": 149.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 271.2392,
+            "vissim_delta_vs_anchor": 76.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -125.3761,
+            "vissim_delta": 111.0,
+            "vissim_gap_abs": 111.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -137.8727,
+            "vissim_delta": 73.0,
+            "vissim_gap_abs": 73.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -35.7817,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -12.4039,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.1711,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c10_rampd1364 vs c12_rampd691",
+            "axes": "ramp/ramp",
+            "model_delta": -0.1711,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.2625,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 51.2112,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 2.2505,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.0914,
+            "vissim_delta": -13.0,
+            "vissim_gap_abs": 13.0
+          }
+        ],
+        "discordant_pair_count": 13,
+        "oracle_tie_groups": 7,
+        "model_spread": 322.2793,
+        "vissim_spread": 202.0,
+        "ablation_rho": {
+          "all": 0.6844917072236216,
+          "drop_ramp": 0.8051833071436385,
+          "drop_green": 0.816203337532234,
+          "drop_combined": 0.49975992254182244,
+          "drop_vsl": 0.41442486349116986,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.816496580927726,
+          "only_green_anchor": null
+        }
+      },
+      "H5": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 4424.4154,
+            "vissim_objective": 4185.0,
+            "model_rank": 1,
+            "vissim_rank": 9,
+            "rank_error": -8
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 4514.5126,
+            "vissim_objective": 4178.0,
+            "model_rank": 2,
+            "vissim_rank": 8,
+            "rank_error": -6
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 4520.784,
+            "vissim_objective": 4165.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 4520.784,
+            "vissim_objective": 4160.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 4520.784,
+            "vissim_objective": 4136.0,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 4521.1807,
+            "vissim_objective": 4129.0,
+            "model_rank": 6,
+            "vissim_rank": 1,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 4554.7354,
+            "vissim_objective": 4177.0,
+            "model_rank": 7,
+            "vissim_rank": 7,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 4558.3376,
+            "vissim_objective": 4321.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 4576.8696,
+            "vissim_objective": 4176.0,
+            "model_rank": 9,
+            "vissim_rank": 6,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 4630.7211,
+            "vissim_objective": 4166.0,
+            "model_rank": 10,
+            "vissim_rank": 5,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 4669.1199,
+            "vissim_objective": 4321.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 4912.9145,
+            "vissim_objective": 4628.0,
+            "model_rank": 12,
+            "vissim_rank": 14,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 4916.4392,
+            "vissim_objective": 4553.0,
+            "model_rank": 13,
+            "vissim_rank": 13,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 5253.6279,
+            "vissim_objective": 4452.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 37.5537,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 148.336,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 392.1305,
+            "vissim_delta_vs_anchor": 463.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -5.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -29.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.3967,
+            "vissim_delta_vs_anchor": -36.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": 33.9515,
+            "vissim_delta_vs_anchor": 12.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -96.3686,
+            "vissim_delta_vs_anchor": 20.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 109.9371,
+            "vissim_delta_vs_anchor": 1.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -6.2714,
+            "vissim_delta_vs_anchor": 13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 56.0856,
+            "vissim_delta_vs_anchor": 11.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 395.6553,
+            "vissim_delta_vs_anchor": 388.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 732.844,
+            "vissim_delta_vs_anchor": 287.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -340.7135,
+            "vissim_delta": 176.0,
+            "vissim_gap_abs": 176.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -72.3834,
+            "vissim_delta": 155.0,
+            "vissim_gap_abs": 155.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -18.532,
+            "vissim_delta": 145.0,
+            "vissim_gap_abs": 145.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -337.1887,
+            "vissim_delta": 101.0,
+            "vissim_gap_abs": 101.0
+          },
+          {
+            "pair": "c03_vsl80 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": -3.5248,
+            "vissim_delta": 75.0,
+            "vissim_gap_abs": 75.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.7653,
+            "vissim_delta": -56.0,
+            "vissim_gap_abs": 56.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.3686,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.6681,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.2714,
+            "vissim_delta": -42.0,
+            "vissim_gap_abs": 42.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.3967,
+            "vissim_delta": 36.0,
+            "vissim_gap_abs": 36.0
+          }
+        ],
+        "discordant_pair_count": 26,
+        "oracle_tie_groups": 1,
+        "model_spread": 829.2126,
+        "vissim_spread": 499.0,
+        "ablation_rho": {
+          "all": 0.6055281888639976,
+          "drop_ramp": 0.6059241232790129,
+          "drop_green": 0.8431128434425376,
+          "drop_combined": 0.39859464457090016,
+          "drop_vsl": 0.30276503540974914,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": -0.7
+        }
+      }
+    },
+    "d_FDA_post_cd": {
+      "H1": {
+        "table": [
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 709.2131,
+            "vissim_objective": 746.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 710.0035,
+            "vissim_objective": 746.0,
+            "model_rank": 2,
+            "vissim_rank": 7,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 4,
+            "vissim_rank": 5,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 725.491,
+            "vissim_objective": 739.0,
+            "model_rank": 5,
+            "vissim_rank": 1,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 725.491,
+            "vissim_objective": 746.0,
+            "model_rank": 6,
+            "vissim_rank": 8,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 725.5226,
+            "vissim_objective": 743.0,
+            "model_rank": 7,
+            "vissim_rank": 3,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 725.913,
+            "vissim_objective": 746.0,
+            "model_rank": 8,
+            "vissim_rank": 9,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 726.092,
+            "vissim_objective": 765.0,
+            "model_rank": 9,
+            "vissim_rank": 13,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 727.2395,
+            "vissim_objective": 753.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 729.1633,
+            "vissim_objective": 746.0,
+            "model_rank": 11,
+            "vissim_rank": 10,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 732.2881,
+            "vissim_objective": 753.0,
+            "model_rank": 12,
+            "vissim_rank": 12,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 742.3485,
+            "vissim_objective": 771.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 768.3003,
+            "vissim_objective": 742.0,
+            "model_rank": 14,
+            "vissim_rank": 2,
+            "rank_error": 12
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 1.7485,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 6.7971,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 16.8575,
+            "vissim_delta_vs_anchor": 25.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -7.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0316,
+            "vissim_delta_vs_anchor": -3.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -16.2779,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -15.4875,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.422,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 3.6723,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 0.601,
+            "vissim_delta_vs_anchor": 19.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 42.8093,
+            "vissim_delta_vs_anchor": -4.0,
+            "sign_agrees": false
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -25.9518,
+            "vissim_delta": 29.0,
+            "vissim_gap_abs": 29.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -42.2083,
+            "vissim_delta": 23.0,
+            "vissim_gap_abs": 23.0
+          },
+          {
+            "pair": "c30_offset30 vs c40_combined_strong",
+            "axes": "offset/combined",
+            "model_delta": 3.0713,
+            "vissim_delta": -19.0,
+            "vissim_gap_abs": 19.0
+          },
+          {
+            "pair": "c01_vsl110 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 1.1475,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c02_vsl100 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 6.1961,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -41.0608,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -36.0122,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -1.9238,
+            "vissim_delta": 7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 16.2779,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 15.4875,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          }
+        ],
+        "discordant_pair_count": 23,
+        "oracle_tie_groups": 7,
+        "model_spread": 59.0873,
+        "vissim_spread": 32.0,
+        "ablation_rho": {
+          "all": 0.31603130131592855,
+          "drop_ramp": 0.24409850024959526,
+          "drop_green": 0.3302196709099878,
+          "drop_combined": 0.5767607793927929,
+          "drop_vsl": -0.08621610748180847,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.2721655269759087,
+          "only_green_anchor": null
+        }
+      },
+      "H3": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 2418.6453,
+            "vissim_objective": 2363.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 2461.8849,
+            "vissim_objective": 2363.0,
+            "model_rank": 2,
+            "vissim_rank": 5,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 2467.5452,
+            "vissim_objective": 2363.0,
+            "model_rank": 3,
+            "vissim_rank": 8,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2363.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2363.0,
+            "model_rank": 5,
+            "vissim_rank": 4,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 2469.5669,
+            "vissim_objective": 2350.0,
+            "model_rank": 6,
+            "vissim_rank": 2,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 2469.7348,
+            "vissim_objective": 2348.0,
+            "model_rank": 7,
+            "vissim_rank": 1,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 2480.014,
+            "vissim_objective": 2434.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 2498.906,
+            "vissim_objective": 2363.0,
+            "model_rank": 9,
+            "vissim_rank": 9,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 2521.0561,
+            "vissim_objective": 2434.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 2522.0064,
+            "vissim_objective": 2363.0,
+            "model_rank": 11,
+            "vissim_rank": 7,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 2595.3529,
+            "vissim_objective": 2512.0,
+            "model_rank": 12,
+            "vissim_rank": 13,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 2607.8893,
+            "vissim_objective": 2550.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 2733.1748,
+            "vissim_objective": 2439.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 10.4471,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 51.4892,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 138.3224,
+            "vissim_delta_vs_anchor": 187.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.1679,
+            "vissim_delta_vs_anchor": -15.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -7.682,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -50.9216,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 52.4395,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -2.0217,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 29.3391,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 125.7859,
+            "vissim_delta_vs_anchor": 149.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 263.6079,
+            "vissim_delta_vs_anchor": 76.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -125.2855,
+            "vissim_delta": 111.0,
+            "vissim_gap_abs": 111.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -137.822,
+            "vissim_delta": 73.0,
+            "vissim_gap_abs": 73.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -41.9924,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -18.892,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c02_vsl100 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -0.9503,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.1679,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c10_rampd1364 vs c12_rampd691",
+            "axes": "ramp/ramp",
+            "model_delta": -0.1679,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.85,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 51.0896,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 2.1896,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          }
+        ],
+        "discordant_pair_count": 14,
+        "oracle_tie_groups": 7,
+        "model_spread": 314.5295,
+        "vissim_spread": 202.0,
+        "ablation_rho": {
+          "all": 0.6632488611373714,
+          "drop_ramp": 0.7654211685192612,
+          "drop_green": 0.816203337532234,
+          "drop_combined": 0.4643438650388586,
+          "drop_vsl": 0.41442486349116986,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.816496580927726,
+          "only_green_anchor": null
+        }
+      },
+      "H5": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 4447.3308,
+            "vissim_objective": 4185.0,
+            "model_rank": 1,
+            "vissim_rank": 9,
+            "rank_error": -8
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 4537.1075,
+            "vissim_objective": 4178.0,
+            "model_rank": 2,
+            "vissim_rank": 8,
+            "rank_error": -6
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4165.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4160.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 4543.5221,
+            "vissim_objective": 4136.0,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 4543.909,
+            "vissim_objective": 4129.0,
+            "model_rank": 6,
+            "vissim_rank": 1,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 4566.5621,
+            "vissim_objective": 4321.0,
+            "model_rank": 7,
+            "vissim_rank": 10,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 4572.8301,
+            "vissim_objective": 4177.0,
+            "model_rank": 8,
+            "vissim_rank": 7,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 4599.8069,
+            "vissim_objective": 4176.0,
+            "model_rank": 9,
+            "vissim_rank": 6,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 4653.2036,
+            "vissim_objective": 4166.0,
+            "model_rank": 10,
+            "vissim_rank": 5,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 4669.9768,
+            "vissim_objective": 4321.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 4913.2857,
+            "vissim_objective": 4628.0,
+            "model_rank": 12,
+            "vissim_rank": 14,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 4916.5099,
+            "vissim_objective": 4553.0,
+            "model_rank": 13,
+            "vissim_rank": 13,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 5473.8531,
+            "vissim_objective": 4452.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 23.04,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 126.4546,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 369.7636,
+            "vissim_delta_vs_anchor": 463.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -5.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -29.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.3869,
+            "vissim_delta_vs_anchor": -36.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": 29.3079,
+            "vissim_delta_vs_anchor": 12.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -96.1913,
+            "vissim_delta_vs_anchor": 20.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 109.6814,
+            "vissim_delta_vs_anchor": 1.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -6.4146,
+            "vissim_delta_vs_anchor": 13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 56.2848,
+            "vissim_delta_vs_anchor": 11.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 372.9878,
+            "vissim_delta_vs_anchor": 388.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 930.3309,
+            "vissim_delta_vs_anchor": 287.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -560.5673,
+            "vissim_delta": 176.0,
+            "vissim_gap_abs": 176.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -86.6415,
+            "vissim_delta": 155.0,
+            "vissim_gap_abs": 155.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -33.2448,
+            "vissim_delta": 145.0,
+            "vissim_gap_abs": 145.0
+          },
+          {
+            "pair": "c01_vsl110 vs c20_major75",
+            "axes": "vsl/green",
+            "model_delta": -6.268,
+            "vissim_delta": 144.0,
+            "vissim_gap_abs": 144.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -557.3432,
+            "vissim_delta": 101.0,
+            "vissim_gap_abs": 101.0
+          },
+          {
+            "pair": "c03_vsl80 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": -3.2241,
+            "vissim_delta": 75.0,
+            "vissim_gap_abs": 75.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.5782,
+            "vissim_delta": -56.0,
+            "vissim_gap_abs": 56.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.1913,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.8015,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.4146,
+            "vissim_delta": -42.0,
+            "vissim_gap_abs": 42.0
+          }
+        ],
+        "discordant_pair_count": 27,
+        "oracle_tie_groups": 1,
+        "model_spread": 1026.5223,
+        "vissim_spread": 499.0,
+        "ablation_rho": {
+          "all": 0.590058490608348,
+          "drop_ramp": 0.5740333799485385,
+          "drop_green": 0.8431128434425376,
+          "drop_combined": 0.3739029409249152,
+          "drop_vsl": 0.30276503540974914,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": -0.7
+        }
+      }
+    },
+    "e_FDC_post_cd": {
+      "H1": {
+        "table": [
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 708.3779,
+            "vissim_objective": 746.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 709.1558,
+            "vissim_objective": 746.0,
+            "model_rank": 2,
+            "vissim_rank": 7,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 4,
+            "vissim_rank": 5,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 724.6562,
+            "vissim_objective": 739.0,
+            "model_rank": 5,
+            "vissim_rank": 1,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 724.6562,
+            "vissim_objective": 746.0,
+            "model_rank": 6,
+            "vissim_rank": 8,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 724.6885,
+            "vissim_objective": 743.0,
+            "model_rank": 7,
+            "vissim_rank": 3,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 725.0746,
+            "vissim_objective": 746.0,
+            "model_rank": 8,
+            "vissim_rank": 9,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 726.0942,
+            "vissim_objective": 765.0,
+            "model_rank": 9,
+            "vissim_rank": 13,
+            "rank_error": -4
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 727.2189,
+            "vissim_objective": 753.0,
+            "model_rank": 10,
+            "vissim_rank": 11,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 728.2739,
+            "vissim_objective": 746.0,
+            "model_rank": 11,
+            "vissim_rank": 10,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 732.2914,
+            "vissim_objective": 753.0,
+            "model_rank": 12,
+            "vissim_rank": 12,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 742.3508,
+            "vissim_objective": 771.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 768.3016,
+            "vissim_objective": 742.0,
+            "model_rank": 14,
+            "vissim_rank": 2,
+            "rank_error": 12
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 2.5627,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 7.6352,
+            "vissim_delta_vs_anchor": 7.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 17.6946,
+            "vissim_delta_vs_anchor": 25.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -7.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0323,
+            "vissim_delta_vs_anchor": -3.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -16.2783,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -15.5003,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": 0.4185,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 3.6178,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 1.438,
+            "vissim_delta_vs_anchor": 19.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 43.6455,
+            "vissim_delta_vs_anchor": -4.0,
+            "sign_agrees": false
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -25.9509,
+            "vissim_delta": 29.0,
+            "vissim_gap_abs": 29.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -42.2075,
+            "vissim_delta": 23.0,
+            "vissim_gap_abs": 23.0
+          },
+          {
+            "pair": "c30_offset30 vs c40_combined_strong",
+            "axes": "offset/combined",
+            "model_delta": 2.1797,
+            "vissim_delta": -19.0,
+            "vissim_gap_abs": 19.0
+          },
+          {
+            "pair": "c01_vsl110 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 1.1247,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c02_vsl100 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": 6.1972,
+            "vissim_delta": -12.0,
+            "vissim_gap_abs": 12.0
+          },
+          {
+            "pair": "c01_vsl110 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -41.0828,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c02_vsl100 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -36.0102,
+            "vissim_delta": 11.0,
+            "vissim_gap_abs": 11.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -1.0551,
+            "vissim_delta": 7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 16.2783,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 15.5003,
+            "vissim_delta": -7.0,
+            "vissim_gap_abs": 7.0
+          }
+        ],
+        "discordant_pair_count": 23,
+        "oracle_tie_groups": 7,
+        "model_spread": 59.9237,
+        "vissim_spread": 32.0,
+        "ablation_rho": {
+          "all": 0.31603130131592855,
+          "drop_ramp": 0.24409850024959526,
+          "drop_green": 0.3302196709099878,
+          "drop_combined": 0.5767607793927929,
+          "drop_vsl": -0.08621610748180847,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.2721655269759087,
+          "only_green_anchor": null
+        }
+      },
+      "H3": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 2410.9695,
+            "vissim_objective": 2363.0,
+            "model_rank": 1,
+            "vissim_rank": 6,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 2454.9182,
+            "vissim_objective": 2363.0,
+            "model_rank": 2,
+            "vissim_rank": 5,
+            "rank_error": -3
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 2459.9302,
+            "vissim_objective": 2363.0,
+            "model_rank": 3,
+            "vissim_rank": 8,
+            "rank_error": -5
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2363.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2363.0,
+            "model_rank": 5,
+            "vissim_rank": 4,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 2462.0096,
+            "vissim_objective": 2350.0,
+            "model_rank": 6,
+            "vissim_rank": 2,
+            "rank_error": 4
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 2462.1807,
+            "vissim_objective": 2348.0,
+            "model_rank": 7,
+            "vissim_rank": 1,
+            "rank_error": 6
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 2478.7128,
+            "vissim_objective": 2434.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 2491.1167,
+            "vissim_objective": 2363.0,
+            "model_rank": 9,
+            "vissim_rank": 9,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 2514.4945,
+            "vissim_objective": 2363.0,
+            "model_rank": 10,
+            "vissim_rank": 7,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 2521.0329,
+            "vissim_objective": 2434.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 2595.3762,
+            "vissim_objective": 2512.0,
+            "model_rank": 12,
+            "vissim_rank": 13,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 2607.8728,
+            "vissim_objective": 2550.0,
+            "model_rank": 13,
+            "vissim_rank": 14,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 2733.2489,
+            "vissim_objective": 2439.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 16.7032,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 59.0233,
+            "vissim_delta_vs_anchor": 71.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 145.8632,
+            "vissim_delta_vs_anchor": 187.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.1711,
+            "vissim_delta_vs_anchor": -15.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": -7.0914,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -51.0401,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 52.4849,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -2.0794,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 29.1071,
+            "vissim_delta_vs_anchor": 0.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 133.3666,
+            "vissim_delta_vs_anchor": 149.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 271.2392,
+            "vissim_delta_vs_anchor": 76.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -125.3761,
+            "vissim_delta": 111.0,
+            "vissim_gap_abs": 111.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -137.8727,
+            "vissim_delta": 73.0,
+            "vissim_gap_abs": 73.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -35.7817,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -12.4039,
+            "vissim_delta": 71.0,
+            "vissim_gap_abs": 71.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.1711,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c10_rampd1364 vs c12_rampd691",
+            "axes": "ramp/ramp",
+            "model_delta": -0.1711,
+            "vissim_delta": 15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.2625,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 51.2112,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 2.2505,
+            "vissim_delta": -15.0,
+            "vissim_gap_abs": 15.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c20_major75",
+            "axes": "ramp/green",
+            "model_delta": 7.0914,
+            "vissim_delta": -13.0,
+            "vissim_gap_abs": 13.0
+          }
+        ],
+        "discordant_pair_count": 13,
+        "oracle_tie_groups": 7,
+        "model_spread": 322.2793,
+        "vissim_spread": 202.0,
+        "ablation_rho": {
+          "all": 0.6844917072236216,
+          "drop_ramp": 0.8051833071436385,
+          "drop_green": 0.816203337532234,
+          "drop_combined": 0.49975992254182244,
+          "drop_vsl": 0.41442486349116986,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.816496580927726,
+          "only_green_anchor": null
+        }
+      },
+      "H5": {
+        "table": [
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_objective": 4424.4154,
+            "vissim_objective": 4185.0,
+            "model_rank": 1,
+            "vissim_rank": 9,
+            "rank_error": -8
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_objective": 4514.5126,
+            "vissim_objective": 4178.0,
+            "model_rank": 2,
+            "vissim_rank": 8,
+            "rank_error": -6
+          },
+          {
+            "candidate": "c00_anchor",
+            "axis": "anchor",
+            "model_objective": 4520.784,
+            "vissim_objective": 4165.0,
+            "model_rank": 3,
+            "vissim_rank": 4,
+            "rank_error": -1
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_objective": 4520.784,
+            "vissim_objective": 4160.0,
+            "model_rank": 4,
+            "vissim_rank": 3,
+            "rank_error": 1
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_objective": 4520.784,
+            "vissim_objective": 4136.0,
+            "model_rank": 5,
+            "vissim_rank": 2,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_objective": 4521.1807,
+            "vissim_objective": 4129.0,
+            "model_rank": 6,
+            "vissim_rank": 1,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_objective": 4554.7354,
+            "vissim_objective": 4177.0,
+            "model_rank": 7,
+            "vissim_rank": 7,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_objective": 4558.3376,
+            "vissim_objective": 4321.0,
+            "model_rank": 8,
+            "vissim_rank": 10,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_objective": 4576.8696,
+            "vissim_objective": 4176.0,
+            "model_rank": 9,
+            "vissim_rank": 6,
+            "rank_error": 3
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_objective": 4630.7211,
+            "vissim_objective": 4166.0,
+            "model_rank": 10,
+            "vissim_rank": 5,
+            "rank_error": 5
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_objective": 4669.1199,
+            "vissim_objective": 4321.0,
+            "model_rank": 11,
+            "vissim_rank": 11,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_objective": 4912.9145,
+            "vissim_objective": 4628.0,
+            "model_rank": 12,
+            "vissim_rank": 14,
+            "rank_error": -2
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_objective": 4916.4392,
+            "vissim_objective": 4553.0,
+            "model_rank": 13,
+            "vissim_rank": 13,
+            "rank_error": 0
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_objective": 5253.6279,
+            "vissim_objective": 4452.0,
+            "model_rank": 14,
+            "vissim_rank": 12,
+            "rank_error": 2
+          }
+        ],
+        "axis_sensitivity": [
+          {
+            "candidate": "c01_vsl110",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 37.5537,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c02_vsl100",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 148.336,
+            "vissim_delta_vs_anchor": 156.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c03_vsl80",
+            "axis": "vsl",
+            "model_delta_vs_anchor": 392.1305,
+            "vissim_delta_vs_anchor": 463.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c10_rampd1364",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -5.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c11_rampd1253",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.0,
+            "vissim_delta_vs_anchor": -29.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c12_rampd691",
+            "axis": "ramp",
+            "model_delta_vs_anchor": 0.3967,
+            "vissim_delta_vs_anchor": -36.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c20_major75",
+            "axis": "green",
+            "model_delta_vs_anchor": 33.9515,
+            "vissim_delta_vs_anchor": 12.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c21_minor75",
+            "axis": "green",
+            "model_delta_vs_anchor": -96.3686,
+            "vissim_delta_vs_anchor": 20.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c22_major62",
+            "axis": "green",
+            "model_delta_vs_anchor": 109.9371,
+            "vissim_delta_vs_anchor": 1.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c23_minor62",
+            "axis": "green",
+            "model_delta_vs_anchor": -6.2714,
+            "vissim_delta_vs_anchor": 13.0,
+            "sign_agrees": false
+          },
+          {
+            "candidate": "c30_offset30",
+            "axis": "offset",
+            "model_delta_vs_anchor": 56.0856,
+            "vissim_delta_vs_anchor": 11.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c40_combined_strong",
+            "axis": "combined",
+            "model_delta_vs_anchor": 395.6553,
+            "vissim_delta_vs_anchor": 388.0,
+            "sign_agrees": true
+          },
+          {
+            "candidate": "c41_combined_extreme",
+            "axis": "combined",
+            "model_delta_vs_anchor": 732.844,
+            "vissim_delta_vs_anchor": 287.0,
+            "sign_agrees": true
+          }
+        ],
+        "discordant_pairs_top": [
+          {
+            "pair": "c03_vsl80 vs c41_combined_extreme",
+            "axes": "vsl/combined",
+            "model_delta": -340.7135,
+            "vissim_delta": 176.0,
+            "vissim_gap_abs": 176.0
+          },
+          {
+            "pair": "c01_vsl110 vs c22_major62",
+            "axes": "vsl/green",
+            "model_delta": -72.3834,
+            "vissim_delta": 155.0,
+            "vissim_gap_abs": 155.0
+          },
+          {
+            "pair": "c01_vsl110 vs c30_offset30",
+            "axes": "vsl/offset",
+            "model_delta": -18.532,
+            "vissim_delta": 145.0,
+            "vissim_gap_abs": 145.0
+          },
+          {
+            "pair": "c40_combined_strong vs c41_combined_extreme",
+            "axes": "combined/combined",
+            "model_delta": -337.1887,
+            "vissim_delta": 101.0,
+            "vissim_gap_abs": 101.0
+          },
+          {
+            "pair": "c03_vsl80 vs c40_combined_strong",
+            "axes": "vsl/combined",
+            "model_delta": -3.5248,
+            "vissim_delta": 75.0,
+            "vissim_gap_abs": 75.0
+          },
+          {
+            "pair": "c12_rampd691 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.7653,
+            "vissim_delta": -56.0,
+            "vissim_gap_abs": 56.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c21_minor75",
+            "axes": "ramp/green",
+            "model_delta": 96.3686,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c12_rampd691 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.6681,
+            "vissim_delta": -49.0,
+            "vissim_gap_abs": 49.0
+          },
+          {
+            "pair": "c11_rampd1253 vs c23_minor62",
+            "axes": "ramp/green",
+            "model_delta": 6.2714,
+            "vissim_delta": -42.0,
+            "vissim_gap_abs": 42.0
+          },
+          {
+            "pair": "c00_anchor vs c12_rampd691",
+            "axes": "anchor/ramp",
+            "model_delta": -0.3967,
+            "vissim_delta": 36.0,
+            "vissim_gap_abs": 36.0
+          }
+        ],
+        "discordant_pair_count": 26,
+        "oracle_tie_groups": 1,
+        "model_spread": 829.2126,
+        "vissim_spread": 499.0,
+        "ablation_rho": {
+          "all": 0.6055281888639976,
+          "drop_ramp": 0.6059241232790129,
+          "drop_green": 0.8431128434425376,
+          "drop_combined": 0.39859464457090016,
+          "drop_vsl": 0.30276503540974914,
+          "only_vsl_anchor": 0.9486832980505138,
+          "only_ramp_anchor": -0.7745966692414834,
+          "only_green_anchor": -0.7
+        }
+      }
+    }
+  }
+}
