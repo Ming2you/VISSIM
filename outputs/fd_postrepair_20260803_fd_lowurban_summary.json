@@ -1,0 +1,61 @@
+{
+  "run_dir": "evaluation\\runs\\fd_refit_postrepair_20260803",
+  "run_name": "fd_lowurban",
+  "window_sec": [
+    900.0,
+    4500.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 976,
+    "positive_point_count": 976,
+    "links": {
+      "FW_E": {
+        "points": 488,
+        "density_min": 4.084242,
+        "density_max": 70.917299,
+        "speed_mean": 74.47931905122951,
+        "observed_flow_max_vph": 8075.013588846304,
+        "observed_flow_max_density": 26.361928,
+        "binned_capacity_mean_vph": 7029.4853729762535,
+        "binned_critical_density": 33.0
+      },
+      "FW_W": {
+        "points": 488,
+        "density_min": 4.453642,
+        "density_max": 37.299252,
+        "speed_mean": 83.91179738934426,
+        "observed_flow_max_vph": 8224.703309835792,
+        "observed_flow_max_density": 26.536284,
+        "binned_capacity_mean_vph": 7082.1673514507365,
+        "binned_critical_density": 31.0
+      }
+    }
+  },
+  "urban_mfd": {
+    "point_count": 61,
+    "state_aligned_peak_production_veh_km_h": 65102.29822499999,
+    "state_aligned_peak_accumulation_veh": 2126.0,
+    "state_aligned_peak_time_sec": 1920.0,
+    "core_peak_production_veh_km_h": 65102.29822499999,
+    "core_peak_accumulation_veh": 2126.0,
+    "core_peak_time_sec": 1920.0,
+    "state_aligned_accumulation_min": 1287.0,
+    "state_aligned_accumulation_max": 2536.0,
+    "core_accumulation_min": 1287.0,
+    "core_accumulation_max": 2536.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\fd_postrepair_20260803_fd_lowurban_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\fd_postrepair_20260803_fd_lowurban_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\fd_postrepair_20260803_fd_lowurban_urban_mfd_points.csv",
+    "summary_json": "outputs\\fd_postrepair_20260803_fd_lowurban_summary.json",
+    "freeway_fd_png": "outputs\\fd_postrepair_20260803_fd_lowurban_freeway_fd.png",
+    "urban_mfd_png": "outputs\\fd_postrepair_20260803_fd_lowurban_urban_mfd.png"
+  }
+}

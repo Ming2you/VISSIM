@@ -361,6 +361,8 @@ def main() -> None:
 
     menu = sorted(args.vsl_menu)
     binding = []
+    # V(rho) 는 rho 에 대해 단조감소하므로 VSL 은 rho <= rho_bind 에서만 구속한다.
+    # (rho > rho_bind 이면 V(rho) < VSL 이라 min() 에서 VSL 이 사라진다.)
     for vsl in menu:
         rb_new = rho_bind(vsl, primary["v_free"], primary["rho_crit"], primary["a"])
         rb_old = rho_bind(vsl, old_v, old_rc, old_a)
@@ -368,11 +370,11 @@ def main() -> None:
             "vsl_kph": vsl,
             "binds_at_all_new": vsl < primary["v_free"],
             "rho_bind_new": rb_new,
-            "frac_points_binding_new": (sum(1 for r in rhos if r >= rb_new) / len(rhos)
+            "frac_points_binding_new": (sum(1 for r in rhos if r <= rb_new) / len(rhos)
                                         if vsl < primary["v_free"] else 0.0),
             "binds_at_all_old": vsl < old_v,
             "rho_bind_old": rb_old,
-            "frac_points_binding_old": (sum(1 for r in rhos if r >= rb_old) / len(rhos)
+            "frac_points_binding_old": (sum(1 for r in rhos if r <= rb_old) / len(rhos)
                                         if vsl < old_v else 0.0),
         })
 

@@ -1,0 +1,61 @@
+{
+  "run_dir": "evaluation\\runs\\fd_refit_postrepair_20260803",
+  "run_name": "fd_breakdown",
+  "window_sec": [
+    900.0,
+    4500.0
+  ],
+  "method": {
+    "freeway_fd_flow_vph": "density_veh_km_lane * mean_speed_kph * lanes",
+    "urban_state_aligned": "urban_or_other + local_observable_connector + freeway_input",
+    "urban_core": "urban_or_other + local_observable_connector",
+    "urban_production": "sum(link_count * link_mean_speed_kph), veh-km/h proxy"
+  },
+  "freeway_fd": {
+    "point_count": 976,
+    "positive_point_count": 976,
+    "links": {
+      "FW_E": {
+        "points": 488,
+        "density_min": 4.455537,
+        "density_max": 67.204351,
+        "speed_mean": 78.15828444467213,
+        "observed_flow_max_vph": 8441.74625578466,
+        "observed_flow_max_density": 21.163801,
+        "binned_capacity_mean_vph": 6901.868554026975,
+        "binned_critical_density": 37.0
+      },
+      "FW_W": {
+        "points": 488,
+        "density_min": 4.824779,
+        "density_max": 41.01062,
+        "speed_mean": 83.66708219057377,
+        "observed_flow_max_vph": 8362.222420525379,
+        "observed_flow_max_density": 25.237305,
+        "binned_capacity_mean_vph": 7156.767078495462,
+        "binned_critical_density": 31.0
+      }
+    }
+  },
+  "urban_mfd": {
+    "point_count": 61,
+    "state_aligned_peak_production_veh_km_h": 78172.83005599995,
+    "state_aligned_peak_accumulation_veh": 3441.0,
+    "state_aligned_peak_time_sec": 2220.0,
+    "core_peak_production_veh_km_h": 78172.83005599995,
+    "core_peak_accumulation_veh": 3441.0,
+    "core_peak_time_sec": 2220.0,
+    "state_aligned_accumulation_min": 1751.0,
+    "state_aligned_accumulation_max": 3769.0,
+    "core_accumulation_min": 1751.0,
+    "core_accumulation_max": 3769.0
+  },
+  "outputs": {
+    "freeway_fd_points_csv": "outputs\\fd_postrepair_20260803_fd_breakdown_freeway_fd_points.csv",
+    "freeway_fd_binned_csv": "outputs\\fd_postrepair_20260803_fd_breakdown_freeway_fd_binned.csv",
+    "urban_mfd_points_csv": "outputs\\fd_postrepair_20260803_fd_breakdown_urban_mfd_points.csv",
+    "summary_json": "outputs\\fd_postrepair_20260803_fd_breakdown_summary.json",
+    "freeway_fd_png": "outputs\\fd_postrepair_20260803_fd_breakdown_freeway_fd.png",
+    "urban_mfd_png": "outputs\\fd_postrepair_20260803_fd_breakdown_urban_mfd.png"
+  }
+}

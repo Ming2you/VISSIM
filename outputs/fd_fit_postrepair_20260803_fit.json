@@ -1,0 +1,501 @@
+{
+  "inputs": [
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_fd_breakdown_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_fd_extreme_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_fd_lowurban_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_fd_scale135_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_fd_scale170_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_postrepair_20260803_nocontrol_postrepair_20260803_freeway_fd_points.csv"
+  ],
+  "point_count_used": 5856,
+  "bin_width_veh_km_lane": 2.0,
+  "nominal_lanes": 4.0,
+  "observed_capacity": {
+    "q_cap_obs_veh_h_lane": 1733.1933772798375,
+    "q_cap_obs_veh_h_link": 6932.77350911935,
+    "bin_center_veh_km_lane": 31.0,
+    "bin_rho_mean": 30.910441358778623,
+    "bin_n": 131,
+    "cap_min_n": 10,
+    "capacity_bin_is_interior_max": true,
+    "identifiability_note": "OK: 관측이 임계밀도를 넘겨 용량 등식 제약이 식별된다."
+  },
+  "method": {
+    "model": "V(rho) = v_free * exp(-(1/a) * (rho/rho_crit)**a)",
+    "primary": "binned mean (2 veh/km/lane) + bin-count-weighted least squares, capacity equality constraint q_cap_lane == observed binned-mean max",
+    "not_used": "low-density p95 upper envelope (source of the +35 km/h bias in v0)",
+    "excluded_points": "count == 0 or density == 0 or speed == 0 (empty segments)"
+  },
+  "fits": {
+    "primary": {
+      "v_free": 126.91862207228749,
+      "rho_crit": 28.419111111111114,
+      "a": 1.3644666666666665,
+      "bin_wrmse": 2.8171812367562103,
+      "capacity_veh_h_lane": 1733.1933772798373,
+      "capacity_veh_h_link": 6932.773509119349,
+      "point_metrics": {
+        "n": 5856,
+        "rmse_kph": 9.814349559543377,
+        "bias_model_minus_obs_kph": -0.15656121574012083,
+        "mae_kph": 7.603313490058022
+      }
+    },
+    "alt_equal_bin_weight": {
+      "v_free": 128.70097259374137,
+      "rho_crit": 30.98507407407407,
+      "a": 1.2000819753086418,
+      "bin_wrmse": 2.9074003855751176,
+      "capacity_veh_h_lane": 1733.1933772798375,
+      "capacity_veh_h_link": 6932.77350911935,
+      "point_metrics": {
+        "n": 5856,
+        "rmse_kph": 10.077945215885563,
+        "bias_model_minus_obs_kph": -1.7441027845150487,
+        "mae_kph": 7.882987396177136
+      }
+    },
+    "alt_unconstrained": {
+      "v_free": 126.82107375,
+      "rho_crit": 28.536040898437495,
+      "a": 1.3636076046875,
+      "bin_wrmse": 2.815432376064747,
+      "capacity_veh_h_lane": 1738.1842392073697,
+      "capacity_veh_h_link": 6952.736956829479,
+      "point_metrics": {
+        "n": 5856,
+        "rmse_kph": 9.813899942287398,
+        "bias_model_minus_obs_kph": -0.09590092485168059,
+        "mae_kph": 7.591344068571806
+      }
+    }
+  },
+  "per_link_fits": {
+    "FW_E": {
+      "v_free": 130.29708046183453,
+      "rho_crit": 30.040962962962965,
+      "a": 1.2316232098765434,
+      "bin_wrmse": 3.0986356626011258,
+      "capacity_veh_h_lane": 1737.916617850313,
+      "capacity_veh_h_link": 6951.666471401252,
+      "observed_capacity_veh_h_lane": 1737.9166178503128,
+      "point_metrics": {
+        "n": 2928,
+        "rmse_kph": 10.00983128826512,
+        "bias_model_minus_obs_kph": 0.11659561561755627,
+        "mae_kph": 7.5848913168020555
+      }
+    },
+    "FW_W": {
+      "v_free": 121.13399566050155,
+      "rho_crit": 26.33648148148148,
+      "a": 1.6449644444444445,
+      "bin_wrmse": 2.444965869507829,
+      "capacity_veh_h_lane": 1737.0378672279537,
+      "capacity_veh_h_link": 6948.151468911815,
+      "observed_capacity_veh_h_lane": 1737.0378672279537,
+      "point_metrics": {
+        "n": 2928,
+        "rmse_kph": 9.429475983660582,
+        "bias_model_minus_obs_kph": 0.006859273182680814,
+        "mae_kph": 7.285226586814171
+      }
+    }
+  },
+  "old_v0": {
+    "v_free_kph": 119.505,
+    "rho_crit_veh_km_lane": 16.354,
+    "metanet_a_m": 2.154,
+    "capacity_veh_h_link_declared": 4914.0,
+    "capacity_veh_h_link_implied_by_fd": 4914.142419070977,
+    "point_metrics": {
+      "n": 5856,
+      "rmse_kph": 20.5658150588417,
+      "bias_model_minus_obs_kph": -14.682460663827872,
+      "mae_kph": 16.969219739435445
+    }
+  },
+  "coverage": {
+    "speed_p50": 96.355864,
+    "speed_p90": 115.8452465,
+    "speed_p95": 117.5720355,
+    "speed_max": 123.573611,
+    "rho_p50": 14.109201,
+    "rho_p90": 32.660042,
+    "rho_p95": 51.238676,
+    "rho_max": 70.917299,
+    "frac_speed_gt_80": 0.6704234972677595,
+    "frac_speed_gt_100": 0.43254781420765026,
+    "frac_speed_gt_120": 0.012295081967213115,
+    "frac_rho_gt_rho_crit_fit": 0.1446379781420765
+  },
+  "vsl_menu_binding": [
+    {
+      "vsl_kph": 80.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 20.24940609139168,
+      "frac_points_binding_new": 0.7095286885245902,
+      "binds_at_all_old": true,
+      "rho_bind_old": 15.284793273264846,
+      "frac_points_binding_old": 0.5560109289617486
+    },
+    {
+      "vsl_kph": 100.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 12.477475503148748,
+      "frac_points_binding_new": 0.4082991803278688,
+      "binds_at_all_old": true,
+      "rho_bind_old": 10.484617667190587,
+      "frac_points_binding_old": 0.287568306010929
+    },
+    {
+      "vsl_kph": 120.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 4.3191183822970585,
+      "frac_points_binding_new": 0.006830601092896175,
+      "binds_at_all_old": false,
+      "rho_bind_old": 0.0,
+      "frac_points_binding_old": 0.0
+    }
+  ],
+  "bias_table": [
+    {
+      "rho_lo": 0,
+      "rho_hi": 5,
+      "n": 78,
+      "rho_mean": 4.261804884615384,
+      "obs_speed": 115.04675994871795,
+      "model_new": 120.12155724719224,
+      "dev_new": -5.074797298474294,
+      "model_old": 116.48097637373561,
+      "dev_old": -1.4342164250176666
+    },
+    {
+      "rho_lo": 5,
+      "rho_hi": 10,
+      "n": 1381,
+      "rho_mean": 7.884881526430123,
+      "obs_speed": 110.63959796379434,
+      "model_new": 111.73313874321325,
+      "dev_new": -1.0935407794189018,
+      "model_old": 108.51708133653298,
+      "dev_old": 2.122516627261362
+    },
+    {
+      "rho_lo": 10,
+      "rho_hi": 15,
+      "n": 1694,
+      "rho_mean": 12.31597590850059,
+      "obs_speed": 102.01518326682408,
+      "model_new": 100.42087578731962,
+      "dev_new": 1.5943074795044652,
+      "model_old": 92.88045302626041,
+      "dev_old": 9.13473024056367
+    },
+    {
+      "rho_lo": 15,
+      "rho_hi": 20,
+      "n": 959,
+      "rho_mean": 16.956095459854016,
+      "obs_speed": 90.70277558915537,
+      "model_new": 88.34912603948625,
+      "dev_new": 2.3536495496691145,
+      "model_old": 72.34929399398371,
+      "dev_old": 18.353481595171658
+    },
+    {
+      "rho_lo": 20,
+      "rho_hi": 25,
+      "n": 495,
+      "rho_mean": 22.485985854545454,
+      "obs_speed": 70.54634515555556,
+      "model_new": 74.52268165038404,
+      "dev_new": -3.9763364948284874,
+      "model_old": 47.54039733716643,
+      "dev_old": 23.005947818389124
+    },
+    {
+      "rho_lo": 25,
+      "rho_hi": 30,
+      "n": 503,
+      "rho_mean": 27.212418451292248,
+      "obs_speed": 59.74109452882704,
+      "model_new": 63.611105630736766,
+      "dev_new": -3.870011101909725,
+      "model_old": 29.75794785134783,
+      "dev_old": 29.983146677479212
+    },
+    {
+      "rho_lo": 30,
+      "rho_hi": 40,
+      "n": 387,
+      "rho_mean": 33.73138988888889,
+      "obs_speed": 51.099066514211884,
+      "model_new": 50.27962024880633,
+      "dev_new": 0.8194462654055528,
+      "model_old": 13.136362691340281,
+      "dev_old": 37.9627038228716
+    },
+    {
+      "rho_lo": 40,
+      "rho_hi": 60,
+      "n": 234,
+      "rho_mean": 53.17822723931624,
+      "obs_speed": 26.738583679487178,
+      "model_new": 22.65380161251049,
+      "dev_new": 4.084782066976686,
+      "model_old": 0.3319087993802001,
+      "dev_old": 26.406674880106976
+    }
+  ],
+  "bins": [
+    {
+      "bin_center": 3.0,
+      "n": 18,
+      "rho_mean": 3.474902444444444,
+      "speed_mean": 115.10623127777778,
+      "q_lane_mean": 400.4006242061206
+    },
+    {
+      "bin_center": 5.0,
+      "n": 214,
+      "rho_mean": 5.254484579439253,
+      "speed_mean": 113.59137374299065,
+      "q_lane_mean": 596.2495114357897
+    },
+    {
+      "bin_center": 7.0,
+      "n": 554,
+      "rho_mean": 7.164071162454873,
+      "speed_mean": 112.25271379783393,
+      "q_lane_mean": 803.6431369667067
+    },
+    {
+      "bin_center": 9.0,
+      "n": 673,
+      "rho_mean": 9.012687668647844,
+      "speed_mean": 108.76443161367014,
+      "q_lane_mean": 979.937770602911
+    },
+    {
+      "bin_center": 11.0,
+      "n": 736,
+      "rho_mean": 10.921207214673913,
+      "speed_mean": 104.42616051222826,
+      "q_lane_mean": 1139.504501793032
+    },
+    {
+      "bin_center": 13.0,
+      "n": 692,
+      "rho_mean": 12.966932413294797,
+      "speed_mean": 101.12602643786127,
+      "q_lane_mean": 1310.1628609822906
+    },
+    {
+      "bin_center": 15.0,
+      "n": 584,
+      "rho_mean": 15.023888239726027,
+      "speed_mean": 96.52972825684931,
+      "q_lane_mean": 1449.5680421503823
+    },
+    {
+      "bin_center": 17.0,
+      "n": 387,
+      "rho_mean": 16.89816070284238,
+      "speed_mean": 92.207400625323,
+      "q_lane_mean": 1556.8489008329893
+    },
+    {
+      "bin_center": 19.0,
+      "n": 254,
+      "rho_mean": 18.8956459488189,
+      "speed_mean": 82.29603333858269,
+      "q_lane_mean": 1554.044251824273
+    },
+    {
+      "bin_center": 21.0,
+      "n": 202,
+      "rho_mean": 20.92861594059406,
+      "speed_mean": 75.38054900990099,
+      "q_lane_mean": 1575.3588227741097
+    },
+    {
+      "bin_center": 23.0,
+      "n": 193,
+      "rho_mean": 23.053469398963735,
+      "speed_mean": 68.20410851295337,
+      "q_lane_mean": 1572.0559632264064
+    },
+    {
+      "bin_center": 25.0,
+      "n": 219,
+      "rho_mean": 25.07829914611872,
+      "speed_mean": 63.78534849315068,
+      "q_lane_mean": 1598.8671310210202
+    },
+    {
+      "bin_center": 27.0,
+      "n": 230,
+      "rho_mean": 26.98920804347826,
+      "speed_mean": 59.490004973913045,
+      "q_lane_mean": 1605.0373030294184
+    },
+    {
+      "bin_center": 29.0,
+      "n": 154,
+      "rho_mean": 28.84314351948052,
+      "speed_mean": 57.975682422077924,
+      "q_lane_mean": 1672.0459751953183
+    },
+    {
+      "bin_center": 31.0,
+      "n": 131,
+      "rho_mean": 30.910441358778623,
+      "speed_mean": 56.084723305343516,
+      "q_lane_mean": 1733.1933772798375
+    },
+    {
+      "bin_center": 33.0,
+      "n": 91,
+      "rho_mean": 32.98672327472528,
+      "speed_mean": 52.50760989010989,
+      "q_lane_mean": 1731.5083618471422
+    },
+    {
+      "bin_center": 35.0,
+      "n": 79,
+      "rho_mean": 34.87612912658228,
+      "speed_mean": 48.8765241392405,
+      "q_lane_mean": 1704.0648481946619
+    },
+    {
+      "bin_center": 37.0,
+      "n": 49,
+      "rho_mean": 36.934841428571424,
+      "speed_mean": 44.950323551020404,
+      "q_lane_mean": 1659.3312282099755
+    },
+    {
+      "bin_center": 39.0,
+      "n": 37,
+      "rho_mean": 38.86396810810811,
+      "speed_mean": 42.87124937837838,
+      "q_lane_mean": 1665.082328286301
+    },
+    {
+      "bin_center": 41.0,
+      "n": 22,
+      "rho_mean": 41.02460759090909,
+      "speed_mean": 35.346719772727276,
+      "q_lane_mean": 1449.80373923524
+    },
+    {
+      "bin_center": 43.0,
+      "n": 13,
+      "rho_mean": 42.79045476923076,
+      "speed_mean": 34.774963923076925,
+      "q_lane_mean": 1486.3177119966813
+    },
+    {
+      "bin_center": 45.0,
+      "n": 4,
+      "rho_mean": 44.87555575,
+      "speed_mean": 31.848602,
+      "q_lane_mean": 1430.613460391874
+    },
+    {
+      "bin_center": 47.0,
+      "n": 12,
+      "rho_mean": 46.97928275,
+      "speed_mean": 31.712475333333334,
+      "q_lane_mean": 1489.9773781142458
+    },
+    {
+      "bin_center": 49.0,
+      "n": 12,
+      "rho_mean": 49.210295333333335,
+      "speed_mean": 29.318368000000003,
+      "q_lane_mean": 1443.0598595191102
+    },
+    {
+      "bin_center": 51.0,
+      "n": 12,
+      "rho_mean": 51.42250116666667,
+      "speed_mean": 27.981572333333332,
+      "q_lane_mean": 1438.7659608216918
+    },
+    {
+      "bin_center": 53.0,
+      "n": 14,
+      "rho_mean": 53.01397957142857,
+      "speed_mean": 26.732665857142855,
+      "q_lane_mean": 1416.9286806228952
+    },
+    {
+      "bin_center": 55.0,
+      "n": 36,
+      "rho_mean": 55.00187888888889,
+      "speed_mean": 25.423760333333334,
+      "q_lane_mean": 1398.0751914734037
+    },
+    {
+      "bin_center": 57.0,
+      "n": 59,
+      "rho_mean": 57.05586552542373,
+      "speed_mean": 23.838987169491524,
+      "q_lane_mean": 1359.9476025858633
+    },
+    {
+      "bin_center": 59.0,
+      "n": 50,
+      "rho_mean": 58.90962602,
+      "speed_mean": 22.71139764,
+      "q_lane_mean": 1337.7424074523335
+    },
+    {
+      "bin_center": 61.0,
+      "n": 57,
+      "rho_mean": 60.96399349122807,
+      "speed_mean": 21.183424298245615,
+      "q_lane_mean": 1291.2582190558026
+    },
+    {
+      "bin_center": 63.0,
+      "n": 34,
+      "rho_mean": 62.71605252941176,
+      "speed_mean": 20.38872285294118,
+      "q_lane_mean": 1278.6687631062878
+    },
+    {
+      "bin_center": 65.0,
+      "n": 23,
+      "rho_mean": 65.10572834782609,
+      "speed_mean": 19.201678869565217,
+      "q_lane_mean": 1249.8692091540556
+    },
+    {
+      "bin_center": 67.0,
+      "n": 6,
+      "rho_mean": 66.70929133333334,
+      "speed_mean": 18.699713166666665,
+      "q_lane_mean": 1247.3076214836265
+    },
+    {
+      "bin_center": 69.0,
+      "n": 4,
+      "rho_mean": 68.45747075,
+      "speed_mean": 18.0811445,
+      "q_lane_mean": 1237.8996201575083
+    },
+    {
+      "bin_center": 71.0,
+      "n": 1,
+      "rho_mean": 70.917299,
+      "speed_mean": 16.964974,
+      "q_lane_mean": 1203.1101336852262
+    }
+  ],
+  "outputs": {
+    "png": "outputs\\fd_fit_postrepair_20260803_fd_fit.png"
+  }
+}
