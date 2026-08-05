@@ -1,0 +1,2266 @@
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-08-05T09:44:13.807410+00:00",
+  "policy": {
+    "purpose": "static evidence for the current core15n41 VISSIM rollout plant",
+    "historical_outputs_are_current_evidence": false,
+    "missing_paths": "NOT_EVALUATED",
+    "status_values": [
+      "PASS",
+      "FAIL",
+      "NOT_EVALUATED"
+    ]
+  },
+  "workspace_git": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit",
+    "is_git_root": true,
+    "top_level": "C:/tmp/VISSIM-pstack-audit",
+    "branch": "codex/plant-fidelity-audit-20260805",
+    "commit": "dc216be623abc3021963dd2735b4e485d01c6e68",
+    "dirty": true,
+    "dirty_path_count": 25,
+    "dirty_paths": [
+      "M evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json",
+      " M evaluation/controllers/vissim_stackelberg_adapter.py",
+      " M evaluation/generated/real_world_modi_control_config_distributed_core15n41_20260805.vbs",
+      " M evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core15n41_20260805.json",
+      " M evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core15n41_20260805.json",
+      " M evaluation/real_world_modi_control_distributed_20260728/player_config_distributed_core15n41_20260805.json",
+      " M scripts/assign_links_to_players.py",
+      " M scripts/derive_intersection_adjacency.py",
+      " M scripts/generate_real_world_distributed_players.py",
+      " M scripts/run_real_world_single_watchdog.ps1",
+      " M scripts/run_real_world_single_watchdog_distributed_core15n41.ps1",
+      " M scripts/run_real_world_stackelberg_controller.vbs",
+      " M scripts/run_real_world_stackelberg_controller_perf.vbs",
+      "?? evaluation/controllers/fixed_signal_schedule.py",
+      "?? reports/link_assignment_ties.json",
+      "?? reports/plant_fidelity_audit.md",
+      "?? reports/plant_fidelity_audit_summary.md",
+      "?? reports/plant_fidelity_evidence_manifest.json",
+      "?? scripts/audit_plant_fidelity.py",
+      "?? scripts/run_plant_fidelity_matrix.ps1",
+      "?? scripts/tests/test_audit_plant_fidelity.py",
+      "?? scripts/tests/test_topology_generation_guard.py",
+      "?? tests/test_action_csv_contract.py",
+      "?? tests/test_fixed_signal_schedule.py",
+      "?? tests/test_vissim_stackelberg_adapter_fidelity.py"
+    ],
+    "error": null
+  },
+  "inputs": {
+    "primary": {
+      "network": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 3029864,
+        "sha256": "2f75c76c71bab2ac9b35b3308bb9b0dec83e1c0bacff969d85e56cb09a7ceda0",
+        "error": null
+      },
+      "signal_roles": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\real_world_modi_inventory\\signal_controller_roles.csv",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9728,
+        "sha256": "376f1a23efab8ae4270aba09e72d3cf75915a885b24a6f32464a3ef800bb5ead",
+        "error": null
+      },
+      "link_assignment": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\link_player_assignment_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 136582,
+        "sha256": "ba9c13ba9fe9e05c51866a50221a1054d73a3379315bf97c108a0552397eb01f",
+        "error": null
+      },
+      "adjacency": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\intersection_adjacency8_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10814,
+        "sha256": "a7cafe52693dfc46098f14763e37772a6f680ec56af28ac432bfcbfb907ae8ae",
+        "error": null
+      },
+      "storage_capacity": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\urban_storage_capacity_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10536,
+        "sha256": "f196de2c444c72b117fec7f0e16f2c81189acada686b76f3def273096d8f87d5",
+        "error": null
+      },
+      "tuning": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\configs\\real_world_modi_pstack_distributed_core15n41_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 596057,
+        "sha256": "cc06538e0e75ceff4e83f505b68fa73bcdd144ea9cf76277a9f21f466be8bcd6",
+        "error": null
+      },
+      "calibration": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\calibration\\real_world_prediction_calibration_pshb4500fix_20260724.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 2029,
+        "sha256": "ea9425562c7ab5070a3a99f3a77ea4f47a46526237ab6c16618c681a21508252",
+        "error": null
+      },
+      "control_mapping": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 58571,
+        "sha256": "9a3f246d9fd4c9f939a6b9d412ac093fc04254d7c7c209f844303d6309126792",
+        "error": null
+      },
+      "detector_mapping": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 456438,
+        "sha256": "0ad49dd29b777159f8fb44d2827f5a920fdb846ba9c6e36e26c1417a7b941fed",
+        "error": null
+      },
+      "generated_vbs_config": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\generated\\real_world_modi_control_config_distributed_core15n41_20260805.vbs",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10795,
+        "sha256": "45c2dad782ed9b3a66f0d5df4ca41e933794978b209cc0ce0a0cc36d99c9abdf",
+        "error": null
+      },
+      "adapter": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 228183,
+        "sha256": "b9883e64bc025d480dd6a274552fe031b9c5262fcfb7bd9b787d46c7f7908d9d",
+        "error": null
+      },
+      "vendor_snapshot": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine\\SNAPSHOT.md",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 2429,
+        "sha256": "3a99f9ef4dd572790ac81a5bbdb71637fbd3e35b04e1080a55f5e33e931ce67f",
+        "error": null
+      },
+      "extra:main_vbs_runner": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\scripts\\run_real_world_stackelberg_controller.vbs",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 122289,
+        "sha256": "38ffd5597196a389a6875707030166b921b3ce1682b290551c33b329360a741a",
+        "error": null
+      },
+      "extra:watchdog": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\scripts\\run_real_world_single_watchdog_distributed_core15n41.ps1",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 15563,
+        "sha256": "a6feb2eb4538080ab6a02511e71a4d46de97f7b61b0406a58394a6f4e4699181",
+        "error": null
+      },
+      "extra:matrix": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\scripts\\run_plant_fidelity_matrix.ps1",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 2606,
+        "sha256": "191deb845f4843eca9ecf534a5166de85eeaca969420c1a5b4cdd981ba98fdc6",
+        "error": null
+      },
+      "extra:topology_ties": {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\reports\\link_assignment_ties.json",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11975,
+        "sha256": "adcb1dff7037f87c1f68963930c5d50b30628477c00be778efd1e81e70a37721",
+        "error": null
+      }
+    },
+    "signal_program_directory": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi",
+    "signal_program_count": 41,
+    "signal_programs": [
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11348,
+        "sha256": "52d980be92ac6e82fff31407fca9a1ef3b5dbd4c0f42c5750f3bcf03395739d6",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed10.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9949,
+        "sha256": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1001.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1002.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1003.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1004.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed1005.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed101.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11350,
+        "sha256": "6e9e3f46e01de3856995c664d0caf42f6eb873333bf3373461c586c850501f0e",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed102.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 18602,
+        "sha256": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed103.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed104.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed105.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "d6945142840dc48475f355e26d2809ed1428f31e3ade90fa95dce447091e586e",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed106.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11350,
+        "sha256": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed107.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10728,
+        "sha256": "7cfe0a4349fa1d02a7aa10c557555d0fbc7345fd7cc3a36816ef00c5b7fcf3d2",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed108.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10734,
+        "sha256": "46adf3c9612990c019e697f97d694473715efc2699fcf08c026cb3d5a8be0afe",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed109.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9956,
+        "sha256": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed11.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10724,
+        "sha256": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed12.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9169,
+        "sha256": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed13.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9552,
+        "sha256": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed14.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 17038,
+        "sha256": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed15.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9922,
+        "sha256": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed16.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 17031,
+        "sha256": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed17.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9553,
+        "sha256": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed18.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 10723,
+        "sha256": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed19.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9169,
+        "sha256": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 25660,
+        "sha256": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2001.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2002.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2003.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2004.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed2005.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11349,
+        "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed3.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11358,
+        "sha256": "8d455a5935623d77185d017af1a4d0751ecec9156ed7a0a2de4e15832730475c",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed4.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 17781,
+        "sha256": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed5.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11344,
+        "sha256": "7986c75571e5641f4492969754a2f143f4f7eb2f4d5982fb2f67469abaaa456a",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed6.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 16650,
+        "sha256": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed7.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 25715,
+        "sha256": "46bc879ec36d239cfa7b701a5a21ad9f503d90ca00a6afa0d9aaeae85e4d040f",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed8.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 26097,
+        "sha256": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed9.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 11353,
+        "sha256": "ae919f5881a925931dd81526fad4132de14407befeb5c851d03d02fc6c820853",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed9001.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 16652,
+        "sha256": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed9002.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9926,
+        "sha256": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f",
+        "error": null
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\개포동 test-bed9003.sig",
+        "exists": true,
+        "is_file": true,
+        "size_bytes": 9175,
+        "sha256": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1",
+        "error": null
+      }
+    ]
+  },
+  "network": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+    "available": true,
+    "error": null,
+    "link_count": 1219,
+    "connector_count": 771,
+    "regular_link_count": 448,
+    "signal_controller_count": 50,
+    "raw_active_signal_controller_count": 50,
+    "raw_active_signal_controller_ids": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "1001",
+      "1002",
+      "1003",
+      "1004",
+      "1005",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "9001",
+      "9002",
+      "9003",
+      "9004",
+      "9101",
+      "9102",
+      "9103",
+      "9104",
+      "9105",
+      "9106",
+      "9107",
+      "9108"
+    ],
+    "urban_eligible_signal_controller_count": 42,
+    "urban_eligible_signal_controller_ids": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "1001",
+      "1002",
+      "1003",
+      "1004",
+      "1005",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "9001",
+      "9002",
+      "9003",
+      "9004"
+    ],
+    "urban_eligible_source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\real_world_modi_inventory\\signal_controller_roles.csv",
+    "urban_eligible_error": null,
+    "model_signal_controller_count": 41,
+    "model_signal_controller_ids": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "1001",
+      "1002",
+      "1003",
+      "1004",
+      "1005",
+      "2001",
+      "2002",
+      "2003",
+      "2004",
+      "2005",
+      "9001",
+      "9002",
+      "9003"
+    ],
+    "model_excluded_signal_controller_count": 1,
+    "model_excluded_signal_controllers": [
+      {
+        "no": 9004,
+        "reason": "no signal-head reference in network XML",
+        "head_reference_count": 0
+      }
+    ],
+    "auxiliary_active_signal_controller_count": 8,
+    "auxiliary_active_signal_controller_ids": [
+      "9101",
+      "9102",
+      "9103",
+      "9104",
+      "9105",
+      "9106",
+      "9107",
+      "9108"
+    ],
+    "artificial_ramp_meter_active_signal_controller_count": 8,
+    "artificial_ramp_meter_active_signal_controller_ids": [
+      "9101",
+      "9102",
+      "9103",
+      "9104",
+      "9105",
+      "9106",
+      "9107",
+      "9108"
+    ],
+    "urban_eligible_not_raw_active_count": 0,
+    "urban_eligible_not_raw_active_ids": [],
+    "signal_head_count": 541,
+    "signal_head_controller_reference_count": 49,
+    "signal_head_reference_count_by_controller": {
+      "1": 14,
+      "2": 15,
+      "3": 9,
+      "4": 30,
+      "5": 31,
+      "6": 18,
+      "7": 10,
+      "8": 6,
+      "9": 19,
+      "10": 7,
+      "11": 10,
+      "12": 12,
+      "13": 9,
+      "14": 11,
+      "15": 12,
+      "16": 10,
+      "17": 8,
+      "18": 4,
+      "19": 5,
+      "101": 20,
+      "102": 23,
+      "103": 19,
+      "104": 23,
+      "105": 12,
+      "106": 15,
+      "107": 17,
+      "108": 16,
+      "109": 12,
+      "1001": 12,
+      "1002": 12,
+      "1003": 9,
+      "1004": 17,
+      "1005": 6,
+      "2001": 10,
+      "2002": 12,
+      "2003": 9,
+      "2004": 12,
+      "2005": 14,
+      "9001": 9,
+      "9002": 4,
+      "9003": 8,
+      "9101": 1,
+      "9102": 2,
+      "9103": 1,
+      "9104": 1,
+      "9105": 1,
+      "9106": 2,
+      "9107": 1,
+      "9108": 1
+    },
+    "malformed_signal_head_reference_count": 0,
+    "signal_program_files": [
+      "#data#개포동 test-bed1.sig",
+      "#data#개포동 test-bed10.sig",
+      "#data#개포동 test-bed1001.sig",
+      "#data#개포동 test-bed1002.sig",
+      "#data#개포동 test-bed1003.sig",
+      "#data#개포동 test-bed1004.sig",
+      "#data#개포동 test-bed1005.sig",
+      "#data#개포동 test-bed101.sig",
+      "#data#개포동 test-bed102.sig",
+      "#data#개포동 test-bed103.sig",
+      "#data#개포동 test-bed104.sig",
+      "#data#개포동 test-bed105.sig",
+      "#data#개포동 test-bed106.sig",
+      "#data#개포동 test-bed107.sig",
+      "#data#개포동 test-bed108.sig",
+      "#data#개포동 test-bed109.sig",
+      "#data#개포동 test-bed11.sig",
+      "#data#개포동 test-bed12.sig",
+      "#data#개포동 test-bed13.sig",
+      "#data#개포동 test-bed14.sig",
+      "#data#개포동 test-bed15.sig",
+      "#data#개포동 test-bed16.sig",
+      "#data#개포동 test-bed17.sig",
+      "#data#개포동 test-bed18.sig",
+      "#data#개포동 test-bed19.sig",
+      "#data#개포동 test-bed2.sig",
+      "#data#개포동 test-bed2001.sig",
+      "#data#개포동 test-bed2002.sig",
+      "#data#개포동 test-bed2003.sig",
+      "#data#개포동 test-bed2004.sig",
+      "#data#개포동 test-bed2005.sig",
+      "#data#개포동 test-bed3.sig",
+      "#data#개포동 test-bed4.sig",
+      "#data#개포동 test-bed5.sig",
+      "#data#개포동 test-bed6.sig",
+      "#data#개포동 test-bed7.sig",
+      "#data#개포동 test-bed8.sig",
+      "#data#개포동 test-bed9.sig",
+      "#data#개포동 test-bed9001.sig",
+      "#data#개포동 test-bed9002.sig",
+      "#data#개포동 test-bed9003.sig"
+    ],
+    "sc9004": {
+      "controller_present": true,
+      "active": true,
+      "head_reference_count": 0
+    }
+  },
+  "link_assignment": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\link_player_assignment_20260805.json",
+    "available": true,
+    "error": null,
+    "owned_count": 957,
+    "freeway_count": 22,
+    "exit_count": 226,
+    "exit_unique_count": 226,
+    "coverage_count": 1205,
+    "declared_urban_link_count": 1205,
+    "coverage_ratio": 1.0,
+    "missing_count": 0,
+    "over_count": 0,
+    "cross_category_duplicate_count": 0,
+    "cross_category_duplicate_links": [],
+    "repeated_exit_count": 0,
+    "repeated_exit_links": [],
+    "tie_analysis": {
+      "status": "PASS",
+      "reason": "independent breadth-first search completed",
+      "tie_count": 33,
+      "unresolved_count": 226,
+      "ties": [
+        {
+          "link": "31",
+          "hops": 2,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "68",
+          "hops": 2,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "69",
+          "hops": 2,
+          "terminals": [
+            "FW:26",
+            "SC:1004@71"
+          ]
+        },
+        {
+          "link": "70",
+          "hops": 2,
+          "terminals": [
+            "FW:2",
+            "SC:1004@71"
+          ]
+        },
+        {
+          "link": "78",
+          "hops": 4,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "141",
+          "hops": 4,
+          "terminals": [
+            "SC:12@1220015000",
+            "SC:6@1210018302"
+          ]
+        },
+        {
+          "link": "224",
+          "hops": 4,
+          "terminals": [
+            "SC:11@1220012001",
+            "SC:3@1220012102"
+          ]
+        },
+        {
+          "link": "225",
+          "hops": 2,
+          "terminals": [
+            "SC:11@1220012001",
+            "SC:3@1220012102"
+          ]
+        },
+        {
+          "link": "236",
+          "hops": 2,
+          "terminals": [
+            "SC:11@1210008303",
+            "SC:2@1210008203"
+          ]
+        },
+        {
+          "link": "360",
+          "hops": 2,
+          "terminals": [
+            "SC:9001@358",
+            "SC:9002@353"
+          ]
+        },
+        {
+          "link": "385",
+          "hops": 4,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        },
+        {
+          "link": "10119",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10121",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10479",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10483",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10610",
+          "hops": 5,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        },
+        {
+          "link": "10611",
+          "hops": 3,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        },
+        {
+          "link": "10618",
+          "hops": 3,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        },
+        {
+          "link": "10619",
+          "hops": 3,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        },
+        {
+          "link": "10625",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "10629",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "10633",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "10637",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "SC:1004@71"
+          ]
+        },
+        {
+          "link": "10638",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "SC:1004@71"
+          ]
+        },
+        {
+          "link": "10643",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "SC:1004@71"
+          ]
+        },
+        {
+          "link": "10645",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "10682",
+          "hops": 3,
+          "terminals": [
+            "FW:2",
+            "FW:26"
+          ]
+        },
+        {
+          "link": "10698",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10703",
+          "hops": 3,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10721",
+          "hops": 5,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10723",
+          "hops": 5,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "10726",
+          "hops": 5,
+          "terminals": [
+            "FW:26",
+            "SC:2001@79"
+          ]
+        },
+        {
+          "link": "1220000102",
+          "hops": 2,
+          "terminals": [
+            "SC:1004@52",
+            "SC:1005@62"
+          ]
+        }
+      ]
+    }
+  },
+  "adjacency": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\intersection_adjacency8_20260805.json",
+    "available": true,
+    "error": null,
+    "node_count": 41,
+    "declared_pair_count": 123,
+    "calculated_pair_count": 123,
+    "declared_leg_count": 123,
+    "calculated_leg_count": 123,
+    "internal_pair_count": 94,
+    "internal_member_reference_count": 199,
+    "internal_member_unique_count": 146,
+    "internal_member_reused_link_count": 28,
+    "internal_member_reused_links": {
+      "265": 3,
+      "1220008203": 2,
+      "1220012101": 2,
+      "1220008603": 2,
+      "1220012003": 2,
+      "1220015100": 2,
+      "136": 2,
+      "1220012600": 2,
+      "1220000502": 2,
+      "1220009402": 2,
+      "168": 2,
+      "321": 2,
+      "322": 2,
+      "325": 2,
+      "326": 2,
+      "274": 2,
+      "1220000102": 2,
+      "385": 2,
+      "26": 12,
+      "31": 9,
+      "70": 5,
+      "387": 2,
+      "56": 2,
+      "68": 5,
+      "78": 3,
+      "308": 2,
+      "309": 2,
+      "314": 2
+    },
+    "empty_internal_pair_count": 0,
+    "empty_internal_pairs": [],
+    "direction_conflict_count": 7
+  },
+  "storage_capacity": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit\\outputs\\urban_storage_capacity_20260805.json",
+    "available": true,
+    "error": null,
+    "jam_density_veh_km_lane": 140.54304101885097,
+    "jam_sample_count": 177,
+    "storage_count": 186,
+    "storage_total_veh": 34154.9,
+    "storage_min_veh": 10.0,
+    "storage_max_veh": 1496.3,
+    "nonpositive_storage_count": 0,
+    "length_entry_count": 182,
+    "length_total_km": 82.7237,
+    "ramp_capacity_count": 4
+  },
+  "vendor_snapshot": {
+    "root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+    "snapshot_file": {
+      "path": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine\\SNAPSHOT.md",
+      "exists": true,
+      "is_file": true,
+      "size_bytes": 2429,
+      "sha256": "3a99f9ef4dd572790ac81a5bbdb71637fbd3e35b04e1080a55f5e33e931ce67f",
+      "error": null
+    },
+    "commit": "35a5c82"
+  },
+  "actual_numsim": {
+    "configured_source": "argument",
+    "actual_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+    "exists": true,
+    "git": {
+      "path": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+      "is_git_root": false,
+      "top_level": "C:/tmp/VISSIM-pstack-audit",
+      "branch": null,
+      "commit": null,
+      "dirty": null,
+      "dirty_path_count": null,
+      "dirty_paths": [],
+      "error": "path is inside a Git worktree but is not its repository root"
+    },
+    "vendor_file_count": 98,
+    "actual_file_count": 98,
+    "matching_file_count": 98,
+    "mismatch_count": 0,
+    "mismatched_files": [],
+    "missing_from_actual": [],
+    "extra_in_actual": [],
+    "error": null
+  },
+  "state_observations": {
+    "configured_count": 9,
+    "files": [
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_000900.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 900.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 2159.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 8.54100355923778,
+        "link_speed_count_weighted_mean_kph": 50.27242399768411,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 536.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 2193.0,
+          "urban_vehicles": 1568.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 536.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 2159.0,
+        "unobservable_vehicle_count": 34.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_001500.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 1500.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 3304.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 9.825456273405136,
+        "link_speed_count_weighted_mean_kph": 47.12710458111381,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 873.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 3365.0,
+          "urban_vehicles": 2318.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 873.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 3304.0,
+        "unobservable_vehicle_count": 61.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002100.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 2100.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 3708.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 10.067673862468931,
+        "link_speed_count_weighted_mean_kph": 44.112663141855485,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 1126.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 3776.0,
+          "urban_vehicles": 2721.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 1126.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 3708.0,
+        "unobservable_vehicle_count": 68.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002700.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 2700.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 4020.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 9.135839214581607,
+        "link_speed_count_weighted_mean_kph": 39.24953000472642,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 1355.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 4088.0,
+          "urban_vehicles": 3075.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 1355.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 4020.0,
+        "unobservable_vehicle_count": 68.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000001.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 1.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 6.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 0.16636774150787073,
+        "link_speed_count_weighted_mean_kph": 39.892098499999996,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 0.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 6.0,
+          "urban_vehicles": 4.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 0.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 6.0,
+        "unobservable_vehicle_count": 0.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000900.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 900.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 2159.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 8.54100355923778,
+        "link_speed_count_weighted_mean_kph": 50.27242399768411,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 536.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 2193.0,
+          "urban_vehicles": 1568.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 536.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 2159.0,
+        "unobservable_vehicle_count": 34.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000001.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 1.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 6.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 0.16636774150787073,
+        "link_speed_count_weighted_mean_kph": 39.892098499999996,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 0.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 6.0,
+          "urban_vehicles": 4.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 0.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 6.0,
+        "unobservable_vehicle_count": 0.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000060.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 60.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 291.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 1.9985597572493785,
+        "link_speed_count_weighted_mean_kph": 57.42863293814435,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 18.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 309.0,
+          "urban_vehicles": 225.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 18.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 291.0,
+        "unobservable_vehicle_count": 18.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      },
+      {
+        "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\state_002100.json",
+        "valid_object": true,
+        "error": null,
+        "sim_sec": 2100.0,
+        "has_link_counts": true,
+        "link_count_entries": 1207,
+        "link_vehicle_total": 3708.0,
+        "has_link_speeds": true,
+        "link_speed_entries": 1207,
+        "link_speed_mean_kph": 10.067673862468931,
+        "link_speed_count_weighted_mean_kph": 44.112663141855485,
+        "has_link_stopped": true,
+        "link_stopped_entries": 1207,
+        "link_stopped_total": 1126.0,
+        "root_vehicle_totals": {
+          "total_vehicles": 3776.0,
+          "urban_vehicles": 2721.0,
+          "boundary_vehicles": 0.0,
+          "stopped_vehicles": 1126.0
+        },
+        "network_path": "C:\\tmp\\VISSIM-pstack-audit\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+        "schema_version": 2.0,
+        "observation_mode": "real_world_connector_local_v2",
+        "observed_vehicle_count": 3708.0,
+        "unobservable_vehicle_count": 68.0,
+        "missing_latest_schema_fields": [],
+        "schema_errors": [],
+        "schema_status": "PASS"
+      }
+    ],
+    "error_count": 0,
+    "valid_count": 9,
+    "link_vehicle_total_sum": 19361.0,
+    "link_stopped_total_sum": 5570.0,
+    "missing_link_counts_count": 0,
+    "missing_link_speeds_count": 0,
+    "missing_link_stopped_count": 0,
+    "latest_schema_fail_count": 0,
+    "explicit_configured_count": 0,
+    "action_dir_discovered_count": 9,
+    "deduplicated_count": 9
+  },
+  "action_directory": {
+    "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805",
+    "exists": true,
+    "state_file_count": 9,
+    "action_file_count": 8,
+    "state_files": [
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_000900.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_001500.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002100.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002700.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000001.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000900.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000001.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000060.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\state_002100.json"
+    ],
+    "action_files": [
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000001.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000900.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_001500.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002100.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002700.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000001.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000060.json",
+      "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\action_002100.json"
+    ],
+    "invalid_state_json_count": 0,
+    "invalid_action_json_count": 0,
+    "decision_wall_sec": {
+      "count": 8,
+      "min": 0.761305,
+      "mean": 20.07909825,
+      "median": 0.8252904999999999,
+      "p95": 154.746472,
+      "max": 154.746472,
+      "sum": 160.632786
+    },
+    "projection_diagnostics_record_count": 8,
+    "projection_diagnostics": {
+      "boundary_queue_assigned_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 0.0,
+        "sum": 0.0
+      },
+      "exit_excluded_link_count": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 17.0,
+        "median": 24.5,
+        "p95": 28.0,
+        "max": 28.0,
+        "sum": 136.0
+      },
+      "exit_excluded_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 91.875,
+        "median": 136.5,
+        "p95": 171.0,
+        "max": 171.0,
+        "sum": 735.0
+      },
+      "freeway_bound_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 53.5,
+        "median": 69.0,
+        "p95": 101.0,
+        "max": 101.0,
+        "sum": 428.0
+      },
+      "freeway_observation_vehicle_count_veh": {
+        "count": 8,
+        "min": 2.0,
+        "mean": 583.75,
+        "median": 777.5,
+        "p95": 1018.0,
+        "max": 1018.0,
+        "sum": 4670.0
+      },
+      "input_link_count": {
+        "count": 8,
+        "min": 1207.0,
+        "mean": 1207.0,
+        "median": 1207.0,
+        "p95": 1207.0,
+        "max": 1207.0,
+        "sum": 9656.0
+      },
+      "input_link_vehicle_count_veh": {
+        "count": 8,
+        "min": 6.0,
+        "mean": 2150.25,
+        "median": 2731.5,
+        "p95": 4020.0,
+        "max": 4020.0,
+        "sum": 17202.0
+      },
+      "link_queue_tail_observed_count": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 59.625,
+        "median": 83.0,
+        "p95": 103.0,
+        "max": 103.0,
+        "sum": 477.0
+      },
+      "link_speed_observed_count": {
+        "count": 8,
+        "min": 5.0,
+        "mean": 195.75,
+        "median": 277.0,
+        "p95": 315.0,
+        "max": 315.0,
+        "sum": 1566.0
+      },
+      "link_stopped_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 629.25,
+        "median": 704.5,
+        "p95": 1355.0,
+        "max": 1355.0,
+        "sum": 5034.0
+      },
+      "mass_balance_error_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 6.0750000000000455,
+        "median": 8.299999999999955,
+        "p95": 12.400000000000091,
+        "max": 12.400000000000091,
+        "sum": 48.600000000000364
+      },
+      "movement_queue_assigned_veh": {
+        "count": 8,
+        "min": 0.65,
+        "mean": 349.375,
+        "median": 429.65,
+        "p95": 683.8000000000001,
+        "max": 683.8000000000001,
+        "sum": 2795.0
+      },
+      "observed_mean_link_speed_kph": {
+        "count": 8,
+        "min": 39.892098499999996,
+        "mean": 47.14074204868798,
+        "median": 47.43902405162413,
+        "p95": 58.43263001748252,
+        "max": 58.43263001748252,
+        "sum": 377.12593638950386
+      },
+      "ramp_observation_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 26.625,
+        "median": 32.0,
+        "p95": 56.0,
+        "max": 56.0,
+        "sum": 213.0
+      },
+      "ramp_queue_assigned_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 26.625,
+        "median": 32.0,
+        "p95": 56.0,
+        "max": 56.0,
+        "sum": 213.0
+      },
+      "represented_vehicle_count_veh": {
+        "count": 8,
+        "min": 6.0,
+        "mean": 2052.3,
+        "median": 2584.25,
+        "p95": 3841.5,
+        "max": 3841.5,
+        "sum": 16418.4
+      },
+      "storage_assigned_veh": {
+        "count": 8,
+        "min": 3.35,
+        "mean": 1092.55,
+        "median": 1318.6000000000004,
+        "p95": 2144.7,
+        "max": 2144.7,
+        "sum": 8740.4
+      },
+      "storage_capacity_clipped_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0,
+        "max": 0.0,
+        "sum": 0.0
+      },
+      "storage_requested_veh": {
+        "count": 8,
+        "min": 3.35,
+        "mean": 1092.55,
+        "median": 1318.6000000000004,
+        "p95": 2144.7,
+        "max": 2144.7,
+        "sum": 8740.4
+      },
+      "total_vehicle_count_veh": {
+        "count": 8,
+        "min": 6.0,
+        "mean": 2189.875,
+        "median": 2779.0,
+        "p95": 4088.0,
+        "max": 4088.0,
+        "sum": 17519.0
+      },
+      "unobservable_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 39.625,
+        "median": 47.5,
+        "p95": 68.0,
+        "max": 68.0,
+        "sum": 317.0
+      },
+      "unrepresented_link_count": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 3.875,
+        "median": 5.5,
+        "p95": 7.0,
+        "max": 7.0,
+        "sum": 31.0
+      },
+      "unrepresented_vehicle_count_veh": {
+        "count": 8,
+        "min": 0.0,
+        "mean": 6.075,
+        "median": 8.3,
+        "p95": 12.4,
+        "max": 12.4,
+        "sum": 48.6
+      }
+    },
+    "projection_contract": {
+      "record_count": 8,
+      "pass_count": 8,
+      "fail_count": 0,
+      "missing_required_field_record_count": 0,
+      "records": [
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000001.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 6.0,
+            "input_link_vehicle_count_veh": 6.0,
+            "represented_vehicle_count_veh": 6.0,
+            "exit_excluded_vehicle_count_veh": 0.0,
+            "unobservable_vehicle_count_veh": 0.0,
+            "unrepresented_vehicle_count_veh": 0.0,
+            "mass_balance_error_veh": 0.0,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 5.0,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 0.0,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000900.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 2193.0,
+            "input_link_vehicle_count_veh": 2159.0,
+            "represented_vehicle_count_veh": 2010.6,
+            "exit_excluded_vehicle_count_veh": 136.0,
+            "unobservable_vehicle_count_veh": 34.0,
+            "unrepresented_vehicle_count_veh": 12.4,
+            "mass_balance_error_veh": 12.400000000000091,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 64.77,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 9.059419880941277e-14,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_001500.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 3365.0,
+            "input_link_vehicle_count_veh": 3304.0,
+            "represented_vehicle_count_veh": 3157.9,
+            "exit_excluded_vehicle_count_veh": 137.0,
+            "unobservable_vehicle_count_veh": 61.0,
+            "unrepresented_vehicle_count_veh": 9.1,
+            "mass_balance_error_veh": 9.099999999999909,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 99.11999999999999,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": -9.059419880941277e-14,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002100.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 3776.0,
+            "input_link_vehicle_count_veh": 3708.0,
+            "represented_vehicle_count_veh": 3554.2,
+            "exit_excluded_vehicle_count_veh": 144.0,
+            "unobservable_vehicle_count_veh": 68.0,
+            "unrepresented_vehicle_count_veh": 9.8,
+            "mass_balance_error_veh": 9.800000000000182,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 111.24,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 1.8118839761882555e-13,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002700.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 4088.0,
+            "input_link_vehicle_count_veh": 4020.0,
+            "represented_vehicle_count_veh": 3841.5,
+            "exit_excluded_vehicle_count_veh": 171.0,
+            "unobservable_vehicle_count_veh": 68.0,
+            "unrepresented_vehicle_count_veh": 7.5,
+            "mass_balance_error_veh": 7.5,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 120.6,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 0.0,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000001.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 6.0,
+            "input_link_vehicle_count_veh": 6.0,
+            "represented_vehicle_count_veh": 6.0,
+            "exit_excluded_vehicle_count_veh": 0.0,
+            "unobservable_vehicle_count_veh": 0.0,
+            "unrepresented_vehicle_count_veh": 0.0,
+            "mass_balance_error_veh": 0.0,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 5.0,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 0.0,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000060.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 309.0,
+            "input_link_vehicle_count_veh": 291.0,
+            "represented_vehicle_count_veh": 288.0,
+            "exit_excluded_vehicle_count_veh": 3.0,
+            "unobservable_vehicle_count_veh": 18.0,
+            "unrepresented_vehicle_count_veh": 0.0,
+            "mass_balance_error_veh": 0.0,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 8.73,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 0.0,
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\action_002100.json",
+          "required_fields": {
+            "total_vehicle_count_veh": 3776.0,
+            "input_link_vehicle_count_veh": 3708.0,
+            "represented_vehicle_count_veh": 3554.2,
+            "exit_excluded_vehicle_count_veh": 144.0,
+            "unobservable_vehicle_count_veh": 68.0,
+            "unrepresented_vehicle_count_veh": 9.8,
+            "mass_balance_error_veh": 9.800000000000182,
+            "storage_capacity_clipped_veh": 0.0
+          },
+          "missing_required_fields": [],
+          "unrepresented_threshold_veh": 111.24,
+          "unrepresented_pass": true,
+          "storage_clipping_explained": false,
+          "storage_clipping_pass": true,
+          "input_mass_balance_error_veh": 0.0,
+          "total_mass_balance_error_veh": 0.0,
+          "residual_consistency_error_veh": 1.8118839761882555e-13,
+          "status": "PASS",
+          "reasons": []
+        }
+      ]
+    },
+    "runtime_provenance_contract": {
+      "record_count": 8,
+      "pass_count": 8,
+      "fail_count": 0,
+      "records": [
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000001.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000900.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_001500.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002100.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002700.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000001.json",
+          "run_id": "e68dd72d2f71429ab42d47b2553abef0",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "fb3a8f530cd7b3f38b30f2ab2f5ff4a37caca0931c011bb598cb533ba0436b80",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000060.json",
+          "run_id": "e68dd72d2f71429ab42d47b2553abef0",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "fb3a8f530cd7b3f38b30f2ab2f5ff4a37caca0931c011bb598cb533ba0436b80",
+          "status": "PASS",
+          "reasons": []
+        },
+        {
+          "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\action_002100.json",
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "numsim_repo_root": "C:\\tmp\\VISSIM-pstack-audit\\vendor\\NumSim-mine",
+          "numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "actual_numsim_src_sha256": "5b17f5de13d7b90824b5179fcd7c6b9af6957d178b5aef5f87ef7070d76e3065",
+          "imported_module_count": 25,
+          "signal_program_count": 41,
+          "provenance_fingerprint": "244101d21c3938198ce339e16e7bb2eda491534d836c41d4e67c9e98bebf774c",
+          "status": "PASS",
+          "reasons": []
+        }
+      ]
+    },
+    "run_contract": {
+      "run_count": 2,
+      "pass_count": 2,
+      "fail_count": 0,
+      "mixed_provenance_run_count": 0,
+      "runs": [
+        {
+          "run_id": "86ad3f20330d4cb18f3506a50cfa5fcd",
+          "state_file_count": 7,
+          "action_file_count": 6,
+          "provenance_fingerprint_count": 1,
+          "mixed_provenance": false,
+          "status": "PASS",
+          "reasons": [],
+          "state_files": [
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_000900.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_001500.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002100.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\anchor_002700.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000001.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\state_000900.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\state_002100.json"
+          ],
+          "action_files": [
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000001.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_000900.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_001500.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002100.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\action_002700.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\runtime_pstack_anchor2100\\action_002100.json"
+          ]
+        },
+        {
+          "run_id": "e68dd72d2f71429ab42d47b2553abef0",
+          "state_file_count": 2,
+          "action_file_count": 2,
+          "provenance_fingerprint_count": 1,
+          "mixed_provenance": false,
+          "status": "PASS",
+          "reasons": [],
+          "state_files": [
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000001.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\state_000060.json"
+          ],
+          "action_files": [
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000001.json",
+            "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\action_000060.json"
+          ]
+        }
+      ]
+    },
+    "signal_readback": {
+      "file_count": 2,
+      "row_count": 10448,
+      "ok_count": 10448,
+      "mismatch_count": 0,
+      "ok_not_one_count": 0,
+      "malformed_row_count": 0,
+      "malformed_file_count": 0,
+      "empty_file_count": 0,
+      "immediate_count": 2432,
+      "post_step_count": 8016,
+      "unpaired_post_step_count": 0,
+      "files": [
+        {
+          "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_baseline_fixed_nocontrol_seed13\\signal_readback.csv",
+          "row_count": 5776,
+          "ok_count": 5776,
+          "mismatch_count": 0,
+          "ok_not_one_count": 0,
+          "malformed_row_count": 0,
+          "malformed": false,
+          "error": null,
+          "immediate_count": 16,
+          "post_step_count": 5760,
+          "unpaired_post_step_count": 0
+        },
+        {
+          "path": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\decisions_signal_readback_seed13\\signal_readback.csv",
+          "row_count": 4672,
+          "ok_count": 4672,
+          "mismatch_count": 0,
+          "ok_not_one_count": 0,
+          "malformed_row_count": 0,
+          "malformed": false,
+          "error": null,
+          "immediate_count": 2416,
+          "post_step_count": 2256,
+          "unpaired_post_step_count": 0
+        }
+      ],
+      "problem_rows": []
+    },
+    "errors": []
+  },
+  "vissim_error": {
+    "source": "C:\\tmp\\VISSIM-pstack-audit\\evaluation\\runs\\plant_fidelity_audit_final_v10_20260805\\vissim_network.err",
+    "exists": true,
+    "copy_requested": false,
+    "copy_target": null,
+    "copied_to": null,
+    "line_count": 14,
+    "nonempty_line_count": 14,
+    "error_line_count": 0,
+    "warning_line_count": 14,
+    "notable_lines": [
+      "Warning\tDesired Speed Decision 19 is located only 36.722 m upstream of the first connector.\tNetwork object type: Desired Speed Decision\tNetwork object keys: 19",
+      "Warning\tStatic Vehicle Routing Decision 12: �����ʱ�_WB is located only 29.605 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 12",
+      "Warning\tStatic Vehicle Routing Decision 24: ��������_NB is located only 30.544 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 24",
+      "Warning\tStatic Vehicle Routing Decision 114: �츮��������_NB is located only 42.550 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 114",
+      "Warning\tStatic Vehicle Routing Decision 194: �����ֹμ���_NB is located only 51.206 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 194",
+      "Warning\tStatic Vehicle Routing Decision 1013: �ź��ͳ�_SB is located only 28.646 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1013",
+      "Warning\tStatic Vehicle Routing Decision 1034: ��ġ��_NB is located only 34.606 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1034",
+      "Warning\tStatic Vehicle Routing Decision 1094 is located only 9.342 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1094",
+      "Warning\tStatic Vehicle Routing Decision 1100 is located only 33.332 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1100",
+      "Warning\tStatic Vehicle Routing Decision 1102 is located only 5.431 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1102",
+      "Warning\tStatic Vehicle Routing Decision 1103 is located only 52.898 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1103",
+      "Warning\tStatic Vehicle Routing Decision 1105 is located only 33.415 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1105",
+      "Warning\tStatic Vehicle Routing Decision 1107 is located only 34.240 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1107",
+      "Warning\tStatic Vehicle Routing Decision 1145 is located only 49.046 m upstream of the first connector.\tNetwork object type: Static Vehicle Routing Decision\tNetwork object keys: 1145"
+    ],
+    "error": null
+  },
+  "gates": {
+    "input_provenance": {
+      "status": "PASS",
+      "reason": "all configured primary inputs were hashed"
+    },
+    "network_xml": {
+      "status": "PASS",
+      "reason": "network XML parsed and signal-head references are well formed"
+    },
+    "signal_controller_scope": {
+      "status": "PASS",
+      "reason": "raw XML active 50 / urban eligible 42 / model 41; auxiliary active 8, model excluded 1",
+      "evidence": {
+        "raw_active": 50,
+        "urban_eligible": 42,
+        "model": 41,
+        "auxiliary_active": 8,
+        "artificial_ramp_meter_active": 8,
+        "model_excluded": [
+          {
+            "no": 9004,
+            "reason": "no signal-head reference in network XML",
+            "head_reference_count": 0
+          }
+        ]
+      }
+    },
+    "link_partition": {
+      "status": "PASS",
+      "reason": "owned/freeway/exit categories form a complete disjoint partition"
+    },
+    "assignment_ties": {
+      "status": "FAIL",
+      "reason": "equal-hop downstream terminal ties were found",
+      "evidence": {
+        "tie_count": 33
+      }
+    },
+    "adjacency": {
+      "status": "PASS",
+      "reason": "adjacency declarations match their calculated sizes"
+    },
+    "storage_capacity": {
+      "status": "PASS",
+      "reason": "jam density and all reported storage capacities are positive"
+    },
+    "vendor_snapshot": {
+      "status": "PASS",
+      "reason": "vendor snapshot commit was recorded",
+      "evidence": {
+        "commit": "35a5c82"
+      }
+    },
+    "numsim_source_match": {
+      "status": "PASS",
+      "reason": "actual NumSim src matches the vendor snapshot file-for-file"
+    },
+    "state_observation_contract": {
+      "status": "PASS",
+      "reason": "all supplied and action-dir-discovered states contain link counts, speeds, and stopped counts",
+      "evidence": {
+        "explicit_count": 0,
+        "action_dir_discovered_count": 9
+      }
+    },
+    "action_inventory": {
+      "status": "PASS",
+      "reason": "state/action JSON inventory completed"
+    },
+    "runtime": {
+      "status": "FAIL",
+      "reason": "actual decision wall time exceeds p95=30s or max=45s",
+      "evidence": {
+        "p95": 154.746472,
+        "max": 154.746472
+      }
+    },
+    "projection_diagnostics": {
+      "status": "PASS",
+      "reason": "every projection record satisfies both mass identities, residual consistency, the unrepresented limit, and clipping rules",
+      "evidence": {
+        "record_count": 8,
+        "pass_count": 8
+      }
+    },
+    "runtime_provenance": {
+      "status": "PASS",
+      "reason": "every action is paired to a state and each run_id has one verified runtime provenance fingerprint",
+      "evidence": {
+        "action_count": 8,
+        "run_count": 2
+      }
+    },
+    "signal_com_readback": {
+      "status": "PASS",
+      "reason": "every signal readback row has matching requested/readback states and ok=1",
+      "evidence": {
+        "file_count": 2,
+        "row_count": 10448,
+        "ok_count": 10448,
+        "mismatch_count": 0,
+        "ok_not_one_count": 0,
+        "malformed_row_count": 0,
+        "malformed_file_count": 0,
+        "empty_file_count": 0,
+        "immediate_count": 2432,
+        "post_step_count": 8016,
+        "unpaired_post_step_count": 0
+      }
+    },
+    "signal_event_timing": {
+      "status": "NOT_EVALUATED",
+      "reason": "no expected signal-transition oracle is available; readback rows alone cannot establish event timing error"
+    },
+    "vissim_error_log": {
+      "status": "PASS",
+      "reason": "VISSIM error log contains no error/fatal lines"
+    }
+  },
+  "gate_summary": {
+    "pass": 14,
+    "fail": 2,
+    "not_evaluated": 1,
+    "overall": "FAIL"
+  }
+}

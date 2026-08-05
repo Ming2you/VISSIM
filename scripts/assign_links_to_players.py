@@ -20,7 +20,7 @@ import json
 import math
 import os
 import sys
-from collections import defaultdict, deque
+from collections import defaultdict
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
@@ -32,6 +32,10 @@ FREEWAY_LINKS = {"2", "24", "26", "74", "10699", "10702"}
 # urban_vehicles 분모에 안 들어가므로 여기서도 뺀다.
 RAMP_METER_CONNECTORS = {"10480", "10482", "10646", "10644", "10639", "10681", "10490", "10484"}
 LEG8 = ("E", "NE", "N", "NW", "W", "SW", "S", "SE")
+
+
+def numeric_id(value):
+    return int(value)
 
 
 def parse_int_csv(text):
@@ -57,6 +61,13 @@ def main() -> int:
     ap.add_argument("--roles", default=DEFAULT_ROLES)
     ap.add_argument("--max-hops", type=int, default=60)
     ap.add_argument("--json-out", default="")
+    ap.add_argument(
+        "--tie-policy",
+        choices=("error", "signal-first", "freeway-first", "lowest-id"),
+        default="error",
+        help="physical terminal ties are unresolved by default; override modes are diagnostic only",
+    )
+    ap.add_argument("--tie-evidence-out", default="")
     args = ap.parse_args()
 
     import xml.etree.ElementTree as ET
@@ -108,7 +119,10 @@ def main() -> int:
     #   분자에는 없는 항목이라 귀속 기준 100% 가 원리적으로 불가능했다.
     #   같은 BFS 규칙이 그대로 적용된다: 접근로 중간 커넥터는 그 교차로 X, 교차로 내부
     #   회전 커넥터는 정지선을 이미 지났으므로 다음 교차로 Y 에 귀속된다(사용자 확인).
-    urban = [l for l in geo if l not in FREEWAY_LINKS and l not in RAMP_METER_CONNECTORS]
+    urban = sorted(
+        (l for l in geo if l not in FREEWAY_LINKS and l not in RAMP_METER_CONNECTORS),
+        key=numeric_id,
+    )
     print(f"활성 SC {len(set(stop_owner.values()))}개, 정지선 링크 {len(stop_owner)}개")
     print(f"도시부 링크 {len(urban)}개 (커넥터 포함. 고속도로·램프미터커넥터 제외)")
     print()
@@ -122,6 +136,7 @@ def main() -> int:
     #   아무것도 없음(종단) -> 출구, 모니터링 전용
     # BFS 라 '처음' 은 홉 수 기준 최근접이다.
     owner, hops_to_owner, stop_of, freeway_bound = {}, {}, {}, {}
+    downstream_ties = []
     for link in urban:
         if link in stop_owner:
             owner[link] = stop_owner[link]
@@ -129,21 +144,57 @@ def main() -> int:
             stop_of[link] = link
             continue
         seen = {link}
-        q = deque((n, 1) for n in downstream.get(link, ()))
+        frontier = set(downstream.get(link, ())) - seen
         found = None
-        while q and found is None:
-            cur, h = q.popleft()
-            if cur in seen or h > args.max_hops:
-                continue
-            seen.add(cur)
-            if cur in stop_owner:
-                found = ("sc", stop_owner[cur], h, cur)
+        for h in range(1, args.max_hops + 1):
+            if not frontier:
                 break
-            if cur in FREEWAY_LINKS:
-                found = ("fw", cur, h, None)
+            level = sorted(frontier - seen, key=numeric_id)
+            if not level:
                 break
-            for n in downstream.get(cur, ()):
-                q.append((n, h + 1))
+            seen.update(level)
+            candidates = []
+            for cur in level:
+                if cur in stop_owner:
+                    candidates.append({"kind": "signal", "link": cur, "sc": stop_owner[cur]})
+                elif cur in FREEWAY_LINKS:
+                    candidates.append({"kind": "freeway", "link": cur})
+            if candidates:
+                ordered = sorted(
+                    candidates,
+                    key=lambda c: (c["kind"], c.get("sc", 0), numeric_id(c["link"])),
+                )
+                if args.tie_policy == "freeway-first" and any(c["kind"] == "freeway" for c in candidates):
+                    selected = min(
+                        (c for c in candidates if c["kind"] == "freeway"),
+                        key=lambda c: numeric_id(c["link"]),
+                    )
+                elif args.tie_policy == "lowest-id":
+                    selected = min(candidates, key=lambda c: numeric_id(c["link"]))
+                else:
+                    signal_candidates = [c for c in candidates if c["kind"] == "signal"]
+                    selected = (
+                        min(signal_candidates, key=lambda c: (c["sc"], numeric_id(c["link"])))
+                        if signal_candidates
+                        else min(candidates, key=lambda c: numeric_id(c["link"]))
+                    )
+                if selected["kind"] == "signal":
+                    found = ("sc", selected["sc"], h, selected["link"])
+                else:
+                    found = ("fw", selected["link"], h, None)
+                if len(candidates) > 1:
+                    downstream_ties.append({
+                        "link": link,
+                        "hop": h,
+                        "candidates": ordered,
+                        "selected": selected if args.tie_policy != "error" else None,
+                        "resolution_status": "diagnostic_override" if args.tie_policy != "error" else "unresolved",
+                    })
+                break
+            next_frontier = set()
+            for cur in level:
+                next_frontier.update(downstream.get(cur, ()))
+            frontier = next_frontier - seen
         if found and found[0] == "sc":
             owner[link] = found[1]
             hops_to_owner[link] = found[2]
@@ -156,7 +207,10 @@ def main() -> int:
     # SC 없이 이어지는 14개). 이 차량들은 이미 모든 교차로를 지나 빠져나가는 중이므로
     # **모니터링만 하고 플레이어에 귀속하지 않는다**(사용자 결정). 어느 플레이어의
     # approach queue 도 아니고, 제어로 바꿀 수 있는 상태도 아니다.
-    exits = [l for l in urban if l not in owner and l not in freeway_bound]
+    exits = sorted(
+        (l for l in urban if l not in owner and l not in freeway_bound),
+        key=numeric_id,
+    )
     print(f"플레이어 귀속 {len(owner)}/{len(urban)}   freeway follower {len(freeway_bound)}개"
           f"   출구(모니터링 전용) {len(exits)}개")
     print("   -> 도시부 링크가 '귀속' / 'freeway' / '출구' 로 남김없이 나뉜다(분할 + 무누락).")
@@ -174,22 +228,39 @@ def main() -> int:
         for b in bs:
             upstream[b].add(a)
     up_owner = {}
-    for link in owner:
+    upstream_ties = []
+    for link in sorted(owner, key=numeric_id):
         seen = {link}
-        q = deque((n, 1) for n in upstream.get(link, ()))
-        while q:
-            cur, h = q.popleft()
-            if cur in seen or h > args.max_hops:
-                continue
-            seen.add(cur)
-            sc = stop_owner.get(cur)
-            if sc is not None:
-                if sc != owner[link]:
-                    up_owner[link] = sc
-                    break
-                continue  # 같은 SC 의 다른 접근로 — 교차로 너머로 넘어가지 않는다.
-            for n in upstream.get(cur, ()):
-                q.append((n, h + 1))
+        frontier = set(upstream.get(link, ())) - seen
+        for h in range(1, args.max_hops + 1):
+            if not frontier:
+                break
+            level = sorted(frontier - seen, key=numeric_id)
+            if not level:
+                break
+            seen.update(level)
+            candidates = [
+                {"link": cur, "sc": stop_owner[cur]}
+                for cur in level
+                if cur in stop_owner and stop_owner[cur] != owner[link]
+            ]
+            if candidates:
+                ordered = sorted(candidates, key=lambda c: (c["sc"], numeric_id(c["link"])))
+                selected = ordered[0]
+                up_owner[link] = selected["sc"]
+                if len(candidates) > 1:
+                    upstream_ties.append({
+                        "link": link,
+                        "hop": h,
+                        "candidates": ordered,
+                        "selected": selected,
+                    })
+                break
+            next_frontier = set()
+            for cur in level:
+                if stop_owner.get(cur) is None:
+                    next_frontier.update(upstream.get(cur, ()))
+            frontier = next_frontier - seen
     print(f"상류 SC 확정 {len(up_owner)}/{len(owner)}   (없으면 유입 경계 = 경계 저류)")
 
     # 도착 leg 방위 — 링크 시작점에서 소유 SC 중심으로의 방위의 반대(=SC 가 본 방향)
@@ -219,9 +290,32 @@ def main() -> int:
         lg = Counter(legs.get(l, "?") for l in ls)
         print(f"{sc:>7}{len(ls):>6}{L:>9.0f}{lanes:>8}   {dict(sorted(lg.items()))}")
 
+    ambiguous_upstream_ties = [
+        item for item in upstream_ties if len({candidate["sc"] for candidate in item["candidates"]}) > 1
+    ]
+    tie_evidence = {
+        "status": "UNRESOLVED" if downstream_ties or ambiguous_upstream_ties else "CLEAR",
+        "tie_policy": args.tie_policy,
+        "downstream_ties": downstream_ties,
+        "ambiguous_upstream_ties": ambiguous_upstream_ties,
+    }
+    if args.tie_evidence_out:
+        os.makedirs(os.path.dirname(os.path.abspath(args.tie_evidence_out)) or ".", exist_ok=True)
+        json.dump(tie_evidence, open(args.tie_evidence_out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    if args.tie_policy == "error" and tie_evidence["status"] == "UNRESOLVED":
+        print(
+            f"ERROR unresolved physical routing ties: downstream={len(downstream_ties)} "
+            f"upstream={len(ambiguous_upstream_ties)}; no assignment artifact written",
+            file=sys.stderr,
+        )
+        return 2
+
     if args.json_out:
         payload = {
             "rule": "link -> first downstream signal controller (approach queue owner). strict partition.",
+            "tie_policy": args.tie_policy,
+            "tie_status": tie_evidence["status"],
+            "unresolved_tie_count": len(downstream_ties) + len(ambiguous_upstream_ties),
             "link_owner": {l: owner[l] for l in sorted(owner, key=lambda x: int(x))},
             "link_leg": {l: legs[l] for l in sorted(legs, key=lambda x: int(x))},
             "link_upstream": {l: up_owner[l] for l in sorted(up_owner, key=lambda x: int(x))},
@@ -231,6 +325,8 @@ def main() -> int:
             "freeway_bound_links": {l: freeway_bound[l] for l in sorted(freeway_bound, key=lambda x: int(x))},
             "monitor_only_exit_links": exits,
             "urban_link_count": len(urban),
+            "downstream_ties": downstream_ties,
+            "upstream_ties": upstream_ties,
         }
         os.makedirs(os.path.dirname(os.path.abspath(args.json_out)) or ".", exist_ok=True)
         json.dump(payload, open(args.json_out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)

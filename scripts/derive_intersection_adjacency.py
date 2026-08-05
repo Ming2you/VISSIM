@@ -30,6 +30,10 @@ DEFAULT_NET = os.path.join(REPO, "network", "real_world_gaepo_modi", "modi_eval_
 DEFAULT_ROLES = os.path.join(REPO, "evaluation", "real_world_modi_inventory", "signal_controller_roles.csv")
 
 
+def numeric_id(value):
+    return int(value)
+
+
 def parse_int_csv(text):
     out = []
     for part in str(text or "").replace(";", ",").split(","):
@@ -100,8 +104,8 @@ def main() -> int:
         except Exception:
             pass
     link_owner = {}
-    for sc, links in sc_links.items():
-        for l in links:
+    for sc in sorted(sc_links):
+        for l in sorted(sc_links[sc], key=numeric_id):
             link_owner.setdefault(l, sc)
 
     print(f"활성 SC {len(sc_links)}개, 정지선 링크 {len(link_owner)}개, 커넥터 그래프 노드 {len(downstream)}개")
@@ -115,12 +119,13 @@ def main() -> int:
     # BFS 에서 부모 포인터를 남겨 A 의 정지선에서 B 의 정지선까지 지나온 링크를 기록한다.
     adjacency = defaultdict(set)
     path_links = defaultdict(set)   # (A, B) -> 그 사이 링크 집합
-    for sc, links in sc_links.items():
-        for start in links:
+    for sc in sorted(sc_links):
+        for start in sorted(sc_links[sc], key=numeric_id):
             seen = {start}
             parent = {}
-            q = deque((nxt, 1) for nxt in downstream.get(start, ()))
-            for nxt in downstream.get(start, ()):
+            seeds = sorted(downstream.get(start, ()), key=numeric_id)
+            q = deque((nxt, 1) for nxt in seeds)
+            for nxt in seeds:
                 parent[nxt] = None
             while q:
                 cur, hops = q.popleft()
@@ -137,7 +142,7 @@ def main() -> int:
                             path_links[(sc, owner)].add(node)
                         node = parent.get(node)
                     continue  # 제3 SC 를 지나치지 않는다
-                for nxt in downstream.get(cur, ()):
+                for nxt in sorted(downstream.get(cur, ()), key=numeric_id):
                     if nxt not in parent:
                         parent[nxt] = cur
                     q.append((nxt, hops + 1))
@@ -166,7 +171,8 @@ def main() -> int:
     legs = defaultdict(dict)
     plain = defaultdict(dict)   # 비교용: 구 방식(방위 하나당 이웃 하나)
     conflicts = []
-    for sc, nbs in adjacency.items():
+    for sc in sorted(adjacency):
+        nbs = adjacency[sc]
         if sc not in centroid:
             continue
         ax, ay = centroid[sc]
@@ -197,8 +203,11 @@ def main() -> int:
 
     if args.json_out:
         payload = {
-            "adjacency": {str(k): sorted(v) for k, v in adjacency.items()},
-            "legs": {str(k): {leg: nb for leg, nb in v.items()} for k, v in legs.items()},
+            "adjacency": {str(k): sorted(adjacency[k]) for k in sorted(adjacency)},
+            "legs": {
+                str(k): {leg: legs[k][leg] for leg in sorted(legs[k])}
+                for k in sorted(legs)
+            },
             "isolated": isolated,
             "would_be_dropped_if_single_neighbor_per_direction": [
                 {"sc": c[0], "leg": c[1], "kept": c[2], "dropped": c[3]} for c in conflicts
@@ -208,7 +217,8 @@ def main() -> int:
             # 내부 directed link(SCa_to_SCb) -> 그 구간을 이루는 VISSIM 링크.
             # build_detector_mapping 이 관측 링크를 이 저류에 귀속시키는 데 쓴다.
             "internal_link_members": {
-                f"SC{a}_to_SC{b}": sorted(v) for (a, b), v in sorted(path_links.items()) if v
+                f"SC{a}_to_SC{b}": sorted(v, key=numeric_id)
+                for (a, b), v in sorted(path_links.items()) if v
             },
         }
         os.makedirs(os.path.dirname(os.path.abspath(args.json_out)) or ".", exist_ok=True)

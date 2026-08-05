@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import importlib
 import json
 import math
 import os
+import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -12,17 +16,18 @@ from typing import Any, Mapping
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKSPACE_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKSPACE_ROOT))
 # 2026-07-31: 기본 모델 저장소를 NUMSIM_REPO_ROOT env → NumSim-mine(flagship-ms-adapt-clean,
 # HEAD 7f10393) 순서로 결정한다. 과거 경로 이력(재현용):
 #   - "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim": 비-git 스냅샷(default.yaml nu_cong=65/
 #     capacity_drop=false). nu_cong 격리 재현의 A/B 기준으로만 --repo-root로 명시 지정.
 #   - "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim-git": GitHub HEAD 0e07c1c 추적 클론
 #     (2026-06-29 audit follow-up). 이 머신에는 없음.
+_BUNDLED_NUMSIM_ROOT = WORKSPACE_ROOT / "vendor" / "NumSim-mine"
 DEFAULT_REPO_ROOT = Path(
-    os.environ.get(
-        "NUMSIM_REPO_ROOT",
-        "C:/Users/alsrj/Desktop/학술/찐찐막/Claude/NumSim-mine",
-    )
+    os.environ.get("NUMSIM_REPO_ROOT")
+    or (_BUNDLED_NUMSIM_ROOT if _BUNDLED_NUMSIM_ROOT.is_dir() else WORKSPACE_ROOT.parent / "NumSim-mine")
 )
 DEFAULT_MAPPING = WORKSPACE_ROOT / "evaluation/vsl_install/vsl_segment_mapping_8seg.json"
 DEFAULT_CALIBRATION = WORKSPACE_ROOT / "evaluation/calibration/vissim_network_calibration_v2_8seg_20260714.json"
@@ -501,6 +506,262 @@ def _link_counts_from_local_observation(state_json: Mapping[str, Any]) -> dict[s
     return {str(k): max(0.0, _as_float(v)) for k, v in raw.items()}
 
 
+def _link_metric_from_local_observation(
+    state_json: Mapping[str, Any],
+    key: str,
+) -> dict[str, float]:
+    local = state_json.get("local_observation", {})
+    if not isinstance(local, Mapping):
+        return {}
+    raw = local.get(key, {})
+    if not isinstance(raw, Mapping):
+        return {}
+    return {str(k): max(0.0, _as_float(v)) for k, v in raw.items()}
+
+
+def _file_sha256(path: Path) -> str:
+    if not path.is_file():
+        return ""
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _git_commit(path: Path) -> str:
+    try:
+        top_level = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+        if Path(top_level).resolve() != path.resolve():
+            return ""
+        result = subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return result.stdout.strip()
+
+
+def _snapshot_commit(path: Path) -> str:
+    snapshot = path / "SNAPSHOT.md"
+    if not snapshot.is_file():
+        return ""
+    match = re.search(r"(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])", snapshot.read_text(encoding="utf-8-sig"), re.I)
+    return match.group(0) if match else ""
+
+
+def _source_tree_sha256(path: Path) -> str:
+    source_root = path / "src"
+    if not source_root.is_dir():
+        return ""
+    digest = hashlib.sha256()
+    for source in sorted(source_root.rglob("*.py"), key=lambda item: item.relative_to(source_root).as_posix()):
+        digest.update(source.relative_to(source_root).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(source.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def build_run_provenance(
+    repo_root: Path,
+    state_json: Mapping[str, Any],
+    state_path: Path,
+    mapping_path: Path,
+    detector_mapping_path: Path,
+    calibration_path: Path,
+    tuning_path: Path,
+    network_path: Path | None = None,
+) -> dict[str, Any]:
+    network_path = network_path or (
+        WORKSPACE_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
+    )
+    state_run_provenance = _mapping(state_json.get("run_provenance"))
+    run_manifest_text = str(state_run_provenance.get("manifest_path", "")).strip()
+    run_manifest_path = Path(run_manifest_text) if run_manifest_text else Path("__missing_run_manifest.json")
+    inputs = {
+        "state_json": state_path,
+        "control_mapping_json": mapping_path,
+        "detector_mapping_json": detector_mapping_path,
+        "calibration_json": calibration_path,
+        "tuning_json": tuning_path,
+        "adapter_py": Path(__file__).resolve(),
+        "fixed_signal_schedule_py": WORKSPACE_ROOT / "evaluation" / "controllers" / "fixed_signal_schedule.py",
+        "strict_signal_program_py": WORKSPACE_ROOT / "plant" / "src" / "vissim_strict" / "signal_program.py",
+        "network_inpx": network_path,
+        "main_vbs_runner": WORKSPACE_ROOT / "scripts" / "run_real_world_stackelberg_controller.vbs",
+        "watchdog_wrapper": WORKSPACE_ROOT / "scripts" / "run_real_world_single_watchdog_distributed_core15n41.ps1",
+        "numsim_default_yaml": repo_root / "src" / "config" / "default.yaml",
+        "link_assignment_json": WORKSPACE_ROOT / "outputs" / "link_player_assignment_20260805.json",
+        "intersection_adjacency_json": WORKSPACE_ROOT / "outputs" / "intersection_adjacency8_20260805.json",
+        "storage_capacity_json": WORKSPACE_ROOT / "outputs" / "urban_storage_capacity_20260805.json",
+        "run_manifest_json": run_manifest_path,
+    }
+    imported_modules = {}
+    expected_root = repo_root.resolve()
+    for module_name, module in sorted(sys.modules.items()):
+        if module_name != "src" and not module_name.startswith("src."):
+            continue
+        module_text = str(getattr(module, "__file__", "") or "").strip()
+        if not module_text:
+            continue
+        module_path = Path(module_text).resolve()
+        if not module_path.is_relative_to(expected_root):
+            raise RuntimeError(f"imported {module_name} from {module_path}, expected under {expected_root}")
+        imported_modules[module_name] = {
+            "path": str(module_path),
+            "sha256": _file_sha256(module_path),
+        }
+    signal_programs = {
+        path.name: _file_sha256(path)
+        for path in sorted(network_path.parent.glob("*.sig"), key=lambda item: item.name)
+    }
+    provenance = {
+        "schema_version": 2,
+        "run_id": str(state_run_provenance.get("run_id", "")),
+        "workspace_root": str(WORKSPACE_ROOT.resolve()),
+        "workspace_git_commit": _git_commit(WORKSPACE_ROOT),
+        "numsim_repo_root": str(repo_root.resolve()),
+        "numsim_git_commit": _git_commit(repo_root),
+        "numsim_snapshot_commit": _snapshot_commit(repo_root),
+        "numsim_src_sha256": _source_tree_sha256(repo_root),
+        "imported_modules": imported_modules,
+        "signal_program_sha256": signal_programs,
+        "inputs": {
+            name: {
+                "path": str(path.resolve()) if str(path) else "",
+                "sha256": _file_sha256(path),
+                "exists": path.is_file(),
+            }
+            for name, path in inputs.items()
+        },
+    }
+    stable_evidence = {
+        "numsim_repo_root": provenance["numsim_repo_root"],
+        "numsim_git_commit": provenance["numsim_git_commit"],
+        "numsim_snapshot_commit": provenance["numsim_snapshot_commit"],
+        "numsim_src_sha256": provenance["numsim_src_sha256"],
+        "imported_modules": provenance["imported_modules"],
+        "signal_program_sha256": provenance["signal_program_sha256"],
+        "inputs": {name: value for name, value in provenance["inputs"].items() if name != "state_json"},
+    }
+    provenance["execution_fingerprint_sha256"] = hashlib.sha256(
+        json.dumps(stable_evidence, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return provenance
+
+
+def _network_path_from_state(state_json: Mapping[str, Any]) -> Path:
+    provenance = state_json.get("run_provenance", {})
+    if isinstance(provenance, Mapping):
+        value = provenance.get("network_path", "")
+        if value:
+            return Path(str(value))
+    value = state_json.get("network_path", "")
+    if value:
+        return Path(str(value))
+    return WORKSPACE_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
+
+
+def install_monitor_fixed_signal_runtime_patch(
+    cfg,
+    state_json: Mapping[str, Any],
+    detector_mapping: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Use native VISSIG timing for monitoring-only nodes with blank movement phases."""
+
+    from evaluation.controllers.fixed_signal_schedule import (
+        compile_fixed_signal_schedules,
+    )
+
+    uncontrolled = {str(node) for node in getattr(cfg.network, "uncontrolled_nodes", [])}
+    network_path = _network_path_from_state(state_json)
+    if not network_path.is_file() or not uncontrolled:
+        return {
+            "monitor_fixed_signal_patch_enabled": 0.0,
+            "monitor_fixed_signal_network_path": str(network_path),
+            "monitor_fixed_signal_schedule_count": 0.0,
+            "monitor_fixed_signal_missing_nodes": ",".join(sorted(uncontrolled)),
+        }
+    try:
+        schedules, errors = compile_fixed_signal_schedules(
+            network_path, uncontrolled, detector_mapping
+        )
+    except Exception as exc:
+        return {
+            "monitor_fixed_signal_patch_enabled": 0.0,
+            "monitor_fixed_signal_network_path": str(network_path),
+            "monitor_fixed_signal_schedule_count": 0.0,
+            "monitor_fixed_signal_compile_error": f"{type(exc).__name__}: {exc}",
+            "monitor_fixed_signal_missing_nodes": ",".join(sorted(uncontrolled)),
+        }
+
+    model_module = importlib.import_module("src.models.urban_queue_model")
+    original = getattr(
+        model_module,
+        "_vissim_original_phase_green_fraction",
+        model_module._phase_green_fraction,
+    )
+    setattr(model_module, "_vissim_original_phase_green_fraction", original)
+    def patched_phase_green_fraction(control, cfg_arg, spec, urban_step_index=None):
+        if str(spec.get("phase", "")):
+            return original(control, cfg_arg, spec, urban_step_index)
+        node = str(spec.get("intersection", ""))
+        schedule = schedules.get(node)
+        if schedule is None:
+            return original(control, cfg_arg, spec, urban_step_index)
+        if urban_step_index is None:
+            return float(clamp(schedule.movement_green_fraction(spec), 0.0, 1.0))
+        duration_sec = float(cfg_arg.simulation.T_u_sec)
+        start_sec = _absolute_urban_step_start_sec(urban_step_index, duration_sec)
+        return float(
+            clamp(
+                schedule.movement_green_fraction(spec, start_sec, duration_sec),
+                0.0,
+                1.0,
+            )
+        )
+
+    patched_modules = 0
+    for module_name in (
+        "src.models.urban_queue_model",
+        "src.controllers.distributed_coordinator",
+        "src.controllers.local_signal_plant",
+        "src.controllers.wu_distributed",
+        "src.controllers.wu_faithful_follower",
+    ):
+        module = importlib.import_module(module_name)
+        if hasattr(module, "_phase_green_fraction"):
+            setattr(module, "_phase_green_fraction", patched_phase_green_fraction)
+            patched_modules += 1
+
+    missing = sorted(uncontrolled - set(schedules))
+    return {
+        "monitor_fixed_signal_patch_enabled": float(bool(schedules)),
+        "monitor_fixed_signal_network_path": str(network_path.resolve()),
+        "monitor_fixed_signal_schedule_count": float(len(schedules)),
+        "monitor_fixed_signal_expected_count": float(len(uncontrolled)),
+        "monitor_fixed_signal_missing_nodes": ",".join(missing),
+        "monitor_fixed_signal_compile_errors": dict(errors),
+        "monitor_fixed_signal_patched_module_count": float(patched_modules),
+    }
+
+
+def _absolute_urban_step_start_sec(urban_step_index: int, duration_sec: float) -> float:
+    """NumSim urban step indices are already based on absolute state.time_sec."""
+    return int(urban_step_index) * float(duration_sec)
+
+
 def _storage_links_for_observed_origin(cfg, origin: str) -> list[str]:
     net = cfg.network
     value = str(origin)
@@ -541,12 +802,32 @@ def build_local_observation_summary(
     if not link_counts:
         return {}
 
+    link_speeds_kph = _link_metric_from_local_observation(state_json, "link_speeds_kph")
+    link_stopped_counts = _link_metric_from_local_observation(state_json, "link_stopped_counts")
+    link_queue_tail_pos_m = _link_metric_from_local_observation(state_json, "link_queue_tail_pos_m")
     split_parameters = _observation_split_parameters(calibration)
+    partition = _mapping(detector_mapping.get("link_partition"))
+    exit_links = {str(value) for value in partition.get("monitor_only_exit_links", [])}
+    freeway_bound_links = {str(value) for value in partition.get("freeway_bound_links", [])}
+    freeway_links = {
+        str(link) for link in _mapping(detector_mapping.get("freeway_link_to_model_link"))
+    }
+    ramp_links = {str(link) for link in _mapping(detector_mapping.get("ramp_link_to_queues"))}
     storage_fraction_by_link: dict[str, float] = {}
     queue_count_by_link: dict[str, float] = {}
     storage_count_by_link: dict[str, float] = {}
+    storage_assigned_by_link: dict[str, float] = {}
     urban_link_storage_occupancy = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
+    storage_requested_veh = 0.0
+    storage_assigned_veh = 0.0
+    storage_capacity_clipped_veh = 0.0
     for link, count in link_counts.items():
+        if link in freeway_links or link in ramp_links or link in exit_links:
+            storage_fraction_by_link[str(link)] = 0.0
+            storage_count_by_link[str(link)] = 0.0
+            queue_count_by_link[str(link)] = 0.0
+            storage_assigned_by_link[str(link)] = 0.0
+            continue
         origins = [
             str(value)
             for value in detector_mapping.get("link_to_origins", {}).get(str(link), [])
@@ -570,18 +851,26 @@ def build_local_observation_summary(
             for storage_link in _storage_links_for_observed_origin(cfg, origin):
                 if storage_link not in storage_links:
                     storage_links.append(storage_link)
+        storage_requested_veh += storage_count
+        storage_assigned_by_link[str(link)] = 0.0
         if storage_count > 0.0 and storage_links:
             share = storage_count / len(storage_links)
             for storage_link in storage_links:
                 capacity = float(cfg.network.urban_link_storage_veh.get(storage_link, 0.0))
                 current = urban_link_storage_occupancy.get(storage_link, 0.0)
-                urban_link_storage_occupancy[storage_link] = min(capacity, current + share)
+                assigned = max(0.0, min(share, capacity - current))
+                urban_link_storage_occupancy[storage_link] = current + assigned
+                storage_assigned_by_link[str(link)] += assigned
+                storage_assigned_veh += assigned
+                storage_capacity_clipped_veh += max(0.0, share - assigned)
 
     movement_queue = {movement: 0.0 for movement in cfg.network.urban_movements}
+    movement_assigned_by_link: dict[str, float] = {}
     for link, entries in detector_mapping.get("link_to_movements", {}).items():
         count = queue_count_by_link.get(str(link), link_counts.get(str(link), 0.0))
         if count <= 0.0 or not isinstance(entries, list):
             continue
+        movement_assigned_by_link[str(link)] = 0.0
         weight_sum = sum(
             max(0.0, _as_float(item.get("weight", 0.0)))
             for item in entries
@@ -596,7 +885,9 @@ def build_local_observation_summary(
             if movement not in movement_queue:
                 continue
             weight = max(0.0, _as_float(item.get("weight", 1.0)))
-            movement_queue[movement] += count * weight / weight_sum
+            assigned = count * weight / weight_sum
+            movement_queue[movement] += assigned
+            movement_assigned_by_link[str(link)] += assigned
 
     ramp_queue = {ramp: 0.0 for ramp in cfg.network.ramps}
     for link, ramps in detector_mapping.get("ramp_link_to_queues", {}).items():
@@ -628,6 +919,13 @@ def build_local_observation_summary(
             "visible_movements": visible_movements,
             "visible_ramps": visible_ramps,
             "link_counts": {link: link_counts.get(link, 0.0) for link in visible_links},
+            "link_speeds_kph": {link: link_speeds_kph.get(link, 0.0) for link in visible_links},
+            "link_stopped_counts": {
+                link: link_stopped_counts.get(link, 0.0) for link in visible_links
+            },
+            "link_queue_tail_pos_m": {
+                link: link_queue_tail_pos_m.get(link, 0.0) for link in visible_links
+            },
             "movement_queue": {
                 movement: movement_queue.get(movement, 0.0)
                 for movement in visible_movements
@@ -643,9 +941,103 @@ def build_local_observation_summary(
             agent_summary["monitoring_only"] = bool(spec.get("monitoring_only", False))
         agents[str(agent_id)] = agent_summary
 
+    represented_by_link: dict[str, float] = {}
+    unrepresented_by_link: dict[str, float] = {}
+    exit_excluded_by_link: dict[str, float] = {}
+    for link, count in link_counts.items():
+        if link in freeway_links or link in ramp_links:
+            represented = count
+        elif link in exit_links:
+            represented = 0.0
+            if count > 1.0e-9:
+                exit_excluded_by_link[link] = count
+        else:
+            represented = min(
+                count,
+                storage_assigned_by_link.get(link, 0.0)
+                + movement_assigned_by_link.get(link, 0.0),
+            )
+        represented_by_link[link] = represented
+        missing = max(0.0, count - represented)
+        if missing > 1.0e-9 and link not in exit_links:
+            unrepresented_by_link[link] = missing
+
+    positive_speeds = [
+        speed
+        for link, speed in link_speeds_kph.items()
+        if link_counts.get(link, 0.0) > 0.0 and speed > 0.0
+    ]
+    weighted_speed_count = sum(
+        link_counts.get(link, 0.0)
+        for link, speed in link_speeds_kph.items()
+        if speed > 0.0
+    )
+    weighted_speed_sum = sum(
+        speed * link_counts.get(link, 0.0)
+        for link, speed in link_speeds_kph.items()
+        if speed > 0.0
+    )
+    input_vehicle_count = float(sum(link_counts.values()))
+    represented_vehicle_count = float(sum(represented_by_link.values()))
+    exit_excluded_vehicle_count = float(sum(exit_excluded_by_link.values()))
+    total_vehicle_count = max(input_vehicle_count, _as_float(state_json.get("total_vehicles"), input_vehicle_count))
+    local_observation = _mapping(state_json.get("local_observation"))
+    unobservable_vehicle_count = max(
+        0.0,
+        _as_float(
+            local_observation.get("unobservable_vehicle_count"),
+            total_vehicle_count - input_vehicle_count,
+        ),
+    )
+    projection_diagnostics = {
+        "total_vehicle_count_veh": total_vehicle_count,
+        "input_link_vehicle_count_veh": input_vehicle_count,
+        "represented_vehicle_count_veh": represented_vehicle_count,
+        "unrepresented_vehicle_count_veh": float(sum(unrepresented_by_link.values())),
+        "exit_excluded_vehicle_count_veh": exit_excluded_vehicle_count,
+        "unobservable_vehicle_count_veh": unobservable_vehicle_count,
+        "mass_balance_error_veh": float(
+            total_vehicle_count
+            - represented_vehicle_count
+            - exit_excluded_vehicle_count
+            - unobservable_vehicle_count
+        ),
+        "freeway_observation_vehicle_count_veh": float(
+            sum(link_counts.get(link, 0.0) for link in freeway_links)
+        ),
+        "ramp_observation_vehicle_count_veh": float(
+            sum(link_counts.get(link, 0.0) for link in ramp_links)
+        ),
+        "freeway_bound_vehicle_count_veh": float(
+            sum(link_counts.get(link, 0.0) for link in freeway_bound_links)
+        ),
+        "storage_requested_veh": float(storage_requested_veh),
+        "storage_assigned_veh": float(storage_assigned_veh),
+        "storage_capacity_clipped_veh": float(storage_capacity_clipped_veh),
+        "movement_queue_assigned_veh": float(sum(movement_assigned_by_link.values())),
+        "ramp_queue_assigned_veh": float(sum(ramp_queue.values())),
+        "boundary_queue_assigned_veh": float(sum(boundary_queue.values())),
+        "input_link_count": len(link_counts),
+        "unrepresented_link_count": len(unrepresented_by_link),
+        "exit_excluded_link_count": len(exit_excluded_by_link),
+        "link_speed_observed_count": len(positive_speeds),
+        "link_stopped_vehicle_count_veh": float(sum(link_stopped_counts.values())),
+        "link_queue_tail_observed_count": sum(
+            1 for value in link_queue_tail_pos_m.values() if value > 0.0
+        ),
+        "observed_mean_link_speed_kph": (
+            float(weighted_speed_sum / weighted_speed_count)
+            if weighted_speed_count > 1.0e-9
+            else 0.0
+        ),
+    }
+
     return {
         "mode": "detector_local_v2_storage_split",
         "link_counts": link_counts,
+        "link_speeds_kph": link_speeds_kph,
+        "link_stopped_counts": link_stopped_counts,
+        "link_queue_tail_pos_m": link_queue_tail_pos_m,
         "queue_count_by_link": queue_count_by_link,
         "storage_count_by_link": storage_count_by_link,
         "storage_fraction_by_link": storage_fraction_by_link,
@@ -653,6 +1045,9 @@ def build_local_observation_summary(
         "urban_link_storage_occupancy": urban_link_storage_occupancy,
         "ramp_queue": ramp_queue,
         "boundary_queue": boundary_queue,
+        "projection_diagnostics": projection_diagnostics,
+        "unrepresented_by_link": unrepresented_by_link,
+        "exit_excluded_by_link": exit_excluded_by_link,
         "agents": agents,
         "split_parameters": {
             "internal_storage_fraction": float(split_parameters["internal_storage_fraction"]),
@@ -953,11 +1348,25 @@ def install_vissim_calibration_runtime_patches(cfg, calibration: Mapping[str, An
 
 
 def repo_imports(repo_root: Path):
+    expected_root = repo_root.resolve()
+    existing_src = sys.modules.get("src")
+    existing_file = Path(str(getattr(existing_src, "__file__", ""))) if existing_src is not None else None
+    if existing_file and existing_file.is_file() and not existing_file.resolve().is_relative_to(expected_root):
+        raise RuntimeError(
+            f"preloaded src package is outside NUMSIM_REPO_ROOT: {existing_file} not under {expected_root}"
+        )
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
     from src.controllers.stackelberg_mpc import StackelbergMPCController
     from src.models.demand import DemandStep
     from src.models.state import ControlAction, ExperimentConfig, TrafficState, segment_vsl
+
+    for module_name in ("src.controllers.stackelberg_mpc", "src.models.demand", "src.models.state"):
+        module_path = Path(str(getattr(sys.modules[module_name], "__file__", ""))).resolve()
+        if not module_path.is_relative_to(expected_root):
+            raise RuntimeError(
+                f"imported {module_name} from {module_path}, expected under {expected_root}"
+            )
 
     return StackelbergMPCController, DemandStep, ControlAction, ExperimentConfig, TrafficState, segment_vsl
 
@@ -1980,6 +2389,12 @@ def control_to_json_dict(
         "diagnostics": dict(control.diagnostics),
         "metadata": metadata,
     }
+    run_provenance = metadata.get("run_provenance")
+    if isinstance(run_provenance, Mapping):
+        payload["run_provenance"] = dict(run_provenance)
+    projection_diagnostics = metadata.get("projection_diagnostics")
+    if isinstance(projection_diagnostics, Mapping):
+        payload["projection_diagnostics"] = dict(projection_diagnostics)
     if prediction:
         payload["prediction"] = prediction
     if prediction_error:
@@ -3791,7 +4206,9 @@ def write_action_csv(
     if 120.0 not in vsl_set:
         # Allow no-control-ish 120 km/h on Vissim when previous/control provides it.
         vsl_set = sorted(set(vsl_set + [120.0]))
-    with path.open("w", newline="", encoding="utf-8-sig") as f:
+    # Action CSV fields are ASCII-compatible. Omitting a BOM lets the VBS
+    # consumer validate the complete header token-for-token.
+    with path.open("w", newline="", encoding="utf-8") as f:
         fields = [
             "kind",
             "id",
@@ -4008,6 +4425,9 @@ def main() -> None:
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     state = traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping, calibration)
+    runtime_patch_metadata.update(
+        install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping)
+    )
     if local_observation:
         install_local_observation_runtime_guards()
     forecast_horizon_steps = int(cfg.mpc.horizon_steps)
@@ -4068,6 +4488,16 @@ def main() -> None:
             getattr(cfg.freeway_follower, "horizon_vsl_candidate_limit_per_link", 0.0)
         ),
     }
+    metadata["run_provenance"] = build_run_provenance(
+        repo_root=repo_root,
+        state_json=state_json,
+        state_path=state_path,
+        mapping_path=mapping_path,
+        detector_mapping_path=Path(args.detector_mapping_json),
+        calibration_path=Path(args.calibration_json),
+        tuning_path=Path(args.tuning_json) if args.tuning_json else Path("__missing_tuning.json"),
+        network_path=_network_path_from_state(state_json),
+    )
     if forecast:
         forecast0 = forecast[0]
         demand_payload = _mapping(state_json.get("demand"))
@@ -4124,6 +4554,12 @@ def main() -> None:
     metadata.update(runtime_patch_metadata)
     if hasattr(state, "local_observation_summary"):
         summary = state.local_observation_summary
+        projection_diagnostics = summary.get("projection_diagnostics", {})
+        if isinstance(projection_diagnostics, Mapping):
+            metadata["projection_diagnostics"] = dict(projection_diagnostics)
+            for key, value in projection_diagnostics.items():
+                if isinstance(value, (int, float, bool)):
+                    metadata[f"projection_{key}"] = float(value)
         summary_agents = summary.get("agents", {})
         metadata["local_observation_agent_count"] = float(len(summary_agents))
         if isinstance(summary_agents, Mapping):

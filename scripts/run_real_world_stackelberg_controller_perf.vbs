@@ -1050,13 +1050,13 @@ End Sub
 
 Sub WriteStateJson(simSec, path)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
-    Dim countE(7), speedE(7), countW(7), speedW(7), localCounts
+    Dim countE(7), speedE(7), countW(7), speedW(7), localCounts, localStopped, localSpeedSums
     Dim ptw
     ptw = Timer
     ComputeDetailedState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, countE, speedE, countW, speedW
     PerfAdd "state_json.compute_detailed_state", ptw
     ptw = Timer
-    Set localCounts = VehicleLinkCounts()
+    ScanVehicleLinkObservations localCounts, localStopped, localSpeedSums
     PerfAdd "state_json.vehicle_link_counts", ptw
     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
 
@@ -1081,12 +1081,14 @@ Sub WriteStateJson(simSec, path)
     ts.WriteLine "  ""demand"": {""urban_volume_vph"": " & Num(demandUrbanNow) & ", ""freeway_volume_vph"": " & Num(demandFreewayNow) & ", ""ramp_volume_vph"": 0, ""demand_profile"": """ & demandForecastProfileName & """},"
     ts.WriteLine "  ""ramp_counts"": " & RampCountsJson(localCounts) & ","
     ts.WriteLine "  ""local_observation"": {"
-    ts.WriteLine "    ""schema_version"": 1,"
-    ts.WriteLine "    ""mode"": ""real_world_connector_local_v1"","
+    ts.WriteLine "    ""schema_version"": 2,"
+    ts.WriteLine "    ""mode"": ""real_world_connector_local_v2"","
     ts.WriteLine "    ""source"": ""vissim_vehicle_link_scan"","
     ts.WriteLine "    ""detector_mapping_json"": """ & JsonEscape(detectorMappingPath) & ""","
     ts.WriteLine "    ""global_vehicle_scan_masked"": true,"
-    ts.WriteLine "    ""link_counts"": " & LocalObservationLinkCountsJson(localCounts)
+    ts.WriteLine "    ""link_counts"": " & LocalObservationLinkCountsJson(localCounts) & ","
+    ts.WriteLine "    ""link_speeds_kph"": " & LocalObservationLinkSpeedsJson(localCounts, localSpeedSums) & ","
+    ts.WriteLine "    ""link_stopped_counts"": " & LocalObservationLinkStoppedCountsJson(localStopped)
     ts.WriteLine "  },"
     ts.WriteLine "  ""freeway_segments"": {"
     ts.WriteLine "    ""FW_E"": " & SegmentArrayJson(countE, speedE, RW_FW_E_SEG_LENGTHS_KM, RW_FW_E_LANES) & ","
@@ -1369,11 +1371,13 @@ Function RampCountsJson(counts)
     RampCountsJson = s
 End Function
 
-Function VehicleLinkCounts()
-    Dim counts, laneArray, posArray, ok, lo, hi, row, linkNo, key
+Sub ScanVehicleLinkObservations(ByRef counts, ByRef stoppedCounts, ByRef speedSums)
+    Dim laneArray, posArray, speedArray, ok, lo, hi, row, linkNo, key, speed
     Dim ptv
     Set counts = CreateObject("Scripting.Dictionary")
-    ok = ReadVehicleLanePos(laneArray, posArray)
+    Set stoppedCounts = CreateObject("Scripting.Dictionary")
+    Set speedSums = CreateObject("Scripting.Dictionary")
+    ok = ReadVehicleLanePosSpeed(laneArray, posArray, speedArray)
     ptv = Timer
     If ok Then
         lo = MultiLBound(laneArray)
@@ -1382,14 +1386,15 @@ Function VehicleLinkCounts()
             linkNo = FirstInt(MultiValue(laneArray, row))
             If linkNo > 0 Then
                 key = CStr(linkNo)
-                If Not counts.Exists(key) Then counts.Add key, 0
-                counts(key) = CLng(counts(key)) + 1
+                speed = CDblOrZero(MultiValue(speedArray, row))
+                AddDictNumber counts, key, 1.0
+                AddDictNumber speedSums, key, speed
+                If speed < 1 Then AddDictNumber stoppedCounts, key, 1.0
             End If
         Next
     End If
     PerfAdd "scan.vehicle_link_counts_vbs_loop", ptv
-    Set VehicleLinkCounts = counts
-End Function
+End Sub
 
 Function DictCount(counts, linkNo)
     Dim key
@@ -1429,6 +1434,39 @@ Function LocalObservationLinkCountsJson(counts)
     Next
     s = s & "}"
     LocalObservationLinkCountsJson = s
+End Function
+
+Function LocalObservationLinkSpeedsJson(counts, speedSums)
+    Dim parts, i, linkText, s, count, meanSpeed
+    parts = Split(RW_LOCAL_OBSERVABLE_LINKS, ",")
+    s = "{"
+    For i = 0 To UBound(parts)
+        linkText = Trim(parts(i))
+        If linkText <> "" Then
+            If Len(s) > 1 Then s = s & ", "
+            count = DictCount(counts, CLng(linkText))
+            meanSpeed = 0.0
+            If count > 0 Then meanSpeed = DictNumber(speedSums, linkText) / CDbl(count)
+            s = s & """" & JsonEscape(linkText) & """: " & Num(meanSpeed)
+        End If
+    Next
+    s = s & "}"
+    LocalObservationLinkSpeedsJson = s
+End Function
+
+Function LocalObservationLinkStoppedCountsJson(stoppedCounts)
+    Dim parts, i, linkText, s
+    parts = Split(RW_LOCAL_OBSERVABLE_LINKS, ",")
+    s = "{"
+    For i = 0 To UBound(parts)
+        linkText = Trim(parts(i))
+        If linkText <> "" Then
+            If Len(s) > 1 Then s = s & ", "
+            s = s & """" & JsonEscape(linkText) & """: " & CStr(DictCount(stoppedCounts, CLng(linkText)))
+        End If
+    Next
+    s = s & "}"
+    LocalObservationLinkStoppedCountsJson = s
 End Function
 
 Function JsonEscape(value)

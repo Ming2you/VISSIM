@@ -2,8 +2,8 @@
   "extends": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json",
   "name": "real_world_modi_pstack_distributed_core15n41_20260805",
   "description": "Copy-only distributed urban-follower experiment. Keeps the validated real-world freeway/VSL/ramp setup, but expands urban signal control from one SC1 interface lever to selected individual core urban follower agents. Peripheral signal controllers remain observation-only.",
-  "mapping_json": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
-  "detector_mapping_json": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json",
+  "mapping_json": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
+  "detector_mapping_json": "evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json",
   "urban_signal_selector": "core15",
   "config_overrides": {
     "network": {
@@ -11926,102 +11926,6 @@
           "receiving_link": "SC9_W_out",
           "kind": "boundary_in"
         },
-        "SC9_E_to_W": {
-          "intersection": "SC9",
-          "approach": "E",
-          "exit": "W",
-          "beta": 0.5,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_E",
-          "destination": "out_SC9_W",
-          "receiving_link": "SC9_W_out",
-          "kind": "boundary_in"
-        },
-        "SC9_E_to_NW_SC103": {
-          "intersection": "SC9",
-          "approach": "E",
-          "exit": "NW_SC103",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_E",
-          "destination": "SC9_to_SC103",
-          "receiving_link": "SC9_to_SC103",
-          "kind": "boundary_in"
-        },
-        "SC9_E_to_S_SC6": {
-          "intersection": "SC9",
-          "approach": "E",
-          "exit": "S_SC6",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_E",
-          "destination": "SC9_to_SC6",
-          "receiving_link": "SC9_to_SC6",
-          "kind": "boundary_in"
-        },
-        "SC9_E_to_N": {
-          "intersection": "SC9",
-          "approach": "E",
-          "exit": "N",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_E",
-          "destination": "out_SC9_N",
-          "receiving_link": "SC9_N_out",
-          "kind": "boundary_in"
-        },
-        "SC9_W_to_E": {
-          "intersection": "SC9",
-          "approach": "W",
-          "exit": "E",
-          "beta": 0.5,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_W",
-          "destination": "out_SC9_E",
-          "receiving_link": "SC9_E_out",
-          "kind": "boundary_in"
-        },
-        "SC9_W_to_NW_SC103": {
-          "intersection": "SC9",
-          "approach": "W",
-          "exit": "NW_SC103",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_W",
-          "destination": "SC9_to_SC103",
-          "receiving_link": "SC9_to_SC103",
-          "kind": "boundary_in"
-        },
-        "SC9_W_to_S_SC6": {
-          "intersection": "SC9",
-          "approach": "W",
-          "exit": "S_SC6",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_W",
-          "destination": "SC9_to_SC6",
-          "receiving_link": "SC9_to_SC6",
-          "kind": "boundary_in"
-        },
-        "SC9_W_to_N": {
-          "intersection": "SC9",
-          "approach": "W",
-          "exit": "N",
-          "beta": 0.16666666666666666,
-          "signal": "SC9",
-          "phase": "",
-          "origin": "in_SC9_W",
-          "destination": "out_SC9_N",
-          "receiving_link": "SC9_N_out",
-          "kind": "boundary_in"
-        },
         "SC10_NW_SC6_to_SE_SC12": {
           "intersection": "SC10",
           "approach": "NW_SC6",
@@ -18590,8 +18494,6 @@
         "in_SC8_E",
         "in_SC8_W",
         "in_SC9_N",
-        "in_SC9_E",
-        "in_SC9_W",
         "in_SC10_N",
         "in_SC10_S",
         "in_SC10_E",
@@ -19157,8 +19059,8 @@
   "safety": {
     "original_files_unchanged": true,
     "copy_only_outputs": [
-      "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
-      "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json"
+      "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
+      "evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json"
     ]
   },
   "notes": [
