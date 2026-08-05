@@ -4,9 +4,12 @@ PTV Vissim 2020 (SP14) 플랜트와 Stackelberg MPC 계층 제어 모델을 COM 
 컨트롤러를 라이브 평가한다.
 
 > **지금 이 저장소를 처음 여는 사람에게 —**
-> 현재 진행 중인 작업은 **플랜트 충실도 검증**이다. 무엇을 어떻게 만들었고 무엇이 아직
-> 불확실한지는 [`PLANT_FIDELITY_AUDIT_REQUEST.md`](PLANT_FIDELITY_AUDIT_REQUEST.md) 에
-> 전부 정리돼 있다. 그 문서부터 읽는 것이 가장 빠르다.
+> 현재 진행 중인 작업은 **플랜트 충실도 복구 + 4현시 전환**이다.
+> - 무엇을 어떻게 만들었고 무엇이 불확실한지 → [`PLANT_FIDELITY_AUDIT_REQUEST.md`](PLANT_FIDELITY_AUDIT_REQUEST.md)
+> - 그 감사 결과(판정 **불가**) → `reports/plant_fidelity_audit.md` (브랜치 `codex/plant-fidelity-audit-20260805`)
+> - **지금 실행할 작업지시서 → [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md)** (A~K 순서)
+>
+> 구현에 착수한다면 `IMPLEMENTATION_PLAN.md` 의 0.3 절(우리가 실제로 저지른 오류)을 먼저 읽어라.
 
 ---
 
