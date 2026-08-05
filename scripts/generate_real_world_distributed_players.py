@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
+import os
 import re
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -71,6 +74,48 @@ def read_json(path: Path) -> dict[str, Any]:
 def write_json(path: Path, data: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_link_assignment(
+    path: Path,
+    assignment: dict[str, Any],
+    approval_manifest_path: Path | None,
+) -> dict[str, Any]:
+    assignment_sha256 = file_sha256(path)
+    if assignment.get("unresolved_tie_count") == 0 and str(assignment.get("tie_status", "")).upper() == "CLEAR":
+        return {
+            "status": "clear",
+            "assignment_sha256": assignment_sha256,
+            "approval_manifest": "",
+            "approval_manifest_sha256": "",
+        }
+
+    if approval_manifest_path is None:
+        raise SystemExit(
+            "link assignment has unresolved or unverifiable topology ties; refusing to generate live artifacts. "
+            "Regenerate a CLEAR assignment or pass --assignment-approval-manifest with an explicit, hash-bound approval."
+        )
+    approval = read_json(approval_manifest_path)
+    if approval.get("approved") is not True:
+        raise SystemExit(f"assignment approval is not approved: {approval_manifest_path}")
+    if str(approval.get("assignment_sha256", "")).lower() != assignment_sha256:
+        raise SystemExit(f"assignment approval hash mismatch: {approval_manifest_path}")
+    if not str(approval.get("approved_by", "")).strip() or not str(approval.get("reason", "")).strip():
+        raise SystemExit("assignment approval must identify approved_by and reason")
+    return {
+        "status": "approved_override",
+        "assignment_sha256": assignment_sha256,
+        "approval_manifest": str(approval_manifest_path.resolve()),
+        "approval_manifest_sha256": file_sha256(approval_manifest_path),
+    }
 
 
 def parse_int_csv(text: str) -> list[int]:
@@ -379,7 +424,18 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
     # 모델과 같은 함수를 쓰므로 이름이 어긋날 수 없다. config 에는 그대로 실어 보내
     # 매핑과 모델이 같은 이름을 보게 한다.
     import sys as _sys
-    _numsim = str(ROOT.parent / "NumSim-mine")
+    _numsim_candidates = [
+        Path(os.environ["NUMSIM_REPO_ROOT"]) if os.environ.get("NUMSIM_REPO_ROOT") else None,
+        ROOT / "vendor" / "NumSim-mine",
+        ROOT.parent / "NumSim-mine",
+    ]
+    _numsim_path = next(
+        (candidate for candidate in _numsim_candidates if candidate and (candidate / "src").is_dir()),
+        None,
+    )
+    if _numsim_path is None:
+        raise SystemExit("NumSim source not found; set NUMSIM_REPO_ROOT or restore vendor/NumSim-mine")
+    _numsim = str(_numsim_path)
     if _numsim not in _sys.path:
         _sys.path.insert(0, _numsim)
     from src.models.grid_topology import build_urban_movements, derive_turning_ratios
@@ -498,7 +554,7 @@ def build_control_mapping(
         "from the validated base mapping; selected core urban signals expanded to "
         "individual SC players while peripheral signals are monitored only."
     )
-    out["detector_mapping_json"] = str(detector_path)
+    out["detector_mapping_json"] = str(detector_path.relative_to(ROOT))
     out["urban_signal_selector"] = selector
     out["controlled_signal_controllers"] = [int(row["no"]) for row in rows]
     out["monitoring_only_signal_controllers"] = [int(row["no"]) for row in monitor_rows]
@@ -573,6 +629,7 @@ def build_detector_mapping(
     link_owner_by_link: dict[str, int],
     internal_link_members: "dict[str, list[str]] | None" = None,
     link_assignment: "dict[str, Any] | None" = None,
+    link_assignment_evidence: "dict[str, Any] | None" = None,
 ) -> dict[str, Any]:
     out = dict(base)
     out["mapping_version"] = f"real_world_modi_distributed_{selector}_v1_20260728"
@@ -750,6 +807,29 @@ def build_detector_mapping(
             print(f"   도시부 분할 밖인데 origin 이 붙어 있던 링크 {len(stripped)}개 제거: "
                   f"{sorted(stripped)[:8]}")
 
+    if link_assignment:
+        out["link_partition"] = {
+            "owned_links": sorted((str(value) for value in owner_of), key=int),
+            "owned_link_legs": {
+                str(link): str(leg)
+                for link, leg in sorted(
+                    (link_assignment.get("link_leg") or {}).items(),
+                    key=lambda item: int(item[0]),
+                )
+                if str(link) in owner_of
+            },
+            "freeway_bound_links": sorted(
+                (str(value) for value in (link_assignment.get("freeway_bound_links") or {})),
+                key=int,
+            ),
+            "monitor_only_exit_links": sorted(
+                (str(value) for value in (link_assignment.get("monitor_only_exit_links") or [])),
+                key=int,
+            ),
+            "source": "outputs/link_player_assignment_20260805.json",
+            "assignment_evidence": dict(link_assignment_evidence or {}),
+        }
+
     out["observable_links"] = sorted(int(v) for v in observable if str(v).strip().isdigit())
     out["link_to_movements"] = link_to_movements
     out["link_to_origins"] = link_to_origins
@@ -765,6 +845,55 @@ def build_detector_mapping(
         },
     }
     return out
+
+
+def prune_permanent_red_monitor_movements(
+    network_override: dict[str, Any],
+    detector_mapping: dict[str, Any],
+) -> dict[str, list[str]]:
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from evaluation.controllers.fixed_signal_schedule import compile_fixed_signal_schedules
+
+    monitor_nodes = {str(value) for value in network_override.get("uncontrolled_nodes", [])}
+    schedules, errors = compile_fixed_signal_schedules(
+        DEFAULT_NETWORK,
+        monitor_nodes,
+        detector_mapping,
+    )
+    if errors or set(schedules) != monitor_nodes:
+        missing = sorted(monitor_nodes - set(schedules))
+        raise SystemExit(f"monitor fixed-signal compile failed: errors={errors} missing={missing}")
+
+    removed: dict[str, list[str]] = {}
+    kept: dict[str, Any] = {}
+    removed_origins: set[str] = set()
+    for movement_key, spec in network_override.get("urban_movements", {}).items():
+        node = str(spec.get("intersection", ""))
+        schedule = schedules.get(node)
+        if schedule is not None and not str(spec.get("phase", "")):
+            if schedule.movement_green_fraction(spec) <= 1.0e-9:
+                removed.setdefault(node, []).append(str(movement_key))
+                removed_origins.add(str(spec.get("origin", "")))
+                continue
+        kept[str(movement_key)] = spec
+
+    surviving_origins = {str(spec.get("origin", "")) for spec in kept.values()}
+    network_override["urban_movements"] = kept
+    network_override["boundary_in_links"] = [
+        link
+        for link in network_override.get("boundary_in_links", [])
+        if str(link) not in removed_origins or str(link) in surviving_origins
+    ]
+    network_override["on_ramp_to_movement"] = {
+        ramp: [movement for movement in movements if movement in kept]
+        for ramp, movements in network_override.get("on_ramp_to_movement", {}).items()
+    }
+    network_override["off_ramp_to_movement"] = {
+        off_ramp: [movement for movement in movements if movement in kept]
+        for off_ramp, movements in network_override.get("off_ramp_to_movement", {}).items()
+    }
+    return {node: sorted(movements) for node, movements in sorted(removed.items())}
 
 
 def build_tuning_config(
@@ -785,8 +914,8 @@ def build_tuning_config(
             "ramp setup, but expands urban signal control from one SC1 interface lever to selected "
             "individual core urban follower agents. Peripheral signal controllers remain observation-only."
         ),
-        "mapping_json": str(control_mapping_path),
-        "detector_mapping_json": str(detector_mapping_path),
+        "mapping_json": str(control_mapping_path.relative_to(ROOT)),
+        "detector_mapping_json": str(detector_mapping_path.relative_to(ROOT)),
         "urban_signal_selector": selector,
         "config_overrides": {
             "network": network_override,
@@ -822,8 +951,8 @@ def build_tuning_config(
         "safety": {
             "original_files_unchanged": True,
             "copy_only_outputs": [
-                str(control_mapping_path),
-                str(detector_mapping_path),
+                str(control_mapping_path.relative_to(ROOT)),
+                str(detector_mapping_path.relative_to(ROOT)),
             ],
         },
         "notes": [
@@ -833,6 +962,16 @@ def build_tuning_config(
             "The first smoke should be short because distributed urban agents enlarge the signal action space.",
         ],
     }
+
+
+def _vbs_long_string_assignment(name: str, value: str, chunk_size: int = 600) -> list[str]:
+    chunks = [value[index : index + chunk_size] for index in range(0, len(value), chunk_size)] or [""]
+    lines: list[str] = []
+    for index, chunk in enumerate(chunks):
+        prefix = f"{name} = " if index == 0 else "    "
+        suffix = " & _" if index < len(chunks) - 1 else ""
+        lines.append(f'{prefix}"{chunk}"{suffix}')
+    return lines
 
 
 def write_generated_vbs(path: Path, base: dict[str, Any], detector_path: Path, observable_links: list[int], rows: list[dict[str, str]]) -> None:
@@ -847,10 +986,30 @@ def write_generated_vbs(path: Path, base: dict[str, Any], detector_path: Path, o
             "  python scripts/generate_real_world_control_mapping.py 를 먼저 다시 돌릴 것."
         )
     chain_links_all = sorted({int(link) for spec in fw.values() for link in spec["chain_links"]})
+    expected_vsl_action_rows = sum(len(segment.get("dsds", [])) for segment in base.get("segments", []))
+    expected_vsl_dsd_ids = sorted(
+        {int(dsd["dsd_no"]) for segment in base.get("segments", []) for dsd in segment.get("dsds", [])}
+    )
+    expected_vsl_action_keys = [
+        "|".join(
+            (
+                str(segment["segment_id"]),
+                str(int(dsd["dsd_no"])),
+                str(int(segment["link"])),
+                str(int(dsd["lane"])),
+            )
+        )
+        for segment in base.get("segments", [])
+        for dsd in segment.get("dsds", [])
+    ]
+    if len(expected_vsl_dsd_ids) != expected_vsl_action_rows:
+        raise SystemExit("control mapping contains duplicate VSL DSD identifiers")
+    if len(set(expected_vsl_action_keys)) != expected_vsl_action_rows:
+        raise SystemExit("control mapping contains duplicate VSL action tuples")
     lines = [
         "' Generated by scripts/generate_real_world_distributed_players.py",
         # 2: 본선이 링크 체인이 되면서 RW_*_CHAIN_LINKS / RW_*_CHAIN_OFFSETS_M 가 필수다.
-        "RW_SCHEMA_VERSION = 2",
+        "RW_SCHEMA_VERSION = 3",
         'RW_FREEWAY_LINKS = "' + ",".join(str(v) for v in chain_links_all) + '"',
         'RW_FREEWAY_INPUT_LINKS = "26,74"',
         "RW_CLASSIFY_UNMATCHED_AS_URBAN = True",
@@ -873,9 +1032,16 @@ def write_generated_vbs(path: Path, base: dict[str, Any], detector_path: Path, o
         'RW_RAMP_METER_SCS = "' + ",".join(str(int(r["sc_no"])) for r in ramp_meters) + '"',
         'RW_RAMP_METER_CONNECTORS = "' + ",".join(str(int(r["connector"])) for r in ramp_meters) + '"',
         'RW_RAMP_METER_MODEL_KEYS = "' + ",".join(str(r["model_ramp_key"]) for r in ramp_meters) + '"',
+        'RW_RAMP_METER_CAPACITIES_VPH = "' + ",".join(str(float(r["capacity_vph"])) for r in ramp_meters) + '"',
         'RW_SIGNAL_SCS = "' + ",".join(str(int(row["no"])) for row in rows) + '"',
+        f"RW_EXPECTED_VSL_ACTION_ROWS = {expected_vsl_action_rows}",
+        'RW_EXPECTED_VSL_DSD_IDS = "' + ",".join(str(value) for value in expected_vsl_dsd_ids) + '"',
+    ])
+    lines.extend(_vbs_long_string_assignment("RW_EXPECTED_VSL_ACTION_KEYS", ";".join(expected_vsl_action_keys)))
+    lines.extend([
+        'RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,115,120"',
         'RW_LOCAL_OBSERVABLE_LINKS = "' + ",".join(str(int(v)) for v in observable_links) + '"',
-        f'RW_DETECTOR_MAPPING_PATH = "{detector_path}"',
+        f'RW_DETECTOR_MAPPING_PATH = "{detector_path.relative_to(ROOT)}"',
     ])
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -994,6 +1160,11 @@ def main() -> None:
                         help="scripts/derive_intersection_adjacency.py 산출 JSON. 주면 교차로 간 grid leg 를 심는다")
     parser.add_argument("--link-assignment-json", default="",
                         help="scripts/assign_links_to_players.py 산출 JSON. 주면 관측 링크를 상류 SC 기준으로 저류에 붙인다")
+    parser.add_argument(
+        "--assignment-approval-manifest",
+        default="",
+        help="explicit approval JSON for a hash-bound assignment that still has unresolved topology ties",
+    )
     parser.add_argument("--storage-capacity-json", default="",
                         help="scripts/derive_urban_storage_capacity.py 산출 JSON. 주면 상수 대신 실측 기하 용량을 쓴다")
     args = parser.parse_args()
@@ -1038,8 +1209,12 @@ def main() -> None:
         internal_link_members = _adj.get("internal_link_members") or {}
         print(f"인접 JSON: {args.adjacency_json}  SC {len(adjacency_legs)}개, 내부구간 {len(internal_link_members)}개")
     link_assignment = None
+    link_assignment_evidence = None
     if args.link_assignment_json:
-        link_assignment = read_json(Path(args.link_assignment_json))
+        link_assignment_path = Path(args.link_assignment_json)
+        link_assignment = read_json(link_assignment_path)
+        approval_path = Path(args.assignment_approval_manifest) if args.assignment_approval_manifest else None
+        link_assignment_evidence = validate_link_assignment(link_assignment_path, link_assignment, approval_path)
         print(f"배정 JSON: {args.link_assignment_json}  귀속 {len(link_assignment.get('link_owner') or {})}개,"
               f" 상류확정 {len(link_assignment.get('link_upstream') or {})}개,"
               f" 출구 {len(link_assignment.get('monitor_only_exit_links') or [])}개")
@@ -1105,7 +1280,14 @@ def main() -> None:
         link_owner_by_link,
         internal_link_members=internal_link_members,
         link_assignment=link_assignment,
+        link_assignment_evidence=link_assignment_evidence,
     )
+    permanent_red_removed = prune_permanent_red_monitor_movements(network_override, detector)
+    if permanent_red_removed:
+        print(
+            "monitor permanent-red movements removed: "
+            + ", ".join(f"{node}={len(movements)}" for node, movements in permanent_red_removed.items())
+        )
     mapping = build_control_mapping(base_mapping, rows, monitor_rows, detector_path, args.selector)
     tuning = build_tuning_config(network_override, mapping_path, detector_path, args.selector, slug, monitor_rows, stamp)
     player_config = {
@@ -1154,11 +1336,11 @@ def main() -> None:
             for row in monitor_rows
         ],
         "source_files": {
-            "signal_roles": str(DEFAULT_SIGNAL_ROLES),
-            "network_inpx": str(DEFAULT_NETWORK),
-            "base_control_mapping": str(DEFAULT_CONTROL_MAPPING),
-        "base_detector_mapping": str(DEFAULT_DETECTOR_MAPPING),
-        "prediction_calibration": str(DEFAULT_PREDICTION_CALIBRATION),
+            "signal_roles": str(DEFAULT_SIGNAL_ROLES.relative_to(ROOT)),
+            "network_inpx": str(DEFAULT_NETWORK.relative_to(ROOT)),
+            "base_control_mapping": str(DEFAULT_CONTROL_MAPPING.relative_to(ROOT)),
+            "base_detector_mapping": str(DEFAULT_DETECTOR_MAPPING.relative_to(ROOT)),
+            "prediction_calibration": str(DEFAULT_PREDICTION_CALIBRATION.relative_to(ROOT)),
         },
     }
 

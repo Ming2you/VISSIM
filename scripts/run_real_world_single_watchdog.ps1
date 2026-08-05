@@ -32,7 +32,8 @@ param(
   [switch]$ForceStepwise,
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
-  [int]$DoneRows = 0
+  [int]$DoneRows = 0,
+  [string]$AuditAnchorsSec = ""
 )
 
 $ErrorActionPreference = "Continue"
@@ -136,6 +137,35 @@ function Normalize-ProcessPathEnv {
 
 function Q($s) { '"' + $s + '"' }
 
+function Get-ArtifactEvidence([string]$ArtifactPath) {
+  $exists = -not [string]::IsNullOrWhiteSpace($ArtifactPath) -and (Test-Path -LiteralPath $ArtifactPath -PathType Leaf)
+  [ordered]@{
+    path = $ArtifactPath
+    exists = $exists
+    sha256 = if ($exists) { (Get-FileHash -LiteralPath $ArtifactPath -Algorithm SHA256).Hash.ToLowerInvariant() } else { "" }
+  }
+}
+
+function Get-ExactGitCommit([string]$RepositoryPath) {
+  if ([string]::IsNullOrWhiteSpace($RepositoryPath) -or -not (Test-Path -LiteralPath $RepositoryPath -PathType Container)) {
+    return ""
+  }
+  $topLevel = (& git -C $RepositoryPath rev-parse --show-toplevel 2>$null)
+  if ([string]::IsNullOrWhiteSpace($topLevel)) { return "" }
+  $expected = [System.IO.Path]::GetFullPath($RepositoryPath).TrimEnd('\')
+  $actual = [System.IO.Path]::GetFullPath(([string]$topLevel).Trim()).TrimEnd('\')
+  if (-not $expected.Equals($actual, [System.StringComparison]::OrdinalIgnoreCase)) { return "" }
+  return [string](& git -C $RepositoryPath rev-parse HEAD 2>$null)
+}
+
+function Copy-VissimError([string]$DestinationDir) {
+  $vissimErr = [System.IO.Path]::ChangeExtension($net, ".err")
+  if (Test-Path -LiteralPath $vissimErr -PathType Leaf) {
+    Copy-Item -LiteralPath $vissimErr -Destination (Join-Path $DestinationDir "vissim_network.err") `
+      -Force -ErrorAction SilentlyContinue
+  }
+}
+
 $stateCsv = Join-Path $OutDir "state_$Name.csv"
 $actionCsv = Join-Path $OutDir "action_$Name.csv"
 $bottleneckLinkCsv = Join-Path $OutDir "bottleneck_links_$Name.csv"
@@ -143,6 +173,73 @@ $bottleneckSegmentCsv = Join-Path $OutDir "bottleneck_segments_$Name.csv"
 $decisionDir = Join-Path $OutDir "decisions_$Name"
 $log = Join-Path $OutDir "runlog_$Name.txt"
 New-Item -ItemType Directory -Force -Path $decisionDir | Out-Null
+$runId = [guid]::NewGuid().ToString("N")
+
+$provenanceFiles = [ordered]@{
+  network = Get-ArtifactEvidence $net
+  main_vbs_runner = Get-ArtifactEvidence $runner
+  watchdog_wrapper = Get-ArtifactEvidence $PSCommandPath
+  adapter = Get-ArtifactEvidence $adapter
+  calibration = Get-ArtifactEvidence $Calibration
+  tuning = Get-ArtifactEvidence $Tuning
+  control_mapping = Get-ArtifactEvidence $Mapping
+  generated_vbs_config = Get-ArtifactEvidence $vbsConfig
+  vehicle_input_roles = Get-ArtifactEvidence $VehicleInputRoles
+  link_assignment = Get-ArtifactEvidence (Join-Path $repo "outputs\link_player_assignment_20260805.json")
+  intersection_adjacency = Get-ArtifactEvidence (Join-Path $repo "outputs\intersection_adjacency8_20260805.json")
+  storage_capacity = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_storage_capacity_20260805.json")
+  numsim_snapshot = Get-ArtifactEvidence (Join-Path $repo "vendor\NumSim-mine\SNAPSHOT.md")
+}
+$signalPrograms = @(
+  Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -Filter "*.sig" -File -ErrorAction SilentlyContinue |
+    Sort-Object Name |
+    ForEach-Object { Get-ArtifactEvidence $_.FullName }
+)
+$workspaceCommit = Get-ExactGitCommit $repo
+$numsimRootEnv = [Environment]::GetEnvironmentVariable("NUMSIM_REPO_ROOT", "Process")
+$numsimRoot = $numsimRootEnv
+if ([string]::IsNullOrWhiteSpace($numsimRoot)) {
+  $numsimRoot = Join-Path $repo "vendor\NumSim-mine"
+}
+$provenanceFiles.numsim_default_yaml = Get-ArtifactEvidence (Join-Path $numsimRoot "src\config\default.yaml")
+$numsimCommit = ""
+if (-not [string]::IsNullOrWhiteSpace($numsimRoot) -and (Test-Path -LiteralPath $numsimRoot)) {
+  $numsimCommit = Get-ExactGitCommit $numsimRoot
+}
+$numsimSnapshotCommit = ""
+$numsimSnapshotPath = Join-Path $numsimRoot "SNAPSHOT.md"
+if (Test-Path -LiteralPath $numsimSnapshotPath -PathType Leaf) {
+  $match = [regex]::Match([System.IO.File]::ReadAllText($numsimSnapshotPath), "(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])", "IgnoreCase")
+  if ($match.Success) { $numsimSnapshotCommit = $match.Value }
+}
+$provenance = [ordered]@{
+  schema_version = 1
+  run_id = $runId
+  name = $Name
+  created_at = (Get-Date).ToString("o")
+  workspace_root = $repo
+  workspace_git_commit = [string]$workspaceCommit
+  numsim_repo_root_env = [string]$numsimRootEnv
+  numsim_repo_root_effective = [string]$numsimRoot
+  numsim_git_commit = [string]$numsimCommit
+  numsim_snapshot_commit = [string]$numsimSnapshotCommit
+  seed = $Seed
+  sim_period_sec = $SimPeriod
+  control_interval_sec = $ControlIntervalSec
+  state_log_interval_sec = $StateLogIntervalSec
+  demand_scale = $DemandScale
+  demand_profile = $DemandProfile
+  controller = $Controller
+  audit_anchors_sec = $AuditAnchorsSec
+  files = $provenanceFiles
+  signal_programs = $signalPrograms
+}
+$provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
+[System.IO.File]::WriteAllText(
+  $provenancePath,
+  ($provenance | ConvertTo-Json -Depth 8),
+  [System.Text.UTF8Encoding]::new($false)
+)
 
 function Archive-AttemptOutputs([int]$Attempt) {
   $archive = Join-Path $OutDir ("attempt_{0:00}_{1}" -f $Attempt, $Name)
@@ -156,6 +253,7 @@ function Archive-AttemptOutputs([int]$Attempt) {
     $decisionArchive = Join-Path $archive ([System.IO.Path]::GetFileName($decisionDir))
     Copy-Item -LiteralPath $decisionDir -Destination $decisionArchive -Recurse -Force -ErrorAction SilentlyContinue
   }
+  Copy-VissimError $archive
 }
 
 if ($DoneRows -gt 0 -and (Test-Path $stateCsv)) {
@@ -180,16 +278,29 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   $t0 = Get-Date
   Normalize-ProcessPathEnv
   $oldForceStepwise = [Environment]::GetEnvironmentVariable("RW_FORCE_STEPWISE", "Process")
+  $oldAuditAnchors = [Environment]::GetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", "Process")
+  $oldRunId = [Environment]::GetEnvironmentVariable("RW_RUN_ID", "Process")
+  $oldRunManifest = [Environment]::GetEnvironmentVariable("RW_RUN_MANIFEST_PATH", "Process")
   if ($ForceStepwise) {
     [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", "1", "Process")
   } else {
     [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", $null, "Process")
   }
+  if ([string]::IsNullOrWhiteSpace($AuditAnchorsSec)) {
+    [Environment]::SetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", $null, "Process")
+  } else {
+    [Environment]::SetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", $AuditAnchorsSec, "Process")
+  }
+  [Environment]::SetEnvironmentVariable("RW_RUN_ID", $runId, "Process")
+  [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $provenancePath, "Process")
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
     -RedirectStandardError "$log.err" -WorkingDirectory $repo -PassThru -WindowStyle Hidden
   [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", $oldForceStepwise, "Process")
+  [Environment]::SetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", $oldAuditAnchors, "Process")
+  [Environment]::SetEnvironmentVariable("RW_RUN_ID", $oldRunId, "Process")
+  [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $oldRunManifest, "Process")
   if (-not $proc -or -not $proc.Id) {
     throw "Failed to start cscript for $Name attempt=$attempt"
   }
@@ -200,6 +311,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     if ($proc.HasExited) {
       $done = Select-String -Path $log -Pattern "STAGE=SIM_DONE" -Quiet -ErrorAction SilentlyContinue
       if ($done) {
+        Copy-VissimError $OutDir
         Log "OK $Name attempt=$attempt elapsed=$([int]((Get-Date)-$t0).TotalSeconds)s"
         exit 0
       }
