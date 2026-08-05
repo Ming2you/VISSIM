@@ -115,7 +115,7 @@ evaluation/configs/              튜닝 config
 evaluation/calibration/          캘리브레이션 json
 evaluation/generated/            VBS 전역 config (생성물)
 harness/g6/                      G6 채점
-outputs/                         유도 산출물·게이트 리포트
+outputs/                         유도 산출물·게이트 리포트 (outputs/README.md 로 현행/이력 구분)
 vendor/NumSim-mine/src/          모델 소스 스냅샷 (수정 금지, SNAPSHOT.md 참조)
 context-notes.md                 작업 중 내린 결정과 근거 (계속 append)
 checklist.md                     할 일
