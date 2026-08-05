@@ -6,8 +6,8 @@
 |---|---|
 | 원본 레포 | https://github.com/Ming2you/Numerical-Sim.git |
 | 브랜치 | `freeway-zone-followers` |
-| 커밋 | `35a5c82` — "NS_AXIS 대각축 정정 + 램프 큐 상한을 램프별로" |
-| 복사 시각 | 2026-08-05 |
+| 커밋 | `0240ba8` — "가격 롤아웃 병렬화 배선 (기본 꺼짐, 미검증)" |
+| 복사 시각 | 2026-08-05 (2차 — 병렬 FD 반영) |
 | 범위 | `src/` 전체 + `README.md` / `requirements.txt` / `AGENTS.md` |
 | 제외 | `outputs/`(263 MB 런 산출물), `work/`, `__pycache__`, `.git` |
 
