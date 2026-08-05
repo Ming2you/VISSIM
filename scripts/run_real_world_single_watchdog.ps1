@@ -16,6 +16,7 @@ param(
   [string]$Tuning = "",
   [string]$Calibration = "",
   [string]$Mapping = "",
+  [string]$VbsConfig = "",
   [int]$ControlStartSec = -1,
   [string]$WarmupController = "no-control",
   [int]$StateLogIntervalSec = 5,
@@ -80,7 +81,18 @@ if ($Network -eq "") {
 }
 $net = Resolve-RepoPath $Network
 $adapter = Join-Path $repo "evaluation\controllers\vissim_stackelberg_adapter.py"
-$vbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config.vbs"
+# VBS generated config (positional arg 14). This carries RW_LOCAL_OBSERVABLE_LINKS and
+# RW_DETECTOR_MAPPING_PATH, i.e. WHAT THE PLANT RECORDS into state_*.json local_observation.
+# 2026-08-04: this was hardcoded to the base config while grids passed a distributed
+# -Mapping. Result: the plant logged only 22 observable links (base) while G6 scoring
+# projected with the distributed 175-link detector mapping, so 153 links had no data and
+# the observed objective captured 1.4% of urban vehicles. Every urban-axis candidate was
+# then scored with the wrong sign. Default keeps the old path = bit-identical.
+if ($VbsConfig -eq "") {
+  $VbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config.vbs"
+}
+$vbsConfig = Resolve-RepoPath $VbsConfig
+if (-not (Test-Path $vbsConfig)) { Log "ERROR vbs config not found: $vbsConfig"; exit 2 }
 
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 $progress = Join-Path $OutDir "WATCHDOG_PROGRESS.txt"

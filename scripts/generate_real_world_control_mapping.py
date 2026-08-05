@@ -88,22 +88,70 @@ MODEL_RAMP_TO_URBAN_SIGNAL = {
     "R_F_E": "F",
 }
 
-REAL_WORLD_INTERFACE_SIGNALS = [
-    {
-        "id": "D",
-        "sc_no": 1,
-        "coverage": ["D", "F"],
-        "role": "freeway_interface_signal_controller",
-        "phase_map": {
-            "major_axis": "east_west",
-            "minor_axis": "north_south",
-            "major_sg_name_prefixes": ["EB", "WB"],
-            "minor_sg_name_prefixes": ["NB", "SB"],
-        },
-        "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv",
-        "note": "SC 1 is the only controller inventoried with freeway-interface signal heads; real-world runner applies major/minor timing to all SGs by EB/WB vs NB/SB SG names.",
-    }
-]
+DEFAULT_ROLES_CSV = "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
+
+
+def interface_signal_rows(roles_csv: str = DEFAULT_ROLES_CSV) -> list[dict[str, Any]]:
+    """freeway 인터페이스 신호제어기를 인벤토리에서 찾아 매핑 항목으로 만든다.
+
+    2026-08-04 정정. 이전에는 sc_no 를 1 로 하드코딩하고 주석에 "SC 1 is the only controller
+    inventoried with freeway-interface signal heads" 라고 적어 두었으나 **틀렸다**.
+    인벤토리 실측은 이렇다.
+
+        SC    1   interface_head_count = 0   role=urban_signal_controller            (구룡초교)
+        SC 1001   interface_head_count = 3   role=urban_freeway_interface_signal_controller
+
+    interface_head_count > 0 인 컨트롤러는 전체 37 개 중 SC 1001 하나뿐이다.
+    즉 기본 매핑이 엉뚱한 교차로를 제어하고 있었다. 값을 박아 두지 않고 인벤토리에서 읽는다.
+
+    major_maps_to 는 VISSIM MAJOR(SG1) 접근이 모델의 어느 phase 인지를 뜻한다.
+    인터페이스 교차로는 MAJOR 접근이 off-ramp 유출이고 모델은 램프 leg 를 NS 축으로 보아
+    p1 에 두므로(NumSim grid_topology._token_leg_dir: off*/on* -> "S") p1 이다.
+    일반 간선 교차로는 MAJOR=EW 간선=모델 p2 다.
+    """
+    path = WORKSPACE_ROOT / roles_csv
+    rows: list[dict[str, Any]] = []
+    if not path.exists():
+        return rows
+    with open(path, newline="", encoding="utf-8-sig") as fh:
+        for row in csv.DictReader(fh):
+            try:
+                ihc = int(float(row.get("interface_head_count") or 0))
+            except (TypeError, ValueError):
+                ihc = 0
+            if ihc <= 0:
+                continue
+            raw_no = "".join(ch for ch in str(row.get("no") or "") if ch.isdigit())
+            if not raw_no:
+                continue
+            sc_no = int(raw_no)
+            rows.append({
+                "id": "D",
+                "sc_no": sc_no,
+                "coverage": ["D", "F"],
+                "role": row.get("role", "urban_freeway_interface_signal_controller"),
+                "major_maps_to": "p1",
+                "phase_map": {
+                    "major_axis": "freeway_offramp",
+                    "minor_axis": "cross_street",
+                    "major_sg_name_prefixes": ["EB", "WB"],
+                    "minor_sg_name_prefixes": ["NB", "SB"],
+                },
+                "interface_head_count": ihc,
+                "source": roles_csv,
+                "note": (
+                    f"SC {sc_no} 는 interface_head_count={ihc} 로 인벤토리에서 유일한 "
+                    "freeway 인터페이스 컨트롤러다. 정지선 신호두가 link 32 위에 있고 "
+                    "link 32 의 유입은 conn 10481(본선 2) / conn 10491(본선 26) 뿐이므로 "
+                    "MAJOR 접근이 곧 off-ramp 유출이다."
+                ),
+            })
+    return rows
+
+
+# 모듈 로드 시 인벤토리에서 유도한다. 비어 있으면 인벤토리가 없거나 인터페이스 컨트롤러가
+# 하나도 식별되지 않은 것이므로, 조용히 넘어가지 말고 사용처에서 소리내어 실패해야 한다.
+REAL_WORLD_INTERFACE_SIGNALS = interface_signal_rows()
 
 
 def freeway_agent_id(model_link: str, segment_index: int) -> str:

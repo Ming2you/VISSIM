@@ -1502,15 +1502,16 @@
   "signals": [
     {
       "id": "D",
-      "sc_no": 1,
+      "sc_no": 1001,
       "coverage": [
         "D",
         "F"
       ],
-      "role": "freeway_interface_signal_controller",
+      "role": "urban_freeway_interface_signal_controller",
+      "major_maps_to": "p1",
       "phase_map": {
-        "major_axis": "east_west",
-        "minor_axis": "north_south",
+        "major_axis": "freeway_offramp",
+        "minor_axis": "cross_street",
         "major_sg_name_prefixes": [
           "EB",
           "WB"
@@ -1520,8 +1521,9 @@
           "SB"
         ]
       },
+      "interface_head_count": 3,
       "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv",
-      "note": "SC 1 is the only controller inventoried with freeway-interface signal heads; real-world runner applies major/minor timing to all SGs by EB/WB vs NB/SB SG names."
+      "note": "SC 1001 는 interface_head_count=3 로 인벤토리에서 유일한 freeway 인터페이스 컨트롤러다. 정지선 신호두가 link 32 위에 있고 link 32 의 유입은 conn 10481(본선 2) / conn 10491(본선 26) 뿐이므로 MAJOR 접근이 곧 off-ramp 유출이다."
     }
   ],
   "ramp_meters": [

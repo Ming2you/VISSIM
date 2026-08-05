@@ -1,0 +1,500 @@
+{
+  "inputs": [
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_newdemand_20260804_fd_breakdown_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_newdemand_20260804_fd_extreme_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_newdemand_20260804_fd_lowurban_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_newdemand_20260804_fd_scale135_freeway_fd_points.csv",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\fd_newdemand_20260804_fd_scale170_freeway_fd_points.csv"
+  ],
+  "point_count_used": 4880,
+  "bin_width_veh_km_lane": 2.0,
+  "nominal_lanes": 4.0,
+  "observed_capacity": {
+    "q_cap_obs_veh_h_lane": 1732.735697044505,
+    "q_cap_obs_veh_h_link": 6930.94278817802,
+    "bin_center_veh_km_lane": 31.0,
+    "bin_rho_mean": 30.87811923846154,
+    "bin_n": 130,
+    "cap_min_n": 10,
+    "capacity_bin_is_interior_max": true,
+    "identifiability_note": "OK: 관측이 임계밀도를 넘겨 용량 등식 제약이 식별된다."
+  },
+  "method": {
+    "model": "V(rho) = v_free * exp(-(1/a) * (rho/rho_crit)**a)",
+    "primary": "binned mean (2 veh/km/lane) + bin-count-weighted least squares, capacity equality constraint q_cap_lane == observed binned-mean max",
+    "not_used": "low-density p95 upper envelope (source of the +35 km/h bias in v0)",
+    "excluded_points": "count == 0 or density == 0 or speed == 0 (empty segments)"
+  },
+  "fits": {
+    "primary": {
+      "v_free": 133.80572740767877,
+      "rho_crit": 28.925358024691356,
+      "a": 1.2443214814814816,
+      "bin_wrmse": 2.6420172379661957,
+      "capacity_veh_h_lane": 1732.7356970445048,
+      "capacity_veh_h_link": 6930.942788178019,
+      "point_metrics": {
+        "n": 4880,
+        "rmse_kph": 9.922501186960769,
+        "bias_model_minus_obs_kph": 0.09237363067071971,
+        "mae_kph": 7.568644461451184
+      }
+    },
+    "alt_equal_bin_weight": {
+      "v_free": 129.2190614988957,
+      "rho_crit": 30.729444444444447,
+      "a": 1.2058745679012344,
+      "bin_wrmse": 2.9521876570339005,
+      "capacity_veh_h_lane": 1732.7356970445048,
+      "capacity_veh_h_link": 6930.942788178019,
+      "point_metrics": {
+        "n": 4880,
+        "rmse_kph": 10.252097679970017,
+        "bias_model_minus_obs_kph": -1.885424263486427,
+        "mae_kph": 8.043819815246593
+      }
+    },
+    "alt_unconstrained": {
+      "v_free": 134.1665825,
+      "rho_crit": 28.607314062499995,
+      "a": 1.24642946875,
+      "bin_wrmse": 2.6294157562160994,
+      "capacity_veh_h_lane": 1720.642276051026,
+      "capacity_veh_h_link": 6882.569104204104,
+      "point_metrics": {
+        "n": 4880,
+        "rmse_kph": 9.919125195580392,
+        "bias_model_minus_obs_kph": -0.07510522234754138,
+        "mae_kph": 7.603586988987628
+      }
+    }
+  },
+  "per_link_fits": {
+    "FW_E": {
+      "v_free": 136.9433567340206,
+      "rho_crit": 30.69972839506173,
+      "a": 1.13274024691358,
+      "bin_wrmse": 3.1221582234922627,
+      "capacity_veh_h_lane": 1738.8969682538118,
+      "capacity_veh_h_link": 6955.587873015247,
+      "observed_capacity_veh_h_lane": 1738.896968253812,
+      "point_metrics": {
+        "n": 2440,
+        "rmse_kph": 10.406113035306007,
+        "bias_model_minus_obs_kph": 0.44119828393585836,
+        "mae_kph": 7.753411160816169
+      }
+    },
+    "FW_W": {
+      "v_free": 126.78610512405756,
+      "rho_crit": 26.96051851851852,
+      "a": 1.491562962962963,
+      "bin_wrmse": 2.3307840910875437,
+      "capacity_veh_h_lane": 1748.3666741813079,
+      "capacity_veh_h_link": 6993.4666967252315,
+      "observed_capacity_veh_h_lane": 1748.3666741813079,
+      "point_metrics": {
+        "n": 2440,
+        "rmse_kph": 9.237514531452486,
+        "bias_model_minus_obs_kph": 0.45940288059461754,
+        "mae_kph": 7.037311479771903
+      }
+    }
+  },
+  "old_v0": {
+    "v_free_kph": 126.919,
+    "rho_crit_veh_km_lane": 28.419,
+    "metanet_a_m": 1.3645,
+    "capacity_veh_h_link_declared": 6932.8,
+    "capacity_veh_h_link_implied_by_fd": 6932.891170732253,
+    "point_metrics": {
+      "n": 4880,
+      "rmse_kph": 9.984117042120918,
+      "bias_model_minus_obs_kph": -0.6179411304131299,
+      "mae_kph": 7.769423395815369
+    }
+  },
+  "coverage": {
+    "speed_p50": 90.3905575,
+    "speed_p90": 114.0542397,
+    "speed_p95": 115.92692695000001,
+    "speed_max": 121.77431,
+    "rho_p50": 16.151322,
+    "rho_p90": 33.587884,
+    "rho_p95": 54.58844670000003,
+    "rho_max": 70.174709,
+    "frac_speed_gt_80": 0.5930327868852459,
+    "frac_speed_gt_100": 0.3610655737704918,
+    "frac_speed_gt_120": 0.0030737704918032786,
+    "frac_rho_gt_rho_crit_fit": 0.15860655737704918
+  },
+  "vsl_menu_binding": [
+    {
+      "vsl_kph": 80.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 20.208431753336836,
+      "frac_points_binding_new": 0.6379098360655737,
+      "binds_at_all_old": true,
+      "rho_bind_old": 20.24995287377649,
+      "frac_points_binding_old": 0.6432377049180328
+    },
+    {
+      "vsl_kph": 100.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 12.793543326015882,
+      "frac_points_binding_new": 0.2956967213114754,
+      "binds_at_all_old": true,
+      "rho_bind_old": 12.478015250560361,
+      "frac_points_binding_old": 0.2848360655737705
+    },
+    {
+      "vsl_kph": 120.0,
+      "binds_at_all_new": true,
+      "rho_bind_new": 5.80322103363208,
+      "frac_points_binding_new": 0.00778688524590164,
+      "binds_at_all_old": true,
+      "rho_bind_old": 4.319545773744361,
+      "frac_points_binding_old": 0.0014344262295081967
+    }
+  ],
+  "bias_table": [
+    {
+      "rho_lo": 0,
+      "rho_hi": 5,
+      "n": 13,
+      "rho_mean": 4.1830764615384615,
+      "obs_speed": 113.11169907692307,
+      "model_new": 124.45291243163295,
+      "dev_new": -11.341213354709879,
+      "model_old": 120.28865636859712,
+      "dev_old": -7.176957291674043
+    },
+    {
+      "rho_lo": 5,
+      "rho_hi": 10,
+      "n": 638,
+      "rho_mean": 8.188815830721003,
+      "obs_speed": 110.8864185094044,
+      "model_new": 113.20932275778247,
+      "dev_new": -2.32290424837808,
+      "model_old": 110.98281485031295,
+      "dev_old": -0.09639634090855509
+    },
+    {
+      "rho_lo": 10,
+      "rho_hi": 15,
+      "n": 1449,
+      "rho_mean": 12.456677402346447,
+      "obs_speed": 102.66805739337474,
+      "model_new": 100.9556006330398,
+      "dev_new": 1.7124567603349448,
+      "model_old": 100.05562010362709,
+      "dev_old": 2.612437289747646
+    },
+    {
+      "rho_lo": 15,
+      "rho_hi": 20,
+      "n": 989,
+      "rho_mean": 17.002922140546005,
+      "obs_speed": 89.73901508796764,
+      "model_new": 88.36696302974164,
+      "dev_new": 1.3720520582260036,
+      "model_old": 88.22997412194775,
+      "dev_old": 1.5090409660198958
+    },
+    {
+      "rho_lo": 20,
+      "rho_hi": 25,
+      "n": 566,
+      "rho_mean": 22.540739938162545,
+      "obs_speed": 70.72117236042403,
+      "model_new": 74.22835583667128,
+      "dev_new": -3.507183476247249,
+      "model_old": 74.39219273366065,
+      "dev_old": -3.6710203732366153
+    },
+    {
+      "rho_lo": 25,
+      "rho_hi": 30,
+      "n": 555,
+      "rho_mean": 27.349498886486487,
+      "obs_speed": 60.64972388288288,
+      "model_new": 63.23453726310637,
+      "dev_new": -2.584813380223487,
+      "model_old": 63.31061528018297,
+      "dev_old": -2.660891397300091
+    },
+    {
+      "rho_lo": 30,
+      "rho_hi": 40,
+      "n": 342,
+      "rho_mean": 33.51096562280702,
+      "obs_speed": 51.020482742690064,
+      "model_new": 50.97066222962957,
+      "dev_new": 0.04982051306049584,
+      "model_old": 50.696735734988565,
+      "dev_old": 0.323747007701499
+    },
+    {
+      "rho_lo": 40,
+      "rho_hi": 60,
+      "n": 219,
+      "rho_mean": 54.07561726027397,
+      "obs_speed": 25.95018885844749,
+      "model_new": 23.238852220183926,
+      "dev_new": 2.711336638263564,
+      "model_old": 21.769868831930673,
+      "dev_old": 4.180320026516817
+    }
+  ],
+  "bins": [
+    {
+      "bin_center": 3.0,
+      "n": 5,
+      "rho_mean": 3.6751548,
+      "speed_mean": 114.27344560000002,
+      "q_lane_mean": 420.5810222203054
+    },
+    {
+      "bin_center": 5.0,
+      "n": 43,
+      "rho_mean": 5.447372302325581,
+      "speed_mean": 113.72485755813955,
+      "q_lane_mean": 619.7658751276489
+    },
+    {
+      "bin_center": 7.0,
+      "n": 232,
+      "rho_mean": 7.192867650862069,
+      "speed_mean": 112.88854081034484,
+      "q_lane_mean": 811.7400000027344
+    },
+    {
+      "bin_center": 9.0,
+      "n": 371,
+      "rho_mean": 9.049828614555256,
+      "speed_mean": 109.33776152560647,
+      "q_lane_mean": 989.1393474614545
+    },
+    {
+      "bin_center": 11.0,
+      "n": 567,
+      "rho_mean": 10.940470610229278,
+      "speed_mean": 106.0652045696649,
+      "q_lane_mean": 1159.453205236807
+    },
+    {
+      "bin_center": 13.0,
+      "n": 621,
+      "rho_mean": 12.995981942028987,
+      "speed_mean": 102.1645030547504,
+      "q_lane_mean": 1326.4341029668253
+    },
+    {
+      "bin_center": 15.0,
+      "n": 561,
+      "rho_mean": 15.008603518716578,
+      "speed_mean": 95.79809479679145,
+      "q_lane_mean": 1437.3153161457199
+    },
+    {
+      "bin_center": 17.0,
+      "n": 419,
+      "rho_mean": 16.901241307875896,
+      "speed_mean": 90.84587973031026,
+      "q_lane_mean": 1534.272315006132
+    },
+    {
+      "bin_center": 19.0,
+      "n": 270,
+      "rho_mean": 18.85339721851852,
+      "speed_mean": 81.95414410740742,
+      "q_lane_mean": 1543.2373758827457
+    },
+    {
+      "bin_center": 21.0,
+      "n": 216,
+      "rho_mean": 20.910381074074074,
+      "speed_mean": 76.94164749537038,
+      "q_lane_mean": 1607.5182282082721
+    },
+    {
+      "bin_center": 23.0,
+      "n": 245,
+      "rho_mean": 23.13717843265306,
+      "speed_mean": 67.08791166530612,
+      "q_lane_mean": 1551.5627293594428
+    },
+    {
+      "bin_center": 25.0,
+      "n": 235,
+      "rho_mean": 25.0950666,
+      "speed_mean": 64.18350938297873,
+      "q_lane_mean": 1609.5776064171853
+    },
+    {
+      "bin_center": 27.0,
+      "n": 215,
+      "rho_mean": 26.944600474418603,
+      "speed_mean": 61.473558809302325,
+      "q_lane_mean": 1656.1717179813631
+    },
+    {
+      "bin_center": 29.0,
+      "n": 210,
+      "rho_mean": 28.86357098095238,
+      "speed_mean": 58.72812497619048,
+      "q_lane_mean": 1694.6806844684966
+    },
+    {
+      "bin_center": 31.0,
+      "n": 130,
+      "rho_mean": 30.87811923846154,
+      "speed_mean": 56.13605676923077,
+      "q_lane_mean": 1732.735697044505
+    },
+    {
+      "bin_center": 33.0,
+      "n": 77,
+      "rho_mean": 33.14011841558442,
+      "speed_mean": 52.187053636363636,
+      "q_lane_mean": 1728.6882671349981
+    },
+    {
+      "bin_center": 35.0,
+      "n": 67,
+      "rho_mean": 34.79222298507462,
+      "speed_mean": 48.122984074626864,
+      "q_lane_mean": 1673.8533620722621
+    },
+    {
+      "bin_center": 37.0,
+      "n": 40,
+      "rho_mean": 36.897353625,
+      "speed_mean": 45.2700477,
+      "q_lane_mean": 1669.7791724716596
+    },
+    {
+      "bin_center": 39.0,
+      "n": 28,
+      "rho_mean": 38.851162107142855,
+      "speed_mean": 39.20974096428572,
+      "q_lane_mean": 1523.6337917172198
+    },
+    {
+      "bin_center": 41.0,
+      "n": 10,
+      "rho_mean": 41.000781,
+      "speed_mean": 36.5548093,
+      "q_lane_mean": 1498.9277850317374
+    },
+    {
+      "bin_center": 43.0,
+      "n": 16,
+      "rho_mean": 43.117872750000004,
+      "speed_mean": 33.2691276875,
+      "q_lane_mean": 1434.3081348143949
+    },
+    {
+      "bin_center": 45.0,
+      "n": 5,
+      "rho_mean": 45.0675874,
+      "speed_mean": 32.143580199999995,
+      "q_lane_mean": 1449.8637926044478
+    },
+    {
+      "bin_center": 47.0,
+      "n": 7,
+      "rho_mean": 46.75092185714286,
+      "speed_mean": 30.293058714285714,
+      "q_lane_mean": 1415.4613875918797
+    },
+    {
+      "bin_center": 49.0,
+      "n": 9,
+      "rho_mean": 49.04527577777778,
+      "speed_mean": 28.876196,
+      "q_lane_mean": 1416.9842287881322
+    },
+    {
+      "bin_center": 51.0,
+      "n": 12,
+      "rho_mean": 51.267834416666666,
+      "speed_mean": 28.201393166666666,
+      "q_lane_mean": 1445.8758800958287
+    },
+    {
+      "bin_center": 53.0,
+      "n": 18,
+      "rho_mean": 53.10419183333333,
+      "speed_mean": 26.90074488888889,
+      "q_lane_mean": 1428.6360182411909
+    },
+    {
+      "bin_center": 55.0,
+      "n": 28,
+      "rho_mean": 55.17371971428572,
+      "speed_mean": 25.159987,
+      "q_lane_mean": 1387.213764759818
+    },
+    {
+      "bin_center": 57.0,
+      "n": 51,
+      "rho_mean": 57.06560211764705,
+      "speed_mean": 23.767663274509804,
+      "q_lane_mean": 1355.810037328402
+    },
+    {
+      "bin_center": 59.0,
+      "n": 63,
+      "rho_mean": 59.08516203174604,
+      "speed_mean": 22.43367553968254,
+      "q_lane_mean": 1325.25413236567
+    },
+    {
+      "bin_center": 61.0,
+      "n": 39,
+      "rho_mean": 61.077987589743586,
+      "speed_mean": 21.337192256410255,
+      "q_lane_mean": 1303.101586145102
+    },
+    {
+      "bin_center": 63.0,
+      "n": 48,
+      "rho_mean": 62.9405186875,
+      "speed_mean": 20.476344770833332,
+      "q_lane_mean": 1288.6791046973158
+    },
+    {
+      "bin_center": 65.0,
+      "n": 13,
+      "rho_mean": 64.7195323076923,
+      "speed_mean": 19.622842615384616,
+      "q_lane_mean": 1270.011939044001
+    },
+    {
+      "bin_center": 67.0,
+      "n": 6,
+      "rho_mean": 66.70459316666667,
+      "speed_mean": 18.601396833333332,
+      "q_lane_mean": 1240.4978588453523
+    },
+    {
+      "bin_center": 69.0,
+      "n": 2,
+      "rho_mean": 68.318235,
+      "speed_mean": 18.097372,
+      "q_lane_mean": 1236.3805131784202
+    },
+    {
+      "bin_center": 71.0,
+      "n": 1,
+      "rho_mean": 70.174709,
+      "speed_mean": 16.606916,
+      "q_lane_mean": 1165.3854976874438
+    }
+  ],
+  "outputs": {
+    "png": "outputs\\fd_fit_newdemand_20260804_fd_fit.png"
+  }
+}

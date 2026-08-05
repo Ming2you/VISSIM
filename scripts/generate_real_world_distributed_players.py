@@ -245,14 +245,22 @@ def signal_id(sc_no: int) -> str:
     return f"SC{sc_no}"
 
 
-def movement(signal: str, suffix: str, phase: str, origin: str, receiving: str, kind: str = "boundary_in") -> dict[str, Any]:
+def movement(signal: str, suffix: str, phase: str, origin: str, receiving: str, kind: str = "boundary_in",
+             controlled: bool = True) -> dict[str, Any]:
+    """movement spec. controlled=False 면 phase="" 로 둔다.
+
+    grid_topology.build_urban_movements 와 같은 규약이다 — 신호가 없는 노드는 phase 를
+    빈 문자열로 두면 green=1 상당으로 신호 없이 통과한다(같은 파일 docstring:
+    "E(비통제)는 phase=''(green=1 상당)로 신호 없이 통과"). 덕분에 비통제 교차로도
+    movement 큐·링크 저류를 통제 교차로와 **동일한 모델**로 예측하면서 제어만 받지 않는다.
+    """
     return {
         "intersection": signal,
         "approach": suffix,
         "exit": "out",
         "beta": 1.0,
         "signal": signal,
-        "phase": f"{signal}_{phase}",
+        "phase": f"{signal}_{phase}" if controlled else "",
         "origin": origin,
         "destination": receiving,
         "receiving_link": receiving,
@@ -260,90 +268,177 @@ def movement(signal: str, suffix: str, phase: str, origin: str, receiving: str, 
     }
 
 
-def build_network_override(rows: list[dict[str, str]], include_freeway_interface_coupling: bool = True) -> dict[str, Any]:
+def build_network_override(rows: list[dict[str, str]], include_freeway_interface_coupling: bool = True,
+                           ramp_interface_sc: "dict[str, str] | None" = None,
+                           monitor_rows: "list[dict[str, str]] | None" = None,
+                           adjacency_legs: "dict[str, dict[str, int]] | None" = None,
+                           storage_capacity: "dict[str, float] | None" = None,
+                           ramp_queue_by_ramp: "dict[str, float] | None" = None) -> dict[str, Any]:
+    # 통제 대상(rows)과 비통제(monitor_rows)를 **같은 모델로** 세운다.
+    #
+    # 왜. 나중에 컨트롤러 분석은 "통제 교차로의 TTT 절감 대 인접 비통제 구간의 TTT 증가"를
+    # 비교한다. 비통제 교차로를 모델에서 아예 빼 버리면 그 증가분을 잴 수가 없고,
+    # 관측된 차량이 어느 저류에도 귀속되지 않아 관측 목적함수에서 사라진다
+    # (2026-08-04 실측: 도시부 포착률 1.7 %의 주된 원인).
+    #
+    # grid_node_legs 에는 전부 넣고 signals 에는 통제 대상만 넣는다. 그러면
+    # grid_topology.build_urban_movements 와 같은 규약으로 비통제 노드의 movement 는
+    # phase="" 가 되어 신호 없이 통과하면서도 큐·저류는 동일하게 계상된다.
+    # uncontrolled_nodes 로 내보내면 state.uncontrolled_node_movement_queue_veh /
+    # uncontrolled_node_storage_occupancy_veh 로 인접부 TTT 를 따로 집계할 수 있다.
     signals = [signal_id(int(row["no"])) for row in rows]
+    uncontrolled = [signal_id(int(row["no"])) for row in (monitor_rows or [])]
+    all_nodes = signals + uncontrolled
+    node_set = set(all_nodes)
     grid_node_legs: dict[str, Any] = {}
     urban_movements: dict[str, Any] = {}
     boundary_in: list[str] = []
     boundary_out: list[str] = []
     storage: dict[str, float] = {}
 
-    for sid in signals:
-        grid_node_legs[sid] = {
-            "N": {"type": "boundary", "in": f"in_{sid}_N", "out": f"out_{sid}_N", "out_link": f"{sid}_N_out"},
-            "S": {"type": "boundary", "in": f"in_{sid}_S", "out": f"out_{sid}_S", "out_link": f"{sid}_S_out"},
-            "E": {"type": "boundary", "in": f"in_{sid}_E", "out": f"out_{sid}_E", "out_link": f"{sid}_E_out"},
-            "W": {"type": "boundary", "in": f"in_{sid}_W", "out": f"out_{sid}_W", "out_link": f"{sid}_W_out"},
-        }
-        for leg in ("N", "S", "E", "W"):
+    # 교차로 간 인접(2026-08-04). adjacency_legs 는 scripts/derive_intersection_adjacency.py 가
+    # 네트워크에서 유도한 {SC번호: {"방위_SC이웃": 이웃SC번호}} 다.
+    # 관대(㉮) 대칭화 — 한쪽 방향만 잡힌 인접도 양방향 leg 로 심는다(일방통행·회전제한으로
+    # 역방향 탐색이 끊긴 경우가 많아, 버리면 연결이 과소해진다).
+    adj: dict[str, dict[str, str]] = {}
+    for sc_txt, legmap in (adjacency_legs or {}).items():
+        a = signal_id(int(sc_txt))
+        for leg_key, nb in legmap.items():
+            b = signal_id(int(nb))
+            if a not in node_set or b not in node_set:
+                continue
+            base = str(leg_key).split("_", 1)[0]
+            adj.setdefault(a, {})[f"{base}_{b}"] = b
+            # 역방향이 없으면 만들어 준다. 방위는 정반대로 둔다.
+            opp = {"N": "S", "S": "N", "E": "W", "W": "E",
+                   "NE": "SW", "SW": "NE", "NW": "SE", "SE": "NW"}.get(base, base)
+            adj.setdefault(b, {}).setdefault(f"{opp}_{a}", a)
+
+    # 램프 leg 를 어느 노드에 심을 것인가 — ramp_interface_sc 의 역방향.
+    # default.yaml 의 D·F 노드와 같은 형태로 두면 movement 도 모델이 자동 유도한다
+    # ({"type":"ramp","on":{"W":..,"E":..},"off":{"W":..,"E":..}}).
+    ramp_legs_by_node: dict[str, dict[str, Any]] = {}
+    if include_freeway_interface_coupling:
+        for ramp, sid in (ramp_interface_sc or {}).items():
+            side = ramp.rsplit("_", 1)[-1]          # R_D_W -> W
+            off_ramp = "OR_" + ramp[2:]            # R_D_W -> OR_D_W
+            spec = ramp_legs_by_node.setdefault(sid, {"type": "ramp", "on": {}, "off": {}})
+            spec["on"][side] = ramp
+            spec["off"][side] = off_ramp
+
+    CARDINAL = ("N", "S", "E", "W")
+    for sid in all_nodes:
+        legs: dict[str, Any] = {}
+        for leg_key, nb in sorted(adj.get(sid, {}).items()):
+            legs[leg_key] = {"type": "grid", "node": nb}
+        used_base = {k.split("_", 1)[0] for k in legs}
+        free = [d for d in CARDINAL if d not in used_base]
+        # 램프 인터페이스 노드는 빈 기본 방위 하나(가능하면 S)를 램프 leg 로 쓴다.
+        ramp_spec = ramp_legs_by_node.get(sid)
+        if ramp_spec and free:
+            slot = "S" if "S" in free else free[0]
+            legs[slot] = ramp_spec
+            free = [d for d in free if d != slot]
+            for r in ramp_spec["on"].values():
+                storage[f"{sid}_{r}_queue"] = 180.0
+            for o in ramp_spec["off"].values():
+                storage[f"{o}_storage"] = 120.0
+        # 남은 기본 방위는 경계 게이트 — 수요 유입·유출 경로.
+        for leg in free:
+            legs[leg] = {"type": "boundary", "in": f"in_{sid}_{leg}",
+                         "out": f"out_{sid}_{leg}", "out_link": f"{sid}_{leg}_out"}
             boundary_in.append(f"in_{sid}_{leg}")
             boundary_out.append(f"out_{sid}_{leg}")
             storage[f"{sid}_{leg}_out"] = 220.0
-        for suffix, phase, leg in (
-            ("NS_N", "p1", "N"),
-            ("NS_S", "p1", "S"),
-            ("EW_E", "p2", "E"),
-            ("EW_W", "p2", "W"),
-        ):
-            key = f"{sid}_{suffix}_to_out"
-            urban_movements[key] = movement(sid, suffix, phase, f"in_{sid}_{leg}", f"{sid}_{leg}_out")
+        grid_node_legs[sid] = legs
+    # urban_movements / turning_ratios / 내부링크 저류는 **모델이 grid_node_legs 에서 자동 유도**한다
+    # (NetworkConfig.__post_init__ L298-316). 수동 나열은 저장소가 명시적으로 금한다.
 
-    # SC1 is the inventoried freeway-interface signal controller. Attach the
-    # four model on/off ramp movements to that urban player so distributed
-    # coupling remains connected to the freeway follower.
-    has_sc1_coupling = "SC1" in signals and include_freeway_interface_coupling
-    if has_sc1_coupling:
-        ramp_phase = {
-            "R_D_W": "p1",
-            "R_D_E": "p2",
-            "R_F_W": "p1",
-            "R_F_E": "p2",
-        }
-        ramp_to_freeway = {
-            "R_D_W": "FW_W",
-            "R_F_W": "FW_W",
-            "R_D_E": "FW_E",
-            "R_F_E": "FW_E",
-        }
-        for ramp, phase in ramp_phase.items():
-            key = f"SC1_on_{ramp}"
-            storage[f"SC1_{ramp}_queue"] = 180.0
-            urban_movements[key] = movement("SC1", f"on_{ramp}", phase, f"in_SC1_{ramp}", f"SC1_{ramp}_queue", "on_ramp")
-            urban_movements[key]["ramp"] = ramp
-            urban_movements[key]["destination"] = ramp_to_freeway[ramp]
-        off_phase = {
-            "OR_D_W": "p1",
-            "OR_D_E": "p2",
-            "OR_F_W": "p1",
-            "OR_F_E": "p2",
-        }
-        for off_ramp, phase in off_phase.items():
-            key = f"SC1_off_{off_ramp}"
-            storage[f"{off_ramp}_storage"] = 120.0
-            urban_movements[key] = movement("SC1", f"off_{off_ramp}", phase, off_ramp, f"{off_ramp}_storage", "off_ramp")
-            urban_movements[key]["off_ramp"] = off_ramp
+    # 램프를 어느 urban player 에 붙일 것인가 (2026-08-04 일반화).
+    #
+    # 기존에는 네 램프를 전부 SC1 하나에 붙였다. 그러면 D/F 구분이 모델에서 사라져
+    # 램프별 한계가격이 다시 퇴화한다. 실제 플랜트 구조는 인터체인지가 둘이다.
+    #   D측 = SC1001 — 신호두가 링크 32 위, 링크 32 는 오프램프 커넥터 10481/10491 이 직접 물린다.
+    #   F측 = SC1004 — 링크 71(SG 2,5)이 링크 70(오프램프 10638/10643 수용)을 배수하고,
+    #                  링크 52/46/66 이 링크 68 을 먹이는데 링크 68 의 출구는 온램프 10646/10681 뿐이다.
+    # ramp_interface_sc 로 램프별 귀속 SC 를 받는다. 값이 signals 에 없으면 그 램프는 결합 없음.
+    ramp_interface_sc = dict(ramp_interface_sc or {})
+    ramp_phase = {"R_D_W": "p1", "R_D_E": "p2", "R_F_W": "p1", "R_F_E": "p2"}
+    off_phase = {"OR_D_W": "p1", "OR_D_E": "p2", "OR_F_W": "p1", "OR_F_E": "p2"}
+    ramp_to_freeway = {"R_D_W": "FW_W", "R_F_W": "FW_W", "R_D_E": "FW_E", "R_F_E": "FW_E"}
+    off_to_on = {"OR_D_W": "R_D_W", "OR_D_E": "R_D_E", "OR_F_W": "R_F_W", "OR_F_E": "R_F_E"}
+
+    on_ramp_to_movement: dict[str, list[str]] = {r: [] for r in ramp_phase}
+    off_ramp_to_movement: dict[str, list[str]] = {o: [] for o in off_phase}
+
+    # movement 는 **모델 자신의 유도 함수**로 여기서도 한 번 돌린다.
+    #
+    # 왜 필요한가. detector_local_mapping 의 link_to_movements 는 movement **이름**을 참조하는데,
+    # 그 이름은 grid_node_legs 에서 유도돼야 알 수 있다. 생성기가 이름을 모르면 매핑이 비고,
+    # 투영이 movement 큐를 하나도 못 채운다(2026-08-04 실측: 0/1406, 포착률 37.6% -> 13.2% 로 후퇴).
+    # 모델과 같은 함수를 쓰므로 이름이 어긋날 수 없다. config 에는 그대로 실어 보내
+    # 매핑과 모델이 같은 이름을 보게 한다.
+    import sys as _sys
+    _numsim = str(ROOT.parent / "NumSim-mine")
+    if _numsim not in _sys.path:
+        _sys.path.insert(0, _numsim)
+    from src.models.grid_topology import build_urban_movements, derive_turning_ratios
+
+    ramp_to_freeway = {"R_D_W": "FW_W", "R_F_W": "FW_W", "R_D_E": "FW_E", "R_F_E": "FW_E"}
+    turning_ratios = derive_turning_ratios(grid_node_legs)
+    urban_movements = build_urban_movements(grid_node_legs, turning_ratios, signals, ramp_to_freeway)
+    # 램프 movement 의 receiving 저류가 유도 이름을 쓰므로 용량을 그 이름으로 다시 깐다.
+    for spec in urban_movements.values():
+        recv = str(spec.get("receiving_link") or "")
+        if not recv or recv in storage:
+            continue
+        if spec.get("kind") == "on_ramp":
+            storage[recv] = 180.0
+        elif spec.get("kind") == "off_ramp":
+            storage[recv] = 120.0
+    # 실측 기하에서 유도한 저류 용량으로 덮어쓴다(scripts/derive_urban_storage_capacity.py).
+    #
+    # 왜. 위의 220/180/120 은 전부 상수라 실제 기하와 무관하다. 특히 내부 저류가 오프램프
+    # 기본값 120 을 물려받아 SC1001_to_SC1004 가 모든 상태에서 v/c=1.000 이 됐다. 또한
+    # 상수로는 저류 이름이 12개밖에 안 생겨서 아래 storage_keys 필터가 내부 구간 93개 중
+    # 81개를 떨어뜨린다. 유도값은 상류-하류 쌍마다 이름이 있어 두 문제를 같이 없앤다.
+    if storage_capacity:
+        known = set(storage)
+        nodes_all = set(signals) | set(uncontrolled or ())
+        for name, cap in storage_capacity.items():
+            # 유도 이름 중 모델이 실제로 세우는 저류만 받는다: 이미 있는 이름이거나,
+            # 양끝이 모두 이 네트워크의 신호인 내부 링크(SCa_to_SCb).
+            if name in known:
+                storage[name] = float(cap)
+                continue
+            # 비통제 노드도 같은 모델로 세우므로(사용자 요구) 그 사이 구간도 저류를 갖는다.
+            a, sep, b = name.partition("_to_")
+            if sep and a in nodes_all and b in nodes_all:
+                storage[name] = float(cap)
+                continue
+            # 유입 경계 저류 SC{n}_{leg}_out — 상류 SC 가 없는 링크가 담기는 곳이다.
+            # 위 351행은 인접 이웃이 있는 방위만 만들어서, 이웃 없는 방위(진짜 유입구)에는
+            # 저류가 없었다. 그 방위의 링크가 갈 데를 잃어 라우팅에서 224개가 탈락했다.
+            if name.endswith("_out") and name.split("_", 1)[0] in nodes_all:
+                storage[name] = float(cap)
+        print(f"   저류 용량: 유도 {len(storage_capacity)}개 중 {len(storage)-len(known)}개 신규 + "
+              f"{len(known & set(storage_capacity))}개 갱신 -> 총 {len(storage)}개")
 
     return {
         "signals": signals,
-        "uncontrolled_nodes": [],
+        "uncontrolled_nodes": uncontrolled,
         "urban_links": [],
         "grid_node_legs": grid_node_legs,
+        # urban_movements 는 램프 결합분만 명시한다. 비어 있으면 모델이 legs 에서 전부 유도하는데,
+        # 램프는 legs 에 ramp leg 를 안 만들었으므로 결합 movement 만 여기서 얹는다.
         "urban_movements": urban_movements,
         "boundary_in_links": boundary_in,
         "boundary_out_links": boundary_out,
         "urban_link_storage_veh": storage,
-        "on_ramp_to_movement": {
-            "R_D_W": ["SC1_on_R_D_W"] if has_sc1_coupling else [],
-            "R_D_E": ["SC1_on_R_D_E"] if has_sc1_coupling else [],
-            "R_F_W": ["SC1_on_R_F_W"] if has_sc1_coupling else [],
-            "R_F_E": ["SC1_on_R_F_E"] if has_sc1_coupling else [],
-        },
-        "off_ramp_to_movement": {
-            "OR_D_W": ["SC1_off_OR_D_W"] if has_sc1_coupling else [],
-            "OR_D_E": ["SC1_off_OR_D_E"] if has_sc1_coupling else [],
-            "OR_F_W": ["SC1_off_OR_F_W"] if has_sc1_coupling else [],
-            "OR_F_E": ["SC1_off_OR_F_E"] if has_sc1_coupling else [],
-        },
+        # 램프별 큐 상한. 비면 NetworkConfig 가 스칼라 ramp_queue_max_veh 로 폴백한다.
+        **({"ramp_queue_max_veh_by_ramp": dict(ramp_queue_by_ramp)} if ramp_queue_by_ramp else {}),
+        "on_ramp_to_movement": {},
+        "off_ramp_to_movement": {},
     }
 
 
@@ -413,11 +508,41 @@ def build_control_mapping(
             "sc_no": int(row["no"]),
             "name": row.get("name", ""),
             "role": row.get("role", ""),
+            # major_maps_to — VISSIM MAJOR(SG1) 접근이 모델의 어느 phase 에 대응하는가.
+            # 일반 간선 교차로는 MAJOR 가 EW 간선이고 모델도 p2 로 서비스한다.
+            # freeway 인터페이스 교차로는 MAJOR 접근이 off-ramp 유출이고, 모델은 램프 leg 를
+            # NS 축으로 보아 p1 에 둔다(NumSim grid_topology._token_leg_dir: off*/on* -> "S").
+            # 이 값을 명시하지 않으면 어댑터가 p2 로 가정해 인터페이스 교차로에서 부호가 뒤집힌다.
+            "major_maps_to": major_phase_for_role(row),
             "source": "evaluation/real_world_modi_inventory/signal_controller_roles.csv",
         }
         for row in rows
     ]
     return out
+
+
+def major_phase_for_role(row: dict[str, Any]) -> str:
+    """이 신호제어기의 VISSIM MAJOR(SG1) 가 모델의 어느 phase 인지 판정한다.
+
+    판정 근거는 인벤토리의 interface_head_count 다. 이 값이 0 보다 크면 그 컨트롤러의
+    정지선 신호두가 **freeway 에 접한 도로 링크** 위에 있다는 뜻이고, 개포동 네트워크에서
+    그 접근은 off-ramp 유출이다. 모델은 램프 leg 를 NS 축으로 보아 p1 에 배정하므로
+    (NumSim grid_topology._token_leg_dir: off*/on* -> "S"), MAJOR 는 p1 에 대응한다.
+
+    일반 간선 교차로는 MAJOR 가 EW 간선이고 모델도 p2 로 서비스한다.
+
+    2026-08-04 실측: 전체 37 개 SC 중 interface_head_count > 0 인 것은 SC 1001 하나뿐이고,
+    그 정지선 신호두는 link 32 위에 있으며 link 32 의 유입 커넥터는 conn 10481(본선 2에서)과
+    conn 10491(본선 26에서) 뿐이다.
+    """
+    try:
+        if int(float(row.get("interface_head_count") or 0)) > 0:
+            return "p1"
+    except (TypeError, ValueError):
+        pass
+    if "interface" in str(row.get("role", "")).lower():
+        return "p1"
+    return "p2"
 
 
 def movements_for_link_axes(signal_movements: list[str], link_axes: set[str]) -> list[str]:
@@ -446,6 +571,8 @@ def build_detector_mapping(
     selector: str,
     head_axes_by_sc: dict[int, dict[str, set[str]]],
     link_owner_by_link: dict[str, int],
+    internal_link_members: "dict[str, list[str]] | None" = None,
+    link_assignment: "dict[str, Any] | None" = None,
 ) -> dict[str, Any]:
     out = dict(base)
     out["mapping_version"] = f"real_world_modi_distributed_{selector}_v1_20260728"
@@ -548,6 +675,81 @@ def build_detector_mapping(
             "visible_ramps": [],
             "visible_off_ramps": [],
         }
+    # 교차로 **사이** 구간의 VISSIM 링크를 내부 directed link(SCa_to_SCb) 저류에 귀속시킨다.
+    #
+    # 이게 없으면 연결형 토폴로지를 세워도 내부 링크 저류가 영원히 0 이다 — 관측 차량이
+    # 경계 out 링크와 movement 큐로만 들어가기 때문이다(2026-08-04 실측: 내부 140개 중 점유 0,
+    # 포착률이 독립섬 37.6% 에서 한 발도 못 올라갔다). 구간 링크는 인접 유도 때 훑은
+    # 커넥터 경로에서 나온다(derive_intersection_adjacency.py 의 internal_link_members).
+    storage_keys = set(network_override.get("urban_link_storage_veh", {}))
+    for internal_link, members in (internal_link_members or {}).items():
+        if internal_link not in storage_keys:
+            continue
+        for link in members:
+            link = str(link)
+            observable.add(link)
+            link_to_origins.setdefault(link, [])
+            if internal_link not in link_to_origins[link]:
+                link_to_origins[link].append(internal_link)
+    # ---- 권위 라우팅: 관측 링크를 **상류 SC 기준**으로 모델 저류에 붙인다 ----
+    #
+    # 왜. 위(585~595행)는 소유 링크마다 {sid}_{leg}_out 을 N/S/E/W **네 개 전부** 박는다.
+    # 실제 기하와 무관한 살포이고, 전부 경계 sink 다. 실측(2026-08-05): 경계 sink 로 가는
+    # 관측 링크 66개 중 65개가 플레이어 배정 링크였고, 그중 53개는 모델에 내부 링크가
+    # 멀쩡히 있는데도 경계로 샜다. SC15/SC107/SC9002/SC2 -> SC1 네 접근로가 전부 같은
+    # SC1_N_out 으로 접혔다(방위 복합키가 맨 방위로 접히는 그 문제).
+    # 리더는 경계 leg 를 설계대로 목적함수에서 빼므로(leader.py:767), 제어 가능한
+    # approach queue 651 대가 통째로 목적함수 밖으로 나갔다 — 포착률 20.7% 의 주원인이다.
+    #
+    # 규칙은 사용자 확정 분할 그대로다: 링크는 하류 첫 신호(owner)의 approach 이고,
+    # 그 차가 담기는 모델 저류는 상류->owner 방향의 내부 링크다.
+    if link_assignment:
+        owner_of = link_assignment.get("link_owner") or {}
+        upstream_of = link_assignment.get("link_upstream") or {}
+        leg_of = link_assignment.get("link_leg") or {}
+        storages = set(network_override.get("urban_link_storage_veh", {}))
+        stat = {"내부": 0, "경계": 0, "저류없음": 0}
+        missing: dict[str, int] = {}
+        for link, sc in owner_of.items():
+            link = str(link)
+            up = upstream_of.get(link)
+            name = (f"{signal_id(int(up))}_to_{signal_id(int(sc))}" if up is not None
+                    else f"{signal_id(int(sc))}_{leg_of.get(link, '?')}_out")
+            if name not in storages:
+                stat["저류없음"] += 1
+                missing[name] = missing.get(name, 0) + 1
+                continue
+            observable.add(link)
+            link_to_origins[link] = [name]      # 방위 살포를 덮어쓴다(권위)
+            stat["내부" if "_to_" in name else "경계"] += 1
+        print(f"   링크->저류 라우팅: 내부 {stat['내부']}개, 경계 {stat['경계']}개,"
+              f" 저류 없어 건너뜀 {stat['저류없음']}개")
+        if missing:
+            top = sorted(missing.items(), key=lambda kv: -kv[1])[:5]
+            print(f"      없는 저류 상위: {top}")
+        # 출구 링크는 관측만 하고 origin 을 주지 않는다(사용자 규칙: 플레이어 귀속 없음).
+        for link in link_assignment.get("monitor_only_exit_links") or []:
+            observable.add(str(link))
+            link_to_origins.setdefault(str(link), [])
+
+        # 도시부 분할 밖의 링크에서 도시부 origin 을 걷어낸다.
+        #
+        # internal_link_members 는 커넥터 **경로 기반** 이라 SC 사이 경로가 고속도로를
+        # 타고 지나가면 고속도로 본선 링크까지 멤버로 넣는다(예: SC1001_to_SC1004 의
+        # 멤버가 링크 2, 26). 실측 2026-08-05: 링크 2(178대)·26(510대)이 도시부 내부
+        # 저류 origin 을 갖고 있어, 고속도로 차량 688 대가 도시부 저류로 흘러들어
+        # 포착률이 114.6% 로 100% 를 넘었다.
+        urban_universe = (set(owner_of)
+                          | {str(v) for v in (link_assignment.get("monitor_only_exit_links") or [])}
+                          | set(link_assignment.get("freeway_bound_links") or {}))
+        stripped = {l: link_to_origins[l] for l in list(link_to_origins)
+                    if link_to_origins[l] and str(l) not in urban_universe}
+        for l in stripped:
+            link_to_origins[l] = []
+        if stripped:
+            print(f"   도시부 분할 밖인데 origin 이 붙어 있던 링크 {len(stripped)}개 제거: "
+                  f"{sorted(stripped)[:8]}")
+
     out["observable_links"] = sorted(int(v) for v in observable if str(v).strip().isdigit())
     out["link_to_movements"] = link_to_movements
     out["link_to_origins"] = link_to_origins
@@ -572,11 +774,12 @@ def build_tuning_config(
     selector: str,
     slug: str,
     monitor_rows: list[dict[str, str]],
+    stamp: str = "20260728",
 ) -> dict[str, Any]:
     signals = network_override["signals"]
     return {
         "extends": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json",
-        "name": f"real_world_modi_pstack_distributed_{slug}_20260728",
+        "name": f"real_world_modi_pstack_distributed_{slug}_{stamp}",
         "description": (
             "Copy-only distributed urban-follower experiment. Keeps the validated real-world freeway/VSL/"
             "ramp setup, but expands urban signal control from one SC1 interface lever to selected "
@@ -771,11 +974,34 @@ def write_report(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--selector", default="primary19", help="primary19, core15, all-active-heads, or comma-separated SC numbers")
+    # 2026-08-04: SC1 결합을 selector 이름에서 떼어낸다.
+    #   기존에는 `include_sc1_coupling = selector != "core15"` 로 하드코딩돼 있어,
+    #   core15 아티팩트의 on_ramp_to_movement / off_ramp_to_movement 가 전부 빈 리스트였다.
+    #   그 config 를 모델에 병합하면 도시부->온램프 연결이 사라져 metering 이 조일 대상 자체를
+    #   잃는다(2026-08-04 확인). 임의 SC 집합을 쓰면서도 결합을 켤 수 있어야 한다.
+    #   auto = 기존 규칙 그대로(core15 만 off) — 하위호환.
+    parser.add_argument("--sc1-coupling", choices=("auto", "on", "off"), default="auto",
+                        help="freeway-urban 램프 결합. auto=기존 규칙(core15 만 off)")
+    # 램프별 귀속 인터페이스 SC (2026-08-04). 기본값은 실측 플랜트 구조를 따른다 —
+    # D측은 SC1001(신호두가 링크 32, 오프램프 10481/10491 직결), F측은 SC1004(링크 71 이
+    # 링크 70 배수, 링크 52/46/66 이 링크 68 공급, 링크 68 출구는 온램프 10646/10681 뿐).
+    # 넷을 한 SC 로 몰면 D/F 구분이 모델에서 사라져 램프별 한계가격이 퇴화한다.
+    parser.add_argument("--ramp-interface-sc", default="R_D_W:1001,R_D_E:1001,R_F_W:1004,R_F_E:1004",
+                        help="램프->인터페이스 SC 귀속. 'R_D_W:1001,R_F_W:1004' 형식")
+    parser.add_argument("--slug", default="", help="산출물 이름의 슬러그를 직접 지정한다(기본은 selector 유래)")
+    parser.add_argument("--stamp", default="20260728", help="산출물 파일명의 날짜 스탬프")
+    parser.add_argument("--adjacency-json", default="",
+                        help="scripts/derive_intersection_adjacency.py 산출 JSON. 주면 교차로 간 grid leg 를 심는다")
+    parser.add_argument("--link-assignment-json", default="",
+                        help="scripts/assign_links_to_players.py 산출 JSON. 주면 관측 링크를 상류 SC 기준으로 저류에 붙인다")
+    parser.add_argument("--storage-capacity-json", default="",
+                        help="scripts/derive_urban_storage_capacity.py 산출 JSON. 주면 상수 대신 실측 기하 용량을 쓴다")
     args = parser.parse_args()
 
     all_signal_rows = active_fixedtime_signal_rows(read_csv(DEFAULT_SIGNAL_ROLES))
     rows = selected_signal_rows(all_signal_rows, args.selector)
-    slug = selector_slug(args.selector, len(rows))
+    slug = args.slug or selector_slug(args.selector, len(rows))
+    stamp = args.stamp
     controlled_sc = {int(row["no"]) for row in rows}
     monitor_rows = [row for row in all_signal_rows if int(row["no"]) not in controlled_sc]
     base_mapping = read_json(DEFAULT_CONTROL_MAPPING)
@@ -800,21 +1026,72 @@ def main() -> None:
         )
     link_owner_by_link = controlled_link_owner(rows, head_pos_by_sc)
 
-    include_sc1_coupling = args.selector != "core15"
-    network_override = build_network_override(rows, include_freeway_interface_coupling=include_sc1_coupling)
+    if args.sc1_coupling == "auto":
+        include_sc1_coupling = args.selector != "core15"
+    else:
+        include_sc1_coupling = args.sc1_coupling == "on"
+    adjacency_legs = None
+    internal_link_members = None
+    if args.adjacency_json:
+        _adj = read_json(Path(args.adjacency_json))
+        adjacency_legs = _adj.get("legs") or {}
+        internal_link_members = _adj.get("internal_link_members") or {}
+        print(f"인접 JSON: {args.adjacency_json}  SC {len(adjacency_legs)}개, 내부구간 {len(internal_link_members)}개")
+    link_assignment = None
+    if args.link_assignment_json:
+        link_assignment = read_json(Path(args.link_assignment_json))
+        print(f"배정 JSON: {args.link_assignment_json}  귀속 {len(link_assignment.get('link_owner') or {})}개,"
+              f" 상류확정 {len(link_assignment.get('link_upstream') or {})}개,"
+              f" 출구 {len(link_assignment.get('monitor_only_exit_links') or [])}개")
+    storage_capacity = None
+    ramp_queue_by_ramp = None
+    if args.storage_capacity_json:
+        _cap = read_json(Path(args.storage_capacity_json))
+        storage_capacity = _cap.get("urban_link_storage_veh") or {}
+        ramp_queue_by_ramp = _cap.get("ramp_queue_max_veh_by_ramp") or {}
+        print(f"용량 JSON: {args.storage_capacity_json}  저류 {len(storage_capacity)}개,"
+              f" jam {_cap.get('jam_density_veh_km_lane')} veh/km/lane")
+        if ramp_queue_by_ramp:
+            print(f"   램프별 큐 상한 {len(ramp_queue_by_ramp)}개: {ramp_queue_by_ramp}")
+    ramp_interface_sc: dict[str, str] = {}
+    for part in str(args.ramp_interface_sc or "").split(","):
+        part = part.strip()
+        if not part or ":" not in part:
+            continue
+        ramp, sc_txt = part.split(":", 1)
+        ramp_interface_sc[ramp.strip()] = f"SC{int(sc_txt.strip())}"
+    if include_sc1_coupling:
+        # 귀속 SC 가 selector 밖이면 그 램프는 결합 없이 조용히 생성된다 — 침묵 실패라 끊는다.
+        missing = sorted({int(v[2:]) for v in ramp_interface_sc.values()} - controlled_sc)
+        if missing:
+            raise SystemExit(
+                "램프 결합을 켰는데 귀속 SC 가 selector 에 없다.\n"
+                f"  --ramp-interface-sc = {args.ramp_interface_sc}\n"
+                f"  누락 SC {missing},  selector={args.selector!r} -> SC {sorted(controlled_sc)}\n"
+                "  selector 에 포함시키거나 --ramp-interface-sc 를 바꿀 것."
+            )
+    network_override = build_network_override(
+        rows,
+        include_freeway_interface_coupling=include_sc1_coupling,
+        ramp_interface_sc=ramp_interface_sc,
+        monitor_rows=monitor_rows,
+        adjacency_legs=adjacency_legs,
+        storage_capacity=storage_capacity,
+        ramp_queue_by_ramp=ramp_queue_by_ramp,
+    )
     network_override = prune_network_movements_to_observed_axes(
         network_override,
         rows,
         head_axes_by_sc,
         link_owner_by_link,
     )
-    detector_path = OUT_DIR / f"detector_local_mapping_distributed_{slug}_20260728.json"
-    mapping_path = OUT_DIR / f"control_mapping_distributed_{slug}_20260728.json"
-    player_path = OUT_DIR / f"player_config_distributed_{slug}_20260728.json"
-    tuning_path = CONFIG_DIR / f"real_world_modi_pstack_distributed_{slug}_20260728.json"
-    generated_path = GENERATED_DIR / f"real_world_modi_control_config_distributed_{slug}_20260728.vbs"
+    detector_path = OUT_DIR / f"detector_local_mapping_distributed_{slug}_{stamp}.json"
+    mapping_path = OUT_DIR / f"control_mapping_distributed_{slug}_{stamp}.json"
+    player_path = OUT_DIR / f"player_config_distributed_{slug}_{stamp}.json"
+    tuning_path = CONFIG_DIR / f"real_world_modi_pstack_distributed_{slug}_{stamp}.json"
+    generated_path = GENERATED_DIR / f"real_world_modi_control_config_distributed_{slug}_{stamp}.vbs"
     wrapper_name = "run_real_world_single_watchdog_distributed.ps1" if slug == "19sc" else f"run_real_world_single_watchdog_distributed_{slug}.ps1"
-    report_name = "real_world_distributed_urban_followers_20260728.md" if slug == "19sc" else f"real_world_distributed_urban_followers_{slug}_20260728.md"
+    report_name = "real_world_distributed_urban_followers_20260728.md" if slug == "19sc" else f"real_world_distributed_urban_followers_{slug}_{stamp}.md"
     wrapper_path = ROOT / f"scripts/{wrapper_name}"
     report_path = OUTPUTS_DIR / report_name
 
@@ -826,9 +1103,11 @@ def main() -> None:
         args.selector,
         head_axes_by_sc,
         link_owner_by_link,
+        internal_link_members=internal_link_members,
+        link_assignment=link_assignment,
     )
     mapping = build_control_mapping(base_mapping, rows, monitor_rows, detector_path, args.selector)
-    tuning = build_tuning_config(network_override, mapping_path, detector_path, args.selector, slug, monitor_rows)
+    tuning = build_tuning_config(network_override, mapping_path, detector_path, args.selector, slug, monitor_rows, stamp)
     player_config = {
         "schema_version": 1,
         "created_at": "2026-07-28",

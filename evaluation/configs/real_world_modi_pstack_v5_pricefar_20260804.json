@@ -1,0 +1,20 @@
+{
+  "_comment": "한계가격 rollout 에도 far 를 넣어 리더의 채점 목적함수와 가격 목적함수를 일치시킨다. 폐루프 A/B 의 실험군 leaf.",
+  "_why": "리더는 후보를 `TTT + far` 로 채점한다(stackelberg_mpc.py:2371-2377, leader_value_depth=3>0 이라 게이트가 열려 있고 v5_tttfar 이 far 를 항상 ON 으로 둔다). 그런데 한계가격은 `TTT` 의 기울기다(price_far_enabled=False). 최소화하는 함수와 미분하는 함수가 다르다. far 의 램프 항 q^2/(2*merge_rate)*T_c_h (merge_rate = ramp_cap * receiving(rho_merge)) 가 metering 의 물리적 payoff — 본선이 막힐수록 램프 배수가 느려지는 것 — 을 담는 유일한 항인데, 그게 가격 채널에 없으면 metering 의 이득이 기울기에 보이지 않는다.",
+  "_measured": "2026-08-04, g6_v6 앵커 t0, 롤아웃 깊이 6(=horizon 3 + value_depth 3 = 360 s), 수요 정합 튜닝 기준. 미터가 구속하지 않는 운영점(1800/1440)에서는 TTT 와 TTT+far 가 모두 음수이고 far 배율 ~4 배로 정성적 차이가 없다. 구속하는 운영점에서 갈린다 — m0=1080 에서 TTT 가 [-3.0e-6, -1.7e-4, -1.2e-4, -1.5e-7] 로 전부 음수인데 TTT+far 는 [+3.4e-3, +8.1e-3, +2.6e-3, -1.1e-5] 로 부호가 뒤집힌다(48.9 배). m0=720 에서도 같다. 순수 TTT 는 '미터를 열수록 좋다'만 말하므로 조일 이유가 기울기에 존재하지 않았다. 크기도 |g|*dm ~ 10 veh*h 로 기준 TTT(90~150)의 7~11 % 가 되어 유효 항이 된다. 램프 간 최대/최소 비도 5.1 배로 차별화가 생긴다.",
+  "_risk": "stackelberg_wu_metered.py:157-159 가 2026-07-09 ablation 에서 'far-in-price 는 gradient 크기와 노이즈를 함께 증폭 — 마찰 문턱과 결합해 G1DF +139/APJOINT 13493 실측 악화' 로 기본 OFF 로 되돌렸다고 기록하고 있다. 그 실험은 수치 시뮬 환경이고 오늘의 램프 수요 정합(3.4 배 과소 수정) 이전이라 그대로 적용하기는 어렵다. 그러나 44~60 배 증폭은 실재하므로 이 leaf 는 **실험군이지 기본값이 아니다.** 대조군은 부모(v5_tttfar_rampdemand)다.",
+  "_scope": "diagnostic-* 후보는 리더를 안 타므로 이 설정은 G6 그리드에 아무 영향이 없다. P-Stack 폐루프 런에서만 발화한다.",
+  "extends": "real_world_modi_pstack_v5_tttfar_rampdemand_20260804.json",
+  "name": "real_world_modi_pstack_v5_pricefar_20260804",
+  "description": "v5_tttfar_rampdemand + 한계가격 rollout 에 far 포함 (폐루프 A/B 실험군).",
+  "adapter": {
+    "flagship": {
+      "price_far": true
+    }
+  },
+  "notes": [
+    "price_hinge 도 같은 자리에서 켤 수 있다(adapter.flagship.price_hinge / price_hinge_weight). 다만 실측에서 hinge 는 오히려 가격을 60 % 줄였으므로 별도 실험군으로 분리할 것.",
+    "검증: build_pstack_flagship_controller 가 price_far_enabled=True 를 세팅하는지. 플래그 미지정 시 False 로 남아 부모와 비트 동일하다(회귀 확인 완료).",
+    "폐루프 A/B 설계 — 동일 네트워크·수요·시드에서 부모(대조) 대 이 leaf(실험). 볼 것은 (1) 실현 metering rate 가 실제로 cap 아래로 내려가는가 (2) Total TTT 개선율 (3) ramp 큐 폭주 여부."
+  ]
+}

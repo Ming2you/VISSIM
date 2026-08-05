@@ -552,6 +552,14 @@ def build_local_observation_summary(
             for value in detector_mapping.get("link_to_origins", {}).get(str(link), [])
         ]
         storage_fraction = _link_storage_split_fraction(cfg, origins, split_parameters)
+        # movement 매핑이 없는 링크는 queue_count 가 갈 데가 없어 그냥 증발한다.
+        # 아래 link_to_movements 루프가 그 링크를 아예 안 도는 탓이다.
+        # 실측 2026-08-05: 관측된 배정 링크 952개 중 **882개**가 매핑이 없어
+        # 1,415 대의 queue 분이 사라졌다(도시부 포착률이 50.7% 에서 안 올라간 원인).
+        # 그 882개는 신호두 링크가 아니라 링크 본체다 — 정지선 대기행렬이 아니라
+        # 링크 저류가 물리적으로 맞으므로 전량 저류로 보낸다.
+        if not (detector_mapping.get("link_to_movements", {}) or {}).get(str(link)):
+            storage_fraction = 1.0
         storage_fraction_by_link[str(link)] = float(storage_fraction)
         storage_count = max(0.0, count * storage_fraction)
         queue_count = max(0.0, count - storage_count)
@@ -1172,6 +1180,29 @@ def build_pstack_flagship_controller(cfg, tuning: Mapping[str, Any]):
     # SEG13(러너 L829-834): freeway를 segment agent로 분해 + 예산 simplex 사영.
     if hasattr(controller.nash_solver, "segment_agents"):
         controller.nash_solver.segment_agents = True
+    # PRICE_FAR / PRICE_HINGE (2026-08-04, 튜닝 노출). 기본 OFF = 기존과 비트 동일.
+    #
+    # 왜 노출하는가. 리더는 후보를 `TTT + far` 로 채점하는데(stackelberg_mpc.py:2371-2377,
+    # leader_value_depth=3>0 이라 게이트가 열려 있다) 한계가격은 `TTT` 의 기울기다.
+    # **최소화하는 함수와 미분하는 함수가 다르다.**
+    #
+    # 실측(2026-08-04, g6_v6 앵커 t0, 깊이 6=360 s, 수요 정합 튜닝):
+    #   미터가 구속하지 않는 운영점(1800/1440)에서는 두 가격이 모두 음수이고 far 배율 ~4 배.
+    #   **구속하는 운영점(1080/720)에서 far 를 넣으면 부호가 양수로 뒤집힌다**
+    #   (1080: -1.7e-4 -> +8.1e-3, 48.9 배). 순수 TTT 는 "미터를 열수록 좋다"만 말하므로
+    #   조일 이유가 기울기에 존재하지 않았다. far 의 램프 항 q^2/(2*merge_rate) 가
+    #   본선 혼잡 시 배수 지연을 담아 처음으로 metering 에 값을 만든다.
+    #   크기도 |g|*Δm ~ 10 veh*h 로 기준 TTT(90~150)의 7~11 % 가 된다.
+    #
+    # 반대 증거도 남아 있다. stackelberg_wu_metered.py:157-159 가 2026-07-09 ablation 에서
+    # "gradient 크기와 노이즈를 함께 증폭 — 실측 악화" 로 기본 OFF 로 되돌렸다고 적고 있다.
+    # 그 실험은 수치 시뮬 환경이고 오늘의 수요 정합 이전이라 그대로 적용하기 어렵지만,
+    # 44~60 배 증폭은 실재하므로 **기본 ON 으로 두지 않는다.** 폐루프 A/B 로 판정할 것.
+    if bool(settings.get("price_far", False)):
+        controller.price_far_enabled = True
+    if bool(settings.get("price_hinge", False)):
+        controller.price_hinge_enabled = True
+        controller.price_hinge_weight = _as_float(settings.get("price_hinge_weight"), 1.0)
     return controller
 
 
@@ -1747,11 +1778,19 @@ def profiled_demand_rates(
         min_vph = max(0.0, _as_float(local_fc.get("min_vph_if_observed"), 120.0))
         max_default = max(0.0, _as_float(local_fc.get("max_vph_per_ramp"), 900.0))
         max_by_ramp = _mapping(local_fc.get("max_vph_by_ramp"))
+        # 램프별 배수 지평(2026-08-04). 스칼라 120 s 고정은 점유에 일률적으로 30 을 곱하는데,
+        # 실제 커넥터 통과시간은 길이·속도에 따라 다르다 — 실측 역산값이 R_F_E 25.7 s ~
+        # R_F_W 116.6 s 로 4.5배 벌어진다(scripts/measure_ramp_connector_flow.py 기준).
+        # 이 때문에 모델 ramp_arrival 이 플랜트의 3.5분의 1로 나왔고, 모델 세계에서만
+        # 미터가 수요를 구속하지 않아 dTTT/d(meter) 가 정의상 0 이 됐다(G6 램프 축 붕괴 원인).
+        # max_vph_by_ramp 와 동일 규약 — dict 미지정이면 스칼라 폴백이라 비트동일.
+        drain_by_ramp = _mapping(local_fc.get("queue_drain_horizon_sec_by_ramp"))
         blend = str(local_fc.get("blend", "max")).lower()
         for ramp, count in observed_counts.items():
             if count <= 0.0:
                 continue
-            observed_vph = count * 3600.0 / queue_drain_horizon_sec * multiplier
+            drain_sec = max(1.0, _as_float(drain_by_ramp.get(ramp), queue_drain_horizon_sec))
+            observed_vph = count * 3600.0 / drain_sec * multiplier
             if observed_vph > 0.0:
                 observed_vph = max(min_vph, observed_vph)
             cap_fallback = float(cfg.network.ramp_capacity_veh_h.get(ramp, max_default))
@@ -2665,7 +2704,19 @@ def _signal_rows_for_mapping(mapping: Mapping[str, Any]) -> list[dict[str, Any]]
     rows: list[dict[str, Any]] = []
     for item in raw:
         if isinstance(item, Mapping):
-            rows.append({"id": str(item.get("id", "")), "sc_no": int(_as_float(item.get("sc_no"), 0.0))})
+            # major_maps_to — 이 컨트롤러의 VISSIM MAJOR(SG1) 접근이 모델의 어느 phase 인가.
+            # 일반 간선 교차로는 MAJOR 가 EW 간선이고 모델도 그것을 p2 로 서비스한다.
+            # freeway 인터페이스 교차로는 MAJOR 가 off-ramp 유출이고, 모델은 램프 leg 를
+            # NS 축으로 보아 p1 에 둔다(NumSim grid_topology._token_leg_dir: off*/on* -> "S").
+            # 이 값이 없으면 간선 규약(p2)으로 본다 - 기존 동작과 같다.
+            maps_to = str(item.get("major_maps_to", "p2")).strip().lower()
+            if maps_to not in ("p1", "p2"):
+                maps_to = "p2"
+            rows.append({
+                "id": str(item.get("id", "")),
+                "sc_no": int(_as_float(item.get("sc_no"), 0.0)),
+                "major_maps_to": maps_to,
+            })
     return [row for row in rows if row["id"] and row["sc_no"] > 0]
 
 
@@ -3545,6 +3596,40 @@ def diagnostic_vsl80_control(cfg, ControlAction):
 # VSL 90/70/60/50 — 실측 속도 분포에 맞춘 선택지. 기존 [80,100,120] 은 상단이 무의미했다
 # (속도>120 표본 1.23%, 혼잡 구간 앵커 평균속도 75.3 km/h). 혼잡 하단(v최저 19.0)을 덮으려면
 # 50~70 이 필요하고, 그 결과 c01_vsl110 과 c02_vsl100 이 관측상 구분되지 않던 문제도 사라진다.
+# 램프 미터링 후보 — 네 그룹(R_D_E/R_D_W/R_F_E/R_F_W)을 **전부** 설정한다.
+#
+# 기존 diagnostic-ramp-d1364/d1253/hold 는 d_ramp_rate_vph 만 지정해 R_D_W 그룹(물리 미터
+# RM_C10480, RM_C10482) 에만 걸렸고(액션 CSV 488 행 중 64 행), 그 미터율마저 실제 램프 수요보다
+# 높아 구속하지 않았다. 그래서 관측 목적함수가 후보를 구분하지 못했다.
+#
+# 2026-08-04 실측 램프 수요(mixed_critical, t>=2700):
+#   10646=816  10681=741  10480=668  10490=619  10644=560  10482=492  10639=354  10484=307 veh/h
+# 그룹 미터율은 물리 미터 2 개에 절반씩 갈리므로(그룹 1364 -> 미터당 682) 아래 값은
+# 미터당 500 / 400 / 300 이 된다. 실무 램프 미터링의 통상 범위 안이다.
+#
+# 그리고 합류부 검정에서 8 곳 중 4 곳이 이미 용량 초과다(FW_W S2 107 %, S4 102 %, FW_E S3 100 %).
+# 붕괴 위험이 실재하므로 이 미터율은 조작이 아니라 정상화다.
+def diagnostic_ramp_all500_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction,
+                                        d_ramp_rate_vph=1000.0, f_ramp_rate_vph=1000.0)
+    control.diagnostics["diagnostic_ramp_all500_active"] = 1.0
+    return control
+
+
+def diagnostic_ramp_all400_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction,
+                                        d_ramp_rate_vph=800.0, f_ramp_rate_vph=800.0)
+    control.diagnostics["diagnostic_ramp_all400_active"] = 1.0
+    return control
+
+
+def diagnostic_ramp_all300_control(cfg, ControlAction):
+    control = _diagnostic_fixed_control(cfg, ControlAction,
+                                        d_ramp_rate_vph=600.0, f_ramp_rate_vph=600.0)
+    control.diagnostics["diagnostic_ramp_all300_active"] = 1.0
+    return control
+
+
 def diagnostic_vsl90_control(cfg, ControlAction):
     control = _diagnostic_fixed_control(cfg, ControlAction, vsl_kph=90.0)
     control.diagnostics["diagnostic_vsl90_active"] = 1.0
@@ -3766,8 +3851,28 @@ def write_action_csv(
                 _maj_default = float(_dg.get("diagnostic_forced_signal_major_green_sec", 40.0))
                 _min_default = float(_dg.get("diagnostic_forced_signal_minor_green_sec", 40.0))
                 _off_default = float(_dg.get("diagnostic_forced_signal_offset_sec", 0.0))
-                major = clamp(float(control.green_times.get(f"{signal}_p2", _maj_default)), 5.0, 90.0)
-                minor = clamp(float(control.green_times.get(f"{signal}_p1", _min_default)), 5.0, 90.0)
+                # 컨트롤러별 축 대응 (2026-08-04). VISSIM MAJOR(SG1) 가 모델의 어느 phase 인지는
+                # 교차로마다 다르다. 일반 간선 교차로는 MAJOR=EW 간선=모델 p2 이지만,
+                # freeway 인터페이스 교차로(SC 1001)는 MAJOR 접근이 **off-ramp 유출**이고
+                # 모델은 램프 leg 를 NS 축으로 보아 p1 에 둔다.
+                #   확인 근거 - SC1001 정지선 신호두는 link 32 위이고, link 32 유입 커넥터는
+                #   conn 10481(본선 2에서) / conn 10491(본선 26에서) **뿐**이다.
+                #   NumSim grid_topology._token_leg_dir 은 off*/on* 토큰을 "S" 로 보아 p1 에 배정한다.
+                # 이전에는 major<-p2 로 일괄 매핑해 인터페이스 교차로에서 부호가 뒤집혔고,
+                # G6 에서 major green 증가를 모델은 J 악화(+2084), 플랜트는 개선(-263)으로 냈다.
+                _major_phase = str(signal_row.get("major_maps_to", "p2"))
+                _minor_phase = "p1" if _major_phase == "p2" else "p2"
+                # 기본값은 **라벨이 아니라 phase 를 따라가야 한다.**
+                # _diagnostic_fixed_control 은 모델 신호명 기준으로 p1<-minor, p2<-major 를 넣는데
+                # 그 키는 매핑 signal id 와 이름공간이 달라 조회가 항상 빗나간다. 그래서 기본값이
+                # 실제로 쓰이는데, 여기서 major<-강제major 로 두면 축을 바꿔도 결과가 같아진다.
+                # phase 별 기본값을 모델이 그 phase 에 넣었을 값과 맞춰야 인터페이스 교차로에서
+                # freeway 접속 이동류가 모델·플랜트 양쪽에서 같은 녹색을 받는다.
+                _phase_default = {"p1": _min_default, "p2": _maj_default}
+                major = clamp(float(control.green_times.get(
+                    f"{signal}_{_major_phase}", _phase_default[_major_phase])), 5.0, 90.0)
+                minor = clamp(float(control.green_times.get(
+                    f"{signal}_{_minor_phase}", _phase_default[_minor_phase])), 5.0, 90.0)
                 offset = float(control.offsets.get(signal, _off_default))
                 writer.writerow({
                     "kind": "signal",
@@ -3830,6 +3935,9 @@ def main() -> None:
             "diagnostic-ramp-hold",
             "diagnostic-ramp-d1364",
             "diagnostic-ramp-d1253",
+            "diagnostic-ramp-all500",
+            "diagnostic-ramp-all400",
+            "diagnostic-ramp-all300",
             "diagnostic-vsl60-only",
             "diagnostic-vsl80-only",
             "diagnostic-vsl110",
@@ -4093,6 +4201,15 @@ def main() -> None:
         elif args.controller == "diagnostic-ramp-d1253":
             control = diagnostic_ramp_d1253_control(cfg, ControlAction)
             metadata["diagnostic_ramp_d1253_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-all500":
+            control = diagnostic_ramp_all500_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_all500_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-all400":
+            control = diagnostic_ramp_all400_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_all400_active"] = 1.0
+        elif args.controller == "diagnostic-ramp-all300":
+            control = diagnostic_ramp_all300_control(cfg, ControlAction)
+            metadata["diagnostic_ramp_all300_active"] = 1.0
         elif args.controller == "diagnostic-vsl60-only":
             control = diagnostic_vsl60_only_control(cfg, ControlAction)
             metadata["diagnostic_vsl60_only_active"] = 1.0

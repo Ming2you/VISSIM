@@ -7,7 +7,7 @@ Source: `network\real_world_gaepo_modi\modi.inpx`
 - Road links: 448
 - Connectors: 770
 - Signal controllers / groups / heads: 37 / 392 / 475
-- Vehicle inputs: 31
+- Vehicle inputs: 34
 - Desired-speed decisions: 37
 - Queue counters / data collection points: 90 / 198
 

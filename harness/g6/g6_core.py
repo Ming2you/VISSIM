@@ -113,6 +113,14 @@ CANDIDATE_SET_V2: tuple[Candidate, ...] = (
     Candidate("c10_rampd1364", "diagnostic-ramp-d1364", "ramp", 120.0, 1364.0, _RAMP_OPEN, 57.0, 57.0, 0.0),
     Candidate("c11_rampd1253", "diagnostic-ramp-d1253", "ramp", 120.0, 1253.0, _RAMP_OPEN, 57.0, 57.0, 0.0),
     Candidate("c12_rampd691", "diagnostic-ramp-hold", "ramp", 120.0, 691.0, _RAMP_OPEN, 57.0, 57.0, 0.0),
+    # 네 그룹 전부를 구동하고, 미터율을 실제 램프 수요 아래로 내린 후보 (2026-08-04).
+    # 위 c10/c11/c12 는 d_ramp 만 지정해 R_D_W 그룹(미터 2개)에만 걸렸고 그 미터율마저
+    # 램프 수요보다 높아 구속하지 않았다. 그룹 미터율은 물리 미터 2개에 절반씩 갈리므로
+    # 아래 1000/800/600 은 미터당 500/400/300 이다.
+    # 실측 램프 수요: 10646=816 10681=741 10480=668 10490=619 10644=560 10482=492 10639=354 10484=307
+    Candidate("c13_rampall500", "diagnostic-ramp-all500", "ramp", 120.0, 1000.0, 1000.0, 57.0, 57.0, 0.0),
+    Candidate("c14_rampall400", "diagnostic-ramp-all400", "ramp", 120.0, 800.0, 800.0, 57.0, 57.0, 0.0),
+    Candidate("c15_rampall300", "diagnostic-ramp-all300", "ramp", 120.0, 600.0, 600.0, 57.0, 57.0, 0.0),
     Candidate("c20_major75", "diagnostic-signal-major", "green", 120.0, _RAMP_OPEN, _RAMP_OPEN, 75.0, 25.0, 0.0),
     Candidate("c21_minor75", "diagnostic-signal-minor", "green", 120.0, _RAMP_OPEN, _RAMP_OPEN, 25.0, 75.0, 0.0),
     Candidate("c30_offset30", "diagnostic-signal-offset30", "offset", 120.0, _RAMP_OPEN, _RAMP_OPEN, 57.0, 57.0, 30.0),
@@ -315,7 +323,17 @@ def spillback_flag(rt: G6Runtime, states: Sequence[Any], *, threshold: float = 0
     ramp_cap = float(getattr(net, "ramp_queue_max_veh", 0.0) or 0.0)
     for state in states:
         for link, capacity_value in net.urban_link_storage_veh.items():
-            capacity = max(float(capacity_value), 1.0e-9)
+            capacity = float(capacity_value)
+            # 용량 0 인 저류는 판정에서 제외한다.
+            #
+            # 2026-08-05: 구 격자 유령 저류링크를 용량 0 으로 무력화했더니 여기서
+            # max(cap, 1e-9) 가 1e-9 를 깔고, 그 링크의 urban_link_storage 가 0 이면
+            # occupancy = 1e-9 - 0 = 1e-9 >= 0.9 x 1e-9 로 **항상 참**이 됐다.
+            # 그 결과 g6 spillback 이 72/72 레코드에서 (예측,관측)=(True,True) 가 되어
+            # F1 이 0.031 -> 1.000 으로 뛰었다. 개선이 아니라 인공물이었다.
+            # 용량이 없는 링크는 넘칠 수도 없으므로 건너뛴다.
+            if capacity <= 1.0e-9:
+                continue
             occupancy = max(0.0, capacity - float(state.urban_link_storage.get(link, capacity)))
             if occupancy >= threshold * capacity:
                 return True

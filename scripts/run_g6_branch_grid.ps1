@@ -38,6 +38,7 @@ param(
     "c00_anchor",
     "c01_vsl100", "c02_vsl90", "c03_vsl80", "c04_vsl70", "c05_vsl60", "c06_vsl50",
     "c10_rampd1364", "c11_rampd1253", "c12_rampd691",
+    "c13_rampall500", "c14_rampall400", "c15_rampall300",
     "c20_major75", "c21_minor75",
     "c30_offset30", "c40_combined_strong", "c41_combined_extreme"
   ),
@@ -58,7 +59,15 @@ param(
   # 도시부 축을 재려면 distributed 매핑(15core/19sc)을 넘겨야 한다.
   [string]$TuningOverride = "",
   [string]$CalibrationOverride = "",
-  [string]$MappingOverride = ""
+  [string]$MappingOverride = "",
+  # 2026-08-04 추가. MappingOverride 만 넘기고 이걸 빼면 **플랜트 관측이 base 로 남는다.**
+  # 러너가 evaluation\generated\real_world_modi_control_config.vbs 를 하드코딩하고 있었고,
+  # 그 파일이 RW_LOCAL_OBSERVABLE_LINKS(22개)와 RW_DETECTOR_MAPPING_PATH(base)를 정한다.
+  # 즉 state_*.json 의 local_observation 이 22 링크만 담긴 채 기록되고, 채점은 분산
+  # 175 링크 매핑으로 투영하므로 153 링크에 데이터가 없다. 실측 결과 관측 목적함수가
+  # 도시부 차량의 1.4 %만 잡았고(플랜트 69,495 대 투영 987), green/ramp 축 부호가 뒤집혔다.
+  # Mapping 을 분산으로 줄 때는 이것도 반드시 짝으로 분산 config 를 줘야 한다.
+  [string]$VbsConfigOverride = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -114,6 +123,10 @@ $controllerByCandidate = @{
   "c10_rampd1364"        = "diagnostic-ramp-d1364"
   "c11_rampd1253"        = "diagnostic-ramp-d1253"
   "c12_rampd691"         = "diagnostic-ramp-hold"
+  # 네 그룹 전부 구동 + 구속 수준 미터율 (2026-08-04)
+  "c13_rampall500"       = "diagnostic-ramp-all500"
+  "c14_rampall400"       = "diagnostic-ramp-all400"
+  "c15_rampall300"       = "diagnostic-ramp-all300"
   "c20_major75"          = "diagnostic-signal-major"
   "c21_minor75"          = "diagnostic-signal-minor"
   "c30_offset30"         = "diagnostic-signal-offset30"
@@ -151,6 +164,7 @@ foreach ($dem in $Demands) {
       $extra = @{}
       if ($DemandProfile -ne "") { $extra["DemandProfile"] = $DemandProfile }
       if ($MappingOverride -ne "") { $extra["Mapping"] = $MappingOverride }
+      if ($VbsConfigOverride -ne "") { $extra["VbsConfig"] = $VbsConfigOverride }
       & $runner @extra `
         -Name $name `
         -Network $net `

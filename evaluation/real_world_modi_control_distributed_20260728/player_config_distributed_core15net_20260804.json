@@ -1,0 +1,459 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-28",
+  "mode": "distributed_urban_signal_players_core15net",
+  "urban_signal_selector": "core15",
+  "controlled_signal_controllers": [
+    1,
+    5,
+    6,
+    11,
+    12,
+    101,
+    105,
+    107,
+    108,
+    109,
+    1001,
+    1002,
+    1003,
+    1004,
+    1005
+  ],
+  "monitoring_only_signal_controllers": [
+    2,
+    3,
+    4,
+    7,
+    8,
+    9,
+    10,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    102,
+    103,
+    104,
+    106,
+    9001,
+    9002,
+    9003
+  ],
+  "players": [
+    {
+      "id": "leader_network_manager",
+      "kind": "leader",
+      "state_scope": "whole network split into freeway links 2/26 and urban signal-player local observations",
+      "controlled_followers": [
+        "freeway_follower_real_world",
+        "urban_follower_SC1",
+        "urban_follower_SC5",
+        "urban_follower_SC6",
+        "urban_follower_SC11",
+        "urban_follower_SC12",
+        "urban_follower_SC101",
+        "urban_follower_SC105",
+        "urban_follower_SC107",
+        "urban_follower_SC108",
+        "urban_follower_SC109",
+        "urban_follower_SC1001",
+        "urban_follower_SC1002",
+        "urban_follower_SC1003",
+        "urban_follower_SC1004",
+        "urban_follower_SC1005"
+      ]
+    },
+    {
+      "id": "freeway_follower_real_world",
+      "kind": "freeway_follower",
+      "physical_links": [
+        26,
+        2
+      ],
+      "vsl_segments": [
+        "RW_FW_E_S0",
+        "RW_FW_E_S1",
+        "RW_FW_E_S2",
+        "RW_FW_E_S3",
+        "RW_FW_E_S4",
+        "RW_FW_E_S5",
+        "RW_FW_E_S6",
+        "RW_FW_E_S7",
+        "RW_FW_W_S0",
+        "RW_FW_W_S1",
+        "RW_FW_W_S2",
+        "RW_FW_W_S3",
+        "RW_FW_W_S4",
+        "RW_FW_W_S5",
+        "RW_FW_W_S6",
+        "RW_FW_W_S7"
+      ],
+      "ramp_meters": [
+        "RM_C10480",
+        "RM_C10482",
+        "RM_C10646",
+        "RM_C10644",
+        "RM_C10639",
+        "RM_C10681",
+        "RM_C10490",
+        "RM_C10484"
+      ]
+    },
+    {
+      "id": "urban_follower_SC1",
+      "kind": "urban_follower",
+      "signal_id": "SC1",
+      "sc_no": 1,
+      "name": "\uad6c\ub8e1\ucd08\uad50",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1"
+    },
+    {
+      "id": "urban_follower_SC5",
+      "kind": "urban_follower",
+      "signal_id": "SC5",
+      "sc_no": 5,
+      "name": "\ub3c4\uace1\uc5ed",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC5"
+    },
+    {
+      "id": "urban_follower_SC6",
+      "kind": "urban_follower",
+      "signal_id": "SC6",
+      "sc_no": 6,
+      "name": "\ub300\uce58\uc5ed",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC6"
+    },
+    {
+      "id": "urban_follower_SC11",
+      "kind": "urban_follower",
+      "signal_id": "SC11",
+      "sc_no": 11,
+      "name": "\uac1c\ud3ec\uace0\uad50",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC11"
+    },
+    {
+      "id": "urban_follower_SC12",
+      "kind": "urban_follower",
+      "signal_id": "SC12",
+      "sc_no": 12,
+      "name": "\uc601\ub3d95\uad50",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC12"
+    },
+    {
+      "id": "urban_follower_SC101",
+      "kind": "urban_follower",
+      "signal_id": "SC101",
+      "sc_no": 101,
+      "name": "\ub9e4\ubd09\ud130\ub110",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC101"
+    },
+    {
+      "id": "urban_follower_SC105",
+      "kind": "urban_follower",
+      "signal_id": "SC105",
+      "sc_no": 105,
+      "name": "\ud3ec\uc774\uc0ac\uac70\ub9ac",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC105"
+    },
+    {
+      "id": "urban_follower_SC107",
+      "kind": "urban_follower",
+      "signal_id": "SC107",
+      "sc_no": 107,
+      "name": "\uad6c\ub8e1\ud130\ub110",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC107"
+    },
+    {
+      "id": "urban_follower_SC108",
+      "kind": "urban_follower",
+      "signal_id": "SC108",
+      "sc_no": 108,
+      "name": "\uad6c\ub8e1\ub9c8\uc744\uc785\uad6c",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC108"
+    },
+    {
+      "id": "urban_follower_SC109",
+      "kind": "urban_follower",
+      "signal_id": "SC109",
+      "sc_no": 109,
+      "name": "\uac1c\ud3ec3,4\ub2e8\uc9c0",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC109"
+    },
+    {
+      "id": "urban_follower_SC1001",
+      "kind": "urban_follower",
+      "signal_id": "SC1001",
+      "sc_no": 1001,
+      "name": "",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1001"
+    },
+    {
+      "id": "urban_follower_SC1002",
+      "kind": "urban_follower",
+      "signal_id": "SC1002",
+      "sc_no": 1002,
+      "name": "",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1002"
+    },
+    {
+      "id": "urban_follower_SC1003",
+      "kind": "urban_follower",
+      "signal_id": "SC1003",
+      "sc_no": 1003,
+      "name": "",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1003"
+    },
+    {
+      "id": "urban_follower_SC1004",
+      "kind": "urban_follower",
+      "signal_id": "SC1004",
+      "sc_no": 1004,
+      "name": "",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1004"
+    },
+    {
+      "id": "urban_follower_SC1005",
+      "kind": "urban_follower",
+      "signal_id": "SC1005",
+      "sc_no": 1005,
+      "name": "",
+      "control_enabled": true,
+      "local_observation_agent": "U_SC1005"
+    },
+    {
+      "id": "urban_monitor_SC2",
+      "kind": "urban_monitor",
+      "signal_id": "SC2",
+      "sc_no": 2,
+      "name": "\uac1c\uc6d0\ucd08\uad50(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC2"
+    },
+    {
+      "id": "urban_monitor_SC3",
+      "kind": "urban_monitor",
+      "signal_id": "SC3",
+      "sc_no": 3,
+      "name": "\uc218\ub3c4\uacf5\uace0(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC3"
+    },
+    {
+      "id": "urban_monitor_SC4",
+      "kind": "urban_monitor",
+      "signal_id": "SC4",
+      "sc_no": 4,
+      "name": "\uccad\uc2e4\uc885\ud569",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC4"
+    },
+    {
+      "id": "urban_monitor_SC7",
+      "kind": "urban_monitor",
+      "signal_id": "SC7",
+      "sc_no": 7,
+      "name": "\uac1c\ud3ec\ub3c4\uc11c\uad00",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC7"
+    },
+    {
+      "id": "urban_monitor_SC8",
+      "kind": "urban_monitor",
+      "signal_id": "SC8",
+      "sc_no": 8,
+      "name": "\uac1c\ud3ec\uc911(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC8"
+    },
+    {
+      "id": "urban_monitor_SC9",
+      "kind": "urban_monitor",
+      "signal_id": "SC9",
+      "sc_no": 9,
+      "name": "\ub300\uce58\uc740\ub9c8\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC9"
+    },
+    {
+      "id": "urban_monitor_SC10",
+      "kind": "urban_monitor",
+      "signal_id": "SC10",
+      "sc_no": 10,
+      "name": "\ub300\uce58\uc120\uacbd\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC10"
+    },
+    {
+      "id": "urban_monitor_SC13",
+      "kind": "urban_monitor",
+      "signal_id": "SC13",
+      "sc_no": 13,
+      "name": "\uac1c\ud3ec\uc8fc\ubbfc\uc13c\ud130",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC13"
+    },
+    {
+      "id": "urban_monitor_SC14",
+      "kind": "urban_monitor",
+      "signal_id": "SC14",
+      "sc_no": 14,
+      "name": "\ub300\uce58\ubbf8\ub3c4\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC14"
+    },
+    {
+      "id": "urban_monitor_SC15",
+      "kind": "urban_monitor",
+      "signal_id": "SC15",
+      "sc_no": 15,
+      "name": "\uac1c\ud3ec\uacbd\ub0a8\uc544\ud30c\ud2b8",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC15"
+    },
+    {
+      "id": "urban_monitor_SC16",
+      "kind": "urban_monitor",
+      "signal_id": "SC16",
+      "sc_no": 16,
+      "name": "\uacbd\uae30\uc5ec\uace0",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC16"
+    },
+    {
+      "id": "urban_monitor_SC17",
+      "kind": "urban_monitor",
+      "signal_id": "SC17",
+      "sc_no": 17,
+      "name": "\uac1c\ud3ec\uc8fc\uacf53\ub2e8\uc9c0(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC17"
+    },
+    {
+      "id": "urban_monitor_SC18",
+      "kind": "urban_monitor",
+      "signal_id": "SC18",
+      "sc_no": 18,
+      "name": "\uad6c\ub8e1\uc911(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC18"
+    },
+    {
+      "id": "urban_monitor_SC19",
+      "kind": "urban_monitor",
+      "signal_id": "SC19",
+      "sc_no": 19,
+      "name": "\uac1c\ud3ec\uc6b0\uccb4\uad6d(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC19"
+    },
+    {
+      "id": "urban_monitor_SC102",
+      "kind": "urban_monitor",
+      "signal_id": "SC102",
+      "sc_no": 102,
+      "name": "\ud55c\ud2f0\uc5ed",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC102"
+    },
+    {
+      "id": "urban_monitor_SC103",
+      "kind": "urban_monitor",
+      "signal_id": "SC103",
+      "sc_no": 103,
+      "name": "\uc740\ub9c8\uc544\ud30c\ud2b8\uc785\uad6c",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC103"
+    },
+    {
+      "id": "urban_monitor_SC104",
+      "kind": "urban_monitor",
+      "signal_id": "SC104",
+      "sc_no": 104,
+      "name": "\ud559\uc5ec\uc6b8\uc5ed",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC104"
+    },
+    {
+      "id": "urban_monitor_SC106",
+      "kind": "urban_monitor",
+      "signal_id": "SC106",
+      "sc_no": 106,
+      "name": "\ub300\ubaa8\uc0b0\uc0ac\uac70\ub9ac",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC106"
+    },
+    {
+      "id": "urban_monitor_SC9001",
+      "kind": "urban_monitor",
+      "signal_id": "SC9001",
+      "sc_no": 9001,
+      "name": "\uc6b0\ub9ac\uc740\ud589\ud3ec\uc774",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC9001"
+    },
+    {
+      "id": "urban_monitor_SC9002",
+      "kind": "urban_monitor",
+      "signal_id": "SC9002",
+      "sc_no": 9002,
+      "name": "\ubd80\ub3d9\uc0b0\uc11c\ube0c(\ubcf4)",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC9002"
+    },
+    {
+      "id": "urban_monitor_SC9003",
+      "kind": "urban_monitor",
+      "signal_id": "SC9003",
+      "sc_no": 9003,
+      "name": "\ub300\ub3c4\ucd08\uad50",
+      "control_enabled": false,
+      "monitoring_only": true,
+      "local_observation_agent": "MON_SC9003"
+    }
+  ],
+  "source_files": {
+    "signal_roles": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_inventory\\signal_controller_roles.csv",
+    "network_inpx": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+    "base_control_mapping": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control\\control_mapping.json",
+    "base_detector_mapping": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\real_world_modi_control\\detector_local_mapping.json",
+    "prediction_calibration": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Claude\\VISSIM\\evaluation\\calibration\\real_world_prediction_calibration_pshb4500fix_20260724.json"
+  }
+}
