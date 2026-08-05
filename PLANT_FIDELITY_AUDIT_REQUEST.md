@@ -30,9 +30,26 @@ PTV Vissim 2020 (SP14)              ← 진짜 플랜트
    ../NumSim-mine/src/                                    ← 모델(rollout) + 컨트롤러
 ```
 
-레포 두 개다.
-- `VISSIM/` — 하네스, 네트워크, 스크립트, 설정, 어댑터
-- `NumSim-mine/` — 교통 모델(`src/models/`), 컨트롤러(`src/controllers/`)
+레포 두 개다. **둘을 형제 디렉터리로 나란히 두어야 동작한다**(어댑터가 `../NumSim-mine` 을 찾는다).
+
+| 레포 | URL | 커밋 |
+|---|---|---|
+| `VISSIM/` — 하네스·네트워크·스크립트·설정·어댑터 | https://github.com/Ming2you/VISSIM.git | `897fc0f` (main) |
+| `NumSim-mine/` — 모델 `src/models/`, 컨트롤러 `src/controllers/` | https://github.com/Ming2you/Numerical-Sim.git | `35a5c82` (**브랜치 `freeway-zone-followers`**) |
+
+```bash
+git clone https://github.com/Ming2you/VISSIM.git          && (cd VISSIM && git checkout 897fc0f)
+git clone https://github.com/Ming2you/Numerical-Sim.git NumSim-mine \
+    && (cd NumSim-mine && git checkout 35a5c82)
+```
+
+**이 SHA 쌍이 아니면 이 문서의 수치가 재현되지 않는다.** NumSim-mine 은 main 이 아니라
+`freeway-zone-followers` 브랜치가 최신이다.
+
+주의 — VISSIM 레포의 `.gitignore` 가 `evaluation/runs/` 를 제외한다. 즉 **런 산출물(state/action
+JSON, 로그)은 레포에 없다.** 4장 수치를 재현하려면 7장의 플랜트 런을 직접 돌려야 하고,
+그러려면 PTV Vissim 2020 라이선스가 필요하다. 라이선스가 없다면 **정적 감사**(코드·네트워크
+XML·유도 스크립트 대조)만으로도 5장 A/B/D 는 대부분 답할 수 있다.
 
 핵심 진입점.
 - 관측: `run_real_world_stackelberg_controller.vbs` 의 `ReadVehicleLanePosSpeed`(2172행)가
