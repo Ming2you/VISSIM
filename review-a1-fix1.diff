@@ -1,0 +1,2432 @@
+﻿# A1 current package after fix round 1
+
+## Untracked file: scripts/build_vissim_lane_graph.py
+diff --git a/scripts/build_vissim_lane_graph.py b/scripts/build_vissim_lane_graph.py
+new file mode 100644
+index 0000000..a1ed186
+--- /dev/null
++++ b/scripts/build_vissim_lane_graph.py
+@@ -0,0 +1,822 @@
++"""Compile the canonical directed VISSIM lane graph artifact."""
++
++from __future__ import annotations
++
++import argparse
++from collections import defaultdict
++import hashlib
++import json
++import math
++import os
++from pathlib import Path
++import sys
++import tempfile
++from typing import Any, Iterable
++
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++PLANT_ROOT = REPO_ROOT / "plant"
++if str(PLANT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PLANT_ROOT))
++
++from src.vissim_strict.compiler import compile_network  # noqa: E402
++from src.vissim_strict.topology import (  # noqa: E402
++    CANONICAL_JSON_VERSION,
++    canonical_json_sha256,
++    canonical_json_text,
++)
++
++
++SCHEMA_VERSION = "vissim-lane-graph-v2.1"
++COMMAND_VERSION = "build-vissim-lane-graph/2.1.1"
++REQUIRED_PRODUCTION_GATES = (
++    "unresolved_connector_lane_mappings",
++    "reverse_synthetic_edges",
++    "executable_connector_path_count",
++    "executable_connector_path_coverage",
++)
++UNITS = {
++    "length": "m",
++    "position": "m",
++    "coordinate": "m",
++    "lane_number": "VISSIM one-based lane number",
++}
++DOWNSTREAM_CONSUMERS = [
++    "resolve_lane_routes.py",
++    "rollout plant stock compiler",
++    "projection and movement gates",
++]
++
++
++def _numeric_key(value: str | int | None) -> tuple[int, int | str]:
++    try:
++        return (0, int(value))
++    except (TypeError, ValueError):
++        return (1, "" if value is None else str(value))
++
++
++def _finite(value: Any) -> bool:
++    return isinstance(value, (int, float)) and math.isfinite(float(value))
++
++
++def _point(point: dict[str, Any] | None) -> dict[str, float] | None:
++    if point is None:
++        return None
++    return {
++        "x_m": float(point["x_m"]),
++        "y_m": float(point["y_m"]),
++        "z_m": float(point["z_m"]),
++    }
++
++
++def behavioral_source_hashes(additional_paths: Iterable[Path] = ()) -> dict[str, str]:
++    paths = {
++        Path(__file__).resolve(),
++        (PLANT_ROOT / "src" / "vissim_strict" / "compiler.py").resolve(),
++        (PLANT_ROOT / "src" / "vissim_strict" / "topology.py").resolve(),
++        (PLANT_ROOT / "src" / "vissim_strict" / "contraction.py").resolve(),
++        (PLANT_ROOT / "src" / "vissim_strict" / "signal_program.py").resolve(),
++        *(Path(path).resolve() for path in additional_paths),
++    }
++    return {
++        path.relative_to(REPO_ROOT).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
++        for path in sorted(paths, key=lambda item: item.as_posix())
++    }
++
++
++def _link_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (_numeric_key(item.get("link_no")),)
++
++
++def _node_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (_numeric_key(item.get("link_no")), int(item.get("lane_no", -1)))
++
++
++def _connector_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (_numeric_key(item.get("connector_no")),)
++
++
++def _mapping_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    lane_id = str(item.get("connector_lane_id", ""))
++    return (_numeric_key(lane_id.rsplit(":", 1)[-1]), lane_id)
++
++
++def _edge_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (
++        _numeric_key(item.get("connector_no")),
++        int(item.get("connector_lane_no", -1)),
++        0 if item.get("kind") == "connector_entry" else 1,
++        str(item.get("id", "")),
++    )
++
++
++def _head_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (
++        _numeric_key(item.get("link_no")),
++        -1 if item.get("lane_no") is None else int(item["lane_no"]),
++        float("inf") if item.get("position_m") is None else float(item["position_m"]),
++        _numeric_key(item.get("signal_controller_no")),
++        _numeric_key(item.get("signal_group_no")),
++        _numeric_key(item.get("head_no")),
++    )
++
++
++def _network_objects(manifest: dict[str, Any]) -> Iterable[tuple[str, dict[str, Any]]]:
++    for link in manifest.get("links", []):
++        yield "link", link
++    for connector in manifest.get("connectors", []):
++        yield "connector", connector
++
++
++def _lane_nodes(manifest: dict[str, Any]) -> list[dict[str, Any]]:
++    nodes: list[dict[str, Any]] = []
++    for object_kind, item in _network_objects(manifest):
++        geometry = [_point(point) for point in item.get("geometry", [])]
++        source_coordinate = geometry[0] if geometry else None
++        destination_coordinate = geometry[-1] if geometry else None
++        for lane in item.get("lanes", []):
++            nodes.append(
++                {
++                    "id": str(lane["id"]),
++                    "object_id": f"{object_kind}:{item['vissim_no']}",
++                    "object_kind": object_kind,
++                    "link_no": str(item["vissim_no"]),
++                    "lane_no": int(lane["lane_no"]),
++                    "name": str(item.get("name", "")),
++                    "length_m": float(item["length_m"]),
++                    "width_m": float(lane.get("width_m", 0.0)),
++                    "closed": bool(lane.get("closed", False)),
++                    "source_coordinate": source_coordinate,
++                    "destination_coordinate": destination_coordinate,
++                }
++            )
++    return sorted(nodes, key=_node_sort_key)
++
++
++def _link_records(manifest: dict[str, Any]) -> list[dict[str, Any]]:
++    records: list[dict[str, Any]] = []
++    for link in manifest.get("links", []):
++        geometry = [_point(point) for point in link.get("geometry", [])]
++        records.append(
++            {
++                "id": f"link:{link['vissim_no']}",
++                "link_no": str(link["vissim_no"]),
++                "name": str(link.get("name", "")),
++                "length_m": float(link["length_m"]),
++                "lane_count": len(link.get("lanes", [])),
++                "lane_ids": sorted(
++                    (str(lane["id"]) for lane in link.get("lanes", [])),
++                    key=lambda lane_id: int(lane_id.rsplit(":", 1)[1]),
++                ),
++                "source_coordinate": geometry[0] if geometry else None,
++                "destination_coordinate": geometry[-1] if geometry else None,
++            }
++        )
++    return sorted(records, key=_link_sort_key)
++
++
++def _connector_records(
++    manifest: dict[str, Any], node_ids: set[str], reasons: list[dict[str, Any]]
++) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
++    connectors: list[dict[str, Any]] = []
++    edges: list[dict[str, Any]] = []
++    expected_lane_ids: set[str] = set()
++    invalid_lane_ids: set[str] = set()
++    reverse_mapping_ids: list[str] = []
++    for connector in sorted(
++        manifest.get("connectors", []), key=lambda item: _numeric_key(item.get("vissim_no"))
++    ):
++        connector_no = str(connector["vissim_no"])
++        connector_id = f"connector:{connector_no}"
++        lane_count = int(connector.get("lane_count", 0))
++        geometry = [_point(point) for point in connector.get("geometry", [])]
++        expected_ids = [f"lane:{connector_no}:{lane_no}" for lane_no in range(1, lane_count + 1)]
++        expected_lane_ids.update(expected_ids)
++        declared_lanes = sorted(
++            connector.get("lanes", []), key=lambda lane: int(lane.get("lane_no", -1))
++        )
++        declared_ids = [str(lane.get("id", "")) for lane in declared_lanes]
++        declared_lane_nos = [int(lane.get("lane_no", -1)) for lane in declared_lanes]
++        if declared_ids != expected_ids or declared_lane_nos != list(range(1, lane_count + 1)):
++            invalid_lane_ids.update(expected_ids)
++            reasons.append(
++                {
++                    "code": "connector_declared_lane_range_mismatch",
++                    "entity_id": connector_id,
++                    "detail": {
++                        "lane_count": lane_count,
++                        "expected_lane_ids": expected_ids,
++                        "declared_lane_ids": declared_ids,
++                        "declared_lane_nos": declared_lane_nos,
++                    },
++                }
++            )
++
++        from_endpoint = connector.get("from_endpoint", {})
++        to_endpoint = connector.get("to_endpoint", {})
++        endpoint_values = (
++            from_endpoint.get("link_no"),
++            from_endpoint.get("lane_no"),
++            from_endpoint.get("position_m"),
++            to_endpoint.get("link_no"),
++            to_endpoint.get("lane_no"),
++            to_endpoint.get("position_m"),
++        )
++        endpoints_valid = (
++            all(value is not None for value in endpoint_values)
++            and _finite(from_endpoint.get("position_m"))
++            and _finite(to_endpoint.get("position_m"))
++            and _finite(connector.get("length_m"))
++        )
++        if not endpoints_valid:
++            invalid_lane_ids.update(expected_ids)
++            reasons.append(
++                {
++                    "code": "invalid_connector_endpoint_evidence",
++                    "entity_id": connector_id,
++                    "detail": {
++                        "from_endpoint": from_endpoint,
++                        "to_endpoint": to_endpoint,
++                        "length_m": connector.get("length_m"),
++                    },
++                }
++            )
++
++        raw_mappings = sorted(connector.get("lane_mapping", []), key=_mapping_sort_key)
++        mappings: list[dict[str, Any]] = []
++        mappings_by_lane: dict[str, list[dict[str, Any]]] = {}
++        for mapping in raw_mappings:
++            connector_lane_id = str(mapping["connector_lane_id"])
++            from_lane_id = mapping.get("from_lane_id")
++            to_lane_id = mapping.get("to_lane_id")
++            record = {
++                "connector_lane_id": connector_lane_id,
++                "connector_lane_no": int(connector_lane_id.rsplit(":", 1)[1]),
++                "from_lane_id": from_lane_id,
++                "to_lane_id": to_lane_id,
++            }
++            mappings.append(record)
++            mappings_by_lane.setdefault(connector_lane_id, []).append(record)
++
++        extra_mapping_ids = sorted(set(mappings_by_lane) - set(expected_ids), key=_numeric_key)
++        if extra_mapping_ids:
++            reasons.append(
++                {
++                    "code": "unexpected_connector_lane_mapping",
++                    "entity_id": connector_id,
++                    "detail": extra_mapping_ids,
++                }
++            )
++
++        for connector_lane_no, connector_lane_id in enumerate(expected_ids, 1):
++            lane_mappings = mappings_by_lane.get(connector_lane_id, [])
++            if len(lane_mappings) != 1:
++                invalid_lane_ids.add(connector_lane_id)
++                reasons.append(
++                    {
++                        "code": "connector_lane_mapping_not_one_to_one",
++                        "entity_id": connector_lane_id,
++                        "detail": {"mapping_count": len(lane_mappings)},
++                    }
++                )
++                continue
++            mapping = lane_mappings[0]
++            from_lane_id = mapping["from_lane_id"]
++            to_lane_id = mapping["to_lane_id"]
++            if not endpoints_valid:
++                continue
++            expected_from_lane_id = (
++                f"lane:{from_endpoint['link_no']}:"
++                f"{int(from_endpoint['lane_no']) + connector_lane_no - 1}"
++            )
++            expected_to_lane_id = (
++                f"lane:{to_endpoint['link_no']}:"
++                f"{int(to_endpoint['lane_no']) + connector_lane_no - 1}"
++            )
++            if from_lane_id != expected_from_lane_id or to_lane_id != expected_to_lane_id:
++                invalid_lane_ids.add(connector_lane_id)
++                reversed_mapping = (
++                    from_lane_id == expected_to_lane_id and to_lane_id == expected_from_lane_id
++                )
++                if reversed_mapping:
++                    reverse_mapping_ids.append(connector_lane_id)
++                reasons.append(
++                    {
++                        "code": (
++                            "reversed_connector_lane_mapping"
++                            if reversed_mapping
++                            else "connector_lane_mapping_endpoint_mismatch"
++                        ),
++                        "entity_id": connector_lane_id,
++                        "detail": {
++                            "expected_from_lane_id": expected_from_lane_id,
++                            "actual_from_lane_id": from_lane_id,
++                            "expected_to_lane_id": expected_to_lane_id,
++                            "actual_to_lane_id": to_lane_id,
++                            "from_position_m": from_endpoint["position_m"],
++                            "to_position_m": to_endpoint["position_m"],
++                        },
++                    }
++                )
++            missing = [
++                lane_id
++                for lane_id in (from_lane_id, connector_lane_id, to_lane_id)
++                if lane_id not in node_ids
++            ]
++            if missing:
++                invalid_lane_ids.add(connector_lane_id)
++                reasons.append(
++                    {
++                        "code": "connector_lane_mapping_missing_node",
++                        "entity_id": connector_lane_id,
++                        "detail": missing,
++                    }
++                )
++                continue
++            common = {
++                "connector_id": connector_id,
++                "connector_no": connector_no,
++                "connector_lane_no": connector_lane_no,
++            }
++            edges.extend(
++                [
++                    {
++                        "id": f"edge:connector:{connector_no}:lane:{connector_lane_no}:entry",
++                        "kind": "connector_entry",
++                        "from_lane_id": from_lane_id,
++                        "to_lane_id": connector_lane_id,
++                        "from_position_m": float(connector["from_endpoint"]["position_m"]),
++                        "to_position_m": 0.0,
++                        **common,
++                    },
++                    {
++                        "id": f"edge:connector:{connector_no}:lane:{connector_lane_no}:exit",
++                        "kind": "connector_exit",
++                        "from_lane_id": connector_lane_id,
++                        "to_lane_id": to_lane_id,
++                        "from_position_m": float(connector["length_m"]),
++                        "to_position_m": float(connector["to_endpoint"]["position_m"]),
++                        **common,
++                    },
++                ]
++            )
++        connectors.append(
++            {
++                "id": connector_id,
++                "connector_no": connector_no,
++                "name": str(connector.get("name", "")),
++                "length_m": float(connector["length_m"]),
++                "lane_count": lane_count,
++                "from_link_no": from_endpoint.get("link_no"),
++                "from_lane_no": from_endpoint.get("lane_no"),
++                "from_position_m": from_endpoint.get("position_m"),
++                "to_link_no": to_endpoint.get("link_no"),
++                "to_lane_no": to_endpoint.get("lane_no"),
++                "to_position_m": to_endpoint.get("position_m"),
++                "source_coordinate": geometry[0] if geometry else None,
++                "destination_coordinate": geometry[-1] if geometry else None,
++                "lane_mapping": mappings,
++            }
++        )
++    edges.sort(key=_edge_sort_key)
++    return connectors, edges, {
++        "expected_lane_ids": expected_lane_ids,
++        "invalid_lane_ids": invalid_lane_ids,
++        "reverse_mapping_ids": sorted(reverse_mapping_ids),
++    }
++
++
++def _signal_heads(
++    manifest: dict[str, Any], node_ids: set[str], reasons: list[dict[str, Any]]
++) -> list[dict[str, Any]]:
++    result: list[dict[str, Any]] = []
++    for head in manifest.get("signal_heads", []):
++        lane = head.get("lane_ref", {})
++        group = head.get("signal_group_ref", {})
++        record = {
++            "id": str(head["id"]),
++            "head_no": str(head["vissim_no"]),
++            "name": str(head.get("name", "")),
++            "signal_controller_no": group.get("controller_no"),
++            "signal_group_no": group.get("sg_no"),
++            "link_no": lane.get("link_no"),
++            "lane_no": lane.get("lane_no"),
++            "lane_id": lane.get("lane_id"),
++            "position_m": head.get("position_m"),
++            "raw_lane_reference": lane.get("raw", ""),
++            "raw_signal_group_reference": group.get("raw", ""),
++        }
++        required = (
++            record["signal_controller_no"],
++            record["signal_group_no"],
++            record["link_no"],
++            record["lane_no"],
++            record["lane_id"],
++            record["position_m"],
++        )
++        if any(value is None for value in required) or not _finite(record["position_m"]):
++            reasons.append(
++                {
++                    "code": "malformed_signal_head_reference",
++                    "entity_id": record["id"],
++                    "detail": record,
++                }
++            )
++        elif record["lane_id"] not in node_ids:
++            reasons.append(
++                {
++                    "code": "signal_head_lane_missing_from_graph",
++                    "entity_id": record["id"],
++                    "detail": record["lane_id"],
++                }
++            )
++        result.append(record)
++    return sorted(result, key=_head_sort_key)
++
++
++def semantic_payload(artifact: dict[str, Any]) -> dict[str, Any]:
++    return {
++        "schema_version": artifact["schema_version"],
++        "links": artifact["links"],
++        "nodes": artifact["nodes"],
++        "edges": artifact["edges"],
++        "connectors": artifact["connectors"],
++        "signal_heads": artifact["signal_heads"],
++    }
++
++
++def validate_lane_graph_artifact(graph: dict[str, Any]) -> list[dict[str, Any]]:
++    failures: list[dict[str, Any]] = []
++
++    def fail(code: str, detail: Any) -> None:
++        failures.append({"code": code, "entity_id": "lane-graph", "detail": detail})
++
++    if graph.get("schema_version") != SCHEMA_VERSION:
++        fail("invalid_lane_graph_schema", graph.get("schema_version"))
++    if graph.get("canonical_json_version") != CANONICAL_JSON_VERSION:
++        fail("invalid_lane_graph_canonical_json_version", graph.get("canonical_json_version"))
++    if graph.get("status") != "PASS":
++        fail("lane_graph_status_not_pass", graph.get("status"))
++    if graph.get("reasons") != []:
++        fail("lane_graph_reasons_not_empty", graph.get("reasons"))
++
++    gates = graph.get("production_gates")
++    if not isinstance(gates, dict):
++        fail("missing_lane_graph_gate", list(REQUIRED_PRODUCTION_GATES))
++        gates = {}
++    missing_gates = [name for name in REQUIRED_PRODUCTION_GATES if name not in gates]
++    if missing_gates:
++        fail("missing_lane_graph_gate", missing_gates)
++
++    order_errors: list[str] = []
++    ordered_fields = (
++        ("links", _link_sort_key),
++        ("nodes", _node_sort_key),
++        ("edges", _edge_sort_key),
++        ("connectors", _connector_sort_key),
++        ("signal_heads", _head_sort_key),
++    )
++    for field, key in ordered_fields:
++        values = graph.get(field)
++        if not isinstance(values, list) or values != sorted(values, key=key):
++            order_errors.append(field)
++    for connector in graph.get("connectors", []):
++        mappings = connector.get("lane_mapping")
++        if not isinstance(mappings, list) or mappings != sorted(mappings, key=_mapping_sort_key):
++            order_errors.append(f"{connector.get('id')}.lane_mapping")
++    for link in graph.get("links", []):
++        lane_ids = link.get("lane_ids")
++        if not isinstance(lane_ids, list) or lane_ids != sorted(
++            lane_ids, key=lambda lane_id: int(str(lane_id).rsplit(":", 1)[1])
++        ):
++            order_errors.append(f"{link.get('id')}.lane_ids")
++    if order_errors:
++        fail("noncanonical_lane_graph_order", order_errors)
++
++    try:
++        actual_hash = canonical_json_sha256(semantic_payload(graph))
++    except (KeyError, TypeError, ValueError) as exc:
++        fail("invalid_lane_graph_semantic_payload", str(exc))
++        actual_hash = None
++    if actual_hash is not None and graph.get("semantic_sha256") != actual_hash:
++        fail(
++            "graph_semantic_hash_mismatch",
++            {"stored": graph.get("semantic_sha256"), "actual": actual_hash},
++        )
++
++    nodes = graph.get("nodes", [])
++    edges = graph.get("edges", [])
++    connectors = graph.get("connectors", [])
++    nodes_by_id: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    edges_by_id: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    for node in nodes:
++        nodes_by_id[str(node.get("id"))].append(node)
++    for edge in edges:
++        edges_by_id[str(edge.get("id"))].append(edge)
++
++    expected_connector_lane_count = 0
++    for connector in connectors:
++        connector_no = str(connector.get("connector_no"))
++        connector_id = f"connector:{connector_no}"
++        try:
++            lane_count = int(connector["lane_count"])
++            from_lane_no = int(connector["from_lane_no"])
++            to_lane_no = int(connector["to_lane_no"])
++            length_m = float(connector["length_m"])
++            from_position_m = float(connector["from_position_m"])
++            to_position_m = float(connector["to_position_m"])
++            from_link_no = str(connector["from_link_no"])
++            to_link_no = str(connector["to_link_no"])
++        except (KeyError, TypeError, ValueError) as exc:
++            fail("invalid_connector_endpoint_evidence", {"id": connector_id, "error": str(exc)})
++            continue
++        expected_connector_lane_count += lane_count
++        mappings_by_lane: dict[str, list[dict[str, Any]]] = defaultdict(list)
++        for mapping in connector.get("lane_mapping", []):
++            mappings_by_lane[str(mapping.get("connector_lane_id"))].append(mapping)
++        expected_lane_ids = {
++            f"lane:{connector_no}:{lane_no}" for lane_no in range(1, lane_count + 1)
++        }
++        if set(mappings_by_lane) != expected_lane_ids:
++            fail(
++                "invalid_connector_mapping_universe",
++                {
++                    "id": connector_id,
++                    "expected": sorted(expected_lane_ids),
++                    "actual": sorted(mappings_by_lane),
++                },
++            )
++        for lane_no in range(1, lane_count + 1):
++            lane_id = f"lane:{connector_no}:{lane_no}"
++            lane_nodes = nodes_by_id.get(lane_id, [])
++            valid_node = (
++                len(lane_nodes) == 1
++                and lane_nodes[0].get("object_id") == connector_id
++                and lane_nodes[0].get("object_kind") == "connector"
++                and int(lane_nodes[0].get("lane_no", -1)) == lane_no
++            )
++            if not valid_node:
++                fail("invalid_connector_lane_node", {"lane_id": lane_id, "nodes": lane_nodes})
++
++            lane_mappings = mappings_by_lane.get(lane_id, [])
++            expected_from_lane_id = f"lane:{from_link_no}:{from_lane_no + lane_no - 1}"
++            expected_to_lane_id = f"lane:{to_link_no}:{to_lane_no + lane_no - 1}"
++            valid_mapping = (
++                len(lane_mappings) == 1
++                and lane_mappings[0].get("connector_lane_no") == lane_no
++                and lane_mappings[0].get("from_lane_id") == expected_from_lane_id
++                and lane_mappings[0].get("to_lane_id") == expected_to_lane_id
++            )
++            if not valid_mapping:
++                fail(
++                    "invalid_connector_lane_mapping",
++                    {
++                        "lane_id": lane_id,
++                        "expected_from_lane_id": expected_from_lane_id,
++                        "expected_to_lane_id": expected_to_lane_id,
++                        "mappings": lane_mappings,
++                    },
++                )
++
++            expected_edges = {
++                f"edge:connector:{connector_no}:lane:{lane_no}:entry": {
++                    "kind": "connector_entry",
++                    "from_lane_id": expected_from_lane_id,
++                    "to_lane_id": lane_id,
++                    "from_position_m": from_position_m,
++                    "to_position_m": 0.0,
++                },
++                f"edge:connector:{connector_no}:lane:{lane_no}:exit": {
++                    "kind": "connector_exit",
++                    "from_lane_id": lane_id,
++                    "to_lane_id": expected_to_lane_id,
++                    "from_position_m": length_m,
++                    "to_position_m": to_position_m,
++                },
++            }
++            for edge_id, expected in expected_edges.items():
++                matches = edges_by_id.get(edge_id, [])
++                valid_edge = len(matches) == 1 and all(
++                    matches[0].get(key) == value for key, value in expected.items()
++                )
++                if not valid_edge:
++                    fail(
++                        "invalid_connector_edge_evidence",
++                        {"edge_id": edge_id, "expected": expected, "actual": matches},
++                    )
++            incoming = [edge for edge in edges if edge.get("to_lane_id") == lane_id]
++            outgoing = [edge for edge in edges if edge.get("from_lane_id") == lane_id]
++            touching = [
++                edge
++                for edge in edges
++                if edge.get("from_lane_id") == lane_id or edge.get("to_lane_id") == lane_id
++            ]
++            if len(incoming) != 1 or len(outgoing) != 1 or len(touching) != 2:
++                fail(
++                    "invalid_connector_node_degree",
++                    {
++                        "lane_id": lane_id,
++                        "incoming": [edge.get("id") for edge in incoming],
++                        "outgoing": [edge.get("id") for edge in outgoing],
++                        "touching": [edge.get("id") for edge in touching],
++                    },
++                )
++
++    required_gate_values = {
++        "unresolved_connector_lane_mappings": 0,
++        "reverse_synthetic_edges": 0,
++        "executable_connector_path_count": expected_connector_lane_count,
++        "executable_connector_path_coverage": 1.0,
++    }
++    for name, expected in required_gate_values.items():
++        if name in gates and gates[name] != expected:
++            fail(
++                "invalid_lane_graph_gate",
++                {"gate": name, "expected": expected, "actual": gates[name]},
++            )
++    dimensions = graph.get("sample_dimensions", {})
++    if dimensions.get("connector_lanes") != expected_connector_lane_count:
++        fail(
++            "invalid_lane_graph_dimension",
++            {
++                "connector_lanes": dimensions.get("connector_lanes"),
++                "expected": expected_connector_lane_count,
++            },
++        )
++    return sorted(failures, key=lambda item: (item["code"], item["entity_id"]))
++
++
++def build_lane_graph(manifest: dict[str, Any]) -> dict[str, Any]:
++    reasons: list[dict[str, Any]] = []
++    validation = manifest.get("validation_report")
++    if not isinstance(validation, dict) or not validation.get("valid", False):
++        reasons.append(
++            {
++                "code": "canonical_compiler_validation_not_pass",
++                "entity_id": "canonical-manifest",
++                "detail": None if validation is None else validation.get("errors", []),
++            }
++        )
++    signal_reference = manifest.get("signal_reference", {})
++    if signal_reference.get("schema_version") != "signal-reference-v2.1":
++        reasons.append(
++            {
++                "code": "missing_signal_reference_v2_1_evidence",
++                "entity_id": "canonical-manifest",
++                "detail": signal_reference.get("schema_version"),
++            }
++        )
++    if not manifest.get("source", {}).get("inpx_sha256"):
++        reasons.append(
++            {
++                "code": "missing_input_sha256",
++                "entity_id": "canonical-manifest",
++                "detail": None,
++            }
++        )
++    nodes = _lane_nodes(manifest)
++    links = _link_records(manifest)
++    node_ids = {node["id"] for node in nodes}
++    connectors, edges, connector_diagnostics = _connector_records(
++        manifest, node_ids, reasons
++    )
++    heads = _signal_heads(manifest, node_ids, reasons)
++
++    expected_connector_lane_ids = connector_diagnostics["expected_lane_ids"]
++    invalid_connector_lane_ids = set(connector_diagnostics["invalid_lane_ids"])
++    malformed_degrees: list[dict[str, Any]] = []
++    for lane_id in sorted(expected_connector_lane_ids):
++        incoming = [edge for edge in edges if edge["to_lane_id"] == lane_id]
++        outgoing = [edge for edge in edges if edge["from_lane_id"] == lane_id]
++        touching = [
++            edge
++            for edge in edges
++            if edge["from_lane_id"] == lane_id or edge["to_lane_id"] == lane_id
++        ]
++        valid_degree = (
++            len(incoming) == 1
++            and incoming[0]["kind"] == "connector_entry"
++            and len(outgoing) == 1
++            and outgoing[0]["kind"] == "connector_exit"
++            and len(touching) == 2
++        )
++        if not valid_degree:
++            invalid_connector_lane_ids.add(lane_id)
++            malformed_degrees.append(
++                {
++                    "lane_id": lane_id,
++                    "incoming_edge_ids": [edge["id"] for edge in incoming],
++                    "outgoing_edge_ids": [edge["id"] for edge in outgoing],
++                    "touching_edge_ids": [edge["id"] for edge in touching],
++                }
++            )
++    if malformed_degrees:
++        reasons.append(
++            {
++                "code": "connector_lane_does_not_have_exact_two_directed_edges",
++                "entity_id": "lane-graph",
++                "detail": malformed_degrees,
++            }
++        )
++    connector_lane_count = len(expected_connector_lane_ids)
++    executable_count = connector_lane_count - len(invalid_connector_lane_ids)
++    coverage = 1.0 if connector_lane_count == 0 else executable_count / connector_lane_count
++    reverse_edges = connector_diagnostics["reverse_mapping_ids"]
++    if reverse_edges:
++        reasons.append(
++            {
++                "code": "synthetic_reverse_edge",
++                "entity_id": "lane-graph",
++                "detail": reverse_edges,
++            }
++        )
++
++    source_hashes = behavioral_source_hashes()
++    artifact: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "canonical_json_version": CANONICAL_JSON_VERSION,
++        "source": {
++            "inpx_path": manifest.get("source", {}).get("inpx_path"),
++            "input_sha256": manifest.get("source", {}).get("inpx_sha256"),
++            "canonical_compiler_version": manifest.get("compiler_version"),
++            "canonical_topology_hash": manifest.get("topology_hash"),
++            "signal_reference_schema_version": signal_reference.get("schema_version"),
++            "signal_reference_compiler_hash": signal_reference.get("compiler_hash"),
++        },
++        "command": {
++            "version": COMMAND_VERSION,
++            "source_sha256": source_hashes,
++            "command_hash": canonical_json_sha256(source_hashes),
++            "semantic_hash_scope": "schema_version, links, nodes, edges, connectors, signal_heads",
++        },
++        "status": "FAIL" if reasons else "PASS",
++        "reasons": sorted(reasons, key=lambda item: (item["code"], item["entity_id"])),
++        "sample_dimensions": {
++            "road_links": len(manifest.get("links", [])),
++            "connector_links": len(connectors),
++            "lane_nodes": len(nodes),
++            "connector_lanes": connector_lane_count,
++            "directed_edges": len(edges),
++            "signal_heads": len(heads),
++        },
++        "units": UNITS,
++        "downstream_consumers": DOWNSTREAM_CONSUMERS,
++        "production_gates": {
++            "unresolved_connector_lane_mappings": len(invalid_connector_lane_ids),
++            "reverse_synthetic_edges": len(reverse_edges),
++            "executable_connector_path_count": executable_count,
++            "executable_connector_path_coverage": coverage,
++        },
++        "links": links,
++        "nodes": nodes,
++        "edges": edges,
++        "connectors": connectors,
++        "signal_heads": heads,
++    }
++    artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++    return artifact
++
++
++def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
++    path = path.resolve()
++    path.parent.mkdir(parents=True, exist_ok=True)
++    handle, temporary_name = tempfile.mkstemp(
++        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
++    )
++    try:
++        with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
++            stream.write(canonical_json_text(value))
++            stream.write("\n")
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temporary_name, path)
++    except BaseException:
++        try:
++            os.unlink(temporary_name)
++        except FileNotFoundError:
++            pass
++        raise
++
++
++def load_graph(path: str | Path) -> dict[str, Any]:
++    return json.loads(Path(path).read_text(encoding="utf-8"))
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--inpx", required=True, type=Path)
++    parser.add_argument("--output", required=True, type=Path)
++    args = parser.parse_args(argv)
++    artifact = build_lane_graph(compile_network(args.inpx))
++    atomic_write_json(args.output, artifact)
++    gates = artifact["production_gates"]
++    print(
++        f"status={artifact['status']} nodes={len(artifact['nodes'])} "
++        f"edges={len(artifact['edges'])} coverage={gates['executable_connector_path_coverage']:.12f} "
++        f"hash={artifact['semantic_sha256']}"
++    )
++    return 0 if artifact["status"] == "PASS" else 2
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+
+## Untracked file: scripts/resolve_lane_routes.py
+diff --git a/scripts/resolve_lane_routes.py b/scripts/resolve_lane_routes.py
+new file mode 100644
+index 0000000..4f3238c
+--- /dev/null
++++ b/scripts/resolve_lane_routes.py
+@@ -0,0 +1,877 @@
++"""Compile deterministic executable lane-path proofs for VISSIM static routes."""
++
++from __future__ import annotations
++
++import argparse
++from collections import defaultdict
++import hashlib
++import math
++from pathlib import Path
++import sys
++from typing import Any
++import xml.etree.ElementTree as ET
++
++
++SCRIPT_ROOT = Path(__file__).resolve().parent
++if str(SCRIPT_ROOT) not in sys.path:
++    sys.path.insert(0, str(SCRIPT_ROOT))
++
++from build_vissim_lane_graph import (  # noqa: E402
++    atomic_write_json,
++    behavioral_source_hashes,
++    load_graph,
++    validate_lane_graph_artifact,
++)
++
++
++REPO_ROOT = SCRIPT_ROOT.parent
++PLANT_ROOT = REPO_ROOT / "plant"
++if str(PLANT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PLANT_ROOT))
++
++from src.vissim_strict.topology import (  # noqa: E402
++    CANONICAL_JSON_VERSION,
++    canonical_json_sha256,
++)
++
++
++SCHEMA_VERSION = "lane-route-proofs-v2.1"
++COMMAND_VERSION = "resolve-lane-routes/2.1.1"
++POSITION_TOLERANCE_M = 1.0e-6
++FLOW_TOLERANCE = 1.0e-9
++UNITS = {
++    "length": "m",
++    "position": "m",
++    "flow_support_time": "ms",
++    "relative_flow": "dimensionless weight",
++    "normalized_share": "fraction",
++}
++DOWNSTREAM_CONSUMERS = [
++    "rollout plant stock compiler",
++    "projection and movement gates",
++    "controller action gates",
++]
++
++
++def _local_name(tag: str) -> str:
++    return tag.rsplit("}", 1)[-1]
++
++
++def _iter_tag(root: ET.Element, tag: str):
++    return (item for item in root.iter() if _local_name(item.tag) == tag)
++
++
++def _numeric_key(value: str | int | None) -> tuple[int, int | str]:
++    try:
++        return (0, int(value))
++    except (TypeError, ValueError):
++        return (1, "" if value is None else str(value))
++
++
++def _bool_attribute(raw: str | None, default: bool = True) -> bool:
++    if raw is None:
++        return default
++    return raw.strip().lower() in {"1", "true", "yes"}
++
++
++def _attributes(element: ET.Element) -> dict[str, str]:
++    return {key: element.attrib[key] for key in sorted(element.attrib)}
++
++
++def parse_relative_flow(raw_value: str | None) -> dict[str, Any]:
++    if raw_value is None:
++        raise ValueError("missing relFlow attribute")
++    raw = raw_value.strip()
++    if not raw:
++        return {
++            "raw": raw_value,
++            "attribute_present": True,
++            "tokens": [],
++            "encoding_prefix_tokens": [],
++            "defaulted": True,
++            "default_reason": "empty_relFlow_means_1.0",
++            "supports": [{"time_ms": 0.0, "time_raw": None, "value": 1.0, "value_raw": None}],
++        }
++    tokens = raw.split()
++    if len(tokens) == 1 and ":" not in tokens[0]:
++        value = float(tokens[0])
++        if not math.isfinite(value) or value < 0.0:
++            raise ValueError(f"invalid relFlow value {tokens[0]!r}")
++        return {
++            "raw": raw_value,
++            "attribute_present": True,
++            "tokens": tokens,
++            "encoding_prefix_tokens": [],
++            "defaulted": False,
++            "supports": [
++                {"time_ms": 0.0, "time_raw": None, "value": value, "value_raw": tokens[0]}
++            ],
++        }
++
++    first_support = next((index for index, token in enumerate(tokens) if ":" in token), None)
++    if first_support is None:
++        raise ValueError(f"invalid relFlow representation {raw_value!r}")
++    prefix = tokens[:first_support]
++    if prefix != ["2"]:
++        raise ValueError(f"unsupported VISSIM relFlow encoding prefix {prefix!r}")
++    supports: list[dict[str, Any]] = []
++    seen_times: set[float] = set()
++    for token in tokens[first_support:]:
++        if token.count(":") != 1:
++            raise ValueError(f"invalid relFlow support token {token!r}")
++        time_raw, value_raw = token.split(":", 1)
++        time_ms = float(time_raw)
++        value = float(value_raw)
++        if not math.isfinite(time_ms) or time_ms < 0.0:
++            raise ValueError(f"invalid relFlow support time {time_raw!r}")
++        if not math.isfinite(value) or value < 0.0:
++            raise ValueError(f"invalid relFlow value {value_raw!r}")
++        if time_ms in seen_times:
++            raise ValueError(f"duplicate relFlow support time {time_raw!r}")
++        seen_times.add(time_ms)
++        supports.append(
++            {
++                "time_ms": time_ms,
++                "time_raw": time_raw,
++                "value": value,
++                "value_raw": value_raw,
++            }
++        )
++    supports.sort(key=lambda item: item["time_ms"])
++    if not supports:
++        raise ValueError(f"relFlow has no supports {raw_value!r}")
++    return {
++        "raw": raw_value,
++        "attribute_present": True,
++        "tokens": tokens,
++        "encoding_prefix_tokens": prefix,
++        "defaulted": False,
++        "supports": supports,
++    }
++
++
++def parse_static_routes(inpx: str | Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
++    root = ET.parse(inpx).getroot()
++    decisions: list[dict[str, Any]] = []
++    routes: list[dict[str, Any]] = []
++    for decision in _iter_tag(root, "vehicleRoutingDecisionStatic"):
++        decision_no = decision.get("no")
++        if decision_no is None or not _bool_attribute(decision.get("active"), True):
++            continue
++        route_choice_method = decision.get("routeChoiceMeth", "STATIC")
++        if route_choice_method.upper() != "STATIC":
++            continue
++        decision_id = f"routing-decision:{decision_no}"
++        decision_routes: list[str] = []
++        route_elements = sorted(
++            list(_iter_tag(decision, "vehicleRouteStatic")),
++            key=lambda item: _numeric_key(item.get("no")),
++        )
++        for route in route_elements:
++            route_no = route.get("no")
++            if route_no is None or not _bool_attribute(route.get("active"), True):
++                continue
++            route_id = f"route:{decision_no}:{route_no}"
++            sequence = [
++                {"key": reference.get("key", ""), "attributes": _attributes(reference)}
++                for reference in _iter_tag(route, "intObjectRef")
++            ]
++            relative_flow_present = "relFlow" in route.attrib
++            raw_flow = route.get("relFlow") if relative_flow_present else None
++            record = {
++                "id": route_id,
++                "decision_id": decision_id,
++                "decision_no": str(decision_no),
++                "route_no": str(route_no),
++                "name": route.get("name", ""),
++                "decision_link_no": decision.get("link"),
++                "decision_position_m": float(decision.get("pos", "0")),
++                "destination_link_no": route.get("destLink"),
++                "destination_position_m": float(route.get("destPos", "0")),
++                "link_sequence_vissim_nos": [item["key"] for item in sequence],
++                "relative_flow_raw": raw_flow,
++                "relative_flow_attribute_present": relative_flow_present,
++                "raw_route_evidence": {
++                    "decision_attributes": _attributes(decision),
++                    "route_attributes": _attributes(route),
++                    "link_sequence": sequence,
++                },
++            }
++            routes.append(record)
++            decision_routes.append(route_id)
++        decisions.append(
++            {
++                "id": decision_id,
++                "decision_no": str(decision_no),
++                "name": decision.get("name", ""),
++                "link_no": decision.get("link"),
++                "position_m": float(decision.get("pos", "0")),
++                "route_ids": sorted(
++                    decision_routes,
++                    key=lambda value: _numeric_key(value.rsplit(":", 1)[1]),
++                ),
++                "source_attributes": _attributes(decision),
++            }
++        )
++    decisions.sort(key=lambda item: _numeric_key(item["decision_no"]))
++    routes.sort(key=lambda item: (_numeric_key(item["decision_no"]), _numeric_key(item["route_no"])))
++    return decisions, routes
++
++
++def _graph_index(graph: dict[str, Any]) -> dict[str, Any]:
++    nodes = {node["id"]: node for node in graph["nodes"]}
++    object_lanes: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    object_by_no: dict[str, str] = {}
++    for node in graph["nodes"]:
++        object_lanes[node["object_id"]].append(node)
++        previous = object_by_no.setdefault(str(node["link_no"]), node["object_id"])
++        if previous != node["object_id"]:
++            raise ValueError(f"ambiguous network object number {node['link_no']}")
++    for lanes in object_lanes.values():
++        lanes.sort(key=lambda item: item["lane_no"])
++    outgoing: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    entries_by_target_object: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    entries_by_source_object: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    for edge in graph["edges"]:
++        outgoing[edge["from_lane_id"]].append(edge)
++        if edge["kind"] == "connector_entry":
++            target_object_id = nodes[edge["to_lane_id"]]["object_id"]
++            entries_by_target_object[target_object_id].append(edge)
++            source_object_id = nodes[edge["from_lane_id"]]["object_id"]
++            entries_by_source_object[source_object_id].append(edge)
++    for edges in outgoing.values():
++        edges.sort(
++            key=lambda item: (
++                _numeric_key(item["connector_no"]),
++                item["connector_lane_no"],
++                0 if item["kind"] == "connector_entry" else 1,
++            )
++        )
++    for edges in entries_by_target_object.values():
++        edges.sort(
++            key=lambda item: (
++                _numeric_key(item["connector_no"]), item["connector_lane_no"]
++            )
++        )
++    for edges in entries_by_source_object.values():
++        edges.sort(
++            key=lambda item: (
++                _numeric_key(item["connector_no"]), item["connector_lane_no"]
++            )
++        )
++    heads: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    for head in graph["signal_heads"]:
++        heads[head["lane_id"]].append(head)
++    for lane_heads in heads.values():
++        lane_heads.sort(key=lambda item: (item["position_m"], _numeric_key(item["head_no"])))
++    return {
++        "nodes": nodes,
++        "object_lanes": object_lanes,
++        "object_by_no": object_by_no,
++        "outgoing": outgoing,
++        "entries_by_target_object": entries_by_target_object,
++        "entries_by_source_object": entries_by_source_object,
++        "heads": heads,
++    }
++
++
++def _append_segment(state: dict[str, Any], end_position_m: float) -> dict[str, Any]:
++    start = float(state["position_m"])
++    end = float(end_position_m)
++    if end < start - POSITION_TOLERANCE_M:
++        raise ValueError("attempted reverse lane traversal")
++    end = max(start, end)
++    segment = {
++        "lane_id": state["lane_id"],
++        "start_position_m": start,
++        "end_position_m": end,
++        "length_m": end - start,
++        "path_distance_start_m": float(state["physical_path_length_m"]),
++    }
++    return {
++        **state,
++        "position_m": end,
++        "physical_path_length_m": float(state["physical_path_length_m"]) + end - start,
++        "lane_segments": [*state["lane_segments"], segment],
++    }
++
++
++def _transition_to_object(
++    states: list[dict[str, Any]], target_object_id: str, index: dict[str, Any]
++) -> list[dict[str, Any]]:
++    result: list[dict[str, Any]] = []
++    nodes = index["nodes"]
++    for state in states:
++        current_node = nodes[state["lane_id"]]
++        if current_node.get("closed", False):
++            continue
++        if current_node["object_id"] == target_object_id:
++            result.append(state)
++            continue
++        state_result: list[dict[str, Any]] = []
++        for edge in index["outgoing"].get(state["lane_id"], []):
++            target_node = nodes[edge["to_lane_id"]]
++            if target_node["object_id"] != target_object_id:
++                continue
++            if target_node.get("closed", False):
++                continue
++            if edge["from_position_m"] < state["position_m"] - POSITION_TOLERANCE_M:
++                continue
++            advanced = _append_segment(state, float(edge["from_position_m"]))
++            state_result.append(
++                {
++                    **advanced,
++                    "lane_id": edge["to_lane_id"],
++                    "position_m": float(edge["to_position_m"]),
++                    "lane_ids": [*advanced["lane_ids"], edge["to_lane_id"]],
++                    "edge_ids": [*advanced["edge_ids"], edge["id"]],
++                }
++            )
++        if not state_result and current_node["object_kind"] == "link":
++            for edge in index["entries_by_target_object"].get(target_object_id, []):
++                source_lane = nodes[edge["from_lane_id"]]
++                target_lane = nodes[edge["to_lane_id"]]
++                available_distance = float(edge["from_position_m"]) - float(
++                    state["position_m"]
++                )
++                if (
++                    source_lane["object_id"] != current_node["object_id"]
++                    or source_lane.get("closed", False)
++                    or target_lane.get("closed", False)
++                    or source_lane["id"] == state["lane_id"]
++                    or available_distance <= POSITION_TOLERANCE_M
++                ):
++                    continue
++                changed = {
++                    **state,
++                    "lane_id": source_lane["id"],
++                    "lane_ids": [*state["lane_ids"], source_lane["id"]],
++                    "lane_change_events": [
++                        *state["lane_change_events"],
++                        {
++                            "object_id": current_node["object_id"],
++                            "from_lane_id": state["lane_id"],
++                            "to_lane_id": source_lane["id"],
++                            "start_position_m": state["position_m"],
++                            "connector_position_m": edge["from_position_m"],
++                            "available_distance_m": available_distance,
++                            "basis": "forced_by_static_route_connector_lane_range",
++                            "canonical_evidence": {
++                                "entry_edge_id": edge["id"],
++                                "source_lane_id": source_lane["id"],
++                                "source_position_m": edge["from_position_m"],
++                            },
++                        },
++                    ],
++                }
++                advanced = _append_segment(changed, float(edge["from_position_m"]))
++                state_result.append(
++                    {
++                        **advanced,
++                        "lane_id": edge["to_lane_id"],
++                        "position_m": float(edge["to_position_m"]),
++                        "lane_ids": [*advanced["lane_ids"], edge["to_lane_id"]],
++                        "edge_ids": [*advanced["edge_ids"], edge["id"]],
++                    }
++                )
++        result.extend(state_result)
++
++    unique: dict[tuple[Any, ...], dict[str, Any]] = {}
++    for state in result:
++        key = (
++            tuple(state["lane_ids"]),
++            tuple(state["edge_ids"]),
++            state["lane_id"],
++            state["position_m"],
++        )
++        unique[key] = state
++    return [unique[key] for key in sorted(unique)]
++
++
++def _take_search_edge(
++    state: dict[str, Any], edge: dict[str, Any], index: dict[str, Any]
++) -> dict[str, Any] | None:
++    nodes = index["nodes"]
++    source_lane = nodes[edge["from_lane_id"]]
++    current_node = nodes[state["lane_id"]]
++    target_lane = nodes[edge["to_lane_id"]]
++    if (
++        current_node.get("closed", False)
++        or source_lane.get("closed", False)
++        or target_lane.get("closed", False)
++        or source_lane["object_id"] != current_node["object_id"]
++    ):
++        return None
++    available_distance = float(edge["from_position_m"]) - float(state["position_m"])
++    if available_distance < -POSITION_TOLERANCE_M:
++        return None
++    working = state
++    if source_lane["id"] != state["lane_id"]:
++        if (
++            current_node["object_kind"] != "link"
++            or available_distance <= POSITION_TOLERANCE_M
++        ):
++            return None
++        working = {
++            **state,
++            "lane_id": source_lane["id"],
++            "lane_ids": [*state["lane_ids"], source_lane["id"]],
++            "lane_change_events": [
++                *state["lane_change_events"],
++                {
++                    "object_id": current_node["object_id"],
++                    "from_lane_id": state["lane_id"],
++                    "to_lane_id": source_lane["id"],
++                    "start_position_m": state["position_m"],
++                    "connector_position_m": edge["from_position_m"],
++                    "available_distance_m": available_distance,
++                    "basis": "directed_waypoint_reachability",
++                    "canonical_evidence": {
++                        "entry_edge_id": edge["id"],
++                        "source_lane_id": source_lane["id"],
++                        "source_position_m": edge["from_position_m"],
++                    },
++                },
++            ],
++        }
++    advanced = _append_segment(working, float(edge["from_position_m"]))
++    return {
++        **advanced,
++        "lane_id": edge["to_lane_id"],
++        "position_m": float(edge["to_position_m"]),
++        "lane_ids": [*advanced["lane_ids"], edge["to_lane_id"]],
++        "edge_ids": [*advanced["edge_ids"], edge["id"]],
++    }
++
++
++def _advance_to_waypoint(
++    states: list[dict[str, Any]], target_object_id: str, index: dict[str, Any]
++) -> list[dict[str, Any]]:
++    completed: list[dict[str, Any]] = []
++    unresolved: list[dict[str, Any]] = []
++    for state in states:
++        adjacent = _transition_to_object([state], target_object_id, index)
++        if adjacent:
++            completed.extend(adjacent)
++        else:
++            unresolved.append(state)
++    stack: list[tuple[dict[str, Any], frozenset[tuple[str, float]]]] = [
++        (state, frozenset({(state["lane_id"], round(float(state["position_m"]), 9))}))
++        for state in reversed(unresolved)
++    ]
++    nodes = index["nodes"]
++    while stack:
++        state, visited = stack.pop()
++        current_node = nodes[state["lane_id"]]
++        if current_node["object_kind"] == "link":
++            candidate_edges = index["entries_by_source_object"].get(
++                current_node["object_id"], []
++            )
++        else:
++            candidate_edges = index["outgoing"].get(state["lane_id"], [])
++        for edge in candidate_edges:
++            advanced = _take_search_edge(state, edge, index)
++            if advanced is None:
++                continue
++            target_node = nodes[advanced["lane_id"]]
++            if target_node["object_id"] == target_object_id:
++                completed.append(advanced)
++                continue
++            signature = (
++                advanced["lane_id"], round(float(advanced["position_m"]), 9)
++            )
++            if signature in visited:
++                continue
++            stack.append((advanced, visited | {signature}))
++
++    unique: dict[tuple[Any, ...], dict[str, Any]] = {}
++    for state in completed:
++        key = (tuple(state["lane_ids"]), tuple(state["edge_ids"]))
++        unique[key] = state
++    return [unique[key] for key in sorted(unique)]
++
++
++def _first_downstream(
++    state: dict[str, Any], index: dict[str, Any], route: dict[str, Any]
++) -> dict[str, Any]:
++    candidates: list[tuple[float, tuple[int, int | str], dict[str, Any]]] = []
++    for segment in state["lane_segments"]:
++        for head in index["heads"].get(segment["lane_id"], []):
++            position = float(head["position_m"])
++            if (
++                position >= segment["start_position_m"] - POSITION_TOLERANCE_M
++                and position <= segment["end_position_m"] + POSITION_TOLERANCE_M
++            ):
++                distance = segment["path_distance_start_m"] + max(
++                    0.0, position - segment["start_position_m"]
++                )
++                candidates.append((distance, _numeric_key(head["head_no"]), head))
++    if candidates:
++        distance, _, head = min(candidates, key=lambda item: (item[0], item[1]))
++        return {
++            "kind": "signal_head_stopline",
++            "distance_from_decision_m": distance,
++            "signal_controller_no": head["signal_controller_no"],
++            "signal_group_no": head["signal_group_no"],
++            "head_no": head["head_no"],
++            "lane_id": head["lane_id"],
++            "position_m": head["position_m"],
++        }
++    return {
++        "kind": "terminal",
++        "distance_from_decision_m": state["physical_path_length_m"],
++        "lane_id": state["lane_id"],
++        "link_no": route["destination_link_no"],
++        "position_m": route["destination_position_m"],
++    }
++
++
++def resolve_route_paths(route: dict[str, Any], graph: dict[str, Any]) -> tuple[list[dict[str, Any]], str | None]:
++    index = _graph_index(graph)
++    object_by_no = index["object_by_no"]
++    decision_object = object_by_no.get(str(route["decision_link_no"]))
++    destination_object = object_by_no.get(str(route["destination_link_no"]))
++    if decision_object is None:
++        return [], f"unknown decision link {route['decision_link_no']}"
++    if destination_object is None:
++        return [], f"unknown destination link {route['destination_link_no']}"
++    sequence_nos = [
++        str(route["decision_link_no"]),
++        *[str(value) for value in route["link_sequence_vissim_nos"]],
++        str(route["destination_link_no"]),
++    ]
++    unknown = [value for value in sequence_nos if value not in object_by_no]
++    if unknown:
++        return [], f"unknown explicit route objects {unknown}"
++
++    start_position = float(route["decision_position_m"])
++    start_lanes = [
++        lane for lane in index["object_lanes"][decision_object] if not lane.get("closed", False)
++    ]
++    states: list[dict[str, Any]] = []
++    for lane in start_lanes:
++        if start_position < -POSITION_TOLERANCE_M or start_position > lane["length_m"] + POSITION_TOLERANCE_M:
++            continue
++        states.append(
++            {
++                "lane_id": lane["id"],
++                "position_m": min(float(lane["length_m"]), max(0.0, start_position)),
++                "lane_ids": [lane["id"]],
++                "edge_ids": [],
++                "lane_segments": [],
++                "lane_change_events": [],
++                "physical_path_length_m": 0.0,
++            }
++        )
++    if not states:
++        return [], "no open start lane contains the decision position"
++
++    for sequence_no in sequence_nos[1:]:
++        target_object = object_by_no[sequence_no]
++        states = _advance_to_waypoint(states, target_object, index)
++        if not states:
++            return [], f"no forward exact-lane transition to explicit object {sequence_no}"
++
++    terminal_position = float(route["destination_position_m"])
++    completed: list[dict[str, Any]] = []
++    for state in states:
++        terminal_node = index["nodes"][state["lane_id"]]
++        if (
++            terminal_node["object_id"] != destination_object
++            or terminal_node.get("closed", False)
++        ):
++            continue
++        if terminal_position < state["position_m"] - POSITION_TOLERANCE_M:
++            continue
++        if terminal_position > terminal_node["length_m"] + POSITION_TOLERANCE_M:
++            continue
++        advanced = _append_segment(
++            state, min(float(terminal_node["length_m"]), max(0.0, terminal_position))
++        )
++        completed.append(
++            {
++                "start_lane_id": advanced["lane_ids"][0],
++                "terminal_lane_id": advanced["lane_id"],
++                "terminal_position_m": terminal_position,
++                "lane_ids": advanced["lane_ids"],
++                "traversed_edge_ids": advanced["edge_ids"],
++                "lane_segments": advanced["lane_segments"],
++                "lane_change_events": advanced["lane_change_events"],
++                "physical_path_length_m": advanced["physical_path_length_m"],
++                "first_downstream_stopline_or_terminal": _first_downstream(advanced, index, route),
++            }
++        )
++    completed.sort(
++        key=lambda item: (
++            _numeric_key(item["terminal_lane_id"].split(":")[1]),
++            int(item["terminal_lane_id"].split(":")[2]),
++            tuple(item["lane_ids"]),
++            tuple(item["traversed_edge_ids"]),
++        )
++    )
++    if not completed:
++        return [], "destination position is upstream or outside all executable terminal lanes"
++    return completed, None
++
++
++def _flow_at(flow: dict[str, Any], time_ms: float) -> float:
++    supports = flow["supports"]
++    eligible = [item for item in supports if item["time_ms"] <= time_ms]
++    if eligible:
++        return float(eligible[-1]["value"])
++    return float(supports[0]["value"])
++
++
++def _command_hashes() -> dict[str, str]:
++    return behavioral_source_hashes([Path(__file__).resolve()])
++
++
++def semantic_payload(artifact: dict[str, Any]) -> dict[str, Any]:
++    return {
++        "schema_version": artifact["schema_version"],
++        "graph_semantic_sha256": artifact["source"]["graph_semantic_sha256"],
++        "routing_decisions": artifact["routing_decisions"],
++        "routes": artifact["routes"],
++        "proofs": artifact["proofs"],
++    }
++
++
++def compile_route_proofs(
++    inpx: str | Path, graph: dict[str, Any]
++) -> dict[str, Any]:
++    inpx_path = Path(inpx).resolve()
++    input_sha256 = hashlib.sha256(inpx_path.read_bytes()).hexdigest()
++    decisions, routes = parse_static_routes(inpx_path)
++    graph_failures = validate_lane_graph_artifact(graph)
++    reasons: list[dict[str, Any]] = list(graph_failures)
++    if graph.get("source", {}).get("input_sha256") != input_sha256:
++        reasons.append(
++            {
++                "code": "lane_graph_input_hash_mismatch",
++                "entity_id": "lane-graph",
++                "detail": {
++                    "graph_input_sha256": graph.get("source", {}).get("input_sha256"),
++                    "route_input_sha256": input_sha256,
++                },
++            }
++        )
++    graph_usable = not reasons
++    flows: dict[str, dict[str, Any]] = {}
++    paths_by_route: dict[str, list[dict[str, Any]]] = {}
++    for route in routes:
++        try:
++            flows[route["id"]] = parse_relative_flow(route["relative_flow_raw"])
++        except (ValueError, OverflowError) as exc:
++            reasons.append(
++                {"code": "invalid_relative_flow", "entity_id": route["id"], "detail": str(exc)}
++            )
++            continue
++        if not graph_usable:
++            paths_by_route[route["id"]] = []
++            continue
++        paths, error = resolve_route_paths(route, graph)
++        paths_by_route[route["id"]] = paths
++        if error is not None:
++            reasons.append(
++                {"code": "unresolved_route", "entity_id": route["id"], "detail": error}
++            )
++
++    normalized: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    max_share_error = 0.0
++    for decision in decisions:
++        valid_route_ids = [route_id for route_id in decision["route_ids"] if route_id in flows]
++        support_times = sorted(
++            {
++                support["time_ms"]
++                for route_id in valid_route_ids
++                for support in flows[route_id]["supports"]
++            }
++        )
++        for time_ms in support_times:
++            values = {route_id: _flow_at(flows[route_id], time_ms) for route_id in valid_route_ids}
++            total = math.fsum(values.values())
++            if not math.isfinite(total) or total <= 0.0:
++                reasons.append(
++                    {
++                        "code": "invalid_decision_flow_total",
++                        "entity_id": decision["id"],
++                        "detail": {"time_ms": time_ms, "total": total},
++                    }
++                )
++                continue
++            shares = {route_id: value / total for route_id, value in values.items()}
++            share_error = abs(math.fsum(shares.values()) - 1.0)
++            max_share_error = max(max_share_error, share_error)
++            if share_error > FLOW_TOLERANCE:
++                reasons.append(
++                    {
++                        "code": "normalized_flow_share_error",
++                        "entity_id": decision["id"],
++                        "detail": {"time_ms": time_ms, "error": share_error},
++                    }
++                )
++            for route_id in valid_route_ids:
++                normalized[route_id].append(
++                    {
++                        "time_ms": time_ms,
++                        "relative_flow": values[route_id],
++                        "decision_relative_flow_total": total,
++                        "normalized_route_share": shares[route_id],
++                    }
++                )
++
++    proofs: list[dict[str, Any]] = []
++    route_records: list[dict[str, Any]] = []
++    for route in routes:
++        route_paths = paths_by_route.get(route["id"], [])
++        flow = flows.get(route["id"])
++        route_records.append(
++            {
++                **route,
++                "relative_flow": flow,
++                "normalized_flow_supports": normalized.get(route["id"], []),
++                "executable_lane_path_count": len(route_paths),
++                "resolution_status": "PASS" if route_paths else "FAIL",
++            }
++        )
++        if not route_paths:
++            continue
++        path_share = 1.0 / len(route_paths)
++        for path_index, path in enumerate(route_paths, 1):
++            proof_supports = [
++                {
++                    **support,
++                    "normalized_path_share_within_route": path_share,
++                    "normalized_flow_path_share": support["normalized_route_share"] * path_share,
++                }
++                for support in normalized.get(route["id"], [])
++            ]
++            proofs.append(
++                {
++                    "id": f"proof:{route['decision_no']}:{route['route_no']}:{path_index}",
++                    "route_id": route["id"],
++                    "decision_no": route["decision_no"],
++                    "route_no": route["route_no"],
++                    "path_index": path_index,
++                    "path_share_basis": "equal_share_without_lane_demand_evidence",
++                    "flow_path_shares": proof_supports,
++                    **path,
++                }
++            )
++
++    proofs.sort(
++        key=lambda item: (
++            _numeric_key(item["decision_no"]),
++            _numeric_key(item["route_no"]),
++            item["path_index"],
++        )
++    )
++    proof_share_totals: dict[tuple[str, float], list[float]] = defaultdict(list)
++    for proof in proofs:
++        for support in proof["flow_path_shares"]:
++            proof_share_totals[(proof["decision_no"], support["time_ms"])].append(
++                support["normalized_flow_path_share"]
++            )
++    max_path_share_error = max(
++        (
++            abs(math.fsum(shares) - 1.0)
++            for shares in proof_share_totals.values()
++        ),
++        default=0.0,
++    )
++    if max_path_share_error > FLOW_TOLERANCE:
++        reasons.append(
++            {
++                "code": "normalized_path_share_error",
++                "entity_id": "route-proofs",
++                "detail": max_path_share_error,
++            }
++        )
++    max_share_error = max(max_share_error, max_path_share_error)
++    unresolved_routes = sum(not paths_by_route.get(route["id"]) for route in routes)
++    required_edge_ids = {
++        edge_id
++        for paths in paths_by_route.values()
++        for path in paths
++        for edge_id in path["traversed_edge_ids"]
++    }
++    required_connector_lanes = {
++        edge_id.rsplit(":", 1)[0]
++        for edge_id in required_edge_ids
++        if edge_id.endswith(":entry")
++    }
++    graph_coverage = float(
++        graph.get("production_gates", {}).get("executable_connector_path_coverage", 0.0)
++    )
++    if graph_coverage < 1.0 - FLOW_TOLERANCE:
++        reasons.append(
++            {
++                "code": "incomplete_executable_connector_path_coverage",
++                "entity_id": "lane-graph",
++                "detail": graph_coverage,
++            }
++        )
++
++    source_hashes = _command_hashes()
++    artifact: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "canonical_json_version": CANONICAL_JSON_VERSION,
++        "source": {
++            "inpx_path": inpx_path.name,
++            "input_sha256": input_sha256,
++            "graph_schema_version": graph.get("schema_version"),
++            "graph_semantic_sha256": graph.get("semantic_sha256"),
++            "graph_input_sha256": graph.get("source", {}).get("input_sha256"),
++        },
++        "command": {
++            "version": COMMAND_VERSION,
++            "source_sha256": source_hashes,
++            "command_hash": canonical_json_sha256(source_hashes),
++            "semantic_hash_scope": "schema_version, graph semantic hash, decisions, routes, proofs",
++        },
++        "status": "FAIL" if reasons else "PASS",
++        "reasons": sorted(reasons, key=lambda item: (item["code"], item["entity_id"])),
++        "sample_dimensions": {
++            "active_static_routing_decisions": len(decisions),
++            "active_static_routes": len(routes),
++            "executable_lane_path_proofs": len(proofs),
++            "required_connector_lanes": len(required_connector_lanes),
++        },
++        "units": UNITS,
++        "downstream_consumers": DOWNSTREAM_CONSUMERS,
++        "production_gates": {
++            "unresolved_routes": unresolved_routes,
++            "reverse_synthetic_edges": graph.get("production_gates", {}).get(
++                "reverse_synthetic_edges"
++            ),
++            "executable_connector_path_coverage": graph_coverage,
++            "maximum_normalized_flow_share_error": max_share_error,
++        },
++        "routing_decisions": decisions,
++        "routes": route_records,
++        "proofs": proofs,
++    }
++    artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++    return artifact
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--inpx", required=True, type=Path)
++    parser.add_argument("--graph", required=True, type=Path)
++    parser.add_argument("--output", required=True, type=Path)
++    args = parser.parse_args(argv)
++    artifact = compile_route_proofs(args.inpx, load_graph(args.graph))
++    atomic_write_json(args.output, artifact)
++    gates = artifact["production_gates"]
++    print(
++        f"status={artifact['status']} routes={len(artifact['routes'])} "
++        f"proofs={len(artifact['proofs'])} unresolved={gates['unresolved_routes']} "
++        f"flow_error={gates['maximum_normalized_flow_share_error']:.3g} "
++        f"hash={artifact['semantic_sha256']}"
++    )
++    return 0 if artifact["status"] == "PASS" else 2
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+
+## Untracked file: scripts/tests/test_vissim_lane_graph.py
+diff --git a/scripts/tests/test_vissim_lane_graph.py b/scripts/tests/test_vissim_lane_graph.py
+new file mode 100644
+index 0000000..02e7049
+--- /dev/null
++++ b/scripts/tests/test_vissim_lane_graph.py
+@@ -0,0 +1,516 @@
++import copy
++import hashlib
++import math
++import random
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(REPO_ROOT / "scripts"))
++sys.path.insert(0, str(REPO_ROOT / "plant"))
++
++from build_vissim_lane_graph import build_lane_graph, semantic_payload as graph_semantic_payload
++from resolve_lane_routes import (
++    compile_route_proofs,
++    parse_relative_flow,
++    resolve_route_paths,
++)
++from src.vissim_strict.topology import canonical_json_sha256
++
++
++def road(no, lane_count, length=100.0):
++    return {
++        "id": f"link:{no}",
++        "vissim_no": str(no),
++        "name": f"road-{no}",
++        "length_m": length,
++        "geometry": [
++            {"x_m": 0.0, "y_m": float(no), "z_m": 0.0},
++            {"x_m": length, "y_m": float(no), "z_m": 0.0},
++        ],
++        "lanes": [
++            {
++                "id": f"lane:{no}:{lane_no}",
++                "lane_no": lane_no,
++                "width_m": 3.5,
++                "closed": False,
++            }
++            for lane_no in range(1, lane_count + 1)
++        ],
++    }
++
++
++def connector(no, from_link, from_lane, to_link, to_lane, lane_count, from_pos, to_pos, length=20.0):
++    mappings = []
++    for lane_no in range(1, lane_count + 1):
++        mappings.append(
++            {
++                "connector_lane_id": f"lane:{no}:{lane_no}",
++                "from_lane_id": f"lane:{from_link}:{from_lane + lane_no - 1}",
++                "to_lane_id": f"lane:{to_link}:{to_lane + lane_no - 1}",
++            }
++        )
++    return {
++        "id": f"connector:{no}",
++        "vissim_no": str(no),
++        "name": f"connector-{no}",
++        "length_m": length,
++        "lane_count": lane_count,
++        "geometry": [
++            {"x_m": from_pos, "y_m": float(from_link), "z_m": 0.0},
++            {"x_m": to_pos, "y_m": float(to_link), "z_m": 0.0},
++        ],
++        "lanes": [
++            {
++                "id": f"lane:{no}:{lane_no}",
++                "lane_no": lane_no,
++                "width_m": 3.5,
++                "closed": False,
++            }
++            for lane_no in range(1, lane_count + 1)
++        ],
++        "from_endpoint": {
++            "link_no": str(from_link),
++            "lane_no": from_lane,
++            "position_m": from_pos,
++        },
++        "to_endpoint": {
++            "link_no": str(to_link),
++            "lane_no": to_lane,
++            "position_m": to_pos,
++        },
++        "lane_mapping": mappings,
++    }
++
++
++def manifest_fixture():
++    connectors = [
++        connector(100, 1, 1, 2, 1, 2, 80.0, 10.0),
++        connector(101, 2, 1, 3, 1, 1, 70.0, 0.0, 10.0),
++        connector(102, 2, 2, 3, 1, 1, 75.0, 0.0, 12.0),
++    ]
++    return {
++        "compiler_version": "fixture-compiler/1",
++        "topology_hash": "fixture-topology-hash",
++        "validation_report": {"valid": True, "errors": []},
++        "source": {"inpx_path": "fixture.inpx", "inpx_sha256": "fixture-input-hash"},
++        "signal_reference": {
++            "schema_version": "signal-reference-v2.1",
++            "compiler_hash": "fixture-signal-compiler-hash",
++        },
++        "links": [road(1, 2), road(2, 2), road(3, 1)],
++        "connectors": connectors,
++        "signal_heads": [
++            {
++                "id": "signal-head:501",
++                "vissim_no": "501",
++                "name": "fixture-stopline",
++                "lane_ref": {
++                    "raw": "2 1",
++                    "link_no": "2",
++                    "lane_no": 1,
++                    "lane_id": "lane:2:1",
++                },
++                "position_m": 60.0,
++                "signal_group_ref": {
++                    "raw": "12 3",
++                    "controller_no": "12",
++                    "sg_no": 3,
++                },
++            }
++        ],
++    }
++
++
++VALID_ROUTES_XML = """<?xml version="1.0" encoding="UTF-8"?>
++<network><vehicleRoutingDecisionsStatic>
++  <vehicleRoutingDecisionStatic no="7" link="1" pos="10" routeChoiceMeth="STATIC">
++    <vehRoutSta>
++      <vehicleRouteStatic no="1" name="lane-one" destLink="3" destPos="50" relFlow="2 0:1 1000:3">
++        <linkSeq><intObjectRef key="100"/><intObjectRef key="2"/><intObjectRef key="101"/></linkSeq>
++      </vehicleRouteStatic>
++      <vehicleRouteStatic no="2" name="lane-two" destLink="3" destPos="50" relFlow="2 0:1 1000:1">
++        <linkSeq><intObjectRef key="100"/><intObjectRef key="2"/><intObjectRef key="102"/></linkSeq>
++      </vehicleRouteStatic>
++    </vehRoutSta>
++  </vehicleRoutingDecisionStatic>
++</vehicleRoutingDecisionsStatic></network>
++"""
++
++
++def route_record(start_link, start_pos, sequence, destination_link, destination_pos):
++    return {
++        "id": "route:test:1",
++        "decision_no": "test",
++        "route_no": "1",
++        "decision_link_no": str(start_link),
++        "decision_position_m": float(start_pos),
++        "link_sequence_vissim_nos": [str(value) for value in sequence],
++        "destination_link_no": str(destination_link),
++        "destination_position_m": float(destination_pos),
++    }
++
++
++def one_lane_connector_manifest():
++    return {
++        **manifest_fixture(),
++        "links": [road(1, 2), road(2, 1)],
++        "connectors": [connector(100, 1, 1, 2, 1, 1, 80.0, 10.0)],
++        "signal_heads": [],
++    }
++
++
++def compile_xml(xml_text, graph):
++    with tempfile.TemporaryDirectory() as directory:
++        path = Path(directory) / "routes.inpx"
++        path.write_text(xml_text, encoding="utf-8")
++        supplied_graph = copy.deepcopy(graph)
++        supplied_graph["source"]["input_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
++        return compile_route_proofs(path, supplied_graph)
++
++
++class VissimLaneGraphUnitTests(unittest.TestCase):
++    def setUp(self):
++        self.graph = build_lane_graph(manifest_fixture())
++
++    def test_multi_lane_connector_range_has_exact_directed_edges(self):
++        self.assertEqual(self.graph["status"], "PASS")
++        connector = next(item for item in self.graph["connectors"] if item["connector_no"] == "100")
++        self.assertEqual(
++            [
++                (item["connector_lane_id"], item["from_lane_id"], item["to_lane_id"])
++                for item in connector["lane_mapping"]
++            ],
++            [
++                ("lane:100:1", "lane:1:1", "lane:2:1"),
++                ("lane:100:2", "lane:1:2", "lane:2:2"),
++            ],
++        )
++        for lane_no in (1, 2):
++            edges = [
++                edge
++                for edge in self.graph["edges"]
++                if edge["connector_no"] == "100" and edge["connector_lane_no"] == lane_no
++            ]
++            self.assertEqual([edge["kind"] for edge in edges], ["connector_entry", "connector_exit"])
++        self.assertEqual(self.graph["signal_heads"][0]["signal_controller_no"], "12")
++        self.assertEqual(self.graph["signal_heads"][0]["signal_group_no"], 3)
++
++    def test_incomplete_swapped_and_reversed_connector_evidence_fails(self):
++        missing = manifest_fixture()
++        missing["connectors"][0]["lane_mapping"].pop()
++        missing_graph = build_lane_graph(missing)
++        self.assertEqual(missing_graph["status"], "FAIL")
++        self.assertEqual(missing_graph["production_gates"]["unresolved_connector_lane_mappings"], 1)
++        self.assertLess(missing_graph["production_gates"]["executable_connector_path_coverage"], 1.0)
++
++        swapped = manifest_fixture()
++        mapping = swapped["connectors"][0]["lane_mapping"][0]
++        mapping["from_lane_id"], mapping["to_lane_id"] = (
++            mapping["to_lane_id"], mapping["from_lane_id"]
++        )
++        swapped_graph = build_lane_graph(swapped)
++        self.assertEqual(swapped_graph["status"], "FAIL")
++        self.assertEqual(swapped_graph["production_gates"]["reverse_synthetic_edges"], 1)
++
++        endpoint_swap = manifest_fixture()
++        value = endpoint_swap["connectors"][0]
++        value["from_endpoint"], value["to_endpoint"] = (
++            value["to_endpoint"], value["from_endpoint"]
++        )
++        endpoint_graph = build_lane_graph(endpoint_swap)
++        self.assertEqual(endpoint_graph["status"], "FAIL")
++        self.assertGreater(
++            endpoint_graph["production_gates"]["unresolved_connector_lane_mappings"], 0
++        )
++
++    def test_connector_declared_lane_nodes_and_mapping_are_one_to_one(self):
++        duplicate = manifest_fixture()
++        duplicate["connectors"][0]["lane_mapping"].append(
++            copy.deepcopy(duplicate["connectors"][0]["lane_mapping"][0])
++        )
++        graph = build_lane_graph(duplicate)
++        self.assertEqual(graph["status"], "FAIL")
++        self.assertGreater(graph["production_gates"]["unresolved_connector_lane_mappings"], 0)
++
++        missing_node = manifest_fixture()
++        missing_node["connectors"][0]["lanes"].pop()
++        graph = build_lane_graph(missing_node)
++        self.assertEqual(graph["status"], "FAIL")
++        self.assertGreater(graph["production_gates"]["unresolved_connector_lane_mappings"], 0)
++
++    def test_graph_hash_ignores_manifest_iteration_order(self):
++        hashes = set()
++        for seed in range(10):
++            value = copy.deepcopy(manifest_fixture())
++            rng = random.Random(seed)
++            rng.shuffle(value["links"])
++            rng.shuffle(value["connectors"])
++            rng.shuffle(value["signal_heads"])
++            for item in value["links"] + value["connectors"]:
++                rng.shuffle(item["lanes"])
++            for item in value["connectors"]:
++                rng.shuffle(item["lane_mapping"])
++            hashes.add(build_lane_graph(value)["semantic_sha256"])
++        self.assertEqual(len(hashes), 1)
++
++    def test_position_ordering_rejects_reverse_terminal_and_reverse_connector(self):
++        paths, reason = resolve_route_paths(route_record(1, 20, [], 1, 10), self.graph)
++        self.assertFalse(paths)
++        self.assertIn("upstream", reason)
++
++        paths, reason = resolve_route_paths(route_record(3, 10, [101], 2, 50), self.graph)
++        self.assertFalse(paths)
++        self.assertIn("no forward", reason)
++
++    def test_next_connector_upstream_of_current_position_is_rejected(self):
++        paths, reason = resolve_route_paths(route_record(1, 90, [100], 2, 50), self.graph)
++        self.assertFalse(paths)
++        self.assertIn("no forward", reason)
++
++    def test_explicit_and_sparse_connector_waypoints_keep_same_per_state_paths(self):
++        graph = build_lane_graph(one_lane_connector_manifest())
++        explicit, explicit_reason = resolve_route_paths(
++            route_record(1, 10, [100], 2, 50), graph
++        )
++        sparse, sparse_reason = resolve_route_paths(route_record(1, 10, [], 2, 50), graph)
++        self.assertIsNone(explicit_reason)
++        self.assertIsNone(sparse_reason)
++        self.assertEqual(len(explicit), 2)
++        self.assertEqual(len(sparse), 2)
++        self.assertEqual(
++            {item["start_lane_id"] for item in explicit},
++            {item["start_lane_id"] for item in sparse},
++        )
++
++    def test_closed_nodes_and_zero_distance_forced_lane_change_are_rejected(self):
++        source_closed = one_lane_connector_manifest()
++        source_closed["links"][0]["lanes"][0]["closed"] = True
++        paths, _ = resolve_route_paths(
++            route_record(1, 10, [100], 2, 50), build_lane_graph(source_closed)
++        )
++        self.assertFalse(paths)
++
++        connector_closed = one_lane_connector_manifest()
++        connector_closed["connectors"][0]["lanes"][0]["closed"] = True
++        paths, _ = resolve_route_paths(
++            route_record(1, 10, [100], 2, 50), build_lane_graph(connector_closed)
++        )
++        self.assertFalse(paths)
++
++        target_closed = one_lane_connector_manifest()
++        target_closed["links"][1]["lanes"][0]["closed"] = True
++        paths, _ = resolve_route_paths(
++            route_record(1, 10, [100], 2, 50), build_lane_graph(target_closed)
++        )
++        self.assertFalse(paths)
++
++        zero_distance = {
++            **manifest_fixture(),
++            "links": [road(1, 2), road(2, 2), road(3, 1)],
++            "connectors": [
++                connector(100, 1, 1, 2, 2, 1, 80.0, 50.0, 10.0),
++                connector(101, 2, 1, 3, 1, 1, 50.0, 0.0, 10.0),
++            ],
++            "signal_heads": [],
++        }
++        paths, reason = resolve_route_paths(
++            route_record(1, 10, [100, 2, 101], 3, 50),
++            build_lane_graph(zero_distance),
++        )
++        self.assertFalse(paths)
++        self.assertIn("no forward", reason)
++
++    def test_two_legitimate_paths_to_one_terminal_are_retained_and_normalized(self):
++        with tempfile.TemporaryDirectory() as directory:
++            path = Path(directory) / "routes.inpx"
++            path.write_text(VALID_ROUTES_XML, encoding="utf-8")
++            graph = copy.deepcopy(self.graph)
++            graph["source"]["input_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
++            artifact = compile_route_proofs(path, graph)
++        self.assertEqual(artifact["status"], "PASS")
++        self.assertEqual(len(artifact["proofs"]), 4)
++        self.assertEqual({item["terminal_lane_id"] for item in artifact["proofs"]}, {"lane:3:1"})
++        for route_no in ("1", "2"):
++            route_proofs = [
++                proof for proof in artifact["proofs"] if proof["route_no"] == route_no
++            ]
++            self.assertEqual(len(route_proofs), 2)
++            self.assertEqual(
++                {
++                    support["normalized_path_share_within_route"]
++                    for proof in route_proofs
++                    for support in proof["flow_path_shares"]
++                },
++                {0.5},
++            )
++        routes = {item["route_no"]: item for item in artifact["routes"]}
++        self.assertEqual(
++            [item["normalized_route_share"] for item in routes["1"]["normalized_flow_supports"]],
++            [0.5, 0.75],
++        )
++        self.assertEqual(
++            [item["normalized_route_share"] for item in routes["2"]["normalized_flow_supports"]],
++            [0.5, 0.25],
++        )
++        self.assertEqual(artifact["production_gates"]["unresolved_routes"], 0)
++
++    def test_sparse_waypoints_retain_all_directed_paths_to_same_terminal(self):
++        paths, reason = resolve_route_paths(route_record(1, 10, [], 3, 50), self.graph)
++        self.assertIsNone(reason)
++        self.assertEqual(len(paths), 8)
++        self.assertEqual({item["terminal_lane_id"] for item in paths}, {"lane:3:1"})
++        self.assertEqual(
++            {
++                tuple(
++                    edge_id
++                    for edge_id in item["traversed_edge_ids"]
++                    if edge_id.endswith(":entry")
++                )
++                for item in paths
++            },
++            {
++                (
++                    "edge:connector:100:lane:1:entry",
++                    "edge:connector:101:lane:1:entry",
++                ),
++                (
++                    "edge:connector:100:lane:1:entry",
++                    "edge:connector:102:lane:1:entry",
++                ),
++                (
++                    "edge:connector:100:lane:2:entry",
++                    "edge:connector:101:lane:1:entry",
++                ),
++                (
++                    "edge:connector:100:lane:2:entry",
++                    "edge:connector:102:lane:1:entry",
++                ),
++            },
++        )
++
++    def test_single_route_multiple_paths_have_normalized_path_shares_end_to_end(self):
++        xml = """<network><vehicleRoutingDecisionsStatic>
++          <vehicleRoutingDecisionStatic no="7" link="1" pos="10" routeChoiceMeth="STATIC">
++            <vehRoutSta><vehicleRouteStatic no="1" destLink="3" destPos="50" relFlow="1">
++              <linkSeq/>
++            </vehicleRouteStatic></vehRoutSta>
++          </vehicleRoutingDecisionStatic>
++        </vehicleRoutingDecisionsStatic></network>"""
++        artifact = compile_xml(xml, self.graph)
++        self.assertEqual(artifact["status"], "PASS")
++        self.assertEqual(len(artifact["proofs"]), 8)
++        shares = [
++            proof["flow_path_shares"][0]["normalized_flow_path_share"]
++            for proof in artifact["proofs"]
++        ]
++        self.assertAlmostEqual(math.fsum(shares), 1.0, places=12)
++        self.assertEqual(set(shares), {0.125})
++
++    def test_invalid_relative_flow_is_rejected_and_raw_supports_are_preserved(self):
++        parsed = parse_relative_flow("2 0:1.25 1000:2.5")
++        self.assertEqual(parsed["raw"], "2 0:1.25 1000:2.5")
++        self.assertEqual(parsed["encoding_prefix_tokens"], ["2"])
++        self.assertEqual(
++            [(item["time_raw"], item["value_raw"]) for item in parsed["supports"]],
++            [("0", "1.25"), ("1000", "2.5")],
++        )
++        self.assertEqual(parse_relative_flow("")["supports"][0]["value"], 1.0)
++        for raw in (None, "-1", "2 0:-0.1", "2 0:nan", "2 0:inf", "bogus-prefix 0:1"):
++            with self.subTest(raw=raw), self.assertRaises(ValueError):
++                parse_relative_flow(raw)
++
++    def test_missing_relflow_fails_but_explicit_empty_preserves_default_evidence(self):
++        missing = """<network><vehicleRoutingDecisionsStatic>
++          <vehicleRoutingDecisionStatic no="7" link="1" pos="10" routeChoiceMeth="STATIC">
++            <vehRoutSta><vehicleRouteStatic no="1" destLink="2" destPos="50">
++              <linkSeq><intObjectRef key="100"/></linkSeq>
++            </vehicleRouteStatic></vehRoutSta>
++          </vehicleRoutingDecisionStatic>
++        </vehicleRoutingDecisionsStatic></network>"""
++        missing_artifact = compile_xml(missing, build_lane_graph(one_lane_connector_manifest()))
++        self.assertEqual(missing_artifact["status"], "FAIL")
++        self.assertIn("invalid_relative_flow", {item["code"] for item in missing_artifact["reasons"]})
++
++        explicit_empty = missing.replace(
++            'destLink="2" destPos="50"', 'destLink="2" destPos="50" relFlow=""'
++        )
++        empty_artifact = compile_xml(
++            explicit_empty, build_lane_graph(one_lane_connector_manifest())
++        )
++        self.assertEqual(empty_artifact["status"], "PASS")
++        flow = empty_artifact["routes"][0]["relative_flow"]
++        self.assertEqual(flow["raw"], "")
++        self.assertTrue(flow["attribute_present"])
++        self.assertTrue(flow["defaulted"])
++
++    def test_supplied_graph_integrity_false_passes_are_rejected(self):
++        xml = """<network><vehicleRoutingDecisionsStatic>
++          <vehicleRoutingDecisionStatic no="7" link="1" pos="10" routeChoiceMeth="STATIC">
++            <vehRoutSta><vehicleRouteStatic no="1" destLink="2" destPos="50" relFlow="1">
++              <linkSeq><intObjectRef key="100"/></linkSeq>
++            </vehicleRouteStatic></vehRoutSta>
++          </vehicleRoutingDecisionStatic>
++        </vehicleRoutingDecisionsStatic></network>"""
++        base = build_lane_graph(one_lane_connector_manifest())
++
++        stale_hash = copy.deepcopy(base)
++        stale_hash["connectors"][0]["name"] = "tampered"
++
++        wrong_schema = copy.deepcopy(base)
++        wrong_schema["schema_version"] = "wrong"
++        wrong_schema["semantic_sha256"] = canonical_json_sha256(
++            graph_semantic_payload(wrong_schema)
++        )
++
++        failed_status = copy.deepcopy(base)
++        failed_status["status"] = "FAIL"
++        failed_status["reasons"] = [{"code": "fixture", "entity_id": "graph", "detail": None}]
++
++        missing_gate = copy.deepcopy(base)
++        del missing_gate["production_gates"]["reverse_synthetic_edges"]
++
++        noncanonical = copy.deepcopy(base)
++        noncanonical["nodes"].reverse()
++        noncanonical["semantic_sha256"] = canonical_json_sha256(
++            graph_semantic_payload(noncanonical)
++        )
++
++        invalid_degree = copy.deepcopy(base)
++        invalid_degree["edges"].insert(1, copy.deepcopy(invalid_degree["edges"][0]))
++        invalid_degree["semantic_sha256"] = canonical_json_sha256(
++            graph_semantic_payload(invalid_degree)
++        )
++
++        cases = {
++            "stale_hash": (stale_hash, "graph_semantic_hash_mismatch"),
++            "wrong_schema": (wrong_schema, "invalid_lane_graph_schema"),
++            "failed_status": (failed_status, "lane_graph_status_not_pass"),
++            "missing_gate": (missing_gate, "missing_lane_graph_gate"),
++            "noncanonical": (noncanonical, "noncanonical_lane_graph_order"),
++            "invalid_degree": (invalid_degree, "invalid_connector_node_degree"),
++        }
++        for name, (graph, expected_reason) in cases.items():
++            with self.subTest(name=name):
++                artifact = compile_xml(xml, graph)
++                self.assertEqual(artifact["status"], "FAIL")
++                self.assertIn(expected_reason, {item["code"] for item in artifact["reasons"]})
++
++    def test_command_hashes_cover_transitive_behavioral_dependencies(self):
++        graph_dependencies = set(self.graph["command"]["source_sha256"])
++        self.assertTrue(
++            {
++                "scripts/build_vissim_lane_graph.py",
++                "plant/src/vissim_strict/compiler.py",
++                "plant/src/vissim_strict/topology.py",
++                "plant/src/vissim_strict/contraction.py",
++                "plant/src/vissim_strict/signal_program.py",
++            }.issubset(graph_dependencies)
++        )
++
++
++if __name__ == "__main__":
++    unittest.main()
+
+## Untracked file: scripts/tests/test_vissim_lane_graph_real_network.py
+diff --git a/scripts/tests/test_vissim_lane_graph_real_network.py b/scripts/tests/test_vissim_lane_graph_real_network.py
+new file mode 100644
+index 0000000..e2e211c
+--- /dev/null
++++ b/scripts/tests/test_vissim_lane_graph_real_network.py
+@@ -0,0 +1,184 @@
++import copy
++import hashlib
++import math
++import random
++import sys
++import tempfile
++import unittest
++from collections import defaultdict
++from pathlib import Path
++import xml.etree.ElementTree as ET
++
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(REPO_ROOT / "plant"))
++sys.path.insert(0, str(REPO_ROOT / "scripts"))
++
++from build_vissim_lane_graph import build_lane_graph
++from resolve_lane_routes import compile_route_proofs
++from src.vissim_strict.compiler import compile_network
++
++
++REAL_INPX = REPO_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
++
++
++def _local_name(tag):
++    return tag.rsplit("}", 1)[-1]
++
++
++def _shuffle_route_xml(source, destination, seed):
++    tree = ET.parse(source)
++    root = tree.getroot()
++    rng = random.Random(seed)
++    for parent in root.iter():
++        route_indices = [
++            index
++            for index, child in enumerate(list(parent))
++            if _local_name(child.tag) == "vehicleRouteStatic"
++        ]
++        route_children = [parent[index] for index in route_indices]
++        rng.shuffle(route_children)
++        for index, child in zip(route_indices, route_children):
++            parent[index] = child
++    for parent in root.iter():
++        decision_indices = [
++            index
++            for index, child in enumerate(list(parent))
++            if _local_name(child.tag) == "vehicleRoutingDecisionStatic"
++        ]
++        decision_children = [parent[index] for index in decision_indices]
++        rng.shuffle(decision_children)
++        for index, child in zip(decision_indices, decision_children):
++            parent[index] = child
++    tree.write(destination, encoding="utf-8", xml_declaration=True)
++
++
++class VissimLaneGraphRealNetworkTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        if not REAL_INPX.is_file():
++            raise unittest.SkipTest(f"real network not found: {REAL_INPX}")
++        cls.manifest = compile_network(REAL_INPX)
++        cls.graph = build_lane_graph(cls.manifest)
++        cls.proofs = compile_route_proofs(REAL_INPX, cls.graph)
++
++    def test_real_network_production_gates(self):
++        self.assertTrue(self.manifest["validation_report"]["valid"])
++        self.assertEqual(self.manifest["signal_reference"]["schema_version"], "signal-reference-v2.1")
++        self.assertEqual(self.graph["status"], "PASS")
++        self.assertEqual(self.proofs["status"], "PASS")
++        self.assertEqual(self.graph["sample_dimensions"]["road_links"], 448)
++        self.assertEqual(self.graph["sample_dimensions"]["connector_links"], 771)
++        self.assertEqual(self.graph["sample_dimensions"]["connector_lanes"], 1396)
++        self.assertEqual(self.graph["sample_dimensions"]["directed_edges"], 2792)
++        self.assertEqual(self.graph["sample_dimensions"]["signal_heads"], 541)
++        self.assertEqual(self.proofs["sample_dimensions"]["active_static_routing_decisions"], 130)
++        self.assertEqual(self.proofs["sample_dimensions"]["active_static_routes"], 339)
++        self.assertEqual(self.proofs["production_gates"]["unresolved_routes"], 0)
++        self.assertEqual(self.proofs["production_gates"]["reverse_synthetic_edges"], 0)
++        self.assertEqual(self.proofs["production_gates"]["executable_connector_path_coverage"], 1.0)
++        self.assertLessEqual(
++            self.proofs["production_gates"]["maximum_normalized_flow_share_error"], 1.0e-9
++        )
++
++    def test_every_connector_lane_has_exact_entry_and_exit_edges(self):
++        incident = defaultdict(list)
++        for edge in self.graph["edges"]:
++            connector_lane_id = f"lane:{edge['connector_no']}:{edge['connector_lane_no']}"
++            incident[connector_lane_id].append(edge["kind"])
++        connector_lane_ids = {
++            f"lane:{connector['connector_no']}:{lane_no}"
++            for connector in self.graph["connectors"]
++            for lane_no in range(1, connector["lane_count"] + 1)
++        }
++        declared_connector_node_ids = {
++            node["id"] for node in self.graph["nodes"] if node["object_kind"] == "connector"
++        }
++        self.assertEqual(declared_connector_node_ids, connector_lane_ids)
++        self.assertEqual(set(incident), connector_lane_ids)
++        self.assertTrue(
++            all(sorted(incident[lane_id]) == ["connector_entry", "connector_exit"] for lane_id in connector_lane_ids)
++        )
++
++    def test_sc12_shared_lane_mapping_is_unchanged(self):
++        connectors = {item["connector_no"]: item for item in self.graph["connectors"]}
++        expected = {
++            "10241": [
++                ("lane:10241:1", "lane:1220012103:1", "lane:1220013700:1"),
++                ("lane:10241:2", "lane:1220012103:2", "lane:1220013700:2"),
++            ],
++            "10242": [("lane:10242:1", "lane:1220012103:2", "lane:1220015100:3")],
++            "10238": [
++                ("lane:10238:1", "lane:1220013600:1", "lane:1220012003:1"),
++                ("lane:10238:2", "lane:1220013600:2", "lane:1220012003:2"),
++            ],
++            "10240": [("lane:10240:1", "lane:1220013600:2", "lane:1220012600:3")],
++        }
++        actual = {
++            connector_no: [
++                (item["connector_lane_id"], item["from_lane_id"], item["to_lane_id"])
++                for item in connectors[connector_no]["lane_mapping"]
++            ]
++            for connector_no in expected
++        }
++        self.assertEqual(actual, expected)
++
++    def test_ten_shuffled_compiles_have_one_graph_and_route_hash(self):
++        graph_hashes = set()
++        route_hashes = set()
++        shuffled_input_hashes = set()
++        with tempfile.TemporaryDirectory() as directory:
++            for seed in range(10):
++                manifest = copy.deepcopy(self.manifest)
++                rng = random.Random(seed)
++                rng.shuffle(manifest["links"])
++                rng.shuffle(manifest["connectors"])
++                rng.shuffle(manifest["signal_heads"])
++                for item in manifest["links"] + manifest["connectors"]:
++                    rng.shuffle(item["lanes"])
++                for connector in manifest["connectors"]:
++                    rng.shuffle(connector["lane_mapping"])
++                graph = build_lane_graph(manifest)
++                graph_hashes.add(graph["semantic_sha256"])
++
++                shuffled_inpx = Path(directory) / f"routes-shuffled-{seed}.inpx"
++                _shuffle_route_xml(REAL_INPX, shuffled_inpx, seed)
++                shuffled_input_hash = hashlib.sha256(shuffled_inpx.read_bytes()).hexdigest()
++                shuffled_input_hashes.add(shuffled_input_hash)
++                graph["source"]["input_sha256"] = shuffled_input_hash
++                route_hashes.add(
++                    compile_route_proofs(shuffled_inpx, graph)["semantic_sha256"]
++                )
++
++        self.assertEqual(graph_hashes, {self.graph["semantic_sha256"]})
++        self.assertEqual(route_hashes, {self.proofs["semantic_sha256"]})
++        self.assertEqual(len(shuffled_input_hashes), 10)
++
++    def test_route_command_hash_covers_transitive_behavioral_dependencies(self):
++        dependencies = set(self.proofs["command"]["source_sha256"])
++        self.assertTrue(
++            {
++                "scripts/resolve_lane_routes.py",
++                "scripts/build_vissim_lane_graph.py",
++                "plant/src/vissim_strict/compiler.py",
++                "plant/src/vissim_strict/topology.py",
++                "plant/src/vissim_strict/contraction.py",
++                "plant/src/vissim_strict/signal_program.py",
++            }.issubset(dependencies)
++        )
++
++    def test_normalized_proof_shares_sum_to_one_per_decision_support(self):
++        totals = defaultdict(list)
++        for proof in self.proofs["proofs"]:
++            for support in proof["flow_path_shares"]:
++                totals[(proof["decision_no"], support["time_ms"])].append(
++                    support["normalized_flow_path_share"]
++                )
++        self.assertTrue(totals)
++        self.assertLessEqual(
++            max(abs(math.fsum(shares) - 1.0) for shares in totals.values()), 1.0e-9
++        )
++
++
++if __name__ == "__main__":
++    unittest.main()

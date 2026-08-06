@@ -1,0 +1,1676 @@
+﻿# A2 review package
+
+## Untracked file: scripts/compile_physical_stock_topology.py
+diff --git a/scripts/compile_physical_stock_topology.py b/scripts/compile_physical_stock_topology.py
+new file mode 100644
+index 0000000..c00eef3
+--- /dev/null
++++ b/scripts/compile_physical_stock_topology.py
+@@ -0,0 +1,1077 @@
++"""Compile the canonical one-stock physical topology for the VISSIM rollout plant."""
++
++from __future__ import annotations
++
++import argparse
++from collections import defaultdict, deque
++import hashlib
++import json
++import math
++from pathlib import Path
++import sys
++from typing import Any, Iterable
++
++
++SCRIPT_ROOT = Path(__file__).resolve().parent
++if str(SCRIPT_ROOT) not in sys.path:
++    sys.path.insert(0, str(SCRIPT_ROOT))
++
++from build_vissim_lane_graph import (  # noqa: E402
++    atomic_write_json,
++    behavioral_source_hashes,
++    load_graph,
++    validate_lane_graph_artifact,
++)
++from resolve_lane_routes import (  # noqa: E402
++    SCHEMA_VERSION as ROUTE_SCHEMA_VERSION,
++    semantic_payload as route_semantic_payload,
++)
++
++REPO_ROOT = SCRIPT_ROOT.parent
++PLANT_ROOT = REPO_ROOT / "plant"
++if str(PLANT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PLANT_ROOT))
++
++from src.vissim_strict.topology import (  # noqa: E402
++    CANONICAL_JSON_VERSION,
++    canonical_json_sha256,
++)
++
++
++SCHEMA_VERSION = "physical-stock-topology-v2.1"
++COMMAND_VERSION = "compile-physical-stock-topology/2.1.0"
++POSITION_TOLERANCE_M = 1.0e-6
++WEIGHT_TOLERANCE = 1.0e-9
++PRODUCTION_PARTITION_COUNTS = {
++    "urban_owned": 957,
++    "freeway_bound": 22,
++    "boundary_out": 226,
++    "total": 1205,
++}
++OBJECTIVE_POLICIES = {
++    "physical_total": "include every in-network physical stock",
++    "controller_default": "exclude exactly stocks carrying the boundary_out role",
++    "controller_with_boundary": "include every in-network physical stock",
++    "boundary_only": "include exactly stocks carrying the boundary_out role",
++}
++UNITS = {
++    "position": "m",
++    "interval": "half-open [start_m,end_m), with the final endpoint equal to lane length",
++    "length": "m",
++    "capacity": "veh",
++    "jam_density": "veh/km/lane",
++    "owner_weight": "fraction",
++    "objective_weight": "binary dimensionless weight",
++}
++DOWNSTREAM_CONSUMERS = [
++    "rollout plant state projection",
++    "rollout plant physical flow trace",
++    "controller visibility masks",
++    "named objective views",
++]
++
++
++def _numeric_key(value: Any) -> tuple[int, int | str]:
++    try:
++        return (0, int(value))
++    except (TypeError, ValueError):
++        return (1, "" if value is None else str(value))
++
++
++def _finite(value: Any) -> bool:
++    return (
++        isinstance(value, (int, float))
++        and not isinstance(value, bool)
++        and math.isfinite(float(value))
++    )
++
++
++def _position_text(value: float) -> str:
++    value = 0.0 if abs(float(value)) <= POSITION_TOLERANCE_M else float(value)
++    text = format(value, ".15f").rstrip("0").rstrip(".")
++    return text or "0"
++
++
++def stock_id(link_no: str, lane_no: int, start_m: float, end_m: float) -> str:
++    return (
++        f"stock:{link_no}:{lane_no}:"
++        f"{_position_text(start_m)}:{_position_text(end_m)}"
++    )
++
++
++def _stock_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (
++        _numeric_key(item.get("link_no")),
++        int(item.get("lane_no", -1)),
++        float(item.get("start_m", -1.0)),
++        float(item.get("end_m", -1.0)),
++    )
++
++
++def _edge_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (
++        _stock_sort_key({
++            "link_no": item.get("from_link_no"),
++            "lane_no": item.get("from_lane_no"),
++            "start_m": item.get("from_position_m"),
++            "end_m": item.get("from_position_m"),
++        }),
++        str(item.get("kind", "")),
++        str(item.get("id", "")),
++    )
++
++
++def _route_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (_numeric_key(item.get("decision_no")), _numeric_key(item.get("route_no")))
++
++
++def _proof_sort_key(item: dict[str, Any]) -> tuple[Any, ...]:
++    return (*_route_sort_key(item), int(item.get("path_index", -1)))
++
++
++def _normalized_mapping(value: Any, *, field: str) -> dict[str, Any]:
++    if not isinstance(value, dict):
++        raise ValueError(f"{field} must be a JSON object")
++    return {str(key): value[key] for key in sorted(value, key=_numeric_key)}
++
++
++def normalize_ownership_evidence(value: dict[str, Any]) -> dict[str, Any]:
++    owner = _normalized_mapping(value.get("link_owner"), field="link_owner")
++    freeway = _normalized_mapping(
++        value.get("freeway_bound_links"), field="freeway_bound_links"
++    )
++    exits = value.get("monitor_only_exit_links")
++    if not isinstance(exits, list):
++        raise ValueError("monitor_only_exit_links must be a JSON array")
++    exit_ids = sorted({str(item) for item in exits}, key=_numeric_key)
++    return {
++        "rule": str(value.get("rule", "")),
++        "link_owner": {key: str(owner[key]) for key in owner},
++        "freeway_bound_links": {key: str(freeway[key]) for key in freeway},
++        "monitor_only_exit_links": exit_ids,
++        "monitor_only_exit_duplicate_count": len(exits) - len(exit_ids),
++        "urban_link_count": value.get("urban_link_count"),
++    }
++
++
++def normalize_adjacency_evidence(value: dict[str, Any]) -> dict[str, Any]:
++    raw = _normalized_mapping(value.get("adjacency"), field="adjacency")
++    adjacency: dict[str, list[str]] = {}
++    for key, neighbors in raw.items():
++        if not isinstance(neighbors, list):
++            raise ValueError(f"adjacency[{key}] must be a JSON array")
++        adjacency[key] = sorted({str(item) for item in neighbors}, key=_numeric_key)
++    internal = value.get("internal_link_members", {})
++    if not isinstance(internal, dict):
++        raise ValueError("internal_link_members must be a JSON object")
++    normalized_internal = {}
++    for key in sorted(internal):
++        members = internal[key] if isinstance(internal[key], list) else [internal[key]]
++        normalized_internal[str(key)] = sorted({str(item) for item in members}, key=_numeric_key)
++    return {
++        "adjacency": adjacency,
++        "internal_link_members": normalized_internal,
++    }
++
++
++def normalize_capacity_evidence(value: dict[str, Any]) -> dict[str, Any]:
++    jam = value.get("jam_density_veh_km_lane")
++    if not _finite(jam) or float(jam) <= 0.0:
++        raise ValueError("jam_density_veh_km_lane must be finite and positive")
++    ramps = _normalized_mapping(
++        value.get("ramp_queue_max_veh_by_ramp"),
++        field="ramp_queue_max_veh_by_ramp",
++    )
++    if not ramps:
++        raise ValueError("named per-ramp capacity evidence is required")
++    normalized_ramps: dict[str, float] = {}
++    for key, capacity in ramps.items():
++        if not _finite(capacity) or float(capacity) <= 0.0:
++            raise ValueError(f"invalid named ramp capacity for {key}")
++        normalized_ramps[key] = float(capacity)
++    return {
++        "jam_density_veh_km_lane": float(jam),
++        "jam_sample_count": value.get("jam_sample_count"),
++        "source": str(value.get("source", "")),
++        "ramp_queue_source": str(value.get("ramp_queue_source", "")),
++        "ramp_queue_max_veh_by_ramp": normalized_ramps,
++    }
++
++
++def validate_route_proofs_artifact(
++    routes: dict[str, Any], graph: dict[str, Any]
++) -> list[dict[str, Any]]:
++    failures: list[dict[str, Any]] = []
++
++    def fail(code: str, detail: Any) -> None:
++        failures.append({"code": code, "entity_id": "lane-route-proofs", "detail": detail})
++
++    if routes.get("schema_version") != ROUTE_SCHEMA_VERSION:
++        fail("invalid_route_proof_schema", routes.get("schema_version"))
++    if routes.get("canonical_json_version") != CANONICAL_JSON_VERSION:
++        fail("invalid_route_canonical_json_version", routes.get("canonical_json_version"))
++    if routes.get("status") != "PASS":
++        fail("route_proof_status_not_pass", routes.get("status"))
++    if routes.get("reasons") != []:
++        fail("route_proof_reasons_not_empty", routes.get("reasons"))
++    if routes.get("source", {}).get("graph_semantic_sha256") != graph.get("semantic_sha256"):
++        fail(
++            "route_graph_semantic_hash_mismatch",
++            {
++                "route": routes.get("source", {}).get("graph_semantic_sha256"),
++                "graph": graph.get("semantic_sha256"),
++            },
++        )
++    try:
++        actual_hash = canonical_json_sha256(route_semantic_payload(routes))
++    except (KeyError, TypeError, ValueError) as exc:
++        fail("invalid_route_semantic_payload", str(exc))
++        actual_hash = None
++    if actual_hash is not None and routes.get("semantic_sha256") != actual_hash:
++        fail(
++            "route_semantic_hash_mismatch",
++            {"stored": routes.get("semantic_sha256"), "actual": actual_hash},
++        )
++
++    decisions = routes.get("routing_decisions")
++    route_records = routes.get("routes")
++    proofs = routes.get("proofs")
++    if not isinstance(decisions, list) or decisions != sorted(
++        decisions if isinstance(decisions, list) else [],
++        key=lambda item: _numeric_key(item.get("decision_no")),
++    ):
++        fail("noncanonical_route_proof_order", "routing_decisions")
++    if not isinstance(route_records, list) or route_records != sorted(
++        route_records if isinstance(route_records, list) else [], key=_route_sort_key
++    ):
++        fail("noncanonical_route_proof_order", "routes")
++    if not isinstance(proofs, list) or proofs != sorted(
++        proofs if isinstance(proofs, list) else [], key=_proof_sort_key
++    ):
++        fail("noncanonical_route_proof_order", "proofs")
++    route_records = route_records if isinstance(route_records, list) else []
++    proofs = proofs if isinstance(proofs, list) else []
++    lane_ids = {node["id"] for node in graph.get("nodes", [])}
++    edge_ids = {edge["id"] for edge in graph.get("edges", [])}
++    route_ids = {item.get("id") for item in route_records}
++    proof_route_ids = {item.get("route_id") for item in proofs}
++    if len(route_ids) != len(route_records) or route_ids != proof_route_ids:
++        fail(
++            "invalid_route_proof_universe",
++            {"routes_without_proofs": sorted(route_ids - proof_route_ids)},
++        )
++    for route in route_records:
++        if route.get("resolution_status") != "PASS" or not route.get(
++            "normalized_flow_supports"
++        ):
++            fail("invalid_route_record", route.get("id"))
++    for proof in proofs:
++        segments = proof.get("lane_segments")
++        if not isinstance(segments, list) or not segments:
++            fail("invalid_route_lane_segment", proof.get("id"))
++            continue
++        for segment in segments:
++            if (
++                segment.get("lane_id") not in lane_ids
++                or not _finite(segment.get("start_position_m"))
++                or not _finite(segment.get("end_position_m"))
++                or float(segment.get("end_position_m"))
++                <= float(segment.get("start_position_m")) + POSITION_TOLERANCE_M
++            ):
++                fail("invalid_route_lane_segment", {"proof": proof.get("id"), "segment": segment})
++        unknown_edges = sorted(set(proof.get("traversed_edge_ids", [])) - edge_ids)
++        if unknown_edges:
++            fail("route_proof_unknown_edge", {"proof": proof.get("id"), "edges": unknown_edges})
++        supports = proof.get("flow_path_shares")
++        if not isinstance(supports, list) or not supports:
++            fail("invalid_route_flow_share", proof.get("id"))
++        elif any(
++            not _finite(item.get("normalized_flow_path_share"))
++            or float(item["normalized_flow_path_share"]) < 0.0
++            for item in supports
++        ):
++            fail("invalid_route_flow_share", proof.get("id"))
++    gates = routes.get("production_gates", {})
++    required_gates = {
++        "unresolved_routes": 0,
++        "reverse_synthetic_edges": 0,
++        "executable_connector_path_coverage": 1.0,
++    }
++    for name, expected in required_gates.items():
++        value = gates.get(name)
++        if not _finite(value) or abs(float(value) - expected) > WEIGHT_TOLERANCE:
++            fail("invalid_route_production_gate", {"name": name, "value": value})
++    share_error = gates.get("maximum_normalized_flow_share_error")
++    if not _finite(share_error) or float(share_error) > WEIGHT_TOLERANCE:
++        fail("invalid_route_production_gate", {"name": "maximum_normalized_flow_share_error", "value": share_error})
++    return failures
++
++
++def _coalesced_points(
++    length_m: float, evidence: list[tuple[float, str, str]]
++) -> list[dict[str, Any]]:
++    candidates: list[tuple[float, str, str]] = [(0.0, "lane_boundary", "start"), (length_m, "lane_boundary", "end")]
++    for position, kind, identifier in evidence:
++        position = float(position)
++        if position < -POSITION_TOLERANCE_M or position > length_m + POSITION_TOLERANCE_M:
++            raise ValueError(f"split point {position} outside [0,{length_m}]")
++        if abs(position) <= POSITION_TOLERANCE_M:
++            position = 0.0
++        elif abs(position - length_m) <= POSITION_TOLERANCE_M:
++            position = length_m
++        candidates.append((position, kind, identifier))
++    candidates.sort(key=lambda item: (item[0], item[1], item[2]))
++    clusters: list[list[tuple[float, str, str]]] = []
++    for candidate in candidates:
++        if clusters and candidate[0] - clusters[-1][0][0] <= POSITION_TOLERANCE_M:
++            clusters[-1].append(candidate)
++        else:
++            clusters.append([candidate])
++    result = []
++    for cluster in clusters:
++        positions = {item[0] for item in cluster}
++        if 0.0 in positions:
++            position = 0.0
++        elif length_m in positions:
++            position = length_m
++        else:
++            position = min(positions)
++        reasons = [
++            {"kind": kind, "id": identifier}
++            for _, kind, identifier in sorted(cluster, key=lambda item: (item[1], item[2], item[0]))
++        ]
++        result.append({"position_m": position, "evidence": reasons})
++    return result
++
++
++def _partition_and_roles(
++    graph: dict[str, Any], ownership: dict[str, Any]
++) -> tuple[dict[str, str], dict[str, list[str]], dict[str, str], list[dict[str, Any]]]:
++    reasons: list[dict[str, Any]] = []
++    urban = set(ownership["link_owner"])
++    freeway_bound = set(ownership["freeway_bound_links"])
++    boundary = set(ownership["monitor_only_exit_links"])
++    overlaps = (urban & freeway_bound) | (urban & boundary) | (freeway_bound & boundary)
++    if overlaps:
++        reasons.append({"code": "legacy_partition_overlap", "entity_id": "ownership", "detail": sorted(overlaps, key=_numeric_key)})
++    parent_kind = {
++        **{item["link_no"]: "link" for item in graph["links"]},
++        **{item["connector_no"]: "connector" for item in graph["connectors"]},
++    }
++    partition: dict[str, str] = {}
++    for identifier in urban:
++        partition[identifier] = "urban_owned"
++    for identifier in freeway_bound:
++        partition[identifier] = "freeway_bound"
++    for identifier in boundary:
++        partition[identifier] = "boundary_out"
++    unknown = sorted(set(partition) - set(parent_kind), key=_numeric_key)
++    if unknown:
++        reasons.append({"code": "legacy_partition_unknown_parent", "entity_id": "ownership", "detail": unknown})
++
++    connector_by_no = {item["connector_no"]: item for item in graph["connectors"]}
++    unpartitioned_roads = {
++        item["link_no"] for item in graph["links"] if item["link_no"] not in partition
++    }
++    road_neighbors: dict[str, set[str]] = defaultdict(set)
++    for connector in connector_by_no.values():
++        source = connector["from_link_no"]
++        target = connector["to_link_no"]
++        if (
++            connector["connector_no"] not in partition
++            and source in unpartitioned_roads
++            and target in unpartitioned_roads
++        ):
++            road_neighbors[source].add(target)
++            road_neighbors[target].add(source)
++    freeway_anchor_ids = set(ownership["freeway_bound_links"].values())
++    inferred_road_owner: dict[str, str] = {}
++    unseen = set(unpartitioned_roads)
++    while unseen:
++        root = min(unseen, key=_numeric_key)
++        component: set[str] = set()
++        queue = deque([root])
++        while queue:
++            current = queue.popleft()
++            if current in component:
++                continue
++            component.add(current)
++            queue.extend(sorted(road_neighbors[current] - component, key=_numeric_key))
++        unseen -= component
++        owner_ids = component & freeway_anchor_ids
++        if len(owner_ids) == 1:
++            owner = next(iter(owner_ids))
++            for item in component:
++                inferred_road_owner[item] = owner
++        else:
++            reasons.append({
++                "code": "ambiguous_unpartitioned_road_role",
++                "entity_id": ",".join(sorted(component, key=_numeric_key)),
++                "detail": sorted(owner_ids, key=_numeric_key),
++            })
++
++    roles: dict[str, list[str]] = {}
++    for identifier, kind in parent_kind.items():
++        item_roles: set[str] = {"connector"} if kind == "connector" else set()
++        legacy = partition.get(identifier)
++        if legacy == "urban_owned":
++            item_roles.add("urban")
++        elif legacy == "freeway_bound":
++            item_roles.add("interface")
++        elif legacy == "boundary_out":
++            item_roles.add("boundary_out")
++        elif kind == "link" and identifier in inferred_road_owner:
++            item_roles.add("freeway")
++        roles[identifier] = sorted(item_roles)
++    for identifier, connector in connector_by_no.items():
++        if identifier in partition:
++            continue
++        source = connector["from_link_no"]
++        target = connector["to_link_no"]
++        endpoint_roles = {role for endpoint in (source, target) for role in roles.get(endpoint, [])}
++        if target in inferred_road_owner and source not in inferred_road_owner:
++            roles[identifier] = ["connector", "ramp"]
++        elif source in inferred_road_owner and target in inferred_road_owner:
++            owners = {inferred_road_owner[source], inferred_road_owner[target]}
++            if len(owners) == 1:
++                roles[identifier] = ["connector", "freeway"]
++            else:
++                reasons.append({"code": "ambiguous_connector_role", "entity_id": identifier, "detail": sorted(owners, key=_numeric_key)})
++        else:
++            reasons.append({"code": "ambiguous_connector_role", "entity_id": identifier, "detail": sorted(endpoint_roles)})
++    return partition, roles, inferred_road_owner, reasons
++
++
++def _split_evidence(
++    graph: dict[str, Any], routes: dict[str, Any]
++) -> dict[str, list[tuple[float, str, str]]]:
++    evidence: dict[str, list[tuple[float, str, str]]] = defaultdict(list)
++    lanes_by_object_no: dict[str, list[str]] = defaultdict(list)
++    for node in graph["nodes"]:
++        lanes_by_object_no[str(node["link_no"])].append(node["id"])
++    for edge in graph["edges"]:
++        evidence[edge["from_lane_id"]].append((float(edge["from_position_m"]), "graph_edge", edge["id"]))
++        evidence[edge["to_lane_id"]].append((float(edge["to_position_m"]), "graph_edge", edge["id"]))
++    for head in graph["signal_heads"]:
++        evidence[head["lane_id"]].append((float(head["position_m"]), "signal_head", head["id"]))
++    for decision in routes["routing_decisions"]:
++        for lane_id in lanes_by_object_no[str(decision["link_no"])]:
++            evidence[lane_id].append((float(decision["position_m"]), "routing_decision", decision["id"]))
++    for route in routes["routes"]:
++        for lane_id in lanes_by_object_no[str(route["destination_link_no"])]:
++            evidence[lane_id].append((float(route["destination_position_m"]), "route_destination", route["id"]))
++    for proof in routes["proofs"]:
++        for index, segment in enumerate(proof["lane_segments"]):
++            identifier = f"{proof['id']}:segment:{index}"
++            evidence[segment["lane_id"]].append((float(segment["start_position_m"]), "route_segment_start", identifier))
++            evidence[segment["lane_id"]].append((float(segment["end_position_m"]), "route_segment_end", identifier))
++        for index, event in enumerate(proof.get("lane_change_events", [])):
++            identifier = f"{proof['id']}:lane-change:{index}"
++            evidence[event["from_lane_id"]].append((float(event["start_position_m"]), "lane_change_start", identifier))
++            evidence[event["to_lane_id"]].append((float(event["connector_position_m"]), "lane_change_end", identifier))
++    return evidence
++
++
++def _membership_records(
++    stock: dict[str, Any], proof_segments: dict[str, list[dict[str, Any]]]
++) -> list[dict[str, Any]]:
++    memberships = []
++    for item in proof_segments.get(stock["lane_id"], []):
++        overlap = min(stock["end_m"], item["end_m"]) - max(stock["start_m"], item["start_m"])
++        if overlap <= POSITION_TOLERANCE_M:
++            continue
++        memberships.append({
++            "proof_id": item["proof_id"],
++            "route_id": item["route_id"],
++            "decision_no": item["decision_no"],
++            "route_no": item["route_no"],
++            "path_index": item["path_index"],
++            "segment_index": item["segment_index"],
++            "overlap_start_m": max(stock["start_m"], item["start_m"]),
++            "overlap_end_m": min(stock["end_m"], item["end_m"]),
++            "flow_path_shares": item["flow_path_shares"],
++        })
++    memberships.sort(key=lambda item: (*_proof_sort_key(item), item["segment_index"]))
++    return memberships
++
++
++def semantic_payload(artifact: dict[str, Any]) -> dict[str, Any]:
++    return {
++        "schema_version": artifact["schema_version"],
++        "source_artifacts": {
++            key: artifact["source_artifacts"][key]
++            for key in (
++                "lane_graph_semantic_sha256",
++                "lane_route_proofs_semantic_sha256",
++                "ownership_evidence_semantic_sha256",
++                "adjacency_evidence_semantic_sha256",
++                "capacity_evidence_semantic_sha256",
++            )
++        },
++        "policies": artifact["policies"],
++        "legacy_partition": artifact["legacy_partition"],
++        "capacity_evidence": artifact["capacity_evidence"],
++        "stocks": artifact["stocks"],
++        "stock_edges": artifact["stock_edges"],
++    }
++
++
++def _failed_artifact(
++    graph: dict[str, Any],
++    routes: dict[str, Any],
++    source_artifacts: dict[str, Any],
++    reasons: list[dict[str, Any]],
++    source_hashes: dict[str, str],
++) -> dict[str, Any]:
++    artifact = {
++        "schema_version": SCHEMA_VERSION,
++        "canonical_json_version": CANONICAL_JSON_VERSION,
++        "source_artifacts": source_artifacts,
++        "command": {
++            "version": COMMAND_VERSION,
++            "source_sha256": source_hashes,
++            "command_hash": canonical_json_sha256(source_hashes),
++            "semantic_hash_scope": "schema, semantic input hashes, policies, partition, capacity evidence, stocks, stock edges",
++        },
++        "status": "FAIL",
++        "reasons": sorted(reasons, key=lambda item: (item["code"], item["entity_id"])),
++        "units": UNITS,
++        "downstream_consumers": DOWNSTREAM_CONSUMERS,
++        "policies": {
++            "stock_identity": "exact A1 lane interval",
++            "position_tolerance_m": POSITION_TOLERANCE_M,
++            "owner_weight_support": "earliest A1 normalized flow support per proof when direct ownership evidence is absent",
++            "objective_weights": OBJECTIVE_POLICIES,
++        },
++        "legacy_partition": {},
++        "capacity_evidence": {},
++        "sample_dimensions": {"stocks": 0, "stock_edges": 0},
++        "production_gates": {},
++        "stocks": [],
++        "stock_edges": [],
++    }
++    artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++    return artifact
++
++
++def compile_physical_stock_topology(
++    graph: dict[str, Any],
++    routes: dict[str, Any],
++    ownership_evidence: dict[str, Any],
++    adjacency_evidence: dict[str, Any],
++    capacity_evidence: dict[str, Any],
++    *,
++    source_file_sha256: dict[str, str] | None = None,
++    require_production_partition: bool = False,
++) -> dict[str, Any]:
++    source_hashes = behavioral_source_hashes(
++        [Path(__file__).resolve(), SCRIPT_ROOT / "resolve_lane_routes.py"]
++    )
++    reasons = list(validate_lane_graph_artifact(graph))
++    reasons.extend(validate_route_proofs_artifact(routes, graph))
++    try:
++        ownership = normalize_ownership_evidence(ownership_evidence)
++        adjacency = normalize_adjacency_evidence(adjacency_evidence)
++        capacity = normalize_capacity_evidence(capacity_evidence)
++    except (TypeError, ValueError) as exc:
++        reasons.append({"code": "invalid_topology_evidence", "entity_id": "evidence", "detail": str(exc)})
++        ownership, adjacency, capacity = {}, {}, {}
++    source_artifacts = {
++        "lane_graph_schema_version": graph.get("schema_version"),
++        "lane_graph_semantic_sha256": graph.get("semantic_sha256"),
++        "lane_route_proofs_schema_version": routes.get("schema_version"),
++        "lane_route_proofs_semantic_sha256": routes.get("semantic_sha256"),
++        "ownership_evidence_semantic_sha256": canonical_json_sha256(ownership) if ownership else None,
++        "adjacency_evidence_semantic_sha256": canonical_json_sha256(adjacency) if adjacency else None,
++        "capacity_evidence_semantic_sha256": canonical_json_sha256(capacity) if capacity else None,
++        "source_file_sha256": dict(sorted((source_file_sha256 or {}).items())),
++    }
++    if reasons:
++        return _failed_artifact(graph, routes, source_artifacts, reasons, source_hashes)
++
++    partition, roles, inferred_road_owner, role_reasons = _partition_and_roles(graph, ownership)
++    reasons.extend(role_reasons)
++    partition_sets = {
++        "urban_owned": set(ownership["link_owner"]),
++        "freeway_bound": set(ownership["freeway_bound_links"]),
++        "boundary_out": set(ownership["monitor_only_exit_links"]),
++    }
++    partition_union = set().union(*partition_sets.values())
++    partition_duplicates = (
++        sum(map(len, partition_sets.values()))
++        - len(partition_union)
++        + int(ownership["monitor_only_exit_duplicate_count"])
++    )
++    if ownership["monitor_only_exit_duplicate_count"]:
++        reasons.append({
++            "code": "legacy_partition_duplicate",
++            "entity_id": "ownership",
++            "detail": ownership["monitor_only_exit_duplicate_count"],
++        })
++    if ownership.get("urban_link_count") != len(partition_union):
++        reasons.append({
++            "code": "legacy_partition_declared_total_mismatch",
++            "entity_id": "ownership",
++            "detail": {"declared": ownership.get("urban_link_count"), "actual": len(partition_union)},
++        })
++    if require_production_partition:
++        actual = {key: len(value) for key, value in partition_sets.items()}
++        actual["total"] = len(partition_union)
++        if actual != PRODUCTION_PARTITION_COUNTS:
++            reasons.append({"code": "production_partition_count_mismatch", "entity_id": "ownership", "detail": {"expected": PRODUCTION_PARTITION_COUNTS, "actual": actual}})
++
++    urban_owner_ids = {str(value) for value in ownership["link_owner"].values()}
++    missing_adjacency = sorted(urban_owner_ids - set(adjacency["adjacency"]), key=_numeric_key)
++    if missing_adjacency:
++        reasons.append({"code": "missing_owner_adjacency", "entity_id": "adjacency", "detail": missing_adjacency})
++
++    node_by_id = {node["id"]: node for node in graph["nodes"]}
++    parent_by_no = {
++        **{item["link_no"]: item for item in graph["links"]},
++        **{item["connector_no"]: item for item in graph["connectors"]},
++    }
++    connector_by_no = {item["connector_no"]: item for item in graph["connectors"]}
++    direct_owner: dict[str, tuple[str, str]] = {}
++    for identifier, owner in ownership["link_owner"].items():
++        direct_owner[identifier] = (f"urban:{owner}", "legacy_link_owner")
++    for identifier, owner in ownership["freeway_bound_links"].items():
++        direct_owner[identifier] = (f"freeway:{owner}", "legacy_freeway_bound")
++    for identifier, owner in inferred_road_owner.items():
++        direct_owner[identifier] = (f"freeway:{owner}", "a1_connectivity_inference")
++    for identifier, connector in connector_by_no.items():
++        if identifier in direct_owner or identifier in partition_sets["boundary_out"]:
++            continue
++        target_owner = inferred_road_owner.get(connector["to_link_no"])
++        source_owner = inferred_road_owner.get(connector["from_link_no"])
++        if target_owner is not None:
++            direct_owner[identifier] = (f"freeway:{target_owner}", "a1_connectivity_inference")
++        elif source_owner is not None:
++            owner = source_owner
++            direct_owner[identifier] = (f"freeway:{owner}", "a1_connectivity_inference")
++
++    split_evidence = _split_evidence(graph, routes)
++    stocks: list[dict[str, Any]] = []
++    split_points_by_lane: dict[str, list[dict[str, Any]]] = {}
++    stocks_by_lane: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    interval_failures = {"gaps": 0, "overlaps": 0, "missing_lanes": 0, "nonpositive": 0}
++    capacity_hash = source_artifacts["capacity_evidence_semantic_sha256"]
++    jam = capacity["jam_density_veh_km_lane"]
++    for node in graph["nodes"]:
++        lane_id = node["id"]
++        length_m = float(node["length_m"])
++        if length_m <= POSITION_TOLERANCE_M:
++            reasons.append({"code": "nonpositive_lane_length", "entity_id": lane_id, "detail": length_m})
++            interval_failures["nonpositive"] += 1
++            continue
++        try:
++            points = _coalesced_points(length_m, split_evidence.get(lane_id, []))
++        except ValueError as exc:
++            reasons.append({"code": "invalid_split_point", "entity_id": lane_id, "detail": str(exc)})
++            interval_failures["missing_lanes"] += 1
++            continue
++        split_points_by_lane[lane_id] = points
++        for left, right in zip(points, points[1:]):
++            start_m = float(left["position_m"])
++            end_m = float(right["position_m"])
++            if end_m - start_m <= POSITION_TOLERANCE_M:
++                interval_failures["nonpositive"] += 1
++                reasons.append({"code": "nonpositive_stock_interval", "entity_id": lane_id, "detail": [start_m, end_m]})
++                continue
++            parent_no = str(node["link_no"])
++            item_roles = roles.get(parent_no, [])
++            boundary_out = "boundary_out" in item_roles
++            item = {
++                "id": stock_id(parent_no, int(node["lane_no"]), start_m, end_m),
++                "lane_id": lane_id,
++                "link_no": parent_no,
++                "lane_no": int(node["lane_no"]),
++                "parent_id": node["object_id"],
++                "parent_kind": node["object_kind"],
++                "parent_name": str(node.get("name", "")),
++                "start_m": start_m,
++                "end_m": end_m,
++                "length_m": end_m - start_m,
++                "members": [{"kind": "a1_lane", "id": lane_id}],
++                "roles": item_roles,
++                "legacy_partition": partition.get(parent_no, "outside_legacy_partition"),
++                "split_start_evidence": left["evidence"],
++                "split_end_evidence": right["evidence"],
++                "upstream_stock_ids": [],
++                "downstream_stock_ids": [],
++                "upstream_edge_ids": [],
++                "downstream_edge_ids": [],
++                "control_owner_state": {},
++                "control_owner_weights": {},
++                "visible_to": [],
++                "objective_weights": {
++                    "physical_total": 1,
++                    "controller_default": 0 if boundary_out else 1,
++                    "controller_with_boundary": 1,
++                    "boundary_only": 1 if boundary_out else 0,
++                },
++                "route_memberships": [],
++                "capacity_prior": {
++                    "value": (end_m - start_m) / 1000.0 * jam,
++                    "unit": "veh",
++                    "formula": "length_km * jam_density_veh_km_lane for one lane",
++                    "jam_density_veh_km_lane": jam,
++                    "capacity_evidence_semantic_sha256": capacity_hash,
++                },
++            }
++            stocks.append(item)
++            stocks_by_lane[lane_id].append(item)
++
++    proof_segments: dict[str, list[dict[str, Any]]] = defaultdict(list)
++    proof_by_id = {proof["id"]: proof for proof in routes["proofs"]}
++    for proof in routes["proofs"]:
++        for index, segment in enumerate(proof["lane_segments"]):
++            proof_segments[segment["lane_id"]].append({
++                "proof_id": proof["id"],
++                "route_id": proof["route_id"],
++                "decision_no": proof["decision_no"],
++                "route_no": proof["route_no"],
++                "path_index": proof["path_index"],
++                "segment_index": index,
++                "start_m": float(segment["start_position_m"]),
++                "end_m": float(segment["end_position_m"]),
++                "flow_path_shares": proof["flow_path_shares"],
++            })
++    for values in proof_segments.values():
++        values.sort(key=lambda item: (*_proof_sort_key(item), item["segment_index"]))
++    for item in stocks:
++        item["route_memberships"] = _membership_records(item, proof_segments)
++
++    stock_edges: list[dict[str, Any]] = []
++    for lane_id, lane_stocks in stocks_by_lane.items():
++        lane_stocks.sort(key=lambda item: item["start_m"])
++        for left, right in zip(lane_stocks, lane_stocks[1:]):
++            edge_id = f"stock-edge:continuation:{lane_id}:{_position_text(left['end_m'])}"
++            stock_edges.append({
++                "id": edge_id,
++                "kind": "lane_continuation",
++                "from_stock_id": left["id"],
++                "to_stock_id": right["id"],
++                "from_link_no": left["link_no"],
++                "from_lane_no": left["lane_no"],
++                "from_position_m": left["end_m"],
++                "to_link_no": right["link_no"],
++                "to_lane_no": right["lane_no"],
++                "to_position_m": right["start_m"],
++                "source_graph_edge_id": None,
++            })
++    for graph_edge in graph["edges"]:
++        source_candidates = [
++            item for item in stocks_by_lane[graph_edge["from_lane_id"]]
++            if abs(item["end_m"] - float(graph_edge["from_position_m"])) <= POSITION_TOLERANCE_M
++        ]
++        target_candidates = [
++            item for item in stocks_by_lane[graph_edge["to_lane_id"]]
++            if abs(item["start_m"] - float(graph_edge["to_position_m"])) <= POSITION_TOLERANCE_M
++        ]
++        if len(source_candidates) != 1 or len(target_candidates) != 1:
++            reasons.append({"code": "unresolved_stock_edge_endpoint", "entity_id": graph_edge["id"], "detail": {"source_count": len(source_candidates), "target_count": len(target_candidates)}})
++            continue
++        source = source_candidates[0]
++        target = target_candidates[0]
++        stock_edges.append({
++            "id": f"stock-edge:{graph_edge['id']}",
++            "kind": graph_edge["kind"],
++            "from_stock_id": source["id"],
++            "to_stock_id": target["id"],
++            "from_link_no": source["link_no"],
++            "from_lane_no": source["lane_no"],
++            "from_position_m": float(graph_edge["from_position_m"]),
++            "to_link_no": target["link_no"],
++            "to_lane_no": target["lane_no"],
++            "to_position_m": float(graph_edge["to_position_m"]),
++            "source_graph_edge_id": graph_edge["id"],
++        })
++    stock_edges.sort(key=_edge_sort_key)
++    stock_by_id = {item["id"]: item for item in stocks}
++    for edge in stock_edges:
++        source = stock_by_id[edge["from_stock_id"]]
++        target = stock_by_id[edge["to_stock_id"]]
++        source["downstream_stock_ids"].append(target["id"])
++        source["downstream_edge_ids"].append(edge["id"])
++        target["upstream_stock_ids"].append(source["id"])
++        target["upstream_edge_ids"].append(edge["id"])
++
++    parent_direct_owner = direct_owner
++    unexplained_owner = 0
++    max_owner_error = 0.0
++    for item in stocks:
++        parent_no = item["link_no"]
++        route_weights: dict[str, list[float]] = defaultdict(list)
++        for membership in item["route_memberships"]:
++            proof = proof_by_id[membership["proof_id"]]
++            downstream_owner = None
++            for segment in proof["lane_segments"][membership["segment_index"] :]:
++                segment_parent = node_by_id[segment["lane_id"]]["link_no"]
++                if segment_parent == parent_no:
++                    continue
++                if segment_parent in parent_direct_owner:
++                    downstream_owner = parent_direct_owner[segment_parent][0]
++                    break
++            if downstream_owner is None:
++                continue
++            supports = membership["flow_path_shares"]
++            earliest = min(supports, key=lambda support: float(support["time_ms"]))
++            route_weights[downstream_owner].append(float(earliest["normalized_flow_path_share"]))
++        route_totals = {owner: math.fsum(values) for owner, values in route_weights.items()}
++        route_total = math.fsum(route_totals.values())
++        use_route_weights = route_total > 0.0 and (
++            parent_no not in parent_direct_owner
++            or parent_no in partition_sets["freeway_bound"]
++            and len(route_totals) > 1
++        )
++        if parent_no in partition_sets["boundary_out"]:
++            item["control_owner_state"] = {"kind": "external", "reason": "legacy_boundary_out"}
++        elif use_route_weights:
++            item["control_owner_weights"] = {
++                owner: route_totals[owner] / route_total for owner in sorted(route_totals)
++            }
++            item["control_owner_state"] = {"kind": "controlled", "basis": "a1_route_flow_shares"}
++        elif parent_no in parent_direct_owner:
++            owner, basis = parent_direct_owner[parent_no]
++            item["control_owner_weights"] = {owner: 1.0}
++            item["control_owner_state"] = {"kind": "controlled", "basis": basis}
++        else:
++            if route_total > 0.0:
++                item["control_owner_weights"] = {
++                    owner: route_totals[owner] / route_total for owner in sorted(route_totals)
++                }
++                item["control_owner_state"] = {"kind": "controlled", "basis": "a1_route_flow_shares"}
++            else:
++                item["control_owner_state"] = {"kind": "uncontrolled", "reason": "no_owner_or_downstream_route_evidence"}
++                unexplained_owner += 1
++                reasons.append({"code": "unexplained_stock_owner", "entity_id": item["id"], "detail": parent_no})
++        weights = item["control_owner_weights"]
++        if weights:
++            error = abs(math.fsum(weights.values()) - 1.0)
++            max_owner_error = max(max_owner_error, error)
++            if error > WEIGHT_TOLERANCE:
++                reasons.append({"code": "owner_weight_sum_error", "entity_id": item["id"], "detail": error})
++        principals: set[str] = set(weights)
++        for owner in weights:
++            if owner.startswith("urban:"):
++                sc = owner.split(":", 1)[1]
++                principals.update(f"urban:{neighbor}" for neighbor in adjacency["adjacency"].get(sc, []))
++        if item["control_owner_state"]["kind"] == "external":
++            principals.add("external:boundary-out")
++        elif item["control_owner_state"]["kind"] == "uncontrolled":
++            principals.add("uncontrolled:no-owner-evidence")
++        item["visible_to"] = sorted(principals)
++        for field in ("upstream_stock_ids", "downstream_stock_ids", "upstream_edge_ids", "downstream_edge_ids"):
++            item[field] = sorted(set(item[field]))
++
++    stocks.sort(key=_stock_sort_key)
++    stock_ids = [item["id"] for item in stocks]
++    duplicate_stock_ids = len(stock_ids) - len(set(stock_ids))
++    for node in graph["nodes"]:
++        lane_stocks = stocks_by_lane.get(node["id"], [])
++        if not lane_stocks:
++            interval_failures["missing_lanes"] += 1
++            continue
++        expected = 0.0
++        for item in lane_stocks:
++            if item["start_m"] > expected + POSITION_TOLERANCE_M:
++                interval_failures["gaps"] += 1
++            if item["start_m"] < expected - POSITION_TOLERANCE_M:
++                interval_failures["overlaps"] += 1
++            expected = item["end_m"]
++        if abs(expected - float(node["length_m"])) > POSITION_TOLERANCE_M:
++            interval_failures["gaps"] += 1
++
++    objective_violations = 0
++    for item in stocks:
++        weights = item["objective_weights"]
++        boundary_out = "boundary_out" in item["roles"]
++        valid = (
++            set(weights) == set(OBJECTIVE_POLICIES)
++            and all(value in (0, 1) and not isinstance(value, bool) for value in weights.values())
++            and weights["physical_total"] == 1
++            and weights["controller_with_boundary"] == 1
++            and weights["controller_default"] == (0 if boundary_out else 1)
++            and weights["boundary_only"] == (1 if boundary_out else 0)
++        )
++        objective_violations += not valid
++    if any(interval_failures.values()) or duplicate_stock_ids:
++        reasons.append({"code": "lane_interval_partition_failure", "entity_id": "stocks", "detail": {**interval_failures, "duplicate_stock_ids": duplicate_stock_ids}})
++    if objective_violations:
++        reasons.append({"code": "objective_policy_violation", "entity_id": "stocks", "detail": objective_violations})
++
++    role_counts = defaultdict(int)
++    partition_stock_counts = defaultdict(int)
++    parent_kind_stock_counts = defaultdict(int)
++    for item in stocks:
++        for role in item["roles"]:
++            role_counts[role] += 1
++        partition_stock_counts[item["legacy_partition"]] += 1
++        parent_kind_stock_counts[item["parent_kind"]] += 1
++    legacy_summary = {
++        "counts": {
++            "urban_owned": len(partition_sets["urban_owned"]),
++            "freeway_bound": len(partition_sets["freeway_bound"]),
++            "boundary_out": len(partition_sets["boundary_out"]),
++            "total": len(partition_union),
++            "duplicate": partition_duplicates,
++            "missing_from_a1": len(partition_union - set(parent_by_no)),
++        },
++        "remaining_a1_road_links": sum(item["link_no"] not in partition_union for item in graph["links"]),
++        "a1_connector_links": len(graph["connectors"]),
++        "stock_counts": dict(sorted(partition_stock_counts.items())),
++    }
++    topology_capacity_evidence = {
++        "jam_density_veh_km_lane": jam,
++        "jam_density_unit": "veh/km/lane",
++        "semantic_sha256": capacity_hash,
++        "named_ramp_capacity_veh": capacity["ramp_queue_max_veh_by_ramp"],
++        "named_ramp_membership_policy": "preserved as named evidence; source artifact contains no lane-membership mapping",
++    }
++    artifact = {
++        "schema_version": SCHEMA_VERSION,
++        "canonical_json_version": CANONICAL_JSON_VERSION,
++        "source_artifacts": source_artifacts,
++        "command": {
++            "version": COMMAND_VERSION,
++            "source_sha256": source_hashes,
++            "command_hash": canonical_json_sha256(source_hashes),
++            "semantic_hash_scope": "schema, semantic input hashes, policies, partition, capacity evidence, stocks, stock edges",
++        },
++        "status": "FAIL" if reasons else "PASS",
++        "reasons": sorted(reasons, key=lambda item: (item["code"], item["entity_id"])),
++        "units": UNITS,
++        "downstream_consumers": DOWNSTREAM_CONSUMERS,
++        "policies": {
++            "stock_identity": "exact (link_no,lane_no,[start_m,end_m)) A1 lane interval",
++            "position_tolerance_m": POSITION_TOLERANCE_M,
++            "owner_weight_support": "earliest A1 normalized flow support per proof when direct ownership evidence is absent",
++            "visibility": "control owners plus current urban adjacency; external stocks retain an explicit external principal",
++            "objective_weights": OBJECTIVE_POLICIES,
++        },
++        "legacy_partition": legacy_summary,
++        "capacity_evidence": topology_capacity_evidence,
++        "sample_dimensions": {
++            "a1_lane_nodes": len(graph["nodes"]),
++            "a1_road_links": len(graph["links"]),
++            "a1_connector_links": len(graph["connectors"]),
++            "stocks": len(stocks),
++            "stock_edges": len(stock_edges),
++            "route_memberships": sum(len(item["route_memberships"]) for item in stocks),
++            "stocks_by_parent_kind": dict(sorted(parent_kind_stock_counts.items())),
++            "stocks_by_role": dict(sorted(role_counts.items())),
++            "objective_weight_one_counts": {
++                mode: sum(item["objective_weights"][mode] for item in stocks)
++                for mode in OBJECTIVE_POLICIES
++            },
++        },
++        "production_gates": {
++            "lane_interval_gaps": interval_failures["gaps"],
++            "lane_interval_overlaps": interval_failures["overlaps"],
++            "lane_interval_missing_lanes": interval_failures["missing_lanes"],
++            "lane_interval_nonpositive": interval_failures["nonpositive"],
++            "duplicate_stock_ids": duplicate_stock_ids,
++            "legacy_partition_duplicate": partition_duplicates,
++            "legacy_partition_missing_from_a1": len(partition_union - set(parent_by_no)),
++            "maximum_owner_weight_sum_error": max_owner_error,
++            "unexplained_owner_stocks": unexplained_owner,
++            "objective_policy_violations": objective_violations,
++            "visibility_uncovered_stocks": sum(not item["visible_to"] for item in stocks),
++            "named_ramp_capacity_count": len(capacity["ramp_queue_max_veh_by_ramp"]),
++        },
++        "stocks": stocks,
++        "stock_edges": stock_edges,
++    }
++    artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++    return artifact
++
++
++def iter_visible_stock_ids(
++    topology: dict[str, Any], viewers: Iterable[str]
++) -> Iterable[str]:
++    visible = defaultdict(list)
++    for item in topology["stocks"]:
++        for viewer in item["visible_to"]:
++            visible[viewer].append(item["id"])
++    seen: set[str] = set()
++    for viewer in viewers:
++        for identifier in visible.get(str(viewer), []):
++            if identifier not in seen:
++                seen.add(identifier)
++                yield identifier
++
++
++def deduplicated_visible_mass(
++    topology: dict[str, Any], stock_values: dict[str, float], viewers: Iterable[str] | None = None
++) -> float:
++    if viewers is None:
++        viewers = sorted({viewer for item in topology["stocks"] for viewer in item["visible_to"]})
++    return math.fsum(float(stock_values[identifier]) for identifier in iter_visible_stock_ids(topology, viewers))
++
++
++def weighted_objective(
++    topology: dict[str, Any], stock_values: dict[str, float], mode: str
++) -> float:
++    if mode not in OBJECTIVE_POLICIES:
++        raise ValueError(f"unknown objective mode {mode!r}")
++    return math.fsum(
++        float(stock_values[item["id"]]) * item["objective_weights"][mode]
++        for item in topology["stocks"]
++    )
++
++
++def _file_sha256(path: Path) -> str:
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--graph", required=True, type=Path)
++    parser.add_argument("--routes", required=True, type=Path)
++    parser.add_argument("--ownership", required=True, type=Path)
++    parser.add_argument("--adjacency", required=True, type=Path)
++    parser.add_argument("--capacity", required=True, type=Path)
++    parser.add_argument("--output", required=True, type=Path)
++    parser.add_argument(
++        "--allow-fixture-partition",
++        action="store_true",
++        help="disable the 957/22/226 production-count gate for focused fixtures",
++    )
++    args = parser.parse_args(argv)
++    paths = {
++        "lane_graph": args.graph,
++        "lane_route_proofs": args.routes,
++        "ownership_evidence": args.ownership,
++        "adjacency_evidence": args.adjacency,
++        "capacity_evidence": args.capacity,
++    }
++    graph = load_graph(args.graph)
++    with args.routes.open(encoding="utf-8") as handle:
++        routes = json.load(handle)
++    with args.ownership.open(encoding="utf-8") as handle:
++        ownership = json.load(handle)
++    with args.adjacency.open(encoding="utf-8") as handle:
++        adjacency = json.load(handle)
++    with args.capacity.open(encoding="utf-8") as handle:
++        capacity = json.load(handle)
++    artifact = compile_physical_stock_topology(
++        graph,
++        routes,
++        ownership,
++        adjacency,
++        capacity,
++        source_file_sha256={key: _file_sha256(path) for key, path in paths.items()},
++        require_production_partition=not args.allow_fixture_partition,
++    )
++    atomic_write_json(args.output, artifact)
++    gates = artifact.get("production_gates", {})
++    print(
++        f"status={artifact['status']} stocks={len(artifact['stocks'])} "
++        f"edges={len(artifact['stock_edges'])} gaps={gates.get('lane_interval_gaps')} "
++        f"owners={gates.get('unexplained_owner_stocks')} hash={artifact['semantic_sha256']}"
++    )
++    return 0 if artifact["status"] == "PASS" else 2
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+
+## Untracked file: scripts/tests/test_compile_physical_stock_topology.py
+diff --git a/scripts/tests/test_compile_physical_stock_topology.py b/scripts/tests/test_compile_physical_stock_topology.py
+new file mode 100644
+index 0000000..860062e
+--- /dev/null
++++ b/scripts/tests/test_compile_physical_stock_topology.py
+@@ -0,0 +1,386 @@
++import copy
++import hashlib
++import json
++import math
++import random
++import sys
++import tempfile
++import unittest
++from pathlib import Path
++
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(REPO_ROOT / "scripts"))
++sys.path.insert(0, str(REPO_ROOT / "plant"))
++
++from build_vissim_lane_graph import build_lane_graph, semantic_payload as graph_semantic_payload
++from compile_physical_stock_topology import (
++    POSITION_TOLERANCE_M,
++    compile_physical_stock_topology,
++    deduplicated_visible_mass,
++    semantic_payload as topology_semantic_payload,
++    weighted_objective,
++)
++from resolve_lane_routes import compile_route_proofs
++from src.vissim_strict.topology import canonical_json_sha256
++
++
++def road(no, lane_count=1, length=100.0):
++    return {
++        "id": f"link:{no}",
++        "vissim_no": str(no),
++        "name": f"road-{no}",
++        "length_m": length,
++        "geometry": [
++            {"x_m": 0.0, "y_m": float(no), "z_m": 0.0},
++            {"x_m": length, "y_m": float(no), "z_m": 0.0},
++        ],
++        "lanes": [
++            {
++                "id": f"lane:{no}:{lane_no}",
++                "lane_no": lane_no,
++                "width_m": 3.5,
++                "closed": False,
++            }
++            for lane_no in range(1, lane_count + 1)
++        ],
++    }
++
++
++def connector(
++    no,
++    from_link,
++    to_link,
++    *,
++    lane_count=1,
++    from_lane=1,
++    to_lane=1,
++    from_pos=80.0,
++    to_pos=10.0,
++    length=20.0,
++):
++    return {
++        "id": f"connector:{no}",
++        "vissim_no": str(no),
++        "name": f"connector-{no}",
++        "length_m": length,
++        "lane_count": lane_count,
++        "geometry": [
++            {"x_m": from_pos, "y_m": float(from_link), "z_m": 0.0},
++            {"x_m": to_pos, "y_m": float(to_link), "z_m": 0.0},
++        ],
++        "lanes": [
++            {
++                "id": f"lane:{no}:{lane_no}",
++                "lane_no": lane_no,
++                "width_m": 3.5,
++                "closed": False,
++            }
++            for lane_no in range(1, lane_count + 1)
++        ],
++        "from_endpoint": {
++            "link_no": str(from_link),
++            "lane_no": from_lane,
++            "position_m": from_pos,
++        },
++        "to_endpoint": {
++            "link_no": str(to_link),
++            "lane_no": to_lane,
++            "position_m": to_pos,
++        },
++        "lane_mapping": [
++            {
++                "connector_lane_id": f"lane:{no}:{lane_no}",
++                "from_lane_id": f"lane:{from_link}:{from_lane + lane_no - 1}",
++                "to_lane_id": f"lane:{to_link}:{to_lane + lane_no - 1}",
++            }
++            for lane_no in range(1, lane_count + 1)
++        ],
++    }
++
++
++def manifest(roads, connectors, signal_heads=()):
++    return {
++        "compiler_version": "fixture-compiler/1",
++        "topology_hash": "fixture-topology",
++        "validation_report": {"valid": True, "errors": []},
++        "source": {"inpx_path": "fixture.inpx", "inpx_sha256": "pending"},
++        "signal_reference": {
++            "schema_version": "signal-reference-v2.1",
++            "compiler_hash": "fixture-signal-hash",
++        },
++        "links": roads,
++        "connectors": connectors,
++        "signal_heads": list(signal_heads),
++    }
++
++
++def ownership(assignments, freeway=(), boundary=()):
++    owner = {str(key): str(value) for key, value in assignments.items()}
++    freeway_map = {str(key): str(value) for key, value in freeway}
++    exits = [str(value) for value in boundary]
++    return {
++        "rule": "fixture exact ownership",
++        "link_owner": owner,
++        "freeway_bound_links": freeway_map,
++        "monitor_only_exit_links": exits,
++        "urban_link_count": len(owner) + len(freeway_map) + len(exits),
++    }
++
++
++def adjacency(*owners):
++    values = {str(owner) for owner in owners}
++    return {
++        "adjacency": {owner: sorted(values - {owner}, key=int) for owner in sorted(values, key=int)},
++        "internal_link_members": {},
++    }
++
++
++def capacity():
++    return {
++        "jam_density_veh_km_lane": 100.0,
++        "jam_sample_count": 20,
++        "source": "fixture-capacity",
++        "ramp_queue_source": "fixture-ramp-capacity",
++        "ramp_queue_max_veh_by_ramp": {
++            "R_D_E": 10.0,
++            "R_D_W": 11.0,
++            "R_F_E": 12.0,
++            "R_F_W": 13.0,
++        },
++    }
++
++
++def compile_fixture(manifest_value, xml, ownership_value, adjacency_value):
++    with tempfile.TemporaryDirectory() as directory:
++        path = Path(directory) / "fixture.inpx"
++        path.write_text(xml, encoding="utf-8")
++        manifest_value = copy.deepcopy(manifest_value)
++        manifest_value["source"]["inpx_sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
++        graph = build_lane_graph(manifest_value)
++        routes = compile_route_proofs(path, graph)
++    topology = compile_physical_stock_topology(
++        graph,
++        routes,
++        ownership_value,
++        adjacency_value,
++        capacity(),
++    )
++    return graph, routes, topology
++
++
++def route_xml(decisions):
++    records = []
++    for decision_no, link_no, position, routes in decisions:
++        route_records = []
++        for route_no, connector_no, destination, destination_position, relative_flow in routes:
++            route_records.append(
++                f'<vehicleRouteStatic no="{route_no}" destLink="{destination}" '
++                f'destPos="{destination_position}" relFlow="{relative_flow}">'
++                f'<linkSeq><intObjectRef key="{connector_no}"/></linkSeq>'
++                "</vehicleRouteStatic>"
++            )
++        records.append(
++            f'<vehicleRoutingDecisionStatic no="{decision_no}" link="{link_no}" '
++            f'pos="{position}" routeChoiceMeth="STATIC"><vehRoutSta>'
++            + "".join(route_records)
++            + "</vehRoutSta></vehicleRoutingDecisionStatic>"
++        )
++    return "<network><vehicleRoutingDecisionsStatic>" + "".join(records) + "</vehicleRoutingDecisionsStatic></network>"
++
++
++def serial_fixture(*, boundary=False, parallel=False):
++    lane_count = 2 if parallel else 1
++    roads = [road(1, lane_count), road(2, lane_count)]
++    connectors = [connector(100, 1, 2, lane_count=lane_count)]
++    heads = [
++        {
++            "id": "signal-head:501",
++            "vissim_no": "501",
++            "name": "duplicate-entry-stopline",
++            "lane_ref": {
++                "raw": "1 1",
++                "link_no": "1",
++                "lane_no": 1,
++                "lane_id": "lane:1:1",
++            },
++            "position_m": 80.0 + POSITION_TOLERANCE_M / 2.0,
++            "signal_group_ref": {"raw": "1 1", "controller_no": "1", "sg_no": 1},
++        }
++    ]
++    own = ownership({1: 1, 100: 1}, boundary=[2] if boundary else [])
++    if not boundary:
++        own = ownership({1: 1, 2: 1, 100: 1})
++    xml = route_xml([(1, 1, 10, [(1, 100, 2, 50, 1)])])
++    return manifest(roads, connectors, heads), xml, own, adjacency(1)
++
++
++class PhysicalStockTopologySyntheticTests(unittest.TestCase):
++    def test_serial_duplicate_split_points_coalesce_and_cover_every_lane(self):
++        graph, _, topology = compile_fixture(*serial_fixture())
++        self.assertEqual(topology["status"], "PASS")
++        self.assertEqual(
++            {key: topology["production_gates"][key] for key in (
++                "lane_interval_gaps",
++                "lane_interval_overlaps",
++                "lane_interval_missing_lanes",
++                "lane_interval_nonpositive",
++                "duplicate_stock_ids",
++            )},
++            {key: 0 for key in (
++                "lane_interval_gaps",
++                "lane_interval_overlaps",
++                "lane_interval_missing_lanes",
++                "lane_interval_nonpositive",
++                "duplicate_stock_ids",
++            )},
++        )
++        lane_one = [item for item in topology["stocks"] if item["lane_id"] == "lane:1:1"]
++        self.assertEqual([(item["start_m"], item["end_m"]) for item in lane_one], [(0.0, 10.0), (10.0, 80.0), (80.0, 100.0)])
++        self.assertEqual(len({item["id"] for item in topology["stocks"]}), len(topology["stocks"]))
++        self.assertEqual({node["id"] for node in graph["nodes"]}, {item["lane_id"] for item in topology["stocks"]})
++
++    def test_parallel_lane_stocks_remain_distinct(self):
++        _, _, topology = compile_fixture(*serial_fixture(parallel=True))
++        self.assertEqual(topology["status"], "PASS")
++        connector_stocks = [item for item in topology["stocks"] if item["link_no"] == "100"]
++        self.assertEqual({item["lane_no"] for item in connector_stocks}, {1, 2})
++        self.assertEqual(len({item["id"] for item in connector_stocks}), len(connector_stocks))
++
++    def test_split_shared_stock_uses_route_flow_shares_for_multiple_owners(self):
++        roads = [road(1), road(2), road(3)]
++        connectors = [connector(100, 1, 2), connector(101, 1, 3, from_pos=80.0)]
++        xml = route_xml([(7, 1, 10, [(1, 100, 2, 50, 3), (2, 101, 3, 50, 1)])])
++        own = ownership({2: 2, 3: 3, 100: 2, 101: 3}, freeway=[(1, 2)])
++        _, _, topology = compile_fixture(manifest(roads, connectors), xml, own, adjacency(2, 3))
++        self.assertEqual(topology["status"], "PASS")
++        shared = [
++            item for item in topology["stocks"]
++            if item["lane_id"] == "lane:1:1" and item["start_m"] >= 10.0 and item["end_m"] <= 80.0
++        ]
++        self.assertTrue(shared)
++        self.assertTrue(all(item["control_owner_state"]["basis"] == "a1_route_flow_shares" for item in shared))
++        for item in shared:
++            self.assertAlmostEqual(item["control_owner_weights"]["urban:2"], 0.75)
++            self.assertAlmostEqual(item["control_owner_weights"]["urban:3"], 0.25)
++            self.assertEqual({membership["route_id"] for membership in item["route_memberships"]}, {"route:7:1", "route:7:2"})
++
++    def test_merge_keeps_two_physical_upstreams_and_one_downstream_stock(self):
++        roads = [road(1), road(2), road(3)]
++        connectors = [connector(100, 1, 3), connector(101, 2, 3, to_pos=10.0)]
++        xml = route_xml([
++            (1, 1, 10, [(1, 100, 3, 50, 1)]),
++            (2, 2, 10, [(1, 101, 3, 50, 1)]),
++        ])
++        own = ownership({1: 1, 2: 2, 3: 3, 100: 1, 101: 2})
++        _, _, topology = compile_fixture(manifest(roads, connectors), xml, own, adjacency(1, 2, 3))
++        self.assertEqual(topology["status"], "PASS")
++        target = next(item for item in topology["stocks"] if item["lane_id"] == "lane:3:1" and item["start_m"] == 10.0)
++        graph_incoming = [edge for edge in topology["stock_edges"] if edge["to_stock_id"] == target["id"] and edge["source_graph_edge_id"]]
++        self.assertEqual(len(graph_incoming), 2)
++        self.assertEqual(len({edge["from_stock_id"] for edge in graph_incoming}), 2)
++
++    def test_boundary_modes_change_only_exact_boundary_contribution(self):
++        _, _, topology = compile_fixture(*serial_fixture(boundary=True))
++        self.assertEqual(topology["status"], "PASS")
++        values = {item["id"]: index + 0.25 for index, item in enumerate(topology["stocks"])}
++        boundary = math.fsum(values[item["id"]] for item in topology["stocks"] if "boundary_out" in item["roles"])
++        default = weighted_objective(topology, values, "controller_default")
++        with_boundary = weighted_objective(topology, values, "controller_with_boundary")
++        self.assertAlmostEqual(with_boundary - default, boundary, places=12)
++        self.assertAlmostEqual(weighted_objective(topology, values, "boundary_only"), boundary, places=12)
++        traces = set()
++        for mode in (
++            "physical_total",
++            "controller_default",
++            "controller_with_boundary",
++            "boundary_only",
++        ):
++            weighted_objective(topology, values, mode)
++            traces.add(json.dumps(
++                {
++                    "stocks": [item["id"] for item in topology["stocks"]],
++                    "edges": topology["stock_edges"],
++                    "values": values,
++                },
++                sort_keys=True,
++                separators=(",", ":"),
++            ).encode("utf-8"))
++        self.assertEqual(len(traces), 1)
++
++    def test_visibility_iteration_deduplicates_global_mass_for_ten_orders(self):
++        _, _, topology = compile_fixture(*serial_fixture(parallel=True))
++        values = {item["id"]: (index + 1) / 7.0 for index, item in enumerate(topology["stocks"])}
++        expected = math.fsum(values.values())
++        viewers = sorted({viewer for item in topology["stocks"] for viewer in item["visible_to"]})
++        for seed in range(10):
++            shuffled = viewers[:]
++            random.Random(seed).shuffle(shuffled)
++            self.assertAlmostEqual(deduplicated_visible_mass(topology, values, shuffled), expected, places=12)
++
++    def test_missing_parent_owner_adjacency_and_tampered_hash_fail_closed(self):
++        graph, routes, topology = compile_fixture(*serial_fixture())
++        self.assertEqual(topology["status"], "PASS")
++        _, _, own, adj = serial_fixture()
++
++        missing_parent = copy.deepcopy(graph)
++        missing_parent["links"].pop()
++        missing_parent["semantic_sha256"] = canonical_json_sha256(graph_semantic_payload(missing_parent))
++
++        missing_owner = copy.deepcopy(own)
++        del missing_owner["link_owner"]["2"]
++        missing_owner["urban_link_count"] -= 1
++
++        missing_adjacency = copy.deepcopy(adj)
++        missing_adjacency["adjacency"] = {}
++
++        stale_graph = copy.deepcopy(graph)
++        stale_graph["nodes"][0]["name"] = "tampered"
++
++        stale_routes = copy.deepcopy(routes)
++        stale_routes["proofs"][0]["terminal_position_m"] += 1.0
++
++        cases = {
++            "missing_parent": (missing_parent, routes, own, adj),
++            "missing_owner": (graph, routes, missing_owner, adj),
++            "missing_adjacency": (graph, routes, own, missing_adjacency),
++            "stale_graph": (stale_graph, routes, own, adj),
++            "stale_routes": (graph, stale_routes, own, adj),
++        }
++        for name, (case_graph, case_routes, case_owner, case_adj) in cases.items():
++            with self.subTest(name=name):
++                artifact = compile_physical_stock_topology(
++                    case_graph, case_routes, case_owner, case_adj, capacity()
++                )
++                self.assertEqual(artifact["status"], "FAIL")
++                self.assertTrue(artifact["reasons"])
++
++    def test_semantic_hash_ignores_source_file_byte_hashes(self):
++        graph, routes, _ = compile_fixture(*serial_fixture())
++        _, _, own, adj = serial_fixture()
++        left = compile_physical_stock_topology(
++            graph, routes, own, adj, capacity(), source_file_sha256={"ownership": "a"}
++        )
++        right = compile_physical_stock_topology(
++            graph, routes, own, adj, capacity(), source_file_sha256={"ownership": "b"}
++        )
++        self.assertEqual(left["semantic_sha256"], right["semantic_sha256"])
++        self.assertEqual(left["semantic_sha256"], canonical_json_sha256(topology_semantic_payload(left)))
++        self.assertTrue({
++            "scripts/build_vissim_lane_graph.py",
++            "scripts/resolve_lane_routes.py",
++            "scripts/compile_physical_stock_topology.py",
++            "plant/src/vissim_strict/topology.py",
++        }.issubset(left["command"]["source_sha256"]))
++
++    def test_duplicate_boundary_identity_fails_closed(self):
++        graph, routes, _ = compile_fixture(*serial_fixture(boundary=True))
++        _, _, own, adj = serial_fixture(boundary=True)
++        own["monitor_only_exit_links"].append("2")
++        artifact = compile_physical_stock_topology(graph, routes, own, adj, capacity())
++        self.assertEqual(artifact["status"], "FAIL")
++        self.assertIn("legacy_partition_duplicate", {item["code"] for item in artifact["reasons"]})
++
++
++if __name__ == "__main__":
++    unittest.main()
+
+## Untracked file: scripts/tests/test_compile_physical_stock_topology_real_network.py
+diff --git a/scripts/tests/test_compile_physical_stock_topology_real_network.py b/scripts/tests/test_compile_physical_stock_topology_real_network.py
+new file mode 100644
+index 0000000..55af265
+--- /dev/null
++++ b/scripts/tests/test_compile_physical_stock_topology_real_network.py
+@@ -0,0 +1,188 @@
++import copy
++import json
++import random
++import sys
++import unittest
++from pathlib import Path
++
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++sys.path.insert(0, str(REPO_ROOT / "scripts"))
++sys.path.insert(0, str(REPO_ROOT / "plant"))
++
++from build_vissim_lane_graph import build_lane_graph, validate_lane_graph_artifact
++from compile_physical_stock_topology import (
++    PRODUCTION_PARTITION_COUNTS,
++    compile_physical_stock_topology,
++    deduplicated_visible_mass,
++    validate_route_proofs_artifact,
++)
++from resolve_lane_routes import compile_route_proofs
++from src.vissim_strict.compiler import compile_network
++
++
++REAL_INPX = REPO_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
++OWNERSHIP = REPO_ROOT / "outputs" / "link_player_assignment_20260805.json"
++ADJACENCY = REPO_ROOT / "outputs" / "intersection_adjacency8_20260805.json"
++CAPACITY = REPO_ROOT / "outputs" / "urban_storage_capacity_20260805.json"
++
++
++def load_json(path):
++    with path.open(encoding="utf-8") as handle:
++        return json.load(handle)
++
++
++def shuffled_mapping(value, rng):
++    items = list(value.items())
++    rng.shuffle(items)
++    return {key: item for key, item in items}
++
++
++class PhysicalStockTopologyRealNetworkTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        required = (REAL_INPX, OWNERSHIP, ADJACENCY, CAPACITY)
++        if not all(path.is_file() for path in required):
++            raise unittest.SkipTest("production topology inputs are unavailable")
++        cls.manifest = compile_network(REAL_INPX)
++        cls.graph = build_lane_graph(cls.manifest)
++        cls.routes = compile_route_proofs(REAL_INPX, cls.graph)
++        cls.ownership = load_json(OWNERSHIP)
++        cls.adjacency = load_json(ADJACENCY)
++        cls.capacity = load_json(CAPACITY)
++        cls.topology = compile_physical_stock_topology(
++            cls.graph,
++            cls.routes,
++            cls.ownership,
++            cls.adjacency,
++            cls.capacity,
++            require_production_partition=True,
++        )
++
++    def test_a1_artifacts_are_revalidated_before_use(self):
++        self.assertEqual(validate_lane_graph_artifact(self.graph), [])
++        self.assertEqual(validate_route_proofs_artifact(self.routes, self.graph), [])
++        self.assertEqual(self.graph["status"], "PASS")
++        self.assertEqual(self.routes["status"], "PASS")
++
++    def test_production_partition_stock_capacity_and_objective_gates(self):
++        topology = self.topology
++        self.assertEqual(topology["status"], "PASS", topology["reasons"][:5])
++        self.assertEqual(topology["schema_version"], "physical-stock-topology-v2.1")
++        self.assertEqual(topology["legacy_partition"]["counts"], {
++            **PRODUCTION_PARTITION_COUNTS,
++            "duplicate": 0,
++            "missing_from_a1": 0,
++        })
++        self.assertEqual(topology["legacy_partition"]["remaining_a1_road_links"], 4)
++        self.assertEqual(topology["legacy_partition"]["a1_connector_links"], 771)
++        gates = topology["production_gates"]
++        for name in (
++            "lane_interval_gaps",
++            "lane_interval_overlaps",
++            "lane_interval_missing_lanes",
++            "lane_interval_nonpositive",
++            "duplicate_stock_ids",
++            "legacy_partition_duplicate",
++            "legacy_partition_missing_from_a1",
++            "unexplained_owner_stocks",
++            "objective_policy_violations",
++            "visibility_uncovered_stocks",
++        ):
++            self.assertEqual(gates[name], 0, name)
++        self.assertLessEqual(gates["maximum_owner_weight_sum_error"], 1.0e-9)
++        self.assertEqual(gates["named_ramp_capacity_count"], 4)
++        self.assertEqual(
++            topology["capacity_evidence"]["named_ramp_capacity_veh"],
++            {"R_D_E": 93.0, "R_D_W": 128.0, "R_F_E": 128.4, "R_F_W": 145.9},
++        )
++        dimensions = topology["sample_dimensions"]
++        self.assertEqual(dimensions["a1_lane_nodes"], 2649)
++        self.assertEqual(dimensions["a1_road_links"], 448)
++        self.assertEqual(dimensions["a1_connector_links"], 771)
++        self.assertEqual(dimensions["stocks_by_parent_kind"]["connector"], 1435)
++        self.assertEqual(
++            dimensions["objective_weight_one_counts"]["controller_with_boundary"]
++            - dimensions["objective_weight_one_counts"]["controller_default"],
++            dimensions["objective_weight_one_counts"]["boundary_only"],
++        )
++
++    def test_capacity_formula_and_visibility_mass_are_exact(self):
++        topology = self.topology
++        jam = topology["capacity_evidence"]["jam_density_veh_km_lane"]
++        for item in topology["stocks"]:
++            self.assertAlmostEqual(
++                item["capacity_prior"]["value"], item["length_m"] / 1000.0 * jam, places=12
++            )
++        values = {item["id"]: (index % 17 + 1) / 13.0 for index, item in enumerate(topology["stocks"])}
++        self.assertAlmostEqual(deduplicated_visible_mass(topology, values), sum(values.values()), places=9)
++
++    def test_sc12_lane_two_through_and_left_share_physical_stock_ids(self):
++        lane_id = "lane:1220012103:2"
++        proofs = {proof["id"]: proof for proof in self.routes["proofs"]}
++        through_edge = "edge:connector:10241:lane:2:entry"
++        left_edge = "edge:connector:10242:lane:1:entry"
++        through_ids = set()
++        left_ids = set()
++        for item in self.topology["stocks"]:
++            if item["lane_id"] != lane_id:
++                continue
++            for membership in item["route_memberships"]:
++                traversed = set(proofs[membership["proof_id"]]["traversed_edge_ids"])
++                if through_edge in traversed:
++                    through_ids.add(item["id"])
++                if left_edge in traversed:
++                    left_ids.add(item["id"])
++        shared = through_ids & left_ids
++        self.assertTrue(through_ids)
++        self.assertTrue(left_ids)
++        self.assertTrue(shared)
++        stock_ids = [item["id"] for item in self.topology["stocks"] if item["lane_id"] == lane_id]
++        self.assertEqual(len(stock_ids), len(set(stock_ids)))
++
++    def test_ten_shuffled_inputs_produce_one_semantic_hash(self):
++        hashes = set()
++        for seed in range(10):
++            rng = random.Random(seed)
++            manifest = copy.deepcopy(self.manifest)
++            rng.shuffle(manifest["links"])
++            rng.shuffle(manifest["connectors"])
++            rng.shuffle(manifest["signal_heads"])
++            for parent in manifest["links"] + manifest["connectors"]:
++                rng.shuffle(parent["lanes"])
++            for connector in manifest["connectors"]:
++                rng.shuffle(connector["lane_mapping"])
++            graph = build_lane_graph(manifest)
++
++            owner = copy.deepcopy(self.ownership)
++            owner["link_owner"] = shuffled_mapping(owner["link_owner"], rng)
++            owner["freeway_bound_links"] = shuffled_mapping(owner["freeway_bound_links"], rng)
++            rng.shuffle(owner["monitor_only_exit_links"])
++
++            adjacency = copy.deepcopy(self.adjacency)
++            adjacency["adjacency"] = shuffled_mapping(adjacency["adjacency"], rng)
++            for neighbors in adjacency["adjacency"].values():
++                rng.shuffle(neighbors)
++            adjacency["internal_link_members"] = shuffled_mapping(
++                adjacency["internal_link_members"], rng
++            )
++
++            capacity = copy.deepcopy(self.capacity)
++            capacity["ramp_queue_max_veh_by_ramp"] = shuffled_mapping(
++                capacity["ramp_queue_max_veh_by_ramp"], rng
++            )
++            topology = compile_physical_stock_topology(
++                graph,
++                self.routes,
++                owner,
++                adjacency,
++                capacity,
++                require_production_partition=True,
++            )
++            self.assertEqual(topology["status"], "PASS", topology["reasons"][:3])
++            hashes.add(topology["semantic_sha256"])
++        self.assertEqual(hashes, {self.topology["semantic_sha256"]})
++
++
++if __name__ == "__main__":
++    unittest.main()
