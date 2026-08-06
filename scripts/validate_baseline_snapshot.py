@@ -777,9 +777,15 @@ def _validate_audit_artifact(
         ):
             reasons.append(f"audit action artifact identity mismatch: {relative}")
             break
+    # audit 의 state 발견과 **같은** 배제를 써야 한다. 아래 :786-787 이 audit 의
+    # state_file_count / state_files 와 정확히 대조하므로, 한쪽만 sidecar 를 거르면
+    # 두 목록이 어긋나 "inventory/count/status differs from baseline" 로 FAIL 한다.
+    # 접미사는 audit_plant_fidelity 한 곳에만 존재한다.
+    sidecar_suffixes = _current_auditor().STATE_SIDECAR_SUFFIXES
     expected_state_files = sorted(
         str(path.resolve(strict=False))
         for path in (*baseline_dir.rglob("state_*.json"), *baseline_dir.rglob("anchor_*.json"))
+        if not path.name.endswith(sidecar_suffixes)
     )
     expected_action_files = sorted(str(path.resolve(strict=False)) for path in baseline_dir.rglob("action_*.json"))
     if (
@@ -1242,6 +1248,12 @@ def _validate_json_contract(decision_dir: Path, provenance_path: Path | None, ru
         paths.append(("anchor", decision_dir / f"anchor_{sec:06d}.json", sec))
         expected_files.add(decision_dir / f"anchor_{sec:06d}.json")
     discovered = set(decision_dir.glob("state_*.json")) | set(decision_dir.glob("action_*.json")) | set(decision_dir.glob("action_*.csv")) | set(decision_dir.glob("anchor_*.json"))
+    # sidecar 는 state 의 형제로 state_ 접두사를 물려받으므로 위 glob 에 걸린다.
+    # expected_files 에는 없으니 그대로 두면 unexpected 로 분류돼 FAIL 한다.
+    discovered = {
+        path for path in discovered
+        if not path.name.endswith(_current_auditor().STATE_SIDECAR_SUFFIXES)
+    }
     unexpected = sorted(str(path) for path in discovered - expected_files)
     for kind, path, sec in paths:
         if not path.is_file():

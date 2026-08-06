@@ -520,6 +520,24 @@ class ValidateBaselineSnapshotTests(unittest.TestCase):
         path = fixture.decision_dir / "action_000900.json"; payload = json.loads(path.read_text(encoding="utf-8")); payload["run_provenance"]["run_id"] = "different"; fixture.write_json(path, payload)
         self.assertEqual(fixture.validate()["checks"]["state_action_anchor_contract"]["status"], "FAIL")
 
+    def test_state_sidecars_do_not_break_inventory_or_audit_comparison(self) -> None:
+        # sidecar 는 state 의 형제로 state_ 접두사를 물려받아 두 발견 경로에 모두 걸린다.
+        # audit 만 거르고 여기서 안 거르면 :786 대조가 어긋나 FAIL 한다.
+        temporary, fixture = self.make_fixture(); self.addCleanup(temporary.cleanup)
+        state_path = fixture.decision_dir / "state_000900.json"
+        self.assertTrue(state_path.is_file())
+        for suffix in validator._current_auditor().STATE_SIDECAR_SUFFIXES:
+            state_path.with_name(state_path.stem + suffix).write_text(
+                '{"status": "PASS"}', encoding="utf-8"
+            )
+        # 실제 흐름에서는 감사와 baseline 검증이 같은 디렉터리 상태를 본다.
+        # 감사 생성 이후에 파일을 넣으면 정확 재고 계약이 별개 이유로 FAIL 한다.
+        fixture.refresh_certification_wrappers()
+        result = fixture.validate()
+        self.assertEqual(result["checks"]["state_action_anchor_contract"]["status"], "PASS")
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["reasons"], [])
+
     def test_stale_extra_anchor_fails_exact_inventory(self) -> None:
         temporary, fixture = self.make_fixture(); self.addCleanup(temporary.cleanup)
         fixture.write_json(fixture.decision_dir / "anchor_003000.json", fixture.state_payload(3000))
