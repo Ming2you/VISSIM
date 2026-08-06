@@ -349,8 +349,14 @@ function Get-B1aSchedulePlan(
   }
 }
 
-function Write-B1aJsonTemplate([string]$PathValue, $Value) {
-  $json = $Value | ConvertTo-Json -Depth 12
+# Single template serializer for both the publish path and the dry-run path.
+# PowerShell 5.1 ConvertTo-Json emits a double with no fractional part as an integer
+# literal, and the consumer contract (plant/src/vissim_strict/run_evidence.py) rejects
+# integers in allowed_capture_times. Both callers must therefore share this
+# normalization, otherwise the dry-run validates different bytes than are published.
+function ConvertTo-B1aTemplateJson($Value, [bool]$Compress) {
+  if ($Compress) { $json = $Value | ConvertTo-Json -Depth 12 -Compress }
+  else { $json = $Value | ConvertTo-Json -Depth 12 }
   $allowedValues = $null
   $hasAllowedValues = $false
   if ($Value -is [System.Collections.IDictionary] -and $Value.Contains('allowed_capture_times')) {
@@ -370,6 +376,11 @@ function Write-B1aJsonTemplate([string]$PathValue, $Value) {
     if ($matches.Count -ne 1) { throw 'allowed_capture_times JSON contract replacement failed' }
     $json = [regex]::Replace($json, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($match) $replacement }, 1)
   }
+  return $json
+}
+
+function Write-B1aJsonTemplate([string]$PathValue, $Value) {
+  $json = ConvertTo-B1aTemplateJson $Value $false
   $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes($json + "`n")
   $stream = [System.IO.File]::Open($PathValue, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
   try { $stream.Write($bytes, 0, $bytes.Length); $stream.Flush($true) } finally { $stream.Dispose() }
@@ -400,7 +411,7 @@ function Assert-B1aResultPass([string]$PathValue, [string]$Label) {
 }
 
 function Invoke-B1aTemplateValidationNoWrite([string]$PythonPath, [string]$ProducerPath, $Template) {
-  $json = ($Template | ConvertTo-Json -Depth 12 -Compress)
+  $json = ConvertTo-B1aTemplateJson $Template $true
   $startInfo = New-Object System.Diagnostics.ProcessStartInfo
   $startInfo.FileName = $PythonPath
   $startInfo.Arguments = '-B ' + (Q $ProducerPath) + ' --validate-template-stdin --workspace-root ' + (Q $repo)

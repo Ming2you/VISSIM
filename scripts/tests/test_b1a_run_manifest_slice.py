@@ -1161,6 +1161,7 @@ class ProducerCliTests(unittest.TestCase):
         template.pop("semantic_sha256")
         stage_dir = self.root / "evaluation" / "runs" / "campaign-001"
         template_path = stage_dir / ".stage_attempt_01_run-001_request_template.json"
+        compressed_path = stage_dir / ".stage_attempt_01_run-001_dryrun_template.json"
         request_path = stage_dir / ".stage_attempt_01_run-001_request.json"
         validation_template_path = stage_dir / ".stage_attempt_01_run-001_validation_template.json"
         validation_request_path = stage_dir / ".stage_attempt_01_run-001_validation_request.json"
@@ -1209,6 +1210,10 @@ class ProducerCliTests(unittest.TestCase):
                     "}",
                     "$template = New-B1aRequestTemplate 'run-001' 'campaign-001' 1 'evaluation/runs/campaign-001/attempt_01_run-001' 'evaluation/runs/campaign-001/attempt_01_run-001/run_manifest_creation_result_v2_1.json' $false $inputBindings $sourceBindings $schedule 'outputs/topology_approval_v2_1.json' 'outputs/preflight_manifest_v3.json'",
                     f"Write-B1aJsonTemplate '{template_path}' $template",
+                    # dry-run(-B1aDryRun)은 압축 직렬화기를 쓴다. 발행본과 같은 정규화를
+                    # 거치는지 여기서 고정한다 - 갈라지면 사전검증이 실제 바이트와 다른 것을 본다.
+                    "$compressed = ConvertTo-B1aTemplateJson $template $true",
+                    f"[System.IO.File]::WriteAllBytes('{compressed_path}', [System.Text.UTF8Encoding]::new($false).GetBytes($compressed))",
                 )
             ),
             encoding="utf-8",
@@ -1239,6 +1244,13 @@ class ProducerCliTests(unittest.TestCase):
             all(isinstance(value, float) for value in produced_template["allowed_capture_times"])
         )
         self.assertEqual(produced_template["allowed_capture_times"][0], 1.0)
+
+        compressed_template = strict_load_json(compressed_path)
+        self.assertEqual(compressed_template, produced_template)
+        self.assertTrue(
+            all(isinstance(value, float) for value in compressed_template["allowed_capture_times"])
+        )
+        validate_request_template_no_write(compressed_template, workspace_root=self.root)
 
         validate_request_template_no_write(produced_template, workspace_root=self.root)
         self.assertFalse((self.root / self.output_relative).exists())
