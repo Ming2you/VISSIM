@@ -467,8 +467,8 @@ budget on the qualification host. Missing live timing stays NOT_EVALUATED.
 Use a closed reason vocabulary including `com_count_changed`, `invalid_table_shape`,
 `com_row_key_mismatch`, `duplicate_vehicle_in_snapshot`, `invalid_numeric_value`,
 `unknown_lane`, `position_out_of_range`, `aggregate_mismatch`, `state_total_mismatch`,
-`topology_trust_mismatch`, `topology_structure_invalid`, `projection_mass_residual`, and
-`live_com_not_evaluated`.
+`state_stopped_mismatch`, `topology_trust_mismatch`, `topology_structure_invalid`,
+`projection_mass_residual`, and `live_com_not_evaluated`.
 
 Do not modify substep dynamics, travel-time buffers, boundary/ramp flow rules, signal
 actions, calibration, SPSA, or scheduling. Do not weaken A1/A2 anchors.

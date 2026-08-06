@@ -323,6 +323,12 @@ class PhysicalProjectionCoreTests(unittest.TestCase):
         wrong_total = state_fixture([record(1, 10.0)])
         wrong_total["total_vehicles"] = 2
         cases.append(wrong_total)
+        wrong_stopped = state_fixture([record(1, 10.0, speed=0.5)])
+        wrong_stopped["stopped_vehicles"] = 0
+        cases.append(wrong_stopped)
+        missing_stopped = state_fixture([record(1, 10.0)])
+        del missing_stopped["stopped_vehicles"]
+        cases.append(missing_stopped)
         for state in cases:
             with self.subTest(case=cases.index(state)), self.assertRaises(ProjectionError):
                 normalize_vehicle_records(state, self.validated.tolerance_m)
