@@ -1,0 +1,2496 @@
+﻿# S1 current package after fix round 1
+
+## Tracked diff
+
+ plant/src/vissim_strict/compiler.py              | 458 ++++++++++++++++++++++-
+ plant/src/vissim_strict/signal_program.py        | 358 ++++++++++++++----
+ plant/tests/test_vissim_strict_signal_program.py |  48 +++
+ 3 files changed, 772 insertions(+), 92 deletions(-)
+
+diff --git a/plant/src/vissim_strict/compiler.py b/plant/src/vissim_strict/compiler.py
+index d5d3a44..39e2607 100644
+--- a/plant/src/vissim_strict/compiler.py
++++ b/plant/src/vissim_strict/compiler.py
+@@ -1,26 +1,38 @@
+ """Canonical Phase 0 compiler for an INPX network and its VISSIG programs."""
+ 
+ from __future__ import annotations
+ 
+ import argparse
+ from dataclasses import asdict
+ import hashlib
+ from pathlib import Path
+ from typing import Any
++import xml.etree.ElementTree as ET
+ 
+ from .contraction import contract_topology
+-from .signal_program import ControllerProgram, parse_sig
++from .signal_program import (
++    ControllerProgram,
++    DailyProgramList,
++    SignalDefinition,
++    parse_sig_definition,
++)
+ from .topology import canonical_json_sha256, canonical_json_text, compile_inpx, validate_topology
+ 
+ 
+-COMPILER_VERSION = "vissim-strict-phase0/1.0.0"
++COMPILER_VERSION = "vissim-strict-phase0/1.1.1"
++SIGNAL_REFERENCE_SCHEMA_VERSION = "signal-reference-v2.1"
++_AUXILIARY_RAMP_SC_NOS = frozenset(str(value) for value in range(9101, 9109))
++_EXPLICIT_MODEL_EXCLUSIONS = {
++    "9004": "explicit_sc9004_exclusion_no_signal_head_references",
++}
++_DAY_MS = 86_400_000
+ 
+ 
+ def _resolve_supply_file(inpx_path: Path, raw: str) -> Path:
+     value = raw.strip()
+     if value.lower().startswith("#data#"):
+         value = value[6:]
+     candidate = Path(value)
+     if not candidate.is_absolute():
+         candidate = inpx_path.parent / candidate
+     return candidate.resolve()
+@@ -32,97 +44,507 @@ def _portable_source_path(source: Path, network_dir: Path) -> str:
+     except ValueError:
+         return source.name
+ 
+ 
+ def _program_dict(program: ControllerProgram, source: Path, network_dir: Path) -> dict[str, Any]:
+     return {
+         "controller_id": program.controller_id,
+         "controller_name": program.controller_name,
+         "active_prog_no": program.active_prog_no,
+         "program_name": program.program_name,
++        "cycle_length_ms": program.cycle_length_ms,
+         "cycle_length_sec": program.cycle_length_sec,
++        "switchpoint_ms": program.switchpoint_ms,
+         "switchpoint_sec": program.switchpoint_sec,
++        "program_offset_ms": program.program_offset_ms,
+         "program_offset_sec": program.program_offset_sec,
+         "display_states": dict(program.display_states),
+         "sequences": {key: asdict(value) for key, value in sorted(program.sequences.items())},
+         "sg_timelines": {key: asdict(value) for key, value in sorted(program.sg_timelines.items())},
+         "source_path": _portable_source_path(source, network_dir),
+         "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+     }
+ 
+ 
++def _compiler_source_hashes() -> dict[str, str]:
++    paths = (Path(__file__).resolve(), Path(__file__).with_name("signal_program.py").resolve())
++    return {
++        path.name: hashlib.sha256(path.read_bytes()).hexdigest()
++        for path in sorted(paths, key=lambda item: item.name)
++    }
++
++
++def _id_sort_key(value: str | int) -> tuple[int, int | str]:
++    try:
++        return (0, int(value))
++    except (TypeError, ValueError):
++        return (1, str(value))
++
++
++def _controller_heads(manifest: dict[str, Any], controller_no: str) -> list[dict[str, Any]]:
++    heads = [
++        head
++        for head in manifest["signal_heads"]
++        if str(head["signal_group_ref"].get("controller_no")) == controller_no
++    ]
++    return sorted(heads, key=lambda item: _id_sort_key(item["vissim_no"]))
++
++
++def _head_evidence(head: dict[str, Any]) -> dict[str, Any]:
++    lane_ref = head["lane_ref"]
++    sg_ref = head["signal_group_ref"]
++    return {
++        "id": head["id"],
++        "vissim_no": str(head["vissim_no"]),
++        "name": head["name"],
++        "link_no": lane_ref["link_no"],
++        "lane_no": lane_ref["lane_no"],
++        "lane_raw": lane_ref["raw"],
++        "position_m": head["position_m"],
++        "controller_no": sg_ref["controller_no"],
++        "sg_no": sg_ref["sg_no"],
++        "sg_raw": sg_ref["raw"],
++    }
++
++
++def _controller_classification(
++    controller: dict[str, Any], heads: list[dict[str, Any]]
++) -> tuple[str, str]:
++    controller_no = str(controller["vissim_no"])
++    supply_file = str(controller["supply_file_2"]).strip()
++    if not supply_file and controller_no in _AUXILIARY_RAMP_SC_NOS:
++        return ("auxiliary", "artificial_ramp_controller_without_supplyFile2")
++    if supply_file and not heads:
++        if controller_no in _EXPLICIT_MODEL_EXCLUSIONS:
++            return ("model_excluded", _EXPLICIT_MODEL_EXCLUSIONS[controller_no])
++        return ("invalid", "missing_signal_head_provenance")
++    if supply_file and heads:
++        return ("model_selected", "supplyFile2_and_signal_head_references")
++    return ("invalid", "missing_supplyFile2_outside_auxiliary_ramp_set")
++
++
++def _signal_group_evidence(
++    manifest: dict[str, Any], controller_no: str, heads: list[dict[str, Any]]
++) -> list[dict[str, Any]]:
++    result: list[dict[str, Any]] = []
++    for group in sorted(
++        (
++            item
++            for item in manifest["signal_groups"]
++            if str(item["controller_no"]) == controller_no
++        ),
++        key=lambda item: _id_sort_key(item["sg_no"]),
++    ):
++        sg_no = int(group["sg_no"])
++        result.append(
++            {
++                "id": group["id"],
++                "sg_no": sg_no,
++                "name": group["name"],
++                "head_ids": [
++                    head["id"]
++                    for head in heads
++                    if head["signal_group_ref"].get("sg_no") == sg_no
++                ],
++            }
++        )
++    return result
++
++
++def _inpx_daily_program_schedule_status(inpx_path: Path) -> str:
++    root = ET.parse(inpx_path).getroot()
++    present = any("dailyprog" in element.tag.lower() for element in root.iter())
++    return "present_in_inpx" if present else "absent_in_inpx"
++
++
++def _daily_list_dict(value: DailyProgramList) -> dict[str, Any]:
++    return {
++        "list_no": value.list_no,
++        "name": value.name,
++        "items": [asdict(item) for item in value.items],
++    }
++
++
++def _expand_daily_program_list(value: DailyProgramList) -> list[dict[str, Any]]:
++    intervals: list[dict[str, Any]] = []
++    if value.items[0].time_ms > 0:
++        intervals.append(
++            {
++                "start_time_of_day_ms": 0,
++                "end_time_of_day_ms": value.items[0].time_ms,
++                "start_time_of_day_sec": 0.0,
++                "end_time_of_day_sec": value.items[0].time_sec,
++                "program_no": None,
++                "status": "no_program_defined",
++            }
++        )
++    for index, item in enumerate(value.items):
++        end_ms = (
++            value.items[index + 1].time_ms
++            if index + 1 < len(value.items)
++            else _DAY_MS
++        )
++        intervals.append(
++            {
++                "start_time_of_day_ms": item.time_ms,
++                "end_time_of_day_ms": end_ms,
++                "start_time_of_day_sec": item.time_sec,
++                "end_time_of_day_sec": end_ms / 1000.0,
++                "program_no": item.program_no,
++                "status": "program_defined",
++            }
++        )
++    return intervals
++
++
++def _effective_program_at(
++    intervals: list[dict[str, Any]], time_of_day_ms: int
++) -> int | None:
++    for interval in intervals:
++        if (
++            interval["start_time_of_day_ms"]
++            <= time_of_day_ms
++            < interval["end_time_of_day_ms"]
++        ):
++            value = interval["program_no"]
++            return int(value) if value is not None else None
++    return None
++
++
++def _active_program_evidence(
++    *,
++    controller: dict[str, Any],
++    definition: SignalDefinition,
++    inpx_daily_status: str,
++    simulation_start_sec: float,
++) -> tuple[dict[str, Any], int | None, dict[str, str] | None]:
++    configured_no = int(controller["active_program_no"])
++    program_match = configured_no in definition.programs
++    daily_match = configured_no in definition.daily_program_lists
++    start_ms = round(simulation_start_sec * 1000.0) % _DAY_MS
++    sig_daily_status = (
++        "present_in_sig"
++        if definition.daily_program_lists
++        else (
++            "empty_in_sig"
++            if definition.daily_program_lists_element_present
++            else "absent_in_sig"
++        )
++    )
++    evidence: dict[str, Any] = {
++        "configured_prog_no": configured_no,
++        "source_attribute": "inpx.signalController.progNo",
++        "inpx_daily_program_schedule_status": inpx_daily_status,
++        "daily_program_schedule_status": inpx_daily_status,
++        "sig_daily_program_list_status": sig_daily_status,
++        "daily_program_lists": [
++            _daily_list_dict(value)
++            for value in definition.daily_program_lists.values()
++        ],
++        "simulation_start": {
++            "time_of_day_ms": start_ms,
++            "time_of_day_sec": start_ms / 1000.0,
++            "source_attribute": "inpx.simulation.startTm",
++        },
++        "runtime_readback": {
++            "status": "NOT_EVALUATED",
++            "source": "VISSIM_COM.ISignalController.ProgNo",
++            "reason": "compile_time_artifact_has_no_runtime_COM_readback",
++        },
++        "fallback_used": False,
++    }
++
++    if program_match and daily_match:
++        evidence.update(
++            {
++                "mode": "ambiguous_progNo",
++                "program_no": None,
++                "effective_program_at_start": None,
++                "provenance": "NOT_EVALUATED",
++                "compile_time_status": "NOT_EVALUATED",
++                "time_indexed_schedule": [],
++            }
++        )
++        return (
++            evidence,
++            None,
++            {
++                "code": "ambiguous_active_program_reference",
++                "detail": f"progNo={configured_no} matches a program and daily program list",
++            },
++        )
++    if program_match:
++        evidence.update(
++            {
++                "mode": "static_program",
++                "program_no": configured_no,
++                "effective_program_at_start": configured_no,
++                "provenance": "static_inpx_progNo",
++                "compile_time_status": "PASS",
++                "time_indexed_schedule": [
++                    {
++                        "start_time_of_day_ms": 0,
++                        "end_time_of_day_ms": _DAY_MS,
++                        "start_time_of_day_sec": 0.0,
++                        "end_time_of_day_sec": _DAY_MS / 1000.0,
++                        "program_no": configured_no,
++                        "status": "program_defined",
++                    }
++                ],
++            }
++        )
++        return evidence, configured_no, None
++    if daily_match:
++        daily_list = definition.daily_program_lists[configured_no]
++        intervals = _expand_daily_program_list(daily_list)
++        effective_no = _effective_program_at(intervals, start_ms)
++        evidence.update(
++            {
++                "mode": "daily_program_list",
++                "program_no": effective_no,
++                "daily_program_list_no": configured_no,
++                "effective_program_at_start": effective_no,
++                "provenance": "inpx_progNo_selects_sig_dailyProgList",
++                "compile_time_status": (
++                    "PASS" if effective_no is not None else "NOT_EVALUATED"
++                ),
++                "time_indexed_schedule": intervals,
++            }
++        )
++        if effective_no is None:
++            return (
++                evidence,
++                None,
++                {
++                    "code": "no_active_program_at_simulation_start",
++                    "detail": (
++                        f"dailyProgList={configured_no}; start_time_of_day_ms={start_ms}"
++                    ),
++                },
++            )
++        return evidence, effective_no, None
++
++    evidence.update(
++        {
++            "mode": "unresolved_progNo",
++            "program_no": None,
++            "effective_program_at_start": None,
++            "provenance": "NOT_EVALUATED",
++            "compile_time_status": "NOT_EVALUATED",
++            "time_indexed_schedule": [],
++        }
++    )
++    return (
++        evidence,
++        None,
++        {
++            "code": "missing_active_signal_program",
++            "detail": (
++                f"INPX progNo={configured_no}; programs={list(definition.programs)}; "
++                f"daily_lists={list(definition.daily_program_lists)}"
++            ),
++        },
++    )
++
++
+ def compile_network(inpx: str | Path) -> dict[str, Any]:
+-    """Compile topology plus each controller's active fixed-time program."""
++    """Compile topology plus canonical all-program signal references."""
+ 
+     inpx_path = Path(inpx).resolve()
+     manifest = compile_inpx(inpx_path)
+     errors: list[dict[str, str]] = []
+     schedules: list[dict[str, Any]] = []
++    classifications: list[dict[str, Any]] = []
++    inpx_daily_status = _inpx_daily_program_schedule_status(inpx_path)
++    simulation_start_sec = float(manifest["simulation"]["start_time_sec"])
+ 
+     for controller in manifest["signal_controllers"]:
+         controller_id = str(controller["id"])
++        controller_no = str(controller["vissim_no"])
++        heads = _controller_heads(manifest, controller_no)
++        classification, reason = _controller_classification(controller, heads)
++        classifications.append(
++            {
++                "controller_id": controller_id,
++                "controller_no": controller_no,
++                "classification": classification,
++                "reason": reason,
++                "supply_file_2": controller["supply_file_2"],
++                "signal_head_count": len(heads),
++                "signal_head_ids": [head["id"] for head in heads],
++            }
++        )
++        if classification == "auxiliary" or classification == "model_excluded":
++            continue
++        if classification == "invalid":
++            error_code = (
++                "missing_signal_head_provenance"
++                if reason == "missing_signal_head_provenance"
++                else "missing_signal_program"
++            )
++            errors.append(
++                {
++                    "code": error_code,
++                    "entity_id": controller_id,
++                    "detail": reason,
++                }
++            )
++            continue
+         source = _resolve_supply_file(inpx_path, controller["supply_file_2"])
+         if not source.is_file():
+             errors.append({"code": "missing_signal_program", "entity_id": controller_id, "detail": str(source)})
+             continue
+         try:
+-            program = parse_sig(source, int(controller["active_program_no"]))
++            definition = parse_sig_definition(source)
++            programs = definition.programs
+         except Exception as exc:
+             errors.append({"code": "invalid_signal_program", "entity_id": controller_id, "detail": str(exc)})
+             continue
+ 
+-        inpx_sgs = {
+-            str(item["sg_no"])
+-            for item in manifest["signal_groups"]
+-            if str(item["controller_no"]) == str(controller["vissim_no"])
+-        }
+-        sig_sgs = set(program.sg_timelines)
+-        for missing in sorted(inpx_sgs - sig_sgs, key=int):
++        active_program, effective_program_no, schedule_error = _active_program_evidence(
++            controller=controller,
++            definition=definition,
++            inpx_daily_status=inpx_daily_status,
++            simulation_start_sec=simulation_start_sec,
++        )
++        if schedule_error is not None:
+             errors.append(
+                 {
+-                    "code": "missing_signal_group_timeline",
+-                    "entity_id": f"sg:{controller['vissim_no']}:{missing}",
+-                    "detail": str(source),
++                    "code": schedule_error["code"],
++                    "entity_id": controller_id,
++                    "detail": schedule_error["detail"],
+                 }
+             )
++        inpx_groups = {
++            str(item["sg_no"]): item
++            for item in manifest["signal_groups"]
++            if str(item["controller_no"]) == controller_no
++        }
++        program_records: list[dict[str, Any]] = []
++        extra_by_program: dict[str, list[str]] = {}
++        for program_no, program in programs.items():
++            sig_sgs = set(program.sg_timelines)
++            for missing in sorted(set(inpx_groups) - sig_sgs, key=_id_sort_key):
++                errors.append(
++                    {
++                        "code": "missing_signal_group_timeline",
++                        "entity_id": f"sg:{controller_no}:{missing}",
++                        "detail": f"program={program_no}; source={source}",
++                    }
++                )
++            for sg_no in sorted(set(inpx_groups) & sig_sgs, key=_id_sort_key):
++                inpx_name = str(inpx_groups[sg_no]["name"])
++                sig_name = str(program.sg_timelines[sg_no].name)
++                if inpx_name != sig_name:
++                    errors.append(
++                        {
++                            "code": "signal_group_name_mismatch",
++                            "entity_id": f"sg:{controller_no}:{sg_no}",
++                            "detail": f"program={program_no}; inpx={inpx_name!r}; sig={sig_name!r}",
++                        }
++                    )
++            extra_by_program[str(program_no)] = sorted(
++                sig_sgs - set(inpx_groups), key=_id_sort_key
++            )
++            program_records.append(_program_dict(program, source, inpx_path.parent))
+         schedules.append(
+             {
+-                "id": f"schedule:fixed:{controller['vissim_no']}",
++                "id": f"schedule:fixed:{controller_no}",
+                 "controller_id": controller_id,
+-                "controller_no": str(controller["vissim_no"]),
++                "controller_no": controller_no,
+                 "controller_offset_sec": float(controller["controller_offset_sec"]),
+                 "phase_formula": "mod(sim_time_sec + start_time_of_day_sec - cycle_epoch_sec - program_offset_sec - controller_offset_sec, cycle_length_sec)",
+-                "program": _program_dict(program, source, inpx_path.parent),
+-                "extra_program_sg_nos": sorted(sig_sgs - inpx_sgs, key=int),
++                "active_program": active_program,
++                "program": (
++                    _program_dict(programs[effective_program_no], source, inpx_path.parent)
++                    if effective_program_no in programs
++                    else None
++                ),
++                "programs": program_records,
++                "program_nos": list(programs),
++                "source_path": _portable_source_path(source, inpx_path.parent),
++                "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
++                "signal_groups": _signal_group_evidence(manifest, controller_no, heads),
++                "signal_heads": [_head_evidence(head) for head in heads],
++                "extra_program_sg_nos": extra_by_program,
+             }
+         )
+ 
+     manifest["compiler_version"] = COMPILER_VERSION
+     manifest["schedules"]["fixed"] = schedules
++    compiler_sources = _compiler_source_hashes()
++    manifest["signal_reference"] = {
++        "schema_version": SIGNAL_REFERENCE_SCHEMA_VERSION,
++        "compiler_version": COMPILER_VERSION,
++        "compiler_source_sha256": compiler_sources,
++        "compiler_hash": canonical_json_sha256(compiler_sources),
++        "inpx_sha256": manifest["source"]["inpx_sha256"],
++        "active_program_schedule_status": inpx_daily_status,
++        "active_program_schedule_provenance": "per_controller",
++        "active_program_runtime_readback_status": "NOT_EVALUATED",
++        "active_program_runtime_readback_reason": (
++            "compile_time_artifact_has_no_runtime_COM_readback"
++        ),
++        "fallback_used": False,
++        "controller_classifications": classifications,
++        "selected_controller_nos": [
++            item["controller_no"]
++            for item in classifications
++            if item["classification"] == "model_selected"
++        ],
++        "auxiliary_controller_nos": [
++            item["controller_no"]
++            for item in classifications
++            if item["classification"] == "auxiliary"
++        ],
++        "excluded_controllers": [
++            item
++            for item in classifications
++            if item["classification"] == "model_excluded"
++        ],
++        "source_sig_sha256": [
++            {
++                "controller_no": schedule["controller_no"],
++                "source_path": schedule["source_path"],
++                "sha256": schedule["source_sha256"],
++            }
++            for schedule in schedules
++        ],
++    }
+     hydraulic_view = contract_topology(
+         manifest,
+         urban_dt_sec=float(manifest.get("defaults", {}).get("urban_dt_sec", 1.0)),
+     )
+     manifest.update(hydraulic_view)
+     errors.extend(hydraulic_view["contraction_report"]["errors"])
+     manifest["topology_hash"] = canonical_json_sha256(
+         {key: value for key, value in manifest.items() if key not in {"topology_hash", "validation_report"}}
+     )
+     base_report = validate_topology(manifest)
+     errors.extend(base_report["errors"])
+     errors.sort(key=lambda item: (item["code"], item["entity_id"], item["detail"]))
+     manifest["validation_report"] = {
+         **base_report,
+         "valid": not errors,
+         "error_count": len(errors),
+         "errors": errors,
+         "compiled_signal_programs": len(schedules),
++        "compiled_all_programs": sum(len(item["programs"]) for item in schedules),
++        "selected_model_controllers": sum(
++            item["classification"] == "model_selected" for item in classifications
++        ),
++        "auxiliary_signal_controllers": sum(
++            item["classification"] == "auxiliary" for item in classifications
++        ),
++        "excluded_signal_controllers": sum(
++            item["classification"] == "model_excluded" for item in classifications
++        ),
+         "contraction": hydraulic_view["contraction_report"],
+     }
+     return manifest
+ 
+ 
+ def main(argv: list[str] | None = None) -> int:
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument("inpx", type=Path)
+     parser.add_argument("--output", required=True, type=Path)
+     args = parser.parse_args(argv)
+diff --git a/plant/src/vissim_strict/signal_program.py b/plant/src/vissim_strict/signal_program.py
+index 242b094..08b5a73 100644
+--- a/plant/src/vissim_strict/signal_program.py
++++ b/plant/src/vissim_strict/signal_program.py
+@@ -16,50 +16,70 @@ _EPSILON = 1e-9
+ 
+ class SignalProgramError(ValueError):
+     """Raised when a VISSIG program cannot be compiled unambiguously."""
+ 
+ 
+ @dataclass(frozen=True)
+ class SignalSequenceState:
+     display_id: str
+     state: str
+     fixed_duration: bool
++    default_duration_ms: int
+     default_duration_sec: float
+ 
+ 
+ @dataclass(frozen=True)
+ class SignalSequence:
+     sequence_id: str
+     name: str
+     states: tuple[SignalSequenceState, ...]
+ 
+     @property
+     def display_order(self) -> tuple[str, ...]:
+         return tuple(item.display_id for item in self.states)
+ 
+ 
+ @dataclass(frozen=True)
+ class SignalInterval:
++    start_ms: int
++    end_ms: int
+     start_sec: float
+     end_sec: float
+     state: str
+     display_id: str
+     source_kind: str
+ 
+ 
++@dataclass(frozen=True)
++class SignalCommand:
++    display_id: str
++    begin_ms: int
++    begin_sec: float
++
++
++@dataclass(frozen=True)
++class SignalFixedState:
++    display_id: str
++    duration_ms: int
++    duration_sec: float
++
++
+ @dataclass(frozen=True)
+ class SignalGroupTimeline:
+     sg_id: str
+     name: str
+     sequence_id: str
++    cycle_length_ms: int
+     cycle_length_sec: float
+     permanent_red: bool
++    commands: tuple[SignalCommand, ...]
++    fixed_states: tuple[SignalFixedState, ...]
+     intervals: tuple[SignalInterval, ...]
+ 
+     def state_at_phase(self, phase_sec: float) -> str:
+         phase = _phase_mod(phase_sec, self.cycle_length_sec)
+         for interval in self.intervals:
+             if interval.start_sec <= phase < interval.end_sec:
+                 return interval.state
+         raise SignalProgramError(f"SG {self.sg_id} timeline does not cover phase {phase}")
+ 
+     def green_overlap_phase(self, phase_sec: float, duration_sec: float) -> float:
+@@ -89,22 +109,25 @@ class SignalGroupTimeline:
+             )
+         return overlap
+ 
+ 
+ @dataclass(frozen=True)
+ class ControllerProgram:
+     controller_id: str
+     controller_name: str
+     active_prog_no: int
+     program_name: str
++    cycle_length_ms: int
+     cycle_length_sec: float
++    switchpoint_ms: int
+     switchpoint_sec: float
++    program_offset_ms: int
+     program_offset_sec: float
+     display_states: Mapping[str, str]
+     sequences: Mapping[str, SignalSequence]
+     sg_timelines: Mapping[str, SignalGroupTimeline]
+     source_path: str
+ 
+     def state_at(
+         self,
+         time_sec: float,
+         sg_id: str | int | None = None,
+@@ -136,98 +159,232 @@ class ControllerProgram:
+             t0_sec,
+             t1_sec,
+             self,
+             sg_id,
+             start_time_of_day_sec=start_time_of_day_sec,
+             cycle_epoch_sec=cycle_epoch_sec,
+             controller_offset_sec=controller_offset_sec,
+         )
+ 
+ 
++@dataclass(frozen=True)
++class DailyProgramListItem:
++    time_ms: int
++    time_sec: float
++    program_no: int
++
++
++@dataclass(frozen=True)
++class DailyProgramList:
++    list_no: int
++    name: str
++    items: tuple[DailyProgramListItem, ...]
++
++
++@dataclass(frozen=True)
++class SignalDefinition:
++    controller_id: str
++    controller_name: str
++    programs: Mapping[int, ControllerProgram]
++    daily_program_lists: Mapping[int, DailyProgramList]
++    daily_program_lists_element_present: bool
++    source_path: str
++
++
+ @dataclass(frozen=True)
+ class _Command:
+     display_id: str
+-    begin_sec: float
++    begin_ms: int
+ 
+ 
+ @dataclass(frozen=True)
+ class _Event:
+-    time_sec: float
++    time_ms: int
+     display_id: str
+     source_kind: str
+ 
+ 
+ def parse_sig(path: str | Path, active_prog_no: int) -> ControllerProgram:
+     """Parse one active VISSIG program and compile every SG into a timeline."""
+ 
++    programs = parse_sig_programs(path)
++    try:
++        return programs[int(active_prog_no)]
++    except KeyError as exc:
++        raise SignalProgramError(
++            f"active program {active_prog_no} must match exactly once, found 0"
++        ) from exc
++
++
++def parse_sig_programs(path: str | Path) -> Mapping[int, ControllerProgram]:
++    """Parse every VISSIG program in deterministic numeric program order."""
++
++    return parse_sig_definition(path).programs
++
++
++def parse_sig_definition(path: str | Path) -> SignalDefinition:
++    """Parse programs and optional VISSIG daily-program-list definitions."""
++
+     source = Path(path)
+     try:
+         root = ET.parse(source).getroot()
+     except (OSError, ET.ParseError) as exc:
+         raise SignalProgramError(f"cannot parse {source}: {exc}") from exc
+     if root.tag != "sc":
+         raise SignalProgramError(f"expected <sc> root, found <{root.tag}>")
+ 
+     displays = _parse_displays(root)
+     sequences = _parse_sequences(root, displays)
+     sg_definitions = _parse_sg_definitions(root, sequences)
+ 
+-    matching = [
+-        element
+-        for element in root.findall("./progs/prog")
+-        if _required_int(element, "id", "program") == active_prog_no
+-    ]
+-    if len(matching) != 1:
+-        raise SignalProgramError(
+-            f"active program {active_prog_no} must match exactly once, found {len(matching)}"
++    program_elements: dict[int, ET.Element] = {}
++    for element in root.findall("./progs/prog"):
++        program_no = _required_int(element, "id", "program")
++        if program_no in program_elements:
++            raise SignalProgramError(f"program {program_no} must match exactly once, found 2")
++        program_elements[program_no] = element
++    if not program_elements:
++        raise SignalProgramError("controller contains no programs")
++
++    programs: dict[int, ControllerProgram] = {}
++    for program_no in sorted(program_elements):
++        programs[program_no] = _compile_program(
++            root=root,
++            program_element=program_elements[program_no],
++            program_no=program_no,
++            source=source,
++            displays=displays,
++            sequences=sequences,
++            sg_definitions=sg_definitions,
+         )
+-    program_element = matching[0]
+-    cycle_sec = _required_ms(program_element, "cycletime", "program")
+-    if cycle_sec <= 0:
++    daily_lists_element = root.find("./dailyProgLists")
++    daily_program_lists = _parse_daily_program_lists(
++        daily_lists_element, available_program_nos=frozenset(programs)
++    )
++    return SignalDefinition(
++        controller_id=_required_text(root, "id", "controller"),
++        controller_name=root.get("name", ""),
++        programs=MappingProxyType(programs),
++        daily_program_lists=MappingProxyType(daily_program_lists),
++        daily_program_lists_element_present=daily_lists_element is not None,
++        source_path=str(source.resolve()),
++    )
++
++
++def _parse_daily_program_lists(
++    container: ET.Element | None, *, available_program_nos: frozenset[int]
++) -> dict[int, DailyProgramList]:
++    if container is None:
++        return {}
++
++    result: dict[int, DailyProgramList] = {}
++    for element in container:
++        if element.tag != "dailyProgList":
++            raise SignalProgramError(
++                f"dailyProgLists contains unsupported element <{element.tag}>"
++            )
++        list_no = _required_int(element, "id", "daily program list")
++        if list_no in result:
++            raise SignalProgramError(f"duplicate daily program list {list_no}")
++        items: list[DailyProgramListItem] = []
++        seen_times: set[int] = set()
++        for item in element.findall(".//dailyProgListItem"):
++            time_ms = _required_ms_int(
++                item, "time", f"daily program list {list_no} item"
++            )
++            if time_ms >= 86_400_000:
++                raise SignalProgramError(
++                    f"daily program list {list_no} item time must be within one day"
++                )
++            if time_ms in seen_times:
++                raise SignalProgramError(
++                    f"daily program list {list_no} repeats time {time_ms}ms"
++                )
++            seen_times.add(time_ms)
++            program_no = _required_int(
++                item, "prog_id", f"daily program list {list_no} item"
++            )
++            if program_no not in available_program_nos:
++                raise SignalProgramError(
++                    f"daily program list {list_no} references undefined program {program_no}"
++                )
++            items.append(
++                DailyProgramListItem(
++                    time_ms=time_ms,
++                    time_sec=time_ms / 1000.0,
++                    program_no=program_no,
++                )
++            )
++        if not items:
++            raise SignalProgramError(f"daily program list {list_no} contains no items")
++        items.sort(key=lambda item: item.time_ms)
++        result[list_no] = DailyProgramList(
++            list_no=list_no,
++            name=element.get("name", ""),
++            items=tuple(items),
++        )
++    return {key: result[key] for key in sorted(result)}
++
++
++def _compile_program(
++    *,
++    root: ET.Element,
++    program_element: ET.Element,
++    program_no: int,
++    source: Path,
++    displays: Mapping[str, str],
++    sequences: Mapping[str, SignalSequence],
++    sg_definitions: Mapping[str, tuple[str, str]],
++) -> ControllerProgram:
++    cycle_ms = _required_ms_int(program_element, "cycletime", "program")
++    if cycle_ms <= 0:
+         raise SignalProgramError("program cycletime must be positive")
+-    switchpoint_sec = _required_ms(program_element, "switchpoint", "program")
+-    program_offset_sec = _required_ms(program_element, "offset", "program")
++    switchpoint_ms = _required_ms_int(program_element, "switchpoint", "program")
++    program_offset_ms = _required_ms_int(program_element, "offset", "program")
+ 
+     timelines: dict[str, SignalGroupTimeline] = {}
+     program_sgs = program_element.findall("./sgs/sg")
+     if not program_sgs:
+-        raise SignalProgramError(f"program {active_prog_no} contains no SGs")
++        raise SignalProgramError(f"program {program_no} contains no SGs")
+     for program_sg in sorted(program_sgs, key=lambda item: _id_sort_key(item.get("sg_id"))):
+         sg_id = _required_text(program_sg, "sg_id", "program SG")
+         if sg_id in timelines:
+-            raise SignalProgramError(f"program {active_prog_no} repeats SG {sg_id}")
++            raise SignalProgramError(f"program {program_no} repeats SG {sg_id}")
+         if sg_id not in sg_definitions:
+             raise SignalProgramError(f"program references undefined SG {sg_id}")
+         name, default_sequence_id = sg_definitions[sg_id]
+         sequence_id = program_sg.get("signal_sequence", default_sequence_id)
+         if sequence_id not in sequences:
+             raise SignalProgramError(
+                 f"SG {sg_id} references undefined signal sequence {sequence_id}"
+             )
+         timeline = _compile_timeline(
+             program_sg,
+             sg_id=sg_id,
+             sg_name=name,
+             sequence=sequences[sequence_id],
+             display_states=displays,
+-            cycle_sec=cycle_sec,
++            cycle_ms=cycle_ms,
+         )
+         timelines[sg_id] = timeline
+ 
+     return ControllerProgram(
+         controller_id=_required_text(root, "id", "controller"),
+         controller_name=root.get("name", ""),
+-        active_prog_no=active_prog_no,
++        active_prog_no=program_no,
+         program_name=program_element.get("name", ""),
+-        cycle_length_sec=cycle_sec,
+-        switchpoint_sec=switchpoint_sec,
+-        program_offset_sec=program_offset_sec,
++        cycle_length_ms=cycle_ms,
++        cycle_length_sec=cycle_ms / 1000.0,
++        switchpoint_ms=switchpoint_ms,
++        switchpoint_sec=switchpoint_ms / 1000.0,
++        program_offset_ms=program_offset_ms,
++        program_offset_sec=program_offset_ms / 1000.0,
+         display_states=MappingProxyType(dict(displays)),
+         sequences=MappingProxyType(dict(sequences)),
+         sg_timelines=MappingProxyType(timelines),
+         source_path=str(source.resolve()),
+     )
+ 
+ 
+ def state_at(
+     time_sec: float,
+     program: ControllerProgram,
+@@ -322,34 +479,36 @@ def _parse_sequences(
+             )
+             if display_id not in display_states:
+                 raise SignalProgramError(
+                     f"signal sequence {sequence_id} references undefined display {display_id}"
+                 )
+             if display_id in seen:
+                 raise SignalProgramError(
+                     f"signal sequence {sequence_id} repeats display {display_id}"
+                 )
+             seen.add(display_id)
++            default_duration_ms = _required_ms_int(
++                state_element,
++                "defaultDuration",
++                f"signal sequence {sequence_id}",
++            )
+             states.append(
+                 SignalSequenceState(
+                     display_id=display_id,
+                     state=display_states[display_id],
+                     fixed_duration=_required_bool(
+                         state_element,
+                         "isFixedDuration",
+                         f"signal sequence {sequence_id}",
+                     ),
+-                    default_duration_sec=_required_ms(
+-                        state_element,
+-                        "defaultDuration",
+-                        f"signal sequence {sequence_id}",
+-                    ),
++                    default_duration_ms=default_duration_ms,
++                    default_duration_sec=default_duration_ms / 1000.0,
+                 )
+             )
+         if not states:
+             raise SignalProgramError(f"signal sequence {sequence_id} is empty")
+         sequences[sequence_id] = SignalSequence(
+             sequence_id=sequence_id,
+             name=element.get("name", ""),
+             states=tuple(states),
+         )
+     if not sequences:
+@@ -374,57 +533,58 @@ def _parse_sg_definitions(
+     return definitions
+ 
+ 
+ def _compile_timeline(
+     program_sg: ET.Element,
+     *,
+     sg_id: str,
+     sg_name: str,
+     sequence: SignalSequence,
+     display_states: Mapping[str, str],
+-    cycle_sec: float,
++    cycle_ms: int,
+ ) -> SignalGroupTimeline:
+     commands = [
+         _Command(
+             display_id=_required_text(element, "display", f"SG {sg_id} command"),
+-            begin_sec=_required_ms(element, "begin", f"SG {sg_id} command"),
++            begin_ms=_required_ms_int(element, "begin", f"SG {sg_id} command"),
+         )
+         for element in program_sg.findall("./cmds/cmd")
+     ]
+     if not commands:
+         raise SignalProgramError(f"SG {sg_id} contains no commands")
+-    commands.sort(key=lambda item: (item.begin_sec, _id_sort_key(item.display_id)))
+-    seen_times: set[float] = set()
++    commands.sort(key=lambda item: (item.begin_ms, _id_sort_key(item.display_id)))
++    seen_times: set[int] = set()
+     sequence_displays = set(sequence.display_order)
+     for command in commands:
+         if command.display_id not in display_states:
+             raise SignalProgramError(
+                 f"SG {sg_id} command references undefined display {command.display_id}"
+             )
+         if command.display_id not in sequence_displays:
+             raise SignalProgramError(
+                 f"SG {sg_id} command display {command.display_id} is not in sequence {sequence.sequence_id}"
+             )
+-        if not 0 <= command.begin_sec < cycle_sec:
++        if not 0 <= command.begin_ms < cycle_ms:
+             raise SignalProgramError(
+-                f"SG {sg_id} command at {command.begin_sec}s is outside cycle [0,{cycle_sec})"
++                f"SG {sg_id} command at {command.begin_ms / 1000.0}s is outside cycle "
++                f"[0,{cycle_ms / 1000.0})"
+             )
+-        if command.begin_sec in seen_times:
++        if command.begin_ms in seen_times:
+             raise SignalProgramError(
+-                f"SG {sg_id} has multiple commands at {command.begin_sec}s"
++                f"SG {sg_id} has multiple commands at {command.begin_ms / 1000.0}s"
+             )
+-        seen_times.add(command.begin_sec)
++        seen_times.add(command.begin_ms)
+ 
+-    fixed_durations: dict[str, float] = {}
++    fixed_durations: dict[str, int] = {}
+     for element in program_sg.findall("./fixedstates/fixedstate"):
+         display_id = _required_text(element, "display", f"SG {sg_id} fixedstate")
+-        duration = _required_ms(element, "duration", f"SG {sg_id} fixedstate")
++        duration = _required_ms_int(element, "duration", f"SG {sg_id} fixedstate")
+         if display_id in fixed_durations:
+             raise SignalProgramError(f"SG {sg_id} repeats fixedstate {display_id}")
+         if duration <= 0:
+             raise SignalProgramError(
+                 f"SG {sg_id} fixedstate {display_id} duration must be positive"
+             )
+         fixed_durations[display_id] = duration
+ 
+     sequence_by_display = {item.display_id: item for item in sequence.states}
+     expected_fixed = {
+@@ -434,176 +594,215 @@ def _compile_timeline(
+     if unexpected:
+         raise SignalProgramError(
+             f"SG {sg_id} fixedstates are not fixed in sequence {sequence.sequence_id}: "
+             + ", ".join(sorted(unexpected, key=_id_sort_key))
+         )
+ 
+     if len(commands) == 1:
+         command = commands[0]
+         state = display_states[command.display_id]
+         intervals = (
+-            SignalInterval(0.0, cycle_sec, state, command.display_id, "command"),
++            SignalInterval(
++                0,
++                cycle_ms,
++                0.0,
++                cycle_ms / 1000.0,
++                state,
++                command.display_id,
++                "command",
++            ),
+         )
+         return SignalGroupTimeline(
+             sg_id=sg_id,
+             name=sg_name,
+             sequence_id=sequence.sequence_id,
+-            cycle_length_sec=cycle_sec,
++            cycle_length_ms=cycle_ms,
++            cycle_length_sec=cycle_ms / 1000.0,
+             permanent_red=state == "RED",
++            commands=_public_commands(commands),
++            fixed_states=_public_fixed_states(fixed_durations),
+             intervals=intervals,
+         )
+ 
+     events: list[_Event] = [
+-        _Event(command.begin_sec, command.display_id, "command")
++        _Event(command.begin_ms, command.display_id, "command")
+         for command in commands
+     ]
+     for index, target in enumerate(commands):
+         current = commands[index - 1]
+         path = _sequence_path(sequence.display_order, current.display_id, target.display_id)
+         transition_states = [
+             display_id
+             for display_id in path[:-1]
+             if sequence_by_display[display_id].fixed_duration
+         ]
+         missing = [item for item in transition_states if item not in fixed_durations]
+         if missing:
+             raise SignalProgramError(
+                 f"SG {sg_id} transition {current.display_id}->{target.display_id} "
+                 f"has no duration for fixed display {missing[0]}"
+             )
+-        available = (target.begin_sec - current.begin_sec) % cycle_sec
++        available = (target.begin_ms - current.begin_ms) % cycle_ms
+         required = sum(fixed_durations[item] for item in transition_states)
+-        if required > available + _EPSILON:
++        if required > available:
+             raise SignalProgramError(
+                 f"SG {sg_id} transition {current.display_id}->{target.display_id} "
+-                f"has {available}s but requires {required}s of fixed states"
++                f"has {available / 1000.0}s but requires {required / 1000.0}s of fixed states"
+             )
+-        cursor = target.begin_sec
++        cursor = target.begin_ms
+         for display_id in reversed(transition_states):
+             cursor -= fixed_durations[display_id]
+-            events.append(_Event(cursor % cycle_sec, display_id, "fixedstate"))
++            events.append(_Event(cursor % cycle_ms, display_id, "fixedstate"))
+ 
+-    intervals = _events_to_intervals(events, display_states, cycle_sec, sg_id)
+-    _validate_coverage(intervals, cycle_sec, sg_id)
++    intervals = _events_to_intervals(events, display_states, cycle_ms, sg_id)
++    _validate_coverage(intervals, cycle_ms, sg_id)
+     return SignalGroupTimeline(
+         sg_id=sg_id,
+         name=sg_name,
+         sequence_id=sequence.sequence_id,
+-        cycle_length_sec=cycle_sec,
++        cycle_length_ms=cycle_ms,
++        cycle_length_sec=cycle_ms / 1000.0,
+         permanent_red=all(item.state == "RED" for item in intervals),
++        commands=_public_commands(commands),
++        fixed_states=_public_fixed_states(fixed_durations),
+         intervals=intervals,
+     )
+ 
+ 
++def _public_commands(commands: Sequence[_Command]) -> tuple[SignalCommand, ...]:
++    return tuple(
++        SignalCommand(item.display_id, item.begin_ms, item.begin_ms / 1000.0)
++        for item in commands
++    )
++
++
++def _public_fixed_states(fixed_durations: Mapping[str, int]) -> tuple[SignalFixedState, ...]:
++    return tuple(
++        SignalFixedState(display_id, duration_ms, duration_ms / 1000.0)
++        for display_id, duration_ms in sorted(
++            fixed_durations.items(), key=lambda item: _id_sort_key(item[0])
++        )
++    )
++
++
+ def _sequence_path(order: Sequence[str], current: str, target: str) -> tuple[str, ...]:
+     if current == target:
+         return (target,)
+     current_index = order.index(current)
+     result: list[str] = []
+     for step in range(1, len(order) + 1):
+         display_id = order[(current_index + step) % len(order)]
+         result.append(display_id)
+         if display_id == target:
+             return tuple(result)
+     raise SignalProgramError(f"no sequence path from display {current} to {target}")
+ 
+ 
+ def _events_to_intervals(
+     events: Sequence[_Event],
+     display_states: Mapping[str, str],
+-    cycle_sec: float,
++    cycle_ms: int,
+     sg_id: str,
+ ) -> tuple[SignalInterval, ...]:
+-    ordered = sorted(events, key=lambda item: (item.time_sec, item.source_kind, _id_sort_key(item.display_id)))
++    ordered = sorted(
++        events,
++        key=lambda item: (item.time_ms, item.source_kind, _id_sort_key(item.display_id)),
++    )
+     deduplicated: list[_Event] = []
+     for event in ordered:
+-        if deduplicated and abs(event.time_sec - deduplicated[-1].time_sec) <= _EPSILON:
++        if deduplicated and event.time_ms == deduplicated[-1].time_ms:
+             previous = deduplicated[-1]
+             if previous.display_id == event.display_id:
+                 if event.source_kind == "fixedstate":
+                     deduplicated[-1] = event
+                 continue
+             # A fixed transition consumes the entire command-to-command span;
+             # the zero-duration source command is intentionally omitted.
+             if {previous.source_kind, event.source_kind} == {"command", "fixedstate"}:
+                 deduplicated[-1] = (
+                     event if event.source_kind == "fixedstate" else previous
+                 )
+                 continue
+             raise SignalProgramError(
+-                f"SG {sg_id} has conflicting events at {event.time_sec}s"
++                f"SG {sg_id} has conflicting events at {event.time_ms / 1000.0}s"
+             )
+         deduplicated.append(event)
+ 
+     if not deduplicated:
+         raise SignalProgramError(f"SG {sg_id} produced no timeline events")
+     pieces: list[SignalInterval] = []
+     for index, event in enumerate(deduplicated):
+-        next_time = (
+-            deduplicated[index + 1].time_sec
++        next_ms = (
++            deduplicated[index + 1].time_ms
+             if index + 1 < len(deduplicated)
+-            else cycle_sec + deduplicated[0].time_sec
++            else cycle_ms + deduplicated[0].time_ms
+         )
+-        if next_time <= event.time_sec + _EPSILON:
++        if next_ms <= event.time_ms:
+             continue
+         state = display_states[event.display_id]
+-        if next_time <= cycle_sec + _EPSILON:
++        if next_ms <= cycle_ms:
+             pieces.append(
+                 SignalInterval(
+-                    event.time_sec,
+-                    min(next_time, cycle_sec),
++                    event.time_ms,
++                    min(next_ms, cycle_ms),
++                    event.time_ms / 1000.0,
++                    min(next_ms, cycle_ms) / 1000.0,
+                     state,
+                     event.display_id,
+                     event.source_kind,
+                 )
+             )
+         else:
+             pieces.append(
+                 SignalInterval(
+-                    event.time_sec,
+-                    cycle_sec,
++                    event.time_ms,
++                    cycle_ms,
++                    event.time_ms / 1000.0,
++                    cycle_ms / 1000.0,
+                     state,
+                     event.display_id,
+                     event.source_kind,
+                 )
+             )
+             pieces.append(
+                 SignalInterval(
++                    0,
++                    next_ms - cycle_ms,
+                     0.0,
+-                    next_time - cycle_sec,
++                    (next_ms - cycle_ms) / 1000.0,
+                     state,
+                     event.display_id,
+                     event.source_kind,
+                 )
+             )
+-    pieces.sort(key=lambda item: item.start_sec)
++    pieces.sort(key=lambda item: item.start_ms)
+     return tuple(pieces)
+ 
+ 
+ def _validate_coverage(
+-    intervals: Sequence[SignalInterval], cycle_sec: float, sg_id: str
++    intervals: Sequence[SignalInterval], cycle_ms: int, sg_id: str
+ ) -> None:
+-    cursor = 0.0
++    cursor = 0
+     for interval in intervals:
+         if interval.state not in _VALID_STATES:
+             raise SignalProgramError(f"SG {sg_id} has invalid state {interval.state}")
+-        if abs(interval.start_sec - cursor) > _EPSILON:
+-            relation = "overlap" if interval.start_sec < cursor else "gap"
++        if interval.start_ms != cursor:
++            relation = "overlap" if interval.start_ms < cursor else "gap"
+             raise SignalProgramError(
+-                f"SG {sg_id} timeline has {relation} at {cursor}s"
++                f"SG {sg_id} timeline has {relation} at {cursor / 1000.0}s"
+             )
+-        if interval.end_sec <= interval.start_sec:
++        if interval.end_ms <= interval.start_ms:
+             raise SignalProgramError(f"SG {sg_id} has a non-positive interval")
+-        cursor = interval.end_sec
+-    if abs(cursor - cycle_sec) > _EPSILON:
++        cursor = interval.end_ms
++    if cursor != cycle_ms:
+         raise SignalProgramError(
+-            f"SG {sg_id} timeline ends at {cursor}s, expected {cycle_sec}s"
++            f"SG {sg_id} timeline ends at {cursor / 1000.0}s, expected {cycle_ms / 1000.0}s"
+         )
+ 
+ 
+ def _source_phase(
+     time_sec: float,
+     program: ControllerProgram,
+     start_time_of_day_sec: float,
+     cycle_epoch_sec: float,
+     controller_offset_sec: float,
+ ) -> float:
+@@ -651,24 +850,28 @@ def _required_text(element: ET.Element, attribute: str, context: str) -> str:
+ 
+ def _required_int(element: ET.Element, attribute: str, context: str) -> int:
+     value = _required_text(element, attribute, context)
+     try:
+         return int(value)
+     except ValueError as exc:
+         raise SignalProgramError(f"{context} {attribute} is not an integer: {value!r}") from exc
+ 
+ 
+ def _required_ms(element: ET.Element, attribute: str, context: str) -> float:
++    return _required_ms_int(element, attribute, context) / 1000.0
++
++
++def _required_ms_int(element: ET.Element, attribute: str, context: str) -> int:
+     milliseconds = _required_int(element, attribute, context)
+     if milliseconds < 0:
+         raise SignalProgramError(f"{context} {attribute} must be non-negative")
+-    return milliseconds / 1000.0
++    return milliseconds
+ 
+ 
+ def _required_bool(element: ET.Element, attribute: str, context: str) -> bool:
+     value = _required_text(element, attribute, context).lower()
+     if value == "true":
+         return True
+     if value == "false":
+         return False
+     raise SignalProgramError(f"{context} {attribute} is not boolean: {value!r}")
+ 
+@@ -677,19 +880,26 @@ def _id_sort_key(value: str | None) -> tuple[int, int | str]:
+     if value is None:
+         return (2, "")
+     try:
+         return (0, int(value))
+     except ValueError:
+         return (1, value)
+ 
+ 
+ __all__ = [
+     "ControllerProgram",
++    "DailyProgramList",
++    "DailyProgramListItem",
++    "SignalCommand",
++    "SignalFixedState",
+     "SignalGroupTimeline",
+     "SignalInterval",
+     "SignalProgramError",
++    "SignalDefinition",
+     "SignalSequence",
+     "SignalSequenceState",
+     "green_overlap",
+     "parse_sig",
++    "parse_sig_definition",
++    "parse_sig_programs",
+     "state_at",
+ ]
+diff --git a/plant/tests/test_vissim_strict_signal_program.py b/plant/tests/test_vissim_strict_signal_program.py
+index 390b48f..b2fd5bf 100644
+--- a/plant/tests/test_vissim_strict_signal_program.py
++++ b/plant/tests/test_vissim_strict_signal_program.py
+@@ -2,20 +2,21 @@ from __future__ import annotations
+ 
+ from pathlib import Path
+ import tempfile
+ import textwrap
+ import unittest
+ 
+ from src.vissim_strict.signal_program import (
+     SignalProgramError,
+     green_overlap,
+     parse_sig,
++    parse_sig_programs,
+     state_at,
+ )
+ 
+ 
+ def _fixture(path: Path, commands: str, *, offset_ms: int = 0, switchpoint_ms: int = 17_000) -> Path:
+     content = f"""
+     <sc version="201602" id="99" name="fixture">
+       <signaldisplays>
+         <display id="1" name="Red" state="RED" />
+         <display id="3" name="Green" state="GREEN" />
+@@ -34,20 +35,39 @@ def _fixture(path: Path, commands: str, *, offset_ms: int = 0, switchpoint_ms: i
+           <cmds>{commands}</cmds><fixedstates><fixedstate display="4" duration="3000" /></fixedstates>
+         </sg></sgs>
+       </prog></progs>
+     </sc>
+     """
+     target = path / "fixture.sig"
+     target.write_text(textwrap.dedent(content), encoding="utf-8")
+     return target
+ 
+ 
++def _multi_program_fixture(path: Path) -> Path:
++    target = _fixture(
++        path,
++        '<cmd display="3" begin="39000" /><cmd display="1" begin="65000" />',
++    )
++    content = target.read_text(encoding="utf-8")
++    second = """
++      <prog id="2" cycletime="90000" switchpoint="12000" offset="7000" name="second">
++        <sgs><sg sg_id="1" signal_sequence="7">
++          <cmds><cmd display="3" begin="21000" /><cmd display="1" begin="51000" /></cmds>
++          <fixedstates><fixedstate display="4" duration="3000" /></fixedstates>
++        </sg></sgs>
++      </prog>
++    """
++    content = content.replace("<progs>", f"<progs>{textwrap.dedent(second)}")
++    target.write_text(content, encoding="utf-8")
++    return target
++
++
+ class SignalProgramTests(unittest.TestCase):
+     def setUp(self) -> None:
+         self.directory = tempfile.TemporaryDirectory()
+         self.addCleanup(self.directory.cleanup)
+         self.root = Path(self.directory.name)
+ 
+     def test_places_fixed_amber_immediately_before_red(self) -> None:
+         program = parse_sig(
+             _fixture(self.root, '<cmd display="3" begin="39000" /><cmd display="1" begin="65000" />'),
+             1,
+@@ -82,13 +102,41 @@ class SignalProgramTests(unittest.TestCase):
+         self.assertEqual(program.switchpoint_sec, 77.0)
+         self.assertEqual(state_at(19.999, program, 1), "RED")
+         self.assertEqual(state_at(20.0, program, 1), "GREEN")
+         self.assertEqual(state_at(50.0, program, 1), "RED")
+ 
+     def test_rejects_transition_shorter_than_fixed_duration(self) -> None:
+         path = _fixture(self.root, '<cmd display="3" begin="10000" /><cmd display="1" begin="12000" />')
+         with self.assertRaisesRegex(SignalProgramError, "requires 3.0s"):
+             parse_sig(path, 1)
+ 
++    def test_parses_all_programs_in_numeric_order_and_keeps_parse_sig_compatible(self) -> None:
++        path = _multi_program_fixture(self.root)
++        programs = parse_sig_programs(path)
++
++        self.assertEqual(list(programs), [1, 2])
++        self.assertEqual(parse_sig(path, 2), programs[2])
++        self.assertEqual(programs[2].cycle_length_sec, 90.0)
++        self.assertEqual(programs[2].switchpoint_sec, 12.0)
++        self.assertEqual(programs[2].program_offset_sec, 7.0)
++
++    def test_preserves_raw_integer_millisecond_boundaries(self) -> None:
++        program = parse_sig(_multi_program_fixture(self.root), 1)
++        timeline = program.sg_timelines["1"]
++
++        self.assertEqual(program.cycle_length_ms, 100_000)
++        self.assertEqual(program.switchpoint_ms, 17_000)
++        self.assertEqual(program.program_offset_ms, 0)
++        self.assertEqual(
++            [(item.display_id, item.begin_ms) for item in timeline.commands],
++            [("3", 39_000), ("1", 65_000)],
++        )
++        self.assertEqual(
++            [(item.start_ms, item.end_ms) for item in timeline.intervals],
++            [(0, 39_000), (39_000, 62_000), (62_000, 65_000), (65_000, 100_000)],
++        )
++        self.assertEqual(timeline.cycle_length_ms, program.cycle_length_ms)
++        self.assertTrue(all(isinstance(item.start_ms, int) for item in timeline.intervals))
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+
+## Untracked file: scripts/validate_sc12_shared_lane.py
+diff --git a/scripts/validate_sc12_shared_lane.py b/scripts/validate_sc12_shared_lane.py
+new file mode 100644
+index 0000000..b9f5491
+--- /dev/null
++++ b/scripts/validate_sc12_shared_lane.py
+@@ -0,0 +1,702 @@
++from __future__ import annotations
++
++import argparse
++from datetime import datetime, timezone
++import hashlib
++import json
++import os
++from pathlib import Path
++import sys
++import tempfile
++from typing import Any, Mapping, Sequence
++
++
++SCHEMA_VERSION = "sc12-shared-lane-v2.1"
++REFERENCE_SCHEMA_VERSION = "signal-reference-v2.1"
++STATUS_PASS = "PASS"
++STATUS_FAIL = "FAIL"
++STATUS_NOT_EVALUATED = "NOT_EVALUATED"
++
++EXPECTED_HEADS = {
++    "50201": {"link_no": "1220012103", "lane_no": 2, "sg_no": 5},
++    "50202": {"link_no": "1220012103", "lane_no": 1, "sg_no": 2},
++    "50601": {"link_no": "1220013600", "lane_no": 2, "sg_no": 1},
++    "50602": {"link_no": "1220013600", "lane_no": 1, "sg_no": 6},
++}
++
++EXPECTED_CONNECTORS = {
++    "10241": {
++        "lane_count": 2,
++        "from_endpoint": {
++            "link_no": "1220012103",
++            "lane_no": 1,
++            "lane_id": "lane:1220012103:1",
++        },
++        "to_endpoint": {
++            "link_no": "1220013700",
++            "lane_no": 1,
++            "lane_id": "lane:1220013700:1",
++        },
++        "connector_lane_ids": ["lane:10241:1", "lane:10241:2"],
++        "lane_mapping": [
++            {
++                "from_lane_id": "lane:1220012103:1",
++                "connector_lane_id": "lane:10241:1",
++                "to_lane_id": "lane:1220013700:1",
++            },
++            {
++                "from_lane_id": "lane:1220012103:2",
++                "connector_lane_id": "lane:10241:2",
++                "to_lane_id": "lane:1220013700:2",
++            },
++        ],
++    },
++    "10242": {
++        "lane_count": 1,
++        "from_endpoint": {
++            "link_no": "1220012103",
++            "lane_no": 2,
++            "lane_id": "lane:1220012103:2",
++        },
++        "to_endpoint": {
++            "link_no": "1220015100",
++            "lane_no": 3,
++            "lane_id": "lane:1220015100:3",
++        },
++        "connector_lane_ids": ["lane:10242:1"],
++        "lane_mapping": [
++            {
++                "from_lane_id": "lane:1220012103:2",
++                "connector_lane_id": "lane:10242:1",
++                "to_lane_id": "lane:1220015100:3",
++            }
++        ],
++    },
++    "10238": {
++        "lane_count": 2,
++        "from_endpoint": {
++            "link_no": "1220013600",
++            "lane_no": 1,
++            "lane_id": "lane:1220013600:1",
++        },
++        "to_endpoint": {
++            "link_no": "1220012003",
++            "lane_no": 1,
++            "lane_id": "lane:1220012003:1",
++        },
++        "connector_lane_ids": ["lane:10238:1", "lane:10238:2"],
++        "lane_mapping": [
++            {
++                "from_lane_id": "lane:1220013600:1",
++                "connector_lane_id": "lane:10238:1",
++                "to_lane_id": "lane:1220012003:1",
++            },
++            {
++                "from_lane_id": "lane:1220013600:2",
++                "connector_lane_id": "lane:10238:2",
++                "to_lane_id": "lane:1220012003:2",
++            },
++        ],
++    },
++    "10240": {
++        "lane_count": 1,
++        "from_endpoint": {
++            "link_no": "1220013600",
++            "lane_no": 2,
++            "lane_id": "lane:1220013600:2",
++        },
++        "to_endpoint": {
++            "link_no": "1220012600",
++            "lane_no": 3,
++            "lane_id": "lane:1220012600:3",
++        },
++        "connector_lane_ids": ["lane:10240:1"],
++        "lane_mapping": [
++            {
++                "from_lane_id": "lane:1220013600:2",
++                "connector_lane_id": "lane:10240:1",
++                "to_lane_id": "lane:1220012600:3",
++            }
++        ],
++    },
++}
++
++EXPECTED_STOCKS = {
++    "lane:1220012103:1": {
++        "direction": "EB",
++        "head_no": "50202",
++        "sg_no": 2,
++        "movements": ["movement:10241"],
++    },
++    "lane:1220012103:2": {
++        "direction": "EB",
++        "head_no": "50201",
++        "sg_no": 5,
++        "movements": ["movement:10241", "movement:10242"],
++    },
++    "lane:1220013600:1": {
++        "direction": "WB",
++        "head_no": "50602",
++        "sg_no": 6,
++        "movements": ["movement:10238"],
++    },
++    "lane:1220013600:2": {
++        "direction": "WB",
++        "head_no": "50601",
++        "sg_no": 1,
++        "movements": ["movement:10238", "movement:10240"],
++    },
++}
++
++
++def _sha256_file(path: Path) -> str | None:
++    if not path.is_file():
++        return None
++    digest = hashlib.sha256()
++    try:
++        with path.open("rb") as stream:
++            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
++                digest.update(chunk)
++    except OSError:
++        return None
++    return digest.hexdigest()
++
++
++def _gate(status: str, summary: str, **evidence: Any) -> dict[str, Any]:
++    return {"status": status, "summary": summary, "evidence": evidence}
++
++
++def _index_by_number(items: Any) -> tuple[dict[str, Mapping[str, Any]], list[str]]:
++    if not isinstance(items, list):
++        return {}, ["expected a list"]
++    result: dict[str, Mapping[str, Any]] = {}
++    reasons: list[str] = []
++    for item in items:
++        if not isinstance(item, Mapping):
++            reasons.append("encountered a non-object record")
++            continue
++        number = str(item.get("vissim_no", "")).strip()
++        if not number:
++            reasons.append("encountered a record without vissim_no")
++        elif number in result:
++            reasons.append(f"duplicate vissim_no {number}")
++        else:
++            result[number] = item
++    return result, reasons
++
++
++def _load_reference(path: Path) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
++    if not path.is_file():
++        return None, _gate(
++            STATUS_NOT_EVALUATED,
++            "compiler reference is missing",
++            path=str(path.resolve(strict=False)),
++            reasons=["reference file does not exist"],
++        )
++    try:
++        payload = json.loads(path.read_text(encoding="utf-8-sig"))
++    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
++        return None, _gate(
++            STATUS_FAIL,
++            "compiler reference is not readable JSON",
++            path=str(path.resolve(strict=False)),
++            reasons=[f"{type(exc).__name__}: {exc}"],
++        )
++    if not isinstance(payload, Mapping):
++        return None, _gate(
++            STATUS_FAIL,
++            "compiler reference root is not an object",
++            path=str(path.resolve(strict=False)),
++            reasons=[f"root type is {type(payload).__name__}"],
++        )
++    reference = payload.get("signal_reference")
++    actual_schema = reference.get("schema_version") if isinstance(reference, Mapping) else None
++    reasons = [] if actual_schema == REFERENCE_SCHEMA_VERSION else [
++        f"signal_reference.schema_version must be {REFERENCE_SCHEMA_VERSION}"
++    ]
++    return payload, _gate(
++        STATUS_FAIL if reasons else STATUS_PASS,
++        "compiler reference schema is invalid" if reasons else "full compiler signal reference loaded",
++        path=str(path.resolve(strict=False)),
++        expected_schema_version=REFERENCE_SCHEMA_VERSION,
++        actual_schema_version=actual_schema,
++        reasons=reasons,
++    )
++
++
++def _find_sc12_schedule(payload: Mapping[str, Any]) -> tuple[Mapping[str, Any] | None, dict[str, Any]]:
++    schedules_root = payload.get("schedules")
++    schedules = schedules_root.get("fixed") if isinstance(schedules_root, Mapping) else None
++    if not isinstance(schedules, list):
++        return None, _gate(
++            STATUS_NOT_EVALUATED,
++            "fixed signal schedules are absent",
++            reasons=["schedules.fixed is not a list"],
++        )
++    matches = [
++        item
++        for item in schedules
++        if isinstance(item, Mapping) and str(item.get("controller_no", "")) == "12"
++    ]
++    if len(matches) != 1:
++        return None, _gate(
++            STATUS_NOT_EVALUATED if not matches else STATUS_FAIL,
++            "SC12 fixed schedule is not uniquely available",
++            count=len(matches),
++            reasons=[f"expected one SC12 schedule, found {len(matches)}"],
++        )
++    schedule = matches[0]
++    return schedule, _gate(
++        STATUS_PASS,
++        "one SC12 fixed schedule is available",
++        schedule_id=schedule.get("id"),
++        source_path=schedule.get("source_path"),
++        source_sha256=schedule.get("source_sha256"),
++        reasons=[],
++    )
++
++
++def _validate_heads(schedule: Mapping[str, Any] | None) -> dict[str, Any]:
++    if schedule is None:
++        return _gate(
++            STATUS_NOT_EVALUATED,
++            "SC12 head assignments cannot be checked without its schedule",
++            reasons=["SC12 schedule unavailable"],
++        )
++    heads, index_reasons = _index_by_number(schedule.get("signal_heads"))
++    reasons = list(index_reasons)
++    evidence: dict[str, Any] = {}
++    for head_no, expected in EXPECTED_HEADS.items():
++        head = heads.get(head_no)
++        actual = (
++            {
++                "link_no": str(head.get("link_no")),
++                "lane_no": head.get("lane_no"),
++                "sg_no": head.get("sg_no"),
++            }
++            if head is not None
++            else None
++        )
++        evidence[head_no] = {"expected": expected, "actual": actual}
++        if actual != expected:
++            reasons.append(f"head {head_no} assignment mismatch")
++    return _gate(
++        STATUS_FAIL if reasons else STATUS_PASS,
++        "SC12 target head assignments differ" if reasons else "SC12 target heads match their lane and SG assignments",
++        heads=evidence,
++        reasons=reasons,
++    )
++
++
++def _connector_mapping(connector: Mapping[str, Any]) -> tuple[list[dict[str, Any]], list[str]]:
++    raw_mappings = connector.get("lane_mapping")
++    if not isinstance(raw_mappings, list):
++        return [], ["lane_mapping is not a list"]
++    mappings: list[dict[str, Any]] = []
++    reasons: list[str] = []
++    for raw in raw_mappings:
++        if not isinstance(raw, Mapping):
++            reasons.append("lane_mapping contains a non-object")
++            continue
++        from_lane_id = str(raw.get("from_lane_id", ""))
++        connector_lane_id = str(raw.get("connector_lane_id", ""))
++        if not from_lane_id or not connector_lane_id:
++            reasons.append("lane_mapping lacks from_lane_id or connector_lane_id")
++        mappings.append(
++            {
++                "from_lane_id": from_lane_id,
++                "connector_lane_id": connector_lane_id,
++                "to_lane_id": raw.get("to_lane_id"),
++            }
++        )
++    mappings.sort(key=lambda item: item["connector_lane_id"])
++    return mappings, reasons
++
++
++def _endpoint_view(value: Any) -> dict[str, Any] | None:
++    if not isinstance(value, Mapping):
++        return None
++    return {
++        "link_no": str(value.get("link_no")),
++        "lane_no": value.get("lane_no"),
++        "lane_id": value.get("lane_id"),
++    }
++
++
++def _connector_lane_ids(connector: Mapping[str, Any]) -> tuple[list[str], list[str]]:
++    lanes = connector.get("lanes")
++    if not isinstance(lanes, list):
++        return [], ["lanes is not a list"]
++    lane_ids: list[str] = []
++    reasons: list[str] = []
++    for lane in lanes:
++        if not isinstance(lane, Mapping) or not str(lane.get("id", "")):
++            reasons.append("lanes contains a record without an id")
++            continue
++        lane_ids.append(str(lane["id"]))
++    lane_ids.sort()
++    return lane_ids, reasons
++
++
++def _validate_connectors(payload: Mapping[str, Any] | None) -> tuple[dict[str, Any], dict[str, list[str]]]:
++    if payload is None:
++        return (
++            _gate(
++                STATUS_NOT_EVALUATED,
++                "connector lane mappings cannot be checked",
++                reasons=["compiler reference unavailable"],
++            ),
++            {},
++        )
++    connectors, index_reasons = _index_by_number(payload.get("connectors"))
++    reasons = list(index_reasons)
++    source_maps: dict[str, list[str]] = {}
++    evidence: dict[str, Any] = {}
++    unavailable: list[str] = []
++    for connector_no, expected in EXPECTED_CONNECTORS.items():
++        connector = connectors.get(connector_no)
++        if connector is None:
++            unavailable.append(connector_no)
++            evidence[connector_no] = {"expected": expected, "actual": None}
++            continue
++        mappings, mapping_reasons = _connector_mapping(connector)
++        actual_sources = [item["from_lane_id"] for item in mappings]
++        source_maps[connector_no] = actual_sources
++        connector_lane_ids, lane_reasons = _connector_lane_ids(connector)
++        actual = {
++            "lane_count": connector.get("lane_count"),
++            "from_endpoint": _endpoint_view(connector.get("from_endpoint")),
++            "to_endpoint": _endpoint_view(connector.get("to_endpoint")),
++            "connector_lane_ids": connector_lane_ids,
++            "lane_mapping": mappings,
++        }
++        evidence[connector_no] = {
++            "expected": expected,
++            "actual": actual,
++        }
++        reasons.extend(f"connector {connector_no}: {reason}" for reason in mapping_reasons)
++        reasons.extend(f"connector {connector_no}: {reason}" for reason in lane_reasons)
++        if actual != expected:
++            reasons.append(f"connector {connector_no} exact topology contract mismatch")
++    status = STATUS_FAIL if reasons else STATUS_NOT_EVALUATED if unavailable else STATUS_PASS
++    return (
++        _gate(
++            status,
++            "SC12 connector mappings are invalid"
++            if status == STATUS_FAIL
++            else "SC12 connector mappings are incomplete"
++            if status == STATUS_NOT_EVALUATED
++            else "SC12 through and left movements resolve to the expected source lanes",
++            connectors=evidence,
++            missing_connectors=unavailable,
++            reasons=reasons,
++        ),
++        source_maps,
++    )
++
++
++def _validate_physical_stock_contract(source_maps: Mapping[str, list[str]]) -> dict[str, Any]:
++    if set(source_maps) != set(EXPECTED_CONNECTORS):
++        return _gate(
++            STATUS_NOT_EVALUATED,
++            "physical stock sharing cannot be proved from incomplete connector evidence",
++            reasons=["one or more required connector mappings are unavailable"],
++        )
++    actual_movements: dict[str, list[str]] = {stock_id: [] for stock_id in EXPECTED_STOCKS}
++    for connector_no, source_ids in source_maps.items():
++        for stock_id in source_ids:
++            actual_movements.setdefault(stock_id, []).append(f"movement:{connector_no}")
++    for movements in actual_movements.values():
++        movements.sort(key=lambda value: int(value.split(":", 1)[1]))
++
++    reasons: list[str] = []
++    stock_evidence: dict[str, Any] = {}
++    for stock_id, expected in EXPECTED_STOCKS.items():
++        actual = actual_movements.get(stock_id, [])
++        stock_evidence[stock_id] = {
++            **expected,
++            "actual_movements": actual,
++            "physical_stock_instances": 1,
++        }
++        if actual != expected["movements"]:
++            reasons.append(f"{stock_id} movement membership mismatch")
++    unexpected_stocks = sorted(set(actual_movements) - set(EXPECTED_STOCKS))
++    if unexpected_stocks:
++        reasons.append("unexpected source stocks in SC12 target movements")
++    return _gate(
++        STATUS_FAIL if reasons else STATUS_PASS,
++        "shared-lane stock contract is contradicted" if reasons else "each upstream lane is one physical stock shared by its permitted movements",
++        stock_identity="upstream VISSIM lane_id",
++        movement_queue_duplication_allowed=False,
++        unique_physical_stock_count=len(EXPECTED_STOCKS),
++        movement_membership_reference_count=sum(len(item["movements"]) for item in EXPECTED_STOCKS.values()),
++        stocks=stock_evidence,
++        unexpected_stocks=unexpected_stocks,
++        reasons=reasons,
++    )
++
++
++def _raw_ms_timeline(timeline: Any) -> Mapping[str, Any] | None:
++    if not isinstance(timeline, Mapping):
++        return None
++    commands = timeline.get("commands")
++    fixed_states = timeline.get("fixed_states")
++    intervals = timeline.get("intervals")
++    if not all(isinstance(value, list) for value in (commands, fixed_states, intervals)):
++        return None
++    return {
++        "cycle_length_ms": timeline.get("cycle_length_ms"),
++        "permanent_red": timeline.get("permanent_red"),
++        "commands": [
++            {"display_id": item.get("display_id"), "begin_ms": item.get("begin_ms")}
++            for item in commands
++            if isinstance(item, Mapping)
++        ],
++        "fixed_states": [
++            {"display_id": item.get("display_id"), "duration_ms": item.get("duration_ms")}
++            for item in fixed_states
++            if isinstance(item, Mapping)
++        ],
++        "intervals": [
++            {
++                "start_ms": item.get("start_ms"),
++                "end_ms": item.get("end_ms"),
++                "state": item.get("state"),
++                "display_id": item.get("display_id"),
++                "source_kind": item.get("source_kind"),
++            }
++            for item in intervals
++            if isinstance(item, Mapping)
++        ],
++    }
++
++
++def _validate_profile_timeline_policy(schedule: Mapping[str, Any] | None) -> dict[str, Any]:
++    if schedule is None or not isinstance(schedule.get("programs"), list):
++        return _gate(
++            STATUS_NOT_EVALUATED,
++            "SC12 profile timeline policy cannot be checked",
++            policy_scope="current_profile_bundle_policy",
++            physical_invariant=False,
++            reasons=["SC12 programs are unavailable"],
++        )
++    programs = schedule["programs"]
++    by_number: dict[int, Mapping[str, Any]] = {}
++    reasons: list[str] = []
++    for program in programs:
++        if not isinstance(program, Mapping) or isinstance(program.get("active_prog_no"), bool):
++            reasons.append("SC12 contains a malformed program record")
++            continue
++        try:
++            number = int(program.get("active_prog_no"))
++        except (TypeError, ValueError):
++            reasons.append("SC12 program number is not an integer")
++            continue
++        if number in by_number:
++            reasons.append(f"duplicate SC12 program {number}")
++        else:
++            by_number[number] = program
++
++    unavailable = sorted({1, 2, 3} - set(by_number))
++    comparisons: list[dict[str, Any]] = []
++    for program_no in (1, 2, 3):
++        program = by_number.get(program_no)
++        if program is None:
++            continue
++        timelines = program.get("sg_timelines")
++        if not isinstance(timelines, Mapping):
++            reasons.append(f"program {program_no} sg_timelines is unavailable")
++            continue
++        for left, right in (("2", "5"), ("1", "6")):
++            left_raw = _raw_ms_timeline(timelines.get(left))
++            right_raw = _raw_ms_timeline(timelines.get(right))
++            equal = left_raw is not None and left_raw == right_raw
++            comparisons.append(
++                {
++                    "program_no": program_no,
++                    "left_sg": int(left),
++                    "right_sg": int(right),
++                    "raw_ms_timeline_equal": equal,
++                    "left_raw_ms_timeline": left_raw,
++                    "right_raw_ms_timeline": right_raw,
++                }
++            )
++            if not equal:
++                reasons.append(f"program {program_no} SG{left} and SG{right} raw-ms timelines differ")
++    status = STATUS_FAIL if reasons else STATUS_NOT_EVALUATED if unavailable else STATUS_PASS
++    return _gate(
++        status,
++        "SC12 paired SG timeline policy is violated"
++        if status == STATUS_FAIL
++        else "SC12 programs 1/2/3 are incomplete"
++        if status == STATUS_NOT_EVALUATED
++        else "SC12 programs 1/2/3 preserve both paired raw-ms timelines",
++        policy_scope="current_profile_bundle_policy",
++        physical_invariant=False,
++        policy_statement="SG2==SG5 and SG1==SG6 only for the current SC12 profile bundle",
++        expected_program_nos=[1, 2, 3],
++        missing_program_nos=unavailable,
++        comparisons=comparisons,
++        reasons=reasons,
++    )
++
++
++def validate_reference(reference_path: Path) -> dict[str, Any]:
++    reference_path = reference_path.resolve(strict=False)
++    payload, load_gate = _load_reference(reference_path)
++    schedule, schedule_gate = _find_sc12_schedule(payload) if payload is not None else (
++        None,
++        _gate(
++            STATUS_NOT_EVALUATED,
++            "SC12 schedule cannot be located",
++            reasons=["compiler reference unavailable"],
++        ),
++    )
++    connector_gate, source_maps = _validate_connectors(payload)
++    checks = {
++        "reference_schema": load_gate,
++        "sc12_schedule": schedule_gate,
++        "head_assignments": _validate_heads(schedule),
++        "connector_lane_mapping": connector_gate,
++        "physical_stock_contract": _validate_physical_stock_contract(source_maps),
++        "profile_timeline_policy": _validate_profile_timeline_policy(schedule),
++    }
++    counts = {
++        status: sum(check["status"] == status for check in checks.values())
++        for status in (STATUS_PASS, STATUS_FAIL, STATUS_NOT_EVALUATED)
++    }
++    status = (
++        STATUS_FAIL
++        if counts[STATUS_FAIL]
++        else STATUS_NOT_EVALUATED
++        if counts[STATUS_NOT_EVALUATED]
++        else STATUS_PASS
++    )
++    reasons = [name for name, check in checks.items() if check["status"] != STATUS_PASS]
++    command_path = Path(__file__).resolve()
++    return {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": {"reference_sha256": _sha256_file(reference_path)},
++        "command_version": {
++            "command": "scripts/validate_sc12_shared_lane.py",
++            "version": SCHEMA_VERSION,
++            "sha256": _sha256_file(command_path),
++        },
++        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
++        "status": status,
++        "reasons": reasons,
++        "complete": status == STATUS_PASS,
++        "sample_dimensions": {
++            "signal_controller": 1 if schedule is not None else 0,
++            "target_signal_heads": len(EXPECTED_HEADS),
++            "target_connectors": len(EXPECTED_CONNECTORS),
++            "resolved_target_connectors": len(source_maps),
++            "physical_lane_stocks": len(EXPECTED_STOCKS),
++            "signal_programs": len(
++                schedule.get("programs", [])
++                if schedule is not None and isinstance(schedule.get("programs"), list)
++                else []
++            ),
++            "timeline_pair_comparisons": len(
++                checks["profile_timeline_policy"]["evidence"].get("comparisons", [])
++            ),
++        },
++        "units": {
++            "lane_stock": "one upstream VISSIM lane_id",
++            "movement": "one VISSIM connector",
++            "timeline": "integer millisecond",
++            "sha256": "SHA-256 hex digest of raw bytes",
++        },
++        "downstream_consumers": [
++            "A physical stock topology",
++            "B mass-conserving state projection",
++            "C N-phase signal action model",
++            "K plant fidelity audit",
++        ],
++        "physical_stock_contract": {
++            "stock_identity": "upstream VISSIM lane_id",
++            "movement_queue_duplication_allowed": False,
++            "shared_lane_rule": "one physical lane stock may feed multiple connector movements without cloning its vehicle count",
++            "stocks": EXPECTED_STOCKS,
++        },
++        "profile_bundle_policy": {
++            "scope": "current_profile_bundle_policy",
++            "physical_invariant": False,
++            "equal_raw_ms_timeline_pairs": [[2, 5], [1, 6]],
++            "program_nos": [1, 2, 3],
++        },
++        "summary": {
++            "pass": counts[STATUS_PASS],
++            "fail": counts[STATUS_FAIL],
++            "not_evaluated": counts[STATUS_NOT_EVALUATED],
++        },
++        "checks": checks,
++    }
++
++
++def atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
++    path = path.resolve(strict=False)
++    path.parent.mkdir(parents=True, exist_ok=True)
++    serialized = json.dumps(payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n"
++    descriptor, temporary_name = tempfile.mkstemp(
++        dir=path.parent,
++        prefix=f".{path.name}.",
++        suffix=".tmp",
++    )
++    temporary_path = Path(temporary_name)
++    try:
++        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
++            stream.write(serialized)
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temporary_path, path)
++    except BaseException:
++        try:
++            temporary_path.unlink(missing_ok=True)
++        except OSError:
++            pass
++        raise
++
++
++def make_parser() -> argparse.ArgumentParser:
++    parser = argparse.ArgumentParser(
++        description="Validate the SC12 shared through-and-left lane contract from a full compiler reference.",
++        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
++    )
++    parser.add_argument("--reference", required=True, help="full signal-reference-v2.1 compiler JSON")
++    parser.add_argument("--out", required=True, help="atomic sc12-shared-lane-v2.1 JSON output path")
++    parser.add_argument("--strict", action="store_true", help="exit 2 when any check is FAIL")
++    parser.add_argument(
++        "--require-complete",
++        action="store_true",
++        help="exit 3 when any required check is NOT_EVALUATED; requires --strict",
++    )
++    return parser
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = make_parser()
++    args = parser.parse_args(argv)
++    if args.require_complete and not args.strict:
++        parser.error("--require-complete requires --strict")
++    artifact = validate_reference(Path(args.reference))
++    try:
++        atomic_write_json(Path(args.out), artifact)
++    except OSError as exc:
++        print(f"failed to write SC12 validator artifact: {exc}", file=sys.stderr)
++        return 4
++    summary = artifact["summary"]
++    print(
++        f"SC12 shared lane: status={artifact['status']} PASS={summary['pass']} "
++        f"FAIL={summary['fail']} NOT_EVALUATED={summary['not_evaluated']}"
++    )
++    print(f"JSON: {Path(args.out).resolve(strict=False)}")
++    if args.strict and summary["fail"]:
++        return 2
++    if args.require_complete and summary["not_evaluated"]:
++        return 3
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+
+## Untracked file: scripts/tests/test_validate_sc12_shared_lane.py
+diff --git a/scripts/tests/test_validate_sc12_shared_lane.py b/scripts/tests/test_validate_sc12_shared_lane.py
+new file mode 100644
+index 0000000..f807d31
+--- /dev/null
++++ b/scripts/tests/test_validate_sc12_shared_lane.py
+@@ -0,0 +1,316 @@
++from __future__ import annotations
++
++import copy
++import importlib.util
++import json
++import os
++from pathlib import Path
++import sys
++import tempfile
++import unittest
++from unittest import mock
++
++
++REPO_ROOT = Path(__file__).resolve().parents[2]
++SCRIPT = REPO_ROOT / "scripts" / "validate_sc12_shared_lane.py"
++SPEC = importlib.util.spec_from_file_location("validate_sc12_shared_lane", SCRIPT)
++assert SPEC and SPEC.loader
++validator = importlib.util.module_from_spec(SPEC)
++SPEC.loader.exec_module(validator)
++
++PLANT_ROOT = REPO_ROOT / "plant"
++sys.path.insert(0, str(PLANT_ROOT))
++from src.vissim_strict.compiler import compile_network  # noqa: E402
++
++
++REAL_NETWORK = (
++    REPO_ROOT
++    / "network"
++    / "real_world_gaepo_modi"
++    / "modi_eval_rw_control.inpx"
++)
++
++
++class ValidateSc12SharedLaneTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls) -> None:
++        cls.temporary = tempfile.TemporaryDirectory()
++        cls.root = Path(cls.temporary.name)
++        cls.reference = compile_network(REAL_NETWORK)
++        cls.reference_path = cls.root / "signal_reference_v2_1.json"
++        cls.reference_path.write_text(
++            json.dumps(cls.reference, ensure_ascii=False, indent=2),
++            encoding="utf-8",
++        )
++
++    @classmethod
++    def tearDownClass(cls) -> None:
++        cls.temporary.cleanup()
++
++    def write_mutation(self, payload: object, name: str) -> Path:
++        path = self.root / name
++        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
++        return path
++
++    @staticmethod
++    def sc12(payload: dict[str, object]) -> dict[str, object]:
++        schedules = payload["schedules"]["fixed"]  # type: ignore[index]
++        return next(item for item in schedules if item["controller_no"] == "12")
++
++    def test_real_compiler_reference_proves_shared_lane_contract(self) -> None:
++        result = validator.validate_reference(self.reference_path)
++
++        self.assertEqual(result["schema_version"], "sc12-shared-lane-v2.1")
++        self.assertEqual(result["status"], "PASS")
++        self.assertTrue(result["complete"])
++        self.assertEqual(result["reasons"], [])
++        for key in (
++            "input_hashes",
++            "command_version",
++            "generated_at_utc",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "summary",
++            "checks",
++        ):
++            self.assertIn(key, result)
++        self.assertEqual(
++            result["input_hashes"]["reference_sha256"],
++            validator._sha256_file(self.reference_path),
++        )
++        self.assertEqual(result["sample_dimensions"]["timeline_pair_comparisons"], 6)
++        self.assertEqual(result["sample_dimensions"]["target_connectors"], 4)
++        self.assertEqual(result["sample_dimensions"]["resolved_target_connectors"], 4)
++
++        connector_evidence = result["checks"]["connector_lane_mapping"]["evidence"]["connectors"]
++        self.assertEqual(
++            connector_evidence["10241"]["actual"],
++            {
++                "lane_count": 2,
++                "from_endpoint": {
++                    "link_no": "1220012103",
++                    "lane_no": 1,
++                    "lane_id": "lane:1220012103:1",
++                },
++                "to_endpoint": {
++                    "link_no": "1220013700",
++                    "lane_no": 1,
++                    "lane_id": "lane:1220013700:1",
++                },
++                "connector_lane_ids": ["lane:10241:1", "lane:10241:2"],
++                "lane_mapping": [
++                    {
++                        "from_lane_id": "lane:1220012103:1",
++                        "connector_lane_id": "lane:10241:1",
++                        "to_lane_id": "lane:1220013700:1",
++                    },
++                    {
++                        "from_lane_id": "lane:1220012103:2",
++                        "connector_lane_id": "lane:10241:2",
++                        "to_lane_id": "lane:1220013700:2",
++                    },
++                ],
++            },
++        )
++        self.assertEqual(
++            connector_evidence["10242"]["actual"]["to_endpoint"]["lane_id"],
++            "lane:1220015100:3",
++        )
++        self.assertEqual(
++            connector_evidence["10238"]["actual"]["lane_mapping"][1],
++            {
++                "from_lane_id": "lane:1220013600:2",
++                "connector_lane_id": "lane:10238:2",
++                "to_lane_id": "lane:1220012003:2",
++            },
++        )
++        self.assertEqual(
++            connector_evidence["10240"]["actual"]["to_endpoint"]["lane_id"],
++            "lane:1220012600:3",
++        )
++
++        contract = result["physical_stock_contract"]
++        self.assertFalse(contract["movement_queue_duplication_allowed"])
++        self.assertEqual(len(contract["stocks"]), 4)
++        self.assertEqual(
++            contract["stocks"]["lane:1220012103:2"]["movements"],
++            ["movement:10241", "movement:10242"],
++        )
++        self.assertEqual(
++            contract["stocks"]["lane:1220013600:2"]["movements"],
++            ["movement:10238", "movement:10240"],
++        )
++        self.assertEqual(result["profile_bundle_policy"]["scope"], "current_profile_bundle_policy")
++        self.assertFalse(result["profile_bundle_policy"]["physical_invariant"])
++        self.assertTrue(
++            all(
++                item["raw_ms_timeline_equal"]
++                for item in result["checks"]["profile_timeline_policy"]["evidence"]["comparisons"]
++            )
++        )
++
++    def test_mutated_head_assignment_fails(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        schedule = self.sc12(payload)
++        head = next(item for item in schedule["signal_heads"] if item["vissim_no"] == "50201")
++        head["sg_no"] = 2
++        path = self.write_mutation(payload, "bad_head.json")
++
++        result = validator.validate_reference(path)
++
++        self.assertEqual(result["status"], "FAIL")
++        check = result["checks"]["head_assignments"]
++        self.assertEqual(check["status"], "FAIL")
++        self.assertIn("head 50201 assignment mismatch", check["evidence"]["reasons"])
++
++    def test_mutated_connector_lane_mapping_fails_stock_proof(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        connector = next(item for item in payload["connectors"] if item["vissim_no"] == "10242")
++        connector["lane_mapping"][0]["from_lane_id"] = "lane:1220012103:1"
++        path = self.write_mutation(payload, "bad_connector.json")
++
++        result = validator.validate_reference(path)
++
++        self.assertEqual(result["checks"]["connector_lane_mapping"]["status"], "FAIL")
++        self.assertEqual(result["checks"]["physical_stock_contract"]["status"], "FAIL")
++        self.assertIn(
++            "connector 10242 exact topology contract mismatch",
++            result["checks"]["connector_lane_mapping"]["evidence"]["reasons"],
++        )
++
++    def test_mutated_connector_lane_id_fails_with_same_upstream_stock(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        connector = next(item for item in payload["connectors"] if item["vissim_no"] == "10241")
++        connector["lane_mapping"][1]["connector_lane_id"] = "lane:10241:99"
++        path = self.write_mutation(payload, "bad_connector_lane_id.json")
++
++        result = validator.validate_reference(path)
++
++        check = result["checks"]["connector_lane_mapping"]
++        self.assertEqual(result["status"], "FAIL")
++        self.assertEqual(check["status"], "FAIL")
++        self.assertEqual(result["checks"]["physical_stock_contract"]["status"], "PASS")
++        self.assertIn(
++            "connector 10241 exact topology contract mismatch",
++            check["evidence"]["reasons"],
++        )
++
++    def test_mutated_downstream_lane_fails_with_same_upstream_stock(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        connector = next(item for item in payload["connectors"] if item["vissim_no"] == "10240")
++        connector["lane_mapping"][0]["to_lane_id"] = "lane:1220012600:2"
++        path = self.write_mutation(payload, "bad_downstream_lane.json")
++
++        result = validator.validate_reference(path)
++
++        check = result["checks"]["connector_lane_mapping"]
++        self.assertEqual(result["status"], "FAIL")
++        self.assertEqual(check["status"], "FAIL")
++        self.assertEqual(result["checks"]["physical_stock_contract"]["status"], "PASS")
++        self.assertIn(
++            "connector 10240 exact topology contract mismatch",
++            check["evidence"]["reasons"],
++        )
++
++    def test_mutated_lane_count_and_destination_endpoint_fail(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        connector = next(item for item in payload["connectors"] if item["vissim_no"] == "10238")
++        connector["lane_count"] = 1
++        connector["to_endpoint"]["lane_id"] = "lane:1220019999:1"
++        path = self.write_mutation(payload, "bad_count_and_destination.json")
++
++        result = validator.validate_reference(path)
++
++        check = result["checks"]["connector_lane_mapping"]
++        self.assertEqual(result["status"], "FAIL")
++        self.assertEqual(check["status"], "FAIL")
++        self.assertIn(
++            "connector 10238 exact topology contract mismatch",
++            check["evidence"]["reasons"],
++        )
++
++    def test_mutated_raw_ms_timeline_fails_profile_policy(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        schedule = self.sc12(payload)
++        program = next(item for item in schedule["programs"] if item["active_prog_no"] == 2)
++        program["sg_timelines"]["5"]["commands"][0]["begin_ms"] += 1
++        path = self.write_mutation(payload, "bad_timeline.json")
++
++        result = validator.validate_reference(path)
++
++        check = result["checks"]["profile_timeline_policy"]
++        self.assertEqual(result["status"], "FAIL")
++        self.assertEqual(check["status"], "FAIL")
++        self.assertFalse(check["evidence"]["physical_invariant"])
++        self.assertIn(
++            "program 2 SG2 and SG5 raw-ms timelines differ",
++            check["evidence"]["reasons"],
++        )
++
++    def test_missing_connector_is_not_evaluated(self) -> None:
++        payload = copy.deepcopy(self.reference)
++        payload["connectors"] = [
++            item for item in payload["connectors"] if item["vissim_no"] != "10240"
++        ]
++        path = self.write_mutation(payload, "missing_connector.json")
++
++        result = validator.validate_reference(path)
++
++        self.assertEqual(result["status"], "NOT_EVALUATED")
++        self.assertFalse(result["complete"])
++        self.assertEqual(result["checks"]["connector_lane_mapping"]["status"], "NOT_EVALUATED")
++        self.assertEqual(result["checks"]["physical_stock_contract"]["status"], "NOT_EVALUATED")
++        self.assertEqual(result["sample_dimensions"]["target_connectors"], 4)
++        self.assertEqual(result["sample_dimensions"]["resolved_target_connectors"], 3)
++
++    def test_cli_strict_and_require_complete_exit_contract(self) -> None:
++        valid_out = self.root / "valid_output.json"
++        self.assertEqual(
++            validator.main(
++                [
++                    "--reference",
++                    str(self.reference_path),
++                    "--out",
++                    str(valid_out),
++                    "--strict",
++                    "--require-complete",
++                ]
++            ),
++            0,
++        )
++        self.assertEqual(json.loads(valid_out.read_text(encoding="utf-8"))["status"], "PASS")
++
++        missing_out = self.root / "missing_output.json"
++        self.assertEqual(
++            validator.main(
++                [
++                    "--reference",
++                    str(self.root / "does_not_exist.json"),
++                    "--out",
++                    str(missing_out),
++                    "--strict",
++                    "--require-complete",
++                ]
++            ),
++            3,
++        )
++        self.assertEqual(
++            json.loads(missing_out.read_text(encoding="utf-8"))["status"],
++            "NOT_EVALUATED",
++        )
++
++    def test_atomic_writer_preserves_existing_output_on_replace_failure(self) -> None:
++        output = self.root / "atomic.json"
++        output.write_text("sentinel", encoding="utf-8")
++
++        with mock.patch.object(validator.os, "replace", side_effect=OSError("replace failed")):
++            with self.assertRaises(OSError):
++                validator.atomic_write_json(output, {"status": "PASS"})
++
++        self.assertEqual(output.read_text(encoding="utf-8"), "sentinel")
++        self.assertEqual(list(self.root.glob(".atomic.json.*.tmp")), [])
++
++
++if __name__ == "__main__":
++    unittest.main()

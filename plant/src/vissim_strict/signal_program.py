@@ -23,6 +23,7 @@ class SignalSequenceState:
     display_id: str
     state: str
     fixed_duration: bool
+    default_duration_ms: int
     default_duration_sec: float
 
 
@@ -39,6 +40,8 @@ class SignalSequence:
 
 @dataclass(frozen=True)
 class SignalInterval:
+    start_ms: int
+    end_ms: int
     start_sec: float
     end_sec: float
     state: str
@@ -47,12 +50,29 @@ class SignalInterval:
 
 
 @dataclass(frozen=True)
+class SignalCommand:
+    display_id: str
+    begin_ms: int
+    begin_sec: float
+
+
+@dataclass(frozen=True)
+class SignalFixedState:
+    display_id: str
+    duration_ms: int
+    duration_sec: float
+
+
+@dataclass(frozen=True)
 class SignalGroupTimeline:
     sg_id: str
     name: str
     sequence_id: str
+    cycle_length_ms: int
     cycle_length_sec: float
     permanent_red: bool
+    commands: tuple[SignalCommand, ...]
+    fixed_states: tuple[SignalFixedState, ...]
     intervals: tuple[SignalInterval, ...]
 
     def state_at_phase(self, phase_sec: float) -> str:
@@ -96,8 +116,11 @@ class ControllerProgram:
     controller_name: str
     active_prog_no: int
     program_name: str
+    cycle_length_ms: int
     cycle_length_sec: float
+    switchpoint_ms: int
     switchpoint_sec: float
+    program_offset_ms: int
     program_offset_sec: float
     display_states: Mapping[str, str]
     sequences: Mapping[str, SignalSequence]
@@ -144,20 +167,62 @@ class ControllerProgram:
 
 
 @dataclass(frozen=True)
+class DailyProgramListItem:
+    time_ms: int
+    time_sec: float
+    program_no: int
+
+
+@dataclass(frozen=True)
+class DailyProgramList:
+    list_no: int
+    name: str
+    items: tuple[DailyProgramListItem, ...]
+
+
+@dataclass(frozen=True)
+class SignalDefinition:
+    controller_id: str
+    controller_name: str
+    programs: Mapping[int, ControllerProgram]
+    daily_program_lists: Mapping[int, DailyProgramList]
+    daily_program_lists_element_present: bool
+    source_path: str
+
+
+@dataclass(frozen=True)
 class _Command:
     display_id: str
-    begin_sec: float
+    begin_ms: int
 
 
 @dataclass(frozen=True)
 class _Event:
-    time_sec: float
+    time_ms: int
     display_id: str
     source_kind: str
 
 
 def parse_sig(path: str | Path, active_prog_no: int) -> ControllerProgram:
     """Parse one active VISSIG program and compile every SG into a timeline."""
+
+    programs = parse_sig_programs(path)
+    try:
+        return programs[int(active_prog_no)]
+    except KeyError as exc:
+        raise SignalProgramError(
+            f"active program {active_prog_no} must match exactly once, found 0"
+        ) from exc
+
+
+def parse_sig_programs(path: str | Path) -> Mapping[int, ControllerProgram]:
+    """Parse every VISSIG program in deterministic numeric program order."""
+
+    return parse_sig_definition(path).programs
+
+
+def parse_sig_definition(path: str | Path) -> SignalDefinition:
+    """Parse programs and optional VISSIG daily-program-list definitions."""
 
     source = Path(path)
     try:
@@ -171,30 +236,119 @@ def parse_sig(path: str | Path, active_prog_no: int) -> ControllerProgram:
     sequences = _parse_sequences(root, displays)
     sg_definitions = _parse_sg_definitions(root, sequences)
 
-    matching = [
-        element
-        for element in root.findall("./progs/prog")
-        if _required_int(element, "id", "program") == active_prog_no
-    ]
-    if len(matching) != 1:
-        raise SignalProgramError(
-            f"active program {active_prog_no} must match exactly once, found {len(matching)}"
+    program_elements: dict[int, ET.Element] = {}
+    for element in root.findall("./progs/prog"):
+        program_no = _required_int(element, "id", "program")
+        if program_no in program_elements:
+            raise SignalProgramError(f"program {program_no} must match exactly once, found 2")
+        program_elements[program_no] = element
+    if not program_elements:
+        raise SignalProgramError("controller contains no programs")
+
+    programs: dict[int, ControllerProgram] = {}
+    for program_no in sorted(program_elements):
+        programs[program_no] = _compile_program(
+            root=root,
+            program_element=program_elements[program_no],
+            program_no=program_no,
+            source=source,
+            displays=displays,
+            sequences=sequences,
+            sg_definitions=sg_definitions,
         )
-    program_element = matching[0]
-    cycle_sec = _required_ms(program_element, "cycletime", "program")
-    if cycle_sec <= 0:
+    daily_lists_element = root.find("./dailyProgLists")
+    daily_program_lists = _parse_daily_program_lists(
+        daily_lists_element, available_program_nos=frozenset(programs)
+    )
+    return SignalDefinition(
+        controller_id=_required_text(root, "id", "controller"),
+        controller_name=root.get("name", ""),
+        programs=MappingProxyType(programs),
+        daily_program_lists=MappingProxyType(daily_program_lists),
+        daily_program_lists_element_present=daily_lists_element is not None,
+        source_path=str(source.resolve()),
+    )
+
+
+def _parse_daily_program_lists(
+    container: ET.Element | None, *, available_program_nos: frozenset[int]
+) -> dict[int, DailyProgramList]:
+    if container is None:
+        return {}
+
+    result: dict[int, DailyProgramList] = {}
+    for element in container:
+        if element.tag != "dailyProgList":
+            raise SignalProgramError(
+                f"dailyProgLists contains unsupported element <{element.tag}>"
+            )
+        list_no = _required_int(element, "id", "daily program list")
+        if list_no in result:
+            raise SignalProgramError(f"duplicate daily program list {list_no}")
+        items: list[DailyProgramListItem] = []
+        seen_times: set[int] = set()
+        for item in element.findall(".//dailyProgListItem"):
+            time_ms = _required_ms_int(
+                item, "time", f"daily program list {list_no} item"
+            )
+            if time_ms >= 86_400_000:
+                raise SignalProgramError(
+                    f"daily program list {list_no} item time must be within one day"
+                )
+            if time_ms in seen_times:
+                raise SignalProgramError(
+                    f"daily program list {list_no} repeats time {time_ms}ms"
+                )
+            seen_times.add(time_ms)
+            program_no = _required_int(
+                item, "prog_id", f"daily program list {list_no} item"
+            )
+            if program_no not in available_program_nos:
+                raise SignalProgramError(
+                    f"daily program list {list_no} references undefined program {program_no}"
+                )
+            items.append(
+                DailyProgramListItem(
+                    time_ms=time_ms,
+                    time_sec=time_ms / 1000.0,
+                    program_no=program_no,
+                )
+            )
+        if not items:
+            raise SignalProgramError(f"daily program list {list_no} contains no items")
+        items.sort(key=lambda item: item.time_ms)
+        result[list_no] = DailyProgramList(
+            list_no=list_no,
+            name=element.get("name", ""),
+            items=tuple(items),
+        )
+    return {key: result[key] for key in sorted(result)}
+
+
+def _compile_program(
+    *,
+    root: ET.Element,
+    program_element: ET.Element,
+    program_no: int,
+    source: Path,
+    displays: Mapping[str, str],
+    sequences: Mapping[str, SignalSequence],
+    sg_definitions: Mapping[str, tuple[str, str]],
+) -> ControllerProgram:
+    cycle_ms = _required_ms_int(program_element, "cycletime", "program")
+    if cycle_ms <= 0:
         raise SignalProgramError("program cycletime must be positive")
-    switchpoint_sec = _required_ms(program_element, "switchpoint", "program")
-    program_offset_sec = _required_ms(program_element, "offset", "program")
+    switchpoint_ms = _required_ms_int(program_element, "switchpoint", "program")
+    program_offset_ms = _required_ms_int(program_element, "offset", "program")
 
     timelines: dict[str, SignalGroupTimeline] = {}
     program_sgs = program_element.findall("./sgs/sg")
     if not program_sgs:
-        raise SignalProgramError(f"program {active_prog_no} contains no SGs")
+        raise SignalProgramError(f"program {program_no} contains no SGs")
     for program_sg in sorted(program_sgs, key=lambda item: _id_sort_key(item.get("sg_id"))):
         sg_id = _required_text(program_sg, "sg_id", "program SG")
         if sg_id in timelines:
-            raise SignalProgramError(f"program {active_prog_no} repeats SG {sg_id}")
+            raise SignalProgramError(f"program {program_no} repeats SG {sg_id}")
         if sg_id not in sg_definitions:
             raise SignalProgramError(f"program references undefined SG {sg_id}")
         name, default_sequence_id = sg_definitions[sg_id]
@@ -209,18 +363,21 @@ def parse_sig(path: str | Path, active_prog_no: int) -> ControllerProgram:
             sg_name=name,
             sequence=sequences[sequence_id],
             display_states=displays,
-            cycle_sec=cycle_sec,
+            cycle_ms=cycle_ms,
         )
         timelines[sg_id] = timeline
 
     return ControllerProgram(
         controller_id=_required_text(root, "id", "controller"),
         controller_name=root.get("name", ""),
-        active_prog_no=active_prog_no,
+        active_prog_no=program_no,
         program_name=program_element.get("name", ""),
-        cycle_length_sec=cycle_sec,
-        switchpoint_sec=switchpoint_sec,
-        program_offset_sec=program_offset_sec,
+        cycle_length_ms=cycle_ms,
+        cycle_length_sec=cycle_ms / 1000.0,
+        switchpoint_ms=switchpoint_ms,
+        switchpoint_sec=switchpoint_ms / 1000.0,
+        program_offset_ms=program_offset_ms,
+        program_offset_sec=program_offset_ms / 1000.0,
         display_states=MappingProxyType(dict(displays)),
         sequences=MappingProxyType(dict(sequences)),
         sg_timelines=MappingProxyType(timelines),
@@ -329,6 +486,11 @@ def _parse_sequences(
                     f"signal sequence {sequence_id} repeats display {display_id}"
                 )
             seen.add(display_id)
+            default_duration_ms = _required_ms_int(
+                state_element,
+                "defaultDuration",
+                f"signal sequence {sequence_id}",
+            )
             states.append(
                 SignalSequenceState(
                     display_id=display_id,
@@ -338,11 +500,8 @@ def _parse_sequences(
                         "isFixedDuration",
                         f"signal sequence {sequence_id}",
                     ),
-                    default_duration_sec=_required_ms(
-                        state_element,
-                        "defaultDuration",
-                        f"signal sequence {sequence_id}",
-                    ),
+                    default_duration_ms=default_duration_ms,
+                    default_duration_sec=default_duration_ms / 1000.0,
                 )
             )
         if not states:
@@ -381,19 +540,19 @@ def _compile_timeline(
     sg_name: str,
     sequence: SignalSequence,
     display_states: Mapping[str, str],
-    cycle_sec: float,
+    cycle_ms: int,
 ) -> SignalGroupTimeline:
     commands = [
         _Command(
             display_id=_required_text(element, "display", f"SG {sg_id} command"),
-            begin_sec=_required_ms(element, "begin", f"SG {sg_id} command"),
+            begin_ms=_required_ms_int(element, "begin", f"SG {sg_id} command"),
         )
         for element in program_sg.findall("./cmds/cmd")
     ]
     if not commands:
         raise SignalProgramError(f"SG {sg_id} contains no commands")
-    commands.sort(key=lambda item: (item.begin_sec, _id_sort_key(item.display_id)))
-    seen_times: set[float] = set()
+    commands.sort(key=lambda item: (item.begin_ms, _id_sort_key(item.display_id)))
+    seen_times: set[int] = set()
     sequence_displays = set(sequence.display_order)
     for command in commands:
         if command.display_id not in display_states:
@@ -404,20 +563,21 @@ def _compile_timeline(
             raise SignalProgramError(
                 f"SG {sg_id} command display {command.display_id} is not in sequence {sequence.sequence_id}"
             )
-        if not 0 <= command.begin_sec < cycle_sec:
+        if not 0 <= command.begin_ms < cycle_ms:
             raise SignalProgramError(
-                f"SG {sg_id} command at {command.begin_sec}s is outside cycle [0,{cycle_sec})"
+                f"SG {sg_id} command at {command.begin_ms / 1000.0}s is outside cycle "
+                f"[0,{cycle_ms / 1000.0})"
             )
-        if command.begin_sec in seen_times:
+        if command.begin_ms in seen_times:
             raise SignalProgramError(
-                f"SG {sg_id} has multiple commands at {command.begin_sec}s"
+                f"SG {sg_id} has multiple commands at {command.begin_ms / 1000.0}s"
             )
-        seen_times.add(command.begin_sec)
+        seen_times.add(command.begin_ms)
 
-    fixed_durations: dict[str, float] = {}
+    fixed_durations: dict[str, int] = {}
     for element in program_sg.findall("./fixedstates/fixedstate"):
         display_id = _required_text(element, "display", f"SG {sg_id} fixedstate")
-        duration = _required_ms(element, "duration", f"SG {sg_id} fixedstate")
+        duration = _required_ms_int(element, "duration", f"SG {sg_id} fixedstate")
         if display_id in fixed_durations:
             raise SignalProgramError(f"SG {sg_id} repeats fixedstate {display_id}")
         if duration <= 0:
@@ -441,19 +601,30 @@ def _compile_timeline(
         command = commands[0]
         state = display_states[command.display_id]
         intervals = (
-            SignalInterval(0.0, cycle_sec, state, command.display_id, "command"),
+            SignalInterval(
+                0,
+                cycle_ms,
+                0.0,
+                cycle_ms / 1000.0,
+                state,
+                command.display_id,
+                "command",
+            ),
         )
         return SignalGroupTimeline(
             sg_id=sg_id,
             name=sg_name,
             sequence_id=sequence.sequence_id,
-            cycle_length_sec=cycle_sec,
+            cycle_length_ms=cycle_ms,
+            cycle_length_sec=cycle_ms / 1000.0,
             permanent_red=state == "RED",
+            commands=_public_commands(commands),
+            fixed_states=_public_fixed_states(fixed_durations),
             intervals=intervals,
         )
 
     events: list[_Event] = [
-        _Event(command.begin_sec, command.display_id, "command")
+        _Event(command.begin_ms, command.display_id, "command")
         for command in commands
     ]
     for index, target in enumerate(commands):
@@ -470,27 +641,46 @@ def _compile_timeline(
                 f"SG {sg_id} transition {current.display_id}->{target.display_id} "
                 f"has no duration for fixed display {missing[0]}"
             )
-        available = (target.begin_sec - current.begin_sec) % cycle_sec
+        available = (target.begin_ms - current.begin_ms) % cycle_ms
         required = sum(fixed_durations[item] for item in transition_states)
-        if required > available + _EPSILON:
+        if required > available:
             raise SignalProgramError(
                 f"SG {sg_id} transition {current.display_id}->{target.display_id} "
-                f"has {available}s but requires {required}s of fixed states"
+                f"has {available / 1000.0}s but requires {required / 1000.0}s of fixed states"
             )
-        cursor = target.begin_sec
+        cursor = target.begin_ms
         for display_id in reversed(transition_states):
             cursor -= fixed_durations[display_id]
-            events.append(_Event(cursor % cycle_sec, display_id, "fixedstate"))
+            events.append(_Event(cursor % cycle_ms, display_id, "fixedstate"))
 
-    intervals = _events_to_intervals(events, display_states, cycle_sec, sg_id)
-    _validate_coverage(intervals, cycle_sec, sg_id)
+    intervals = _events_to_intervals(events, display_states, cycle_ms, sg_id)
+    _validate_coverage(intervals, cycle_ms, sg_id)
     return SignalGroupTimeline(
         sg_id=sg_id,
         name=sg_name,
         sequence_id=sequence.sequence_id,
-        cycle_length_sec=cycle_sec,
+        cycle_length_ms=cycle_ms,
+        cycle_length_sec=cycle_ms / 1000.0,
         permanent_red=all(item.state == "RED" for item in intervals),
+        commands=_public_commands(commands),
+        fixed_states=_public_fixed_states(fixed_durations),
         intervals=intervals,
+    )
+
+
+def _public_commands(commands: Sequence[_Command]) -> tuple[SignalCommand, ...]:
+    return tuple(
+        SignalCommand(item.display_id, item.begin_ms, item.begin_ms / 1000.0)
+        for item in commands
+    )
+
+
+def _public_fixed_states(fixed_durations: Mapping[str, int]) -> tuple[SignalFixedState, ...]:
+    return tuple(
+        SignalFixedState(display_id, duration_ms, duration_ms / 1000.0)
+        for display_id, duration_ms in sorted(
+            fixed_durations.items(), key=lambda item: _id_sort_key(item[0])
+        )
     )
 
 
@@ -510,13 +700,16 @@ def _sequence_path(order: Sequence[str], current: str, target: str) -> tuple[str
 def _events_to_intervals(
     events: Sequence[_Event],
     display_states: Mapping[str, str],
-    cycle_sec: float,
+    cycle_ms: int,
     sg_id: str,
 ) -> tuple[SignalInterval, ...]:
-    ordered = sorted(events, key=lambda item: (item.time_sec, item.source_kind, _id_sort_key(item.display_id)))
+    ordered = sorted(
+        events,
+        key=lambda item: (item.time_ms, item.source_kind, _id_sort_key(item.display_id)),
+    )
     deduplicated: list[_Event] = []
     for event in ordered:
-        if deduplicated and abs(event.time_sec - deduplicated[-1].time_sec) <= _EPSILON:
+        if deduplicated and event.time_ms == deduplicated[-1].time_ms:
             previous = deduplicated[-1]
             if previous.display_id == event.display_id:
                 if event.source_kind == "fixedstate":
@@ -530,7 +723,7 @@ def _events_to_intervals(
                 )
                 continue
             raise SignalProgramError(
-                f"SG {sg_id} has conflicting events at {event.time_sec}s"
+                f"SG {sg_id} has conflicting events at {event.time_ms / 1000.0}s"
             )
         deduplicated.append(event)
 
@@ -538,19 +731,21 @@ def _events_to_intervals(
         raise SignalProgramError(f"SG {sg_id} produced no timeline events")
     pieces: list[SignalInterval] = []
     for index, event in enumerate(deduplicated):
-        next_time = (
-            deduplicated[index + 1].time_sec
+        next_ms = (
+            deduplicated[index + 1].time_ms
             if index + 1 < len(deduplicated)
-            else cycle_sec + deduplicated[0].time_sec
+            else cycle_ms + deduplicated[0].time_ms
         )
-        if next_time <= event.time_sec + _EPSILON:
+        if next_ms <= event.time_ms:
             continue
         state = display_states[event.display_id]
-        if next_time <= cycle_sec + _EPSILON:
+        if next_ms <= cycle_ms:
             pieces.append(
                 SignalInterval(
-                    event.time_sec,
-                    min(next_time, cycle_sec),
+                    event.time_ms,
+                    min(next_ms, cycle_ms),
+                    event.time_ms / 1000.0,
+                    min(next_ms, cycle_ms) / 1000.0,
                     state,
                     event.display_id,
                     event.source_kind,
@@ -559,8 +754,10 @@ def _events_to_intervals(
         else:
             pieces.append(
                 SignalInterval(
-                    event.time_sec,
-                    cycle_sec,
+                    event.time_ms,
+                    cycle_ms,
+                    event.time_ms / 1000.0,
+                    cycle_ms / 1000.0,
                     state,
                     event.display_id,
                     event.source_kind,
@@ -568,35 +765,37 @@ def _events_to_intervals(
             )
             pieces.append(
                 SignalInterval(
+                    0,
+                    next_ms - cycle_ms,
                     0.0,
-                    next_time - cycle_sec,
+                    (next_ms - cycle_ms) / 1000.0,
                     state,
                     event.display_id,
                     event.source_kind,
                 )
             )
-    pieces.sort(key=lambda item: item.start_sec)
+    pieces.sort(key=lambda item: item.start_ms)
     return tuple(pieces)
 
 
 def _validate_coverage(
-    intervals: Sequence[SignalInterval], cycle_sec: float, sg_id: str
+    intervals: Sequence[SignalInterval], cycle_ms: int, sg_id: str
 ) -> None:
-    cursor = 0.0
+    cursor = 0
     for interval in intervals:
         if interval.state not in _VALID_STATES:
             raise SignalProgramError(f"SG {sg_id} has invalid state {interval.state}")
-        if abs(interval.start_sec - cursor) > _EPSILON:
-            relation = "overlap" if interval.start_sec < cursor else "gap"
+        if interval.start_ms != cursor:
+            relation = "overlap" if interval.start_ms < cursor else "gap"
             raise SignalProgramError(
-                f"SG {sg_id} timeline has {relation} at {cursor}s"
+                f"SG {sg_id} timeline has {relation} at {cursor / 1000.0}s"
             )
-        if interval.end_sec <= interval.start_sec:
+        if interval.end_ms <= interval.start_ms:
             raise SignalProgramError(f"SG {sg_id} has a non-positive interval")
-        cursor = interval.end_sec
-    if abs(cursor - cycle_sec) > _EPSILON:
+        cursor = interval.end_ms
+    if cursor != cycle_ms:
         raise SignalProgramError(
-            f"SG {sg_id} timeline ends at {cursor}s, expected {cycle_sec}s"
+            f"SG {sg_id} timeline ends at {cursor / 1000.0}s, expected {cycle_ms / 1000.0}s"
         )
 
 
@@ -658,10 +857,14 @@ def _required_int(element: ET.Element, attribute: str, context: str) -> int:
 
 
 def _required_ms(element: ET.Element, attribute: str, context: str) -> float:
+    return _required_ms_int(element, attribute, context) / 1000.0
+
+
+def _required_ms_int(element: ET.Element, attribute: str, context: str) -> int:
     milliseconds = _required_int(element, attribute, context)
     if milliseconds < 0:
         raise SignalProgramError(f"{context} {attribute} must be non-negative")
-    return milliseconds / 1000.0
+    return milliseconds
 
 
 def _required_bool(element: ET.Element, attribute: str, context: str) -> bool:
@@ -684,12 +887,19 @@ def _id_sort_key(value: str | None) -> tuple[int, int | str]:
 
 __all__ = [
     "ControllerProgram",
+    "DailyProgramList",
+    "DailyProgramListItem",
+    "SignalCommand",
+    "SignalFixedState",
     "SignalGroupTimeline",
     "SignalInterval",
     "SignalProgramError",
+    "SignalDefinition",
     "SignalSequence",
     "SignalSequenceState",
     "green_overlap",
     "parse_sig",
+    "parse_sig_definition",
+    "parse_sig_programs",
     "state_at",
 ]
