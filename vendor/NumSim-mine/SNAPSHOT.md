@@ -1,43 +1,38 @@
-# 모델 소스 스냅샷 (감사용 사본)
+# NumSim bundled runtime snapshot
 
-이 디렉터리는 **교통 모델·컨트롤러 소스의 사본**이다. 원본이 아니다.
+This directory is the canonical NumSim runtime used by the VISSIM adapter. It is
+a source snapshot, not a standalone Git checkout.
 
-| | |
+| Field | Value |
 |---|---|
-| 원본 레포 | https://github.com/Ming2you/Numerical-Sim.git |
-| 브랜치 | `freeway-zone-followers` |
-| 커밋 | `0240ba8` — "가격 롤아웃 병렬화 배선 (기본 꺼짐, 미검증)" |
-| 복사 시각 | 2026-08-05 (2차 — 병렬 FD 반영) |
-| 범위 | `src/` 전체 + `README.md` / `requirements.txt` / `AGENTS.md` |
-| 제외 | `outputs/`(263 MB 런 산출물), `work/`, `__pycache__`, `.git` |
+| Upstream repository | `https://github.com/Ming2you/Numerical-Sim.git` |
+| Upstream commit | `0240ba89b97bf43438e1a0f519f7b0c978288913` |
+| Upstream root tree | `ce7ec4e66d936a53f77e7586977775b8b4eef186` |
+| Upstream `src` tree | `f90966498b75bfd29639e0649491d68b2e8a6424` |
+| Git object format | `sha1` |
+| Immutable anchor | `UPSTREAM_TREE.json` (`numsim-upstream-tree-v1`, 96 Python blobs) |
+| Snapshot date | `2026-08-05` |
+| Runtime source | `src/**/*.py` |
 
-## 왜 사본을 두는가
+## Import contract
 
-`PLANT_FIDELITY_AUDIT_REQUEST.md` 의 감사는 **하네스(이 레포)와 모델을 같이** 봐야 한다.
-두 레포를 따로 클론하게 하는 대신, 감사 시점 모델을 이 레포 안에 고정해 클론 하나로
-전체를 재현할 수 있게 했다.
+`evaluation/controllers/vissim_stackelberg_adapter.py` selects this directory
+by default. `NUMSIM_REPO_ROOT` may select another checkout, but strict preflight
+accepts it only when `scripts/verify_runtime_source.py` proves all of the
+following:
 
-## 주의 — 이 사본을 수정하지 말 것
+- the declared snapshot and Git commit identify the full upstream commit;
+- every LF-normalized Python file has the path/blob OID recorded in
+  `UPSTREAM_TREE.json`;
+- `repo_imports()` loads the same `src` module paths and module bytes; and
+- no tracked Python source is dirty.
 
-런타임이 실제로 import 하는 모델은 이 사본이 아니다.
-`evaluation/controllers/vissim_stackelberg_adapter.py:24` 가 `NUMSIM_REPO_ROOT` 환경변수를
-보고, 없으면 절대경로 `C:/Users/alsrj/Desktop/학술/찐찐막/Claude/NumSim-mine` 로 폴백한다.
+The verifier records the immutable upstream blob OID, checkout/index Git blob
+OID, and raw checkout SHA-256 value for every Python file.
+Tree and imported-module identity use LF-normalized bytes, so a checkout-only
+CRLF conversion is recorded without being mistaken for a source-code change.
+The normalization policy is declared in the repository `.gitattributes` file.
 
-- **코드 수정은 원본 레포(Numerical-Sim)에서** 한다. 여기 고치면 갈라진다.
-- 이 사본으로 실행해 보려면 `NUMSIM_REPO_ROOT` 를 이 디렉터리로 지정한다.
-
-```bash
-export NUMSIM_REPO_ROOT="$(pwd)/vendor/NumSim-mine"   # 저장소 루트에서
-```
-
-## 감사에서 특히 볼 파일
-
-| 파일 | 무엇 |
-|---|---|
-| `src/models/grid_topology.py` | leg 인접 → movement·내부링크 유도. `NS_AXIS`(31행), `leg_base_dir`, phase 배정(225행 부근) |
-| `src/models/urban_queue_model.py` | 도시부 substep 동역학. `_phase_green_fraction`(541행) — **phase 가 비면 1.0 반환 = 항상 녹색** |
-| `src/models/state.py` | `NetworkConfig`. `ramp_queue_max_veh_by_ramp` / `ramp_queue_cap`, `boundary_leg_vehicles`, `objective_urban_vehicles` |
-| `src/controllers/leader.py` | `_state_accumulation_base`(경계 leg 제외), `_ramp_queue_pressure` |
-| `src/controllers/f1_wu_faithful_follower.py` | 램프 큐 상한이 물리로 들어가는 지점(517행 부근) |
-| `src/controllers/freeway_follower.py` | 램프 큐 상한 + overflow |
-| `src/config/default.yaml` | 6노드 참조 격자. `signals`/`uncontrolled_nodes`(노드 E), 대각 방위 문자열 **0건** |
+Strict runs also require `RW_PYTHON_EXE` to name the Python executable that is
+actually running the verifier. Any source, commit, snapshot, import, dirty-tree,
+or interpreter mismatch makes the verifier exit nonzero.

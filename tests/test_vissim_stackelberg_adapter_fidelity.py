@@ -72,7 +72,10 @@ class PlantFidelityProjectionTests(unittest.TestCase):
         )
 
         self.assertTrue(provenance["workspace_git_commit"])
-        self.assertEqual(provenance["numsim_snapshot_commit"], "35a5c82")
+        self.assertEqual(
+            provenance["numsim_snapshot_commit"],
+            "0240ba89b97bf43438e1a0f519f7b0c978288913",
+        )
         self.assertEqual(provenance["numsim_git_commit"], "")
         self.assertEqual(provenance["schema_version"], 2)
         self.assertFalse(provenance["inputs"]["state_json"]["exists"])
