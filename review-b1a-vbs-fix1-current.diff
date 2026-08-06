@@ -1,0 +1,1607 @@
+# B1a VBS fix-round-1 current package
+
+diff --git a/scripts/run_real_world_stackelberg_controller.vbs b/scripts/run_real_world_stackelberg_controller.vbs
+index ae4b4db..39ae9c4 100644
+--- a/scripts/run_real_world_stackelberg_controller.vbs
++++ b/scripts/run_real_world_stackelberg_controller.vbs
+@@ -137,6 +137,10 @@ Const RAMP_CYCLE_SEC = 10
+ Const RAMP_AMBER_SEC = 1
+ Const AMBER_SEC = 3
+ Const ALL_RED_SEC = 2
++Const B1A_POSITION_TOLERANCE_M = 0.000001
++Const B1A_STOPPED_THRESHOLD_KPH = 1.0
++Dim JSON_DECIMAL_SEPARATOR
++JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
+ 
+ If CLng(controlInterval) <= 0 Or (CLng(controlInterval) Mod RAMP_CYCLE_SEC) <> 0 Then
+     WScript.Echo "ERROR=CONTROL_INTERVAL_MUST_BE_POSITIVE_MULTIPLE_OF_RAMP_CYCLE control_interval_sec=" & CStr(controlInterval) & " ramp_cycle_sec=" & CStr(RAMP_CYCLE_SEC)
+@@ -150,7 +154,7 @@ End If
+ ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
+ ' interpreter here means every decision fails, so failing now costs seconds
+ ' instead of surfacing after a multi-hour run.
+-Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures
++Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures
+ Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
+ pythonExe = ""
+ decisionsOk = 0
+@@ -158,6 +162,7 @@ decisionsFailed = 0
+ observationFailures = 0
+ signalFailures = 0
+ actionFormatFailures = 0
++comFailures = 0
+ signalWriteAttempts = 0
+ signalReadbackOk = 0
+ signalPersistenceChecks = 0
+@@ -281,10 +286,11 @@ WScript.Echo "SIGNAL_READBACK_OK=" & CStr(signalReadbackOk)
+ WScript.Echo "SIGNAL_PERSISTENCE_CHECKS=" & CStr(signalPersistenceChecks)
+ WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
+ WScript.Echo "ACTION_FORMAT_FAILURES=" & CStr(actionFormatFailures)
+-If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Then
++WScript.Echo "COM_FAILURES=" & CStr(comFailures)
++If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
+     WScript.Echo "ERROR=RUN_INTEGRITY_FAILURE decisions_failed=" & CStr(decisionsFailed) & _
+         " observation_failures=" & CStr(observationFailures) & " signal_failures=" & CStr(signalFailures) & _
+-        " action_format_failures=" & CStr(actionFormatFailures)
++        " action_format_failures=" & CStr(actionFormatFailures) & " com_failures=" & CStr(comFailures)
+     Set Vissim = Nothing
+     WScript.Quit 3
+ End If
+@@ -414,16 +420,16 @@ Sub RunStepwiseMode()
+ 
+     Dim stepNo, stepT0
+     For stepNo = 2 To CLng(simPeriod)
++        stepT0 = PerfNow()
++        Vissim.Simulation.RunSingleStep
++        PerfAdd "sim.step", stepT0
++        ValidateRuntimeSignalPersistence stepNo
+         If stepNo Mod CLng(controlInterval) = 0 Then
+             RunControllerDecision stepNo
+         End If
+         ApplyRuntimeSignals stepNo
+         ApplyRuntimeRampMeters stepNo
+         ApplyIncidentLaneClosure stepNo
+-        stepT0 = PerfNow()
+-        Vissim.Simulation.RunSingleStep
+-        PerfAdd "sim.step", stepT0
+-        ValidateRuntimeSignalPersistence stepNo
+         If stepNo Mod 30 = 0 Or stepNo = CLng(simPeriod) Then
+             WScript.Echo "RUN_SINGLE_STEP sim_sec=" & CStr(stepNo)
+         End If
+@@ -1444,17 +1450,29 @@ Sub SetName(obj, name)
+     On Error GoTo 0
+ End Sub
+ 
++Sub AbortVehicleObservation(simSec)
++    observationFailures = observationFailures + 1
++    WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
++    WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
++    WScript.Echo "COM_FAILURES=" & CStr(comFailures)
++    WScript.Quit 13
++End Sub
++
+ Sub WriteStateJson(simSec, path)
+     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
+     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
+     Dim localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, perfT0
++    Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
++    Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped
++    Dim fullLinkCounts, fullLinkStoppedCounts
+     perfT0 = PerfNow()
+-    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+-        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, scanOk
++    ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
++        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, _
++        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
++        recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, _
++        fullLinkCounts, fullLinkStoppedCounts
+     If Not scanOk Then
+-        observationFailures = observationFailures + 1
+-        WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
+-        WScript.Quit 13
++        AbortVehicleObservation simSec
+     End If
+     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
+ 
+@@ -1493,6 +1511,9 @@ Sub WriteStateJson(simSec, path)
+     ts.WriteLine "    ""link_stopped_counts"": " & LocalObservationLinkStoppedCountsJson(localStopped) & ","
+     ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails)
+     ts.WriteLine "  },"
++    WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
++        captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
++        recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
+     ts.WriteLine "  ""freeway_segments"": {"
+     ts.WriteLine "    ""FW_E"": " & SegmentArrayJson(countE, speedE, RW_FW_E_SEG_LENGTHS_KM, RW_FW_E_LANES) & ","
+     ts.WriteLine "    ""FW_W"": " & SegmentArrayJson(countW, speedW, RW_FW_W_SEG_LENGTHS_KM, RW_FW_W_LANES)
+@@ -1514,17 +1535,96 @@ Function SegmentArrayJson(counts, speeds, lengthsCsv, lanes)
+     SegmentArrayJson = s
+ End Function
+ 
++Sub WriteVehicleRecordsEnvelope(ts, pausedAtSimSec, collectionCountBefore, collectionCountAfter, _
++        captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
++        recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts)
++    Dim i, suffix
++    ts.WriteLine "  ""vehicle_records"": {"
++    ts.WriteLine "    ""schema_version"": ""vissim-vehicle-records-v2.1"","
++    ts.WriteLine "    ""complete"": true,"
++    ts.WriteLine "    ""paused_at_sim_sec"": " & JsonDoubleInvariant(pausedAtSimSec) & ","
++    ts.WriteLine "    ""capture_sim_sec_before"": " & JsonDoubleInvariant(captureSimSecBefore) & ","
++    ts.WriteLine "    ""capture_sim_sec_after"": " & JsonDoubleInvariant(captureSimSecAfter) & ","
++    ts.WriteLine "    ""source_attributes"": {""vehicle_number"": ""No"", ""lane"": ""Lane"", ""position"": ""Pos"", ""speed"": ""Speed""},"
++    ts.WriteLine "    ""stopped_threshold_kph"": " & JsonDoubleInvariant(B1A_STOPPED_THRESHOLD_KPH) & ","
++    ts.WriteLine "    ""collection_count_before"": " & CStr(collectionCountBefore) & ","
++    ts.WriteLine "    ""collection_count_after"": " & CStr(collectionCountAfter) & ","
++    ts.WriteLine "    ""record_count"": " & CStr(collectionCountBefore) & ","
++    ts.WriteLine "    ""unobservable_count"": 0,"
++    ts.WriteLine "    ""external_source_count"": 0,"
++    WriteB1aCountMap ts, "full_network_link_counts", fullLinkCounts, True
++    WriteB1aCountMap ts, "full_network_link_stopped_counts", fullLinkStoppedCounts, True
++    ts.WriteLine "    ""records"": ["
++    For i = 0 To collectionCountBefore - 1
++        suffix = ","
++        If i = collectionCountBefore - 1 Then suffix = ""
++        ts.WriteLine "      {""veh_no"": " & CStr(recordVehNos(i)) & _
++            ", ""link_no"": " & CStr(recordLinkNos(i)) & _
++            ", ""lane_no"": " & CStr(recordLaneNos(i)) & _
++            ", ""position_m"": " & JsonDoubleInvariant(recordPositions(i)) & _
++            ", ""speed_kph"": " & JsonDoubleInvariant(recordSpeeds(i)) & _
++            ", ""stopped"": " & JsonBoolean(recordStopped(i)) & "}" & suffix
++    Next
++    ts.WriteLine "    ]"
++    ts.WriteLine "  },"
++End Sub
++
++Sub WriteB1aCountMap(ts, fieldName, counts, trailingComma)
++    Dim keys, i, suffix
++    ts.WriteLine "    """ & JsonEscape(fieldName) & """: {"
++    If counts.Count > 0 Then
++        keys = counts.Keys
++        QuickSortB1aLongKeys keys, LBound(keys), UBound(keys)
++        For i = LBound(keys) To UBound(keys)
++            suffix = ","
++            If i = UBound(keys) Then suffix = ""
++            ts.WriteLine "      """ & JsonEscape(CStr(keys(i))) & """: " & CStr(CLng(counts(keys(i)))) & suffix
++        Next
++    End If
++    suffix = ""
++    If trailingComma Then suffix = ","
++    ts.WriteLine "    }" & suffix
++End Sub
++
++Sub QuickSortB1aLongKeys(ByRef values, first, last)
++    Dim low, high, pivot, temp
++    low = first
++    high = last
++    pivot = CLng(values((first + last) \ 2))
++    Do While low <= high
++        Do While CLng(values(low)) < pivot
++            low = low + 1
++        Loop
++        Do While CLng(values(high)) > pivot
++            high = high - 1
++        Loop
++        If low <= high Then
++            temp = values(low)
++            values(low) = values(high)
++            values(high) = temp
++            low = low + 1
++            high = high - 1
++        End If
++    Loop
++    If first < high Then QuickSortB1aLongKeys values, first, high
++    If low < last Then QuickSortB1aLongKeys values, low, last
++End Sub
++
+ Sub LogStateCsv(simSec)
+     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
+     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
+     Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, perfT0
++    Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
++    Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped
++    Dim fullLinkCounts, fullLinkStoppedCounts
+     perfT0 = PerfNow()
+-    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+-        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk
++    ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
++        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, _
++        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
++        recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, _
++        fullLinkCounts, fullLinkStoppedCounts
+     If Not scanOk Then
+-        observationFailures = observationFailures + 1
+-        WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
+-        WScript.Quit 13
++        AbortVehicleObservation simSec
+     End If
+     status = LastControllerStatus()
+     wall = LastDecisionWallSec()
+@@ -1629,58 +1729,119 @@ End Function
+ ' step happens between them, so folding them into one pass leaves every emitted
+ ' value identical. scanOk mirrors the old behaviour where a failed array read
+ ' suppressed the bottleneck rows entirely.
+-Sub ScanVehicleState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
++Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
+         ByRef meanSpeed, ByRef freewayMeanSpeed, ByRef stopped, _
+         ByRef countE, ByRef speedE, ByRef stoppedE, ByRef countW, ByRef speedW, ByRef stoppedW, _
+-        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, ByRef scanOk)
++        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, ByRef scanOk, _
++        ByRef collectionCountBefore, ByRef collectionCountAfter, ByRef captureSimSecBefore, ByRef captureSimSecAfter, _
++        ByRef recordVehNos, ByRef recordLinkNos, ByRef recordLaneNos, ByRef recordPositions, ByRef recordSpeeds, ByRef recordStopped, _
++        ByRef fullLinkCounts, ByRef fullLinkStoppedCounts)
+     total = 0: urban = 0: freeway = 0: ramp = 0: boundary = 0: other = 0
+     meanSpeed = 0: freewayMeanSpeed = 0: stopped = 0
+     scanOk = False
++    collectionCountBefore = 0: collectionCountAfter = 0
++    captureSimSecBefore = 0.0: captureSimSecAfter = 0.0
++    recordVehNos = Empty: recordLinkNos = Empty: recordLaneNos = Empty
++    recordPositions = Empty: recordSpeeds = Empty: recordStopped = Empty
+     Set linkCounts = CreateObject("Scripting.Dictionary")
+     Set linkStopped = CreateObject("Scripting.Dictionary")
+     Set linkSpeedSums = CreateObject("Scripting.Dictionary")
+     Set linkQueueTails = CreateObject("Scripting.Dictionary")
++    Set fullLinkCounts = CreateObject("Scripting.Dictionary")
++    Set fullLinkStoppedCounts = CreateObject("Scripting.Dictionary")
+     Dim i
+     For i = 0 To 7
+         countE(i) = 0: speedE(i) = 0: stoppedE(i) = 0
+         countW(i) = 0: speedW(i) = 0: stoppedW(i) = 0
+     Next
+ 
+-    Dim laneArray, posArray, speedArray, ok, lo, hi, row
+-    Dim linkNo, key, pos, speed, speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0
++    Dim noArray, laneArray, posArray, speedArray, ok, lo, hi, keyCol, valueCol, row, recordIndex
++    Dim noKey, laneKey, posKey, speedKey, vehNo, linkNo, laneNo, key, pos, speed
++    Dim speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0, snapshotIds
+     perfT0 = PerfNow()
+     speedSum = 0: freewaySpeedSum = 0
+-    ok = ReadVehicleLanePosSpeed(laneArray, posArray, speedArray)
++    Set snapshotIds = CreateObject("Scripting.Dictionary")
++    ok = ReadVerifiedVehicleTables(expectedSimSec, noArray, laneArray, posArray, speedArray, _
++        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
++        lo, hi, keyCol, valueCol)
+     If Not ok Then
+         PerfAdd "scan.vehicles", perfT0
+         Exit Sub
+     End If
+-    scanOk = True
+ 
+-    lo = MultiLBound(laneArray)
+-    hi = MultiUBound(laneArray)
++    If collectionCountBefore > 0 Then
++        ReDim recordVehNos(collectionCountBefore - 1)
++        ReDim recordLinkNos(collectionCountBefore - 1)
++        ReDim recordLaneNos(collectionCountBefore - 1)
++        ReDim recordPositions(collectionCountBefore - 1)
++        ReDim recordSpeeds(collectionCountBefore - 1)
++        ReDim recordStopped(collectionCountBefore - 1)
++    End If
++
+     For row = lo To hi
++        If Not TryPositiveLongVariant(noArray(row, keyCol), noKey) _
++                Or Not TryPositiveLongVariant(laneArray(row, keyCol), laneKey) _
++                Or Not TryPositiveLongVariant(posArray(row, keyCol), posKey) _
++                Or Not TryPositiveLongVariant(speedArray(row, keyCol), speedKey) _
++                Or Not TryPositiveLongVariant(noArray(row, valueCol), vehNo) Then
++            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=No_or_COM_key"
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++        If noKey <> laneKey Or noKey <> posKey Or noKey <> speedKey Or noKey <> vehNo Then
++            RecordVehicleCaptureFailure "com_row_key_mismatch", "row=" & CStr(row)
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++        key = CStr(vehNo)
++        If snapshotIds.Exists(key) Then
++            RecordVehicleCaptureFailure "duplicate_vehicle_in_snapshot", "veh_no=" & key
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++        snapshotIds.Add key, True
++        If Not ParseB1aLaneId(laneArray(row, valueCol), linkNo, laneNo) Then
++            RecordVehicleCaptureFailure "unknown_lane", "row=" & CStr(row) & " veh_no=" & key
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++        If Not TryB1aPosition(posArray(row, valueCol), pos) Then
++            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Pos"
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++        If Not TryB1aSpeed(speedArray(row, valueCol), speed) Then
++            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Speed"
++            PerfAdd "scan.vehicles", perfT0
++            Exit Sub
++        End If
++
++        recordIndex = row - lo
++        recordVehNos(recordIndex) = vehNo
++        recordLinkNos(recordIndex) = linkNo
++        recordLaneNos(recordIndex) = laneNo
++        recordPositions(recordIndex) = pos
++        recordSpeeds(recordIndex) = speed
++        isStopped = (speed < B1A_STOPPED_THRESHOLD_KPH)
++        recordStopped(recordIndex) = isStopped
++
+         total = total + 1
+-        linkNo = FirstInt(MultiValue(laneArray, row))
+-        pos = CDblOrZero(MultiValue(posArray, row))
+-        speed = CDblOrZero(MultiValue(speedArray, row))
+         speedSum = speedSum + speed
+-        isStopped = (speed < 1)
+         If isStopped Then stopped = stopped + 1
+ 
+-        ' Malformed lane strings cannot be tied back to a VISSIM link, so they stay
+-        ' out of the per-link aggregates - exactly as LogBottleneckCsv skipped them.
+-        If linkNo > 0 Then
+-            key = CStr(linkNo)
+-            AddDictNumber linkCounts, key, 1.0
+-            AddDictNumber linkSpeedSums, key, speed
+-            If isStopped Then
+-                AddDictNumber linkStopped, key, 1.0
+-                If Not linkQueueTails.Exists(key) Then
+-                    linkQueueTails.Add key, pos
+-                ElseIf pos < CDbl(linkQueueTails(key)) Then
+-                    linkQueueTails(key) = pos
+-                End If
++        key = CStr(linkNo)
++        AddDictNumber fullLinkCounts, key, 1.0
++        If Not fullLinkStoppedCounts.Exists(key) Then fullLinkStoppedCounts.Add key, 0.0
++        If isStopped Then AddDictNumber fullLinkStoppedCounts, key, 1.0
++
++        AddDictNumber linkCounts, key, 1.0
++        AddDictNumber linkSpeedSums, key, speed
++        If isStopped Then
++            AddDictNumber linkStopped, key, 1.0
++            If Not linkQueueTails.Exists(key) Then
++                linkQueueTails.Add key, pos
++            ElseIf pos < CDbl(linkQueueTails(key)) Then
++                linkQueueTails(key) = pos
+             End If
+         End If
+ 
+@@ -1710,8 +1871,19 @@ Sub ScanVehicleState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef
+             End If
+         End If
+     Next
++    If total <> collectionCountBefore Or snapshotIds.Count <> collectionCountBefore _
++            Or B1aCountMapTotal(fullLinkCounts) <> total _
++            Or B1aCountMapTotal(fullLinkStoppedCounts) <> stopped Then
++        RecordVehicleCaptureFailure "aggregate_mismatch", "records=" & CStr(total) & _
++            " unique=" & CStr(snapshotIds.Count) & " collection=" & CStr(collectionCountBefore) & _
++            " link_count_total=" & CStr(B1aCountMapTotal(fullLinkCounts)) & _
++            " link_stopped_total=" & CStr(B1aCountMapTotal(fullLinkStoppedCounts))
++        PerfAdd "scan.vehicles", perfT0
++        Exit Sub
++    End If
+     If total > 0 Then meanSpeed = speedSum / total
+     If freeway > 0 Then freewayMeanSpeed = freewaySpeedSum / freeway
++    scanOk = True
+     PerfAdd "scan.vehicles", perfT0
+ End Sub
+ 
+@@ -1922,8 +2094,96 @@ Function LocalObservationLinkMetricJson(values)
+ End Function
+ 
+ Function JsonEscape(value)
+-    JsonEscape = Replace(CStr(value), "\", "\\")
+-    JsonEscape = Replace(JsonEscape, Chr(34), "\" & Chr(34))
++    Dim text, pieces, i, ch, code
++    text = CStr(value)
++    If Len(text) = 0 Then
++        JsonEscape = ""
++        Exit Function
++    End If
++    ReDim pieces(Len(text) - 1)
++    For i = 1 To Len(text)
++        ch = Mid(text, i, 1)
++        code = AscW(ch)
++        Select Case code
++            Case 8
++                pieces(i - 1) = "\b"
++            Case 9
++                pieces(i - 1) = "\t"
++            Case 10
++                pieces(i - 1) = "\n"
++            Case 12
++                pieces(i - 1) = "\f"
++            Case 13
++                pieces(i - 1) = "\r"
++            Case 34
++                pieces(i - 1) = "\" & Chr(34)
++            Case 92
++                pieces(i - 1) = "\\"
++            Case Else
++                If code >= 0 And code <= 31 Then
++                    pieces(i - 1) = "\u" & Right("0000" & Hex(code), 4)
++                Else
++                    pieces(i - 1) = ch
++                End If
++        End Select
++    Next
++    JsonEscape = Join(pieces, "")
++End Function
++
++Function B1aCountMapTotal(counts)
++    Dim key, total
++    total = 0
++    For Each key In counts.Keys
++        total = total + CLng(counts(key))
++    Next
++    B1aCountMapTotal = total
++End Function
++
++Function JsonBoolean(value)
++    If CBool(value) Then
++        JsonBoolean = "true"
++    Else
++        JsonBoolean = "false"
++    End If
++End Function
++
++Function JsonDoubleInvariant(value)
++    Dim text, exponentText, exponentPos, mantissa, digits
++    text = CStr(CDbl(value))
++    If JSON_DECIMAL_SEPARATOR <> "." Then text = Replace(text, JSON_DECIMAL_SEPARATOR, ".")
++    exponentPos = InStr(1, text, "E", vbTextCompare)
++    exponentText = ""
++    If exponentPos > 0 Then
++        exponentText = Mid(text, exponentPos)
++        mantissa = Left(text, exponentPos - 1)
++    Else
++        mantissa = text
++    End If
++    If InStr(1, mantissa, ".", vbBinaryCompare) = 0 Then mantissa = mantissa & "."
++    digits = B1aSignificantDigitCount(mantissa)
++    Do While digits < 15
++        mantissa = mantissa & "0"
++        digits = digits + 1
++    Loop
++    If Right(mantissa, 1) = "." Then mantissa = mantissa & "0"
++    JsonDoubleInvariant = mantissa & exponentText
++End Function
++
++Function B1aSignificantDigitCount(text)
++    Dim i, ch, seenNonzero, count, digitCount
++    seenNonzero = False
++    count = 0
++    digitCount = 0
++    For i = 1 To Len(text)
++        ch = Mid(text, i, 1)
++        If ch >= "0" And ch <= "9" Then
++            digitCount = digitCount + 1
++            If ch <> "0" Then seenNonzero = True
++            If seenNonzero Then count = count + 1
++        End If
++    Next
++    If Not seenNonzero Then count = digitCount
++    B1aSignificantDigitCount = count
+ End Function
+ 
+ Function DictValue(dictObj, key, defaultValue)
+@@ -2640,37 +2900,31 @@ End Sub
+ ' WARN-only decision handling hid.
+ Class Utf8LineWriter
+     Public TargetPath
+-    Private buf
++    Private textStream
+     Private Sub Class_Initialize()
+-        buf = ""
++        Set textStream = CreateObject("ADODB.Stream")
++        textStream.Type = 2
++        textStream.Charset = "utf-8"
++        textStream.Open
+     End Sub
+     Public Sub WriteLine(text)
+-        buf = buf & CStr(text) & vbCrLf
++        textStream.WriteText CStr(text) & vbCrLf
+     End Sub
+     Public Sub Close()
+-        WriteUtf8NoBom TargetPath, buf
+-        buf = ""
++        Dim binStream
++        textStream.Position = 3
++        Set binStream = CreateObject("ADODB.Stream")
++        binStream.Type = 1
++        binStream.Open
++        textStream.CopyTo binStream
++        binStream.SaveToFile TargetPath, 2
++        binStream.Close
++        textStream.Close
++        Set binStream = Nothing
++        Set textStream = Nothing
+     End Sub
+ End Class
+ 
+-Sub WriteUtf8NoBom(path, text)
+-    Dim textStream, binStream
+-    Set textStream = CreateObject("ADODB.Stream")
+-    textStream.Type = 2
+-    textStream.Charset = "utf-8"
+-    textStream.Open
+-    textStream.WriteText text
+-    ' ADODB emits a UTF-8 BOM that json.loads rejects, so copy out past it.
+-    textStream.Position = 3
+-    Set binStream = CreateObject("ADODB.Stream")
+-    binStream.Type = 1
+-    binStream.Open
+-    textStream.CopyTo binStream
+-    binStream.SaveToFile path, 2
+-    binStream.Close
+-    textStream.Close
+-End Sub
+-
+ Function ReadAllTextUtf8(path)
+     Dim st
+     Set st = CreateObject("ADODB.Stream")
+@@ -2682,50 +2936,330 @@ Function ReadAllTextUtf8(path)
+     st.Close
+ End Function
+ 
+-Function ReadVehicleLanePosSpeed(ByRef laneArray, ByRef posArray, ByRef speedArray)
+-    ReadVehicleLanePosSpeed = False
++Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArray, ByRef posArray, ByRef speedArray, _
++        ByRef collectionCountBefore, ByRef collectionCountAfter, ByRef captureSimSecBefore, ByRef captureSimSecAfter, _
++        ByRef rowLower, ByRef rowUpper, ByRef keyColumn, ByRef valueColumn)
++    Dim rawCountBefore, rawCountAfter, rawTimeBefore, rawTimeAfter, expectedTime
++    Dim noRowLower, noRowUpper, noColLower, noColUpper
++    Dim laneRowLower, laneRowUpper, laneColLower, laneColUpper
++    Dim posRowLower, posRowUpper, posColLower, posColUpper
++    Dim speedRowLower, speedRowUpper, speedColLower, speedColUpper
++    ReadVerifiedVehicleTables = False
++    rowLower = 0: rowUpper = -1: keyColumn = 0: valueColumn = 1
+     On Error Resume Next
++    rawCountBefore = Vissim.Net.Vehicles.Count
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count_before err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    rawTimeBefore = Vissim.Simulation.AttValue("SimSec")
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=capture_sim_sec_before err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    noArray = Vissim.Net.Vehicles.GetMultiAttValues("No")
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "field=No err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
+     laneArray = Vissim.Net.Vehicles.GetMultiAttValues("Lane")
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "field=Lane err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
+     posArray = Vissim.Net.Vehicles.GetMultiAttValues("Pos")
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "field=Pos err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
+     speedArray = Vissim.Net.Vehicles.GetMultiAttValues("Speed")
+     If Err.Number <> 0 Then
+-        WScript.Echo "WARN=FAILED_GET_MULTI_LANE_POS_SPEED err=" & Err.Description
++        RecordVehicleCaptureFailure "invalid_table_shape", "field=Speed err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    rawCountAfter = Vissim.Net.Vehicles.Count
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count_after err=" & Err.Description
+         Err.Clear
+         On Error GoTo 0
+         Exit Function
+     End If
++    rawTimeAfter = Vissim.Simulation.AttValue("SimSec")
++    If Err.Number <> 0 Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=capture_sim_sec_after err=" & Err.Description
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    On Error GoTo 0
++
++    If Not TryNonnegativeLongVariant(rawCountBefore, collectionCountBefore) _
++            Or Not TryNonnegativeLongVariant(rawCountAfter, collectionCountAfter) Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count"
++        Exit Function
++    End If
++    If collectionCountBefore <> collectionCountAfter Then
++        RecordVehicleCaptureFailure "com_count_changed", "before=" & CStr(collectionCountBefore) & " after=" & CStr(collectionCountAfter)
++        Exit Function
++    End If
++    If Not TryFiniteNonnegativeDouble(rawTimeBefore, captureSimSecBefore) _
++            Or Not TryFiniteNonnegativeDouble(rawTimeAfter, captureSimSecAfter) _
++            Or Not TryFiniteNonnegativeDouble(expectedSimSec, expectedTime) Then
++        RecordVehicleCaptureFailure "invalid_numeric_value", "field=sim_sec"
++        Exit Function
++    End If
++    If captureSimSecBefore <> expectedTime Or captureSimSecAfter <> expectedTime Then
++        RecordVehicleCaptureFailure "capture_time_mismatch", "expected=" & JsonDoubleInvariant(expectedTime) & _
++            " before=" & JsonDoubleInvariant(captureSimSecBefore) & " after=" & JsonDoubleInvariant(captureSimSecAfter)
++        Exit Function
++    End If
++
++    If collectionCountBefore = 0 Then
++        If Not IsB1aEmptyTableResult(noArray) Or Not IsB1aEmptyTableResult(laneArray) _
++                Or Not IsB1aEmptyTableResult(posArray) Or Not IsB1aEmptyTableResult(speedArray) Then
++            RecordVehicleCaptureFailure "invalid_table_shape", "detail=nonempty_table_for_zero_collection"
++            Exit Function
++        End If
++        ReadVerifiedVehicleTables = True
++        Exit Function
++    End If
++
++    If Not TryExact2DTableBounds(noArray, noRowLower, noRowUpper, noColLower, noColUpper) _
++            Or Not TryExact2DTableBounds(laneArray, laneRowLower, laneRowUpper, laneColLower, laneColUpper) _
++            Or Not TryExact2DTableBounds(posArray, posRowLower, posRowUpper, posColLower, posColUpper) _
++            Or Not TryExact2DTableBounds(speedArray, speedRowLower, speedRowUpper, speedColLower, speedColUpper) Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "detail=expected_exact_2d_key_value_tables"
++        Exit Function
++    End If
++    If noRowLower <> laneRowLower Or noRowLower <> posRowLower Or noRowLower <> speedRowLower _
++            Or noRowUpper <> laneRowUpper Or noRowUpper <> posRowUpper Or noRowUpper <> speedRowUpper _
++            Or noColLower <> laneColLower Or noColLower <> posColLower Or noColLower <> speedColLower _
++            Or noColUpper <> laneColUpper Or noColUpper <> posColUpper Or noColUpper <> speedColUpper Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "detail=table_bounds_mismatch"
++        Exit Function
++    End If
++    If noRowUpper - noRowLower + 1 <> collectionCountBefore Then
++        RecordVehicleCaptureFailure "invalid_table_shape", "detail=row_count_mismatch rows=" & _
++            CStr(noRowUpper - noRowLower + 1) & " collection=" & CStr(collectionCountBefore)
++        Exit Function
++    End If
++
++    rowLower = noRowLower
++    rowUpper = noRowUpper
++    keyColumn = noColLower
++    valueColumn = noColUpper
++    ReadVerifiedVehicleTables = True
++End Function
++
++Function TryExact2DTableBounds(arr, ByRef rowLower, ByRef rowUpper, ByRef colLower, ByRef colUpper)
++    Dim thirdBound
++    TryExact2DTableBounds = False
++    If Not IsArray(arr) Then Exit Function
++    On Error Resume Next
++    rowLower = LBound(arr, 1)
++    rowUpper = UBound(arr, 1)
++    colLower = LBound(arr, 2)
++    colUpper = UBound(arr, 2)
++    If Err.Number <> 0 Then
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    thirdBound = LBound(arr, 3)
++    If Err.Number = 0 Then
++        On Error GoTo 0
++        Exit Function
++    End If
++    Err.Clear
+     On Error GoTo 0
+-    ReadVehicleLanePosSpeed = True
++    If rowUpper < rowLower Then Exit Function
++    If colUpper - colLower + 1 <> 2 Then Exit Function
++    TryExact2DTableBounds = True
+ End Function
+ 
+-Function MultiLBound(arr)
++Function IsB1aEmptyTableResult(arr)
++    Dim rowLower, rowUpper, colLower, colUpper, thirdBound
++    IsB1aEmptyTableResult = False
++    If IsEmpty(arr) Then
++        IsB1aEmptyTableResult = True
++        Exit Function
++    End If
++    If Not IsArray(arr) Then Exit Function
+     On Error Resume Next
+-    MultiLBound = LBound(arr, 1)
++    rowLower = LBound(arr, 1)
++    rowUpper = UBound(arr, 1)
++    colLower = LBound(arr, 2)
++    colUpper = UBound(arr, 2)
+     If Err.Number <> 0 Then
+-        MultiLBound = 0
+         Err.Clear
++        On Error GoTo 0
++        Exit Function
+     End If
++    thirdBound = LBound(arr, 3)
++    If Err.Number = 0 Then
++        On Error GoTo 0
++        Exit Function
++    End If
++    Err.Clear
+     On Error GoTo 0
++    If colUpper - colLower + 1 <> 2 Then Exit Function
++    IsB1aEmptyTableResult = (rowUpper < rowLower)
+ End Function
+ 
+-Function MultiUBound(arr)
++Sub RecordVehicleCaptureFailure(reason, detail)
++    comFailures = comFailures + 1
++    WScript.Echo "ERROR=B1A_VEHICLE_CAPTURE_FAILED reason=" & CStr(reason) & " " & CStr(detail)
++End Sub
++
++Function TryPositiveLongVariant(ByVal value, ByRef parsed)
++    TryPositiveLongVariant = TryB1aLongVariant(value, False, parsed)
++End Function
++
++Function TryNonnegativeLongVariant(ByVal value, ByRef parsed)
++    TryNonnegativeLongVariant = TryB1aLongVariant(value, True, parsed)
++End Function
++
++Function TryB1aLongVariant(ByVal value, ByVal allowZero, ByRef parsed)
++    Dim valueType, numericValue, probe
++    TryB1aLongVariant = False
++    parsed = 0
++    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
++    valueType = VarType(value)
++    Select Case valueType
++        Case 2, 3, 4, 5, 6, 14, 17, 20
++        Case Else
++            Exit Function
++    End Select
+     On Error Resume Next
+-    MultiUBound = UBound(arr, 1)
++    numericValue = CDbl(value)
++    probe = numericValue * 0.0
+     If Err.Number <> 0 Then
+-        MultiUBound = -1
+         Err.Clear
++        On Error GoTo 0
++        Exit Function
+     End If
+     On Error GoTo 0
++    If numericValue <> numericValue Or probe <> probe Then Exit Function
++    If numericValue < 0 Or numericValue > 2147483647.0 Then Exit Function
++    If (Not allowZero) And numericValue = 0 Then Exit Function
++    If Fix(numericValue) <> numericValue Then Exit Function
++    On Error Resume Next
++    parsed = CLng(numericValue)
++    If Err.Number <> 0 Then
++        parsed = 0
++        Err.Clear
++        On Error GoTo 0
++        Exit Function
++    End If
++    On Error GoTo 0
++    TryB1aLongVariant = True
++End Function
++
++Function TryFiniteNonnegativeDouble(ByVal value, ByRef parsed)
++    TryFiniteNonnegativeDouble = TryB1aFiniteDouble(value, 0.0, parsed)
+ End Function
+ 
+-Function MultiValue(arr, row)
++Function TryB1aPosition(ByVal value, ByRef parsed)
++    TryB1aPosition = TryB1aFiniteDouble(value, -B1A_POSITION_TOLERANCE_M, parsed)
++End Function
++
++Function TryB1aSpeed(ByVal value, ByRef parsed)
++    TryB1aSpeed = TryB1aFiniteDouble(value, 0.0, parsed)
++End Function
++
++Function TryB1aFiniteDouble(ByVal value, ByVal minimumValue, ByRef parsed)
++    Dim valueType, probe
++    TryB1aFiniteDouble = False
++    parsed = 0.0
++    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
++    valueType = VarType(value)
++    Select Case valueType
++        Case 2, 3, 4, 5, 6, 14, 17, 20
++        Case Else
++            Exit Function
++    End Select
+     On Error Resume Next
+-    MultiValue = arr(row, UBound(arr, 2))
++    parsed = CDbl(value)
++    probe = parsed * 0.0
+     If Err.Number <> 0 Then
+-        MultiValue = ""
++        parsed = 0.0
+         Err.Clear
++        On Error GoTo 0
++        Exit Function
+     End If
+     On Error GoTo 0
++    If parsed <> parsed Or probe <> probe Then Exit Function
++    If parsed < CDbl(minimumValue) Then Exit Function
++    TryB1aFiniteDouble = True
++End Function
++
++Function ParseB1aLaneId(ByVal value, ByRef linkNo, ByRef laneNo)
++    Dim text, delimiterPos
++    ParseB1aLaneId = False
++    linkNo = 0: laneNo = 0
++    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
++    If VarType(value) <> 8 Then Exit Function
++    text = TrimB1aHorizontalWhitespace(CStr(value))
++    delimiterPos = InStr(1, text, "-", vbBinaryCompare)
++    If delimiterPos <= 1 Or delimiterPos >= Len(text) Then Exit Function
++    If InStr(delimiterPos + 1, text, "-", vbBinaryCompare) > 0 Then Exit Function
++    If Not ParseB1aPositiveLongText(Left(text, delimiterPos - 1), linkNo) Then Exit Function
++    If Not ParseB1aPositiveLongText(Mid(text, delimiterPos + 1), laneNo) Then Exit Function
++    ParseB1aLaneId = True
++End Function
++
++Function TrimB1aHorizontalWhitespace(ByVal value)
++    Dim text, first, last, ch
++    text = CStr(value)
++    first = 1
++    last = Len(text)
++    Do While first <= last
++        ch = Mid(text, first, 1)
++        If ch <> " " And ch <> vbTab Then Exit Do
++        first = first + 1
++    Loop
++    Do While last >= first
++        ch = Mid(text, last, 1)
++        If ch <> " " And ch <> vbTab Then Exit Do
++        last = last - 1
++    Loop
++    If first > last Then
++        TrimB1aHorizontalWhitespace = ""
++    Else
++        TrimB1aHorizontalWhitespace = Mid(text, first, last - first + 1)
++    End If
++End Function
++
++Function ParseB1aPositiveLongText(ByVal text, ByRef parsed)
++    Dim i, ch, digit, accumulator
++    ParseB1aPositiveLongText = False
++    parsed = 0
++    If Len(text) = 0 Then Exit Function
++    ch = Left(text, 1)
++    If ch < "1" Or ch > "9" Then Exit Function
++    accumulator = 0
++    For i = 1 To Len(text)
++        ch = Mid(text, i, 1)
++        If ch < "0" Or ch > "9" Then Exit Function
++        digit = AscW(ch) - AscW("0")
++        If accumulator > 214748364 Then Exit Function
++        If accumulator = 214748364 And digit > 7 Then Exit Function
++        accumulator = accumulator * 10 + digit
++    Next
++    parsed = CLng(accumulator)
++    ParseB1aPositiveLongText = True
+ End Function
+ 
+ Function CDblOrZero(value)
+@@ -2757,6 +3291,7 @@ Sub TrySetAtt(obj, att, value)
+     obj.AttValue(att) = value
+     If Err.Number <> 0 Then
+         WScript.Echo "WARN=FAILED_SET_ATT att=" & att & " value=" & CStr(value) & " err=" & Err.Description
++        comFailures = comFailures + 1
+         Err.Clear
+     End If
+     On Error GoTo 0
+@@ -2767,6 +3302,7 @@ Sub TrySetEvaluationAtt(att, value)
+     Vissim.Evaluation.AttValue(att) = value
+     If Err.Number <> 0 Then
+         WScript.Echo "WARN=FAILED_SET_EVALUATION_ATT att=" & att & " err=" & Err.Description
++        comFailures = comFailures + 1
+         Err.Clear
+     End If
+     On Error GoTo 0
+
+diff --git a/scripts/tests/test_b1a_vbs_verified_capture_static.py b/scripts/tests/test_b1a_vbs_verified_capture_static.py
+new file mode 100644
+index 0000000..f23b4d2
+--- /dev/null
++++ b/scripts/tests/test_b1a_vbs_verified_capture_static.py
+@@ -0,0 +1,248 @@
++from __future__ import annotations
++
++import re
++import unittest
++from pathlib import Path
++
++
++VBS_PATH = Path(__file__).resolve().parents[1] / "run_real_world_stackelberg_controller.vbs"
++SOURCE = VBS_PATH.read_text(encoding="utf-8")
++
++
++def procedure(source: str, name: str) -> str:
++    match = re.search(
++        rf"(?ims)^(?:Public |Private )?(Sub|Function)\s+{re.escape(name)}\b.*?"
++        rf"^End \1\s*$",
++        source,
++    )
++    if not match:
++        raise AssertionError(f"missing VBS procedure {name}")
++    return match.group(0)
++
++
++def class_body(source: str, name: str) -> str:
++    match = re.search(
++        rf"(?ims)^Class\s+{re.escape(name)}\s*$.*?^End Class\s*$",
++        source,
++    )
++    if not match:
++        raise AssertionError(f"missing VBS class {name}")
++    return match.group(0)
++
++
++def assert_called_capture_contract(source: str) -> None:
++    writer = procedure(source, "WriteStateJson")
++    scan = procedure(source, "ScanVehicleState")
++    reader = procedure(source, "ReadVerifiedVehicleTables")
++    envelope = procedure(source, "WriteVehicleRecordsEnvelope")
++
++    assert re.search(r"(?i)\bScanVehicleState\s+simSec\b", writer)
++    assert re.search(r"(?i)\bWriteVehicleRecordsEnvelope\s+ts\b", writer)
++    assert re.search(r"(?i)\bok\s*=\s*ReadVerifiedVehicleTables\(", scan)
++    assert re.search(r"(?i)\bParseB1aLaneId\(", scan)
++    assert re.search(r"(?i)\bTryPositiveLongVariant\(noArray\(row, keyCol\)", scan)
++    assert "noKey <> laneKey" in scan
++    assert "noKey <> posKey" in scan
++    assert "noKey <> speedKey" in scan
++    assert "noKey <> vehNo" in scan
++    assert "snapshotIds.Exists(key)" in scan
++    assert "recordVehNos(recordIndex) = vehNo" in scan
++    assert "recordLinkNos(recordIndex) = linkNo" in scan
++    assert "recordLaneNos(recordIndex) = laneNo" in scan
++    assert "isStopped = (speed < B1A_STOPPED_THRESHOLD_KPH)" in scan
++    assert "AddDictNumber fullLinkCounts, key, 1.0" in scan
++    assert "If Not fullLinkStoppedCounts.Exists(key) Then fullLinkStoppedCounts.Add key, 0.0" in scan
++    assert "If isStopped Then AddDictNumber fullLinkStoppedCounts, key, 1.0" in scan
++    assert "B1aCountMapTotal(fullLinkCounts) <> total" in scan
++    assert "B1aCountMapTotal(fullLinkStoppedCounts) <> stopped" in scan
++
++    ordered_reads = [
++        'rawCountBefore = Vissim.Net.Vehicles.Count',
++        'rawTimeBefore = Vissim.Simulation.AttValue("SimSec")',
++        'GetMultiAttValues("No")',
++        'GetMultiAttValues("Lane")',
++        'GetMultiAttValues("Pos")',
++        'GetMultiAttValues("Speed")',
++        'rawCountAfter = Vissim.Net.Vehicles.Count',
++        'rawTimeAfter = Vissim.Simulation.AttValue("SimSec")',
++    ]
++    positions = [reader.index(token) for token in ordered_reads]
++    assert positions == sorted(positions)
++    assert reader.index(ordered_reads[0]) < reader.index("Exit Function")
++    for attribute in ("No", "Lane", "Pos", "Speed"):
++        assert reader.count(f'GetMultiAttValues("{attribute}")') == 1
++    assert not re.search(r"(?i)Simulation\.(RunSingleStep|RunContinuous|RunMultiRun)", reader)
++    assert "collectionCountBefore <> collectionCountAfter" in reader
++    assert "captureSimSecBefore <> expectedTime" in reader
++    assert "captureSimSecAfter <> expectedTime" in reader
++    assert "TryExact2DTableBounds(noArray" in reader
++    assert "table_bounds_mismatch" in reader
++    assert "row_count_mismatch" in reader
++    assert "IsB1aEmptyTableResult(noArray)" in reader
++    assert "nonempty_table_for_zero_collection" in reader
++
++    fields = (
++        "schema_version",
++        "complete",
++        "paused_at_sim_sec",
++        "capture_sim_sec_before",
++        "capture_sim_sec_after",
++        "source_attributes",
++        "stopped_threshold_kph",
++        "collection_count_before",
++        "collection_count_after",
++        "record_count",
++        "unobservable_count",
++        "external_source_count",
++        "full_network_link_counts",
++        "full_network_link_stopped_counts",
++        "records",
++    )
++    for field in fields:
++        assert f'""{field}""' in envelope or f'"{field}"' in envelope
++    assert '""vissim-vehicle-records-v2.1""' in envelope
++    assert "JsonDoubleInvariant(recordPositions(i))" in envelope
++    assert "JsonDoubleInvariant(recordSpeeds(i))" in envelope
++    finite = procedure(source, "TryB1aFiniteDouble")
++    assert "probe = parsed * 0.0" in finite
++    assert "If parsed <> parsed Or probe <> probe Then Exit Function" in finite
++    formatter = procedure(source, "JsonDoubleInvariant")
++    assert 'If JSON_DECIMAL_SEPARATOR <> "." Then text = Replace(text, JSON_DECIMAL_SEPARATOR, ".")' in formatter
++
++
++class B1aVbsVerifiedCaptureStaticTests(unittest.TestCase):
++    def test_called_path_satisfies_capture_contract(self) -> None:
++        assert_called_capture_contract(SOURCE)
++
++    def test_dead_parser_decoy_cannot_create_a_false_pass(self) -> None:
++        mutant = SOURCE.replace(
++            "If Not ParseB1aLaneId(laneArray(row, valueCol), linkNo, laneNo) Then",
++            "If Not DeadLaneParser(laneArray(row, valueCol), linkNo, laneNo) Then",
++            1,
++        )
++        mutant += '\nFunction DeadLaneParser(value, linkNo, laneNo)\n'
++        mutant += "' ParseB1aLaneId GetMultiAttValues(\"Lane\") vehicle_records\n"
++        mutant += "DeadLaneParser = True\nEnd Function\n"
++        with self.assertRaises(AssertionError):
++            assert_called_capture_contract(mutant)
++
++    def test_dead_reader_decoy_cannot_create_a_false_pass(self) -> None:
++        mutant = SOURCE.replace(
++            "ok = ReadVerifiedVehicleTables(expectedSimSec,",
++            "ok = DeadVerifiedVehicleTables(expectedSimSec,",
++            1,
++        )
++        mutant += "\n' ReadVerifiedVehicleTables Count SimSec No Lane Pos Speed\n"
++        with self.assertRaises(AssertionError):
++            assert_called_capture_contract(mutant)
++
++    def test_listed_load_bearing_mutations_are_rejected(self) -> None:
++        mutations = {
++            "dead_reader_early_exit": SOURCE.replace(
++                "    ReadVerifiedVehicleTables = False\n",
++                "    ReadVerifiedVehicleTables = False\n    Exit Function\n",
++                1,
++            ),
++            "duplicate_no_read": SOURCE.replace(
++                '    noArray = Vissim.Net.Vehicles.GetMultiAttValues("No")\n',
++                '    noArray = Vissim.Net.Vehicles.GetMultiAttValues("No")\n'
++                '    noArray = Vissim.Net.Vehicles.GetMultiAttValues("No")\n',
++                1,
++            ),
++            "record_link_uses_lane": SOURCE.replace(
++                "        recordLinkNos(recordIndex) = linkNo\n",
++                "        recordLinkNos(recordIndex) = laneNo\n",
++                1,
++            ),
++            "stopped_map_uses_lane": SOURCE.replace(
++                "If isStopped Then AddDictNumber fullLinkStoppedCounts, key, 1.0",
++                "If isStopped Then AddDictNumber fullLinkStoppedCounts, CStr(laneNo), 1.0",
++                1,
++            ),
++            "finite_guard_removed": SOURCE.replace(
++                "    If parsed <> parsed Or probe <> probe Then Exit Function\n",
++                "",
++                1,
++            ),
++            "locale_normalization_removed": SOURCE.replace(
++                '    If JSON_DECIMAL_SEPARATOR <> "." Then text = Replace(text, JSON_DECIMAL_SEPARATOR, ".")\n',
++                "",
++                1,
++            ),
++        }
++        for name, mutant in mutations.items():
++            with self.subTest(name=name), self.assertRaises(AssertionError):
++                assert_called_capture_contract(mutant)
++
++    def test_all_run_modes_capture_after_reaching_the_labeled_epoch(self) -> None:
++        stepwise = procedure(SOURCE, "RunStepwiseMode")
++        self.assertLess(stepwise.index("Vissim.Simulation.RunSingleStep"), stepwise.index("RunControllerDecision 1"))
++        recurring = stepwise[stepwise.index("For stepNo = 2") :]
++        self.assertLess(recurring.index("Vissim.Simulation.RunSingleStep"), recurring.index("RunControllerDecision stepNo"))
++        self.assertLess(recurring.index("RunControllerDecision stepNo"), recurring.index("ApplyRuntimeSignals stepNo"))
++
++        continuous = procedure(SOURCE, "RunContinuousStaticMode")
++        self.assertLess(continuous.index("Vissim.Simulation.RunSingleStep"), continuous.index("RunControllerDecision 1"))
++        continuous_loop = continuous[continuous.index("Do While") :]
++        self.assertLess(continuous_loop.index("RunContinuousTo CLng(targetSec)"), continuous_loop.index("RunControllerDecision CLng(currentSec)"))
++
++        event = procedure(SOURCE, "RunEventContinuousMode")
++        self.assertLess(event.index("Vissim.Simulation.RunSingleStep"), event.index("RunControllerDecision 1"))
++        event_loop = event[event.index("Do While") :]
++        self.assertLess(event_loop.index("RunContinuousTo CLng(targetSec)"), event_loop.index("RunControllerDecision CLng(currentSec)"))
++
++        decision = procedure(SOURCE, "RunControllerDecision")
++        self.assertIn("WriteStateJson simSec, stateJsonPath", decision)
++        self.assertIn('"action_" & Pad6(simSec)', decision)
++
++    def test_vehicle_records_normatively_remains_a_root_sibling(self) -> None:
++        writer = procedure(SOURCE, "WriteStateJson")
++        local_open = writer.index('ts.WriteLine "  ""local_observation"": {"')
++        local_close = writer.index('ts.WriteLine "  },"', local_open)
++        envelope_call = writer.index("WriteVehicleRecordsEnvelope ts")
++        self.assertLess(local_open, local_close)
++        self.assertLess(local_close, envelope_call)
++
++    def test_failure_precedes_any_state_publication(self) -> None:
++        writer = procedure(SOURCE, "WriteStateJson")
++        self.assertLess(writer.index("If Not scanOk Then"), writer.index("EnsureParentFolder path"))
++        failure = writer[writer.index("If Not scanOk Then") : writer.index("End If", writer.index("If Not scanOk Then"))]
++        self.assertIn("AbortVehicleObservation simSec", failure)
++        logger = procedure(SOURCE, "LogStateCsv")
++        self.assertIn("AbortVehicleObservation simSec", logger)
++        abort = procedure(SOURCE, "AbortVehicleObservation")
++        ordered = [
++            "observationFailures = observationFailures + 1",
++            'WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)',
++            'WScript.Echo "COM_FAILURES=" & CStr(comFailures)',
++            "WScript.Quit 13",
++        ]
++        positions = [abort.index(token) for token in ordered]
++        self.assertEqual(positions, sorted(positions))
++        self.assertNotIn("comFailures = comFailures +", abort)
++        capture_failure = procedure(SOURCE, "RecordVehicleCaptureFailure")
++        self.assertEqual(capture_failure.count("comFailures = comFailures + 1"), 1)
++        self.assertNotIn("If comFailures < signalFailures + observationFailures Then", SOURCE)
++
++    def test_streaming_and_escape_helpers_are_on_the_emission_path(self) -> None:
++        envelope = procedure(SOURCE, "WriteVehicleRecordsEnvelope")
++        writer_class = class_body(SOURCE, "Utf8LineWriter")
++        escape = procedure(SOURCE, "JsonEscape")
++        self.assertIn("For i = 0 To collectionCountBefore - 1", envelope)
++        self.assertIn("textStream.WriteText", writer_class)
++        self.assertNotIn("buf = buf &", writer_class)
++        self.assertIn("textStream.Position = 3", writer_class)
++        for token in (r'"\b"', r'"\t"', r'"\n"', r'"\f"', r'"\r"', r'"\u"'):
++            self.assertIn(token, escape)
++        self.assertIn("ReDim pieces(Len(text) - 1)", escape)
++
++    def test_legacy_masked_observation_contract_remains_separate(self) -> None:
++        writer = procedure(SOURCE, "WriteStateJson")
++        self.assertIn('""schema_version"": 2', writer)
++        self.assertIn('""global_vehicle_scan_masked"": true', writer)
++        self.assertIn("LocalObservationLinkCountsJson(localCounts)", writer)
++        self.assertIn("WriteVehicleRecordsEnvelope", writer)
++
++
++if __name__ == "__main__":
++    unittest.main()
+
+diff --git a/scripts/tests/test_b1a_vbs_capture_helpers_behavior.py b/scripts/tests/test_b1a_vbs_capture_helpers_behavior.py
+new file mode 100644
+index 0000000..7d6f565
+--- /dev/null
++++ b/scripts/tests/test_b1a_vbs_capture_helpers_behavior.py
+@@ -0,0 +1,450 @@
++from __future__ import annotations
++
++import json
++import shutil
++import subprocess
++import sys
++import tempfile
++import time
++import unittest
++from pathlib import Path
++
++try:
++    from .test_b1a_vbs_verified_capture_static import SOURCE, class_body, procedure
++except ImportError:
++    from scripts.tests.test_b1a_vbs_verified_capture_static import SOURCE, class_body, procedure
++
++
++ROOT = Path(__file__).resolve().parents[2]
++PLANT_SRC = ROOT / "plant" / "src"
++if str(PLANT_SRC) not in sys.path:
++    sys.path.insert(0, str(PLANT_SRC))
++
++from vissim_strict.physical_projection import normalize_vehicle_records
++
++
++CSCRIPT = shutil.which("cscript.exe") or shutil.which("cscript")
++
++
++def harness_source() -> str:
++    names = (
++        "ParseB1aLaneId",
++        "TrimB1aHorizontalWhitespace",
++        "ParseB1aPositiveLongText",
++        "TryPositiveLongVariant",
++        "TryNonnegativeLongVariant",
++        "TryB1aLongVariant",
++        "TryFiniteNonnegativeDouble",
++        "TryB1aPosition",
++        "TryB1aSpeed",
++        "TryB1aFiniteDouble",
++        "TryExact2DTableBounds",
++        "IsB1aEmptyTableResult",
++        "RecordVehicleCaptureFailure",
++        "ReadVerifiedVehicleTables",
++        "AddDictNumber",
++        "B1aCountMapTotal",
++        "ChainPosCsv",
++        "SegmentIndexCsv",
++        "InCsvInt",
++        "PerfNow",
++        "PerfAdd",
++        "ScanVehicleState",
++        "JsonEscape",
++        "JsonBoolean",
++        "JsonDoubleInvariant",
++        "B1aSignificantDigitCount",
++        "WriteVehicleRecordsEnvelope",
++        "WriteB1aCountMap",
++        "QuickSortB1aLongKeys",
++    )
++    helpers = "\n\n".join(procedure(SOURCE, name) for name in names)
++    writer = class_body(SOURCE, "Utf8LineWriter")
++    return rf'''Option Explicit
++Const B1A_POSITION_TOLERANCE_M = 0.000001
++Const B1A_STOPPED_THRESHOLD_KPH = 1.0
++Dim JSON_DECIMAL_SEPARATOR, failures, comFailures, Vissim
++Dim RW_PERF_ENABLED, perfSum, perfCnt
++Dim RW_FW_E_CHAIN_LINKS, RW_FW_E_CHAIN_OFFSETS_M, RW_FW_W_CHAIN_LINKS, RW_FW_W_CHAIN_OFFSETS_M
++Dim RW_FW_E_SEG_BOUNDS, RW_FW_W_SEG_BOUNDS, RW_RAMP_METER_CONNECTORS, RW_CLASSIFY_UNMATCHED_AS_URBAN
++JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
++failures = 0
++comFailures = 0
++RW_PERF_ENABLED = False
++Set perfSum = CreateObject("Scripting.Dictionary")
++Set perfCnt = CreateObject("Scripting.Dictionary")
++RW_FW_E_CHAIN_LINKS = "": RW_FW_E_CHAIN_OFFSETS_M = ""
++RW_FW_W_CHAIN_LINKS = "": RW_FW_W_CHAIN_OFFSETS_M = ""
++RW_FW_E_SEG_BOUNDS = "0,1": RW_FW_W_SEG_BOUNDS = "0,1"
++RW_RAMP_METER_CONNECTORS = ""
++RW_CLASSIFY_UNMATCHED_AS_URBAN = True
++
++Class FakeVehicles
++    Public Count, NoReadCount, LaneReadCount, PosReadCount, SpeedReadCount
++    Private noRows, laneRows, posRows, speedRows
++
++    Private Sub Class_Initialize()
++        Count = 2
++        NoReadCount = 0: LaneReadCount = 0: PosReadCount = 0: SpeedReadCount = 0
++        ReDim noRows(1, 1): ReDim laneRows(1, 1): ReDim posRows(1, 1): ReDim speedRows(1, 1)
++        noRows(0, 0) = 9: noRows(0, 1) = 9
++        noRows(1, 0) = 3: noRows(1, 1) = 3
++        laneRows(0, 0) = 9: laneRows(0, 1) = "1220012103-2"
++        laneRows(1, 0) = 3: laneRows(1, 1) = "1-1"
++        posRows(0, 0) = 9: posRows(0, 1) = CDbl(123.456789012345)
++        posRows(1, 0) = 3: posRows(1, 1) = CDbl(-0.000001)
++        speedRows(0, 0) = 9: speedRows(0, 1) = CDbl(1)
++        speedRows(1, 0) = 3: speedRows(1, 1) = CDbl(0.999999999999)
++    End Sub
++
++    Public Function GetMultiAttValues(attributeName)
++        Select Case CStr(attributeName)
++            Case "No"
++                NoReadCount = NoReadCount + 1
++                GetMultiAttValues = noRows
++            Case "Lane"
++                LaneReadCount = LaneReadCount + 1
++                GetMultiAttValues = laneRows
++            Case "Pos"
++                PosReadCount = PosReadCount + 1
++                GetMultiAttValues = posRows
++            Case "Speed"
++                SpeedReadCount = SpeedReadCount + 1
++                GetMultiAttValues = speedRows
++            Case Else
++                Err.Raise 5, "FakeVehicles", "unknown attribute"
++        End Select
++    End Function
++End Class
++
++Class FakeNet
++    Public Vehicles
++    Private Sub Class_Initialize()
++        Set Vehicles = New FakeVehicles
++    End Sub
++End Class
++
++Class FakeSimulation
++    Public SimSec
++    Private Sub Class_Initialize()
++        SimSec = CDbl(900)
++    End Sub
++    Public Function AttValue(attributeName)
++        If CStr(attributeName) <> "SimSec" Then Err.Raise 5, "FakeSimulation", "unknown attribute"
++        AttValue = SimSec
++    End Function
++End Class
++
++Class FakeVissim
++    Public Net, Simulation
++    Private Sub Class_Initialize()
++        Set Net = New FakeNet
++        Set Simulation = New FakeSimulation
++    End Sub
++End Class
++
++Set Vissim = New FakeVissim
++
++{writer}
++
++{helpers}
++
++Sub Check(condition, label)
++    If Not CBool(condition) Then
++        failures = failures + 1
++        WScript.Echo "FAIL=" & CStr(label)
++    End If
++End Sub
++
++Dim accepted, rejected, item, linkNo, laneNo, parsed
++accepted = Array("1-1", "1220012103-2", " 1220012103-2 ", vbTab & "1-1" & vbTab)
++For Each item In accepted
++    linkNo = 0: laneNo = 0
++    Check ParseB1aLaneId(item, linkNo, laneNo), "lane_accept:" & CStr(item)
++Next
++rejected = Array("1", "1/2", "1-2-3", "x1-2", "1 - 2", "+1-2", "1.0-2", "0-1", _
++    "1-0", "2147483648-1", "1-2147483648", "1--2", "1" & vbCr & "-2")
++For Each item In rejected
++    linkNo = 0: laneNo = 0
++    Check Not ParseB1aLaneId(item, linkNo, laneNo), "lane_reject:" & CStr(item)
++Next
++
++Check TryPositiveLongVariant(CLng(1), parsed), "positive_long"
++Check Not TryPositiveLongVariant(True, parsed), "reject_bool_id"
++Check Not TryPositiveLongVariant("1", parsed), "reject_string_id"
++Check Not TryPositiveLongVariant(CDbl(1.5), parsed), "reject_fraction_id"
++Check TryB1aPosition(CDbl(-0.000001), parsed), "position_at_negative_tolerance"
++Check Not TryB1aPosition(CDbl(-0.0000011), parsed), "position_below_negative_tolerance"
++Check TryB1aSpeed(CDbl(0), parsed), "zero_speed"
++Check Not TryB1aSpeed(CDbl(-0.000001), parsed), "negative_speed"
++Check Not TryB1aSpeed("1.0", parsed), "reject_string_speed"
++
++Dim exactTable(1, 1), wideTable(1, 2), oneDimensional(1), emptyTable
++Dim rowLower, rowUpper, colLower, colUpper
++Check TryExact2DTableBounds(exactTable, rowLower, rowUpper, colLower, colUpper), "exact_2d_shape"
++Check rowLower = 0 And rowUpper = 1 And colLower = 0 And colUpper = 1, "exact_2d_bounds"
++Check Not TryExact2DTableBounds(wideTable, rowLower, rowUpper, colLower, colUpper), "reject_wide_shape"
++Check Not TryExact2DTableBounds(oneDimensional, rowLower, rowUpper, colLower, colUpper), "reject_1d_shape"
++Check IsB1aEmptyTableResult(emptyTable), "explicit_empty_shape"
++Check Not IsB1aEmptyTableResult(exactTable), "nonempty_shape_not_empty"
++
++Dim controls, escaped, code
++controls = ""
++For code = 0 To 31
++    controls = controls & Chr(code)
++Next
++escaped = JsonEscape(controls & Chr(34) & "\")
++Check InStr(escaped, "\b") > 0, "escape_backspace"
++Check InStr(escaped, "\t") > 0, "escape_tab"
++Check InStr(escaped, "\n") > 0, "escape_lf"
++Check InStr(escaped, "\f") > 0, "escape_form_feed"
++Check InStr(escaped, "\r") > 0, "escape_cr"
++Check InStr(escaped, "\u0000") > 0, "escape_nul"
++Check InStr(escaped, "\u001F") > 0, "escape_unit_separator"
++Check InStr(escaped, "\\") > 0, "escape_backslash"
++Check InStr(escaped, "\" & Chr(34)) > 0, "escape_quote"
++WScript.Echo "DOUBLE=" & JsonDoubleInvariant(CDbl(1.23456789012345))
++WScript.Echo "SMALL=" & JsonDoubleInvariant(CDbl(0.00000000000000000001))
++
++Dim originalLocale, germanDouble
++originalLocale = GetLocale()
++SetLocale 1031
++JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
++germanDouble = JsonDoubleInvariant(CDbl(1.5))
++Check InStr(germanDouble, ".") > 0, "german_decimal_point"
++Check InStr(germanDouble, ",") = 0, "german_no_decimal_comma"
++WScript.Echo "GERMAN_DOUBLE=" & germanDouble
++SetLocale originalLocale
++JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
++
++Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
++Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
++Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk
++Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
++Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped
++Dim fullLinkCounts, fullLinkStoppedCounts
++ScanVehicleState 900, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
++    countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, _
++    collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
++    recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, _
++    fullLinkCounts, fullLinkStoppedCounts
++Check scanOk, "called_scan_ok"
++Check comFailures = 0, "called_scan_no_com_failures"
++Check Vissim.Net.Vehicles.NoReadCount = 1, "called_reader_one_No"
++Check Vissim.Net.Vehicles.LaneReadCount = 1, "called_reader_one_Lane"
++Check Vissim.Net.Vehicles.PosReadCount = 1, "called_reader_one_Pos"
++Check Vissim.Net.Vehicles.SpeedReadCount = 1, "called_reader_one_Speed"
++Check total = 2 And urban = 2, "called_scan_totals"
++Check collectionCountBefore = 2 And collectionCountAfter = 2, "called_scan_collection_counts"
++Check captureSimSecBefore = 900 And captureSimSecAfter = 900, "called_scan_times"
++Check recordVehNos(0) = 9 And recordVehNos(1) = 3, "called_scan_vehicle_numbers"
++Check recordLinkNos(0) = 1220012103 And recordLinkNos(1) = 1, "called_scan_link_numbers"
++Check recordLaneNos(0) = 2 And recordLaneNos(1) = 1, "called_scan_lane_numbers"
++Check recordStopped(0) = False And recordStopped(1) = True, "called_scan_stopped_flags"
++Check fullLinkCounts("1220012103") = 1 And fullLinkCounts("1") = 1, "called_scan_link_counts"
++Check fullLinkStoppedCounts.Exists("1220012103"), "called_scan_moving_zero_key"
++Check fullLinkStoppedCounts("1220012103") = 0 And fullLinkStoppedCounts("1") = 1, "called_scan_stopped_counts"
++
++Dim stream
++Set stream = New Utf8LineWriter
++stream.TargetPath = WScript.Arguments(0)
++stream.WriteLine "{{"
++stream.WriteLine "  ""local_observation"": {{""schema_version"": 2}},"
++WriteVehicleRecordsEnvelope stream, CDbl(900), collectionCountBefore, collectionCountAfter, _
++    captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
++    recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
++stream.WriteLine "  ""tail"": true"
++stream.WriteLine "}}"
++stream.Close
++
++Dim noRecords, emptyCounts, emptyStoppedCounts
++Set emptyCounts = CreateObject("Scripting.Dictionary")
++Set emptyStoppedCounts = CreateObject("Scripting.Dictionary")
++Set stream = New Utf8LineWriter
++stream.TargetPath = WScript.Arguments(1)
++stream.WriteLine "{{"
++stream.WriteLine "  ""local_observation"": {{""schema_version"": 2}},"
++WriteVehicleRecordsEnvelope stream, CDbl(0), 0, 0, CDbl(0), CDbl(0), noRecords, noRecords, noRecords, _
++    noRecords, noRecords, noRecords, emptyCounts, emptyStoppedCounts
++stream.WriteLine "  ""tail"": true"
++stream.WriteLine "}}"
++stream.Close
++
++Dim bigVehNos, bigLinkNos, bigLaneNos, bigPositions, bigSpeeds, bigStoppedFlags
++Dim bigIndex, bigLink, bigKey, bigCounts, bigStoppedCounts
++ReDim bigVehNos(19999): ReDim bigLinkNos(19999): ReDim bigLaneNos(19999)
++ReDim bigPositions(19999): ReDim bigSpeeds(19999): ReDim bigStoppedFlags(19999)
++Set bigCounts = CreateObject("Scripting.Dictionary")
++Set bigStoppedCounts = CreateObject("Scripting.Dictionary")
++For bigIndex = 0 To 19999
++    bigLink = (bigIndex Mod 10) + 1
++    bigKey = CStr(bigLink)
++    bigVehNos(bigIndex) = bigIndex + 1
++    bigLinkNos(bigIndex) = bigLink
++    bigLaneNos(bigIndex) = (bigIndex Mod 3) + 1
++    bigPositions(bigIndex) = CDbl(bigIndex) / 10.0
++    If (bigIndex Mod 3) = 0 Then
++        bigSpeeds(bigIndex) = 0.5
++        bigStoppedFlags(bigIndex) = True
++    Else
++        bigSpeeds(bigIndex) = 10.0
++        bigStoppedFlags(bigIndex) = False
++    End If
++    If Not bigCounts.Exists(bigKey) Then
++        bigCounts.Add bigKey, 0
++        bigStoppedCounts.Add bigKey, 0
++    End If
++    bigCounts(bigKey) = CLng(bigCounts(bigKey)) + 1
++    If bigStoppedFlags(bigIndex) Then
++        bigStoppedCounts(bigKey) = CLng(bigStoppedCounts(bigKey)) + 1
++    End If
++Next
++Set stream = New Utf8LineWriter
++stream.TargetPath = WScript.Arguments(2)
++stream.WriteLine "{{"
++stream.WriteLine "  ""local_observation"": {{""schema_version"": 2}},"
++WriteVehicleRecordsEnvelope stream, CDbl(900), 20000, 20000, CDbl(900), CDbl(900), _
++    bigVehNos, bigLinkNos, bigLaneNos, bigPositions, bigSpeeds, bigStoppedFlags, bigCounts, bigStoppedCounts
++stream.WriteLine "  ""tail"": true"
++stream.WriteLine "}}"
++stream.Close
++
++If failures > 0 Then WScript.Quit 1
++WScript.Echo "PASS"
++'''
++
++
++def failure_harness_source() -> str:
++    abort = procedure(SOURCE, "AbortVehicleObservation")
++    record = procedure(SOURCE, "RecordVehicleCaptureFailure")
++    return f'''Option Explicit
++Dim observationFailures, comFailures
++observationFailures = 0
++comFailures = 0
++
++{record}
++
++{abort}
++
++RecordVehicleCaptureFailure "invalid_table_shape", "test=failure_path"
++AbortVehicleObservation 900
++'''
++
++
++@unittest.skipUnless(CSCRIPT, "Windows Script Host is required")
++class B1aVbsCaptureHelpersBehaviorTests(unittest.TestCase):
++    def test_capture_abort_publishes_exact_counters_before_exit(self) -> None:
++        with tempfile.TemporaryDirectory() as temp_dir:
++            harness = Path(temp_dir) / "b1a_vbs_capture_abort_harness.vbs"
++            harness.write_text(failure_harness_source(), encoding="ascii")
++            result = subprocess.run(
++                [CSCRIPT, "//nologo", str(harness)],
++                check=False,
++                capture_output=True,
++                text=True,
++                timeout=30,
++            )
++            self.assertEqual(result.returncode, 13, result.stdout + result.stderr)
++            self.assertEqual(
++                result.stdout.splitlines(),
++                [
++                    "ERROR=B1A_VEHICLE_CAPTURE_FAILED reason=invalid_table_shape test=failure_path",
++                    "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=900",
++                    "OBSERVATION_FAILURES=1",
++                    "COM_FAILURES=1",
++                ],
++            )
++
++    def test_helpers_and_zero_nonzero_envelopes_execute_without_com(self) -> None:
++        with tempfile.TemporaryDirectory() as temp_dir:
++            root = Path(temp_dir)
++            harness = root / "b1a_vbs_capture_helpers_harness.vbs"
++            nonzero_path = root / "nonzero.json"
++            zero_path = root / "zero.json"
++            qualification_path = root / "qualification_20000.json"
++            harness.write_text(harness_source(), encoding="ascii")
++            started = time.perf_counter()
++            result = subprocess.run(
++                [
++                    CSCRIPT,
++                    "//nologo",
++                    str(harness),
++                    str(nonzero_path),
++                    str(zero_path),
++                    str(qualification_path),
++                ],
++                check=False,
++                capture_output=True,
++                text=True,
++                timeout=30,
++            )
++            elapsed = time.perf_counter() - started
++            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
++            self.assertIn("PASS", result.stdout)
++
++            nonzero_bytes = nonzero_path.read_bytes()
++            zero_bytes = zero_path.read_bytes()
++            self.assertFalse(nonzero_bytes.startswith(b"\xef\xbb\xbf"))
++            self.assertFalse(zero_bytes.startswith(b"\xef\xbb\xbf"))
++            nonzero = json.loads(nonzero_bytes.decode("utf-8"))
++            zero = json.loads(zero_bytes.decode("utf-8"))
++
++            self.assertIn("vehicle_records", nonzero)
++            self.assertNotIn("vehicle_records", nonzero["local_observation"])
++            records = nonzero["vehicle_records"]
++            self.assertEqual(records["schema_version"], "vissim-vehicle-records-v2.1")
++            self.assertEqual(records["collection_count_before"], 2)
++            self.assertEqual(records["collection_count_after"], 2)
++            self.assertEqual(records["record_count"], 2)
++            self.assertEqual(records["unobservable_count"], 0)
++            self.assertEqual(records["external_source_count"], 0)
++            self.assertEqual(records["full_network_link_counts"], {"1": 1, "1220012103": 1})
++            self.assertEqual(records["full_network_link_stopped_counts"], {"1": 1, "1220012103": 0})
++            self.assertEqual([item["veh_no"] for item in records["records"]], [9, 3])
++            self.assertFalse(records["records"][0]["stopped"])
++            self.assertTrue(records["records"][1]["stopped"])
++            self.assertEqual(set(records["records"][0]), {
++                "veh_no", "link_no", "lane_no", "position_m", "speed_kph", "stopped"
++            })
++            normalized, normalized_records, normalized_hash = normalize_vehicle_records(
++                {
++                    "run_provenance": {"run_id": "run-13"},
++                    "sim_sec": 900.0,
++                    "total_vehicles": 2,
++                    "vehicle_records": records,
++                },
++                1.0e-6,
++            )
++            self.assertEqual(normalized["full_network_link_stopped_counts"], {"1": 1, "1220012103": 0})
++            self.assertEqual([item["veh_no"] for item in normalized_records], [3, 9])
++            self.assertEqual(len(normalized_hash), 64)
++
++            empty = zero["vehicle_records"]
++            self.assertEqual(empty["collection_count_before"], 0)
++            self.assertEqual(empty["collection_count_after"], 0)
++            self.assertEqual(empty["record_count"], 0)
++            self.assertEqual(empty["full_network_link_counts"], {})
++            self.assertEqual(empty["full_network_link_stopped_counts"], {})
++            self.assertEqual(empty["records"], [])
++
++            qualification_bytes = qualification_path.read_bytes()
++            self.assertFalse(qualification_bytes.startswith(b"\xef\xbb\xbf"))
++            self.assertLessEqual(len(qualification_bytes), 8 * 1024 * 1024)
++            qualification = json.loads(qualification_bytes.decode("utf-8"))["vehicle_records"]
++            self.assertEqual(qualification["record_count"], 20_000)
++            self.assertEqual(len(qualification["records"]), 20_000)
++            self.assertEqual(sum(qualification["full_network_link_counts"].values()), 20_000)
++            self.assertLessEqual(elapsed, 3.0)
++
++            for label in ("DOUBLE=", "SMALL=", "GERMAN_DOUBLE="):
++                line = next(line for line in result.stdout.splitlines() if line.startswith(label))
++                token = line[len(label) :]
++                self.assertIn(".", token)
++                self.assertTrue(isinstance(json.loads(token), float))
++                mantissa = token.upper().split("E", 1)[0]
++                significant = mantissa.lstrip("-0.").replace(".", "")
++                self.assertGreaterEqual(len(significant), 15)
++
++
++if __name__ == "__main__":
++    unittest.main()

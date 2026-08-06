@@ -16,13 +16,24 @@ Dim RW_PERF_ENABLED, perfSum, perfCnt
 RW_PERF_ENABLED = (Trim(shell.ExpandEnvironmentStrings("%RW_PERF%")) = "1")
 Set perfSum = CreateObject("Scripting.Dictionary")
 Set perfCnt = CreateObject("Scripting.Dictionary")
-Dim auditAnchorsSec, runId, runManifestPath
+Dim auditAnchorsSec, runId, runManifestPath, runManifestSha256, qualificationMode
+Dim b1aRequired, workspaceRoot, stateManifestBuilderPath, monotonicClockHelperPath, runManifestRelPath, vissimVersionRaw
 auditAnchorsSec = Trim(shell.ExpandEnvironmentStrings("%RW_AUDIT_ANCHORS_SEC%"))
 If Left(auditAnchorsSec, 1) = "%" Then auditAnchorsSec = ""
 runId = Trim(shell.ExpandEnvironmentStrings("%RW_RUN_ID%"))
 If Left(runId, 1) = "%" Then runId = ""
 runManifestPath = Trim(shell.ExpandEnvironmentStrings("%RW_RUN_MANIFEST_PATH%"))
 If Left(runManifestPath, 1) = "%" Then runManifestPath = ""
+runManifestSha256 = LCase(Trim(shell.ExpandEnvironmentStrings("%RW_RUN_MANIFEST_SHA256%")))
+If Left(runManifestSha256, 1) = "%" Then runManifestSha256 = ""
+qualificationMode = Trim(shell.ExpandEnvironmentStrings("%RW_QUALIFICATION_MODE%"))
+If Left(qualificationMode, 1) = "%" Then qualificationMode = ""
+b1aRequired = (Trim(shell.ExpandEnvironmentStrings("%RW_B1A_REQUIRED%")) = "1")
+workspaceRoot = fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName))
+stateManifestBuilderPath = fso.BuildPath(workspaceRoot, "scripts\build_state_manifest_v2_1.py")
+monotonicClockHelperPath = fso.BuildPath(workspaceRoot, "scripts\read_monotonic_clock.py")
+runManifestRelPath = ""
+vissimVersionRaw = ""
 
 ' Signal COM handle caches - see CachedSignalController.
 Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, signalTraceStage
@@ -137,6 +148,11 @@ Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
 Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
+Const B1A_POSITION_TOLERANCE_M = 0.000001
+Const B1A_STOPPED_THRESHOLD_KPH = 1.0
+Const B1A_PYTHON_HELPER_TIMEOUT_SEC = 10
+Dim JSON_DECIMAL_SEPARATOR
+JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
 
 If CLng(controlInterval) <= 0 Or (CLng(controlInterval) Mod RAMP_CYCLE_SEC) <> 0 Then
     WScript.Echo "ERROR=CONTROL_INTERVAL_MUST_BE_POSITIVE_MULTIPLE_OF_RAMP_CYCLE control_interval_sec=" & CStr(controlInterval) & " ramp_cycle_sec=" & CStr(RAMP_CYCLE_SEC)
@@ -150,7 +166,7 @@ End If
 ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
 ' interpreter here means every decision fails, so failing now costs seconds
 ' instead of surfacing after a multi-hour run.
-Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures
+Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
 pythonExe = ""
 decisionsOk = 0
@@ -158,12 +174,14 @@ decisionsFailed = 0
 observationFailures = 0
 signalFailures = 0
 actionFormatFailures = 0
+comFailures = 0
 signalWriteAttempts = 0
 signalReadbackOk = 0
 signalPersistenceChecks = 0
 signalPersistenceOk = 0
 signalTraceSimSec = 0
 ResolvePythonInterpreter
+ValidateB1aRequiredStartup
 
 EnsureParentFolder stateOutPath
 EnsureParentFolder actionOutPath
@@ -202,7 +220,8 @@ Set Vissim = CreateObject("Vissim.Vissim")
 WScript.Echo "STAGE=COM_CREATED"
 Vissim.LoadNet netPath, False
 WScript.Echo "STAGE=NET_LOADED"
-WScript.Echo "VERSION=" & SafeAtt(Vissim, "VERSION")
+vissimVersionRaw = SafeAtt(Vissim, "VERSION")
+WScript.Echo "VERSION=" & vissimVersionRaw
 WScript.Echo "LINKS=" & Vissim.Net.Links.Count
 WScript.Echo "VEHICLE_INPUTS=" & Vissim.Net.VehicleInputs.Count
 WScript.Echo "SIGNAL_CONTROLLERS=" & Vissim.Net.SignalControllers.Count
@@ -281,10 +300,11 @@ WScript.Echo "SIGNAL_READBACK_OK=" & CStr(signalReadbackOk)
 WScript.Echo "SIGNAL_PERSISTENCE_CHECKS=" & CStr(signalPersistenceChecks)
 WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
 WScript.Echo "ACTION_FORMAT_FAILURES=" & CStr(actionFormatFailures)
-If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Then
+WScript.Echo "COM_FAILURES=" & CStr(comFailures)
+If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
     WScript.Echo "ERROR=RUN_INTEGRITY_FAILURE decisions_failed=" & CStr(decisionsFailed) & _
         " observation_failures=" & CStr(observationFailures) & " signal_failures=" & CStr(signalFailures) & _
-        " action_format_failures=" & CStr(actionFormatFailures)
+        " action_format_failures=" & CStr(actionFormatFailures) & " com_failures=" & CStr(comFailures)
     Set Vissim = Nothing
     WScript.Quit 3
 End If
@@ -414,16 +434,16 @@ Sub RunStepwiseMode()
 
     Dim stepNo, stepT0
     For stepNo = 2 To CLng(simPeriod)
+        stepT0 = PerfNow()
+        Vissim.Simulation.RunSingleStep
+        PerfAdd "sim.step", stepT0
+        ValidateRuntimeSignalPersistence stepNo
         If stepNo Mod CLng(controlInterval) = 0 Then
             RunControllerDecision stepNo
         End If
         ApplyRuntimeSignals stepNo
         ApplyRuntimeRampMeters stepNo
         ApplyIncidentLaneClosure stepNo
-        stepT0 = PerfNow()
-        Vissim.Simulation.RunSingleStep
-        PerfAdd "sim.step", stepT0
-        ValidateRuntimeSignalPersistence stepNo
         If stepNo Mod 30 = 0 Or stepNo = CLng(simPeriod) Then
             WScript.Echo "RUN_SINGLE_STEP sim_sec=" & CStr(stepNo)
         End If
@@ -1444,30 +1464,56 @@ Sub SetName(obj, name)
     On Error GoTo 0
 End Sub
 
+Sub AbortVehicleObservation(simSec)
+    observationFailures = observationFailures + 1
+    WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
+    WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
+    WScript.Echo "COM_FAILURES=" & CStr(comFailures)
+    WScript.Quit 13
+End Sub
+
 Sub WriteStateJson(simSec, path)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
     Dim localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, perfT0
+    Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
+    Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw
+    Dim fullLinkCounts, fullLinkStoppedCounts
+    Dim finalPath, tempPath, captureStartNs, captureEndNs
     perfT0 = PerfNow()
-    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
-        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, scanOk
+    finalPath = path
+    tempPath = path
+    captureStartNs = ""
+    captureEndNs = ""
+    If b1aRequired Then
+        If fso.FileExists(finalPath) Then
+            WScript.Echo "ERROR=B1A_STATE_ALREADY_EXISTS path=" & finalPath
+            WScript.Quit 14
+        End If
+        ValidateB1aCaptureTime simSec
+        captureStartNs = ReadRequiredMonotonicClock()
+        tempPath = UniqueSiblingPath(finalPath, "state")
+    End If
+    ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, _
+        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
+        recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw, _
+        fullLinkCounts, fullLinkStoppedCounts
     If Not scanOk Then
-        observationFailures = observationFailures + 1
-        WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
-        WScript.Quit 13
+        AbortVehicleObservation simSec
     End If
     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
 
     Dim ts
-    EnsureParentFolder path
+    EnsureParentFolder tempPath
     Set ts = New Utf8LineWriter
-    ts.TargetPath = path
+    ts.TargetPath = tempPath
     ts.WriteLine "{"
     ts.WriteLine "  ""sim_sec"": " & Num(simSec) & ","
     ts.WriteLine "  ""sim_period_sec"": " & Num(simPeriod) & ","
     ts.WriteLine "  ""control_interval_sec"": " & Num(controlInterval) & ","
     ts.WriteLine "  ""network_path"": """ & JsonEscape(netPath) & ""","
-    ts.WriteLine "  ""run_provenance"": {""run_id"": """ & JsonEscape(runId) & """, ""manifest_path"": """ & JsonEscape(runManifestPath) & """},"
+    WriteB1aStateRunProvenance ts
     ts.WriteLine "  ""total_vehicles"": " & CStr(total) & ","
     ts.WriteLine "  ""urban_vehicles"": " & CStr(urban) & ","
     ts.WriteLine "  ""freeway_vehicles"": " & CStr(freeway) & ","
@@ -1493,12 +1539,29 @@ Sub WriteStateJson(simSec, path)
     ts.WriteLine "    ""link_stopped_counts"": " & LocalObservationLinkStoppedCountsJson(localStopped) & ","
     ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails)
     ts.WriteLine "  },"
+    WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
+        captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
+        recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
     ts.WriteLine "  ""freeway_segments"": {"
     ts.WriteLine "    ""FW_E"": " & SegmentArrayJson(countE, speedE, RW_FW_E_SEG_LENGTHS_KM, RW_FW_E_LANES) & ","
     ts.WriteLine "    ""FW_W"": " & SegmentArrayJson(countW, speedW, RW_FW_W_SEG_LENGTHS_KM, RW_FW_W_LANES)
     ts.WriteLine "  }"
     ts.WriteLine "}"
     ts.Close
+    If b1aRequired Then
+        ValidateB1aStateRunBinding tempPath, simSec, True
+        If fso.FileExists(finalPath) Then
+            WScript.Echo "ERROR=B1A_STATE_ALREADY_EXISTS path=" & finalPath
+            CleanupUniqueB1aTemp tempPath, finalPath
+            WScript.Quit 14
+        End If
+        fso.MoveFile tempPath, finalPath
+        ValidateB1aStateRunBinding finalPath, simSec, False
+        captureEndNs = ReadRequiredMonotonicClock()
+        PublishB1aVehicleCaptureEvidence simSec, finalPath, captureStartNs, captureEndNs, _
+            collectionCountBefore, collectionCountAfter, recordVehNos, recordLinkNos, recordLaneNos, _
+            recordPositions, recordSpeeds, recordLaneRaw
+    End If
     PerfAdd "state.json", perfT0
 End Sub
 
@@ -1514,17 +1577,96 @@ Function SegmentArrayJson(counts, speeds, lengthsCsv, lanes)
     SegmentArrayJson = s
 End Function
 
+Sub WriteVehicleRecordsEnvelope(ts, pausedAtSimSec, collectionCountBefore, collectionCountAfter, _
+        captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
+        recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts)
+    Dim i, suffix
+    ts.WriteLine "  ""vehicle_records"": {"
+    ts.WriteLine "    ""schema_version"": ""vissim-vehicle-records-v2.1"","
+    ts.WriteLine "    ""complete"": true,"
+    ts.WriteLine "    ""paused_at_sim_sec"": " & JsonDoubleInvariant(pausedAtSimSec) & ","
+    ts.WriteLine "    ""capture_sim_sec_before"": " & JsonDoubleInvariant(captureSimSecBefore) & ","
+    ts.WriteLine "    ""capture_sim_sec_after"": " & JsonDoubleInvariant(captureSimSecAfter) & ","
+    ts.WriteLine "    ""source_attributes"": {""vehicle_number"": ""No"", ""lane"": ""Lane"", ""position"": ""Pos"", ""speed"": ""Speed""},"
+    ts.WriteLine "    ""stopped_threshold_kph"": " & JsonDoubleInvariant(B1A_STOPPED_THRESHOLD_KPH) & ","
+    ts.WriteLine "    ""collection_count_before"": " & CStr(collectionCountBefore) & ","
+    ts.WriteLine "    ""collection_count_after"": " & CStr(collectionCountAfter) & ","
+    ts.WriteLine "    ""record_count"": " & CStr(collectionCountBefore) & ","
+    ts.WriteLine "    ""unobservable_count"": 0,"
+    ts.WriteLine "    ""external_source_count"": 0,"
+    WriteB1aCountMap ts, "full_network_link_counts", fullLinkCounts, True
+    WriteB1aCountMap ts, "full_network_link_stopped_counts", fullLinkStoppedCounts, True
+    ts.WriteLine "    ""records"": ["
+    For i = 0 To collectionCountBefore - 1
+        suffix = ","
+        If i = collectionCountBefore - 1 Then suffix = ""
+        ts.WriteLine "      {""veh_no"": " & CStr(recordVehNos(i)) & _
+            ", ""link_no"": " & CStr(recordLinkNos(i)) & _
+            ", ""lane_no"": " & CStr(recordLaneNos(i)) & _
+            ", ""position_m"": " & JsonDoubleInvariant(recordPositions(i)) & _
+            ", ""speed_kph"": " & JsonDoubleInvariant(recordSpeeds(i)) & _
+            ", ""stopped"": " & JsonBoolean(recordStopped(i)) & "}" & suffix
+    Next
+    ts.WriteLine "    ]"
+    ts.WriteLine "  },"
+End Sub
+
+Sub WriteB1aCountMap(ts, fieldName, counts, trailingComma)
+    Dim keys, i, suffix
+    ts.WriteLine "    """ & JsonEscape(fieldName) & """: {"
+    If counts.Count > 0 Then
+        keys = counts.Keys
+        QuickSortB1aLongKeys keys, LBound(keys), UBound(keys)
+        For i = LBound(keys) To UBound(keys)
+            suffix = ","
+            If i = UBound(keys) Then suffix = ""
+            ts.WriteLine "      """ & JsonEscape(CStr(keys(i))) & """: " & CStr(CLng(counts(keys(i)))) & suffix
+        Next
+    End If
+    suffix = ""
+    If trailingComma Then suffix = ","
+    ts.WriteLine "    }" & suffix
+End Sub
+
+Sub QuickSortB1aLongKeys(ByRef values, first, last)
+    Dim low, high, pivot, temp
+    low = first
+    high = last
+    pivot = CLng(values((first + last) \ 2))
+    Do While low <= high
+        Do While CLng(values(low)) < pivot
+            low = low + 1
+        Loop
+        Do While CLng(values(high)) > pivot
+            high = high - 1
+        Loop
+        If low <= high Then
+            temp = values(low)
+            values(low) = values(high)
+            values(high) = temp
+            low = low + 1
+            high = high - 1
+        End If
+    Loop
+    If first < high Then QuickSortB1aLongKeys values, first, high
+    If low < last Then QuickSortB1aLongKeys values, low, last
+End Sub
+
 Sub LogStateCsv(simSec)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
     Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, perfT0
+    Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
+    Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw
+    Dim fullLinkCounts, fullLinkStoppedCounts
     perfT0 = PerfNow()
-    ScanVehicleState total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
-        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk
+    ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, _
+        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
+        recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw, _
+        fullLinkCounts, fullLinkStoppedCounts
     If Not scanOk Then
-        observationFailures = observationFailures + 1
-        WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
-        WScript.Quit 13
+        AbortVehicleObservation simSec
     End If
     status = LastControllerStatus()
     wall = LastDecisionWallSec()
@@ -1629,58 +1771,121 @@ End Function
 ' step happens between them, so folding them into one pass leaves every emitted
 ' value identical. scanOk mirrors the old behaviour where a failed array read
 ' suppressed the bottleneck rows entirely.
-Sub ScanVehicleState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
+Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
         ByRef meanSpeed, ByRef freewayMeanSpeed, ByRef stopped, _
         ByRef countE, ByRef speedE, ByRef stoppedE, ByRef countW, ByRef speedW, ByRef stoppedW, _
-        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, ByRef scanOk)
+        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, ByRef scanOk, _
+        ByRef collectionCountBefore, ByRef collectionCountAfter, ByRef captureSimSecBefore, ByRef captureSimSecAfter, _
+        ByRef recordVehNos, ByRef recordLinkNos, ByRef recordLaneNos, ByRef recordPositions, ByRef recordSpeeds, ByRef recordStopped, _
+        ByRef recordLaneRaw, ByRef fullLinkCounts, ByRef fullLinkStoppedCounts)
     total = 0: urban = 0: freeway = 0: ramp = 0: boundary = 0: other = 0
     meanSpeed = 0: freewayMeanSpeed = 0: stopped = 0
     scanOk = False
+    collectionCountBefore = 0: collectionCountAfter = 0
+    captureSimSecBefore = 0.0: captureSimSecAfter = 0.0
+    recordVehNos = Empty: recordLinkNos = Empty: recordLaneNos = Empty: recordLaneRaw = Empty
+    recordPositions = Empty: recordSpeeds = Empty: recordStopped = Empty
     Set linkCounts = CreateObject("Scripting.Dictionary")
     Set linkStopped = CreateObject("Scripting.Dictionary")
     Set linkSpeedSums = CreateObject("Scripting.Dictionary")
     Set linkQueueTails = CreateObject("Scripting.Dictionary")
+    Set fullLinkCounts = CreateObject("Scripting.Dictionary")
+    Set fullLinkStoppedCounts = CreateObject("Scripting.Dictionary")
     Dim i
     For i = 0 To 7
         countE(i) = 0: speedE(i) = 0: stoppedE(i) = 0
         countW(i) = 0: speedW(i) = 0: stoppedW(i) = 0
     Next
 
-    Dim laneArray, posArray, speedArray, ok, lo, hi, row
-    Dim linkNo, key, pos, speed, speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0
+    Dim noArray, laneArray, posArray, speedArray, ok, lo, hi, keyCol, valueCol, row, recordIndex
+    Dim noKey, laneKey, posKey, speedKey, vehNo, linkNo, laneNo, key, pos, speed
+    Dim speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0, snapshotIds
     perfT0 = PerfNow()
     speedSum = 0: freewaySpeedSum = 0
-    ok = ReadVehicleLanePosSpeed(laneArray, posArray, speedArray)
+    Set snapshotIds = CreateObject("Scripting.Dictionary")
+    ok = ReadVerifiedVehicleTables(expectedSimSec, noArray, laneArray, posArray, speedArray, _
+        collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
+        lo, hi, keyCol, valueCol)
     If Not ok Then
         PerfAdd "scan.vehicles", perfT0
         Exit Sub
     End If
-    scanOk = True
 
-    lo = MultiLBound(laneArray)
-    hi = MultiUBound(laneArray)
+    If collectionCountBefore > 0 Then
+        ReDim recordVehNos(collectionCountBefore - 1)
+        ReDim recordLinkNos(collectionCountBefore - 1)
+        ReDim recordLaneNos(collectionCountBefore - 1)
+        ReDim recordPositions(collectionCountBefore - 1)
+        ReDim recordSpeeds(collectionCountBefore - 1)
+        ReDim recordStopped(collectionCountBefore - 1)
+        ReDim recordLaneRaw(collectionCountBefore - 1)
+    End If
+
     For row = lo To hi
+        If Not TryPositiveLongVariant(noArray(row, keyCol), noKey) _
+                Or Not TryPositiveLongVariant(laneArray(row, keyCol), laneKey) _
+                Or Not TryPositiveLongVariant(posArray(row, keyCol), posKey) _
+                Or Not TryPositiveLongVariant(speedArray(row, keyCol), speedKey) _
+                Or Not TryPositiveLongVariant(noArray(row, valueCol), vehNo) Then
+            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=No_or_COM_key"
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+        If noKey <> laneKey Or noKey <> posKey Or noKey <> speedKey Or noKey <> vehNo Then
+            RecordVehicleCaptureFailure "com_row_key_mismatch", "row=" & CStr(row)
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+        key = CStr(vehNo)
+        If snapshotIds.Exists(key) Then
+            RecordVehicleCaptureFailure "duplicate_vehicle_in_snapshot", "veh_no=" & key
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+        snapshotIds.Add key, True
+        If Not ParseB1aLaneId(laneArray(row, valueCol), linkNo, laneNo) Then
+            RecordVehicleCaptureFailure "unknown_lane", "row=" & CStr(row) & " veh_no=" & key
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+        If Not TryB1aPosition(posArray(row, valueCol), pos) Then
+            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Pos"
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+        If Not TryB1aSpeed(speedArray(row, valueCol), speed) Then
+            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Speed"
+            PerfAdd "scan.vehicles", perfT0
+            Exit Sub
+        End If
+
+        recordIndex = row - lo
+        recordVehNos(recordIndex) = vehNo
+        recordLinkNos(recordIndex) = linkNo
+        recordLaneNos(recordIndex) = laneNo
+        recordLaneRaw(recordIndex) = CStr(laneArray(row, valueCol))
+        recordPositions(recordIndex) = pos
+        recordSpeeds(recordIndex) = speed
+        isStopped = (speed < B1A_STOPPED_THRESHOLD_KPH)
+        recordStopped(recordIndex) = isStopped
+
         total = total + 1
-        linkNo = FirstInt(MultiValue(laneArray, row))
-        pos = CDblOrZero(MultiValue(posArray, row))
-        speed = CDblOrZero(MultiValue(speedArray, row))
         speedSum = speedSum + speed
-        isStopped = (speed < 1)
         If isStopped Then stopped = stopped + 1
 
-        ' Malformed lane strings cannot be tied back to a VISSIM link, so they stay
-        ' out of the per-link aggregates - exactly as LogBottleneckCsv skipped them.
-        If linkNo > 0 Then
-            key = CStr(linkNo)
-            AddDictNumber linkCounts, key, 1.0
-            AddDictNumber linkSpeedSums, key, speed
-            If isStopped Then
-                AddDictNumber linkStopped, key, 1.0
-                If Not linkQueueTails.Exists(key) Then
-                    linkQueueTails.Add key, pos
-                ElseIf pos < CDbl(linkQueueTails(key)) Then
-                    linkQueueTails(key) = pos
-                End If
+        key = CStr(linkNo)
+        AddDictNumber fullLinkCounts, key, 1.0
+        If Not fullLinkStoppedCounts.Exists(key) Then fullLinkStoppedCounts.Add key, 0.0
+        If isStopped Then AddDictNumber fullLinkStoppedCounts, key, 1.0
+
+        AddDictNumber linkCounts, key, 1.0
+        AddDictNumber linkSpeedSums, key, speed
+        If isStopped Then
+            AddDictNumber linkStopped, key, 1.0
+            If Not linkQueueTails.Exists(key) Then
+                linkQueueTails.Add key, pos
+            ElseIf pos < CDbl(linkQueueTails(key)) Then
+                linkQueueTails(key) = pos
             End If
         End If
 
@@ -1710,8 +1915,19 @@ Sub ScanVehicleState(ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef 
             End If
         End If
     Next
+    If total <> collectionCountBefore Or snapshotIds.Count <> collectionCountBefore _
+            Or B1aCountMapTotal(fullLinkCounts) <> total _
+            Or B1aCountMapTotal(fullLinkStoppedCounts) <> stopped Then
+        RecordVehicleCaptureFailure "aggregate_mismatch", "records=" & CStr(total) & _
+            " unique=" & CStr(snapshotIds.Count) & " collection=" & CStr(collectionCountBefore) & _
+            " link_count_total=" & CStr(B1aCountMapTotal(fullLinkCounts)) & _
+            " link_stopped_total=" & CStr(B1aCountMapTotal(fullLinkStoppedCounts))
+        PerfAdd "scan.vehicles", perfT0
+        Exit Sub
+    End If
     If total > 0 Then meanSpeed = speedSum / total
     If freeway > 0 Then freewayMeanSpeed = freewaySpeedSum / freeway
+    scanOk = True
     PerfAdd "scan.vehicles", perfT0
 End Sub
 
@@ -1922,8 +2138,96 @@ Function LocalObservationLinkMetricJson(values)
 End Function
 
 Function JsonEscape(value)
-    JsonEscape = Replace(CStr(value), "\", "\\")
-    JsonEscape = Replace(JsonEscape, Chr(34), "\" & Chr(34))
+    Dim text, pieces, i, ch, code
+    text = CStr(value)
+    If Len(text) = 0 Then
+        JsonEscape = ""
+        Exit Function
+    End If
+    ReDim pieces(Len(text) - 1)
+    For i = 1 To Len(text)
+        ch = Mid(text, i, 1)
+        code = AscW(ch)
+        Select Case code
+            Case 8
+                pieces(i - 1) = "\b"
+            Case 9
+                pieces(i - 1) = "\t"
+            Case 10
+                pieces(i - 1) = "\n"
+            Case 12
+                pieces(i - 1) = "\f"
+            Case 13
+                pieces(i - 1) = "\r"
+            Case 34
+                pieces(i - 1) = "\" & Chr(34)
+            Case 92
+                pieces(i - 1) = "\\"
+            Case Else
+                If code >= 0 And code <= 31 Then
+                    pieces(i - 1) = "\u" & Right("0000" & Hex(code), 4)
+                Else
+                    pieces(i - 1) = ch
+                End If
+        End Select
+    Next
+    JsonEscape = Join(pieces, "")
+End Function
+
+Function B1aCountMapTotal(counts)
+    Dim key, total
+    total = 0
+    For Each key In counts.Keys
+        total = total + CLng(counts(key))
+    Next
+    B1aCountMapTotal = total
+End Function
+
+Function JsonBoolean(value)
+    If CBool(value) Then
+        JsonBoolean = "true"
+    Else
+        JsonBoolean = "false"
+    End If
+End Function
+
+Function JsonDoubleInvariant(value)
+    Dim text, exponentText, exponentPos, mantissa, digits
+    text = CStr(CDbl(value))
+    If JSON_DECIMAL_SEPARATOR <> "." Then text = Replace(text, JSON_DECIMAL_SEPARATOR, ".")
+    exponentPos = InStr(1, text, "E", vbTextCompare)
+    exponentText = ""
+    If exponentPos > 0 Then
+        exponentText = Mid(text, exponentPos)
+        mantissa = Left(text, exponentPos - 1)
+    Else
+        mantissa = text
+    End If
+    If InStr(1, mantissa, ".", vbBinaryCompare) = 0 Then mantissa = mantissa & "."
+    digits = B1aSignificantDigitCount(mantissa)
+    Do While digits < 15
+        mantissa = mantissa & "0"
+        digits = digits + 1
+    Loop
+    If Right(mantissa, 1) = "." Then mantissa = mantissa & "0"
+    JsonDoubleInvariant = mantissa & exponentText
+End Function
+
+Function B1aSignificantDigitCount(text)
+    Dim i, ch, seenNonzero, count, digitCount
+    seenNonzero = False
+    count = 0
+    digitCount = 0
+    For i = 1 To Len(text)
+        ch = Mid(text, i, 1)
+        If ch >= "0" And ch <= "9" Then
+            digitCount = digitCount + 1
+            If ch <> "0" Then seenNonzero = True
+            If seenNonzero Then count = count + 1
+        End If
+    Next
+    If Not seenNonzero Then count = digitCount
+    B1aSignificantDigitCount = count
 End Function
 
 Function DictValue(dictObj, key, defaultValue)
@@ -2504,6 +2808,244 @@ Function RunCapture3(cmd, ByRef outText, ByRef errText)
     RunCapture3 = exec.ExitCode
 End Function
 
+Function RunCapture3Timeout(cmd, timeoutSec, ByRef outText, ByRef errText)
+    Dim exec, t0, elapsed
+    outText = ""
+    errText = ""
+    On Error Resume Next
+    Set exec = shell.Exec(cmd)
+    If Err.Number <> 0 Then
+        errText = "EXEC_FAILED " & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        RunCapture3Timeout = -1
+        Exit Function
+    End If
+    On Error GoTo 0
+    t0 = Timer
+    Do While exec.Status = 0
+        WScript.Sleep 25
+        elapsed = Timer - CDbl(t0)
+        If elapsed < 0 Then elapsed = elapsed + 86400.0
+        If elapsed > CDbl(timeoutSec) Then
+            On Error Resume Next
+            TerminateExecTree exec
+            exec.Terminate
+            Err.Clear
+            On Error GoTo 0
+            errText = "EXEC_TIMEOUT"
+            RunCapture3Timeout = -2
+            Exit Function
+        End If
+    Loop
+    outText = exec.StdOut.ReadAll
+    errText = exec.StdErr.ReadAll
+    RunCapture3Timeout = exec.ExitCode
+End Function
+
+Sub TerminateExecTree(exec)
+    Dim pid
+    On Error Resume Next
+    pid = exec.ProcessID
+    If Err.Number = 0 And CLng(pid) > 0 Then
+        shell.Run "cmd /c taskkill /PID " & CStr(pid) & " /T /F >NUL 2>NUL", 0, True
+    End If
+    Err.Clear
+    On Error GoTo 0
+End Sub
+
+Sub ValidateB1aRequiredStartup()
+    If Not b1aRequired Then Exit Sub
+    If runId = "" Or runManifestPath = "" Or runManifestSha256 = "" Or qualificationMode <> "live_required" Then
+        WScript.Echo "ERROR=B1A_REQUIRED_ENV_MISSING"
+        WScript.Quit 12
+    End If
+    If Not fso.FileExists(runManifestPath) Or Not fso.FileExists(stateManifestBuilderPath) Or Not fso.FileExists(monotonicClockHelperPath) Then
+        WScript.Echo "ERROR=B1A_REQUIRED_SOURCE_MISSING manifest=" & runManifestPath
+        WScript.Quit 12
+    End If
+    runManifestRelPath = WorkspaceRelativePath(runManifestPath)
+    ValidateB1aRunBinding ""
+End Sub
+
+Sub ValidateB1aCaptureTime(simSec)
+    ValidateB1aRunBinding JsonDoubleInvariant(simSec)
+End Sub
+
+Sub ValidateB1aRunBinding(captureTimeText)
+    Dim cmd, outText, errText, exitCode
+    cmd = pythonExe & " -B " & Q(stateManifestBuilderPath) & _
+        " --workspace-root " & Q(workspaceRoot) & _
+        " --validate-run-binding --run-manifest " & Q(runManifestPath) & _
+        " --run-manifest-sha256 " & Q(runManifestSha256) & _
+        " --run-id " & Q(runId) & " --qualification-mode " & Q(qualificationMode)
+    If CStr(captureTimeText) <> "" Then cmd = cmd & " --capture-time " & CStr(captureTimeText)
+    exitCode = RunCapture3Timeout(cmd, B1A_PYTHON_HELPER_TIMEOUT_SEC, outText, errText)
+    If exitCode <> 0 Or errText <> "" Or Not IsB1aPassLine(outText, "status=PASS run_id=") Then
+        WScript.Echo "ERROR=B1A_RUN_BINDING_INVALID exit=" & CStr(exitCode) & " stderr=" & OneLine(errText) & " stdout=" & OneLine(outText)
+        WScript.Quit 12
+    End If
+End Sub
+
+Sub ValidateB1aStateRunBinding(statePath, simSec, cleanupOnFailure)
+    Dim cmd, outText, errText, exitCode
+    cmd = pythonExe & " -B " & Q(stateManifestBuilderPath) & _
+        " --workspace-root " & Q(workspaceRoot) & _
+        " --validate-state-run-binding --state " & Q(statePath) & _
+        " --run-manifest " & Q(runManifestPath) & _
+        " --run-manifest-sha256 " & Q(runManifestSha256) & _
+        " --run-id " & Q(runId) & " --qualification-mode " & Q(qualificationMode) & _
+        " --capture-time " & JsonDoubleInvariant(simSec)
+    exitCode = RunCapture3Timeout(cmd, B1A_PYTHON_HELPER_TIMEOUT_SEC, outText, errText)
+    If exitCode <> 0 Or errText <> "" Or Not IsB1aPassLine(outText, "status=PASS state=") Then
+        If cleanupOnFailure Then CleanupUniqueB1aTemp statePath, ""
+        WScript.Echo "ERROR=B1A_STATE_RUN_BINDING_INVALID exit=" & CStr(exitCode) & " stderr=" & OneLine(errText) & " stdout=" & OneLine(outText)
+        WScript.Quit 14
+    End If
+End Sub
+
+Function ReadRequiredMonotonicClock()
+    Dim cmd, outText, errText, exitCode, prefix, suffix, value
+    cmd = pythonExe & " -B " & Q(monotonicClockHelperPath)
+    exitCode = RunCapture3Timeout(cmd, 5, outText, errText)
+    If exitCode <> 0 Or errText <> "" Then
+        WScript.Echo "ERROR=B1A_MONOTONIC_HELPER_FAILED exit=" & CStr(exitCode) & " stderr=" & OneLine(errText)
+        WScript.Quit 12
+    End If
+    prefix = "python_perf_counter_ns="
+    suffix = vbLf
+    If Left(outText, Len(prefix)) <> prefix Or Right(outText, 1) <> suffix Or InStr(1, Left(outText, Len(outText) - 1), vbLf, vbBinaryCompare) > 0 Then
+        WScript.Echo "ERROR=B1A_MONOTONIC_HELPER_FRAMING stdout=" & OneLine(outText)
+        WScript.Quit 12
+    End If
+    value = Mid(outText, Len(prefix) + 1, Len(outText) - Len(prefix) - 1)
+    If Not IsPositiveDecimalText(value) Then
+        WScript.Echo "ERROR=B1A_MONOTONIC_HELPER_FRAMING stdout=" & OneLine(outText)
+        WScript.Quit 12
+    End If
+    ReadRequiredMonotonicClock = value
+End Function
+
+Function IsPositiveDecimalText(text)
+    Dim i, ch
+    IsPositiveDecimalText = False
+    If Len(text) = 0 Then Exit Function
+    If Left(text, 1) = "0" Then Exit Function
+    For i = 1 To Len(text)
+        ch = Mid(text, i, 1)
+        If ch < "0" Or ch > "9" Then Exit Function
+    Next
+    IsPositiveDecimalText = True
+End Function
+
+Function IsB1aPassLine(text, prefix)
+    IsB1aPassLine = False
+    If Len(text) <= Len(prefix) Then Exit Function
+    If Left(text, Len(prefix)) <> prefix Then Exit Function
+    If Right(text, 1) <> vbLf Then Exit Function
+    If InStr(1, Left(text, Len(text) - 1), vbLf, vbBinaryCompare) > 0 Then Exit Function
+    IsB1aPassLine = True
+End Function
+
+Function WorkspaceRelativePath(path)
+    Dim absRoot, absPath, prefix
+    absRoot = fso.GetAbsolutePathName(workspaceRoot)
+    absPath = fso.GetAbsolutePathName(path)
+    prefix = absRoot & "\"
+    If LCase(Left(absPath, Len(prefix))) <> LCase(prefix) Then
+        WScript.Echo "ERROR=B1A_PATH_ESCAPES_WORKSPACE path=" & path
+        WScript.Quit 12
+    End If
+    WorkspaceRelativePath = Replace(Mid(absPath, Len(prefix) + 1), "\", "/")
+End Function
+
+Function B1aManifestPathForState()
+    If b1aRequired Then
+        B1aManifestPathForState = runManifestRelPath
+    Else
+        B1aManifestPathForState = runManifestPath
+    End If
+End Function
+
+Sub WriteB1aStateRunProvenance(ts)
+    If b1aRequired Then
+        ts.WriteLine "  ""run_provenance"": {""run_id"": """ & JsonEscape(runId) & """, ""manifest_path"": """ & JsonEscape(runManifestRelPath) & """, ""manifest_sha256"": """ & JsonEscape(runManifestSha256) & """},"
+    Else
+        ts.WriteLine "  ""run_provenance"": {""run_id"": """ & JsonEscape(runId) & """, ""manifest_path"": """ & JsonEscape(runManifestPath) & """},"
+    End If
+End Sub
+
+Function UniqueSiblingPath(finalPath, label)
+    Dim parent, name
+    parent = fso.GetParentFolderName(finalPath)
+    Do
+        name = "." & fso.GetBaseName(finalPath) & "." & label & "." & fso.GetTempName()
+        UniqueSiblingPath = fso.BuildPath(parent, name)
+    Loop While fso.FileExists(UniqueSiblingPath)
+End Function
+
+Sub CleanupUniqueB1aTemp(path, immutablePath)
+    On Error Resume Next
+    If path <> "" Then
+        If immutablePath = "" Or LCase(fso.GetAbsolutePathName(path)) <> LCase(fso.GetAbsolutePathName(immutablePath)) Then
+            If fso.FileExists(path) Then fso.DeleteFile path, True
+        End If
+    End If
+    Err.Clear
+    On Error GoTo 0
+End Sub
+
+Sub PublishB1aVehicleCaptureEvidence(simSec, statePath, startNs, endNs, collectionCountBefore, collectionCountAfter, _
+        recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordLaneRaw)
+    Dim sidecarPath, requestPath, ts, i, suffix, cmd, outText, errText, exitCode
+    sidecarPath = fso.BuildPath(fso.GetParentFolderName(statePath), fso.GetBaseName(statePath) & ".vehicle_capture_v2_1.json")
+    If fso.FileExists(sidecarPath) Then
+        WScript.Echo "ERROR=B1A_CAPTURE_EVIDENCE_ALREADY_EXISTS path=" & sidecarPath
+        WScript.Quit 14
+    End If
+    requestPath = UniqueSiblingPath(sidecarPath, "request")
+    Set ts = New Utf8LineWriter
+    ts.TargetPath = requestPath
+    ts.WriteLine "{"
+    ts.WriteLine "  ""run_id"": """ & JsonEscape(runId) & ""","
+    ts.WriteLine "  ""sim_sec"": " & JsonDoubleInvariant(simSec) & ","
+    ts.WriteLine "  ""qualification"": {""mode"": ""live_required""},"
+    ts.WriteLine "  ""run_manifest_path"": """ & JsonEscape(runManifestRelPath) & ""","
+    ts.WriteLine "  ""run_manifest_sha256"": """ & JsonEscape(runManifestSha256) & ""","
+    ts.WriteLine "  ""state_path"": """ & JsonEscape(WorkspaceRelativePath(statePath)) & ""","
+    ts.WriteLine "  ""vissim_version_raw"": """ & JsonEscape(vissimVersionRaw) & ""","
+    ts.WriteLine "  ""counts"": {""collection_count_before"": " & CStr(collectionCountBefore) & ", ""collection_count_after"": " & CStr(collectionCountAfter) & ", ""record_count"": " & CStr(collectionCountBefore) & "},"
+    ts.WriteLine "  ""capture_timer"": {""clock"": ""python_perf_counter_ns"", ""start_ns"": " & CStr(startNs) & ", ""end_ns"": " & CStr(endNs) & ", ""elapsed_sec"": 0.0},"
+    ts.WriteLine "  ""raw_attribute_rows"": ["
+    For i = 0 To collectionCountBefore - 1
+        suffix = ","
+        If i = collectionCountBefore - 1 Then suffix = ""
+        ts.WriteLine "    {""com_key"": " & CStr(recordVehNos(i)) & _
+            ", ""no_value"": " & CStr(recordVehNos(i)) & _
+            ", ""lane_raw"": """ & JsonEscape(recordLaneRaw(i)) & """" & _
+            ", ""parsed_link_no"": " & CStr(recordLinkNos(i)) & _
+            ", ""parsed_lane_no"": " & CStr(recordLaneNos(i)) & _
+            ", ""position_value"": " & JsonDoubleInvariant(recordPositions(i)) & _
+            ", ""speed_value"": " & JsonDoubleInvariant(recordSpeeds(i)) & "}" & suffix
+    Next
+    ts.WriteLine "  ]"
+    ts.WriteLine "}"
+    ts.Close
+    cmd = pythonExe & " -B " & Q(stateManifestBuilderPath) & _
+        " --workspace-root " & Q(workspaceRoot) & _
+        " --produce-vehicle-capture --vehicle-capture-request " & Q(requestPath) & _
+        " --vehicle-capture " & Q(sidecarPath)
+    exitCode = RunCapture3Timeout(cmd, B1A_PYTHON_HELPER_TIMEOUT_SEC, outText, errText)
+    On Error Resume Next
+    fso.DeleteFile requestPath, True
+    Err.Clear
+    On Error GoTo 0
+    If exitCode <> 0 Or errText <> "" Or Not IsB1aPassLine(outText, "status=PASS vehicle_capture=") Then
+        WScript.Echo "ERROR=B1A_CAPTURE_EVIDENCE_FAILED exit=" & CStr(exitCode) & " stderr=" & OneLine(errText) & " stdout=" & OneLine(outText)
+        WScript.Quit 14
+    End If
+End Sub
+
 Function IsPythonPathCandidate(cand)
     IsPythonPathCandidate = (InStr(cand, "\") > 0 Or InStr(cand, "/") > 0 Or LCase(Right(cand, 4)) = ".exe")
 End Function
@@ -2640,36 +3182,30 @@ End Sub
 ' WARN-only decision handling hid.
 Class Utf8LineWriter
     Public TargetPath
-    Private buf
+    Private textStream
     Private Sub Class_Initialize()
-        buf = ""
+        Set textStream = CreateObject("ADODB.Stream")
+        textStream.Type = 2
+        textStream.Charset = "utf-8"
+        textStream.Open
     End Sub
     Public Sub WriteLine(text)
-        buf = buf & CStr(text) & vbCrLf
+        textStream.WriteText CStr(text) & vbCrLf
     End Sub
     Public Sub Close()
-        WriteUtf8NoBom TargetPath, buf
-        buf = ""
+        Dim binStream
+        textStream.Position = 3
+        Set binStream = CreateObject("ADODB.Stream")
+        binStream.Type = 1
+        binStream.Open
+        textStream.CopyTo binStream
+        binStream.SaveToFile TargetPath, 2
+        binStream.Close
+        textStream.Close
+        Set binStream = Nothing
+        Set textStream = Nothing
     End Sub
 End Class
-
-Sub WriteUtf8NoBom(path, text)
-    Dim textStream, binStream
-    Set textStream = CreateObject("ADODB.Stream")
-    textStream.Type = 2
-    textStream.Charset = "utf-8"
-    textStream.Open
-    textStream.WriteText text
-    ' ADODB emits a UTF-8 BOM that json.loads rejects, so copy out past it.
-    textStream.Position = 3
-    Set binStream = CreateObject("ADODB.Stream")
-    binStream.Type = 1
-    binStream.Open
-    textStream.CopyTo binStream
-    binStream.SaveToFile path, 2
-    binStream.Close
-    textStream.Close
-End Sub
 
 Function ReadAllTextUtf8(path)
     Dim st
@@ -2682,50 +3218,330 @@ Function ReadAllTextUtf8(path)
     st.Close
 End Function
 
-Function ReadVehicleLanePosSpeed(ByRef laneArray, ByRef posArray, ByRef speedArray)
-    ReadVehicleLanePosSpeed = False
+Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArray, ByRef posArray, ByRef speedArray, _
+        ByRef collectionCountBefore, ByRef collectionCountAfter, ByRef captureSimSecBefore, ByRef captureSimSecAfter, _
+        ByRef rowLower, ByRef rowUpper, ByRef keyColumn, ByRef valueColumn)
+    Dim rawCountBefore, rawCountAfter, rawTimeBefore, rawTimeAfter, expectedTime
+    Dim noRowLower, noRowUpper, noColLower, noColUpper
+    Dim laneRowLower, laneRowUpper, laneColLower, laneColUpper
+    Dim posRowLower, posRowUpper, posColLower, posColUpper
+    Dim speedRowLower, speedRowUpper, speedColLower, speedColUpper
+    ReadVerifiedVehicleTables = False
+    rowLower = 0: rowUpper = -1: keyColumn = 0: valueColumn = 1
     On Error Resume Next
+    rawCountBefore = Vissim.Net.Vehicles.Count
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count_before err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    rawTimeBefore = Vissim.Simulation.AttValue("SimSec")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=capture_sim_sec_before err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    noArray = Vissim.Net.Vehicles.GetMultiAttValues("No")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "field=No err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
     laneArray = Vissim.Net.Vehicles.GetMultiAttValues("Lane")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "field=Lane err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
     posArray = Vissim.Net.Vehicles.GetMultiAttValues("Pos")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "field=Pos err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
     speedArray = Vissim.Net.Vehicles.GetMultiAttValues("Speed")
     If Err.Number <> 0 Then
-        WScript.Echo "WARN=FAILED_GET_MULTI_LANE_POS_SPEED err=" & Err.Description
+        RecordVehicleCaptureFailure "invalid_table_shape", "field=Speed err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    rawCountAfter = Vissim.Net.Vehicles.Count
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count_after err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    rawTimeAfter = Vissim.Simulation.AttValue("SimSec")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=capture_sim_sec_after err=" & Err.Description
         Err.Clear
         On Error GoTo 0
         Exit Function
     End If
     On Error GoTo 0
-    ReadVehicleLanePosSpeed = True
+
+    If Not TryNonnegativeLongVariant(rawCountBefore, collectionCountBefore) _
+            Or Not TryNonnegativeLongVariant(rawCountAfter, collectionCountAfter) Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=collection_count"
+        Exit Function
+    End If
+    If collectionCountBefore <> collectionCountAfter Then
+        RecordVehicleCaptureFailure "com_count_changed", "before=" & CStr(collectionCountBefore) & " after=" & CStr(collectionCountAfter)
+        Exit Function
+    End If
+    If Not TryFiniteNonnegativeDouble(rawTimeBefore, captureSimSecBefore) _
+            Or Not TryFiniteNonnegativeDouble(rawTimeAfter, captureSimSecAfter) _
+            Or Not TryFiniteNonnegativeDouble(expectedSimSec, expectedTime) Then
+        RecordVehicleCaptureFailure "invalid_numeric_value", "field=sim_sec"
+        Exit Function
+    End If
+    If captureSimSecBefore <> expectedTime Or captureSimSecAfter <> expectedTime Then
+        RecordVehicleCaptureFailure "capture_time_mismatch", "expected=" & JsonDoubleInvariant(expectedTime) & _
+            " before=" & JsonDoubleInvariant(captureSimSecBefore) & " after=" & JsonDoubleInvariant(captureSimSecAfter)
+        Exit Function
+    End If
+
+    If collectionCountBefore = 0 Then
+        If Not IsB1aEmptyTableResult(noArray) Or Not IsB1aEmptyTableResult(laneArray) _
+                Or Not IsB1aEmptyTableResult(posArray) Or Not IsB1aEmptyTableResult(speedArray) Then
+            RecordVehicleCaptureFailure "invalid_table_shape", "detail=nonempty_table_for_zero_collection"
+            Exit Function
+        End If
+        ReadVerifiedVehicleTables = True
+        Exit Function
+    End If
+
+    If Not TryExact2DTableBounds(noArray, noRowLower, noRowUpper, noColLower, noColUpper) _
+            Or Not TryExact2DTableBounds(laneArray, laneRowLower, laneRowUpper, laneColLower, laneColUpper) _
+            Or Not TryExact2DTableBounds(posArray, posRowLower, posRowUpper, posColLower, posColUpper) _
+            Or Not TryExact2DTableBounds(speedArray, speedRowLower, speedRowUpper, speedColLower, speedColUpper) Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "detail=expected_exact_2d_key_value_tables"
+        Exit Function
+    End If
+    If noRowLower <> laneRowLower Or noRowLower <> posRowLower Or noRowLower <> speedRowLower _
+            Or noRowUpper <> laneRowUpper Or noRowUpper <> posRowUpper Or noRowUpper <> speedRowUpper _
+            Or noColLower <> laneColLower Or noColLower <> posColLower Or noColLower <> speedColLower _
+            Or noColUpper <> laneColUpper Or noColUpper <> posColUpper Or noColUpper <> speedColUpper Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "detail=table_bounds_mismatch"
+        Exit Function
+    End If
+    If noRowUpper - noRowLower + 1 <> collectionCountBefore Then
+        RecordVehicleCaptureFailure "invalid_table_shape", "detail=row_count_mismatch rows=" & _
+            CStr(noRowUpper - noRowLower + 1) & " collection=" & CStr(collectionCountBefore)
+        Exit Function
+    End If
+
+    rowLower = noRowLower
+    rowUpper = noRowUpper
+    keyColumn = noColLower
+    valueColumn = noColUpper
+    ReadVerifiedVehicleTables = True
 End Function
 
-Function MultiLBound(arr)
+Function TryExact2DTableBounds(arr, ByRef rowLower, ByRef rowUpper, ByRef colLower, ByRef colUpper)
+    Dim thirdBound
+    TryExact2DTableBounds = False
+    If Not IsArray(arr) Then Exit Function
     On Error Resume Next
-    MultiLBound = LBound(arr, 1)
+    rowLower = LBound(arr, 1)
+    rowUpper = UBound(arr, 1)
+    colLower = LBound(arr, 2)
+    colUpper = UBound(arr, 2)
     If Err.Number <> 0 Then
-        MultiLBound = 0
         Err.Clear
+        On Error GoTo 0
+        Exit Function
     End If
+    thirdBound = LBound(arr, 3)
+    If Err.Number = 0 Then
+        On Error GoTo 0
+        Exit Function
+    End If
+    Err.Clear
     On Error GoTo 0
+    If rowUpper < rowLower Then Exit Function
+    If colUpper - colLower + 1 <> 2 Then Exit Function
+    TryExact2DTableBounds = True
 End Function
 
-Function MultiUBound(arr)
-    On Error Resume Next
-    MultiUBound = UBound(arr, 1)
-    If Err.Number <> 0 Then
-        MultiUBound = -1
-        Err.Clear
+Function IsB1aEmptyTableResult(arr)
+    Dim rowLower, rowUpper, colLower, colUpper, thirdBound
+    IsB1aEmptyTableResult = False
+    If IsEmpty(arr) Then
+        IsB1aEmptyTableResult = True
+        Exit Function
     End If
+    If Not IsArray(arr) Then Exit Function
+    On Error Resume Next
+    rowLower = LBound(arr, 1)
+    rowUpper = UBound(arr, 1)
+    colLower = LBound(arr, 2)
+    colUpper = UBound(arr, 2)
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    thirdBound = LBound(arr, 3)
+    If Err.Number = 0 Then
+        On Error GoTo 0
+        Exit Function
+    End If
+    Err.Clear
     On Error GoTo 0
+    If colUpper - colLower + 1 <> 2 Then Exit Function
+    IsB1aEmptyTableResult = (rowUpper < rowLower)
 End Function
 
-Function MultiValue(arr, row)
+Sub RecordVehicleCaptureFailure(reason, detail)
+    comFailures = comFailures + 1
+    WScript.Echo "ERROR=B1A_VEHICLE_CAPTURE_FAILED reason=" & CStr(reason) & " " & CStr(detail)
+End Sub
+
+Function TryPositiveLongVariant(ByVal value, ByRef parsed)
+    TryPositiveLongVariant = TryB1aLongVariant(value, False, parsed)
+End Function
+
+Function TryNonnegativeLongVariant(ByVal value, ByRef parsed)
+    TryNonnegativeLongVariant = TryB1aLongVariant(value, True, parsed)
+End Function
+
+Function TryB1aLongVariant(ByVal value, ByVal allowZero, ByRef parsed)
+    Dim valueType, numericValue, probe
+    TryB1aLongVariant = False
+    parsed = 0
+    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
+    valueType = VarType(value)
+    Select Case valueType
+        Case 2, 3, 4, 5, 6, 14, 17, 20
+        Case Else
+            Exit Function
+    End Select
     On Error Resume Next
-    MultiValue = arr(row, UBound(arr, 2))
+    numericValue = CDbl(value)
+    probe = numericValue * 0.0
     If Err.Number <> 0 Then
-        MultiValue = ""
         Err.Clear
+        On Error GoTo 0
+        Exit Function
     End If
     On Error GoTo 0
+    If numericValue <> numericValue Or probe <> probe Then Exit Function
+    If numericValue < 0 Or numericValue > 2147483647.0 Then Exit Function
+    If (Not allowZero) And numericValue = 0 Then Exit Function
+    If Fix(numericValue) <> numericValue Then Exit Function
+    On Error Resume Next
+    parsed = CLng(numericValue)
+    If Err.Number <> 0 Then
+        parsed = 0
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    TryB1aLongVariant = True
+End Function
+
+Function TryFiniteNonnegativeDouble(ByVal value, ByRef parsed)
+    TryFiniteNonnegativeDouble = TryB1aFiniteDouble(value, 0.0, parsed)
+End Function
+
+Function TryB1aPosition(ByVal value, ByRef parsed)
+    TryB1aPosition = TryB1aFiniteDouble(value, -B1A_POSITION_TOLERANCE_M, parsed)
+End Function
+
+Function TryB1aSpeed(ByVal value, ByRef parsed)
+    TryB1aSpeed = TryB1aFiniteDouble(value, 0.0, parsed)
+End Function
+
+Function TryB1aFiniteDouble(ByVal value, ByVal minimumValue, ByRef parsed)
+    Dim valueType, probe
+    TryB1aFiniteDouble = False
+    parsed = 0.0
+    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
+    valueType = VarType(value)
+    Select Case valueType
+        Case 2, 3, 4, 5, 6, 14, 17, 20
+        Case Else
+            Exit Function
+    End Select
+    On Error Resume Next
+    parsed = CDbl(value)
+    probe = parsed * 0.0
+    If Err.Number <> 0 Then
+        parsed = 0.0
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    If parsed <> parsed Or probe <> probe Then Exit Function
+    If parsed < CDbl(minimumValue) Then Exit Function
+    TryB1aFiniteDouble = True
+End Function
+
+Function ParseB1aLaneId(ByVal value, ByRef linkNo, ByRef laneNo)
+    Dim text, delimiterPos
+    ParseB1aLaneId = False
+    linkNo = 0: laneNo = 0
+    If IsArray(value) Or IsObject(value) Or IsEmpty(value) Or IsNull(value) Then Exit Function
+    If VarType(value) <> 8 Then Exit Function
+    text = TrimB1aHorizontalWhitespace(CStr(value))
+    delimiterPos = InStr(1, text, "-", vbBinaryCompare)
+    If delimiterPos <= 1 Or delimiterPos >= Len(text) Then Exit Function
+    If InStr(delimiterPos + 1, text, "-", vbBinaryCompare) > 0 Then Exit Function
+    If Not ParseB1aPositiveLongText(Left(text, delimiterPos - 1), linkNo) Then Exit Function
+    If Not ParseB1aPositiveLongText(Mid(text, delimiterPos + 1), laneNo) Then Exit Function
+    ParseB1aLaneId = True
+End Function
+
+Function TrimB1aHorizontalWhitespace(ByVal value)
+    Dim text, first, last, ch
+    text = CStr(value)
+    first = 1
+    last = Len(text)
+    Do While first <= last
+        ch = Mid(text, first, 1)
+        If ch <> " " And ch <> vbTab Then Exit Do
+        first = first + 1
+    Loop
+    Do While last >= first
+        ch = Mid(text, last, 1)
+        If ch <> " " And ch <> vbTab Then Exit Do
+        last = last - 1
+    Loop
+    If first > last Then
+        TrimB1aHorizontalWhitespace = ""
+    Else
+        TrimB1aHorizontalWhitespace = Mid(text, first, last - first + 1)
+    End If
+End Function
+
+Function ParseB1aPositiveLongText(ByVal text, ByRef parsed)
+    Dim i, ch, digit, accumulator
+    ParseB1aPositiveLongText = False
+    parsed = 0
+    If Len(text) = 0 Then Exit Function
+    ch = Left(text, 1)
+    If ch < "1" Or ch > "9" Then Exit Function
+    accumulator = 0
+    For i = 1 To Len(text)
+        ch = Mid(text, i, 1)
+        If ch < "0" Or ch > "9" Then Exit Function
+        digit = AscW(ch) - AscW("0")
+        If accumulator > 214748364 Then Exit Function
+        If accumulator = 214748364 And digit > 7 Then Exit Function
+        accumulator = accumulator * 10 + digit
+    Next
+    parsed = CLng(accumulator)
+    ParseB1aPositiveLongText = True
 End Function
 
 Function CDblOrZero(value)
@@ -2757,6 +3573,7 @@ Sub TrySetAtt(obj, att, value)
     obj.AttValue(att) = value
     If Err.Number <> 0 Then
         WScript.Echo "WARN=FAILED_SET_ATT att=" & att & " value=" & CStr(value) & " err=" & Err.Description
+        comFailures = comFailures + 1
         Err.Clear
     End If
     On Error GoTo 0
@@ -2767,6 +3584,7 @@ Sub TrySetEvaluationAtt(att, value)
     Vissim.Evaluation.AttValue(att) = value
     If Err.Number <> 0 Then
         WScript.Echo "WARN=FAILED_SET_EVALUATION_ATT att=" & att & " err=" & Err.Description
+        comFailures = comFailures + 1
         Err.Clear
     End If
     On Error GoTo 0

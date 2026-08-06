@@ -3,12 +3,15 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "audit_plant_fidelity.py"
+REPO = MODULE_PATH.parents[1]
 SPEC = importlib.util.spec_from_file_location("audit_plant_fidelity", MODULE_PATH)
 assert SPEC and SPEC.loader
 audit = importlib.util.module_from_spec(SPEC)
@@ -142,6 +145,108 @@ def write_runtime_record(
 
 
 class AuditPlantFidelityTests(unittest.TestCase):
+    def run_audit_cli(self, action_dir: Path, *arguments: str) -> tuple[subprocess.CompletedProcess[str], dict]:
+        json_out = action_dir.parent / "audit.json"
+        markdown_out = action_dir.parent / "audit.md"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-B",
+                str(MODULE_PATH),
+                "--repo",
+                str(REPO),
+                "--action-dir",
+                str(action_dir),
+                "--json-out",
+                str(json_out),
+                "--markdown-out",
+                str(markdown_out),
+                *arguments,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=120,
+        )
+        payload = json.loads(json_out.read_text(encoding="utf-8")) if json_out.is_file() else {}
+        return result, payload
+
+    def test_cli_require_complete_returns_three_for_required_not_evaluated(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            action_dir = Path(directory) / "actions"
+            action_dir.mkdir()
+            result, payload = self.run_audit_cli(
+                action_dir,
+                "--require-complete",
+                "--required-gate",
+                "action_inventory",
+            )
+
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertFalse(payload["completion_policy"]["complete"])
+        self.assertEqual(payload["completion_policy"]["non_pass_gates"], ["action_inventory"])
+
+    def test_cli_strict_returns_two_for_malformed_action(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            action_dir = Path(directory) / "actions"
+            action_dir.mkdir()
+            (action_dir / "action_000900.json").write_text("{", encoding="utf-8")
+            result, payload = self.run_audit_cli(action_dir, "--strict")
+
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertEqual(payload["gates"]["action_inventory"]["status"], "FAIL")
+
+    def test_cli_artifact_contains_exact_command_and_global_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            action_dir = Path(directory) / "actions"
+            action_dir.mkdir()
+            result, payload = self.run_audit_cli(action_dir)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for key in ("input_hashes", "command_version", "reasons", "sample_dimensions", "units", "downstream_consumers", "artifact_evidence", "invocation", "semantic_projection_sha256"):
+            self.assertIn(key, payload)
+        self.assertEqual(payload["command_version"]["command"], "scripts/audit_plant_fidelity.py")
+        self.assertEqual(payload["command_version"]["sha256"], audit.sha256_file(MODULE_PATH))
+        self.assertEqual(payload["semantic_projection_sha256"], audit.semantic_projection_sha256(payload))
+
+    def test_completion_policy_rejects_not_evaluated_required_gate(self) -> None:
+        gates = {
+            "required": {"status": "NOT_EVALUATED", "reason": "missing"},
+            "optional": {"status": "FAIL", "reason": "not selected"},
+        }
+        policy = audit.completion_policy(gates, ["required"])
+        self.assertFalse(policy["complete"])
+        self.assertEqual(policy["non_pass_gates"], ["required"])
+        self.assertEqual(
+            audit.audit_exit_code(
+                {"fail": 0},
+                policy,
+                strict=False,
+                require_complete=True,
+            ),
+            3,
+        )
+
+    def test_completion_policy_defaults_to_all_gates_and_rejects_unknown(self) -> None:
+        gates = {
+            "a": {"status": "PASS", "reason": "ok"},
+            "b": {"status": "FAIL", "reason": "bad"},
+        }
+        policy = audit.completion_policy(gates)
+        self.assertEqual(policy["required_gates"], ["a", "b"])
+        self.assertEqual(
+            audit.audit_exit_code(
+                {"fail": 1},
+                policy,
+                strict=True,
+                require_complete=False,
+            ),
+            2,
+        )
+        with self.assertRaisesRegex(ValueError, "unknown required gate"):
+            audit.completion_policy(gates, ["missing"])
+
     def test_file_evidence_hashes_and_missing_is_nonfatal(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -154,6 +259,210 @@ class AuditPlantFidelityTests(unittest.TestCase):
             missing = audit.file_evidence(root / "missing.txt")
             self.assertFalse(missing["exists"])
             self.assertEqual(missing["error"], "file not found")
+
+    def write_vissim_error_fixture(self, root: Path, *, present: bool, text: str = "") -> tuple[Path, Path]:
+        name = "baseline"
+        run_id = "run-1"
+        network = root / "network.inpx"
+        network.write_text("<network/>\n", encoding="utf-8")
+        provenance = root / f"run_provenance_{name}.json"
+        provenance.write_text(
+            json.dumps({"name": name, "run_id": run_id, "files": {"network": {"path": str(network.resolve())}}}),
+            encoding="utf-8",
+        )
+        checked = "2026-08-06T00:00:00+00:00"
+        source = str(network.with_suffix(".err").resolve())
+        binding = f"run_id={run_id}\nrun_name={name}\nattempt=1\npresent={str(present).lower()}\nsource_path={source}\npost_exit_checked_at_utc={checked}"
+        artifact = None
+        err_path = root / f"vissim_network_{name}.err"
+        if present:
+            Path(source).write_text(text, encoding="utf-8")
+            err_path.write_text(text, encoding="utf-8")
+            artifact = {"path": str(err_path.resolve()), "exists": True, "sha256": audit.sha256_file(err_path)}
+        marker = root / f"vissim_error_evidence_{name}.json"
+        marker.write_text(
+            json.dumps(
+                {
+                    "schema_version": "vissim-error-evidence-v2.1",
+                    "run_id": run_id,
+                    "run_name": name,
+                    "attempt": 1,
+                    "process_exit_code": 0,
+                    "source_path": source,
+                    "post_exit_checked_at_utc": checked,
+                    "source_checked_after_process_exit": True,
+                    "present": present,
+                    "artifact": artifact,
+                    "stale_pre_run": [],
+                    "binding_text": binding,
+                    "binding_sha256": hashlib.sha256(binding.encode()).hexdigest(),
+                }
+            ),
+            encoding="utf-8",
+        )
+        (root / f"wall_time_profile_{name}.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "wall-time-profile-v2.1",
+                    "status": "PASS",
+                    "run_id": run_id,
+                    "run_name": name,
+                    "attempt": 1,
+                    "process_exit_code": 0,
+                    "elapsed_wall_sec": 1.0,
+                }
+            ),
+            encoding="utf-8",
+        )
+        return marker, err_path
+
+    def test_vissim_error_valid_absence_marker_is_clean_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_vissim_error_fixture(root, present=False)
+            evidence = audit.vissim_error_directory_evidence(root)
+        self.assertTrue(evidence["evidence_complete"])
+        self.assertEqual(evidence["clean_absence_count"], 1)
+        self.assertEqual(audit.vissim_error_gate(evidence)["status"], "PASS")
+
+    def test_vissim_error_fatal_present_file_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_vissim_error_fixture(root, present=True, text="FATAL fixture\n")
+            evidence = audit.vissim_error_directory_evidence(root)
+        self.assertEqual(evidence["error_line_count"], 1)
+        self.assertEqual(audit.vissim_error_gate(evidence)["status"], "FAIL")
+
+    def test_vissim_error_nonfatal_present_source_and_artifact_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_vissim_error_fixture(root, present=True, text="informational line\n")
+            evidence = audit.vissim_error_directory_evidence(root)
+        self.assertEqual(evidence["marker_error_count"], 0)
+        self.assertEqual(audit.vissim_error_gate(evidence)["status"], "PASS")
+
+    def test_vissim_error_malformed_stale_and_mixed_markers_fail(self) -> None:
+        for mutation in ("malformed", "stale", "mixed"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                marker, _ = self.write_vissim_error_fixture(root, present=False)
+                if mutation == "malformed":
+                    payload = json.loads(marker.read_text(encoding="utf-8")); payload["binding_sha256"] = "0" * 64; marker.write_text(json.dumps(payload), encoding="utf-8")
+                elif mutation == "stale":
+                    payload = json.loads(marker.read_text(encoding="utf-8")); payload["attempt"] = 2; payload["binding_text"] = payload["binding_text"].replace("attempt=1", "attempt=2"); payload["binding_sha256"] = hashlib.sha256(payload["binding_text"].encode()).hexdigest(); marker.write_text(json.dumps(payload), encoding="utf-8")
+                else:
+                    (root / "vissim_network_orphan.err").write_text("", encoding="utf-8")
+                evidence = audit.vissim_error_directory_evidence(root)
+                self.assertGreater(evidence["marker_error_count"], 0)
+                self.assertEqual(audit.vissim_error_gate(evidence)["status"], "FAIL")
+
+    def test_vissim_error_stale_pre_run_records_fail_closed(self) -> None:
+        for mutation in ("malformed", "hash_mismatch", "fatal"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                marker, _ = self.write_vissim_error_fixture(root, present=False)
+                payload = json.loads(marker.read_text(encoding="utf-8"))
+                archive_root = Path(str(root.resolve()) + ".pre_run_err_archive")
+                archive_root.mkdir()
+                archive_path = archive_root / "attempt_01_baseline.err"
+                archive_path.write_text("FATAL stale\n" if mutation == "fatal" else "stale\n", encoding="utf-8")
+                if mutation == "malformed":
+                    stale = {"attempt": "bad", "archived_path": ""}
+                else:
+                    stale = {
+                        "attempt": 1,
+                        "source_path": payload["source_path"],
+                        "archived_path": str(archive_path.resolve()),
+                        "sha256": "0" * 64 if mutation == "hash_mismatch" else audit.sha256_file(archive_path),
+                        "archived_at_utc": "2026-08-06T00:00:00+00:00",
+                    }
+                payload["stale_pre_run"] = [stale]
+                marker.write_text(json.dumps(payload), encoding="utf-8")
+                evidence = audit.vissim_error_directory_evidence(root)
+                self.assertGreater(evidence["marker_error_count"], 0)
+                self.assertEqual(audit.vissim_error_gate(evidence)["status"], "FAIL")
+
+    def test_vissim_error_absence_marker_fails_if_source_reappears(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker, _ = self.write_vissim_error_fixture(root, present=False)
+            payload = json.loads(marker.read_text(encoding="utf-8"))
+            Path(payload["source_path"]).write_text("late source\n", encoding="utf-8")
+            evidence = audit.vissim_error_directory_evidence(root)
+        self.assertGreater(evidence["marker_error_count"], 0)
+        self.assertEqual(audit.vissim_error_gate(evidence)["status"], "FAIL")
+
+    def test_vissim_error_present_marker_requires_current_source_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            marker, _ = self.write_vissim_error_fixture(root, present=True, text="clean\n")
+            payload = json.loads(marker.read_text(encoding="utf-8"))
+            Path(payload["source_path"]).write_text("changed after marker\n", encoding="utf-8")
+            evidence = audit.vissim_error_directory_evidence(root)
+        self.assertGreater(evidence["marker_error_count"], 0)
+        self.assertEqual(audit.vissim_error_gate(evidence)["status"], "FAIL")
+
+    def test_preflight_provenance_requires_one_current_shared_fingerprint(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            preflight = root / "preflight.json"
+            preflight.write_text(
+                json.dumps(
+                    {
+                        "schema_version": "preflight-v3",
+                        "status": "PASS",
+                        "reasons": [],
+                        "fingerprint_sha256": "a" * 64,
+                        "runtime_source_identity": {
+                            "status": "PASS",
+                            "strict": True,
+                            "python": {
+                                "path": sys.executable,
+                                "sha256": audit.sha256_file(Path(sys.executable)),
+                                "version": sys.version,
+                            }
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            reference = {
+                "path": str(preflight.resolve()),
+                "exists": True,
+                "sha256": audit.sha256_file(preflight),
+            }
+            for index in (1, 2):
+                (root / f"run_provenance_case{index}.json").write_text(
+                    json.dumps(
+                        {
+                            "run_id": f"run-{index}",
+                            "preflight_manifest": reference,
+                            "preflight_fingerprint_sha256": "a" * 64,
+                            "python_executable": {
+                                "path": sys.executable,
+                                "exists": True,
+                                "sha256": audit.sha256_file(Path(sys.executable)),
+                                "version": sys.version,
+                                "version_triplet": list(sys.version_info[:3]),
+                            },
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+            contract = audit.preflight_provenance_evidence(root)
+            self.assertEqual(
+                audit.preflight_provenance_gate({"preflight_contract": contract})["status"],
+                "PASS",
+            )
+
+            payload = json.loads((root / "run_provenance_case2.json").read_text(encoding="utf-8"))
+            payload["preflight_fingerprint_sha256"] = "b" * 64
+            (root / "run_provenance_case2.json").write_text(json.dumps(payload), encoding="utf-8")
+            failed = audit.preflight_provenance_gate(
+                {"preflight_contract": audit.preflight_provenance_evidence(root)}
+            )
+            self.assertEqual(failed["status"], "FAIL")
 
     def test_network_scale_and_sc9004_head_reference(self) -> None:
         xml = """<?xml version="1.0"?>

@@ -12,12 +12,40 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
+PLANT_PACKAGE_ROOT = WORKSPACE_ROOT / "plant" / "src"
+if str(PLANT_PACKAGE_ROOT) not in sys.path:
+    sys.path.insert(0, str(PLANT_PACKAGE_ROOT))
+from vissim_strict import (
+    ProjectionReferenceValidationError,
+    load_validated_approved_topology,
+    load_bounded_json_snapshot,
+    project_vehicle_records,
+    publish_projection_outputs,
+    validate_physical_projection_reference,
+    validate_projection_output_paths,
+    validate_run_manifest,
+)
+from vissim_strict.physical_projection import (
+    file_sha256 as strict_file_sha256,
+    freeze_json,
+    json_type_strict_equal,
+    normalize_vehicle_records,
+    thaw_json,
+)
+from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
+from vissim_strict.run_evidence import (
+    MAX_APPROVAL_BYTES,
+    MAX_RUN_MANIFEST_BYTES,
+    MAX_TOPOLOGY_BYTES,
+    resolve_canonical_workspace_destination,
+    resolve_canonical_workspace_file,
+)
 # 2026-07-31: 기본 모델 저장소를 NUMSIM_REPO_ROOT env → NumSim-mine(flagship-ms-adapt-clean,
 # HEAD 7f10393) 순서로 결정한다. 과거 경로 이력(재현용):
 #   - "C:/Users/TRLAB/Desktop/찐찐막/Numerical-Sim": 비-git 스냅샷(default.yaml nu_cong=65/
@@ -34,6 +62,567 @@ DEFAULT_CALIBRATION = WORKSPACE_ROOT / "evaluation/calibration/vissim_network_ca
 DEFAULT_DETECTOR_MAPPING = WORKSPACE_ROOT / "evaluation/detector_install/detector_local_mapping.json"
 LOCAL_OBSERVATION_INTERNAL_STORAGE_FRACTION = 0.35
 LOCAL_OBSERVATION_OFFRAMP_STORAGE_FRACTION = 0.50
+
+
+def _b1a_existing_path(path_text: str) -> Path:
+    """Resolve one canonical B1a CLI file below the checked-out workspace."""
+
+    candidate = Path(path_text)
+    if candidate.is_absolute():
+        candidate = candidate.resolve(strict=True)
+        relative = candidate.relative_to(WORKSPACE_ROOT.resolve(strict=True)).as_posix()
+    else:
+        relative = path_text
+    return resolve_canonical_workspace_file(WORKSPACE_ROOT, relative)
+
+
+def _b1a_destination_path(path_text: str) -> Path:
+    candidate = Path(path_text)
+    if candidate.is_absolute():
+        candidate = candidate.resolve(strict=False)
+        relative = candidate.relative_to(WORKSPACE_ROOT.resolve(strict=True)).as_posix()
+    else:
+        relative = path_text
+    return resolve_canonical_workspace_destination(WORKSPACE_ROOT, relative)
+
+
+def _validate_b1a_adapter_source(manifest) -> None:
+    expected = manifest.resolved_paths["producer_sources.adapter"]
+    actual = Path(__file__).resolve(strict=True)
+    if expected != actual or strict_file_sha256(actual) != manifest.artifact["producer_sources"]["adapter"]["file_sha256"]:
+        raise ProjectionReferenceValidationError(["adapter executed-source binding mismatch"])
+
+
+def _validate_b1a_projection_inputs(
+    *,
+    run_manifest_path: Path,
+    topology_path: Path,
+    state_path: Path,
+):
+    manifest_snapshot = load_bounded_json_snapshot(
+        run_manifest_path, max_bytes=MAX_RUN_MANIFEST_BYTES
+    )
+    manifest = validate_run_manifest(
+        manifest_snapshot.value, workspace_root=WORKSPACE_ROOT
+    )
+    _validate_b1a_adapter_source(manifest)
+    approved = manifest.artifact["approved_topology"]
+    expected_topology = manifest.resolved_paths["approved_topology.topology_path"]
+    approved_topology = load_validated_approved_topology(
+        manifest, workspace_root=WORKSPACE_ROOT
+    )
+    if (
+        topology_path != expected_topology
+        or topology_path != approved_topology.topology_snapshot.path
+        or approved_topology.topology_snapshot.file_sha256
+        != approved["topology_file_sha256"]
+    ):
+        raise ProjectionReferenceValidationError(["caller topology differs from immutable approved topology"])
+    state_snapshot = load_bounded_json_snapshot(
+        state_path, max_bytes=MAX_STATE_BYTES
+    )
+    state = state_snapshot.value
+    run_id = manifest.artifact["run_id"]
+    sim_sec = state.get("sim_sec") if isinstance(state, Mapping) else None
+    if type(sim_sec) is not float or not math.isfinite(sim_sec) or sim_sec < 0.0:
+        raise ProjectionReferenceValidationError(
+            ["state sim_sec must be a finite nonnegative JSON double"]
+        )
+    manifest = validate_run_manifest(
+        manifest_snapshot.value,
+        workspace_root=WORKSPACE_ROOT,
+        expected_run_id=run_id,
+        capture_time=sim_sec,
+    )
+    provenance = state.get("run_provenance") if isinstance(state, Mapping) else None
+    expected_provenance = {
+        "run_id": run_id,
+        "manifest_path": run_manifest_path.relative_to(WORKSPACE_ROOT).as_posix(),
+        "manifest_sha256": manifest_snapshot.file_sha256,
+    }
+    if not isinstance(provenance, Mapping) or not json_type_strict_equal(
+        provenance, expected_provenance
+    ):
+        raise ProjectionReferenceValidationError(["state/run manifest provenance mismatch"])
+    return manifest_snapshot, manifest, approved_topology, state_snapshot
+
+
+_PROJECTION_VALUE_OPTIONS = (
+    "--state-json",
+    "--run-manifest",
+    "--approved-topology",
+    "--out-projection-sidecar",
+    "--out-projection-reference",
+)
+_PROJECTION_OPTIONS = ("--projection-only", *_PROJECTION_VALUE_OPTIONS)
+
+
+def _parser_accepts_split_value(
+    parser: argparse.ArgumentParser, token: str
+) -> bool:
+    """Use argparse's own option classifier for required split values."""
+
+    return token != "--" and parser._parse_optional(token) is None
+
+
+def _preparse_projection_roles(
+    argv: Sequence[str], parser: argparse.ArgumentParser
+) -> dict[str, Any]:
+    """Collect projection roles without enforcing unrelated argparse choices."""
+
+    values: dict[str, list[str | None]] = {
+        option: [] for option in _PROJECTION_VALUE_OPTIONS
+    }
+    rejected_role_values: list[str] = []
+    projection_only = False
+    index = 0
+    while index < len(argv):
+        token = str(argv[index])
+        if token == "--":
+            break
+        if token == "--projection-only":
+            projection_only = True
+        matched = False
+        for option in _PROJECTION_VALUE_OPTIONS:
+            if token == option:
+                next_index = index + 1
+                value = None
+                if next_index < len(argv) and _parser_accepts_split_value(
+                    parser, str(argv[next_index])
+                ):
+                    value = str(argv[next_index])
+                    index = next_index
+                values[option].append(value)
+                matched = True
+                break
+            prefix = option + "="
+            if token.startswith(prefix):
+                value = token[len(prefix):]
+                values[option].append(value or None)
+                matched = True
+                break
+        if not matched and token.startswith("--"):
+            option_text, separator, inline_value = token.partition("=")
+            if option_text not in _PROJECTION_OPTIONS and any(
+                option.startswith(option_text) for option in _PROJECTION_OPTIONS
+            ):
+                value = inline_value if separator else None
+                next_index = index + 1
+                if (
+                    value is None
+                    and next_index < len(argv)
+                    and _parser_accepts_split_value(
+                        parser, str(argv[next_index])
+                    )
+                ):
+                    value = str(argv[next_index])
+                    index = next_index
+                if value:
+                    rejected_role_values.append(value)
+                matched = True
+        index += 1
+        if matched:
+            continue
+    return {
+        "projection_only": projection_only,
+        "values": values,
+        "rejected_role_values": rejected_role_values,
+    }
+
+
+def _last_projection_role(
+    preparse: Mapping[str, Any], option: str
+) -> str:
+    values = preparse.get("values", {}).get(option, [])
+    if not isinstance(values, list) or not values:
+        return ""
+    value = values[-1]
+    return value if isinstance(value, str) else ""
+
+
+def _lexical_workspace_role(path_text: str) -> Path:
+    """Preserve authored spelling while retaining existing-file identity."""
+
+    if not isinstance(path_text, str) or not path_text:
+        raise ValueError("declared projection role path is empty")
+    candidate = Path(path_text)
+    return candidate if candidate.is_absolute() else WORKSPACE_ROOT / candidate
+
+
+def _declared_manifest_role_values(manifest_value: Any) -> dict[str, str]:
+    """Collect authored role strings before exact path resolution can reject one."""
+
+    if not isinstance(manifest_value, Mapping):
+        return {}
+    declared: dict[str, Any] = {}
+    approved = manifest_value.get("approved_topology")
+    if isinstance(approved, Mapping):
+        declared["approval"] = approved.get("approving_manifest_path")
+        declared["topology_manifest"] = approved.get("topology_path")
+    preflight = manifest_value.get("preflight")
+    if isinstance(preflight, Mapping):
+        declared["preflight"] = preflight.get("path")
+    for container_name in ("producer_sources",):
+        container = manifest_value.get(container_name)
+        if isinstance(container, Mapping):
+            for role, binding in container.items():
+                if isinstance(binding, Mapping):
+                    declared[f"{container_name}.{role}"] = binding.get("path")
+    configuration = manifest_value.get("configuration")
+    inputs = configuration.get("inputs") if isinstance(configuration, Mapping) else None
+    if isinstance(inputs, Mapping):
+        for role, binding in inputs.items():
+            if isinstance(binding, Mapping) and binding.get("path") is not None:
+                declared[f"configuration.inputs.{role}"] = binding.get("path")
+    policy = manifest_value.get("supported_version_policy")
+    if isinstance(policy, Mapping):
+        declared["supported_version_policy"] = policy.get("path")
+    collected: dict[str, str] = {}
+    for role, value in declared.items():
+        if isinstance(value, str) and value:
+            collected[role] = value
+    return collected
+
+
+def _prepare_projection_output_roles(
+    args,
+    preparse: Mapping[str, Any],
+):
+    """Authorize the complete immutable universe, then invalidate the reference."""
+
+    if not args.out_projection_reference:
+        return None, None, {}, False
+    reference_path = _b1a_destination_path(args.out_projection_reference)
+    immutable_paths: dict[str, Path] = {
+        "adapter_source": Path(__file__).resolve(strict=True),
+    }
+    effective_roles = (
+        ("--state-json", "state_json", "state_effective", True),
+        ("--run-manifest", "run_manifest", "run_manifest_effective", True),
+        (
+            "--approved-topology",
+            "approved_topology",
+            "topology_effective",
+            True,
+        ),
+        (
+            "--out-projection-sidecar",
+            "out_projection_sidecar",
+            "sidecar_effective",
+            False,
+        ),
+        (
+            "--out-projection-reference",
+            "out_projection_reference",
+            "reference_effective",
+            False,
+        ),
+    )
+    for option, attribute, role, is_input in effective_roles:
+        value = getattr(args, attribute, "")
+        if value and is_input:
+            immutable_paths[role] = _lexical_workspace_role(value)
+        if value != _last_projection_role(preparse, option):
+            raise ProjectionReferenceValidationError(
+                [f"projection parser/preparse role mismatch: {option}"]
+            )
+    if bool(getattr(args, "projection_only", True)) != bool(
+        preparse.get("projection_only")
+    ):
+        raise ProjectionReferenceValidationError(
+            ["projection parser/preparse role mismatch: --projection-only"]
+        )
+    raw_values = preparse.get("values", {})
+    rejected_role_values = preparse.get("rejected_role_values", [])
+    if not isinstance(rejected_role_values, list):
+        raise ProjectionReferenceValidationError(
+            ["projection preparse rejected-role set is invalid"]
+        )
+    for index, value in enumerate(rejected_role_values):
+        if isinstance(value, str) and value:
+            immutable_paths[f"rejected_role[{index}]"] = (
+                _lexical_workspace_role(value)
+            )
+    for option, role in (
+        ("--state-json", "state_cli"),
+        ("--run-manifest", "run_manifest_cli"),
+        ("--approved-topology", "topology_cli"),
+    ):
+        values = raw_values.get(option, []) if isinstance(raw_values, Mapping) else []
+        if not isinstance(values, list):
+            raise ProjectionReferenceValidationError(
+                [f"projection preparse role is invalid: {option}"]
+            )
+        for index, value in enumerate(values):
+            if isinstance(value, str) and value:
+                immutable_paths[f"{role}[{index}]"] = _lexical_workspace_role(value)
+
+    sidecar_values = (
+        raw_values.get("--out-projection-sidecar", [])
+        if isinstance(raw_values, Mapping)
+        else []
+    )
+    if not isinstance(sidecar_values, list):
+        raise ProjectionReferenceValidationError(
+            ["projection sidecar preparse role is invalid"]
+        )
+    for index, value in enumerate(sidecar_values[:-1]):
+        if isinstance(value, str) and value:
+            immutable_paths[f"superseded_sidecar[{index}]"] = (
+                _lexical_workspace_role(value)
+            )
+    sidecar_candidate = (
+        _lexical_workspace_role(args.out_projection_sidecar)
+        if args.out_projection_sidecar
+        else None
+    )
+
+    reference_values = (
+        raw_values.get("--out-projection-reference", [])
+        if isinstance(raw_values, Mapping)
+        else []
+    )
+    if not isinstance(reference_values, list):
+        raise ProjectionReferenceValidationError(
+            ["projection reference preparse role is invalid"]
+        )
+    for index, value in enumerate(reference_values[:-1]):
+        if isinstance(value, str) and value != args.out_projection_reference:
+            immutable_paths[f"superseded_reference[{index}]"] = (
+                _lexical_workspace_role(value)
+            )
+
+    manifest_text = args.run_manifest or _last_projection_role(
+        preparse, "--run-manifest"
+    )
+    if not manifest_text:
+        raise ProjectionReferenceValidationError(
+            ["run manifest is required to authorize projection outputs"]
+        )
+    manifest_candidate = _lexical_workspace_role(manifest_text)
+    manifest_snapshot = load_bounded_json_snapshot(
+        manifest_candidate, max_bytes=MAX_RUN_MANIFEST_BYTES
+    )
+    immutable_paths["run_manifest_snapshot"] = manifest_snapshot.path
+    declared_manifest_roles = _declared_manifest_role_values(
+        manifest_snapshot.value
+    )
+    for role, value in declared_manifest_roles.items():
+        immutable_paths[f"manifest.{role}"] = _lexical_workspace_role(value)
+
+    manifest_approved = (
+        manifest_snapshot.value.get("approved_topology")
+        if isinstance(manifest_snapshot.value, Mapping)
+        else None
+    )
+    if not isinstance(manifest_approved, Mapping):
+        raise ProjectionReferenceValidationError(
+            ["run manifest approval binding is unavailable"]
+        )
+    approval_text = manifest_approved.get("approving_manifest_path")
+    approval_hash = manifest_approved.get("approving_manifest_sha256")
+    if not isinstance(approval_text, str) or not approval_text:
+        raise ProjectionReferenceValidationError(
+            ["run manifest approval path is invalid"]
+        )
+    approval_candidate = _lexical_workspace_role(approval_text)
+    immutable_paths["approval_declared"] = approval_candidate
+    approval_snapshot = load_bounded_json_snapshot(
+        approval_candidate, max_bytes=MAX_APPROVAL_BYTES
+    )
+    if approval_snapshot.file_sha256 != approval_hash:
+        raise ProjectionReferenceValidationError(
+            ["run manifest approval snapshot hash mismatch"]
+        )
+    immutable_paths["approval_snapshot"] = approval_snapshot.path
+
+    source_inputs = (
+        approval_snapshot.value.get("source_inputs")
+        if isinstance(approval_snapshot.value, Mapping)
+        else None
+    )
+    lane_graph_binding = (
+        source_inputs.get("lane_graph")
+        if isinstance(source_inputs, Mapping)
+        else None
+    )
+    if not isinstance(lane_graph_binding, Mapping) or set(lane_graph_binding) != {
+        "path", "file_sha256", "semantic_sha256"
+    }:
+        raise ProjectionReferenceValidationError(
+            ["approval lane graph binding is invalid"]
+        )
+    lane_graph_text = lane_graph_binding.get("path")
+    if not isinstance(lane_graph_text, str) or not lane_graph_text:
+        raise ProjectionReferenceValidationError(
+            ["approval lane graph path is invalid"]
+        )
+    lane_graph_candidate = _lexical_workspace_role(lane_graph_text)
+    immutable_paths["lane_graph_declared"] = lane_graph_candidate
+    lane_graph_snapshot = load_bounded_json_snapshot(
+        lane_graph_candidate, max_bytes=MAX_TOPOLOGY_BYTES
+    )
+    if lane_graph_snapshot.file_sha256 != lane_graph_binding.get("file_sha256"):
+        raise ProjectionReferenceValidationError(
+            ["approval lane graph snapshot hash mismatch"]
+        )
+    immutable_paths["lane_graph_snapshot"] = lane_graph_snapshot.path
+
+    manifest = validate_run_manifest(
+        manifest_snapshot.value, workspace_root=WORKSPACE_ROOT
+    )
+    approved_topology = load_validated_approved_topology(
+        manifest, workspace_root=WORKSPACE_ROOT
+    )
+    if (
+        approval_snapshot.data != approved_topology.approval_snapshot.data
+        or approval_snapshot.file_sha256
+        != approved_topology.approval_snapshot.file_sha256
+        or lane_graph_snapshot.data != approved_topology.lane_graph_snapshot.data
+        or lane_graph_snapshot.file_sha256
+        != approved_topology.lane_graph_snapshot.file_sha256
+    ):
+        raise ProjectionReferenceValidationError(
+            ["projection authorization companions changed during validation"]
+        )
+    immutable_paths.update({
+        str(role): path for role, path in manifest.resolved_paths.items()
+    })
+    immutable_paths.update({
+        "approval": approved_topology.approval_snapshot.path,
+        "lane_graph": approved_topology.lane_graph_snapshot.path,
+        "topology": approved_topology.topology_snapshot.path,
+    })
+    output_authorization_error = None
+    try:
+        validate_projection_output_paths(
+            sidecar_candidate,
+            reference_path,
+            immutable_paths=immutable_paths,
+        )
+    except ProjectionReferenceValidationError as exc:
+        output_authorization_error = exc
+    validate_projection_output_paths(
+        None,
+        reference_path,
+        immutable_paths=immutable_paths,
+    )
+    reference_path.unlink(missing_ok=True)
+    if output_authorization_error is not None:
+        raise output_authorization_error
+    sidecar_path = (
+        _b1a_destination_path(args.out_projection_sidecar)
+        if args.out_projection_sidecar
+        else None
+    )
+    return sidecar_path, reference_path, immutable_paths, True
+
+
+def _invalidate_projection_reference_after_parser_failure(
+    preparse: Mapping[str, Any],
+) -> None:
+    if not bool(preparse.get("projection_only")):
+        return
+    reference_text = _last_projection_role(
+        preparse, "--out-projection-reference"
+    )
+    if not reference_text:
+        return
+
+    try:
+        args = argparse.Namespace(
+            projection_only=True,
+            state_json=_last_projection_role(preparse, "--state-json"),
+            run_manifest=_last_projection_role(preparse, "--run-manifest"),
+            approved_topology=_last_projection_role(
+                preparse, "--approved-topology"
+            ),
+            out_projection_sidecar=_last_projection_role(
+                preparse, "--out-projection-sidecar"
+            ),
+            out_projection_reference=reference_text,
+        )
+        _prepare_projection_output_roles(args, preparse)
+    except BaseException:
+        # Parser failure remains authoritative; unsafe or incomplete role
+        # authorization deliberately leaves every file untouched.
+        return
+
+
+def _projection_provenance(validated) -> dict[str, Any]:
+    reference = validated.artifact
+    return {
+        "schema_version": "physical-projection-action-provenance-v2.1",
+        "qualification": thaw_json(reference["qualification"]),
+        "run_id": reference["run_id"],
+        "sim_sec": reference["sim_sec"],
+        "run_manifest_path": validated.run_manifest_snapshot.path.relative_to(WORKSPACE_ROOT).as_posix(),
+        "run_manifest_sha256": reference["run_manifest_sha256"],
+        "state_path": reference["state_path"],
+        "state_file_sha256": reference["state_file_sha256"],
+        "topology_path": validated.topology_path.relative_to(WORKSPACE_ROOT).as_posix(),
+        "topology_file_sha256": reference["topology_file_sha256"],
+        "topology_semantic_sha256": reference["topology_semantic_sha256"],
+        "projection_sidecar_path": reference["projection_sidecar_path"],
+        "projection_sidecar_file_sha256": reference["projection_sidecar_file_sha256"],
+        "projection_sidecar_semantic_sha256": reference["projection_sidecar_semantic_sha256"],
+        "projection_reference_path": validated.reference_path.relative_to(WORKSPACE_ROOT).as_posix(),
+        "projection_reference_file_sha256": validated.reference_file_sha256,
+        "projection_reference_semantic_sha256": reference["semantic_sha256"],
+        "normalized_projection_sha256": reference["normalized_projection_sha256"],
+        "record_count": reference["record_count"],
+        "assigned_count": reference["assigned_count"],
+        "stock_total": reference["stock_total"],
+        "global_residual": reference["global_residual"],
+    }
+
+
+def _b1a_state_construction_input(validated) -> Mapping[str, Any]:
+    """Create the required B1a observation boundary without B1b dynamics."""
+
+    state = thaw_json(validated.state)
+    ledger = thaw_json(validated.sidecar)
+    records = {
+        record["veh_no"]: record
+        for record in state["vehicle_records"]["records"]
+    }
+    link_counts: dict[str, int] = {}
+    link_speed_totals: dict[str, float] = {}
+    link_stopped: dict[str, int] = {}
+    queue_tails: dict[str, float] = {}
+    for assignment in ledger["vehicle_assignments"]:
+        record = records[assignment["veh_no"]]
+        link = str(assignment["source_link_no"])
+        link_counts[link] = link_counts.get(link, 0) + 1
+        link_speed_totals[link] = link_speed_totals.get(link, 0.0) + record["speed_kph"]
+        link_stopped[link] = link_stopped.get(link, 0) + int(record["stopped"])
+        queue_tails[link] = min(
+            queue_tails.get(link, record["position_m"]), record["position_m"]
+        )
+    link_speeds = {
+        link: link_speed_totals[link] / count
+        for link, count in link_counts.items()
+    }
+    return freeze_json({
+        "provenance": _projection_provenance(validated),
+        "ledger": ledger,
+        "local_observation": {
+            "link_counts": link_counts,
+            "link_speeds_kph": link_speeds,
+            "link_stopped_counts": link_stopped,
+            "link_queue_tail_pos_m": queue_tails,
+        },
+    })
+
+
+def _state_json_from_b1a_projection(validated) -> tuple[dict[str, Any], Mapping[str, Any]]:
+    projection_input = _b1a_state_construction_input(validated)
+    state_json = thaw_json(validated.state)
+    state_json["local_observation"] = thaw_json(
+        projection_input["local_observation"]
+    )
+    state_json["physical_projection"] = thaw_json(projection_input["ledger"])
+    return state_json, projection_input
 
 
 # 8-seg plant (2026-07-14): one ramp junction per segment, indices in travel
@@ -2247,6 +2836,7 @@ def traffic_state_from_vissim(
     TrafficState,
     detector_mapping: Mapping[str, Any] | None = None,
     calibration: Mapping[str, Any] | None = None,
+    physical_projection_input: Mapping[str, Any] | None = None,
 ):
     state = TrafficState.initial(cfg)
     state.time_sec = float(state_json.get("sim_sec", 0.0))
@@ -2277,8 +2867,10 @@ def traffic_state_from_vissim(
         state.freeway_effective_lanes[link] = lanes_profile
 
     local_summary = (
-        build_local_observation_summary(state_json, cfg, detector_mapping, calibration)
-        if detector_mapping
+        build_local_observation_summary(
+            state_json, cfg, detector_mapping or {}, calibration
+        )
+        if detector_mapping or physical_projection_input is not None
         else {}
     )
     if local_summary:
@@ -2349,6 +2941,11 @@ def traffic_state_from_vissim(
                 per_boundary = boundary_total / max(1, len(boundary_in_movements))
                 for key in boundary_in_movements:
                     state.urban_movement_queue[key] = per_boundary
+    if physical_projection_input is not None:
+        # The B1a ledger is a required state-construction input. B1b remains
+        # responsible for defining stock-to-dynamics transfer semantics.
+        state.physical_projection_input = physical_projection_input
+        state.physical_projection_ledger = physical_projection_input["ledger"]
     return state
 
 
@@ -2395,6 +2992,9 @@ def control_to_json_dict(
     projection_diagnostics = metadata.get("projection_diagnostics")
     if isinstance(projection_diagnostics, Mapping):
         payload["projection_diagnostics"] = dict(projection_diagnostics)
+    projection_provenance = metadata.get("physical_projection_provenance")
+    if isinstance(projection_provenance, Mapping):
+        payload["physical_projection_provenance"] = dict(projection_provenance)
     if prediction:
         payload["prediction"] = prediction
     if prediction_error:
@@ -4192,6 +4792,32 @@ def diagnostic_combined_extreme_control(cfg, ControlAction):
     return control
 
 
+def _action_csv_metadata(
+    metadata: Mapping[str, Any],
+    row_metadata: Mapping[str, Any] | None = None,
+) -> str:
+    status = str(metadata.get("controller_status", ""))
+    provenance = metadata.get("physical_projection_provenance")
+    if not isinstance(provenance, Mapping):
+        if not row_metadata:
+            return status
+        suffix = ";".join(f"{key}={value}" for key, value in row_metadata.items())
+        return f"{status};{suffix}"
+    payload: dict[str, Any] = {
+        "controller_status": status,
+        "physical_projection_provenance": thaw_json(provenance),
+    }
+    if row_metadata:
+        payload["action_row"] = thaw_json(row_metadata)
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+
 def write_action_csv(
     path: Path,
     control,
@@ -4209,6 +4835,7 @@ def write_action_csv(
     # Action CSV fields are ASCII-compatible. Omitting a BOM lets the VBS
     # consumer validate the complete header token-for-token.
     with path.open("w", newline="", encoding="utf-8") as f:
+        csv_metadata = _action_csv_metadata(metadata)
         fields = [
             "kind",
             "id",
@@ -4239,7 +4866,7 @@ def write_action_csv(
                     "link": seg["link"],
                     "lane": lane,
                     "speed_kph": value,
-                    "metadata": metadata.get("controller_status", ""),
+                    "metadata": csv_metadata,
                 })
         signal_settings = _mapping(actuation.get("real_world_signal_control"))
         write_signal_rows = bool(signal_settings.get("enabled", True))
@@ -4298,7 +4925,7 @@ def write_action_csv(
                     "major_green": round(major, 3),
                     "minor_green": round(minor, 3),
                     "offset": round(offset, 3),
-                    "metadata": metadata.get("controller_status", ""),
+                    "metadata": csv_metadata,
                 })
         if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
             for ramp, spec in real_world_ramp_meter_actions(control, cfg, actuation, mapping).items():
@@ -4308,11 +4935,12 @@ def write_action_csv(
                     "sc_no": int(_as_float(spec.get("sc_no"), 0.0)),
                     "rate_vph": round(_as_float(spec.get("rate_vph"), 0.0), 3),
                     "green_sec": round(_as_float(spec.get("green_sec"), 10.0), 3),
-                    "metadata": (
-                        f"{metadata.get('controller_status', '')};"
-                        f"model_ramp_key={spec.get('model_ramp_key', '')};"
-                        f"group_rate_vph={round(_as_float(spec.get('group_rate_vph'), 0.0), 3)}"
-                    ),
+                    "metadata": _action_csv_metadata(metadata, {
+                        "model_ramp_key": spec.get("model_ramp_key", ""),
+                        "group_rate_vph": round(
+                            _as_float(spec.get("group_rate_vph"), 0.0), 3
+                        ),
+                    }),
                 })
         else:
             ramp_to_sc = {"D": 6, "F": 7}
@@ -4323,16 +4951,24 @@ def write_action_csv(
                     "sc_no": ramp_to_sc[ramp],
                     "rate_vph": round(spec["rate_vph"], 3),
                     "green_sec": round(spec["green_sec"], 3),
-                    "metadata": metadata.get("controller_status", ""),
+                    "metadata": csv_metadata,
                 })
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--state-json", required=True)
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument("--state-json", default="")
     parser.add_argument("--previous-action-json", default="")
-    parser.add_argument("--out-action-json", required=True)
-    parser.add_argument("--out-action-csv", required=True)
+    parser.add_argument("--out-action-json", default="")
+    parser.add_argument("--out-action-csv", default="")
+    parser.add_argument("--b1a-required", action="store_true")
+    parser.add_argument("--projection-only", action="store_true")
+    parser.add_argument("--run-manifest", default="")
+    parser.add_argument("--approved-topology", default="")
+    parser.add_argument("--out-projection-sidecar", default="")
+    parser.add_argument("--out-projection-reference", default="")
+    parser.add_argument("--projection-reference", default="")
+    parser.add_argument("--projection-reference-sha256", default="")
     parser.add_argument("--repo-root", default=str(DEFAULT_REPO_ROOT))
     parser.add_argument("--mapping-json", default=str(DEFAULT_MAPPING))
     parser.add_argument("--detector-mapping-json", default=str(DEFAULT_DETECTOR_MAPPING))
@@ -4382,15 +5018,176 @@ def main() -> None:
     )
     parser.add_argument("--calibration-json", default=str(DEFAULT_CALIBRATION))
     parser.add_argument("--tuning-json", default="")
-    args = parser.parse_args()
+    projection_preparse = _preparse_projection_roles(sys.argv[1:], parser)
+    try:
+        args = parser.parse_args()
+    except SystemExit as exc:
+        if exc.code not in (None, 0):
+            _invalidate_projection_reference_after_parser_failure(
+                projection_preparse
+            )
+        raise
+
+    if args.projection_only:
+        sidecar_path = None
+        reference_path = None
+        immutable_paths: dict[str, Path] = {}
+        reference_invalidatable = False
+        try:
+            (
+                sidecar_path,
+                reference_path,
+                immutable_paths,
+                reference_invalidatable,
+            ) = _prepare_projection_output_roles(args, projection_preparse)
+            required = {
+                "--state-json": args.state_json,
+                "--run-manifest": args.run_manifest,
+                "--approved-topology": args.approved_topology,
+                "--out-projection-sidecar": args.out_projection_sidecar,
+                "--out-projection-reference": args.out_projection_reference,
+            }
+            missing = [name for name, value in required.items() if not value]
+            if missing:
+                raise ProjectionReferenceValidationError(
+                    ["projection-only requires " + ", ".join(missing)]
+                )
+            state_path = _b1a_existing_path(args.state_json)
+            run_manifest_path = _b1a_existing_path(args.run_manifest)
+            topology_path = _b1a_existing_path(args.approved_topology)
+            if sidecar_path is None or reference_path is None:
+                raise ProjectionReferenceValidationError(
+                    ["projection output roles were not established"]
+                )
+            (
+                manifest_snapshot,
+                manifest,
+                approved_topology,
+                state_snapshot,
+            ) = _validate_b1a_projection_inputs(
+                run_manifest_path=run_manifest_path,
+                topology_path=topology_path,
+                state_path=state_path,
+            )
+            immutable_paths.update({
+                "state": state_snapshot.path,
+                "run_manifest": manifest_snapshot.path,
+                "approval": approved_topology.approval_snapshot.path,
+                "lane_graph": approved_topology.lane_graph_snapshot.path,
+                "topology": approved_topology.topology_snapshot.path,
+                "adapter_source": Path(__file__).resolve(strict=True),
+            })
+            immutable_paths.update({
+                str(role): path
+                for role, path in manifest.resolved_paths.items()
+            })
+            validate_projection_output_paths(
+                sidecar_path,
+                reference_path,
+                immutable_paths=immutable_paths,
+            )
+            _, _, records_hash = normalize_vehicle_records(
+                state_snapshot.value, approved_topology.topology.tolerance_m
+            )
+            hash_context = {
+                "topology_file_sha256": approved_topology.topology_snapshot.file_sha256,
+                "topology_semantic_sha256": approved_topology.topology.semantic_sha256,
+                "approving_manifest_sha256": approved_topology.approval_snapshot.file_sha256,
+                "state_file_sha256": state_snapshot.file_sha256,
+                "vehicle_records_semantic_sha256": records_hash,
+            }
+            result = project_vehicle_records(
+                approved_topology.topology, state_snapshot.value, hash_context
+            )
+            publish_projection_outputs(
+                workspace_root=WORKSPACE_ROOT,
+                sidecar_path=sidecar_path,
+                reference_path=reference_path,
+                immutable_paths=immutable_paths,
+                projection_ledger=result.ledger,
+                run_manifest=manifest,
+                run_manifest_snapshot=manifest_snapshot,
+                state_snapshot=state_snapshot,
+                approved_topology=approved_topology,
+            )
+            print(json.dumps({
+                "status": "PASS", "projection_sidecar": str(sidecar_path),
+                "projection_reference": str(reference_path),
+            }, ensure_ascii=False))
+            return
+        except BaseException as exc:
+            if reference_invalidatable and reference_path is not None:
+                validate_projection_output_paths(
+                    sidecar_path,
+                    reference_path,
+                    immutable_paths=immutable_paths,
+                )
+                reference_path.unlink(missing_ok=True)
+            if isinstance(
+                exc,
+                (MemoryError, OSError, OverflowError, TypeError, ValueError),
+            ):
+                raise SystemExit(f"B1a projection-only failed: {exc}") from exc
+            raise
+
+    if not args.state_json or not args.out_action_json or not args.out_action_csv:
+        parser.error("normal action mode requires --out-action-json and --out-action-csv")
+    prevalidated_projection = None
+    if args.b1a_required:
+        required = {
+            "--run-manifest": args.run_manifest,
+            "--projection-reference": args.projection_reference,
+            "--projection-reference-sha256": args.projection_reference_sha256,
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
+            parser.error("B1a required action mode requires " + ", ".join(missing))
+        if re.fullmatch(r"[0-9a-f]{64}", args.projection_reference_sha256) is None:
+            parser.error("--projection-reference-sha256 must be lowercase SHA-256")
+        try:
+            run_manifest_path = _b1a_existing_path(args.run_manifest)
+            reference_path = _b1a_existing_path(args.projection_reference)
+            caller_state_path = _b1a_existing_path(args.state_json)
+            manifest_snapshot = load_bounded_json_snapshot(
+                run_manifest_path, max_bytes=MAX_RUN_MANIFEST_BYTES
+            )
+            manifest = validate_run_manifest(
+                manifest_snapshot.value, workspace_root=WORKSPACE_ROOT
+            )
+            _validate_b1a_adapter_source(manifest)
+            prevalidated_projection = validate_physical_projection_reference(
+                reference_path.relative_to(WORKSPACE_ROOT).as_posix(),
+                workspace_root=WORKSPACE_ROOT,
+                run_manifest_path=run_manifest_path.relative_to(WORKSPACE_ROOT).as_posix(),
+                expected_reference_file_sha256=args.projection_reference_sha256,
+            )
+            if (
+                manifest_snapshot.data
+                != prevalidated_projection.run_manifest_snapshot.data
+                or manifest_snapshot.file_sha256
+                != prevalidated_projection.run_manifest_snapshot.file_sha256
+            ):
+                raise ProjectionReferenceValidationError(
+                    ["run manifest changed during required-mode validation"]
+                )
+            if caller_state_path != prevalidated_projection.state_path:
+                raise ProjectionReferenceValidationError(["caller state path differs from projection reference"])
+        except (MemoryError, OSError, OverflowError, TypeError, ValueError) as exc:
+            raise SystemExit(f"B1a required action mode failed: {exc}") from exc
 
     started = time.perf_counter()
     repo_root = Path(args.repo_root)
     mapping_path = Path(args.mapping_json)
-    state_path = Path(args.state_json)
+    state_path = prevalidated_projection.state_path if prevalidated_projection else Path(args.state_json)
     out_json = Path(args.out_action_json)
     out_csv = Path(args.out_action_csv)
-    state_json = json.loads(state_path.read_text(encoding="utf-8"))
+    physical_projection_input = None
+    if prevalidated_projection:
+        state_json, physical_projection_input = _state_json_from_b1a_projection(
+            prevalidated_projection
+        )
+    else:
+        state_json = json.loads(state_path.read_text(encoding="utf-8"))
     mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
     detector_mapping = load_optional_json(args.detector_mapping_json)
     calibration = load_optional_json(args.calibration_json)
@@ -4410,7 +5207,10 @@ def main() -> None:
         TrafficState,
         segment_vsl_func,
     ) = repo_imports(repo_root)
-    local_observation = bool(_link_counts_from_local_observation(state_json) and detector_mapping)
+    local_observation = bool(
+        _link_counts_from_local_observation(state_json)
+        and (detector_mapping or physical_projection_input is not None)
+    )
     cfg = build_config(
         repo_root,
         control_interval,
@@ -4424,7 +5224,10 @@ def main() -> None:
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
-    state = traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping, calibration)
+    state = traffic_state_from_vissim(
+        state_json, cfg, TrafficState, detector_mapping, calibration,
+        physical_projection_input=physical_projection_input,
+    )
     runtime_patch_metadata.update(
         install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping)
     )
@@ -4498,6 +5301,13 @@ def main() -> None:
         tuning_path=Path(args.tuning_json) if args.tuning_json else Path("__missing_tuning.json"),
         network_path=_network_path_from_state(state_json),
     )
+    if prevalidated_projection:
+        metadata["physical_projection_provenance"] = _projection_provenance(
+            prevalidated_projection
+        )
+        metadata["projection_diagnostics"] = thaw_json(
+            prevalidated_projection.sidecar["projection_diagnostics"]
+        )
     if forecast:
         forecast0 = forecast[0]
         demand_payload = _mapping(state_json.get("demand"))

@@ -31,6 +31,28 @@ STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
 STATUS_NE = "NOT_EVALUATED"
 
+AUDIT_REPLAY_PATH_FIELDS = (
+    "repo",
+    "network",
+    "signal_dir",
+    "signal_roles",
+    "assignment",
+    "adjacency",
+    "storage",
+    "tuning",
+    "calibration",
+    "control_mapping",
+    "detector_mapping",
+    "vbs_config",
+    "adapter",
+    "vendor_root",
+    "numsim_root",
+    "action_dir",
+    "vissim_err",
+    "vissim_err_copy_target",
+)
+AUDIT_REPLAY_LIST_FIELDS = ("state_json", "extra_input", "required_gate")
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -1126,10 +1148,105 @@ def _paired_state_path(action_path: Path) -> Path | None:
     return None
 
 
+def preflight_provenance_evidence(path: Path | None) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "record_count": 0,
+        "pass_count": 0,
+        "fail_count": 0,
+        "distinct_manifest_sha256_count": 0,
+        "distinct_fingerprint_count": 0,
+        "records": [],
+    }
+    if path is None or not path.is_dir():
+        return result
+    hashes: set[str] = set()
+    fingerprints: set[str] = set()
+    for provenance_path in sorted(path.rglob("run_provenance_*.json")):
+        payload, error = load_json(provenance_path)
+        reasons: list[str] = []
+        if error or not isinstance(payload, Mapping):
+            reasons.append(error or "run provenance JSON root is not an object")
+            payload = {}
+        reference = payload.get("preflight_manifest")
+        reference = reference if isinstance(reference, Mapping) else {}
+        stored_path = str(reference.get("path", "")).strip()
+        stored_hash = str(reference.get("sha256", "")).lower().strip()
+        stored_fingerprint = str(payload.get("preflight_fingerprint_sha256", "")).lower().strip()
+        manifest_path = Path(stored_path) if stored_path else None
+        if manifest_path is None or not manifest_path.is_file():
+            reasons.append("preflight manifest path is missing or not a file")
+        else:
+            actual_hash = sha256_file(manifest_path)
+            if not stored_hash or stored_hash != actual_hash:
+                reasons.append("preflight manifest SHA-256 mismatch")
+            loaded, load_error = load_json(manifest_path)
+            if load_error or not isinstance(loaded, Mapping):
+                reasons.append(load_error or "preflight manifest JSON root is not an object")
+            else:
+                if loaded.get("schema_version") != "preflight-v3":
+                    reasons.append("preflight schema_version is not preflight-v3")
+                if loaded.get("status") != STATUS_PASS:
+                    reasons.append("preflight status is not PASS")
+                if loaded.get("reasons") != []:
+                    reasons.append("preflight reasons are not empty")
+                actual_fingerprint = str(loaded.get("fingerprint_sha256", "")).lower().strip()
+                if not actual_fingerprint and isinstance(loaded.get("fingerprint"), Mapping):
+                    actual_fingerprint = str(loaded["fingerprint"].get("sha256", "")).lower().strip()
+                if not stored_fingerprint or stored_fingerprint != actual_fingerprint:
+                    reasons.append("preflight fingerprint mismatch")
+                runtime_identity = loaded.get("runtime_source_identity")
+                runtime_identity = runtime_identity if isinstance(runtime_identity, Mapping) else {}
+                if runtime_identity.get("status") != STATUS_PASS or runtime_identity.get("strict") is not True:
+                    reasons.append("preflight runtime-source identity is not strict PASS")
+                expected_python = runtime_identity.get("python")
+                expected_python = expected_python if isinstance(expected_python, Mapping) else {}
+                actual_python = payload.get("python_executable")
+                actual_python = actual_python if isinstance(actual_python, Mapping) else {}
+                expected_python_path = str(expected_python.get("path", "")).strip()
+                actual_python_path = str(actual_python.get("path", "")).strip()
+                if not expected_python_path or not actual_python_path or Path(expected_python_path).resolve() != Path(actual_python_path).resolve():
+                    reasons.append("run Python path differs from preflight")
+                if str(expected_python.get("sha256", "")).lower() != str(actual_python.get("sha256", "")).lower():
+                    reasons.append("run Python SHA-256 differs from preflight")
+                expected_version = re.search(r"(?<!\d)(\d+)\.(\d+)\.(\d+)(?!\d)", str(expected_python.get("version", "")))
+                actual_triplet = actual_python.get("version_triplet")
+                try:
+                    actual_version = tuple(int(value) for value in actual_triplet[:3]) if isinstance(actual_triplet, list) and len(actual_triplet) >= 3 else None
+                except (TypeError, ValueError):
+                    actual_version = None
+                expected_triplet = tuple(int(value) for value in expected_version.groups()) if expected_version else None
+                if expected_triplet is None or actual_version != expected_triplet:
+                    reasons.append("run Python version triplet differs from preflight")
+        if stored_hash:
+            hashes.add(stored_hash)
+        if stored_fingerprint:
+            fingerprints.add(stored_fingerprint)
+        result["records"].append(
+            {
+                "path": str(provenance_path.resolve(strict=False)),
+                "run_id": payload.get("run_id"),
+                "preflight_path": stored_path,
+                "preflight_sha256": stored_hash,
+                "preflight_fingerprint_sha256": stored_fingerprint,
+                "python_executable": payload.get("python_executable"),
+                "status": STATUS_FAIL if reasons else STATUS_PASS,
+                "reasons": reasons,
+            }
+        )
+    result["record_count"] = len(result["records"])
+    result["pass_count"] = sum(item["status"] == STATUS_PASS for item in result["records"])
+    result["fail_count"] = sum(item["status"] == STATUS_FAIL for item in result["records"])
+    result["distinct_manifest_sha256_count"] = len(hashes)
+    result["distinct_fingerprint_count"] = len(fingerprints)
+    return result
+
+
 def action_directory_evidence(path: Path | None) -> dict[str, Any]:
     result: dict[str, Any] = {
         "path": str(path.resolve(strict=False)) if path else None,
         "exists": path.is_dir() if path else False,
+        "artifact_file_count": 0,
+        "artifact_files": [],
         "state_file_count": 0,
         "action_file_count": 0,
         "state_files": [],
@@ -1159,11 +1276,24 @@ def action_directory_evidence(path: Path | None) -> dict[str, Any]:
             "mixed_provenance_run_count": 0,
             "runs": [],
         },
+        "preflight_contract": preflight_provenance_evidence(path),
         "signal_readback": signal_readback_evidence(path),
         "errors": [],
     }
     if path is None or not path.is_dir():
         return result
+    artifact_paths = sorted(
+        (item for item in path.rglob("*") if item.is_file()),
+        key=lambda item: item.relative_to(path).as_posix(),
+    )
+    result["artifact_file_count"] = len(artifact_paths)
+    result["artifact_files"] = [
+        {
+            **file_evidence(item),
+            "relative_path": item.relative_to(path).as_posix(),
+        }
+        for item in artifact_paths
+    ]
     state_files = sorted((*path.rglob("state_*.json"), *path.rglob("anchor_*.json")))
     action_files = sorted(path.rglob("action_*.json"))
     result["state_file_count"] = len(state_files)
@@ -1515,6 +1645,226 @@ def vissim_error_evidence(source: Path | None, copy_target: Path | None) -> dict
     return result
 
 
+def vissim_error_directory_evidence(root: Path | None) -> dict[str, Any]:
+    root_exists = root is not None and root.is_dir()
+    provenance_by_name: dict[str, tuple[str, Path, Mapping[str, Any]]] = {}
+    if root_exists:
+        for provenance_path in sorted(root.glob("run_provenance_*.json")):
+            payload, error = load_json(provenance_path)
+            if error or not isinstance(payload, Mapping):
+                continue
+            name = str(payload.get("name", "")).strip()
+            if name:
+                provenance_by_name[name] = (str(payload.get("run_id", "")).strip(), provenance_path, payload)
+
+    marker_paths = sorted(root.glob("vissim_error_evidence_*.json")) if root_exists else []
+    files: list[dict[str, Any]] = []
+    markers: list[dict[str, Any]] = []
+    marker_errors: list[str] = []
+    referenced_artifacts: set[str] = set()
+    seen_names: set[str] = set()
+    clean_absence_count = 0
+
+    for marker_path in marker_paths:
+        payload, error = load_json(marker_path)
+        reasons: list[str] = []
+        if error or not isinstance(payload, Mapping):
+            reasons.append(error or "marker JSON root is not an object")
+            payload = {}
+        name = str(payload.get("run_name", "")).strip()
+        run_id = str(payload.get("run_id", "")).strip()
+        suffix_name = marker_path.stem.removeprefix("vissim_error_evidence_")
+        if payload.get("schema_version") != "vissim-error-evidence-v2.1":
+            reasons.append("schema_version must be vissim-error-evidence-v2.1")
+        if not name or name != suffix_name:
+            reasons.append("run_name does not match marker filename")
+        if name in seen_names:
+            reasons.append("duplicate marker for run_name")
+        seen_names.add(name)
+        provenance_record = provenance_by_name.get(name)
+        if provenance_record is None:
+            reasons.append("marker has no matching run provenance")
+            provenance_payload: Mapping[str, Any] = {}
+        else:
+            expected_run_id, provenance_path, provenance_payload = provenance_record
+            if not run_id or run_id != expected_run_id:
+                reasons.append("marker run_id differs from run provenance")
+        attempt = payload.get("attempt")
+        if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 1:
+            reasons.append("attempt must be a positive integer")
+        if payload.get("process_exit_code") != 0:
+            reasons.append("process_exit_code must be 0")
+        if payload.get("source_checked_after_process_exit") is not True:
+            reasons.append("source_checked_after_process_exit must be true")
+        wall_path = root / f"wall_time_profile_{name}.json" if root else Path("__missing__")
+        wall_payload, wall_error = load_json(wall_path)
+        if wall_error or not isinstance(wall_payload, Mapping):
+            reasons.append("matching wall-time profile is missing or malformed")
+        elif (
+            wall_payload.get("schema_version") != "wall-time-profile-v2.1"
+            or wall_payload.get("status") != STATUS_PASS
+            or wall_payload.get("run_id") != run_id
+            or wall_payload.get("run_name") != name
+            or wall_payload.get("attempt") != attempt
+            or wall_payload.get("process_exit_code") != 0
+        ):
+            reasons.append("marker does not match the successful wall-time profile")
+        checked_at = str(payload.get("post_exit_checked_at_utc", "")).strip()
+        try:
+            datetime.fromisoformat(checked_at.replace("Z", "+00:00"))
+        except ValueError:
+            reasons.append("post_exit_checked_at_utc is invalid")
+        binding_text = str(payload.get("binding_text", ""))
+        binding_hash = str(payload.get("binding_sha256", "")).lower()
+        actual_binding_hash = hashlib.sha256(binding_text.encode("utf-8")).hexdigest()
+        if not binding_text or binding_hash != actual_binding_hash:
+            reasons.append("binding_sha256 is invalid")
+        expected_binding = (
+            f"run_id={run_id}\nrun_name={name}\nattempt={attempt}\n"
+            f"present={str(payload.get('present')).lower()}\n"
+            f"source_path={payload.get('source_path', '')}\n"
+            f"post_exit_checked_at_utc={checked_at}"
+        )
+        if binding_text != expected_binding:
+            reasons.append("binding_text does not match marker fields")
+
+        files_record = provenance_payload.get("files")
+        files_record = files_record if isinstance(files_record, Mapping) else {}
+        network_record = files_record.get("network")
+        network_record = network_record if isinstance(network_record, Mapping) else {}
+        network_text = str(network_record.get("path", "")).strip()
+        expected_source = str(Path(network_text).with_suffix(".err").resolve(strict=False)) if network_text else ""
+        source_text = str(payload.get("source_path", "")).strip()
+        if not expected_source or not source_text or os.path.normcase(source_text) != os.path.normcase(expected_source):
+            reasons.append("source_path is not the run network .err path")
+
+        stale_records = payload.get("stale_pre_run")
+        if not isinstance(stale_records, list):
+            reasons.append("stale_pre_run must be an explicit list")
+            stale_records = []
+        expected_archive_root = Path(str(root.resolve(strict=False)) + ".pre_run_err_archive") if root else Path("__missing__")
+        for stale_index, raw_stale in enumerate(stale_records, 1):
+            stale = raw_stale if isinstance(raw_stale, Mapping) else {}
+            stale_attempt = stale.get("attempt")
+            archived_text = str(stale.get("archived_path", "")).strip()
+            archived_path = Path(archived_text).resolve(strict=False) if archived_text else Path("__missing__")
+            expected_archive = (
+                expected_archive_root / f"attempt_{int(stale_attempt):02d}_{name}.err"
+                if isinstance(stale_attempt, int) and not isinstance(stale_attempt, bool)
+                else Path("__missing__")
+            )
+            if (
+                not isinstance(raw_stale, Mapping)
+                or not isinstance(stale_attempt, int)
+                or isinstance(stale_attempt, bool)
+                or stale_attempt < 1
+                or not isinstance(attempt, int)
+                or stale_attempt > attempt
+            ):
+                reasons.append(f"stale_pre_run[{stale_index}] attempt is invalid or mixed")
+            if str(stale.get("source_path", "")).strip() != source_text:
+                reasons.append(f"stale_pre_run[{stale_index}] source_path differs from the current run")
+            if archived_path != expected_archive.resolve(strict=False) or archived_path == Path(source_text).resolve(strict=False):
+                reasons.append(f"stale_pre_run[{stale_index}] archive path does not prove run separation")
+            archived_hash = sha256_file(archived_path) if archived_path.is_file() else ""
+            if not archived_hash or archived_hash != str(stale.get("sha256", "")).lower():
+                reasons.append(f"stale_pre_run[{stale_index}] archive SHA-256 mismatch")
+            archived_at = str(stale.get("archived_at_utc", "")).strip()
+            try:
+                datetime.fromisoformat(archived_at.replace("Z", "+00:00"))
+            except ValueError:
+                reasons.append(f"stale_pre_run[{stale_index}] archived_at_utc is invalid")
+            if archived_path.is_file():
+                stale_text = archived_path.read_text(encoding="utf-8-sig", errors="replace")
+                if re.search(r"\b(error|fatal)\b", stale_text, re.IGNORECASE):
+                    reasons.append(f"stale_pre_run[{stale_index}] archive contains error/fatal text")
+        if stale_records:
+            reasons.append("stale_pre_run is non-empty; strict baseline certification requires a clean pre-run source")
+
+        present = payload.get("present")
+        artifact = payload.get("artifact")
+        if present is False:
+            expected_artifact = root / f"vissim_network_{name}.err" if root else Path("__missing__")
+            if artifact not in (None, {}):
+                reasons.append("absence marker must not contain an artifact")
+            if expected_artifact.is_file():
+                reasons.append("absence marker conflicts with a preserved .err artifact")
+            if source_text and Path(source_text).is_file():
+                reasons.append("absence marker is stale because source .err currently exists")
+            if not reasons:
+                clean_absence_count += 1
+        elif present is True:
+            if not isinstance(artifact, Mapping):
+                reasons.append("present marker has no artifact record")
+            else:
+                artifact_path_text = str(artifact.get("path", "")).strip()
+                artifact_path = Path(artifact_path_text).resolve(strict=False) if artifact_path_text else Path("__missing__")
+                expected_artifact = (root / f"vissim_network_{name}.err").resolve(strict=False) if root else Path("__missing__")
+                if artifact_path != expected_artifact:
+                    reasons.append("artifact path is not the run-bound .err path")
+                actual_hash = sha256_file(artifact_path) if artifact_path.is_file() else ""
+                if not actual_hash or actual_hash != str(artifact.get("sha256", "")).lower():
+                    reasons.append("artifact SHA-256 mismatch")
+                source_path = Path(source_text) if source_text else Path("__missing__")
+                source_hash = sha256_file(source_path) if source_path.is_file() else ""
+                if not source_hash or source_hash != actual_hash:
+                    reasons.append("present marker source .err is missing or differs from the preserved artifact")
+                if artifact_path.is_file():
+                    referenced_artifacts.add(os.path.normcase(str(artifact_path)))
+                    files.append(vissim_error_evidence(artifact_path, None))
+        else:
+            reasons.append("present must be boolean")
+
+        if reasons:
+            marker_errors.extend(f"{marker_path.name}: {reason}" for reason in reasons)
+        markers.append(
+            {
+                "path": str(marker_path.resolve(strict=False)),
+                "run_name": name,
+                "run_id": run_id,
+                "present": present,
+                "status": STATUS_FAIL if reasons else STATUS_PASS,
+                "reasons": reasons,
+            }
+        )
+
+    missing_markers = sorted(set(provenance_by_name) - seen_names)
+    marker_errors.extend(f"missing marker for run {name}" for name in missing_markers)
+    active_err_paths = sorted(root.glob("vissim_network_*.err")) if root_exists else []
+    orphan_artifacts = [
+        str(path.resolve(strict=False))
+        for path in active_err_paths
+        if os.path.normcase(str(path.resolve(strict=False))) not in referenced_artifacts
+    ]
+    marker_errors.extend(f"orphan or mixed-run .err artifact: {path}" for path in orphan_artifacts)
+    notable: list[str] = []
+    for item in files:
+        notable.extend(str(line) for line in item.get("notable_lines", []))
+    return {
+        "source": str(root.resolve(strict=False)) if root else None,
+        "exists": bool(markers),
+        "evidence_complete": bool(provenance_by_name) and not marker_errors,
+        "provenance_count": len(provenance_by_name),
+        "marker_count": len(markers),
+        "markers": markers,
+        "marker_error_count": len(marker_errors),
+        "marker_errors": marker_errors,
+        "clean_absence_count": clean_absence_count,
+        "orphan_artifacts": orphan_artifacts,
+        "file_count": len(files),
+        "files": files,
+        "line_count": sum(int(item.get("line_count") or 0) for item in files),
+        "nonempty_line_count": sum(int(item.get("nonempty_line_count") or 0) for item in files),
+        "error_line_count": sum(int(item.get("error_line_count") or 0) for item in files),
+        "warning_line_count": sum(int(item.get("warning_line_count") or 0) for item in files),
+        "notable_lines": notable[:50],
+        "error": next((str(item["error"]) for item in files if item.get("error")), None),
+        "copy_requested": False,
+        "copy_target": None,
+        "copied_to": None,
+    }
+
+
 def signal_controller_scope_gate(network: Mapping[str, Any]) -> dict[str, Any]:
     if not network.get("available"):
         return gate(STATUS_NE, "network XML is unavailable")
@@ -1640,6 +1990,33 @@ def runtime_provenance_gate(actions: Mapping[str, Any]) -> dict[str, Any]:
     )
 
 
+def preflight_provenance_gate(actions: Mapping[str, Any]) -> dict[str, Any]:
+    contract = actions.get("preflight_contract", {})
+    count = int(contract.get("record_count", 0) or 0)
+    if not count:
+        return gate(STATUS_NE, "no run provenance manifest references a preflight-v3 artifact")
+    if contract.get("fail_count"):
+        return gate(
+            STATUS_FAIL,
+            "one or more run provenance manifests have missing, stale, or invalid preflight evidence",
+            record_count=count,
+            fail_count=contract.get("fail_count"),
+        )
+    if contract.get("distinct_manifest_sha256_count") != 1 or contract.get("distinct_fingerprint_count") != 1:
+        return gate(
+            STATUS_FAIL,
+            "run provenance manifests do not share one preflight hash and fingerprint",
+            record_count=count,
+            manifest_hash_count=contract.get("distinct_manifest_sha256_count"),
+            fingerprint_count=contract.get("distinct_fingerprint_count"),
+        )
+    return gate(
+        STATUS_PASS,
+        "every run provenance manifest references the same verified preflight-v3 artifact",
+        record_count=count,
+    )
+
+
 def signal_com_readback_gate(actions: Mapping[str, Any]) -> dict[str, Any]:
     trace = actions.get("signal_readback", {})
     file_count = int(trace.get("file_count", 0) or 0)
@@ -1672,6 +2049,29 @@ def signal_com_readback_gate(actions: Mapping[str, Any]) -> dict[str, Any]:
     if evidence["ok_count"] != row_count:
         return gate(STATUS_FAIL, "not every signal readback row is confirmed ok", **evidence)
     return gate(STATUS_PASS, "every signal readback row has matching requested/readback states and ok=1", **evidence)
+
+
+def vissim_error_gate(err: Mapping[str, Any]) -> dict[str, Any]:
+    if err.get("marker_error_count"):
+        return gate(
+            STATUS_FAIL,
+            "VISSIM .err run-binding evidence is malformed, stale, missing, or mixed",
+            count=err["marker_error_count"],
+        )
+    if err.get("evidence_complete") and not err.get("error_line_count"):
+        return gate(
+            STATUS_PASS,
+            "run-bound VISSIM .err evidence is complete and contains no error/fatal lines",
+            present_file_count=err.get("file_count", 0),
+            clean_absence_count=err.get("clean_absence_count", 0),
+        )
+    if not err.get("exists"):
+        return gate(STATUS_NE, "VISSIM .err file was not available")
+    if err.get("error"):
+        return gate(STATUS_FAIL, str(err["error"]))
+    if err.get("error_line_count"):
+        return gate(STATUS_FAIL, "VISSIM error log contains error/fatal lines", count=err["error_line_count"])
+    return gate(STATUS_PASS, "VISSIM error log contains no error/fatal lines")
 
 
 def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
@@ -1779,21 +2179,14 @@ def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
         gates["runtime"] = gate(STATUS_FAIL, "actual decision wall time exceeds p95=30s or max=45s", p95=wall["p95"], max=wall["max"])
     gates["projection_diagnostics"] = projection_diagnostics_gate(actions)
     gates["runtime_provenance"] = runtime_provenance_gate(actions)
+    gates["preflight_provenance"] = preflight_provenance_gate(actions)
     gates["signal_com_readback"] = signal_com_readback_gate(actions)
     gates["signal_event_timing"] = gate(
         STATUS_NE,
         "no expected signal-transition oracle is available; readback rows alone cannot establish event timing error",
     )
 
-    err = manifest["vissim_error"]
-    if not err.get("exists"):
-        gates["vissim_error_log"] = gate(STATUS_NE, "VISSIM .err file was not available")
-    elif err.get("error"):
-        gates["vissim_error_log"] = gate(STATUS_FAIL, str(err["error"]))
-    elif err.get("error_line_count"):
-        gates["vissim_error_log"] = gate(STATUS_FAIL, "VISSIM error log contains error/fatal lines", count=err["error_line_count"])
-    else:
-        gates["vissim_error_log"] = gate(STATUS_PASS, "VISSIM error log contains no error/fatal lines")
+    gates["vissim_error_log"] = vissim_error_gate(manifest["vissim_error"])
     return gates
 
 
@@ -1854,8 +2247,53 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
     states["explicit_configured_count"] = len(explicit_state_paths)
     states["action_dir_discovered_count"] = len(discovered_state_paths)
     states["deduplicated_count"] = len(state_paths)
+    primary_evidence = {name: file_evidence(path) for name, path in primary_paths.items()}
+    signal_evidence = [file_evidence(path) for path in signal_paths]
+    input_hashes: dict[str, str | None] = {
+        f"primary.{name}": record.get("sha256")
+        for name, record in sorted(primary_evidence.items())
+    }
+    input_hashes.update(
+        {
+            f"signal_program.{Path(str(record.get('path', ''))).name}": record.get("sha256")
+            for record in signal_evidence
+        }
+    )
+    input_hashes.update(
+        {
+            f"action_artifact.{record.get('relative_path', '')}": record.get("sha256")
+            for record in action_evidence.get("artifact_files", [])
+            if isinstance(record, Mapping)
+        }
+    )
     manifest: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
+        "input_hashes": dict(sorted(input_hashes.items())),
+        "command_version": {
+            "command": "scripts/audit_plant_fidelity.py",
+            "version": SCHEMA_VERSION,
+            "sha256": sha256_file(Path(__file__).resolve()),
+        },
+        "reasons": [],
+        "sample_dimensions": {
+            "primary_inputs": len(primary_evidence),
+            "signal_programs": len(signal_evidence),
+            "action_artifacts": action_evidence.get("artifact_file_count", 0),
+            "state_json_files": action_evidence.get("state_file_count", 0),
+            "action_json_files": action_evidence.get("action_file_count", 0),
+            "run_provenance_records": action_evidence.get("preflight_contract", {}).get("record_count", 0),
+        },
+        "units": {
+            "file_count": "file",
+            "sha256": "SHA-256 hex digest of raw bytes",
+            "decision_wall_sec": "s",
+            "vehicle_count": "vehicle",
+        },
+        "downstream_consumers": [
+            "S0R-3 baseline snapshot",
+            "scripts/run_plant_fidelity_matrix.ps1",
+            "plant fidelity certification release",
+        ],
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "policy": {
             "purpose": "static evidence for the current core15n41 VISSIM rollout plant",
@@ -1865,10 +2303,10 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
         },
         "workspace_git": git_evidence(repo),
         "inputs": {
-            "primary": {name: file_evidence(path) for name, path in primary_paths.items()},
+            "primary": primary_evidence,
             "signal_program_directory": str(signal_dir.resolve(strict=False)),
             "signal_program_count": len(signal_paths),
-            "signal_programs": [file_evidence(path) for path in signal_paths],
+            "signal_programs": signal_evidence,
         },
         "network": network_evidence(network_path, primary_paths["signal_roles"]),
         "link_assignment": assignment_evidence(primary_paths["link_assignment"], network_path, primary_paths["signal_roles"]),
@@ -1878,7 +2316,20 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
         "actual_numsim": numsim_evidence(Path(args.vendor_root), actual_root, numsim_source),
         "state_observations": states,
         "action_directory": action_evidence,
-        "vissim_error": vissim_error_evidence(err_source, err_target),
+        "vissim_error": (
+            vissim_error_evidence(err_source, err_target)
+            if args.vissim_err or action_dir_path is None
+            else vissim_error_directory_evidence(action_dir_path)
+        ),
+        "artifact_evidence": {
+            "primary_inputs": primary_evidence,
+            "signal_programs": signal_evidence,
+            "action_directory": {
+                "path": action_evidence.get("path"),
+                "file_count": action_evidence.get("artifact_file_count", 0),
+                "files": action_evidence.get("artifact_files", []),
+            },
+        },
     }
     manifest["gates"] = build_gates(manifest)
     counts = Counter(item["status"] for item in manifest["gates"].values())
@@ -1889,6 +2340,120 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
         "overall": STATUS_FAIL if counts[STATUS_FAIL] else (STATUS_NE if counts[STATUS_NE] else STATUS_PASS),
     }
     return manifest
+
+
+def _resolved_argument_path(value: Any) -> str:
+    text = str(value or "").strip()
+    return str(Path(text).resolve(strict=False)) if text else ""
+
+
+def audit_invocation(args: argparse.Namespace) -> dict[str, Any]:
+    """Capture every build-affecting argument in a deterministic, replayable form."""
+    invocation: dict[str, Any] = {
+        field: _resolved_argument_path(getattr(args, field, ""))
+        for field in AUDIT_REPLAY_PATH_FIELDS
+    }
+    state_json = getattr(args, "state_json", []) or []
+    invocation["state_json"] = [_resolved_argument_path(path) for path in state_json]
+    normalized_extra: list[str] = []
+    for raw in getattr(args, "extra_input", []) or []:
+        name, separator, value = str(raw).partition("=")
+        if not separator or not name.strip() or not value.strip():
+            raise ValueError(f"--extra-input must be NAME=PATH, got: {raw!r}")
+        normalized_extra.append(f"{name.strip()}={_resolved_argument_path(value.strip())}")
+    invocation["extra_input"] = normalized_extra
+    invocation["required_gate"] = list(getattr(args, "required_gate", []) or [])
+    invocation["strict"] = bool(getattr(args, "strict", False))
+    invocation["require_complete"] = bool(getattr(args, "require_complete", False))
+    return invocation
+
+
+def canonical_semantic_projection(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Return deterministic audit semantics; exclude timestamps and workspace dirtiness."""
+    fields = (
+        "schema_version",
+        "input_hashes",
+        "command_version",
+        "reasons",
+        "sample_dimensions",
+        "units",
+        "downstream_consumers",
+        "policy",
+        "inputs",
+        "network",
+        "link_assignment",
+        "adjacency",
+        "storage_capacity",
+        "vendor_snapshot",
+        "actual_numsim",
+        "state_observations",
+        "action_directory",
+        "vissim_error",
+        "artifact_evidence",
+        "gates",
+        "gate_summary",
+        "completion_policy",
+        "strict",
+        "require_complete",
+        "status",
+        "invocation",
+    )
+    return {field: manifest.get(field) for field in fields}
+
+
+def semantic_projection_sha256(manifest: Mapping[str, Any]) -> str:
+    encoded = json.dumps(
+        canonical_semantic_projection(manifest),
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def finalize_manifest(manifest: dict[str, Any], args: argparse.Namespace) -> tuple[dict[str, Any], int]:
+    manifest["completion_policy"] = completion_policy(manifest["gates"], args.required_gate)
+    exit_code = audit_exit_code(
+        manifest["gate_summary"],
+        manifest["completion_policy"],
+        strict=args.strict,
+        require_complete=args.require_complete,
+    )
+    manifest["strict"] = bool(args.strict)
+    manifest["require_complete"] = bool(args.require_complete)
+    manifest["status"] = STATUS_PASS if exit_code == 0 else STATUS_FAIL
+    manifest["reasons"] = list(manifest["completion_policy"]["non_pass_gates"])
+    manifest["gate_summary"]["strict_complete_status"] = manifest["status"]
+    manifest["invocation"] = audit_invocation(args)
+    manifest["semantic_projection_sha256"] = semantic_projection_sha256(manifest)
+    return manifest, exit_code
+
+
+def build_complete_manifest(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
+    return finalize_manifest(build_manifest(args), args)
+
+
+def build_complete_manifest_from_invocation(invocation: Mapping[str, Any]) -> tuple[dict[str, Any], int]:
+    expected = {
+        *AUDIT_REPLAY_PATH_FIELDS,
+        *AUDIT_REPLAY_LIST_FIELDS,
+        "strict",
+        "require_complete",
+    }
+    if set(invocation) != expected:
+        raise ValueError("audit invocation fields are incomplete or unexpected")
+    if any(not isinstance(invocation.get(field), str) for field in AUDIT_REPLAY_PATH_FIELDS):
+        raise ValueError("audit invocation path fields must be strings")
+    if any(not isinstance(invocation.get(field), list) for field in AUDIT_REPLAY_LIST_FIELDS):
+        raise ValueError("audit invocation list fields must be lists")
+    if any(not isinstance(item, str) for field in AUDIT_REPLAY_LIST_FIELDS for item in invocation[field]):
+        raise ValueError("audit invocation list values must be strings")
+    if not isinstance(invocation.get("strict"), bool) or not isinstance(invocation.get("require_complete"), bool):
+        raise ValueError("audit invocation policy fields must be booleans")
+    if str(invocation.get("vissim_err_copy_target", "")).strip():
+        raise ValueError("audit replay forbids --vissim-err-copy-target side effects")
+    args = argparse.Namespace(**dict(invocation), json_out="", markdown_out="")
+    return build_complete_manifest(args)
 
 
 def _fmt(value: Any, digits: int = 3) -> str:
@@ -2012,6 +2577,39 @@ def atomic_write(path: Path, content: str) -> None:
             raise
 
 
+def completion_policy(
+    gates: Mapping[str, Mapping[str, Any]],
+    required_gate_names: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate completeness without confusing missing evidence with a pass."""
+    requested = list(dict.fromkeys(required_gate_names or ()))
+    unknown = sorted(set(requested) - set(gates))
+    if unknown:
+        raise ValueError(f"unknown required gate(s): {', '.join(unknown)}")
+    selected = requested or list(gates)
+    non_pass = [name for name in selected if gates[name]["status"] != STATUS_PASS]
+    return {
+        "required_gates": selected,
+        "required_gate_count": len(selected),
+        "non_pass_gates": non_pass,
+        "complete": not non_pass,
+    }
+
+
+def audit_exit_code(
+    summary: Mapping[str, Any],
+    policy: Mapping[str, Any],
+    *,
+    strict: bool,
+    require_complete: bool,
+) -> int:
+    if strict and int(summary.get("fail", 0) or 0) > 0:
+        return 2
+    if require_complete and not bool(policy.get("complete")):
+        return 3
+    return 0
+
+
 def make_parser(repo: Path) -> argparse.ArgumentParser:
     network_dir = repo / "network" / "real_world_gaepo_modi"
     mapping_dir = repo / "evaluation" / "real_world_modi_control_distributed_20260728"
@@ -2046,6 +2644,18 @@ def make_parser(repo: Path) -> argparse.ArgumentParser:
     parser.add_argument("--json-out", default=str(repo / "reports" / "plant_fidelity_evidence_manifest.json"))
     parser.add_argument("--markdown-out", default=str(repo / "reports" / "plant_fidelity_audit_summary.md"))
     parser.add_argument("--strict", action="store_true", help="exit 2 when any gate is FAIL")
+    parser.add_argument(
+        "--require-complete",
+        action="store_true",
+        help="exit 3 when any required gate is not PASS (including NOT_EVALUATED)",
+    )
+    parser.add_argument(
+        "--required-gate",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="gate required by this run profile; repeatable (defaults to every gate)",
+    )
     return parser
 
 
@@ -2054,7 +2664,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = make_parser(initial_repo)
     args = parser.parse_args(argv)
     try:
-        manifest = build_manifest(args)
+        manifest, exit_code = build_complete_manifest(args)
     except ValueError as exc:
         parser.error(str(exc))
     markdown = render_markdown(manifest)
@@ -2077,7 +2687,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"JSON: {Path(args.json_out).resolve()}")
     if args.markdown_out != "-":
         print(f"Markdown: {Path(args.markdown_out).resolve()}")
-    return 2 if args.strict and summary["fail"] else 0
+    return exit_code
 
 
 if __name__ == "__main__":

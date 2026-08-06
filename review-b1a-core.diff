@@ -1,0 +1,4022 @@
+﻿diff --git a/plant/src/vissim_strict/__init__.py b/plant/src/vissim_strict/__init__.py
+index 128a18d..bc0f704 100644
+--- a/plant/src/vissim_strict/__init__.py
++++ b/plant/src/vissim_strict/__init__.py
+@@ -1,5 +1,24 @@
+ """Strict, deterministic VISSIM rollout plant support."""
+ 
++from .physical_projection import (
++    ProjectionError,
++    ProjectionResult,
++    TopologyValidationError,
++    ValidatedPhysicalTopology,
++    project_vehicle_records,
++    validate_physical_stock_topology,
++    write_projection_sidecar,
++)
+ from .topology import compile_inpx, validate_topology
+ 
+-__all__ = ["compile_inpx", "validate_topology"]
++__all__ = [
++    "ProjectionError",
++    "ProjectionResult",
++    "TopologyValidationError",
++    "ValidatedPhysicalTopology",
++    "compile_inpx",
++    "project_vehicle_records",
++    "validate_physical_stock_topology",
++    "validate_topology",
++    "write_projection_sidecar",
++]
+diff --git a/plant/src/vissim_strict/physical_projection.py b/plant/src/vissim_strict/physical_projection.py
+new file mode 100644
+index 0000000..71d44f3
+--- /dev/null
++++ b/plant/src/vissim_strict/physical_projection.py
+@@ -0,0 +1,1269 @@
++"""Verified physical-stock topology indexing and per-vehicle state projection."""
++
++from __future__ import annotations
++
++from bisect import bisect_right
++from collections import Counter, defaultdict
++from dataclasses import dataclass
++import hashlib
++import json
++import math
++import os
++from pathlib import Path
++import re
++import tempfile
++from types import MappingProxyType
++from typing import Any, Mapping, Sequence
++
++from .topology import canonical_json_sha256, canonical_json_text
++
++
++TOPOLOGY_SCHEMA_VERSION = "physical-stock-topology-v2.1"
++VEHICLE_RECORDS_SCHEMA_VERSION = "vissim-vehicle-records-v2.1"
++PROJECTION_SCHEMA_VERSION = "projection-v2.1"
++POSITION_TOLERANCE_M = 1.0e-6
++WEIGHT_TOLERANCE = 1.0e-9
++MAX_VISSIM_ID = 2_147_483_647
++RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
++SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
++
++TOPOLOGY_UNITS = {
++    "position": "m",
++    "interval": "half-open [start_m,end_m), with the final endpoint equal to lane length",
++    "length": "m",
++    "capacity": "veh",
++    "jam_density": "veh/km/lane",
++    "owner_weight": "fraction",
++    "objective_weight": "binary dimensionless weight",
++}
++TOPOLOGY_DOWNSTREAM_CONSUMERS = [
++    "rollout plant state projection",
++    "rollout plant physical flow trace",
++    "controller visibility masks",
++    "named objective views",
++]
++OBJECTIVE_MODES = (
++    "physical_total",
++    "controller_default",
++    "controller_with_boundary",
++    "boundary_only",
++)
++OBJECTIVE_POLICIES = {
++    "physical_total": "include every in-network physical stock",
++    "controller_default": "exclude exactly stocks carrying the boundary_out role",
++    "controller_with_boundary": "include every in-network physical stock",
++    "boundary_only": "include exactly stocks carrying the boundary_out role",
++}
++ALLOWED_STOCK_ROLES = {
++    "boundary_out",
++    "connector",
++    "freeway",
++    "interface",
++    "ramp",
++    "urban",
++}
++PROJECTION_HASH_NAMES = (
++    "topology_file_sha256",
++    "topology_semantic_sha256",
++    "approving_manifest_sha256",
++    "state_file_sha256",
++    "vehicle_records_semantic_sha256",
++)
++PROJECTION_COMMAND_VERSION = {
++    "command": "vissim_strict.physical_projection.project_vehicle_records",
++    "version": "projection-v2.1",
++}
++PROJECTION_UNITS = {
++    "position": "m",
++    "speed": "km/h",
++    "sim_sec": "s",
++    "vehicle_count": "veh",
++}
++PROJECTION_DOWNSTREAM_CONSUMERS = [
++    "online adapter physical_stock_projection reference",
++    "validate_state_projection_v2_1",
++]
++
++_GLOBAL_ARTIFACT_FIELDS = {
++    "schema_version",
++    "input_hashes",
++    "command_version",
++    "status",
++    "reasons",
++    "sample_dimensions",
++    "units",
++    "downstream_consumers",
++}
++_VEHICLE_ENVELOPE_FIELDS = {
++    "schema_version",
++    "complete",
++    "paused_at_sim_sec",
++    "capture_sim_sec_before",
++    "capture_sim_sec_after",
++    "source_attributes",
++    "stopped_threshold_kph",
++    "collection_count_before",
++    "collection_count_after",
++    "record_count",
++    "unobservable_count",
++    "external_source_count",
++    "full_network_link_counts",
++    "full_network_link_stopped_counts",
++    "records",
++}
++_VEHICLE_RECORD_FIELDS = {
++    "veh_no",
++    "link_no",
++    "lane_no",
++    "position_m",
++    "speed_kph",
++    "stopped",
++}
++_SOURCE_ATTRIBUTES = {
++    "vehicle_number": "No",
++    "lane": "Lane",
++    "position": "Pos",
++    "speed": "Speed",
++}
++
++
++def _reason(code: str, detail: Any) -> dict[str, Any]:
++    return {"code": code, "detail": detail}
++
++
++class StrictJsonError(ValueError):
++    """Raised when JSON is nonstandard or contains duplicate object keys."""
++
++
++class TopologyValidationError(ValueError):
++    """Raised when an A2 topology fails trust or independent structure checks."""
++
++    def __init__(self, reasons: Sequence[Mapping[str, Any]]) -> None:
++        self.reasons = tuple(dict(item) for item in reasons)
++        super().__init__("; ".join(str(item.get("code", "")) for item in self.reasons))
++
++
++class ProjectionError(ValueError):
++    """Typed fail-closed projection error carrying closed reason evidence."""
++
++    def __init__(
++        self,
++        reasons: Sequence[Mapping[str, Any]],
++        diagnostics: Mapping[str, Any] | None = None,
++    ) -> None:
++        self.reasons = tuple(dict(item) for item in reasons)
++        self.diagnostics = dict(diagnostics or {})
++        super().__init__("; ".join(str(item.get("code", "")) for item in self.reasons))
++
++
++@dataclass(frozen=True)
++class StockInterval:
++    stock_id: str
++    link_no: int
++    lane_no: int
++    start_m: float
++    end_m: float
++
++
++@dataclass(frozen=True)
++class LaneIntervals:
++    link_no: int
++    lane_no: int
++    lane_end_m: float
++    starts_m: tuple[float, ...]
++    intervals: tuple[StockInterval, ...]
++
++    def locate(self, position_m: float, tolerance_m: float) -> tuple[StockInterval, float, str, str]:
++        if not math.isfinite(position_m):
++            raise ProjectionError([_reason("invalid_numeric_value", "nonfinite position_m")])
++        if position_m < -tolerance_m or position_m > self.lane_end_m + tolerance_m:
++            raise ProjectionError(
++                [_reason("position_out_of_range", {
++                    "link_no": self.link_no,
++                    "lane_no": self.lane_no,
++                    "position_m": position_m,
++                    "lane_end_m": self.lane_end_m,
++                })]
++            )
++        lookup_position = position_m
++        assignment_status = "exact_interval"
++        detail = "position used without tolerance snapping"
++        if position_m < 0.0:
++            lookup_position = 0.0
++            assignment_status = "outer_endpoint_tolerance_snap"
++            detail = "position snapped to lane start"
++        elif position_m > self.lane_end_m:
++            lookup_position = self.lane_end_m
++            assignment_status = "outer_endpoint_tolerance_snap"
++            detail = "position snapped to final lane endpoint"
++
++        if lookup_position == self.lane_end_m:
++            interval = self.intervals[-1]
++        else:
++            index = bisect_right(self.starts_m, lookup_position) - 1
++            if index < 0:
++                raise ProjectionError([_reason("position_out_of_range", position_m)])
++            interval = self.intervals[index]
++            if not (interval.start_m <= lookup_position < interval.end_m):
++                raise ProjectionError([_reason("position_out_of_range", position_m)])
++        return interval, lookup_position, assignment_status, detail
++
++
++@dataclass(frozen=True)
++class ValidatedPhysicalTopology:
++    """Immutable A2 artifact plus an independently constructed numeric index."""
++
++    artifact: Mapping[str, Any]
++    semantic_sha256: str
++    tolerance_m: float
++    lanes: Mapping[tuple[int, int], LaneIntervals]
++    stocks: Mapping[str, Mapping[str, Any]]
++
++
++@dataclass(frozen=True)
++class ProjectionResult:
++    ledger: Mapping[str, Any]
++
++    @property
++    def status(self) -> str:
++        return str(self.ledger["status"])
++
++
++def _reject_constant(token: str) -> None:
++    raise StrictJsonError(f"nonstandard JSON numeric token {token}")
++
++
++def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
++    result: dict[str, Any] = {}
++    for key, value in pairs:
++        if key in result:
++            raise StrictJsonError(f"duplicate JSON object key {key!r}")
++        result[key] = value
++    return result
++
++
++def strict_json_loads(text: str) -> Any:
++    try:
++        return json.loads(
++            text,
++            parse_constant=_reject_constant,
++            object_pairs_hook=_unique_object,
++        )
++    except StrictJsonError:
++        raise
++    except (json.JSONDecodeError, TypeError, ValueError) as exc:
++        raise StrictJsonError(str(exc)) from exc
++
++
++def strict_load_json(path: str | Path) -> Any:
++    try:
++        return strict_json_loads(Path(path).read_text(encoding="utf-8-sig"))
++    except UnicodeDecodeError as exc:
++        raise StrictJsonError(f"invalid UTF-8: {exc}") from exc
++
++
++def file_sha256(path: str | Path) -> str:
++    digest = hashlib.sha256()
++    with Path(path).open("rb") as stream:
++        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(chunk)
++    return digest.hexdigest()
++
++
++def atomic_write_json(path: str | Path, value: Mapping[str, Any]) -> None:
++    target = Path(path).resolve(strict=False)
++    target.parent.mkdir(parents=True, exist_ok=True)
++    descriptor, temporary_name = tempfile.mkstemp(
++        prefix=f".{target.name}.", suffix=".tmp", dir=target.parent
++    )
++    try:
++        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
++            stream.write(canonical_json_text(_thaw(value)))
++            stream.write("\n")
++            stream.flush()
++            os.fsync(stream.fileno())
++        os.replace(temporary_name, target)
++    except BaseException:
++        try:
++            os.unlink(temporary_name)
++        except FileNotFoundError:
++            pass
++        raise
++
++
++def resolve_contained_path(
++    workspace_root: str | Path,
++    declared_path: str | Path,
++    *,
++    must_exist: bool = True,
++    allow_absolute: bool = False,
++) -> Path:
++    root = Path(workspace_root).resolve(strict=True)
++    declared = Path(declared_path)
++    if declared.is_absolute() and not allow_absolute:
++        raise ValueError("absolute child paths are forbidden")
++    candidate = declared if declared.is_absolute() else root / declared
++    resolved = candidate.resolve(strict=must_exist)
++    try:
++        resolved.relative_to(root)
++    except ValueError as exc:
++        raise ValueError("path escapes canonical workspace root") from exc
++    return resolved
++
++
++def workspace_relative_path(workspace_root: str | Path, path: str | Path) -> str:
++    root = Path(workspace_root).resolve(strict=True)
++    resolved = Path(path).resolve(strict=False)
++    try:
++        return resolved.relative_to(root).as_posix()
++    except ValueError as exc:
++        raise ValueError("path escapes canonical workspace root") from exc
++
++
++def projection_sidecar_path(state_path: str | Path) -> Path:
++    path = Path(state_path)
++    return path.with_name(f"{path.stem}.physical_projection_v2_1.json")
++
++
++def topology_semantic_payload(artifact: Mapping[str, Any]) -> dict[str, Any]:
++    source = artifact["source_artifacts"]
++    return {
++        "schema_version": artifact["schema_version"],
++        "source_artifacts": {
++            key: source[key]
++            for key in (
++                "lane_graph_semantic_sha256",
++                "lane_route_proofs_semantic_sha256",
++                "ownership_evidence_semantic_sha256",
++                "adjacency_evidence_semantic_sha256",
++                "capacity_evidence_semantic_sha256",
++                "legacy_partition_identity_sha256",
++            )
++        },
++        "policies": artifact["policies"],
++        "legacy_partition": artifact["legacy_partition"],
++        "capacity_evidence": artifact["capacity_evidence"],
++        "stocks": artifact["stocks"],
++        "stock_edges": artifact["stock_edges"],
++    }
++
++
++def _finite_number(value: Any) -> bool:
++    return (
++        isinstance(value, (int, float))
++        and not isinstance(value, bool)
++        and math.isfinite(float(value))
++    )
++
++
++def _positive_int(value: Any) -> int | None:
++    if not isinstance(value, int) or isinstance(value, bool):
++        return None
++    return value if 0 < value <= MAX_VISSIM_ID else None
++
++
++def _canonical_positive_key(value: Any) -> int | None:
++    if not isinstance(value, str) or not value.isascii() or not value.isdigit():
++        return None
++    if value.startswith("0"):
++        return None
++    number = int(value)
++    return number if number <= MAX_VISSIM_ID else None
++
++
++def _position_text(value: float) -> str:
++    value = 0.0 if abs(float(value)) <= POSITION_TOLERANCE_M else float(value)
++    text = format(value, ".15f").rstrip("0").rstrip(".")
++    return text or "0"
++
++
++def _expected_stock_id(link_no: int, lane_no: int, start_m: float, end_m: float) -> str:
++    return f"stock:{link_no}:{lane_no}:{_position_text(start_m)}:{_position_text(end_m)}"
++
++
++def _freeze(value: Any) -> Any:
++    if isinstance(value, Mapping):
++        return MappingProxyType({str(key): _freeze(child) for key, child in value.items()})
++    if isinstance(value, (list, tuple)):
++        return tuple(_freeze(child) for child in value)
++    return value
++
++
++def _thaw(value: Any) -> Any:
++    if isinstance(value, Mapping):
++        return {str(key): _thaw(child) for key, child in value.items()}
++    if isinstance(value, tuple):
++        return [_thaw(child) for child in value]
++    return value
++
++
++def _global_field_issues(artifact: Mapping[str, Any]) -> list[str]:
++    missing = sorted(_GLOBAL_ARTIFACT_FIELDS - set(artifact))
++    issues = [f"missing global fields: {missing}"] if missing else []
++    for field in ("input_hashes", "command_version", "sample_dimensions", "units"):
++        if field in artifact and not isinstance(artifact[field], dict):
++            issues.append(f"{field} must be an object")
++    if "downstream_consumers" in artifact and not isinstance(
++        artifact["downstream_consumers"], list
++    ):
++        issues.append("downstream_consumers must be an array")
++    return issues
++
++
++def validate_physical_stock_topology(
++    topology: Mapping[str, Any],
++    lane_graph: Mapping[str, Any] | None = None,
++) -> ValidatedPhysicalTopology:
++    """Validate A2 independently and build an immutable interval index."""
++
++    if not isinstance(topology, Mapping):
++        raise TopologyValidationError([_reason("topology_structure_invalid", "topology is not an object")])
++    trust_issues: list[str] = []
++    structure_issues = _global_field_issues(topology)
++    if topology.get("schema_version") != TOPOLOGY_SCHEMA_VERSION:
++        trust_issues.append("schema_version")
++    if topology.get("status") != "PASS" or topology.get("reasons") != []:
++        trust_issues.append("status/reasons")
++    try:
++        semantic = canonical_json_sha256(topology_semantic_payload(topology))
++    except (KeyError, TypeError, ValueError) as exc:
++        semantic = ""
++        structure_issues.append(f"invalid semantic payload: {exc}")
++    if topology.get("semantic_sha256") != semantic or not SHA256_PATTERN.fullmatch(semantic):
++        trust_issues.append("semantic_sha256")
++    if topology.get("units") != TOPOLOGY_UNITS:
++        structure_issues.append("units do not match physical-stock-topology-v2.1")
++    if topology.get("downstream_consumers") != TOPOLOGY_DOWNSTREAM_CONSUMERS:
++        structure_issues.append("downstream consumer metadata mismatch")
++    source_artifacts = topology.get("source_artifacts")
++    required_source_hashes = {
++        "lane_graph_semantic_sha256",
++        "lane_route_proofs_semantic_sha256",
++        "ownership_evidence_semantic_sha256",
++        "adjacency_evidence_semantic_sha256",
++        "capacity_evidence_semantic_sha256",
++        "legacy_partition_identity_sha256",
++    }
++    if not isinstance(source_artifacts, dict) or not required_source_hashes.issubset(
++        source_artifacts
++    ) or any(
++        SHA256_PATTERN.fullmatch(str(source_artifacts.get(key, ""))) is None
++        for key in required_source_hashes
++    ):
++        structure_issues.append("source artifact semantic hashes are incomplete or invalid")
++
++    policies = topology.get("policies")
++    if not isinstance(policies, dict):
++        structure_issues.append("policies must be an object")
++        policies = {}
++    tolerance = policies.get("position_tolerance_m")
++    if not _finite_number(tolerance) or float(tolerance) != POSITION_TOLERANCE_M:
++        structure_issues.append("position_tolerance_m mismatch")
++        tolerance = POSITION_TOLERANCE_M
++    if policies.get("objective_weights") != OBJECTIVE_POLICIES:
++        structure_issues.append("objective weight policy metadata mismatch")
++
++    expected_lanes: dict[tuple[int, int], tuple[str, float, str]] = {}
++    if lane_graph is not None:
++        nodes = lane_graph.get("nodes") if isinstance(lane_graph, Mapping) else None
++        if not isinstance(nodes, list):
++            structure_issues.append("lane graph nodes must be an array")
++        else:
++            for node in nodes:
++                if not isinstance(node, dict):
++                    structure_issues.append("lane graph node must be an object")
++                    continue
++                link_no = _canonical_positive_key(node.get("link_no"))
++                lane_no = _positive_int(node.get("lane_no"))
++                length = node.get("length_m")
++                if link_no is None or lane_no is None or not _finite_number(length) or float(length) <= 0.0:
++                    structure_issues.append(f"invalid lane graph node {node.get('id')!r}")
++                    continue
++                key = (link_no, lane_no)
++                if key in expected_lanes:
++                    structure_issues.append(f"normalized lane key collision {key}")
++                expected_lanes[key] = (str(node.get("id")), float(length), str(node.get("object_kind")))
++
++    stocks_value = topology.get("stocks")
++    if not isinstance(stocks_value, list):
++        structure_issues.append("stocks must be an array")
++        stocks_value = []
++    intervals_by_lane: dict[tuple[int, int], list[StockInterval]] = defaultdict(list)
++    stock_records: dict[str, dict[str, Any]] = {}
++    normalized_lane_sources: dict[tuple[int, int], set[tuple[Any, Any]]] = defaultdict(set)
++    role_counts: Counter[str] = Counter()
++    parent_kind_counts: Counter[str] = Counter()
++    objective_one_counts: Counter[str] = Counter()
++    route_membership_count = 0
++    owner_errors: list[float] = []
++    visibility_uncovered = 0
++    uncontrolled_count = 0
++
++    for index, stock in enumerate(stocks_value):
++        if not isinstance(stock, dict):
++            structure_issues.append(f"stock[{index}] must be an object")
++            continue
++        stock_id = stock.get("id")
++        link_no = _canonical_positive_key(stock.get("link_no"))
++        lane_no = _positive_int(stock.get("lane_no"))
++        start = stock.get("start_m")
++        end = stock.get("end_m")
++        length = stock.get("length_m")
++        if not isinstance(stock_id, str) or not stock_id:
++            structure_issues.append(f"stock[{index}] invalid id")
++            continue
++        if stock_id in stock_records:
++            structure_issues.append(f"duplicate stock id {stock_id}")
++            continue
++        if link_no is None or lane_no is None:
++            structure_issues.append(f"{stock_id}: invalid positive integral link/lane key")
++            continue
++        key = (link_no, lane_no)
++        normalized_lane_sources[key].add((stock.get("link_no"), stock.get("lane_no")))
++        if len(normalized_lane_sources[key]) != 1:
++            structure_issues.append(f"normalized lane key collision {key}")
++        if not all(_finite_number(value) for value in (start, end, length)):
++            structure_issues.append(f"{stock_id}: nonfinite interval")
++            continue
++        start_m, end_m, length_m = float(start), float(end), float(length)
++        if start_m < 0.0 or end_m <= start_m or length_m != end_m - start_m:
++            structure_issues.append(f"{stock_id}: invalid ordered interval")
++        if stock_id != _expected_stock_id(link_no, lane_no, start_m, end_m):
++            structure_issues.append(f"{stock_id}: noncanonical stock id")
++        expected_lane_id = f"lane:{link_no}:{lane_no}"
++        if stock.get("lane_id") != expected_lane_id:
++            structure_issues.append(f"{stock_id}: lane_id mismatch")
++        if expected_lanes:
++            expected = expected_lanes.get(key)
++            if expected is None:
++                structure_issues.append(f"{stock_id}: lane absent from A1 graph")
++            elif stock.get("lane_id") != expected[0] or stock.get("parent_kind") != expected[2]:
++                structure_issues.append(f"{stock_id}: A1 lane/parent mismatch")
++
++        roles = stock.get("roles")
++        if (
++            not isinstance(roles, list)
++            or any(not isinstance(role, str) or not role for role in roles)
++            or roles != sorted(set(roles))
++            or not set(roles).issubset(ALLOWED_STOCK_ROLES)
++        ):
++            structure_issues.append(f"{stock_id}: invalid roles")
++            roles = []
++        for role in roles:
++            role_counts[role] += 1
++        boundary = "boundary_out" in roles
++        parent_kind = stock.get("parent_kind")
++        if parent_kind not in {"link", "connector"}:
++            structure_issues.append(f"{stock_id}: invalid parent_kind")
++        else:
++            parent_kind_counts[parent_kind] += 1
++        if (parent_kind == "connector") != ("connector" in roles):
++            structure_issues.append(f"{stock_id}: connector role mismatch")
++
++        owner_state = stock.get("control_owner_state")
++        owner_weights = stock.get("control_owner_weights")
++        visible_to = stock.get("visible_to")
++        if not isinstance(owner_state, dict) or owner_state.get("kind") not in {
++            "controlled", "external", "uncontrolled"
++        }:
++            structure_issues.append(f"{stock_id}: invalid control_owner_state")
++            owner_state = {"kind": "invalid"}
++        elif owner_state["kind"] == "controlled" and (
++            not isinstance(owner_state.get("basis"), str) or not owner_state.get("basis")
++        ):
++            structure_issues.append(f"{stock_id}: controlled owner state lacks basis")
++        elif owner_state["kind"] in {"external", "uncontrolled"} and (
++            not isinstance(owner_state.get("reason"), str) or not owner_state.get("reason")
++        ):
++            structure_issues.append(f"{stock_id}: noncontrolled owner state lacks reason")
++        if not isinstance(owner_weights, dict):
++            structure_issues.append(f"{stock_id}: control_owner_weights must be an object")
++            owner_weights = {}
++        valid_weights = all(
++            isinstance(owner, str)
++            and bool(owner)
++            and _finite_number(weight)
++            and float(weight) >= 0.0
++            for owner, weight in owner_weights.items()
++        )
++        if not valid_weights:
++            structure_issues.append(f"{stock_id}: invalid owner weight")
++        owner_sum = math.fsum(float(value) for value in owner_weights.values()) if valid_weights else 0.0
++        if owner_state.get("kind") == "controlled":
++            error = abs(owner_sum - 1.0)
++            owner_errors.append(error)
++            if not owner_weights or error > WEIGHT_TOLERANCE:
++                structure_issues.append(f"{stock_id}: controlled owner weights do not sum to one")
++        elif owner_weights:
++            structure_issues.append(f"{stock_id}: noncontrolled stock has owner weights")
++        if (owner_state.get("kind") == "external") != boundary:
++            structure_issues.append(f"{stock_id}: boundary/external owner state mismatch")
++        if owner_state.get("kind") == "uncontrolled":
++            uncontrolled_count += 1
++        if (
++            not isinstance(visible_to, list)
++            or any(not isinstance(viewer, str) or not viewer for viewer in visible_to)
++            or visible_to != sorted(set(visible_to))
++        ):
++            structure_issues.append(f"{stock_id}: invalid visibility")
++            visible_to = []
++        if not visible_to:
++            visibility_uncovered += 1
++        if owner_state.get("kind") == "controlled" and not set(owner_weights).issubset(visible_to):
++            structure_issues.append(f"{stock_id}: owners absent from visibility")
++        if owner_state.get("kind") == "external" and "external:boundary-out" not in visible_to:
++            structure_issues.append(f"{stock_id}: missing explicit external visibility bucket")
++        if owner_state.get("kind") == "uncontrolled" and not any(
++            viewer.startswith("uncontrolled:") for viewer in visible_to
++        ):
++            structure_issues.append(f"{stock_id}: missing explicit uncontrolled visibility bucket")
++
++        objective = stock.get("objective_weights")
++        expected_objective = {
++            "physical_total": 1,
++            "controller_default": 0 if boundary else 1,
++            "controller_with_boundary": 1,
++            "boundary_only": 1 if boundary else 0,
++        }
++        valid_objective = (
++            isinstance(objective, dict)
++            and objective == expected_objective
++            and not any(isinstance(value, bool) for value in objective.values())
++        )
++        if not valid_objective:
++            structure_issues.append(f"{stock_id}: invalid binary objective weights")
++        else:
++            for mode, value in objective.items():
++                objective_one_counts[mode] += int(value == 1)
++        memberships = stock.get("route_memberships")
++        if not isinstance(memberships, list):
++            structure_issues.append(f"{stock_id}: route_memberships must be an array")
++        else:
++            route_membership_count += len(memberships)
++
++        interval = StockInterval(stock_id, link_no, lane_no, start_m, end_m)
++        intervals_by_lane[key].append(interval)
++        stock_records[stock_id] = stock
++
++    lane_indexes: dict[tuple[int, int], LaneIntervals] = {}
++    if expected_lanes and set(intervals_by_lane) != set(expected_lanes):
++        structure_issues.append("stock lane universe does not equal A1 lane universe")
++    for key, intervals in intervals_by_lane.items():
++        intervals.sort(key=lambda item: (item.start_m, item.end_m, item.stock_id))
++        expected_start = 0.0
++        for interval in intervals:
++            if interval.start_m != expected_start:
++                structure_issues.append(f"lane {key}: non-exact interval cover at {expected_start}")
++            expected_start = interval.end_m
++        lane_end = expected_start
++        if expected_lanes and key in expected_lanes and lane_end != expected_lanes[key][1]:
++            structure_issues.append(f"lane {key}: final endpoint does not equal A1 lane length")
++        lane_indexes[key] = LaneIntervals(
++            link_no=key[0],
++            lane_no=key[1],
++            lane_end_m=lane_end,
++            starts_m=tuple(item.start_m for item in intervals),
++            intervals=tuple(intervals),
++        )
++
++    edges = topology.get("stock_edges")
++    if not isinstance(edges, list):
++        structure_issues.append("stock_edges must be an array")
++        edges = []
++    edge_ids: set[str] = set()
++    for edge in edges:
++        if not isinstance(edge, dict) or not isinstance(edge.get("id"), str):
++            structure_issues.append("invalid stock edge")
++            continue
++        if edge["id"] in edge_ids:
++            structure_issues.append(f"duplicate stock edge id {edge['id']}")
++        edge_ids.add(edge["id"])
++        source = stock_records.get(str(edge.get("from_stock_id")))
++        target = stock_records.get(str(edge.get("to_stock_id")))
++        if source is None or target is None:
++            structure_issues.append(f"{edge['id']}: unknown stock endpoint")
++            continue
++        expected_fields = {
++            "from_link_no": source["link_no"],
++            "from_lane_no": source["lane_no"],
++            "to_link_no": target["link_no"],
++            "to_lane_no": target["lane_no"],
++        }
++        if any(edge.get(field) != value for field, value in expected_fields.items()):
++            structure_issues.append(f"{edge['id']}: stock endpoint identity mismatch")
++        for field in ("from_position_m", "to_position_m"):
++            if not _finite_number(edge.get(field)):
++                structure_issues.append(f"{edge['id']}: invalid {field}")
++
++    dimensions = topology.get("sample_dimensions")
++    if not isinstance(dimensions, dict):
++        structure_issues.append("sample_dimensions must be an object")
++    else:
++        expected_dimensions: dict[str, Any] = {
++            "stocks": len(stock_records),
++            "stock_edges": len(edges),
++            "route_memberships": route_membership_count,
++            "stocks_by_parent_kind": dict(sorted(parent_kind_counts.items())),
++            "stocks_by_role": dict(sorted(role_counts.items())),
++            "objective_weight_one_counts": {
++                mode: objective_one_counts[mode] for mode in OBJECTIVE_MODES
++            },
++        }
++        if lane_graph is not None:
++            expected_dimensions.update({
++                "a1_lane_nodes": len(lane_graph.get("nodes", [])),
++                "a1_road_links": len(lane_graph.get("links", [])),
++                "a1_connector_links": len(lane_graph.get("connectors", [])),
++            })
++        for field, expected in expected_dimensions.items():
++            if dimensions.get(field) != expected:
++                structure_issues.append(f"sample_dimensions.{field} mismatch")
++
++    gates = topology.get("production_gates")
++    if not isinstance(gates, dict):
++        structure_issues.append("production_gates must be an object")
++    else:
++        for field in (
++            "lane_interval_gaps",
++            "lane_interval_overlaps",
++            "lane_interval_missing_lanes",
++            "lane_interval_nonpositive",
++            "duplicate_stock_ids",
++            "legacy_partition_duplicate",
++            "legacy_partition_missing_from_a1",
++            "legacy_partition_identity_mismatch",
++            "objective_policy_violations",
++        ):
++            if gates.get(field) != 0:
++                structure_issues.append(f"production_gates.{field} must be zero")
++        if gates.get("unexplained_owner_stocks") != uncontrolled_count:
++            structure_issues.append("production_gates.unexplained_owner_stocks mismatch")
++        if gates.get("visibility_uncovered_stocks") != visibility_uncovered:
++            structure_issues.append("production_gates.visibility_uncovered_stocks mismatch")
++        maximum_owner_error = max(owner_errors, default=0.0)
++        if not _finite_number(gates.get("maximum_owner_weight_sum_error")) or abs(
++            float(gates.get("maximum_owner_weight_sum_error", math.inf)) - maximum_owner_error
++        ) > WEIGHT_TOLERANCE:
++            structure_issues.append("production_gates.maximum_owner_weight_sum_error mismatch")
++
++    reasons: list[dict[str, Any]] = []
++    if trust_issues:
++        reasons.append(_reason("topology_trust_mismatch", sorted(set(trust_issues))))
++    if structure_issues:
++        reasons.append(_reason("topology_structure_invalid", sorted(set(structure_issues))))
++    if reasons:
++        raise TopologyValidationError(reasons)
++    return ValidatedPhysicalTopology(
++        artifact=_freeze(topology),
++        semantic_sha256=semantic,
++        tolerance_m=float(tolerance),
++        lanes=MappingProxyType(dict(sorted(lane_indexes.items()))),
++        stocks=MappingProxyType({key: _freeze(stock_records[key]) for key in sorted(stock_records)}),
++    )
++
++
++def _normalized_count_map(value: Any, field: str, issues: list[dict[str, Any]]) -> dict[str, int]:
++    if not isinstance(value, dict):
++        issues.append(_reason("aggregate_mismatch", f"{field} must be an object"))
++        return {}
++    result: dict[str, int] = {}
++    for key, count in value.items():
++        normalized = _canonical_positive_key(key)
++        valid_count = isinstance(count, int) and not isinstance(count, bool) and count >= 0
++        if normalized is None or not valid_count:
++            issues.append(_reason("aggregate_mismatch", f"invalid {field} entry {key!r}"))
++            continue
++        canonical = str(normalized)
++        if canonical in result:
++            issues.append(_reason("aggregate_mismatch", f"normalized {field} key collision {key!r}"))
++        result[canonical] = int(count)
++    return dict(sorted(result.items(), key=lambda item: int(item[0])))
++
++
++def normalize_vehicle_records(
++    state: Mapping[str, Any],
++    tolerance_m: float,
++) -> tuple[dict[str, Any], tuple[dict[str, Any], ...], str]:
++    """Validate and normalize the complete vehicle-record observation universe."""
++
++    issues: list[dict[str, Any]] = []
++    if not isinstance(state, Mapping):
++        raise ProjectionError([_reason("invalid_numeric_value", "state must be an object")])
++    run_provenance = state.get("run_provenance")
++    run_id = run_provenance.get("run_id") if isinstance(run_provenance, dict) else None
++    if not isinstance(run_id, str) or RUN_ID_PATTERN.fullmatch(run_id) is None:
++        issues.append(_reason("invalid_numeric_value", "invalid run_id"))
++    sim_sec = state.get("sim_sec")
++    if not _finite_number(sim_sec) or float(sim_sec) < 0.0:
++        issues.append(_reason("invalid_numeric_value", "invalid root sim_sec"))
++        normalized_sim_sec = 0.0
++    else:
++        normalized_sim_sec = float(sim_sec)
++
++    envelope = state.get("vehicle_records")
++    if not isinstance(envelope, dict):
++        raise ProjectionError([_reason("aggregate_mismatch", "missing vehicle_records envelope")])
++    if set(envelope) != _VEHICLE_ENVELOPE_FIELDS:
++        issues.append(_reason("aggregate_mismatch", {
++            "vehicle_records_fields": sorted(envelope),
++            "expected": sorted(_VEHICLE_ENVELOPE_FIELDS),
++        }))
++    if envelope.get("schema_version") != VEHICLE_RECORDS_SCHEMA_VERSION:
++        issues.append(_reason("aggregate_mismatch", "vehicle record schema mismatch"))
++    if envelope.get("complete") is not True:
++        issues.append(_reason("aggregate_mismatch", "vehicle record envelope is incomplete"))
++    if envelope.get("source_attributes") != _SOURCE_ATTRIBUTES:
++        issues.append(_reason("aggregate_mismatch", "source_attributes mismatch"))
++    threshold = envelope.get("stopped_threshold_kph")
++    if not _finite_number(threshold) or float(threshold) != 1.0:
++        issues.append(_reason("aggregate_mismatch", "stopped_threshold_kph must equal 1.0"))
++    times: dict[str, float] = {}
++    for field in ("paused_at_sim_sec", "capture_sim_sec_before", "capture_sim_sec_after"):
++        value = envelope.get(field)
++        if not _finite_number(value) or float(value) < 0.0:
++            issues.append(_reason("invalid_numeric_value", f"invalid {field}"))
++        else:
++            times[field] = float(value)
++    if len(times) == 3 and any(value != normalized_sim_sec for value in times.values()):
++        issues.append(_reason("com_count_changed", "capture/root time mismatch"))
++
++    scalar_counts: dict[str, int] = {}
++    for field in (
++        "collection_count_before",
++        "collection_count_after",
++        "record_count",
++        "unobservable_count",
++        "external_source_count",
++    ):
++        value = envelope.get(field)
++        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
++            issues.append(_reason("invalid_numeric_value", f"invalid {field}"))
++        else:
++            scalar_counts[field] = value
++    if scalar_counts.get("collection_count_before") != scalar_counts.get("collection_count_after"):
++        issues.append(_reason("com_count_changed", "collection scalar counts differ"))
++    if scalar_counts.get("unobservable_count") != 0 or scalar_counts.get("external_source_count") != 0:
++        issues.append(_reason("aggregate_mismatch", "full-network zero-count identity failed"))
++
++    records_value = envelope.get("records")
++    if not isinstance(records_value, list):
++        issues.append(_reason("invalid_table_shape", "records must be an array"))
++        records_value = []
++    normalized_records: list[dict[str, Any]] = []
++    vehicle_numbers: list[int] = []
++    reconstructed_counts: Counter[str] = Counter()
++    reconstructed_stopped: Counter[str] = Counter()
++    for index, record in enumerate(records_value):
++        if not isinstance(record, dict) or set(record) != _VEHICLE_RECORD_FIELDS:
++            issues.append(_reason("invalid_table_shape", f"record[{index}] shape mismatch"))
++            continue
++        veh_no = _positive_int(record.get("veh_no"))
++        link_no = _positive_int(record.get("link_no"))
++        lane_no = _positive_int(record.get("lane_no"))
++        position = record.get("position_m")
++        speed = record.get("speed_kph")
++        stopped = record.get("stopped")
++        if veh_no is None or link_no is None or lane_no is None:
++            issues.append(_reason("invalid_numeric_value", f"record[{index}] invalid identifier"))
++            continue
++        if not _finite_number(position) or not _finite_number(speed) or float(speed) < 0.0:
++            issues.append(_reason("invalid_numeric_value", f"record[{index}] invalid position/speed"))
++            continue
++        position_m, speed_kph = float(position), float(speed)
++        if position_m < -tolerance_m:
++            issues.append(_reason("position_out_of_range", f"record[{index}] below outer tolerance"))
++            continue
++        if not isinstance(stopped, bool) or stopped != (speed_kph < 1.0):
++            issues.append(_reason("aggregate_mismatch", f"record[{index}] stopped derivation mismatch"))
++            continue
++        normalized = {
++            "veh_no": veh_no,
++            "link_no": link_no,
++            "lane_no": lane_no,
++            "position_m": position_m,
++            "speed_kph": speed_kph,
++            "stopped": stopped,
++        }
++        normalized_records.append(normalized)
++        vehicle_numbers.append(veh_no)
++        reconstructed_counts[str(link_no)] += 1
++        if stopped:
++            reconstructed_stopped[str(link_no)] += 1
++    duplicate_count = len(vehicle_numbers) - len(set(vehicle_numbers))
++    if duplicate_count:
++        issues.append(_reason("duplicate_vehicle_in_snapshot", duplicate_count))
++    normalized_records.sort(key=lambda item: item["veh_no"])
++
++    declared_counts = _normalized_count_map(
++        envelope.get("full_network_link_counts"), "full_network_link_counts", issues
++    )
++    declared_stopped = _normalized_count_map(
++        envelope.get("full_network_link_stopped_counts"),
++        "full_network_link_stopped_counts",
++        issues,
++    )
++    expected_counts = dict(sorted(reconstructed_counts.items(), key=lambda item: int(item[0])))
++    expected_stopped = {
++        key: reconstructed_stopped.get(key, 0)
++        for key in sorted(reconstructed_counts, key=int)
++    }
++    if declared_counts != expected_counts or declared_stopped != expected_stopped:
++        issues.append(_reason("aggregate_mismatch", {
++            "declared_counts": declared_counts,
++            "reconstructed_counts": expected_counts,
++            "declared_stopped": declared_stopped,
++            "reconstructed_stopped": expected_stopped,
++        }))
++
++    raw_count = len(records_value)
++    unique_count = len(set(vehicle_numbers))
++    if any(
++        scalar_counts.get(field) != raw_count
++        for field in ("collection_count_before", "collection_count_after", "record_count")
++    ):
++        issues.append(_reason("aggregate_mismatch", "collection/record count identity failed"))
++    if unique_count != raw_count:
++        # The closed duplicate reason above is authoritative; retain the identity detail here.
++        pass
++    total = state.get("total_vehicles")
++    if not isinstance(total, int) or isinstance(total, bool) or total != raw_count:
++        issues.append(_reason("state_total_mismatch", {"state_total": total, "record_count": raw_count}))
++    if issues:
++        diagnostics = {
++            "raw_record_count": raw_count,
++            "unique_snapshot_identity_count": unique_count,
++            "same_snapshot_duplicate_count": duplicate_count,
++            "malformed_record_count": max(0, raw_count - len(normalized_records)),
++            "aggregate_map_mismatch_count": sum(
++                item["code"] == "aggregate_mismatch" for item in issues
++            ),
++        }
++        raise ProjectionError(issues, diagnostics)
++
++    normalized_envelope = {
++        "schema_version": VEHICLE_RECORDS_SCHEMA_VERSION,
++        "complete": True,
++        "paused_at_sim_sec": times["paused_at_sim_sec"],
++        "capture_sim_sec_before": times["capture_sim_sec_before"],
++        "capture_sim_sec_after": times["capture_sim_sec_after"],
++        "source_attributes": dict(_SOURCE_ATTRIBUTES),
++        "stopped_threshold_kph": 1.0,
++        "collection_count_before": scalar_counts["collection_count_before"],
++        "collection_count_after": scalar_counts["collection_count_after"],
++        "record_count": scalar_counts["record_count"],
++        "unobservable_count": scalar_counts["unobservable_count"],
++        "external_source_count": scalar_counts["external_source_count"],
++        "full_network_link_counts": declared_counts,
++        "full_network_link_stopped_counts": declared_stopped,
++        "records": normalized_records,
++    }
++    return normalized_envelope, tuple(normalized_records), canonical_json_sha256(normalized_envelope)
++
++
++def projection_semantic_payload(ledger: Mapping[str, Any]) -> dict[str, Any]:
++    return {
++        key: ledger[key]
++        for key in (
++            "schema_version",
++            "input_hashes",
++            "command_version",
++            "status",
++            "reasons",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "run_id",
++            "sim_sec",
++            "vehicle_assignments",
++            "stock_counts",
++            "view_summaries",
++            "projection_diagnostics",
++            "normalized_projection_sha256",
++        )
++    }
++
++
++def _projection_diagnostics_template() -> dict[str, Any]:
++    return {
++        "collection_count_before": 0,
++        "collection_count_after": 0,
++        "raw_record_count": 0,
++        "unique_snapshot_identity_count": 0,
++        "unique_assigned_count": 0,
++        "unobservable_count": 0,
++        "external_source_count": 0,
++        "same_snapshot_duplicate_count": 0,
++        "malformed_record_count": 0,
++        "unknown_lane_count": 0,
++        "position_out_of_range_count": 0,
++        "aggregate_map_mismatch_count": 0,
++        "state_total_mismatch_count": 0,
++        "per_link_residuals": {},
++        "stock_total": 0,
++        "global_residual": 0,
++        "owner_partition_residual": 0.0,
++        "objective_partition_residual": 0,
++    }
++
++
++def _validate_hash_context(hash_context: Mapping[str, Any]) -> dict[str, str]:
++    if not isinstance(hash_context, Mapping) or set(hash_context) != set(PROJECTION_HASH_NAMES):
++        raise ProjectionError([_reason("topology_trust_mismatch", "projection hash context shape mismatch")])
++    result = {key: str(hash_context[key]) for key in PROJECTION_HASH_NAMES}
++    invalid = [key for key, value in result.items() if SHA256_PATTERN.fullmatch(value) is None]
++    if invalid:
++        raise ProjectionError([_reason("topology_trust_mismatch", {"invalid_hashes": invalid})])
++    return result
++
++
++def project_vehicle_records(
++    topology: ValidatedPhysicalTopology,
++    state: Mapping[str, Any],
++    hash_context: Mapping[str, Any],
++) -> ProjectionResult:
++    """Pure, fail-closed projection from one complete snapshot to A2 stocks."""
++
++    if not isinstance(topology, ValidatedPhysicalTopology):
++        raise ProjectionError([_reason("topology_structure_invalid", "validated topology required")])
++    hashes = _validate_hash_context(hash_context)
++    if hashes["topology_semantic_sha256"] != topology.semantic_sha256:
++        raise ProjectionError([_reason("topology_trust_mismatch", "topology semantic hash context mismatch")])
++    envelope, records, records_hash = normalize_vehicle_records(state, topology.tolerance_m)
++    if hashes["vehicle_records_semantic_sha256"] != records_hash:
++        raise ProjectionError([_reason("topology_trust_mismatch", "vehicle record semantic hash mismatch")])
++
++    run_id = str(state["run_provenance"]["run_id"])
++    sim_sec = float(state["sim_sec"])
++    assignments: list[dict[str, Any]] = []
++    stock_counts = {stock_id: 0 for stock_id in topology.stocks}
++    link_assigned: Counter[str] = Counter()
++    failures: list[dict[str, Any]] = []
++    unknown_lane_count = 0
++    out_of_range_count = 0
++    for record in records:
++        key = (record["link_no"], record["lane_no"])
++        lane = topology.lanes.get(key)
++        if lane is None:
++            unknown_lane_count += 1
++            failures.append(_reason("unknown_lane", {"veh_no": record["veh_no"], "lane": key}))
++            continue
++        try:
++            interval, lookup_position, status, detail = lane.locate(
++                record["position_m"], topology.tolerance_m
++            )
++        except ProjectionError as exc:
++            out_of_range_count += 1
++            failures.extend(
++                _reason(item["code"], {"veh_no": record["veh_no"], "detail": item.get("detail")})
++                for item in exc.reasons
++            )
++            continue
++        stock_counts[interval.stock_id] += 1
++        link_assigned[str(record["link_no"])] += 1
++        assignments.append({
++            "run_id": run_id,
++            "sim_sec": sim_sec,
++            "veh_no": record["veh_no"],
++            "stock_id": interval.stock_id,
++            "source_link_no": record["link_no"],
++            "source_lane_no": record["lane_no"],
++            "source_position_m": record["position_m"],
++            "projected_position_m": lookup_position,
++            "assignment_status": status,
++            "assignment_detail": detail,
++        })
++    assignments.sort(key=lambda item: (item["run_id"], item["sim_sec"], item["veh_no"]))
++
++    raw_count = envelope["record_count"]
++    assigned_count = len(assignments)
++    stock_total = sum(stock_counts.values())
++    per_link_residuals = {
++        link_no: envelope["full_network_link_counts"].get(link_no, 0) - link_assigned.get(link_no, 0)
++        for link_no in sorted(
++            set(envelope["full_network_link_counts"]) | set(link_assigned), key=int
++        )
++    }
++    diagnostics = _projection_diagnostics_template()
++    diagnostics.update({
++        "collection_count_before": envelope["collection_count_before"],
++        "collection_count_after": envelope["collection_count_after"],
++        "raw_record_count": raw_count,
++        "unique_snapshot_identity_count": len({item["veh_no"] for item in records}),
++        "unique_assigned_count": assigned_count,
++        "unobservable_count": envelope["unobservable_count"],
++        "external_source_count": envelope["external_source_count"],
++        "unknown_lane_count": unknown_lane_count,
++        "position_out_of_range_count": out_of_range_count,
++        "per_link_residuals": per_link_residuals,
++        "stock_total": stock_total,
++        "global_residual": raw_count - stock_total,
++    })
++    if failures or assigned_count != raw_count or stock_total != assigned_count or any(per_link_residuals.values()):
++        if assigned_count != raw_count or stock_total != assigned_count:
++            failures.append(_reason("projection_mass_residual", diagnostics["global_residual"]))
++        raise ProjectionError(failures, diagnostics)
++
++    objective_views = {mode: 0 for mode in OBJECTIVE_MODES}
++    owner_buckets: defaultdict[str, float] = defaultdict(float)
++    role_views: defaultdict[str, int] = defaultdict(int)
++    visibility_views: defaultdict[str, int] = defaultdict(int)
++    owner_total = 0.0
++    for stock_id, count in stock_counts.items():
++        stock = topology.stocks[stock_id]
++        for mode in OBJECTIVE_MODES:
++            objective_views[mode] += count * int(stock["objective_weights"][mode])
++        for role in stock["roles"]:
++            role_views[str(role)] += count
++        for viewer in stock["visible_to"]:
++            visibility_views[str(viewer)] += count
++        owner_state = stock["control_owner_state"]["kind"]
++        if owner_state == "controlled":
++            for owner, weight in stock["control_owner_weights"].items():
++                contribution = count * float(weight)
++                owner_buckets[str(owner)] += contribution
++                owner_total += contribution
++        elif owner_state == "external":
++            owner_buckets["external:boundary-out"] += count
++            owner_total += count
++        else:
++            owner_buckets["uncontrolled:no-owner-evidence"] += count
++            owner_total += count
++    owner_residual = float(assigned_count) - owner_total
++    objective_residual = (
++        objective_views["controller_default"]
++        + objective_views["boundary_only"]
++        - assigned_count
++    )
++    diagnostics["owner_partition_residual"] = owner_residual
++    diagnostics["objective_partition_residual"] = objective_residual
++    if (
++        objective_views["physical_total"] != assigned_count
++        or objective_views["controller_with_boundary"] != assigned_count
++        or objective_residual != 0
++        or abs(owner_residual) > WEIGHT_TOLERANCE
++    ):
++        raise ProjectionError([_reason("projection_mass_residual", {
++            "objective_residual": objective_residual,
++            "owner_residual": owner_residual,
++        })], diagnostics)
++
++    view_summaries = {
++        "objective_views": objective_views,
++        "owner_partition": dict(sorted(owner_buckets.items())),
++        "roles_nonpartitioning": dict(sorted(role_views.items())),
++        "visibility_nonpartitioning": dict(sorted(visibility_views.items())),
++    }
++    normalized_projection_sha256 = canonical_json_sha256({
++        "topology_semantic_sha256": topology.semantic_sha256,
++        "vehicle_assignments": assignments,
++        "stock_counts": stock_counts,
++    })
++    ledger: dict[str, Any] = {
++        "schema_version": PROJECTION_SCHEMA_VERSION,
++        "input_hashes": hashes,
++        "command_version": dict(PROJECTION_COMMAND_VERSION),
++        "status": "PASS",
++        "reasons": [],
++        "sample_dimensions": {
++            "records": raw_count,
++            "assignments": assigned_count,
++            "stocks": len(stock_counts),
++            "nonzero_stocks": sum(count > 0 for count in stock_counts.values()),
++            "lanes": len(topology.lanes),
++        },
++        "units": dict(PROJECTION_UNITS),
++        "downstream_consumers": list(PROJECTION_DOWNSTREAM_CONSUMERS),
++        "run_id": run_id,
++        "sim_sec": sim_sec,
++        "vehicle_assignments": assignments,
++        "stock_counts": stock_counts,
++        "view_summaries": view_summaries,
++        "projection_diagnostics": diagnostics,
++        "normalized_projection_sha256": normalized_projection_sha256,
++    }
++    ledger["semantic_sha256"] = canonical_json_sha256(projection_semantic_payload(ledger))
++    return ProjectionResult(_freeze(ledger))
++
++
++def failure_projection_ledger(
++    *,
++    status: str,
++    reasons: Sequence[Mapping[str, Any]],
++    hash_context: Mapping[str, Any] | None = None,
++    run_id: str = "",
++    sim_sec: float | None = None,
++    diagnostics: Mapping[str, Any] | None = None,
++) -> dict[str, Any]:
++    if status not in {"FAIL", "NOT_EVALUATED"}:
++        raise ValueError("failure ledger status must be FAIL or NOT_EVALUATED")
++    hashes = {
++        key: str((hash_context or {}).get(key, "")) for key in PROJECTION_HASH_NAMES
++    }
++    merged_diagnostics = _projection_diagnostics_template()
++    merged_diagnostics.update(dict(diagnostics or {}))
++    ledger: dict[str, Any] = {
++        "schema_version": PROJECTION_SCHEMA_VERSION,
++        "input_hashes": hashes,
++        "command_version": dict(PROJECTION_COMMAND_VERSION),
++        "status": status,
++        "reasons": [dict(item) for item in reasons],
++        "sample_dimensions": {
++            "records": int(merged_diagnostics.get("raw_record_count", 0)),
++            "assignments": int(merged_diagnostics.get("unique_assigned_count", 0)),
++            "stocks": 0,
++            "nonzero_stocks": 0,
++            "lanes": 0,
++        },
++        "units": dict(PROJECTION_UNITS),
++        "downstream_consumers": list(PROJECTION_DOWNSTREAM_CONSUMERS),
++        "run_id": run_id,
++        "sim_sec": sim_sec,
++        "vehicle_assignments": [],
++        "stock_counts": {},
++        "view_summaries": {
++            "objective_views": {},
++            "owner_partition": {},
++            "roles_nonpartitioning": {},
++            "visibility_nonpartitioning": {},
++        },
++        "projection_diagnostics": merged_diagnostics,
++        "normalized_projection_sha256": "",
++    }
++    ledger["semantic_sha256"] = canonical_json_sha256(projection_semantic_payload(ledger))
++    return ledger
++
++
++def write_projection_sidecar(path: str | Path, result: ProjectionResult | Mapping[str, Any]) -> None:
++    ledger = result.ledger if isinstance(result, ProjectionResult) else result
++    atomic_write_json(path, ledger)
++
++
++__all__ = [
++    "MAX_VISSIM_ID",
++    "POSITION_TOLERANCE_M",
++    "PROJECTION_HASH_NAMES",
++    "PROJECTION_SCHEMA_VERSION",
++    "ProjectionError",
++    "ProjectionResult",
++    "RUN_ID_PATTERN",
++    "SHA256_PATTERN",
++    "StrictJsonError",
++    "TOPOLOGY_SCHEMA_VERSION",
++    "TopologyValidationError",
++    "ValidatedPhysicalTopology",
++    "VEHICLE_RECORDS_SCHEMA_VERSION",
++    "atomic_write_json",
++    "failure_projection_ledger",
++    "file_sha256",
++    "normalize_vehicle_records",
++    "project_vehicle_records",
++    "projection_semantic_payload",
++    "projection_sidecar_path",
++    "resolve_contained_path",
++    "strict_load_json",
++    "strict_json_loads",
++    "topology_semantic_payload",
++    "validate_physical_stock_topology",
++    "workspace_relative_path",
++    "write_projection_sidecar",
++]
+diff --git a/plant/tests/test_vissim_strict_physical_projection.py b/plant/tests/test_vissim_strict_physical_projection.py
+new file mode 100644
+index 0000000..2574250
+--- /dev/null
++++ b/plant/tests/test_vissim_strict_physical_projection.py
+@@ -0,0 +1,431 @@
++from __future__ import annotations
++
++import copy
++import hashlib
++import json
++from pathlib import Path
++import random
++import sys
++import tempfile
++import time
++import unittest
++
++
++PLANT_ROOT = Path(__file__).resolve().parents[1]
++if str(PLANT_ROOT) not in sys.path:
++    sys.path.insert(0, str(PLANT_ROOT))
++
++from src.vissim_strict.physical_projection import (
++    POSITION_TOLERANCE_M,
++    OBJECTIVE_POLICIES,
++    ProjectionError,
++    TOPOLOGY_DOWNSTREAM_CONSUMERS,
++    TOPOLOGY_UNITS,
++    TopologyValidationError,
++    atomic_write_json,
++    normalize_vehicle_records,
++    project_vehicle_records,
++    strict_json_loads,
++    topology_semantic_payload,
++    validate_physical_stock_topology,
++    write_projection_sidecar,
++)
++from src.vissim_strict.topology import canonical_json_sha256
++
++
++def stock(
++    link_no: int,
++    lane_no: int,
++    start: float,
++    end: float,
++    *,
++    roles: list[str] | None = None,
++    owners: dict[str, float] | None = None,
++    owner_kind: str = "controlled",
++) -> dict[str, object]:
++    roles = ["urban"] if roles is None else roles
++    owners = {"urban:1": 1.0} if owners is None else owners
++    boundary = "boundary_out" in roles
++    identifier = f"stock:{link_no}:{lane_no}:{start:g}:{end:g}"
++    visible = sorted(owners)
++    if owner_kind == "external":
++        visible = ["external:boundary-out"]
++        owners = {}
++    elif owner_kind == "uncontrolled":
++        visible = ["uncontrolled:no-owner-evidence"]
++        owners = {}
++    owner_state = (
++        {"kind": "controlled", "basis": "fixture"}
++        if owner_kind == "controlled"
++        else {"kind": owner_kind, "reason": "fixture"}
++    )
++    return {
++        "id": identifier,
++        "lane_id": f"lane:{link_no}:{lane_no}",
++        "link_no": str(link_no),
++        "lane_no": lane_no,
++        "parent_kind": "link",
++        "start_m": start,
++        "end_m": end,
++        "length_m": end - start,
++        "roles": sorted(roles),
++        "control_owner_state": owner_state,
++        "control_owner_weights": owners,
++        "visible_to": visible,
++        "objective_weights": {
++            "physical_total": 1,
++            "controller_default": 0 if boundary else 1,
++            "controller_with_boundary": 1,
++            "boundary_only": 1 if boundary else 0,
++        },
++        "route_memberships": [],
++    }
++
++
++def topology_fixture(*, boundary: bool = False, multi_owner: bool = False):
++    roles = ["boundary_out"] if boundary else ["urban"]
++    owner_kind = "external" if boundary else "controlled"
++    owners = {"urban:1": 0.25, "urban:2": 0.75} if multi_owner else None
++    stocks = [
++        stock(1, 1, 0.0, 50.0, roles=roles, owners=owners, owner_kind=owner_kind),
++        stock(1, 1, 50.0, 100.0, roles=roles, owners=owners, owner_kind=owner_kind),
++    ]
++    role_counts = {role: len(stocks) for role in roles}
++    default_count = 0 if boundary else len(stocks)
++    topology = {
++        "schema_version": "physical-stock-topology-v2.1",
++        "canonical_json_version": "canonical-json/v1",
++        "input_hashes": {},
++        "command_version": {},
++        "source_artifacts": {
++            "lane_graph_semantic_sha256": "1" * 64,
++            "lane_route_proofs_semantic_sha256": "2" * 64,
++            "ownership_evidence_semantic_sha256": "3" * 64,
++            "adjacency_evidence_semantic_sha256": "4" * 64,
++            "capacity_evidence_semantic_sha256": "5" * 64,
++            "legacy_partition_identity_sha256": "6" * 64,
++        },
++        "command": {},
++        "status": "PASS",
++        "reasons": [],
++        "units": copy.deepcopy(TOPOLOGY_UNITS),
++        "downstream_consumers": list(TOPOLOGY_DOWNSTREAM_CONSUMERS),
++        "policies": {
++            "stock_identity": "fixture",
++            "position_tolerance_m": POSITION_TOLERANCE_M,
++            "owner_weight_support": "fixture",
++            "visibility": "fixture",
++            "objective_weights": copy.deepcopy(OBJECTIVE_POLICIES),
++        },
++        "legacy_partition": {},
++        "capacity_evidence": {},
++        "sample_dimensions": {
++            "a1_lane_nodes": 1,
++            "a1_road_links": 1,
++            "a1_connector_links": 0,
++            "stocks": 2,
++            "stock_edges": 1,
++            "route_memberships": 0,
++            "stocks_by_parent_kind": {"link": 2},
++            "stocks_by_role": role_counts,
++            "objective_weight_one_counts": {
++                "physical_total": 2,
++                "controller_default": default_count,
++                "controller_with_boundary": 2,
++                "boundary_only": 2 if boundary else 0,
++            },
++        },
++        "production_gates": {
++            "lane_interval_gaps": 0,
++            "lane_interval_overlaps": 0,
++            "lane_interval_missing_lanes": 0,
++            "lane_interval_nonpositive": 0,
++            "duplicate_stock_ids": 0,
++            "legacy_partition_duplicate": 0,
++            "legacy_partition_missing_from_a1": 0,
++            "legacy_partition_identity_mismatch": 0,
++            "maximum_owner_weight_sum_error": 0.0,
++            "unexplained_owner_stocks": 0,
++            "objective_policy_violations": 0,
++            "visibility_uncovered_stocks": 0,
++            "named_ramp_capacity_count": 0,
++        },
++        "stocks": stocks,
++        "stock_edges": [{
++            "id": "stock-edge:fixture",
++            "from_stock_id": stocks[0]["id"],
++            "to_stock_id": stocks[1]["id"],
++            "from_link_no": "1",
++            "from_lane_no": 1,
++            "from_position_m": 50.0,
++            "to_link_no": "1",
++            "to_lane_no": 1,
++            "to_position_m": 50.0,
++        }],
++    }
++    topology["semantic_sha256"] = canonical_json_sha256(topology_semantic_payload(topology))
++    graph = {
++        "nodes": [{
++            "id": "lane:1:1",
++            "link_no": "1",
++            "lane_no": 1,
++            "length_m": 100.0,
++            "object_kind": "link",
++        }],
++        "links": [{}],
++        "connectors": [],
++    }
++    return topology, graph
++
++
++def state_fixture(records: list[dict[str, object]], *, run_id="run-13", sim_sec=900.0):
++    counts: dict[str, int] = {}
++    stopped: dict[str, int] = {}
++    for record in records:
++        key = str(record["link_no"])
++        counts[key] = counts.get(key, 0) + 1
++        if record["stopped"]:
++            stopped[key] = stopped.get(key, 0) + 1
++    stopped = {key: stopped.get(key, 0) for key in counts}
++    count = len(records)
++    return {
++        "run_provenance": {"run_id": run_id},
++        "sim_sec": sim_sec,
++        "total_vehicles": count,
++        "vehicle_records": {
++            "schema_version": "vissim-vehicle-records-v2.1",
++            "complete": True,
++            "paused_at_sim_sec": sim_sec,
++            "capture_sim_sec_before": sim_sec,
++            "capture_sim_sec_after": sim_sec,
++            "source_attributes": {
++                "vehicle_number": "No",
++                "lane": "Lane",
++                "position": "Pos",
++                "speed": "Speed",
++            },
++            "stopped_threshold_kph": 1.0,
++            "collection_count_before": count,
++            "collection_count_after": count,
++            "record_count": count,
++            "unobservable_count": 0,
++            "external_source_count": 0,
++            "full_network_link_counts": counts,
++            "full_network_link_stopped_counts": stopped,
++            "records": records,
++        },
++    }
++
++
++def record(veh_no: int, position: float, *, speed: float = 10.0):
++    return {
++        "veh_no": veh_no,
++        "link_no": 1,
++        "lane_no": 1,
++        "position_m": position,
++        "speed_kph": speed,
++        "stopped": speed < 1.0,
++    }
++
++
++def hash_context(validated, state):
++    _, _, records_hash = normalize_vehicle_records(state, validated.tolerance_m)
++    exact_state = hashlib.sha256(
++        json.dumps(state, sort_keys=True, separators=(",", ":")).encode("utf-8")
++    ).hexdigest()
++    return {
++        "topology_file_sha256": "a" * 64,
++        "topology_semantic_sha256": validated.semantic_sha256,
++        "approving_manifest_sha256": "b" * 64,
++        "state_file_sha256": exact_state,
++        "vehicle_records_semantic_sha256": records_hash,
++    }
++
++
++class PhysicalProjectionCoreTests(unittest.TestCase):
++    def setUp(self):
++        topology, graph = topology_fixture()
++        self.validated = validate_physical_stock_topology(topology, graph)
++
++    def assignment(self, position: float):
++        state = state_fixture([record(1, position)])
++        return project_vehicle_records(
++            self.validated, state, hash_context(self.validated, state)
++        ).ledger["vehicle_assignments"][0]
++
++    def test_internal_boundaries_are_exact_and_outer_endpoints_snap_only_outside(self):
++        tol = POSITION_TOLERANCE_M
++        upstream = [50.0 - 2 * tol, 50.0 - tol, 50.0 - tol / 2]
++        downstream = [50.0, 50.0 + tol / 2, 50.0 + tol, 100.0 - tol, 100.0]
++        for position in upstream:
++            with self.subTest(position=position):
++                self.assertEqual(self.assignment(position)["stock_id"], "stock:1:1:0:50")
++        for position in downstream:
++            with self.subTest(position=position):
++                self.assertEqual(self.assignment(position)["stock_id"], "stock:1:1:50:100")
++        self.assertEqual(self.assignment(100.0)["assignment_status"], "exact_interval")
++        snapped_end = self.assignment(100.0 + tol)
++        self.assertEqual(snapped_end["stock_id"], "stock:1:1:50:100")
++        self.assertEqual(snapped_end["assignment_status"], "outer_endpoint_tolerance_snap")
++        snapped_start = self.assignment(-tol)
++        self.assertEqual(snapped_start["stock_id"], "stock:1:1:0:50")
++        self.assertEqual(snapped_start["assignment_status"], "outer_endpoint_tolerance_snap")
++        for position in (-tol - 1e-12, 100.0 + tol + 1e-12):
++            state = state_fixture([record(1, position)])
++            with self.subTest(position=position), self.assertRaises(ProjectionError) as raised:
++                project_vehicle_records(self.validated, state, hash_context(self.validated, state))
++            self.assertIn("position_out_of_range", {item["code"] for item in raised.exception.reasons})
++
++    def test_vehicle_identity_and_all_aggregate_maps_fail_closed(self):
++        duplicate = state_fixture([record(7, 10.0), record(7, 20.0)])
++        with self.assertRaises(ProjectionError) as raised:
++            normalize_vehicle_records(duplicate, self.validated.tolerance_m)
++        self.assertIn("duplicate_vehicle_in_snapshot", {item["code"] for item in raised.exception.reasons})
++
++        cases = []
++        bad_stopped = state_fixture([record(1, 10.0, speed=1.0)])
++        bad_stopped["vehicle_records"]["records"][0]["stopped"] = True
++        cases.append(bad_stopped)
++        bad_count = state_fixture([record(1, 10.0)])
++        bad_count["vehicle_records"]["collection_count_after"] = 2
++        cases.append(bad_count)
++        bad_map = state_fixture([record(1, 10.0)])
++        bad_map["vehicle_records"]["full_network_link_counts"] = {"1": 2}
++        cases.append(bad_map)
++        nonzero_external = state_fixture([record(1, 10.0)])
++        nonzero_external["vehicle_records"]["external_source_count"] = 1
++        cases.append(nonzero_external)
++        wrong_total = state_fixture([record(1, 10.0)])
++        wrong_total["total_vehicles"] = 2
++        cases.append(wrong_total)
++        for state in cases:
++            with self.subTest(case=cases.index(state)), self.assertRaises(ProjectionError):
++                normalize_vehicle_records(state, self.validated.tolerance_m)
++
++    def test_same_vehicle_later_and_cross_run_is_valid(self):
++        hashes = []
++        for run_id, sim_sec in (("run-a", 1.0), ("run-a", 2.0), ("run-b", 1.0)):
++            state = state_fixture([record(7, 25.0)], run_id=run_id, sim_sec=sim_sec)
++            result = project_vehicle_records(
++                self.validated, state, hash_context(self.validated, state)
++            )
++            self.assertEqual(result.status, "PASS")
++            hashes.append(result.ledger["normalized_projection_sha256"])
++        self.assertEqual(len(hashes), 3)
++
++    def test_invalid_run_time_unknown_lane_and_numeric_types_fail_closed(self):
++        invalid_run = state_fixture([record(1, 10.0)], run_id=" invalid ")
++        with self.assertRaises(ProjectionError):
++            normalize_vehicle_records(invalid_run, self.validated.tolerance_m)
++
++        mismatched_time = state_fixture([record(1, 10.0)])
++        mismatched_time["vehicle_records"]["capture_sim_sec_after"] = 901.0
++        with self.assertRaises(ProjectionError) as raised:
++            normalize_vehicle_records(mismatched_time, self.validated.tolerance_m)
++        self.assertIn("com_count_changed", {item["code"] for item in raised.exception.reasons})
++
++        unknown_lane = state_fixture([record(1, 10.0)])
++        unknown_lane["vehicle_records"]["records"][0]["link_no"] = 2
++        unknown_lane["vehicle_records"]["full_network_link_counts"] = {"2": 1}
++        unknown_lane["vehicle_records"]["full_network_link_stopped_counts"] = {"2": 0}
++        with self.assertRaises(ProjectionError) as raised:
++            project_vehicle_records(
++                self.validated,
++                unknown_lane,
++                hash_context(self.validated, unknown_lane),
++            )
++        self.assertIn("unknown_lane", {item["code"] for item in raised.exception.reasons})
++
++        invalid_numeric = state_fixture([record(1, 10.0)])
++        invalid_numeric["vehicle_records"]["records"][0]["speed_kph"] = "10.0"
++        with self.assertRaises(ProjectionError) as raised:
++            normalize_vehicle_records(invalid_numeric, self.validated.tolerance_m)
++        self.assertIn("invalid_numeric_value", {item["code"] for item in raised.exception.reasons})
++
++    def test_ten_record_orders_share_normalized_hash_but_exact_ledger_hash_tracks_bytes(self):
++        records = [record(index + 1, float(index % 100)) for index in range(20)]
++        normalized_record_hashes = set()
++        normalized_projection_hashes = set()
++        ledger_hashes = set()
++        for seed in range(10):
++            shuffled = copy.deepcopy(records)
++            random.Random(seed).shuffle(shuffled)
++            state = state_fixture(shuffled)
++            context = hash_context(self.validated, state)
++            _, _, normalized = normalize_vehicle_records(state, self.validated.tolerance_m)
++            result = project_vehicle_records(self.validated, state, context)
++            normalized_record_hashes.add(normalized)
++            normalized_projection_hashes.add(result.ledger["normalized_projection_sha256"])
++            ledger_hashes.add(result.ledger["semantic_sha256"])
++        self.assertEqual(len(normalized_record_hashes), 1)
++        self.assertEqual(len(normalized_projection_hashes), 1)
++        self.assertEqual(len(ledger_hashes), 10)
++
++    def test_boundary_and_multi_owner_views_close_without_role_or_visibility_sums(self):
++        for kwargs in ({"boundary": True}, {"multi_owner": True}):
++            topology, graph = topology_fixture(**kwargs)
++            validated = validate_physical_stock_topology(topology, graph)
++            state = state_fixture([record(1, 25.0), record(2, 75.0)])
++            ledger = project_vehicle_records(validated, state, hash_context(validated, state)).ledger
++            views = ledger["view_summaries"]
++            objectives = views["objective_views"]
++            self.assertEqual(objectives["physical_total"], 2)
++            self.assertEqual(objectives["controller_with_boundary"], 2)
++            self.assertEqual(objectives["controller_default"] + objectives["boundary_only"], 2)
++            self.assertAlmostEqual(sum(views["owner_partition"].values()), 2.0)
++
++    def test_topology_hash_interval_and_normalized_key_tampering_fail(self):
++        topology, graph = topology_fixture()
++        stale = copy.deepcopy(topology)
++        stale["stocks"][0]["end_m"] = 49.0
++        with self.assertRaises(TopologyValidationError) as raised:
++            validate_physical_stock_topology(stale, graph)
++        self.assertIn("topology_trust_mismatch", {item["code"] for item in raised.exception.reasons})
++
++        malformed = copy.deepcopy(topology)
++        malformed["stocks"][0]["link_no"] = "01"
++        malformed["semantic_sha256"] = canonical_json_sha256(topology_semantic_payload(malformed))
++        with self.assertRaises(TopologyValidationError) as raised:
++            validate_physical_stock_topology(malformed, graph)
++        self.assertIn("topology_structure_invalid", {item["code"] for item in raised.exception.reasons})
++
++    def test_strict_json_and_atomic_sidecar_replacement(self):
++        with self.assertRaises(ValueError):
++            strict_json_loads('{"x":NaN}')
++        with self.assertRaises(ValueError):
++            strict_json_loads('{"x":1,"x":2}')
++        state = state_fixture([record(1, 25.0)])
++        result = project_vehicle_records(
++            self.validated, state, hash_context(self.validated, state)
++        )
++        with self.assertRaises(TypeError):
++            result.ledger["status"] = "FAIL"
++        with tempfile.TemporaryDirectory() as directory:
++            path = Path(directory) / "state.physical_projection_v2_1.json"
++            path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
++            write_projection_sidecar(path, result)
++            payload = strict_json_loads(path.read_text(encoding="utf-8"))
++            self.assertEqual(payload["status"], "PASS")
++            self.assertEqual(path.read_bytes()[:3], b'{"c')
++
++    def test_synthetic_20000_record_projection_meets_core_size_and_time_limits(self):
++        records = [record(index + 1, float(index % 100)) for index in range(20_000)]
++        state = state_fixture(records)
++        state_bytes = json.dumps(state, separators=(",", ":")).encode("utf-8")
++        started = time.perf_counter()
++        result = project_vehicle_records(
++            self.validated, state, hash_context(self.validated, state)
++        )
++        elapsed = time.perf_counter() - started
++        with tempfile.TemporaryDirectory() as directory:
++            path = Path(directory) / "projection.json"
++            atomic_write_json(path, result.ledger)
++            sidecar_size = path.stat().st_size
++        self.assertLessEqual(len(state_bytes), 8 * 1024 * 1024)
++        self.assertLessEqual(sidecar_size, 16 * 1024 * 1024)
++        self.assertLessEqual(elapsed, 3.0)
++        self.assertEqual(result.ledger["projection_diagnostics"]["global_residual"], 0)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/scripts/approve_physical_stock_topology.py b/scripts/approve_physical_stock_topology.py
+new file mode 100644
+index 0000000..214ac4f
+--- /dev/null
++++ b/scripts/approve_physical_stock_topology.py
+@@ -0,0 +1,637 @@
++"""Approve one exact preflight/A1/A2 physical-stock topology bundle."""
++
++from __future__ import annotations
++
++import argparse
++from dataclasses import dataclass
++import hashlib
++import json
++import os
++from pathlib import Path
++import sys
++from typing import Any, Mapping, Sequence
++
++
++SCRIPT_ROOT = Path(__file__).resolve().parent
++REPO_ROOT = SCRIPT_ROOT.parent
++PLANT_ROOT = REPO_ROOT / "plant"
++for search_root in (SCRIPT_ROOT, PLANT_ROOT):
++    if str(search_root) not in sys.path:
++        sys.path.insert(0, str(search_root))
++
++from build_vissim_lane_graph import validate_lane_graph_artifact  # noqa: E402
++from compile_physical_stock_topology import validate_route_proofs_artifact  # noqa: E402
++from src.vissim_strict.physical_projection import (  # noqa: E402
++    SHA256_PATTERN,
++    TopologyValidationError,
++    ValidatedPhysicalTopology,
++    atomic_write_json,
++    file_sha256,
++    resolve_contained_path,
++    strict_load_json,
++    validate_physical_stock_topology,
++    workspace_relative_path,
++)
++from src.vissim_strict.topology import canonical_json_sha256  # noqa: E402
++
++
++SCHEMA_VERSION = "topology-approval-v2.1"
++UNITS = {"position": "m", "capacity": "veh"}
++DOWNSTREAM_CONSUMERS = ["state-manifest-v2.1", "projection-v2.1"]
++PREFLIGHT_UNITS = {
++    "controller_count": "signal controller",
++    "signal_program_count": "resolved .sig file",
++    "signal_head_count": "signal head reference",
++    "size_bytes": "byte",
++    "sha256": "SHA-256 hex digest of raw bytes unless explicitly named normalised",
++    "normalised_tree_sha256": "SHA-256 over relative Python paths and LF-normalised file hashes",
++}
++PREFLIGHT_DOWNSTREAM_CONSUMERS = [
++    "S0R-3 baseline snapshot",
++    "scripts/run_plant_fidelity_matrix.ps1",
++    "scripts/audit_plant_fidelity.py",
++    "paired VISSIM future campaign",
++    "plant fidelity certification release",
++]
++INPUT_HASH_NAMES = {
++    "preflight_file_sha256",
++    "lane_graph_file_sha256",
++    "lane_graph_semantic_sha256",
++    "lane_route_proofs_file_sha256",
++    "lane_route_proofs_semantic_sha256",
++    "topology_file_sha256",
++    "topology_semantic_sha256",
++}
++TOP_LEVEL_FIELDS = {
++    "schema_version",
++    "input_hashes",
++    "command_version",
++    "status",
++    "reasons",
++    "sample_dimensions",
++    "units",
++    "downstream_consumers",
++    "workspace_root_relative_to_artifact",
++    "source_inputs",
++    "approved_topology",
++    "semantic_sha256",
++}
++
++
++@dataclass(frozen=True)
++class ValidatedApprovalBundle:
++    workspace_root: Path
++    approval_path: Path
++    approval: Mapping[str, Any]
++    approval_file_sha256: str
++    preflight_path: Path
++    graph_path: Path
++    routes_path: Path
++    topology_path: Path
++    preflight: Mapping[str, Any]
++    graph: Mapping[str, Any]
++    routes: Mapping[str, Any]
++    topology: Mapping[str, Any]
++    validated_topology: ValidatedPhysicalTopology
++
++
++class ApprovalValidationError(ValueError):
++    def __init__(self, reasons: Sequence[Mapping[str, Any]]) -> None:
++        self.reasons = tuple(dict(item) for item in reasons)
++        super().__init__("; ".join(str(item.get("code", "")) for item in self.reasons))
++
++
++def _reason(code: str, detail: Any) -> dict[str, Any]:
++    return {"code": code, "detail": detail}
++
++
++def _safe_file_hash(path: Path) -> str:
++    try:
++        return file_sha256(path) if path.is_file() else ""
++    except OSError:
++        return ""
++
++
++def semantic_payload(artifact: Mapping[str, Any]) -> dict[str, Any]:
++    return {
++        key: artifact[key]
++        for key in (
++            "schema_version",
++            "input_hashes",
++            "command_version",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "workspace_root_relative_to_artifact",
++            "source_inputs",
++            "approved_topology",
++        )
++    }
++
++
++def _preflight_fingerprint_payload(manifest: Mapping[str, Any]) -> dict[str, Any]:
++    network = manifest["network"]
++    runtime = manifest["runtime_source_identity"]
++    return {
++        "schema_version": manifest["schema_version"],
++        "input_hashes": manifest["input_hashes"],
++        "command_version": manifest["command_version"],
++        "network": {
++            "network_version": network.get("network_version", ""),
++            "vissim_version": network.get("vissim_version", ""),
++            "model_controllers": [
++                {
++                    "controller_no": item["controller_no"],
++                    "supply_file_2": item["supply_file_2"],
++                    "signal_head_reference_count": item["signal_head_reference_count"],
++                    "sig_sha256": item["signal_program"]["sha256"],
++                }
++                for item in network.get("model_controllers", [])
++            ],
++            "excluded_controller": network.get("excluded_controller"),
++            "auxiliary_controllers": network.get("auxiliary_controllers", []),
++        },
++        "runtime_source": {
++            "schema_version": runtime.get("schema_version", ""),
++            "expected_snapshot_commit": runtime.get("expected_snapshot_commit", ""),
++            "selected_is_canonical": runtime.get("selected_is_canonical", False),
++            "selected": runtime.get("selected", {}),
++            "python_sha256": runtime.get("python", {}).get("sha256", ""),
++        },
++    }
++
++
++def _preflight_fingerprint_sha256(manifest: Mapping[str, Any]) -> str:
++    encoded = json.dumps(
++        _preflight_fingerprint_payload(manifest),
++        ensure_ascii=True,
++        sort_keys=True,
++        separators=(",", ":"),
++    ).encode("utf-8")
++    return hashlib.sha256(encoded).hexdigest()
++
++
++def validate_preflight_artifact(
++    preflight: Mapping[str, Any], workspace_root: Path
++) -> list[dict[str, Any]]:
++    issues: list[str] = []
++    global_fields = {
++        "schema_version", "input_hashes", "command_version", "status", "reasons",
++        "sample_dimensions", "units", "downstream_consumers",
++    }
++    if not global_fields.issubset(preflight):
++        issues.append(f"missing global fields {sorted(global_fields - set(preflight))}")
++    if preflight.get("schema_version") != "preflight-v3":
++        issues.append("schema_version mismatch")
++    if preflight.get("status") != "PASS" or preflight.get("reasons") != []:
++        issues.append("status/reasons mismatch")
++    if preflight.get("units") != PREFLIGHT_UNITS:
++        issues.append("preflight units mismatch")
++    if preflight.get("downstream_consumers") != PREFLIGHT_DOWNSTREAM_CONSUMERS:
++        issues.append("preflight downstream_consumers mismatch")
++    if not isinstance(preflight.get("input_hashes"), dict):
++        issues.append("input_hashes must be an object")
++    if not isinstance(preflight.get("command_version"), dict):
++        issues.append("command_version must be an object")
++    checks = preflight.get("checks")
++    if not isinstance(checks, list) or not checks:
++        issues.append("checks must be a nonempty array")
++        checks = []
++    check_ids = [item.get("id") for item in checks if isinstance(item, dict)]
++    if len(check_ids) != len(checks) or len(check_ids) != len(set(check_ids)):
++        issues.append("checks contain malformed or duplicate identities")
++    if any(item.get("status") != "PASS" for item in checks if isinstance(item, dict)):
++        issues.append("preflight check is not PASS")
++
++    try:
++        fingerprint_hash = _preflight_fingerprint_sha256(preflight)
++    except (KeyError, TypeError, ValueError) as exc:
++        issues.append(f"invalid fingerprint payload: {exc}")
++        fingerprint_hash = ""
++    fingerprint = preflight.get("fingerprint")
++    if (
++        not isinstance(fingerprint, dict)
++        or fingerprint.get("algorithm") != "sha256"
++        or fingerprint.get("canonicalisation")
++        != "UTF-8 JSON, sorted keys, compact separators, ensure_ascii"
++        or fingerprint.get("sha256") != fingerprint_hash
++        or preflight.get("fingerprint_sha256") != fingerprint_hash
++    ):
++        issues.append("preflight fingerprint mismatch")
++
++    try:
++        if Path(str(preflight.get("repo", ""))).resolve(strict=True) != workspace_root:
++            issues.append("preflight repo does not equal workspace root")
++    except OSError as exc:
++        issues.append(f"invalid preflight repo: {exc}")
++
++    input_hashes = preflight.get("input_hashes")
++    input_hashes = input_hashes if isinstance(input_hashes, dict) else {}
++    artifacts = preflight.get("artifacts")
++    if not isinstance(artifacts, dict) or not artifacts:
++        issues.append("preflight artifacts must be a nonempty object")
++        artifacts = {}
++    for name, evidence in sorted(artifacts.items()):
++        if not isinstance(evidence, dict):
++            issues.append(f"artifact {name} evidence is malformed")
++            continue
++        try:
++            path = Path(str(evidence.get("path", ""))).resolve(strict=True)
++            actual_hash = file_sha256(path)
++            actual_size = path.stat().st_size
++        except (OSError, ValueError) as exc:
++            issues.append(f"artifact {name} is unavailable: {exc}")
++            continue
++        if (
++            evidence.get("exists") is not True
++            or evidence.get("sha256") != actual_hash
++            or input_hashes.get(name) != actual_hash
++            or evidence.get("size_bytes") != actual_size
++        ):
++            issues.append(f"artifact {name} byte evidence mismatch")
++
++    command = preflight.get("command_version")
++    if isinstance(command, dict):
++        producer_path = workspace_root / "scripts/build_preflight_manifest.py"
++        try:
++            producer_hash = file_sha256(producer_path)
++        except OSError as exc:
++            issues.append(f"preflight producer unavailable: {exc}")
++            producer_hash = ""
++        if command != {
++            "command": "scripts/build_preflight_manifest.py",
++            "version": "preflight-v3",
++            "sha256": producer_hash,
++        }:
++            issues.append("preflight command_version mismatch")
++
++    network = preflight.get("network")
++    runtime = preflight.get("runtime_source_identity")
++    dimensions = preflight.get("sample_dimensions")
++    if not isinstance(network, dict) or not isinstance(runtime, dict) or not isinstance(dimensions, dict):
++        issues.append("preflight network/runtime/dimensions malformed")
++    else:
++        resolved_programs = network.get("resolved_signal_programs", [])
++        if not isinstance(resolved_programs, list):
++            issues.append("resolved_signal_programs must be an array")
++            resolved_programs = []
++        for record in resolved_programs:
++            try:
++                path = Path(str(record.get("path", ""))).resolve(strict=True)
++                actual_hash = file_sha256(path)
++            except (OSError, ValueError) as exc:
++                issues.append(f"signal program unavailable: {exc}")
++                continue
++            hash_key = f"signal_program.SC{record.get('controller_no')}"
++            if record.get("exists") is not True or record.get("sha256") != actual_hash or input_hashes.get(hash_key) != actual_hash:
++                issues.append(f"signal program {hash_key} byte evidence mismatch")
++        expected_input_hash_names = set(artifacts) | {
++            f"signal_program.SC{record.get('controller_no')}"
++            for record in resolved_programs
++            if isinstance(record, dict)
++        }
++        if set(input_hashes) != expected_input_hash_names:
++            issues.append("preflight input hash universe mismatch")
++        expected_dimensions = {
++            "model_signal_controllers": len(network.get("model_controllers", [])),
++            "resolved_signal_programs": sum(
++                bool(item.get("exists") and item.get("sha256"))
++                for item in resolved_programs if isinstance(item, dict)
++            ),
++            "unique_resolved_signal_programs": len({
++                os.path.normcase(str(item.get("path", "")))
++                for item in resolved_programs
++                if isinstance(item, dict) and item.get("exists")
++            }),
++            "excluded_signal_controllers": 1 if network.get("excluded_controller") else 0,
++            "auxiliary_signal_controllers": len(network.get("auxiliary_controllers", [])),
++            "signal_heads": int(network.get("signal_head_count", 0)),
++            "hashed_artifacts": sum(bool(value) for value in input_hashes.values()),
++            "runtime_python_files": runtime.get("selected", {}).get("actual_python_file_count", 0),
++        }
++        for field, expected in expected_dimensions.items():
++            if dimensions.get(field) != expected:
++                issues.append(f"sample_dimensions.{field} mismatch")
++    return [_reason("topology_trust_mismatch", sorted(set(issues)))] if issues else []
++
++
++def validate_source_bundle(
++    workspace_root: Path,
++    preflight_path: Path,
++    graph_path: Path,
++    routes_path: Path,
++    topology_path: Path,
++) -> tuple[
++    Mapping[str, Any], Mapping[str, Any], Mapping[str, Any], Mapping[str, Any],
++    ValidatedPhysicalTopology | None, dict[str, str], list[dict[str, Any]],
++]:
++    reasons: list[dict[str, Any]] = []
++    loaded: list[Mapping[str, Any]] = []
++    for label, path in (
++        ("preflight", preflight_path),
++        ("lane_graph", graph_path),
++        ("lane_route_proofs", routes_path),
++        ("physical_stock_topology", topology_path),
++    ):
++        try:
++            value = strict_load_json(path)
++            if not isinstance(value, dict):
++                raise ValueError("root must be an object")
++            loaded.append(value)
++        except (OSError, ValueError) as exc:
++            reasons.append(_reason("topology_trust_mismatch", f"{label}: {exc}"))
++            loaded.append({})
++    preflight, graph, routes, topology = loaded
++    if preflight:
++        reasons.extend(validate_preflight_artifact(preflight, workspace_root))
++    if graph:
++        graph_reasons = validate_lane_graph_artifact(dict(graph))
++        if graph_reasons:
++            reasons.append(_reason("topology_trust_mismatch", {"lane_graph": graph_reasons}))
++    if routes and graph:
++        route_reasons = validate_route_proofs_artifact(dict(routes), dict(graph))
++        if route_reasons:
++            reasons.append(_reason("topology_trust_mismatch", {"lane_route_proofs": route_reasons}))
++    validated_topology: ValidatedPhysicalTopology | None = None
++    if topology:
++        try:
++            validated_topology = validate_physical_stock_topology(topology, graph or None)
++        except TopologyValidationError as exc:
++            reasons.extend(dict(item) for item in exc.reasons)
++    if topology and graph and topology.get("source_artifacts", {}).get(
++        "lane_graph_semantic_sha256"
++    ) != graph.get("semantic_sha256"):
++        reasons.append(_reason("topology_trust_mismatch", "topology/graph semantic binding mismatch"))
++    if topology and routes and topology.get("source_artifacts", {}).get(
++        "lane_route_proofs_semantic_sha256"
++    ) != routes.get("semantic_sha256"):
++        reasons.append(_reason("topology_trust_mismatch", "topology/routes semantic binding mismatch"))
++
++    hashes = {
++        "preflight_file_sha256": _safe_file_hash(preflight_path),
++        "lane_graph_file_sha256": _safe_file_hash(graph_path),
++        "lane_graph_semantic_sha256": str(graph.get("semantic_sha256", "")),
++        "lane_route_proofs_file_sha256": _safe_file_hash(routes_path),
++        "lane_route_proofs_semantic_sha256": str(routes.get("semantic_sha256", "")),
++        "topology_file_sha256": _safe_file_hash(topology_path),
++        "topology_semantic_sha256": str(topology.get("semantic_sha256", "")),
++    }
++    if any(SHA256_PATTERN.fullmatch(value) is None for value in hashes.values()):
++        reasons.append(_reason("topology_trust_mismatch", "missing or invalid source hash"))
++    return preflight, graph, routes, topology, validated_topology, hashes, reasons
++
++
++def build_approval_artifact(
++    *,
++    workspace_root: Path,
++    artifact_path: Path,
++    preflight_path: Path,
++    graph_path: Path,
++    routes_path: Path,
++    topology_path: Path,
++) -> dict[str, Any]:
++    preflight, graph, routes, topology, _, hashes, reasons = validate_source_bundle(
++        workspace_root, preflight_path, graph_path, routes_path, topology_path
++    )
++    source_inputs = {
++        "preflight": {
++            "path": workspace_relative_path(workspace_root, preflight_path),
++            "file_sha256": hashes["preflight_file_sha256"],
++        },
++        "lane_graph": {
++            "path": workspace_relative_path(workspace_root, graph_path),
++            "file_sha256": hashes["lane_graph_file_sha256"],
++            "semantic_sha256": hashes["lane_graph_semantic_sha256"],
++        },
++        "lane_route_proofs": {
++            "path": workspace_relative_path(workspace_root, routes_path),
++            "file_sha256": hashes["lane_route_proofs_file_sha256"],
++            "semantic_sha256": hashes["lane_route_proofs_semantic_sha256"],
++        },
++        "physical_stock_topology": {
++            "path": workspace_relative_path(workspace_root, topology_path),
++            "file_sha256": hashes["topology_file_sha256"],
++            "semantic_sha256": hashes["topology_semantic_sha256"],
++        },
++    }
++    artifact: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": hashes,
++        "command_version": {},
++        "status": "FAIL" if reasons else "PASS",
++        "reasons": sorted(reasons, key=lambda item: (item["code"], repr(item.get("detail")))),
++        "sample_dimensions": {
++            "stocks": len(topology.get("stocks", [])) if isinstance(topology, dict) else 0,
++            "lanes": len(graph.get("nodes", [])) if isinstance(graph, dict) else 0,
++        },
++        "units": dict(UNITS),
++        "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++        "workspace_root_relative_to_artifact": Path(
++            os.path.relpath(workspace_root, artifact_path.parent)
++        ).as_posix(),
++        "source_inputs": source_inputs,
++        "approved_topology": {
++            "topology_path": source_inputs["physical_stock_topology"]["path"],
++            "topology_file_sha256": hashes["topology_file_sha256"],
++            "topology_semantic_sha256": hashes["topology_semantic_sha256"],
++        },
++    }
++    artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++    return artifact
++
++
++def validate_approval_artifact(
++    approval_path: str | Path,
++    *,
++    workspace_root: str | Path | None = None,
++    supplied_topology_path: str | Path | None = None,
++) -> ValidatedApprovalBundle:
++    path = Path(approval_path).resolve(strict=True)
++    approval = strict_load_json(path)
++    reasons: list[dict[str, Any]] = []
++    if not isinstance(approval, dict):
++        raise ApprovalValidationError([_reason("topology_trust_mismatch", "approval root is not an object")])
++    if set(approval) != TOP_LEVEL_FIELDS:
++        reasons.append(_reason("topology_trust_mismatch", "approval shape mismatch"))
++    if approval.get("schema_version") != SCHEMA_VERSION:
++        reasons.append(_reason("topology_trust_mismatch", "approval schema mismatch"))
++    if approval.get("status") != "PASS" or approval.get("reasons") != []:
++        reasons.append(_reason("topology_trust_mismatch", "approval status/reasons mismatch"))
++    if approval.get("units") != UNITS or approval.get("downstream_consumers") != DOWNSTREAM_CONSUMERS:
++        reasons.append(_reason("topology_trust_mismatch", "approval global metadata mismatch"))
++    try:
++        semantic = canonical_json_sha256(semantic_payload(approval))
++    except (KeyError, TypeError, ValueError) as exc:
++        reasons.append(_reason("topology_trust_mismatch", f"invalid approval semantic payload: {exc}"))
++        semantic = ""
++    if approval.get("semantic_sha256") != semantic:
++        reasons.append(_reason("topology_trust_mismatch", "approval semantic hash mismatch"))
++
++    root_declaration = approval.get("workspace_root_relative_to_artifact")
++    if not isinstance(root_declaration, str) or Path(root_declaration).is_absolute():
++        reasons.append(_reason("topology_trust_mismatch", "invalid approval workspace root declaration"))
++        root = path.parent
++    else:
++        try:
++            root = (path.parent / root_declaration).resolve(strict=True)
++        except OSError as exc:
++            reasons.append(_reason("topology_trust_mismatch", f"unavailable workspace root: {exc}"))
++            root = path.parent
++    if workspace_root is not None:
++        expected_root = Path(workspace_root).resolve(strict=True)
++        if root != expected_root:
++            reasons.append(_reason("topology_trust_mismatch", "approval workspace root mismatch"))
++
++    source_inputs = approval.get("source_inputs")
++    expected_source_keys = {
++        "preflight", "lane_graph", "lane_route_proofs", "physical_stock_topology"
++    }
++    paths: dict[str, Path] = {}
++    if not isinstance(source_inputs, dict) or set(source_inputs) != expected_source_keys:
++        reasons.append(_reason("topology_trust_mismatch", "approval source_inputs shape mismatch"))
++        source_inputs = {}
++    for key in sorted(expected_source_keys):
++        record = source_inputs.get(key)
++        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
++            reasons.append(_reason("topology_trust_mismatch", f"invalid source input {key}"))
++            continue
++        try:
++            paths[key] = resolve_contained_path(root, record["path"])
++        except (OSError, ValueError) as exc:
++            reasons.append(_reason("topology_trust_mismatch", f"{key} path: {exc}"))
++    if len(paths) != len(expected_source_keys):
++        raise ApprovalValidationError(reasons)
++
++    preflight, graph, routes, topology, validated, hashes, source_reasons = validate_source_bundle(
++        root,
++        paths["preflight"],
++        paths["lane_graph"],
++        paths["lane_route_proofs"],
++        paths["physical_stock_topology"],
++    )
++    reasons.extend(source_reasons)
++    if approval.get("input_hashes") != hashes or set(approval.get("input_hashes", {})) != INPUT_HASH_NAMES:
++        reasons.append(_reason("topology_trust_mismatch", "approval input_hashes mismatch"))
++    expected_sources = {
++        "preflight": {"path": workspace_relative_path(root, paths["preflight"]), "file_sha256": hashes["preflight_file_sha256"]},
++        "lane_graph": {"path": workspace_relative_path(root, paths["lane_graph"]), "file_sha256": hashes["lane_graph_file_sha256"], "semantic_sha256": hashes["lane_graph_semantic_sha256"]},
++        "lane_route_proofs": {"path": workspace_relative_path(root, paths["lane_route_proofs"]), "file_sha256": hashes["lane_route_proofs_file_sha256"], "semantic_sha256": hashes["lane_route_proofs_semantic_sha256"]},
++        "physical_stock_topology": {"path": workspace_relative_path(root, paths["physical_stock_topology"]), "file_sha256": hashes["topology_file_sha256"], "semantic_sha256": hashes["topology_semantic_sha256"]},
++    }
++    if approval.get("source_inputs") != expected_sources:
++        reasons.append(_reason("topology_trust_mismatch", "approval source binding mismatch"))
++    expected_binding = {
++        "topology_path": expected_sources["physical_stock_topology"]["path"],
++        "topology_file_sha256": hashes["topology_file_sha256"],
++        "topology_semantic_sha256": hashes["topology_semantic_sha256"],
++    }
++    if approval.get("approved_topology") != expected_binding:
++        reasons.append(_reason("topology_trust_mismatch", "approved_topology binding mismatch"))
++    expected_dimensions = {"stocks": len(topology.get("stocks", [])), "lanes": len(graph.get("nodes", []))}
++    if approval.get("sample_dimensions") != expected_dimensions:
++        reasons.append(_reason("topology_trust_mismatch", "approval sample_dimensions mismatch"))
++    if supplied_topology_path is not None:
++        try:
++            supplied = Path(supplied_topology_path).resolve(strict=True)
++            supplied.relative_to(root)
++            if supplied != paths["physical_stock_topology"]:
++                reasons.append(_reason("topology_trust_mismatch", "separately supplied topology path mismatch"))
++        except (OSError, ValueError) as exc:
++            reasons.append(_reason("topology_trust_mismatch", f"invalid separately supplied topology: {exc}"))
++    if validated is None and not reasons:
++        reasons.append(_reason("topology_structure_invalid", "validated topology unavailable"))
++    if reasons:
++        raise ApprovalValidationError(reasons)
++    return ValidatedApprovalBundle(
++        workspace_root=root,
++        approval_path=path,
++        approval=approval,
++        approval_file_sha256=file_sha256(path),
++        preflight_path=paths["preflight"],
++        graph_path=paths["lane_graph"],
++        routes_path=paths["lane_route_proofs"],
++        topology_path=paths["physical_stock_topology"],
++        preflight=preflight,
++        graph=graph,
++        routes=routes,
++        topology=topology,
++        validated_topology=validated,
++    )
++
++
++def _resolve_cli_input(root: Path, value: Path) -> Path:
++    candidate = value if value.is_absolute() else root / value
++    resolved = candidate.resolve(strict=True)
++    resolved.relative_to(root)
++    return resolved
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--workspace-root", required=True, type=Path)
++    parser.add_argument("--preflight", required=True, type=Path)
++    parser.add_argument("--graph", required=True, type=Path)
++    parser.add_argument("--routes", required=True, type=Path)
++    parser.add_argument("--topology", required=True, type=Path)
++    parser.add_argument("--out", required=True, type=Path)
++    args = parser.parse_args(argv)
++
++    try:
++        root = args.workspace_root.resolve(strict=True)
++        output = args.out if args.out.is_absolute() else root / args.out
++        output = output.resolve(strict=False)
++        output.relative_to(root)
++        preflight_path = _resolve_cli_input(root, args.preflight)
++        graph_path = _resolve_cli_input(root, args.graph)
++        routes_path = _resolve_cli_input(root, args.routes)
++        topology_path = _resolve_cli_input(root, args.topology)
++        artifact = build_approval_artifact(
++            workspace_root=root,
++            artifact_path=output,
++            preflight_path=preflight_path,
++            graph_path=graph_path,
++            routes_path=routes_path,
++            topology_path=topology_path,
++        )
++    except (OSError, ValueError) as exc:
++        try:
++            root = args.workspace_root.resolve(strict=True)
++            output = args.out if args.out.is_absolute() else root / args.out
++            output = output.resolve(strict=False)
++            output.relative_to(root)
++            blank = {key: "" for key in INPUT_HASH_NAMES}
++            artifact = {
++                "schema_version": SCHEMA_VERSION,
++                "input_hashes": blank,
++                "command_version": {},
++                "status": "FAIL",
++                "reasons": [_reason("topology_trust_mismatch", str(exc))],
++                "sample_dimensions": {"stocks": 0, "lanes": 0},
++                "units": dict(UNITS),
++                "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++                "workspace_root_relative_to_artifact": Path(os.path.relpath(root, output.parent)).as_posix(),
++                "source_inputs": {
++                    "preflight": {"path": "", "file_sha256": ""},
++                    "lane_graph": {"path": "", "file_sha256": "", "semantic_sha256": ""},
++                    "lane_route_proofs": {"path": "", "file_sha256": "", "semantic_sha256": ""},
++                    "physical_stock_topology": {"path": "", "file_sha256": "", "semantic_sha256": ""},
++                },
++                "approved_topology": {
++                    "topology_path": "",
++                    "topology_file_sha256": "",
++                    "topology_semantic_sha256": "",
++                },
++            }
++            artifact["semantic_sha256"] = canonical_json_sha256(semantic_payload(artifact))
++        except (OSError, ValueError):
++            return 1
++    try:
++        atomic_write_json(output, artifact)
++    except OSError:
++        return 1
++    print(f"status={artifact['status']} hash={artifact['semantic_sha256']}")
++    return 0 if artifact["status"] == "PASS" else 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/scripts/build_state_manifest_v2_1.py b/scripts/build_state_manifest_v2_1.py
+new file mode 100644
+index 0000000..fdb3b77
+--- /dev/null
++++ b/scripts/build_state_manifest_v2_1.py
+@@ -0,0 +1,579 @@
++"""Build the closed, hash-bound state manifest for B1a projection replay."""
++
++from __future__ import annotations
++
++import argparse
++import math
++from pathlib import Path
++import sys
++from typing import Any, Mapping, Sequence
++
++
++SCRIPT_ROOT = Path(__file__).resolve().parent
++REPO_ROOT = SCRIPT_ROOT.parent
++PLANT_ROOT = REPO_ROOT / "plant"
++for search_root in (SCRIPT_ROOT, PLANT_ROOT):
++    if str(search_root) not in sys.path:
++        sys.path.insert(0, str(search_root))
++
++from approve_physical_stock_topology import (  # noqa: E402
++    ApprovalValidationError,
++    ValidatedApprovalBundle,
++    validate_approval_artifact,
++)
++from src.vissim_strict.physical_projection import (  # noqa: E402
++    RUN_ID_PATTERN,
++    SHA256_PATTERN,
++    atomic_write_json,
++    file_sha256,
++    projection_sidecar_path,
++    resolve_contained_path,
++    strict_load_json,
++    workspace_relative_path,
++)
++from src.vissim_strict.topology import canonical_json_sha256  # noqa: E402
++
++
++SELECTION_SCHEMA_VERSION = "state-selection-v2.1"
++SCHEMA_VERSION = "state-manifest-v2.1"
++SELECTION_UNITS = {"sim_sec": "s"}
++SELECTION_DOWNSTREAM_CONSUMERS = ["build_state_manifest_v2_1"]
++UNITS = {"sim_sec": "s"}
++DOWNSTREAM_CONSUMERS = ["validate_state_projection_v2_1"]
++SELECTION_ENTRY_FIELDS = {
++    "run_manifest_path",
++    "state_path",
++    "run_id",
++    "sim_sec",
++    "required_vehicle_records",
++}
++SELECTION_FIELDS = {
++    "schema_version",
++    "input_hashes",
++    "command_version",
++    "status",
++    "reasons",
++    "sample_dimensions",
++    "units",
++    "downstream_consumers",
++    "campaign_id",
++    "expected_entry_count",
++    "entries",
++    "semantic_sha256",
++}
++STATE_ENTRY_FIELDS = {
++    "state_path",
++    "state_file_sha256",
++    "run_id",
++    "sim_sec",
++    "run_manifest_path",
++    "run_manifest_sha256",
++    "required_vehicle_records",
++    "projection_sidecar_path",
++}
++MANIFEST_FIELDS = {
++    "schema_version",
++    "input_hashes",
++    "command_version",
++    "status",
++    "reasons",
++    "sample_dimensions",
++    "units",
++    "downstream_consumers",
++    "base_dir",
++    "state_selection",
++    "approved_topology",
++    "states",
++    "semantic_sha256",
++}
++MANIFEST_INPUT_HASH_NAMES = {
++    "approving_manifest_sha256",
++    "state_selection_file_sha256",
++    "state_selection_semantic_sha256",
++    "topology_file_sha256",
++    "topology_semantic_sha256",
++    "state_set_semantic_sha256",
++}
++
++
++class StateManifestValidationError(ValueError):
++    def __init__(self, reasons: Sequence[Mapping[str, Any]]) -> None:
++        self.reasons = tuple(dict(item) for item in reasons)
++        super().__init__("; ".join(str(item.get("code", "")) for item in self.reasons))
++
++
++def _reason(code: str, detail: Any) -> dict[str, Any]:
++    return {"code": code, "detail": detail}
++
++
++def _finite_nonnegative(value: Any) -> bool:
++    return (
++        isinstance(value, (int, float))
++        and not isinstance(value, bool)
++        and math.isfinite(float(value))
++        and float(value) >= 0.0
++    )
++
++
++def _entry_sort_key(entry: Mapping[str, Any]) -> tuple[str, float, str]:
++    return str(entry.get("run_id", "")), float(entry.get("sim_sec", -1.0)), str(entry.get("state_path", ""))
++
++
++def selection_semantic_payload(selection: Mapping[str, Any]) -> dict[str, Any]:
++    return {
++        key: selection[key]
++        for key in (
++            "schema_version",
++            "input_hashes",
++            "command_version",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "campaign_id",
++            "expected_entry_count",
++            "entries",
++        )
++    }
++
++
++def state_set_semantic_payload(states: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
++    fields = (
++        "state_path",
++        "state_file_sha256",
++        "run_id",
++        "sim_sec",
++        "run_manifest_path",
++        "run_manifest_sha256",
++        "required_vehicle_records",
++        "projection_sidecar_path",
++    )
++    return [
++        {field: entry[field] for field in fields}
++        for entry in sorted(states, key=_entry_sort_key)
++    ]
++
++
++def manifest_semantic_payload(manifest: Mapping[str, Any]) -> dict[str, Any]:
++    return {
++        key: manifest[key]
++        for key in (
++            "schema_version",
++            "input_hashes",
++            "command_version",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "base_dir",
++            "state_selection",
++            "approved_topology",
++            "states",
++        )
++    }
++
++
++def validate_state_selection(
++    selection: Mapping[str, Any],
++    *,
++    workspace_root: Path | None = None,
++) -> tuple[dict[str, Any], ...]:
++    issues: list[str] = []
++    if not isinstance(selection, Mapping):
++        raise StateManifestValidationError([_reason("aggregate_mismatch", "selection is not an object")])
++    if set(selection) != SELECTION_FIELDS:
++        issues.append("selection shape mismatch")
++    if selection.get("schema_version") != SELECTION_SCHEMA_VERSION:
++        issues.append("selection schema mismatch")
++    if selection.get("status") != "PASS" or selection.get("reasons") != []:
++        issues.append("selection status/reasons mismatch")
++    if not isinstance(selection.get("input_hashes"), dict) or any(
++        SHA256_PATTERN.fullmatch(str(value)) is None
++        for value in selection.get("input_hashes", {}).values()
++    ):
++        issues.append("selection input_hashes malformed")
++    if not isinstance(selection.get("command_version"), dict):
++        issues.append("selection command_version malformed")
++    if selection.get("units") != SELECTION_UNITS:
++        issues.append("selection units mismatch")
++    if selection.get("downstream_consumers") != SELECTION_DOWNSTREAM_CONSUMERS:
++        issues.append("selection downstream_consumers mismatch")
++    campaign_id = selection.get("campaign_id")
++    if not isinstance(campaign_id, str) or not campaign_id.strip() or len(campaign_id) > 128:
++        issues.append("invalid campaign_id")
++    expected_count = selection.get("expected_entry_count")
++    if not isinstance(expected_count, int) or isinstance(expected_count, bool) or expected_count < 0:
++        issues.append("invalid expected_entry_count")
++        expected_count = -1
++    entries = selection.get("entries")
++    if not isinstance(entries, list):
++        issues.append("entries must be an array")
++        entries = []
++    normalized: list[dict[str, Any]] = []
++    resolved_states: set[Path] = set()
++    identities: set[tuple[str, float]] = set()
++    for index, entry in enumerate(entries):
++        if not isinstance(entry, dict) or set(entry) != SELECTION_ENTRY_FIELDS:
++            issues.append(f"entry[{index}] shape mismatch")
++            continue
++        run_id = entry.get("run_id")
++        sim_sec = entry.get("sim_sec")
++        if not isinstance(run_id, str) or RUN_ID_PATTERN.fullmatch(run_id) is None:
++            issues.append(f"entry[{index}] invalid run_id")
++            continue
++        if not _finite_nonnegative(sim_sec):
++            issues.append(f"entry[{index}] invalid sim_sec")
++            continue
++        if not isinstance(entry.get("required_vehicle_records"), bool):
++            issues.append(f"entry[{index}] invalid required_vehicle_records")
++            continue
++        for field in ("state_path", "run_manifest_path"):
++            value = entry.get(field)
++            if not isinstance(value, str) or not value:
++                issues.append(f"entry[{index}] invalid {field}")
++        normalized_entry = {
++            "run_manifest_path": str(entry.get("run_manifest_path", "")),
++            "state_path": str(entry.get("state_path", "")),
++            "run_id": run_id,
++            "sim_sec": float(sim_sec),
++            "required_vehicle_records": entry["required_vehicle_records"],
++        }
++        identity = (run_id, float(sim_sec))
++        if identity in identities:
++            issues.append(f"duplicate run/time identity {identity}")
++        identities.add(identity)
++        if workspace_root is not None:
++            for field in ("state_path", "run_manifest_path"):
++                try:
++                    resolved = resolve_contained_path(workspace_root, normalized_entry[field])
++                except (OSError, ValueError) as exc:
++                    issues.append(f"entry[{index}] {field}: {exc}")
++                    continue
++                if field == "state_path":
++                    if resolved in resolved_states:
++                        issues.append(f"duplicate resolved state path {resolved}")
++                    resolved_states.add(resolved)
++        normalized.append(normalized_entry)
++    if len(entries) != expected_count:
++        issues.append("selection length does not equal expected_entry_count")
++    if selection.get("sample_dimensions") != {"entries": len(entries)}:
++        issues.append("selection sample_dimensions mismatch")
++    if normalized != sorted(normalized, key=_entry_sort_key) or entries != normalized:
++        issues.append("selection entries are not canonical")
++    try:
++        semantic = canonical_json_sha256(selection_semantic_payload(selection))
++    except (KeyError, TypeError, ValueError) as exc:
++        issues.append(f"invalid selection semantic payload: {exc}")
++        semantic = ""
++    if selection.get("semantic_sha256") != semantic:
++        issues.append("selection semantic hash mismatch")
++    if issues:
++        raise StateManifestValidationError([_reason("aggregate_mismatch", sorted(set(issues)))])
++    return tuple(normalized)
++
++
++def expected_approved_topology_binding(
++    bundle: ValidatedApprovalBundle,
++) -> dict[str, str]:
++    return {
++        "approving_manifest_path": workspace_relative_path(
++            bundle.workspace_root, bundle.approval_path
++        ),
++        "approving_manifest_sha256": bundle.approval_file_sha256,
++        "topology_path": workspace_relative_path(
++            bundle.workspace_root, bundle.topology_path
++        ),
++        "topology_file_sha256": file_sha256(bundle.topology_path),
++        "topology_semantic_sha256": bundle.validated_topology.semantic_sha256,
++    }
++
++
++def validate_run_manifest(
++    run_manifest: Mapping[str, Any],
++    *,
++    expected_run_id: str,
++    sim_sec: float,
++    approved_topology: Mapping[str, Any],
++) -> list[str]:
++    issues: list[str] = []
++    if not isinstance(run_manifest, Mapping):
++        return ["run manifest is not an object"]
++    if run_manifest.get("schema_version") != "run-manifest-v2.1":
++        issues.append("run manifest schema mismatch")
++    if run_manifest.get("run_id") != expected_run_id:
++        issues.append("run manifest run_id mismatch")
++    if run_manifest.get("approved_topology") != approved_topology:
++        issues.append("run manifest approved_topology mismatch")
++    if not isinstance(run_manifest.get("configuration"), dict):
++        issues.append("run manifest configuration must be an object")
++    mutable_time_fields = {
++        "sim_sec",
++        "actual_snapshot_time",
++        "snapshot_time",
++        "paused_at_sim_sec",
++        "capture_sim_sec_before",
++        "capture_sim_sec_after",
++    }
++    if mutable_time_fields & set(run_manifest):
++        issues.append("run manifest contains mutable actual snapshot time")
++    if "status" in run_manifest and run_manifest.get("status") != "PASS":
++        issues.append("run manifest status is not PASS")
++    if "reasons" in run_manifest and run_manifest.get("reasons") != []:
++        issues.append("run manifest reasons are not empty")
++    allowed = run_manifest.get("allowed_capture_times")
++    if allowed is not None:
++        if (
++            not isinstance(allowed, list)
++            or any(not _finite_nonnegative(value) for value in allowed)
++            or [float(value) for value in allowed] != sorted(set(float(value) for value in allowed))
++        ):
++            issues.append("invalid allowed_capture_times")
++        elif sim_sec not in [float(value) for value in allowed]:
++            issues.append("sim_sec is not an allowed capture time")
++    return issues
++
++
++def validate_state_run_binding(
++    state: Mapping[str, Any],
++    *,
++    workspace_root: Path,
++    state_path: Path,
++    run_manifest_path: Path,
++    run_manifest_sha256: str,
++    run_id: str,
++    sim_sec: float,
++) -> list[str]:
++    issues: list[str] = []
++    if not isinstance(state, Mapping):
++        return ["state root is not an object"]
++    if not _finite_nonnegative(state.get("sim_sec")) or float(state.get("sim_sec", -1.0)) != sim_sec:
++        issues.append("state root sim_sec mismatch")
++    provenance = state.get("run_provenance")
++    if not isinstance(provenance, dict):
++        return [*issues, "missing state run_provenance"]
++    if provenance.get("run_id") != run_id:
++        issues.append("state run_provenance.run_id mismatch")
++    if provenance.get("manifest_sha256") != run_manifest_sha256:
++        issues.append("state run_provenance.manifest_sha256 mismatch")
++    declared_manifest = provenance.get("manifest_path")
++    if not isinstance(declared_manifest, str) or not declared_manifest:
++        issues.append("missing state run_provenance.manifest_path")
++    else:
++        try:
++            resolved = resolve_contained_path(
++                workspace_root, declared_manifest, allow_absolute=True
++            )
++            if resolved != run_manifest_path:
++                issues.append("state run_provenance.manifest_path mismatch")
++        except (OSError, ValueError) as exc:
++            issues.append(f"state run_provenance.manifest_path: {exc}")
++    envelope = state.get("vehicle_records")
++    if isinstance(envelope, dict):
++        for field in (
++            "paused_at_sim_sec", "capture_sim_sec_before", "capture_sim_sec_after"
++        ):
++            value = envelope.get(field)
++            if not _finite_nonnegative(value) or float(value) != sim_sec:
++                issues.append(f"vehicle_records.{field} mismatch")
++    return issues
++
++
++def build_manifest_artifact(
++    *,
++    workspace_root: Path,
++    output_path: Path,
++    bundle: ValidatedApprovalBundle,
++    selection_path: Path,
++    selection: Mapping[str, Any],
++) -> dict[str, Any]:
++    if output_path.parent.parent.resolve(strict=True) != workspace_root:
++        raise StateManifestValidationError([
++            _reason("topology_trust_mismatch", "base_dir '..' does not resolve to workspace root")
++        ])
++    selected_entries = validate_state_selection(selection, workspace_root=workspace_root)
++    approved_topology = expected_approved_topology_binding(bundle)
++    states: list[dict[str, Any]] = []
++    issues: list[str] = []
++    immutable_runs: dict[str, tuple[Path, str]] = {}
++    for entry in selected_entries:
++        try:
++            state_path = resolve_contained_path(workspace_root, entry["state_path"])
++            run_manifest_path = resolve_contained_path(
++                workspace_root, entry["run_manifest_path"]
++            )
++            state = strict_load_json(state_path)
++            run_manifest = strict_load_json(run_manifest_path)
++            state_hash = file_sha256(state_path)
++            run_manifest_hash = file_sha256(run_manifest_path)
++        except (OSError, ValueError) as exc:
++            issues.append(f"{entry['state_path']}: {exc}")
++            continue
++        prior_run = immutable_runs.get(entry["run_id"])
++        current_run = (run_manifest_path, run_manifest_hash)
++        if prior_run is not None and prior_run != current_run:
++            issues.append(
++                f"{entry['state_path']}: run_id binds more than one immutable run manifest"
++            )
++        immutable_runs[entry["run_id"]] = current_run
++        issues.extend(
++            f"{entry['state_path']}: {issue}"
++            for issue in validate_run_manifest(
++                run_manifest,
++                expected_run_id=entry["run_id"],
++                sim_sec=entry["sim_sec"],
++                approved_topology=approved_topology,
++            )
++        )
++        issues.extend(
++            f"{entry['state_path']}: {issue}"
++            for issue in validate_state_run_binding(
++                state,
++                workspace_root=workspace_root,
++                state_path=state_path,
++                run_manifest_path=run_manifest_path,
++                run_manifest_sha256=run_manifest_hash,
++                run_id=entry["run_id"],
++                sim_sec=entry["sim_sec"],
++            )
++        )
++        states.append({
++            "state_path": workspace_relative_path(workspace_root, state_path),
++            "state_file_sha256": state_hash,
++            "run_id": entry["run_id"],
++            "sim_sec": entry["sim_sec"],
++            "run_manifest_path": workspace_relative_path(workspace_root, run_manifest_path),
++            "run_manifest_sha256": run_manifest_hash,
++            "required_vehicle_records": entry["required_vehicle_records"],
++            "projection_sidecar_path": workspace_relative_path(
++                workspace_root, projection_sidecar_path(state_path)
++            ),
++        })
++    if len(states) != len(selected_entries):
++        issues.append("one or more selected entries could not be materialized")
++    states.sort(key=_entry_sort_key)
++    if issues:
++        raise StateManifestValidationError([_reason("aggregate_mismatch", sorted(set(issues)))])
++
++    state_set_hash = canonical_json_sha256(state_set_semantic_payload(states))
++    selection_file_hash = file_sha256(selection_path)
++    input_hashes = {
++        "approving_manifest_sha256": bundle.approval_file_sha256,
++        "state_selection_file_sha256": selection_file_hash,
++        "state_selection_semantic_sha256": str(selection["semantic_sha256"]),
++        "topology_file_sha256": file_sha256(bundle.topology_path),
++        "topology_semantic_sha256": bundle.validated_topology.semantic_sha256,
++        "state_set_semantic_sha256": state_set_hash,
++    }
++    manifest: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": input_hashes,
++        "command_version": {},
++        "status": "PASS",
++        "reasons": [],
++        "sample_dimensions": {"states": len(states)},
++        "units": dict(UNITS),
++        "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++        "base_dir": "..",
++        "state_selection": {
++            "path": workspace_relative_path(workspace_root, selection_path),
++            "file_sha256": selection_file_hash,
++            "semantic_sha256": selection["semantic_sha256"],
++            "campaign_id": selection["campaign_id"],
++            "expected_entry_count": selection["expected_entry_count"],
++        },
++        "approved_topology": approved_topology,
++        "states": states,
++    }
++    manifest["semantic_sha256"] = canonical_json_sha256(manifest_semantic_payload(manifest))
++    return manifest
++
++
++def failed_manifest(reason: Mapping[str, Any]) -> dict[str, Any]:
++    manifest: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": {key: "" for key in sorted(MANIFEST_INPUT_HASH_NAMES)},
++        "command_version": {},
++        "status": "FAIL",
++        "reasons": [dict(reason)],
++        "sample_dimensions": {"states": 0},
++        "units": dict(UNITS),
++        "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++        "base_dir": "..",
++        "state_selection": {
++            "path": "",
++            "file_sha256": "",
++            "semantic_sha256": "",
++            "campaign_id": "",
++            "expected_entry_count": 0,
++        },
++        "approved_topology": {
++            "approving_manifest_path": "",
++            "approving_manifest_sha256": "",
++            "topology_path": "",
++            "topology_file_sha256": "",
++            "topology_semantic_sha256": "",
++        },
++        "states": [],
++    }
++    manifest["semantic_sha256"] = canonical_json_sha256(manifest_semantic_payload(manifest))
++    return manifest
++
++
++def _resolve_cli_input(root: Path, value: Path) -> Path:
++    candidate = value if value.is_absolute() else root / value
++    resolved = candidate.resolve(strict=True)
++    resolved.relative_to(root)
++    return resolved
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--workspace-root", required=True, type=Path)
++    parser.add_argument("--approval", required=True, type=Path)
++    parser.add_argument("--topology", required=True, type=Path)
++    parser.add_argument("--selection", required=True, type=Path)
++    parser.add_argument("--out", required=True, type=Path)
++    args = parser.parse_args(argv)
++    try:
++        root = args.workspace_root.resolve(strict=True)
++        output = args.out if args.out.is_absolute() else root / args.out
++        output = output.resolve(strict=False)
++        output.relative_to(root)
++        if output.parent.parent.resolve(strict=True) != root:
++            raise ValueError("manifest output must be in an immediate child of workspace root")
++    except (OSError, ValueError):
++        return 1
++
++    try:
++        approval_path = _resolve_cli_input(root, args.approval)
++        topology_path = _resolve_cli_input(root, args.topology)
++        selection_path = _resolve_cli_input(root, args.selection)
++        bundle = validate_approval_artifact(
++            approval_path,
++            workspace_root=root,
++            supplied_topology_path=topology_path,
++        )
++        selection = strict_load_json(selection_path)
++        artifact = build_manifest_artifact(
++            workspace_root=root,
++            output_path=output,
++            bundle=bundle,
++            selection_path=selection_path,
++            selection=selection,
++        )
++    except (OSError, ValueError, ApprovalValidationError, StateManifestValidationError) as exc:
++        reasons = getattr(exc, "reasons", None)
++        reason = (
++            _reason("aggregate_mismatch", [dict(item) for item in reasons])
++            if reasons
++            else _reason("aggregate_mismatch", str(exc))
++        )
++        artifact = failed_manifest(reason)
++    try:
++        atomic_write_json(output, artifact)
++    except OSError:
++        return 1
++    print(f"status={artifact['status']} states={artifact['sample_dimensions']['states']}")
++    return 0 if artifact["status"] == "PASS" else 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/scripts/validate_state_projection_v2_1.py b/scripts/validate_state_projection_v2_1.py
+new file mode 100644
+index 0000000..30d9d5a
+--- /dev/null
++++ b/scripts/validate_state_projection_v2_1.py
+@@ -0,0 +1,506 @@
++"""Validate and project the exact state-manifest-v2.1 snapshot universe."""
++
++from __future__ import annotations
++
++import argparse
++from dataclasses import dataclass
++from pathlib import Path
++import sys
++import time
++from typing import Any, Mapping, Sequence
++
++
++SCRIPT_ROOT = Path(__file__).resolve().parent
++REPO_ROOT = SCRIPT_ROOT.parent
++PLANT_ROOT = REPO_ROOT / "plant"
++for search_root in (SCRIPT_ROOT, PLANT_ROOT):
++    if str(search_root) not in sys.path:
++        sys.path.insert(0, str(search_root))
++
++from approve_physical_stock_topology import (  # noqa: E402
++    ApprovalValidationError,
++    ValidatedApprovalBundle,
++    validate_approval_artifact,
++)
++from build_state_manifest_v2_1 import (  # noqa: E402
++    DOWNSTREAM_CONSUMERS as MANIFEST_DOWNSTREAM_CONSUMERS,
++    MANIFEST_FIELDS,
++    MANIFEST_INPUT_HASH_NAMES,
++    SCHEMA_VERSION as MANIFEST_SCHEMA_VERSION,
++    STATE_ENTRY_FIELDS,
++    UNITS as MANIFEST_UNITS,
++    StateManifestValidationError,
++    expected_approved_topology_binding,
++    manifest_semantic_payload,
++    state_set_semantic_payload,
++    validate_run_manifest,
++    validate_state_run_binding,
++    validate_state_selection,
++)
++from src.vissim_strict.physical_projection import (  # noqa: E402
++    ProjectionError,
++    atomic_write_json,
++    failure_projection_ledger,
++    file_sha256,
++    normalize_vehicle_records,
++    project_vehicle_records,
++    projection_sidecar_path,
++    resolve_contained_path,
++    strict_load_json,
++    workspace_relative_path,
++    write_projection_sidecar,
++)
++from src.vissim_strict.topology import canonical_json_sha256  # noqa: E402
++
++
++SCHEMA_VERSION = "initial-projection-audit-v2.1"
++UNITS = {"sim_sec": "s", "wall_time": "s", "size": "byte"}
++DOWNSTREAM_CONSUMERS = ["B1a readiness review"]
++
++
++@dataclass(frozen=True)
++class ValidatedStateManifest:
++    workspace_root: Path
++    manifest_path: Path
++    manifest: Mapping[str, Any]
++    selection_path: Path
++    selection: Mapping[str, Any]
++    bundle: ValidatedApprovalBundle
++    topology_path: Path
++
++
++def _reason(code: str, detail: Any) -> dict[str, Any]:
++    return {"code": code, "detail": detail}
++
++
++def audit_semantic_payload(audit: Mapping[str, Any]) -> dict[str, Any]:
++    return {
++        key: audit[key]
++        for key in (
++            "schema_version",
++            "input_hashes",
++            "command_version",
++            "status",
++            "reasons",
++            "sample_dimensions",
++            "units",
++            "downstream_consumers",
++            "live_gates",
++            "states",
++        )
++    }
++
++
++def _entry_sort_key(entry: Mapping[str, Any]) -> tuple[str, float, str]:
++    return str(entry.get("run_id", "")), float(entry.get("sim_sec", -1.0)), str(entry.get("state_path", ""))
++
++
++def validate_manifest_contract(
++    manifest_path: Path,
++    supplied_topology_path: Path,
++) -> ValidatedStateManifest:
++    reasons: list[dict[str, Any]] = []
++    manifest = strict_load_json(manifest_path)
++    if not isinstance(manifest, dict):
++        raise StateManifestValidationError([_reason("aggregate_mismatch", "manifest root is not an object")])
++    if set(manifest) != MANIFEST_FIELDS:
++        reasons.append(_reason("aggregate_mismatch", "state manifest shape mismatch"))
++    if manifest.get("schema_version") != MANIFEST_SCHEMA_VERSION:
++        reasons.append(_reason("aggregate_mismatch", "state manifest schema mismatch"))
++    if manifest.get("status") != "PASS" or manifest.get("reasons") != []:
++        reasons.append(_reason("aggregate_mismatch", "state manifest status/reasons mismatch"))
++    if manifest.get("base_dir") != "..":
++        reasons.append(_reason("topology_trust_mismatch", "state manifest base_dir must be '..'"))
++    workspace_root = manifest_path.parent.parent.resolve(strict=True)
++    try:
++        declared_root = (manifest_path.parent / str(manifest.get("base_dir", ""))).resolve(strict=True)
++        if declared_root != workspace_root:
++            reasons.append(_reason("topology_trust_mismatch", "state manifest base_dir mismatch"))
++    except OSError as exc:
++        reasons.append(_reason("topology_trust_mismatch", f"invalid base_dir: {exc}"))
++    if manifest.get("units") != MANIFEST_UNITS or manifest.get(
++        "downstream_consumers"
++    ) != MANIFEST_DOWNSTREAM_CONSUMERS:
++        reasons.append(_reason("aggregate_mismatch", "state manifest global metadata mismatch"))
++    try:
++        semantic = canonical_json_sha256(manifest_semantic_payload(manifest))
++    except (KeyError, TypeError, ValueError) as exc:
++        reasons.append(_reason("aggregate_mismatch", f"invalid manifest semantic payload: {exc}"))
++        semantic = ""
++    if manifest.get("semantic_sha256") != semantic:
++        reasons.append(_reason("aggregate_mismatch", "state manifest semantic hash mismatch"))
++    input_hashes = manifest.get("input_hashes")
++    if not isinstance(input_hashes, dict) or set(input_hashes) != MANIFEST_INPUT_HASH_NAMES:
++        reasons.append(_reason("aggregate_mismatch", "state manifest input_hashes shape mismatch"))
++        input_hashes = {}
++
++    states = manifest.get("states")
++    if not isinstance(states, list):
++        reasons.append(_reason("aggregate_mismatch", "manifest states must be an array"))
++        states = []
++    state_paths: set[Path] = set()
++    identities: set[tuple[str, float]] = set()
++    normalized_states: list[dict[str, Any]] = []
++    for index, entry in enumerate(states):
++        if not isinstance(entry, dict) or set(entry) != STATE_ENTRY_FIELDS:
++            reasons.append(_reason("aggregate_mismatch", f"state entry[{index}] shape mismatch"))
++            continue
++        try:
++            state_path = resolve_contained_path(workspace_root, entry["state_path"])
++            run_path = resolve_contained_path(workspace_root, entry["run_manifest_path"])
++            sidecar_path = resolve_contained_path(
++                workspace_root,
++                entry["projection_sidecar_path"],
++                must_exist=False,
++            )
++        except (OSError, ValueError, KeyError) as exc:
++            reasons.append(_reason("topology_trust_mismatch", f"state entry[{index}] path: {exc}"))
++            continue
++        if sidecar_path != projection_sidecar_path(state_path).resolve(strict=False):
++            reasons.append(_reason("topology_trust_mismatch", f"state entry[{index}] sidecar name mismatch"))
++        if state_path in state_paths:
++            reasons.append(_reason("aggregate_mismatch", f"duplicate state path {state_path}"))
++        state_paths.add(state_path)
++        identity = (str(entry.get("run_id", "")), float(entry.get("sim_sec", -1.0)))
++        if identity in identities:
++            reasons.append(_reason("duplicate_vehicle_in_snapshot", f"duplicate manifest run/time {identity}"))
++        identities.add(identity)
++        if not isinstance(entry.get("required_vehicle_records"), bool):
++            reasons.append(_reason("aggregate_mismatch", f"state entry[{index}] invalid policy flag"))
++        normalized_states.append(dict(entry))
++    if states != sorted(normalized_states, key=_entry_sort_key):
++        reasons.append(_reason("aggregate_mismatch", "manifest states are not canonical"))
++    if manifest.get("sample_dimensions") != {"states": len(states)}:
++        reasons.append(_reason("aggregate_mismatch", "manifest sample_dimensions mismatch"))
++    try:
++        state_set_hash = canonical_json_sha256(state_set_semantic_payload(states))
++    except (KeyError, TypeError, ValueError) as exc:
++        reasons.append(_reason("aggregate_mismatch", f"invalid state-set payload: {exc}"))
++        state_set_hash = ""
++    if input_hashes.get("state_set_semantic_sha256") != state_set_hash:
++        reasons.append(_reason("aggregate_mismatch", "state-set semantic hash mismatch"))
++
++    selection_binding = manifest.get("state_selection")
++    if not isinstance(selection_binding, dict) or set(selection_binding) != {
++        "path", "file_sha256", "semantic_sha256", "campaign_id", "expected_entry_count"
++    }:
++        reasons.append(_reason("aggregate_mismatch", "state_selection binding shape mismatch"))
++        selection_binding = {}
++    try:
++        selection_path = resolve_contained_path(workspace_root, selection_binding["path"])
++        selection = strict_load_json(selection_path)
++        selected_entries = validate_state_selection(selection, workspace_root=workspace_root)
++        selection_file_hash = file_sha256(selection_path)
++    except (OSError, ValueError, KeyError, StateManifestValidationError) as exc:
++        detail = [dict(item) for item in getattr(exc, "reasons", ())] or str(exc)
++        reasons.append(_reason("aggregate_mismatch", {"state_selection": detail}))
++        selection_path = manifest_path
++        selection = {}
++        selected_entries = ()
++        selection_file_hash = ""
++    expected_selection_binding = {
++        "path": workspace_relative_path(workspace_root, selection_path),
++        "file_sha256": selection_file_hash,
++        "semantic_sha256": selection.get("semantic_sha256", ""),
++        "campaign_id": selection.get("campaign_id", ""),
++        "expected_entry_count": selection.get("expected_entry_count", 0),
++    }
++    if selection_binding != expected_selection_binding:
++        reasons.append(_reason("aggregate_mismatch", "state_selection binding mismatch"))
++    if input_hashes.get("state_selection_file_sha256") != selection_file_hash or input_hashes.get(
++        "state_selection_semantic_sha256"
++    ) != selection.get("semantic_sha256"):
++        reasons.append(_reason("aggregate_mismatch", "selection input hash mismatch"))
++    expected_selected_from_manifest = [
++        {
++            "run_manifest_path": entry["run_manifest_path"],
++            "state_path": entry["state_path"],
++            "run_id": entry["run_id"],
++            "sim_sec": entry["sim_sec"],
++            "required_vehicle_records": entry["required_vehicle_records"],
++        }
++        for entry in states
++        if isinstance(entry, dict) and STATE_ENTRY_FIELDS.issubset(entry)
++    ]
++    if list(selected_entries) != expected_selected_from_manifest:
++        reasons.append(_reason("aggregate_mismatch", "selection/manifest entry universe mismatch"))
++
++    approved = manifest.get("approved_topology")
++    if not isinstance(approved, dict):
++        reasons.append(_reason("topology_trust_mismatch", "approved_topology must be an object"))
++        approved = {}
++    try:
++        approval_path = resolve_contained_path(workspace_root, approved["approving_manifest_path"])
++        topology_path = resolve_contained_path(workspace_root, approved["topology_path"])
++        supplied = supplied_topology_path.resolve(strict=True)
++        supplied.relative_to(workspace_root)
++        if supplied != topology_path:
++            reasons.append(_reason("topology_trust_mismatch", "CLI topology path differs from manifest"))
++        bundle = validate_approval_artifact(
++            approval_path,
++            workspace_root=workspace_root,
++            supplied_topology_path=supplied,
++        )
++    except (OSError, ValueError, KeyError, ApprovalValidationError) as exc:
++        detail = [dict(item) for item in getattr(exc, "reasons", ())] or str(exc)
++        reasons.append(_reason("topology_trust_mismatch", {"approval": detail}))
++        bundle = None
++        topology_path = supplied_topology_path
++    if bundle is not None:
++        expected_approved = expected_approved_topology_binding(bundle)
++        if approved != expected_approved:
++            reasons.append(_reason("topology_trust_mismatch", "manifest approved_topology binding mismatch"))
++        expected_hashes = {
++            "approving_manifest_sha256": bundle.approval_file_sha256,
++            "topology_file_sha256": file_sha256(bundle.topology_path),
++            "topology_semantic_sha256": bundle.validated_topology.semantic_sha256,
++        }
++        for key, expected in expected_hashes.items():
++            if input_hashes.get(key) != expected:
++                reasons.append(_reason("topology_trust_mismatch", f"manifest {key} mismatch"))
++    if reasons or bundle is None:
++        raise StateManifestValidationError(reasons)
++    return ValidatedStateManifest(
++        workspace_root=workspace_root,
++        manifest_path=manifest_path,
++        manifest=manifest,
++        selection_path=selection_path,
++        selection=selection,
++        bundle=bundle,
++        topology_path=topology_path,
++    )
++
++
++def _process_state(
++    validated: ValidatedStateManifest,
++    entry: Mapping[str, Any],
++) -> dict[str, Any]:
++    root = validated.workspace_root
++    state_path = resolve_contained_path(root, entry["state_path"])
++    run_manifest_path = resolve_contained_path(root, entry["run_manifest_path"])
++    sidecar_path = resolve_contained_path(
++        root, entry["projection_sidecar_path"], must_exist=False
++    )
++    started = time.perf_counter()
++    state_hash = file_sha256(state_path)
++    run_hash = file_sha256(run_manifest_path)
++    hash_context = {
++        "topology_file_sha256": file_sha256(validated.bundle.topology_path),
++        "topology_semantic_sha256": validated.bundle.validated_topology.semantic_sha256,
++        "approving_manifest_sha256": validated.bundle.approval_file_sha256,
++        "state_file_sha256": state_hash,
++        "vehicle_records_semantic_sha256": "",
++    }
++    reasons: list[dict[str, Any]] = []
++    state: Mapping[str, Any] = {}
++    try:
++        state = strict_load_json(state_path)
++        run_manifest = strict_load_json(run_manifest_path)
++        if state_hash != entry["state_file_sha256"]:
++            reasons.append(_reason("topology_trust_mismatch", "state file hash mismatch"))
++        if run_hash != entry["run_manifest_sha256"]:
++            reasons.append(_reason("topology_trust_mismatch", "run manifest file hash mismatch"))
++        approved = expected_approved_topology_binding(validated.bundle)
++        reasons.extend(
++            _reason("topology_trust_mismatch", issue)
++            for issue in validate_run_manifest(
++                run_manifest,
++                expected_run_id=entry["run_id"],
++                sim_sec=float(entry["sim_sec"]),
++                approved_topology=approved,
++            )
++        )
++        reasons.extend(
++            _reason("topology_trust_mismatch", issue)
++            for issue in validate_state_run_binding(
++                state,
++                workspace_root=root,
++                state_path=state_path,
++                run_manifest_path=run_manifest_path,
++                run_manifest_sha256=run_hash,
++                run_id=entry["run_id"],
++                sim_sec=float(entry["sim_sec"]),
++            )
++        )
++    except (OSError, ValueError) as exc:
++        reasons.append(_reason("topology_trust_mismatch", str(exc)))
++
++    run_id = str(entry.get("run_id", ""))
++    sim_sec = float(entry.get("sim_sec", 0.0))
++    if "vehicle_records" not in state:
++        status = "FAIL" if entry["required_vehicle_records"] else "NOT_EVALUATED"
++        code = "aggregate_mismatch" if status == "FAIL" else "live_com_not_evaluated"
++        reasons.append(_reason(code, "vehicle_records envelope absent"))
++        ledger = failure_projection_ledger(
++            status=status,
++            reasons=reasons,
++            hash_context=hash_context,
++            run_id=run_id,
++            sim_sec=sim_sec,
++        )
++    elif reasons:
++        status = "FAIL"
++        ledger = failure_projection_ledger(
++            status="FAIL",
++            reasons=reasons,
++            hash_context=hash_context,
++            run_id=run_id,
++            sim_sec=sim_sec,
++        )
++    else:
++        try:
++            _, _, record_hash = normalize_vehicle_records(
++                state, validated.bundle.validated_topology.tolerance_m
++            )
++            hash_context["vehicle_records_semantic_sha256"] = record_hash
++            result = project_vehicle_records(
++                validated.bundle.validated_topology, state, hash_context
++            )
++            ledger = result.ledger
++            status = "PASS"
++        except ProjectionError as exc:
++            reasons = [dict(item) for item in exc.reasons]
++            status = "FAIL"
++            ledger = failure_projection_ledger(
++                status="FAIL",
++                reasons=reasons,
++                hash_context=hash_context,
++                run_id=run_id,
++                sim_sec=sim_sec,
++                diagnostics=exc.diagnostics,
++            )
++    write_projection_sidecar(sidecar_path, ledger)
++    elapsed = time.perf_counter() - started
++    sidecar_value = strict_load_json(sidecar_path)
++    return {
++        "state_path": entry["state_path"],
++        "run_id": run_id,
++        "sim_sec": sim_sec,
++        "required_vehicle_records": entry["required_vehicle_records"],
++        "status": status,
++        "reasons": reasons,
++        "projection_sidecar_path": entry["projection_sidecar_path"],
++        "projection_sidecar_file_sha256": file_sha256(sidecar_path),
++        "projection_sidecar_semantic_sha256": sidecar_value["semantic_sha256"],
++        "normalized_projection_sha256": sidecar_value["normalized_projection_sha256"],
++        "record_count": sidecar_value["projection_diagnostics"]["raw_record_count"],
++        "assigned_count": sidecar_value["projection_diagnostics"]["unique_assigned_count"],
++        "stock_total": sidecar_value["projection_diagnostics"]["stock_total"],
++        "state_size_bytes": state_path.stat().st_size,
++        "sidecar_size_bytes": sidecar_path.stat().st_size,
++        "parse_project_write_wall_sec": elapsed,
++    }
++
++
++def build_audit(
++    validated: ValidatedStateManifest,
++    state_results: Sequence[Mapping[str, Any]],
++) -> dict[str, Any]:
++    failed = any(item["status"] == "FAIL" for item in state_results)
++    status = "FAIL" if failed else "NOT_EVALUATED"
++    reasons: list[dict[str, Any]] = []
++    if failed:
++        for state in state_results:
++            if state["status"] != "FAIL":
++                continue
++            for state_reason in state["reasons"]:
++                reasons.append(_reason(
++                    str(state_reason.get("code", "aggregate_mismatch")),
++                    {
++                        "state_path": state["state_path"],
++                        "detail": state_reason.get("detail"),
++                    },
++                ))
++    else:
++        reasons.extend([
++            _reason("live_com_not_evaluated", "supported-version live COM capture is not part of this core slice"),
++            _reason("performance_not_evaluated", "live combined capture/serialize/parse/project p95 is unavailable"),
++        ])
++    manifest = validated.manifest
++    audit: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": {
++            "state_manifest_file_sha256": file_sha256(validated.manifest_path),
++            "state_manifest_semantic_sha256": manifest["semantic_sha256"],
++            "approving_manifest_sha256": validated.bundle.approval_file_sha256,
++            "state_selection_file_sha256": file_sha256(validated.selection_path),
++            "state_selection_semantic_sha256": validated.selection["semantic_sha256"],
++            "topology_file_sha256": file_sha256(validated.topology_path),
++            "topology_semantic_sha256": validated.bundle.validated_topology.semantic_sha256,
++        },
++        "command_version": {},
++        "status": status,
++        "reasons": reasons,
++        "sample_dimensions": {
++            "states": len(state_results),
++            "projection_pass": sum(item["status"] == "PASS" for item in state_results),
++            "projection_fail": sum(item["status"] == "FAIL" for item in state_results),
++            "projection_not_evaluated": sum(
++                item["status"] == "NOT_EVALUATED" for item in state_results
++            ),
++        },
++        "units": dict(UNITS),
++        "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++        "live_gates": {
++            "supported_vissim_com_capture": "NOT_EVALUATED",
++            "live_performance_p95": "NOT_EVALUATED",
++        },
++        "states": list(state_results),
++    }
++    audit["semantic_sha256"] = canonical_json_sha256(audit_semantic_payload(audit))
++    return audit
++
++
++def failed_audit(reasons: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
++    audit: dict[str, Any] = {
++        "schema_version": SCHEMA_VERSION,
++        "input_hashes": {},
++        "command_version": {},
++        "status": "FAIL",
++        "reasons": [dict(item) for item in reasons],
++        "sample_dimensions": {
++            "states": 0,
++            "projection_pass": 0,
++            "projection_fail": 0,
++            "projection_not_evaluated": 0,
++        },
++        "units": dict(UNITS),
++        "downstream_consumers": list(DOWNSTREAM_CONSUMERS),
++        "live_gates": {
++            "supported_vissim_com_capture": "NOT_EVALUATED",
++            "live_performance_p95": "NOT_EVALUATED",
++        },
++        "states": [],
++    }
++    audit["semantic_sha256"] = canonical_json_sha256(audit_semantic_payload(audit))
++    return audit
++
++
++def main(argv: Sequence[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--states", required=True, type=Path)
++    parser.add_argument("--topology", required=True, type=Path)
++    parser.add_argument("--out", required=True, type=Path)
++    args = parser.parse_args(argv)
++    output = args.out.resolve(strict=False)
++    try:
++        manifest_path = args.states.resolve(strict=True)
++        topology_path = args.topology.resolve(strict=True)
++        validated = validate_manifest_contract(manifest_path, topology_path)
++        results = [_process_state(validated, entry) for entry in validated.manifest["states"]]
++        audit = build_audit(validated, results)
++    except (OSError, ValueError, StateManifestValidationError) as exc:
++        details = [dict(item) for item in getattr(exc, "reasons", ())]
++        audit = failed_audit(
++            details or [_reason("topology_trust_mismatch", str(exc))]
++        )
++    try:
++        atomic_write_json(output, audit)
++    except OSError:
++        return 1
++    print(f"status={audit['status']} states={audit['sample_dimensions']['states']}")
++    return {"PASS": 0, "FAIL": 1, "NOT_EVALUATED": 2}[audit["status"]]
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff --git a/scripts/tests/test_b1a_core_provenance.py b/scripts/tests/test_b1a_core_provenance.py
+new file mode 100644
+index 0000000..abd0118
+--- /dev/null
++++ b/scripts/tests/test_b1a_core_provenance.py
+@@ -0,0 +1,534 @@
++from __future__ import annotations
++
++import copy
++from pathlib import Path
++import random
++import shutil
++import sys
++import tempfile
++import unittest
++
++
++REPO = Path(__file__).resolve().parents[2]
++SCRIPT_ROOT = REPO / "scripts"
++PLANT_ROOT = REPO / "plant"
++for search_root in (SCRIPT_ROOT, PLANT_ROOT):
++    if str(search_root) not in sys.path:
++        sys.path.insert(0, str(search_root))
++
++from approve_physical_stock_topology import (
++    _preflight_fingerprint_sha256,
++    main as approve_main,
++    validate_approval_artifact,
++)
++from build_state_manifest_v2_1 import (
++    SELECTION_DOWNSTREAM_CONSUMERS,
++    SELECTION_UNITS,
++    main as manifest_main,
++    selection_semantic_payload,
++)
++from build_vissim_lane_graph import build_lane_graph
++from compile_physical_stock_topology import (
++    compile_physical_stock_topology,
++    evidence_identity_hashes,
++)
++from resolve_lane_routes import compile_route_proofs
++from src.vissim_strict.physical_projection import (
++    atomic_write_json,
++    file_sha256,
++    normalize_vehicle_records,
++    project_vehicle_records,
++    strict_load_json,
++    validate_physical_stock_topology,
++)
++from src.vissim_strict.topology import canonical_json_sha256
++from validate_state_projection_v2_1 import main as validate_main
++
++
++def road(no: int, length: float = 100.0):
++    return {
++        "id": f"link:{no}",
++        "vissim_no": str(no),
++        "name": f"road-{no}",
++        "length_m": length,
++        "geometry": [
++            {"x_m": 0.0, "y_m": float(no), "z_m": 0.0},
++            {"x_m": length, "y_m": float(no), "z_m": 0.0},
++        ],
++        "lanes": [{
++            "id": f"lane:{no}:1",
++            "lane_no": 1,
++            "width_m": 3.5,
++            "closed": False,
++        }],
++    }
++
++
++def canonical_manifest(roads, input_hash):
++    return {
++        "compiler_version": "fixture-compiler/1",
++        "topology_hash": "fixture-topology",
++        "validation_report": {"valid": True, "errors": []},
++        "source": {"inpx_path": "inputs/network.inpx", "inpx_sha256": input_hash},
++        "signal_reference": {
++            "schema_version": "signal-reference-v2.1",
++            "compiler_hash": "fixture-signal-hash",
++        },
++        "links": list(roads),
++        "connectors": [],
++        "signal_heads": [],
++    }
++
++
++def ownership(items):
++    return {
++        "rule": "fixture exact ownership",
++        "link_owner": {str(key): str(value) for key, value in items},
++        "freeway_bound_links": {},
++        "monitor_only_exit_links": [],
++        "urban_link_count": len(items),
++    }
++
++
++def adjacency(owners):
++    values = [str(value) for value in owners]
++    return {
++        "adjacency": {
++            owner: sorted(set(values) - {owner}, key=int)
++            for owner in sorted(set(values), key=int)
++        },
++        "internal_link_members": {},
++    }
++
++
++def capacity():
++    return {
++        "jam_density_veh_km_lane": 100.0,
++        "jam_sample_count": 1,
++        "source": "fixture",
++        "ramp_queue_source": "fixture",
++        "ramp_queue_max_veh_by_ramp": {"fixture-ramp": 1.0},
++    }
++
++
++def vehicle_state(run_id, sim_sec, run_manifest_path, run_manifest_hash, records=None):
++    state = {
++        "run_provenance": {
++            "run_id": run_id,
++            "manifest_path": run_manifest_path,
++            "manifest_sha256": run_manifest_hash,
++        },
++        "sim_sec": sim_sec,
++        "total_vehicles": 0 if records is None else len(records),
++    }
++    if records is None:
++        return state
++    counts: dict[str, int] = {}
++    stopped: dict[str, int] = {}
++    for item in records:
++        key = str(item["link_no"])
++        counts[key] = counts.get(key, 0) + 1
++        if item["stopped"]:
++            stopped[key] = stopped.get(key, 0) + 1
++    stopped = {key: stopped.get(key, 0) for key in counts}
++    state["vehicle_records"] = {
++        "schema_version": "vissim-vehicle-records-v2.1",
++        "complete": True,
++        "paused_at_sim_sec": sim_sec,
++        "capture_sim_sec_before": sim_sec,
++        "capture_sim_sec_after": sim_sec,
++        "source_attributes": {
++            "vehicle_number": "No",
++            "lane": "Lane",
++            "position": "Pos",
++            "speed": "Speed",
++        },
++        "stopped_threshold_kph": 1.0,
++        "collection_count_before": len(records),
++        "collection_count_after": len(records),
++        "record_count": len(records),
++        "unobservable_count": 0,
++        "external_source_count": 0,
++        "full_network_link_counts": counts,
++        "full_network_link_stopped_counts": stopped,
++        "records": records,
++    }
++    return state
++
++
++class B1aProvenanceScriptTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory()
++        self.root = Path(self.temporary.name).resolve()
++        for relative in ("outputs", "inputs", "evaluation/runs/x", "scripts"):
++            (self.root / relative).mkdir(parents=True)
++        shutil.copy2(
++            REPO / "scripts/build_preflight_manifest.py",
++            self.root / "scripts/build_preflight_manifest.py",
++        )
++        self.inpx = self.root / "inputs/network.inpx"
++        self.inpx.write_text("<network/>", encoding="utf-8")
++        self.dummy = self.root / "inputs/dummy.txt"
++        self.dummy.write_text("preflight fixture\n", encoding="utf-8")
++        input_hash = file_sha256(self.inpx)
++        self.graph = build_lane_graph(canonical_manifest([road(1)], input_hash))
++        self.routes = compile_route_proofs(self.inpx, self.graph)
++        own = ownership([(1, 1)])
++        adj = adjacency([1])
++        cap = capacity()
++        self.topology = compile_physical_stock_topology(
++            self.graph,
++            self.routes,
++            own,
++            adj,
++            cap,
++            expected_evidence_hashes=evidence_identity_hashes(own, adj, cap),
++        )
++        self.assertEqual(self.graph["status"], "PASS")
++        self.assertEqual(self.routes["status"], "PASS")
++        self.assertEqual(self.topology["status"], "PASS")
++        self.preflight_path = self.root / "outputs/preflight_manifest_v3.json"
++        self.graph_path = self.root / "outputs/vissim_lane_graph_v2_1.json"
++        self.routes_path = self.root / "outputs/lane_route_proofs_v2_1.json"
++        self.topology_path = self.root / "outputs/physical_stock_topology_v2_1.json"
++        self.approval_path = self.root / "outputs/topology_approval_v2_1.json"
++        self.selection_path = self.root / "outputs/state_selection_v2_1.json"
++        self.manifest_path = self.root / "outputs/state_manifest_v2_1.json"
++        self.audit_path = self.root / "outputs/initial_projection_audit_v2_1.json"
++        atomic_write_json(self.graph_path, self.graph)
++        atomic_write_json(self.routes_path, self.routes)
++        atomic_write_json(self.topology_path, self.topology)
++        self.write_preflight()
++        self.assertEqual(self.approve(), 0)
++
++    def tearDown(self):
++        self.temporary.cleanup()
++
++    def write_preflight(self):
++        dummy_hash = file_sha256(self.dummy)
++        preflight = {
++            "schema_version": "preflight-v3",
++            "input_hashes": {"dummy": dummy_hash},
++            "command_version": {
++                "command": "scripts/build_preflight_manifest.py",
++                "version": "preflight-v3",
++                "sha256": file_sha256(REPO / "scripts/build_preflight_manifest.py"),
++            },
++            "status": "PASS",
++            "reasons": [],
++            "sample_dimensions": {
++                "model_signal_controllers": 0,
++                "resolved_signal_programs": 0,
++                "unique_resolved_signal_programs": 0,
++                "excluded_signal_controllers": 0,
++                "auxiliary_signal_controllers": 0,
++                "signal_heads": 0,
++                "hashed_artifacts": 1,
++                "runtime_python_files": 0,
++            },
++            "units": {
++                "controller_count": "signal controller",
++                "signal_program_count": "resolved .sig file",
++                "signal_head_count": "signal head reference",
++                "size_bytes": "byte",
++                "sha256": "SHA-256 hex digest of raw bytes unless explicitly named normalised",
++                "normalised_tree_sha256": "SHA-256 over relative Python paths and LF-normalised file hashes",
++            },
++            "downstream_consumers": [
++                "S0R-3 baseline snapshot",
++                "scripts/run_plant_fidelity_matrix.ps1",
++                "scripts/audit_plant_fidelity.py",
++                "paired VISSIM future campaign",
++                "plant fidelity certification release",
++            ],
++            "repo": str(self.root),
++            "artifacts": {
++                "dummy": {
++                    "path": str(self.dummy),
++                    "exists": True,
++                    "size_bytes": self.dummy.stat().st_size,
++                    "sha256": dummy_hash,
++                }
++            },
++            "network": {
++                "network_version": "fixture",
++                "vissim_version": "fixture",
++                "model_controllers": [],
++                "excluded_controller": None,
++                "auxiliary_controllers": [],
++                "resolved_signal_programs": [],
++                "signal_head_count": 0,
++            },
++            "runtime_source_identity": {
++                "schema_version": "runtime-source-v2.1",
++                "expected_snapshot_commit": "fixture",
++                "selected_is_canonical": True,
++                "selected": {"actual_python_file_count": 0},
++                "python": {"sha256": "fixture"},
++            },
++            "checks": [{"id": "fixture.pass", "status": "PASS"}],
++        }
++        fingerprint = _preflight_fingerprint_sha256(preflight)
++        preflight["fingerprint"] = {
++            "algorithm": "sha256",
++            "canonicalisation": "UTF-8 JSON, sorted keys, compact separators, ensure_ascii",
++            "sha256": fingerprint,
++        }
++        preflight["fingerprint_sha256"] = fingerprint
++        atomic_write_json(self.preflight_path, preflight)
++
++    def approve(self):
++        return approve_main([
++            "--workspace-root", str(self.root),
++            "--preflight", "outputs/preflight_manifest_v3.json",
++            "--graph", "outputs/vissim_lane_graph_v2_1.json",
++            "--routes", "outputs/lane_route_proofs_v2_1.json",
++            "--topology", "outputs/physical_stock_topology_v2_1.json",
++            "--out", "outputs/topology_approval_v2_1.json",
++        ])
++
++    def write_selection_and_state(self, *, required=True, records_marker=True):
++        bundle = validate_approval_artifact(
++            self.approval_path,
++            workspace_root=self.root,
++            supplied_topology_path=self.topology_path,
++        )
++        approved = {
++            "approving_manifest_path": "outputs/topology_approval_v2_1.json",
++            "approving_manifest_sha256": bundle.approval_file_sha256,
++            "topology_path": "outputs/physical_stock_topology_v2_1.json",
++            "topology_file_sha256": file_sha256(self.topology_path),
++            "topology_semantic_sha256": self.topology["semantic_sha256"],
++        }
++        run_manifest_path = self.root / "evaluation/runs/x/run_manifest.json"
++        run_manifest = {
++            "schema_version": "run-manifest-v2.1",
++            "status": "PASS",
++            "reasons": [],
++            "run_id": "run-13",
++            "approved_topology": approved,
++            "configuration": {"seed": 13},
++            "allowed_capture_times": [900.0],
++        }
++        atomic_write_json(run_manifest_path, run_manifest)
++        run_hash = file_sha256(run_manifest_path)
++        state_path = self.root / "evaluation/runs/x/state_000900.json"
++        records = None
++        if records_marker:
++            records = [{
++                "veh_no": 17,
++                "link_no": 1,
++                "lane_no": 1,
++                "position_m": 25.0,
++                "speed_kph": 1.0,
++                "stopped": False,
++            }]
++        state = vehicle_state(
++            "run-13",
++            900.0,
++            "evaluation/runs/x/run_manifest.json",
++            run_hash,
++            records,
++        )
++        atomic_write_json(state_path, state)
++        selection = {
++            "schema_version": "state-selection-v2.1",
++            "input_hashes": {},
++            "command_version": {},
++            "status": "PASS",
++            "reasons": [],
++            "sample_dimensions": {"entries": 1},
++            "units": copy.deepcopy(SELECTION_UNITS),
++            "downstream_consumers": list(SELECTION_DOWNSTREAM_CONSUMERS),
++            "campaign_id": "campaign-x",
++            "expected_entry_count": 1,
++            "entries": [{
++                "run_manifest_path": "evaluation/runs/x/run_manifest.json",
++                "state_path": "evaluation/runs/x/state_000900.json",
++                "run_id": "run-13",
++                "sim_sec": 900.0,
++                "required_vehicle_records": required,
++            }],
++        }
++        selection["semantic_sha256"] = canonical_json_sha256(
++            selection_semantic_payload(selection)
++        )
++        atomic_write_json(self.selection_path, selection)
++        return state_path, run_manifest_path
++
++    def build_manifest(self):
++        return manifest_main([
++            "--workspace-root", str(self.root),
++            "--approval", "outputs/topology_approval_v2_1.json",
++            "--topology", "outputs/physical_stock_topology_v2_1.json",
++            "--selection", "outputs/state_selection_v2_1.json",
++            "--out", "outputs/state_manifest_v2_1.json",
++        ])
++
++    def validate(self):
++        return validate_main([
++            "--states", str(self.manifest_path),
++            "--topology", str(self.topology_path),
++            "--out", str(self.audit_path),
++        ])
++
++    def test_end_to_end_projection_sidecar_pass_aggregate_not_evaluated(self):
++        state_path, _ = self.write_selection_and_state()
++        self.assertEqual(self.build_manifest(), 0)
++        manifest = strict_load_json(self.manifest_path)
++        self.assertEqual(manifest["status"], "PASS")
++        self.assertEqual(set(manifest["input_hashes"]), {
++            "approving_manifest_sha256",
++            "state_selection_file_sha256",
++            "state_selection_semantic_sha256",
++            "topology_file_sha256",
++            "topology_semantic_sha256",
++            "state_set_semantic_sha256",
++        })
++        self.assertEqual(self.validate(), 2)
++        sidecar = strict_load_json(
++            state_path.with_name("state_000900.physical_projection_v2_1.json")
++        )
++        audit = strict_load_json(self.audit_path)
++        self.assertEqual(sidecar["status"], "PASS")
++        self.assertEqual(set(sidecar["input_hashes"]), {
++            "topology_file_sha256",
++            "topology_semantic_sha256",
++            "approving_manifest_sha256",
++            "state_file_sha256",
++            "vehicle_records_semantic_sha256",
++        })
++        self.assertEqual(sidecar["projection_diagnostics"]["global_residual"], 0)
++        self.assertEqual(audit["status"], "NOT_EVALUATED")
++        self.assertEqual(audit["live_gates"], {
++            "supported_vissim_com_capture": "NOT_EVALUATED",
++            "live_performance_p95": "NOT_EVALUATED",
++        })
++
++    def test_required_and_optional_missing_envelope_remain_distinct(self):
++        state_path, _ = self.write_selection_and_state(required=False, records_marker=False)
++        self.assertEqual(self.build_manifest(), 0)
++        self.assertEqual(self.validate(), 2)
++        sidecar_path = state_path.with_name("state_000900.physical_projection_v2_1.json")
++        self.assertEqual(strict_load_json(sidecar_path)["status"], "NOT_EVALUATED")
++
++        selection = strict_load_json(self.selection_path)
++        selection["entries"][0]["required_vehicle_records"] = True
++        selection["semantic_sha256"] = canonical_json_sha256(selection_semantic_payload(selection))
++        atomic_write_json(self.selection_path, selection)
++        self.assertEqual(self.build_manifest(), 0)
++        sidecar_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
++        self.assertEqual(self.validate(), 1)
++        self.assertEqual(strict_load_json(sidecar_path)["status"], "FAIL")
++
++    def test_tampered_state_replaces_stale_sidecar_and_audit(self):
++        state_path, _ = self.write_selection_and_state()
++        self.assertEqual(self.build_manifest(), 0)
++        self.assertEqual(self.validate(), 2)
++        sidecar_path = state_path.with_name("state_000900.physical_projection_v2_1.json")
++        old_sidecar_hash = file_sha256(sidecar_path)
++        state = strict_load_json(state_path)
++        state["vehicle_records"]["records"][0]["position_m"] = 200.0
++        atomic_write_json(state_path, state)
++        self.audit_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
++        self.assertEqual(self.validate(), 1)
++        self.assertEqual(strict_load_json(sidecar_path)["status"], "FAIL")
++        self.assertNotEqual(file_sha256(sidecar_path), old_sidecar_hash)
++        self.assertEqual(strict_load_json(self.audit_path)["status"], "FAIL")
++
++    def test_selection_tamper_and_absolute_child_path_fail_closed(self):
++        state_path, _ = self.write_selection_and_state()
++        self.assertEqual(self.build_manifest(), 0)
++        selection = strict_load_json(self.selection_path)
++        selection["campaign_id"] = "tampered-campaign"
++        selection["semantic_sha256"] = canonical_json_sha256(selection_semantic_payload(selection))
++        atomic_write_json(self.selection_path, selection)
++        self.audit_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
++        self.assertEqual(self.validate(), 1)
++        self.assertEqual(strict_load_json(self.audit_path)["status"], "FAIL")
++
++        selection["entries"][0]["state_path"] = str(state_path)
++        selection["semantic_sha256"] = canonical_json_sha256(selection_semantic_payload(selection))
++        atomic_write_json(self.selection_path, selection)
++        self.manifest_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
++        self.assertEqual(self.build_manifest(), 1)
++        self.assertEqual(strict_load_json(self.manifest_path)["status"], "FAIL")
++
++    def test_topology_and_graph_tamper_replace_stale_approval(self):
++        graph = strict_load_json(self.graph_path)
++        graph["nodes"][0]["name"] = "tampered-without-semantic-rehash"
++        atomic_write_json(self.graph_path, graph)
++        self.assertEqual(strict_load_json(self.approval_path)["status"], "PASS")
++        self.assertEqual(self.approve(), 1)
++        self.assertEqual(strict_load_json(self.approval_path)["status"], "FAIL")
++
++    def test_empty_closed_selection_is_not_evaluated(self):
++        selection = {
++            "schema_version": "state-selection-v2.1",
++            "input_hashes": {},
++            "command_version": {},
++            "status": "PASS",
++            "reasons": [],
++            "sample_dimensions": {"entries": 0},
++            "units": copy.deepcopy(SELECTION_UNITS),
++            "downstream_consumers": list(SELECTION_DOWNSTREAM_CONSUMERS),
++            "campaign_id": "empty-campaign",
++            "expected_entry_count": 0,
++            "entries": [],
++        }
++        selection["semantic_sha256"] = canonical_json_sha256(selection_semantic_payload(selection))
++        atomic_write_json(self.selection_path, selection)
++        self.assertEqual(self.build_manifest(), 0)
++        self.assertEqual(self.validate(), 2)
++        self.assertEqual(strict_load_json(self.audit_path)["status"], "NOT_EVALUATED")
++
++    def test_ten_compiler_input_orders_keep_a2_semantics_and_projection_topology(self):
++        input_hash = file_sha256(self.inpx)
++        graph = build_lane_graph(canonical_manifest([road(1), road(2), road(3)], input_hash))
++        routes = compile_route_proofs(self.inpx, graph)
++        hashes = set()
++        stock_id_sets = set()
++        projection_hashes = set()
++        base = [(1, 1), (2, 2), (3, 3)]
++        for seed in range(10):
++            shuffled = base[:]
++            random.Random(seed).shuffle(shuffled)
++            own = ownership(shuffled)
++            adj = adjacency([owner for _, owner in shuffled])
++            cap = capacity()
++            topology = compile_physical_stock_topology(
++                graph,
++                routes,
++                own,
++                adj,
++                cap,
++                expected_evidence_hashes=evidence_identity_hashes(own, adj, cap),
++            )
++            self.assertEqual(topology["status"], "PASS")
++            hashes.add(topology["semantic_sha256"])
++            stock_id_sets.add(tuple(item["id"] for item in topology["stocks"]))
++            validated = validate_physical_stock_topology(topology, graph)
++            state = vehicle_state("run-13", 900.0, "ignored", "0" * 64, [{
++                "veh_no": 1,
++                "link_no": 1,
++                "lane_no": 1,
++                "position_m": 25.0,
++                "speed_kph": 10.0,
++                "stopped": False,
++            }])
++            _, _, records_hash = normalize_vehicle_records(state, validated.tolerance_m)
++            result = project_vehicle_records(validated, state, {
++                "topology_file_sha256": "a" * 64,
++                "topology_semantic_sha256": validated.semantic_sha256,
++                "approving_manifest_sha256": "b" * 64,
++                "state_file_sha256": "c" * 64,
++                "vehicle_records_semantic_sha256": records_hash,
++            })
++            projection_hashes.add(result.ledger["normalized_projection_sha256"])
++        self.assertEqual(len(hashes), 1)
++        self.assertEqual(len(stock_id_sets), 1)
++        self.assertEqual(len(projection_hashes), 1)
++
++
++if __name__ == "__main__":
++    unittest.main()
