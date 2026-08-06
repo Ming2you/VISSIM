@@ -31,6 +31,18 @@ STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
 STATUS_NE = "NOT_EVALUATED"
 
+# state 의 형제로 놓이는 sidecar 는 `state_` 접두사를 그대로 물려받아 state 발견 glob 에 걸린다.
+# 그러면 link count 가 없는 sidecar 가 state 로 집계돼 state_observation_contract 게이트가
+# 엉뚱한 이유("missing counts")로 FAIL 한다. 생산자는 두 곳이다 -
+#   plant/src/vissim_strict/physical_projection.py:452  (projection sidecar)
+#   scripts/build_state_manifest_v2_1.py:301            (capture evidence sidecar)
+# 이 모듈은 표준 라이브러리만 쓰므로 import 대신 접미사를 복제하고,
+# scripts/tests/test_audit_plant_fidelity.py 가 두 생산자와의 일치를 강제한다.
+STATE_SIDECAR_SUFFIXES = (
+    ".physical_projection_v2_1.json",
+    ".vehicle_capture_v2_1.json",
+)
+
 AUDIT_REPLAY_PATH_FIELDS = (
     "repo",
     "network",
@@ -1294,7 +1306,11 @@ def action_directory_evidence(path: Path | None) -> dict[str, Any]:
         }
         for item in artifact_paths
     ]
-    state_files = sorted((*path.rglob("state_*.json"), *path.rglob("anchor_*.json")))
+    state_files = sorted(
+        item
+        for item in (*path.rglob("state_*.json"), *path.rglob("anchor_*.json"))
+        if not item.name.endswith(STATE_SIDECAR_SUFFIXES)
+    )
     action_files = sorted(path.rglob("action_*.json"))
     result["state_file_count"] = len(state_files)
     result["action_file_count"] = len(action_files)

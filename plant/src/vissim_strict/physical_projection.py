@@ -1145,6 +1145,21 @@ def normalize_vehicle_records(
     total = state.get("total_vehicles")
     if not isinstance(total, int) or isinstance(total, bool) or total != raw_count:
         issues.append(_reason("state_total_mismatch", {"state_total": total, "record_count": raw_count}))
+    # 루트 stopped_vehicles 도 records 에서 재유도해 대조한다. 위의 total 항등식과 짝이다.
+    # 이 필드는 장식이 아니라 소비되는 값이다 - adapter 의 램프 방류 가드와 감사가 그대로 읽는다.
+    # 강한 봉투 검증기(_state_records_by_no)는 capture producer/CLI 경로에서만 도는데,
+    # 오프라인 manifest -> projection 경로는 그 검증기를 타지 않으므로 여기서 닫는다.
+    stopped_total = sum(reconstructed_stopped.values())
+    stopped_declared = state.get("stopped_vehicles")
+    if (
+        not isinstance(stopped_declared, int)
+        or isinstance(stopped_declared, bool)
+        or stopped_declared != stopped_total
+    ):
+        issues.append(_reason("state_stopped_mismatch", {
+            "state_stopped": stopped_declared,
+            "record_stopped_count": stopped_total,
+        }))
     if issues:
         diagnostics = {
             "raw_record_count": raw_count,

@@ -589,6 +589,30 @@ class AuditPlantFidelityTests(unittest.TestCase):
         states["explicit_configured_count"] = 0
         self.assertEqual(audit.state_observation_contract_gate(states)["status"], "PASS")
 
+    def test_state_sidecars_are_not_discovered_as_states(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            assets = prepare_provenance_assets(root)
+            state_path, _ = write_runtime_record(
+                root / "run-a",
+                assets,
+                suffix=1,
+                input_count=6,
+                represented=6,
+            )
+            for sidecar_suffix in audit.STATE_SIDECAR_SUFFIXES:
+                state_path.with_name(state_path.stem + sidecar_suffix).write_text(
+                    json.dumps({"status": "PASS"}),
+                    encoding="utf-8",
+                )
+            result = audit.action_directory_evidence(root)
+            states = audit.state_evidence([Path(path) for path in result["state_files"]])
+        self.assertEqual(result["state_file_count"], 1)
+        self.assertEqual(states["missing_link_counts_count"], 0)
+        states["action_dir_discovered_count"] = 1
+        states["explicit_configured_count"] = 0
+        self.assertEqual(audit.state_observation_contract_gate(states)["status"], "PASS")
+
     def test_projection_contract_rejects_missing_fields_and_unexplained_clipping(self) -> None:
         missing = audit.projection_contract_record(
             {"input_link_vehicle_count_veh": 10}, "missing.json"

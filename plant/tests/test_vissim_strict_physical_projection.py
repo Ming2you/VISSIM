@@ -214,6 +214,9 @@ def state_fixture(records: list[dict[str, object]], *, run_id="run-13", sim_sec=
         "run_provenance": {"run_id": run_id},
         "sim_sec": sim_sec,
         "total_vehicles": count,
+        # 실제 생산자(run_real_world_stackelberg_controller.vbs:1517,1525)가 두 루트 카운트를
+        # 나란히 쓴다. 픽스처도 그 계약을 따른다.
+        "stopped_vehicles": sum(stopped.values()),
         "vehicle_records": {
             "schema_version": "vissim-vehicle-records-v2.1",
             "complete": True,

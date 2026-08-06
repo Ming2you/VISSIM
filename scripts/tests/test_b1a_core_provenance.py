@@ -23,11 +23,13 @@ from approve_physical_stock_topology import (
     semantic_payload as approval_semantic_payload,
     validate_approval_artifact,
 )
+from audit_plant_fidelity import STATE_SIDECAR_SUFFIXES
 from build_state_manifest_v2_1 import (
     SELECTION_DOWNSTREAM_CONSUMERS,
     SELECTION_UNITS,
     main as manifest_main,
     selection_semantic_payload,
+    vehicle_capture_sidecar_path,
 )
 from build_preflight_manifest import main as preflight_main
 from build_vissim_lane_graph import build_lane_graph
@@ -42,6 +44,7 @@ from src.vissim_strict.physical_projection import (
     file_sha256,
     normalize_vehicle_records,
     project_vehicle_records,
+    projection_sidecar_path,
     strict_load_json,
     topology_semantic_payload,
     validate_physical_stock_topology,
@@ -659,6 +662,43 @@ class B1aProvenanceScriptTests(unittest.TestCase):
             {reason["code"] for reason in sidecar["reasons"]},
         )
         self.assertEqual(strict_load_json(self.audit_path)["status"], "FAIL")
+
+    def test_root_stopped_vehicles_tamper_replaces_stale_sidecar_with_fail(self):
+        state_path, _ = self.write_selection_and_state()
+        state = strict_load_json(state_path)
+        self.assertEqual(state["stopped_vehicles"], 0)
+        state["stopped_vehicles"] = 1
+        atomic_write_json(state_path, state)
+        self.assertEqual(self.build_manifest(), 0)
+        sidecar_path = state_path.with_name(
+            "state_000900.physical_projection_v2_1.json"
+        )
+        sidecar_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
+        self.audit_path.write_text('{"status":"STALE_PASS"}', encoding="utf-8")
+        self.assertEqual(self.validate(), 1)
+        sidecar = strict_load_json(sidecar_path)
+        self.assertEqual(sidecar["status"], "FAIL")
+        self.assertIn(
+            "state_stopped_mismatch",
+            {reason["code"] for reason in sidecar["reasons"]},
+        )
+        self.assertEqual(strict_load_json(self.audit_path)["status"], "FAIL")
+
+    def test_audit_sidecar_exclusion_covers_both_real_producers(self):
+        # audit_plant_fidelity 는 표준 라이브러리만 쓰므로 접미사를 복제해 둔다.
+        # 그 복제본이 두 생산자의 실제 산출 경로를 정말 덮는지 여기서 강제한다.
+        state_path = Path("evaluation/runs/x/state_000900.json")
+        produced = (
+            projection_sidecar_path(state_path).name,
+            vehicle_capture_sidecar_path(state_path).name,
+        )
+        for name in produced:
+            self.assertTrue(
+                name.endswith(STATE_SIDECAR_SUFFIXES),
+                f"{name} is not covered by STATE_SIDECAR_SUFFIXES",
+            )
+            self.assertTrue(name.startswith("state_"))
+        self.assertEqual(len(set(STATE_SIDECAR_SUFFIXES)), len(produced))
 
     def test_huge_topology_integer_replaces_stale_approval_with_fail(self):
         topology = strict_load_json(self.topology_path)

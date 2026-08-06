@@ -445,6 +445,9 @@ class B1aVbsCaptureHelpersBehaviorTests(unittest.TestCase):
                     "run_provenance": {"run_id": "run-13"},
                     "sim_sec": 900.0,
                     "total_vehicles": 2,
+                    # veh 3 만 stopped 다. 루트 두 카운트는 실제 생산자
+                    # (run_real_world_stackelberg_controller.vbs:1517,1525)가 나란히 쓴다.
+                    "stopped_vehicles": 1,
                     "vehicle_records": records,
                 },
                 1.0e-6,
