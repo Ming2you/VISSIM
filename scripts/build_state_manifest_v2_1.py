@@ -1104,6 +1104,19 @@ def build_manifest_artifact(
             issues.extend(
                 f"{entry['state_path']}: {issue}" for issue in exc.issues
             )
+        # manifest 생성은 **인벤토리**다 — 선택된 state 를 기록만 하고 판정하지 않는다.
+        # 따라서 여기서는 run binding(sim_sec / run_id / manifest 해시·경로)만 본다.
+        #
+        # 2026-08-06 Slice 3B fix5 가 여기에 `require_vehicle_records` 를 넘겨 vehicle-record
+        # 봉투 문제까지 결속 문제로 승격시켰고, 그 결과 잘못된 필수 state 가 있으면
+        # build_manifest() 가 1 을 반환해 **낡은 projection/audit sidecar 를 FAIL 증거로
+        # 교체하지 못했다**(test_b1a_core_provenance 3건 실패, subTest 기준 5건).
+        #
+        # 봉투 판정은 이미 하류에 있다 — validate_state_projection_v2_1.py:451 은 결속만
+        # 검사하고, :469 에서 `required_vehicle_records` 를 보고 FAIL/NOT_EVALUATED 를 가른다.
+        # 두 호출부의 계약을 그 설계에 맞춘다. 필수 봉투를 즉시 거부해야 하는 경로
+        # (capture producer, 재사용 validator, CLI --validate-state-run-binding)는
+        # 계속 require_vehicle_records=True 로 부른다.
         issues.extend(
             f"{entry['state_path']}: {issue}"
             for issue in validate_state_run_binding(
@@ -1114,7 +1127,6 @@ def build_manifest_artifact(
                 run_manifest_sha256=run_manifest_hash,
                 run_id=entry["run_id"],
                 sim_sec=entry["sim_sec"],
-                require_vehicle_records=entry["required_vehicle_records"],
             )
         )
         states.append({
