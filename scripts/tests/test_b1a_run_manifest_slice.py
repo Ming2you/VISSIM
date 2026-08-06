@@ -1155,6 +1155,36 @@ class ProducerCliTests(unittest.TestCase):
             0,
         )
 
+    def assert_same_json_types(self, left, right, path: str = "$") -> None:
+        # assertEqual 로는 부족하다 - 파이썬에서 1 == 1.0 이라 JSON double 계약 위반을 못 잡는다.
+        self.assertIs(type(left), type(right), f"type differs at {path}")
+        if isinstance(left, dict):
+            self.assertEqual(sorted(left), sorted(right), f"keys differ at {path}")
+            for key in left:
+                self.assert_same_json_types(left[key], right[key], f"{path}.{key}")
+        elif isinstance(left, list):
+            self.assertEqual(len(left), len(right), f"length differs at {path}")
+            for index, (item_left, item_right) in enumerate(zip(left, right)):
+                self.assert_same_json_types(item_left, item_right, f"{path}[{index}]")
+
+    def test_dry_run_path_uses_the_shared_template_serializer(self) -> None:
+        # 발행 경로는 위 회귀가 산출물로 검증한다. dry-run 호출부는 그렇게 못 한다 -
+        # 하네스는 직렬화기를 직접 부르므로, .ps1 의 호출 한 줄만 옛 코드로 되돌려도
+        # 산출물 기반 assertion 은 초록으로 남는다. 그래서 호출부를 소스로 고정한다.
+        # (하네스가 python 을 띄우게 하는 방식은 환경에 따라 갈려 채택하지 않았다.)
+        script = REPO / "scripts" / "run_real_world_single_watchdog_distributed_core15n41.ps1"
+        source = script.read_text(encoding="utf-8")
+        for function_name, expected_call in (
+            ("Write-B1aJsonTemplate", "ConvertTo-B1aTemplateJson $Value $false"),
+            ("Invoke-B1aTemplateValidationNoWrite", "ConvertTo-B1aTemplateJson $Template $true"),
+        ):
+            start = source.index(f"function {function_name}(")
+            body = source[start:source.index("\n}", start)]
+            with self.subTest(function=function_name):
+                self.assertIn(expected_call, body)
+                # 공유 직렬화기 밖에서 ConvertTo-Json 을 직접 부르면 정규화가 빠진다.
+                self.assertNotIn("ConvertTo-Json", body)
+
     @unittest.skipUnless(shutil.which("powershell"), "Windows PowerShell is required")
     def test_watchdog_production_template_schedule_creates_and_validates_manifest(self) -> None:
         template = dict(self.request)
@@ -1214,6 +1244,8 @@ class ProducerCliTests(unittest.TestCase):
                     # 거치는지 여기서 고정한다 - 갈라지면 사전검증이 실제 바이트와 다른 것을 본다.
                     "$compressed = ConvertTo-B1aTemplateJson $template $true",
                     f"[System.IO.File]::WriteAllBytes('{compressed_path}', [System.Text.UTF8Encoding]::new($false).GetBytes($compressed))",
+                    # 이 두 줄은 직렬화기만 태운다. 실제 dry-run 호출부는
+                    # test_dry_run_path_uses_the_shared_template_serializer 가 지킨다.
                 )
             ),
             encoding="utf-8",
@@ -1247,6 +1279,7 @@ class ProducerCliTests(unittest.TestCase):
 
         compressed_template = strict_load_json(compressed_path)
         self.assertEqual(compressed_template, produced_template)
+        self.assert_same_json_types(compressed_template, produced_template)
         self.assertTrue(
             all(isinstance(value, float) for value in compressed_template["allowed_capture_times"])
         )
