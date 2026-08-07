@@ -27,3 +27,12 @@ runlog_*.txt.err
 # vissim auto-save / manual backups (bulky binaries, not source)
 *.inp0
 *.bak_*
+
+# v3 N0 - 실 네트워크에서 결정적으로 재생성되는 대형 토폴로지 산출물 (합계 42 MB).
+# 산출물이 아니라 SHA-256 이 정본이며 context-notes.md 에 기록한다.
+# 재생성 명령은 IMPLEMENTATION_PLAN_V3_LEAN.md 의 N0 절에 있다.
+outputs/lane_route_graph_v2_1.json
+outputs/lane_route_proofs_v2_1.json
+outputs/physical_stock_topology_v2_1.json
+# v3 에서 승인 사슬이 제거되어 더 이상 생성하지 않는다.
+outputs/topology_approval_v2_1.json

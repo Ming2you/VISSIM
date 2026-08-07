@@ -2,7 +2,7 @@
 
 - 작성: 2026-08-07
 - 대체 대상: `IMPLEMENTATION_PLAN.md` (v2.1)
-- 상태: **초안 — 채택 전**
+- 상태: **채택됨 (2026-08-07)** — 이 문서가 활성 계획이다
 
 ---
 
@@ -102,7 +102,21 @@ v2.1 의 물리·신호 불변식은 그대로 가져온다.
 **지금 상태.** A1 차로 그래프(2,649 차로 / 커버리지 1.000), 경로 증명(339 경로 / 유량오차 1.1e-16),
 A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 실 네트워크에서 컴파일되고 PASS 한다.
 
-**할 일.** 컴파일러/검증기 불일치 35건을 닫는다. 커넥터 진입 엣지의 `from_position_m` 이
+### N0-1. v2.2 필수 역할 제거
+
+`plant/src/vissim_strict/run_evidence.py:94-95` 의 닫힌 필수 소스 역할 집합에
+`post_run_artifact_producer`(`build_run_artifact_manifest_v2_2.py`)와
+`live_replay_builder`(`build_projection_live_evidence_v2_2.py`)가 들어 있다(`:108-109` 경로 맵도 같다).
+**v3 는 이 두 생산자를 만들지 않으므로 preflight 가 영원히 FAIL 한다.**
+
+두 역할을 필수 집합에서 뺀다. 닫힌 역할 우주를 검증하는 테스트가 함께 바뀐다.
+
+**PASS.** `build_preflight_manifest.py` 산출 `status=PASS`, reasons 0.
+`RW_PYTHON_EXE` 를 정본 파이썬으로 고정한 상태에서 `verify_runtime_source.py` 도 PASS.
+
+### N0-2. 커넥터 진입 엣지 위치 정합
+
+컴파일러/검증기 불일치 35건을 닫는다. 커넥터 진입 엣지의 `from_position_m` 이
 `.inpx` 저장값(6자리 반올림)이고 stock 경계는 좌표 계산값(전정밀도)이라 정확 일치에서 갈린다.
 차이는 최대 4.96e-07 m 다.
 
@@ -113,7 +127,21 @@ A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 
 `outputs/physical_stock_topology_v2_1.json` 의 SHA-256 한 줄을 `context-notes.md` 에 적고
 이후 모든 실행이 그 값을 참조한다.
 
+**산출물은 커밋하지 않는다.** 그래프 2.7 MB + 경로증명 8.9 MB + 토폴로지 30.7 MB = 42 MB 이고,
+git 은 모든 판을 영구 보관하므로 재생성할 때마다 같은 크기가 이력에 쌓인다.
+셋 다 `.inpx` 와 입력 3개(`link_player_assignment` / `intersection_adjacency8` /
+`urban_storage_capacity`)에서 아래 명령으로 결정적으로 재생성된다. **해시가 정본이다.**
+
+```powershell
+$py = $env:RW_PYTHON_EXE
+$inpx = "network/real_world_gaepo_modi/modi_eval_rw_control.inpx"
+& $py -B scripts/build_vissim_lane_graph.py --inpx $inpx --output outputs/lane_route_graph_v2_1.json
+& $py -B scripts/resolve_lane_routes.py --inpx $inpx --graph outputs/lane_route_graph_v2_1.json --output outputs/lane_route_proofs_v2_1.json
+& $py -B scripts/compile_physical_stock_topology.py --graph outputs/lane_route_graph_v2_1.json --routes outputs/lane_route_proofs_v2_1.json --ownership outputs/link_player_assignment_20260805.json --adjacency outputs/intersection_adjacency8_20260805.json --capacity outputs/urban_storage_capacity_20260805.json --output outputs/physical_stock_topology_v2_1.json
+```
+
 **PASS.** `validate_physical_stock_topology` 구조 오류 0. 실네트워크 테스트 23/23.
+재생성 결과의 SHA-256 이 `context-notes.md` 기록과 일치.
 
 ## N1. 차량단위 초기상태 투영 — P0
 

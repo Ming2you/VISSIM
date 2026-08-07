@@ -653,3 +653,47 @@ agent 단위 합계는 `sum(cap(r) for r in agent.ramps) if agent.ramps else sca
 
 **배선.** `derive_ramp_queue_capacity.py` 가 `ramp_queue_max_veh_by_ramp` 를 용량 JSON 에
 같이 내고, 생성기가 `--storage-capacity-json` 에서 읽어 network override 에 싣는다.
+
+---
+
+## 2026-08-07 — 계획 v3 채택과 토폴로지 해시 고정
+
+`IMPLEMENTATION_PLAN_V3_LEAN.md` 를 활성 계획으로 채택했다. v2.1 은 참조용으로 보존한다.
+축소 근거와 원복 조건은 v3 서두에 있다.
+
+### 토폴로지 정본 해시 (v3 N0)
+
+실 네트워크 `network/real_world_gaepo_modi/modi_eval_rw_control.inpx` 에서 컴파일한 결과다.
+**산출물 자체는 커밋하지 않는다**(42 MB, 결정적 재생성 가능). 이 해시가 정본이다.
+
+| 산출물 | SHA-256 | 요약 |
+|---|---|---|
+| `lane_route_graph_v2_1.json` | `6d51a171ca4740379e5ff771434748fe72381cbd7229c4c1e661bc918a05a29d` | PASS, 차로 2,649 / 엣지 2,792 / 커버리지 1.000 |
+| `lane_route_proofs_v2_1.json` | `f41edf648f043d51e454844023d160070fb8542979b50ff4c57a16c03e5f7659` | PASS, 경로 339 / 증명 2,684 / 미해결 0 / 유량오차 1.11e-16 |
+| `physical_stock_topology_v2_1.json` | `ba75101daab882f71ddc037c44db3a07f454751a8a591023ea73dc98a0245195` | PASS, stock 7,275 / edge 7,418 / 전 게이트 0 위반 |
+
+재생성 명령은 v3 의 N0 절에 있다.
+
+**주의 — 이 해시는 N0-2 수정 전 값이다.** 커넥터 진입 엣지 35건의 위치 정합을 고치면
+토폴로지 해시가 바뀐다. 고친 뒤 이 표를 갱신한다.
+
+### 아직 FAIL 인 것
+
+- `outputs/preflight_manifest_v3.json` — `status=FAIL`, 이유 정확히 4개이며 전부
+  `post_run_artifact_producer` / `live_replay_builder` 의 존재·해시다. **v3 가 그 두 생산자를
+  만들지 않으므로 N0-1 에서 필수 역할 자체를 제거해야 PASS 한다.** 다른 항목은 전부 PASS 다.
+- `outputs/topology_approval_v2_1.json` — 생성했으나 **v3 에서 승인 사슬이 빠졌으므로 죽은
+  아티팩트다.** 커밋하지 않는다.
+
+### 환경 규약
+
+`verify_runtime_source.py` 는 `RW_PYTHON_EXE` 환경변수를 요구한다. 없으면
+`python.rw_python_exe_present/exists`, `python.executable_matches` 3건으로 FAIL 한다.
+
+```powershell
+$env:RW_PYTHON_EXE = "C:\Users\alsrj\anaconda3\python.exe"
+```
+
+이 저장소의 `runtime_source_v2_1.json` 과 `preflight_manifest_v3.json` 은 원래 Codex 워크트리
+(`C:\tmp\vissim-pstack-controller`)에서 생성돼 절대경로가 전부 거기를 가리켰다. 이번에 이
+워크스페이스에서 재생성했다.
