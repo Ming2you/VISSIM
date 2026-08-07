@@ -123,9 +123,52 @@ A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 
 수정 방향은 **컴파일러**다. 엣지의 `from_position_m` 을 자기가 떠나는 stock 의 경계값으로 맞춘다.
 원시 커넥터 위치는 A1 그래프에 출처로 남는다. 검증기의 정확 일치 규율은 건드리지 않는다.
 
-**고정 방법.** `topology_approval_v2_1.json` 승인 아티팩트를 만들지 않는다. 대신
+### N0-3. 승인 아티팩트 생성
+
+**초판의 정정.** v3 초판은 `topology_approval_v2_1.json` 을 만들지 않겠다고 했다. **오판이었다.**
+`validate_state_projection_v2_1.py:22-26` 이 `validate_approval_artifact` 를 import 하므로,
+승인을 빼면 **이미 완성된 투영 사슬 전체를 새로 써야 한다.** 승인 스크립트는 1,067줄이 이미 있고
+동작한다. v3 가 걷어내려는 것은 **v2.2 쌍과 런 단위 출처 사슬**이지 토폴로지 결속이 아니다.
+
+승인 아티팩트는 그래프·경로·토폴로지·preflight 가 서로 일치함을 한 파일로 묶는다.
+이것은 물리 결속이며 유지한다.
+
+```powershell
+& $py -B scripts/approve_physical_stock_topology.py --workspace-root . `
+  --preflight outputs/preflight_manifest_v3.json `
+  --graph outputs/lane_route_graph_v2_1.json `
+  --routes outputs/lane_route_proofs_v2_1.json `
+  --topology outputs/physical_stock_topology_v2_1.json `
+  --out outputs/topology_approval_v2_1.json
+```
+
+**현재 FAIL 이유와 대응.** 2026-08-07 실행 결과 두 코드가 나왔다.
+
+| 코드 | 건수 | 닫는 단계 |
+|---|---|---|
+| `topology_structure_invalid` | 35 | **N0-2** |
+| `topology_trust_mismatch` | 4 — v2.2 아티팩트 2 + preflight 비-PASS + status/reasons 불일치 | **N0-1** |
+
+즉 N0-1 과 N0-2 가 끝나면 승인이 PASS 할 것으로 예상한다. 예상이 빗나가면 그 자체가 N0 의 산출이다.
+
+### N0-4. state selection 생산자
+
+`state-selection-v2.1` 은 `build_state_manifest_v2_1.py` 가 **소비만** 하고
+`scripts/tests/test_b1a_core_provenance.py` 가 픽스처로 만들 뿐, **생산자가 없다.**
+런 디렉터리의 상태 파일을 열거해 이 파일을 내는 소량 스크립트를 새로 쓴다.
+
+필요한 필드는 소비자가 정의한다 — `schema_version`, `input_hashes`, `command_version`,
+`status`, `reasons`, `sample_dimensions`, `units`, `downstream_consumers`, `campaign_id`,
+`expected_entry_count`, `entries[{run_manifest_path, state_path, run_id, sim_sec,
+required_vehicle_records}]`, `semantic_sha256`.
+
+**PASS.** 런 디렉터리의 상태 파일 수 = `expected_entry_count` = `len(entries)`,
+`build_state_manifest_v2_1.py` 가 그 selection 으로 exit 0.
+
+### N0-5. 토폴로지 해시 고정
+
 `outputs/physical_stock_topology_v2_1.json` 의 SHA-256 한 줄을 `context-notes.md` 에 적고
-이후 모든 실행이 그 값을 참조한다.
+이후 모든 실행이 그 값을 참조한다. N0-2 수정 후의 값이 정본이다.
 
 **산출물은 커밋하지 않는다.** 그래프 2.7 MB + 경로증명 8.9 MB + 토폴로지 30.7 MB = 42 MB 이고,
 git 은 모든 판을 영구 보관하므로 재생성할 때마다 같은 크기가 이력에 쌓인다.
@@ -155,14 +198,30 @@ MPC 롤아웃의 초기 조건이다.
 - 링크별 카운트/정지 맵이 records 와 일치
 - `unobservable_count = 0`, `external_source_count = 0`
 
-**걷어내는 것.** 불변 run manifest, capture evidence sidecar, projection reference,
-timing receipt, 이들의 해시 결속, `run-artifact-manifest-v2.2`, `projection-live-replay-v2.2`,
-required-mode 워치독 경로.
+**재사용하는 것 (초판의 정정).** 아래 v2.1 사슬은 **이미 완성돼 있고 검토를 거쳤다.**
+새로 쓰지 않고 그대로 쓴다. v3 초판은 이것들도 걷어낸다고 읽힐 여지가 있었으나,
+그렇게 하면 동작하는 코드를 버리고 같은 것을 다시 쓰게 된다.
 
-**대체.** 스냅샷마다 `state_XXXXXX.json` 하나와 그 옆의 `projection_XXXXXX.json` 하나.
+```
+build_run_manifest_v2_1.py      (519줄)   런 전 불변 매니페스트
+approve_physical_stock_topology (1,067줄)  토폴로지 결속
+build_state_manifest_v2_1.py    (1,295줄)  선택된 state 인벤토리
+validate_state_projection_v2_1  (941줄)    투영 판정과 sidecar 발행
+```
+
+state 의 `run_provenance` 가 런 매니페스트와 결속되는 것도 유지한다.
+이것은 "어느 런의 어느 시각인가" 를 확정하는 물리적 신원이지 출처 감사가 아니다.
+
+**걷어내는 것.** `run-artifact-manifest-v2.2`, `projection-live-replay-v2.2`,
+capture evidence sidecar 와 projection reference 의 별도 해시 아티팩트화,
+timing receipt 의 독립 봉인, required-mode 워치독의 소스 결속 사슬,
+사후 변조 탐지.
+
+**대체.** 스냅샷마다 `state_XXXXXX.json` 과 그 옆의 projection sidecar 하나.
 런 디렉터리에 `run_config.json`(설정 전문 + 시드 + VISSIM 버전 + git commit) 하나.
 
 **실행.** 3600초 런 1회, 제어주기 60초 → 스냅샷 61회.
+런 후 N0-4 의 selection 생산자 → `build_state_manifest_v2_1.py` → `validate_state_projection_v2_1.py`.
 
 **PASS.** 61/61 스냅샷에서 배정 100%, 잔차 `<=1e-6 veh`, 위 항등식 전부 성립.
 
