@@ -39,8 +39,10 @@ Stackelberg marginal price 는 **미분의 부호와 순위**에 대한 주장�
 기울기 순위에서는 무작위였다. 총량 지표만 보는 검증은 이 오류를 구조적으로 못 잡는다.
 `spillback F1 = 1.000` 도 같은 부류였다 — 라벨이 전부 같아 정보량이 0인데 지표는 만점이었다.
 
-**B 를 걷어낸 이유.** 불변 매니페스트, 해시 사슬, 재생 검증기, ACL 격리 staging, 서명 번들,
-wave 폐기 프로토콜은 **규제 제출이나 이해상충이 있는 다자 검증**의 장치다.
+**B 를 걷어낸 이유.** 런 **사후** 출처 사슬(`run-artifact-manifest-v2.2`,
+`projection-live-replay-v2.2`), 재생 검증기, ACL 격리 staging, 서명 번들, wave 폐기 프로토콜,
+사후 변조 탐지는 **규제 제출이나 이해상충이 있는 다자 검증**의 장치다.
+(**주의** — 런 *전* 불변 매니페스트와 해시 결속은 B 가 아니라 A 다. 원칙 2 의 단서를 보라.)
 학위논문·저널 심사는 이를 요구하지 않는다. 단일 연구자가 자기 실험을 돌리면서 자신을 상대로
 ACL 을 거는 것은 방어 가치보다 비용이 크다.
 
@@ -65,8 +67,23 @@ v3 에서도 설정과 시드로 재실행은 되지만 변조 탐지는 안 된
 다음 중 하나에 해당하면 v2.1 요소를 되살려라. 그 외에는 되살리지 마라.
 
 1. **주장이 바뀌었다.** 예를 들어 규제 제출이나 외부 감사가 목표가 되면 B 전체가 필요해진다.
-2. **게이트가 경계선이다.** v3 가 줄인 표본(§간소화 항목)으로 판정이 임계 근처에 걸리면
-   해당 표본만 v2.1 수준으로 복원한다. 다른 항목까지 함께 되돌리지 마라.
+2. **게이트가 경계선이다.** v3 가 줄인 표본(아래 표)으로 판정이 임계 근처에 걸리면
+   **해당 표본만** v2.1 수준으로 복원한다. 다른 항목까지 함께 되돌리지 마라.
+
+   | 항목 | v2.1 | v3 | 단계 |
+   |---|---|---|---|
+   | 부모 런 | 18 | 9 | N5 |
+   | holdout 시드 | 47/59/71 | 47 | N5 |
+   | SPSA 방향 batch / state | 30 | 20 | N8-1 |
+   | 결정 동등성 twin | 108 | 36 | N8-2 |
+   | 런타임 attempt / stratum | 100 | 50 | N8-4 |
+   | 런타임 독립 VISSIM 런 | 10 | 5 | N8-4 |
+   | 레버 재료 비교 | 24 | 16 | N9-4 |
+   | spillback pos/neg / 셀 | 각 20 | 각 10 | N9-4 |
+   | J 런 키 필드 | 22 | 13 | N9-1 |
+   | BLOCKED 판정 | 5회 | 3회 | N10 |
+
+   **이 표에 없는 것을 줄이지 마라.** 표에 없는데 v2.1 과 다르면 그것은 버그다.
 3. **여러 사람이 동시에 이 저장소를 수정한다.** 그때는 산출물 출처 추적이 실질적 가치를 갖는다.
 
 "v2.1 이 더 엄격해서" 는 근거가 아니다.
@@ -75,8 +92,21 @@ v3 에서도 설정과 시드로 재실행은 되지만 변조 탐지는 안 된
 
 1. **주장이 요구하는 것만 검증한다.** 기울기 부호·순위를 주장하므로 그 검증은 타협하지 않는다.
    출처 사슬은 주장의 일부가 아니다.
-2. **증거는 사람이 읽을 수 있으면 된다.** JSON 산출물 + 설정 스냅샷 + 시드 기록으로 충분하다.
-   불변 매니페스트, 해시 사슬, 사후 변조 탐지는 쓰지 않는다.
+2. **런 단위 사후 출처 사슬을 쓰지 않는다.** 구체적으로 — `run-artifact-manifest-v2.2`,
+   `projection-live-replay-v2.2`, 재생 검증기, 서명 번들, ACL 격리 staging, 사후 변조 탐지.
+
+   **⚠ 이 원칙은 아래를 포함하지 않는다. 이것들은 유지한다.**
+   - `run-manifest-v2.1` (런 **전** 불변 매니페스트, `build_run_manifest_v2_1.py`)
+   - approval → selection → topology → state-set 의 `input_hashes` / `semantic_sha256` 결속
+   - state 의 `run_provenance` ↔ 런 매니페스트 결속
+
+   이것들은 **"어느 런의 어느 시각에 어느 토폴로지로 계산했는가" 를 확정하는 물리적 신원**이지
+   출처 감사가 아니다. 그리고 코드가 이미 요구한다 —
+   `build_state_manifest_v2_1.py` 의 `MANIFEST_INPUT_HASH_NAMES` 가 사슬을 강제하고
+   `validate_state_projection_v2_1.py:22-26` 이 `validate_approval_artifact` 를 import 한다.
+
+   **v3 초판은 이 단서를 빠뜨려 승인 아티팩트를 삭제했다가 N0-3 에서 되돌렸다.**
+   원칙만 읽고 해시 결속을 지우면 투영 사슬 전체가 무너진다. 같은 실수를 반복하지 마라.
 3. **사전 등록은 문서로 하고 봉인하지 않는다.** 임계치와 시드는 런 전에 이 문서에 적는다.
    ACL 격리, 서명 번들, wave 폐기 프로토콜은 쓰지 않는다.
 4. **자기신고 PASS 는 계속 금지한다.** 이것만은 v2.1 그대로다. 지금까지 걸린 결함
@@ -88,6 +118,9 @@ v3 에서도 설정과 시드로 재실행은 되지만 변조 탐지는 안 된
 v2.1 의 물리·신호 불변식은 그대로 가져온다.
 
 - 질량 보존 — stock 잔차 `<=1e-6 veh`, clipped-away mass 0
+- **stock 내부 분해 항등식** — `queue + in-transit + movement composition = stock 질량`.
+  외부 항등식과 내부 분해는 서로를 함의하지 않는다. 총량은 맞는데 분해가 어긋난 플랜트는
+  N4-2 의 movement 귀속과 N3-1 의 큐꼬리 계산을 오염시킨다
 - 정확 분할 — 링크→player 귀속 100%, unresolved vehicle mass 0
 - `unobservable_count = 0`, `external_source_count = 0` (잔차로 균형 맞추기 금지)
 - 신호는 `(SC, SG번호)` 정확 매핑. 이름·NEMA 산술·45도 방위 fallback 을 production 에 쓰지 않는다
@@ -109,10 +142,21 @@ A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 
 `live_replay_builder`(`build_projection_live_evidence_v2_2.py`)가 들어 있다(`:108-109` 경로 맵도 같다).
 **v3 는 이 두 생산자를 만들지 않으므로 preflight 가 영원히 FAIL 한다.**
 
-두 역할을 필수 집합에서 뺀다. 닫힌 역할 우주를 검증하는 테스트가 함께 바뀐다.
+**같은 계약이 세 곳에 독립으로 박혀 있다. 셋을 한 단계에서 함께 바꾼다.**
+
+| 위치 | 무엇 |
+|---|---|
+| `plant/src/vissim_strict/run_evidence.py:94-95` | `PRODUCER_SOURCE_ROLES` 필수 역할 12 → 10 |
+| 같은 파일 `:108-109` | 역할 → 경로 맵 |
+| `scripts/run_real_world_single_watchdog_distributed_core15n41.ps1:553` | `$sourceBindings` 하드코딩 키 12 → 10 |
+
+파이썬만 고치면 워치독이 `Get-B1aWorkspaceRelativeFile` 에서 부재 파일로 throw 하고,
+워치독만 고치면 `build_run_manifest_v2_1.py` 의 `producer_sources` **정확 집합** 검증이 거부한다.
+닫힌 역할 우주를 픽스처로 고정한 테스트도 함께 바뀐다.
 
 **PASS.** `build_preflight_manifest.py` 산출 `status=PASS`, reasons 0.
 `RW_PYTHON_EXE` 를 정본 파이썬으로 고정한 상태에서 `verify_runtime_source.py` 도 PASS.
+워치독 `-B1aDryRun` 이 소스 결속 단계를 통과.
 
 ### N0-2. 커넥터 진입 엣지 위치 정합
 
@@ -183,8 +227,17 @@ $inpx = "network/real_world_gaepo_modi/modi_eval_rw_control.inpx"
 & $py -B scripts/compile_physical_stock_topology.py --graph outputs/lane_route_graph_v2_1.json --routes outputs/lane_route_proofs_v2_1.json --ownership outputs/link_player_assignment_20260805.json --adjacency outputs/intersection_adjacency8_20260805.json --capacity outputs/urban_storage_capacity_20260805.json --output outputs/physical_stock_topology_v2_1.json
 ```
 
-**PASS.** `validate_physical_stock_topology` 구조 오류 0. 실네트워크 테스트 23/23.
-재생성 결과의 SHA-256 이 `context-notes.md` 기록과 일치.
+**PASS.** `validate_physical_stock_topology` 구조 오류 0.
+재생성 결과의 SHA-256 이 `context-notes.md` 기록과 일치. 아래 실네트워크 테스트 전부 통과.
+
+```powershell
+& $py -m pytest -q scripts/tests/test_compile_physical_stock_topology_real_network.py `
+                  scripts/tests/test_vissim_lane_graph_real_network.py `
+                  scripts/tests/test_validate_sc12_shared_lane.py
+```
+
+2026-08-07 기준 이 세 파일 합계 **23개**가 통과했다. 개수는 테스트 추가에 따라 변하므로
+**개수가 아니라 실패 0 이 게이트다.**
 
 ## N1. 차량단위 초기상태 투영 — P0
 
@@ -203,10 +256,10 @@ MPC 롤아웃의 초기 조건이다.
 그렇게 하면 동작하는 코드를 버리고 같은 것을 다시 쓰게 된다.
 
 ```
-build_run_manifest_v2_1.py      (519줄)   런 전 불변 매니페스트
-approve_physical_stock_topology (1,067줄)  토폴로지 결속
-build_state_manifest_v2_1.py    (1,295줄)  선택된 state 인벤토리
-validate_state_projection_v2_1  (941줄)    투영 판정과 sidecar 발행
+build_run_manifest_v2_1.py         (573줄)   런 전 불변 매니페스트
+approve_physical_stock_topology.py (1,125줄)  토폴로지 결속
+build_state_manifest_v2_1.py       (1,384줄)  선택된 state 인벤토리
+validate_state_projection_v2_1.py  (990줄)    투영 판정과 sidecar 발행
 ```
 
 state 의 `run_provenance` 가 런 매니페스트와 결속되는 것도 유지한다.
@@ -214,11 +267,16 @@ state 의 `run_provenance` 가 런 매니페스트와 결속되는 것도 유지
 
 **걷어내는 것.** `run-artifact-manifest-v2.2`, `projection-live-replay-v2.2`,
 capture evidence sidecar 와 projection reference 의 별도 해시 아티팩트화,
-timing receipt 의 독립 봉인, required-mode 워치독의 소스 결속 사슬,
-사후 변조 탐지.
+timing receipt 의 독립 봉인, 사후 변조 탐지.
+
+워치독 소스 결속에 대해서는 **v2.2 두 역할만** 뺀다(`ps1:553`, N0-1 이 처리).
+나머지 10개 역할 결속과 `build_run_manifest_v2_1.py` 의 `producer_sources` 정확 집합 검증은
+**유지한다.** 결속 사슬 전체를 지우면 매니페스트 생산이 즉시 거부된다.
 
 **대체.** 스냅샷마다 `state_XXXXXX.json` 과 그 옆의 projection sidecar 하나.
-런 디렉터리에 `run_config.json`(설정 전문 + 시드 + VISSIM 버전 + git commit) 하나.
+런 식별은 **기존 `run-manifest-v2.1` 이 담당한다** — 별도 `run_config.json` 을 만들지 않는다.
+`run_evidence.py` 의 `CONFIGURATION_FIELDS`/`SIMULATION_FIELDS` 가 설정·시드를 이미 담고
+VBS 가 `vissim_version_raw` 를 기록한다. 워크스페이스 git commit 필드만 매니페스트에 추가한다.
 
 **실행.** 3600초 런 1회, 제어주기 60초 → 스냅샷 61회.
 런 후 N0-4 의 selection 생산자 → `build_state_manifest_v2_1.py` → `validate_state_projection_v2_1.py`.
@@ -238,8 +296,9 @@ closing_i = opening_i + accepted_external_i − sink_i + Σ_j F[j,i] − Σ_k F[
 - **post-update clipping 제거** — 받는 쪽·보내는 쪽 제약으로 흐름을 제한하고 거부량은 typed source stock 에 남긴다
 - 단일 `TrafficState.total_physical_vehicles()`
 
-**PASS.** stock/전역 잔차 `<=1e-6 veh`, transfer 다중집합 불일치 0, 중복/누락 transfer ID 0,
-clipped-away mass 0, 강제 분기/합류/수용포화 fixture 에서 전 차량 보존.
+**PASS.** stock/전역 잔차 `<=1e-6 veh`, **내부 분해 잔차 `<=1e-6 veh`**,
+transfer 다중집합 불일치 0, 중복/누락 transfer ID 0, clipped-away mass 0,
+강제 분기/합류/수용포화 fixture 에서 전 차량 보존.
 
 ## N3. 관측 확장 — P0/P1
 
@@ -315,6 +374,10 @@ N현시 action 은 stage duration 또는 tangent 좌표를 가진다. 모델 sta
 **PASS.** 전이 시각 오차 `<=0.5 s`, request/readback 불일치 0, 명령 지연 부호 오류 0,
 충돌 SG 동시녹색 0, 최소녹색/clearance 위반 0, 주기 wrap 경계 오류 0.
 
+**readback 주기 분기 (v2.1 J-4 에서 유지).** `0.5 s` 게이트는 readback 해상도가 그보다 고와야
+측정 가능하다. **실 readback 이 1 Hz 뿐이면 이 게이트는 PASS 가 아니라 `BLOCKED`** 다.
+측정 불가를 통과로 처리하지 마라. 이 경우 N4-7 offset 승격도 함께 막힌다.
+
 ### N4-7. offset 승격 잠금 (D-offset-enable) — P1
 
 offset 은 **삼중 잠금**이다. 하나라도 빠지면 production writer 를 열지 않는다.
@@ -349,9 +412,18 @@ VISSIM 을 순차 실행해 개발용 부모 런을 만든다. anchor `900/1500/
 **총 9개.** SPSA 전용 seed 31 은 training 과 공유한다(별도 3개를 만들지 않는다).
 인증 wave 3개 시드(47/59/71) 대신 holdout 단일 시드(47)를 쓴다.
 
-**잡음 바닥.** 각 부모-anchor 에서 독립 `t=0` base replay 를 **20회** 실행해
-`eps_J = max(1e-6 veh·h, max_{i,j}|J_base_i − J_base_j|)` 를 동결한다. **이 부분은 축소하지 않는다.**
-이후 모든 "효과가 실재하는가" 판정의 기준선이기 때문이다.
+**잡음 바닥 — 두 개다. 절대 혼용하지 마라.**
+
+각 부모-anchor 에서 독립 `t=0` base replay 를 **20회** 실행해
+`eps_J_vissim = max(1e-6 veh·h, max_{i,j}|J_base_i − J_base_j|)` 를 동결한다.
+**이 부분은 축소하지 않는다.** 이후 모든 "효과가 실재하는가" 판정의 기준선이기 때문이다.
+
+**이것은 VISSIM 런간 분산 척도이고 N9 의 `ΔJ` 재료성 판정 전용이다.**
+플랜트 endpoint 의 재현성 잡음 `eps_J_endpoint` 는 **별개이며 N8-1 에서 따로 측정한다.**
+v2.1 도 둘을 따로 정의했다 — `IMPLEMENTATION_PLAN.md:359`(하한 `1e-6 veh·h`)와
+`:473`(하한 `1e-9`). 하한이 세 자리 다르고 재는 대상이 다르다.
+**v3 초판은 하나로 합쳐 VISSIM 척도를 endpoint 자리에 넣었다.** 그러면 `eps_g` 가 과대해져
+`|intercept| <= median(eps_g)` 가 느슨해지고 재료 표본이 줄어 지지 요건이 무너진다.
 
 **PASS.** 부모 9/9, anchor 완비, 누락/중복 0, base replay 부모-anchor 당 `>=20`,
 training/holdout 시드 중복 0.
@@ -387,23 +459,52 @@ one-step / H=3 통합 테스트 PASS.
 FD 와 SPSA 가 하나의 production endpoint 를 호출한다. endpoint control, 목적함수 성분, feasibility,
 종단 상태, 실현 섭동 폭이 동일하지 않으면 비교 자체가 FAIL 이다.
 
-- `eps_g = 2·eps_J / realized_span` 으로 좌표 잡음 환산. 목적함수 단위 잡음을 기울기와 직접 비교하지 않는다
-- 중앙차분을 `h` 와 `h/2` 에서 비교. `|g_h − g_h2| <= max(eps_g, 0.10·max(|g_h2|, eps_g))`
-- 사전 등록 전진폭 — 녹색 `6 s`, VSL `10 km/h`, offset `C/8`, 램프미터 `max(300 veh/h, 0.20·capacity)`
-- SPSA 쌍 개수 `k ∈ {8,16,32,64}`, state 당 독립 방향 batch **20개** (v2.1 의 30에서 축소)
-- 좌표는 `|g_fd|·realized_span >= max(5·eps_J, 0.005·max(|J0|,1))` 일 때만 material
+- **endpoint 재현성 잡음을 먼저 잰다.** qualification state 마다 **동일 control** 목적함수를
+  최소 20회 평가해 `eps_J_endpoint = max(q99(|J_r − J_1|), 1e-9·max(|J_1|, 1))` 를 구한다.
+  **`eps_g` 는 오직 이 값으로만 환산한다** — `eps_g = 2·eps_J_endpoint / realized_span`.
+  N5 의 `eps_J_vissim` 을 여기 쓰지 마라(척도가 다르다). 목적함수 단위 잡음을 기울기와 직접 비교하지 않는다
+- 중앙차분을 `h` 와 `h/2` 에서 비교. `|g_h − g_h2| <= max(eps_g, 0.10·max(|g_h2|, eps_g))`.
+  사전 등록 수렴 tolerance 실패는 required coordinate 의 **`INDETERMINATE`/`BLOCKED`** 이지 PASS 가 아니다
+- 사전 등록 전진폭 — 녹색 `6 s`, VSL `10 km/h`, offset `C/8`, 램프미터 `max(300 veh/h, 0.20·capacity)`.
+  두 추정기 모두 요청 폭이 아니라 **경계된 실현 변위**로 나눈다
+- SPSA 쌍 개수 `k ∈ {8,16,32,64}`, state 당 독립 방향 batch **20개** (v2.1 의 30에서 축소).
+  모든 stratum 을 통과하는 최소 `k` 를 동결한다
+- 좌표는 `|g_fd|·realized_span >= max(5·eps_J_endpoint, 0.005·max(|J0|,1))` 일 때만 material.
+  bound 로 붕괴된 좌표는 zero gradient 가 아니라 **ineligible** 이다
+
+**stratum 지지 요건 (v2.1 I-1 에서 유지).**
+
+- 전체 최소 **12 state cluster** 가 모든 demand, H, 채널, free/congested 와
+  active/inactive barrier regime 을 덮는다
+- 각 `채널 × demand × H` stratum 은 독립 state cluster 최소 12 와 nonempty material set 을 요구한다
+- **required stratum 이 지지 미달이면 빈 remainder PASS 가 아니라 `BLOCKED`** 다
+- 부호 통계는 **state-direction batch 당 사전 등록한 좌표 하나만** 독립 Bernoulli 로 센다.
+  여러 좌표를 같은 SPSA 쌍에서 독립 표본처럼 세지 않는다
+- N현시 신호는 결정적 Helmert `(N−1)` tangent 기저를 쓰고 N=2/3/4/5/6 과 모든 active N 을 시험한다
+
+**raw 레버 표나 material remainder 가 빈 결과는 자격 근거가 아니다.**
+`k` 와 모든 임계치는 holdout 을 열기 전에 동결한다.
 
 **PASS.** nRMSE 상한 `<=0.20`, 기울기 CI 전체 `0.90..1.10`, `|intercept| <= median(eps_g)`,
 재료 부호 반전 0. 부호 오류 Clopper-Pearson 95% 상한 전체 `<=0.05` (재료 비교 `>=59`),
 채널별 `<=0.10` (`>=29`).
 
 ### N8-2. 결정 동등성
-기울기만 비교하지 않는다. holdout 상태 **18개** × 방향 seed 3개 = **54 twin** 에서
+기울기만 비교하지 않는다. holdout 상태 **12개** × 방향 seed 3개 = **36 twin** 에서
 후보집합·순위·선택 action·제약·spillback 가드·미터 방류를 FD 와 SPSA 사이에 비교한다.
-(v2.1 은 36 상태 × 3 = 108 twin.)
 
-**PASS.** 상태·feasibility·안전 인증서·fallback 등급·리더 후보 54/54 정확 일치.
-명령은 정확 일치 또는 선언된 양자화 1단계 이내, exact-FD 재채점 regret `< max(2·eps_J, 0.5%·|J_FD|)`.
+**산술 근거.** N5 의 holdout 은 `demand 3 × seed 47` = 부모 3개이고 anchor 는 4개이므로
+상태 상한이 **3 × 4 = 12** 다. v2.1 은 부모 9개(demand 3 × seed 47/59/71) × anchor 4 = 36 상태에서
+108 twin 이었다. **v3 초판은 시드축을 3→1 로 줄이면서 상태 수만 36→18 로 절반만 줄여 산술이
+성립하지 않았다.** 12 는 N5 가 실제로 공급할 수 있는 상한이다.
+
+**36 twin 이 부족하다고 판단되면** N5 의 holdout 을 시드 47/59 두 개로 되돌려
+6 부모 × 4 anchor = 24 상태를 확보하고 그중 사전 등록분을 쓴다. 그 경우 사전 등록 절의
+시드 항목도 함께 고친다. **런 전에 어느 쪽인지 확정한다.**
+
+**PASS.** 상태·feasibility·안전 인증서·fallback 등급·리더 후보 36/36 정확 일치.
+명령은 정확 일치 또는 선언된 양자화 1단계 이내,
+exact-FD 재채점 regret `< max(2·eps_J_endpoint, 0.5%·|J_FD|)`.
 
 ### N8-3. 통합 rollout 스케줄러
 녹색·미터·VSL·offset 의 독립 rollout 을 하나의 deadline-aware 스케줄러에 넣는다.
@@ -445,7 +546,25 @@ VISSIM 스냅샷 복원을 믿지 않고 모든 branch 를 `t=0` 부터 재실�
 
 ### N9-2. 실험 행렬
 demand `0.75/1.0/1.25`, 런 3,600초, warm-up 900초, anchor `900/1500/2100/2700`,
-H `1/3/5/10/15`, 제어주기 60초. 기본은 레버 하나씩 low/base/high.
+H `1/3/5/10/15`, 제어주기 60초. VISSIM 은 한 번에 하나만 실행한다.
+기본은 **레버 하나씩 low/base/high** 이며 joint action 은 별도 experiment ID 다.
+development 진단은 시드 13/29, 승격 판정은 holdout 시드만 쓴다.
+
+**feasible low/high — 사전 등록 진폭 (v2.1 J-2 유지).**
+
+| 레버 | 진폭 | cap |
+|---|---|---|
+| green | base 대비 `-10 / +10 s` (정본 tangent 기저) | 최소녹색 · clearance · 주기 |
+| VSL | base 대비 `-10 / +10 km/h` | actuator bounds |
+| ramp meter | base 대비 `-150 / +150 veh/h` | actuator bounds |
+| offset | base 대비 `-10 / +10 s` (native cycle modulo) | **test-only writer 전용**, N4-6 D-core PASS 후 |
+
+offset 은 production writer 와 분리된 test-only writer 가 적용한다. 실현 readback 이 같은
+valid-interval 계약을 입증하지 못하면 offset 은 `NOT_EVALUATED`/`BLOCKED` 이고
+production writer 는 `intent_only` 로 남는다(N4-7).
+
+세 값이 서로 구별되지 않으면 그 셀을 `NOT_EVALUATED` 로 기록하고 **더 작은 대칭 step 을 한 번만**
+시도한다. 값을 사후 조정하지 않고 요청 매니페스트에 정확한 값을 먼저 봉인한다.
 
 ### N9-3. 집계
 VISSIM 1초 관측을 보존하고 60초로 집계한다. `ΔJ(action) = J(action) − J(base)` 를 같은 prefix 에서 계산한다.
@@ -457,11 +576,26 @@ controlled 15 / monitor 26 / midblock 9 / boundary / ramp / freeway 를 분리�
 
 | H | 게이트 |
 |---:|---|
-| 1 | 도시부 큐/저장 NMAE `<=15%`; 통행 중앙값/p95 `<=5/15 s`; 꼬리 MAE `<=20 m`; 속도 MAPE `<=10%`; count MAE `<=max(5 veh,10%)`; GEH `<=5` 인 행 `>=85%`; TTT APE `<=10%` |
-| 3 | TTT APE `<=12%`; 종단 NMAE `<=20%`; 속도 MAPE `<=15%` |
-| 5 | TTT APE `<=15%`; 종단 NMAE `<=20%` |
-| 10 | TTT APE `<=18%`; 종단 NMAE `<=35%`; nonfinite/음수/clipping/질량 실패 0 |
-| 15 | TTT APE `<=20%`; 종단 NMAE `<=35%` |
+| 1 | 도시부 큐/저장 NMAE `<=15%`; 통행 중앙값/p95 `<=5/15 s`; 꼬리 MAE `<=20 m`; 속도 MAPE `<=10%`; count MAE `<=max(5 veh,10%)`; GEH `<=5` 인 행 `>=85%`; **signed flow bias `<=10%`**; TTT APE `<=10%` |
+| 3 | TTT APE `<=12%`; 종단 NMAE `<=20%`; 속도 MAPE `<=15%`; **count MAE `<=max(7.5 veh,15%)`; H1 flow gate 유지** |
+| 5 | TTT APE `<=15%`; 종단 NMAE `<=20%`; **속도 MAPE `<=15%`; count MAE `<=max(7.5 veh,15%)`; H1 flow gate 유지** |
+| 10 | TTT APE `<=18%`; 종단 NMAE `<=35%`; **속도 MAPE `<=20%`; count MAE `<=max(10 veh,20%)`**; nonfinite/음수/clipping/질량 실패 0 |
+| 15 | TTT APE `<=20%`; 종단 NMAE `<=35%`; **속도 MAPE `<=20%`; count MAE `<=max(10 veh,20%)`**; nonfinite/음수/clipping/질량 실패 0 |
+
+**지표 정의 (v2.1 J-4 에서 유지 — 분모를 명시하지 않으면 두 사람이 다르게 계산한다).**
+
+```
+NMAE       = Σ|pred − obs| / max(Σ obs, 1 veh)
+관측 0인 셀 = MAE <= 1 veh
+speed MAPE = 차량가중, 분모 max(obs_speed, 5 kph)
+TTT APE    = 분모 max(obs_TTT, 1 veh·h)
+```
+
+**모든 absolute metric 은 같은 분모의 signed bias 를 함께 게이트한다.**
+`|signed_bias|` 가 해당 H 의 absolute metric 한계를 넘으면 실패다. flow signed bias 는 항상 `<=10%`.
+
+**인터페이스 유량 게이트 (별도).** 도시부·램프 경계 유량 WAPE `<=10%`, 유출램프 WAPE `<=15%`.
+총량 지표가 접속부 오차를 흡수하지 못하게 한다 — 램프미터 레버 효과가 발생하는 곳이 정확히 거기다.
 
 레버 효과는 `demand × H × 채널` 마다 재료 비교 **16개 이상** (v2.1 은 seed 축을 포함해 24).
 `effect_NMAE <= 0.25`, signed bias `<=0.15`, **재료 부호 일치 100%**.
@@ -469,8 +603,16 @@ controlled 15 / monitor 26 / midblock 9 / boundary / ramp / freeway 를 분리�
 Spearman `>=0.70`, top pairwise `>=0.80` 을 점추정과 **부트스트랩 95% 하한 둘 다** 통과.
 
 **spillback.** `(run_id, anchor, physical_stock_id)` episode 당 positive/negative 각 최대 하나로 센다.
-혼잡 `demand × H × 채널` 마다 독립 positive/negative 각 **10개** (v2.1 은 20), F1 `>=0.80`,
-발생/해소 중앙값 오차 `<=60 s`, p90 `<=120 s`. positive 가 5개 미만이면 spillback 게이트만 `NOT_EVALUATED`.
+혼잡 `demand × H × 채널 × asset-class` 마다 독립 positive/negative 각 **10개** (v2.1 은 20),
+F1 `>=0.80`, 발생/해소 중앙값 오차 `<=60 s`, p90 `<=120 s`.
+
+**면제는 저수요 셀에 한한다.** 저수요 셀의 positive 가 5개 미만이면 spillback 게이트만
+`NOT_EVALUATED` 다. **혼잡 셀에서 positive 가 10개 미만이면 `BLOCKED`** 다.
+(v3 초판은 "저수요" 한정을 빠뜨려, 탐지를 덜 할수록 게이트를 피하는 역인센티브를 만들었다.)
+
+**검정력 손실을 승인된 위험으로 기록한다.** 20 → 10 축소로, 참 recall 0.60 인 탐지기가
+게이트를 통과할 확률이 약 0.245 에서 0.382 로 **1.6배** 오른다. 감사 시정책
+(`reports/plant_fidelity_audit.md`)은 각 20개였다. 판정이 임계 근처면 혼잡 셀만 20 으로 되돌린다.
 
 ## N10. 감사와 승격 — P1
 
@@ -505,14 +647,15 @@ Spearman `>=0.70`, top pairwise `>=0.80` 을 점추정과 **부트스트랩 95% 
 # 의존 순서
 
 ```
-N0 ─ N1 ─ N2 ─ N3 ──────────────┐
-N4-1 ─ N4-2..5 ─ N4-6(D-core) ──┼─ N7 ─ N8 ─ N9 ─ N10
-N5 ─ N6 ────────────────────────┘                │
-                                                 └─ N4-7 (offset 승격)
+N0 ─┬─ N1 ─ N2 ─ N3 ─┬──────────────────────────┐
+    └─ N4-1 ─ N4-2..5 ─ N4-6(D-core) ───────────┼─ N7 ─ N8 ─ N9 ─ N10
+                      └─ N5 ─ N6 ───────────────┘             │
+                                                              └─ N4-7 (offset 승격)
 ```
 
 - N5(개발 데이터)는 N1~N4 가 끝나야 의미 있는 상태를 만든다. N6 은 N5 에 의존한다.
-- N7 은 N2/N3/N4 의 플랜트를 요구한다. N8 은 N5 의 `eps_J` 와 N7 의 endpoint 를 요구한다.
+- N7 은 N2/N3/N4 의 플랜트를 요구한다. N8 은 N7 의 endpoint 를 요구하고 `eps_J_endpoint` 를
+  자체 측정한다. N9 는 N5 의 `eps_J_vissim` 을 요구한다.
 - **N4-6(D-core)은 N7 앞에 온다.** 액추에이션이 검증되지 않은 상태로 production endpoint 를
   통합하면 이후 모든 동적 측정이 오염된다.
 - **N4-7(offset 승격)은 마지막이다.** D-core · N9 효과/순위 · N8-4 런타임이 모두 PASS 해야 열린다.
@@ -525,3 +668,24 @@ N5 ─ N6 ───────────────────────�
 - **150초 주기 정규화 실험** — 별도 `.inpx`/SIG/감사를 요구하고, 계획 스스로 그 결과가
   native plant·offset·controller 를 승격하지 못한다고 규정한다. 승격 경로에 기여하지 않는다.
 - **증거 출처 관리 일체** — 서두의 표 B 항목 전부. 되살리는 조건은 서두에 적혀 있다.
+- **미드블록 offset 슬레이빙** — 설계는 확정됐으나 미구현. N4-7 이 offset 을 열기 전까지 무의미하다.
+- **테스트 스위트 timeout** — 인프라 문제이지 플랜트 충실도가 아니다.
+- **`.gitignore` 의 `*.err` 제외** — 운영 위생. 별건으로 처리한다.
+
+## `checklist.md` 매핑
+
+기존 `checklist.md` 의 미완료 항목이 v3 어디에 대응하는지 고정한다.
+
+| checklist 항목 | v3 대응 |
+|---|---|
+| 모니터 26개 항상 녹색 | **N4-4** |
+| 실시간 링크 속도 관측 | **이미 해소** — `run_real_world_stackelberg_controller.vbs` 가 `link_speeds_kph` 를 기록한다. checklist 가 낡았다 |
+| 인접부 TTT 분해 배선 | **N3-1** |
+| `boundary_in` 큐 122.7대의 목적함수 포함 여부 | **N3-2** 에서 결정한다. 물리 trace 는 동일하게 두고 가중치만 다르게 한다 |
+| SC1004 역할 오분류 | **N3-3** |
+| solve 시간 초과 | **N8-4** |
+| H=1 지평 퇴행 | **N9-4** (H=1 독립 게이트) |
+| G6 게이트 FAIL / 전면 재채점 | **N9-4** (Spearman·pairwise 부트스트랩 하한) |
+| spillback F1 인공물 | **N9-4** (episode 당 1개 · 셀별 표본 요건) |
+| G5 셀 게이트가 잡음 바닥 아래 | **N5** — `eps_J_vissim` 을 동결한 뒤 임계를 그 위로 재설정한다. 잡음 바닥 아래 임계는 모델 작업으로 통과할 수 없다 |
+| 미드블록 offset 슬레이빙 / 테스트 timeout / `*.err` | 위 **명시적 제외** |

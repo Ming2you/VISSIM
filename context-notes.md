@@ -682,8 +682,11 @@ agent 단위 합계는 `sum(cap(r) for r in agent.ramps) if agent.ramps else sca
 - `outputs/preflight_manifest_v3.json` — `status=FAIL`, 이유 정확히 4개이며 전부
   `post_run_artifact_producer` / `live_replay_builder` 의 존재·해시다. **v3 가 그 두 생산자를
   만들지 않으므로 N0-1 에서 필수 역할 자체를 제거해야 PASS 한다.** 다른 항목은 전부 PASS 다.
-- `outputs/topology_approval_v2_1.json` — 생성했으나 **v3 에서 승인 사슬이 빠졌으므로 죽은
-  아티팩트다.** 커밋하지 않는다.
+- `outputs/topology_approval_v2_1.json` — **N0-3 에서 되살렸다.** v3 초판이 승인 사슬을 뺀 것은
+  오판이었다. `validate_state_projection_v2_1.py:22-26` 이 `validate_approval_artifact` 를
+  import 하므로, 승인을 빼면 이미 완성된 투영 사슬 전체를 다시 써야 한다.
+  현재 FAIL 은 `topology_structure_invalid` 35건(N0-2 가 닫음)과
+  `topology_trust_mismatch` 4건(N0-1 이 닫음)뿐이다. 5 KB 라 크기 제외 대상도 아니다.
 
 ### 환경 규약
 

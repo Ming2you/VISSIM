@@ -34,5 +34,5 @@ runlog_*.txt.err
 outputs/lane_route_graph_v2_1.json
 outputs/lane_route_proofs_v2_1.json
 outputs/physical_stock_topology_v2_1.json
-# v3 에서 승인 사슬이 제거되어 더 이상 생성하지 않는다.
-outputs/topology_approval_v2_1.json
+# topology_approval_v2_1.json 은 무시하지 않는다. v3 초판이 승인 사슬을 뺀 것은 오판이었고
+# N0-3 에서 되살렸다 - validate_state_projection_v2_1.py:22-26 이 그것을 import 한다.
