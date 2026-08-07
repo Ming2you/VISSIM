@@ -1,5 +1,12 @@
 # SDD ledger - plan: C:/tmp/vissim-pstack-controller/IMPLEMENTATION_PLAN.md
 
+> **2026-08-07 - the active plan is now `IMPLEMENTATION_PLAN_V3_LEAN.md`, not v2.1.**
+> Entries below Task 5 were produced under v2.1 and remain valid as a record of what was
+> built and verified. They are NOT a backlog to finish. v3 deliberately drops the evidence
+> provenance layer (immutable manifests, hash chains, replay validator, ACL staging, signed
+> release, wave retirement) while keeping every physical, signal, gradient, and runtime
+> invariant. Read the v3 preamble before restoring anything from v2.1.
+
 - Baseline: cb3c44d170b7f818baae7af399fb65c93b6fb1e3
 - Working branch: codex/plant-fidelity-v2-1
 - Baseline tests: scripts/tests 21/21 PASS; tests 9/10 PASS, stale snapshot expectation at tests/test_vissim_stackelberg_adapter_fidelity.py:75 (`35a5c82` vs `0240ba8`).
