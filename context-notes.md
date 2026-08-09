@@ -670,12 +670,36 @@ agent 단위 합계는 `sum(cap(r) for r in agent.ramps) if agent.ramps else sca
 |---|---|---|
 | `lane_route_graph_v2_1.json` | `6d51a171ca4740379e5ff771434748fe72381cbd7229c4c1e661bc918a05a29d` | PASS, 차로 2,649 / 엣지 2,792 / 커버리지 1.000 |
 | `lane_route_proofs_v2_1.json` | `f41edf648f043d51e454844023d160070fb8542979b50ff4c57a16c03e5f7659` | PASS, 경로 339 / 증명 2,684 / 미해결 0 / 유량오차 1.11e-16 |
-| `physical_stock_topology_v2_1.json` | `ba75101daab882f71ddc037c44db3a07f454751a8a591023ea73dc98a0245195` | PASS, stock 7,275 / edge 7,418 / 전 게이트 0 위반 |
+| `physical_stock_topology_v2_1.json` | `fc794fe349b5b83cba3084f502738728326ea5dc194d0f458fcf533b7056d73b` | PASS, stock 7,275 / edge 7,418 / 전 게이트 0 위반 |
 
 재생성 명령은 v3 의 N0 절에 있다.
 
-**주의 — 이 해시는 N0-2 수정 전 값이다.** 커넥터 진입 엣지 35건의 위치 정합을 고치면
-토폴로지 해시가 바뀐다. 고친 뒤 이 표를 갱신한다.
+**토폴로지 해시는 N0-2 수정 후 값이다** (2026-08-07). 수정 전은
+`ba75101daab882f71ddc037c44db3a07f454751a8a591023ea73dc98a0245195` 였다.
+컴파일러가 출력하는 `hash=` 는 **의미 해시**이지 파일 해시가 아니다 — 현재 값은
+`a01a4f3362d3705698e53812d04e62a4ea5fa1242b8393765497d7e2e04ab529` 다. 표의 값은 파일 SHA-256 이다.
+
+### N0-2 완료 (2026-08-07)
+
+커넥터 진입 엣지 35건의 `stock edge position mismatch` 를 닫았다.
+
+**원인.** `compile_physical_stock_topology.py` 가 `:1010/:1014` 에서 **허용오차로** 출발/도착 stock 을
+찾아 놓고, 기록할 때는 graph edge 의 **원시값**을 썼다. VISSIM 이 커넥터 `Pos` 를 6자리로 저장하고
+차로 길이는 좌표에서 전정밀도로 계산되므로 둘이 최대 4.96e-07 m 어긋난다.
+`validate_physical_stock_topology` 는 **정확 일치**를 요구한다.
+같은 함수의 `lane_continuation`(`:1001/:1004`)은 이미 stock 경계값을 쓰고 있었다.
+
+**수정.** 커넥터 엣지도 `source["end_m"]` / `target["start_m"]` 를 쓴다.
+원시값은 `source_graph_edge_id` 로 A1 그래프에서 추적 가능하다.
+
+**검증.** 실 네트워크 위치 불일치 **35 → 0/7418**.
+`validate_physical_stock_topology(topo, lane_graph=graph)` 구조 오류 0.
+승인의 `topology_structure_invalid` 완전 소멸(남은 것은 v2.2 관련 4건뿐, N0-1 소관).
+실네트워크+컴파일러 36/36, plant 132/132.
+
+**주의 — 검증기를 직접 호출할 때는 `lane_graph` 를 반드시 넘겨라.** 생략하면
+`physical_projection.py:930-935` 가 `a1_*` 기대 키를 만들지 않아 `sample_dimensions mismatch` 가
+난다. 결함이 아니라 호출 방식 문제다.
 
 ### 아직 FAIL 인 것
 

@@ -195,10 +195,10 @@ def route_xml(decisions):
     return "<network><vehicleRoutingDecisionsStatic>" + "".join(records) + "</vehicleRoutingDecisionsStatic></network>"
 
 
-def serial_fixture(*, boundary=False, parallel=False):
+def serial_fixture(*, boundary=False, parallel=False, connector_from_pos=80.0):
     lane_count = 2 if parallel else 1
     roads = [road(1, lane_count), road(2, lane_count)]
-    connectors = [connector(100, 1, 2, lane_count=lane_count)]
+    connectors = [connector(100, 1, 2, lane_count=lane_count, from_pos=connector_from_pos)]
     heads = [
         {
             "id": "signal-head:501",
@@ -222,6 +222,30 @@ def serial_fixture(*, boundary=False, parallel=False):
 
 
 class PhysicalStockTopologySyntheticTests(unittest.TestCase):
+    def test_stock_edge_positions_equal_the_boundaries_they_join(self):
+        # 커넥터가 차로 끝에서 허용오차 미만 떨어져 붙는다. 실 .inpx 가 커넥터 Pos 를
+        # 6자리로 저장하는 반면 차로 길이는 좌표에서 전정밀도로 계산되는 상황과 같다.
+        # 컴파일러는 :1010 에서 허용오차로 stock 을 찾으므로 엣지는 생성되지만,
+        # 기록하는 위치가 스냅되지 않으면 validate_physical_stock_topology 가
+        # `stock edge position mismatch` 로 거부한다(정확 일치 요구).
+        offset = POSITION_TOLERANCE_M / 2.0
+        graph, _, topology = compile_fixture(
+            *serial_fixture(connector_from_pos=100.0 - offset)
+        )
+        self.assertEqual(topology["status"], "PASS", topology["reasons"][:3])
+        stocks = {item["id"]: item for item in topology["stocks"]}
+        entry_edges = [e for e in topology["stock_edges"] if e["kind"] == "connector_entry"]
+        self.assertTrue(entry_edges)
+        for edge in topology["stock_edges"]:
+            source = stocks[edge["from_stock_id"]]
+            target = stocks[edge["to_stock_id"]]
+            with self.subTest(edge=edge["id"]):
+                self.assertEqual(edge["from_position_m"], source["end_m"])
+                self.assertEqual(edge["to_position_m"], target["start_m"])
+        # 검증기 전체 통과는 실 네트워크 테스트가 확인한다. 합성 픽스처는
+        # `sample_dimensions mismatch` 라는 별개의 기존 조건에 걸리며, 이는 기본 픽스처에서도
+        # 동일하게 재현되므로 엣지 위치와 무관하다.
+
     def test_serial_duplicate_split_points_coalesce_and_cover_every_lane(self):
         graph, _, topology = compile_fixture(*serial_fixture())
         self.assertEqual(topology["status"], "PASS")

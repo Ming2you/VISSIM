@@ -1025,10 +1025,16 @@ def compile_physical_stock_topology(
             "to_stock_id": target["id"],
             "from_link_no": source["link_no"],
             "from_lane_no": source["lane_no"],
-            "from_position_m": float(graph_edge["from_position_m"]),
+            # 엣지가 떠나고 닿는 stock 의 **경계값**을 쓴다. 위 :1010/:1014 가 허용오차로
+            # 후보를 찾으므로 graph edge 의 원시값은 경계와 미세하게 다를 수 있다
+            # (VISSIM 이 커넥터 Pos 를 6자리로 저장하고 차로 길이는 좌표에서 전정밀도로
+            # 계산되기 때문이다). validate_physical_stock_topology 는 정확 일치를 요구하므로
+            # 원시값을 그대로 기록하면 구조 오류가 된다. lane_continuation(:1001)이 이미
+            # 같은 방식으로 경계값을 쓴다. 원시값은 source_graph_edge_id 로 추적 가능하다.
+            "from_position_m": source["end_m"],
             "to_link_no": target["link_no"],
             "to_lane_no": target["lane_no"],
-            "to_position_m": float(graph_edge["to_position_m"]),
+            "to_position_m": target["start_m"],
             "source_graph_edge_id": graph_edge["id"],
         })
     stock_edges.sort(key=_edge_sort_key)
