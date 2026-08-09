@@ -21,6 +21,13 @@ from src.vissim_strict.run_evidence import (
 
 REPO = Path(__file__).resolve().parents[2]
 
+# vendor 스냅샷 앵커를 하드코딩하지 않는다. 이 fixture 는 "유효한" runtime-source 보고서를
+# 만드는 것이 일이고, 유효성의 정의가 바로 이 상수다(build_preflight_manifest.py:454).
+# 하드코딩하면 재스냅샷마다 갱신해야 하는 지점이 세 개 늘고, 그 검사를 검증한 적도 없다.
+# 실제로 상류를 0240ba8 -> 7d05097 로 옮겼을 때 이것 때문에 b1a 계열 21개가 setUp 에서
+# 전멸했다. 검사 자체는 아래 RuntimeSourceCommitCheckTests 가 따로 검증한다.
+ANCHOR_COMMIT = preflight.EXPECTED_NUMSIM_COMMIT
+
 
 class SyntheticPreflight:
     def __init__(self, root: Path) -> None:
@@ -149,7 +156,7 @@ class SyntheticPreflight:
         runtime_source_file.write_text("VALUE = 1\n", encoding="utf-8")
         snapshot = self.runtime_root / "SNAPSHOT.md"
         snapshot.write_text(
-            "snapshot commit: 0240ba89b97bf43438e1a0f519f7b0c978288913\n",
+            f"snapshot commit: {ANCHOR_COMMIT}\n",
             encoding="utf-8",
         )
         self.write_runtime_report()
@@ -168,7 +175,7 @@ class SyntheticPreflight:
                 {"id": check_id, "status": "PASS"}
                 for check_id in preflight.RUNTIME_SOURCE_TRUST_CHECKS
             ],
-            "expected_snapshot_commit": "0240ba89b97bf43438e1a0f519f7b0c978288913",
+            "expected_snapshot_commit": ANCHOR_COMMIT,
             "selected_is_canonical": False,
             "input_hashes": {
                 "adapter_sha256": preflight.file_sha256(adapter),
@@ -191,7 +198,7 @@ class SyntheticPreflight:
             },
             "selected": {
                 "root": str(self.runtime_root.resolve()),
-                "snapshot_commit": "0240ba89b97bf43438e1a0f519f7b0c978288913",
+                "snapshot_commit": ANCHOR_COMMIT,
                 "python_file_count": tree["python_file_count"],
                 "normalised_tree_sha256": tree["normalised_tree_sha256"],
                 "git": {"head_commit": "fixture-commit"},
@@ -442,6 +449,56 @@ class BuildPreflightManifestTests(unittest.TestCase):
         self.assertEqual(report["network"]["excluded_controller"]["controller_no"], "9004")
         self.assertEqual(report["network"]["excluded_controller"]["signal_head_reference_count"], 0)
         self.assertEqual(len(report["network"]["auxiliary_controllers"]), 8)
+
+
+class RuntimeSourceCommitCheckTests(unittest.TestCase):
+    """`runtime_source.expected_commit` 를 실제로 검증한다.
+
+    이 검사는 vendor 스냅샷이 승인된 상류 커밋인지를 보는 신뢰 경계인데, 지금까지 이것을
+    검증하는 테스트가 하나도 없었다. fixture 가 앵커를 하드코딩하고 있어서 앵커가 움직일
+    때마다 **깨지기만** 했을 뿐, 검사가 제 일을 하는지는 아무도 확인하지 않았다.
+
+    fixture 를 앵커 추종으로 바꾸면 그 깨짐은 사라지지만 검증 공백은 그대로다.
+    그래서 여기서 일부러 어긋난 커밋을 넣어 FAIL 과 그 사유 id 까지 확인한다.
+    """
+
+    def _build(self, expected_commit: str) -> dict:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = SyntheticPreflight(root)
+            payload = json.loads(
+                fixture.runtime_source.read_text(encoding="utf-8")
+            )
+            payload["expected_snapshot_commit"] = expected_commit
+            fixture.runtime_source.write_text(json.dumps(payload), encoding="utf-8")
+
+            out = root / "outputs" / "preflight_manifest_v3.json"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            arguments = [
+                "--repo", str(root),
+                "--runtime-source", str(fixture.runtime_source),
+                "--out", str(out),
+                "--strict",
+                "--expected-model-sc-count", "1",
+                "--expected-resolved-sig-count", "1",
+                "--expected-auxiliary-sc-count", "1",
+            ]
+            for key, path in fixture.paths.items():
+                arguments.extend(("--" + key.replace("_", "-"), str(path)))
+            preflight.main(arguments)
+            return json.loads(out.read_text(encoding="utf-8"))
+
+    def test_matching_commit_passes(self) -> None:
+        report = self._build(ANCHOR_COMMIT)
+        self.assertNotIn("runtime_source.expected_commit", report["reasons"])
+
+    def test_mismatched_commit_is_rejected_by_that_exact_reason(self) -> None:
+        # 형태는 유효한 40자 sha1 이지만 앵커가 아니다. 형식 검사가 아니라 신원 검사여야 한다.
+        wrong = "0" * 39 + "1"
+        self.assertNotEqual(wrong, ANCHOR_COMMIT)
+        report = self._build(wrong)
+        self.assertEqual(report["status"], "FAIL")
+        self.assertIn("runtime_source.expected_commit", report["reasons"])
 
 
 if __name__ == "__main__":

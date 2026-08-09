@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unittest
 from types import SimpleNamespace
 
@@ -72,10 +73,20 @@ class PlantFidelityProjectionTests(unittest.TestCase):
         )
 
         self.assertTrue(provenance["workspace_git_commit"])
-        self.assertEqual(
-            provenance["numsim_snapshot_commit"],
-            "0240ba89b97bf43438e1a0f519f7b0c978288913",
+        # 앵커 커밋을 하드코딩하지 않는다. 재스냅샷마다 갱신해야 하는 지점이 하나 더 생기고,
+        # 실제로 상류를 0240ba8 -> 7d05097 로 옮겼을 때 이 테스트가 그것 때문에 깨졌다.
+        #
+        # 대신 UPSTREAM_TREE.json 과 교차검증한다. 프로덕션 코드는 SNAPSHOT.md 를
+        # 정규식으로 긁어(adapter:1155-1160) 첫 hex 문자열을 커밋으로 삼으므로, 두 파일이
+        # 서로 독립이다. 이 비교는 (a) 두 파일이 같은 커밋을 가리키는지와
+        # (b) 첫 hex 매치가 실제로 commit 행인지를 동시에 검사한다 - 표에서 commit 행이
+        # 위로 밀리면 root_tree 를 커밋으로 잘못 읽게 되는데 그때 여기서 걸린다.
+        anchor = json.loads(
+            (adapter.WORKSPACE_ROOT / "vendor" / "NumSim-mine" / "UPSTREAM_TREE.json")
+            .read_text(encoding="utf-8")
         )
+        self.assertEqual(provenance["numsim_snapshot_commit"], anchor["commit"])
+        self.assertNotEqual(provenance["numsim_snapshot_commit"], anchor["root_tree"])
         self.assertEqual(provenance["numsim_git_commit"], "")
         self.assertEqual(provenance["schema_version"], 2)
         self.assertFalse(provenance["inputs"]["state_json"]["exists"])
