@@ -477,6 +477,44 @@ SC1004 역할 재분류(F측 인터체인지)를 포함한다.
 
 ## N4. N현시 신호 — P0
 
+> ### 정본 결선 (2026-08-10 실측) — **core15n41 이다**
+>
+> **`control_mapping.json`(SC 1개, `id:"D"`) 결선은 죽은 경로다.** 현행 러너에서 두 겹으로
+> 막힌다.
+>
+> 1. 생성 config 가 `RW_SCHEMA_VERSION = 2` 라 `LoadGeneratedConfig` 직후 `WScript.Quit 2`
+>    (`run_real_world_stackelberg_controller.vbs:135, :140-144`).
+> 2. 통과하더라도 매핑의 signal 행 id 가 `"D"` 인데 러너는 `UCase(id) = "SC"&sc_no` 를
+>    요구해(`vbs:857`) 액션 CSV 전 행이 거부되고 `:874-882` 에서 종료한다.
+>
+> **실제로 도는 결선은 `core15n41`** — controlled 15 + monitor 26 = 41 SC 다.
+> `run_plant_fidelity_matrix.ps1:43` 과 최신 실런(`n1_final_20260807`) 매니페스트가 그것을
+> 가리킨다. `evaluation/generated/*.vbs` 11개 중 schema 3 은 core15n41 하나뿐이다.
+>
+> **따라서 "실런 도시부 모델은 합성 6노드 격자" 도 base 전용 서술이다.** core15n41 튜닝은
+> `signals`·`uncontrolled_nodes`·`urban_movements` 를 통째로 교체한다.
+>
+> | | base | core15n41 |
+> |---|---:|---:|
+> | signals | 1 (`"D"`) | 15 (`SC1`…`SC1005`) |
+> | uncontrolled_nodes | 기본값 `['E']` | 26 |
+> | urban_movements | 78 | **1,414** |
+> | urban_link_storage_veh | 29 | **302** |
+>
+> 이전 세션이 base 만 보고 "A/B/C/E 는 VISSIM 대응이 없다" 고 적었다. 그것은 죽은 경로에
+> 대한 서술이었다. **N4 작업량이 1 SC 대 41 SC 로 40배 갈리므로 이 전제를 다시 뒤집지 마라.**
+>
+> **부수 정정 — ContrByCOM 실패는 제어 실패가 아니다.** `evaluation/runs` 전체 1,506건 중
+> **1,504건이 `isolate_20260805` 한 런**에서 나왔고 그 런은 `SIM_SEC=0` 이다. 원인은 신호가
+> 아니라 끊긴 정적경로(`Static Vehicle Route 1157 - 3 is not complete`)였고 이미 해소됐다
+> (현재 `.err` 에 해당 오류 없음). 정상 런은 ContrByCOM 실패 0건이다.
+> 다만 그 사건이 드러낸 **signal 액션의 fail-open 비대칭은 실재했고 닫았다**(2026-08-10).
+>
+> **낡은 토폴로지 주의.** `evaluation/strict_plant_20260731/canonical_topology.json` 은 소스
+> 네트워크와 컴파일러가 둘 다 낡아 신호를 과소 계상한다(controllers 37 vs 실제 50,
+> groups 392 vs 440, heads 475 vs 541). N4 는 반드시 재생성본을 써라.
+> `python scripts/build_canonical_topology.py`
+
 ### N4-1. SC별 고유 주기 (v2.1 X-1)
 원본 network/SIG 를 바꾸지 않고 SC별 실제 주기를 `NetworkConfig` 에 넣는다. N4-2 의 선행조건이다.
 150초 정규화 실험은 **이 계획에서 제외**한다(별도 과제).
