@@ -666,11 +666,21 @@ agent 단위 합계는 `sum(cap(r) for r in agent.ramps) if agent.ramps else sca
 실 네트워크 `network/real_world_gaepo_modi/modi_eval_rw_control.inpx` 에서 컴파일한 결과다.
 **산출물 자체는 커밋하지 않는다**(42 MB, 결정적 재생성 가능). 이 해시가 정본이다.
 
+**N0-1/N0-2/N0-3 완료 후 확정값이다 (2026-08-07). 여섯 개 전부 `status=PASS`.**
+
 | 산출물 | SHA-256 | 요약 |
 |---|---|---|
-| `lane_route_graph_v2_1.json` | `6d51a171ca4740379e5ff771434748fe72381cbd7229c4c1e661bc918a05a29d` | PASS, 차로 2,649 / 엣지 2,792 / 커버리지 1.000 |
-| `lane_route_proofs_v2_1.json` | `f41edf648f043d51e454844023d160070fb8542979b50ff4c57a16c03e5f7659` | PASS, 경로 339 / 증명 2,684 / 미해결 0 / 유량오차 1.11e-16 |
-| `physical_stock_topology_v2_1.json` | `fc794fe349b5b83cba3084f502738728326ea5dc194d0f458fcf533b7056d73b` | PASS, stock 7,275 / edge 7,418 / 전 게이트 0 위반 |
+| `runtime_source_v2_1.json` | `1b324b24e6688e8379e37d47a18016d1888b88ace30aa028fd560770e4cb76fc` | PASS (`RW_PYTHON_EXE` 필요) |
+| `preflight_manifest_v3.json` | `5bb43d775209b4102c0d7642662e03f5ed9be8a4ac6fbd2d7f508c64a3ae2674` | PASS, reasons 0 |
+| `lane_route_graph_v2_1.json` | `100245c8302fb11b51908bdfdd84e54686c7bc19669b0db01e54b804fa939381` | PASS, 차로 2,649 / 엣지 2,792 / 커버리지 1.000 |
+| `lane_route_proofs_v2_1.json` | `0a7cc5b6b8363da60f42a538c020a5a2cb8a735fc41a1fccd6e21e85f062788a` | PASS, 경로 339 / 증명 2,684 / 미해결 0 / 유량오차 1.11e-16 |
+| `physical_stock_topology_v2_1.json` | `8548d529ad3bc0b31846e8aca5d076f3055ec035343a731e903f215fa2d983e8` | PASS, stock 7,275 / edge 7,418 / 전 게이트 0 위반 |
+| `topology_approval_v2_1.json` | `f0659a093a386189d8f3ec4fb6d71e0cb234c2d1df22a9a1109b3728b30cc284` | **PASS** (2.2 KB, 커밋 대상) |
+
+**재생성은 반드시 이 순서다.** graph → routes → topology → approval.
+승인이 그래프·경로의 **생산자 출처**와 **독립 A2 재현**을 대조하므로, 앞 단계를 갱신하지 않고
+뒤만 돌리면 `lane graph producer provenance mismatch` / `topology differs from independent A2 replay`
+로 FAIL 한다. 이 세 사유는 preflight 가 PASS 가 된 뒤에야 드러난다(그 전에는 더 앞에서 막힌다).
 
 재생성 명령은 v3 의 N0 절에 있다.
 
@@ -701,16 +711,26 @@ agent 단위 합계는 `sum(cap(r) for r in agent.ramps) if agent.ramps else sca
 `physical_projection.py:930-935` 가 `a1_*` 기대 키를 만들지 않아 `sample_dimensions mismatch` 가
 난다. 결함이 아니라 호출 방식 문제다.
 
-### 아직 FAIL 인 것
+### N0-1 완료 (2026-08-07)
 
-- `outputs/preflight_manifest_v3.json` — `status=FAIL`, 이유 정확히 4개이며 전부
-  `post_run_artifact_producer` / `live_replay_builder` 의 존재·해시다. **v3 가 그 두 생산자를
-  만들지 않으므로 N0-1 에서 필수 역할 자체를 제거해야 PASS 한다.** 다른 항목은 전부 PASS 다.
-- `outputs/topology_approval_v2_1.json` — **N0-3 에서 되살렸다.** v3 초판이 승인 사슬을 뺀 것은
-  오판이었다. `validate_state_projection_v2_1.py:22-26` 이 `validate_approval_artifact` 를
-  import 하므로, 승인을 빼면 이미 완성된 투영 사슬 전체를 다시 써야 한다.
-  현재 FAIL 은 `topology_structure_invalid` 35건(N0-2 가 닫음)과
-  `topology_trust_mismatch` 4건(N0-1 이 닫음)뿐이다. 5 KB 라 크기 제외 대상도 아니다.
+v2.2 생산자 두 역할을 필수 소스 역할에서 뺐다(12 → 10). **같은 계약이 여섯 곳에 박혀 있었다.**
+
+| 위치 | 조치 |
+|---|---|
+| `run_evidence.py:86-99` `PRODUCER_SOURCE_ROLES` | 두 항목 제거 |
+| `run_evidence.py:100-113` `PRODUCER_SOURCE_DEFAULT_PATHS` | 두 항목 제거 |
+| `run_real_world_single_watchdog_...ps1:553` `$sourceBindings` | 두 바인딩 제거 (ASCII 유지) |
+| `test_build_preflight_manifest.py:419-441` | FAIL 기대 → PASS 기대로 뒤집음 |
+| `test_validate_baseline_snapshot.py:186-196` | 픽스처가 두 역할 파일을 만들지만 통과 |
+
+파이썬만 고치면 워치독이 부재 파일로 throw 하고, 워치독만 고치면
+`build_run_manifest_v2_1.py` 의 `producer_sources` **정확 집합** 검증이 거부한다. 함께 바꿔야 한다.
+
+### N0-3 완료 (2026-08-07)
+
+승인 아티팩트가 **PASS** 다. v3 초판이 승인 사슬을 뺀 것은 오판이었고
+(`validate_state_projection_v2_1.py:22-26` 이 `validate_approval_artifact` 를 import 한다)
+N0-3 에서 되살렸다. 2.2 KB 라 크기 제외 대상이 아니며 **커밋한다.**
 
 ### 환경 규약
 

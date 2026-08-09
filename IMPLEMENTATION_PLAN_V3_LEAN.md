@@ -142,13 +142,16 @@ A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 
 `live_replay_builder`(`build_projection_live_evidence_v2_2.py`)가 들어 있다(`:108-109` 경로 맵도 같다).
 **v3 는 이 두 생산자를 만들지 않으므로 preflight 가 영원히 FAIL 한다.**
 
-**같은 계약이 세 곳에 독립으로 박혀 있다. 셋을 한 단계에서 함께 바꾼다.**
+**같은 계약이 여섯 곳에 독립으로 박혀 있다. 한 단계에서 함께 바꾼다.**
+(초판은 세 곳이라 적었으나 실측하니 테스트 두 곳이 더 있었다.)
 
 | 위치 | 무엇 |
 |---|---|
-| `plant/src/vissim_strict/run_evidence.py:94-95` | `PRODUCER_SOURCE_ROLES` 필수 역할 12 → 10 |
-| 같은 파일 `:108-109` | 역할 → 경로 맵 |
+| `plant/src/vissim_strict/run_evidence.py:86-99` | `PRODUCER_SOURCE_ROLES` 필수 역할 12 → 10 |
+| 같은 파일 `:100-113` | `PRODUCER_SOURCE_DEFAULT_PATHS` 역할 → 경로 맵 |
 | `scripts/run_real_world_single_watchdog_distributed_core15n41.ps1:553` | `$sourceBindings` 하드코딩 키 12 → 10 |
+| `scripts/tests/test_build_preflight_manifest.py:419-441` | 두 역할 부재를 **FAIL 기대**로 고정 → PASS 기대로 |
+| `scripts/tests/test_validate_baseline_snapshot.py:186-196` | 픽스처가 두 역할 파일을 합성 생성 |
 
 파이썬만 고치면 워치독이 `Get-B1aWorkspaceRelativeFile` 에서 부재 파일로 throw 하고,
 워치독만 고치면 `build_run_manifest_v2_1.py` 의 `producer_sources` **정확 집합** 검증이 거부한다.
@@ -195,19 +198,25 @@ A2 one-stock 토폴로지(7,275 stock / 7,418 edge / 전 게이트 0 위반)가 
 
 즉 N0-1 과 N0-2 가 끝나면 승인이 PASS 할 것으로 예상한다. 예상이 빗나가면 그 자체가 N0 의 산출이다.
 
-### N0-4. state selection 생산자
+### N0-4. state selection 생산자 — **완료 (2026-08-07)**
 
 `state-selection-v2.1` 은 `build_state_manifest_v2_1.py` 가 **소비만** 하고
-`scripts/tests/test_b1a_core_provenance.py` 가 픽스처로 만들 뿐, **생산자가 없다.**
-런 디렉터리의 상태 파일을 열거해 이 파일을 내는 소량 스크립트를 새로 쓴다.
+테스트가 픽스처로 만들 뿐 **생산자가 없었다.** `scripts/build_state_selection_v2_1.py` 를 새로 썼다.
 
-필요한 필드는 소비자가 정의한다 — `schema_version`, `input_hashes`, `command_version`,
-`status`, `reasons`, `sample_dimensions`, `units`, `downstream_consumers`, `campaign_id`,
-`expected_entry_count`, `entries[{run_manifest_path, state_path, run_id, sim_sec,
-required_vehicle_records}]`, `semantic_sha256`.
+**계약 소유자는 소비자다.** 생산자는 검증 규칙을 재구현하지 않고, 만든 뒤
+`validate_state_selection` 을 스스로 호출해 잘못된 selection 이 하류가 아니라 여기서 죽게 한다.
 
-**PASS.** 런 디렉터리의 상태 파일 수 = `expected_entry_count` = `len(entries)`,
-`build_state_manifest_v2_1.py` 가 그 selection 으로 exit 0.
+sidecar 배제는 glob 이 아니라 **정규식 `^state_(\d+)\.json$`** 으로 한다. sidecar 가
+`state_` 접두사를 물려받으므로 `state_*.json` 으로 훑으면 함께 걸린다(감사 쪽 N0 이전 결함과 같은 부류).
+
+```powershell
+& $py -B scripts/build_state_selection_v2_1.py --workspace-root . `
+  --run-directory <런 디렉터리> --run-manifest <런 매니페스트> `
+  --campaign-id <캠페인> --out outputs/state_selection_v2_1.json
+```
+
+**PASS.** `scripts/tests/test_build_state_selection.py` 4/4 —
+소비자 수용, sidecar 미선택, `run_provenance` 부재 시 fail-closed, CLI 산출물 수용.
 
 ### N0-5. 토폴로지 해시 고정
 
