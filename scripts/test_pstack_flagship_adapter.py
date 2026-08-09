@@ -202,7 +202,7 @@ def _make_state_json(sim_sec: float, count_per_seg: float, speed_kph: float) -> 
 
 def _run_adapter(args: list[str], cwd: Path) -> subprocess.CompletedProcess:
     cmd = [sys.executable, str(ADAPTER_PY)] + args
-    return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=1800)
+    return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, errors="replace", timeout=1800)
 
 
 def _smoke_tuning_dict() -> dict[str, Any]:

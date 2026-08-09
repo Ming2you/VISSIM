@@ -97,7 +97,7 @@ class PlantFidelityMatrixCliTests(unittest.TestCase):
                 check=False,
                 capture_output=True,
                 text=True,
-                encoding="utf-8",
+                encoding="utf-8", errors="replace",
                 env=environment,
                 timeout=180,
             )
@@ -192,7 +192,7 @@ class PlantFidelityMatrixCliTests(unittest.TestCase):
                     "-AuditJsonManifest", str(audit_json), "-AuditMarkdownReport", str(audit_markdown),
                     "-BaselineSnapshotManifest", str(baseline),
                 ],
-                check=False, capture_output=True, text=True, encoding="utf-8", env=environment, timeout=60,
+                check=False, capture_output=True, text=True, encoding="utf-8", errors="replace", env=environment, timeout=60,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Static/dynamic evidence aggregation failed", result.stderr)

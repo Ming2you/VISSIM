@@ -151,7 +151,7 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
                 check=False,
                 capture_output=True,
                 text=True,
-                encoding="utf-8",
+                encoding="utf-8", errors="replace",
                 timeout=30,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
@@ -234,7 +234,7 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            encoding="utf-8",
+            encoding="utf-8", errors="replace",
             env=environment,
             timeout=timeout,
         )
@@ -304,7 +304,7 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
-                    encoding="utf-8",
+                    encoding="utf-8", errors="replace",
                     env={**os.environ, "RW_PYTHON_EXE": sys.executable},
                 )
                 for spec in (spec_a, spec_b)
@@ -328,7 +328,7 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            encoding="utf-8",
+            encoding="utf-8", errors="replace",
             timeout=30,
         )
         self.assertEqual(result.returncode, 0, result.stderr)

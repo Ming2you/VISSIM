@@ -344,7 +344,7 @@ class B1aVbsCaptureHelpersBehaviorTests(unittest.TestCase):
                 [CSCRIPT, "//nologo", str(harness)],
                 check=False,
                 capture_output=True,
-                text=True,
+                text=True, errors="replace",
                 timeout=30,
             )
             self.assertEqual(result.returncode, 13, result.stdout + result.stderr)
@@ -383,7 +383,7 @@ class B1aVbsCaptureHelpersBehaviorTests(unittest.TestCase):
                 ],
                 check=False,
                 capture_output=True,
-                text=True,
+                text=True, errors="replace",
                 timeout=30,
             )
             self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
@@ -409,7 +409,7 @@ class B1aVbsCaptureHelpersBehaviorTests(unittest.TestCase):
                 ],
                 check=False,
                 capture_output=True,
-                text=True,
+                text=True, errors="replace",
                 timeout=30,
             )
             elapsed = time.perf_counter() - started

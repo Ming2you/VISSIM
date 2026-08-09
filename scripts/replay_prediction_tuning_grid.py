@@ -156,7 +156,7 @@ def run_candidate(
                 "--tuning-json",
                 str(tuning_path),
             ]
-            completed = subprocess.run(cmd, text=True, capture_output=True, shell=False)
+            completed = subprocess.run(cmd, text=True, errors="replace", capture_output=True, shell=False)
             if completed.returncode != 0:
                 rows.append({
                     "candidate": candidate["name"],

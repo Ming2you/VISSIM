@@ -73,7 +73,7 @@ def main() -> int:
                 "--tuning-json", str(tuning),
             ]
             print(f"RUN config={tag} group={group} t0={t0}")
-            proc = subprocess.run(cmd, cwd=str(HERE), capture_output=True, text=True, encoding="utf-8")
+            proc = subprocess.run(cmd, cwd=str(HERE), capture_output=True, text=True, encoding="utf-8", errors="replace")
             sys.stdout.write(proc.stdout or "")
             if proc.returncode != 0:
                 sys.stderr.write(proc.stderr or "")

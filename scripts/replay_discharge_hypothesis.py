@@ -73,7 +73,7 @@ def main() -> int:
                 cmd += ["--tuning-json", str(cand_path)]
             if prev_action:
                 cmd += ["--previous-action-json", prev_action]
-            r = subprocess.run(cmd, text=True, capture_output=True)
+            r = subprocess.run(cmd, text=True, errors="replace", capture_output=True)
             if r.returncode != 0:
                 n_fail += 1
                 prev_action = ""

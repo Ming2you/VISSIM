@@ -166,7 +166,7 @@ class AuditPlantFidelityTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            encoding="utf-8",
+            encoding="utf-8", errors="replace",
             timeout=120,
         )
         payload = json.loads(json_out.read_text(encoding="utf-8")) if json_out.is_file() else {}

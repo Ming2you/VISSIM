@@ -706,7 +706,7 @@ print(validated.semantic_sha256)
             cwd=self.temporary.name,
             env=environment,
             capture_output=True,
-            text=True,
+            text=True, errors="replace",
             timeout=120,
             check=False,
         )
@@ -1263,7 +1263,7 @@ class ProducerCliTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            encoding="utf-8",
+            encoding="utf-8", errors="replace",
             timeout=30,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

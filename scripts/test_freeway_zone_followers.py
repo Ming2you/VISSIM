@@ -806,7 +806,7 @@ def _smoke_tuning_dict(base: Path) -> dict[str, Any]:
 
 def _run_adapter(args: list[str], cwd: Path) -> subprocess.CompletedProcess:
     cmd = [sys.executable, str(ADAPTER_PY)] + args
-    return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=1800)
+    return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, errors="replace", timeout=1800)
 
 
 def _decide(tmp: Path, base: Path, tag: str) -> tuple[dict[str, Any], list[dict[str, str]], list[str]]:

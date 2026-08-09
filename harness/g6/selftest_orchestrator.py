@@ -92,7 +92,7 @@ def run(mode: str) -> dict:
         [PY, "-B", str(HARNESS / "run_g6_shadow.py"),
          "--run-dir", str(run_dir), "--out-dir", str(out_dir),
          "--t0", "900", "--horizons", "1,3,5"],
-        capture_output=True, text=True, cwd=str(HARNESS),
+        capture_output=True, text=True, errors="replace", cwd=str(HARNESS),
     )
     print(f"--- mode={mode} exit={proc.returncode}")
     print(proc.stdout.strip())
