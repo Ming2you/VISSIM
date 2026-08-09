@@ -1119,12 +1119,21 @@ def _file_sha256(path: Path) -> str:
 
 
 def _git_commit(path: Path) -> str:
+    # `text=True` 만 주면 파이썬이 **로케일 기본 인코딩**으로 디코딩한다. 이 워크스페이스는
+    # 한글 경로(학술/찐찐막)이고 git 은 그 경로를 UTF-8 로 출력하므로, cp949 로케일에서는
+    # subprocess 의 reader 스레드가 UnicodeDecodeError 로 죽는다. 그러면 `stdout` 이 None 이
+    # 되고 `.stdout.strip()` 이 AttributeError 를 던지는데, 이 예외는 아래 except 에 없어
+    # 그대로 전파되어 **어댑터 프로세스 전체가 종료**된다.
+    # 2026-08-07 실 런에서 매 decision 마다 이것으로 죽었다(DECISION_EXIT_NONZERO).
+    # 인코딩을 명시해 로케일 의존을 제거한다.
     try:
         top_level = subprocess.run(
             ["git", "-C", str(path), "rev-parse", "--show-toplevel"],
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=5,
         ).stdout.strip()
         if Path(top_level).resolve() != path.resolve():
@@ -1134,6 +1143,8 @@ def _git_commit(path: Path) -> str:
             check=True,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=5,
         )
     except (OSError, subprocess.SubprocessError):

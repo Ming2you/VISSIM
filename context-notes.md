@@ -744,3 +744,82 @@ $env:RW_PYTHON_EXE = "C:\Users\alsrj\anaconda3\python.exe"
 이 저장소의 `runtime_source_v2_1.json` 과 `preflight_manifest_v3.json` 은 원래 Codex 워크트리
 (`C:\tmp\vissim-pstack-controller`)에서 생성돼 절대경로가 전부 거기를 가리켰다. 이번에 이
 워크스페이스에서 재생성했다.
+
+---
+
+## 2026-08-07 — N1 첫 실 런: 결함 7건과 운영 규칙
+
+**플랜트가 실 차량을 A2 stock 에 투영하는 데 성공했다.** 이 저장소에서 처음이다.
+
+```
+sim_sec 1.0   record_count 6   unobservable_count 0   external_source_count 0
+veh 1 -> link 55 lane 1 pos 4.605 m 43.2 kph
+full_network_link_counts {55:1, 66:1, 74:2, 99:1, 164:1}
+```
+
+B1a 가 요구하는 `unobservable_count = 0`, `external_source_count = 0` 을 실 데이터로 만족했다.
+
+### 결함이 층층이 쌓여 있었다
+
+각 결함이 다음 결함을 가리고 있어서, 실 런을 반복해야 한 겹씩 드러났다.
+
+| # | 결함 | 드러난 방식 | 상태 |
+|---|---|---|---|
+| 1 | 경로 헬퍼 `'\'` 이스케이프 | dry-run `escapes the workspace` | 수정 |
+| 2 | stdin BOM | dry-run `UTF-8 BOM is forbidden` | 수정 |
+| 3 | VBS 헬퍼 타임아웃 10초 | 실 런 `EXEC_TIMEOUT` | 수정 |
+| 4 | COM 고아 프로세스 | `CO_E_SERVER_EXEC_FAILURE` 연쇄 | 운영 규칙 |
+| 5 | 어댑터 cp949 | `DECISION_EXIT_NONZERO` 매회 | 수정 |
+| 6 | COM 키 == 차량번호 가정 | `com_row_key_mismatch row=7` | 수정 |
+| 7 | solve 시간 | `timeout=True`, decision 미완료 | **미해결** |
+
+### 운영 규칙 (반드시 지킬 것)
+
+**`CO_E_SERVER_EXEC_FAILURE` 가 나면 잔여 프로세스를 전부 정리하고 재시도하라.**
+실패한 시도가 `VISSIM200` 고아를 남기고, 그 고아가 다음 COM 활성화를 막아 **연쇄 실패**를 만든다.
+워치독의 3회 재시도가 전부 같은 이유로 죽는 패턴이 이것이다. 정리 후 첫 시도에 바로 성공했다.
+설치·등록·라이선스는 정상이다(직접 실행 시 GUI 기동 확인).
+
+**워치독을 죽여도 자식 파이썬은 죽지 않는다.** 14:49 에 죽인 런의 어댑터가 20분 넘게
+CPU 701초를 먹으며 살아 있었고 다음 런과 코어를 다퉜다. 측정 전에 반드시 확인하라.
+v3 N8-4 가 요구하는 "고아 워커 0" 계약이 현재 지켜지지 않는다.
+
+```powershell
+Get-Process | Where-Object { $_.ProcessName -match "VISSIM|cscript|python" } |
+  Select-Object ProcessName,Id,CPU,StartTime
+```
+
+### solve 성능 오프라인 재현 (VISSIM 불필요)
+
+캡처된 상태 파일 하나로 어댑터를 그대로 돌릴 수 있다. **반복 측정과 최적화에 이 경로를 쓴다.**
+
+```bash
+python evaluation/controllers/vissim_stackelberg_adapter.py \
+  --state-json <decisions/state_000001.json> \
+  --out-action-json <out.json> --out-action-csv <out.csv> \
+  --mapping-json evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core15n41_20260805.json \
+  --controller stackelberg \
+  --calibration-json evaluation/calibration/real_world_prediction_calibration_pshb4500fix_20260724.json \
+  --tuning-json evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json
+```
+
+**측정: 차량 6대짜리 초기 상태에서 240초를 넘긴다.** 알려진 최악값(H=3, 154.7초)보다 나쁘다.
+
+`faulthandler.dump_traceback_later(60)` 로 잡은 정체 지점 — 두 번의 덤프가 같은 사슬이다.
+
+```
+decide_with_info                 stackelberg_mpc.py:546
+ _evaluate_fallback_candidates   stackelberg_mpc.py:1791   <- fallback 후보 평가 아래다
+  solve                          distributed_coordinator.py:1803
+   _structured_grid_refinement   :985
+    _evaluate_grid_stage         :947
+     evaluate_grid_items         grid_parallel.py:100
+      evaluate_item              :925
+       _rollout_grid_objective   :673
+        run_coupled_interval     coupling.py:180
+         urban_substep           urban_queue_model.py:974
+          patched_phase_green_fraction  adapter:1328
+```
+
+멈춘 것이 아니라 순수 계산량이다(코어 하나 포화). 격자 후보마다 전체 롤아웃을 돌린다.
+**본 경로가 아니라 `_evaluate_fallback_candidates` 아래라는 점이 특히 조사 대상이다.**

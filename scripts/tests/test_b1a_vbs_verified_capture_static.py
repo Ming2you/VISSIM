@@ -229,7 +229,13 @@ def assert_called_capture_contract(source: str) -> None:
     assert "noKey <> laneKey" in scan
     assert "noKey <> posKey" in scan
     assert "noKey <> speedKey" in scan
-    assert "noKey <> vehNo" in scan
+    # GetMultiAttValues 의 key 열은 컨테이너의 **순차 행 인덱스**이지 객체 키가 아니다.
+    # 차량번호와 같다고 가정하면 차량이 네트워크를 드나드는 순간 오탐한다 -
+    # 2026-08-07 실 런에서 sim_sec 1 은 veh_no 1..6 으로 통과했고 sim_sec 90 의 row 7 에서
+    # com_row_key_mismatch 로 매 시도가 죽었다. 요구할 것은 네 배열의 행 정렬뿐이고,
+    # 차량번호는 value 열에서 읽어 아래 snapshotIds 로 유일성을 본다.
+    assert "noKey <> vehNo" not in scan
+    assert re.search(r"(?i)\bTryPositiveLongVariant\(noArray\(row, valueCol\), vehNo\)", scan)
     assert "snapshotIds.Exists(key)" in scan
     assert "recordVehNos(recordIndex) = vehNo" in scan
     assert "recordLinkNos(recordIndex) = linkNo" in scan

@@ -150,7 +150,17 @@ Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
 Const B1A_POSITION_TOLERANCE_M = 0.000001
 Const B1A_STOPPED_THRESHOLD_KPH = 1.0
-Const B1A_PYTHON_HELPER_TIMEOUT_SEC = 10
+' Measured 2026-08-07 against the real Gaepo topology: --validate-run-binding takes
+' 10.47 s wall and returns status=PASS. cProfile attributes 10.44 s of that to
+' run_evidence.validate_run_manifest -> approval_replay.validate_approval_replay ->
+' _run_validation_worker, i.e. an independent approval-replay SUBPROCESS that reloads and
+' rehashes the 30 MB physical stock topology. The old 10 s ceiling was set without
+' measuring against a real topology, so required mode always died with EXEC_TIMEOUT
+' before a single capture. This is slowness, not a hang - raise the ceiling with headroom.
+' NOTE: the same deep replay runs again at every capture time. That redundancy is a
+' performance item, not a correctness one (the approval artifact is immutable for the run
+' and its hash is re-checked from the manifest each time). See v3 N1 follow-up.
+Const B1A_PYTHON_HELPER_TIMEOUT_SEC = 60
 Dim JSON_DECIMAL_SEPARATOR
 JSON_DECIMAL_SEPARATOR = Mid(FormatNumber(1.5, 1, -1, 0, 0), 2, 1)
 
@@ -1831,7 +1841,16 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
             PerfAdd "scan.vehicles", perfT0
             Exit Sub
         End If
-        If noKey <> laneKey Or noKey <> posKey Or noKey <> speedKey Or noKey <> vehNo Then
+        ' GetMultiAttValues returns (row index, value) pairs. keyColumn is the container's
+        ' SEQUENTIAL ROW INDEX, not the object key, so it must NOT be compared against the
+        ' vehicle number. The two coincide only while the network still holds vehicles
+        ' 1..N with no gaps; once any vehicle leaves, index and No diverge.
+        ' Measured 2026-08-07: sim_sec 1 captured veh_no 1..6 with index 1..6 and passed,
+        ' then sim_sec 90 failed at row 7 with com_row_key_mismatch. Every attempt died there.
+        ' What must hold is that the four arrays are row-aligned - they come from one paused
+        ' container read - and that vehicle numbers are unique inside the snapshot, which the
+        ' snapshotIds check below already enforces.
+        If noKey <> laneKey Or noKey <> posKey Or noKey <> speedKey Then
             RecordVehicleCaptureFailure "com_row_key_mismatch", "row=" & CStr(row)
             PerfAdd "scan.vehicles", perfT0
             Exit Sub
