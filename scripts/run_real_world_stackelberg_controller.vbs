@@ -1488,12 +1488,16 @@ Sub SetName(obj, name)
     On Error GoTo 0
 End Sub
 
+' abort 경로는 **실패 증거 전용**이다. OPTIONAL_ATT_SKIPS 를 여기 넣지 마라.
+' 건너뛴 설정은 실패가 아니고, 각자 이미 WARN=SKIPPED_OPTIONAL_ATT 로 상세를 남긴다.
+' 게다가 이 Sub 는 scripts/tests/test_b1a_vbs_capture_helpers_behavior.py 가 떼어내
+' 독립 harness 에서 실행한다 - harness 는 실패 카운터만 선언하므로, 그 밖의 전역을
+' 참조하면 Option Explicit 아래서 "변수가 정의되지 않았습니다" 로 죽는다(실측).
 Sub AbortVehicleObservation(simSec)
     observationFailures = observationFailures + 1
     WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
     WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
     WScript.Echo "COM_FAILURES=" & CStr(comFailures)
-    WScript.Echo "OPTIONAL_ATT_SKIPS=" & CStr(optionalAttSkips)
     WScript.Quit 13
 End Sub
 
