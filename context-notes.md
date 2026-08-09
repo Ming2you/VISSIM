@@ -823,3 +823,79 @@ decide_with_info                 stackelberg_mpc.py:546
 
 멈춘 것이 아니라 순수 계산량이다(코어 하나 포화). 격자 후보마다 전체 롤아웃을 돌린다.
 **본 경로가 아니라 `_evaluate_fallback_candidates` 아래라는 점이 특히 조사 대상이다.**
+
+---
+
+## 2026-08-07 — solve 성능 진단 (v3 N8-4/I-3 로 이월)
+
+**결론 — 탐색 공간 문제가 아니라 롤아웃 내부 비용이다.** 최적화는 N8-4/I-3 에서 다룬다.
+
+### 실측
+
+차량 6대짜리 `state_000001.json` 하나로 단일 decision 을 재현했다(VISSIM 불필요).
+
+| 조건 | 결과 |
+|---|---|
+| 기본 | 1200초 초과 |
+| `grid_parallel_backend: thread` × 8 | 180초 초과 (GIL 이라 무효) |
+| `grid_parallel_backend: process` × 8 | 1200초 초과 |
+| fallback off + 지평 1 + 후보 1 | **300초 초과** |
+
+마지막 줄이 핵심이다. 탐색 축을 전부 최소로 줄여도 종료하지 않으므로 **비용은 롤아웃 한 번 안에 있다.**
+
+### 프로파일 (150초)
+
+```
+523,389,192  dict.get                                     46.9초
+   654,056  distributed_coordinator.py:1120 <genexpr>     27.5초
+ 1,003,889  distributed_coordinator.py:1114 <genexpr>     27.1초
+     1,323  _leader_direct_feasible_set_diagnostics(:735)  누적 47.1초
+```
+
+`_allocation_control_map`(`:1106`)이 경계 링크마다 전체 movement 를 재순회한다 —
+**1,414 movements × 236 boundary links × 2 = 호출당 667,408회 dict 조회.**
+`cfg.network` 는 런 중 불변이므로 인덱스를 한 번만 만들면 된다.
+
+**시험 결과 (되돌림): dict.get 523M → 160M, 전체 호출 638M → 403M, 약 31% 개선.**
+종료를 만들 크기는 아니었다.
+
+수정 후 재프로파일의 1위는 어댑터 monitor 몽키패치다.
+
+```
+2,132,847  fixed_signal_schedule.py:140 _union_green_overlap  19.7초 (누적 30.1초)
+4,212,409  adapter:1316 patched_phase_green_fraction          누적 57.2초  (48%)
+    2,956  _leader_direct_feasible_set_diagnostics            누적 106.3초 (89%)
+```
+
+monitor 노드는 "고정 스케줄, 제어 불가" 라 `(node, group_ids, start_sec, duration_sec)` 에 대해
+녹색분율이 런 내내 상수인데 420만 회 재계산한다. `FixedControllerSchedule._green_fraction`
+메모이즈가 자연스러운 수정이며 **이 파일은 벤더가 아니라 저장소 코드다.**
+
+`_leader_direct_feasible_set_diagnostics` 는 이름과 달리 진단 출력이 아니다.
+7개 지점에서 호출되고 탐색 루프 안에서 시행마다 돌며 `best_diag`/`base_diag` 로 판정에 쓰인다.
+끌 수 없고 등가성 증명이 필요하다.
+
+### 구조적 제약 — 벤더 앵커 (선행 과제)
+
+`vendor/NumSim-mine` 은 상류 커밋 `0240ba8` 에 해시로 고정돼 있고
+`verify_runtime_source.py` 가 96개 파이썬 blob OID 를 전부 대조한다.
+`distributed_coordinator.py` 를 고치자 즉시 FAIL 했다.
+
+```
+canonical.anchor_python_blobs / canonical.tracked_source_clean
+```
+
+**재스냅샷 도구가 없다.** `UPSTREAM_TREE.json` 을 소비하는 코드만 있고 생성하는 코드가 없다.
+NumSim 을 고치려면 **앵커 갱신 파이프라인을 먼저 만들어야 한다.** 이번 시험 수정은 되돌렸고
+`verify_runtime_source` 는 PASS 로 복구했다.
+
+### 재현 절차
+
+```bash
+# 단일 decision 타이밍
+python evaluation/controllers/vissim_stackelberg_adapter.py --state-json <state_000001.json> ...
+# 프로파일 (scratchpad/profprobe.py: N초 후 덤프하고 강제 종료)
+PROF_SECONDS=150 PROF_DUMP=prof.out python profprobe.py <adapter.py> <같은 인자>
+# 정체 지점만 빠르게
+python -c "import faulthandler; faulthandler.dump_traceback_later(60, repeat=True)" 방식
+```
