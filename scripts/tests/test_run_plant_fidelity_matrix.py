@@ -100,6 +100,61 @@ class PlantFidelityMatrixCliTests(unittest.TestCase):
         self.assertIn('TrySetAtt sg, "SigState", "GREEN"', source)
         self.assertIn('TrySetEvaluationAtt "EvalOutDir", path', source)
 
+    def test_signal_action_is_fail_closed_like_vsl(self) -> None:
+        """signal 행만 COM write 실패를 무시하고 계속 적용하던 비대칭을 막는다.
+
+        VSL 은 실패하면 즉시 멈춘다.
+
+            vslWriteOk = SetClassSpeedChecked(...)
+            If Not vslWriteOk Then
+                WScript.Echo "ERROR=VSL_COM_WRITE_READBACK ..."
+                Exit Function
+
+        signal 은 그러지 않았다. `EnableSignalControllerForRuntime` 이 실패 시
+        "ERR:ContrByCOM readback" 을 돌려주는데 호출부가 그 값을 **검사하지 않았고**,
+        게다가 sigMajor/sigMinor/sigOffset 을 COM 호출 **전에** 선커밋했다.
+
+        결과. 런은 signalFailures>0 때문에 마지막에 RUN_INTEGRITY_FAILURE 로 죽지만,
+        그때까지 COM 제어를 못 받은 SC 에 대해 선커밋된 값이 매초 재생된다
+        (`signalControlled` 가 무조건 True 로 설정돼 재생 게이트를 통과한다).
+        즉 오염된 액추에이션으로 런 전체가 진행된 뒤에야 실패한다.
+        """
+        source = VBS.read_text(encoding="utf-8")
+
+        # `kind = "signal"` 분기는 ApplyActionCsv 안에 두 곳이다 - 앞이 행 검증, 뒤가 적용이다.
+        # COM 을 실제로 건드리는 것은 뒤쪽이므로 rindex 로 잡는다.
+        apply_start = source.index("Function ApplyActionCsv")
+        apply_body = source[apply_start : source.index("End Function", apply_start)]
+        start = apply_body.rindex('ElseIf kind = "signal" Then')
+        branch = apply_body[start:]
+        self.assertIn("EnableSignalControllerForRuntime", branch, "적용 분기를 못 잡았다")
+
+        # 반환값을 검사하고 VSL 과 같은 방식으로 멈춘다.
+        self.assertIn("ERR:", branch, "signal 분기가 오류 반환을 검사하지 않는다")
+        self.assertIn("Exit Function", branch, "실패해도 멈추지 않는다")
+        self.assertIn("ERROR=SIGNAL_COM_WRITE_READBACK", branch)
+
+        # COM 호출이 값 커밋보다 먼저다 - 실패한 SC 의 값이 남으면 안 된다.
+        self.assertLess(
+            branch.index("EnableSignalControllerForRuntime"),
+            branch.index("sigMajor(scNo)"),
+            "COM 확인 전에 sigMajor 를 선커밋한다",
+        )
+
+        # COM 제어를 못 받았으면 재생 대상으로도 표시하면 안 된다.
+        enable = source[
+            source.index("Function EnableSignalControllerForRuntime") : source.index(
+                "End Function", source.index("Function EnableSignalControllerForRuntime")
+            )
+        ]
+        marker = "signalControlled(CStr(scNo)) = True"
+        self.assertIn(marker, enable)
+        self.assertLess(
+            enable.index("If enableOk Then"),
+            enable.index(marker),
+            "enableOk 를 보기 전에 signalControlled 를 True 로 만든다",
+        )
+
     def run_script(self, *arguments: str) -> subprocess.CompletedProcess[str]:
         environment = dict(os.environ)
         environment["RW_PYTHON_EXE"] = sys.executable

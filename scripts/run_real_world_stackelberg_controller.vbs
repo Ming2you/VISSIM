@@ -915,10 +915,20 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
             readback = ApplyRampMeterSignal(CLng(scNo), CDbl(rampGreen(scNo)), simSec)
         ElseIf kind = "signal" Then
             scNo = CStr(CLng(Trim(CStr(parts(3)))))
+            ' COM 제어 인계를 **먼저** 확인한다. 예전에는 sigMajor/sigMinor/sigOffset 을 먼저
+            ' 커밋하고 반환값을 검사하지 않아, COM 을 못 받은 SC 의 값이 매초 재생됐다.
+            ' 런은 signalFailures>0 로 마지막에 죽지만 그때까지 오염된 액추에이션이 이어졌다.
+            ' 바로 위 VSL 분기와 같은 fail-closed 모양으로 맞춘다.
+            readback = EnableSignalControllerForRuntime(CLng(scNo))
+            If Left(CStr(readback), 4) = "ERR:" Then
+                WScript.Echo "ERROR=SIGNAL_COM_WRITE_READBACK sc=" & CStr(scNo) & _
+                    " readback=" & CStr(readback)
+                PerfAdd "action.apply", perfT0
+                Exit Function
+            End If
             sigMajor(scNo) = CDbl(Trim(CStr(parts(7))))
             sigMinor(scNo) = CDbl(Trim(CStr(parts(8))))
             sigOffset(scNo) = CDbl(Trim(CStr(parts(9))))
-            readback = EnableSignalControllerForRuntime(CLng(scNo))
         End If
         actionFile.WriteLine CStr(simSec) & "," & Join(parts, ",") & "," & readback
     Next
@@ -1148,8 +1158,11 @@ Function EnableSignalControllerForRuntime(scNo)
         End If
         On Error GoTo 0
     Next
-    signalControlled(CStr(scNo)) = True
+    ' signalControlled 는 매초 신호 재생의 게이트다(:1199 참조). COM 인계가 실패한 SC 를
+    ' 여기 등록하면, 제어를 못 받은 컨트롤러에 대해 재생 루프가 계속 값을 밀어 넣는다.
+    ' 그래서 enableOk 일 때만 등록한다.
     If enableOk Then
+        signalControlled(CStr(scNo)) = True
         EnableSignalControllerForRuntime = "stored"
     Else
         EnableSignalControllerForRuntime = "ERR:ContrByCOM readback"
