@@ -955,3 +955,50 @@ WARN=FAILED_SET_ATT att=SimSpeed value=0 err=Value 0 is lower than minimum
 시뮬레이션·캡처에 영향이 없으나 `COM_FAILURES=2` 를 만들어 `RUN_INTEGRITY_FAILURE` 를 낸다.
 나머지 실패 카운터는 전부 0이다. 이번 변경과 무관한 기존 설정 문제이며
 `SimSpeed=0` 은 "최대 속도" 의도로 보이나 VISSIM 2020 이 0을 거부한다.
+
+---
+
+## 2026-08-07 — N2 착수: 대상 확정, RED 미달성 (다음 세션 인계)
+
+### 고칠 지점 (확정)
+
+`vendor/NumSim-mine/src/models/urban_queue_model.py:1022-1032`
+
+```python
+for movement, spec in specs.items():
+    qmax = _queue_max(cfg, movement, spec)
+    q = state.urban_movement_queue.get(movement, 0.0)
+    if q > qmax:
+        overflow_count += 1.0
+        projection_count += q - qmax              # 파괴량을 세기만 한다
+        state.urban_movement_queue[movement] = qmax   # 질량 삭제
+```
+
+진단 키 — `movement_queue_projection_veh`(`:1077`), `movement_queue_projection_protected_veh`(`:1078`).
+N2 의 PASS 조건 `clipped-away mass 0` 이 정확히 이것을 겨냥한다.
+
+### RED 를 못 만든 이유 (여기서 이어받을 것)
+
+`_queue_max`(`:139-156`)가 **어떤 설정을 줘도 1e9 를 반환한다.** 확인한 것:
+
+- movement spec 키에 `storage_capacity_veh` 가 **없다**
+  (`approach, beta, destination, exit, intersection, kind, origin, phase, receiving_link, signal`)
+  → 첫 분기가 아니다
+- `boundary_queue_max_veh` 기본값은 **240** 이고 `with_updates` 로 50 으로 바뀌는 것도 확인했다
+- `urban_link_storage_veh['A_to_D']` 는 **220** 으로 존재한다
+- 그런데도 `_queue_max` 는 1e9 를 낸다
+
+즉 세 경로 어느 것으로도 1e9 가 나올 수 없는데 나온다. **`movement_specs` 가 캐시되거나
+다른 cfg 를 참조할 가능성**이 가장 유력하다. 거기부터 보면 된다.
+
+큐를 1e6 으로 채우고 `urban_substep` 을 돌려도 `projection_veh = 0` 이므로 clipping 이
+아예 발동하지 않는다. **실 네트워크 설정에서는 발동한다**(실 런에서 관측됨).
+합성 설정 대신 실 네트워크 설정으로 RED 를 잡는 편이 빠를 수 있다.
+
+실패를 본 적 없는 테스트는 남기지 않았다. 상류 저장소는 깨끗하다.
+
+### NumSim 수정 절차 (반드시 지킬 것)
+
+상류 `Claude/NumSim-mine` 에서 커밋 → `scripts/update_numsim_snapshot.py` →
+`verify_runtime_source` → `build_preflight_manifest` → `approve_physical_stock_topology`.
+**벤더를 직접 고치면 앵커가 깨진다.**
