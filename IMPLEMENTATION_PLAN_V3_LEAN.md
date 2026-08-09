@@ -358,8 +358,25 @@ vendor/NumSim-mine/src/controllers/stackelberg_mpc.py                  (N7, N8)
 ```
 
 **고정한 계약 5건.** 상류 커밋과 LF 정규화 blob OID 기록 / 소스 복사와 stale 제거 /
-더러운 상류 트리 거부 / SNAPSHOT.md 여섯 행과 검증기 상수 두 개 동시 갱신 /
+더러운 상류 트리 거부 / SNAPSHOT.md 여섯 행과 **앵커 상수 여섯 개** 동시 갱신 /
 내용이 같으면 줄바꿈을 다시 쓰지 않음(다시 쓰면 `tracked_source_clean` 이 FAIL 한다).
+
+**앵커 사실이 반복되는 여섯 지점** (실전에서 드러났다 — 초판은 둘만 갱신해 바로 막혔다).
+
+```
+verify_runtime_source.py    EXPECTED_SNAPSHOT_COMMIT
+                            EXPECTED_ROOT_TREE
+                            EXPECTED_SRC_TREE
+                            EXPECTED_PYTHON_FILE_COUNT
+                            EXPECTED_ANCHOR_SEMANTIC_SHA256
+build_preflight_manifest.py EXPECTED_NUMSIM_COMMIT
+```
+
+앵커 semantic 해시는 `verify_runtime_source._semantic_json_sha256` 과 **정확히 같은 방식**으로
+계산해야 한다(`ensure_ascii=True, sort_keys=True, separators=(",",":")`).
+
+**재스냅샷 후 vendor 변경을 반드시 `git add` 하라.** 검증기는 커밋된 트리를 보므로,
+안 하면 `tracked_source_clean` 과 `tracked_python_complete` 가 FAIL 한다.
 
 **PASS.** 현재 스냅샷(`0240ba8`, 96파일)에 돌려 앵커 값이 완전히 동일하게 재현되고
 `verify_runtime_source` 가 PASS 다. 테스트 5/5.
@@ -375,10 +392,26 @@ v2.1 B-1 의 후반부. 스냅샷 사이 차량 이동을 복식부기로 기록
 closing_i = opening_i + accepted_external_i − sink_i + Σ_j F[j,i] − Σ_k F[i,k]
 ```
 
+### 실측으로 갱신된 착수 상태 (2026-08-07)
+
+| 항목 | 상태 |
+|---|---|
+| **post-update clipping 제거** | **이미 완료 — 할 일 없음** |
+| 단일 `TrafficState.total_physical_vehicles()` | **완료** (상류 `72b37cc`, TDD 2/2) |
+| `transfer_id` 복식부기 장부 | **미구현** — 저장소에 `transfer_id` 가 없다 |
+| 내부 분해 항등식 | 미확인 |
+
+**clipping 은 이미 무력화돼 있다.** `urban_queue_model.py:532` 의 `_queue_max` 가 `1.0e9` 를
+반환하며 주석이 이유를 밝힌다 — *"큐 클립은 차량을 삭제해 보존 회계를 깬다. 공간 제약은
+receiving-space allocation 이 담당한다."* `:1022-1032` 의 클립 코드는 남아 있으나 발동하지
+않는다. **그 RED 는 만들 수 없다.** (`:139` 의 `movement_storage_capacity` 와 혼동하지 마라 —
+그쪽은 밀도 정규화용이고 실 저장용량을 쓴다.)
+
+### 남은 작업
+
 - 모든 내부 이동은 `transfer_id` 하나 · 출발 차변 하나 · 도착 대변 하나
 - 출발/도착 transfer 다중집합 동일
-- **post-update clipping 제거** — 받는 쪽·보내는 쪽 제약으로 흐름을 제한하고 거부량은 typed source stock 에 남긴다
-- 단일 `TrafficState.total_physical_vehicles()`
+- 거부량은 typed source stock 에 남긴다
 
 **PASS.** stock/전역 잔차 `<=1e-6 veh`, **내부 분해 잔차 `<=1e-6 veh`**,
 transfer 다중집합 불일치 0, 중복/누락 transfer ID 0, clipped-away mass 0,
