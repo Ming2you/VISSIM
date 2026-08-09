@@ -78,10 +78,16 @@ class RuntimeSourceVerifierTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(report["schema_version"], "runtime-source-v2.1")
         self.assertEqual(report["status"], "PASS")
-        self.assertEqual(
-            report["expected_snapshot_commit"],
-            "0240ba89b97bf43438e1a0f519f7b0c978288913",
+        # 앵커 커밋을 하드코딩하지 않는다. 재스냅샷마다 손봐야 하는 지점이 하나 늘 뿐이고,
+        # 실제로 0240ba8 -> 7d05097 이동 때 이 계열에서만 26개가 깨졌다.
+        # UPSTREAM_TREE.json 과 대조한다. 검증기는 이 앵커를 신뢰의 근거로 쓰므로, 보고서가
+        # 앵커와 다른 커밋을 기대한다면 그것 자체가 결함이다.
+        anchor = json.loads(
+            (REPO / "vendor" / "NumSim-mine" / "UPSTREAM_TREE.json").read_text(
+                encoding="utf-8"
+            )
         )
+        self.assertEqual(report["expected_snapshot_commit"], anchor["commit"])
         self.assertTrue(report["selected_is_canonical"])
         self.assertEqual(report["reasons"], [])
         for key in (
@@ -98,7 +104,12 @@ class RuntimeSourceVerifierTests(unittest.TestCase):
         self.assertGreater(report["sample_dimensions"]["canonical_python_files"], 0)
         self.assertTrue(report["units"])
         self.assertTrue(report["downstream_consumers"])
-        self.assertEqual(report["trust_anchor"]["python_file_count"], 96)
+        # 파일 수도 앵커에서 읽는다. 96 을 박아 두면 상류에 파일 하나만 늘어도 깨진다.
+        # 여기서 의미 있는 검사는 "보고서가 앵커와 같은 수를 보고하는가" 이지 특정 숫자가 아니다.
+        self.assertEqual(
+            report["trust_anchor"]["python_file_count"], anchor["python_file_count"]
+        )
+        self.assertEqual(anchor["python_file_count"], len(anchor["python_blobs"]))
         checks = {item["id"]: item["status"] for item in report["checks"]}
         self.assertEqual(checks["canonical.anchor_python_blobs"], "PASS")
         self.assertEqual(checks["selected.anchor_python_blobs"], "PASS")

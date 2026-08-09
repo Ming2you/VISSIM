@@ -23,6 +23,41 @@ from pathlib import Path
 ANCHOR_SCHEMA_VERSION = "numsim-upstream-tree-v1"
 OBJECT_FORMAT = "sha1"
 
+# 앵커 사실을 module-level 상수로 반복하는 파일과, 그 파일이 요구하는 상수 이름.
+#
+# 이 표가 불완전하면 사슬 세 단계(verify -> preflight -> approval)는 전부 PASS 인데
+# 다른 소비자가 조용히 거부한다. 그 형태로 세 번 당했다.
+#
+#   1차  verify_runtime_source 의 다섯 중 둘만 갱신     -> trust_anchor 3종 FAIL
+#   2차  build_preflight_manifest 를 통째로 놓침        -> runtime_source.expected_commit FAIL
+#   3차  validate_baseline_snapshot 의 다섯을 놓침      -> baseline 21+ FAIL
+#
+# scripts/tests/test_update_numsim_snapshot.AnchorConstantCoverageTests 가 scripts/ 를 훑어
+# 이 표에 없는 보유 파일을 잡는다. 새 소비자가 생기면 그 테스트가 먼저 깨진다.
+FULL_ANCHOR_CONSTANTS = (
+    "commit",
+    "root_tree",
+    "src_tree",
+    "python_file_count",
+    "semantic_sha256",
+)
+ANCHOR_CONSTANT_FILES: dict[str, tuple[str, ...]] = {
+    "verify_runtime_source.py": FULL_ANCHOR_CONSTANTS,
+    # baseline 검증기는 verify 와 **똑같은 다섯 상수**를 독립적으로 들고 있다.
+    # 이름만 EXPECTED_NUMSIM_COMMIT 로 다르다.
+    "validate_baseline_snapshot.py": FULL_ANCHOR_CONSTANTS,
+    "build_preflight_manifest.py": ("commit",),
+}
+
+# 같은 사실을 파일마다 다른 이름으로 부른다.
+_CONSTANT_NAMES = {
+    "commit": ("EXPECTED_SNAPSHOT_COMMIT", "EXPECTED_NUMSIM_COMMIT"),
+    "root_tree": ("EXPECTED_ROOT_TREE",),
+    "src_tree": ("EXPECTED_SRC_TREE",),
+    "python_file_count": ("EXPECTED_PYTHON_FILE_COUNT",),
+    "semantic_sha256": ("EXPECTED_ANCHOR_SEMANTIC_SHA256",),
+}
+
 
 class SnapshotError(RuntimeError):
     """Raised when the upstream checkout or the anchor rewrite is not trustworthy."""
@@ -144,23 +179,36 @@ def anchor_semantic_sha256(anchor: dict) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def rewrite_verifier_constants(path: Path, anchor: dict) -> None:
-    """The verifier repeats five anchor facts as module constants.
+def rewrite_anchor_constants(path: Path, facts: tuple[str, ...], anchor: dict) -> None:
+    """Rewrite whichever anchor constants this consumer happens to declare.
 
-    Missing any one of them fails the run. Measured: updating only the commit and the
-    file count left root_tree, src_tree and the anchor semantic hash stale, and
-    verify_runtime_source rejected the fresh snapshot with three trust_anchor reasons.
+    A consumer may name the same fact differently (`EXPECTED_SNAPSHOT_COMMIT` vs
+    `EXPECTED_NUMSIM_COMMIT`), so each fact carries its accepted names and we rewrite
+    the one that is actually present. A fact whose names are all absent is an error -
+    silently skipping it is exactly how stale constants survived three times.
     """
-    rewrite_constants(
-        path,
-        (
-            ("EXPECTED_SNAPSHOT_COMMIT", '"%s"' % anchor["commit"]),
-            ("EXPECTED_ROOT_TREE", '"%s"' % anchor["root_tree"]),
-            ("EXPECTED_SRC_TREE", '"%s"' % anchor["src_tree"]),
-            ("EXPECTED_PYTHON_FILE_COUNT", str(anchor["python_file_count"])),
-            ("EXPECTED_ANCHOR_SEMANTIC_SHA256", '"%s"' % anchor_semantic_sha256(anchor)),
-        ),
-    )
+    values = {
+        "commit": '"%s"' % anchor["commit"],
+        "root_tree": '"%s"' % anchor["root_tree"],
+        "src_tree": '"%s"' % anchor["src_tree"],
+        "python_file_count": str(anchor["python_file_count"]),
+        "semantic_sha256": '"%s"' % anchor_semantic_sha256(anchor),
+    }
+    text = path.read_text(encoding="utf-8")
+    pairs: list[tuple[str, str]] = []
+    for fact in facts:
+        present = [
+            name
+            for name in _CONSTANT_NAMES[fact]
+            if re.search(r"^" + name + r"\s*=", text, re.MULTILINE)
+        ]
+        if len(present) != 1:
+            raise SnapshotError(
+                "%s declares %d names for anchor fact %r, expected exactly 1 of %s"
+                % (path.name, len(present), fact, list(_CONSTANT_NAMES[fact]))
+            )
+        pairs.append((present[0], values[fact]))
+    rewrite_constants(path, tuple(pairs))
 
 
 def rewrite_constants(path: Path, pairs: tuple[tuple[str, str], ...]) -> None:
@@ -225,13 +273,8 @@ def main(argv: list[str] | None = None) -> int:
             newline="\n",
         )
         rewrite_snapshot_md(vendor / "SNAPSHOT.md", anchor, args.snapshot_date)
-        rewrite_verifier_constants(root / "scripts" / "verify_runtime_source.py", anchor)
-        # preflight 빌더가 같은 커밋을 독립 상수로 들고 있다. 함께 갱신하지 않으면
-        # verify 는 PASS 하는데 preflight 가 runtime_source.expected_commit 으로 FAIL 한다.
-        rewrite_constants(
-            root / "scripts" / "build_preflight_manifest.py",
-            (("EXPECTED_NUMSIM_COMMIT", '"%s"' % anchor["commit"]),),
-        )
+        for name, facts in ANCHOR_CONSTANT_FILES.items():
+            rewrite_anchor_constants(root / "scripts" / name, facts, anchor)
     except (SnapshotError, OSError, ValueError) as exc:
         print(json.dumps({"status": "FAIL", "reason": str(exc)}, ensure_ascii=False))
         return 1

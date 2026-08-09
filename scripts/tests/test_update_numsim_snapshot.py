@@ -94,6 +94,16 @@ def make_workspace(path: Path) -> Path:
     (scripts / "build_preflight_manifest.py").write_text(
         'EXPECTED_NUMSIM_COMMIT = "' + "0" * 40 + '"\n', encoding="utf-8"
     )
+    # baseline 검증기는 verify_runtime_source 와 **똑같은 다섯 상수**를 따로 들고 있다.
+    # 커밋 하나만 갱신하면 나머지 넷이 낡아 trust-anchor 6종 불일치로 FAIL 한다 - 실측했다.
+    (scripts / "validate_baseline_snapshot.py").write_text(
+        'EXPECTED_NUMSIM_COMMIT = "' + "0" * 40 + '"\n'
+        'EXPECTED_ROOT_TREE = "' + "1" * 40 + '"\n'
+        'EXPECTED_SRC_TREE = "' + "2" * 40 + '"\n'
+        'EXPECTED_ANCHOR_SEMANTIC_SHA256 = "' + "3" * 64 + '"\n'
+        "EXPECTED_PYTHON_FILE_COUNT = 0\n",
+        encoding="utf-8",
+    )
     (scripts / "verify_runtime_source.py").write_text(
         'EXPECTED_SNAPSHOT_COMMIT = "' + "0" * 40 + '"\n'
         'EXPECTED_ROOT_TREE = "' + "1" * 40 + '"\n'
@@ -234,6 +244,24 @@ class UpdateNumsimSnapshotTests(unittest.TestCase):
                 encoding="utf-8"
             )
             self.assertIn('EXPECTED_NUMSIM_COMMIT = "' + commit + '"', preflight)
+            # baseline 검증기는 다섯 상수를 전부 요구한다. 커밋만 갱신하면 사슬 세 단계가
+            # 전부 PASS 인데 실런의 baseline 검증에서만 trust-anchor 6종 불일치로 거부된다.
+            baseline = (workspace / "scripts" / "validate_baseline_snapshot.py").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn('EXPECTED_NUMSIM_COMMIT = "' + commit + '"', baseline)
+            self.assertIn(
+                'EXPECTED_ROOT_TREE = "' + git(upstream, "rev-parse", "HEAD^{tree}") + '"',
+                baseline,
+            )
+            self.assertIn(
+                'EXPECTED_SRC_TREE = "' + git(upstream, "rev-parse", "HEAD:src") + '"',
+                baseline,
+            )
+            self.assertIn("EXPECTED_PYTHON_FILE_COUNT = 1", baseline)
+            self.assertIn(
+                'EXPECTED_ANCHOR_SEMANTIC_SHA256 = "' + semantic + '"', baseline
+            )
 
     def test_identical_content_does_not_rewrite_vendor_line_endings(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -256,6 +284,63 @@ class UpdateNumsimSnapshotTests(unittest.TestCase):
             )
 
             self.assertEqual(target.read_bytes(), b"V = 1\r\n")
+
+
+class AnchorConstantCoverageTests(unittest.TestCase):
+    """앵커 사실을 반복하는 상수가 파이프라인 밖에 새로 생기는 것을 막는다.
+
+    이 부류의 사고를 세 번 겪었다. 매번 "지점이 더 있었다" 로 끝났다.
+
+      1차 - verify_runtime_source 의 다섯 중 둘만 갱신 -> trust_anchor 3종 FAIL
+      2차 - build_preflight_manifest 를 놓침 -> runtime_source.expected_commit FAIL
+      3차 - validate_baseline_snapshot 의 다섯을 통째로 놓침 -> baseline 21+ FAIL
+
+    셋 다 "사슬 세 단계는 PASS 인데 다른 곳이 조용히 거부" 하는 형태라 원인을 찾기 어렵다.
+    그래서 개별 대응 대신 부류를 막는다. scripts/ 를 훑어 앵커 상수를 module-level 로 들고
+    있는 파일을 찾고, 그 전부가 파이프라인의 갱신 대상인지 확인한다.
+
+    새 파일이 앵커 상수를 들면 이 테스트가 먼저 깨진다. update_numsim_snapshot 의 갱신
+    표에 그 파일을 넣으면 통과한다.
+    """
+
+    ANCHOR_CONSTANTS = (
+        "EXPECTED_SNAPSHOT_COMMIT",
+        "EXPECTED_NUMSIM_COMMIT",
+        "EXPECTED_ROOT_TREE",
+        "EXPECTED_SRC_TREE",
+        "EXPECTED_ANCHOR_SEMANTIC_SHA256",
+        "EXPECTED_PYTHON_FILE_COUNT",
+    )
+
+    def test_every_file_holding_anchor_constants_is_rewritten_by_the_pipeline(self) -> None:
+        import re
+
+        import update_numsim_snapshot as tool
+
+        pattern = re.compile(
+            r"^(" + "|".join(self.ANCHOR_CONSTANTS) + r")\s*=", re.MULTILINE
+        )
+        holders = {
+            path.name
+            for path in sorted((REPO / "scripts").glob("*.py"))
+            if pattern.search(path.read_text(encoding="utf-8"))
+        }
+        # 파이프라인 자신은 상수를 쓰지 않고 이름만 언급하므로 정규식에 안 걸린다.
+        self.assertNotIn("update_numsim_snapshot.py", holders)
+
+        covered = set(tool.ANCHOR_CONSTANT_FILES)
+        missing = sorted(holders - covered)
+        self.assertEqual(
+            missing,
+            [],
+            "앵커 상수를 들고 있는데 파이프라인이 갱신하지 않는 파일이다. "
+            "update_numsim_snapshot.ANCHOR_CONSTANT_FILES 에 추가하라: " + str(missing),
+        )
+
+        stale = sorted(covered - holders)
+        self.assertEqual(
+            stale, [], "갱신 대상인데 실제로는 앵커 상수가 없는 파일이다: " + str(stale)
+        )
 
 
 if __name__ == "__main__":
