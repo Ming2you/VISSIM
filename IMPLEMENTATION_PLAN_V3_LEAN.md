@@ -333,6 +333,40 @@ N2 이후는 N1b 를 기다리지 않는다.
 
 **PASS.** 61/61 스냅샷에서 배정 100%, 잔차 `<=1e-6 veh`, 위 항등식 전부 성립.
 
+## N1.5. vendor 스냅샷 재앵커 파이프라인 — P0 — **완료 (2026-08-07)**
+
+**초판에 빠져 있던 선행 과제다.** N0~N1 이 전부 `scripts/`·`plant/` 안에서 끝나서
+드러나지 않았을 뿐, **N2 이후는 전부 NumSim 안에 있다.**
+
+```
+vendor/NumSim-mine/src/models/state.py             TrafficState        (N2)
+vendor/NumSim-mine/src/models/urban_queue_model.py urban_substep       (N2, N3-1)
+vendor/NumSim-mine/src/controllers/coupling.py     run_coupled_interval(N2)
+vendor/NumSim-mine/src/controllers/stackelberg_mpc.py                  (N7, N8)
+```
+
+`verify_runtime_source.py` 가 96개 파이썬 blob OID 를 `UPSTREAM_TREE.json` 에 대조하고,
+`SNAPSHOT.md` 와 검증기 상수 두 개(`EXPECTED_SNAPSHOT_COMMIT`,
+`EXPECTED_PYTHON_FILE_COUNT`)가 같은 사실을 반복한다. **그 넷을 만드는 코드가 없었다.**
+소비자만 있고 생산자가 없어 NumSim 을 한 줄만 고쳐도 사슬이 깨지고 되돌릴 방법이 없었다.
+
+`scripts/update_numsim_snapshot.py` 가 그 생산자다.
+
+```powershell
+& $py -B scripts/update_numsim_snapshot.py --workspace-root . --upstream ..\NumSim-mine
+# 이후 반드시: verify_runtime_source -> build_preflight_manifest -> approve_physical_stock_topology
+```
+
+**고정한 계약 5건.** 상류 커밋과 LF 정규화 blob OID 기록 / 소스 복사와 stale 제거 /
+더러운 상류 트리 거부 / SNAPSHOT.md 여섯 행과 검증기 상수 두 개 동시 갱신 /
+내용이 같으면 줄바꿈을 다시 쓰지 않음(다시 쓰면 `tracked_source_clean` 이 FAIL 한다).
+
+**PASS.** 현재 스냅샷(`0240ba8`, 96파일)에 돌려 앵커 값이 완전히 동일하게 재현되고
+`verify_runtime_source` 가 PASS 다. 테스트 5/5.
+
+**NumSim 을 고치는 모든 단계는 이 순서를 따른다** — 상류 저장소에서 커밋 →
+이 스크립트 → 사슬 재생성. 벤더를 직접 고치지 마라.
+
 ## N2. substep 질량 장부 — P0
 
 v2.1 B-1 의 후반부. 스냅샷 사이 차량 이동을 복식부기로 기록한다.
