@@ -6,9 +6,9 @@ a source snapshot, not a standalone Git checkout.
 | Field | Value |
 |---|---|
 | Upstream repository | `https://github.com/Ming2you/Numerical-Sim.git` |
-| Upstream commit | `c91800c2d210337bcd2e9e3db0ceb50a3d4e0159` |
-| Upstream root tree | `2885952cfcec7d37764e1b55d74946e0cccedf9a` |
-| Upstream `src` tree | `ab03a2d37d6bc55eb83d70aa62c8cbdaa68ef38a` |
+| Upstream commit | `7d05097bed55e1c444de35aadcbaf08866d4431c` |
+| Upstream root tree | `feacbbec348341368f80607ed1229a6572050b03` |
+| Upstream `src` tree | `ecf765fcc61a147b7be31c9609a75ac830c30de7` |
 | Git object format | `sha1` |
 | Immutable anchor | `UPSTREAM_TREE.json` (`numsim-upstream-tree-v1`, 98 Python blobs) |
 | Snapshot date | `2026-08-09` |

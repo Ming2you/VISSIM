@@ -28,7 +28,7 @@ from src.vissim_strict.run_evidence import (  # noqa: E402
 
 SCHEMA_VERSION = "preflight-v3"
 RUNTIME_SOURCE_SCHEMA = "runtime-source-v2.1"
-EXPECTED_NUMSIM_COMMIT = "c91800c2d210337bcd2e9e3db0ceb50a3d4e0159"
+EXPECTED_NUMSIM_COMMIT = "7d05097bed55e1c444de35aadcbaf08866d4431c"
 RUNTIME_SOURCE_TRUST_CHECKS = (
     "trust_anchor.exists",
     "trust_anchor.json",
