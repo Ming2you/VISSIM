@@ -193,16 +193,21 @@ function Get-B1aWorkspaceRelativeFile([string]$PathValue, [string]$Label) {
   $cursor = $item.Directory
   while ($null -ne $cursor) {
     if (($cursor.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { throw "$Label has a reparse ancestor: $($cursor.FullName)" }
-    if ($cursor.FullName.TrimEnd('\\').Equals($repo.TrimEnd('\\'), [System.StringComparison]::OrdinalIgnoreCase)) { break }
+    if ($cursor.FullName.TrimEnd('\').Equals($repo.TrimEnd('\'), [System.StringComparison]::OrdinalIgnoreCase)) { break }
     $cursor = $cursor.Parent
   }
   if ($null -eq $cursor) { throw "$Label is not contained by the workspace" }
-  return $fullCanonical.Substring($rootPrefix.Length).Replace('\\', '/')
+  return $fullCanonical.Substring($rootPrefix.Length).Replace('\', '/')
 }
 
+# NOTE: in a PowerShell single-quoted string '\\' is TWO characters, not an escape.
+# Writing `$repo.TrimEnd('\\') + '\\'` therefore builds a prefix with two trailing
+# backslashes, so StartsWith never matches and every in-workspace path is rejected as
+# "escapes the workspace". Likewise `.Replace('\\','/')` replaces nothing because a real
+# path holds single separators. Use single-backslash literals here.
 function Get-B1aWorkspaceRelativeDestination([string]$PathValue, [string]$Label) {
   $full = [System.IO.Path]::GetFullPath($PathValue)
-  $rootPrefix = $repo.TrimEnd('\\') + '\\'
+  $rootPrefix = $repo.TrimEnd('\') + '\'
   if (-not $full.StartsWith($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "$Label escapes the workspace: $full"
   }
@@ -215,11 +220,11 @@ function Get-B1aWorkspaceRelativeDestination([string]$PathValue, [string]$Label)
   $cursor = Get-Item -LiteralPath $probe -Force -ErrorAction Stop
   while ($null -ne $cursor) {
     if (($cursor.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) { throw "$Label has a reparse ancestor: $($cursor.FullName)" }
-    if ($cursor.FullName.TrimEnd('\\').Equals($repo.TrimEnd('\\'), [System.StringComparison]::OrdinalIgnoreCase)) { break }
+    if ($cursor.FullName.TrimEnd('\').Equals($repo.TrimEnd('\'), [System.StringComparison]::OrdinalIgnoreCase)) { break }
     $cursor = $cursor.Parent
   }
   if ($null -eq $cursor) { throw "$Label is not contained by the workspace" }
-  return $full.Substring($rootPrefix.Length).Replace('\\', '/')
+  return $full.Substring($rootPrefix.Length).Replace('\', '/')
 }
 
 function New-B1aExclusiveDirectory([string]$PathValue, [string]$Label) {
@@ -412,6 +417,21 @@ function Assert-B1aResultPass([string]$PathValue, [string]$Label) {
 
 function Invoke-B1aTemplateValidationNoWrite([string]$PythonPath, [string]$ProducerPath, $Template) {
   $json = ConvertTo-B1aTemplateJson $Template $true
+  # Process.StandardInput is a StreamWriter built from [Console]::InputEncoding. On this
+  # host that encoding is UTF-8 WITH a three byte preamble, so the child receives
+  # EF BB BF ahead of our payload even though we write BOM-less bytes straight to
+  # BaseStream. The producer rejects a BOM by contract
+  # ("request template UTF-8 BOM is forbidden"), so required-mode dry-run could never
+  # pass. Measured: default gives len=10 head=ef bb bf ..., pinning a BOM-less console
+  # input encoding gives len=7. ProcessStartInfo.StandardInputEncoding does not exist on
+  # .NET Framework, so the console encoding is the only lever here. Restore it after.
+  $previousInputEncoding = $null
+  $inputEncodingChanged = $false
+  try {
+    $previousInputEncoding = [Console]::InputEncoding
+    [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $inputEncodingChanged = $true
+  } catch { }
   $startInfo = New-Object System.Diagnostics.ProcessStartInfo
   $startInfo.FileName = $PythonPath
   $startInfo.Arguments = '-B ' + (Q $ProducerPath) + ' --validate-template-stdin --workspace-root ' + (Q $repo)
@@ -431,8 +451,21 @@ function Invoke-B1aTemplateValidationNoWrite([string]$PythonPath, [string]$Produ
     $process.StandardInput.Close()
     $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()
     if (-not $process.WaitForExit(30000)) { try { $process.Kill() } catch {}; throw 'B1a dry-run validator timed out' }
-    if (-not $stdout.Wait(5000) -or -not $stderr.Wait(5000) -or $process.ExitCode -ne 0) { throw 'B1a dry-run request validation failed' }
-  } finally { $process.Dispose() }
+    # Surface the producer's own diagnosis. Swallowing it makes a rejected template
+    # impossible to debug from the watchdog alone; the operator has to reconstruct the
+    # exact in-memory template by hand to find out what the validator objected to.
+    $stdoutReady = $stdout.Wait(5000)
+    $stderrReady = $stderr.Wait(5000)
+    if (-not $stdoutReady -or -not $stderrReady -or $process.ExitCode -ne 0) {
+      $detail = ''
+      if ($stdoutReady -and -not [string]::IsNullOrWhiteSpace($stdout.Result)) { $detail += ' stdout=' + $stdout.Result.Trim() }
+      if ($stderrReady -and -not [string]::IsNullOrWhiteSpace($stderr.Result)) { $detail += ' stderr=' + $stderr.Result.Trim() }
+      throw ('B1a dry-run request validation failed (exit=' + $process.ExitCode + ')' + $detail)
+    }
+  } finally {
+    $process.Dispose()
+    if ($inputEncodingChanged) { try { [Console]::InputEncoding = $previousInputEncoding } catch { } }
+  }
 }
 
 function Get-B1aLatestProgressUtc([datetime]$StartedUtc, [string[]]$Paths) {

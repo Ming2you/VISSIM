@@ -476,7 +476,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 workspace_root=root.resolve(strict=True),
             )
             return 0
-        except (RecursionError, *FAIL_CLOSED_INPUT_EXCEPTIONS, RunManifestRequestError):
+        except (RecursionError, *FAIL_CLOSED_INPUT_EXCEPTIONS, RunManifestRequestError) as exc:
+            # 거부 사유를 stderr 로 남긴다. 조용한 exit 1 은 워치독 쪽에서 원인을 재구성할
+            # 방법이 없어 dry-run 을 사실상 디버그 불가로 만든다. stdout 은 PASS 프레이밍
+            # 계약이 있으므로 건드리지 않는다.
+            issues = getattr(exc, "issues", None)
+            detail = "; ".join(str(item) for item in issues) if issues else str(exc)
+            print(
+                f"validate-template-stdin rejected: {type(exc).__name__}: {detail}",
+                file=sys.stderr,
+            )
             return 1
 
     if args.request_template is not None or args.write_request is not None:

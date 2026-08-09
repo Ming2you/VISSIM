@@ -25,6 +25,24 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
         end = self.source.index("if ($B1aRequired)", start)
         return self.source[start:end]
 
+    def test_workspace_path_helpers_use_single_backslash_literals(self) -> None:
+        # PowerShell 의 작은따옴표 안에서 '\\' 는 이스케이프가 아니라 **문자 두 개**다.
+        # 그래서 `$repo.TrimEnd('\\') + '\\'` 는 백슬래시가 둘 달린 접두사를 만들고
+        # StartsWith 가 항상 False 가 되어, 워크스페이스 안의 경로를 "escapes the
+        # workspace" 로 거부한다. 마찬가지로 `.Replace('\\','/')` 는 단일 백슬래시를
+        # 하나도 바꾸지 못해 상대경로가 백슬래시인 채로 하류에 넘어간다.
+        # 이 결함이 B1a required 경로를 실제로 막고 있었다(v3 N1).
+        for function_name in (
+            "Get-B1aWorkspaceRelativeFile",
+            "Get-B1aWorkspaceRelativeDestination",
+        ):
+            start = self.source.index(f"function {function_name}(")
+            body = self.source[start:self.source.index("\n}", start)]
+            with self.subTest(function=function_name):
+                self.assertNotIn("+ '\\\\'", body)
+                self.assertNotIn(".Replace('\\\\', '/')", body)
+                self.assertIn(".Replace('\\', '/')", body)
+
     def test_required_cli_and_matrix_propagation_are_explicit(self) -> None:
         self.assertIn("[switch]$B1aRequired", self.source)
         self.assertIn("[string]$TopologyApproval", self.source)
