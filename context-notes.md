@@ -1002,3 +1002,39 @@ N2 의 PASS 조건 `clipped-away mass 0` 이 정확히 이것을 겨냥한다.
 상류 `Claude/NumSim-mine` 에서 커밋 → `scripts/update_numsim_snapshot.py` →
 `verify_runtime_source` → `build_preflight_manifest` → `approve_physical_stock_topology`.
 **벤더를 직접 고치면 앵커가 깨진다.**
+
+### 정정 — `_queue_max` 미스터리 해결 (쫓지 마라)
+
+`urban_queue_model.py:532` 에 진짜 정의가 있다. 내가 읽은 `:139` 는
+**`movement_storage_capacity`** 라는 다른 함수였다.
+
+```python
+def _queue_max(cfg, movement, spec) -> float:
+    """movement 큐 클립 상한 - 사실상 비활성(점큐 모델, 보존 우선).
+    큐 클립은 차량을 삭제해 보존 회계와 베이스라인 대비 공정성을 깬다.
+    공간 제약(spillback)은 receiving-space allocation 이 담당하므로
+    여기서는 수치 가드 수준의 큰 값만 둔다."""
+    return 1.0e9
+```
+
+**즉 N2 의 "post-update clipping 제거" 는 이미 되어 있다.** `:1022-1032` 코드는 남아
+있으나 `qmax = 1e9` 라 절대 발동하지 않는다. 결함이 아니라 의도된 설계다.
+그 RED 는 만들 수 없다.
+
+### N2 에 실제로 남은 것
+
+| N2 요구 | 상태 |
+|---|---|
+| post-update clipping 제거 | **이미 완료** |
+| `TrafficState.total_physical_vehicles()` | **없음 - 신설 필요** |
+| transfer ledger (transfer_id, 복식부기) | 미확인 |
+| 내부 분해 항등식 | 미확인 |
+
+### 별건 - 경계 링크 저장용량이 기본값이다
+
+실 설정 `urban_link_storage_veh` 302개 중 `SC1_N_out/S_out/E_out` 등이 전부 220.0 이다.
+이는 실측이 아니라 `default.yaml` 의 `grid_link_storage_veh: 220.0` 이 경계 링크에
+그대로 들어간 값으로 보인다. 우리는 실측 데이터를 이미 갖고 있다 -
+`outputs/urban_storage_capacity_20260805.json`(jam density 140.5 veh/km/lane,
+182 storage / 82.7 km)과 A2 토폴로지의 stock 별 `capacity_prior`.
+**실 링크 길이 기준으로 재실측해 반영할 것.**
