@@ -185,7 +185,7 @@ End If
 ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
 ' interpreter here means every decision fails, so failing now costs seconds
 ' instead of surfacing after a multi-hour run.
-Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures
+Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
 pythonExe = ""
 decisionsOk = 0
@@ -194,6 +194,7 @@ observationFailures = 0
 signalFailures = 0
 actionFormatFailures = 0
 comFailures = 0
+optionalAttSkips = 0
 signalWriteAttempts = 0
 signalReadbackOk = 0
 signalPersistenceChecks = 0
@@ -284,7 +285,10 @@ Vissim.Simulation.AttValue("SimPeriod") = CDbl(simPeriod) + 1
 Vissim.Simulation.AttValue("SimRes") = 1
 TrySetAtt Vissim.Simulation, "NumRuns", 1
 TrySetAtt Vissim.Simulation, "UseMaxSimSpeed", True
-TrySetAtt Vissim.Simulation, "SimSpeed", 0
+' UseMaxSimSpeed=True 가 바로 위에서 이미 최대속도를 보장한다. 그 상태에서 SimSpeed 는
+' 무시되고, Vissim 은 Min 이 0 이라면서 0 을 거부한다(실측 문구: "Value 0 is lower than
+' minimum value of attribute Simulation speed (Min: 0)").
+TrySetUnreachableAtt Vissim.Simulation, "SimSpeed", 0, "UseMaxSimSpeed=True already guarantees max speed"
 
 If UseContinuousStaticMode() Then
     RunContinuousStaticMode
@@ -320,6 +324,7 @@ WScript.Echo "SIGNAL_PERSISTENCE_CHECKS=" & CStr(signalPersistenceChecks)
 WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
 WScript.Echo "ACTION_FORMAT_FAILURES=" & CStr(actionFormatFailures)
 WScript.Echo "COM_FAILURES=" & CStr(comFailures)
+WScript.Echo "OPTIONAL_ATT_SKIPS=" & CStr(optionalAttSkips)
 If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
     WScript.Echo "ERROR=RUN_INTEGRITY_FAILURE decisions_failed=" & CStr(decisionsFailed) & _
         " observation_failures=" & CStr(observationFailures) & " signal_failures=" & CStr(signalFailures) & _
@@ -1488,6 +1493,7 @@ Sub AbortVehicleObservation(simSec)
     WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
     WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
     WScript.Echo "COM_FAILURES=" & CStr(comFailures)
+    WScript.Echo "OPTIONAL_ATT_SKIPS=" & CStr(optionalAttSkips)
     WScript.Quit 13
 End Sub
 
@@ -2725,7 +2731,9 @@ End Function
 Sub ConfigureEvaluationOutput(path)
     EnsureFolder path
     TrySetEvaluationAtt "EvalOutDir", path
-    TrySetEvaluationAtt "DatabaseConnection", ""
+        ' 의도는 "결과를 DB 로 내보내지 않는다" 인데, 모듈이 비활성이면 DB 출력 자체가 불가능하다.
+    ' 실패가 곧 보장이다(실측 문구: "put_AttValue failed - module not active").
+    TrySetUnreachableEvaluationAtt "DatabaseConnection", "", "database module inactive means no DB output is possible"
     TrySetEvaluationAtt "ListAutoExportType", "FILE"
     WScript.Echo "EVAL_OUT_DIR=" & path
 End Sub
@@ -3636,6 +3644,39 @@ Sub TrySetEvaluationAtt(att, value)
     If Err.Number <> 0 Then
         WScript.Echo "WARN=FAILED_SET_EVALUATION_ATT att=" & att & " err=" & Err.Description
         comFailures = comFailures + 1
+        Err.Clear
+    End If
+    On Error GoTo 0
+End Sub
+
+' 실패해도 의도가 이미 보장되는 설정 전용. comFailures 를 올리지 않는다.
+'
+' 이 경로를 새로 만드는 이유는 실 런마다 COM_FAILURES=2 가 나와 RUN_INTEGRITY_FAILURE 를
+' 일으켰기 때문이다. 두 건 다 신호 액추에이션과 무관한 best-effort 설정인데 같은 카운터에
+' 들어갔다. 게이트를 느슨하게 만들지 않으려고 호출부를 딱 둘로 못박고, 각각 why 로 "실패해도
+' 의도가 보장되는 이유" 를 남기게 했다. 건수는 버리지 않고 OPTIONAL_ATT_SKIPS 로 따로 센다.
+'
+' **여기에 새 호출을 추가하지 마라.** 진짜 COM 실패를 숨기는 통로가 된다.
+' scripts/tests/test_run_plant_fidelity_matrix.py 가 호출 수 1/1 을 단언한다.
+Sub TrySetUnreachableAtt(obj, att, value, why)
+    On Error Resume Next
+    obj.AttValue(att) = value
+    If Err.Number <> 0 Then
+        WScript.Echo "WARN=SKIPPED_OPTIONAL_ATT att=" & att & " value=" & CStr(value) & _
+            " why=" & CStr(why) & " err=" & Err.Description
+        optionalAttSkips = optionalAttSkips + 1
+        Err.Clear
+    End If
+    On Error GoTo 0
+End Sub
+
+Sub TrySetUnreachableEvaluationAtt(att, value, why)
+    On Error Resume Next
+    Vissim.Evaluation.AttValue(att) = value
+    If Err.Number <> 0 Then
+        WScript.Echo "WARN=SKIPPED_OPTIONAL_EVALUATION_ATT att=" & att & _
+            " why=" & CStr(why) & " err=" & Err.Description
+        optionalAttSkips = optionalAttSkips + 1
         Err.Clear
     End If
     On Error GoTo 0

@@ -56,6 +56,50 @@ class PlantFidelityMatrixCliTests(unittest.TestCase):
         self.assertNotIn("If comFailures < signalFailures + observationFailures Then", source)
         self.assertIn("Or comFailures > 0 Then", source)
 
+    def test_two_unreachable_optional_settings_do_not_count_as_com_failures(self) -> None:
+        """실측으로 매 런 COM_FAILURES=2 를 만들던 두 설정을 제어 실패와 분리한다.
+
+        실 런로그의 정확한 문구다.
+          WARN=FAILED_SET_EVALUATION_ATT att=DatabaseConnection err=put_AttValue failed - module not active
+          WARN=FAILED_SET_ATT att=SimSpeed value=0 err=Value 0 is lower than minimum value ... (Min: 0)
+
+        둘 다 실패해도 의도가 이미 보장된다.
+          DatabaseConnection="" 의 의도는 "결과를 DB 로 내보내지 않는다" 인데, 모듈이 비활성이면
+          DB 출력 자체가 불가능하다. 실패가 곧 보장이다.
+          SimSpeed=0 의 의도는 "최대 속도로 돌린다" 인데, 바로 앞줄 UseMaxSimSpeed=True 가 이미
+          보장한다. 그 상태에서 SimSpeed 는 무시된다. 게다가 Vissim 은 Min 이 0 이라면서 0 을 거부한다.
+
+        그런데 이 둘이 신호 액추에이션 실패와 같은 카운터에 들어가 RUN_INTEGRITY_FAILURE 를
+        일으켰다. 게이트를 느슨하게 만들지 않으려면 **면제는 이 둘로 못박아야 한다.**
+        범용 optional 탈출구를 만들면 다음 사람이 진짜 실패를 여기로 숨긴다.
+        """
+        source = VBS.read_text(encoding="utf-8")
+
+        # 면제 경로는 별도 이름으로 존재하고, 건수는 버리지 않고 따로 센다.
+        self.assertIn("Sub TrySetUnreachableAtt(obj, att, value, why)", source)
+        self.assertIn("Sub TrySetUnreachableEvaluationAtt(att, value, why)", source)
+        self.assertIn("optionalAttSkips = optionalAttSkips + 1", source)
+        self.assertIn('WScript.Echo "OPTIONAL_ATT_SKIPS=" & CStr(optionalAttSkips)', source)
+
+        # 면제 대상은 정확히 둘이다.
+        self.assertEqual(source.count("TrySetUnreachableAtt "), 1)
+        self.assertEqual(source.count("TrySetUnreachableEvaluationAtt "), 1)
+        self.assertIn('TrySetUnreachableAtt Vissim.Simulation, "SimSpeed", 0,', source)
+        self.assertIn('TrySetUnreachableEvaluationAtt "DatabaseConnection", "",', source)
+
+        # 면제 경로는 comFailures 를 절대 올리지 않는다.
+        for name in ("TrySetUnreachableAtt", "TrySetUnreachableEvaluationAtt"):
+            start = source.index("Sub %s(" % name)
+            body = source[start : source.index("End Sub", start)]
+            self.assertNotIn("comFailures", body, f"{name} 이 comFailures 를 건드린다")
+
+        # 의도를 보장하는 짝은 그대로 남아 있어야 한다. 이게 없으면 면제 근거가 사라진다.
+        self.assertIn('TrySetAtt Vissim.Simulation, "UseMaxSimSpeed", True', source)
+
+        # 나머지 액추에이션은 여전히 세어야 한다.
+        self.assertIn('TrySetAtt sg, "SigState", "GREEN"', source)
+        self.assertIn('TrySetEvaluationAtt "EvalOutDir", path', source)
+
     def run_script(self, *arguments: str) -> subprocess.CompletedProcess[str]:
         environment = dict(os.environ)
         environment["RW_PYTHON_EXE"] = sys.executable
