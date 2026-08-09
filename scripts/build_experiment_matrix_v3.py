@@ -101,8 +101,12 @@ def default_spec() -> dict[str, Any]:
         "warmup_sec": 900,
         "control_interval_sec": 60,
         # development 진단은 13/29 만 쓴다. 승격 판정은 holdout 시드만 쓴다.
+        #
+        # holdout 은 N5 가 정한 **단일 시드 47** 이다. v2.1 의 인증 wave 3시드(47/59/71)를
+        # 대신하는 값이라 여기서 임의로 늘리면 N5 부모 런 9개(demand 3 x seed 3)와 어긋나
+        # 부모 런이 없는 셀이 생긴다. 그 어긋남은 런을 다 돌린 뒤에야 드러난다.
         "development_seeds": (13, 29),
-        "holdout_seeds": (101, 211),
+        "holdout_seeds": (47,),
         "replicates": 1,
         "levers": tuple(LEVER_AMPLITUDES),
         "lever_amplitudes": dict(LEVER_AMPLITUDES),

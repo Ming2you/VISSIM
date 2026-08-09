@@ -101,10 +101,23 @@ class MatrixExpansionTests(unittest.TestCase):
         self.assertEqual(self.spec["control_interval_sec"], 60)
         # development 진단은 13/29, 승격 판정은 holdout 만.
         self.assertEqual(self.spec["development_seeds"], (13, 29))
-        self.assertTrue(self.spec["holdout_seeds"])
+        # holdout 은 N5 가 정한 **단일 시드 47** 이다. v2.1 의 인증 wave 3시드(47/59/71)를
+        # 대신한 값이므로 여기서 임의로 늘리면 N5 부모 런 9개와 어긋난다.
+        self.assertEqual(self.spec["holdout_seeds"], (47,))
         self.assertEqual(
             set(self.spec["development_seeds"]) & set(self.spec["holdout_seeds"]), set()
         )
+
+    def test_seed_set_matches_the_n5_parent_runs(self) -> None:
+        """N5 부모 런은 demand 3 x seed 3 = 9 개다. 행렬 시드가 그것과 같아야 한다.
+
+        N5 표를 풀면 training(0.75,1.0)x(13,29)=4, congested(1.25)x(13,29)=2,
+        holdout(0.75,1.0,1.25)x47=3 으로 총 9 이고, 시드 집합은 {13,29,47} 이다.
+        행렬이 다른 시드를 쓰면 부모 런이 없는 셀이 생긴다 - 런을 다 돌린 뒤에야 안다.
+        """
+        seeds = set(self.spec["development_seeds"]) | set(self.spec["holdout_seeds"])
+        self.assertEqual(seeds, {13, 29, 47})
+        self.assertEqual(len(self.spec["demand"]) * len(seeds), 9)
 
     def test_expansion_is_one_lever_at_a_time(self) -> None:
         """기본은 레버 하나씩이다. joint action 은 별도 experiment_id 다."""
