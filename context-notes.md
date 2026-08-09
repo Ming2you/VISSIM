@@ -899,3 +899,59 @@ PROF_SECONDS=150 PROF_DUMP=prof.out python profprobe.py <adapter.py> <같은 인
 # 정체 지점만 빠르게
 python -c "import faulthandler; faulthandler.dump_traceback_later(60, repeat=True)" 방식
 ```
+
+---
+
+## 2026-08-07 — N1 완주. 플랜트가 실 네트워크 전 구간을 투영했다
+
+`no-control` + audit anchor 로 3600초를 완주했다. MPC 61회 캡처는 solve 시간(N8-4)에
+막혀 있으므로, 캡처·투영 자체를 증명하는 경로로 anchor 를 썼다.
+
+```
+시점              차량    정지    레코드   미관측  외부   링크수
+anchor_000900    2,193    536    2,193      0     0     282
+anchor_001500    3,365    873    3,365      0     0     334
+anchor_002100    3,776  1,126    3,776      0     0     346
+anchor_002700    4,088  1,355    4,088      0     0     334
+state_000001         6      0        6      0     0       5
+```
+
+**B1a 계약 충족** — `unobservable_count = 0`, `external_source_count = 0`,
+`record_count == total_vehicles` 가 5시점 모두에서 성립한다.
+`sim=3600` 완주, `observation_failures=0`, `decisions_failed=0`, `signal_failures=0`.
+
+산출물은 `state_000001` + `anchor_000900/001500/002100/002700` 과 각각의
+`.vehicle_capture_v2_1.json`, 그리고 `run_manifest_v2_1.json` 및 생성/검증 결과다.
+**앵커 캡처는 `state_*` 가 아니라 `anchor_*` 로 저장된다** - 파일을 셀 때 주의.
+
+### 결함 8 — 경계 진입 음수 위치
+
+```
+veh_no=16426  VarType 5 (Double)  Pos = -1.49989317546481  (sim_sec 2430)
+```
+
+VISSIM 은 차량 기준점이 링크 시작선에 닿기 전에 소유권을 그 링크로 넘긴다. 그래서 혼잡
+구간에서 `Pos` 가 잠시 음수가 된다. 데이터 오류가 아니라 실제 경계 걸침이다.
+기존 계약 `Pos >= -1e-6` 은 이를 거부해 캡처 전체를 실패시켰다.
+
+**조치** — `B1A_ENTRY_TOLERANCE_M = 8.0`(차량 한 대분) 이내의 음수는 링크 시작(0)으로
+클램프하고 `B1A_ENTRY_CLAMPED` 로 매 건을 기록한다. 그 범위를 넘으면 여전히 fail-closed 다.
+VISSIM 이 이미 소유권을 넘겼으므로 첫 stock 이 정직한 배정이고, 버리면
+`unobservable_count = 0` 계약이 깨진다.
+
+**3600초 전 구간에서 클램프는 단 1건, 1.5 m 였다.** 8 m 관용이 과하지 않음을 실측이 뒷받침한다.
+
+봉투 스키마에 클램프 카운트를 넣는 것은 **미뤘다.** 그 필드는 `physical_projection.py` 의
+`_VEHICLE_ENVELOPE_FIELDS` 와 `build_state_manifest_v2_1.py` 가 정확 집합으로 강제하고
+테스트 픽스처 4개가 고정한다. 현재는 runlog 기록으로 감사 가능하다.
+
+### 남은 것 — COM 경고 2건 (별건)
+
+```
+WARN=FAILED_SET_EVALUATION_ATT att=DatabaseConnection err=module not active
+WARN=FAILED_SET_ATT att=SimSpeed value=0 err=Value 0 is lower than minimum
+```
+
+시뮬레이션·캡처에 영향이 없으나 `COM_FAILURES=2` 를 만들어 `RUN_INTEGRITY_FAILURE` 를 낸다.
+나머지 실패 카운터는 전부 0이다. 이번 변경과 무관한 기존 설정 문제이며
+`SimSpeed=0` 은 "최대 속도" 의도로 보이나 VISSIM 2020 이 0을 거부한다.

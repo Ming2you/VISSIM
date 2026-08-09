@@ -149,6 +149,15 @@ Const RAMP_AMBER_SEC = 1
 Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
 Const B1A_POSITION_TOLERANCE_M = 0.000001
+' VISSIM hands a vehicle to a link before its reference point reaches the link start, so
+' Pos is briefly negative while the vehicle straddles the boundary. Measured 2026-08-07:
+' veh_no=16426 Pos=-1.49989317546481 (VarType 5, a normal Double) at sim_sec 2430 with
+' 4000+ vehicles. Rejecting that fails the entire capture during congestion, and dropping
+' the vehicle would break the unobservable_count = 0 contract. Accept up to one vehicle
+' length, clamp to the link start - VISSIM already transferred ownership to this link, so
+' its first stock is the honest assignment - and echo every adjustment so the move is
+' never silent. Anything beyond one vehicle length still fails closed.
+Const B1A_ENTRY_TOLERANCE_M = 8.0
 Const B1A_STOPPED_THRESHOLD_KPH = 1.0
 ' Measured 2026-08-07 against the real Gaepo topology: --validate-run-binding takes
 ' 10.47 s wall and returns status=PASS. cProfile attributes 10.44 s of that to
@@ -1867,13 +1876,30 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
             PerfAdd "scan.vehicles", perfT0
             Exit Sub
         End If
+        ' Report the offending value and its VarType. Without them a rejected row is not
+        ' diagnosable from the runlog - the operator cannot tell an out-of-range number
+        ' from a missing/non-numeric variant, and reproducing needs a full run to the
+        ' same sim_sec. Measured 2026-08-07: row=4004 field=Pos at sim_sec 2430.
         If Not TryB1aPosition(posArray(row, valueCol), pos) Then
-            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Pos"
-            PerfAdd "scan.vehicles", perfT0
-            Exit Sub
+            ' Boundary-entry geometry: see B1A_ENTRY_TOLERANCE_M above.
+            If Not TryB1aEntryPosition(posArray(row, valueCol), pos) Then
+                RecordVehicleCaptureFailure "invalid_numeric_value", _
+                    "row=" & CStr(row) & " field=Pos veh_no=" & key & _
+                    " vartype=" & CStr(VarType(posArray(row, valueCol))) & _
+                    " value=" & OneLine(CStr(posArray(row, valueCol)))
+                PerfAdd "scan.vehicles", perfT0
+                Exit Sub
+            End If
+            WScript.Echo "B1A_ENTRY_CLAMPED sim_sec=" & JsonDoubleInvariant(expectedSimSec) & _
+                " veh_no=" & key & " link_no=" & CStr(linkNo) & " lane_no=" & CStr(laneNo) & _
+                " raw_pos_m=" & OneLine(CStr(posArray(row, valueCol))) & " clamped_to_m=0"
+            pos = 0.0
         End If
         If Not TryB1aSpeed(speedArray(row, valueCol), speed) Then
-            RecordVehicleCaptureFailure "invalid_numeric_value", "row=" & CStr(row) & " field=Speed"
+            RecordVehicleCaptureFailure "invalid_numeric_value", _
+                "row=" & CStr(row) & " field=Speed veh_no=" & key & _
+                " vartype=" & CStr(VarType(speedArray(row, valueCol))) & _
+                " value=" & OneLine(CStr(speedArray(row, valueCol)))
             PerfAdd "scan.vehicles", perfT0
             Exit Sub
         End If
@@ -3474,6 +3500,12 @@ End Function
 
 Function TryB1aPosition(ByVal value, ByRef parsed)
     TryB1aPosition = TryB1aFiniteDouble(value, -B1A_POSITION_TOLERANCE_M, parsed)
+End Function
+
+' Accepts the boundary-entry band only. Callers must clamp the parsed value to the link
+' start and record the adjustment; this helper never hides the raw value.
+Function TryB1aEntryPosition(ByVal value, ByRef parsed)
+    TryB1aEntryPosition = TryB1aFiniteDouble(value, -B1A_ENTRY_TOLERANCE_M, parsed)
 End Function
 
 Function TryB1aSpeed(ByVal value, ByRef parsed)
