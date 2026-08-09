@@ -287,8 +287,49 @@ timing receipt 의 독립 봉인, 사후 변조 탐지.
 `run_evidence.py` 의 `CONFIGURATION_FIELDS`/`SIMULATION_FIELDS` 가 설정·시드를 이미 담고
 VBS 가 `vissim_version_raw` 를 기록한다. 워크스페이스 git commit 필드만 매니페스트에 추가한다.
 
-**실행.** 3600초 런 1회, 제어주기 60초 → 스냅샷 61회.
-런 후 N0-4 의 selection 생산자 → `build_state_manifest_v2_1.py` → `validate_state_projection_v2_1.py`.
+**실행.** 초판은 "3600초 · 제어주기 60초 → 스냅샷 61회, 61/61 PASS" 로 적었다.
+**그 기준은 달성 불가였다** — 61회는 stackelberg decision 61회를 전제하는데
+단일 decision 이 1200초를 넘는다(N8-4 소관). 계획을 쓸 때 solve 시간 제약을 반영하지 않았다.
+
+의존 관계를 드러내 둘로 나눈다.
+
+### N1a. 캡처·투영 체인 — **완료 (2026-08-07)**
+
+`no-control` + audit anchor 로 MPC 비용 없이 3600초 전 구간을 캡처한다.
+
+```powershell
+-SimPeriod 3600 -ControlIntervalSec 60 -StateLogIntervalSec 30 `
+-Controller no-control -AuditAnchorsSec 900,1500,2100,2700 -B1aRequired
+```
+
+`allowed_capture_times = {1} ∪ ({900,1500,2100,2700} ∩ logTimes)` 로 5시점이 잡힌다.
+**앵커 캡처는 `state_*` 가 아니라 `anchor_*` 로 저장된다.**
+
+**실측 PASS.**
+
+| 시점 | 차량 | 정지 | 레코드 | 미관측 | 외부 | 링크 |
+|---|---|---|---|---|---|---|
+| anchor_000900 | 2,193 | 536 | 2,193 | 0 | 0 | 282 |
+| anchor_001500 | 3,365 | 873 | 3,365 | 0 | 0 | 334 |
+| anchor_002100 | 3,776 | 1,126 | 3,776 | 0 | 0 | 346 |
+| anchor_002700 | 4,088 | 1,355 | 4,088 | 0 | 0 | 334 |
+| state_000001 | 6 | 0 | 6 | 0 | 0 | 5 |
+
+`sim=3600` 완주, `observation_failures=0`, `decisions_failed=0`, `signal_failures=0`.
+
+### N1b. MPC 캡처 61회 — **N8-4 대기**
+
+`stackelberg` 로 61회 decision 을 완주해야 한다. 단일 decision 이 1200초를 넘으므로
+**N8-4(런타임 계약)가 닫히기 전에는 착수 불가**다. N1a 가 캡처·투영 자체를 이미 증명했으므로
+N2 이후는 N1b 를 기다리지 않는다.
+
+### 잔여 (별건)
+
+`COM_FAILURES=2` 가 `RUN_INTEGRITY_FAILURE` 를 낸다 — `DatabaseConnection` 모듈 비활성과
+`SimSpeed=0` 최소값 위반. 시뮬레이션·캡처에 영향이 없는 시작 시점 설정 경고다.
+
+런 후 처리는 N0-4 의 selection 생산자 → `build_state_manifest_v2_1.py` →
+`validate_state_projection_v2_1.py` 순이다.
 
 **PASS.** 61/61 스냅샷에서 배정 100%, 잔차 `<=1e-6 veh`, 위 항등식 전부 성립.
 
