@@ -550,7 +550,9 @@ function Invoke-B1aRequiredWatchdog {
     watchdog = Get-B1aWorkspaceRelativeFile $PSCommandPath 'watchdog source'; vbs = Get-B1aWorkspaceRelativeFile $runner 'VBS source'; adapter = $inputBindings.adapter
     run_manifest_producer = Get-B1aWorkspaceRelativeFile $manifestProducer 'run manifest producer'; topology_approval_validator = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\approve_physical_stock_topology.py') 'topology approval validator'
     state_manifest_builder = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\build_state_manifest_v2_1.py') 'state manifest builder'; physical_projection_module = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'plant\src\vissim_strict\physical_projection.py') 'physical projection module'
-    post_run_artifact_producer = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\build_run_artifact_manifest_v2_2.py') 'post-run artifact producer'; live_replay_builder = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\build_projection_live_evidence_v2_2.py') 'live replay builder'
+# v3 N0-1: the two v2.2 producers are no longer required source roles. They are never built,
+# so binding them here made every required-mode run die at source binding. The remaining ten
+# role bindings and the exact-set check in build_run_manifest_v2_1.py are unchanged.
     preflight_producer = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\build_preflight_manifest.py') 'preflight producer'; monotonic_clock_helper = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'scripts\read_monotonic_clock.py') 'monotonic clock helper'
     supported_version_policy = Get-B1aWorkspaceRelativeFile (Join-Path $repo 'plant\policies\supported_vissim_versions_v2_1.json') 'supported version policy'
   }

@@ -416,7 +416,9 @@ class BuildPreflightManifestTests(unittest.TestCase):
         self.assertEqual(calls[0][0].parent, calls[0][1].parent)
         self.assertFalse(calls[0][0].exists())
 
-    def test_real_repository_counts_hold_while_future_b1a_sources_are_missing(self) -> None:
+    def test_real_repository_preflight_passes_without_v2_2_producers(self) -> None:
+        # v3 N0-1 - v2.2 생산자 두 개는 만들지 않기로 했으므로 필수 소스 역할에서 뺐다.
+        # 그것들이 없다는 이유로 preflight 가 FAIL 하면 안 된다.
         with tempfile.TemporaryDirectory() as temporary:
             runtime_report_path = Path(temporary) / "runtime_source.json"
             with mock.patch.dict(os.environ, {"RW_PYTHON_EXE": sys.executable}):
@@ -429,16 +431,11 @@ class BuildPreflightManifestTests(unittest.TestCase):
             runtime_report_path.write_text(json.dumps(runtime_report), encoding="utf-8")
             report = preflight.build_manifest(REPO, runtime_report_path)
 
-        self.assertEqual(report["status"], "FAIL")
-        self.assertEqual(
-            report["reasons"],
-            [
-                "artifact.post_run_artifact_producer.exists",
-                "artifact.post_run_artifact_producer.sha256",
-                "artifact.live_replay_builder.exists",
-                "artifact.live_replay_builder.sha256",
-            ],
-        )
+        self.assertEqual(report["status"], "PASS", report["reasons"])
+        self.assertEqual(report["reasons"], [])
+        artifact_roles = set(report["artifacts"])
+        self.assertNotIn("post_run_artifact_producer", artifact_roles)
+        self.assertNotIn("live_replay_builder", artifact_roles)
         self.assertEqual(report["sample_dimensions"]["model_signal_controllers"], 41)
         self.assertEqual(report["sample_dimensions"]["resolved_signal_programs"], 41)
         self.assertEqual(report["sample_dimensions"]["unique_resolved_signal_programs"], 41)

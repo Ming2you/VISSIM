@@ -91,8 +91,10 @@ PRODUCER_SOURCE_ROLES = (
     "topology_approval_validator",
     "state_manifest_builder",
     "physical_projection_module",
-    "post_run_artifact_producer",
-    "live_replay_builder",
+    # v3 N0-1 - post_run_artifact_producer(build_run_artifact_manifest_v2_2.py)와
+    # live_replay_builder(build_projection_live_evidence_v2_2.py)를 필수 역할에서 뺐다.
+    # v3 는 런 사후 출처 사슬을 만들지 않으므로 두 파일이 영영 존재하지 않고,
+    # 남겨 두면 preflight 가 영원히 FAIL 한다. 런 전 매니페스트와 해시 결속은 그대로다.
     "preflight_producer",
     "monotonic_clock_helper",
     "supported_version_policy",
@@ -105,8 +107,6 @@ PRODUCER_SOURCE_DEFAULT_PATHS = {
     "topology_approval_validator": "scripts/approve_physical_stock_topology.py",
     "state_manifest_builder": "scripts/build_state_manifest_v2_1.py",
     "physical_projection_module": "plant/src/vissim_strict/physical_projection.py",
-    "post_run_artifact_producer": "scripts/build_run_artifact_manifest_v2_2.py",
-    "live_replay_builder": "scripts/build_projection_live_evidence_v2_2.py",
     "preflight_producer": "scripts/build_preflight_manifest.py",
     "monotonic_clock_helper": "scripts/read_monotonic_clock.py",
     "supported_version_policy": "plant/policies/supported_vissim_versions_v2_1.json",
