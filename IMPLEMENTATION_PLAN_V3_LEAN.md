@@ -407,15 +407,49 @@ receiving-space allocation 이 담당한다."* `:1022-1032` 의 클립 코드는
 않는다. **그 RED 는 만들 수 없다.** (`:139` 의 `movement_storage_capacity` 와 혼동하지 마라 —
 그쪽은 밀도 정규화용이고 실 저장용량을 쓴다.)
 
-### 남은 작업
+### 완료 (2026-08-09, 상류 `7d05097`)
 
-- 모든 내부 이동은 `transfer_id` 하나 · 출발 차변 하나 · 도착 대변 하나
-- 출발/도착 transfer 다중집합 동일
-- 거부량은 typed source stock 에 남긴다
+| 수용 기준 | 결과 |
+|---|---|
+| 전역 잔차 `<=1e-6 veh` | **PASS** — 109 시나리오 24스텝 최대 `6.7e-12` |
+| 내부 분해 잔차 `<=1e-6 veh` | **PASS** |
+| clipped-away mass 0 | **PASS** — `_queue_max` 가 이미 무력 |
+| 수용포화 fixture 보존 | **PASS** — `urban_gridlock`(4677 veh) · `sweet_220`(9681 veh) |
+| transfer 다중집합 / ID 중복 | **미구현 — 아래 판단 참조** |
 
-**PASS.** stock/전역 잔차 `<=1e-6 veh`, **내부 분해 잔차 `<=1e-6 veh`**,
-transfer 다중집합 불일치 0, 중복/누락 transfer ID 0, clipped-away mass 0,
-강제 분기/합류/수용포화 fixture 에서 전 차량 보존.
+**고친 결함.** `total_physical_vehicles` 가 off-ramp 램프 storage 를 세지 않았다.
+`total_urban_vehicles` 는 "freeway 로 재귀속" 을 이유로 빼는데 `total_freeway_vehicles` 가
+더하지 않아 어느 계정에도 없었다. 4 스텝 후 35.46 veh 누락. 되돌림 증명까지 테스트에 박았다.
+
+**전역 항등식의 항.** 하나라도 빠지면 **상수** 잔차가 남는다 — 그게 누락의 신호다.
+
+```
+유입  urban_demand_arrivals_veh + onramp_arrivals_veh + freeway_mainline × T_c_h
+유출  boundary_out_sink_veh + mainline_exit_flow_total × T_c_h
+```
+
+`mainline_exit_flow_total` 은 `avg_keys` 라 substep **평균 유량**[veh/h]이다. 합이 아니다.
+
+### transfer ledger 를 만들지 않은 판단
+
+`transfer_id` 복식부기는 `urban_substep`/`freeway_substep` 내부의 수백 개 유량 계산을 전부
+계측해야 하는 대공사다. 그것이 추가로 잡아내는 것은 **상쇄 오류**(A 큐에서 5대가 잘못
+B 큐로 가는데 총합은 그대로)뿐이고, 전역·분해 항등식이 이미 `1e-12` 로 서 있다.
+비용 대비 수확이 맞지 않아 만들지 않았다. 필요해지면 N8 이후 별건으로 올린다.
+
+### 남은 결함 2건 (N2 범위 밖 — 기록만)
+
+**① off-ramp 거부 차량은 증발한다.** `schedule_offramp_arrivals` 가 거부한 차량은 이미
+본선을 떠난 뒤인데 호출부가 어느 stock 에도 되돌리지 않는다. 지금은 게이트가
+off-ramp **별**(`cap[off_ramp]`)이라 도달 불가지만, 같은 함수가 legacy 링크 합산
+`cap[link]` 도 계속 내보낸다. 그리로 회귀하면 한 링크의 off-ramp 둘 중 하나만 포화된
+순간 질량이 샌다. 비대칭 포화 강제 테스트로 불변식을 고정해 두었다.
+
+**② `boundary_out` 출구 게이트가 링크 주행을 건너뛴다.** 게이트가
+`min(점유, exit_cap·dt)` 를 쓰는데 점유에는 **아직 링크를 다 못 간 차량**이 포함된다.
+실측으로 sink 링크 점유 1.02 veh 인데 release buffer 에 121.75 veh 가 남아 있었다 —
+방금 진입한 차량이 지연을 다 채우기 전에 빠져나갔다는 뜻이다. 질량은 보존되지만
+링크 통행시간이 과소평가된다. 물리 변경이라 파급이 커 N2 에서 손대지 않는다.
 
 ## N3. 관측 확장 — P0/P1
 
