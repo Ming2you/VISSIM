@@ -91,9 +91,15 @@ def make_workspace(path: Path) -> Path:
     )
     scripts = path / "scripts"
     scripts.mkdir(parents=True)
+    (scripts / "build_preflight_manifest.py").write_text(
+        'EXPECTED_NUMSIM_COMMIT = "' + "0" * 40 + '"\n', encoding="utf-8"
+    )
     (scripts / "verify_runtime_source.py").write_text(
         'EXPECTED_SNAPSHOT_COMMIT = "' + "0" * 40 + '"\n'
-        "EXPECTED_PYTHON_FILE_COUNT = 0\n",
+        'EXPECTED_ROOT_TREE = "' + "1" * 40 + '"\n'
+        'EXPECTED_SRC_TREE = "' + "2" * 40 + '"\n'
+        "EXPECTED_PYTHON_FILE_COUNT = 0\n"
+        'EXPECTED_ANCHOR_SEMANTIC_SHA256 = "' + "3" * 64 + '"\n',
         encoding="utf-8",
     )
     return path
@@ -198,8 +204,36 @@ class UpdateNumsimSnapshotTests(unittest.TestCase):
             verifier = (workspace / "scripts" / "verify_runtime_source.py").read_text(
                 encoding="utf-8"
             )
+            # 검증기가 앵커 사실을 다섯 상수로 반복한다. 하나라도 빠지면 FAIL 한다 -
+            # 실측으로 root_tree/src_tree/semantic 세 개를 빠뜨려 겪었다.
+            anchor = json.loads(
+                (workspace / "vendor" / "NumSim-mine" / "UPSTREAM_TREE.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            semantic = hashlib.sha256(
+                json.dumps(
+                    anchor, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+                ).encode("utf-8")
+            ).hexdigest()
             self.assertIn('EXPECTED_SNAPSHOT_COMMIT = "' + commit + '"', verifier)
             self.assertIn("EXPECTED_PYTHON_FILE_COUNT = 1", verifier)
+            self.assertIn(
+                'EXPECTED_ROOT_TREE = "' + git(upstream, "rev-parse", "HEAD^{tree}") + '"',
+                verifier,
+            )
+            self.assertIn(
+                'EXPECTED_SRC_TREE = "' + git(upstream, "rev-parse", "HEAD:src") + '"',
+                verifier,
+            )
+            self.assertIn(
+                'EXPECTED_ANCHOR_SEMANTIC_SHA256 = "' + semantic + '"', verifier
+            )
+            # preflight 빌더도 같은 커밋을 독립 상수로 들고 있다(여섯 번째 지점).
+            preflight = (workspace / "scripts" / "build_preflight_manifest.py").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn('EXPECTED_NUMSIM_COMMIT = "' + commit + '"', preflight)
 
     def test_identical_content_does_not_rewrite_vendor_line_endings(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

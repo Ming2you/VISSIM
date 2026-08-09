@@ -136,13 +136,37 @@ def rewrite_snapshot_md(path: Path, anchor: dict, snapshot_date: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
+def anchor_semantic_sha256(anchor: dict) -> str:
+    """Must match verify_runtime_source._semantic_json_sha256 exactly."""
+    encoded = json.dumps(
+        anchor, ensure_ascii=True, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def rewrite_verifier_constants(path: Path, anchor: dict) -> None:
-    """The verifier repeats the commit and file count as module constants."""
+    """The verifier repeats five anchor facts as module constants.
+
+    Missing any one of them fails the run. Measured: updating only the commit and the
+    file count left root_tree, src_tree and the anchor semantic hash stale, and
+    verify_runtime_source rejected the fresh snapshot with three trust_anchor reasons.
+    """
+    rewrite_constants(
+        path,
+        (
+            ("EXPECTED_SNAPSHOT_COMMIT", '"%s"' % anchor["commit"]),
+            ("EXPECTED_ROOT_TREE", '"%s"' % anchor["root_tree"]),
+            ("EXPECTED_SRC_TREE", '"%s"' % anchor["src_tree"]),
+            ("EXPECTED_PYTHON_FILE_COUNT", str(anchor["python_file_count"])),
+            ("EXPECTED_ANCHOR_SEMANTIC_SHA256", '"%s"' % anchor_semantic_sha256(anchor)),
+        ),
+    )
+
+
+def rewrite_constants(path: Path, pairs: tuple[tuple[str, str], ...]) -> None:
+    """Rewrite module-level constants in place, requiring exactly one match each."""
     text = path.read_text(encoding="utf-8")
-    for name, value in (
-        ("EXPECTED_SNAPSHOT_COMMIT", '"%s"' % anchor["commit"]),
-        ("EXPECTED_PYTHON_FILE_COUNT", str(anchor["python_file_count"])),
-    ):
+    for name, value in pairs:
         pattern = re.compile(r"^(" + name + r"\s*=\s*)(.+)$", re.MULTILINE)
         text, count = pattern.subn(lambda m: m.group(1) + value, text)
         if count != 1:
@@ -202,6 +226,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         rewrite_snapshot_md(vendor / "SNAPSHOT.md", anchor, args.snapshot_date)
         rewrite_verifier_constants(root / "scripts" / "verify_runtime_source.py", anchor)
+        # preflight 빌더가 같은 커밋을 독립 상수로 들고 있다. 함께 갱신하지 않으면
+        # verify 는 PASS 하는데 preflight 가 runtime_source.expected_commit 으로 FAIL 한다.
+        rewrite_constants(
+            root / "scripts" / "build_preflight_manifest.py",
+            (("EXPECTED_NUMSIM_COMMIT", '"%s"' % anchor["commit"]),),
+        )
     except (SnapshotError, OSError, ValueError) as exc:
         print(json.dumps({"status": "FAIL", "reason": str(exc)}, ensure_ascii=False))
         return 1
