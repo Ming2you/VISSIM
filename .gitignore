@@ -34,5 +34,10 @@ runlog_*.txt.err
 outputs/lane_route_graph_v2_1.json
 outputs/lane_route_proofs_v2_1.json
 outputs/physical_stock_topology_v2_1.json
+# canonical Phase-0 토폴로지(24 MB). 실런 네트워크에서 9초면 재생성된다.
+#   python scripts/build_canonical_topology.py
+# 낡았는지는 --check-only 로 본다. 저장해 두면 낡는다 - 07-31 사본이 소스 네트워크와
+# 컴파일러 판번호 둘 다 낡은 채로 신호를 37/392/475 로 과소 계상했다(실제 50/440/541).
+outputs/canonical_topology_v3.json
 # topology_approval_v2_1.json 은 무시하지 않는다. v3 초판이 승인 사슬을 뺀 것은 오판이었고
 # N0-3 에서 되살렸다 - validate_state_projection_v2_1.py:22-26 이 그것을 import 한다.
