@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 import unittest
@@ -151,6 +152,16 @@ class ActionCsvContractTests(unittest.TestCase):
         self.assertEqual(
             len([token for token in conflicts.group(1).split(";") if token]),
             plan["counts"]["conflict_pairs"],
+        )
+        # 위 셋은 **집계**만 본다. 계획이 바뀌었는데 vbs 를 다시 안 뽑으면 집계가 우연히
+        # 같은 한 통과한다(실제로 그렇게 낡은 채로 커밋돼 있었다). 원본 sha 를 직접 대조해
+        # "이 vbs 가 지금 그 계획에서 나왔는가"를 고정한다.
+        source_sha = re.search(r'RW_SIGNAL_SG_PLAN_SOURCE_SHA256 = "([0-9a-f]{64})"', text)
+        self.assertIsNotNone(source_sha)
+        self.assertEqual(
+            source_sha.group(1),
+            hashlib.sha256(plan_path.read_bytes()).hexdigest(),
+            "생성된 sgplan.vbs 가 현재 계획 산출물에서 나온 것이 아니다 - --out-vbs 로 재생성하라",
         )
 
 

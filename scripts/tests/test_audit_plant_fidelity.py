@@ -1719,9 +1719,11 @@ class N10AuditCommandTest(unittest.TestCase):
         self.assertEqual(gates["canonical_topology"]["status"], "PASS")
         self.assertEqual(gates["signal_actuation_plan"]["status"], "PASS")
         self.assertEqual(gates["movement_signal_group_map"]["status"], "PASS")
-        # 정본 표가 inpx supply file 과 어긋난 SC 가 남아 있다.
-        self.assertEqual(gates["signal_timing_canon"]["status"], "FAIL")
-        self.assertIn("SC5", json.dumps(gates["signal_timing_canon"]))
+        # 정본 표가 파일명 번호로 `.sig` 를 고르던 동안 SC5/6/11/12 가 어긋나 FAIL 이었다.
+        # 표가 inpx supplyFile2 를 읽게 된 뒤로 PASS 이고, 불일치 목록은 비어 있어야 한다.
+        self.assertEqual(gates["signal_timing_canon"]["status"], "PASS")
+        # SG 수를 박아 둔다. 파일명 매칭으로 되돌아가면 128 이 되어 여기서 걸린다.
+        self.assertEqual(gates["signal_timing_canon"]["evidence"]["signal_group_count"], 136)
 
     def test_markdown_carries_the_gate_category_column(self) -> None:
         manifest = {

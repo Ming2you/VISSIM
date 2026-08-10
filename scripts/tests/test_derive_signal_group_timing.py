@@ -30,6 +30,7 @@ import json
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -129,6 +130,57 @@ class RealNetworkTimingTests(unittest.TestCase):
         by_name = {g["name"]: g for g in sc["groups"]}
         self.assertAlmostEqual(by_name["NBT"]["axis_overestimate"], 1.0, places=6)
         self.assertGreater(by_name["SBL"]["axis_overestimate"], 2.0)
+
+
+@unittest.skipUnless(NETWORK_DIR.is_dir(), "실 네트워크 디렉터리 없음")
+class SupplyFileAgreementTests(unittest.TestCase):
+    """정본표의 `.sig` 선택은 VISSIM 이 실제로 읽는 것과 같아야 한다.
+
+    VISSIM 이 SC 마다 어떤 프로그램을 도는지는 `.inpx` 의 `signalController/@supplyFile2`
+    하나가 정한다. 파일명 끝자리 번호로 고르면 실측 4/15 SC 에서 다른 파일이 잡히고
+    (SC5/6/11/12), 그 위에서 계산한 주기·녹색분율·offset 은 전부 틀린 주기 위에 놓인다.
+
+    여기서는 inpx 를 이 테스트가 직접 파싱해 대조한다 - 생산자와 같은 헬퍼를 쓰면 헬퍼가
+    틀렸을 때 둘이 같이 틀린다.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.table = timing.derive(NETWORK_DIR, MAPPING, network_path=timing.DEFAULT_NETWORK)
+        root = ET.parse(timing.DEFAULT_NETWORK).getroot()
+        cls.inpx_sig: dict[int, str] = {}
+        for element in root.iter():
+            if not element.tag.endswith("signalController"):
+                continue
+            raw = str(element.get("supplyFile2") or "").strip()
+            if raw:
+                # VISSIM 은 네트워크 상대경로를 `#data#` 접두사로 적는다.
+                cls.inpx_sig[int(element.get("no"))] = Path(
+                    raw[6:] if raw.lower().startswith("#data#") else raw
+                ).name
+
+    def test_every_controller_reads_the_program_the_inpx_assigns(self) -> None:
+        mismatched = [
+            (
+                int(controller["sc_no"]),
+                Path(str(controller["sig_path"])).name,
+                self.inpx_sig.get(int(controller["sc_no"]), "<inpx 에 없음>"),
+            )
+            for controller in self.table["controllers"]
+            if Path(str(controller["sig_path"])).name
+            != self.inpx_sig.get(int(controller["sc_no"]))
+        ]
+        self.assertEqual(mismatched, [], "표가 inpx 와 다른 .sig 를 골랐다")
+
+    def test_the_four_known_controllers_carry_the_inpx_cycle(self) -> None:
+        """파일명 매칭이 틀리던 넷. 값을 박아 두어 회귀를 잡는다."""
+        expected = {5: 160.0, 6: 160.0, 11: 150.0, 12: 140.0}
+        actual = {
+            int(controller["sc_no"]): float(controller["cycle_sec"])
+            for controller in self.table["controllers"]
+            if int(controller["sc_no"]) in expected
+        }
+        self.assertEqual(actual, expected)
 
 
 class CliTests(unittest.TestCase):

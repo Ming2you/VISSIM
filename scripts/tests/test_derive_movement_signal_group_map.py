@@ -241,17 +241,27 @@ class RealNetworkDerivationTests(unittest.TestCase):
         )
         self.assertEqual(self.payload["counts"]["resolved_movements"], 416)
 
-    def test_timing_table_disagreement_is_reported_not_hidden(self) -> None:
-        # outputs/signal_group_timing_v3.json 의 `.sig` 선택은 파일명 끝자리 숫자다.
-        # 파일명 번호와 컨트롤러 번호가 어긋난 SC 가 있어 SG 목록이 실물과 다르다.
-        self.assertEqual(
-            self.payload["counts"]["timing_cross_check_disagreements"],
-            ["SC11", "SC12", "SC5", "SC6"],
-        )
-        sc5 = self.payload["controllers"]["SC5"]["timing_cross_check"]
-        self.assertEqual(sc5["inpx_signal_groups"], 24)
-        self.assertEqual(sc5["timing_signal_groups"], 8)
-        self.assertNotEqual(sc5["inpx_supply_file"], sc5["timing_sig_file"])
+    def test_timing_table_cross_check_agrees_and_is_still_actually_checked(self) -> None:
+        """표가 파일명 끝자리 숫자로 `.sig` 를 고르던 동안 SC5/6/11/12 가 어긋나 있었다.
+
+        표가 inpx supplyFile2 를 읽게 된 지금은 불일치가 없어야 한다. 다만 "없음"만
+        고정하면 교차검사 자체를 지워도 통과하므로, 모든 컨트롤러가 실제로 대조된
+        기록(`agrees` 와 양쪽 파일명)을 들고 있는지도 함께 본다.
+        """
+        self.assertEqual(self.payload["counts"]["timing_cross_check_disagreements"], [])
+        checks = {
+            node: entry["timing_cross_check"]
+            for node, entry in self.payload["controllers"].items()
+        }
+        self.assertEqual(len(checks), 15)
+        for node, check in checks.items():
+            with self.subTest(node=node):
+                self.assertTrue(check["agrees"])
+                self.assertTrue(check["inpx_supply_file"])
+                self.assertEqual(check["inpx_supply_file"], check["timing_sig_file"])
+                self.assertEqual(check["inpx_signal_groups"], check["timing_signal_groups"])
+        # SC5 는 inpx 가 24 SG 프로그램(test-bed7)을 배정한 SC 다. 8 로 돌아가면 회귀다.
+        self.assertEqual(checks["SC5"]["inpx_signal_groups"], 24)
 
     def test_signal_group_phase_uses_topology_for_the_mismatched_legs(self) -> None:
         # SC1001 링크 32(SG 2,5)는 이름이 EBT/EBL 이라 이름 규칙이면 p2 다.

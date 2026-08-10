@@ -4,17 +4,19 @@
 
 ## 출처가 왜 inpx 인가
 
-`outputs/signal_group_timing_v3.json` 은 **파일명 번호**로 `.sig` 를 골랐다. 실측(2026-08-10)
-4/15 SC 에서 그 선택이 inpx 의 `supplyFile2` 와 다르다.
+VISSIM 이 SC 마다 어떤 프로그램을 도는지는 `.inpx` 의 `signalController/@supplyFile2` 하나가
+정한다. 모델의 `compile_fixed_signal_schedules` 도 같은 것을 읽는다.
+
+`outputs/signal_group_timing_v3.json` 이 **파일명 번호**로 `.sig` 를 고르던 동안 실측(2026-08-10)
+4/15 SC 에서 그 선택이 inpx 와 달랐다.
 
     SC5  timing=test-bed5.sig(140 s)  inpx=test-bed7.sig(160 s)
     SC6  timing=test-bed6.sig(100 s)  inpx=test-bed9.sig(160 s)
     SC11 timing=test-bed11.sig(160 s) inpx=test-bed3.sig(150 s)
     SC12 timing=test-bed12.sig(150 s) inpx=test-bed5.sig(140 s)
 
-VISSIM 이 읽는 것은 inpx 쪽이다. 모델의 `compile_fixed_signal_schedules` 도 inpx 를 읽는다.
-그래서 계획은 inpx 를 따르고, 표와의 불일치는 `timing_table_disagreements` 로 산출물에 남긴다.
-표를 여기서 고치지는 않는다(그것은 표 생산자의 몫이다).
+표 생산자가 inpx 를 읽도록 고쳐 지금은 일치한다. 교차검사는 지우지 않고 남긴다 -
+`timing_table_disagreements` 가 비어 있는 것이 두 출처가 같은 프로그램을 본다는 증거다.
 
 ## 무엇이 나오는가
 

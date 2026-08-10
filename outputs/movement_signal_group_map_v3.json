@@ -1666,7 +1666,7 @@
       }
     },
     "SC11": {
-      "cycle_sec": 160.0,
+      "cycle_sec": 150.0,
       "origin_signal_groups": {
         "SC18_to_SC11": {
           "hops": 0,
@@ -1806,10 +1806,10 @@
         }
       },
       "timing_cross_check": {
-        "agrees": false,
+        "agrees": true,
         "inpx_signal_groups": 8,
         "inpx_supply_file": "개포동 test-bed3.sig",
-        "timing_sig_file": "개포동 test-bed11.sig",
+        "timing_sig_file": "개포동 test-bed3.sig",
         "timing_signal_groups": 8
       },
       "unresolved_origins": {
@@ -1820,7 +1820,7 @@
       }
     },
     "SC12": {
-      "cycle_sec": 150.0,
+      "cycle_sec": 140.0,
       "origin_signal_groups": {
         "SC10_to_SC12": {
           "hops": 0,
@@ -1964,10 +1964,10 @@
         }
       },
       "timing_cross_check": {
-        "agrees": false,
+        "agrees": true,
         "inpx_signal_groups": 8,
         "inpx_supply_file": "개포동 test-bed5.sig",
-        "timing_sig_file": "개포동 test-bed12.sig",
+        "timing_sig_file": "개포동 test-bed5.sig",
         "timing_signal_groups": 8
       },
       "unresolved_origins": {
@@ -1976,7 +1976,7 @@
       }
     },
     "SC5": {
-      "cycle_sec": 140.0,
+      "cycle_sec": 160.0,
       "origin_signal_groups": {
         "SC101_to_SC5": {
           "hops": 0,
@@ -2262,11 +2262,11 @@
         }
       },
       "timing_cross_check": {
-        "agrees": false,
+        "agrees": true,
         "inpx_signal_groups": 24,
         "inpx_supply_file": "개포동 test-bed7.sig",
-        "timing_sig_file": "개포동 test-bed5.sig",
-        "timing_signal_groups": 8
+        "timing_sig_file": "개포동 test-bed7.sig",
+        "timing_signal_groups": 24
       },
       "unresolved_origins": {
         "in_SC5_E": "synthetic_boundary_leg",
@@ -2275,7 +2275,7 @@
       }
     },
     "SC6": {
-      "cycle_sec": 100.0,
+      "cycle_sec": 160.0,
       "origin_signal_groups": {
         "SC10_to_SC6": {
           "hops": 0,
@@ -2419,11 +2419,11 @@
         }
       },
       "timing_cross_check": {
-        "agrees": false,
+        "agrees": true,
         "inpx_signal_groups": 8,
         "inpx_supply_file": "개포동 test-bed9.sig",
-        "timing_sig_file": "개포동 test-bed6.sig",
-        "timing_signal_groups": 16
+        "timing_sig_file": "개포동 test-bed9.sig",
+        "timing_signal_groups": 8
       },
       "unresolved_origins": {
         "in_SC6_S": "synthetic_boundary_leg",
@@ -2444,12 +2444,7 @@
       "origin_movement": 87,
       "signal_group_name": 49
     },
-    "timing_cross_check_disagreements": [
-      "SC11",
-      "SC12",
-      "SC5",
-      "SC6"
-    ],
+    "timing_cross_check_disagreements": [],
     "unresolved_by_reason": {
       "synthetic_boundary_leg": 282
     },
@@ -2458,14 +2453,14 @@
   "schema_version": "movement-signal-group-map-v3",
   "source": {
     "config": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\real_world_modi_pstack_distributed_core15n41_20260805.json",
-    "config_sha256": "cc06538e0e75ceff4e83f505b68fa73bcdd144ea9cf76277a9f21f466be8bcd6",
+    "config_sha256": "e5f8adcb2cba949cad6e2b7e8d98c80710925632e66ec17bc8472c96343c4fd4",
     "detector_mapping": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15n41_20260805.json",
     "detector_mapping_sha256": "0ad49dd29b777159f8fb44d2827f5a920fdb846ba9c6e36e26c1417a7b941fed",
     "inpx_path": "modi_eval_rw_control.inpx",
     "inpx_sha256": "f3ce390f281c2bd60a367435dd5567767edafb4681cb66a2c566a480aa74d635",
     "max_connector_hops": 12,
     "timing": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\signal_group_timing_v3.json",
-    "timing_sha256": "1df009091b785a880040376d546139e5b74496f5dde5b5fae2bb231c4a2a41cc",
+    "timing_sha256": "e4dcb6f9a8924ffcb95ca42a714ba4538a90e573abe30002c778881c628fb35c",
     "topology": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\canonical_topology_v3.json",
     "topology_compiler_version": "vissim-strict-phase0/1.1.1"
   },

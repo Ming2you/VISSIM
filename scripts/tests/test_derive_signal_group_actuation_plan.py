@@ -59,34 +59,35 @@ class DeriveTests(unittest.TestCase):
         self.assertEqual(cycles["6"], 160.0)
         self.assertEqual(cycles["11"], 150.0)
         self.assertEqual(cycles["12"], 140.0)
-        self.assertEqual(
-            sorted(self.table["timing_table_disagreements"]),
-            ["SC11", "SC12", "SC5", "SC6"],
-        )
+        # 표 생산자가 파일명 번호로 `.sig` 를 고르던 동안 이 넷이 어긋나 있었다. 표가 inpx
+        # supplyFile2 를 읽게 된 뒤로는 비어 있어야 한다 - 값이 아니라 **비어 있음**을 고정한다.
+        self.assertEqual(sorted(self.table["timing_table_disagreements"]), [])
 
     def test_conflict_pairs_are_recorded_and_the_plan_never_violates_them(self) -> None:
         self.assertGreater(self.table["counts"]["conflict_pairs"], 0)
         self.assertEqual(self.table["counts"]["conflict_violations"], 0)
 
-    def test_canonical_160_pairs_are_covered_where_the_two_sources_agree(self) -> None:
-        """정본 표의 동시녹색 쌍 160 개를 우리 충돌 집합이 덮는가.
+    def test_canonical_simultaneous_green_pairs_are_covered_for_every_controller(self) -> None:
+        """정본 표의 동시녹색 쌍을 우리 충돌 집합이 덮는가 - 15 SC 전부에 대해.
 
-        표의 쌍은 SG **이름** 키라 SC6(이름 중복 16 SG)에서는 sg_id 로 못 푼다. 그리고
-        표가 다른 `.sig` 를 기술하는 4 SC 는 애초에 비교 대상이 아니다. 그래서 두 출처가
-        일치하는 11 SC 에 대해서만 대조하고, 남는 것은 **한쪽이 영원히 적색이라 동시녹색이
-        구조적으로 불가능한 쌍**뿐임을 고정한다.
+        예전에는 표가 다른 `.sig` 를 기술하는 4 SC 를 통째로 건너뛰었다. 표가 inpx
+        supplyFile2 를 읽게 된 지금은 건너뛸 SC 가 없으므로, 제외는 **쌍 단위**로만 한다.
+
+          - `vacuous`  한쪽이 영원히 적색이라 동시녹색이 구조적으로 불가능한 쌍.
+          - `ambiguous` 표의 쌍은 SG **이름** 키인데 그 이름이 여러 sg_id 에 걸려
+            (SC5 는 24 SG 중 8개가 중복 이름) 어느 조합인지 정할 수 없는 쌍.
+
+        모호한 쌍을 빼도 남는 미커버가 있으면 그것이 결함이다.
         """
         timing = json.loads(
             (ROOT / "outputs" / "signal_group_timing_v3.json").read_text(encoding="utf-8")
         )
-        disagree = set(self.table["timing_table_disagreements"])
         covered = 0
         vacuous = 0
+        ambiguous = 0
         uncovered: list[tuple[int, tuple[str, str]]] = []
         for controller in timing["controllers"]:
             sc_no = int(controller["sc_no"])
-            if f"SC{sc_no}" in disagree:
-                continue
             node = self.table["controllers"][str(sc_no)]
             counts = node["window_counts"]
             pairs = {tuple(sorted(pair, key=int)) for pair in node["conflict_pairs"]}
@@ -96,18 +97,23 @@ class DeriveTests(unittest.TestCase):
             for pair in timing["conflicting_pairs"]:
                 if int(pair["sc_no"]) != sc_no:
                     continue
-                for first in names.get(pair["a"], []):
-                    for second in names.get(pair["b"], []):
+                first_ids = names.get(pair["a"], [])
+                second_ids = names.get(pair["b"], [])
+                for first in first_ids:
+                    for second in second_ids:
                         key = tuple(sorted((first, second), key=int))
                         if key in pairs:
                             covered += 1
                         elif counts.get(first, 0) == 0 or counts.get(second, 0) == 0:
                             vacuous += 1
+                        elif len(first_ids) > 1 or len(second_ids) > 1:
+                            ambiguous += 1
                         else:
                             uncovered.append((sc_no, key))
         self.assertEqual(uncovered, [])
-        self.assertEqual(covered, 63)
-        self.assertEqual(vacuous, 19)
+        self.assertEqual(covered, 149)
+        self.assertEqual(vacuous, 838)
+        self.assertEqual(ambiguous, 171)
 
     def test_vbs_config_lists_expected_groups_and_conflicts(self) -> None:
         text = producer.render_vbs(self.table)

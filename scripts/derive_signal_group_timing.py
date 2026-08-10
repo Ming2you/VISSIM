@@ -28,13 +28,18 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 
 SCHEMA_VERSION = "signal-group-timing-v3"
+
+REPO = Path(__file__).resolve().parents[1]
+# 네트워크 디렉터리에 `.inpx` 가 8개 있으므로 자동 탐색하지 않는다. 감사가 `inpx_sha256` 으로
+# 정본으로 확인한 망을 기본값으로 박고, 다른 망은 `--network` 로 명시하게 한다.
+DEFAULT_NETWORK = REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 
 # VBS SignalStateForGroup 의 이름 판정을 그대로 미러링한다.
 MAJOR_PREFIXES = ("EB", "WB")
@@ -81,17 +86,25 @@ def _green_windows(timeline) -> list[tuple[float, float]]:
     ]
 
 
-def _sig_path_for(network_dir: Path, sc_no: int) -> Path | None:
-    """`.sig` 파일명은 한글 접두사 + 컨트롤러 번호다(예: '개포동 test-bed1001.sig').
+def _sig_names_from_inpx(network_path: Path) -> dict[int, str]:
+    """SC 번호 -> VISSIM 이 실제로 읽는 `.sig` 파일명.
 
-    번호가 부분문자열로 겹치므로(1 vs 1001) 끝자리 정확 일치를 요구한다.
+    `.inpx` 의 `signalController/@supplyFile2` 가 그 배정의 유일한 근거다. 예전에는
+    파일명 끝자리 번호로 골랐는데, 실측 4/15 SC 에서 그 선택이 inpx 와 달랐다 —
+    SC5 -> test-bed7, SC6 -> test-bed9, SC11 -> test-bed3, SC12 -> test-bed5.
     """
-    pattern = re.compile(r"(\d+)\.sig$", re.IGNORECASE)
-    for path in sorted(network_dir.glob("*.sig")):
-        match = pattern.search(path.name)
-        if match and int(match.group(1)) == int(sc_no):
-            return path
-    return None
+    root = ET.parse(Path(network_path)).getroot()
+    names: dict[int, str] = {}
+    for element in root.iter():
+        if not element.tag.endswith("signalController"):
+            continue
+        raw = str(element.get("supplyFile2") or "").strip()
+        number = element.get("no")
+        if not raw or number is None:
+            continue
+        # VISSIM 은 네트워크 상대경로를 `#data#` 접두사로 적는다.
+        names[int(number)] = Path(raw[6:] if raw.lower().startswith("#data#") else raw).name
+    return names
 
 
 def _controlled_controllers(mapping_path: Path) -> list[int]:
@@ -107,7 +120,12 @@ def _controlled_controllers(mapping_path: Path) -> list[int]:
     return numbers
 
 
-def derive(network_dir: Path, mapping_path: Path, active_prog_no: int = 1) -> dict[str, Any]:
+def derive(
+    network_dir: Path,
+    mapping_path: Path,
+    active_prog_no: int = 1,
+    network_path: Path = DEFAULT_NETWORK,
+) -> dict[str, Any]:
     # plant 컴파일러가 정본 파서를 들고 있다. 여기서 다시 짜면 두 파서가 갈린다.
     #
     # `plant.` 를 붙여 저장소 루트에서 받는다. 예전처럼 `plant/` 를 sys.path 에 넣고
@@ -126,10 +144,16 @@ def derive(network_dir: Path, mapping_path: Path, active_prog_no: int = 1) -> di
     unresolved: list[dict[str, Any]] = []
     conflicts: list[dict[str, Any]] = []
 
+    sig_names = _sig_names_from_inpx(Path(network_path))
     for sc_no in _controlled_controllers(mapping_path):
-        path = _sig_path_for(Path(network_dir), sc_no)
-        if path is None:
-            unresolved.append({"sc_no": sc_no, "reason": "no .sig file"})
+        name = sig_names.get(int(sc_no))
+        if not name:
+            unresolved.append({"sc_no": sc_no, "reason": "inpx declares no supplyFile2"})
+            continue
+        path = Path(network_dir) / name
+        if not path.is_file():
+            # 배정된 파일이 없으면 다른 파일로 대신하지 않는다 - 그것이 예전 결함이었다.
+            unresolved.append({"sc_no": sc_no, "reason": f"supplyFile2 not found: {name}"})
             continue
         try:
             program = parse_sig(str(path), active_prog_no)
@@ -214,13 +238,15 @@ def derive(network_dir: Path, mapping_path: Path, active_prog_no: int = 1) -> di
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Derive canonical signal-group timing")
     parser.add_argument("--network-dir", required=True, type=Path)
+    parser.add_argument("--network", type=Path, default=DEFAULT_NETWORK,
+                        help=".sig 배정(supplyFile2)을 읽을 .inpx")
     parser.add_argument("--mapping", required=True, type=Path)
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--active-prog-no", type=int, default=1)
     args = parser.parse_args(argv)
 
     try:
-        table = derive(args.network_dir, args.mapping, args.active_prog_no)
+        table = derive(args.network_dir, args.mapping, args.active_prog_no, args.network)
     except (TimingError, OSError, ValueError) as exc:
         print(json.dumps({"status": "FAIL", "reason": str(exc)}, ensure_ascii=False))
         return 1

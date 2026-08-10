@@ -42,14 +42,16 @@ VISSIM 에 대응 링크가 없다. 잔차로 뭉개지 않고 `synthetic_bounda
 `.inpx` 의 `signalController/@supplyFile2` 가 그 SC 의 `.sig` 를 가리키는 유일한 근거다.
 토폴로지 컴파일러가 그 선언을 그대로 싣고 있으므로 SG 목록·이름은 토폴로지에서 읽는다.
 
-`outputs/signal_group_timing_v3.json` 은 **교차검사에만** 쓴다. 그 생산자
-(`derive_signal_group_timing._sig_path_for`)는 파일명 끝자리 숫자로 `.sig` 를 고르는데
-파일명 번호와 컨트롤러 번호가 같지 않은 SC 가 있다. 실측(2026-08-10) 4/15 불일치다.
+`outputs/signal_group_timing_v3.json` 은 **교차검사에만** 쓴다. 그 생산자가 파일명 끝자리
+숫자로 `.sig` 를 고르던 동안 실측(2026-08-10) 4/15 가 불일치였다.
 
     SC5  timing=test-bed5.sig  inpx=test-bed7.sig   SG 8 vs 24
     SC6  timing=test-bed6.sig  inpx=test-bed9.sig   SG 16 vs 8
     SC11 timing=test-bed11.sig inpx=test-bed3.sig
     SC12 timing=test-bed12.sig inpx=test-bed5.sig
+
+생산자가 `supplyFile2` 를 읽도록 고쳐 지금은 전부 일치한다. 교차검사는 그대로 둔다 -
+`timing_cross_check.agrees` 가 두 출처가 같은 프로그램을 본다는 유일한 증거다.
 
 그래서 타이밍 표의 SG 목록으로 걸러내면 SC5 의 SG 10·24 같은 실 SG 가 사라진다.
 여기서는 고치지 않고 `timing_cross_check` 로 산출물에 남긴다.
