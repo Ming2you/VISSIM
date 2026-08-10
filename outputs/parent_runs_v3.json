@@ -1,0 +1,179 @@
+{
+  "schema_version": "parent-run-spec-v3",
+  "status": "PASS",
+  "seal_sha256": "27aab9459630cc6de005b2a4a8fdc040e23a353fb20f981a4ec08220b739ac2a",
+  "spec": {
+    "anchor_sec": [
+      900,
+      1500,
+      2100,
+      2700
+    ],
+    "base_replays_per_parent_anchor": 20,
+    "congested": {
+      "demand": [
+        1.25
+      ],
+      "seeds": [
+        13,
+        29
+      ]
+    },
+    "holdout": {
+      "demand": [
+        0.75,
+        1.0,
+        1.25
+      ],
+      "seeds": [
+        47
+      ]
+    },
+    "schema_version": "parent-run-spec-v3",
+    "sim_period_sec": 3600,
+    "spsa_seed": 13,
+    "training": {
+      "demand": [
+        0.75,
+        1.0
+      ],
+      "seeds": [
+        13,
+        29
+      ]
+    },
+    "warmup_sec": 900
+  },
+  "noise_floors": {
+    "eps_j_vissim_floor_veh_h": 1e-06,
+    "eps_j_vissim_scope": "VISSIM 런간 분산. N9 의 ΔJ 재료성 판정 전용",
+    "eps_j_endpoint_floor_veh_h": 1e-09,
+    "eps_j_endpoint_scope": "플랜트 endpoint 재현성. N8-1 에서 따로 측정",
+    "never_mix": "두 값을 섞으면 eps_g 가 과대해져 지지 요건이 무너진다"
+  },
+  "sample_dimensions": {
+    "parents": 9,
+    "anchors_per_parent": 4,
+    "base_replays_per_parent_anchor": 20,
+    "base_replays_total": 720
+  },
+  "parent_runs": [
+    {
+      "role": "training",
+      "demand": 0.75,
+      "seed": 13,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "training",
+      "demand": 0.75,
+      "seed": 29,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "training",
+      "demand": 1.0,
+      "seed": 13,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "training",
+      "demand": 1.0,
+      "seed": 29,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "congested",
+      "demand": 1.25,
+      "seed": 13,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "congested",
+      "demand": 1.25,
+      "seed": 29,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "holdout",
+      "demand": 0.75,
+      "seed": 47,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "holdout",
+      "demand": 1.0,
+      "seed": 47,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    },
+    {
+      "role": "holdout",
+      "demand": 1.25,
+      "seed": 47,
+      "anchor_sec": [
+        900,
+        1500,
+        2100,
+        2700
+      ],
+      "sim_period_sec": 3600,
+      "warmup_sec": 900
+    }
+  ]
+}
