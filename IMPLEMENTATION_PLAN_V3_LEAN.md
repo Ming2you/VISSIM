@@ -758,9 +758,16 @@ end-to-end. **운영 게이트는 end-to-end 만** 본다.
 > 줄일 수 있는 축은 replicate(현재 1)와 holdout 시드다. **진폭·anchor·H 는 사전등록이라
 > 사후 조정 금지**다 — 줄이려면 런 전에 spec 을 고치고 봉인을 다시 찍어야 한다.
 >
-> **합성 측정을 믿지 마라.** `TrafficState.initial` 에 균일 수요를 꽂아 solve 를 재려 했더니
-> 1시간이 지나도 끝나지 않았다. 실 런은 같은 config 로 11초다. 관측 상태에서 출발하지 않으면
-> 탐색이 병적으로 커진다. 비용을 재려면 런로그의 `wall_sec` 을 써라.
+> **합성 측정을 믿지 마라.** `TrafficState.initial` 에 균일 수요(경계 117링크 각 300 veh/h)를
+> 꽂아 같은 config 로 solve 를 쟀더니 이렇게 나왔다.
+>
+> ```
+> solve 1,144 s      _leader_direct_feasible_set_diagnostics 호출 65,721 회
+> ```
+>
+> 실 런은 11초다. **100배 차이의 원인은 코드가 아니라 상태다** — 관측 상태에서 출발하지 않으면
+> 리더 target 이 도달 불가라 탐색이 후보를 소진한다(default.yaml 은 11,799 회, 여기선 5.6배).
+> 비용을 재려면 런로그의 `wall_sec` 을 써라. 합성 상태로 잰 값을 계획에 넣지 마라.
 
 ### N9-1. replay 신원
 VISSIM 스냅샷 복원을 믿지 않고 모든 branch 를 `t=0` 부터 재실행한다.
