@@ -127,7 +127,9 @@ class PlantCycleFormulaTests(unittest.TestCase):
             / "controllers"
             / "vissim_stackelberg_adapter.py"
         ).read_text(encoding="utf-8")
-        self.assertEqual(source.count("plant_cycle.written_axis_green_sec"), 2)
+        # 축 녹색은 major/minor 두 번 실린다. 세 번째 소비처가 생기는 것은 막지 않고,
+        # 리터럴로 되돌아가는 것만 막는다.
+        self.assertGreaterEqual(source.count("plant_cycle.written_axis_green_sec"), 2)
         self.assertNotIn("), 5.0, 90.0)", source)
 
 
