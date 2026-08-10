@@ -1,6 +1,6 @@
 # Plant Fidelity Static Audit Summary
 
-Generated: `2026-08-10T13:29:59.846414+00:00`
+Generated: `2026-08-10T14:30:25.274571+00:00`
 
 > This report uses live files supplied to the CLI. Historical `outputs/gates_*` measurements are not treated as current evidence.
 
@@ -12,7 +12,7 @@ Generated: `2026-08-10T13:29:59.846414+00:00`
 | `network_xml` | topology | **PASS** | network XML parsed and signal-head references are well formed |
 | `signal_controller_scope` | signal | **PASS** | raw XML active 50 / urban eligible 42 / model 41; auxiliary active 8, model excluded 1 |
 | `link_partition` | topology | **PASS** | owned/freeway/exit categories form a complete disjoint partition |
-| `assignment_ties` | topology | **FAIL** | equal-hop downstream terminal ties were found |
+| `assignment_ties` | topology | **NOT_EVALUATED** | 27 equal-hop ties exist, but without observed link counts we cannot tell whether any of them carries mass |
 | `adjacency` | topology | **PASS** | adjacency declarations match their calculated sizes |
 | `storage_capacity` | topology | **PASS** | jam density and all reported storage capacities are positive |
 | `canonical_topology` | topology | **PASS** | canonical topology matches the audited network and its compiler report is clean |
@@ -35,7 +35,7 @@ Generated: `2026-08-10T13:29:59.846414+00:00`
 | `spillback_detection` | paired_dynamics | **NOT_EVALUATED** | no paired validation metrics artifact was supplied |
 | `gradient_ranking` | ranking | **NOT_EVALUATED** | no gradient ranking artifact was supplied |
 | `vissim_error_log` | runtime | **PASS** | VISSIM error log contains no error/fatal lines |
-| `promotion_readiness` | promotion | **FAIL** | the audit's own gates are FAIL; no holdout promotion evidence artifact was supplied |
+| `promotion_readiness` | promotion | **NOT_EVALUATED** | the audit's own gates are NOT_EVALUATED; no holdout promotion evidence artifact was supplied |
 
 ## Static Scale
 
@@ -50,7 +50,7 @@ Generated: `2026-08-10T13:29:59.846414+00:00`
 | Model-excluded controllers | [9004] |
 | SC9004 head references | 0 |
 | Assignment owned / freeway / exit | 957 / 22 / 226 |
-| Assignment coverage / duplicates / ties | 1205 / 0 / 33 |
+| Assignment coverage / duplicates / ties | 1205 / 0 / 27 |
 | Adjacency pairs / internal pairs | 123 / 94 |
 | Internal member refs / unique | 199 / 146 |
 | Jam density (veh/km/lane) | 140.543 |
@@ -74,8 +74,8 @@ Generated: `2026-08-10T13:29:59.846414+00:00`
 
 ## Provenance
 
-- Workspace: branch `plant-fidelity-v2-1`, commit `39c8feff61a6b0aad3b3294c366c9a9426f0ed80`, dirty `True`
-- Vendor snapshot commit: `5a2fe7dd7f4ecc9b53c7b59767f0a12441ce853c`
+- Workspace: branch `plant-fidelity-v2-1`, commit `6383b9ad9c3e0f45b87c4f3f1e092a78b1a5a435`, dirty `True`
+- Vendor snapshot commit: `e4bf4d01af6c9a750d877bb00d4bfa5d20ac6201`
 - Actual NUMSIM_REPO_ROOT: `-`
 - Actual NumSim commit: `-`
 - Vendor/actual src mismatch count: `-`
@@ -95,7 +95,7 @@ Generated: `2026-08-10T13:29:59.846414+00:00`
 | `detector_mapping` | True | `0ad49dd29b777159f8fb44d2827f5a920fdb846ba9c6e36e26c1417a7b941fed` | `C:\Users\alsrj\Desktop\학술\찐찐막\Claude\VISSIM\evaluation\real_world_modi_control_distributed_20260728\detector_local_mapping_distributed_core15n41_20260805.json` |
 | `generated_vbs_config` | True | `34db527b8677e8d9a1a5abbe573340dec3953f7fd5f570df90962e1d11152ec2` | `C:\Users\alsrj\Desktop\학술\찐찐막\Claude\VISSIM\evaluation\generated\real_world_modi_control_config_distributed_core15n41_20260805.vbs` |
 | `adapter` | True | `270478bcfa7e5b45472a36397a5dc498b4a38523516f13c9d6bb3c0958fb09ea` | `C:\Users\alsrj\Desktop\학술\찐찐막\Claude\VISSIM\evaluation\controllers\vissim_stackelberg_adapter.py` |
-| `vendor_snapshot` | True | `e27a7558d5baeebd071631504ae0623a9cf4b50fc0a4372bd060bb81a0692db0` | `C:\Users\alsrj\Desktop\학술\찐찐막\Claude\VISSIM\vendor\NumSim-mine\SNAPSHOT.md` |
+| `vendor_snapshot` | True | `1ff4afabc7c900519ae31814fae721754e52c3d8d99e6eb2bb3576a0847db753` | `C:\Users\alsrj\Desktop\학술\찐찐막\Claude\VISSIM\vendor\NumSim-mine\SNAPSHOT.md` |
 
 Signal programs hashed: **41**
 

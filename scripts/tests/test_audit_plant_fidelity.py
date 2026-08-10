@@ -1642,11 +1642,13 @@ class N10AuditCommandTest(unittest.TestCase):
         ):
             self.assertIn(name, payload["gates"])
             self.assertEqual(payload["gates"][name]["status"], "NOT_EVALUATED", name)
-        # 승격은 감사 자신의 게이트를 물려받는다. 지금 저장소에는 assignment_ties FAIL 이 있다.
+        # 승격은 감사 자신의 게이트 중 **최악**을 물려받는다. 정적 감사에는 관측이 없어
+        # assignment_ties 가 NOT_EVALUATED 이므로(질량 기준 판정) 승격도 그렇다.
+        # 예전에는 assignment_ties 가 FAIL 이라 여기가 FAIL 이었다.
         promotion = payload["gates"]["promotion_readiness"]
-        self.assertEqual(promotion["status"], "FAIL")
-        self.assertEqual(promotion["evidence"]["static_gate_status"], "FAIL")
-        self.assertIn("the audit's own gates are FAIL", promotion["reason"])
+        self.assertEqual(promotion["status"], "NOT_EVALUATED")
+        self.assertEqual(promotion["evidence"]["static_gate_status"], "NOT_EVALUATED")
+        self.assertIn("the audit's own gates are NOT_EVALUATED", promotion["reason"])
         self.assertIn("blocked", payload["gate_summary"])
         self.assertIn("BLOCKED", payload["policy"]["status_values"])
         # 콘솔 한 줄이 BLOCKED 를 빼면 새 상태가 관측 구멍이 된다. BLOCKED 는
@@ -1704,7 +1706,10 @@ class N10AuditCommandTest(unittest.TestCase):
                 "spillback_detection",
             )
         self.assertEqual(payload["gates"]["spillback_detection"]["status"], "BLOCKED")
-        self.assertEqual(payload["gate_summary"]["blocked"], 1)
+        # 승격도 BLOCKED 를 물려받아 둘이다. 예전에는 assignment_ties FAIL 이 최악이라
+        # 승격이 FAIL 로 덮여 이 자리가 1 이었다 - FAIL 이 사라지자 BLOCKED 가 드러났다.
+        self.assertEqual(payload["gates"]["promotion_readiness"]["status"], "BLOCKED")
+        self.assertEqual(payload["gate_summary"]["blocked"], 2)
         self.assertEqual(result.returncode, 2, result.stderr)
 
     def test_repository_signal_artifacts_are_actually_wired(self) -> None:
@@ -1754,3 +1759,156 @@ class N10AuditCommandTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AssignmentTieDeclaredOwnerTests(unittest.TestCase):
+    """소유자가 선언된 링크는 BFS 스윕에서 뺀다 - `stop_owners` 와 정확히 같은 이유다.
+
+    `derive_assignment_ties` 는 이미 `if start in stop_owners: continue`(:517) 로 정지선
+    소유자가 정해진 링크를 건너뛴다. off-ramp 커넥터도 소유자가 선언돼 있다 -
+    `detector_local_mapping.off_ramp_connectors` 가 커넥터마다 `from_link` 를 명시한다.
+    BFS 가 그 선언을 안 보고 그래프를 걸어 프리웨이 노드 둘을 찾아 tie 로 신고했다.
+
+    게다가 이 off-ramp 들은 **망 밖으로 나가는 차량**을 나른다(2026-08-10, 사용자가 망에서
+    직접 확인). 종단이 FW:2 도 FW:26 도 아니라 망 밖이므로 BFS 가 틀린 질문을 하고 있었다.
+
+    실측 - 커넥터 8개 중 6개가 tie 목록에 있었고, 그 6개가 tie 링크 중 유일하게 차를 싣는
+    링크들이었다(관측 204표본, 중앙값 1.68%).
+    """
+
+    NETWORK = REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
+    ROLES = REPO / "evaluation" / "real_world_modi_inventory" / "signal_controller_roles.csv"
+    ASSIGNMENT = REPO / "outputs" / "link_player_assignment_20260805.json"
+    DETECTORS = REPO / "evaluation" / "real_world_modi_control" / "detector_local_mapping.json"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if not (cls.NETWORK.is_file() and cls.ASSIGNMENT.is_file() and cls.DETECTORS.is_file()):
+            raise unittest.SkipTest("실 망/배정 산출물 없음")
+        a = json.loads(cls.ASSIGNMENT.read_text(encoding="utf-8"))
+        cls.universe = (
+            {str(v) for v in a["link_owner"]}
+            | {str(v) for v in a["freeway_bound_links"]}
+            | {str(v) for v in a["monitor_only_exit_links"]}
+        )
+        cls.freeway_terminals = {str(v) for v in a["freeway_bound_links"].values()}
+        d = json.loads(cls.DETECTORS.read_text(encoding="utf-8"))
+        cls.off_ramps = {
+            str(entry["connector"])
+            for entries in (d.get("off_ramp_connectors") or {}).values()
+            for entry in entries
+        }
+
+    def _ties(self, declared_owner_links):
+        info = audit.derive_assignment_ties(
+            self.NETWORK,
+            self.ROLES,
+            self.universe,
+            self.freeway_terminals,
+            declared_owner_links=declared_owner_links,
+        )
+        return {str(t["link"]) for t in info["ties"]}
+
+    def test_off_ramp_connectors_are_excluded_from_the_sweep(self) -> None:
+        before = self._ties(frozenset())
+        after = self._ties(self.off_ramps)
+        self.assertEqual(len(before), 33)
+        self.assertEqual(len(after), 27)
+        self.assertEqual(before - after, self.off_ramps & before)
+        # 빠진 여섯은 tie 중 유일하게 차를 싣던 링크들이다.
+        self.assertEqual(before - after, {"10479", "10483", "10638", "10643", "10645", "10682"})
+
+    def test_the_off_ramp_mapping_agrees_with_the_surveyed_network(self) -> None:
+        """2026-08-10 사용자가 망에서 직접 확인한 값. 매핑이 어긋나면 어느 한쪽이 틀린 것이다."""
+        d = json.loads(self.DETECTORS.read_text(encoding="utf-8"))
+        from_link = {
+            str(entry["connector"]): int(entry["from_link"])
+            for entries in (d.get("off_ramp_connectors") or {}).values()
+            for entry in entries
+        }
+        self.assertEqual(from_link["10645"], 26)
+        self.assertEqual(from_link["10682"], 2)
+
+
+class AssignmentTieMassCriterionTests(unittest.TestCase):
+    """tie 는 그 링크가 **질량을 나를 때만** 문제다.
+
+    tie 자체는 위상 사실이고, 그것이 해로운지는 그 링크에 차가 흐르는지에 달렸다.
+    관측에서 한 번도 차를 싣지 않은 링크의 종단이 모호한 것은 NMAE 를 흔들지 않는다.
+
+    미측정은 통과가 아니다 - 관측이 없으면 판정할 수 없으므로 NOT_EVALUATED 다.
+    PASS 는 실 런을 감사할 때만 나온다.
+    """
+
+    TIES = {"status": audit.STATUS_PASS, "tie_count": 2, "ties": [
+        {"link": "111", "hops": 2, "terminals": ["FW:2", "FW:26"]},
+        {"link": "222", "hops": 3, "terminals": ["SC:1@10", "SC:2@20"]},
+    ]}
+
+    def test_without_observations_it_is_not_evaluated(self) -> None:
+        result = audit.assignment_ties_gate(self.TIES, occupied_links=None)
+        self.assertEqual(result["status"], audit.STATUS_NE)
+
+    def test_ties_on_links_that_never_carried_vehicles_pass(self) -> None:
+        # 관측이 tie 링크를 덮어야 PASS 다 - 커버리지 요건은 AssignmentTieCoverageTests 참조.
+        result = audit.assignment_ties_gate(
+            self.TIES, occupied_links={"999"}, observed_links={"111", "222", "999"}
+        )
+        self.assertEqual(result["status"], audit.STATUS_PASS)
+        self.assertEqual(result["evidence"]["tie_count"], 2)
+        self.assertEqual(result["evidence"]["occupied_tie_links"], [])
+
+    def test_a_tie_on_a_link_that_carried_vehicles_fails(self) -> None:
+        result = audit.assignment_ties_gate(self.TIES, occupied_links={"222", "999"})
+        self.assertEqual(result["status"], audit.STATUS_FAIL)
+        self.assertEqual(result["evidence"]["occupied_tie_links"], ["222"])
+
+    def test_no_ties_at_all_passes_even_without_observations(self) -> None:
+        """tie 가 0 이면 관측이 없어도 물어볼 것이 없다."""
+        empty = {"status": audit.STATUS_PASS, "tie_count": 0, "ties": []}
+        self.assertEqual(audit.assignment_ties_gate(empty, occupied_links=None)["status"], audit.STATUS_PASS)
+
+    def test_an_unevaluable_sweep_stays_not_evaluated(self) -> None:
+        broken = {"status": audit.STATUS_NE, "reason": "graph unreadable", "tie_count": None, "ties": []}
+        self.assertEqual(audit.assignment_ties_gate(broken, occupied_links={"1"})["status"], audit.STATUS_NE)
+
+
+class AssignmentTieCoverageTests(unittest.TestCase):
+    """"관측돼서 0" 과 "관측 안 됨" 은 다르다.
+
+    점유 집합만 보면 좁은 관측이 공짜 PASS 를 산다 - 실측한 런 하나는 link_counts 가 22개
+    뿐이라 tie 27건 중 어느 것도 안 담겼는데 PASS 가 나왔다. 관측이 tie 링크를 덮지 않으면
+    tie 가 해로운지 **여전히 모르는 것**이므로 NOT_EVALUATED 다.
+    """
+
+    TIES = {"status": audit.STATUS_PASS, "tie_count": 2, "ties": [
+        {"link": "111", "hops": 2, "terminals": ["FW:2", "FW:26"]},
+        {"link": "222", "hops": 3, "terminals": ["SC:1@10", "SC:2@20"]},
+    ]}
+
+    def test_ties_outside_the_observed_link_set_are_not_evaluated(self) -> None:
+        result = audit.assignment_ties_gate(
+            self.TIES, occupied_links=set(), observed_links={"999"}
+        )
+        self.assertEqual(result["status"], audit.STATUS_NE)
+        self.assertEqual(result["evidence"]["unobserved_tie_links"], ["111", "222"])
+
+    def test_partial_coverage_is_still_not_evaluated(self) -> None:
+        result = audit.assignment_ties_gate(
+            self.TIES, occupied_links=set(), observed_links={"111"}
+        )
+        self.assertEqual(result["status"], audit.STATUS_NE)
+        self.assertEqual(result["evidence"]["unobserved_tie_links"], ["222"])
+
+    def test_full_coverage_with_no_occupancy_passes(self) -> None:
+        result = audit.assignment_ties_gate(
+            self.TIES, occupied_links=set(), observed_links={"111", "222", "999"}
+        )
+        self.assertEqual(result["status"], audit.STATUS_PASS)
+
+    def test_occupancy_fails_even_when_coverage_is_partial(self) -> None:
+        """차를 실은 것을 봤으면 나머지를 못 봤어도 그것은 이미 실패다."""
+        result = audit.assignment_ties_gate(
+            self.TIES, occupied_links={"111"}, observed_links={"111"}
+        )
+        self.assertEqual(result["status"], audit.STATUS_FAIL)

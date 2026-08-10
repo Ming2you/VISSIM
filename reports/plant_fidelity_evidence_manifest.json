@@ -12,7 +12,7 @@
     "primary.signal_roles": "376f1a23efab8ae4270aba09e72d3cf75915a885b24a6f32464a3ef800bb5ead",
     "primary.storage_capacity": "f196de2c444c72b117fec7f0e16f2c81189acada686b76f3def273096d8f87d5",
     "primary.tuning": "e5f8adcb2cba949cad6e2b7e8d98c80710925632e66ec17bc8472c96343c4fd4",
-    "primary.vendor_snapshot": "e27a7558d5baeebd071631504ae0623a9cf4b50fc0a4372bd060bb81a0692db0",
+    "primary.vendor_snapshot": "1ff4afabc7c900519ae31814fae721754e52c3d8d99e6eb2bb3576a0847db753",
     "signal_program.개포동 test-bed1.sig": "52d980be92ac6e82fff31407fca9a1ef3b5dbd4c0f42c5750f3bcf03395739d6",
     "signal_program.개포동 test-bed10.sig": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714",
     "signal_program.개포동 test-bed1001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
@@ -58,7 +58,7 @@
   "command_version": {
     "command": "scripts/audit_plant_fidelity.py",
     "version": 3,
-    "sha256": "8dcde322c0fc0582ae893f5de25582bff36abd73e8cfd33ca6631619ce4b011e"
+    "sha256": "fb145144cf7b11bc0a58f0ec95146f008f9845b8f69d1e0b109d8f353b0d5470"
   },
   "reasons": [
     "assignment_ties",
@@ -97,7 +97,7 @@
     "scripts/run_plant_fidelity_matrix.ps1",
     "plant fidelity certification release"
   ],
-  "generated_at_utc": "2026-08-10T13:29:59.846414+00:00",
+  "generated_at_utc": "2026-08-10T14:30:25.274571+00:00",
   "policy": {
     "purpose": "static evidence for the current core15n41 VISSIM rollout plant",
     "historical_outputs_are_current_evidence": false,
@@ -154,14 +154,14 @@
     "is_git_root": true,
     "top_level": "C:/Users/alsrj/Desktop/학술/찐찐막/Claude/VISSIM",
     "branch": "plant-fidelity-v2-1",
-    "commit": "39c8feff61a6b0aad3b3294c366c9a9426f0ed80",
+    "commit": "6383b9ad9c3e0f45b87c4f3f1e092a78b1a5a435",
     "dirty": true,
     "dirty_path_count": 20,
     "dirty_paths": [
-      "M scripts/audit_plant_fidelity.py",
-      " M scripts/derive_signal_group_actuation_plan.py",
+      "M reports/plant_fidelity_audit_summary.md",
+      " M reports/plant_fidelity_evidence_manifest.json",
+      " M scripts/audit_plant_fidelity.py",
       " M scripts/tests/test_audit_plant_fidelity.py",
-      " M scripts/tests/test_derive_signal_group_actuation_plan.py",
       "?? evaluation/configs/real_world_modi_pstack_urban_follower_excel_20260731.json",
       "?? evaluation/generated/real_world_modi_control_config_urban_follower_excel_20260731.vbs",
       "?? evaluation/real_world_modi_control_urban_follower_excel_20260731/control_mapping_urban_follower_excel_20260731.json",
@@ -276,7 +276,7 @@
         "exists": true,
         "is_file": true,
         "size_bytes": 1793,
-        "sha256": "e27a7558d5baeebd071631504ae0623a9cf4b50fc0a4372bd060bb81a0692db0",
+        "sha256": "1ff4afabc7c900519ae31814fae721754e52c3d8d99e6eb2bb3576a0847db753",
         "error": null
       }
     },
@@ -1124,7 +1124,7 @@
     "tie_analysis": {
       "status": "PASS",
       "reason": "independent breadth-first search completed",
-      "tie_count": 33,
+      "tie_count": 27,
       "unresolved_count": 226,
       "ties": [
         {
@@ -1232,22 +1232,6 @@
           ]
         },
         {
-          "link": "10479",
-          "hops": 3,
-          "terminals": [
-            "FW:26",
-            "SC:2001@79"
-          ]
-        },
-        {
-          "link": "10483",
-          "hops": 3,
-          "terminals": [
-            "FW:26",
-            "SC:2001@79"
-          ]
-        },
-        {
           "link": "10610",
           "hops": 5,
           "terminals": [
@@ -1309,38 +1293,6 @@
           "terminals": [
             "FW:2",
             "SC:1004@71"
-          ]
-        },
-        {
-          "link": "10638",
-          "hops": 3,
-          "terminals": [
-            "FW:2",
-            "SC:1004@71"
-          ]
-        },
-        {
-          "link": "10643",
-          "hops": 3,
-          "terminals": [
-            "FW:2",
-            "SC:1004@71"
-          ]
-        },
-        {
-          "link": "10645",
-          "hops": 3,
-          "terminals": [
-            "FW:2",
-            "FW:26"
-          ]
-        },
-        {
-          "link": "10682",
-          "hops": 3,
-          "terminals": [
-            "FW:2",
-            "FW:26"
           ]
         },
         {
@@ -1463,10 +1415,10 @@
       "exists": true,
       "is_file": true,
       "size_bytes": 1793,
-      "sha256": "e27a7558d5baeebd071631504ae0623a9cf4b50fc0a4372bd060bb81a0692db0",
+      "sha256": "1ff4afabc7c900519ae31814fae721754e52c3d8d99e6eb2bb3576a0847db753",
       "error": null
     },
-    "commit": "5a2fe7dd7f4ecc9b53c7b59767f0a12441ce853c"
+    "commit": "e4bf4d01af6c9a750d877bb00d4bfa5d20ac6201"
   },
   "actual_numsim": {
     "configured_source": "unset",
@@ -1487,6 +1439,8 @@
     "files": [],
     "error_count": 0,
     "valid_count": 0,
+    "occupied_links": null,
+    "observed_links": null,
     "link_vehicle_total_sum": 0,
     "link_stopped_total_sum": 0,
     "missing_link_counts_count": 0,
@@ -1687,7 +1641,7 @@
         "exists": true,
         "is_file": true,
         "size_bytes": 1793,
-        "sha256": "e27a7558d5baeebd071631504ae0623a9cf4b50fc0a4372bd060bb81a0692db0",
+        "sha256": "1ff4afabc7c900519ae31814fae721754e52c3d8d99e6eb2bb3576a0847db753",
         "error": null
       }
     },
@@ -2059,10 +2013,10 @@
       "reason": "owned/freeway/exit categories form a complete disjoint partition"
     },
     "assignment_ties": {
-      "status": "FAIL",
-      "reason": "equal-hop downstream terminal ties were found",
+      "status": "NOT_EVALUATED",
+      "reason": "27 equal-hop ties exist, but without observed link counts we cannot tell whether any of them carries mass",
       "evidence": {
-        "tie_count": 33
+        "tie_count": 27
       }
     },
     "adjacency": {
@@ -2090,7 +2044,7 @@
       "status": "PASS",
       "reason": "vendor snapshot commit was recorded",
       "evidence": {
-        "commit": "5a2fe7dd7f4ecc9b53c7b59767f0a12441ce853c"
+        "commit": "e4bf4d01af6c9a750d877bb00d4bfa5d20ac6201"
       }
     },
     "numsim_source_match": {
@@ -2197,19 +2151,19 @@
       "reason": "VISSIM error log contains no error/fatal lines"
     },
     "promotion_readiness": {
-      "status": "FAIL",
-      "reason": "the audit's own gates are FAIL; no holdout promotion evidence artifact was supplied",
+      "status": "NOT_EVALUATED",
+      "reason": "the audit's own gates are NOT_EVALUATED; no holdout promotion evidence artifact was supplied",
       "evidence": {
-        "static_gate_status": "FAIL"
+        "static_gate_status": "NOT_EVALUATED"
       }
     }
   },
   "gate_summary": {
     "pass": 12,
-    "fail": 2,
+    "fail": 0,
     "blocked": 0,
-    "not_evaluated": 14,
-    "overall": "FAIL",
+    "not_evaluated": 16,
+    "overall": "NOT_EVALUATED",
     "by_category": {
       "calibration": {
         "NOT_EVALUATED": 1
@@ -2224,7 +2178,7 @@
         "NOT_EVALUATED": 2
       },
       "promotion": {
-        "FAIL": 1
+        "NOT_EVALUATED": 1
       },
       "ranking": {
         "NOT_EVALUATED": 1
@@ -2238,7 +2192,7 @@
         "PASS": 4
       },
       "topology": {
-        "FAIL": 1,
+        "NOT_EVALUATED": 1,
         "PASS": 5
       }
     },
@@ -2333,5 +2287,5 @@
     "strict": false,
     "require_complete": false
   },
-  "semantic_projection_sha256": "6ea1fb9306955365cd408092e78c6dae7957c7dc76784243e3f66d8bc748bf87"
+  "semantic_projection_sha256": "a9f703d7845cd095a8a7ee3a6c04f76f78498e96cdf205bf9d5d8c33f5c19c9a"
 }

@@ -501,6 +501,7 @@ def derive_assignment_ties(
     universe: Iterable[str],
     freeway_terminals: Iterable[str],
     max_hops: int = 60,
+    declared_owner_links: Iterable[str] = (),
 ) -> dict[str, Any]:
     downstream, graph_error = _network_downstream(network_path)
     stop_owners, roles_error = read_stop_owners(roles_path)
@@ -512,10 +513,15 @@ def derive_assignment_ties(
             "ties": [],
         }
     freeway = {str(value) for value in freeway_terminals}
+    # 소유자가 이미 선언된 링크는 스윕하지 않는다. `stop_owners` 와 같은 이유다 - 정답이
+    # 있는데 그래프를 걸어 답을 다시 찾으면 없던 모호성이 생긴다. off-ramp 커넥터가 그렇다.
+    # `detector_local_mapping.off_ramp_connectors` 가 커넥터마다 `from_link` 를 명시하는데,
+    # 이 링크들은 **망 밖으로 나가는 차량**을 나르므로 종단이 프리웨이 노드가 아니라 망 밖이다.
+    declared = {str(value) for value in declared_owner_links}
     ties: list[dict[str, Any]] = []
     unresolved = 0
     for start in sorted({str(value) for value in universe}, key=lambda value: (not value.isdigit(), int(value) if value.isdigit() else value)):
-        if start in stop_owners:
+        if start in stop_owners or start in declared:
             continue
         first_nodes = sorted(downstream.get(start, ()))
         queue = deque((node, 1) for node in first_nodes)
@@ -555,8 +561,32 @@ def derive_assignment_ties(
     }
 
 
+def _declared_off_ramp_connectors(detector_path: Path | None) -> set[str]:
+    """`detector_local_mapping.off_ramp_connectors` 가 소유자를 선언한 커넥터들.
+
+    이 링크들은 망 밖으로 나가는 차량을 나르므로 종단이 프리웨이 노드가 아니다. BFS 가
+    그래프를 걸어 프리웨이 노드를 찾으면 없던 모호성이 생긴다(실측 6건).
+    """
+    data, _ = load_json(detector_path)
+    if not isinstance(data, Mapping):
+        return set()
+    entries = data.get("off_ramp_connectors")
+    if not isinstance(entries, Mapping):
+        return set()
+    return {
+        str(row.get("connector"))
+        for rows in entries.values()
+        if isinstance(rows, list)
+        for row in rows
+        if isinstance(row, Mapping) and row.get("connector") is not None
+    }
+
+
 def assignment_evidence(
-    path: Path | None, network_path: Path | None, roles_path: Path | None
+    path: Path | None,
+    network_path: Path | None,
+    roles_path: Path | None,
+    detector_path: Path | None = None,
 ) -> dict[str, Any]:
     data, error = load_json(path)
     result: dict[str, Any] = {"path": str(path) if path else None, "available": False, "error": error}
@@ -588,6 +618,7 @@ def assignment_evidence(
         roles_path,
         universe,
         {str(value) for value in freeway_map.values()},
+        declared_owner_links=_declared_off_ramp_connectors(detector_path),
     )
     result.update(
         {
@@ -905,6 +936,13 @@ def inspect_state_payload(payload: Any, label: str) -> dict[str, Any]:
         {
             "sim_sec": payload.get("sim_sec"),
             "has_link_counts": counts is not None,
+            # 종단 tie 가 해로운지는 그 링크가 차를 나르는지에 달렸다(assignment_ties_gate).
+            "occupied_links": sorted(
+                str(key)
+                for key, value in (counts or {}).items()
+                if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+            ),
+            "observed_links": sorted(str(key) for key in (counts or {})),
             "link_count_entries": len(count_values),
             "link_vehicle_total": link_vehicle_total,
             "has_link_speeds": speeds is not None,
@@ -943,6 +981,19 @@ def state_evidence(paths: Sequence[Path]) -> dict[str, Any]:
     result.update(
         {
             "valid_count": len(valid),
+            # 한 번이라도 차를 실은 링크의 합집합. 관측이 하나도 없으면 None 이고,
+            # 그때 assignment_ties 는 PASS 가 아니라 NOT_EVALUATED 다.
+            "occupied_links": sorted(
+                {link for record in valid for link in (record.get("occupied_links") or ())}
+            )
+            if any(record.get("has_link_counts") for record in valid)
+            else None,
+            # 관측 자체에 등장한 링크. "관측돼서 0" 과 "관측 안 됨" 을 가르는 데 쓴다.
+            "observed_links": sorted(
+                {link for record in valid for link in (record.get("observed_links") or ())}
+            )
+            if any(record.get("has_link_counts") for record in valid)
+            else None,
             "link_vehicle_total_sum": sum(float(record.get("link_vehicle_total", 0.0)) for record in valid),
             "link_stopped_total_sum": sum(float(record.get("link_stopped_total", 0.0)) for record in valid),
             "missing_link_counts_count": sum(not record.get("has_link_counts", False) for record in valid),
@@ -2401,6 +2452,66 @@ def signal_timing_canon_gate(timing: Mapping[str, Any], plan: Mapping[str, Any])
     )
 
 
+def assignment_ties_gate(
+    tie_info: Mapping[str, Any],
+    occupied_links: Iterable[str] | None,
+    observed_links: Iterable[str] | None = None,
+) -> dict[str, Any]:
+    """동일홉 종단 tie 가 **질량을 나르는 링크**에 있는지로 판정한다.
+
+    tie 자체는 위상 사실이다. 그것이 해로운지는 그 링크에 차가 흐르는지에 달렸다 - 관측에서
+    한 번도 차를 싣지 않은 링크의 종단이 모호해도 큐/저장 귀속을 흔들지 않는다.
+
+    실측(2026-08-10, 관측 204표본)이 기준을 정했다. tie 33건 중 차를 싣던 것은 off-ramp
+    커넥터 6건뿐이었고(중앙값 1.68%, 개별 최대 58 veh), 그 6건은 소유자가 이미 선언돼 있어
+    `derive_assignment_ties` 에서 빠진다. 남는 27건은 관측 차량이 0 이다.
+
+    미측정은 통과가 아니다. 관측이 없으면 tie 가 해로운지 **잴 수 없으므로** NOT_EVALUATED
+    이고, PASS 는 실 런을 감사할 때만 나온다. tie 가 아예 0 이면 물어볼 것이 없어 PASS 다.
+    """
+    if tie_info.get("status") == STATUS_NE:
+        return gate(STATUS_NE, str(tie_info.get("reason")))
+    ties = [str(row.get("link")) for row in (tie_info.get("ties") or [])]
+    if not ties:
+        return gate(STATUS_PASS, "no equal-hop downstream terminal ties were found")
+    if occupied_links is None:
+        return gate(
+            STATUS_NE,
+            "%d equal-hop ties exist, but without observed link counts we cannot tell "
+            "whether any of them carries mass" % len(ties),
+            tie_count=len(ties),
+        )
+    occupied = sorted(set(ties) & {str(value) for value in occupied_links})
+    if occupied:
+        # 차를 실은 것을 이미 봤으면 나머지 커버리지와 무관하게 실패다.
+        return gate(
+            STATUS_FAIL,
+            "equal-hop downstream terminal ties were found on links that carry vehicles: "
+            + ", ".join(occupied),
+            tie_count=len(ties),
+            occupied_tie_links=occupied,
+        )
+    # "관측돼서 0" 과 "관측 안 됨" 은 다르다. 좁은 관측이 공짜 PASS 를 사면 안 된다 -
+    # 실측한 런 하나는 link_counts 가 22개뿐이라 tie 27건을 하나도 안 담았다.
+    seen = {str(value) for value in (observed_links if observed_links is not None else occupied_links)}
+    unobserved = sorted(set(ties) - seen)
+    if unobserved:
+        return gate(
+            STATUS_NE,
+            "%d of %d tie links never appear in the observed link set, so we cannot tell "
+            "whether they carry mass" % (len(unobserved), len(ties)),
+            tie_count=len(ties),
+            unobserved_tie_links=unobserved,
+        )
+    return gate(
+        STATUS_PASS,
+        "every tie link was observed and none of them ever carried vehicles",
+        tie_count=len(ties),
+        occupied_tie_links=[],
+        unobserved_tie_links=[],
+    )
+
+
 def format_gate_summary(summary: Mapping[str, Any]) -> str:
     """콘솔 한 줄. BLOCKED 를 빼면 새 상태가 관측 구멍이 된다.
 
@@ -2869,13 +2980,11 @@ def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
             )
         else:
             gates["link_partition"] = gate(STATUS_PASS, "owned/freeway/exit categories form a complete disjoint partition")
-        tie_info = assignment.get("tie_analysis", {})
-        if tie_info.get("status") == STATUS_NE:
-            gates["assignment_ties"] = gate(STATUS_NE, str(tie_info.get("reason")))
-        elif tie_info.get("tie_count", 0):
-            gates["assignment_ties"] = gate(STATUS_FAIL, "equal-hop downstream terminal ties were found", tie_count=tie_info["tie_count"])
-        else:
-            gates["assignment_ties"] = gate(STATUS_PASS, "no equal-hop downstream terminal ties were found")
+        gates["assignment_ties"] = assignment_ties_gate(
+            assignment.get("tie_analysis", {}),
+            (manifest.get("state_observations") or {}).get("occupied_links"),
+            (manifest.get("state_observations") or {}).get("observed_links"),
+        )
 
     adjacency = manifest["adjacency"]
     if not adjacency.get("available"):
@@ -3105,7 +3214,12 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
         "ranking": ranking_evidence(_optional_path(args.ranking_evidence)),
         "promotion": promotion_evidence(_optional_path(args.promotion_evidence)),
         "network": network_evidence(network_path, primary_paths["signal_roles"]),
-        "link_assignment": assignment_evidence(primary_paths["link_assignment"], network_path, primary_paths["signal_roles"]),
+        "link_assignment": assignment_evidence(
+            primary_paths["link_assignment"],
+            network_path,
+            primary_paths["signal_roles"],
+            primary_paths.get("detector_mapping"),
+        ),
         "adjacency": adjacency_evidence(primary_paths["adjacency"]),
         "storage_capacity": storage_evidence(primary_paths["storage_capacity"]),
         "vendor_snapshot": vendor_snapshot_evidence(Path(args.vendor_root)),
