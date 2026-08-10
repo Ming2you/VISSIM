@@ -571,7 +571,8 @@ SC1004 역할 재분류(F측 인터체인지)를 포함한다.
 > | **N4-1** 매핑 채우기 | ❌ **의도적 미착수** — green 예산이 아직 전역이라 채우면 회계가 깨진다 |
 > | **N4-3** 배선 | ⚠️ **부분** — 229/698 movement 에 적용, **304건(43.6%)이 아직 2현시** |
 > | **N4-2** movement→SG 매핑 | ⚠️ **부분** — 아래 참조 |
-> | **N4-5** action 스키마 N현시 | ❌ 미착수. 러너는 여전히 이름 규칙 2현시 |
+> | **N4-5** action 스키마 N현시 | ✅ 완료 (2026-08-10). 아래 참조 |
+> | **N4-6** timing oracle (D-core) | ⚠️ **BLOCKED** — 판정기는 완성, 게이트는 못 넘는다. 아래 참조 |
 >
 > #### N4-2 착지 (2026-08-10) — 분모를 바꿔서 봐야 한다
 >
@@ -606,6 +607,55 @@ SC1004 역할 재분류(F측 인터체인지)를 포함한다.
 >
 > **모델↔플랜트 비대칭이 열려 있다.** 모델은 native 분율로 예측하는데 러너는 여전히 이름
 > 규칙 2현시로 구동한다(N4-5). N9 짝지은 검증 전에 반드시 닫아야 한다.
+>
+> #### N4-5 착지 (2026-08-10) — 축 안의 분배만 닫았다
+>
+> 축 녹색 시간의 **단조 재매개화**로 축 창을 SG 별로 쪼갠다. SG g 의 realize 녹색이
+> `지시 축 녹색 × union_green(g) / union_green(축)` 이 되어 모델 share 와 **같은 분수**다.
+> 축의 위치·길이·주기 공식은 그대로다.
+>
+> | | 값 |
+> |---|---:|
+> | 계획된 SG | 136 (VISSIM 선언 SG 전부, 미커버 0) |
+> | 녹색창 | 118 |
+> | 영구 적색 SG | 20 (inpx 프로그램에 녹색창이 없다 — 이름 규칙은 이들에게 축 녹색을 통째로 줬다) |
+> | 동시녹색 금지 쌍 | 312 |
+> | 계획 자체의 위반 | 0 |
+>
+> **정본 타이밍 표를 쓰지 않았다.** `signal_group_timing_v3.json` 은 파일명 번호로 `.sig` 를
+> 골라 SC5/6/11/12 에서 inpx `supplyFile2` 와 다른 프로그램을 기술한다(주기 140↔160,
+> 100↔160, 160↔150, 150↔140). VISSIM 도 모델도 inpx 를 읽으므로 계획도 inpx 에서 나온다.
+> 표는 고치지 않고 산출물의 `timing_table_disagreements` 로 남겼다.
+>
+> **작업 중 발견한 실제 버그.** 러너는 매초 돌지 않는다. `NextSignalTransitionAfter` 가
+> `SignalCompositeStateAt` 이 바뀌는 초까지 `RunContinuous` 한다. 그 합성 상태가 2현시 축만
+> 보고 있어 **축 안의** SG 경계가 이벤트가 아니었다. 고쳤다.
+>
+> **아직 열려 있는 것.** 주기가 여전히 다르다 — 모델은 `signal_cycle_length()`(현재 전역
+> 스칼라), 플랜트는 `major + minor + 10` 이다. N4-5 는 축 안의 분배만 닫았다.
+>
+> #### N4-6 착지 (2026-08-10) — 판정기는 완성, 게이트는 BLOCKED
+>
+> **valid-interval 계약.** `stage=immediate(t)` 는 t 에 쓴 값이 그 자리에서 되읽혔음만,
+> `stage=post_step(t')` 는 t 의 값이 t' 까지 유지되었음만 입증한다. 유효 구간은 `[t, t')`
+> 이고 증거는 **양 끝점 두 표본뿐**이다. 구간 내부는 표본이 없다.
+>
+> | gate | 결과 |
+> |---|---|
+> | plan_self_conflict | PASS |
+> | cycle_wrap | PASS |
+> | command_quantization_sec | **FAIL 0.990 s** (게이트 0.5 s) |
+> | min_green_sec | NOT_EVALUATED — `.sig` 의 `<intergreenmatrices/>` 가 비어 권위가 없다. 최단 계획 녹색 7.28 s |
+> | transition_time_error_sec | **BLOCKED** — readback 격자 1 s > 게이트 0.5 s |
+> | readback 5개 게이트 | NOT_EVALUATED — 실 런 필요 |
+>
+> **핵심은 `command_quantization_sec` 다.** 계획의 창 경계는 실수인데(지시 축 녹색 × native
+> 분율) 러너는 정수 초에만 쓴다. 실현 전이는 의도의 올림이라 오차가 최대 0.99 s 다.
+> 이 값은 계획과 쓰기 격자만으로 정해지므로 **실 런 없이 재진다**.
+>
+> 따라서 D-core 는 PASS 가 아니고, **N4-7 삼중 잠금에 따라 offset production writer 는
+> 계속 잠겨 있다.** 판정기는 `evaluation/controllers/signal_timing_oracle.py` +
+> `scripts/verify_signal_timing_oracle.py` 다.
 
 ### N4-1. SC별 고유 주기 (v2.1 X-1)
 원본 network/SIG 를 바꾸지 않고 SC별 실제 주기를 `NetworkConfig` 에 넣는다. N4-2 의 선행조건이다.
