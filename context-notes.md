@@ -1118,3 +1118,101 @@ N4-4 는 "조용한 폴백" 을 예외로 만들라고 했고, 그 대상은 **�
 `uncontrolled_nodes=['E']` 같은 합성 격자 config 는 `E` 스케줄이 없어
 `MonitorFixedSignalPatchError` 를 던진다. N4-4 의 계약("uncontrolled 공집합만 정당한 대상 없음")
 그대로다. 실런은 전부 core15n41 이고 41/41 이 컴파일된다.
+
+## 2026-08-10 — N3-1b. 관측 링크속도를 지연 산식에 싣는다
+
+### 막혀 있던 지점은 VBS 가 아니라 상태였다
+
+checklist 의 "VBS 가 `link_speeds` 로 안 내보낸다" 는 낡은 서술이었다. `link_speeds_kph` 는
+이미 나오고 있었고(`run_real_world_stackelberg_controller.vbs:1580`), 어댑터도 읽고
+있었다(`:1459`). 다만 진단(`observed_mean_link_speed_kph`)으로만 흐르고 상태 반영
+블록(`:2941-2957`)이 ramp_queue / boundary_queue / urban_movement_queue /
+urban_link_storage 넷만 써서, 지연 산식이 그 값을 볼 방법이 없었다.
+NumSim 쪽 `local_observation_summary` 참조는 0건이었다.
+
+### 0 속도 함정 (계획이 가리킨 것)
+
+`_link_delay_steps` 는 `available × L_veh / v` 다. VBS 의 링크속도는 `speed_sum / count` 라
+**표본이 없는 링크에서 0** 이다 — 정체라서 0 이 아니라 관측이 없어서 0 이다.
+그 0 을 `max(v, 1e-9)` 로만 막고 분모에 꽂으면 지연이 약 1e12 substep 이 되고,
+`_pop_buffer` 가 정확일치 pop(`urban_queue_model.py:476-478`)이라 그 예약은 다시 꺼내지지
+않는다. 차량과 링크 저류 공간이 **함께** 영구 격리된다. 그래서 이 RED 를 가장 먼저 썼다
+(`src/tests/test_observed_link_speed_delay.py`).
+
+막는 방법을 두 겹으로 뒀다.
+1. **모델** — 관측 속도에 하한(`OBSERVED_SPEED_DELAY_CAP_RATIO`)을 둬 지연 상한을 자유류의
+   그 배수로 묶는다.
+2. **어댑터** — 애초에 표본 없는 링크는 접기에 기여시키지 않는다(`count > 0` 이고 속도 키가
+   실제로 있을 때만). 하한에 의존하지 않고 "관측 없음" 을 "관측 없음" 으로 넘긴다.
+
+### 하한 배수 2.5 는 실측으로 정했다 (5.0 에서 내렸다)
+
+처음엔 5.0(하한 10 km/h)을 골랐다. 정체 주행속도의 현실적 하단이라는 이유였는데,
+`test_cross_substep_fifo_margin` 의 여유 부등식이 속도에 직접 걸린다는 걸 확인하고 실측했다.
+
+  RHS(지연 1 substep 에 해당하는 available 폭) = v × T_u_h × 1000 / L_veh
+
+속도가 낮을수록 RHS 가 줄어 substep 경계 추월이 쉬워진다. urban_gridlock 200 substep
+실측(모든 링크에 같은 관측 속도 주입).
+
+| 관측 v [km/h] | RHS [veh] | 부등식 | 실제 역전 건수 | 최대 역전폭 |
+|---:|---:|---|---:|---:|
+| 50 (관측 없음) | 11.5741 | OK | 0 | 0 |
+| 30 | 6.9444 | LOST | 0 | 0 |
+| 20 | 4.6296 | LOST | 0 | 0 |
+| 18 | 4.1667 | LOST | 0 | 0 |
+| 15 | 3.4722 | LOST | 1 | 1 |
+| 12 | 2.7778 | LOST | 12 | 1 |
+| 10 | 2.3148 | LOST | 25 | 2 |
+
+LHS 는 7.7778 veh 로 고정이다. 부등식은 30 km/h 부터 깨지지만 **실제 역전은 15 km/h 부터**
+나타난다(부등식이 충분조건이라 그렇다 — 기존 테스트 docstring 이 같은 말을 한다).
+그래서 하한을 20 km/h(=배수 2.5)로 잡았다. 관측 0 을 전 링크에 꽂아도 역전 0 건이다.
+
+배수를 더 키우지 않은 두 번째 이유는 이중계상이다. 정체 표현은 이미 `available`
+(큐 꼬리까지 거리)이 대부분 담당한다. 속도까지 바닥으로 떨어뜨리면 같은 정체를 두 번 센다.
+
+### 방침 결정 — 나머지 4곳은 상수를 유지한다
+
+계획이 판단을 요구한 곳이다. **플랜트만 바꾸면 예측-플랜트 불일치가 생긴다** 는 우려에는
+전제가 하나 어긋나 있다. VISSIM 결선에서 플랜트는 VISSIM 이고 `_link_delay_steps` 는
+**예측기(NumSim) 안에서** 돈다. 관측 속도를 여기 싣는 것은 불일치를 만드는 게 아니라
+예측기를 실제 플랜트 쪽으로 당기는 것이다. 나머지 4곳은 성격이 다르다.
+
+1. `src/analysis/free_flow_reference.py:27` — **유지.** 정의상 "자유류" 기준선이다. 관측을
+   넣으면 실현 교통에 따라 기준선이 움직여 개선율이 controller·시나리오 간 비교 불가능해진다.
+2. `src/controllers/urban_follower.py:618` (offset t_link) — **유지.** 이미 `available` 이 아니라
+   **공칭 만차 길이**(`grid_link_storage_veh`=220 상수)를 쓴다. 실 config 의 per-link 저류는
+   120~220 로 흩어져 있으니 플랜트 지연과의 불일치는 내가 만드는 게 아니라 이미 있던 설계
+   상수다. 여기에 속도만 관측으로 바꾸면 불일치가 줄지 않고, offset 목표가 매 interval
+   관측을 따라 흔들려 green wave 정렬이 진동한다. 제대로 하려면 t_link 를 per-link ×
+   available 기반으로 갈아야 하고 그건 N3-1b 범위 밖이다.
+3. `src/controllers/wu_distributed.py:215` — **유지.** 같은 공칭 상수를 쓰는데, 그 값이
+   "local solve 동안 고정된다" 는 결합변수 계약(`:206`) 위에 있다. 관측 의존으로 바꾸면
+   Wu 분산 수렴 근거를 건드린다. 별도 항목으로 다뤄야 한다.
+4. 어댑터 `vissim_terminal_feature_vector` (`urban_speed`) — **유지.** 이 함수는 **예측 상태**를
+   VISSIM CSV 적합용 집계 특징으로 사상한다. horizon 내부 예측 상태에는 관측이 없다.
+   step 0 에만 관측을 쓰면 같은 특징벡터가 step 0 과 step k 에서 정의가 달라져 적합 계수가
+   오염된다.
+
+한 줄로 — **예측-플랜트 불일치를 줄이는 변경만 했다.**
+
+### 접기 규칙 (어댑터)
+
+관측은 VISSIM 링크 키, 모델은 storage 링크 키다. `link_to_origins` →
+`_storage_links_for_observed_origin` 경로로 접고 **대수 가중평균**을 쓴다. 단순평균이면
+1대짜리 링크와 30대짜리 링크가 같은 무게를 갖는다. 진단 키
+`urban_link_speed_observed_count` 를 추가했다.
+
+### 아직 열려 있는 것 (숨기지 않는다)
+
+1. **실런에서는 아직 안 돈다.** `DEFAULT_REPO_ROOT`(`:55-59`)가 `vendor/NumSim-mine`
+   해시고정 스냅샷을 먼저 잡는데 그쪽 `TrafficState` 에는 이 필드가 없다. 어댑터는
+   `hasattr` 가드로 조용히 건너뛴다(그 경로를 `test_legacy_state_without_the_field_still_builds`
+   가 고정한다). **상류 재스냅샷이 선행조건**이다. 그 전까지 실런은 전역 상수 그대로다.
+2. **관측 속도는 horizon 동안 얼어 있다.** `urban_substep` 은 이 필드를 갱신하지 않으므로
+   rollout 내내 step 0 관측이 유지되고, 매 control interval 에 새 관측으로 갱신된다.
+   수요 프로파일과 같은 취급이지만, 예측 후반부일수록 근거가 약해진다.
+3. **정체 이중계상 여부를 아직 실 런으로 못 봤다.** `available` 과 관측 속도가 같은 정체를
+   얼마나 겹쳐 세는지는 위 표(합성 시나리오)로는 답이 안 나온다. 재스냅샷 후 실런에서
+   도시부 TTT 가 어느 쪽으로 움직이는지 봐야 한다.

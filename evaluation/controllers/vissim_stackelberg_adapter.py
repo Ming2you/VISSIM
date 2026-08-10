@@ -1495,6 +1495,9 @@ def build_local_observation_summary(
     storage_requested_veh = 0.0
     storage_assigned_veh = 0.0
     storage_capacity_clipped_veh = 0.0
+    # 관측 링크속도를 모델 storage 링크 키로 접기 위한 대수 가중 누산기(v3 N3-1b).
+    speed_weight_by_storage: dict[str, float] = {}
+    speed_moment_by_storage: dict[str, float] = {}
     for link, count in link_counts.items():
         if link in freeway_links or link in ramp_links or link in exit_links:
             storage_fraction_by_link[str(link)] = 0.0
@@ -1525,6 +1528,19 @@ def build_local_observation_summary(
             for storage_link in _storage_links_for_observed_origin(cfg, origin):
                 if storage_link not in storage_links:
                     storage_links.append(storage_link)
+        # 관측 속도는 **표본이 있는 링크만** 기여한다(v3 N3-1b). VBS 의 링크속도는
+        # `speed_sum / count` 라 표본이 없으면 0 인데, 그 0 은 "정지" 가 아니라
+        # "관측 없음" 이다. count=0 이거나 속도 키 자체가 없으면 건너뛴다.
+        if count > 0.0 and str(link) in link_speeds_kph and storage_links:
+            observed_kph = float(link_speeds_kph[str(link)])
+            for storage_link in storage_links:
+                speed_weight_by_storage[storage_link] = (
+                    speed_weight_by_storage.get(storage_link, 0.0) + float(count)
+                )
+                speed_moment_by_storage[storage_link] = (
+                    speed_moment_by_storage.get(storage_link, 0.0)
+                    + float(count) * observed_kph
+                )
         storage_requested_veh += storage_count
         storage_assigned_by_link[str(link)] = 0.0
         if storage_count > 0.0 and storage_links:
@@ -1636,6 +1652,14 @@ def build_local_observation_summary(
         if missing > 1.0e-9 and link not in exit_links:
             unrepresented_by_link[link] = missing
 
+    # storage 링크별 관측 평균속도[km/h] — `TrafficState.urban_link_speed_kph` 로 간다.
+    # 표본이 없는 storage 링크는 **항목 자체를 만들지 않는다**(모델이 전역 상수로 폴백).
+    urban_link_speed_kph = {
+        storage_link: float(speed_moment_by_storage[storage_link] / weight)
+        for storage_link, weight in speed_weight_by_storage.items()
+        if weight > 1.0e-9
+    }
+
     positive_speeds = [
         speed
         for link, speed in link_speeds_kph.items()
@@ -1695,6 +1719,7 @@ def build_local_observation_summary(
         "unrepresented_link_count": len(unrepresented_by_link),
         "exit_excluded_link_count": len(exit_excluded_by_link),
         "link_speed_observed_count": len(positive_speeds),
+        "urban_link_speed_observed_count": len(urban_link_speed_kph),
         "link_stopped_vehicle_count_veh": float(sum(link_stopped_counts.values())),
         "link_queue_tail_observed_count": sum(
             1 for value in link_queue_tail_pos_m.values() if value > 0.0
@@ -1717,6 +1742,7 @@ def build_local_observation_summary(
         "storage_fraction_by_link": storage_fraction_by_link,
         "urban_movement_queue": movement_queue,
         "urban_link_storage_occupancy": urban_link_storage_occupancy,
+        "urban_link_speed_kph": urban_link_speed_kph,
         "ramp_queue": ramp_queue,
         "boundary_queue": boundary_queue,
         "projection_diagnostics": projection_diagnostics,
@@ -2974,6 +3000,16 @@ def traffic_state_from_vissim(
                     float(capacity),
                 )
                 state.urban_link_storage[link] = float(capacity) - occupied
+        # 관측 링크속도를 상태에 싣는다(v3 N3-1b). `_link_delay_steps` 가 이걸 보고
+        # 전역 `urban_avg_speed_km_h` 대신 링크별 통과시간을 잰다.
+        # `hasattr` 가드가 필요한 이유 — 실런 기본 모델 저장소가 `vendor/NumSim-mine`
+        # (해시고정 스냅샷, DEFAULT_REPO_ROOT:55-59)이고 그 TrafficState 에는 아직 이 필드가
+        # 없다. 상류 재스냅샷 전까지는 조용히 건너뛰고 기존 거동(전역 상수)을 유지한다.
+        observed_speeds = local_summary.get("urban_link_speed_kph", {})
+        if isinstance(observed_speeds, Mapping) and hasattr(state, "urban_link_speed_kph"):
+            for link, speed_kph in observed_speeds.items():
+                if str(link) in cfg.network.urban_link_storage_veh:
+                    state.urban_link_speed_kph[str(link)] = max(0.0, _as_float(speed_kph))
         state.local_observation_summary = local_summary
     else:
         ramp_counts = state_json.get("ramp_counts", {})
