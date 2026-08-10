@@ -68,6 +68,47 @@ class DeriveTests(unittest.TestCase):
         self.assertGreater(self.table["counts"]["conflict_pairs"], 0)
         self.assertEqual(self.table["counts"]["conflict_violations"], 0)
 
+    def test_canonical_160_pairs_are_covered_where_the_two_sources_agree(self) -> None:
+        """정본 표의 동시녹색 쌍 160 개를 우리 충돌 집합이 덮는가.
+
+        표의 쌍은 SG **이름** 키라 SC6(이름 중복 16 SG)에서는 sg_id 로 못 푼다. 그리고
+        표가 다른 `.sig` 를 기술하는 4 SC 는 애초에 비교 대상이 아니다. 그래서 두 출처가
+        일치하는 11 SC 에 대해서만 대조하고, 남는 것은 **한쪽이 영원히 적색이라 동시녹색이
+        구조적으로 불가능한 쌍**뿐임을 고정한다.
+        """
+        timing = json.loads(
+            (ROOT / "outputs" / "signal_group_timing_v3.json").read_text(encoding="utf-8")
+        )
+        disagree = set(self.table["timing_table_disagreements"])
+        covered = 0
+        vacuous = 0
+        uncovered: list[tuple[int, tuple[str, str]]] = []
+        for controller in timing["controllers"]:
+            sc_no = int(controller["sc_no"])
+            if f"SC{sc_no}" in disagree:
+                continue
+            node = self.table["controllers"][str(sc_no)]
+            counts = node["window_counts"]
+            pairs = {tuple(sorted(pair, key=int)) for pair in node["conflict_pairs"]}
+            names: dict[str, list[str]] = {}
+            for group in controller["groups"]:
+                names.setdefault(group["name"], []).append(group["sg_id"])
+            for pair in timing["conflicting_pairs"]:
+                if int(pair["sc_no"]) != sc_no:
+                    continue
+                for first in names.get(pair["a"], []):
+                    for second in names.get(pair["b"], []):
+                        key = tuple(sorted((first, second), key=int))
+                        if key in pairs:
+                            covered += 1
+                        elif counts.get(first, 0) == 0 or counts.get(second, 0) == 0:
+                            vacuous += 1
+                        else:
+                            uncovered.append((sc_no, key))
+        self.assertEqual(uncovered, [])
+        self.assertEqual(covered, 63)
+        self.assertEqual(vacuous, 19)
+
     def test_vbs_config_lists_expected_groups_and_conflicts(self) -> None:
         text = producer.render_vbs(self.table)
         self.assertIn("RW_SIGNAL_SG_PLAN_SCHEMA = 1", text)
