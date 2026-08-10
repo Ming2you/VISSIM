@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import json
+import sys
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 
 from evaluation.controllers import vissim_stackelberg_adapter as adapter
+
+REPO = Path(__file__).resolve().parents[1]
+VENDOR = REPO / "vendor" / "NumSim-mine"
+if str(VENDOR) not in sys.path:
+    sys.path.insert(0, str(VENDOR))
 
 
 class PlantFidelityProjectionTests(unittest.TestCase):
@@ -91,6 +98,109 @@ class PlantFidelityProjectionTests(unittest.TestCase):
         self.assertEqual(provenance["schema_version"], 2)
         self.assertFalse(provenance["inputs"]["state_json"]["exists"])
         self.assertEqual(provenance["inputs"]["state_json"]["sha256"], "")
+
+
+# ---------------------------------------------------------------------------
+# N7 잔여 - 어댑터에 남아 있던 전역 rollout 2곳(우회 호출)도 endpoint 를 거친다.
+# 참조 구현(`_ref_*`)은 리팩터 직전 루프를 그대로 옮긴 것이다.
+# ---------------------------------------------------------------------------
+def _numsim_fixture(horizon_steps: int = 2):
+    from src.models.demand import DemandProfile, ScenarioConfig
+    from src.models.state import ControlAction, ExperimentConfig, TrafficState
+
+    cfg = ExperimentConfig.from_file(
+        str(VENDOR / "src/config/default.yaml"),
+        {"simulation": {"T_total": 360.0}, "mpc": {"horizon_steps": horizon_steps}},
+    )
+    profile = DemandProfile(
+        cfg, ScenarioConfig("peak_demand", urban_scale=1.0, freeway_scale=1.0, ramp_scale=1.0)
+    )
+    forecast = profile.horizon(0.0, horizon_steps + 2)
+    return cfg, TrafficState.initial(cfg), ControlAction.fixed(cfg), forecast
+
+
+def _probe(fn):
+    """fn 실행 중 run_coupled_interval 이 endpoint 프레임 밖에서 불린 횟수를 센다."""
+    import src.controllers.rollout_endpoint as rep
+    import src.simulation.coupling as coupling
+
+    original = coupling.run_coupled_interval
+    counts = {"inside": 0, "outside": 0}
+
+    def probed(*args, **kwargs):
+        counts["inside" if rep.endpoint_active() else "outside"] += 1
+        return original(*args, **kwargs)
+
+    coupling.run_coupled_interval = probed
+    try:
+        out = fn()
+    finally:
+        coupling.run_coupled_interval = original
+    return counts, out
+
+
+def _ref_sup_score(control, state, forecast, cfg) -> float:
+    """flagship_sup_score 리팩터 직전 루프."""
+    from src.controllers.stackelberg_mpc import mfd_far_cost_to_go
+    from src.simulation.coupling import run_coupled_interval
+
+    s = state.copy()
+    total = 0.0
+    h = max(1, int(cfg.mpc.horizon_steps))
+    for k in range(min(h, len(forecast))):
+        res = run_coupled_interval(s, control, forecast[k], cfg)
+        total += float(res.urban_ttt + res.freeway_ttt)
+        s.time_sec += cfg.simulation.control_interval
+    total += float(mfd_far_cost_to_go(cfg, s))
+    return float(total)
+
+
+def _ref_one_step(state, control, forecast, cfg):
+    """build_one_step_prediction 리팩터 직전 1스텝 전진."""
+    from src.simulation.coupling import run_coupled_interval
+
+    demand = list(forecast)[0]
+    predicted = state.copy()
+    run_coupled_interval(predicted, control, demand, cfg)
+    predicted.time_sec = float(getattr(state, "time_sec", 0.0)) + float(
+        cfg.simulation.control_interval
+    )
+    return predicted
+
+
+class AdapterRolloutEndpointTests(unittest.TestCase):
+    """어댑터의 후보 채점·한스텝 예측이 endpoint 프레임 안에서만 plant 를 전진시킨다."""
+
+    def test_flagship_sup_score_has_no_bypass_and_matches_reference(self) -> None:
+        cfg, state, control, forecast = _numsim_fixture(2)
+        counts, score = _probe(
+            lambda: adapter.flagship_sup_score(control, state, forecast, cfg)
+        )
+        self.assertGreater(counts["inside"], 0)
+        self.assertEqual(counts["outside"], 0)
+        self.assertAlmostEqual(score, _ref_sup_score(control, state, forecast, cfg), places=9)
+
+    def test_build_one_step_prediction_has_no_bypass_and_matches_reference(self) -> None:
+        cfg, state, control, forecast = _numsim_fixture(2)
+        counts, payload = _probe(
+            lambda: adapter.build_one_step_prediction(state, control, forecast, cfg)
+        )
+        self.assertEqual(payload["status"], "ok", payload.get("error"))
+        self.assertGreater(counts["inside"], 0)
+        self.assertEqual(counts["outside"], 0)
+
+        predicted = _ref_one_step(state, control, forecast, cfg)
+        want_summary = adapter.summarize_model_state(predicted, cfg)
+        want_features = adapter.vissim_terminal_feature_vector(predicted, cfg)
+        self.assertAlmostEqual(payload["target_sim_sec"], float(predicted.time_sec), places=9)
+        self.assertEqual(
+            json.dumps(payload["state_summary"], sort_keys=True),
+            json.dumps(want_summary, sort_keys=True),
+        )
+        self.assertEqual(
+            json.dumps(payload["terminal_features"], sort_keys=True),
+            json.dumps(want_features, sort_keys=True),
+        )
 
 
 if __name__ == "__main__":

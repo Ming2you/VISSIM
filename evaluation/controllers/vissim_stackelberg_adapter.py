@@ -2493,19 +2493,27 @@ def flagship_far_gate_update(
 
 
 def flagship_sup_score(control, state, forecast, cfg) -> float:
-    """감독자 공통 채점(러너 _sup_score L947-959): h스텝 결합 rollout TTT + far cost-to-go."""
-    from src.controllers.stackelberg_mpc import mfd_far_cost_to_go
-    from src.simulation.coupling import run_coupled_interval
+    """감독자 공통 채점(러너 _sup_score L947-959): h스텝 결합 rollout TTT + far cost-to-go.
 
-    s = state.copy()
-    total = 0.0
-    h = max(1, int(cfg.mpc.horizon_steps))
-    for k in range(min(h, len(forecast))):
-        res = run_coupled_interval(s, control, forecast[k], cfg)
-        total += float(res.urban_ttt + res.freeway_ttt)
-        s.time_sec += cfg.simulation.control_interval
-    total += float(mfd_far_cost_to_go(cfg, s))
-    return float(total)
+    후보 채점이므로 상류 rollout endpoint 를 거친다(N7 "우회 호출 0"). far cost-to-go 는
+    endpoint 의 far_enabled 성분이 그대로 수행한다.
+    """
+    from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
+
+    point = evaluate_price_point(
+        state,
+        control,
+        list(forecast),
+        (),
+        ObjectiveSpec(
+            cfg=cfg,
+            depth_override=max(1, int(cfg.mpc.horizon_steps)),
+            box_walk=False,
+            score_mode="price",
+            far_enabled=True,
+        ),
+    )
+    return float(point.objective)
 
 
 def run_pstack_flagship_decision(
@@ -3666,11 +3674,17 @@ def install_vissim_terminal_cost_objective(controller, cfg, tuning: Mapping[str,
 def build_one_step_prediction(state, control, forecast, cfg, calibration: Mapping[str, Any] | None = None) -> dict[str, Any]:
     started = time.perf_counter()
     try:
-        from src.simulation.coupling import run_coupled_interval
+        from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
 
         demand = list(forecast)[0]
-        predicted = state.copy()
-        run_coupled_interval(predicted, control, demand, cfg)
+        # 한스텝 예측도 상류 rollout endpoint 를 거친다(N7 "우회 호출 0").
+        predicted = evaluate_price_point(
+            state,
+            control,
+            [demand],
+            (),
+            ObjectiveSpec(cfg=cfg, depth_override=1, box_walk=False),
+        ).states[-1]
         predicted.time_sec = float(getattr(state, "time_sec", 0.0)) + float(cfg.simulation.control_interval)
         state_summary = summarize_model_state(predicted, cfg)
         try:
