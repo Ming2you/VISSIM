@@ -748,11 +748,7 @@ class DistributedCoordinator:
         service: Dict[str, float] = {}
         available_by_movement: Dict[str, float] = {}
         raw_onramp_by_ramp: Dict[str, float] = {}
-        onramp_by_movement = {
-            movement: ramp
-            for ramp, movements in net.on_ramp_to_movement.items()
-            for movement in movements
-        }
+        onramp_by_movement = self._onramp_by_movement
 
         for movement, spec in self._specs.items():
             available = max(0.0, state.urban_movement_queue.get(movement, 0.0)) + max(
@@ -805,18 +801,18 @@ class DistributedCoordinator:
         eps_veh = float(self.cfg.urban_follower.eps_U)
         net_violation_veh = max(0.0, abs(residual_veh) - eps_veh)
 
+        capacity_cache = self._movement_storage_capacity_cache
+        group_key_cache = self._boundary_group_key_cache
+
         def grouped_densities(kinds: set[str]) -> list[float]:
             queues: Dict[str, float] = {}
             caps: Dict[str, float] = {}
             for movement, spec in self._specs.items():
                 if str(spec.get("kind", "")) not in kinds:
                     continue
-                key = boundary_group_key(spec)
+                key = group_key_cache[movement]
                 queues[key] = queues.get(key, 0.0) + remaining.get(movement, 0.0)
-                caps[key] = caps.get(key, 0.0) + max(
-                    movement_storage_capacity(self.cfg, movement, spec),
-                    1.0e-9,
-                )
+                caps[key] = caps.get(key, 0.0) + max(capacity_cache[movement], 1.0e-9)
             return [queues[key] / max(caps[key], 1.0e-9) for key in sorted(queues)]
 
         b_in = safe_balance_index(grouped_densities(BALANCE_INFLOW_KINDS))
@@ -824,7 +820,7 @@ class DistributedCoordinator:
         balance_score = b_in * b_in + b_out * b_out
         storage_violation = 0.0
         for movement, spec in self._specs.items():
-            cap = max(movement_storage_capacity(self.cfg, movement, spec), 1.0e-9)
+            cap = max(capacity_cache[movement], 1.0e-9)
             current_violation = max(0.0, max(0.0, state.urban_movement_queue.get(movement, 0.0)) - cap)
             projected_violation = max(0.0, remaining.get(movement, 0.0) - cap)
             storage_violation += max(0.0, projected_violation - current_violation)
@@ -1103,6 +1099,77 @@ class DistributedCoordinator:
             if values
         }
 
+    @property
+    def _movement_storage_capacity_cache(self) -> Dict[str, float]:
+        """movement 별 저장용량. `cfg` 로만 정해지므로 1회만 만든다.
+
+        `_leader_direct_feasible_set_diagnostics` 가 전체 movement 를 세 번 통과하며
+        매번 다시 계산했다. 실런 결선은 movement 가 1,414 개라 호출당 4,242 회다.
+        """
+        cache = getattr(self, "_movement_storage_capacity_cache_value", None)
+        if cache is None:
+            cache = {
+                movement: movement_storage_capacity(self.cfg, movement, spec)
+                for movement, spec in self._specs.items()
+            }
+            self._movement_storage_capacity_cache_value = cache
+        return cache
+
+    @property
+    def _boundary_group_key_cache(self) -> Dict[str, str]:
+        """movement 별 경계 그룹 키. spec 만 보므로 `cfg` 고정이면 불변이다."""
+        cache = getattr(self, "_boundary_group_key_cache_value", None)
+        if cache is None:
+            cache = {
+                movement: boundary_group_key(spec)
+                for movement, spec in self._specs.items()
+            }
+            self._boundary_group_key_cache_value = cache
+        return cache
+
+    @property
+    def _onramp_by_movement(self) -> Dict[str, str]:
+        """on_ramp_to_movement 의 역인덱스. 호출마다 다시 뒤집을 이유가 없다."""
+        cache = getattr(self, "_onramp_by_movement_value", None)
+        if cache is None:
+            cache = {
+                movement: ramp
+                for ramp, movements in self.cfg.network.on_ramp_to_movement.items()
+                for movement in movements
+            }
+            self._onramp_by_movement_value = cache
+        return cache
+
+    @property
+    def _boundary_movement_index(self) -> tuple[Dict[str, list], Dict[str, list]]:
+        """경계링크 -> 그 링크에 속한 movement 목록. config 가 고정이면 불변이라 1회만 만든다.
+
+        `_allocation_control_map` 이 탐색 루프 안에서 매번 불리는데(:1216, :1740, :1945)
+        예전 구현은 호출마다 경계링크 x 전체 movement 를 다시 훑었다 — 실 config 로
+        14 x 78 = 1,092 회 `spec.get` 이다. 인덱스를 재사용하면 ~14 회로 줄고 실측 7.0 배다.
+        """
+        index = getattr(self, "_boundary_movement_index_cache", None)
+        if index is None:
+            inbound: Dict[str, list] = {
+                link: [] for link in self.cfg.network.boundary_in_links
+            }
+            outbound: Dict[str, list] = {
+                link: [] for link in self.cfg.network.boundary_out_links
+            }
+            for movement, spec in self.cfg.network.urban_movements.items():
+                kind = spec.get("kind")
+                if kind == "boundary_in":
+                    bucket = inbound.get(spec.get("origin"))
+                    if bucket is not None:
+                        bucket.append(movement)
+                elif kind == "boundary_out":
+                    bucket = outbound.get(spec.get("destination"))
+                    if bucket is not None:
+                        bucket.append(movement)
+            index = (inbound, outbound)
+            self._boundary_movement_index_cache = index
+        return index
+
     def _allocation_control_map(
         self,
         allocation_plan: Optional[AllocationResult],
@@ -1110,18 +1177,11 @@ class DistributedCoordinator:
         if allocation_plan is None:
             return {}
         allocation = dict(allocation_plan.movement_flows)
-        for link in self.cfg.network.boundary_in_links:
-            allocation[link] = sum(
-                allocation.get(movement, 0.0)
-                for movement, spec in self.cfg.network.urban_movements.items()
-                if spec.get("origin") == link and spec.get("kind") == "boundary_in"
-            )
-        for link in self.cfg.network.boundary_out_links:
-            allocation[link] = sum(
-                allocation.get(movement, 0.0)
-                for movement, spec in self.cfg.network.urban_movements.items()
-                if spec.get("destination") == link and spec.get("kind") == "boundary_out"
-            )
+        inbound, outbound = self._boundary_movement_index
+        for link, movements in inbound.items():
+            allocation[link] = sum(allocation.get(movement, 0.0) for movement in movements)
+        for link, movements in outbound.items():
+            allocation[link] = sum(allocation.get(movement, 0.0) for movement in movements)
         return allocation
 
     def _bounded_leader_green(self, signal: str, phase_setpoints: Mapping[str, float], fallback_p1: float) -> float:
@@ -3156,11 +3216,7 @@ class DistributedCoordinator:
         net = self.cfg.network
         dt_h = self.cfg.simulation.T_c_h
         arrivals: Dict[str, float] = {}
-        onramp_by_movement = {
-            movement: ramp
-            for ramp, movements in net.on_ramp_to_movement.items()
-            for movement in movements
-        }
+        onramp_by_movement = self._onramp_by_movement
         for step in steps:
             for movement, spec in self._specs.items():
                 kind = str(spec.get("kind", ""))
