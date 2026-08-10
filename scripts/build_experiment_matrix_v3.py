@@ -23,6 +23,12 @@ import sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from evaluation.controllers import offset_promotion  # noqa: E402
+
 
 SCHEMA_VERSION = "experiment-matrix-v3"
 
@@ -61,17 +67,24 @@ LEVER_UNITS = {
 
 # offset 은 production writer 와 분리된 test-only writer 가 적용한다. 실현 readback 이
 # valid-interval 계약을 입증하기 전까지(N4-6 D-core PASS) BLOCKED 다.
+#
+# 이 두 값은 **손으로 적지 않는다.** N4-7 삼중 잠금 판정(evaluation/controllers/
+# offset_promotion.py)에서 유도한다. 여기에 "PLANNED"/"production" 을 직접 적을 수
+# 있으면 행렬과 실제 writer 동작이 조용히 어긋나고, 그 어긋남은 런을 다 돌린 뒤에야
+# 드러난다. 승격 증거가 갖춰지면 이 파일을 고치지 않아도 두 값이 함께 열린다.
+_OFFSET_VERDICT = offset_promotion.evaluate()
+
 LEVER_WRITER = {
     "green": "production",
     "vsl": "production",
     "ramp_meter": "production",
-    "offset": "test_only",
+    "offset": offset_promotion.matrix_lever_writer(_OFFSET_VERDICT),
 }
 LEVER_STATUS = {
     "green": "PLANNED",
     "vsl": "PLANNED",
     "ramp_meter": "PLANNED",
-    "offset": "BLOCKED",
+    "offset": offset_promotion.matrix_lever_status(_OFFSET_VERDICT),
 }
 
 # 레버가 어느 채널에 작용하는가. 집계와 게이트가 채널별로 갈리므로 셀에 새긴다.

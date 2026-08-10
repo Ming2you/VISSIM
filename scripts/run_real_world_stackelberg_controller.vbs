@@ -100,6 +100,15 @@ Dim RW_RAMP_METER_IDS, RW_RAMP_METER_SCS, RW_RAMP_METER_CONNECTORS, RW_RAMP_METE
 ' so a config that sets it can be ExecuteGlobal'd under Option Explicit.
 Dim RW_PYTHON_EXE
 RW_PYTHON_EXE = ""
+' N4-7. offset 승격 잠금의 **두 번째** 자물쇠. 권위는 여기가 아니다 - 삼중 잠금
+' (D-core + N9 + N8-4)의 판정은 evaluation/controllers/offset_promotion.py 가 증거
+' 산출물을 읽어서 내린다. 러너가 보장하는 것은 하나뿐이다.
+'   "선언하지 않은 런은 offset 을 절대 액추에이션하지 못한다."
+' 그래서 기본값이 intent_only 이고, 손으로 고친 action CSV 든 옛 어댑터가 만든
+' action CSV 든 nonzero offset 이 오면 그 CSV 를 **전량** 거부한다.
+' 격리된 시험 harness 는 자기 generated config 에서 "test_only" 로 선언한다.
+Dim RW_OFFSET_WRITER
+RW_OFFSET_WRITER = "intent_only"
 ' N4-5. SG 단위 액추에이션 계획의 계약. scripts/derive_signal_group_actuation_plan.py 가
 ' generated config 옆에 <config>_sgplan.vbs 로 내보내고, 여기서 ExecuteGlobal 한다.
 '   RW_SIGNAL_SG_EXPECTED   "sc:sg:window_count,..."  이 SC 의 모든 SG 와 기대 창 수
@@ -955,6 +964,10 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
         planReason = SignalGroupPlanRejectReason( _
             pendingSgWindows, pendingSgCounts, pendingSgCycle, rowSignalCycle, rowSignalOffset)
     End If
+    ' N4-7. 승격되지 않은 offset 이 오면 같은 자리에서 전량 거부한다. signal_sg 행의
+    ' offset 은 SignalGroupPlanRejectReason 이 이미 signal 행과 같음을 요구하므로
+    ' rowSignalOffset 만 보면 sigOffset 으로 갈 수 있는 값이 전부 덮인다.
+    If planReason = "" Then planReason = OffsetPromotionRejectReason(rowSignalOffset)
     If first Or expectedVslRows <> CLng(RW_EXPECTED_VSL_ACTION_ROWS) Or vslRows <> expectedVslRows Or rampRows <> expectedRampRows Or _
             signalRows <> expectedSignalRows Or sgRows <> expectedSgRows Or invalidRows > 0 Or planReason <> "" Then
         actionFormatFailures = actionFormatFailures + 1
@@ -1144,6 +1157,29 @@ Function SignalActionValuesValid(majorValue, minorValue, offsetValue)
     offsetNumber = CDbl(offsetValue)
     If offsetNumber >= cycleValue Then Exit Function
     SignalActionValuesValid = True
+End Function
+
+' N4-7. 승격되지 않은 offset 이 COM 에 닿기 전 마지막 자물쇠.
+' 이 함수는 삼중 잠금을 **판정하지 않는다**(러너는 증거 산출물을 읽을 수 없다).
+' 하는 일은 하나다 - RW_OFFSET_WRITER 로 선언하지 않은 런에서 nonzero offset 을 보면
+' 그 CSV 전체를 거부할 사유를 돌려준다. 부분 적용은 없다.
+Function OffsetPromotionRejectReason(rowSignalOffset)
+    Dim writerText, scKey
+    OffsetPromotionRejectReason = ""
+    writerText = LCase(Trim(CStr(RW_OFFSET_WRITER)))
+    If writerText = "" Then writerText = "intent_only"
+    If writerText <> "intent_only" And writerText <> "test_only" And writerText <> "production" Then
+        OffsetPromotionRejectReason = "OFFSET_WRITER_UNKNOWN value=" & CStr(RW_OFFSET_WRITER)
+        Exit Function
+    End If
+    If writerText <> "intent_only" Then Exit Function
+    For Each scKey In rowSignalOffset.Keys
+        If Abs(CDbl(rowSignalOffset(scKey))) > 0.000001 Then
+            OffsetPromotionRejectReason = "OFFSET_NOT_PROMOTED sc=" & CStr(scKey) & _
+                " offset=" & CStr(rowSignalOffset(scKey)) & " writer=" & writerText
+            Exit Function
+        End If
+    Next
 End Function
 
 ' N4-5. `signal_sg` 행 하나의 국소 검증. 행 사이의 정합(창 수·주기·offset·동시녹색)은

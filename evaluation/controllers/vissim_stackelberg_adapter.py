@@ -40,6 +40,7 @@ from vissim_strict.physical_projection import (
 )
 from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
 # N4-5: SG 단위 액추에이션 계획. 순수 함수만 들어 있어 import 부작용이 없다.
+from evaluation.controllers import offset_promotion
 from evaluation.controllers import signal_group_plan
 from vissim_strict.run_evidence import (
     MAX_APPROVAL_BYTES,
@@ -5026,7 +5027,10 @@ def write_action_csv(
     metadata: dict[str, Any],
     actuation: Mapping[str, Any],
     signal_group_plan_table: Mapping[str, Any] | None = None,
+    offset_writer: str = offset_promotion.WRITER_INTENT_ONLY,
 ) -> None:
+    # N4-7. `offset_writer` 의 기본값이 intent_only 인 것이 fail-closed 의 요점이다.
+    # 이 함수를 아무 말 없이 부르면 offset 은 절대 플랜트로 나가지 않는다.
     path.parent.mkdir(parents=True, exist_ok=True)
     vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
     if 120.0 not in vsl_set:
@@ -5077,6 +5081,7 @@ def write_action_csv(
         if bool(metadata.get("suppress_signal_rows", False)):
             write_signal_rows = False
         if write_signal_rows:
+            offset_promotion.guard_forced_arm(control, offset_writer)
             for signal_row in _signal_rows_for_mapping(mapping):
                 signal = str(signal_row["id"])
                 sc_no = int(signal_row["sc_no"])
@@ -5094,7 +5099,6 @@ def write_action_csv(
                 _dg = getattr(control, "diagnostics", {}) or {}
                 _maj_default = float(_dg.get("diagnostic_forced_signal_major_green_sec", 40.0))
                 _min_default = float(_dg.get("diagnostic_forced_signal_minor_green_sec", 40.0))
-                _off_default = float(_dg.get("diagnostic_forced_signal_offset_sec", 0.0))
                 # 컨트롤러별 축 대응 (2026-08-04). VISSIM MAJOR(SG1) 가 모델의 어느 phase 인지는
                 # 교차로마다 다르다. 일반 간선 교차로는 MAJOR=EW 간선=모델 p2 이지만,
                 # freeway 인터페이스 교차로(SC 1001)는 MAJOR 접근이 **off-ramp 유출**이고
@@ -5117,7 +5121,10 @@ def write_action_csv(
                     f"{signal}_{_major_phase}", _phase_default[_major_phase])), 5.0, 90.0)
                 minor = clamp(float(control.green_times.get(
                     f"{signal}_{_minor_phase}", _phase_default[_minor_phase])), 5.0, 90.0)
-                offset = float(control.offsets.get(signal, _off_default))
+                # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
+                # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
+                # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.
+                offset = offset_promotion.written_offset_sec(signal, control, offset_writer)
                 writer.writerow({
                     "kind": "signal",
                     "id": signal,
@@ -5876,6 +5883,11 @@ def main() -> None:
             for key, value in audit_calibration.items()
             if isinstance(value, (int, float, bool))
         })
+    # N4-7. offset 승격 판정은 action JSON 을 쓰기 **전에** 나와야 한다. 억눌린 의도가
+    # 어디로 갔는지 그 JSON 하나로 설명되어야 하기 때문이다(intent_only 의 "기록").
+    offset_verdict = offset_promotion.evaluate()
+    offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict)
+    metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(
@@ -5895,6 +5907,7 @@ def main() -> None:
         metadata,
         actuation,
         signal_group_plan_table=load_signal_group_actuation_plan(),
+        offset_writer=offset_writer,
     )
     print(json.dumps({
         "status": metadata["controller_status"],
