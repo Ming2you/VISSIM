@@ -1514,3 +1514,80 @@ FAIL 3 중 `assignment_ties` 는 기존 것이고, 새로 드러난 것은 `sign
 `spillback_detection`, `gradient_ranking`, `promotion_readiness`)는 N5/N6/N9 산출물이 생기기
 전까지 NOT_EVALUATED 로 남는다. 출처 게이트(해시 사슬·변조 탐지)는 계획대로 넣지 않았다.
 `run_plant_fidelity_matrix.ps1` 의 required-gate 목록도 손대지 않았다 — 실 런 프로필이 정해진 뒤에 할 일이다.
+
+## N8-2 결정 동등성 · N8-3 통합 rollout 스케줄러 (2026-08-10)
+
+두 항목 모두 컨트롤러 쪽 일이라 코드는 상류 `NumSim-mine` 에 넣었다. `vendor/`(5a2fe7d)는
+건드리지 않았으므로 어댑터 실행 경로의 거동은 **재스냅샷 전까지 바뀌지 않는다**.
+
+### N8-3 — 병렬화가 결정을 바꾸던 자리 두 곳
+
+`stackelberg_mpc._evaluate_candidate_set` 의 thread/process 분기는 `as_completed` 완료 순서로
+결과를 쌓았다. 선택은 `min(evaluations, key=objective)` 이고 파이썬 `min` 은 **첫** 최소값을
+고르므로, 동점 후보가 있으면 **worker 수에 따라 선택 action 이 바뀐다**. 실측으로 잡았다 —
+목적함수 `(30,20,10,40,25,10,35)`, 완료 지연을 인덱스 역순으로 준 stub 에서
+workers 2 → 결과 순서 `[0,2,1,4,3,6,5]`, workers 5 → `[0,5,6,4,3,2,1]` 이고
+동점(인덱스 2 와 5) 최소값 선택이 workers 5 에서 인덱스 **5** 로 뒤집혔다.
+고친 방식은 반환 직전 `results.sort(key=index)` 한 줄이다(직렬 경로는 이미 인덱스 순서라 무영향).
+
+`stackelberg_wu_metered._green_price_rollouts` 는 병렬 풀이 터지면 **조용히** 직렬로 재실행했다.
+계획 N8-3 의 PASS 는 "병렬 예외 뒤 조용한 직렬 재실행 0" 이다. 진단
+`price_parallel_serial_rerun_count` / `price_parallel_last_error` 를 남기고
+`wu_price_parallel_serial_rerun_count` 로 meta 에 실었다. 이 계측이 실제로 필요하다는 증거도
+같이 나왔다 — main guard 없는 프로브 스크립트에서 자식 프로세스 bootstrap 실패가 조용히
+직렬로 접혔고, 계측이 없었으면 "병렬과 직렬이 같다" 는 결론이 공허하게 통과했을 것이다.
+
+**실 런 config 는 원래 안 물린다.** `real_world_modi_pstack_crossgate_high_budget_20260723.json`
+과 어댑터 flagship 기본값이 `stackelberg_leader_parallel_backend: serial` ·
+`grid_parallel_backend: serial` · `grid_reuse_process_pool: false` 이고,
+`F1StackelbergWuMeteredController` 는 `StackelbergWuMeteredController._evaluate_candidate_set`
+(후보 평가 직렬 강제)을 물려받는다. `price_parallel_workers` 도 어댑터에서 설정되지 않아 0 이다.
+즉 이번에 고친 것은 **잠재 결함**이고, 병렬을 켜는 순간 실 런에서 재현됐을 것이다.
+
+### N8-2 — 계획의 `36` 이 무엇이고 무엇이 안 되는가
+
+계획의 36 은 `holdout 상태 12(= demand 3 × anchor 4) × 방향 seed 3` 이고 비교는
+**FD 대 SPSA** 다. 그 12 상태는 N5 부모 런의 VISSIM holdout anchor 라 실 런 없이 못 만든다.
+그래서 같은 **모양**을 플랜트 모델 상태로 재현해 36 twin 을 실제로 돌렸다.
+후보 수는 계획대로 36 이고, 다른 값이 나오지 않았다.
+
+실측(모델 anchor 36 twin, lean config).
+
+| 필드 | 정확 일치 |
+|---|---|
+| feasibility | 36/36 |
+| 안전 인증서(B3CERT `wu_b3cert_*`) | 36/36 |
+| fallback 등급 | 36/36 |
+| 리더 후보열 `(index, stage, N_P*, N_UF*)` | 36/36 |
+| 종단 예측 상태 | **3/36** |
+| 명령(정확) | **3/36** |
+| 명령(양자화 1단계 이내) | 36/36 |
+
+**계획 PASS 의 두 조항은 함께 성립할 수 없다.** 명령에 양자화 1단계를 허용하면서 상태
+정확 일치를 요구하는데, 명령이 한 칸 움직이면 종단 예측 상태도 반드시 움직인다.
+실제로 상태가 갈라진 twin 은 전부 명령이 갈라진 twin 이었고, 그 불변식을 검사로 고정했다
+(`test_state_mismatch_only_ever_follows_a_command_mismatch`).
+따라서 계획 문안은 "상태" 를 명령 일치 조건부로 다시 쓰거나, 명령 여유를 없애야 한다.
+
+### N8-2 의 두 번째 twin — endpoint 경유 대 직접
+
+`evaluate_price_point` 를 우회하는 독립 구현으로 같은 결정을 다시 내고, **평가 궤적**
+(호출 열의 목적함수·부분 TTT·abort·상태수)과 다섯 필드·명령이 전부 정확 일치함을 확인했다.
+
+**결정 지문만으로는 이빨이 없다는 것을 먼저 실측했다.** 이 fixture 에서는 가격 schedule 의
+레버를 통째로 빼도(green/meter/vsl/offset 전부) 결정 지문이 안 움직인다 — 후보가 포화하고
+fallback(PFO)이 선택되기 때문이다. 심지어 모든 가격점 목적함수를 5% 부풀여도 결정이 같다
+(기울기가 비례 배율이면 follower 반응이 안 뒤집힌다). 그래서 궤적 비교를 함께 넣었고,
+되돌림 증명은 `depth+1` · `drop-green` · `drop-meter` · `drop-offset` · `no-green-budget`
+다섯 교란이 전부 궤적을 갈라놓는 것으로 했다.
+
+**vsl 축은 되돌림 증명에서 뺐다.** 이 fixture 의 vsl 가격점 32개가 **전부 같은 목적함수**를
+낸다 — 운영점 100 km/h 에 delta 를 얹은 105/115 가 자유류 상한 위라 plant 가 반응하지 않는다.
+교란해도 안 잡히는 검사를 통과로 세지 않으려고 뺐고, 그 사실 자체를
+`VslChannelInertnessTests` 가 못박는다. vsl 이 다시 물리면 그쪽이 먼저 깨져 교란 축 복구를 강제한다.
+
+### 남는 것
+
+계획 N8-2 자체(**VISSIM holdout anchor** 위의 FD 대 SPSA)는 실 런 전까지 NOT_EVALUATED 다.
+N8-1 자격심사 하네스(`eps_J_endpoint`/`eps_g`)도 아직 없어서
+`exact-FD 재채점 regret < max(2·eps_J_endpoint, 0.5%·|J_FD|)` 조항은 판정 불가다.
