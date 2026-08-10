@@ -1756,3 +1756,53 @@ N4-3 현황 재확인 — movement 698 / resolved 416 / unresolved 282(전부 sy
 세 번 다 **잘못된 표를 근거로 단정**했다. urban 저장 표로 "질량 0", 계획서 문장으로
 "구조적 부재", 그리고 (B) 를 "검사 2건이면 끝"이라고 추정. 실물을 열면 매번 달랐다.
 계획서에 적힌 진단도 근거를 다시 열어봐야 한다.
+
+## 2026-08-11 (이어서) — 경계 수요는 시간축만 앵커돼 있다
+
+### 오경보 정정
+
+`DemandProfile` 로 실 config 를 열었더니 경계 게이트 117개가 등차수열(500/550/600/650...)
+합계 397,800 veh/h 였다. 플랜트 실측(28,360 veh/h 피크)의 14배라 크게 놀랐는데,
+**결합 런은 그 경로를 쓰지 않는다.** 어댑터가 state 의 `demand` 에서 읽는다
+(`vissim_stackelberg_adapter.py:2804-2816`). standalone NumSim 시뮬레이션 전용 값이었다.
+
+### 실제로 앵커된 것과 안 된 것
+
+실 런 state 의 수요 필드는 이렇다.
+
+    demand_profile   = "real_world_inpx_time_profile"   (또는 _scaled)
+    urban_volume_vph = 355 -> 515 -> 603 -> 662 -> 735 -> 772   (시간에 따라 변함)
+
+**시간 프로파일은 inpx 에 앵커돼 있다.** 문제는 공간이다.
+
+    urban_vph = float(demand.get("urban_volume_vph", 60.0))
+    urban_boundary = {str(link): urban_vph for link in boundary_in_links + boundary_out_links}
+
+**한 스칼라를 모든 게이트에 똑같이 뿌린다.** 플랜트는 그렇지 않다.
+
+| | 플랜트 (inpx) | 모델 (결합 런) |
+|---|---|---|
+| 유입 지점 | **34개** vehicle input, 위치·이름 있음 | 117개 경계 게이트 |
+| 지점별 유량 | **376 ~ 6,000 veh/h 로 제각각** | 전 게이트 동일 스칼라 |
+| 망 전체 | 18,907 ~ 28,360 veh/h (15분 6구간) | 스칼라 x 게이트 수 |
+
+VISSIM 은 양재 EB/NB 에 수천 대를 넣고 Dummy Link 9 에 291 대를 넣는데 모델은 둘을 같게 본다.
+
+### 재료는 다 있다
+
+- inpx vehicle input 34개 - 링크·이름·`timeIntervalVehVolume` (읽었다)
+- vehicle input -> 하류 SC BFS 조인 **34/34 성공** (확인했다,
+  `audit_plant_fidelity._network_downstream` + `read_stop_owners` 재사용)
+- 시간 프로파일 배선 (이미 있다)
+
+**빠진 것은 지점별 배분 규칙 하나다.** 34 -> 117 을 어떻게 나눌 것인가.
+
+### N4-3 과의 순서
+
+사용자 판단 - "실측이어야지". 틀린 유량 위에 정확한 녹색분율을 얹는 것은 의미가 없으므로
+**수요 공간 앵커링이 N4-3 보다 먼저다.**
+
+### 이번 회차 실패 양상 (계속)
+
+네 번째 오진이었다. 이번에는 **쓰이지 않는 코드 경로를 재고 놀랐다**. 값을 재기 전에
+"그 값이 실 런에서 쓰이는가" 를 먼저 봤어야 했다.
