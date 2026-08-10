@@ -1694,3 +1694,65 @@ tie 는 위상 사실이고, 해로운지는 그 링크가 차를 나르는지�
 FAIL → NOT_EVALUATED 다. 승격은 여전히 막혀 있다(NE 는 통과가 아니다). 그리고 FAIL 이
 사라지자 spillback BLOCKED 시나리오에서 승격이 BLOCKED 로 드러났다 — 예전엔 FAIL 이
 덮고 있었다.
+
+## 2026-08-11 — 설계 판단 (B) 를 되돌리고, N4-3 의 진짜 원인을 찾았다
+
+### (B) 주기 항등식 — 구현했다가 되돌렸다
+
+`_phase_green_fraction` 이 config 상수 `cycle_length` 로 나누는 대신 모델 자신의 항등식
+`C = g1 + g2 + lost_time` 을 쓰게 했다. 근거는 튼튼했다.
+
+- 모델은 이미 그 항등식을 주장하고 `metrics.py` 가 위반을 센다. 주기는 자유 파라미터가 아니다.
+- 플랜트도 같은 식이다 — 러너가 `major + minor + 2*(AMBER + ALL_RED)` 로 합성한다.
+- **제어 런에서 native 주기는 재생되지 않는다.** 러너가 15 SC 의 모든 SG 에
+  `ContrByCOM = True` 를 걸어 inpx 프로그램을 통째로 우회한다
+  (`evaluation/controllers/plant_cycle.py:18-23`). 그래서 `cycle_length_by_signal` 에
+  native 주기를 채우는 것으로는 간극이 안 닫힌다. "N4-1 과 정면충돌" 은 과장이었다.
+- 실측 — 액션 아카이브 31,020 표본에서 **예산면(p1+p2=110) 위 액션이 0건**이다.
+  114 (94.7%, +3.33%), 100 (4.0%, -8.33%), 95 (1.3%, -12.50%).
+
+**되돌린 이유.** `test_cycle_green_budget_accounting` 모듈이 통째로 무효가 된다(10 subtest).
+그 파일은 "`cycle_length_by_signal` 을 채우면 무엇이 깨지는가"를 측정하는데, 이 변경이 그
+깨짐을 전부 없앤다. 다시 쓰려면 **"그 매핑은 무엇을 위한 것인가"** 를 정해야 하고 그것은
+N4-3 질문이다. 승인 없이 테스트 편집으로 N4-3 을 결정하게 되므로 멈췄다.
+
+역설적이지만 그 테스트 파일의 docstring 이 이 변경과 **같은 주장**을 한다 —
+"`cycle_length` 는 자유 파라미터가 아니라 녹색 예산이 결정한 값이다". 변경 자체는 옳고,
+N4-3 안에서 N현시 일반형 `C = Σ gᵢ + lost_time` 으로 다시 하면 된다.
+
+### N4-3 — 진단이 세 번 뒤집혔다
+
+**1차(틀림).** "미해결 282건은 synthetic boundary leg 이라 VISSIM 에 없다. 구조적 부재다."
+계획서 문장을 그대로 받았다.
+
+**2차(틀림).** 사용자가 "비씸에 없는 게 플랜트에 있단 건가?" 라고 물어 다시 봤다.
+모델 config 에 `boundary_in_links` 가 **117개** 있고, 미해결 origin 44개가 그 목록과
+**정확히 일치**한다. VISSIM 에도 vehicle input 이 34개 있다. 없는 게 아니었다.
+
+**3차(맞음).** 원인은 **스키마에 칸이 없는 것**이다. `grid_node_legs` 의 boundary leg 는
+
+    "N": {"type": "boundary", "in": "in_SC1_N", "out": "out_SC1_N", "out_link": "SC1_N_out"}
+
+유출은 `out_link` 칸이 있어 `link_to_origins` 에 매핑돼 있는데(SC1 기준 4개),
+**유입은 `in_link` 칸 자체가 없다.** 그래서 조인될 수가 없었고 `boundary_link_to_queue`
+도 0 항목이다. 표가 안 채워진 게 아니라 채울 자리가 없다.
+
+계획서의 "잔차 뭉개기가 아니라 구조적 부재다" 는 결론(링크 0개)은 맞지만 **원인 진단이
+틀렸다**. 고칠 수 있는 문제를 못 고치는 문제로 적어 둔 셈이다.
+
+### 다음 세션 출발점
+
+1. `grid_node_legs` 의 boundary leg 에 `in_link` 를 추가한다 — **스키마 결정**
+2. 유입 링크는 매핑된 `out_link` 의 반대 방향 짝으로 유도한다 — **규칙 결정**
+3. vehicle input 34개를 하류 SC 로 BFS 조인하는 것은 **34/34 동작을 확인했다**
+   (`audit_plant_fidelity._network_downstream` + `read_stop_owners` 재사용)
+
+N4-3 현황 재확인 — movement 698 / resolved 416 / unresolved 282(전부 synthetic_boundary_leg).
+효과는 실재한다: SC1001 movement 54개 중 21개 분율 변경, 실측 대비 1.56x/1.21x -> 1.01x/0.97x.
+질량 보존은 N4-1+N4-3 동시 적용에서 24스텝 잔차 1.148e-11 veh.
+
+### 이번 회차에서 반복된 실패 양상
+
+세 번 다 **잘못된 표를 근거로 단정**했다. urban 저장 표로 "질량 0", 계획서 문장으로
+"구조적 부재", 그리고 (B) 를 "검사 2건이면 끝"이라고 추정. 실물을 열면 매번 달랐다.
+계획서에 적힌 진단도 근거를 다시 열어봐야 한다.
