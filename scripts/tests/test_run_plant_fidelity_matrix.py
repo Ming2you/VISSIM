@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,72 @@ REPO = Path(__file__).resolve().parents[2]
 SCRIPT = REPO / "scripts" / "run_plant_fidelity_matrix.ps1"
 WATCHDOG = SCRIPT.with_name("run_real_world_single_watchdog_distributed_core15n41.ps1")
 VBS = SCRIPT.with_name("run_real_world_stackelberg_controller.vbs")
+
+if str(REPO / "scripts") not in sys.path:
+    sys.path.insert(0, str(REPO / "scripts"))
+
+import audit_plant_fidelity as audit  # noqa: E402
+
+
+def _ps_array(source: str, marker: str) -> list[str]:
+    """`marker` 로 시작하는 PowerShell 배열 리터럴에서 인용된 이름을 뽑는다."""
+    start = source.index(marker) + len(marker)
+    return re.findall(r'"([a-z_]+)"', source[start : source.index("\n  )", start)])
+
+
+class GateCoverageTests(unittest.TestCase):
+    """감사 게이트 중 매트릭스 런이 조용히 흘려보내는 것이 없어야 한다.
+
+    `--required-gate` 로 안 넘긴 게이트는 NOT_EVALUATED 로 지나가는데, 요약만 보면
+    "돌렸고 문제 없었다"로 읽힌다. 실제로 N10 이 게이트를 18개에서 28개로 늘렸을 때
+    새 10개가 전부 이 구멍으로 빠졌다.
+
+    그래서 규칙을 뒤집는다 - **모든** 게이트는 요구되거나, 매트릭스 런이 입력을 만들 수
+    없다고 명시된 목록에 있어야 한다. 게이트를 새로 추가하면 여기서 선택을 강제당한다.
+    """
+
+    def setUp(self) -> None:
+        self.source = SCRIPT.read_text(encoding="utf-8")
+        self.required = _ps_array(self.source, "foreach ($gateName in @(")
+        self.unavailable = _ps_array(self.source, "$matrixUnavailableGates = @(")
+
+    def test_every_gate_is_either_required_or_declared_unavailable(self) -> None:
+        self.assertEqual(
+            set(self.required) | set(self.unavailable),
+            set(audit.GATE_CATEGORIES),
+        )
+
+    def test_required_and_unavailable_do_not_overlap(self) -> None:
+        self.assertEqual(set(self.required) & set(self.unavailable), set())
+
+    def test_the_static_signal_and_topology_gates_are_required(self) -> None:
+        """저장소 산출물만으로 PASS 하는 것들이다. 요구하지 않을 이유가 없다."""
+        for name in (
+            "canonical_topology",
+            "signal_timing_canon",
+            "signal_actuation_plan",
+            "movement_signal_group_map",
+        ):
+            with self.subTest(gate=name):
+                self.assertIn(name, self.required)
+
+    def test_gates_the_run_itself_feeds_are_required(self) -> None:
+        """러너가 입력을 직접 쓴다 - readback CSV(vbs:247), 투영 진단, 결정 벽시계."""
+        for name in ("signal_com_readback", "mass_conservation", "runtime"):
+            with self.subTest(gate=name):
+                self.assertIn(name, self.required)
+
+    def test_the_new_gate_artifacts_are_actually_passed(self) -> None:
+        """게이트를 요구해도 산출물을 안 넘기면 NOT_EVALUATED 라 --strict 에서 터진다."""
+        for flag in (
+            "--canonical-topology",
+            "--signal-timing",
+            "--movement-map",
+            "--actuation-plan",
+            "--parent-runs",
+        ):
+            with self.subTest(flag=flag):
+                self.assertIn(flag, self.source)
 
 
 @unittest.skipUnless(shutil.which("powershell"), "Windows PowerShell is required")

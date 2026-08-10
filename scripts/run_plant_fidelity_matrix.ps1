@@ -173,6 +173,25 @@ if (-not $DryRun) {
     "--markdown-out", $AuditMarkdownReport
   )
   $auditArguments += @("--strict", "--require-complete")
+  # N10 게이트가 읽는 정본 산출물. 안 넘기면 게이트를 요구해도 NOT_EVALUATED 다.
+  $auditArguments += @(
+    "--canonical-topology", (Join-Path $repo "outputs\canonical_topology_v3.json"),
+    "--signal-timing", (Join-Path $repo "outputs\signal_group_timing_v3.json"),
+    "--movement-map", (Join-Path $repo "outputs\movement_signal_group_map_v3.json"),
+    "--actuation-plan", (Join-Path $repo "outputs\signal_group_actuation_plan_v3.json"),
+    "--parent-runs", (Join-Path $repo "outputs\parent_runs_v3.json")
+  )
+  # 매트릭스 런이 입력을 만들 수 없어 요구하지 않는 게이트. 여기 적지 않은 게이트는 전부
+  # --required-gate 로 들어가야 한다 - scripts/tests/test_run_plant_fidelity_matrix.py 가
+  # 강제한다. 요구도 선언도 안 하면 NOT_EVALUATED 로 조용히 지나가 "돌렸고 문제 없었다"로 읽힌다.
+  $matrixUnavailableGates = @(
+    "signal_event_timing",
+    "stock_calibration",
+    "paired_dynamics",
+    "spillback_detection",
+    "gradient_ranking",
+    "promotion_readiness"
+  )
   foreach ($gateName in @(
       "input_provenance",
       "network_xml",
@@ -181,13 +200,20 @@ if (-not $DryRun) {
       "assignment_ties",
       "adjacency",
       "storage_capacity",
+      "canonical_topology",
       "vendor_snapshot",
       "numsim_source_match",
       "state_observation_contract",
       "action_inventory",
+      "runtime",
       "projection_diagnostics",
+      "mass_conservation",
       "runtime_provenance",
       "preflight_provenance",
+      "signal_com_readback",
+      "signal_timing_canon",
+      "signal_actuation_plan",
+      "movement_signal_group_map",
       "vissim_error_log"
   )) {
     $auditArguments += @("--required-gate", $gateName)
