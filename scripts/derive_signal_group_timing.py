@@ -109,10 +109,18 @@ def _controlled_controllers(mapping_path: Path) -> list[int]:
 
 def derive(network_dir: Path, mapping_path: Path, active_prog_no: int = 1) -> dict[str, Any]:
     # plant 컴파일러가 정본 파서를 들고 있다. 여기서 다시 짜면 두 파서가 갈린다.
-    plant_root = Path(__file__).resolve().parents[1] / "plant"
-    if str(plant_root) not in sys.path:
-        sys.path.insert(0, str(plant_root))
-    from src.vissim_strict.signal_program import parse_sig  # noqa: E402
+    #
+    # `plant.` 를 붙여 저장소 루트에서 받는다. 예전처럼 `plant/` 를 sys.path 에 넣고
+    # `src.vissim_strict` 로 받으면, 같은 프로세스가 vendor/NumSim-mine 의 `src` 패키지를
+    # 먼저 import 한 뒤에는 그쪽이 이름을 선점해 ModuleNotFoundError 가 난다
+    # (tests.test_native_phase_green_share 와 한 번에 돌리면 재현된다).
+    try:
+        from plant.src.vissim_strict.signal_program import parse_sig  # noqa: E402
+    except ModuleNotFoundError:
+        plant_root = Path(__file__).resolve().parents[1] / "plant"
+        if str(plant_root) not in sys.path:
+            sys.path.insert(0, str(plant_root))
+        from src.vissim_strict.signal_program import parse_sig  # noqa: E402
 
     controllers: list[dict[str, Any]] = []
     unresolved: list[dict[str, Any]] = []
