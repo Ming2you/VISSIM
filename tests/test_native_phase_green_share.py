@@ -391,5 +391,167 @@ class ControlledMovementNativeShareTests(unittest.TestCase):
         self.assertEqual(table.unit_share_movements, ())
 
 
+class MappedShareTests(unittest.TestCase):
+    """N4-2 - 유도된 movement<->SG 매핑을 우선 쓰고, 이름 규칙 폴백을 계상한다."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from evaluation.controllers.fixed_signal_schedule import (
+            compile_fixed_signal_schedules,
+        )
+        from scripts.derive_movement_signal_group_map import derive
+
+        cls.tuning = json.loads(TUNING.read_text(encoding="utf-8"))
+        cls.network_cfg = cls.tuning["config_overrides"]["network"]
+        cls.movements = cls.network_cfg["urban_movements"]
+        cls.detector_mapping = json.loads(DETECTOR_MAPPING.read_text(encoding="utf-8"))
+        cls.schedules, _ = compile_fixed_signal_schedules(
+            NETWORK, set(cls.network_cfg["signals"]), cls.detector_mapping
+        )
+        cls.signal_group_map = derive()
+
+    def _table(self, signal_group_map):
+        from evaluation.controllers.native_phase_green import (
+            build_native_phase_share_table,
+        )
+
+        return build_native_phase_share_table(
+            self.movements, self.schedules, signal_group_map=signal_group_map
+        )
+
+    def test_mapping_resolves_the_off_ramp_movement_the_name_rule_cannot(self) -> None:
+        spec = self.movements["SC1001_offW_to_E_SC1002"]
+        mapped = self._table(self.signal_group_map)
+        # 오프램프는 커넥터 10491/10481 로 링크 32(SG 2,5)에 합류한다. 그 축(모델 p1)의
+        # native 녹색 합집합은 141 s 이고 SG 2,5 는 그중 69 s 다.
+        self.assertAlmostEqual(mapped.share_for(spec), 69.0 / 141.0, places=12)
+        self.assertNotIn("SC1001_offW_to_E_SC1002", mapped.unresolved)
+        # 되돌림 증명 - 매핑을 빼면 이름/leg 규칙이 이 movement 를 아예 못 잡는다.
+        legacy = self._table(None)
+        self.assertIsNone(legacy.share_for(spec))
+        self.assertEqual(
+            legacy.unresolved["SC1001_offW_to_E_SC1002"], "no_signal_group_mapping"
+        )
+
+    def test_mapping_removes_axis_mismatch(self) -> None:
+        spec = self.movements["SC1001_S_SC1004_to_E_SC1002"]
+        mapped = self._table(self.signal_group_map)
+        self.assertAlmostEqual(mapped.share_for(spec), 69.0 / 141.0, places=12)
+        # 되돌림 증명 - 이름 규칙은 SG 2,5(EBT/EBL)를 p2 로 보므로 모델 phase p1 과 어긋난다.
+        legacy = self._table(None)
+        self.assertEqual(
+            legacy.unresolved["SC1001_S_SC1004_to_E_SC1002"], "axis_mismatch"
+        )
+
+    def test_unresolved_shrinks_to_synthetic_boundary_legs_only(self) -> None:
+        mapped = self._table(self.signal_group_map)
+        legacy = self._table(None)
+        self.assertEqual(
+            {reason: count for reason, count in mapped.diagnostics[
+                "native_phase_share_unresolved_reasons"
+            ].items() if count},
+            {"synthetic_boundary_leg": 282.0},
+        )
+        self.assertEqual(
+            {reason: count for reason, count in legacy.diagnostics[
+                "native_phase_share_unresolved_reasons"
+            ].items() if count},
+            {"no_signal_group_mapping": 282.0, "axis_mismatch": 22.0},
+        )
+        self.assertEqual(len(mapped.unresolved), 282)
+        self.assertEqual(len(legacy.unresolved), 304)
+
+    def test_production_mapping_uses_no_name_rule_fallback(self) -> None:
+        mapped = self._table(self.signal_group_map)
+        diagnostics = mapped.diagnostics
+        self.assertEqual(diagnostics["native_phase_share_map_enabled"], 1.0)
+        self.assertEqual(diagnostics["native_phase_share_name_fallback_count"], 0.0)
+        self.assertEqual(diagnostics["native_phase_share_axis_name_fallback_count"], 0.0)
+
+    def test_name_rule_fallback_is_counted_when_the_map_misses_a_node(self) -> None:
+        partial = dict(self.signal_group_map)
+        partial["controllers"] = {
+            node: payload
+            for node, payload in self.signal_group_map["controllers"].items()
+            if node != "SC1002"
+        }
+        table = self._table(partial)
+        sc1002 = [
+            name
+            for name, spec in self.movements.items()
+            if spec.get("intersection") == "SC1002" and str(spec.get("phase", ""))
+        ]
+        self.assertEqual(len(sc1002), 30)
+        self.assertEqual(
+            table.diagnostics["native_phase_share_name_fallback_count"], float(len(sc1002))
+        )
+        # 분모까지 간 것은 분자를 잡은 것뿐이다. 이름/leg 규칙은 SC2005_to_SC1002 의
+        # 5건을 못 잡고 그 전에 미해결로 떨어진다.
+        dropped = [name for name in sc1002 if name in table.unresolved]
+        self.assertEqual(len(dropped), 5)
+        self.assertEqual(
+            table.diagnostics["native_phase_share_axis_name_fallback_count"],
+            float(len(sc1002) - len(dropped)),
+        )
+        # 되돌림 증명 - 온전한 매핑이면 0 이다.
+        self.assertEqual(
+            self._table(self.signal_group_map).diagnostics[
+                "native_phase_share_name_fallback_count"
+            ],
+            0.0,
+        )
+
+    def test_origin_the_map_never_saw_is_named_as_drift(self) -> None:
+        """산출물이 만들어진 뒤 config 가 바뀌면 조용히 통과시키지 않는다."""
+        spec = dict(
+            self.movements["SC1001_offW_to_E_SC1002"], origin="__origin_added_later__"
+        )
+
+        from evaluation.controllers.native_phase_green import (
+            build_native_phase_share_table,
+        )
+
+        table = build_native_phase_share_table(
+            {"m": spec}, self.schedules, signal_group_map=self.signal_group_map
+        )
+        self.assertEqual(dict(table.unresolved), {"m": "origin_not_in_map"})
+        self.assertIsNone(table.share_for(spec))
+        self.assertEqual(table.diagnostics["native_phase_share_name_fallback_count"], 0.0)
+
+    def test_every_mapped_share_stays_in_the_open_unit_interval(self) -> None:
+        mapped = self._table(self.signal_group_map)
+        values = list(mapped.shares.values())
+        self.assertTrue(values)
+        self.assertGreater(min(values), 0.0)
+        self.assertLessEqual(max(values), 1.0)
+        self.assertLess(min(values), 0.5)
+
+    def test_disabled_map_is_bit_identical_to_the_legacy_table(self) -> None:
+        """매핑을 안 넘기면 직전 판과 완전히 같아야 한다 - 되돌림 경로를 고정한다."""
+        legacy = self._table(None)
+        self.assertEqual(len(legacy.scaled_movements), 229)
+        self.assertEqual(len(legacy.unit_share_movements), 165)
+        self.assertEqual(len(legacy.unresolved), 304)
+
+
+class AdapterMapLoadingTests(unittest.TestCase):
+    """N4-2 - 어댑터가 산출물을 실제로 집어 든다."""
+
+    def test_default_artifact_path_loads(self) -> None:
+        from evaluation.controllers import vissim_stackelberg_adapter as adapter
+
+        payload = adapter.load_movement_signal_group_map()
+        self.assertIsNotNone(payload)
+        self.assertEqual(payload["schema_version"], "movement-signal-group-map-v3")
+        self.assertIn("SC1001", payload["controllers"])
+
+    def test_missing_artifact_returns_none_instead_of_raising(self) -> None:
+        from evaluation.controllers import vissim_stackelberg_adapter as adapter
+
+        self.assertIsNone(
+            adapter.load_movement_signal_group_map(Path("no_such_map_file.json"))
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

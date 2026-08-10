@@ -1273,6 +1273,24 @@ def _network_path_from_state(state_json: Mapping[str, Any]) -> Path:
     return WORKSPACE_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 
 
+MOVEMENT_SIGNAL_GROUP_MAP_PATH = (
+    WORKSPACE_ROOT / "outputs" / "movement_signal_group_map_v3.json"
+)
+
+
+def load_movement_signal_group_map(path: Path | None = None) -> dict[str, Any] | None:
+    """N4-2 매핑 산출물을 읽는다. 없으면 `None` 이고 호출부가 이름 규칙으로 떨어진다.
+
+    없다고 예외를 던지지 않는 이유는 제어 SC 의 폴백이 항상녹색이 아니라 기존 2현시
+    경로이기 때문이다(N4-4 의 fail-closed 대상은 monitor 노드다). 대신 폴백 건수를
+    `native_phase_share_*_fallback_count` 로 내보내 조용히 지나가지 못하게 한다.
+    """
+    source = Path(path) if path is not None else MOVEMENT_SIGNAL_GROUP_MAP_PATH
+    if not source.is_file():
+        return None
+    return json.loads(source.read_text(encoding="utf-8"))
+
+
 class MonitorFixedSignalPatchError(RuntimeError):
     """고정신호 패치를 설치하지 못했다 (v3 N4-4).
 
@@ -1366,8 +1384,9 @@ def install_monitor_fixed_signal_runtime_patch(
             f"missing={missing_monitor} errors={monitor_errors}"
         )
 
+    signal_group_map = load_movement_signal_group_map()
     share_table = build_native_phase_share_table(
-        getattr(cfg.network, "urban_movements", {}) or {}, schedules
+        getattr(cfg.network, "urban_movements", {}) or {}, schedules, signal_group_map
     )
 
     model_module = importlib.import_module("src.models.urban_queue_model")
@@ -1406,6 +1425,7 @@ def install_monitor_fixed_signal_runtime_patch(
         "monitor_fixed_signal_missing_nodes": ",".join(sorted(targets - set(schedules))),
         "monitor_fixed_signal_compile_errors": dict(errors),
         "monitor_fixed_signal_patched_module_count": float(patched_modules),
+        "native_phase_share_map_path": str(MOVEMENT_SIGNAL_GROUP_MAP_PATH),
     }
     diagnostics.update(share_table.diagnostics)
     return diagnostics

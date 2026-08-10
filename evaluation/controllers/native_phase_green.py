@@ -31,6 +31,16 @@ movement -> SG 매핑의 정밀도는 여기서 올리지 않는다. 신호두�
 한 접근로의 직진과 좌회전이 같은 SG 집합으로 묶인다(N4-2 가 커넥터 추적으로 풀 몫이다).
 매핑이 없는 movement 는 **조용히 통과시키지 않는다** - 사유와 함께 미해결로 계상하고
 진단으로 내보낸다. 값은 기존 2현시 경로 그대로 두되, 몇 개가 그렇게 남았는지는 숨기지 않는다.
+
+## N4-2 이후 - 매핑 산출물이 먼저다
+
+`scripts/derive_movement_signal_group_map.py` 가 만드는
+`outputs/movement_signal_group_map_v3.json` 을 `signal_group_map` 으로 넘기면 분자(movement 의
+SG)와 분모(모델 phase 의 SG)를 둘 다 그 산출물에서 읽는다. 산출물에 없는 노드만 아래의
+이름/leg 규칙으로 떨어지고, 그 건수는 `native_phase_share_name_fallback_count` 와
+`native_phase_share_axis_name_fallback_count` 로 나간다. 실런 산출물 기준 둘 다 0 이다.
+
+`signal_group_map=None` 이면 직전 판과 **완전히 같은 경로**다(되돌림용).
 """
 
 from __future__ import annotations
@@ -47,6 +57,12 @@ _UNRESOLVED_REASONS = (
     "no_signal_group_mapping",
     "axis_mismatch",
     "no_axis_green",
+    # 아래 넷은 N4-2 매핑 산출물 경로의 사유다. `origin_not_in_map` 은 산출물이 만들어진
+    # 뒤 config 가 바뀐 경우(=산출물 낡음)로, 다른 사유와 후속 조치가 다르다.
+    "synthetic_boundary_leg",
+    "origin_link_unknown",
+    "no_signal_head_downstream",
+    "origin_not_in_map",
 )
 
 
@@ -107,6 +123,14 @@ def _exact_signal_groups(schedule, spec: Mapping[str, Any]) -> tuple[str, ...]:
     return ()
 
 
+def _mapped_node(signal_group_map: Mapping[str, Any] | None, node: str):
+    """매핑 산출물에서 이 노드의 항목. 없으면 `None` 이고 호출부가 이름 규칙으로 떨어진다."""
+    if signal_group_map is None:
+        return None
+    controllers = signal_group_map.get("controllers") or {}
+    return controllers.get(node)
+
+
 @dataclass(frozen=True)
 class NativePhaseShareTable:
     """제어 movement 의 native 녹색배분표. 배분이 1.0 인 항목은 담지 않는다."""
@@ -116,6 +140,9 @@ class NativePhaseShareTable:
     unit_share_movements: tuple[str, ...]
     scaled_movements: tuple[str, ...]
     missing_schedule_nodes: tuple[str, ...]
+    map_enabled: bool = False
+    name_fallback_movements: tuple[str, ...] = ()
+    axis_name_fallback_movements: tuple[str, ...] = ()
 
     def share_for(self, spec: Mapping[str, Any]) -> float | None:
         """곱해야 할 배분. `None` 이면 원본 2현시 경로를 그대로 쓴다."""
@@ -141,23 +168,36 @@ class NativePhaseShareTable:
             "native_phase_share_missing_signal_nodes": ",".join(
                 self.missing_schedule_nodes
             ),
+            "native_phase_share_map_enabled": 1.0 if self.map_enabled else 0.0,
+            "native_phase_share_name_fallback_count": float(
+                len(self.name_fallback_movements)
+            ),
+            "native_phase_share_axis_name_fallback_count": float(
+                len(self.axis_name_fallback_movements)
+            ),
         }
 
 
 def build_native_phase_share_table(
     urban_movements: Mapping[str, Mapping[str, Any]],
     schedules: Mapping[str, Any],
+    signal_group_map: Mapping[str, Any] | None = None,
 ) -> NativePhaseShareTable:
     """phase 를 가진 movement 마다 native 배분을 계산한다.
 
     phase 가 빈 movement(=monitor 노드)는 여기 대상이 아니다. 그쪽은
     `FixedControllerSchedule` 이 통째로 native 타임라인을 돌려준다.
+
+    `signal_group_map` 은 `derive_movement_signal_group_map.derive()` 산출물이다. 넘기면
+    분자·분모를 그 산출물에서 읽고, 산출물에 없는 노드만 이름/leg 규칙으로 떨어진다.
     """
     shares: dict[ShareKey, float] = {}
     unresolved: dict[str, str] = {}
     unit_movements: list[str] = []
     scaled_movements: list[str] = []
     missing_nodes: set[str] = set()
+    name_fallback: list[str] = []
+    axis_name_fallback: list[str] = []
     axis_green_cache: dict[tuple[str, str], float] = {}
 
     for name, spec in urban_movements.items():
@@ -171,13 +211,37 @@ def build_native_phase_share_table(
             missing_nodes.add(node)
             continue
 
-        group_ids = _exact_signal_groups(schedule, spec)
-        if not group_ids:
-            unresolved[str(name)] = "no_signal_group_mapping"
-            continue
+        mapped = _mapped_node(signal_group_map, node)
+        if mapped is None:
+            name_fallback.append(str(name))
+            group_ids = _exact_signal_groups(schedule, spec)
+            if not group_ids:
+                unresolved[str(name)] = "no_signal_group_mapping"
+                continue
+        else:
+            origin = str(spec.get("origin", ""))
+            entry = (mapped.get("origin_signal_groups") or {}).get(origin)
+            if entry is None:
+                # 산출물이 이 origin 을 이미 사유와 함께 미해결로 계상했다. 덮지 않는다.
+                unresolved[str(name)] = str(
+                    (mapped.get("unresolved_origins") or {}).get(origin)
+                    or "origin_not_in_map"
+                )
+                continue
+            group_ids = tuple(str(value) for value in entry.get("signal_groups", ()))
+            if not group_ids:
+                unresolved[str(name)] = "no_signal_group_mapping"
+                continue
 
         axis = phase.rpartition("_")[2]
-        axis_group_ids = tuple(schedule.phase_signal_groups.get(axis, ()))
+        if mapped is None:
+            axis_name_fallback.append(str(name))
+            axis_group_ids = tuple(schedule.phase_signal_groups.get(axis, ()))
+        else:
+            axis_group_ids = tuple(
+                str(value)
+                for value in (mapped.get("phase_signal_groups") or {}).get(axis, ())
+            )
         if not set(group_ids) <= set(axis_group_ids):
             # 축이 어긋나면 분자와 분모가 다른 현시를 재는 셈이다. 섞지 않고 남긴다.
             unresolved[str(name)] = "axis_mismatch"
@@ -205,6 +269,9 @@ def build_native_phase_share_table(
         unit_share_movements=tuple(unit_movements),
         scaled_movements=tuple(scaled_movements),
         missing_schedule_nodes=tuple(sorted(missing_nodes)),
+        map_enabled=signal_group_map is not None,
+        name_fallback_movements=tuple(name_fallback),
+        axis_name_fallback_movements=tuple(axis_name_fallback),
     )
 
 
