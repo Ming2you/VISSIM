@@ -157,13 +157,14 @@ detectorMappingPath = RW_DETECTOR_MAPPING_PATH
 ' N4-5. 계획 config 는 generated config 의 형제 파일이다(<config>_sgplan.vbs).
 ' 없으면 sgPlanEnabled = False 이고 러너는 예전 이름 규칙 경로로 돈다 - 다만 그 경로의
 ' 사용 건수를 SIGNAL_NAME_RULE_FALLBACKS 로 세어 조용히 지나가지 못하게 한다.
-Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle
+Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim signalNameRuleFallbacks, signalSgPlanRows, signalCoGreenBlocks
 sgPlanEnabled = False
 Set sgPlanExpected = CreateObject("Scripting.Dictionary")
 Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
 Set sgPlanWindows = CreateObject("Scripting.Dictionary")
 Set sgPlanCycle = CreateObject("Scripting.Dictionary")
+Set sgPlanGroups = CreateObject("Scripting.Dictionary")
 signalNameRuleFallbacks = 0
 signalSgPlanRows = 0
 signalCoGreenBlocks = 0
@@ -745,7 +746,7 @@ Function IncidentStateAt(simSec)
 End Function
 
 Function SignalCompositeStateAt(simSec)
-    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState, s
+    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState, s, groupIds, g
     s = ""
     For Each scKey In sigMajor.Keys
         major = CDbl(sigMajor(CStr(scKey)))
@@ -753,20 +754,31 @@ Function SignalCompositeStateAt(simSec)
         offset = CDbl(DictValue(sigOffset, CStr(scKey), 0.0))
         cycle = major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC + ALL_RED_SEC
         pos = FMod(CDbl(simSec) + offset, cycle)
-        If pos < major Then
-            majorState = "GREEN": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC Then
-            majorState = "AMBER": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
-            majorState = "RED": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
-            majorState = "RED": minorState = "GREEN"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
-            majorState = "RED": minorState = "AMBER"
+        ' N4-5. 이벤트 스케줄러는 이 합성 상태가 바뀌는 초에만 멈춘다. 계획이 켜지면
+        ' 축 안의 SG 경계도 전이다 - 여기서 안 보면 그 전이가 다음 이벤트까지 늦게 쓰인다.
+        If sgPlanEnabled And sgPlanGroups.Exists(CStr(CLng(scKey))) Then
+            groupIds = Split(CStr(sgPlanGroups(CStr(CLng(scKey)))), ",")
+            s = s & CStr(scKey) & ":"
+            For Each g In groupIds
+                s = s & SignalGroupStateFromPlan(CLng(scKey), CLng(g), pos, cycle) & "/"
+            Next
+            s = s & ";"
         Else
-            majorState = "RED": minorState = "RED"
+            If pos < major Then
+                majorState = "GREEN": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC Then
+                majorState = "AMBER": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
+                majorState = "RED": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
+                majorState = "RED": minorState = "GREEN"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
+                majorState = "RED": minorState = "AMBER"
+            Else
+                majorState = "RED": minorState = "RED"
+            End If
+            s = s & CStr(scKey) & ":" & majorState & "/" & minorState & ";"
         End If
-        s = s & CStr(scKey) & ":" & majorState & "/" & minorState & ";"
     Next
     SignalCompositeStateAt = s
 End Function
@@ -1431,7 +1443,7 @@ End Sub
 ' 계획대로 SG 상태를 정하고, 금지 쌍이 동시녹색이면 **아무것도 쓰지 않는다**.
 ' 먼저 전부 계산하고 검사한 뒤에 쓰는 순서가 요점이다 - 쓰고 나서 발견하면 늦다.
 Sub ApplyRuntimeSignalControllerFromPlan(scNo, pos, cycle)
-    Dim sc, sgNo, sgCount, sgNos(), states(), i, reason, ignoredReadback
+    Dim sc, groupIds, sgCount, sgNos(), states(), i, reason, ignoredReadback
     If Not signalControlled.Exists(CStr(scNo)) Then
         Dim ignored
         ignored = EnableSignalControllerForRuntime(CLng(scNo))
@@ -1441,13 +1453,19 @@ Sub ApplyRuntimeSignalControllerFromPlan(scNo, pos, cycle)
         WScript.Echo "WARN=SIGNAL_SC_RUNTIME_NOT_FOUND sc=" & scNo
         Exit Sub
     End If
-    sgCount = CachedSignalGroupCount(CLng(scNo), sc)
+    ' SG 목록은 config 에서 온다. ValidateSignalGroupPlanCoverage 가 이 목록과
+    ' VISSIM 이 들고 있는 SG 집합이 완전히 같음을 런 시작 때 증명한다.
+    groupIds = Split(CStr(DictValue(sgPlanGroups, CStr(CLng(scNo)), "")), ",")
+    sgCount = 0
+    For i = 0 To UBound(groupIds)
+        If Trim(CStr(groupIds(i))) <> "" Then sgCount = sgCount + 1
+    Next
     If sgCount <= 0 Then Exit Sub
     ReDim sgNos(sgCount - 1)
     ReDim states(sgCount - 1)
-    For sgNo = 1 To sgCount
-        sgNos(sgNo - 1) = sgNo
-        states(sgNo - 1) = SignalGroupStateFromPlan(CLng(scNo), CLng(sgNo), pos, cycle)
+    For i = 0 To sgCount - 1
+        sgNos(i) = CLng(Trim(CStr(groupIds(i))))
+        states(i) = SignalGroupStateFromPlan(CLng(scNo), CLng(sgNos(i)), pos, cycle)
     Next
     reason = SignalGroupPlanCoGreenReason(CLng(scNo), sgNos, states, sgCount)
     If reason <> "" Then
@@ -1608,7 +1626,7 @@ Sub LoadSignalGroupPlanConfig(configPath)
 End Sub
 
 Sub ParseSignalGroupPlanConfig
-    Dim tokens, i, parts, pairParts, sides
+    Dim tokens, i, parts, pairParts, sides, scText, sgText
     sgPlanEnabled = (CLng(RW_SIGNAL_SG_PLAN_SCHEMA) >= 1)
     If Not sgPlanEnabled Then Exit Sub
     tokens = Split(CStr(RW_SIGNAL_SG_EXPECTED), ",")
@@ -1620,6 +1638,14 @@ Sub ParseSignalGroupPlanConfig
                 WScript.Quit 2
             End If
             sgPlanExpected(SignalGroupPlanKey(parts(0), parts(1))) = CLng(Trim(CStr(parts(2))))
+            ' SC 별 SG 목록. 이벤트 스케줄러와 재생 루프가 COM 조회 없이 돌게 한다.
+            scText = CStr(CLng(Trim(CStr(parts(0)))))
+            sgText = CStr(CLng(Trim(CStr(parts(1)))))
+            If sgPlanGroups.Exists(scText) Then
+                sgPlanGroups(scText) = CStr(sgPlanGroups(scText)) & "," & sgText
+            Else
+                sgPlanGroups.Add scText, sgText
+            End If
         End If
     Next
     If sgPlanExpected.Count <= 0 Then

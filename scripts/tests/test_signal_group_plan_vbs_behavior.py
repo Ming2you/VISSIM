@@ -40,7 +40,7 @@ def harness_source(source: str | None = None, body: str = "") -> str:
     return f'''Option Explicit
 Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
-Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle
+Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
 Dim failures
 failures = 0
@@ -49,6 +49,7 @@ Set sgPlanExpected = CreateObject("Scripting.Dictionary")
 Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
 Set sgPlanWindows = CreateObject("Scripting.Dictionary")
 Set sgPlanCycle = CreateObject("Scripting.Dictionary")
+Set sgPlanGroups = CreateObject("Scripting.Dictionary")
 
 {helpers}
 
@@ -141,7 +142,7 @@ def contract_harness_source(source: str | None = None, body: str = "") -> str:
     return f'''Option Explicit
 Const AMBER_SEC = 3
 Const ALL_RED_SEC = 2
-Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts
+Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS, RW_SIGNAL_SCS
 Dim seenSg, pendWindows, pendCounts, pendCycle, pendOffset, rowCycle, rowOffset
 Dim failures
@@ -150,6 +151,7 @@ sgPlanEnabled = False
 RW_SIGNAL_SCS = "7"
 Set sgPlanExpected = CreateObject("Scripting.Dictionary")
 Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
+Set sgPlanGroups = CreateObject("Scripting.Dictionary")
 
 {helpers}
 
@@ -265,6 +267,109 @@ badId = Split("signal_sg,SC7_SG2_W0,1,7,0,0,0,0,20,4,0,50,ok", ",")
 Check "reject_id_mismatch", _
     SignalSgRowValid(badId, seenSg, pendWindows, pendCounts, pendCycle, pendOffset), False
 '''
+
+
+EVENT_PROCEDURES = (
+    "ParseSignalGroupPlanConfig",
+    "SignalGroupPlanKey",
+    "SignalGroupPlanWindows",
+    "SignalGroupStateFromPlan",
+    "SignalCompositeStateAt",
+    "NextSignalTransitionAfter",
+    "MaxSignalCycleSec",
+    "DictValue",
+    "FMod",
+)
+
+
+def event_harness_source(source: str | None = None, body: str = "") -> str:
+    if source is None:
+        source = SOURCE
+    helpers = "\n\n".join(procedure(source, name) for name in EVENT_PROCEDURES)
+    return f'''Option Explicit
+Const AMBER_SEC = 3
+Const ALL_RED_SEC = 2
+Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
+Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
+Dim sigMajor, sigMinor, sigOffset, simPeriod
+Dim failures
+failures = 0
+simPeriod = 10000
+sgPlanEnabled = False
+Set sgPlanExpected = CreateObject("Scripting.Dictionary")
+Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
+Set sgPlanWindows = CreateObject("Scripting.Dictionary")
+Set sgPlanCycle = CreateObject("Scripting.Dictionary")
+Set sgPlanGroups = CreateObject("Scripting.Dictionary")
+Set sigMajor = CreateObject("Scripting.Dictionary")
+Set sigMinor = CreateObject("Scripting.Dictionary")
+Set sigOffset = CreateObject("Scripting.Dictionary")
+
+{helpers}
+
+Sub Check(label, actual, expected)
+    If CStr(actual) <> CStr(expected) Then
+        failures = failures + 1
+        WScript.Echo "FAIL " & label & " actual=" & CStr(actual) & " expected=" & CStr(expected)
+    Else
+        WScript.Echo "OK " & label
+    End If
+End Sub
+
+{body}
+
+If failures > 0 Then WScript.Quit 1
+WScript.Echo "PASS"
+'''
+
+
+EVENT_BODY = '''
+' 축은 major=20, minor=20 이라 주기 50 이다. 계획은 major 창을 SG1(0-12)과
+' SG2(12-20)로 쪼갠다. sec 12 는 축 전이가 아니라 **축 안의** 전이다.
+RW_SIGNAL_SG_PLAN_SCHEMA = 1
+RW_SIGNAL_SG_EXPECTED = "7:1:1,7:2:1,7:3:1"
+RW_SIGNAL_SG_CONFLICTS = "7:1-2"
+ParseSignalGroupPlanConfig
+Check "groups_listed", sgPlanGroups("7"), "1,2,3"
+
+sigMajor("7") = 20.0
+sigMinor("7") = 20.0
+sigOffset("7") = 0.0
+sgPlanWindows("7-1") = "0|12;"
+sgPlanWindows("7-2") = "12|20;"
+sgPlanWindows("7-3") = "25|45;"
+sgPlanCycle("7") = 50.0
+
+Check "composite_changes_inside_axis", _
+    (SignalCompositeStateAt(11) <> SignalCompositeStateAt(12)), True
+Check "event_breaks_at_intra_axis_edge", NextSignalTransitionAfter(10), 12
+
+' 계획을 끄면 예전 축 전이만 남는다 - sec 12 는 더 이상 이벤트가 아니다.
+sgPlanEnabled = False
+Check "legacy_has_no_intra_axis_event", NextSignalTransitionAfter(10), 20
+'''
+
+
+@unittest.skipUnless(CSCRIPT, "Windows Script Host is required")
+class SignalGroupPlanEventSchedulingTests(unittest.TestCase):
+    def _run(self, source: str, body: str) -> subprocess.CompletedProcess:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            harness = Path(temp_dir) / "sg_event_harness.vbs"
+            harness.write_text(event_harness_source(source, body), encoding="utf-8")
+            return subprocess.run(
+                [CSCRIPT, "//nologo", str(harness)],
+                check=False,
+                capture_output=True,
+                text=True,
+                errors="replace",
+                timeout=60,
+            )
+
+    def test_event_scheduler_breaks_at_intra_axis_signal_group_edges(self) -> None:
+        """계획이 켜지면 SG 창 경계도 이벤트다. 아니면 상태가 늦게 쓰인다."""
+        result = self._run(SOURCE, EVENT_BODY)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS", result.stdout)
 
 
 @unittest.skipUnless(CSCRIPT, "Windows Script Host is required")
