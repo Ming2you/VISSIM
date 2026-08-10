@@ -1,0 +1,106 @@
+{
+  "schema_version": "signal-timing-oracle-v3",
+  "status": "FAIL",
+  "valid_interval_contract": {
+    "statement": "A state written at event second t is the intent for [t, t'), where t' is the next event second. Evidence exists only at the two endpoints: stage=immediate at t proves the COM write took, stage=post_step at t' proves it survived the run-continuous span. The interior of [t, t') is never sampled.",
+    "stages": {
+      "immediate": "written and read back at t, inside ApplyRuntimeSignals",
+      "post_step": "read back at t' by ValidateRuntimeSignalPersistence, before any new write"
+    },
+    "interior_sampled": false,
+    "write_grid_sec": 1.0,
+    "source": "run_real_world_stackelberg_controller.vbs RunEventContinuousMode"
+  },
+  "gates": [
+    {
+      "name": "plan_self_conflict",
+      "status": "PASS",
+      "detail": "no forbidden pair overlaps anywhere in the delivered plan (interval arithmetic, whole cycle)",
+      "count": 0,
+      "value": null,
+      "needs": ""
+    },
+    {
+      "name": "cycle_wrap",
+      "status": "PASS",
+      "detail": "every green window lies inside [0, cycle); the state function wraps with fmod(t+offset, cycle)",
+      "count": 0,
+      "value": null,
+      "needs": ""
+    },
+    {
+      "name": "command_quantization_sec",
+      "status": "FAIL",
+      "detail": "worst |intended boundary - first writable second| = 0.990385 s (gate 0.5 s, worst at sc=5 sg=4 boundary=105.009615); the runner writes signal states only on integer seconds",
+      "count": 0,
+      "value": 0.9903850000000034,
+      "needs": ""
+    },
+    {
+      "name": "min_green_sec",
+      "status": "NOT_EVALUATED",
+      "detail": "shortest planned green = 7.276595999999998 s at sc=1001 sg=7; no authority declares a minimum",
+      "count": 0,
+      "value": 7.276595999999998,
+      "needs": "a declared per-signal-group minimum green. The .sig programs carry empty <intergreenmatrices/>, so VISSIM declares none; pass --min-green-sec to gate on it."
+    },
+    {
+      "name": "request_readback_mismatch",
+      "status": "NOT_EVALUATED",
+      "detail": "no readback log supplied",
+      "count": 0,
+      "value": null,
+      "needs": "decisions/signal_readback.csv from a real VISSIM run (sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage)"
+    },
+    {
+      "name": "post_step_persistence",
+      "status": "NOT_EVALUATED",
+      "detail": "no readback log supplied",
+      "count": 0,
+      "value": null,
+      "needs": "decisions/signal_readback.csv from a real VISSIM run (sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage)"
+    },
+    {
+      "name": "intent_vs_request",
+      "status": "NOT_EVALUATED",
+      "detail": "no readback log supplied",
+      "count": 0,
+      "value": null,
+      "needs": "decisions/signal_readback.csv from a real VISSIM run (sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage)"
+    },
+    {
+      "name": "command_lag_sign",
+      "status": "NOT_EVALUATED",
+      "detail": "no readback log supplied",
+      "count": 0,
+      "value": null,
+      "needs": "decisions/signal_readback.csv from a real VISSIM run (sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage)"
+    },
+    {
+      "name": "runtime_cogreen",
+      "status": "NOT_EVALUATED",
+      "detail": "no readback log supplied",
+      "count": 0,
+      "value": null,
+      "needs": "decisions/signal_readback.csv from a real VISSIM run (sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage)"
+    },
+    {
+      "name": "transition_time_error_sec",
+      "status": "BLOCKED",
+      "detail": "the D-core gate is 0.5 s but signal states are written and read back only on a 1 s grid, so the error cannot be resolved. Per IMPLEMENTATION_PLAN_V3_LEAN.md N4-6 this is BLOCKED, not PASS, and it keeps the N4-7 offset promotion locked.",
+      "count": 0,
+      "value": null,
+      "needs": "sub-second signal readback (a runner that steps and reads back finer than 0.5 s), or an agreed relaxation of the gate"
+    }
+  ],
+  "counts": {
+    "decisions": 1,
+    "readback_rows": 0
+  },
+  "sources": {
+    "plan": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\signal_group_actuation_plan_v3.json",
+    "readback_csv": "",
+    "action_log_csv": "",
+    "action_rows_simulated": true
+  }
+}

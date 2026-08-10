@@ -1216,3 +1216,98 @@ LHS 는 7.7778 veh 로 고정이다. 부등식은 30 km/h 부터 깨지지만 **
 3. **정체 이중계상 여부를 아직 실 런으로 못 봤다.** `available` 과 관측 속도가 같은 정체를
    얼마나 겹쳐 세는지는 위 표(합성 시나리오)로는 답이 안 나온다. 재스냅샷 후 실런에서
    도시부 TTT 가 어느 쪽으로 움직이는지 봐야 한다.
+
+---
+
+## N4-5 / N4-6 (2026-08-10)
+
+### N4-5 — 무엇이 비대칭이었나
+
+모델은 N4-3 이후 축 녹색에 native 배분을 곱해 예측한다. 러너는 SG 상태를 이름
+부분문자열로만 정해서(`SignalStateForGroup`) 축 전체를 그 축의 **모든** SG 에 줬다.
+같은 지시값이 모델에서는 SG 별로 갈리고 플랜트에서는 뭉개졌다. 이 상태로 N9 를 돌리면
+ΔJ 가 무엇의 효과인지 말할 수 없다.
+
+닫는 방식은 축 녹색 시간의 **단조 재매개화**다. 축의 native 녹색 합집합 U 를 시간축으로
+삼고 `cum(t)/|U|` 로 정규화해 지시된 축 창에 편다. 성질 셋이 이 선택의 근거다.
+
+1. SG g 의 realize 녹색 = 지시 축 녹색 × |g 의 녹색| / |U| — 모델 share 와 **같은 분수**다.
+2. cum 이 단조라 native 에서 떨어져 있던 쌍은 편 뒤에도 떨어져 있다. 동시녹색을
+   새로 만들지 않는다.
+3. 축 SG 들의 realize 녹색 합집합이 지시 축 창을 빈틈없이 채운다(예산 보존).
+
+축의 위치·길이·주기 공식(`cycle = major + amber + all_red + minor + amber + all_red`)은
+건드리지 않았다. **축 안의 분배만** 바뀐다.
+
+### 정본 타이밍 표를 쓰지 않은 이유 (중요)
+
+`outputs/signal_group_timing_v3.json` 은 파일명 번호로 `.sig` 를 골랐다. inpx 의
+`supplyFile2` 와 4/15 SC 에서 다르다.
+
+    SC5  표 140 s (test-bed5)  ↔ inpx 160 s (test-bed7)
+    SC6  표 100 s (test-bed6)  ↔ inpx 160 s (test-bed9)
+    SC11 표 160 s (test-bed11) ↔ inpx 150 s (test-bed3)
+    SC12 표 150 s (test-bed12) ↔ inpx 140 s (test-bed5)
+
+VISSIM 이 읽는 것은 inpx 쪽이고, 모델의 `compile_fixed_signal_schedules` 도 inpx 를 읽는다.
+그래서 계획은 inpx 에서 나온다. 표는 고치지 않고 `timing_table_disagreements` 로 남겼다
+(표 생산자의 몫이다).
+
+### 계약을 행이 아니라 config 에 둔 이유
+
+기대 SG 집합과 동시녹색 금지 쌍이 action CSV 안에 있으면 행이 자기 자신을 인증한다.
+그것은 fail-closed 가 아니다. 그래서 `<config>_sgplan.vbs` 에 두고 러너가 ExecuteGlobal 한다.
+
+### 헤더를 늘리지 않은 이유
+
+13열 헤더를 늘리면 러너의 `UBound(parts) <> 12` 계약과 기존 action CSV 소비자가 전부
+함께 깨진다. 대신 `kind=signal_sg` 행을 추가하고 열을 재사용했다(dsd_no→sg, link→창
+인덱스, major_green→창 시작, minor_green→창 끝, offset→SC offset, green_sec→플랜 주기).
+재사용 열의 의미는 어댑터·러너·테스트 세 곳에 같은 말로 적어 뒀다.
+
+### 작업 중 발견한 실제 버그
+
+러너는 매초 돌지 않는다. `NextSignalTransitionAfter` 가 `SignalCompositeStateAt` 이
+바뀌는 초를 찾아 거기까지 `RunContinuous` 한다. 그 합성 상태가 2현시 축 상태만 보고
+있어서, 계획이 쪼갠 **축 안의** SG 경계가 이벤트가 아니었다. 그러면 SG 전이가 다음
+이벤트까지 늦게 쓰인다 — 계획대로 구동되지 않는다. 재현: major=20/minor=20 에서
+SG1 0–12, SG2 12–20 일 때 `NextSignalTransitionAfter(10)` 이 12 가 아니라 20 이었다.
+
+### N4-6 — valid-interval 계약
+
+    stage=immediate (t):  t 에 쓴 값이 그 자리에서 되읽혔다.
+    stage=post_step (t'): t 에 쓴 값이 t' 까지 유지되었다.
+
+값 v 의 유효 구간은 `[t, t')` 이고 증거는 **양 끝점 두 표본뿐**이다. 구간 내부는 표본이
+없다(`interior_sampled=False`). 이것을 숨기면 "유지되었다"가 근거 없이 커진다.
+
+### N4-6 판정 (실측)
+
+실 계획(major 57 / minor 63)에 대해 실 런 없이 낼 수 있는 판정.
+
+| gate | 결과 |
+|---|---|
+| plan_self_conflict | PASS — 금지 쌍이 계획 어디에서도 겹치지 않는다 |
+| cycle_wrap | PASS — 모든 창이 [0, cycle) 안이다 |
+| command_quantization_sec | **FAIL 0.990 s** (게이트 0.5 s) |
+| min_green_sec | NOT_EVALUATED — 최소녹색을 선언하는 권위가 없다(.sig 의 intergreenmatrices 가 비었다). 최단 계획 녹색 7.28 s (SC1001 SG7) |
+| transition_time_error_sec | **BLOCKED** — readback 격자 1 s > 게이트 0.5 s |
+| readback 5개 게이트 | NOT_EVALUATED — 실 런 필요 |
+
+`command_quantization_sec` 가 핵심이다. 계획의 창 경계는 실수인데(지시 축 녹색 × native
+분율) 러너는 정수 초에만 쓴다. 그래서 실현 전이는 의도의 올림이고 오차가 최대 0.99 s 다.
+**실 런 없이 재진다** — 계획과 러너의 쓰기 격자만으로 결정되기 때문이다.
+
+이 값이 0.5 s 를 넘으므로 D-core 는 PASS 가 아니고, 계획 N4-7 의 삼중 잠금에 따라
+offset production writer 는 계속 잠겨 있다.
+
+### 남은 비대칭 (숨기지 않는다)
+
+1. **주기가 여전히 다르다.** 모델은 `net.signal_cycle_length(signal)` 로 예측하는데
+   `cycle_length_by_signal` 은 의도적으로 비어 있어 전역 스칼라로 떨어진다. 플랜트 주기는
+   `major + minor + 10` 이다. N4-5 는 **축 안의 분배**만 닫았고 주기 자체는 열려 있다.
+2. **경계 양자화 0.99 s.** 위 표. 이것을 닫으려면 러너가 초 미만 격자로 쓰거나(구조 변경),
+   계획이 정수 경계만 내도록 제약해야 한다(배분이 그만큼 뭉개진다).
+3. **영구 적색 SG 20개.** inpx 프로그램에서 녹색창이 없는 SG 다. 이름 규칙은 이들에게
+   축 녹색을 통째로 줬다 — 즉 지금까지 과대 서비스였다. 계획은 적색으로 둔다.
+4. **최단 계획 녹색 7.28 s.** 최소녹색 기준이 정해지면 다시 판정해야 한다.

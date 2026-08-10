@@ -1,0 +1,105 @@
+{
+  "schema_version": "signal-timing-oracle-v3",
+  "status": "BLOCKED",
+  "valid_interval_contract": {
+    "statement": "A state written at event second t is the intent for [t, t'), where t' is the next event second. Evidence exists only at the two endpoints: stage=immediate at t proves the COM write took, stage=post_step at t' proves it survived the run-continuous span. The interior of [t, t') is never sampled.",
+    "stages": {
+      "immediate": "written and read back at t, inside ApplyRuntimeSignals",
+      "post_step": "read back at t' by ValidateRuntimeSignalPersistence, before any new write"
+    },
+    "interior_sampled": false,
+    "write_grid_sec": 1.0,
+    "source": "run_real_world_stackelberg_controller.vbs RunEventContinuousMode"
+  },
+  "gates": [
+    {
+      "name": "plan_self_conflict",
+      "status": "NOT_EVALUATED",
+      "detail": "no signal_sg rows in the action log",
+      "count": 0,
+      "value": null,
+      "needs": "an action log that carries kind=signal_sg rows"
+    },
+    {
+      "name": "cycle_wrap",
+      "status": "NOT_EVALUATED",
+      "detail": "no signal_sg rows in the action log",
+      "count": 0,
+      "value": null,
+      "needs": "an action log that carries kind=signal_sg rows"
+    },
+    {
+      "name": "command_quantization_sec",
+      "status": "NOT_EVALUATED",
+      "detail": "no signal_sg rows in the action log",
+      "count": 0,
+      "value": null,
+      "needs": "an action log that carries kind=signal_sg rows"
+    },
+    {
+      "name": "min_green_sec",
+      "status": "NOT_EVALUATED",
+      "detail": "no signal_sg rows in the action log",
+      "count": 0,
+      "value": null,
+      "needs": "an action log that carries kind=signal_sg rows"
+    },
+    {
+      "name": "request_readback_mismatch",
+      "status": "PASS",
+      "detail": "0 immediate readbacks disagree with the requested state (8 samples)",
+      "count": 0,
+      "value": null,
+      "needs": ""
+    },
+    {
+      "name": "post_step_persistence",
+      "status": "PASS",
+      "detail": "0 post-step readbacks drifted from the requested state (648 samples)",
+      "count": 0,
+      "value": null,
+      "needs": ""
+    },
+    {
+      "name": "intent_vs_request",
+      "status": "NOT_EVALUATED",
+      "detail": "0/0 written states disagree with the delivered plan ()",
+      "count": 0,
+      "value": null,
+      "needs": "an action log whose kind=signal_sg rows cover the controllers in the readback log; without a delivered plan there is nothing to compare the written state to"
+    },
+    {
+      "name": "command_lag_sign",
+      "status": "NOT_EVALUATED",
+      "detail": "0/0 transitions were written before the plan called for them ()",
+      "count": 0,
+      "value": null,
+      "needs": "a readback log containing at least one state transition under a delivered plan"
+    },
+    {
+      "name": "runtime_cogreen",
+      "status": "NOT_EVALUATED",
+      "detail": "0/0 sampled seconds show a forbidden pair both GREEN ()",
+      "count": 0,
+      "value": null,
+      "needs": "a readback log with GREEN samples for a controller that the actuation plan declares conflict pairs for"
+    },
+    {
+      "name": "transition_time_error_sec",
+      "status": "BLOCKED",
+      "detail": "the D-core gate is 0.5 s but signal states are written and read back only on a 1 s grid, so the error cannot be resolved. Per IMPLEMENTATION_PLAN_V3_LEAN.md N4-6 this is BLOCKED, not PASS, and it keeps the N4-7 offset promotion locked.",
+      "count": 0,
+      "value": null,
+      "needs": "sub-second signal readback (a runner that steps and reads back finer than 0.5 s), or an agreed relaxation of the gate"
+    }
+  ],
+  "counts": {
+    "decisions": 0,
+    "readback_rows": 656
+  },
+  "sources": {
+    "plan": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\signal_group_actuation_plan_v3.json",
+    "readback_csv": "evaluation\\runs\\n1_anchor2_20260807\\73489c898278400aa2d52b6b73159b9a\\attempt_01_2dd1dec570ac4a6b93316829a14d0ebf\\decisions\\signal_readback.csv",
+    "action_log_csv": "evaluation\\runs\\n1_anchor2_20260807\\73489c898278400aa2d52b6b73159b9a\\attempt_01_2dd1dec570ac4a6b93316829a14d0ebf\\actions.csv"
+  }
+}

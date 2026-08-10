@@ -190,3 +190,30 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
   플랜트 온램프 유입 4,436 veh/h, 본선 감소는 오프램프 유출(6,681)이 더 크기 때문이었다.
 - ~~"모델이 온램프 수요를 3.4배 과소추정"~~ — 재캘리브레이션으로 해소(rho +0.714, G5 링크 MAPE PASS)
 - ~~도시부 route design 을 IC 방향으로 변경~~ — 위와 같은 이유로 불필요
+
+---
+
+## N4-5 / N4-6 (2026-08-10)
+
+### N4-5 — action 스키마 N현시
+
+- [x] `evaluation/controllers/signal_group_plan.py` — 축 녹색 시간의 단조 재매개화 (TDD 13/13)
+- [x] `scripts/derive_signal_group_actuation_plan.py` — inpx supplyFile2 에서 계획 생산 (TDD 6/6)
+- [x] `outputs/signal_group_actuation_plan_v3.json` — SG 136 / 창 118 / 영구적색 20 / 충돌쌍 312
+- [x] `..._sgplan.vbs` — 기대 SG 집합·충돌 쌍을 config 로 (행이 자기 인증하지 않게)
+- [x] 어댑터 `signal_group_action_rows` — 13열 헤더 불변, `kind=signal_sg` 행 (TDD 6/6)
+- [x] 러너 — 계획 구동 / 전량 거부 / 이름 규칙 폴백 계상 (cscript 실행 TDD 8/8, 되돌림 증명 4)
+- [x] 러너 시작 게이트 `ValidateSignalGroupPlanCoverage` — VISSIM SG 집합과 계약 완전 일치
+- [x] 이벤트 스케줄러가 축 **안의** SG 경계에서도 멈추게 수정 (발견한 실제 버그)
+- [ ] 실 런에서 `SIGNAL_NAME_RULE_FALLBACKS = 0` 확인 — **런 필요**
+- [ ] core15n41 외 generated config 의 `_sgplan.vbs` 생성 — 필요할 때
+
+### N4-6 — 신호 timing oracle (D-core)
+
+- [x] `evaluation/controllers/signal_timing_oracle.py` — 게이트 10개 + valid-interval 계약 (TDD 20/20)
+- [x] `scripts/verify_signal_timing_oracle.py` — 실 런 산출물 / 계획 단독 두 경로 (TDD 4/4)
+- [x] run-free 판정: plan_self_conflict PASS · cycle_wrap PASS · quantization **FAIL 0.990 s**
+- [x] transition_time_error 는 PASS 가 아니라 **BLOCKED** (readback 격자 1 s > 게이트 0.5 s)
+- [x] 표본 0 을 "위반 0"으로 읽지 않게 fail-open 구멍 막음 (NOT_EVALUATED)
+- [ ] readback 5개 게이트 — **실 런 필요** (`decisions/signal_readback.csv` + signal_sg 행이 있는 action 로그)
+- [ ] 최소녹색 권위 결정 — `.sig` 의 intergreenmatrices 가 비어 있어 VISSIM 이 선언하지 않는다

@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+# v3 N4-6 - 실 런의 readback 로그와 전달된 계획을 대조해 D-core 판정을 낸다
+"""Run the signal timing oracle over a run's artifacts and emit a verdict.
+
+    python scripts/verify_signal_timing_oracle.py \
+        --run-dir evaluation/runs/<run>/<hash>/<attempt> \
+        --out outputs/signal_timing_oracle_<run>.json
+
+`--run-dir` 은 `decisions/signal_readback.csv` 와 action 로그 CSV 를 담은 폴더다.
+둘 중 없는 것이 있으면 그 게이트는 **PASS 가 아니라** `NOT_EVALUATED` 로 남고,
+무엇이 있어야 판정할 수 있는지가 `needs` 에 적힌다.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import sys
+from pathlib import Path
+from typing import Any, Sequence
+
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from evaluation.controllers import signal_timing_oracle  # noqa: E402
+from evaluation.controllers.vissim_stackelberg_adapter import (  # noqa: E402
+    signal_group_action_rows,
+)
+
+
+DEFAULT_PLAN = REPO / "outputs" / "signal_group_actuation_plan_v3.json"
+
+
+def simulated_action_rows(
+    plan_table: dict[str, Any], major_green: float, minor_green: float, offset: float = 0.0
+) -> list[dict[str, Any]]:
+    """실 런 없이 run-free 게이트를 재기 위해, 어댑터와 **같은 경로**로 행을 만든다.
+
+    이것은 런의 대체물이 아니다. readback 게이트는 여전히 NOT_EVALUATED 로 남는다.
+    여기서 얻는 것은 계획 자체의 성질(동시녹색·주기 wrap·경계 양자화·최소녹색)뿐이다.
+    """
+    rows: list[dict[str, Any]] = []
+    for sc_no in sorted((plan_table.get("controllers") or {}), key=int):
+        rows.append({
+            "sim_sec": "0", "kind": "signal", "id": f"SC{sc_no}", "sc_no": sc_no,
+            "major_green": str(major_green), "minor_green": str(minor_green),
+            "offset": str(offset), "green_sec": "", "dsd_no": "", "link": "",
+        })
+        for row in signal_group_action_rows(
+            plan_table, sc_no=int(sc_no), major_green=major_green,
+            minor_green=minor_green, offset=offset, metadata="simulated",
+        ):
+            simulated = {key: str(value) for key, value in row.items()}
+            simulated["sim_sec"] = "0"
+            rows.append(simulated)
+    return rows
+
+
+def read_csv_rows(path: Path | None) -> list[dict[str, Any]] | None:
+    if path is None or not Path(path).is_file():
+        return None
+    with Path(path).open(encoding="utf-8-sig", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def find_readback(run_dir: Path) -> Path | None:
+    candidate = Path(run_dir) / "decisions" / "signal_readback.csv"
+    return candidate if candidate.is_file() else None
+
+
+def find_action_log(run_dir: Path) -> Path | None:
+    """러너의 action 로그. 파일명은 런마다 다르니 헤더로 고른다."""
+    for candidate in sorted(Path(run_dir).glob("*.csv")):
+        try:
+            with candidate.open(encoding="utf-8-sig", newline="") as handle:
+                header = handle.readline().strip()
+        except OSError:
+            continue
+        if header.startswith("sim_sec,kind,id,dsd_no,sc_no,link,lane,speed_kph,major_green"):
+            return candidate
+    return None
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Signal timing oracle (v3 N4-6 D-core)")
+    parser.add_argument("--run-dir", type=Path, default=None)
+    parser.add_argument("--readback-csv", type=Path, default=None)
+    parser.add_argument("--action-log-csv", type=Path, default=None)
+    parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
+    parser.add_argument("--min-green-sec", type=float, default=None)
+    parser.add_argument("--simulate-major-green", type=float, default=None)
+    parser.add_argument("--simulate-minor-green", type=float, default=None)
+    parser.add_argument("--out", type=Path, default=None)
+    args = parser.parse_args(argv)
+
+    readback_path = args.readback_csv
+    action_path = args.action_log_csv
+    if args.run_dir is not None:
+        if readback_path is None:
+            readback_path = find_readback(args.run_dir)
+        if action_path is None:
+            action_path = find_action_log(args.run_dir)
+
+    plan_table = json.loads(Path(args.plan).read_text(encoding="utf-8")) if Path(args.plan).is_file() else {}
+    action_data = read_csv_rows(action_path)
+    simulated = False
+    if not action_data and args.simulate_major_green is not None and args.simulate_minor_green is not None:
+        action_data = simulated_action_rows(
+            plan_table, args.simulate_major_green, args.simulate_minor_green
+        )
+        simulated = True
+    report = signal_timing_oracle.evaluate(
+        plan_table,
+        action_data,
+        read_csv_rows(readback_path),
+        min_green_sec=args.min_green_sec,
+    )
+    report["sources"] = {
+        "plan": str(args.plan),
+        "readback_csv": str(readback_path) if readback_path else "",
+        "action_log_csv": str(action_path) if action_path else "",
+        "action_rows_simulated": simulated,
+    }
+    text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    if args.out is not None:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(text, encoding="utf-8", newline="\n")
+
+    print("status=%s" % report["status"])
+    for gate in report["gates"]:
+        print("  %-28s %-14s %s" % (gate["name"], gate["status"], gate["detail"]))
+        if gate["needs"]:
+            print("      needs: %s" % gate["needs"])
+    return 0 if report["status"] == signal_timing_oracle.PASS else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
