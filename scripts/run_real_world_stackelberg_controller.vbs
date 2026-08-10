@@ -100,6 +100,17 @@ Dim RW_RAMP_METER_IDS, RW_RAMP_METER_SCS, RW_RAMP_METER_CONNECTORS, RW_RAMP_METE
 ' so a config that sets it can be ExecuteGlobal'd under Option Explicit.
 Dim RW_PYTHON_EXE
 RW_PYTHON_EXE = ""
+' N4-5. SG 단위 액추에이션 계획의 계약. scripts/derive_signal_group_actuation_plan.py 가
+' generated config 옆에 <config>_sgplan.vbs 로 내보내고, 여기서 ExecuteGlobal 한다.
+'   RW_SIGNAL_SG_EXPECTED   "sc:sg:window_count,..."  이 SC 의 모든 SG 와 기대 창 수
+'   RW_SIGNAL_SG_CONFLICTS  "sc:a-b;..."              절대 동시 GREEN 이면 안 되는 쌍
+' 계약을 action CSV 가 아니라 config 에서 받는 것이 요점이다. 행이 자기 자신을
+' 인증하면 fail-closed 가 아니다.
+Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_PLAN_SOURCE_SHA256, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
+RW_SIGNAL_SG_PLAN_SCHEMA = 0
+RW_SIGNAL_SG_PLAN_SOURCE_SHA256 = ""
+RW_SIGNAL_SG_EXPECTED = ""
+RW_SIGNAL_SG_CONFLICTS = ""
 RW_SCHEMA_VERSION = 0
 RW_FREEWAY_LINKS = "2,24,26,74,10699,10702"
 RW_FREEWAY_INPUT_LINKS = "26,74"
@@ -143,6 +154,21 @@ If generatedConfigLoaded And CLng(RW_SCHEMA_VERSION) < 3 Then
     WScript.Quit 2
 End If
 detectorMappingPath = RW_DETECTOR_MAPPING_PATH
+' N4-5. 계획 config 는 generated config 의 형제 파일이다(<config>_sgplan.vbs).
+' 없으면 sgPlanEnabled = False 이고 러너는 예전 이름 규칙 경로로 돈다 - 다만 그 경로의
+' 사용 건수를 SIGNAL_NAME_RULE_FALLBACKS 로 세어 조용히 지나가지 못하게 한다.
+Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle
+Dim signalNameRuleFallbacks, signalSgPlanRows, signalCoGreenBlocks
+sgPlanEnabled = False
+Set sgPlanExpected = CreateObject("Scripting.Dictionary")
+Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
+Set sgPlanWindows = CreateObject("Scripting.Dictionary")
+Set sgPlanCycle = CreateObject("Scripting.Dictionary")
+signalNameRuleFallbacks = 0
+signalSgPlanRows = 0
+signalCoGreenBlocks = 0
+LoadSignalGroupPlanConfig generatedConfigPath
+ParseSignalGroupPlanConfig
 
 Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
@@ -252,6 +278,7 @@ WScript.Echo "FW_E_SEG_BOUNDS=" & RW_FW_E_SEG_BOUNDS
 WScript.Echo "FW_W_CHAIN=" & RW_FW_W_CHAIN_LINKS & " offsets_m=" & RW_FW_W_CHAIN_OFFSETS_M & " length_m=" & Num(RW_FW_W_LENGTH_M)
 WScript.Echo "FW_W_SEG_BOUNDS=" & RW_FW_W_SEG_BOUNDS
 WScript.Echo "RAMP_METER_SCS=" & RW_RAMP_METER_SCS
+ValidateSignalGroupPlanCoverage
 If incidentEnabled Then
     WScript.Echo "INCIDENT=ENABLED link=" & CStr(incidentLinkNo) & " lane=" & CStr(incidentLaneNo) & " pos_m=" & Num(incidentPosM) & " start_sec=" & CStr(incidentStartSec) & " end_sec=" & CStr(incidentEndSec) & " name=" & incidentName
 Else
@@ -325,6 +352,13 @@ WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
 WScript.Echo "ACTION_FORMAT_FAILURES=" & CStr(actionFormatFailures)
 WScript.Echo "COM_FAILURES=" & CStr(comFailures)
 WScript.Echo "OPTIONAL_ATT_SKIPS=" & CStr(optionalAttSkips)
+' N4-5. 계획이 켜진 production 런은 SIGNAL_NAME_RULE_FALLBACKS = 0 이어야 한다.
+' 0 이 아니면 그만큼의 SG 상태가 여전히 이름 부분문자열로 정해졌다는 뜻이다.
+WScript.Echo "SIGNAL_SG_PLAN_ENABLED=" & CStr(BoolInt(sgPlanEnabled))
+WScript.Echo "SIGNAL_SG_PLAN_GROUPS=" & CStr(sgPlanExpected.Count)
+WScript.Echo "SIGNAL_SG_PLAN_ROWS=" & CStr(signalSgPlanRows)
+WScript.Echo "SIGNAL_NAME_RULE_FALLBACKS=" & CStr(signalNameRuleFallbacks)
+WScript.Echo "SIGNAL_COGREEN_BLOCKS=" & CStr(signalCoGreenBlocks)
 If decisionsFailed > 0 Or observationFailures > 0 Or signalFailures > 0 Or actionFormatFailures > 0 Or comFailures > 0 Then
     WScript.Echo "ERROR=RUN_INTEGRITY_FAILURE decisions_failed=" & CStr(decisionsFailed) & _
         " observation_failures=" & CStr(observationFailures) & " signal_failures=" & CStr(signalFailures) & _
@@ -796,12 +830,21 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     Dim ts, line, first, parts, kind, dsdNo, speed, dsd, readback, scNo, perfT0
     Dim vslRows, rampRows, signalRows, invalidRows, expectedVslRows, expectedRampRows, expectedSignalRows
     Dim seenVsl, seenRamp, seenSignal, rowKey, validatedRows(), validatedRowCount, i, vslWriteOk
+    Dim sgRows, expectedSgRows, seenSg, pendingSgWindows, pendingSgCounts, pendingSgCycle, pendingSgOffset
+    Dim rowSignalCycle, rowSignalOffset, planReason
     perfT0 = PerfNow()
     ApplyActionCsv = False
-    vslRows = 0: rampRows = 0: signalRows = 0: invalidRows = 0
+    vslRows = 0: rampRows = 0: signalRows = 0: invalidRows = 0: sgRows = 0
     Set seenVsl = CreateObject("Scripting.Dictionary")
     Set seenRamp = CreateObject("Scripting.Dictionary")
     Set seenSignal = CreateObject("Scripting.Dictionary")
+    Set seenSg = CreateObject("Scripting.Dictionary")
+    Set pendingSgWindows = CreateObject("Scripting.Dictionary")
+    Set pendingSgCounts = CreateObject("Scripting.Dictionary")
+    Set pendingSgCycle = CreateObject("Scripting.Dictionary")
+    Set pendingSgOffset = CreateObject("Scripting.Dictionary")
+    Set rowSignalCycle = CreateObject("Scripting.Dictionary")
+    Set rowSignalOffset = CreateObject("Scripting.Dictionary")
     seenRamp.CompareMode = 1
     seenSignal.CompareMode = 1
     ReDim validatedRows(0)
@@ -859,6 +902,24 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                     Else
                         seenSignal.Add rowKey, True
                         signalRows = signalRows + 1
+                        rowSignalCycle(CStr(CLng(Trim(CStr(parts(3)))))) = _
+                            CDbl(Trim(CStr(parts(7)))) + CDbl(Trim(CStr(parts(8)))) + _
+                            (2 * AMBER_SEC) + (2 * ALL_RED_SEC)
+                        rowSignalOffset(CStr(CLng(Trim(CStr(parts(3)))))) = CDbl(Trim(CStr(parts(9))))
+                    End If
+                ElseIf kind = "signal_sg" Then
+                    ' N4-5 행. 13열 헤더는 그대로 두고 열을 재사용한다.
+                    '   dsd_no -> sg 번호   link -> 창 인덱스
+                    '   major_green -> 창 시작[s]   minor_green -> 창 끝[s]
+                    '   offset -> 그 SC 의 offset   green_sec -> 플랜 주기[s]
+                    If Not sgPlanEnabled Then
+                        invalidRows = invalidRows + 1
+                        WScript.Echo "ERROR=ACTION_CSV_SIGNAL_SG_WITHOUT_PLAN_CONFIG sim_sec=" & CStr(simSec) & _
+                            " row=" & OneLine(CStr(line))
+                    ElseIf Not SignalSgRowValid(parts, seenSg, pendingSgWindows, pendingSgCounts, pendingSgCycle, pendingSgOffset) Then
+                        invalidRows = invalidRows + 1
+                    Else
+                        sgRows = sgRows + 1
                     End If
                 Else
                     invalidRows = invalidRows + 1
@@ -870,17 +931,31 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     expectedVslRows = CsvNonEmptyCount(RW_EXPECTED_VSL_DSD_IDS)
     expectedRampRows = CsvNonEmptyCount(RW_RAMP_METER_SCS)
     expectedSignalRows = CsvNonEmptyCount(RW_SIGNAL_SCS)
-    If SignalRowsSuppressedForController(effectiveController) Then expectedSignalRows = 0
+    expectedSgRows = SignalGroupPlanExpectedRowCount()
+    If SignalRowsSuppressedForController(effectiveController) Then
+        expectedSignalRows = 0
+        expectedSgRows = 0
+    End If
+    ' 계획이 켜졌는데 행이 부족하거나, SG별 창 수가 계약과 다르거나, 축 지시와 창의
+    ' 주기/offset 이 어긋나거나, 금지된 쌍이 동시녹색이면 - 전량 거부다. 부분 적용은 없다.
+    planReason = ""
+    If sgPlanEnabled And expectedSgRows > 0 Then
+        planReason = SignalGroupPlanRejectReason( _
+            pendingSgWindows, pendingSgCounts, pendingSgCycle, rowSignalCycle, rowSignalOffset)
+    End If
     If first Or expectedVslRows <> CLng(RW_EXPECTED_VSL_ACTION_ROWS) Or vslRows <> expectedVslRows Or rampRows <> expectedRampRows Or _
-            signalRows <> expectedSignalRows Or invalidRows > 0 Then
+            signalRows <> expectedSignalRows Or sgRows <> expectedSgRows Or invalidRows > 0 Or planReason <> "" Then
         actionFormatFailures = actionFormatFailures + 1
         WScript.Echo "ERROR=ACTION_CSV_CONTRACT sim_sec=" & CStr(simSec) & _
             " vsl=" & CStr(vslRows) & "/" & CStr(expectedVslRows) & _
             " ramp=" & CStr(rampRows) & "/" & CStr(expectedRampRows) & _
-            " signal=" & CStr(signalRows) & "/" & CStr(expectedSignalRows) & " invalid=" & CStr(invalidRows)
+            " signal=" & CStr(signalRows) & "/" & CStr(expectedSignalRows) & _
+            " signal_sg=" & CStr(sgRows) & "/" & CStr(expectedSgRows) & _
+            " invalid=" & CStr(invalidRows) & " plan_reject=" & OneLine(planReason)
         PerfAdd "action.apply", perfT0
         Exit Function
     End If
+    signalSgPlanRows = signalSgPlanRows + sgRows
 
     For i = 0 To validatedRowCount - 1
         parts = Split(validatedRows(i), ",")
@@ -929,6 +1004,11 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
             sigMajor(scNo) = CDbl(Trim(CStr(parts(7))))
             sigMinor(scNo) = CDbl(Trim(CStr(parts(8))))
             sigOffset(scNo) = CDbl(Trim(CStr(parts(9))))
+            ' 축 지시와 그 축을 쪼갠 창을 같은 지점에서 커밋한다(주기 정합).
+            If sgPlanEnabled And expectedSgRows > 0 Then
+                CommitSignalGroupPlan CLng(scNo), pendingSgWindows, _
+                    CDbl(DictValue(pendingSgCycle, CStr(CLng(scNo)), 0.0))
+            End If
         End If
         actionFile.WriteLine CStr(simSec) & "," & Join(parts, ",") & "," & readback
     Next
@@ -1052,6 +1132,130 @@ Function SignalActionValuesValid(majorValue, minorValue, offsetValue)
     offsetNumber = CDbl(offsetValue)
     If offsetNumber >= cycleValue Then Exit Function
     SignalActionValuesValid = True
+End Function
+
+' N4-5. `signal_sg` 행 하나의 국소 검증. 행 사이의 정합(창 수·주기·offset·동시녹색)은
+' 파일을 다 읽은 뒤 SignalGroupPlanRejectReason 이 본다.
+Function SignalSgRowValid(parts, seenSg, pendingWindows, pendingCounts, pendingCycle, pendingOffset)
+    Dim scText, sgText, key, rowKey, windowIndex, expectedId, cycleSec, startSec, endSec, offsetSec
+    SignalSgRowValid = False
+    If Not IsCanonicalCsvInt(parts(3), RW_SIGNAL_SCS) Then Exit Function
+    If Not IsCanonicalNonNegativeInt(parts(2)) Then Exit Function
+    If Not IsCanonicalNonNegativeInt(parts(4)) Then Exit Function
+    scText = CStr(CLng(Trim(CStr(parts(3)))))
+    sgText = CStr(CLng(Trim(CStr(parts(2)))))
+    key = scText & "-" & sgText
+    If Not sgPlanExpected.Exists(key) Then Exit Function
+    windowIndex = CLng(Trim(CStr(parts(4))))
+    rowKey = key & "-" & CStr(windowIndex)
+    If seenSg.Exists(rowKey) Then Exit Function
+    expectedId = "SC" & scText & "_SG" & sgText & "_W" & CStr(windowIndex)
+    If UCase(Trim(CStr(parts(1)))) <> UCase(expectedId) Then Exit Function
+    If Not IsFiniteNumberInRange(parts(11), 0.000001, 100000.0) Then Exit Function
+    cycleSec = CDbl(Trim(CStr(parts(11))))
+    If Not IsFiniteNumberInRange(parts(7), 0.0, cycleSec) Then Exit Function
+    If Not IsFiniteNumberInRange(parts(8), 0.0, cycleSec) Then Exit Function
+    If Not IsFiniteNumberInRange(parts(9), 0.0, cycleSec) Then Exit Function
+    startSec = CDbl(Trim(CStr(parts(7))))
+    endSec = CDbl(Trim(CStr(parts(8))))
+    offsetSec = CDbl(Trim(CStr(parts(9))))
+    If endSec <= startSec Then Exit Function
+    If pendingCycle.Exists(scText) Then
+        If Abs(CDbl(pendingCycle(scText)) - cycleSec) > 0.000001 Then Exit Function
+    Else
+        pendingCycle.Add scText, cycleSec
+    End If
+    If pendingOffset.Exists(scText) Then
+        If Abs(CDbl(pendingOffset(scText)) - offsetSec) > 0.000001 Then Exit Function
+    Else
+        pendingOffset.Add scText, offsetSec
+    End If
+    seenSg.Add rowKey, True
+    ' 값은 CSV 원문 그대로 담는다. 다시 포맷하면 로케일 소수점에 걸린다.
+    If pendingWindows.Exists(key) Then
+        pendingWindows(key) = CStr(pendingWindows(key)) & Trim(CStr(parts(7))) & "|" & Trim(CStr(parts(8))) & ";"
+    Else
+        pendingWindows.Add key, Trim(CStr(parts(7))) & "|" & Trim(CStr(parts(8))) & ";"
+    End If
+    pendingCounts(key) = CLng(DictValue(pendingCounts, key, 0)) + 1
+    SignalSgRowValid = True
+End Function
+
+Function SignalGroupPlanExpectedRowCount()
+    Dim key, total
+    SignalGroupPlanExpectedRowCount = 0
+    If Not sgPlanEnabled Then Exit Function
+    total = 0
+    For Each key In sgPlanExpected.Keys
+        total = total + CLng(sgPlanExpected(key))
+    Next
+    SignalGroupPlanExpectedRowCount = total
+End Function
+
+' 행 사이의 정합을 본다. 하나라도 어긋나면 사유를 돌려주고 호출부가 **전량** 거부한다.
+Function SignalGroupPlanRejectReason(pendingWindows, pendingCounts, pendingCycle, signalCycle, signalOffset)
+    Dim key, parts, scText, expectedCount, actualCount, planCycle, axisCycle
+    SignalGroupPlanRejectReason = ""
+    For Each key In sgPlanExpected.Keys
+        expectedCount = CLng(sgPlanExpected(key))
+        actualCount = CLng(DictValue(pendingCounts, CStr(key), 0))
+        If actualCount <> expectedCount Then
+            SignalGroupPlanRejectReason = "window_count " & CStr(key) & " " & _
+                CStr(actualCount) & "/" & CStr(expectedCount)
+            Exit Function
+        End If
+    Next
+    For Each scText In pendingCycle.Keys
+        planCycle = CDbl(pendingCycle(CStr(scText)))
+        If Not signalCycle.Exists(CStr(scText)) Then
+            SignalGroupPlanRejectReason = "no_signal_row sc=" & CStr(scText)
+            Exit Function
+        End If
+        axisCycle = CDbl(signalCycle(CStr(scText)))
+        If Abs(planCycle - axisCycle) > 0.001 Then
+            SignalGroupPlanRejectReason = "cycle_mismatch sc=" & CStr(scText) & " plan=" & _
+                CStr(planCycle) & " axis=" & CStr(axisCycle)
+            Exit Function
+        End If
+    Next
+    SignalGroupPlanRejectReason = SignalGroupPlanWindowConflictReason(pendingWindows)
+End Function
+
+' 계획된 녹색창 자체가 금지된 쌍을 겹치게 만드는지 본다. 런타임 판정과 달리
+' 여기서는 주기 전체를 구간 산술로 본다 - 초 단위 표본으로는 놓치는 겹침이 있다.
+Function SignalGroupPlanWindowConflictReason(pendingWindows)
+    Dim pairKey, sides, scText, firstKey, secondKey, firstWindows, secondWindows
+    Dim a, b, aBounds, bBounds, low, high
+    SignalGroupPlanWindowConflictReason = ""
+    For Each pairKey In sgPlanConflicts.Keys
+        sides = Split(CStr(pairKey), "-")
+        scText = CStr(sides(0))
+        firstKey = scText & "-" & CStr(sides(1))
+        secondKey = scText & "-" & CStr(sides(2))
+        If pendingWindows.Exists(firstKey) And pendingWindows.Exists(secondKey) Then
+            firstWindows = Split(CStr(pendingWindows(firstKey)), ";")
+            secondWindows = Split(CStr(pendingWindows(secondKey)), ";")
+            For Each a In firstWindows
+                If Trim(CStr(a)) <> "" Then
+                    aBounds = Split(CStr(a), "|")
+                    For Each b In secondWindows
+                        If Trim(CStr(b)) <> "" Then
+                            bBounds = Split(CStr(b), "|")
+                            low = CDbl(aBounds(0))
+                            If CDbl(bBounds(0)) > low Then low = CDbl(bBounds(0))
+                            high = CDbl(aBounds(1))
+                            If CDbl(bBounds(1)) < high Then high = CDbl(bBounds(1))
+                            If high - low > 0.000001 Then
+                                SignalGroupPlanWindowConflictReason = "cogreen " & CStr(pairKey) & _
+                                    " [" & CStr(low) & "," & CStr(high) & ")"
+                                Exit Function
+                            End If
+                        End If
+                    Next
+                End If
+            Next
+        End If
+    Next
 End Function
 
 Function InDelimitedText(value, collectionText, delimiter)
@@ -1189,22 +1393,75 @@ Sub ApplyRuntimeSignals(simSec)
         offset = CDbl(sigOffset(CStr(scKey)))
         cycle = major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC + ALL_RED_SEC
         pos = FMod(CDbl(simSec) + offset, cycle)
-        If pos < major Then
-            majorState = "GREEN": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC Then
-            majorState = "AMBER": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
-            majorState = "RED": minorState = "RED"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
-            majorState = "RED": minorState = "GREEN"
-        ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
-            majorState = "RED": minorState = "AMBER"
+        ' N4-5. 계획이 있으면 SG 별 창으로 구동한다. 축의 위치·길이·주기 공식은 위와 같고
+        ' 축 **안의** 분배만 native 배분을 따른다. 계획이 없으면 아래 이름 규칙으로 떨어지고
+        ' 그 건수가 SIGNAL_NAME_RULE_FALLBACKS 에 쌓인다.
+        If sgPlanEnabled And sgPlanCycle.Exists(CStr(CLng(scKey))) Then
+            If Abs(CDbl(sgPlanCycle(CStr(CLng(scKey)))) - cycle) > 0.001 Then
+                signalFailures = signalFailures + 1
+                WScript.Echo "ERROR=SIGNAL_SG_PLAN_CYCLE_STALE sc=" & CStr(scKey) & _
+                    " plan=" & CStr(sgPlanCycle(CStr(CLng(scKey)))) & " axis=" & CStr(cycle)
+            Else
+                ApplyRuntimeSignalControllerFromPlan CLng(scKey), pos, cycle
+            End If
+        ElseIf sgPlanEnabled Then
+            ' 계획이 켜졌는데 이 SC 의 창이 없다. 이름 규칙으로 조용히 떨어지지 않는다.
+            signalFailures = signalFailures + 1
+            WScript.Echo "ERROR=SIGNAL_SG_PLAN_MISSING_FOR_SC sc=" & CStr(scKey)
         Else
-            majorState = "RED": minorState = "RED"
+            If pos < major Then
+                majorState = "GREEN": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC Then
+                majorState = "AMBER": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
+                majorState = "RED": minorState = "RED"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
+                majorState = "RED": minorState = "GREEN"
+            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
+                majorState = "RED": minorState = "AMBER"
+            Else
+                majorState = "RED": minorState = "RED"
+            End If
+            ApplyRuntimeSignalController CLng(scKey), majorState, minorState
         End If
-        ApplyRuntimeSignalController CLng(scKey), majorState, minorState
     Next
     PerfAdd "signals.runtime", perfT0
+End Sub
+
+' 계획대로 SG 상태를 정하고, 금지 쌍이 동시녹색이면 **아무것도 쓰지 않는다**.
+' 먼저 전부 계산하고 검사한 뒤에 쓰는 순서가 요점이다 - 쓰고 나서 발견하면 늦다.
+Sub ApplyRuntimeSignalControllerFromPlan(scNo, pos, cycle)
+    Dim sc, sgNo, sgCount, sgNos(), states(), i, reason, ignoredReadback
+    If Not signalControlled.Exists(CStr(scNo)) Then
+        Dim ignored
+        ignored = EnableSignalControllerForRuntime(CLng(scNo))
+    End If
+    Set sc = CachedSignalController(CLng(scNo))
+    If sc Is Nothing Then
+        WScript.Echo "WARN=SIGNAL_SC_RUNTIME_NOT_FOUND sc=" & scNo
+        Exit Sub
+    End If
+    sgCount = CachedSignalGroupCount(CLng(scNo), sc)
+    If sgCount <= 0 Then Exit Sub
+    ReDim sgNos(sgCount - 1)
+    ReDim states(sgCount - 1)
+    For sgNo = 1 To sgCount
+        sgNos(sgNo - 1) = sgNo
+        states(sgNo - 1) = SignalGroupStateFromPlan(CLng(scNo), CLng(sgNo), pos, cycle)
+    Next
+    reason = SignalGroupPlanCoGreenReason(CLng(scNo), sgNos, states, sgCount)
+    If reason <> "" Then
+        signalCoGreenBlocks = signalCoGreenBlocks + 1
+        signalFailures = signalFailures + 1
+        WScript.Echo "ERROR=SIGNAL_COGREEN_BLOCKED sc=" & CStr(scNo) & " pos=" & CStr(pos) & _
+            " reason=" & reason
+        Exit Sub
+    End If
+    For i = 0 To sgCount - 1
+        If Not (CachedSignalGroup(CLng(scNo), CLng(sgNos(i))) Is Nothing) Then
+            ignoredReadback = SetSignalGroupState(CLng(scNo), CLng(sgNos(i)), CStr(states(i)))
+        End If
+    Next
 End Sub
 
 Sub ApplyRuntimeSignalController(scNo, majorState, minorState)
@@ -1295,8 +1552,12 @@ Function CachedSignalGroupName(scNo, sgNo, sg)
     CachedSignalGroupName = CStr(sigSgNameCache(key))
 End Function
 
+' 이름 부분문자열로 SG 상태를 정하는 **명시적 폴백**이다 (N4-5 이전의 유일한 경로였다).
+' 계획이 켜지면 여기로 오면 안 된다. 그래서 호출마다 계상하고 런 끝에 echo 한다 -
+' 계획의 PASS 기준이 production fallback 0 이다.
 Function SignalStateForGroup(sgNo, sgName, majorState, minorState)
     Dim nameUpper
+    signalNameRuleFallbacks = signalNameRuleFallbacks + 1
     nameUpper = UCase(CStr(sgName))
     If InStr(1, nameUpper, "EB", vbTextCompare) > 0 Or InStr(1, nameUpper, "WB", vbTextCompare) > 0 Then
         SignalStateForGroup = majorState
@@ -1320,6 +1581,199 @@ Function SignalGroupCount(sc)
     End If
     On Error GoTo 0
 End Function
+
+' ==========================================================================
+' N4-5. SG 단위 액추에이션 계획
+'
+' 모델은 N4-3 이후 축 녹색에 native 배분을 곱해 예측한다. 러너가 이름 규칙으로
+' 축 전체를 모든 SG 에 주면 예측과 실현이 다른 물리다. 아래 절차가 그 비대칭을 닫는다.
+'
+'   config  <config>_sgplan.vbs    기대 SG 집합 + 절대 동시녹색 금지 쌍 (계약)
+'   action  kind=signal_sg 행      이번 결정의 SG별 녹색창 (데이터)
+'
+' 계약과 데이터의 출처가 다른 것이 요점이다. 행이 스스로를 인증하면 fail-closed 가 아니다.
+' ==========================================================================
+Sub LoadSignalGroupPlanConfig(configPath)
+    Dim planPath, baseText
+    baseText = CStr(configPath)
+    If baseText = "" Then baseText = DefaultGeneratedConfigPath()
+    If LCase(Right(baseText, 4)) = ".vbs" Then baseText = Left(baseText, Len(baseText) - 4)
+    planPath = baseText & "_sgplan.vbs"
+    If Not fso.FileExists(planPath) Then
+        WScript.Echo "SIGNAL_SG_PLAN_CONFIG_ABSENT=" & planPath
+        Exit Sub
+    End If
+    ExecuteGlobal ReadAllTextUtf8(planPath)
+    WScript.Echo "SIGNAL_SG_PLAN_CONFIG_LOADED=" & planPath
+End Sub
+
+Sub ParseSignalGroupPlanConfig
+    Dim tokens, i, parts, pairParts, sides
+    sgPlanEnabled = (CLng(RW_SIGNAL_SG_PLAN_SCHEMA) >= 1)
+    If Not sgPlanEnabled Then Exit Sub
+    tokens = Split(CStr(RW_SIGNAL_SG_EXPECTED), ",")
+    For i = 0 To UBound(tokens)
+        If Trim(CStr(tokens(i))) <> "" Then
+            parts = Split(Trim(CStr(tokens(i))), ":")
+            If UBound(parts) <> 2 Then
+                WScript.Echo "ERROR=SIGNAL_SG_PLAN_CONFIG_TOKEN token=" & CStr(tokens(i))
+                WScript.Quit 2
+            End If
+            sgPlanExpected(SignalGroupPlanKey(parts(0), parts(1))) = CLng(Trim(CStr(parts(2))))
+        End If
+    Next
+    If sgPlanExpected.Count <= 0 Then
+        WScript.Echo "ERROR=SIGNAL_SG_PLAN_CONFIG_EMPTY schema=" & CStr(RW_SIGNAL_SG_PLAN_SCHEMA)
+        WScript.Quit 2
+    End If
+    tokens = Split(CStr(RW_SIGNAL_SG_CONFLICTS), ";")
+    For i = 0 To UBound(tokens)
+        If Trim(CStr(tokens(i))) <> "" Then
+            pairParts = Split(Trim(CStr(tokens(i))), ":")
+            If UBound(pairParts) <> 1 Then
+                WScript.Echo "ERROR=SIGNAL_SG_PLAN_CONFLICT_TOKEN token=" & CStr(tokens(i))
+                WScript.Quit 2
+            End If
+            sides = Split(CStr(pairParts(1)), "-")
+            If UBound(sides) <> 1 Then
+                WScript.Echo "ERROR=SIGNAL_SG_PLAN_CONFLICT_TOKEN token=" & CStr(tokens(i))
+                WScript.Quit 2
+            End If
+            sgPlanConflicts(CStr(CLng(Trim(CStr(pairParts(0))))) & "-" & _
+                CStr(CLng(Trim(CStr(sides(0))))) & "-" & CStr(CLng(Trim(CStr(sides(1)))))) = True
+        End If
+    Next
+End Sub
+
+Function SignalGroupPlanKey(scNo, sgNo)
+    SignalGroupPlanKey = CStr(CLng(Trim(CStr(scNo)))) & "-" & CStr(CLng(Trim(CStr(sgNo))))
+End Function
+
+Function SignalGroupPlanWindows(scNo, sgNo)
+    Dim key
+    SignalGroupPlanWindows = ""
+    key = SignalGroupPlanKey(scNo, sgNo)
+    If sgPlanWindows.Exists(key) Then SignalGroupPlanWindows = CStr(sgPlanWindows(key))
+End Function
+
+' 계획된 녹색창에서 이 순간의 SG 상태를 정한다. 창이 없는 SG 는 영구 적색이다 -
+' 이름 규칙처럼 축 상태를 물려주지 않는다.
+Function SignalGroupStateFromPlan(scNo, sgNo, pos, cycle)
+    Dim spec, entries, i, bounds, startSec, endSec, amberEnd, position, cycleSec
+    SignalGroupStateFromPlan = "RED"
+    spec = SignalGroupPlanWindows(scNo, sgNo)
+    If spec = "" Then Exit Function
+    cycleSec = CDbl(cycle)
+    If cycleSec <= 0 Then Exit Function
+    position = FMod(CDbl(pos), cycleSec)
+    entries = Split(spec, ";")
+    For i = 0 To UBound(entries)
+        If Trim(CStr(entries(i))) <> "" Then
+            bounds = Split(CStr(entries(i)), "|")
+            startSec = CDbl(bounds(0))
+            endSec = CDbl(bounds(1))
+            If position >= startSec And position < endSec Then
+                SignalGroupStateFromPlan = "GREEN"
+                Exit Function
+            End If
+        End If
+    Next
+    For i = 0 To UBound(entries)
+        If Trim(CStr(entries(i))) <> "" Then
+            bounds = Split(CStr(entries(i)), "|")
+            endSec = CDbl(bounds(1))
+            amberEnd = endSec + CDbl(AMBER_SEC)
+            If position >= endSec And position < amberEnd Then
+                SignalGroupStateFromPlan = "AMBER"
+                Exit Function
+            End If
+            If amberEnd > cycleSec And position < amberEnd - cycleSec Then
+                SignalGroupStateFromPlan = "AMBER"
+                Exit Function
+            End If
+        End If
+    Next
+End Function
+
+' 이번 초에 GREEN 인 SG 들 가운데 config 가 금지한 쌍이 있으면 사유를 돌려준다.
+' AMBER 는 녹색이 아니다 - 판정 대상은 GREEN 뿐이다.
+Function SignalGroupPlanCoGreenReason(scNo, sgNos, states, count)
+    Dim i, j, first, second, pairKey
+    SignalGroupPlanCoGreenReason = ""
+    For i = 0 To CLng(count) - 1
+        If UCase(Trim(CStr(states(i)))) = "GREEN" Then
+            For j = i + 1 To CLng(count) - 1
+                If UCase(Trim(CStr(states(j)))) = "GREEN" Then
+                    first = CLng(sgNos(i))
+                    second = CLng(sgNos(j))
+                    If first > second Then
+                        pairKey = CStr(CLng(scNo)) & "-" & CStr(second) & "-" & CStr(first)
+                    Else
+                        pairKey = CStr(CLng(scNo)) & "-" & CStr(first) & "-" & CStr(second)
+                    End If
+                    If sgPlanConflicts.Exists(pairKey) Then
+                        SignalGroupPlanCoGreenReason = "sg " & CStr(first) & " and sg " & CStr(second)
+                        Exit Function
+                    End If
+                End If
+            Next
+        End If
+    Next
+End Function
+
+' 계획이 켜졌으면 VISSIM 이 실제로 들고 있는 SG 와 계약이 완전히 일치해야 한다.
+' 여기서 죽는 것이 런 중간에 이름 규칙으로 조용히 떨어지는 것보다 낫다.
+Sub ValidateSignalGroupPlanCoverage
+    Dim scs, i, scNo, sc, sgCount, sgNo, key, parts, missing, extra
+    If Not sgPlanEnabled Then Exit Sub
+    missing = 0
+    extra = 0
+    scs = Split(CStr(RW_SIGNAL_SCS), ",")
+    For i = 0 To UBound(scs)
+        If Trim(CStr(scs(i))) <> "" Then
+            scNo = CLng(Trim(CStr(scs(i))))
+            Set sc = CachedSignalController(scNo)
+            If sc Is Nothing Then
+                WScript.Echo "ERROR=SIGNAL_SG_PLAN_SC_NOT_FOUND sc=" & CStr(scNo)
+                WScript.Quit 2
+            End If
+            sgCount = CachedSignalGroupCount(scNo, sc)
+            For sgNo = 1 To sgCount
+                If Not sgPlanExpected.Exists(SignalGroupPlanKey(scNo, sgNo)) Then
+                    missing = missing + 1
+                    WScript.Echo "ERROR=SIGNAL_SG_PLAN_UNCOVERED sc=" & CStr(scNo) & " sg=" & CStr(sgNo)
+                End If
+            Next
+        End If
+    Next
+    For Each key In sgPlanExpected.Keys
+        parts = Split(CStr(key), "-")
+        If CachedSignalGroup(CLng(parts(0)), CLng(parts(1))) Is Nothing Then
+            extra = extra + 1
+            WScript.Echo "ERROR=SIGNAL_SG_PLAN_GROUP_NOT_IN_NETWORK sc=" & CStr(parts(0)) & " sg=" & CStr(parts(1))
+        End If
+    Next
+    If missing > 0 Or extra > 0 Then
+        WScript.Echo "ERROR=SIGNAL_SG_PLAN_COVERAGE missing=" & CStr(missing) & " extra=" & CStr(extra)
+        WScript.Quit 2
+    End If
+    WScript.Echo "SIGNAL_SG_PLAN_COVERAGE_OK groups=" & CStr(sgPlanExpected.Count) & _
+        " conflict_pairs=" & CStr(sgPlanConflicts.Count) & " source_sha256=" & CStr(RW_SIGNAL_SG_PLAN_SOURCE_SHA256)
+End Sub
+
+' 검증을 통과한 계획을 그 SC 의 축 지시(sigMajor/sigMinor/sigOffset)와 **같은 지점에서**
+' 커밋한다. 둘이 따로 움직이면 창은 새 주기인데 축은 옛 주기인 조합이 생긴다.
+Sub CommitSignalGroupPlan(scNo, pendingWindows, pendingCycle)
+    Dim key, prefix
+    prefix = CStr(CLng(scNo)) & "-"
+    For Each key In sgPlanWindows.Keys
+        If Left(CStr(key), Len(prefix)) = prefix Then sgPlanWindows.Remove key
+    Next
+    For Each key In pendingWindows.Keys
+        If Left(CStr(key), Len(prefix)) = prefix Then sgPlanWindows(CStr(key)) = CStr(pendingWindows(key))
+    Next
+    sgPlanCycle(CStr(CLng(scNo))) = CDbl(pendingCycle)
+End Sub
 
 Sub ApplyRuntimeRampMeters(simSec)
     Dim scs, i, scNo, perfT0

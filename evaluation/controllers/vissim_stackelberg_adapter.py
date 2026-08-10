@@ -39,6 +39,8 @@ from vissim_strict.physical_projection import (
     thaw_json,
 )
 from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
+# N4-5: SG 단위 액추에이션 계획. 순수 함수만 들어 있어 import 부작용이 없다.
+from evaluation.controllers import signal_group_plan
 from vissim_strict.run_evidence import (
     MAX_APPROVAL_BYTES,
     MAX_RUN_MANIFEST_BYTES,
@@ -1289,6 +1291,82 @@ def load_movement_signal_group_map(path: Path | None = None) -> dict[str, Any] |
     if not source.is_file():
         return None
     return json.loads(source.read_text(encoding="utf-8"))
+
+
+SIGNAL_GROUP_ACTUATION_PLAN_PATH = (
+    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
+)
+
+
+def load_signal_group_actuation_plan(path: Path | None = None) -> dict[str, Any] | None:
+    """N4-5 액추에이션 계획을 읽는다. 없으면 `None` 이고 action CSV 는 예전 모양이다.
+
+    여기서 예외를 던지지 않는 이유는 러너 쪽에 짝이 되는 게이트가 있기 때문이다.
+    러너의 generated config 에 `RW_SIGNAL_SG_PLAN_SCHEMA` 가 있으면 `signal_sg` 행이
+    **반드시** 와야 하고, 없으면 action CSV 전체를 거부한다. 즉 "계획 없이 조용히
+    이름 규칙으로 도는" 조합은 러너에서 막힌다.
+    """
+    source = Path(path) if path is not None else SIGNAL_GROUP_ACTUATION_PLAN_PATH
+    if not source.is_file():
+        return None
+    return json.loads(source.read_text(encoding="utf-8"))
+
+
+def signal_group_action_rows(
+    plan_table: Mapping[str, Any],
+    sc_no: int,
+    major_green: float,
+    minor_green: float,
+    offset: float,
+    metadata: str,
+) -> list[dict[str, Any]]:
+    """한 SC 의 `signal_sg` 행. 13열 헤더를 바꾸지 않고 열을 재사용한다.
+
+        dsd_no      -> sg 번호
+        link        -> 녹색창 인덱스
+        major_green -> 녹색창 시작[s] (플랜 주기 좌표)
+        minor_green -> 녹색창 끝[s]
+        offset      -> 그 SC 의 offset (같은 SC 의 `signal` 행과 같아야 한다)
+        green_sec   -> 플랜 주기[s]
+
+    헤더를 늘리지 않은 이유는 하위호환이다. 열을 추가하면 러너의
+    `UBound(parts) <> 12` 계약과 기존 action CSV 소비자가 전부 함께 깨진다.
+    """
+    node = (plan_table.get("controllers") or {}).get(str(int(sc_no)))
+    if node is None:
+        raise signal_group_plan.SignalGroupPlanError(
+            f"actuation plan has no controller {sc_no}"
+        )
+    plan = signal_group_plan.node_plan_from_json(node)
+    amber = float(plan_table.get("amber_sec", 3.0))
+    all_red = float(plan_table.get("all_red_sec", 2.0))
+    cycle = signal_group_plan.plan_cycle_sec(major_green, minor_green, amber, all_red)
+    windows = signal_group_plan.plan_windows(
+        plan,
+        major_green=float(major_green),
+        minor_green=float(minor_green),
+        major_maps_to=str(node.get("major_maps_to", "p2")),
+        amber_sec=amber,
+        all_red_sec=all_red,
+    )
+    rows: list[dict[str, Any]] = []
+    for window in windows:
+        rows.append({
+            "kind": "signal_sg",
+            "id": f"SC{int(sc_no)}_SG{window.sg_no}_W{int(window.window_index)}",
+            "dsd_no": window.sg_no,
+            "sc_no": int(sc_no),
+            "link": int(window.window_index),
+            "lane": 0,
+            "speed_kph": 0,
+            "major_green": round(window.start_sec, 6),
+            "minor_green": round(window.end_sec, 6),
+            "offset": round(float(offset), 3),
+            "rate_vph": 0,
+            "green_sec": round(cycle, 6),
+            "metadata": metadata,
+        })
+    return rows
 
 
 class MonitorFixedSignalPatchError(RuntimeError):
@@ -4947,6 +5025,7 @@ def write_action_csv(
     segment_vsl_func,
     metadata: dict[str, Any],
     actuation: Mapping[str, Any],
+    signal_group_plan_table: Mapping[str, Any] | None = None,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
@@ -5048,6 +5127,19 @@ def write_action_csv(
                     "offset": round(offset, 3),
                     "metadata": csv_metadata,
                 })
+                # N4-5. 축 녹색을 SG 단위로 쪼갠 행. 축의 위치·길이·주기 공식은 그대로이고
+                # 축 **안의** 분배만 native 배분으로 바뀐다. 계획이 없으면 행도 없고,
+                # 그 조합은 러너의 RW_SIGNAL_SG_PLAN_SCHEMA 게이트가 fail-closed 로 막는다.
+                if signal_group_plan_table is not None:
+                    for sg_row in signal_group_action_rows(
+                        signal_group_plan_table,
+                        sc_no=sc_no,
+                        major_green=round(major, 3),
+                        minor_green=round(minor, 3),
+                        offset=round(offset, 3),
+                        metadata=csv_metadata,
+                    ):
+                        writer.writerow(sg_row)
         if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
             for ramp, spec in real_world_ramp_meter_actions(control, cfg, actuation, mapping).items():
                 writer.writerow({
@@ -5794,7 +5886,16 @@ def main() -> None:
         ),
         encoding="utf-8",
     )
-    write_action_csv(out_csv, control, cfg, mapping, segment_vsl_func, metadata, actuation)
+    write_action_csv(
+        out_csv,
+        control,
+        cfg,
+        mapping,
+        segment_vsl_func,
+        metadata,
+        actuation,
+        signal_group_plan_table=load_signal_group_actuation_plan(),
+    )
     print(json.dumps({
         "status": metadata["controller_status"],
         "out_action_json": str(out_json),

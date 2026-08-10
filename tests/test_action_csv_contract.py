@@ -82,6 +82,77 @@ class ActionCsvContractTests(unittest.TestCase):
         ]
         self.assertEqual(actual_keys, expected_keys)
 
+    def test_signal_group_rows_extend_the_schema_without_touching_the_header(self) -> None:
+        """N4-5. `signal_sg` 행이 13열 헤더를 바꾸지 않고 SG 단위 타이밍을 싣는다.
+
+        헤더를 늘리지 않은 이유는 하위호환이다. 늘리면 `UBound(parts) <> 12` 계약과
+        기존 action CSV 소비자가 함께 깨진다. 대신 계획이 켜졌는데 행이 없거나,
+        계획이 꺼졌는데 행이 오면 **전량 거부**한다.
+        """
+        runner = (ROOT / "scripts" / "run_real_world_stackelberg_controller.vbs").read_text(
+            encoding="utf-8-sig"
+        )
+        # 헤더는 그대로여야 한다.
+        self.assertIn("If UBound(parts) <> 12 Then", runner)
+        self.assertIn(
+            "kind,id,dsd_no,sc_no,link,lane,speed_kph,major_green,minor_green,offset,rate_vph,green_sec,metadata",
+            runner,
+        )
+        self.assertIn('ElseIf kind = "signal_sg" Then', runner)
+        self.assertIn("Function SignalSgRowValid", runner)
+        self.assertIn("Function SignalGroupPlanExpectedRowCount", runner)
+        self.assertIn("Function SignalGroupPlanRejectReason", runner)
+        self.assertIn("Function SignalGroupPlanWindowConflictReason", runner)
+        self.assertIn("ERROR=ACTION_CSV_SIGNAL_SG_WITHOUT_PLAN_CONFIG", runner)
+        # 부분 적용 금지 - 계획 위반은 기존 :874-882 게이트와 같은 조건에 들어간다.
+        self.assertIn(
+            "signalRows <> expectedSignalRows Or sgRows <> expectedSgRows Or invalidRows > 0 Or planReason <> \"\" Then",
+            runner,
+        )
+        # 이름 규칙은 명시적 폴백으로만 남고 사용 건수를 센다.
+        self.assertIn("signalNameRuleFallbacks = signalNameRuleFallbacks + 1", runner)
+        self.assertIn('WScript.Echo "SIGNAL_NAME_RULE_FALLBACKS="', runner)
+        self.assertIn('WScript.Echo "SIGNAL_COGREEN_BLOCKS="', runner)
+        # 계약은 행이 아니라 config 에서 온다.
+        self.assertIn("Sub LoadSignalGroupPlanConfig", runner)
+        self.assertIn("Sub ValidateSignalGroupPlanCoverage", runner)
+        self.assertIn("RW_SIGNAL_SG_EXPECTED", runner)
+        self.assertIn("RW_SIGNAL_SG_CONFLICTS", runner)
+
+        adapter = (
+            ROOT / "evaluation" / "controllers" / "vissim_stackelberg_adapter.py"
+        ).read_text(encoding="utf-8-sig")
+        self.assertIn("def signal_group_action_rows(", adapter)
+        self.assertIn("signal_group_plan_table=load_signal_group_actuation_plan()", adapter)
+
+    def test_generated_sg_plan_config_matches_the_plan_artifact(self) -> None:
+        plan_path = ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
+        config_path = (
+            ROOT
+            / "evaluation"
+            / "generated"
+            / "real_world_modi_control_config_distributed_core15n41_20260805_sgplan.vbs"
+        )
+        if not plan_path.is_file() or not config_path.is_file():
+            self.skipTest("signal group actuation plan artifacts are not built")
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        text = config_path.read_text(encoding="utf-8")
+        joined = text.replace('" & _\n    "', "")
+        expected = re.search(r'RW_SIGNAL_SG_EXPECTED = "(.*?)"\n', joined, re.DOTALL)
+        conflicts = re.search(r'RW_SIGNAL_SG_CONFLICTS = "(.*?)"\n', joined, re.DOTALL)
+        self.assertIsNotNone(expected)
+        self.assertIsNotNone(conflicts)
+        tokens = expected.group(1).split(",")
+        self.assertEqual(len(tokens), plan["counts"]["signal_groups"])
+        self.assertEqual(
+            sum(int(token.split(":")[2]) for token in tokens),
+            plan["counts"]["planned_windows"],
+        )
+        self.assertEqual(
+            len([token for token in conflicts.group(1).split(";") if token]),
+            plan["counts"]["conflict_pairs"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
