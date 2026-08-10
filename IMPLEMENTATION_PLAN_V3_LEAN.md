@@ -818,6 +818,23 @@ fallback 분율 사용 `<=10%`.
 **PASS.** 채널 커버리지 100%, endpoint 호출 수 = 후보 평가 수, 우회 호출 0,
 one-step / H=3 통합 테스트 PASS.
 
+> ### 착지 (2026-08-10) — 3/4 충족, **우회 7곳 남음**
+>
+> `src/controllers/rollout_endpoint.py` 신설. 정본 Stackelberg decide 경로
+> (`stackelberg_mpc.py` · `stackelberg_wu_metered.py` · `wu_faithful_follower.py`)의
+> `run_coupled_interval` 직접 호출은 **0** 이다.
+>
+> | 구분 | 수 |
+> |---|---:|
+> | 정본 decide 경로 우회 | **0** |
+> | endpoint 본체 · plant 전진 (정당) | 2 |
+> | **NumSim 잔여 우회** | **5** — `analysis/stage2_mechanism.py:133`, `centralized_mpc.py:299,:328`, `distributed_coordinator.py:673`, `wu_distributed.py:862` |
+> | **어댑터 잔여 우회** | **2** — `adapter:2503`(`flagship_sup_score`, **후보 채점이라 진짜 우회**), `:3672`(`build_one_step_prediction`) |
+>
+> 계획의 "우회 호출 0" 은 **미충족**이다. 어댑터 `:2503` 이 후보를 채점하므로 실질적이다.
+> vendor 가 `5a2fe7d` 로 재앵커돼 이제 어댑터가 endpoint 를 import 할 수 있다 —
+> 그전까지는 `rollout_endpoint.py` 가 스냅샷에 없어 통합 자체가 불가능했다.
+
 ## N8. marginal price 와 런타임 — P0
 
 ### N8-1. exact FD 대 SPSA 자격심사
