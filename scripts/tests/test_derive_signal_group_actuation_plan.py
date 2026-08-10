@@ -63,6 +63,37 @@ class DeriveTests(unittest.TestCase):
         # supplyFile2 를 읽게 된 뒤로는 비어 있어야 한다 - 값이 아니라 **비어 있음**을 고정한다.
         self.assertEqual(sorted(self.table["timing_table_disagreements"]), [])
 
+    def test_uncovered_counts_signal_groups_the_plan_dropped_not_never_green_ones(self) -> None:
+        """`uncovered` 는 실패할 수 있어야 한다.
+
+        예전 식은 `sg_no not in plan.window_counts` 였는데 `window_counts` 가 같은 sg_id
+        목록으로 초기화되므로 **구조적으로 항상 0** 이었다. 통과해도 아무것도 보장하지 않는다.
+
+        의미 있는 정의는 "native 프로그램에서 녹색이 있는데 계획에는 창이 없는 SG" 다.
+        native 가 영원히 적색인 SG(실측 20개)가 창 0 인 것은 정상이라 세지 않는다.
+        """
+        self.assertEqual(
+            producer.uncovered_signal_groups("SC9", {"1": 0, "2": 3}, {"1": 42.0, "2": 30.0}),
+            ["SC9:1"],
+        )
+        self.assertEqual(
+            producer.uncovered_signal_groups("SC9", {"1": 0, "2": 3}, {"1": 0.0, "2": 30.0}),
+            [],
+        )
+
+    def test_the_real_plan_drops_no_natively_green_signal_group(self) -> None:
+        dropped = [
+            name
+            for sc_no, node in self.table["controllers"].items()
+            for name in producer.uncovered_signal_groups(
+                f"SC{sc_no}", node["window_counts"], node["native_green_sec"]
+            )
+        ]
+        self.assertEqual(dropped, [])
+        self.assertEqual(self.table["counts"]["uncovered_signal_groups"], 0)
+        # 창 0 인 20개는 전부 native 가 영원히 적색인 SG 다.
+        self.assertEqual(self.table["counts"]["never_green_signal_groups"], 20)
+
     def test_conflict_pairs_are_recorded_and_the_plan_never_violates_them(self) -> None:
         self.assertGreater(self.table["counts"]["conflict_pairs"], 0)
         self.assertEqual(self.table["counts"]["conflict_violations"], 0)

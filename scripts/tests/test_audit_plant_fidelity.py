@@ -1649,6 +1649,14 @@ class N10AuditCommandTest(unittest.TestCase):
         self.assertIn("the audit's own gates are FAIL", promotion["reason"])
         self.assertIn("blocked", payload["gate_summary"])
         self.assertIn("BLOCKED", payload["policy"]["status_values"])
+        # 콘솔 한 줄이 BLOCKED 를 빼면 새 상태가 관측 구멍이 된다. BLOCKED 는
+        # NOT_EVALUATED 보다 나쁜데(아직 안 쟀다가 아니라 잴 수 없다) 요약에서 사라진다.
+        line = audit.format_gate_summary(
+            {"overall": "FAIL", "pass": 11, "fail": 2, "blocked": 3, "not_evaluated": 12}
+        )
+        self.assertIn("BLOCKED=3", line)
+        self.assertIn("FAIL=2", line)
+        self.assertIn("NOT_EVALUATED=12", line)
         for field in (
             "canonical_topology",
             "signal_timing",

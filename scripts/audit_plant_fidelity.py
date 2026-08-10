@@ -2401,6 +2401,24 @@ def signal_timing_canon_gate(timing: Mapping[str, Any], plan: Mapping[str, Any])
     )
 
 
+def format_gate_summary(summary: Mapping[str, Any]) -> str:
+    """콘솔 한 줄. BLOCKED 를 빼면 새 상태가 관측 구멍이 된다.
+
+    BLOCKED 는 NOT_EVALUATED 보다 나쁘다 - "아직 안 쟀다" 가 아니라 "잴 수 없다" 다.
+    요약에서 빠지면 그 구분이 stdout 만 보는 사람에게 전달되지 않는다.
+    """
+    return (
+        "plant audit gates: overall=%s PASS=%s FAIL=%s BLOCKED=%s NOT_EVALUATED=%s"
+        % (
+            summary["overall"],
+            summary["pass"],
+            summary["fail"],
+            summary["blocked"],
+            summary["not_evaluated"],
+        )
+    )
+
+
 def signal_actuation_plan_gate(
     plan: Mapping[str, Any],
     timing: Mapping[str, Any],
@@ -3495,10 +3513,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         sys.stdout.write(markdown)
     else:
         atomic_write(Path(args.markdown_out), markdown)
-    summary = manifest["gate_summary"]
     print(
-        f"plant audit gates: overall={summary['overall']} "
-        f"PASS={summary['pass']} FAIL={summary['fail']} NOT_EVALUATED={summary['not_evaluated']}",
+        format_gate_summary(manifest["gate_summary"]),
         file=sys.stderr if args.json_out == "-" else sys.stdout,
     )
     if args.json_out != "-":

@@ -1,6 +1,6 @@
 # Plant Fidelity Static Audit Summary
 
-Generated: `2026-08-10T12:53:19.927640+00:00`
+Generated: `2026-08-10T13:29:59.846414+00:00`
 
 > This report uses live files supplied to the CLI. Historical `outputs/gates_*` measurements are not treated as current evidence.
 
@@ -74,7 +74,7 @@ Generated: `2026-08-10T12:53:19.927640+00:00`
 
 ## Provenance
 
-- Workspace: branch `plant-fidelity-v2-1`, commit `44c574ead50fb6a35efd438697ca41a31946cb19`, dirty `True`
+- Workspace: branch `plant-fidelity-v2-1`, commit `39c8feff61a6b0aad3b3294c366c9a9426f0ed80`, dirty `True`
 - Vendor snapshot commit: `5a2fe7dd7f4ecc9b53c7b59767f0a12441ce853c`
 - Actual NUMSIM_REPO_ROOT: `-`
 - Actual NumSim commit: `-`

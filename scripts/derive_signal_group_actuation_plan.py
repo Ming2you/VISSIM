@@ -77,6 +77,24 @@ def _signal_group_ids(network_path: Path) -> dict[str, list[str]]:
     return table
 
 
+def uncovered_signal_groups(
+    node: str,
+    window_counts: Mapping[str, int],
+    native_green_sec: Mapping[str, float],
+) -> list[str]:
+    """계획이 **떨어뜨린** SG. native 에 녹색이 있는데 계획에는 창이 없는 것들이다.
+
+    예전 식은 `sg_no not in window_counts` 였는데 `window_counts` 가 같은 sg_id 목록으로
+    초기화되므로 구조적으로 항상 0 이었다 - 통과해도 아무것도 보장하지 않는 검사였다.
+    native 가 영원히 적색인 SG 가 창 0 인 것은 정상이므로 여기서 세지 않는다.
+    """
+    return [
+        f"{node}:{sg_no}"
+        for sg_no, count in sorted(window_counts.items())
+        if int(count) == 0 and float(native_green_sec.get(sg_no, 0.0)) > 0.0
+    ]
+
+
 def _controlled_signals(mapping_path: Path) -> list[dict[str, Any]]:
     payload = json.loads(Path(mapping_path).read_text(encoding="utf-8-sig"))
     rows: list[dict[str, Any]] = []
@@ -146,9 +164,13 @@ def derive(
         total_groups += len(sg_ids)
         total_windows += sum(plan.window_counts.get(sg_no, 0) for sg_no in sg_ids)
         total_conflicts += len(plan.conflict_pairs)
-        uncovered += sum(1 for sg_no in sg_ids if sg_no not in plan.window_counts)
+        uncovered += len(
+            uncovered_signal_groups(node, plan.window_counts, payload["native_green_sec"])
+        )
         never_green.extend(
-            f"{node}:{sg_no}" for sg_no in sg_ids if plan.window_counts.get(sg_no, 0) == 0
+            f"{node}:{sg_no}"
+            for sg_no in sg_ids
+            if float(payload["native_green_sec"].get(sg_no, 0.0)) <= 0.0
         )
         # 계획이 스스로 충돌을 만들지 않는지, 대표 지시값으로 확인한다.
         windows = signal_group_plan.plan_windows(
