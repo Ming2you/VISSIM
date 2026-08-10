@@ -1311,3 +1311,76 @@ offset production writer 는 계속 잠겨 있다.
 3. **영구 적색 SG 20개.** inpx 프로그램에서 녹색창이 없는 SG 다. 이름 규칙은 이들에게
    축 녹색을 통째로 줬다 — 즉 지금까지 과대 서비스였다. 계획은 적색으로 둔다.
 4. **최단 계획 녹색 7.28 s.** 최소녹색 기준이 정해지면 다시 판정해야 한다.
+
+## N4-7 — offset 승격 잠금 (2026-08-10)
+
+### 먼저 확인한 것 — 잠금 이전에 offset 은 이미 플랜트에 닿고 있었다
+
+모델. `NumSim-mine/src/controllers/urban_follower.py` 가 offset 을 실제로 최적화한다.
+`_offsets()` 가 회랑 진행(green wave) 휴리스틱으로 앵커를 잡고, `_offset_candidate_values`
+가 그 주변 후보를 만들고, `_urban_stage2_signal_cost` 의 green × offset argmin 이 고른다
+(`UrbanControl.offsets`). 어댑터는 `offset_price_enabled` / `joint_green_offset_enabled` /
+`ramp_offset_enabled` 를 전부 켠다(vissim_stackelberg_adapter.py:2358-2364).
+
+플랜트 전달. `control.offsets` → action JSON `offsets` → action CSV `signal` 행 10번째 열
+`offset` → 러너 `sigOffset(scNo)` → `pos = FMod(simSec + offset, cycle)`
+(run_real_world_stackelberg_controller.vbs:756, :1407 부근). 즉 **끊긴 데 없이 COM 까지**
+간다. core15n41 은 `network.signals` 와 매핑 `signals[].id` 가 둘 다 "SC1".. 라
+`control.offsets.get(signal)` 이 빗나가지도 않는다.
+
+실제 기록도 있다. `evaluation/**/action*.csv` 9831개 중 191개 파일이 nonzero `signal` offset
+을 담고 있다(예: `runs/g6_v4_signalfix_20260804/action_v4_c30_offset30_seed13.csv` SC1 = 30).
+
+즉 계획 N4-7 의 "D-core PASS 전까지 production writer 는 intent_only" 는 **지켜지지 않고
+있었다.** 이것이 이번에 닫은 구멍이다.
+
+### 잠금의 모양
+
+권위는 `evaluation/controllers/offset_promotion.py` 하나다. 판정은 상수가 아니라 증거에서
+나온다 — `outputs/offset_promotion_{d_core,n9_offset_effect,n8_4_runtime}.json` 세 개가
+모두 있고, 모두 `status=PASS` 이고, 셋이 **같은** `signal_profile_id` + `topology_sha256`
+를 가리킬 때만 `promoted=True` 다. 하나라도 없으면 NOT_EVALUATED, 서로 다른 프로필을
+가리키면 BLOCKED 다. 계획의 곱을 그대로 코드로 옮긴 것이다.
+
+    D-offset-enable = D-core(같은 profile + 같은 topology SHA-256) ∧ N9 ∧ N8-4
+
+writer 3단.
+
+| writer | 누가 정하나 | 무엇을 쓰나 |
+|---|---|---|
+| `intent_only` | 기본값 | 아무것도. 의도는 action JSON `offsets` 에 그대로 남는다 |
+| `test_only` | 격리 harness 가 config 로 선언 | **강제 arm 만**. 최적화기 offset 은 여기서도 안 나간다 |
+| `production` | **증거만** | 최적화기 offset |
+
+`production` 은 설정 파일로 선언할 수 없다. 선언하면 `OffsetPromotionError` 다 — 설정으로
+열 수 있으면 삼중 잠금이 장식이기 때문이다.
+
+### 왜 "조용히 0" 이 아니라 예외인가
+
+강제 arm(`diagnostic-signal-offset30` 등)을 선언 없는 런에서 부르면 `guard_forced_arm` 이
+런을 세운다. 조용히 0 으로 뭉개면 "돌긴 돌았는데 레버가 없는" 자료가 남고, 그 자료는
+나중에 **offset 효과 없음**으로 읽힌다. 잠금보다 그쪽이 위험하다.
+
+### 자물쇠는 두 겹이다
+
+러너의 `RW_OFFSET_WRITER`(기본 `intent_only`)는 권위가 아니다. 러너는 증거 산출물을 읽을
+수 없다. 러너가 보장하는 것은 하나 — "선언하지 않은 런은 offset 을 액추에이션하지 못한다".
+손으로 고친 action CSV 도, 옛 어댑터가 만든 CSV 도, nonzero offset 이 있으면
+`OffsetPromotionRejectReason` 이 사유를 내고 기존 `:874-882` 자리(같은 `planReason` 조건)
+에서 CSV 전체가 거부된다. 부분 적용은 없다.
+
+### N9 행렬은 유도한다
+
+`scripts/build_experiment_matrix_v3.py` 의 `LEVER_STATUS["offset"]` / `LEVER_WRITER["offset"]`
+을 손으로 적지 않고 `offset_promotion.matrix_lever_status/writer()` 에서 받는다. 행렬 상수와
+실제 writer 동작이 어긋나면 런을 다 돌린 뒤에야 드러나기 때문이다. 오늘 값은 여전히
+`BLOCKED` / `test_only` 이고, seal 은 `d397fa07d1c05692` 로 바뀌지 않았다(seal 은 spec 만
+덮는다). 증거가 갖춰지면 이 파일을 고치지 않아도 두 값이 함께 열린다.
+
+### 못 한 것
+
+- 실 런은 이 세션에서도 못 돌렸다. 러너 게이트는 cscript 로 `OffsetPromotionRejectReason`
+  을 실제 실행해 검증했지만(VBS 실행 TDD), VISSIM COM 에 붙여 본 적은 없다.
+- 증거 산출물 3개는 하나도 못 만든다. D-core 가 `command_quantization_sec` FAIL 0.990 s /
+  `transition_time_error_sec` BLOCKED 라서다. 즉 잠금은 **열 수 없는 상태가 맞다**.
+- N8-4 런타임 게이트는 아직 존재하지 않는다. 증거 파일 이름만 잡아 뒀다.

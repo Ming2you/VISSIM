@@ -217,3 +217,18 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [x] 표본 0 을 "위반 0"으로 읽지 않게 fail-open 구멍 막음 (NOT_EVALUATED)
 - [ ] readback 5개 게이트 — **실 런 필요** (`decisions/signal_readback.csv` + signal_sg 행이 있는 action 로그)
 - [ ] 최소녹색 권위 결정 — `.sig` 의 intergreenmatrices 가 비어 있어 VISSIM 이 선언하지 않는다
+
+### N4-7 — offset 승격 잠금 (D-offset-enable)
+
+- [x] offset 현황 추적 — 모델 최적화(`urban_follower._offsets` / offset_price / joint_green_offset)
+      부터 `control.offsets` → action CSV `offset` 열 → 러너 `sigOffset` → `FMod(simSec + offset, cycle)`
+      까지. **잠금 이전에는 production 경로가 열려 있었다**
+- [x] `evaluation/controllers/offset_promotion.py` — 삼중 잠금을 증거 산출물에서 판정 (TDD)
+- [x] 어댑터 `write_action_csv(offset_writer=...)` 기본값 `intent_only` — 의도는 action JSON 에만
+- [x] test-only writer — 격리 harness 가 config 로 선언, **강제 arm 만** 통과
+- [x] 선언 없이 강제 arm 이 오면 0 으로 뭉개지 않고 런을 세운다 (`guard_forced_arm`)
+- [x] 러너 두 번째 자물쇠 `RW_OFFSET_WRITER` + `OffsetPromotionRejectReason` — 전량 거부 (cscript TDD)
+- [x] N9 행렬 `LEVER_STATUS/LEVER_WRITER["offset"]` 를 잠금 판정에서 **유도** (손으로 안 적는다)
+- [ ] 증거 산출물 3개 — `outputs/offset_promotion_{d_core,n9_offset_effect,n8_4_runtime}.json`.
+      D-core 가 BLOCKED 라 아직 하나도 못 만든다
+- [ ] g6 offset arm(`diagnostic-signal-offset30/60`) 을 돌리려면 그 config 가 test-only 를 선언해야 한다

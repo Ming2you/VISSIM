@@ -728,6 +728,40 @@ D-offset-enable = D-core(같은 신호 profile + 같은 topology SHA-256)
 **PASS.** 미승격 profile 의 production offset write 0, `intent_only` 우회 0,
 test-only writer 가 production 경로에 도달한 경우 0.
 
+#### N4-7 착지 (2026-08-10) — 잠금은 걸렸고, 열 수 없는 상태가 맞다
+
+**착수 전 상태를 먼저 확인했다. 잠금은 걸려 있지 않았다.** 모델(`urban_follower._offsets`
++ `offset_price` + `joint_green_offset`)이 고른 offset 이 `control.offsets` → action CSV
+`offset` 열 → 러너 `sigOffset` → `FMod(simSec + offset, cycle)` 로 **COM 까지 그대로**
+갔다. 과거 action CSV 9831개 중 191개가 nonzero offset 을 담고 있다. 즉 "D-core PASS
+전까지 production writer 는 intent_only" 는 지켜지지 않고 있었다.
+
+**권위는 `evaluation/controllers/offset_promotion.py` 하나다.** 판정은 상수가 아니라 증거
+산출물에서 나온다 — `outputs/offset_promotion_{d_core,n9_offset_effect,n8_4_runtime}.json`
+셋이 모두 있고, 모두 `status=PASS` 이고, 셋이 **같은** `signal_profile_id` +
+`topology_sha256` 를 가리킬 때만 열린다. 사람이 상수를 고쳐서 여는 길은 없다.
+
+| writer | 누가 정하나 | 무엇을 쓰나 |
+|---|---|---|
+| `intent_only` | 기본값 | 아무것도. 의도는 action JSON `offsets` 에 남는다 |
+| `test_only` | 격리 harness 가 config 로 선언 | **강제 arm 만**. 최적화기 offset 은 안 나간다 |
+| `production` | **증거만** | 최적화기 offset |
+
+`production` 은 config 로 선언할 수 없다(`OffsetPromotionError`). 선언 없는 런에 강제 arm 이
+오면 0 으로 뭉개지 않고 런을 세운다 — 조용한 0 은 나중에 "offset 효과 없음"으로 읽힌다.
+
+**자물쇠는 두 겹이다.** 러너의 `RW_OFFSET_WRITER`(기본 `intent_only`)는 증거를 읽을 수
+없으므로 권위가 아니다. 보장하는 것은 "선언하지 않은 런은 offset 을 액추에이션하지 못한다"
+하나이고, 위반이면 기존 전량 거부 자리에서 action CSV 전체를 거부한다.
+
+**N9 행렬은 유도한다.** `LEVER_STATUS/LEVER_WRITER["offset"]` 을 손으로 적지 않고
+`offset_promotion.matrix_lever_*()` 에서 받는다. 오늘 값은 `BLOCKED` / `test_only` 이고
+seal 은 `d397fa07d1c05692` 로 불변이다.
+
+**열 수 없는 것이 맞다.** D-core 가 `command_quantization_sec` FAIL 0.990 s /
+`transition_time_error_sec` BLOCKED 이므로 증거 산출물 세 개 중 하나도 만들 수 없다.
+N8-4 런타임 게이트는 아직 존재하지 않는다(파일 이름만 잡아 뒀다).
+
 ## N5. 개발 데이터와 잡음 바닥 — P0
 
 VISSIM 을 순차 실행해 개발용 부모 런을 만든다. anchor `900/1500/2100/2700` 의 상태를 보존한다.
