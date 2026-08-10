@@ -981,5 +981,766 @@ class AuditPlantFidelityTests(unittest.TestCase):
         self.assertIn("Signal readback malformed rows / files / empty files", markdown)
 
 
+def write_json(path: Path, payload: object) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+TIMING_CANON = {
+    "schema_version": "signal-group-timing-v3",
+    "status": "PASS",
+    "controllers": [
+        {"sc_no": 1, "cycle_sec": 160.0, "groups": [{"sg_id": "1"}, {"sg_id": "2"}]},
+        {"sc_no": 5, "cycle_sec": 140.0, "groups": [{"sg_id": "1"}]},
+    ],
+    "unresolved": [],
+    "conflicting_pairs": [{"sc_no": 1, "a": "WBL", "b": "EBT", "actually_overlaps": False}],
+}
+
+ACTUATION_PLAN = {
+    "schema_version": "signal-group-actuation-plan-v3",
+    "status": "PASS",
+    "source": {"network_sha256": "n" * 64},
+    "controllers": {"1": {"node_id": "SC1"}, "5": {"node_id": "SC5"}},
+    "timing_table_disagreements": [],
+    "counts": {
+        "controllers": 2,
+        "signal_groups": 3,
+        "planned_windows": 3,
+        "uncovered_signal_groups": 0,
+        "conflict_pairs": 4,
+        "conflict_violations": 0,
+    },
+}
+
+MOVEMENT_MAP = {
+    "schema_version": "movement-signal-group-map-v3",
+    "status": "PASS",
+    "controllers": {"SC1": {}, "SC5": {}},
+    "counts": {"resolved_movements": 416, "unresolved_movements": 282},
+    "unresolved_movements": {"SC1_W_to_E": "synthetic_boundary_leg"},
+}
+
+PARENT_RUNS = {
+    "schema_version": "parent-run-spec-v3",
+    "spec": {
+        "holdout": {"demand": [0.75, 1.0, 1.25], "seeds": [47]},
+        "congested": {"demand": [1.25], "seeds": [13, 29]},
+        "training": {"demand": [0.75, 1.0], "seeds": [13, 29]},
+    },
+}
+
+
+def holdout_cell(demand: float, **overrides: str) -> dict[str, object]:
+    gates = {
+        "paired_dynamics": "PASS",
+        "spillback_detection": "PASS",
+        "gradient_ranking": "PASS",
+        "mass_conservation": "PASS",
+        "runtime": "PASS",
+    }
+    gates.update(overrides)
+    return {"demand": demand, "seed": 47, "gates": gates}
+
+
+class N10StatusVocabularyTest(unittest.TestCase):
+    def test_blocked_is_a_distinct_status_worse_than_not_evaluated(self) -> None:
+        self.assertEqual(audit.STATUS_BLOCKED, "BLOCKED")
+        self.assertEqual(
+            audit.worst_status(["PASS", "NOT_EVALUATED", "BLOCKED"]), "BLOCKED"
+        )
+        self.assertEqual(
+            audit.worst_status(["PASS", "BLOCKED", "FAIL", "NOT_EVALUATED"]), "FAIL"
+        )
+        self.assertEqual(audit.worst_status(["PASS", "PASS"]), "PASS")
+        self.assertEqual(audit.worst_status([]), "NOT_EVALUATED")
+
+    def test_strict_run_exits_two_when_a_gate_is_blocked(self) -> None:
+        policy = {"complete": False, "non_pass_gates": ["spillback_detection"]}
+        summary = {"fail": 0, "blocked": 1}
+        self.assertEqual(
+            audit.audit_exit_code(summary, policy, strict=True, require_complete=False),
+            2,
+        )
+        self.assertEqual(
+            audit.audit_exit_code(
+                {"fail": 0, "blocked": 0}, policy, strict=True, require_complete=False
+            ),
+            0,
+        )
+
+    def test_every_gate_is_classified_into_an_n10_category(self) -> None:
+        gates = audit.build_gates(
+            {
+                "inputs": {"primary": {}},
+                "network": {},
+                "link_assignment": {},
+                "adjacency": {},
+                "storage_capacity": {},
+                "vendor_snapshot": {},
+                "actual_numsim": {},
+                "state_observations": {},
+                "action_directory": {"signal_readback": {}},
+                "vissim_error": {},
+            }
+        )
+        unclassified = sorted(set(gates) - set(audit.GATE_CATEGORIES))
+        self.assertEqual(unclassified, [])
+        self.assertEqual(
+            sorted(set(audit.GATE_CATEGORIES.values())),
+            [
+                "calibration",
+                "mass",
+                "paired_dynamics",
+                "projection",
+                "promotion",
+                "ranking",
+                "runtime",
+                "signal",
+                "topology",
+            ],
+        )
+
+
+class N10SignalAndTopologyGateTest(unittest.TestCase):
+    def test_canonical_topology_must_be_compiled_from_the_audited_network(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            payload = {
+                "schema_version": "vissim-strict-topology/v1",
+                "topology_hash": "a" * 64,
+                "source": {"inpx_sha256": "b" * 64},
+                "validation_report": {"valid": True, "error_count": 0},
+                "links": [{"id": "link:1"}],
+                "cells": [{"id": "cell:1"}],
+            }
+            matched = audit.canonical_topology_evidence(
+                write_json(root / "topology.json", payload)
+            )
+            self.assertTrue(matched["available"])
+            self.assertEqual(
+                audit.canonical_topology_gate(matched, {"sha256": "b" * 64})["status"],
+                "PASS",
+            )
+            drifted = audit.canonical_topology_gate(matched, {"sha256": "c" * 64})
+            self.assertEqual(drifted["status"], "FAIL")
+            self.assertIn("different", drifted["reason"])
+
+            broken = dict(payload, validation_report={"valid": False, "error_count": 2})
+            self.assertEqual(
+                audit.canonical_topology_gate(
+                    audit.canonical_topology_evidence(
+                        write_json(root / "broken.json", broken)
+                    ),
+                    {"sha256": "b" * 64},
+                )["status"],
+                "FAIL",
+            )
+
+            self.assertEqual(
+                audit.canonical_topology_gate(
+                    audit.canonical_topology_evidence(None), {"sha256": "b" * 64}
+                )["status"],
+                "NOT_EVALUATED",
+            )
+
+    def test_signal_timing_canon_fails_when_the_plan_disagrees_with_the_table(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            timing = audit.signal_timing_evidence(
+                write_json(root / "timing.json", TIMING_CANON)
+            )
+            agreeing = audit.actuation_plan_evidence(
+                write_json(root / "plan.json", ACTUATION_PLAN)
+            )
+            self.assertEqual(
+                audit.signal_timing_canon_gate(timing, agreeing)["status"], "PASS"
+            )
+
+            disagreeing_payload = dict(
+                ACTUATION_PLAN, timing_table_disagreements=["SC5", "SC6", "SC11", "SC12"]
+            )
+            disagreeing = audit.actuation_plan_evidence(
+                write_json(root / "plan_bad.json", disagreeing_payload)
+            )
+            verdict = audit.signal_timing_canon_gate(timing, disagreeing)
+            self.assertEqual(verdict["status"], "FAIL")
+            self.assertIn("SC5", json.dumps(verdict))
+
+            overlapping = dict(
+                TIMING_CANON,
+                conflicting_pairs=[{"sc_no": 1, "actually_overlaps": True}],
+            )
+            self.assertEqual(
+                audit.signal_timing_canon_gate(
+                    audit.signal_timing_evidence(
+                        write_json(root / "timing_overlap.json", overlapping)
+                    ),
+                    agreeing,
+                )["status"],
+                "FAIL",
+            )
+
+            # 대조 산출물이 없으면 통과가 아니라 미평가다. 적게 낼수록 유리해지면 안 된다.
+            self.assertEqual(
+                audit.signal_timing_canon_gate(
+                    timing, audit.actuation_plan_evidence(None)
+                )["status"],
+                "NOT_EVALUATED",
+            )
+            self.assertEqual(
+                audit.signal_timing_canon_gate(
+                    audit.signal_timing_evidence(None), agreeing
+                )["status"],
+                "NOT_EVALUATED",
+            )
+
+    def test_actuation_plan_gate_checks_violations_network_and_controller_set(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            timing = audit.signal_timing_evidence(
+                write_json(root / "timing.json", TIMING_CANON)
+            )
+            plan = audit.actuation_plan_evidence(
+                write_json(root / "plan.json", ACTUATION_PLAN)
+            )
+            network = {"sha256": "n" * 64}
+            self.assertEqual(
+                audit.signal_actuation_plan_gate(plan, timing, network)["status"], "PASS"
+            )
+
+            violated = dict(
+                ACTUATION_PLAN,
+                status="FAIL",
+                counts=dict(ACTUATION_PLAN["counts"], conflict_violations=3),
+            )
+            self.assertEqual(
+                audit.signal_actuation_plan_gate(
+                    audit.actuation_plan_evidence(
+                        write_json(root / "violated.json", violated)
+                    ),
+                    timing,
+                    network,
+                )["status"],
+                "FAIL",
+            )
+
+            other_network = audit.signal_actuation_plan_gate(
+                plan, timing, {"sha256": "z" * 64}
+            )
+            self.assertEqual(other_network["status"], "FAIL")
+
+            partial = dict(ACTUATION_PLAN, controllers={"1": {"node_id": "SC1"}})
+            self.assertEqual(
+                audit.signal_actuation_plan_gate(
+                    audit.actuation_plan_evidence(
+                        write_json(root / "partial.json", partial)
+                    ),
+                    timing,
+                    network,
+                )["status"],
+                "FAIL",
+            )
+
+    def test_movement_map_gate_rejects_unknown_unresolved_reasons(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            timing = audit.signal_timing_evidence(
+                write_json(root / "timing.json", TIMING_CANON)
+            )
+            good = audit.movement_map_evidence(
+                write_json(root / "map.json", MOVEMENT_MAP)
+            )
+            self.assertEqual(
+                audit.movement_signal_group_map_gate(good, timing)["status"], "PASS"
+            )
+
+            unknown = dict(
+                MOVEMENT_MAP,
+                unresolved_movements={"SC1_W_to_E": "no_signal_group_found"},
+            )
+            verdict = audit.movement_signal_group_map_gate(
+                audit.movement_map_evidence(write_json(root / "bad.json", unknown)),
+                timing,
+            )
+            self.assertEqual(verdict["status"], "FAIL")
+            self.assertIn("no_signal_group_found", json.dumps(verdict))
+
+            mismatched = dict(MOVEMENT_MAP, controllers={"SC1": {}})
+            self.assertEqual(
+                audit.movement_signal_group_map_gate(
+                    audit.movement_map_evidence(
+                        write_json(root / "mismatch.json", mismatched)
+                    ),
+                    timing,
+                )["status"],
+                "FAIL",
+            )
+
+
+class N10MassAndCalibrationGateTest(unittest.TestCase):
+    def _projection_record(self, **errors: float) -> dict[str, object]:
+        record = {
+            "missing_required_fields": [],
+            "input_mass_balance_error_veh": 0.0,
+            "total_mass_balance_error_veh": 0.0,
+            "residual_consistency_error_veh": 0.0,
+            "status": "PASS",
+        }
+        record.update(errors)
+        return record
+
+    def test_mass_conservation_is_its_own_gate(self) -> None:
+        empty = audit.mass_conservation_gate({"projection_contract": {"records": []}})
+        self.assertEqual(empty["status"], "NOT_EVALUATED")
+
+        clean = audit.mass_conservation_gate(
+            {"projection_contract": {"records": [self._projection_record()]}}
+        )
+        self.assertEqual(clean["status"], "PASS")
+
+        broken = audit.mass_conservation_gate(
+            {
+                "projection_contract": {
+                    "records": [
+                        self._projection_record(),
+                        self._projection_record(total_mass_balance_error_veh=4.0),
+                    ]
+                }
+            }
+        )
+        self.assertEqual(broken["status"], "FAIL")
+        self.assertEqual(broken["evidence"]["violating_record_count"], 1)
+
+        blind = audit.mass_conservation_gate(
+            {
+                "projection_contract": {
+                    "records": [
+                        self._projection_record(),
+                        {"missing_required_fields": ["mass_balance_error_veh"]},
+                    ]
+                }
+            }
+        )
+        self.assertEqual(blind["status"], "FAIL")
+
+    def test_stock_calibration_gate_delegates_to_the_n6_validator(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual(
+                audit.stock_calibration_gate(audit.stock_calibration_evidence(None))[
+                    "status"
+                ],
+                "NOT_EVALUATED",
+            )
+
+            payload = {
+                "split": {
+                    "training_run_ids": ["a"],
+                    "holdout_run_ids": ["b"],
+                    "fit_source": "training",
+                },
+                "jam_density": {
+                    "sample_count": 400,
+                    "saturated_lane_groups": 40,
+                    "value_veh_km_lane": 130.0,
+                    "ci95_low": 125.0,
+                    "ci95_high": 135.0,
+                    "selection": {"speed_max_kph": 3.0, "stopped_fraction_min": 0.5},
+                },
+                "geometry_prior": {"jam_spacing_m": 7.5, "fitted_jam_spacing_m": 7.7},
+                "per_training_seed_fit": {"13": 130.0, "29": 132.0},
+                "fallback_fraction_used": 0.02,
+                "queue_tail_source": "observed",
+            }
+            good = audit.stock_calibration_evidence(
+                write_json(root / "calibration.json", payload)
+            )
+            self.assertEqual(good["verdict"]["status"], "PASS")
+            self.assertEqual(audit.stock_calibration_gate(good)["status"], "PASS")
+
+            thin = dict(payload, jam_density=dict(payload["jam_density"], sample_count=10))
+            bad = audit.stock_calibration_evidence(
+                write_json(root / "thin.json", thin)
+            )
+            verdict = audit.stock_calibration_gate(bad)
+            self.assertEqual(verdict["status"], "FAIL")
+            self.assertIn("jam_density.sample_count", json.dumps(verdict))
+
+
+class N10PairedRankingAndPromotionGateTest(unittest.TestCase):
+    def paired(self, root: Path, name: str, payload: dict[str, object]) -> dict[str, object]:
+        return audit.paired_validation_evidence(write_json(root / name, payload))
+
+    def test_paired_dynamics_gate_uses_the_n9_gate_table(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual(
+                audit.paired_dynamics_gate(audit.paired_validation_evidence(None))[
+                    "status"
+                ],
+                "NOT_EVALUATED",
+            )
+            passing = self.paired(
+                root,
+                "ok.json",
+                {"horizons": {"1": {"ttt_ape": 0.05, "speed_mape": 0.05}}},
+            )
+            self.assertEqual(audit.paired_dynamics_gate(passing)["status"], "PASS")
+
+            failing = self.paired(
+                root,
+                "bad.json",
+                {"horizons": {"1": {"ttt_ape": 0.30}}},
+            )
+            verdict = audit.paired_dynamics_gate(failing)
+            self.assertEqual(verdict["status"], "FAIL")
+            self.assertIn("ttt_ape", json.dumps(verdict))
+
+            unmeasured = self.paired(root, "none.json", {"horizons": {}})
+            self.assertEqual(audit.paired_dynamics_gate(unmeasured)["status"], "NOT_EVALUATED")
+
+    def test_spillback_gate_blocks_congested_cells_with_too_few_positives(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            good_cell = {
+                "cell_id": "d125-h5-controlled-urban",
+                "congested": True,
+                "positives": 12,
+                "f1": 0.85,
+                "onset_median_error_sec": 40.0,
+                "onset_p90_error_sec": 100.0,
+            }
+            passing = self.paired(root, "sb_ok.json", {"spillback": {"cells": [good_cell]}})
+            self.assertEqual(audit.spillback_gate(passing)["status"], "PASS")
+
+            blocked = self.paired(
+                root,
+                "sb_blocked.json",
+                {"spillback": {"cells": [dict(good_cell, positives=4)]}},
+            )
+            self.assertEqual(audit.spillback_gate(blocked)["status"], "BLOCKED")
+
+            exempt = self.paired(
+                root,
+                "sb_exempt.json",
+                {
+                    "spillback": {
+                        "cells": [dict(good_cell, congested=False, positives=2)]
+                    }
+                },
+            )
+            self.assertEqual(audit.spillback_gate(exempt)["status"], "NOT_EVALUATED")
+
+            late = self.paired(
+                root,
+                "sb_late.json",
+                {"spillback": {"cells": [dict(good_cell, onset_p90_error_sec=180.0)]}},
+            )
+            self.assertEqual(audit.spillback_gate(late)["status"], "FAIL")
+
+    def test_gradient_ranking_needs_point_and_bootstrap_lower_bound(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual(
+                audit.gradient_ranking_gate(audit.ranking_evidence(None))["status"],
+                "NOT_EVALUATED",
+            )
+            good = audit.ranking_evidence(
+                write_json(
+                    root / "rank_ok.json",
+                    {
+                        "spearman": {"point": 0.82, "ci95_low": 0.74},
+                        "top_pairwise": {"point": 0.91, "ci95_low": 0.83},
+                    },
+                )
+            )
+            self.assertEqual(audit.gradient_ranking_gate(good)["status"], "PASS")
+
+            # 점추정만 통과하고 부트스트랩 하한이 미달이면 실패다.
+            weak = audit.ranking_evidence(
+                write_json(
+                    root / "rank_weak.json",
+                    {
+                        "spearman": {"point": 0.82, "ci95_low": 0.61},
+                        "top_pairwise": {"point": 0.91, "ci95_low": 0.83},
+                    },
+                )
+            )
+            verdict = audit.gradient_ranking_gate(weak)
+            self.assertEqual(verdict["status"], "FAIL")
+            self.assertIn("ci95_low", json.dumps(verdict))
+
+            partial = audit.ranking_evidence(
+                write_json(
+                    root / "rank_partial.json",
+                    {"spearman": {"point": 0.82, "ci95_low": 0.74}},
+                )
+            )
+            self.assertEqual(audit.gradient_ranking_gate(partial)["status"], "NOT_EVALUATED")
+
+    def test_promotion_requires_all_three_holdout_demands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parents = audit.parent_runs_evidence(
+                write_json(root / "parents.json", PARENT_RUNS)
+            )
+            self.assertEqual(parents["holdout_demands"], [0.75, 1.0, 1.25])
+            clean_gates = {"network_xml": {"status": "PASS", "reason": "ok"}}
+
+            complete = audit.promotion_evidence(
+                write_json(
+                    root / "promo.json",
+                    {"cells": [holdout_cell(d) for d in (0.75, 1.0, 1.25)]},
+                )
+            )
+            self.assertEqual(
+                audit.promotion_gate(complete, parents, clean_gates)["status"], "PASS"
+            )
+
+            missing_demand = audit.promotion_evidence(
+                write_json(
+                    root / "promo_partial.json",
+                    {"cells": [holdout_cell(d) for d in (0.75, 1.0)]},
+                )
+            )
+            verdict = audit.promotion_gate(missing_demand, parents, clean_gates)
+            self.assertEqual(verdict["status"], "NOT_EVALUATED")
+            self.assertIn("1.25", json.dumps(verdict))
+
+            self.assertEqual(
+                audit.promotion_gate(
+                    complete, parents, {"network_xml": {"status": "FAIL", "reason": "x"}}
+                )["status"],
+                "FAIL",
+            )
+            self.assertEqual(
+                audit.promotion_gate(audit.promotion_evidence(None), parents, clean_gates)[
+                    "status"
+                ],
+                "NOT_EVALUATED",
+            )
+
+    def test_low_demand_is_exempt_only_from_spillback(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            parents = audit.parent_runs_evidence(
+                write_json(root / "parents.json", PARENT_RUNS)
+            )
+            clean_gates = {"network_xml": {"status": "PASS", "reason": "ok"}}
+
+            spillback_exempt = audit.promotion_evidence(
+                write_json(
+                    root / "exempt.json",
+                    {
+                        "cells": [
+                            holdout_cell(0.75, spillback_detection="NOT_EVALUATED"),
+                            holdout_cell(1.0, spillback_detection="NOT_EVALUATED"),
+                            holdout_cell(1.25),
+                        ]
+                    },
+                )
+            )
+            self.assertEqual(
+                audit.promotion_gate(spillback_exempt, parents, clean_gates)["status"],
+                "PASS",
+            )
+
+            # 저수요라고 spillback 외 지표를 면제하지 않는다.
+            other_unmeasured = audit.promotion_evidence(
+                write_json(
+                    root / "not_exempt.json",
+                    {
+                        "cells": [
+                            holdout_cell(0.75, gradient_ranking="NOT_EVALUATED"),
+                            holdout_cell(1.0),
+                            holdout_cell(1.25),
+                        ]
+                    },
+                )
+            )
+            verdict = audit.promotion_gate(other_unmeasured, parents, clean_gates)
+            self.assertEqual(verdict["status"], "NOT_EVALUATED")
+            self.assertIn("gradient_ranking", json.dumps(verdict))
+
+            # 혼잡 셀의 spillback 면제는 없다.
+            congested_unmeasured = audit.promotion_evidence(
+                write_json(
+                    root / "congested.json",
+                    {
+                        "cells": [
+                            holdout_cell(0.75),
+                            holdout_cell(1.0),
+                            holdout_cell(1.25, spillback_detection="NOT_EVALUATED"),
+                        ]
+                    },
+                )
+            )
+            self.assertEqual(
+                audit.promotion_gate(congested_unmeasured, parents, clean_gates)["status"],
+                "NOT_EVALUATED",
+            )
+
+            blocked = audit.promotion_evidence(
+                write_json(
+                    root / "blocked.json",
+                    {
+                        "cells": [
+                            holdout_cell(0.75),
+                            holdout_cell(1.0),
+                            holdout_cell(1.25, spillback_detection="BLOCKED"),
+                        ]
+                    },
+                )
+            )
+            self.assertEqual(
+                audit.promotion_gate(blocked, parents, clean_gates)["status"], "BLOCKED"
+            )
+
+
+class N10AuditCommandTest(unittest.TestCase):
+    def run_audit(self, directory: Path, *arguments: str) -> tuple[subprocess.CompletedProcess[str], dict]:
+        json_out = directory / "audit.json"
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-B",
+                str(MODULE_PATH),
+                "--repo",
+                str(REPO),
+                "--json-out",
+                str(json_out),
+                "--markdown-out",
+                str(directory / "audit.md"),
+                *arguments,
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=300,
+        )
+        payload = json.loads(json_out.read_text(encoding="utf-8")) if json_out.is_file() else {}
+        return result, payload
+
+    def test_new_gates_default_to_not_evaluated_and_are_replayable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            result, payload = self.run_audit(Path(directory))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for name in (
+            "canonical_topology",
+            "signal_timing_canon",
+            "signal_actuation_plan",
+            "movement_signal_group_map",
+            "mass_conservation",
+            "stock_calibration",
+            "paired_dynamics",
+            "spillback_detection",
+            "gradient_ranking",
+        ):
+            self.assertIn(name, payload["gates"])
+            self.assertEqual(payload["gates"][name]["status"], "NOT_EVALUATED", name)
+        # 승격은 감사 자신의 게이트를 물려받는다. 지금 저장소에는 assignment_ties FAIL 이 있다.
+        promotion = payload["gates"]["promotion_readiness"]
+        self.assertEqual(promotion["status"], "FAIL")
+        self.assertEqual(promotion["evidence"]["static_gate_status"], "FAIL")
+        self.assertIn("the audit's own gates are FAIL", promotion["reason"])
+        self.assertIn("blocked", payload["gate_summary"])
+        self.assertIn("BLOCKED", payload["policy"]["status_values"])
+        for field in (
+            "canonical_topology",
+            "signal_timing",
+            "movement_map",
+            "actuation_plan",
+            "parent_runs",
+            "stock_calibration",
+            "paired_metrics",
+            "ranking_evidence",
+            "promotion_evidence",
+        ):
+            self.assertIn(field, payload["invocation"])
+        rebuilt, _ = audit.build_complete_manifest_from_invocation(payload["invocation"])
+        self.assertEqual(
+            audit.canonical_semantic_projection(rebuilt),
+            audit.canonical_semantic_projection(payload),
+        )
+
+    def test_blocked_spillback_reaches_the_summary_and_the_exit_code(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paired = write_json(
+                root / "paired.json",
+                {
+                    "spillback": {
+                        "cells": [
+                            {
+                                "cell_id": "d125-h5-controlled-urban",
+                                "congested": True,
+                                "positives": 3,
+                                "f1": 0.9,
+                                "onset_median_error_sec": 20.0,
+                                "onset_p90_error_sec": 50.0,
+                            }
+                        ]
+                    }
+                },
+            )
+            result, payload = self.run_audit(
+                root,
+                "--paired-metrics",
+                str(paired),
+                "--strict",
+                "--required-gate",
+                "spillback_detection",
+            )
+        self.assertEqual(payload["gates"]["spillback_detection"]["status"], "BLOCKED")
+        self.assertEqual(payload["gate_summary"]["blocked"], 1)
+        self.assertEqual(result.returncode, 2, result.stderr)
+
+    def test_repository_signal_artifacts_are_actually_wired(self) -> None:
+        outputs = REPO / "outputs"
+        with tempfile.TemporaryDirectory() as directory:
+            _, payload = self.run_audit(
+                Path(directory),
+                "--canonical-topology",
+                str(outputs / "canonical_topology_v3.json"),
+                "--signal-timing",
+                str(outputs / "signal_group_timing_v3.json"),
+                "--movement-map",
+                str(outputs / "movement_signal_group_map_v3.json"),
+                "--actuation-plan",
+                str(outputs / "signal_group_actuation_plan_v3.json"),
+                "--parent-runs",
+                str(outputs / "parent_runs_v3.json"),
+            )
+        gates = payload["gates"]
+        self.assertEqual(gates["canonical_topology"]["status"], "PASS")
+        self.assertEqual(gates["signal_actuation_plan"]["status"], "PASS")
+        self.assertEqual(gates["movement_signal_group_map"]["status"], "PASS")
+        # 정본 표가 inpx supply file 과 어긋난 SC 가 남아 있다.
+        self.assertEqual(gates["signal_timing_canon"]["status"], "FAIL")
+        self.assertIn("SC5", json.dumps(gates["signal_timing_canon"]))
+
+    def test_markdown_carries_the_gate_category_column(self) -> None:
+        manifest = {
+            "generated_at_utc": "2026-08-09T00:00:00+00:00",
+            "gates": {"promotion_readiness": {"status": "NOT_EVALUATED", "reason": "no runs"}},
+            "network": {},
+            "link_assignment": {"tie_analysis": {}},
+            "adjacency": {},
+            "storage_capacity": {},
+            "action_directory": {"decision_wall_sec": {}},
+            "workspace_git": {},
+            "vendor_snapshot": {},
+            "actual_numsim": {},
+            "inputs": {"primary": {}, "signal_program_count": 0},
+        }
+        markdown = audit.render_markdown(manifest)
+        self.assertIn("| Gate | Category | Status | Reason |", markdown)
+        self.assertIn("promotion", markdown)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.util
 import json
 import math
 import os
@@ -26,10 +27,81 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 STATUS_PASS = "PASS"
 STATUS_FAIL = "FAIL"
 STATUS_NE = "NOT_EVALUATED"
+# 측정이 구조적으로 막힌 상태. NOT_EVALUATED 보다 나쁘다 - 아직 안 잰 것이 아니라 잴 수 없다.
+STATUS_BLOCKED = "BLOCKED"
+GATE_STATUS_VALUES = (STATUS_PASS, STATUS_FAIL, STATUS_BLOCKED, STATUS_NE)
+
+# 나쁠수록 작다. 여러 판정을 합칠 때 가장 나쁜 것을 남긴다.
+_STATUS_SEVERITY = {STATUS_FAIL: 0, STATUS_BLOCKED: 1, STATUS_NE: 2, STATUS_PASS: 3}
+
+
+def worst_status(statuses: Iterable[str]) -> str:
+    """여러 판정을 합칠 때 가장 나쁜 것을 남긴다. 아무것도 없으면 NOT_EVALUATED 다."""
+    known = [status for status in statuses if status in _STATUS_SEVERITY]
+    if not known:
+        return STATUS_NE
+    return min(known, key=lambda status: _STATUS_SEVERITY[status])
+
+
+# N10 이 요구하는 범주. 게이트를 추가하면서 범주를 안 적으면 테스트가 잡는다.
+GATE_CATEGORIES: dict[str, str] = {
+    "input_provenance": "runtime",
+    "network_xml": "topology",
+    "signal_controller_scope": "signal",
+    "link_partition": "topology",
+    "assignment_ties": "topology",
+    "adjacency": "topology",
+    "storage_capacity": "topology",
+    "canonical_topology": "topology",
+    "vendor_snapshot": "runtime",
+    "numsim_source_match": "runtime",
+    "state_observation_contract": "projection",
+    "action_inventory": "runtime",
+    "runtime": "runtime",
+    "projection_diagnostics": "projection",
+    "mass_conservation": "mass",
+    "runtime_provenance": "runtime",
+    "preflight_provenance": "runtime",
+    "signal_com_readback": "signal",
+    "signal_event_timing": "signal",
+    "signal_timing_canon": "signal",
+    "signal_actuation_plan": "signal",
+    "movement_signal_group_map": "signal",
+    "stock_calibration": "calibration",
+    "paired_dynamics": "paired_dynamics",
+    "spillback_detection": "paired_dynamics",
+    "gradient_ranking": "ranking",
+    "promotion_readiness": "promotion",
+    "vissim_error_log": "runtime",
+}
+
+CANONICAL_TOPOLOGY_SCHEMA = "vissim-strict-topology/v1"
+
+# movement-SG 매핑에서 허용되는 미해결 사유. 이 밖의 사유는 매핑 결함이다.
+ACCEPTED_UNRESOLVED_MOVEMENT_REASONS = frozenset({"synthetic_boundary_leg"})
+
+# N9-4 spillback 임계. 표본 하한은 paired_validation_metrics 가 갖고 있다.
+SPILLBACK_F1_MIN = 0.80
+SPILLBACK_ONSET_MEDIAN_MAX_SEC = 60.0
+SPILLBACK_ONSET_P90_MAX_SEC = 120.0
+
+# N9-4 기울기 순위 임계. 점추정과 부트스트랩 95% 하한을 **둘 다** 넘어야 한다.
+RANKING_THRESHOLDS = {"spearman": 0.70, "top_pairwise": 0.80}
+
+# 승격 판정이 holdout 셀마다 요구하는 게이트.
+PROMOTION_REQUIRED_GATES = (
+    "paired_dynamics",
+    "spillback_detection",
+    "gradient_ranking",
+    "mass_conservation",
+    "runtime",
+)
+# 저수요 셀에서만, spillback 만 미측정을 면제한다. 다른 지표에는 면제가 없다.
+PROMOTION_LOW_DEMAND_EXEMPT_GATES = frozenset({"spillback_detection"})
 
 # state 의 형제로 놓이는 sidecar 는 `state_` 접두사를 그대로 물려받아 state 발견 glob 에 걸린다.
 # 그러면 link count 가 없는 sidecar 가 state 로 집계돼 state_observation_contract 게이트가
@@ -62,6 +134,15 @@ AUDIT_REPLAY_PATH_FIELDS = (
     "action_dir",
     "vissim_err",
     "vissim_err_copy_target",
+    "canonical_topology",
+    "signal_timing",
+    "movement_map",
+    "actuation_plan",
+    "parent_runs",
+    "stock_calibration",
+    "paired_metrics",
+    "ranking_evidence",
+    "promotion_evidence",
 )
 AUDIT_REPLAY_LIST_FIELDS = ("state_json", "extra_input", "required_gate")
 
@@ -115,6 +196,79 @@ def gate(status: str, reason: str, **evidence: Any) -> dict[str, Any]:
     if evidence:
         result["evidence"] = evidence
     return result
+
+
+_SIBLING_MODULES: dict[str, Any] = {}
+
+
+def sibling_module(name: str) -> Any:
+    """같은 scripts/ 안의 판정 모듈을 경로로 읽는다.
+
+    N6 캘리브레이션 판정과 N9-4 지표·게이트 표는 이미 있다. 임계를 여기서 다시 적으면
+    두 벌이 갈라진다 - 이 감사는 그 모듈을 **불러서** 쓴다. sys.path 에 scripts/ 가 없어도
+    되도록 파일 경로로 적재한다.
+    """
+    if name in _SIBLING_MODULES:
+        return _SIBLING_MODULES[name]
+    module: Any = None
+    path = Path(__file__).resolve().with_name(f"{name}.py")
+    if path.is_file():
+        spec = importlib.util.spec_from_file_location(f"_audit_sibling_{name}", path)
+        if spec is not None and spec.loader is not None:
+            candidate = importlib.util.module_from_spec(spec)
+            try:
+                spec.loader.exec_module(candidate)
+            except Exception:  # 판정 모듈이 깨져 있으면 게이트가 FAIL 로 드러나야 한다
+                candidate = None
+            module = candidate
+    _SIBLING_MODULES[name] = module
+    return module
+
+
+def json_artifact(path: Path | None) -> tuple[dict[str, Any], Mapping[str, Any] | None]:
+    """설정 안 함 / 파일 없음 / 깨짐 을 구분해 남긴다.
+
+    셋을 뭉뚱그리면 "안 줬으니 통과" 와 "줬는데 못 읽었다" 가 같아진다. payload 는 매니페스트에
+    싣지 않는다 - 정본 토폴로지 하나가 수천 셀이라 감사 산출물을 삼킨다.
+    """
+    record: dict[str, Any] = {
+        "path": None,
+        "configured": False,
+        "exists": False,
+        "available": False,
+        "sha256": None,
+        "error": None,
+    }
+    if path is None or not str(path).strip():
+        record["error"] = "path not configured"
+        return record, None
+    record["configured"] = True
+    record["path"] = str(path.resolve(strict=False))
+    if not path.is_file():
+        record["error"] = "file not found"
+        return record, None
+    record["exists"] = True
+    record["sha256"] = sha256_file(path)
+    payload, error = load_json(path)
+    if error is not None:
+        record["error"] = error
+        return record, None
+    if not isinstance(payload, Mapping):
+        record["error"] = "artifact root is not a JSON object"
+        return record, None
+    record["available"] = True
+    return record, payload
+
+
+def artifact_absence_gate(record: Mapping[str, Any], label: str) -> dict[str, Any] | None:
+    """산출물 자체를 못 읽는 경우만 판정하고, 나머지는 게이트 본문에 넘긴다."""
+    if not record.get("configured"):
+        return gate(STATUS_NE, f"no {label} artifact was supplied")
+    if not record.get("exists"):
+        return gate(STATUS_NE, f"{label} artifact was not found", path=record.get("path"))
+    if not record.get("available"):
+        return gate(STATUS_FAIL, f"{label} artifact could not be read: {record.get('error')}")
+    return None
 
 
 def run_git(root: Path, *arguments: str) -> tuple[str | None, str | None]:
@@ -2090,6 +2244,577 @@ def vissim_error_gate(err: Mapping[str, Any]) -> dict[str, Any]:
     return gate(STATUS_PASS, "VISSIM error log contains no error/fatal lines")
 
 
+# ── N10 게이트 ────────────────────────────────────────────────────────────────
+# 실 런이 없어 판정할 수 없는 게이트는 NOT_EVALUATED 다. PASS 로 두면 측정을 덜 할수록
+# 유리해진다. 대조 산출물이 없어 교차검증이 못 돌면 그 게이트도 PASS 가 아니다.
+
+
+def canonical_topology_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    source = payload.get("source") if isinstance(payload.get("source"), Mapping) else {}
+    report = payload.get("validation_report") if isinstance(payload.get("validation_report"), Mapping) else {}
+    record.update(
+        {
+            "topology_schema_version": payload.get("schema_version"),
+            "topology_hash": payload.get("topology_hash"),
+            "inpx_sha256": (str(source.get("inpx_sha256") or "").strip().lower() or None),
+            "validation_valid": report.get("valid"),
+            "validation_error_count": report.get("error_count"),
+            "counts": {
+                key: len(payload.get(key) or [])
+                for key in ("links", "cells", "signal_controllers", "signal_groups")
+            },
+        }
+    )
+    return record
+
+
+def canonical_topology_gate(topology: Mapping[str, Any], network_input: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(topology, "canonical topology")
+    if absent is not None:
+        return absent
+    network_sha = str((network_input or {}).get("sha256") or "").strip().lower()
+    if not network_sha:
+        return gate(STATUS_NE, "the audited network could not be hashed, so topology identity cannot be checked")
+    reasons: list[str] = []
+    if topology.get("topology_schema_version") != CANONICAL_TOPOLOGY_SCHEMA:
+        reasons.append(f"schema_version is not {CANONICAL_TOPOLOGY_SCHEMA}")
+    if not re.fullmatch(r"[0-9a-f]{64}", str(topology.get("topology_hash") or "").lower() or ""):
+        reasons.append("topology_hash is missing or malformed")
+    if topology.get("validation_valid") is not True or topology.get("validation_error_count"):
+        reasons.append("compiler validation_report is not clean")
+    if not topology.get("counts", {}).get("cells"):
+        reasons.append("topology declares no cells")
+    if topology.get("inpx_sha256") != network_sha:
+        reasons.append("canonical topology was compiled from a different .inpx than the audited network")
+    if reasons:
+        return gate(STATUS_FAIL, "; ".join(reasons), inpx_sha256=topology.get("inpx_sha256"), network_sha256=network_sha)
+    return gate(
+        STATUS_PASS,
+        "canonical topology matches the audited network and its compiler report is clean",
+        topology_hash=topology.get("topology_hash"),
+        counts=topology.get("counts"),
+    )
+
+
+def signal_timing_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    controllers = [item for item in (payload.get("controllers") or []) if isinstance(item, Mapping)]
+    record.update(
+        {
+            "declared_status": payload.get("status"),
+            "controller_nos": sorted({str(item.get("sc_no")) for item in controllers}),
+            "controller_count": len(controllers),
+            "signal_group_count": sum(len(item.get("groups") or []) for item in controllers),
+            "unresolved_count": len(payload.get("unresolved") or []),
+            "conflicting_pair_count": len(payload.get("conflicting_pairs") or []),
+            "overlapping_conflict_count": sum(
+                1
+                for item in (payload.get("conflicting_pairs") or [])
+                if isinstance(item, Mapping) and item.get("actually_overlaps") is True
+            ),
+        }
+    )
+    return record
+
+
+def actuation_plan_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    controllers = payload.get("controllers") if isinstance(payload.get("controllers"), Mapping) else {}
+    source = payload.get("source") if isinstance(payload.get("source"), Mapping) else {}
+    counts = payload.get("counts") if isinstance(payload.get("counts"), Mapping) else {}
+    record.update(
+        {
+            "declared_status": payload.get("status"),
+            "controller_nos": sorted(str(key) for key in controllers),
+            "node_ids": sorted(
+                str(item.get("node_id"))
+                for item in controllers.values()
+                if isinstance(item, Mapping) and item.get("node_id")
+            ),
+            "network_sha256": (str(source.get("network_sha256") or "").strip().lower() or None),
+            "timing_table_disagreements": sorted(str(item) for item in (payload.get("timing_table_disagreements") or [])),
+            "counts": dict(counts),
+        }
+    )
+    return record
+
+
+def movement_map_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    controllers = payload.get("controllers") if isinstance(payload.get("controllers"), Mapping) else {}
+    unresolved = payload.get("unresolved_movements") if isinstance(payload.get("unresolved_movements"), Mapping) else {}
+    counts = payload.get("counts") if isinstance(payload.get("counts"), Mapping) else {}
+    record.update(
+        {
+            "declared_status": payload.get("status"),
+            "controller_ids": sorted(str(key) for key in controllers),
+            "unresolved_reason_counts": dict(sorted(Counter(str(value) for value in unresolved.values()).items())),
+            "resolved_movements": counts.get("resolved_movements"),
+            "counts": dict(counts),
+        }
+    )
+    return record
+
+
+def signal_timing_canon_gate(timing: Mapping[str, Any], plan: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(timing, "signal group timing")
+    if absent is not None:
+        return absent
+    reasons: list[str] = []
+    if timing.get("declared_status") != STATUS_PASS:
+        reasons.append(f"timing artifact declares status {timing.get('declared_status')}")
+    if not timing.get("controller_count"):
+        reasons.append("timing table lists no controllers")
+    if timing.get("unresolved_count"):
+        reasons.append(f"{timing['unresolved_count']} signal groups are unresolved")
+    if timing.get("overlapping_conflict_count"):
+        reasons.append(f"{timing['overlapping_conflict_count']} conflicting pairs actually overlap")
+    disagreements = list(plan.get("timing_table_disagreements") or [])
+    if not plan.get("available"):
+        if reasons:
+            return gate(STATUS_FAIL, "; ".join(reasons))
+        return gate(
+            STATUS_NE,
+            "the inpx-derived actuation plan is unavailable, so the canonical timing table cannot be cross-checked",
+        )
+    if disagreements:
+        reasons.append(
+            "the canonical timing table disagrees with the inpx supply file VISSIM actually runs for "
+            + ", ".join(disagreements)
+        )
+    if reasons:
+        return gate(STATUS_FAIL, "; ".join(reasons), timing_table_disagreements=disagreements)
+    return gate(
+        STATUS_PASS,
+        "canonical timing table is resolved, conflict-free, and agrees with the inpx supply file",
+        controller_count=timing.get("controller_count"),
+        signal_group_count=timing.get("signal_group_count"),
+    )
+
+
+def signal_actuation_plan_gate(
+    plan: Mapping[str, Any],
+    timing: Mapping[str, Any],
+    network_input: Mapping[str, Any],
+) -> dict[str, Any]:
+    absent = artifact_absence_gate(plan, "signal group actuation plan")
+    if absent is not None:
+        return absent
+    counts = plan.get("counts") or {}
+    reasons: list[str] = []
+    if plan.get("declared_status") != STATUS_PASS:
+        reasons.append(f"plan declares status {plan.get('declared_status')}")
+    if not counts.get("controllers"):
+        reasons.append("plan covers no controllers")
+    if counts.get("conflict_violations"):
+        reasons.append(f"{counts['conflict_violations']} planned conflict violations")
+    if counts.get("uncovered_signal_groups"):
+        reasons.append(f"{counts['uncovered_signal_groups']} signal groups are uncovered")
+    network_sha = str((network_input or {}).get("sha256") or "").strip().lower()
+    if not network_sha:
+        reasons.append("the audited network could not be hashed")
+    elif plan.get("network_sha256") != network_sha:
+        reasons.append("the plan was derived from a different .inpx than the audited network")
+    if timing.get("available") and plan.get("controller_nos") != timing.get("controller_nos"):
+        reasons.append("plan and canonical timing table cover different signal controllers")
+    if reasons:
+        return gate(STATUS_FAIL, "; ".join(reasons), counts=dict(counts))
+    return gate(STATUS_PASS, "actuation plan covers every signal group without conflict violations", counts=dict(counts))
+
+
+def movement_signal_group_map_gate(mapping: Mapping[str, Any], timing: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(mapping, "movement signal-group map")
+    if absent is not None:
+        return absent
+    reasons: list[str] = []
+    if mapping.get("declared_status") != STATUS_PASS:
+        reasons.append(f"map declares status {mapping.get('declared_status')}")
+    if not mapping.get("resolved_movements"):
+        reasons.append("no movement was resolved to a signal group")
+    unexpected = sorted(set(mapping.get("unresolved_reason_counts") or {}) - ACCEPTED_UNRESOLVED_MOVEMENT_REASONS)
+    if unexpected:
+        reasons.append("unresolved movements carry unaccepted reasons: " + ", ".join(unexpected))
+    if timing.get("available"):
+        expected = [f"SC{no}" for no in (timing.get("controller_nos") or [])]
+        if sorted(mapping.get("controller_ids") or []) != sorted(expected):
+            reasons.append("map and canonical timing table cover different signal controllers")
+    if reasons:
+        return gate(STATUS_FAIL, "; ".join(reasons), unresolved_reason_counts=mapping.get("unresolved_reason_counts"))
+    return gate(
+        STATUS_PASS,
+        "every unresolved movement is an accepted synthetic boundary leg and the controller set matches",
+        resolved_movements=mapping.get("resolved_movements"),
+    )
+
+
+MASS_IDENTITY_FIELDS = (
+    "input_mass_balance_error_veh",
+    "total_mass_balance_error_veh",
+    "residual_consistency_error_veh",
+)
+
+
+def mass_conservation_gate(actions: Mapping[str, Any]) -> dict[str, Any]:
+    """질량 항등식을 투영 진단에서 분리해 따로 세운다.
+
+    투영 게이트 하나에 묶여 있으면 잔차 임계나 clipping 설명 때문에 FAIL 한 것인지
+    질량이 깨진 것인지 표에서 구분되지 않는다.
+    """
+    contract = actions.get("projection_contract") if isinstance(actions.get("projection_contract"), Mapping) else {}
+    records = [item for item in (contract.get("records") or []) if isinstance(item, Mapping)]
+    if not records:
+        return gate(STATUS_NE, "no projection_diagnostics record was available for a mass identity check")
+    evaluable = [item for item in records if not item.get("missing_required_fields")]
+    blind_count = len(records) - len(evaluable)
+    if not evaluable:
+        return gate(
+            STATUS_NE,
+            "no projection record carries the mass fields required for an identity check",
+            record_count=len(records),
+        )
+    violating = []
+    worst = 0.0
+    for item in evaluable:
+        errors = []
+        for field in MASS_IDENTITY_FIELDS:
+            try:
+                value = abs(float(item.get(field)))
+            except (TypeError, ValueError):
+                errors.append(field)
+                continue
+            worst = max(worst, value)
+            if not _count_close(value, 0.0):
+                errors.append(field)
+        if errors:
+            violating.append({"source": item.get("source"), "fields": errors})
+    if violating:
+        return gate(
+            STATUS_FAIL,
+            "one or more decisions violate a mass identity",
+            violating_record_count=len(violating),
+            violations=violating[:10],
+            worst_absolute_error_veh=worst,
+        )
+    if blind_count:
+        return gate(
+            STATUS_FAIL,
+            "some decision records carry no mass evidence at all",
+            record_count=len(records),
+            records_without_mass_fields=blind_count,
+        )
+    return gate(
+        STATUS_PASS,
+        "every decision satisfies the input, total, and residual mass identities",
+        record_count=len(records),
+        worst_absolute_error_veh=worst,
+    )
+
+
+def stock_calibration_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    module = sibling_module("validate_physical_stock_calibration")
+    if module is None:
+        record["validator_error"] = "validate_physical_stock_calibration is unavailable"
+        return record
+    try:
+        record["verdict"] = module.validate(payload)
+    except Exception as exc:  # 판정기가 못 돌면 통과가 아니라 실패다
+        record["validator_error"] = f"{type(exc).__name__}: {exc}"
+    return record
+
+
+def stock_calibration_gate(calibration: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(calibration, "physical stock calibration")
+    if absent is not None:
+        return absent
+    if calibration.get("validator_error"):
+        return gate(STATUS_FAIL, f"calibration could not be judged: {calibration['validator_error']}")
+    verdict = calibration.get("verdict") if isinstance(calibration.get("verdict"), Mapping) else {}
+    if not verdict:
+        return gate(STATUS_FAIL, "the N6 calibration validator returned no verdict")
+    if verdict.get("status") != STATUS_PASS:
+        return gate(STATUS_FAIL, "physical stock calibration does not satisfy N6", reasons=verdict.get("reasons"))
+    return gate(STATUS_PASS, "physical stock calibration satisfies every N6 threshold", measured=verdict.get("measured"))
+
+
+def _finite(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def paired_validation_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    module = sibling_module("paired_validation_metrics")
+    if module is None:
+        record["metrics_module_error"] = "paired_validation_metrics is unavailable"
+    horizons = payload.get("horizons") if isinstance(payload.get("horizons"), Mapping) else {}
+    results: dict[int, Mapping[str, Any]] = {}
+    for key, value in horizons.items():
+        try:
+            horizon = int(key)
+        except (TypeError, ValueError):
+            record.setdefault("horizon_errors", []).append(str(key))
+            continue
+        if isinstance(value, Mapping):
+            results[horizon] = value
+    record["horizon_count"] = len(results)
+    if module is not None:
+        try:
+            record["verdict"] = module.evaluate(results)
+        except Exception as exc:
+            record["metrics_module_error"] = f"{type(exc).__name__}: {exc}"
+
+    spillback = payload.get("spillback") if isinstance(payload.get("spillback"), Mapping) else {}
+    cells: list[dict[str, Any]] = []
+    for raw in spillback.get("cells") or []:
+        if not isinstance(raw, Mapping):
+            continue
+        congested = bool(raw.get("congested"))
+        positives = int(_finite(raw.get("positives")) or 0)
+        sample_status = module.spillback_status(positives, congested) if module is not None else None
+        cell = {
+            "cell_id": raw.get("cell_id"),
+            "congested": congested,
+            "positives": positives,
+            "sample_status": sample_status,
+            "f1": _finite(raw.get("f1")),
+            "onset_median_error_sec": _finite(raw.get("onset_median_error_sec")),
+            "onset_p90_error_sec": _finite(raw.get("onset_p90_error_sec")),
+        }
+        failures: list[str] = []
+        if sample_status == "EVALUATED":
+            if cell["f1"] is None or cell["f1"] < SPILLBACK_F1_MIN:
+                failures.append("f1")
+            if cell["onset_median_error_sec"] is None or cell["onset_median_error_sec"] > SPILLBACK_ONSET_MEDIAN_MAX_SEC:
+                failures.append("onset_median_error_sec")
+            if cell["onset_p90_error_sec"] is None or cell["onset_p90_error_sec"] > SPILLBACK_ONSET_P90_MAX_SEC:
+                failures.append("onset_p90_error_sec")
+        cell["failures"] = failures
+        cells.append(cell)
+    record["spillback"] = {
+        "cell_count": len(cells),
+        "blocked_count": sum(1 for cell in cells if cell["sample_status"] == "BLOCKED"),
+        "evaluated_count": sum(1 for cell in cells if cell["sample_status"] == "EVALUATED"),
+        "exempt_count": sum(1 for cell in cells if cell["sample_status"] == STATUS_NE),
+        "failing_count": sum(1 for cell in cells if cell["failures"]),
+        "cells": cells,
+    }
+    return record
+
+
+def paired_dynamics_gate(paired: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(paired, "paired validation metrics")
+    if absent is not None:
+        return absent
+    if paired.get("metrics_module_error"):
+        return gate(STATUS_FAIL, f"paired metrics could not be judged: {paired['metrics_module_error']}")
+    verdict = paired.get("verdict") if isinstance(paired.get("verdict"), Mapping) else {}
+    status = str(verdict.get("status") or STATUS_NE)
+    if status == STATUS_NE:
+        return gate(STATUS_NE, "the paired validation artifact carries no measured H-gate metric")
+    if status != STATUS_PASS:
+        return gate(
+            STATUS_FAIL,
+            "measured H gates fail the N9-4 table",
+            failed_horizons=verdict.get("failed_horizons"),
+            reasons=verdict.get("reasons"),
+        )
+    return gate(
+        STATUS_PASS,
+        "every measured H gate satisfies the N9-4 table",
+        measured_metrics=verdict.get("measured_metrics"),
+    )
+
+
+def spillback_gate(paired: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(paired, "paired validation metrics")
+    if absent is not None:
+        return absent
+    if paired.get("metrics_module_error"):
+        return gate(STATUS_FAIL, f"spillback samples could not be judged: {paired['metrics_module_error']}")
+    spillback = paired.get("spillback") if isinstance(paired.get("spillback"), Mapping) else {}
+    if not spillback.get("cell_count"):
+        return gate(STATUS_NE, "the paired validation artifact carries no spillback cell")
+    evidence = {key: spillback.get(key) for key in ("cell_count", "blocked_count", "evaluated_count", "exempt_count", "failing_count")}
+    if spillback.get("failing_count"):
+        return gate(STATUS_FAIL, "one or more evaluated spillback cells miss F1 or onset error limits", **evidence)
+    if spillback.get("blocked_count"):
+        return gate(STATUS_BLOCKED, "congested spillback cells have fewer than the required positives", **evidence)
+    if not spillback.get("evaluated_count"):
+        return gate(STATUS_NE, "every spillback cell is a low-demand cell below the sample floor", **evidence)
+    return gate(STATUS_PASS, "every evaluated spillback cell meets F1 and onset error limits", **evidence)
+
+
+def ranking_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    metrics: dict[str, dict[str, float | None]] = {}
+    for name in RANKING_THRESHOLDS:
+        item = payload.get(name) if isinstance(payload.get(name), Mapping) else {}
+        metrics[name] = {
+            "point": _finite(item.get("point")),
+            "ci95_low": _finite(item.get("ci95_low")),
+        }
+    record["metrics"] = metrics
+    return record
+
+
+def gradient_ranking_gate(ranking: Mapping[str, Any]) -> dict[str, Any]:
+    absent = artifact_absence_gate(ranking, "gradient ranking")
+    if absent is not None:
+        return absent
+    metrics = ranking.get("metrics") if isinstance(ranking.get("metrics"), Mapping) else {}
+    statuses: list[str] = []
+    reasons: list[str] = []
+    for name, threshold in RANKING_THRESHOLDS.items():
+        measured = metrics.get(name) or {}
+        point = measured.get("point")
+        lower = measured.get("ci95_low")
+        if point is None or lower is None:
+            statuses.append(STATUS_NE)
+            reasons.append(f"{name} is missing a point estimate or a bootstrap ci95_low")
+            continue
+        failing = [
+            f"{name}.{label}={value:g} < {threshold:g}"
+            for label, value in (("point", point), ("ci95_low", lower))
+            if value < threshold
+        ]
+        statuses.append(STATUS_FAIL if failing else STATUS_PASS)
+        reasons.extend(failing)
+    status = worst_status(statuses)
+    if status == STATUS_PASS:
+        return gate(STATUS_PASS, "Spearman and top pairwise clear their thresholds on both estimates", metrics=metrics)
+    return gate(status, "; ".join(reasons) or "no ranking measurement was supplied", metrics=metrics)
+
+
+def parent_runs_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    spec = payload.get("spec") if isinstance(payload.get("spec"), Mapping) else {}
+    holdout = spec.get("holdout") if isinstance(spec.get("holdout"), Mapping) else {}
+    congested = spec.get("congested") if isinstance(spec.get("congested"), Mapping) else {}
+    record.update(
+        {
+            "holdout_demands": sorted({value for value in (_finite(item) for item in holdout.get("demand") or []) if value is not None}),
+            "holdout_seeds": sorted({int(item) for item in holdout.get("seeds") or [] if _finite(item) is not None}),
+            "congested_demands": sorted({value for value in (_finite(item) for item in congested.get("demand") or []) if value is not None}),
+        }
+    )
+    return record
+
+
+def promotion_evidence(path: Path | None) -> dict[str, Any]:
+    record, payload = json_artifact(path)
+    if payload is None:
+        return record
+    cells: list[dict[str, Any]] = []
+    for raw in payload.get("cells") or []:
+        if not isinstance(raw, Mapping):
+            continue
+        gates = raw.get("gates") if isinstance(raw.get("gates"), Mapping) else {}
+        cells.append(
+            {
+                "demand": _finite(raw.get("demand")),
+                "seed": int(_finite(raw.get("seed")) or -1),
+                "gates": {str(key): str(value) for key, value in gates.items()},
+            }
+        )
+    record["cell_count"] = len(cells)
+    record["cells"] = cells
+    return record
+
+
+def promotion_gate(
+    promotion: Mapping[str, Any],
+    parents: Mapping[str, Any],
+    gates: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    """승격은 세 demand 의 holdout 시드에서 필수 게이트가 PASS 일 때만 가능하다.
+
+    저수요라고 spillback 외 지표를 면제하지 않는다. 이 감사 자신의 게이트가 PASS 가 아니면
+    holdout 증거가 아무리 좋아도 승격은 열리지 않는다.
+    """
+    static_statuses = [
+        str(item.get("status"))
+        for name, item in (gates or {}).items()
+        if isinstance(item, Mapping) and name != "promotion_readiness"
+    ]
+    static_worst = worst_status(static_statuses)
+
+    def blocked_by(status: str, reason: str) -> dict[str, Any]:
+        """감사 자신의 상태를 항상 앞에 적는다. 증거가 없다는 말만 남으면 오해를 부른다."""
+        if static_worst != STATUS_PASS:
+            reason = f"the audit's own gates are {static_worst}; {reason}"
+        return gate(worst_status([static_worst, status]), reason, static_gate_status=static_worst)
+
+    if not parents.get("available"):
+        return blocked_by(STATUS_NE, "the N5 parent-run spec is unavailable, so the required holdout coverage is unknown")
+    required_demands = list(parents.get("holdout_demands") or [])
+    required_seeds = list(parents.get("holdout_seeds") or [])
+    if not required_demands or not required_seeds:
+        return blocked_by(STATUS_NE, "the parent-run spec declares no holdout demand or seed")
+    congested = set(parents.get("congested_demands") or [])
+
+    absent = artifact_absence_gate(promotion, "holdout promotion evidence")
+    if absent is not None:
+        return blocked_by(str(absent["status"]), absent["reason"])
+
+    by_key = {(cell.get("demand"), cell.get("seed")): cell for cell in promotion.get("cells") or []}
+    statuses = [static_worst]
+    reasons: list[str] = []
+    if static_worst != STATUS_PASS:
+        reasons.append(f"the audit's own gates are {static_worst}")
+    for demand in required_demands:
+        for seed in required_seeds:
+            cell = by_key.get((demand, seed))
+            if cell is None:
+                statuses.append(STATUS_NE)
+                reasons.append(f"no holdout evidence for demand={demand:g} seed={seed}")
+                continue
+            cell_gates = cell.get("gates") or {}
+            for name in PROMOTION_REQUIRED_GATES:
+                status = str(cell_gates.get(name) or STATUS_NE)
+                exempt = (
+                    status == STATUS_NE
+                    and name in PROMOTION_LOW_DEMAND_EXEMPT_GATES
+                    and demand not in congested
+                )
+                if exempt:
+                    continue
+                statuses.append(status if status in _STATUS_SEVERITY else STATUS_NE)
+                if status != STATUS_PASS:
+                    reasons.append(f"demand={demand:g} seed={seed} {name}={status}")
+    status = worst_status(statuses)
+    evidence = {
+        "static_gate_status": static_worst,
+        "required_demands": required_demands,
+        "required_seeds": required_seeds,
+        "congested_demands": sorted(congested),
+        "evaluated_cell_count": len(by_key),
+    }
+    if status == STATUS_PASS:
+        return gate(STATUS_PASS, "every holdout demand clears every promotion gate", **evidence)
+    return gate(status, "; ".join(reasons[:12]) or "promotion evidence is incomplete", **evidence)
+
+
 def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     gates: dict[str, dict[str, Any]] = {}
     inputs = manifest["inputs"]
@@ -2156,6 +2881,11 @@ def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     else:
         gates["storage_capacity"] = gate(STATUS_PASS, "jam density and all reported storage capacities are positive")
 
+    network_input = (manifest.get("inputs", {}).get("primary", {}) or {}).get("network", {})
+    timing = manifest.get("signal_timing", {})
+    plan = manifest.get("actuation_plan", {})
+    gates["canonical_topology"] = canonical_topology_gate(manifest.get("canonical_topology", {}), network_input)
+
     vendor = manifest["vendor_snapshot"]
     if not vendor.get("snapshot_file", {}).get("is_file"):
         gates["vendor_snapshot"] = gate(STATUS_NE, "vendor snapshot metadata is unavailable")
@@ -2194,6 +2924,7 @@ def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     else:
         gates["runtime"] = gate(STATUS_FAIL, "actual decision wall time exceeds p95=30s or max=45s", p95=wall["p95"], max=wall["max"])
     gates["projection_diagnostics"] = projection_diagnostics_gate(actions)
+    gates["mass_conservation"] = mass_conservation_gate(actions)
     gates["runtime_provenance"] = runtime_provenance_gate(actions)
     gates["preflight_provenance"] = preflight_provenance_gate(actions)
     gates["signal_com_readback"] = signal_com_readback_gate(actions)
@@ -2201,8 +2932,22 @@ def build_gates(manifest: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
         STATUS_NE,
         "no expected signal-transition oracle is available; readback rows alone cannot establish event timing error",
     )
+    gates["signal_timing_canon"] = signal_timing_canon_gate(timing, plan)
+    gates["signal_actuation_plan"] = signal_actuation_plan_gate(plan, timing, network_input)
+    gates["movement_signal_group_map"] = movement_signal_group_map_gate(manifest.get("movement_map", {}), timing)
+
+    paired = manifest.get("paired_validation", {})
+    gates["stock_calibration"] = stock_calibration_gate(manifest.get("stock_calibration", {}))
+    gates["paired_dynamics"] = paired_dynamics_gate(paired)
+    gates["spillback_detection"] = spillback_gate(paired)
+    gates["gradient_ranking"] = gradient_ranking_gate(manifest.get("ranking", {}))
 
     gates["vissim_error_log"] = vissim_error_gate(manifest["vissim_error"])
+    gates["promotion_readiness"] = promotion_gate(
+        manifest.get("promotion", {}),
+        manifest.get("parent_runs", {}),
+        gates,
+    )
     return gates
 
 
@@ -2221,6 +2966,11 @@ def _artifact_paths(args: argparse.Namespace, repo: Path) -> dict[str, Path]:
         "adapter": Path(args.adapter),
         "vendor_snapshot": Path(args.vendor_root) / "SNAPSHOT.md",
     }
+
+
+def _optional_path(value: Any) -> Path | None:
+    text = str(value or "").strip()
+    return Path(text) if text else None
 
 
 def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
@@ -2315,7 +3065,10 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
             "purpose": "static evidence for the current core15n41 VISSIM rollout plant",
             "historical_outputs_are_current_evidence": False,
             "missing_paths": STATUS_NE,
-            "status_values": [STATUS_PASS, STATUS_FAIL, STATUS_NE],
+            "status_values": list(GATE_STATUS_VALUES),
+            "gate_categories": dict(sorted(GATE_CATEGORIES.items())),
+            "promotion_required_gates": list(PROMOTION_REQUIRED_GATES),
+            "promotion_low_demand_exempt_gates": sorted(PROMOTION_LOW_DEMAND_EXEMPT_GATES),
         },
         "workspace_git": git_evidence(repo),
         "inputs": {
@@ -2324,6 +3077,15 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
             "signal_program_count": len(signal_paths),
             "signal_programs": signal_evidence,
         },
+        "canonical_topology": canonical_topology_evidence(_optional_path(args.canonical_topology)),
+        "signal_timing": signal_timing_evidence(_optional_path(args.signal_timing)),
+        "movement_map": movement_map_evidence(_optional_path(args.movement_map)),
+        "actuation_plan": actuation_plan_evidence(_optional_path(args.actuation_plan)),
+        "parent_runs": parent_runs_evidence(_optional_path(args.parent_runs)),
+        "stock_calibration": stock_calibration_evidence(_optional_path(args.stock_calibration)),
+        "paired_validation": paired_validation_evidence(_optional_path(args.paired_metrics)),
+        "ranking": ranking_evidence(_optional_path(args.ranking_evidence)),
+        "promotion": promotion_evidence(_optional_path(args.promotion_evidence)),
         "network": network_evidence(network_path, primary_paths["signal_roles"]),
         "link_assignment": assignment_evidence(primary_paths["link_assignment"], network_path, primary_paths["signal_roles"]),
         "adjacency": adjacency_evidence(primary_paths["adjacency"]),
@@ -2352,8 +3114,17 @@ def build_manifest(args: argparse.Namespace) -> dict[str, Any]:
     manifest["gate_summary"] = {
         "pass": counts[STATUS_PASS],
         "fail": counts[STATUS_FAIL],
+        "blocked": counts[STATUS_BLOCKED],
         "not_evaluated": counts[STATUS_NE],
-        "overall": STATUS_FAIL if counts[STATUS_FAIL] else (STATUS_NE if counts[STATUS_NE] else STATUS_PASS),
+        "overall": worst_status(item["status"] for item in manifest["gates"].values()),
+        "by_category": {
+            category: dict(sorted(Counter(
+                item["status"]
+                for name, item in manifest["gates"].items()
+                if GATE_CATEGORIES.get(name) == category
+            ).items()))
+            for category in sorted(set(GATE_CATEGORIES.values()))
+        },
     }
     return manifest
 
@@ -2400,6 +3171,15 @@ def canonical_semantic_projection(manifest: Mapping[str, Any]) -> dict[str, Any]
         "link_assignment",
         "adjacency",
         "storage_capacity",
+        "canonical_topology",
+        "signal_timing",
+        "movement_map",
+        "actuation_plan",
+        "parent_runs",
+        "stock_calibration",
+        "paired_validation",
+        "ranking",
+        "promotion",
         "vendor_snapshot",
         "actual_numsim",
         "state_observations",
@@ -2502,11 +3282,14 @@ def render_markdown(manifest: Mapping[str, Any]) -> str:
         "",
         "## Gate Summary",
         "",
-        "| Gate | Status | Reason |",
-        "|---|---|---|",
+        "| Gate | Category | Status | Reason |",
+        "|---|---|---|---|",
     ]
     for name, item in gates.items():
-        lines.append(f"| `{_md(name)}` | **{_md(item['status'])}** | {_md(item['reason'])} |")
+        category = GATE_CATEGORIES.get(name, "unclassified")
+        lines.append(
+            f"| `{_md(name)}` | {_md(category)} | **{_md(item['status'])}** | {_md(item['reason'])} |"
+        )
     lines.extend(
         [
             "",
@@ -2538,6 +3321,12 @@ def render_markdown(manifest: Mapping[str, Any]) -> str:
             f"| Signal immediate / post-step / unpaired post-step | {_fmt(signal_readback.get('immediate_count'), 0)} / {_fmt(signal_readback.get('post_step_count'), 0)} / {_fmt(signal_readback.get('unpaired_post_step_count'), 0)} |",
             f"| Signal readback malformed rows / files / empty files | {_fmt(signal_readback.get('malformed_row_count'), 0)} / {_fmt(signal_readback.get('malformed_file_count'), 0)} / {_fmt(signal_readback.get('empty_file_count'), 0)} |",
             f"| Actual decision wall p95 / max (s) | {_fmt(actions.get('decision_wall_sec', {}).get('p95'))} / {_fmt(actions.get('decision_wall_sec', {}).get('max'))} |",
+            f"| Canonical topology cells / links | {_fmt(manifest.get('canonical_topology', {}).get('counts', {}).get('cells'), 0)} / {_fmt(manifest.get('canonical_topology', {}).get('counts', {}).get('links'), 0)} |",
+            f"| Timing canon controllers / signal groups | {_fmt(manifest.get('signal_timing', {}).get('controller_count'), 0)} / {_fmt(manifest.get('signal_timing', {}).get('signal_group_count'), 0)} |",
+            f"| Timing table disagreements | {_md(manifest.get('actuation_plan', {}).get('timing_table_disagreements'))} |",
+            f"| Paired H gates measured | {_fmt((manifest.get('paired_validation', {}).get('verdict') or {}).get('measured_metrics'), 0)} |",
+            f"| Spillback cells evaluated / blocked / exempt | {_fmt(manifest.get('paired_validation', {}).get('spillback', {}).get('evaluated_count'), 0)} / {_fmt(manifest.get('paired_validation', {}).get('spillback', {}).get('blocked_count'), 0)} / {_fmt(manifest.get('paired_validation', {}).get('spillback', {}).get('exempt_count'), 0)} |",
+            f"| Holdout promotion cells supplied | {_fmt(manifest.get('promotion', {}).get('cell_count'), 0)} |",
             "",
             "## Provenance",
             "",
@@ -2567,6 +3356,8 @@ def render_markdown(manifest: Mapping[str, Any]) -> str:
             "- `PASS` means the available static evidence satisfies the implemented invariant.",
             "- `FAIL` means available evidence contradicts an invariant or threshold.",
             "- `NOT_EVALUATED` means the necessary path or measurement was unavailable; it is not a pass.",
+            "- `BLOCKED` means the measurement is structurally impossible with the evidence at hand; it is worse than `NOT_EVALUATED`.",
+            "- Promotion needs every holdout demand to clear every promotion gate; low demand exempts spillback only.",
             "- Projection diagnostics pass only when state/action pairing, both mass identities, residual consistency, and clipping rules are all verified.",
             "- Runtime provenance is validated per run ID; mixed fingerprints under one run ID fail instead of being averaged together.",
             "",
@@ -2619,7 +3410,8 @@ def audit_exit_code(
     strict: bool,
     require_complete: bool,
 ) -> int:
-    if strict and int(summary.get("fail", 0) or 0) > 0:
+    # BLOCKED 는 "아직 안 쟀다" 가 아니라 "잴 수 없다" 다. strict 에서 FAIL 과 같이 다룬다.
+    if strict and (int(summary.get("fail", 0) or 0) > 0 or int(summary.get("blocked", 0) or 0) > 0):
         return 2
     if require_complete and not bool(policy.get("complete")):
         return 3
@@ -2654,6 +3446,16 @@ def make_parser(repo: Path) -> argparse.ArgumentParser:
         default="",
         help="directory recursively containing state_*.json, anchor_*.json, and action_*.json",
     )
+    # N10 증거. 기본값은 비워 둔다 - 감사는 호출자가 명시한 살아 있는 산출물만 현재 증거로 본다.
+    parser.add_argument("--canonical-topology", default="", help="canonical topology v3 JSON (N2)")
+    parser.add_argument("--signal-timing", default="", help="canonical signal-group timing v3 JSON (N1)")
+    parser.add_argument("--movement-map", default="", help="movement signal-group map v3 JSON (N1)")
+    parser.add_argument("--actuation-plan", default="", help="signal-group actuation plan v3 JSON (N4-5)")
+    parser.add_argument("--parent-runs", default="", help="parent run spec v3 JSON (N5); supplies the holdout coverage")
+    parser.add_argument("--stock-calibration", default="", help="physical stock calibration JSON judged by N6")
+    parser.add_argument("--paired-metrics", default="", help="paired validation metrics JSON judged by the N9-4 table")
+    parser.add_argument("--ranking-evidence", default="", help="Spearman / top-pairwise point and bootstrap ci95_low JSON (N9-4)")
+    parser.add_argument("--promotion-evidence", default="", help="per-holdout-cell gate outcomes JSON (N10)")
     parser.add_argument("--vissim-err", default="", help="VISSIM error log; defaults to the network path with .err suffix")
     parser.add_argument("--vissim-err-copy-target", default="", help="optional destination file or existing directory for a preserved .err copy")
     parser.add_argument("--extra-input", action="append", default=[], metavar="NAME=PATH", help="additional live input to hash; repeatable")

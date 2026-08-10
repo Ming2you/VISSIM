@@ -244,3 +244,21 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] 증거 산출물 3개 — `outputs/offset_promotion_{d_core,n9_offset_effect,n8_4_runtime}.json`.
       D-core 가 BLOCKED 라 아직 하나도 못 만든다
 - [ ] g6 offset arm(`diagnostic-signal-offset30/60`) 을 돌리려면 그 config 가 test-only 를 선언해야 한다
+
+## N10 — 감사 게이트 (2026-08-10)
+
+- [x] 상태 어휘에 `BLOCKED` 추가 — `NOT_EVALUATED` 보다 나쁘고 `--strict` 에서 exit 2
+- [x] 게이트 범주표 `GATE_CATEGORIES` — 게이트 28개 전부 9개 범주에 분류, 미분류는 테스트가 잡는다
+- [x] 신호 3개 — `signal_timing_canon` / `signal_actuation_plan` / `movement_signal_group_map`
+- [x] 토폴로지 1개 — `canonical_topology` (정본 토폴로지의 `inpx_sha256` 이 감사 대상 망과 일치)
+- [x] 질량 1개 — `mass_conservation` 을 투영 게이트에서 분리
+- [x] 캘리브레이션 1개 — `stock_calibration` (N6 `validate_physical_stock_calibration.validate` 위임)
+- [x] 짝동역학 2개 — `paired_dynamics` (N9-4 GATES 표) / `spillback_detection` (혼잡 표본 미달 = BLOCKED)
+- [x] 순위 1개 — `gradient_ranking` (Spearman 0.70 / top pairwise 0.80 을 점추정·부트스트랩 하한 둘 다)
+- [x] 승격 1개 — `promotion_readiness` (세 demand × holdout 시드, 저수요 면제는 spillback 만)
+- [x] 되돌림 증명 2건 — 정본표 불일치 검사 제거 / 저수요 면제를 전 지표로 확대
+- [ ] `stock_calibration` · `paired_dynamics` · `spillback_detection` · `gradient_ranking` ·
+      `promotion_readiness` 를 실제로 판정 — **실 런 필요** (N5/N6/N9 산출물이 아직 없다)
+- [ ] `signal_timing_canon` FAIL 해소 — SC5/6/11/12 에서 `signal_group_timing_v3.json` 의
+      `.sig` 배정이 inpx supplyFile2 와 다르다. 표 생산자(`derive_signal_group_timing.py`)의 몫
+- [ ] `run_plant_fidelity_matrix.ps1` 의 `--required-gate` 목록에 N10 게이트 편입 — 실 런 프로필이 정해진 뒤

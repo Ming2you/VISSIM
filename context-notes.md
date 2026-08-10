@@ -1467,3 +1467,50 @@ native 주기가 권위를 갖는 곳은 monitor 26 SC 뿐이고, 그쪽은 이�
   `C = g1 + g2 + lost_time` 을 쓰도록 상류를 바꿔야 하는데, 그러면 N4-1 이 고정한
   `cycle_length_by_signal` 계약과 충돌한다. 설계 결정이 필요해 손대지 않았다.
 - `cycle_length_by_signal` 은 비운 채로 뒀다. 위 이유로 **채우면 안 된다**.
+
+## 2026-08-10 — N10 감사 게이트 (18 → 28)
+
+**무엇이 없었나.** 감사에는 게이트가 18개 있었고 범주로는 신호·토폴로지·투영·런타임뿐이었다.
+질량은 `projection_diagnostics` 안에 묻혀 있어 표에서 구분되지 않았고, 캘리브레이션·짝동역학·
+순위·승격은 아예 없었다. 상태 어휘도 `PASS/FAIL/NOT_EVALUATED` 셋뿐이라 N9-4 가 요구하는
+`BLOCKED`(혼잡 셀 표본 미달)를 표현할 수 없었다.
+
+**추가한 10개.** `canonical_topology` · `signal_timing_canon` · `signal_actuation_plan` ·
+`movement_signal_group_map` · `mass_conservation` · `stock_calibration` · `paired_dynamics` ·
+`spillback_detection` · `gradient_ranking` · `promotion_readiness`.
+
+**임계를 다시 적지 않았다.** N6 판정은 `validate_physical_stock_calibration.validate`,
+N9-4 지표·게이트는 `paired_validation_metrics.evaluate` / `spillback_status` 를 **불러서** 쓴다.
+`sibling_module()` 이 같은 `scripts/` 안의 모듈을 파일 경로로 적재한다 — 감사가 임계를
+복제하면 두 벌이 갈라지고, 갈라진 순간 어느 쪽이 정본인지 아무도 모른다.
+판정 모듈을 못 읽는데 증거는 있으면 그 게이트는 NOT_EVALUATED 가 아니라 **FAIL** 이다.
+
+**대조 산출물이 없으면 PASS 가 아니다.** `signal_timing_canon` 은 액추에이션 계획이 없으면
+NOT_EVALUATED 로 끝난다. 교차검증 없이 통과시키면 "산출물을 덜 낼수록 유리" 해진다.
+
+**새 인자의 기본값은 빈 문자열이다.** 감사의 원래 계약이 "호출자가 명시한 살아 있는 산출물만
+현재 증거" 이고, 기본값을 저장소 outputs/ 로 박으면 baseline 스냅샷 픽스처(자기 임시 망을 쓴다)가
+`signal_actuation_plan` 의 망 동일성 검사에서 무너진다. 실행 예시는 checklist 위 항목 참고.
+
+**승격 규칙.** `promotion_readiness` 는 (a) 감사 자신의 나머지 게이트와 (b) N5 부모 런 명세가
+정한 holdout(demand 0.75/1.0/1.25 × seed 47) 각 셀의 필수 게이트를 함께 본다. 필수 게이트는
+`paired_dynamics · spillback_detection · gradient_ranking · mass_conservation · runtime` 이고,
+**저수요 면제는 spillback 하나뿐**이다(혼잡 demand 는 명세의 `congested.demand` 에서 읽는다).
+계획 초판의 역인센티브 — 저수요라고 전 지표를 면제하면 측정을 덜 하는 쪽이 이긴다 — 를 코드로 막았다.
+
+**지금 판정.** v3 산출물을 물려 돌린 결과 PASS 11 / FAIL 3 / BLOCKED 0 / NOT_EVALUATED 14.
+FAIL 3 중 `assignment_ties` 는 기존 것이고, 새로 드러난 것은 `signal_timing_canon` 이다 —
+`signal_group_timing_v3.json` 이 SC5/6/11/12 에서 inpx supplyFile2 와 **다른 `.sig` 와 주기**를
+가리킨다(SC5 140 s vs 160 s 등). VISSIM 이 읽는 것은 inpx 쪽이므로, 정본 표로 계산한 녹색·offset 은
+그 넷에서 틀린 주기 위에 놓인다. `derive_signal_group_actuation_plan.py` 가 이미
+`timing_table_disagreements` 로 남겨 두고 있었는데 아무도 게이트로 걸지 않았다. 이제 걸린다.
+`promotion_readiness` 는 그 FAIL 을 물려받아 FAIL 이다 — 설계대로다.
+
+**스키마 3.** 매니페스트 모양이 바뀌었으므로 `SCHEMA_VERSION` 을 2 → 3 으로 올리고
+`validate_baseline_snapshot.py:30` 의 `AUDIT_SCHEMA` 도 3 으로 맞췄다(한 줄). 옛 감사 산출물을
+새 소비자가 조용히 받아들이면 안 된다.
+
+**못 한 것.** 실 런은 여전히 못 돌린다. 새 게이트 5개(`stock_calibration`, `paired_dynamics`,
+`spillback_detection`, `gradient_ranking`, `promotion_readiness`)는 N5/N6/N9 산출물이 생기기
+전까지 NOT_EVALUATED 로 남는다. 출처 게이트(해시 사슬·변조 탐지)는 계획대로 넣지 않았다.
+`run_plant_fidelity_matrix.ps1` 의 required-gate 목록도 손대지 않았다 — 실 런 프로필이 정해진 뒤에 할 일이다.
