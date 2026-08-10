@@ -514,6 +514,29 @@ SC1004 역할 재분류(F측 인터체인지)를 포함한다.
 > 네트워크와 컴파일러가 둘 다 낡아 신호를 과소 계상한다(controllers 37 vs 실제 50,
 > groups 392 vs 440, heads 475 vs 541). N4 는 반드시 재생성본을 써라.
 > `python scripts/build_canonical_topology.py`
+>
+> ### 정본 타이밍 표 (2026-08-10 실측) — `outputs/signal_group_timing_v3.json`
+>
+> `scripts/derive_signal_group_timing.py` 가 실 `.sig` 에서 뽑는다. 제어 15 SC, SG 128개,
+> 미해결 0.
+>
+> | 항목 | 실측 |
+> |---|---|
+> | native 주기 | **100 / 140 / 150 / 160 / 170 s** |
+> | 모델 `cycle_length` | **120 s 하나** (`state.py:225`) — 실망에 120 s 는 없다 |
+> | 이름 규칙이 만드는 동시녹색 쌍 | **160 쌍** |
+> | 최악 녹색 과대평가 | **5.00배** (SC108). SC11 4.52 · SC1 4.33 · SC101 3.71 |
+>
+> **원인은 하나다.** SG 상태를 정하는 유일한 경로가 이름 부분문자열이다
+> (`vbs:1285-1299` — EB/WB → major, NB/SB → minor). `(SC, SG번호) → 모델 phase` 매핑이
+> 저장소에 없다. SC1001 실측 분율은 0.120~0.340 인데 규칙은 두 값(0.300/0.340)으로 뭉갠다.
+> WBL(48–72 s)과 EBT(0–45 s)는 겹치지 않는데 둘 다 major 를 받아 대향 좌회전이 대향 직진을
+> 횡단한다. `.sig` 41개 전부 `<intergreenmatrices />` 가 비어 VISSIM 도 막지 않는다.
+>
+> **N4-3 은 만드는 일이 아니라 배선하는 일이다.** N현시 적분기가 이미 있다 —
+> `plant/src/vissim_strict/signal_program.py:85-110 green_overlap_phase`. 지금은
+> `adapter:1317` 의 `if str(spec.get("phase","")): return original(...)` 때문에 phase 가 있는
+> movement 가 전부 2현시 원본으로 되돌아간다.
 
 ### N4-1. SC별 고유 주기 (v2.1 X-1)
 원본 network/SIG 를 바꾸지 않고 SC별 실제 주기를 `NetworkConfig` 에 넣는다. N4-2 의 선행조건이다.
