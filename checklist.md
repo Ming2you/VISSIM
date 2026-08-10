@@ -208,6 +208,18 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] 실 런에서 `SIGNAL_NAME_RULE_FALLBACKS = 0` 확인 — **런 필요**
 - [ ] core15n41 외 generated config 의 `_sgplan.vbs` 생성 — 필요할 때
 
+#### N4-5 잔여 — 주기 분모 (2026-08-10)
+
+- [x] 회계 조사 — 예산이 스칼라 주기에만 매여 있어 native 주기를 채우면 140/150/160/170 에서
+      암흑시간 20/30/40/50 s, 100 에서는 두 현시 합 1.12 (`src/tests/test_cycle_green_budget_accounting.py`, 10/10)
+- [x] `evaluation/controllers/plant_cycle.py` — 러너 원문에서 clearance 상수를 읽어 주기 식 단일화
+- [x] 생산 tuning `lost_time = 10.0` — 모델 주기 = 플랜트 주기 (TDD 11/11, 되돌림 증명 4건 FAIL)
+- [x] write clamp `[5,90]` 을 `plant_cycle` 단일 출처로, 리더 상자에서 더 이상 물지 않음
+- [x] g/C 과대 **+1.667% → 0.000%** (실 캡처 액션 57/57 기준 +3.333% → 0.000%)
+- [ ] `lost_time` 8 → 10 이 서비스율 -1.8% 로 TTT 에 미치는 영향 — **런 필요**
+- [ ] 예산면 밖 진단 arm 의 주기 불일치 — 상류 `_phase_green_fraction` 설계 결정 필요
+- [x] `cycle_length_by_signal` 은 **비운 채로 둔다** — native 는 제어 런에서 재생되지 않는다
+
 ### N4-6 — 신호 timing oracle (D-core)
 
 - [x] `evaluation/controllers/signal_timing_oracle.py` — 게이트 10개 + valid-interval 계약 (TDD 20/20)

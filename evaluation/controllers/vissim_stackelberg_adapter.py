@@ -41,6 +41,7 @@ from vissim_strict.physical_projection import (
 from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
 # N4-5: SG 단위 액추에이션 계획. 순수 함수만 들어 있어 import 부작용이 없다.
 from evaluation.controllers import offset_promotion
+from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
 from vissim_strict.run_evidence import (
     MAX_APPROVAL_BYTES,
@@ -5117,10 +5118,13 @@ def write_action_csv(
                 # phase 별 기본값을 모델이 그 phase 에 넣었을 값과 맞춰야 인터페이스 교차로에서
                 # freeway 접속 이동류가 모델·플랜트 양쪽에서 같은 녹색을 받는다.
                 _phase_default = {"p1": _min_default, "p2": _maj_default}
-                major = clamp(float(control.green_times.get(
-                    f"{signal}_{_major_phase}", _phase_default[_major_phase])), 5.0, 90.0)
-                minor = clamp(float(control.green_times.get(
-                    f"{signal}_{_minor_phase}", _phase_default[_minor_phase])), 5.0, 90.0)
+                # 클램프는 plant_cycle 이 단일 출처다. 여기 리터럴로 두면 모델 주기와
+                # 플랜트 주기가 같은지 재는 쪽(tests/test_model_plant_cycle_identity)이
+                # 실제로 실리는 값이 아니라 사본을 재게 된다.
+                major = plant_cycle.written_axis_green_sec(float(control.green_times.get(
+                    f"{signal}_{_major_phase}", _phase_default[_major_phase])))
+                minor = plant_cycle.written_axis_green_sec(float(control.green_times.get(
+                    f"{signal}_{_minor_phase}", _phase_default[_minor_phase])))
                 # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
                 # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
                 # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.

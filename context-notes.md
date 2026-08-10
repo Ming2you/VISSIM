@@ -1384,3 +1384,86 @@ writer 3단.
 - 증거 산출물 3개는 하나도 못 만든다. D-core 가 `command_quantization_sec` FAIL 0.990 s /
   `transition_time_error_sec` BLOCKED 라서다. 즉 잠금은 **열 수 없는 상태가 맞다**.
 - N8-4 런타임 게이트는 아직 존재하지 않는다. 증거 파일 이름만 잡아 뒀다.
+
+---
+
+## N4-5 잔여 — 주기 분모 3중 불일치 (2026-08-10)
+
+### 원안("native 주기를 채운다")은 틀렸다
+
+`cycle_length_by_signal` 을 실측 native 주기(140/150/160/170)로 채우자는 것이 N4-1 의
+후속 계획이었다. **제어 런에서 native 프로그램은 재생되지 않는다.** 러너는 제어 15 SC 의
+모든 SG 에 `ContrByCOM = True` 를 걸어(`run_real_world_stackelberg_controller.vbs:1402`)
+inpx 프로그램을 통째로 우회하고, `major + amber + all_red + minor + amber + all_red`
+(:764, :1442)로 합성한 주기를 매초 COM 으로 밀어 넣는다. native 주기를 채우면 모델은
+**플랜트가 한 번도 돌리지 않는 주기**로 예측하게 된다.
+
+native 주기가 권위를 갖는 곳은 monitor 26 SC 뿐이고, 그쪽은 이미
+`fixed_signal_schedule` 이 `program.cycle_length_sec` 를 직접 쓴다 — 이 매핑과 무관하다.
+
+### 채우면 정확히 무엇이 깨지는가 (수치)
+
+`effective_green_total` 은 **스칼라** `cycle_length` 에서만 나오고(state.py:400) 컨트롤러는
+예외 없이 `p2 = effective_green_total - p1` 로 배분한다. 주기만 늘리고 예산은 그대로 두면
+`_phase_green_fraction` 의 창 배치가 주기를 못 채운다. `src/tests/test_cycle_green_budget_accounting.py`
+가 실제 함수로 적분해 재는 값(고정 액션 56/56).
+
+| native C | 결과 |
+|---:|---|
+| 140 s | 암흑시간 20 s/cycle (녹색도 clearance 도 아닌 구간) |
+| 150 s | 30 s/cycle — SC1001~1005 다섯 곳 |
+| 160 s | 40 s/cycle |
+| 170 s | 50 s/cycle |
+| 100 s | 반대로 **모자란다**. p2 창이 잘려 16 s 손실, 주기평균 분기는 자르지 않아 두 현시 합이 **1.12** — 물리적으로 불가능 |
+
+### 실제 간극은 상수 하나였다
+
+모델은 이미 플랜트와 **같은 항등식**을 갖고 있다(`src/evaluation/metrics.py:242` 가 위반을
+카운트한다).
+
+    모델    C = p1 + p2 + lost_time
+    플랜트  C = minor + major + 2 x (AMBER_SEC + ALL_RED_SEC)
+
+어댑터가 `major <- p2`, `minor <- p1` 을 그대로 싣기 때문에(:5120-5123) 차이는
+`lost_time` 8 s 대 `2 x (3 + 2)` = 10 s 하나뿐이다. 그래서 고친 것도 하나다 —
+생산 tuning 의 `config_overrides.network.lost_time = 10.0`.
+
+주의: 이 8.0 은 측정값이 아니다. 캘리브레이션 파일에 `recommended_initial_lost_time_sec`
+가 없어 어댑터 :2178 의 **하드코딩 기본값**으로 떨어진 값이다(어댑터 base 는 6.0 인데
+캘리브레이션 층이 8.0 으로 덮는다). NumSim 의 `lost_time` 소비처 5곳은 전부 주기 기하이고
+포화유율/서비스 계산에는 쓰이지 않으므로, 10 으로 바꿔도 용량 캘리브레이션을 훼손하지 않는다.
+
+### 곁가지로 닫은 것 — write clamp
+
+어댑터는 축 녹색을 `[5, 90]` 으로 잘라 싣는데 모델 상자는 `green_max = 92` 였다. p1=20 을
+고르면 p2=92 가 90 으로 잘려 플랜트 주기가 2 s 더 짧아졌다. `lost_time=10` 이면 예산이
+110 이 되어 p1,p2 ∈ [20,90] 이라 클램프가 **아예 물지 않는다**. green_max 는 안 건드렸다.
+클램프 상수는 `plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC` 단일 출처로 옮겼다 — 사본을
+재는 테스트는 의미가 없다.
+
+### 얼마나 줄었나
+
+`plant_cycle.green_fraction_overestimate(net)` (리더 액션 상자 전체의 최댓값).
+
+| | 모델 C | 플랜트 C | g/C 과대 |
+|---|---:|---:|---:|
+| 이전 (lost_time 8) | 120 s | 120~122 s | **+1.667%** |
+| 이전, 실 캡처 액션 57/57 | 120 s | 124 s | **+3.333%** |
+| 이후 (lost_time 10) | 120 s | 120 s | **0.000%** |
+
+계획서의 "130 s / 8.3% 과대"는 재현되지 않는다. 130 s 는 `major + minor = 120` 을 요구하는데
+모델 액션 공간이 그 합을 예산(112)으로 강제한다. 실제로 기록된 모든 런의 녹색 합은
+114(37,915 스텝) / 100(1,470) / 95(490) / 112(60) 였고 120 은 한 번도 없다. 8.3% 라는
+**크기**는 `diagnostic-signal-major/minor`(75/25 → 플랜트 110 s) arm 에서 나오지만 부호가
+반대(과소)다.
+
+### 못 한 것
+
+- 실 런 검증은 못 했다(NOT_EVALUATED). 주기 항등식 자체는 런 없이 정적으로 증명되지만,
+  `lost_time` 8 → 10 은 신호당 녹색 예산을 112 → 110 s 로 2 s 줄인다. 서비스율 -1.8% 가
+  TTT 에 어떻게 나타나는지는 돌려 봐야 안다.
+- 예산면을 벗어나는 진단 arm(57/57 등)은 여전히 어긋난다. 모델 주기는 config 상수인데
+  플랜트 주기는 액션에서 유도되기 때문이다. 완전히 닫으려면 `_phase_green_fraction` 이
+  `C = g1 + g2 + lost_time` 을 쓰도록 상류를 바꿔야 하는데, 그러면 N4-1 이 고정한
+  `cycle_length_by_signal` 계약과 충돌한다. 설계 결정이 필요해 손대지 않았다.
+- `cycle_length_by_signal` 은 비운 채로 뒀다. 위 이유로 **채우면 안 된다**.
