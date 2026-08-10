@@ -534,9 +534,29 @@ SC1004 역할 재분류(F측 인터체인지)를 포함한다.
 > 횡단한다. `.sig` 41개 전부 `<intergreenmatrices />` 가 비어 VISSIM 도 막지 않는다.
 >
 > **N4-3 은 만드는 일이 아니라 배선하는 일이다.** N현시 적분기가 이미 있다 —
-> `plant/src/vissim_strict/signal_program.py:85-110 green_overlap_phase`. 지금은
-> `adapter:1317` 의 `if str(spec.get("phase","")): return original(...)` 때문에 phase 가 있는
-> movement 가 전부 2현시 원본으로 되돌아간다.
+> `plant/src/vissim_strict/signal_program.py:85-110 green_overlap_phase`.
+>
+> ### 착지 상태 (2026-08-10)
+>
+> | 항목 | 상태 |
+> |---|---|
+> | **N4-4** fail-closed | ✅ 조용한 폴백 4곳이 전부 `MonitorFixedSignalPatchError` |
+> | **N4-1** 배관 | ✅ `cycle_length_by_signal` + `signal_cycle_length()` + 폴백 카운터 |
+> | **N4-1** 매핑 채우기 | ❌ **의도적 미착수** — green 예산이 아직 전역이라 채우면 회계가 깨진다 |
+> | **N4-3** 배선 | ⚠️ **부분** — 229/698 movement 에 적용, **304건(43.6%)이 아직 2현시** |
+> | **N4-2** movement→SG 매핑 | ❌ 미착수. **위 304건의 원인이다** |
+> | **N4-5** action 스키마 N현시 | ❌ 미착수. 러너는 여전히 이름 규칙 2현시 |
+>
+> **N4-3 은 계획의 PASS("scalar-cycle fallback 0")를 아직 못 맞춘다.** 미해결 304건의 내역은
+> `no_signal_group_mapping` 282 · `axis_mismatch` 22 다. 둘 다 N4-2 가 없어서 생긴다.
+>
+> **효과는 실재한다.** SC1001 movement 54개 중 21개(38.9%)의 녹색분율이 바뀌었고, 실측 대비
+> 오차가 **1.56배·1.21배 → 1.01배·0.97배**로 줄었다. 질량 보존은 N4-1·N4-3 을 **동시에 켠**
+> 상태에서 24스텝 최대 잔차 `1.148e-11 veh` 로 성립한다(동역학이 실제로 바뀐 것은 같은
+> 시나리오 총 대수가 baseline 대비 1.2~3.7배 갈리는 것으로 확인).
+>
+> **모델↔플랜트 비대칭이 열려 있다.** 모델은 native 분율로 예측하는데 러너는 여전히 이름
+> 규칙 2현시로 구동한다(N4-5). N9 짝지은 검증 전에 반드시 닫아야 한다.
 
 ### N4-1. SC별 고유 주기 (v2.1 X-1)
 원본 network/SIG 를 바꾸지 않고 SC별 실제 주기를 `NetworkConfig` 에 넣는다. N4-2 의 선행조건이다.
