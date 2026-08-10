@@ -1038,3 +1038,83 @@ def _queue_max(cfg, movement, spec) -> float:
 `outputs/urban_storage_capacity_20260805.json`(jam density 140.5 veh/km/lane,
 182 storage / 82.7 km)과 A2 토폴로지의 stock 별 `capacity_prior`.
 **실 링크 길이 기준으로 재실측해 반영할 것.**
+
+---
+
+## 2026-08-10 — N4-3 / N4-4. native 녹색배분 배선과 fail-closed
+
+### 실물로 확인한 것 (선행 조사값 검증)
+
+- `evaluation/controllers/vissim_stackelberg_adapter.py:1317` 의
+  `if str(spec.get("phase", "")): return original(...)` — 있었다. phase 가 있는 movement 는
+  전부 2현시 원본으로 되돌아가고 있었다.
+- 같은 함수의 fail-open 3곳(네트워크 파일 부재 / 컴파일 예외 / 노드 schedule None) — 있었다.
+  원본은 blank phase 에 1.0 을 돌려주므로 셋 다 "monitor 전부 항상녹색" 으로 조용히 샌다.
+- `plant/src/vissim_strict/signal_program.py:85-110 green_overlap_phase` — 완전 사이클 +
+  나머지 + 경계 wrap 을 나눠 적분한다. 새로 만들 필요 없었다.
+- `outputs/signal_group_timing_v3.json` SC1001 — 녹색창이 WBL[48,72] EBT[0,45] NBL[118,147]
+  SBT[75,115] EBL[48,72] WBT[0,45] SBL[129,147] NBT[75,126] 이다.
+  브리핑의 `.193/.267` 은 반올림 표기이고 정확값은 29/150, 40/150 이다.
+  1e-9 게이트를 통과하려면 유리수를 써야 한다.
+
+### 정규화를 union 으로 고른 이유 (설계 결정)
+
+배분 `share(m) = union_green(m 의 SG) / union_green(축의 SG)` 다.
+정본 표(`derive_signal_group_timing.py`)의 `axis_overestimate` 는 분모로 **axis_max** 를
+쓰는데, 그것을 그대로 쓰면 한 origin 이 여러 SG 를 잡을 때 share 가 1 을 넘는다
+(SC1001 `SC1004_to_SC1001` → EBT+EBL = 69 s vs axis_max 45 s → 1.53). 넘은 값을 clamp 로
+덮으면 그 자체가 새 fail-open 이다.
+
+union 분모는 셋을 동시에 준다.
+
+1. 분자의 SG 집합이 분모의 부분집합이므로 `share <= 1` 이 **구조적으로** 보장된다.
+2. 축의 녹색 예산을 보존한다 — 겹치지 않는 movement 들의 share 합이 1 이다.
+3. **N=2 에서 정확히 1.0.** 2현시는 한 축의 SG 가 같은 녹색창을 쓰므로 분자=분모다.
+   호출부는 배분이 1.0 인 항목을 표에 담지 않으므로 원본 호출이 **그대로** 반환된다 —
+   `almostEqual` 이 아니라 `==` 가 성립하는 이유가 "곱셈이 정확하다" 가 아니라
+   "곱셈이 아예 없다" 는 것이다.
+
+### 값이 실제로 얼마나 바뀌나
+
+실 config(core15n41) 기준 phase 를 가진 movement 698개.
+
+| | 건수 | 비고 |
+|---|---:|---|
+| scaled (share < 1) | 229 | 최소 0.25 = 4.0배 축소 |
+| unit (share == 1) | 165 | 비트동일 경로 |
+| unresolved | 304 | 2현시 원본 유지, 사유와 함께 계상 |
+
+unresolved 내역은 `no_signal_group_mapping` 282 + `axis_mismatch` 22 다.
+
+### 미해결을 예외로 만들지 않은 이유
+
+N4-4 는 "조용한 폴백" 을 예외로 만들라고 했고, 그 대상은 **항상녹색으로 새는 경로**다.
+제어 SC 의 배분이 없으면 기존 2현시 값으로 떨어질 뿐 항상녹색이 되지 않는다.
+그래서 비대칭으로 뒀다 — monitor 노드 스케줄 부재는 **예외**, 제어 movement 매핑 부재는
+**진단 계상**이다. 진단 키는 `native_phase_share_unresolved_count` /
+`native_phase_share_unresolved_reasons` / `native_phase_share_min` 이다.
+
+### 아직 열려 있는 것 (숨기지 않는다)
+
+1. **N4-3 의 PASS 기준을 아직 못 맞춘다.** "native production 에서 scalar-cycle fallback 0"
+   인데 304건(43.6%)이 여전히 2현시다. 원인은 신호두의 `lane` 이 링크 단위라 한 접근로의
+   직진과 좌회전이 같은 SG 집합으로 묶이고, 경계 유입(`in_SC*_*`)은 링크 매핑 자체가
+   없기 때문이다. **N4-2(커넥터 추적 매핑)가 선행조건**이다.
+2. **`axis_mismatch` 22건은 실제 불일치다.** 예: SC5 의 접근로 leg `S` 는 신호두가 SG 18
+   (=EBT, major) 을 가리키는데 모델 movement 의 phase 는 `SC5_p1`(minor) 이다. SC5 는 SG 가
+   24개(이름이 3벌 반복)라 이름 규칙이 특히 심하게 뭉갠다. 섞어서 계산하지 않고 남겼다.
+3. **모델 ↔ 플랜트 비대칭이 생겼다.** 러너는 controlled SC 를 여전히 이름 규칙 2현시로
+   구동한다(`run_real_world_stackelberg_controller.vbs:1298-1312`,
+   `ApplyRuntimeSignalController:1210-1233` 이 SC 의 모든 SG 를 major/minor 로 덮어쓴다).
+   지금 상태는 **모델만** N현시 배분을 쓴다. 액추에이션은 N4-5(action 스키마 N현시)가 닫는다.
+   이 비대칭을 감수한 것은 계획이 N4-3(모델)과 N4-5(액추에이션)를 나눠 두었기 때문이고,
+   N4-5 전에는 controlled SC 의 예측이 플랜트보다 보수적(녹색 과소)으로 간다.
+4. **hot path 오버헤드 +9.2%.** `_phase_green_fraction` 200k 회 벤치에서 3.069 → 3.350 us/call.
+   배분이 있는 movement 에서만 곱셈이 붙는다. solve 당 129만 회이므로 N8 런타임 예산에서
+   다시 볼 것.
+
+### base config 는 이제 예외로 죽는다 (의도)
+
+`uncontrolled_nodes=['E']` 같은 합성 격자 config 는 `E` 스케줄이 없어
+`MonitorFixedSignalPatchError` 를 던진다. N4-4 의 계약("uncontrolled 공집합만 정당한 대상 없음")
+그대로다. 실런은 전부 core15n41 이고 41/41 이 컴파일된다.

@@ -1273,53 +1273,37 @@ def _network_path_from_state(state_json: Mapping[str, Any]) -> Path:
     return WORKSPACE_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 
 
-def install_monitor_fixed_signal_runtime_patch(
-    cfg,
-    state_json: Mapping[str, Any],
-    detector_mapping: Mapping[str, Any],
-) -> dict[str, Any]:
-    """Use native VISSIG timing for monitoring-only nodes with blank movement phases."""
+class MonitorFixedSignalPatchError(RuntimeError):
+    """고정신호 패치를 설치하지 못했다 (v3 N4-4).
 
-    from evaluation.controllers.fixed_signal_schedule import (
-        compile_fixed_signal_schedules,
-    )
+    원본 `_phase_green_fraction` 은 phase 가 빈 movement 에 1.0(항상녹색)을 돌려준다.
+    패치가 조용히 빠지면 monitor 26개 SC 가 통째로 항상녹색이 되는데 아무도 모른다.
+    그래서 실패는 예외다. 정당한 "대상 없음"(uncontrolled·signals 공집합)만 건너뛴다.
+    """
 
-    uncontrolled = {str(node) for node in getattr(cfg.network, "uncontrolled_nodes", [])}
-    network_path = _network_path_from_state(state_json)
-    if not network_path.is_file() or not uncontrolled:
-        return {
-            "monitor_fixed_signal_patch_enabled": 0.0,
-            "monitor_fixed_signal_network_path": str(network_path),
-            "monitor_fixed_signal_schedule_count": 0.0,
-            "monitor_fixed_signal_missing_nodes": ",".join(sorted(uncontrolled)),
-        }
-    try:
-        schedules, errors = compile_fixed_signal_schedules(
-            network_path, uncontrolled, detector_mapping
-        )
-    except Exception as exc:
-        return {
-            "monitor_fixed_signal_patch_enabled": 0.0,
-            "monitor_fixed_signal_network_path": str(network_path),
-            "monitor_fixed_signal_schedule_count": 0.0,
-            "monitor_fixed_signal_compile_error": f"{type(exc).__name__}: {exc}",
-            "monitor_fixed_signal_missing_nodes": ",".join(sorted(uncontrolled)),
-        }
 
-    model_module = importlib.import_module("src.models.urban_queue_model")
-    original = getattr(
-        model_module,
-        "_vissim_original_phase_green_fraction",
-        model_module._phase_green_fraction,
-    )
-    setattr(model_module, "_vissim_original_phase_green_fraction", original)
+def build_patched_phase_green_fraction(original, schedules, share_table):
+    """`_phase_green_fraction` 대체본을 만든다.
+
+    - phase 가 있는 movement(=제어 SC): native 배분이 있으면 원본 값에 곱한다.
+      배분이 없거나 정확히 1.0 이면 **원본을 그대로 돌려준다** - N=2 비트동일 경로다.
+    - phase 가 빈 movement(=monitor SC): 고정 스케줄로 native 타임라인을 적분한다.
+      스케줄이 없으면 항상녹색으로 되돌아가는 대신 예외를 던진다.
+    """
+
     def patched_phase_green_fraction(control, cfg_arg, spec, urban_step_index=None):
         if str(spec.get("phase", "")):
-            return original(control, cfg_arg, spec, urban_step_index)
+            share = share_table.share_for(spec)
+            if share is None:
+                return original(control, cfg_arg, spec, urban_step_index)
+            return original(control, cfg_arg, spec, urban_step_index) * share
         node = str(spec.get("intersection", ""))
         schedule = schedules.get(node)
         if schedule is None:
-            return original(control, cfg_arg, spec, urban_step_index)
+            raise MonitorFixedSignalPatchError(
+                f"uncontrolled movement at node {node!r} has no fixed signal schedule; "
+                "falling back to the original path would make it always-green"
+            )
         if urban_step_index is None:
             return float(clamp(schedule.movement_green_fraction(spec), 0.0, 1.0))
         duration_sec = float(cfg_arg.simulation.T_u_sec)
@@ -1331,6 +1315,71 @@ def install_monitor_fixed_signal_runtime_patch(
                 1.0,
             )
         )
+
+    return patched_phase_green_fraction
+
+
+def install_monitor_fixed_signal_runtime_patch(
+    cfg,
+    state_json: Mapping[str, Any],
+    detector_mapping: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Use native VISSIG timing for monitor nodes and native green shares for controlled ones."""
+
+    from evaluation.controllers import fixed_signal_schedule
+    from evaluation.controllers.native_phase_green import (
+        build_native_phase_share_table,
+    )
+
+    uncontrolled = {str(node) for node in getattr(cfg.network, "uncontrolled_nodes", [])}
+    controlled = {str(node) for node in getattr(cfg.network, "signals", [])}
+    targets = uncontrolled | controlled
+    network_path = _network_path_from_state(state_json)
+    if not targets:
+        return {
+            "monitor_fixed_signal_patch_enabled": 0.0,
+            "monitor_fixed_signal_patch_skip_reason": "no_target_nodes",
+            "monitor_fixed_signal_network_path": str(network_path),
+            "monitor_fixed_signal_schedule_count": 0.0,
+            "monitor_fixed_signal_expected_count": 0.0,
+        }
+    if not network_path.is_file():
+        raise MonitorFixedSignalPatchError(
+            f"fixed signal patch needs the run network but it is not a file: {network_path}"
+        )
+    try:
+        schedules, errors = fixed_signal_schedule.compile_fixed_signal_schedules(
+            network_path, targets, detector_mapping
+        )
+    except Exception as exc:
+        raise MonitorFixedSignalPatchError(
+            f"fixed signal compile failed for {network_path}: {type(exc).__name__}: {exc}"
+        ) from exc
+
+    # monitor 노드만 fail-closed 다. 제어 SC 는 스케줄이 없어도 기존 2현시 경로로
+    # 떨어질 뿐이라 항상녹색이 되지 않는다 - 그쪽은 진단으로 계상한다.
+    missing_monitor = sorted(uncontrolled - set(schedules))
+    monitor_errors = {node: text for node, text in sorted(errors.items()) if node in uncontrolled}
+    if missing_monitor or monitor_errors:
+        raise MonitorFixedSignalPatchError(
+            "uncontrolled nodes without a fixed schedule would become always-green: "
+            f"missing={missing_monitor} errors={monitor_errors}"
+        )
+
+    share_table = build_native_phase_share_table(
+        getattr(cfg.network, "urban_movements", {}) or {}, schedules
+    )
+
+    model_module = importlib.import_module("src.models.urban_queue_model")
+    original = getattr(
+        model_module,
+        "_vissim_original_phase_green_fraction",
+        model_module._phase_green_fraction,
+    )
+    setattr(model_module, "_vissim_original_phase_green_fraction", original)
+    patched_phase_green_fraction = build_patched_phase_green_fraction(
+        original, schedules, share_table
+    )
 
     patched_modules = 0
     for module_name in (
@@ -1344,17 +1393,22 @@ def install_monitor_fixed_signal_runtime_patch(
         if hasattr(module, "_phase_green_fraction"):
             setattr(module, "_phase_green_fraction", patched_phase_green_fraction)
             patched_modules += 1
+    if patched_modules == 0:
+        raise MonitorFixedSignalPatchError(
+            "no model module exposes _phase_green_fraction; the patch would be a no-op"
+        )
 
-    missing = sorted(uncontrolled - set(schedules))
-    return {
-        "monitor_fixed_signal_patch_enabled": float(bool(schedules)),
+    diagnostics: dict[str, Any] = {
+        "monitor_fixed_signal_patch_enabled": 1.0,
         "monitor_fixed_signal_network_path": str(network_path.resolve()),
         "monitor_fixed_signal_schedule_count": float(len(schedules)),
-        "monitor_fixed_signal_expected_count": float(len(uncontrolled)),
-        "monitor_fixed_signal_missing_nodes": ",".join(missing),
+        "monitor_fixed_signal_expected_count": float(len(targets)),
+        "monitor_fixed_signal_missing_nodes": ",".join(sorted(targets - set(schedules))),
         "monitor_fixed_signal_compile_errors": dict(errors),
         "monitor_fixed_signal_patched_module_count": float(patched_modules),
     }
+    diagnostics.update(share_table.diagnostics)
+    return diagnostics
 
 
 def _absolute_urban_step_start_sec(urban_step_index: int, duration_sec: float) -> float:

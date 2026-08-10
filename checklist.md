@@ -77,6 +77,49 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 
 ---
 
+## 완료 (2026-08-10) — N4-3 / N4-4
+
+### N4-3. N현시 녹색분율 배선
+
+- [x] `evaluation/controllers/native_phase_green.py` 신설 — 실 `.sig` 의 SG 녹색창에서
+      movement 별 native 배분(share)을 뽑는다. 분모는 축(=모델 phase)의 녹색 **합집합**이라
+      share ∈ (0, 1] 이 구조적으로 보장된다(clamp fail-open 없음)
+- [x] `install_monitor_fixed_signal_runtime_patch` 가 controlled 15 SC 도 컴파일 대상에
+      넣는다 — 스케줄 26 → **41개**
+- [x] phase 가 있는 movement 도 native 배분을 곱한다. 배분이 정확히 1.0 이면 표에 담지 않고
+      **원본 호출을 그대로 반환** → N=2 비트동일이 구조적으로 성립
+- [x] N=2 비트동일 — 합성 2현시 `.sig` 로 배분이 전부 1.0 임을 보이고,
+      (g1, g2, offset, urban_step_index) 800점 격자에서 `==` 로 단언
+- [x] SC1001 8개 SG 분율이 실측과 1e-9 이내 일치
+      (WBL/EBL 24/150, EBT/WBT 45/150, NBL 29/150, SBT 40/150, SBL 18/150, NBT 51/150)
+- [x] 미해결 명시 계상 — 조용히 통과시키지 않는다.
+      실 config 698 movement 중 **scaled 229 / unit 165 / unresolved 304**
+      (`no_signal_group_mapping` 282, `axis_mismatch` 22), 최소 배분 0.25
+- [x] 되돌림 증명 — 곱셈을 빼면 `test_patched_path_applies_the_native_share_to_a_controlled_movement` FAIL
+
+### N4-4. 조용한 폴백 제거 (fail-closed)
+
+- [x] `MonitorFixedSignalPatchError` 신설. 네트워크 파일 부재 / 컴파일 예외 /
+      monitor 노드 스케줄 부재 / 런타임 스케줄 None 네 곳이 전부 예외다
+- [x] 정당한 "대상 없음"(uncontrolled·signals 공집합)만 `monitor_fixed_signal_patch_skip_reason`
+      = `no_target_nodes` 로 건너뛴다
+- [x] 되돌림 증명 — 네 게이트를 조용한 반환으로 되돌리면 fail-closed 테스트 4건 FAIL
+- [x] 패치 대상 모듈 0개도 예외(무음 no-op 방지). 실 config 에서 5개 패치됨
+
+### 남은 것 (N4-3 PASS 기준 미달)
+
+- [ ] **unresolved 304건(43.6%)이 아직 2현시 원본으로 떨어진다.** N4-3 의 PASS 기준
+      "native production 에서 scalar-cycle fallback 0" 은 아직 아니다. 원인은 신호두의
+      `lane` 이 링크 단위라 한 접근로의 직진·좌회전이 같은 SG 집합으로 묶이고,
+      경계 유입(`in_SC*_*`) 은 아예 링크 매핑이 없기 때문이다 — **N4-2 가 풀 몫**이다
+- [ ] `axis_mismatch` 22건 — SC5 처럼 접근로 leg 가 NS 인데 신호두가 EB 계열 SG 를 가리킨다.
+      모델 phase 배정 규칙과 실제 신호두 귀속이 어긋나는 실제 불일치다
+- [ ] **모델 ↔ 플랜트 비대칭.** 러너는 controlled SC 를 여전히 이름 규칙 2현시로 구동한다
+      (`run_real_world_stackelberg_controller.vbs:1298-1312 SignalStateForGroup`).
+      즉 지금은 모델만 N현시 배분을 쓴다. 액추에이션 쪽은 **N4-5** 가 닫는다
+
+---
+
 ## 완료 (2026-08-05)
 
 ### 분할·귀속
