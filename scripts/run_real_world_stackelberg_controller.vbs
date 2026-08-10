@@ -1740,18 +1740,57 @@ Function SignalGroupStateFromPlan(scNo, sgNo, pos, cycle)
             End If
         End If
     Next
+    ' amber 는 **다음 SG 가 아직 녹색이 아닐 때만** 쓴다.
+    '
+    ' 모델 주기는 major + amber + all_red + minor + amber + all_red 라 **축 경계에만**
+    ' clearance 를 예산한다. 그런데 계획은 축 녹색을 SG 창으로 간격 없이 편다
+    ' (signal_group_plan.py 의 _cumulative 가 native 간격을 짜낸다 - 의도된 설계다).
+    ' 그 위에서 SG 창마다 amber 를 붙이면 앞 SG 의 amber 가 뒤 SG 의 녹색과 겹친다.
+    ' 실측으로 SC1001 8구간, 15개 SC 전체 81구간이었다. 이름 규칙 시절에는 축의 모든 SG 가
+    ' 같은 상태를 받아 구조적으로 불가능했던 상태다.
+    '
+    ' 충돌 게이트는 GREEN 만 보므로(SignalGroupPlanCoGreenReason) 이 겹침을 잡지 못한다.
+    ' 그래서 여기서 막는다 - 축 내부 전환은 GREEN -> RED 로 바로 간다.
     For i = 0 To UBound(entries)
         If Trim(CStr(entries(i))) <> "" Then
             bounds = Split(CStr(entries(i)), "|")
             endSec = CDbl(bounds(1))
             amberEnd = endSec + CDbl(AMBER_SEC)
             If position >= endSec And position < amberEnd Then
-                SignalGroupStateFromPlan = "AMBER"
+                If Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
+                    SignalGroupStateFromPlan = "AMBER"
+                End If
                 Exit Function
             End If
             If amberEnd > cycleSec And position < amberEnd - cycleSec Then
-                SignalGroupStateFromPlan = "AMBER"
+                If Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
+                    SignalGroupStateFromPlan = "AMBER"
+                End If
                 Exit Function
+            End If
+        End If
+    Next
+End Function
+
+' 이 SC 의 어느 SG 라도 이 순간 계획상 녹색인가. amber 억제 판정에 쓴다.
+Function AnySignalGroupGreenAt(scNo, position, cycleSec)
+    Dim key, prefix, spec, entries, i, bounds
+    AnySignalGroupGreenAt = False
+    prefix = CStr(CLng(scNo)) & "-"
+    For Each key In sgPlanWindows.Keys
+        If Left(CStr(key), Len(prefix)) = prefix Then
+            spec = sgPlanWindows(key)
+            If spec <> "" Then
+                entries = Split(spec, ";")
+                For i = 0 To UBound(entries)
+                    If Trim(CStr(entries(i))) <> "" Then
+                        bounds = Split(CStr(entries(i)), "|")
+                        If position >= CDbl(bounds(0)) And position < CDbl(bounds(1)) Then
+                            AnySignalGroupGreenAt = True
+                            Exit Function
+                        End If
+                    End If
+                Next
             End If
         End If
     Next

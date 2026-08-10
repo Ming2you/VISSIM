@@ -1367,7 +1367,17 @@ class AdapterProjectionGateTests(unittest.TestCase):
         with out_csv.open("r", encoding="utf-8", newline="") as stream:
             rows = list(csv.DictReader(stream))
         self.assertGreater(len(rows), 0)
-        self.assertEqual({row["kind"] for row in rows}, {"vsl", "signal", "ramp_meter"})
+        # N4-5 가 `signal_sg` 를 추가했다. `signal` 을 대체하는 것이 아니라 함께 온다 —
+        # `signal` 은 SC 단위 major/minor/offset 이고 `signal_sg` 는 그 SC 의 SG별 녹색창이다.
+        # 정확 집합 단언은 그대로 둔다. 이것은 "이 네 종류만 나온다" 는 fail-closed 계약이라
+        # 느슨하게 바꾸면 예상 못 한 다섯 번째 종류가 조용히 통과한다.
+        #
+        # 이 단언은 `outputs/signal_group_actuation_plan_v3.json` 존재 여부로 갈린다.
+        # 계획 파일이 없으면 어댑터가 `signal_sg` 를 만들지 않는다(adapter:1300-1311).
+        # 즉 이 테스트가 녹색인데 계획 파일이 없다면 배선이 안 된 것이다.
+        self.assertEqual(
+            {row["kind"] for row in rows}, {"vsl", "signal", "ramp_meter", "signal_sg"}
+        )
         for row in rows:
             csv_metadata = json.loads(row["metadata"])
             self.assertEqual(csv_metadata["controller_status"], "fallback_fixed")

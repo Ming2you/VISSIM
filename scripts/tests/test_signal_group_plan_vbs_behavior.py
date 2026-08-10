@@ -28,6 +28,9 @@ PLAN_PROCEDURES = (
     "SignalGroupPlanKey",
     "SignalGroupPlanWindows",
     "SignalGroupStateFromPlan",
+    # amber 억제 판정용. SignalGroupStateFromPlan 이 이것을 부르므로 함께 떼어내지 않으면
+    # harness 가 "변수가 정의되지 않았습니다" 로 죽는다.
+    "AnySignalGroupGreenAt",
     "SignalGroupPlanCoGreenReason",
     "FMod",
 )
@@ -95,9 +98,53 @@ Check "second_green", SignalGroupStateFromPlan(7, 2, 39.999, 50.0), "GREEN"
 Check "unplanned_group_is_red", SignalGroupStateFromPlan(7, 3, 10.0, 50.0), "RED"
 
 ' 주기 끝에 닿는 창의 amber 는 주기 머리로 감긴다.
-sgPlanWindows("7-4") = "45|50;"
-Check "amber_wraps", SignalGroupStateFromPlan(7, 4, 1.0, 50.0), "AMBER"
-Check "amber_wrap_end", SignalGroupStateFromPlan(7, 4, 3.0, 50.0), "RED"
+'
+' 별도 SC 로 뗀다. SC 7 에 붙이면 7-4 의 amber [0,3) 이 7-1 의 녹색 [0,20) 과 겹쳐
+' amber 억제 규칙에 걸린다 - 그건 이 검사가 보려는 것이 아니라 억제 규칙이 보는 것이다.
+sgPlanWindows("8-4") = "45|50;"
+sgPlanCycle("8") = 50
+Check "amber_wraps", SignalGroupStateFromPlan(8, 4, 1.0, 50.0), "AMBER"
+Check "amber_wrap_end", SignalGroupStateFromPlan(8, 4, 3.0, 50.0), "RED"
+
+' 그 억제가 감긴 amber 에도 걸리는지 확인한다. SC 7 은 [0,20) 에 7-1 이 녹색이다.
+sgPlanWindows("7-5") = "45|50;"
+Check "wrapped_amber_suppressed", SignalGroupStateFromPlan(7, 5, 1.0, 50.0), "RED"
+'''
+
+# 축 내부 SG 전환에 amber 를 주면 다음 SG 의 녹색을 침범한다.
+#
+# 모델 주기는 `major + amber + all_red + minor + amber + all_red` 라 **축 경계에만**
+# clearance 를 예산한다. 그런데 계획은 축 녹색을 SG 창으로 **간격 없이** 편다
+# (signal_group_plan.py 의 `_cumulative` 가 native 간격을 짜낸다 — 의도된 설계다).
+#
+# 그 위에서 SG 창마다 amber 를 붙이면, 앞 SG 의 amber 가 뒤 SG 의 녹색과 겹친다.
+# 실측으로 SC1001 만 8구간, 15개 SC 전체 81구간이었다. 이름 규칙 시절에는 축의 모든 SG 가
+# 같은 상태를 받아 구조적으로 불가능했던 상태다.
+#
+# 충돌 게이트가 GREEN 만 보므로(vbs 의 SignalGroupPlanCoGreenReason) 이 겹침은 잡히지 않는다.
+AMBER_INTRA_AXIS_BODY = '''
+RW_SIGNAL_SG_PLAN_SCHEMA = 1
+RW_SIGNAL_SG_EXPECTED = "7:1:1,7:2:1"
+RW_SIGNAL_SG_CONFLICTS = ""
+ParseSignalGroupPlanConfig
+
+' 축 안에서 두 SG 가 맞닿는다. 앞 창이 20 에 끝나고 뒤 창이 20 에 시작한다.
+sgPlanWindows("7-1") = "0|20;"
+sgPlanWindows("7-2") = "20|40;"
+sgPlanCycle("7") = 50
+
+' 뒤 SG 는 자기 창에서 녹색이어야 한다.
+Check "next_is_green", SignalGroupStateFromPlan(7, 2, 20.0, 50.0), "GREEN"
+Check "next_is_green_mid", SignalGroupStateFromPlan(7, 2, 22.0, 50.0), "GREEN"
+
+' 앞 SG 는 그 구간에 amber 가 아니라 RED 여야 한다. 다른 SG 가 이미 녹색이기 때문이다.
+Check "no_amber_over_next_green", SignalGroupStateFromPlan(7, 1, 20.0, 50.0), "RED"
+Check "no_amber_over_next_green_mid", SignalGroupStateFromPlan(7, 1, 22.0, 50.0), "RED"
+
+' 축 경계(뒤에 아무 SG 도 녹색이 아닌 자리)에서는 amber 가 그대로 있어야 한다.
+Check "axis_boundary_amber", SignalGroupStateFromPlan(7, 2, 40.0, 50.0), "AMBER"
+Check "axis_boundary_amber_end", SignalGroupStateFromPlan(7, 2, 42.999, 50.0), "AMBER"
+Check "axis_boundary_red", SignalGroupStateFromPlan(7, 2, 43.0, 50.0), "RED"
 '''
 
 COGREEN_BODY = '''
@@ -274,6 +321,8 @@ EVENT_PROCEDURES = (
     "SignalGroupPlanKey",
     "SignalGroupPlanWindows",
     "SignalGroupStateFromPlan",
+    # SignalGroupStateFromPlan 이 amber 억제 판정에 이것을 부른다.
+    "AnySignalGroupGreenAt",
     "SignalCompositeStateAt",
     "NextSignalTransitionAfter",
     "MaxSignalCycleSec",
@@ -452,6 +501,16 @@ class SignalGroupPlanVbsBehaviorTests(unittest.TestCase):
         result = self._run(mutant, COGREEN_BODY)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("FAIL cogreen_blocked", result.stdout)
+
+    def test_amber_never_covers_another_group_green(self) -> None:
+        """축 내부 SG 전환의 amber 가 다음 SG 녹색을 침범하면 안 된다.
+
+        실측으로 15개 SC 전체 81구간에서 일어나고 있었다. 충돌 게이트가 GREEN 만 보므로
+        잡히지 않는다.
+        """
+        result = self._run(SOURCE, AMBER_INTRA_AXIS_BODY)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS", result.stdout)
 
     def test_removing_the_amber_tail_makes_the_state_check_fail(self) -> None:
         """되돌림 증명. amber 구간을 지우면 상태 판정 검사가 깨져야 한다."""
