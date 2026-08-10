@@ -1591,3 +1591,61 @@ fallback(PFO)이 선택되기 때문이다. 심지어 모든 가격점 목적함
 계획 N8-2 자체(**VISSIM holdout anchor** 위의 FD 대 SPSA)는 실 런 전까지 NOT_EVALUATED 다.
 N8-1 자격심사 하네스(`eps_J_endpoint`/`eps_g`)도 아직 없어서
 `exact-FD 재채점 regret < max(2·eps_J_endpoint, 0.5%·|J_FD|)` 조항은 판정 불가다.
+
+---
+
+## 2026-08-10 — 코드 잔여 착지와 vendor 재앵커
+
+### N8-3 정렬이 직렬을 바꾸고 있었다 (상류 e4bf4d0)
+
+`deb3134` 이 `results.sort(key=item.index)` 로 backend 독립성을 만들었는데, 그 주석의
+"직렬은 무영향" 이 **거짓**이었다. `_prefilter_leader_candidates` 는 `selected` 를
+`ranked[:top_k]` 의 **proxy 랭킹 순서**로 쌓으므로(`stackelberg_mpc.py:2020-2036`) 직렬
+결과 순서는 인덱스 순서가 아니었다. 정렬 한 줄이 직렬의 동점 선택도 5 → 2 로 바꿨다.
+
+기존 검사가 못 잡은 이유가 중요하다. `test_parallel_determinism.py` 가 `selected_indices` 로
+`list(range(n))` 을 넘겨 **prefilter 재정렬을 우회**했다. 실배선에서 prefilter 는 항상
+활성이다(`default.yaml` top_k 4 / 후보 49, core15n41 top_k 3 / 후보 9).
+
+**정본 순서는 `selected_indices` 순서로 정했다.** 직렬이 내던 순서이고, flagship override
+(`stackelberg_wu_metered.py:2782-2790`)가 정렬 없이 내는 순서와도 같다. 인덱스 순서를
+택했으면 병렬을 직렬에 맞추는 대신 직렬 쪽을 옮기는 것이고, 두 구현의 순서 규약도 갈린 채
+남았을 것이다.
+
+### 정본 타이밍 표가 틀린 `.sig` 를 읽고 있었다
+
+`derive_signal_group_timing._sig_path_for` 가 **파일명 끝자리 번호**로 `.sig` 를 골랐다.
+VISSIM 이 읽는 것은 inpx `signalController/@supplyFile2` 이고, 4/15 SC 에서 달랐다.
+
+수치가 이렇게 바뀐다 — SG **128 → 136**, 동시녹색 쌍 **160 → 222**, 최악 녹색 과대
+**5.00 → 5.47배**, native 주기에서 100 s 소멸. **문제는 보고돼 있던 것보다 39% 크다.**
+
+`--network` 를 명시 입력으로 뒀다. 네트워크 디렉터리에 `.inpx` 가 8개라 자동 탐색이
+못미덥고, 배정된 파일이 없을 때 다른 파일로 **대신 고르지 않고** `unresolved` 로
+떨어뜨린다 — 대신 고르던 것이 애초의 결함이었다.
+
+체인이 timing → movement map → actuation plan → sgplan.vbs → 감사다. 그 과정에서
+**커밋돼 있던 sgplan.vbs 가 계획과 어긋난 채**였음을 발견했다. 기존 검사가 집계(SG 수·창
+수·충돌 쌍 수)만 봐서 sha 드리프트를 못 잡았다. 원본 sha 대조를 추가했다.
+
+### 통과할 수밖에 없던 검사 둘
+
+`uncovered_signal_groups` 는 식이 `sg_no not in window_counts` 인데 `window_counts` 가
+같은 sg_id 목록으로 초기화돼(`signal_group_plan.py:158`) **구조적으로 항상 0** 이었다.
+"native 에 녹색이 있는데 계획에 창이 없는 SG" 로 바꿨고 실측은 여전히 0 이다 — 실질은
+멀쩡했고 검사만 공허했다.
+
+`run_plant_fidelity_matrix.ps1` 은 N10 새 게이트 10개를 요구도 안 하고 산출물도 안
+넘겼다. 규칙을 뒤집어 **모든 게이트는 요구되거나 `$matrixUnavailableGates` 에 명시**돼야
+하도록 검사를 걸었다. 요구 15 → 22, 불가 선언 6.
+
+주의 — 다음 매트릭스 런은 새로 요구한 7개가 PASS 하지 않으면 **실패한다**. 의도한
+fail-closed 이고, 조용한 NOT_EVALUATED 보다 낫다고 판단했다.
+
+### vendor 재앵커
+
+`5a2fe7d → e4bf4d0`, 115 파일. 재앵커 전까지 실 런의 NumSim 층은 **5곳에서 endpoint 를
+우회**했다(stage2_mechanism:133, centralized_mpc:299/328, distributed_coordinator:673,
+wu_distributed:862). 상류만 고치고 vendor 를 안 옮기면 N7 은 실 런에서 미완이다.
+
+사슬 3단 재생성 PASS. `run_readiness.py` status=READY.
