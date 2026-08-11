@@ -2896,7 +2896,7 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath, gateMapPath)
     Dim xmlDoc, inputRoles, roleMultipliers, defaultMultiplier, viNode, volNode
     Dim viNo, role, roleKey, multiplier, linkNo, secKey, sec, volume, isFreeway
     Dim urbanSumBySec, urbanNBySec, freewaySumBySec, freewayNBySec, key
-    Dim urbanGateMap, gateStatus, mappedInputs, internalInputs, unmappedInputs
+    Dim urbanGateMap, gateStatus, mappedInputs, internalInputs, unmappedInputs, expectedMapped
     Set demandUrbanBySec = CreateObject("Scripting.Dictionary")
     Set demandFreewayBySec = CreateObject("Scripting.Dictionary")
     Set demandUrbanGateBySec = CreateObject("Scripting.Dictionary")
@@ -2928,6 +2928,10 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath, gateMapPath)
     mappedInputs = 0
     internalInputs = 0
     unmappedInputs = 0
+    expectedMapped = -1
+    If urbanGateMap.Exists("__expected_mapped__") Then
+        expectedMapped = CLng(ToDbl(urbanGateMap("__expected_mapped__")))
+    End If
     Set roleMultipliers = CreateObject("Scripting.Dictionary")
     defaultMultiplier = 1.0
     If Trim(CStr(profilePath)) <> "" Then
@@ -2973,9 +2977,21 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath, gateMapPath)
 
     ' 대장이 이 망의 유입을 하나도 모르면 게이트별 값이 통째로 비고, 어댑터는 스칼라
     ' 폴백으로 돌아간다 - 그것이 도시부 3.66배를 만들던 경로다. 조용히 넘어가지 않는다.
-    If (mappedInputs + internalInputs) = 0 And unmappedInputs > 0 Then
+    ' 원래 조건은 (mappedInputs + internalInputs) = 0 이었는데 dummy 10개가 항상 internal 로
+    ' 잡혀 internalInputs 가 절대 0 이 아니다. mapped 가 0 이어도 발동하지 않아, 대장이
+    ' 통째로 깨져도 EXITCODE=0 으로 지나갔다. mapped 자체를 본다.
+    If mappedInputs = 0 Then
         WScript.Echo "ERROR=URBAN_INPUT_GATE_MAP_UNUSABLE path=" & CStr(gateMapPath) & _
-            " urban_inputs=" & CStr(unmappedInputs) & " (rerun scripts/derive_urban_input_gate_map.py)"
+            " mapped=0 internal=" & CStr(internalInputs) & " unmapped=" & CStr(unmappedInputs) & _
+            " (rerun scripts/derive_urban_input_gate_map.py)"
+        WScript.Quit 2
+    End If
+    ' 부분 stale 은 더 조용하다 - 게이트 몇 개만 남으면 예외 없이 그만큼만 주입된다.
+    ' 그래서 대장이 개수를 선언하고 여기서 대조한다.
+    If expectedMapped >= 0 And mappedInputs <> expectedMapped Then
+        WScript.Echo "ERROR=URBAN_INPUT_GATE_MAP_STALE path=" & CStr(gateMapPath) & _
+            " expected_mapped=" & CStr(expectedMapped) & " mapped=" & CStr(mappedInputs) & _
+            " (rerun scripts/derive_urban_input_gate_map.py)"
         WScript.Quit 2
     End If
     WScript.Echo "URBAN_GATE_ANCHOR_LOADED mapped_inputs=" & CStr(mappedInputs) & _
@@ -3034,6 +3050,10 @@ Function LoadUrbanInputGateMap(mapPath)
     first = True
     Do Until ts.AtEndOfStream
         line = Trim(ts.ReadLine)
+        ' 헤더의 expected_mapped 는 부분 stale 을 잡는 유일한 근거다. 특수 키로 실어 보낸다.
+        If Left(line, 1) = "#" And InStr(line, "expected_mapped=") > 0 Then
+            dict("__expected_mapped__") = Trim(Mid(line, InStr(line, "expected_mapped=") + 16))
+        End If
         If line <> "" And Left(line, 1) <> "#" Then
             parts = Split(line, ",")
             If first Then

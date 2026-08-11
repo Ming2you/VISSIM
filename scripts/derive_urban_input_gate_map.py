@@ -175,6 +175,9 @@ def main(argv: list[str] | None = None) -> int:
         f"alignment={alignment_path.as_posix()} sha256={sha256(alignment_path)}",
         f"config={config_path.as_posix()} sha256={sha256(config_path)}",
         "leg rule: name suffix NB->S SB->N EB->W WB->E; unnamed -> leg.link_geometry",
+        # 러너가 이 값을 읽어 자기가 실제로 매핑한 개수와 대조한다. 어긋나면 부분 stale 이라
+        # 그만큼만 주입되고 조용히 지나가므로, 개수를 대장이 선언하는 것이 유일한 방어다.
+        f"expected_mapped={sum(1 for row in rows if row['status'] == 'mapped')}",
     ]
     write_csv(Path(args.out), rows, provenance)
 

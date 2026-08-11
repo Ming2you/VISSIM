@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import csv
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -96,3 +98,65 @@ class BuildRowsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RunnerFailClosedTests(unittest.TestCase):
+    """대장이 못 쓰게 되면 러너가 **멈춰야** 한다. 조용히 스칼라 폴백으로 떨어지면 안 된다.
+
+    어댑터는 게이트별 값이 비면 스칼라 폴백으로 돌아간다. 그 폴백이 도시부 수요를
+    **3.66 배** 로 부풀리던 경로다(러너가 지점당 평균을 주는데 어댑터가 게이트 117개
+    전부의 값으로 읽는 것). 그러니 대장이 깨졌을 때 조용히 넘어가면 결함이 부활한다.
+
+    **2026-08-11 발견.** 원래 가드가 이렇게 적혀 있었다.
+
+        If (mappedInputs + internalInputs) = 0 And unmappedInputs > 0 Then
+
+    `Dummy Link 1~12` 10개가 항상 `internal` 로 분류되므로 `internalInputs` 는 절대 0 이
+    아니다. **`mappedInputs` 가 0 이어도 이 조건은 거짓** 이라 가드가 발동하지 않는다.
+    대장을 통째로 무효화해도 러너가 EXITCODE=0 으로 지나갔다.
+
+    부분 stale 은 더 조용하다 - 게이트 몇 개만 남으면 예외 없이 그만큼만 주입된다.
+    그래서 개수 자체를 대장이 선언하고 러너가 대조해야 한다.
+    """
+
+    VBS = ROOT / "scripts" / "run_real_world_stackelberg_controller.vbs"
+    MAP = ROOT / "evaluation" / "real_world_modi_inventory" / "urban_input_gate_map_20260811.csv"
+
+    def test_guard_fires_on_zero_mapped_regardless_of_internal_rows(self) -> None:
+        source = self.VBS.read_text(encoding="utf-8", errors="replace")
+        self.assertFalse(
+            "If (mappedInputs + internalInputs) = 0 And unmappedInputs > 0 Then" in source,
+            "internal 행이 있으면 절대 발동하지 않는 가드다",
+        )
+        self.assertRegex(
+            source,
+            r"If\s+mappedInputs\s*=\s*0\b",
+            "mapped 가 0 이면 그 자체로 못 쓰는 대장이다",
+        )
+
+    def test_map_declares_its_expected_mapped_count(self) -> None:
+        """부분 stale 을 잡으려면 개수를 대장이 선언해야 한다."""
+        if not self.MAP.is_file():
+            self.skipTest("대장 산출물 없음")
+        head = [
+            line for line in self.MAP.read_text(encoding="utf-8-sig").splitlines()
+            if line.startswith("#")
+        ]
+        declared = [line for line in head if "expected_mapped" in line]
+        self.assertTrue(declared, "헤더에 expected_mapped 선언이 없다")
+        value = int(re.search(r"expected_mapped\s*=\s*(\d+)", declared[0]).group(1))
+        rows = [
+            line for line in self.MAP.read_text(encoding="utf-8-sig").splitlines()
+            if line and not line.startswith("#")
+        ]
+        actual = sum(1 for row in csv.DictReader(rows) if row["status"] == "mapped")
+        self.assertEqual(value, actual)
+
+    def test_runner_compares_the_declared_count(self) -> None:
+        source = self.VBS.read_text(encoding="utf-8", errors="replace")
+        self.assertIn("expected_mapped", source, "러너가 선언된 개수를 안 읽는다")
+        self.assertRegex(
+            source,
+            r"URBAN_INPUT_GATE_MAP_STALE",
+            "개수가 어긋났을 때 낼 오류가 없다",
+        )
