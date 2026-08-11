@@ -273,3 +273,20 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [x] 계약 문서 `evaluation/controllers/demand_contract.md`
 - [x] 검사 `tests/test_demand_contract.py` — 불변식 6 PASS(전부 되돌림 증명) + 알려진 불일치 2 FAIL
 - [ ] 3.66배 해소 — **이번 회차 범위 밖**. 격자 재정렬(작업 B 후속)과 함께 결정한다
+
+## B — 도시부 수요 게이트 앵커링 (2026-08-11)
+
+- [x] 어디를 고칠지 결정 — **러너가 게이트별 벡터를 state 에 쓴다**(어댑터가 inpx 를 보지 않는다).
+      근거: `scale`·역할 배수는 런타임에만 알 수 있고, state JSON 이 실 런의 유일한 계약면이다
+- [x] 조인 대장 `evaluation/real_world_modi_inventory/urban_input_gate_map_20260811.csv`
+      + 생성기 `scripts/derive_urban_input_gate_map.py` (이름 접미사 정본, 무명은 기하)
+- [x] 러너 — `LoadUrbanInputGateMap` / `AddUrbanGateDemand` / `UrbanGateDemandJson`,
+      state 에 `urban_volume_vph_by_gate` + `urban_unmapped_volume_vph` + `urban_internal_volume_vph`
+- [x] 러너 fail-closed — 대장이 이 망의 유입을 하나도 모르면 `WScript.Quit 2` (스칼라 폴백 = 3.66배)
+- [x] 어댑터 — `by_gate` 를 그대로 게이트값으로, `boundary_out` 은 0, 모르는 게이트는 `ValueError`
+- [x] 도시부 주입 **3.6562배 → 0.8620배**(입구 기준). 모자란 0.1380 은 격자에 없는 입구 3곳
+- [x] 진단 부풀림 2.0171배 소멸 (t=1800 s: 진단 합 == 주입 합 == 14,563.6 veh/h)
+- [x] 검사 — 불변식 13 PASS + 생산자 cscript 2 + 생성기 9, 되돌림 증명 6건
+- [x] dummy 10개(peak 2,226 veh/h)는 경계에서 완전히 빠짐 → `urban_internal_volume_vph` 로만 남음
+- [ ] 입구 3곳(`SC1004_SW` 1,400 / `SC1004_SE` 849 / `SC13_S` 81) — 격자 재생성의 몫
+- [ ] freeway 앵커링 — 지금은 유입 2 == 링크 2 라 총량이 맞지만 **방향 비대칭은 못 잡는다**(범위 밖)

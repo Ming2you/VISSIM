@@ -2811,10 +2811,29 @@ def profiled_demand_rates(
     urban_west_east_ratio = max(1.0e-6, _as_float(demand.get("urban_west_east_ratio"), 1.0))
 
     freeway_mainline = {str(link): freeway_vph for link in cfg.network.freeway_links}
-    urban_boundary = {
-        str(link): urban_vph
+    gate_keys = [
+        str(link)
         for link in list(cfg.network.boundary_in_links) + list(cfg.network.boundary_out_links)
-    }
+    ]
+    # 게이트 앵커링. 러너가 자기 VISSIM vehicle input 을 게이트에 조인해서 게이트별
+    # 유량을 넘겨주면 그것을 그대로 쓴다. 없으면(8seg 러너·g6 harness) 예전대로
+    # 스칼라 하나를 전 게이트에 복제한다 — evaluation/controllers/demand_contract.md.
+    urban_by_gate = demand.get("urban_volume_vph_by_gate")
+    gate_anchored = isinstance(urban_by_gate, Mapping) and bool(urban_by_gate)
+    if gate_anchored:
+        unknown = sorted(str(gate) for gate in urban_by_gate if str(gate) not in set(gate_keys))
+        if unknown:
+            # 조용히 흘리면 그 유입의 수요가 말없이 사라진다. 대장과 격자가 따로
+            # 갱신됐다는 뜻이므로 런을 세운다.
+            raise ValueError(
+                "state.demand.urban_volume_vph_by_gate has gates the model does not know: "
+                + ", ".join(unknown)
+            )
+        urban_boundary = {key: 0.0 for key in gate_keys}
+        for gate, value in urban_by_gate.items():
+            urban_boundary[str(gate)] = float(value)
+    else:
+        urban_boundary = {key: urban_vph for key in gate_keys}
     ramp_arrival = {str(ramp): ramp_vph for ramp in cfg.network.ramps}
 
     if profile == "fw_eb_heavy":
@@ -2832,26 +2851,30 @@ def profiled_demand_rates(
         for link in cfg.network.boundary_out_links:
             urban_boundary[str(link)] = urban_vph * low_factor
 
-    if profile == "urban_west_heavy":
-        set_urban_profile({"in_A_left", "in_D_left"}, 1.8, 0.65)
-    elif profile == "urban_east_heavy":
-        set_urban_profile({"in_C_right", "in_F_right"}, 1.8, 0.65)
-    elif profile == "urban_north_heavy":
-        set_urban_profile({"in_A_top", "in_B_top", "in_C_top"}, 1.65, 0.6)
-    elif profile == "urban_d_heavy":
-        set_urban_profile({"in_D_left"}, 2.2, 0.65)
-    elif profile == "urban_f_heavy":
-        set_urban_profile({"in_F_right"}, 2.2, 0.65)
+    # 아래 도시부 공간 프로파일은 스칼라 경로의 heuristic 이다(합성망 게이트 이름 기준).
+    # 게이트 앵커링이 켜져 있으면 러너가 이미 vehicle input 단위로 배수를 적용한 값을
+    # 주므로, 여기서 다시 흔들면 이중 적용이 된다.
+    if not gate_anchored:
+        if profile == "urban_west_heavy":
+            set_urban_profile({"in_A_left", "in_D_left"}, 1.8, 0.65)
+        elif profile == "urban_east_heavy":
+            set_urban_profile({"in_C_right", "in_F_right"}, 1.8, 0.65)
+        elif profile == "urban_north_heavy":
+            set_urban_profile({"in_A_top", "in_B_top", "in_C_top"}, 1.65, 0.6)
+        elif profile == "urban_d_heavy":
+            set_urban_profile({"in_D_left"}, 2.2, 0.65)
+        elif profile == "urban_f_heavy":
+            set_urban_profile({"in_F_right"}, 2.2, 0.65)
 
-    if abs(urban_west_east_ratio - 1.0) > 1.0e-9:
-        west_factor = 2.0 * urban_west_east_ratio / (1.0 + urban_west_east_ratio)
-        east_factor = 2.0 / (1.0 + urban_west_east_ratio)
-        for link in cfg.network.boundary_in_links:
-            key = str(link)
-            if key in {"in_A_left", "in_D_left"}:
-                urban_boundary[key] = urban_boundary.get(key, urban_vph) * west_factor
-            elif key in {"in_C_right", "in_F_right"}:
-                urban_boundary[key] = urban_boundary.get(key, urban_vph) * east_factor
+        if abs(urban_west_east_ratio - 1.0) > 1.0e-9:
+            west_factor = 2.0 * urban_west_east_ratio / (1.0 + urban_west_east_ratio)
+            east_factor = 2.0 / (1.0 + urban_west_east_ratio)
+            for link in cfg.network.boundary_in_links:
+                key = str(link)
+                if key in {"in_A_left", "in_D_left"}:
+                    urban_boundary[key] = urban_boundary.get(key, urban_vph) * west_factor
+                elif key in {"in_C_right", "in_F_right"}:
+                    urban_boundary[key] = urban_boundary.get(key, urban_vph) * east_factor
 
     # Route-aware on-ramp forecast (2026-06-30): the hardcoded uniform ramp_vph (250/ramp) under-sizes
     # and mis-directs the on-ramp arrival. The VISSIM static routes send a fixed fraction of each urban

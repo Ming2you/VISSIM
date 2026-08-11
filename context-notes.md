@@ -1973,3 +1973,103 @@ phase 도 방위로 정해지므로 병합된 두 접근로는 같은 phase 로 
   그래서 비교 기준선을 같은 조건(정렬 없음)으로 따로 만들었다.
 - 저류 이름 `SC{n}_{leg}_out` 중 62개가 leg 없이 남는다. 생성기 :478 이 용량 JSON 의
   `*_out` 이름을 leg 존재와 무관하게 다시 깔기 때문이다. **기존 동작이고 고치지 않았다.**
+
+---
+
+## 2026-08-11 — 도시부 수요를 지점별로 앵커링했다 (작업 B)
+
+3.66배는 게이트 수 문제가 아니라 **한 스칼라를 117개에 복제하던 구조** 였다.
+러너가 게이트별 벡터를 쓰게 바꿨다. 시간축은 이미 앵커돼 있었으므로 공간만 고쳤다.
+
+### 왜 러너 쪽인가 (두 갈래 중 선택)
+
+어댑터가 정렬 산출물을 읽는 안을 버렸다. 근거 셋.
+
+1. **값이 런타임에만 결정된다.** 러너는 `volume × scale × roleMultiplier` 를 곱해서 쓴다
+   (`LoadInpxDemandSchedule`). 정적 산출물을 읽는 어댑터는 `-DemandScale` /
+   `-DemandProfile` 런에서 조용히 어긋난다. 어긋나도 아무도 모른다 — 3.66배와 같은 종류다.
+2. **state JSON 이 실 런의 유일한 계약면이다.** 게이트별 값을 state 에 실으면
+   모델이 무엇을 주입했는지 state 파일 하나로 감사할 수 있다. 대장을 어댑터가 들면
+   state 만으로는 총량을 못 잰다.
+3. **러너는 이미 plant→model 조인을 한다.** `ramp_counts` 가 `RW_RAMP_METER_MODEL_KEYS` 로
+   VISSIM 커넥터를 `R_D_W` 같은 모델 키로 바꿔서 같은 state 블록에 쓴다. 새 패턴이 아니다.
+
+어댑터가 inpx 를 파싱하게 하면 `LoadInpxDemandSchedule` 전체(timeInt 파싱, roles CSV,
+scale, 역할 배수)를 두 언어로 중복 구현하게 된다.
+
+### 방위 규칙 — 이름이 정본이라는 것을 수치로 확인했다
+
+유입 이름의 진행방향 접미사(`NB→S`, `SB→N`, `EB→W`, `WB→E`)를 1순위로,
+없으면 기하 추정(`leg.link_geometry`)을 쓴다. 실측 비교.
+
+    기하만          mapped 11  /  leg_absent 10  /  occupied 1
+    이름 + 기하     mapped 19  /  leg_absent  2  /  occupied 1
+
+정렬 산출물 자체가 근거를 준다 — `bearing_convention.ground_truth` 가
+"신호그룹 이름 NBT/SBT/EBT/WBT 가 진행방향을 선언하고 접근 leg 은 그 반대" 라고 적혀 있고,
+1순위 추정자 `link_chord_reversed` 의 중앙값 오차가 23.7°, 45° 초과 오분류가 11건이다.
+선언된 것을 두고 추정을 쓸 이유가 없다.
+
+`구룡터널_NB(터널직진)` 처럼 접미사 뒤에 괄호가 붙는 것이 있어서 정규식은
+`_(NB|SB|EB|WB)(?![A-Za-z])` 다. 끝자리 고정으로 잡으면 1,336 veh/h 짜리 입구 하나를 놓친다.
+
+### 전/후 (peak, t=1800 s)
+
+    VISSIM 도시부 총량 32개 입력   19,120 veh/h
+      ├ 진짜 입구 22개             16,894
+      │   ├ 게이트 붙은 19개       14,564   -> 모델 주입
+      │   └ 격자에 없는 3곳         2,331   -> urban_unmapped_volume_vph
+      └ 내부 발생 10개              2,226   -> urban_internal_volume_vph
+
+    모델 주입   개정 전 69,909 (3.6562배)  ->  개정 후 14,564 (입구 대비 0.8620)
+
+배율은 6구간 전부 동일하다(전 3.6562 / 후 0.8620) — 시간이 아니라 구조였다는 것이 다시 확인된다.
+
+### 덤으로 닫힌 것 — 진단 부풀림
+
+`stackelberg_mpc._forecast_demand_metadata` 가 `urban_boundary` 전 키를 합산해서
+`leader_forecast_boundary_*` 가 (117+119)/117 = 2.0171 배였다. 게이트 앵커링에서
+`boundary_out` 값을 0 으로 두니 t=1800 s 에서 진단 합 == 주입 합 == 14,563.6 veh/h 다.
+`boundary_out` 이 외생 도착에 안 쓰인다는 판정은 코드로 다시 확인했다(주입 경로 8곳 전부
+`kind=="boundary_in"` origin, `models/demand.py:305` 는 모델 자체 시나리오 생성기라 어댑터
+경로가 아니고, `rl/*` 는 실 런에서 안 만들어진다).
+
+### fail-closed 를 넣은 이유
+
+대장이 이 망의 유입을 하나도 모르면 `by_gate` 가 통째로 비고, 어댑터는 스칼라 폴백으로
+돌아가 **3.66배가 조용히 되살아난다**. 그래서 러너가 `ERROR=URBAN_INPUT_GATE_MAP_UNUSABLE`
+로 런을 세운다. 어댑터 쪽도 대칭으로, 모델이 모르는 게이트 이름이 오면 `ValueError` 다.
+격자를 재생성하면 대장도 재생성해야 한다 — 안 하면 런이 선다. 그것이 의도다.
+
+망 변형 6종에 대해 대장 적중을 미리 쟀다(34입력 29적중 / 31입력 26적중). 어느 것도
+fail-closed 에 걸리지 않는다.
+
+### 남은 것과 하지 않은 것
+
+- **입구 3곳**(`SC1004_SW` 1,400 / `SC1004_SE` 849 / `SC13_S` 81, peak 합 2,331 veh/h).
+  게이트 신설 2 + leg 병합 1 은 `config_overrides.network` 재생성의 몫이다
+  (`urban_movements` 1,414 와 `turning_ratios` 41 노드가 같이 바뀐다). 검사는 FAIL 로 남겨 뒀다.
+  가정으로 3개를 채우면 6구간 전부 **정확히** 보존된다는 것은 검사로 증명해 뒀다
+  (`test_gate_anchoring_conserves_entry_demand_on_a_complete_grid`).
+- **dummy 10개는 판단하지 않았다.** 경계에서 뺐고, 사실만 state 와 문서에 남겼다.
+- **freeway 는 손대지 않았다.** 유입 2 == 링크 2 라 총량 배율은 1.0000 이다. 다만
+  기존 검사가 (합, 개수)만 보므로 방향 비대칭이 생기면 못 잡는다는 것을 §4.3 에 적었다.
+  램프는 러너가 리터럴 0 이고, `.inpx` vehicle input 34개 중 램프 링크에 놓인 것이
+  하나도 없다(확인). VISSIM 램프 교통은 도시부 origin 의 static route 로 들어온다.
+
+### 검사 설계
+
+- 생산자 쪽을 **cscript 로 실제 실행**한다(`scripts/tests/test_urban_gate_demand_vbs_behavior.py`).
+  기존 b1a harness 패턴을 재활용해 프로시저만 떼어 낸다. 두 번째 검사는 `WriteStateJson` 의
+  demand 줄을 **그대로 떼어 실행**하고 그 출력을 `json.loads` 로 파싱한다 — 콤마 하나
+  빠뜨리면 잡힌다.
+- 계약 검사의 `test_each_gate_carries_its_own_vissim_input_volume` 가 §4.2 의 약점
+  (합·개수만 보는 검사는 방향 비대칭을 못 잡는다)을 도시부에서 닫는다. 고속부는 아직 열려 있다.
+- 되돌림 증명 6/6. 어댑터 앵커링 제거 / 미지 게이트 무시 / `boundary_out` 스칼라 /
+  러너 조인 제거 / state 필드 제거 / 방위 규칙 뒤집기 — 전부 FAIL 로 뒤집힌다.
+
+### 규율을 어긴 것 하나
+
+대장 생성기(`derive_urban_input_gate_map.py`)는 **검사보다 코드를 먼저 썼다**.
+산출물을 사용자가 독립적으로 준 분해(19 / 2 / 1 / 10)와 대조해서 맞는 것을 확인한 뒤
+순수 함수 검사 9개를 붙였다. 되돌림 증명은 했다(방위 규칙 뒤집기 → 3건 FAIL).

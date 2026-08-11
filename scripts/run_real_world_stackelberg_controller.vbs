@@ -258,6 +258,8 @@ signalTraceFile.WriteLine "sim_sec,sc_no,sg_no,requested_state,readback_state,ok
 
 Dim sigMajor, sigMinor, sigOffset, signalControlled, rampGreen, lastActionJson, urbanDemandVph, freewayDemandVph
 Dim demandScheduleLoaded, demandUrbanBySec, demandFreewayBySec, demandForecastProfileName
+' 게이트 앵커링 — 구간별 게이트 사전 + 게이트가 없는 유입의 사유별 버킷.
+Dim demandUrbanGateBySec, demandUrbanUnmappedBySec, demandUrbanInternalBySec
 Set sigMajor = CreateObject("Scripting.Dictionary")
 Set sigMinor = CreateObject("Scripting.Dictionary")
 Set sigOffset = CreateObject("Scripting.Dictionary")
@@ -271,6 +273,9 @@ demandScheduleLoaded = False
 demandForecastProfileName = "real_world_original"
 Set demandUrbanBySec = CreateObject("Scripting.Dictionary")
 Set demandFreewayBySec = CreateObject("Scripting.Dictionary")
+Set demandUrbanGateBySec = CreateObject("Scripting.Dictionary")
+Set demandUrbanUnmappedBySec = CreateObject("Scripting.Dictionary")
+Set demandUrbanInternalBySec = CreateObject("Scripting.Dictionary")
 
 Set Vissim = CreateObject("Vissim.Vissim")
 WScript.Echo "STAGE=COM_CREATED"
@@ -304,7 +309,7 @@ Else
     WScript.Echo "DEMAND=ORIGINAL_INPX_UNCHANGED"
 End If
 ConfigureEvaluationOutput fso.BuildPath(fso.GetParentFolderName(stateOutPath), "vissim_eval")
-LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath
+LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, DefaultUrbanInputGateMapPath()
 DemandForecastAtSimSec 0, urbanDemandVph, freewayDemandVph
 WScript.Echo "DEMAND_FORECAST_CURRENT sim_sec=0 urban_vph=" & Num(urbanDemandVph) & " freeway_vph=" & Num(freewayDemandVph) & " profile=" & demandForecastProfileName
 
@@ -2120,7 +2125,7 @@ Sub WriteStateJson(simSec, path)
     ts.WriteLine "  ""mean_speed_kph"": " & Num(meanSpeed) & ","
     ts.WriteLine "  ""freeway_mean_speed_kph"": " & Num(freewayMeanSpeed) & ","
     ts.WriteLine "  ""stopped_vehicles"": " & CStr(stopped) & ","
-    ts.WriteLine "  ""demand"": {""urban_volume_vph"": " & Num(demandUrbanNow) & ", ""freeway_volume_vph"": " & Num(demandFreewayNow) & ", ""ramp_volume_vph"": 0, ""demand_profile"": """ & demandForecastProfileName & """},"
+    ts.WriteLine "  ""demand"": {""urban_volume_vph"": " & Num(demandUrbanNow) & ", ""urban_volume_vph_by_gate"": " & UrbanGateDemandJson(simSec) & ", ""urban_unmapped_volume_vph"": " & Num(UrbanDemandBucketAtSimSec(demandUrbanUnmappedBySec, simSec)) & ", ""urban_internal_volume_vph"": " & Num(UrbanDemandBucketAtSimSec(demandUrbanInternalBySec, simSec)) & ", ""freeway_volume_vph"": " & Num(demandFreewayNow) & ", ""ramp_volume_vph"": 0, ""demand_profile"": """ & demandForecastProfileName & """},"
     ts.WriteLine "  ""ramp_counts"": " & RampCountsJson(localCounts) & ","
     ts.WriteLine "  ""local_observation"": {"
     ts.WriteLine "    ""schema_version"": 2,"
@@ -2887,12 +2892,16 @@ Sub ComputeOriginalDemandAverages(ByRef urbanAvg, ByRef freewayAvg)
     If freewayN > 0 Then freewayAvg = freewaySum / freewayN
 End Sub
 
-Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath)
+Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath, gateMapPath)
     Dim xmlDoc, inputRoles, roleMultipliers, defaultMultiplier, viNode, volNode
     Dim viNo, role, roleKey, multiplier, linkNo, secKey, sec, volume, isFreeway
     Dim urbanSumBySec, urbanNBySec, freewaySumBySec, freewayNBySec, key
+    Dim urbanGateMap, gateStatus, mappedInputs, internalInputs, unmappedInputs
     Set demandUrbanBySec = CreateObject("Scripting.Dictionary")
     Set demandFreewayBySec = CreateObject("Scripting.Dictionary")
+    Set demandUrbanGateBySec = CreateObject("Scripting.Dictionary")
+    Set demandUrbanUnmappedBySec = CreateObject("Scripting.Dictionary")
+    Set demandUrbanInternalBySec = CreateObject("Scripting.Dictionary")
     Set urbanSumBySec = CreateObject("Scripting.Dictionary")
     Set urbanNBySec = CreateObject("Scripting.Dictionary")
     Set freewaySumBySec = CreateObject("Scripting.Dictionary")
@@ -2915,6 +2924,10 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath)
     On Error GoTo 0
 
     Set inputRoles = LoadVehicleInputRoles(rolesPath)
+    Set urbanGateMap = LoadUrbanInputGateMap(gateMapPath)
+    mappedInputs = 0
+    internalInputs = 0
+    unmappedInputs = 0
     Set roleMultipliers = CreateObject("Scripting.Dictionary")
     defaultMultiplier = 1.0
     If Trim(CStr(profilePath)) <> "" Then
@@ -2933,6 +2946,16 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath)
         If roleMultipliers.Exists(roleKey) Then multiplier = CDbl(roleMultipliers(roleKey))
         If roleMultipliers.Exists("no:" & viNo) Then multiplier = CDbl(roleMultipliers("no:" & viNo))
         isFreeway = (Left(roleKey, 7) = "freeway" Or InCsvInt(linkNo, RW_FREEWAY_INPUT_LINKS))
+        If Not isFreeway Then
+            gateStatus = GateMapField(DictValue(urbanGateMap, viNo, ""), 0)
+            If gateStatus = "mapped" Then
+                mappedInputs = mappedInputs + 1
+            ElseIf gateStatus = "internal" Then
+                internalInputs = internalInputs + 1
+            Else
+                unmappedInputs = unmappedInputs + 1
+            End If
+        End If
 
         For Each volNode In viNode.SelectNodes("./timeIntVehVols/timeIntervalVehVolume")
             sec = TimeIntStartSec(CStr(volNode.GetAttribute("timeInt")))
@@ -2942,9 +2965,22 @@ Sub LoadInpxDemandSchedule(inpxPath, rolesPath, scale, profilePath)
                 AddDemandScheduleValue freewaySumBySec, freewayNBySec, secKey, volume
             Else
                 AddDemandScheduleValue urbanSumBySec, urbanNBySec, secKey, volume
+                AddUrbanGateDemand demandUrbanGateBySec, demandUrbanUnmappedBySec, _
+                    demandUrbanInternalBySec, secKey, urbanGateMap, viNo, volume
             End If
         Next
     Next
+
+    ' 대장이 이 망의 유입을 하나도 모르면 게이트별 값이 통째로 비고, 어댑터는 스칼라
+    ' 폴백으로 돌아간다 - 그것이 도시부 3.66배를 만들던 경로다. 조용히 넘어가지 않는다.
+    If (mappedInputs + internalInputs) = 0 And unmappedInputs > 0 Then
+        WScript.Echo "ERROR=URBAN_INPUT_GATE_MAP_UNUSABLE path=" & CStr(gateMapPath) & _
+            " urban_inputs=" & CStr(unmappedInputs) & " (rerun scripts/derive_urban_input_gate_map.py)"
+        WScript.Quit 2
+    End If
+    WScript.Echo "URBAN_GATE_ANCHOR_LOADED mapped_inputs=" & CStr(mappedInputs) & _
+        " internal_inputs=" & CStr(internalInputs) & " unmapped_inputs=" & CStr(unmappedInputs) & _
+        " map=" & CStr(gateMapPath)
 
     For Each key In urbanSumBySec.Keys
         If CDbl(urbanNBySec(key)) > 0 Then demandUrbanBySec(key) = CDbl(urbanSumBySec(key)) / CDbl(urbanNBySec(key))
@@ -2970,6 +3006,108 @@ Sub AddDemandScheduleValue(sumDict, nDict, secKey, volume)
     sumDict(secKey) = CDbl(sumDict(secKey)) + CDbl(volume)
     nDict(secKey) = CLng(nDict(secKey)) + 1
 End Sub
+
+' ---------------------------------------------------------------------------
+' 게이트 앵커링 — VISSIM 유입 하나가 모델 경계 게이트 하나를 먹인다.
+'
+' 어댑터는 state 의 스칼라 하나를 게이트 전부에 복제했다. 러너가 주는 값은 유입
+' **지점당 평균**이라, 게이트 117개 vs 유입 32개에서 도시부 수요가 3.66배가 됐다
+' (evaluation/controllers/demand_contract.md §4). 평균 대신 게이트별 값을 준다.
+'
+' 조인 키는 scripts/derive_urban_input_gate_map.py 가 만든 대장 CSV 다. 여기서
+' 방위를 다시 추정하지 않는다 - 대장이 정본이고, 이 러너는 그것을 읽기만 한다.
+' ---------------------------------------------------------------------------
+
+' 유입번호 -> "status|gate". '#' 주석 줄과 헤더 한 줄을 건너뛴다.
+' 이름 열에 콤마가 들어가므로(`개포3,4단지_WB`) 대장은 name 을 **마지막** 열에 두고
+' 여기서는 앞 세 열만 읽는다.
+Function LoadUrbanInputGateMap(mapPath)
+    Dim dict, fullPath, ts, line, first, parts, noText, gateText, statusText
+    Set dict = CreateObject("Scripting.Dictionary")
+    fullPath = fso.GetAbsolutePathName(mapPath)
+    If Not fso.FileExists(fullPath) Then
+        WScript.Echo "WARN=URBAN_INPUT_GATE_MAP_NOT_FOUND path=" & fullPath
+        Set LoadUrbanInputGateMap = dict
+        Exit Function
+    End If
+    Set ts = fso.OpenTextFile(fullPath, 1, False)
+    first = True
+    Do Until ts.AtEndOfStream
+        line = Trim(ts.ReadLine)
+        If line <> "" And Left(line, 1) <> "#" Then
+            parts = Split(line, ",")
+            If first Then
+                first = False
+            ElseIf UBound(parts) >= 2 Then
+                noText = CStr(CLng(ToDbl(parts(0))))
+                gateText = Trim(parts(1))
+                statusText = LCase(Trim(parts(2)))
+                If noText <> "" Then dict(noText) = statusText & "|" & gateText
+            End If
+        End If
+    Loop
+    ts.Close
+    Set LoadUrbanInputGateMap = dict
+End Function
+
+Function GateMapField(entry, idx)
+    Dim parts
+    GateMapField = ""
+    parts = Split(CStr(entry), "|")
+    If idx >= 0 And idx <= UBound(parts) Then GateMapField = Trim(parts(idx))
+End Function
+
+' 유입 하나의 유량을 자기 게이트에 넣는다. 게이트가 없으면 사유별 버킷으로 간다 -
+' 어느 쪽이든 state 에 실려서 회계가 닫힌다(게이트합 + 미배정 + 내부발생 == 도시부 총량).
+Sub AddUrbanGateDemand(gateBySec, unmappedBySec, internalBySec, secKey, gateMap, viNo, volume)
+    Dim entry, gateStatus, gate, gates
+    entry = DictValue(gateMap, viNo, "")
+    gateStatus = GateMapField(entry, 0)
+    gate = GateMapField(entry, 1)
+    If gateStatus = "mapped" And gate <> "" Then
+        If Not gateBySec.Exists(CStr(secKey)) Then
+            gateBySec.Add CStr(secKey), CreateObject("Scripting.Dictionary")
+        End If
+        Set gates = gateBySec(CStr(secKey))
+        AddDictNumber gates, gate, volume
+    ElseIf gateStatus = "internal" Then
+        AddDictNumber internalBySec, secKey, volume
+    Else
+        AddDictNumber unmappedBySec, secKey, volume
+    End If
+End Sub
+
+' 현재 구간의 게이트별 유량을 JSON 오브젝트로. 스케줄이 없으면 "{}" 이고,
+' 그때는 어댑터가 예전대로 urban_volume_vph 스칼라로 폴백한다.
+Function UrbanGateDemandJson(simSec)
+    Dim secKey, gates, gateKey, s, first
+    UrbanGateDemandJson = "{}"
+    If Not CBool(demandScheduleLoaded) Then Exit Function
+    secKey = ActiveDemandScheduleKey(simSec)
+    If CStr(secKey) = "" Then Exit Function
+    If Not demandUrbanGateBySec.Exists(CStr(secKey)) Then Exit Function
+    Set gates = demandUrbanGateBySec(CStr(secKey))
+    s = "{"
+    first = True
+    For Each gateKey In gates.Keys
+        If Not first Then s = s & ", "
+        s = s & """" & JsonEscape(CStr(gateKey)) & """: " & Num(CDbl(gates(gateKey)))
+        first = False
+    Next
+    UrbanGateDemandJson = s & "}"
+End Function
+
+Function UrbanDemandBucketAtSimSec(bucketBySec, simSec)
+    Dim secKey
+    UrbanDemandBucketAtSimSec = 0.0
+    If Not CBool(demandScheduleLoaded) Then Exit Function
+    If Not IsObject(bucketBySec) Then Exit Function
+    secKey = ActiveDemandScheduleKey(simSec)
+    If CStr(secKey) = "" Then Exit Function
+    If bucketBySec.Exists(CStr(secKey)) Then
+        UrbanDemandBucketAtSimSec = CDbl(bucketBySec(CStr(secKey)))
+    End If
+End Function
 
 Function MaxDictCount(a, b)
     If a.Count >= b.Count Then
@@ -4418,6 +4556,10 @@ End Function
 
 Function DefaultVehicleInputRolesPath()
     DefaultVehicleInputRolesPath = fso.BuildPath(fso.GetParentFolderName(WScript.ScriptFullName), "..\evaluation\real_world_modi_inventory\vehicle_input_roles.csv")
+End Function
+
+Function DefaultUrbanInputGateMapPath()
+    DefaultUrbanInputGateMapPath = fso.BuildPath(fso.GetParentFolderName(WScript.ScriptFullName), "..\evaluation\real_world_modi_inventory\urban_input_gate_map_20260811.csv")
 End Function
 
 Sub LoadGeneratedConfig(path)
