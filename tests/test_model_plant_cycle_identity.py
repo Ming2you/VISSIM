@@ -192,10 +192,73 @@ class PlantCycleFormulaTests(unittest.TestCase):
             / "controllers"
             / "vissim_stackelberg_adapter.py"
         ).read_text(encoding="utf-8")
-        # 축 녹색은 major/minor 두 번 실린다. 세 번째 소비처가 생기는 것은 막지 않고,
-        # 리터럴로 되돌아가는 것만 막는다.
-        self.assertGreaterEqual(source.count("plant_cycle.written_axis_green_sec"), 2)
+        # N4-0. 현시 4값은 한 자리(현시 루프)에서 클램프된다. 개수를 세는 대신 실제로
+        # 실리는 값을 재서, 어느 현시로 들어와도 클램프가 물리는지 본다.
+        self.assertGreaterEqual(source.count("plant_cycle.written_axis_green_sec"), 1)
         self.assertNotIn("), 5.0, 90.0)", source)
+
+        import csv
+        import json
+        import tempfile
+        import types
+        from pathlib import Path
+
+        from evaluation.controllers import action_csv_schema, signal_group_plan
+
+        plan_path = WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
+        if not plan_path.is_file():
+            self.skipTest("actuation plan artifact is not built")
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        low, high = plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC
+        # 계획이 실제로 구동하는 현시에만 녹색을 준다(그 밖은 어댑터가 fail-closed 로 죽는다).
+        live = adapter.plan_live_phases(plan, 1001)
+        self.assertEqual(live, ("p1", "p2"))
+        for phase, raw, expected in (
+            (live[0], high + 50.0, high),
+            (live[0], low / 2.0, low),
+            (live[1], high + 50.0, high),
+            (live[1], low / 2.0, low),
+        ):
+            with self.subTest(phase=phase, raw=raw):
+                control = types.SimpleNamespace(
+                    green_times={f"SC1001_{name}": 40.0 for name in live},
+                    offsets={},
+                    ramp_metering={},
+                    diagnostics={},
+                )
+                control.green_times[f"SC1001_{phase}"] = raw
+                cfg = types.SimpleNamespace(
+                    network=types.SimpleNamespace(ramp_capacity_veh_h={}),
+                    freeway_follower=types.SimpleNamespace(vsl_set=[80.0]),
+                )
+                mapping = {
+                    "segments": [],
+                    "signals": [
+                        {"id": "SC1001", "sc_no": 1001, "major_maps_to": "p1"}
+                    ],
+                }
+                with tempfile.TemporaryDirectory() as tmp:
+                    out = Path(tmp) / "action.csv"
+                    adapter.write_action_csv(
+                        out, control, cfg, mapping,
+                        lambda control_arg, link, index, cfg_arg: 80.0,
+                        {"controller_status": "ok"}, {},
+                        signal_group_plan_table=plan,
+                    )
+                    with out.open(encoding="utf-8") as handle:
+                        rows = list(csv.DictReader(handle))
+                signal_row = next(row for row in rows if row["kind"] == "signal")
+                written = action_csv_schema.phase_greens(signal_row)
+                self.assertEqual(written[phase], expected)
+                # 클램프가 걸린 뒤에도 계획 주기와 러너 주기가 같은 식에서 나와야 한다.
+                sg_row = next(row for row in rows if row["kind"] == "signal_sg")
+                self.assertAlmostEqual(
+                    float(sg_row["green_sec"]),
+                    signal_group_plan.plan_cycle_sec(
+                        written, *plant_cycle.runner_clearance_sec()
+                    ),
+                    places=6,
+                )
 
 
 class NativeClearanceTests(unittest.TestCase):

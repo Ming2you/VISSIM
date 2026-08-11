@@ -403,3 +403,40 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] 다른 러너 5개(`*_perf`, `*_8seg`, `com_fixed_time`, `calibration_probe`,
       `run_stackelberg_vissim_controller`)와 분석 스크립트 2개는 옛 상수 그대로다. 실 런
       경로가 아니라 안 건드렸다 — 승격 전에 판단 필요
+
+## N4-0 작업 4 — action CSV 스키마를 현시 4값으로 (2026-08-12)
+
+- [x] 열 계약 단일 출처 `evaluation/controllers/action_csv_schema.py` 신설.
+      `PHASE_GREEN_FIELDS` 를 `signal_group_plan.MODEL_PHASES` 에서 유도한다
+- [x] 플랜트 현시 어휘 2 → 4 (`signal_group_plan.MODEL_PHASES`). 상류(NumSim `state.py`)와
+      같은 튜플이 됐다
+- [x] 헤더 v3(13열) → v4(15열).
+      `...,speed_kph,p1_green,p2_green,p3_green,p4_green,offset,rate_vph,green_sec,metadata`
+- [x] 주기 식 일반화 — `녹색 합 + (녹색 있는 현시 수) x clearance`. 어댑터
+      `plan_cycle_sec` 과 러너 `SignalCycleFromPhases` 가 같은 식이다.
+      **2현시 데이터에서 v3 과 값이 같다**(창 위치도 비트 동일 — `tests/test_signal_group_plan` 13건)
+- [x] 정본/파생 결정 — `signal` 행의 현시 4값이 정본, `signal_sg` 창은 파생.
+      러너는 파생을 다시 만들지 않고 `Sum + n x clearance == green_sec` 로 **대조**만 한다
+- [x] `signal_sg` 판별자 — `p3_green`/`p4_green` 이 반드시 빈 칸. 차 있으면 그 행이 invalid
+- [x] 어댑터 fail-closed — 액션이 녹색을 준 현시 집합 != 계획이 SG 를 붙여 둔 현시 집합이면
+      `SignalGroupPlanError` 로 죽는다(부분 적용 없음). 15 SC 전부에 대해 검사
+- [x] 러너 fail-closed — 계획 없이 온 `signal` 행 거부
+      (`ACTION_CSV_SIGNAL_WITHOUT_PLAN_CONFIG`). 현시 4값은 이름 규칙(MAJOR/MINOR 두 상태)
+      으로 재생할 수 없다. 재생 루프의 이름 규칙 분기도 제거(`SIGNAL_PHASE_PLAN_REQUIRED`)
+- [x] 계획 산출물 재생성 — 현시 어휘가 4가 되며 p3/p4 빈 키가 붙는다. **데이터는 한 바이트도
+      안 바뀐다**(p3/p4 를 떼면 옛 파일과 동일함을 대조 확인). counts 15/136/118/312/0 그대로
+- [x] 옛 파일 8,201개 — **다시 쓰지 않는다.** 판별은 헤더로 하고
+      `phase_green_sum_sec`/`window_bounds_sec` 이 두 세대를 읽는다.
+      소비처 4곳(`signal_timing_oracle`, `validate_baseline_snapshot`,
+      `analyze_vissim_mpc_tuning`, `analyze_new_baseline_ab_20260801`) 전부 이중 읽기로 전환
+- [x] 되돌림 증명 3건 — (1) `signal_sg` 빈 칸 판별자 제거 → cscript FAIL,
+      (2) clearance 계수를 상수 2 로 되돌림 → cscript FAIL, (3) 어댑터 쓰기 클램프 제거 →
+      `PlantCycleFormulaTests` FAIL. (1)(2)는 `scripts/tests/test_action_csv_vbs_validators.py`
+      에 상주 검사로 남겼고 (3)은 이 회차에 손으로 역적용해 확인
+- [ ] **실 COM 런 안 했다.** VISSIM 을 띄우지 않았다. 위는 전부 cscript + 파이썬 재현이다
+- [ ] **다른 러너 3개가 v3 헤더 그대로다** — `_perf`, `run_stackelberg_vissim_controller`,
+      `_8seg`. 셋 다 같은 어댑터를 부르므로 **지금 그 셋으로는 못 돈다**(첫 결정에서
+      `ACTION_CSV_HEADER` 전량 거부). 실 런 경로가 아니라 안 옮겼다.
+      `tests/test_action_csv_contract` 의 러너 인벤토리 검사가 이 목록을 못박는다
+- [ ] **`SIGNAL_NAME_RULE_FALLBACKS = 0` 은 이제 자명하다.** 이름 규칙 호출부를 없앴으므로
+      실 런에서 0 인 것이 아무것도 증명하지 않는다. 위 405행 근처의 체크 항목은 폐기 대상

@@ -204,8 +204,8 @@ class PlantFidelityMatrixCliTests(unittest.TestCase):
         # COM 호출이 값 커밋보다 먼저다 - 실패한 SC 의 값이 남으면 안 된다.
         self.assertLess(
             branch.index("EnableSignalControllerForRuntime"),
-            branch.index("sigMajor(scNo)"),
-            "COM 확인 전에 sigMajor 를 선커밋한다",
+            branch.index("sigPhaseGreen(scNo)"),
+            "COM 확인 전에 sigPhaseGreen 을 선커밋한다",
         )
 
         # COM 제어를 못 받았으면 재생 대상으로도 표시하면 안 된다.

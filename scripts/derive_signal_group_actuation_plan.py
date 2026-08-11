@@ -176,9 +176,11 @@ def derive(
         # 계획이 스스로 충돌을 만들지 않는지, 대표 지시값으로 확인한다.
         windows = signal_group_plan.plan_windows(
             plan,
-            major_green=60.0,
-            minor_green=60.0,
-            major_maps_to=row["major_maps_to"],
+            phase_greens={
+                phase: (60.0 if plan.phase_signal_groups.get(phase) else 0.0)
+                for phase in signal_group_plan.MODEL_PHASES
+            },
+            phase_order=signal_group_plan.phase_layout_order(row["major_maps_to"]),
             amber_sec=AMBER_SEC,
             all_red_sec=ALL_RED_SEC,
         )
@@ -255,16 +257,15 @@ def conflict_token_list(table: Mapping[str, Any]) -> list[str]:
 
 
 def action_windows(
-    table: Mapping[str, Any], sc_no: int, major_green: float, minor_green: float
+    table: Mapping[str, Any], sc_no: int, phase_greens: Mapping[str, float]
 ) -> tuple[signal_group_plan.PlanWindow, ...]:
     """어댑터가 쓰는 것과 같은 경로로 한 SC 의 녹색창을 만든다."""
     payload = table["controllers"][str(int(sc_no))]
     plan = signal_group_plan.node_plan_from_json(payload)
     return signal_group_plan.plan_windows(
         plan,
-        major_green=float(major_green),
-        minor_green=float(minor_green),
-        major_maps_to=str(payload["major_maps_to"]),
+        phase_greens=phase_greens,
+        phase_order=signal_group_plan.phase_layout_order(str(payload["major_maps_to"])),
         amber_sec=float(table.get("amber_sec", AMBER_SEC)),
         all_red_sec=float(table.get("all_red_sec", ALL_RED_SEC)),
     )

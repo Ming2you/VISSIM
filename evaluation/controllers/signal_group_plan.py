@@ -28,11 +28,19 @@ native 시각 t 를 `cum(t)/|U|` 로 정규화한 뒤, 지시된 축 녹색창�
 3. **축 녹색 예산이 새지 않는다.** 축 SG 들의 realize 된 녹색 합집합이 지시된 축 녹색창을
    빈틈없이 채운다.
 
+## N4-0 이후 - "축" 은 "현시" 가 됐다
+
+아래 설명의 "축"을 전부 **현시**로 읽어라. v3 은 현시가 둘(major/minor 축)이라 두 말이
+같았지만, 모델이 dual-ring 4현시로 옮기면서 한 축 안에 직진 현시와 좌회전 현시가 따로
+생겼다. 이 모듈의 분할 방식(native 녹색 합집합의 단조 재매개화)은 그대로이고, 그것이
+적용되는 단위가 축에서 현시로 내려갔을 뿐이다.
+
+주기 식만 바뀌었다 - clearance 를 상수 2회가 아니라 **녹색 있는 현시 수**만큼 문다
+(`plan_cycle_sec`). 현시가 둘인 계획에서는 v3 과 값이 같다.
+
 ## 무엇을 하지 않는가
 
-- 축(major/minor) 의 위치·길이·주기 공식은 건드리지 않는다. 러너의
-  `cycle = major + amber + all_red + minor + amber + all_red` 와 창 위치가 그대로다.
-  이 모듈은 **축 안의 분배만** 바꾼다.
+- 현시의 위치·길이·주기 공식은 건드리지 않는다. 이 모듈은 **현시 안의 분배만** 바꾼다.
 - SG -> 모델 phase 귀속은 여기서 만들지 않는다. `outputs/movement_signal_group_map_v3.json`
   의 `phase_signal_groups` 가 정본이고 여기서는 받아서 쓴다.
 """
@@ -46,7 +54,9 @@ from typing import Any, Iterable, Mapping, Sequence
 # 겹침 판정 허용오차[초]. 경계가 맞닿는 것은 겹침이 아니다.
 TOUCH_EPS_SEC = 1.0e-9
 
-MODEL_PHASES = ("p1", "p2")
+# 상류 모델(`NumSim-mine/src/models/state.py:MODEL_PHASES`)과 같은 어휘여야 한다.
+# 상류는 N4-0 에서 dual-ring 4현시로 옮겼다(commit 3286f47).
+MODEL_PHASES = ("p1", "p2", "p3", "p4")
 
 
 class SignalGroupPlanError(RuntimeError):
@@ -147,11 +157,14 @@ def build_node_plan(
                 )
         phased[phase] = ids
 
-    overlap = set(phased.get("p1", ())) & set(phased.get("p2", ()))
-    if overlap:
-        raise SignalGroupPlanError(
-            f"{node_id}: signal groups {sorted(overlap, key=_sort_key)} belong to both model phases"
-        )
+    for first_index, first_phase in enumerate(MODEL_PHASES):
+        for second_phase in MODEL_PHASES[first_index + 1 :]:
+            overlap = set(phased[first_phase]) & set(phased[second_phase])
+            if overlap:
+                raise SignalGroupPlanError(
+                    f"{node_id}: signal groups {sorted(overlap, key=_sort_key)} belong to both "
+                    f"model phases {first_phase} and {second_phase}"
+                )
 
     segments: dict[str, tuple[tuple[str, int, float, float], ...]] = {}
     axis_green: dict[str, float] = {}
@@ -185,11 +198,8 @@ def build_node_plan(
                 window_counts[sg_no] = window_counts.get(sg_no, 0) + 1
         segments[phase] = tuple(rows)
 
-    red_only = tuple(
-        sg_no
-        for sg_no in all_ids
-        if sg_no not in set(phased.get("p1", ())) | set(phased.get("p2", ()))
-    )
+    phased_ids = set().union(*(set(phased[phase]) for phase in MODEL_PHASES))
+    red_only = tuple(sg_no for sg_no in all_ids if sg_no not in phased_ids)
 
     conflicts: list[tuple[str, str]] = []
     active = sorted(
@@ -219,46 +229,72 @@ def build_node_plan(
     )
 
 
+def live_phases(phase_greens: Mapping[str, float]) -> tuple[str, ...]:
+    """녹색을 실제로 받는 현시. 주기에 clearance 를 몇 번 무는지가 이 개수로 정해진다.
+
+    녹색 0 인 현시는 전이도 없다. 2현시 계획에서 p3/p4 가 0 이면 clearance 는 2회이고
+    v3 의 주기 식과 정확히 같은 값이 나온다.
+    """
+    return tuple(
+        phase for phase in MODEL_PHASES if float(phase_greens.get(phase, 0.0)) > 0.0
+    )
+
+
 def plan_cycle_sec(
-    major_green: float, minor_green: float, amber_sec: float, all_red_sec: float
+    phase_greens: Mapping[str, float], amber_sec: float, all_red_sec: float
 ) -> float:
-    """러너의 주기 공식 그대로. 이 값은 N4-5 로 바뀌지 않는다."""
-    return (
-        float(major_green)
-        + float(amber_sec)
-        + float(all_red_sec)
-        + float(minor_green)
-        + float(amber_sec)
-        + float(all_red_sec)
+    """러너의 주기 공식 그대로 - 녹색 합 + (녹색 있는 현시 수) x clearance.
+
+    v3 는 축이 둘이라 clearance 를 항상 두 번 물었다. 4현시가 되면 축 **안의** 경계도
+    전이가 되므로 계수가 현시 수를 따라간다. 2현시 데이터에서는 값이 v3 과 같다.
+    """
+    clearance = float(amber_sec) + float(all_red_sec)
+    used = live_phases(phase_greens)
+    return sum(float(phase_greens[phase]) for phase in used) + len(used) * clearance
+
+
+def phase_layout_order(major_maps_to: str) -> tuple[str, ...]:
+    """녹색창을 주기 안에 놓는 순서.
+
+    major 축 현시가 맨 앞이다 - v3 의 `axis_window` 배치(major 를 [0, major) 에 두고
+    minor 를 그 뒤에 두는 것)와 2현시에서 **비트 동일**하게 만드는 조건이다.
+
+    나머지 셋의 상대 순서는 모델 phase 순서로 둔다. 목표 스펙의 현시 순서
+    (major 직진 -> major 좌 -> minor 직진 -> minor 좌)는 phase -> 이동류 귀속이 정해져야
+    쓸 수 있고, 그 귀속은 `.sig` 재작성(작업 1)이 막혀 아직 없다. 4현시 계획이 실제로
+    생기면 이 함수가 그 순서를 받아야 한다.
+    """
+    major_phase = str(major_maps_to).strip().lower()
+    if major_phase not in MODEL_PHASES:
+        raise SignalGroupPlanError(
+            f"major_maps_to must be one of {MODEL_PHASES}, got {major_maps_to!r}"
+        )
+    return (major_phase,) + tuple(
+        phase for phase in MODEL_PHASES if phase != major_phase
     )
 
 
 def plan_windows(
     plan: NodePlan,
-    major_green: float,
-    minor_green: float,
-    major_maps_to: str,
+    phase_greens: Mapping[str, float],
+    phase_order: Sequence[str],
     amber_sec: float,
     all_red_sec: float,
 ) -> tuple[PlanWindow, ...]:
-    """지시된 축 녹색을 SG 녹색창으로 편다."""
-    major_phase = str(major_maps_to).strip().lower()
-    if major_phase not in MODEL_PHASES:
+    """지시된 현시 녹색을 SG 녹색창으로 편다.
+
+    `phase_order` 는 주기 안의 배치 순서다. 녹색 0 인 현시는 자리를 차지하지 않는다.
+    """
+    order = tuple(str(phase).strip().lower() for phase in phase_order)
+    if sorted(order) != sorted(MODEL_PHASES):
         raise SignalGroupPlanError(
-            f"{plan.node_id}: major_maps_to must be p1 or p2, got {major_maps_to!r}"
+            f"{plan.node_id}: phase_order must be a permutation of {MODEL_PHASES}, got {order}"
         )
-    minor_phase = "p1" if major_phase == "p2" else "p2"
-    axis_window = {
-        major_phase: (0.0, float(major_green)),
-        minor_phase: (
-            float(major_green) + float(amber_sec) + float(all_red_sec),
-            float(major_green) + float(amber_sec) + float(all_red_sec) + float(minor_green),
-        ),
-    }
+    clearance = float(amber_sec) + float(all_red_sec)
     rows: list[PlanWindow] = []
-    for phase in MODEL_PHASES:
-        start, end = axis_window[phase]
-        span = end - start
+    cursor = 0.0
+    for phase in order:
+        span = float(phase_greens.get(phase, 0.0))
         if span <= 0.0:
             continue
         for sg_no, index, low, high in plan.phase_segments.get(phase, ()):
@@ -266,10 +302,11 @@ def plan_windows(
                 PlanWindow(
                     sg_no=sg_no,
                     window_index=index,
-                    start_sec=start + low * span,
-                    end_sec=start + high * span,
+                    start_sec=cursor + low * span,
+                    end_sec=cursor + high * span,
                 )
             )
+        cursor += span + clearance
     rows.sort(key=lambda row: (_sort_key(row.sg_no), row.window_index))
     return tuple(rows)
 
@@ -371,8 +408,10 @@ __all__ = [
     "SignalGroupPlanError",
     "build_node_plan",
     "conflict_violations",
+    "live_phases",
     "node_plan_from_json",
     "node_plan_to_json",
+    "phase_layout_order",
     "plan_cycle_sec",
     "plan_windows",
 ]

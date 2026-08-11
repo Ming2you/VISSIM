@@ -170,7 +170,10 @@ class DeriveTests(unittest.TestCase):
     def test_action_rows_reproduce_the_model_share(self) -> None:
         # SC1001 은 major_maps_to=p1 이라 축 귀속이 이름 규칙과 반대다. 여기서
         # 지시 녹색을 넣었을 때 SG 별 녹색이 native 분율대로 갈리는지 본다.
-        rows = producer.action_windows(self.table, sc_no=1001, major_green=61.0, minor_green=79.0)
+        rows = producer.action_windows(
+            self.table, sc_no=1001,
+            phase_greens={"p1": 61.0, "p2": 79.0, "p3": 0.0, "p4": 0.0},
+        )
         realized: dict[str, float] = {}
         for row in rows:
             realized[row.sg_no] = realized.get(row.sg_no, 0.0) + (row.end_sec - row.start_sec)

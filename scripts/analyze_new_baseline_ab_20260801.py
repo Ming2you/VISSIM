@@ -14,8 +14,15 @@ import argparse
 import csv
 import json
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from evaluation.controllers import action_csv_schema  # noqa: E402
 
 
 def fnum(value: object, default: float = 0.0) -> float:
@@ -250,7 +257,14 @@ def applied_actions(action_csv: Path, start: float, end: float) -> dict[str, obj
         kinds[kind] = kinds.get(kind, 0) + 1
         if kind == "signal":
             signal_scs.add((row.get("sc_no") or "").strip())
-            plan = f"{fnum(row.get('major_green')):.1f}/{fnum(row.get('minor_green')):.1f}/{fnum(row.get('offset')):.1f}"
+            # N4-0. v3 은 축 2열, v4 는 현시 4열이다. 헤더로 세대를 가려 읽는다.
+            fields = (
+                action_csv_schema.PHASE_GREEN_FIELDS
+                if action_csv_schema.row_is_v4(row)
+                else action_csv_schema.LEGACY_AXIS_GREEN_FIELDS
+            )
+            greens = "/".join(f"{fnum(row.get(field)):.1f}" for field in fields)
+            plan = f"{greens}/{fnum(row.get('offset')):.1f}"
             signal_plans[plan] = signal_plans.get(plan, 0) + 1
     return {
         "present": True,

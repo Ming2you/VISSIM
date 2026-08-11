@@ -17,11 +17,12 @@ from typing import Any, Mapping, Sequence
 SCRIPT_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_ROOT.parent
 PLANT_ROOT = REPO_ROOT / "plant"
-for search_root in (SCRIPT_ROOT, PLANT_ROOT):
+for search_root in (SCRIPT_ROOT, PLANT_ROOT, REPO_ROOT):
     if str(search_root) not in sys.path:
         sys.path.insert(0, str(search_root))
 
 from build_preflight_manifest import DEFAULT_PATHS as PREFLIGHT_DEFAULT_PATHS  # noqa: E402
+from evaluation.controllers import action_csv_schema  # noqa: E402
 
 
 SCHEMA_VERSION = "baseline-snapshot-v2.1"
@@ -1652,8 +1653,13 @@ def _validate_no_control_actions(
         if set(offsets) != set(signals) or any(not _same_number(value, 0.0) for value in offsets.values()):
             reasons.append(f"{json_path.name}: offsets are not the uncontrolled default")
         header, rows, csv_error = _read_csv(csv_path)
-        expected_header = ["kind", "id", "dsd_no", "sc_no", "link", "lane", "speed_kph", "major_green", "minor_green", "offset", "rate_vph", "green_sec", "metadata"]
-        if csv_error or header != expected_header:
+        # N4-0. 봉인된 스냅샷은 v3(축 2값)이고 새로 뽑은 스냅샷은 v4(현시 4값)다.
+        # 둘 다 **정확히** 그 목록이어야 한다 - 느슨해진 것이 아니라 세대가 둘이다.
+        expected_headers = [
+            list(action_csv_schema.LEGACY_ACTION_CSV_FIELDS),
+            list(action_csv_schema.ACTION_CSV_FIELDS),
+        ]
+        if csv_error or header not in expected_headers:
             reasons.append(f"{csv_path.name}: invalid action CSV header/content ({csv_error or 'header mismatch'})")
         else:
             reasons.extend(f"{csv_path.name}: {reason}" for reason in _validate_action_rows(rows, contract))
@@ -1661,8 +1667,14 @@ def _validate_no_control_actions(
 
     cumulative_path = baseline_dir / f"action_{EXPECTED_NAME}.csv"
     cumulative_header, cumulative_rows, cumulative_error = _read_csv(cumulative_path)
-    expected_cumulative_header = ["sim_sec", "kind", "id", "dsd_no", "sc_no", "link", "lane", "speed_kph", "major_green", "minor_green", "offset", "rate_vph", "green_sec", "metadata", "readback"]
-    if cumulative_error or cumulative_header != expected_cumulative_header:
+    expected_cumulative_headers = [
+        ["sim_sec", *action_csv_schema.LEGACY_ACTION_CSV_FIELDS, "readback"],
+        list(action_csv_schema.ACTION_LOG_FIELDS),
+    ]
+    expected_cumulative_header = expected_cumulative_headers[0]
+    if cumulative_header in expected_cumulative_headers:
+        expected_cumulative_header = cumulative_header
+    if cumulative_error or cumulative_header not in expected_cumulative_headers:
         reasons.append(f"cumulative action CSV is invalid ({cumulative_error or 'header mismatch'})")
     else:
         expected_rows: list[dict[str, str]] = []

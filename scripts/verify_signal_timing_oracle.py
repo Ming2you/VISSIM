@@ -24,6 +24,8 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
+from evaluation.controllers import action_csv_schema  # noqa: E402
+from evaluation.controllers import signal_group_plan  # noqa: E402
 from evaluation.controllers import signal_timing_oracle  # noqa: E402
 from evaluation.controllers.vissim_stackelberg_adapter import (  # noqa: E402
     signal_group_action_rows,
@@ -43,14 +45,27 @@ def simulated_action_rows(
     """
     rows: list[dict[str, Any]] = []
     for sc_no in sorted((plan_table.get("controllers") or {}), key=int):
-        rows.append({
+        node = (plan_table.get("controllers") or {})[str(sc_no)]
+        # N4-0. 열이 현시 이름이 됐다. 축 인자 두 개는 그 SC 의 `major_maps_to` 현시와
+        # 그 짝에 놓는다 - v3 이 하던 것과 같은 배치이고, 계획이 4현시가 되면 그때
+        # 이 CLI 도 현시 4값을 받아야 한다.
+        major_phase = str(node.get("major_maps_to", "p2"))
+        minor_phase = "p1" if major_phase == "p2" else "p2"
+        phase_greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
+        phase_greens[major_phase] = float(major_green)
+        phase_greens[minor_phase] = float(minor_green)
+        signal_row: dict[str, Any] = {
             "sim_sec": "0", "kind": "signal", "id": f"SC{sc_no}", "sc_no": sc_no,
-            "major_green": str(major_green), "minor_green": str(minor_green),
             "offset": str(offset), "green_sec": "", "dsd_no": "", "link": "",
-        })
+        }
+        for phase, field in zip(
+            signal_group_plan.MODEL_PHASES, action_csv_schema.PHASE_GREEN_FIELDS
+        ):
+            signal_row[field] = str(phase_greens[phase])
+        rows.append(signal_row)
         for row in signal_group_action_rows(
-            plan_table, sc_no=int(sc_no), major_green=major_green,
-            minor_green=minor_green, offset=offset, metadata="simulated",
+            plan_table, sc_no=int(sc_no), phase_greens=phase_greens,
+            offset=offset, metadata="simulated",
         ):
             simulated = {key: str(value) for key, value in row.items()}
             simulated["sim_sec"] = "0"
@@ -78,8 +93,14 @@ def find_action_log(run_dir: Path) -> Path | None:
                 header = handle.readline().strip()
         except OSError:
             continue
-        if header.startswith("sim_sec,kind,id,dsd_no,sc_no,link,lane,speed_kph,major_green"):
-            return candidate
+        # N4-0. v3(축 2열)·v4(현시 4열) 두 세대의 로그를 다 고른다. 옛 런을 읽는
+        # 도구이기도 하므로 v4 만 고르게 하면 저장소의 로그 8천여 개를 못 읽는다.
+        for prefix in (
+            "sim_sec," + ",".join(action_csv_schema.ACTION_CSV_FIELDS[:8]),
+            "sim_sec," + ",".join(action_csv_schema.LEGACY_ACTION_CSV_FIELDS[:8]),
+        ):
+            if header.startswith(prefix):
+                return candidate
     return None
 
 

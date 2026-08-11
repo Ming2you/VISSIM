@@ -37,6 +37,8 @@ from __future__ import annotations
 import math
 from typing import Any, Iterable, Mapping, Sequence
 
+from evaluation.controllers import action_csv_schema
+
 
 SCHEMA_VERSION = "signal-timing-oracle-v3"
 
@@ -100,15 +102,15 @@ def decisions_from_action_rows(action_rows: Iterable[Mapping[str, Any]]) -> list
         )
         if kind == "signal":
             controller["offset_sec"] = _as_float(row.get("offset"))
-            controller["axis_cycle_sec"] = (
-                _as_float(row.get("major_green")) + _as_float(row.get("minor_green"))
-            )
+            # v3(축 2값)·v4(현시 4값) 둘 다 읽는다. 저장소의 옛 action 로그는 v3 이고
+            # 다시 쓰지 않으므로 여기서 세대를 가려야 한다.
+            controller["axis_cycle_sec"] = action_csv_schema.phase_green_sum_sec(row)
         else:
             sg_no = str(int(_as_float(row.get("dsd_no"))))
             controller["cycle_sec"] = _as_float(row.get("green_sec"))
             controller["offset_sec"] = _as_float(row.get("offset"))
             controller["windows"].setdefault(sg_no, []).append(
-                (_as_float(row.get("major_green")), _as_float(row.get("minor_green")))
+                action_csv_schema.window_bounds_sec(row)
             )
     decisions = [by_time[key] for key in sorted(by_time)]
     for entry in decisions:

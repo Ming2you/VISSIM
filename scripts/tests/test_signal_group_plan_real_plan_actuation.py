@@ -128,11 +128,15 @@ class RealPlanActuationTests(unittest.TestCase):
 
     def _windows(self, sc_no: str, major: float, minor: float):
         node = self.plan["controllers"][sc_no]
+        major_phase = str(node["major_maps_to"])
+        minor_phase = "p1" if major_phase == "p2" else "p2"
+        greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
+        greens[major_phase] = float(major)
+        greens[minor_phase] = float(minor)
         return signal_group_plan.plan_windows(
             signal_group_plan.node_plan_from_json(node),
-            major_green=major,
-            minor_green=minor,
-            major_maps_to=str(node["major_maps_to"]),
+            phase_greens=greens,
+            phase_order=signal_group_plan.phase_layout_order(major_phase),
             amber_sec=AMBER_SEC,
             all_red_sec=ALL_RED_SEC,
         )
@@ -249,7 +253,13 @@ WScript.Echo "HARNESS_DONE"
         for sc_no in sorted(self.plan["controllers"], key=int):
             node = self.plan["controllers"][sc_no]
             major, minor = self._commanded(sc_no, point)
-            cycle = signal_group_plan.plan_cycle_sec(major, minor, AMBER_SEC, ALL_RED_SEC)
+            major_phase = str(node["major_maps_to"])
+            minor_phase = "p1" if major_phase == "p2" else "p2"
+            cycle = signal_group_plan.plan_cycle_sec(
+                {major_phase: float(major), minor_phase: float(minor)},
+                AMBER_SEC,
+                ALL_RED_SEC,
+            )
             windows = self._windows(sc_no, major, minor)
             spec: dict[str, list[str]] = {}
             for window in windows:

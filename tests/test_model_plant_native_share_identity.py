@@ -97,11 +97,15 @@ class ModelPlantNativeShareIdentityTests(unittest.TestCase):
         cls.all_red = float(cls.table.get("all_red_sec", 2.0))
 
     def _windows_by_group(self, payload, plan, major, minor):
+        major_phase = str(payload["major_maps_to"])
+        minor_phase = "p1" if major_phase == "p2" else "p2"
+        greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
+        greens[major_phase] = float(major)
+        greens[minor_phase] = float(minor)
         windows = signal_group_plan.plan_windows(
             plan,
-            major_green=major,
-            minor_green=minor,
-            major_maps_to=str(payload["major_maps_to"]),
+            phase_greens=greens,
+            phase_order=signal_group_plan.phase_layout_order(major_phase),
             amber_sec=self.amber,
             all_red_sec=self.all_red,
         )
@@ -237,7 +241,8 @@ class ModelPlantNativeShareIdentityTests(unittest.TestCase):
                 grouped = self._windows_by_group(payload, plan, major, minor)
                 commanded = self._commanded_by_phase(payload, major, minor)
                 for phase in signal_group_plan.MODEL_PHASES:
-                    span = commanded[phase]
+                    # 계획이 SG 를 붙여 두지 않은 현시는 지시도 없다(N4-0: 15 SC 전부 p1/p2).
+                    span = commanded.get(phase, 0.0)
                     if span <= 0.0:
                         continue
                     spans = [

@@ -40,6 +40,7 @@ from vissim_strict.physical_projection import (
 )
 from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
 # N4-5: SG 단위 액추에이션 계획. 순수 함수만 들어 있어 import 부작용이 없다.
+from evaluation.controllers import action_csv_schema
 from evaluation.controllers import offset_promotion
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
@@ -1317,25 +1318,38 @@ def load_signal_group_actuation_plan(path: Path | None = None) -> dict[str, Any]
     return json.loads(source.read_text(encoding="utf-8"))
 
 
+def plan_live_phases(plan_table: Mapping[str, Any], sc_no: int) -> tuple[str, ...]:
+    """계획이 그 SC 에서 실제로 SG 를 붙여 둔 현시. 액션의 현시 집합과 같아야 한다."""
+    node = (plan_table.get("controllers") or {}).get(str(int(sc_no)))
+    if node is None:
+        raise signal_group_plan.SignalGroupPlanError(
+            f"actuation plan has no controller {sc_no}"
+        )
+    groups = node.get("phase_signal_groups") or {}
+    return tuple(
+        phase for phase in signal_group_plan.MODEL_PHASES if tuple(groups.get(phase) or ())
+    )
+
+
 def signal_group_action_rows(
     plan_table: Mapping[str, Any],
     sc_no: int,
-    major_green: float,
-    minor_green: float,
+    phase_greens: Mapping[str, float],
     offset: float,
     metadata: str,
 ) -> list[dict[str, Any]]:
-    """한 SC 의 `signal_sg` 행. 13열 헤더를 바꾸지 않고 열을 재사용한다.
+    """한 SC 의 `signal_sg` 행. 열 재사용 규칙은 `action_csv_schema` 가 정본이다.
 
-        dsd_no      -> sg 번호
-        link        -> 녹색창 인덱스
-        major_green -> 녹색창 시작[s] (플랜 주기 좌표)
-        minor_green -> 녹색창 끝[s]
-        offset      -> 그 SC 의 offset (같은 SC 의 `signal` 행과 같아야 한다)
-        green_sec   -> 플랜 주기[s]
+        dsd_no    -> sg 번호
+        link      -> 녹색창 인덱스
+        p1_green  -> 녹색창 시작[s] (플랜 주기 좌표)
+        p2_green  -> 녹색창 끝[s]
+        p3_green  -> 빈 칸       p4_green -> 빈 칸
+        offset    -> 그 SC 의 offset (같은 SC 의 `signal` 행과 같아야 한다)
+        green_sec -> 플랜 주기[s]
 
-    헤더를 늘리지 않은 이유는 하위호환이다. 열을 추가하면 러너의
-    `UBound(parts) <> 12` 계약과 기존 action CSV 소비자가 전부 함께 깨진다.
+    이 행은 **파생**이다. 정본은 같은 SC 의 `signal` 행이 싣는 현시 4값이고, 러너가
+    `green_sec` 을 그 4값으로 다시 계산해 대조한다(어긋나면 CSV 전량 거부).
     """
     node = (plan_table.get("controllers") or {}).get(str(int(sc_no)))
     if node is None:
@@ -1343,24 +1357,35 @@ def signal_group_action_rows(
             f"actuation plan has no controller {sc_no}"
         )
     plan = signal_group_plan.node_plan_from_json(node)
+    # 액션이 녹색을 준 현시와 계획이 SG 를 붙여 둔 현시가 다르면 창을 만들지 않는다.
+    # 여기서 조용히 넘어가면 러너는 주기가 맞는 CSV 를 받고, 녹색을 받기로 한 이동류는
+    # 아무 창도 없이 통째로 적색이 된다 - 런 중에도 안 보인다.
+    commanded = signal_group_plan.live_phases(phase_greens)
+    planned = plan_live_phases(plan_table, sc_no)
+    if commanded != planned:
+        raise signal_group_plan.SignalGroupPlanError(
+            f"sc {sc_no}: action commands green on phases {commanded} but the actuation plan "
+            f"has signal groups on {planned}"
+        )
     # 계획 표에 없으면 리터럴이 아니라 **러너 원문** 으로 떨어진다. 여기서 나온 주기는
-    # 러너가 자기 축 주기와 대조하는 값이라(:1453), 4 s 만 달라도 그 SC 의 창이 통째로
+    # 러너가 자기 현시 주기와 대조하는 값이라(:1453), 4 s 만 달라도 그 SC 의 창이 통째로
     # 거부된다. 리터럴을 두면 러너가 clearance 를 바꾼 순간 조용히 그 상태가 된다.
     amber, all_red = RUNNER_CLEARANCE_SEC
     amber = float(plan_table.get("amber_sec", amber))
     all_red = float(plan_table.get("all_red_sec", all_red))
-    cycle = signal_group_plan.plan_cycle_sec(major_green, minor_green, amber, all_red)
+    cycle = signal_group_plan.plan_cycle_sec(phase_greens, amber, all_red)
     windows = signal_group_plan.plan_windows(
         plan,
-        major_green=float(major_green),
-        minor_green=float(minor_green),
-        major_maps_to=str(node.get("major_maps_to", "p2")),
+        phase_greens=phase_greens,
+        phase_order=signal_group_plan.phase_layout_order(
+            str(node.get("major_maps_to", "p2"))
+        ),
         amber_sec=amber,
         all_red_sec=all_red,
     )
     rows: list[dict[str, Any]] = []
     for window in windows:
-        rows.append({
+        row = {
             "kind": "signal_sg",
             "id": f"SC{int(sc_no)}_SG{window.sg_no}_W{int(window.window_index)}",
             "dsd_no": window.sg_no,
@@ -1368,13 +1393,16 @@ def signal_group_action_rows(
             "link": int(window.window_index),
             "lane": 0,
             "speed_kph": 0,
-            "major_green": round(window.start_sec, 6),
-            "minor_green": round(window.end_sec, 6),
+            action_csv_schema.WINDOW_START_FIELD: round(window.start_sec, 6),
+            action_csv_schema.WINDOW_END_FIELD: round(window.end_sec, 6),
             "offset": round(float(offset), 3),
             "rate_vph": 0,
             "green_sec": round(cycle, 6),
             "metadata": metadata,
-        })
+        }
+        for field in action_csv_schema.WINDOW_BLANK_FIELDS:
+            row[field] = ""
+        rows.append(row)
     return rows
 
 
@@ -5085,21 +5113,9 @@ def write_action_csv(
     # consumer validate the complete header token-for-token.
     with path.open("w", newline="", encoding="utf-8") as f:
         csv_metadata = _action_csv_metadata(metadata)
-        fields = [
-            "kind",
-            "id",
-            "dsd_no",
-            "sc_no",
-            "link",
-            "lane",
-            "speed_kph",
-            "major_green",
-            "minor_green",
-            "offset",
-            "rate_vph",
-            "green_sec",
-            "metadata",
-        ]
+        # 열 목록은 `action_csv_schema` 가 정본이다. 여기에 리터럴로 두면 러너 헤더와
+        # 조용히 갈라진다(러너는 헤더를 토큰 단위로 대조해 전량 거부한다).
+        fields = list(action_csv_schema.ACTION_CSV_FIELDS)
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         for seg in mapping["segments"]:
@@ -5153,44 +5169,62 @@ def write_action_csv(
                 #   NumSim grid_topology._token_leg_dir 은 off*/on* 토큰을 "S" 로 보아 p1 에 배정한다.
                 # 이전에는 major<-p2 로 일괄 매핑해 인터페이스 교차로에서 부호가 뒤집혔고,
                 # G6 에서 major green 증가를 모델은 J 악화(+2084), 플랜트는 개선(-263)으로 냈다.
-                _major_phase = str(signal_row.get("major_maps_to", "p2"))
-                _minor_phase = "p1" if _major_phase == "p2" else "p2"
+                #
+                # N4-0 이후 이 축 대응은 **여기서 값을 고르는 데 쓰이지 않는다.** 열이 현시
+                # 이름이라 어느 열에 무엇이 실리는지가 축 대응과 무관해졌고, 창 배치 순서만
+                # 계획 산출물의 `major_maps_to`(같은 매핑 JSON 에서 나온 값)가 정한다.
+                # 즉 매핑과 계획이 어긋나도 값이 뒤바뀌는 경로는 사라졌다.
                 # 기본값은 **라벨이 아니라 phase 를 따라가야 한다.**
                 # _diagnostic_fixed_control 은 모델 신호명 기준으로 p1<-minor, p2<-major 를 넣는데
                 # 그 키는 매핑 signal id 와 이름공간이 달라 조회가 항상 빗나간다. 그래서 기본값이
                 # 실제로 쓰이는데, 여기서 major<-강제major 로 두면 축을 바꿔도 결과가 같아진다.
                 # phase 별 기본값을 모델이 그 phase 에 넣었을 값과 맞춰야 인터페이스 교차로에서
                 # freeway 접속 이동류가 모델·플랜트 양쪽에서 같은 녹색을 받는다.
+                # N4-0 4현시. 축(major/minor)은 더 이상 CSV 열이 아니다. 축 대응은
+                # 여기서 **기본값을 고를 때만** 살아 있고, 실려 나가는 것은 현시 이름이다.
+                # 남는 현시(p3/p4)의 기본값이 0.0 인 것은 조용한 폴백이 아니다 - 계획이
+                # 그 현시에 SG 를 붙여 두었으면 `signal_group_action_rows` 가 현시 집합
+                # 불일치로 죽는다(부분 적용 없음).
                 _phase_default = {"p1": _min_default, "p2": _maj_default}
                 # 클램프는 plant_cycle 이 단일 출처다. 여기 리터럴로 두면 모델 주기와
                 # 플랜트 주기가 같은지 재는 쪽(tests/test_model_plant_cycle_identity)이
                 # 실제로 실리는 값이 아니라 사본을 재게 된다.
-                major = plant_cycle.written_axis_green_sec(float(control.green_times.get(
-                    f"{signal}_{_major_phase}", _phase_default[_major_phase])))
-                minor = plant_cycle.written_axis_green_sec(float(control.green_times.get(
-                    f"{signal}_{_minor_phase}", _phase_default[_minor_phase])))
+                phase_green: dict[str, float] = {}
+                for _phase in signal_group_plan.MODEL_PHASES:
+                    _raw = control.green_times.get(
+                        f"{signal}_{_phase}", _phase_default.get(_phase, 0.0)
+                    )
+                    _value = float(_raw)
+                    # 녹색 0 = 그 현시를 쓰지 않는다는 뜻이라 클램프 하한을 물리면 안 된다.
+                    phase_green[_phase] = (
+                        plant_cycle.written_axis_green_sec(_value) if _value > 0.0 else 0.0
+                    )
                 # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
                 # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
                 # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.
                 offset = offset_promotion.written_offset_sec(signal, control, offset_writer)
-                writer.writerow({
+                signal_row_out = {
                     "kind": "signal",
                     "id": signal,
                     "sc_no": sc_no,
-                    "major_green": round(major, 3),
-                    "minor_green": round(minor, 3),
                     "offset": round(offset, 3),
                     "metadata": csv_metadata,
-                })
-                # N4-5. 축 녹색을 SG 단위로 쪼갠 행. 축의 위치·길이·주기 공식은 그대로이고
-                # 축 **안의** 분배만 native 배분으로 바뀐다. 계획이 없으면 행도 없고,
+                }
+                for _phase, _field in zip(
+                    signal_group_plan.MODEL_PHASES, action_csv_schema.PHASE_GREEN_FIELDS
+                ):
+                    signal_row_out[_field] = round(phase_green[_phase], 3)
+                writer.writerow(signal_row_out)
+                # N4-5. 현시 녹색을 SG 단위로 쪼갠 행(파생). 계획이 없으면 행도 없고,
                 # 그 조합은 러너의 RW_SIGNAL_SG_PLAN_SCHEMA 게이트가 fail-closed 로 막는다.
                 if signal_group_plan_table is not None:
                     for sg_row in signal_group_action_rows(
                         signal_group_plan_table,
                         sc_no=sc_no,
-                        major_green=round(major, 3),
-                        minor_green=round(minor, 3),
+                        phase_greens={
+                            _phase: round(phase_green[_phase], 3)
+                            for _phase in signal_group_plan.MODEL_PHASES
+                        },
                         offset=round(offset, 3),
                         metadata=csv_metadata,
                     ):

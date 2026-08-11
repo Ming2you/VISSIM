@@ -57,6 +57,27 @@ def program(cycle: float, spans: dict[str, tuple]) -> FakeProgram:
     )
 
 
+def axis_windows(plan, major_green, minor_green, major_maps_to, amber_sec, all_red_sec):
+    """축 2값 호출을 현시 매핑으로 옮긴 이 파일 전용 어댑터 (N4-0).
+
+    이 파일의 픽스처는 두 현시만 쓴다. 축 -> 현시 대응만 바꾸고 나머지 현시는 녹색 0 이라
+    주기에서 자리를 차지하지 않으므로 v3 배치와 값이 같다. 스키마 자체는
+    `tests/test_action_csv_contract` / `tests/test_action_csv_signal_group_rows` 가 잰다.
+    """
+    major_phase = str(major_maps_to)
+    minor_phase = "p1" if major_phase == "p2" else "p2"
+    greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
+    greens[major_phase] = float(major_green)
+    greens[minor_phase] = float(minor_green)
+    return signal_group_plan.plan_windows(
+        plan,
+        phase_greens=greens,
+        phase_order=signal_group_plan.phase_layout_order(major_phase),
+        amber_sec=amber_sec,
+        all_red_sec=all_red_sec,
+    )
+
+
 class BuildNodePlanTests(unittest.TestCase):
     def test_axis_window_is_split_by_native_green_share(self) -> None:
         prog = program(100.0, {"1": ((0.0, 30.0),), "2": ((40.0, 50.0),)})
@@ -67,7 +88,7 @@ class BuildNodePlanTests(unittest.TestCase):
             signal_group_ids=["1", "2"],
         )
         # 축 union green = 40 s. SG1 은 30/40, SG2 는 10/40.
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -83,14 +104,19 @@ class BuildNodePlanTests(unittest.TestCase):
             phase_signal_groups={"p2": ["1"], "p1": ["3"]},
             signal_group_ids=["1", "3"],
         )
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
         by_sg = {row.sg_no: (row.start_sec, row.end_sec) for row in rows}
         self.assertEqual(by_sg["1"], (0.0, 40.0))
         self.assertEqual(by_sg["3"], (45.0, 65.0))
-        self.assertEqual(signal_group_plan.plan_cycle_sec(40.0, 20.0, 3.0, 2.0), 70.0)
+        self.assertEqual(
+            signal_group_plan.plan_cycle_sec(
+                {"p1": 20.0, "p2": 40.0, "p3": 0.0, "p4": 0.0}, 3.0, 2.0
+            ),
+            70.0,
+        )
 
     def test_major_maps_to_p1_sends_p1_groups_to_the_major_window(self) -> None:
         prog = program(100.0, {"1": ((0.0, 30.0),), "3": ((60.0, 90.0),)})
@@ -100,7 +126,7 @@ class BuildNodePlanTests(unittest.TestCase):
             phase_signal_groups={"p2": ["1"], "p1": ["3"]},
             signal_group_ids=["1", "3"],
         )
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p1",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -116,7 +142,7 @@ class BuildNodePlanTests(unittest.TestCase):
             phase_signal_groups={"p2": ["1", "2"], "p1": ["3"]},
             signal_group_ids=["1", "2", "3"],
         )
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -133,7 +159,7 @@ class BuildNodePlanTests(unittest.TestCase):
             signal_group_ids=["1", "2", "3"],
         )
         self.assertEqual(plan.window_counts["2"], 0)
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -158,7 +184,7 @@ class BuildNodePlanTests(unittest.TestCase):
             signal_group_ids=["1", "3", "9"],
         )
         self.assertEqual(plan.red_only_signal_groups, ("9",))
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -176,7 +202,7 @@ class ConflictTests(unittest.TestCase):
         )
         self.assertIn(("1", "2"), plan.conflict_pairs)
         self.assertIn(("1", "3"), plan.conflict_pairs)
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=40.0, minor_green=20.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -235,7 +261,7 @@ class ModelSymmetryTests(unittest.TestCase):
             signal_group_ids=[str(index) for index in range(1, 9)],
         )
         major_green = 61.0
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=major_green, minor_green=79.0, major_maps_to="p1",
             amber_sec=3.0, all_red_sec=2.0,
         )
@@ -256,7 +282,7 @@ class ModelSymmetryTests(unittest.TestCase):
             phase_signal_groups={"p2": ["1", "2"], "p1": ["3"]},
             signal_group_ids=["1", "2", "3"],
         )
-        rows = signal_group_plan.plan_windows(
+        rows = axis_windows(
             plan, major_green=50.0, minor_green=30.0, major_maps_to="p2",
             amber_sec=3.0, all_red_sec=2.0,
         )

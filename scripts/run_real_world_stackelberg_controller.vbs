@@ -257,17 +257,18 @@ Set bottleneckLinkFile = fso.CreateTextFile(bottleneckLinkOutPath, True)
 Set bottleneckSegmentFile = fso.CreateTextFile(bottleneckSegmentOutPath, True)
 Set signalTraceFile = fso.CreateTextFile(signalTraceOutPath, True)
 stateFile.WriteLine "sim_sec,total_vehicles,urban_vehicles,freeway_vehicles,ramp_vehicles,boundary_vehicles,other_vehicles,mean_speed_kph,freeway_mean_speed_kph,stopped_vehicles,controller_mode,controller_status,decision_wall_sec"
-actionFile.WriteLine "sim_sec,kind,id,dsd_no,sc_no,link,lane,speed_kph,major_green,minor_green,offset,rate_vph,green_sec,metadata,readback"
+actionFile.WriteLine "sim_sec,kind,id,dsd_no,sc_no,link,lane,speed_kph,p1_green,p2_green,p3_green,p4_green,offset,rate_vph,green_sec,metadata,readback"
 bottleneckLinkFile.WriteLine "sim_sec,link,count,stopped_count,mean_speed_kph,category,is_freeway,is_ramp_meter_connector,is_local_observable"
 bottleneckSegmentFile.WriteLine "sim_sec,model_link,direction,segment_index,segment_id,physical_link,count,stopped_count,mean_speed_kph,length_km,lanes,density_veh_km_lane"
 signalTraceFile.WriteLine "sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage"
 
-Dim sigMajor, sigMinor, sigOffset, signalControlled, rampGreen, lastActionJson, urbanDemandVph, freewayDemandVph
+' N4-0. 축 2값(sigMajor/sigMinor)이 현시 4값 한 칸(sigPhaseGreen)으로 바뀌었다.
+' 사전 한 칸에 "g1|g2|g3|g4" 로 담는다 - VBScript 사전은 배열을 잘 담지 못한다.
+Dim sigPhaseGreen, sigOffset, signalControlled, rampGreen, lastActionJson, urbanDemandVph, freewayDemandVph
 Dim demandScheduleLoaded, demandUrbanBySec, demandFreewayBySec, demandForecastProfileName
 ' 게이트 앵커링 — 구간별 게이트 사전 + 게이트가 없는 유입의 사유별 버킷.
 Dim demandUrbanGateBySec, demandUrbanUnmappedBySec, demandUrbanInternalBySec
-Set sigMajor = CreateObject("Scripting.Dictionary")
-Set sigMinor = CreateObject("Scripting.Dictionary")
+Set sigPhaseGreen = CreateObject("Scripting.Dictionary")
 Set sigOffset = CreateObject("Scripting.Dictionary")
 Set signalControlled = CreateObject("Scripting.Dictionary")
 Set rampGreen = CreateObject("Scripting.Dictionary")
@@ -725,7 +726,7 @@ End Function
 
 Function NextSignalTransitionAfter(sec)
     Dim currentState, t, limit, horizon
-    If sigMajor.Count <= 0 Then
+    If sigPhaseGreen.Count <= 0 Then
         NextSignalTransitionAfter = CLng(simPeriod)
         Exit Function
     End If
@@ -765,17 +766,55 @@ Function IncidentStateAt(simSec)
     End If
 End Function
 
+' N4-0. `signal` 행의 현시 녹색 4열(parts(7)..parts(10))을 한 문자열로 묶는다.
+' 값은 CSV 원문 그대로 담는다 - 다시 포맷하면 로케일 소수점에 걸린다.
+Function PhaseGreenText(parts)
+    PhaseGreenText = Trim(CStr(parts(7))) & "|" & Trim(CStr(parts(8))) & "|" & _
+        Trim(CStr(parts(9))) & "|" & Trim(CStr(parts(10)))
+End Function
+
+Function PhaseGreenSum(phaseText)
+    Dim values, i, total
+    values = Split(CStr(phaseText), "|")
+    total = 0
+    For i = 0 To UBound(values)
+        If Trim(CStr(values(i))) <> "" Then total = total + CDbl(Trim(CStr(values(i))))
+    Next
+    PhaseGreenSum = total
+End Function
+
+' 녹색이 있는 현시의 수. 전이 수와 같으므로 주기의 clearance 계수가 이것이다.
+' 2현시 계획(p3=p4=0)에서는 2 가 나와 v3 주기 식과 값이 같다.
+Function LivePhaseCount(phaseText)
+    Dim values, i, n
+    values = Split(CStr(phaseText), "|")
+    n = 0
+    For i = 0 To UBound(values)
+        If Trim(CStr(values(i))) <> "" Then
+            If CDbl(Trim(CStr(values(i)))) > 0 Then n = n + 1
+        End If
+    Next
+    LivePhaseCount = n
+End Function
+
+' 러너가 재생하는 주기 = 녹색 합 + (녹색 있는 현시 수) x clearance.
+' 어댑터의 `signal_group_plan.plan_cycle_sec` 과 같은 식이어야 한다. 다르면
+' SIGNAL_SG_PLAN_CYCLE_STALE 로 그 SC 의 창이 통째로 거부된다.
+Function SignalCycleFromPhases(phaseText)
+    SignalCycleFromPhases = PhaseGreenSum(phaseText) + _
+        LivePhaseCount(phaseText) * (AMBER_SEC + ALL_RED_SEC)
+End Function
+
 Function SignalCompositeStateAt(simSec)
-    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState, s, groupIds, g
+    Dim scKey, phaseText, offset, cycle, pos, s, groupIds, g
     s = ""
-    For Each scKey In sigMajor.Keys
-        major = CDbl(sigMajor(CStr(scKey)))
-        minor = CDbl(DictValue(sigMinor, CStr(scKey), 0.0))
+    For Each scKey In sigPhaseGreen.Keys
+        phaseText = CStr(sigPhaseGreen(CStr(scKey)))
         offset = CDbl(DictValue(sigOffset, CStr(scKey), 0.0))
-        cycle = major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC + ALL_RED_SEC
+        cycle = SignalCycleFromPhases(phaseText)
         pos = FMod(CDbl(simSec) + offset, cycle)
         ' N4-5. 이벤트 스케줄러는 이 합성 상태가 바뀌는 초에만 멈춘다. 계획이 켜지면
-        ' 축 안의 SG 경계도 전이다 - 여기서 안 보면 그 전이가 다음 이벤트까지 늦게 쓰인다.
+        ' 현시 안의 SG 경계도 전이다 - 여기서 안 보면 그 전이가 다음 이벤트까지 늦게 쓰인다.
         If sgPlanEnabled And sgPlanGroups.Exists(CStr(CLng(scKey))) Then
             groupIds = Split(CStr(sgPlanGroups(CStr(CLng(scKey)))), ",")
             s = s & CStr(scKey) & ":"
@@ -784,20 +823,9 @@ Function SignalCompositeStateAt(simSec)
             Next
             s = s & ";"
         Else
-            If pos < major Then
-                majorState = "GREEN": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC Then
-                majorState = "AMBER": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
-                majorState = "RED": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
-                majorState = "RED": minorState = "GREEN"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
-                majorState = "RED": minorState = "AMBER"
-            Else
-                majorState = "RED": minorState = "RED"
-            End If
-            s = s & CStr(scKey) & ":" & majorState & "/" & minorState & ";"
+            ' N4-0. 계획이 없으면 이 SC 는 구동되지 않는다(ApplyRuntimeSignals 참조).
+            ' 전이가 없으므로 스케줄러도 여기서 멈출 이유가 없다.
+            s = s & CStr(scKey) & ":NOPLAN;"
         End If
     Next
     SignalCompositeStateAt = s
@@ -806,9 +834,8 @@ End Function
 Function MaxSignalCycleSec()
     Dim scKey, cycle, maxCycle
     maxCycle = 0
-    For Each scKey In sigMajor.Keys
-        cycle = CDbl(sigMajor(CStr(scKey))) + CDbl(DictValue(sigMinor, CStr(scKey), 0.0)) + _
-            (2 * AMBER_SEC) + (2 * ALL_RED_SEC)
+    For Each scKey In sigPhaseGreen.Keys
+        cycle = SignalCycleFromPhases(CStr(sigPhaseGreen(CStr(scKey))))
         If CLng(cycle) > CLng(maxCycle) Then maxCycle = CLng(cycle)
     Next
     MaxSignalCycleSec = CLng(maxCycle)
@@ -897,7 +924,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
             If validatedRowCount > UBound(validatedRows) Then ReDim Preserve validatedRows(validatedRowCount)
             validatedRows(validatedRowCount) = CStr(line)
             validatedRowCount = validatedRowCount + 1
-            If UBound(parts) <> 12 Then
+            If UBound(parts) <> 14 Then
                 invalidRows = invalidRows + 1
             Else
                 kind = LCase(Trim(CStr(parts(0))))
@@ -917,7 +944,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                 ElseIf kind = "ramp_meter" Then
                     rowKey = Trim(CStr(parts(1)))
                     If rowKey = "" Or seenRamp.Exists(rowKey) Or _
-                            Not RampActionValid(rowKey, parts(3), parts(10), parts(11)) Then
+                            Not RampActionValid(rowKey, parts(3), parts(12), parts(13)) Then
                         invalidRows = invalidRows + 1
                     Else
                         seenRamp.Add rowKey, True
@@ -925,9 +952,15 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                     End If
                 ElseIf kind = "signal" Then
                     rowKey = Trim(CStr(parts(1)))
-                    If rowKey = "" Or seenSignal.Exists(rowKey) Or _
+                    ' N4-0. 현시 4값은 이름 규칙(MAJOR/MINOR 두 상태)으로 재생할 수 없다.
+                    ' 계획 없이 받으면 조용히 2축으로 접히므로 여기서 거부한다.
+                    If Not sgPlanEnabled Then
+                        invalidRows = invalidRows + 1
+                        WScript.Echo "ERROR=ACTION_CSV_SIGNAL_WITHOUT_PLAN_CONFIG sim_sec=" & CStr(simSec) & _
+                            " row=" & OneLine(CStr(line))
+                    ElseIf rowKey = "" Or seenSignal.Exists(rowKey) Or _
                             Not IsCanonicalCsvInt(parts(3), RW_SIGNAL_SCS) Or _
-                            Not SignalActionValuesValid(parts(7), parts(8), parts(9)) Then
+                            Not SignalActionValuesValid(parts) Then
                         invalidRows = invalidRows + 1
                     ElseIf UCase(rowKey) <> "SC" & CStr(CLng(Trim(CStr(parts(3))))) Then
                         invalidRows = invalidRows + 1
@@ -935,14 +968,14 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                         seenSignal.Add rowKey, True
                         signalRows = signalRows + 1
                         rowSignalCycle(CStr(CLng(Trim(CStr(parts(3)))))) = _
-                            CDbl(Trim(CStr(parts(7)))) + CDbl(Trim(CStr(parts(8)))) + _
-                            (2 * AMBER_SEC) + (2 * ALL_RED_SEC)
-                        rowSignalOffset(CStr(CLng(Trim(CStr(parts(3)))))) = CDbl(Trim(CStr(parts(9))))
+                            SignalCycleFromPhases(PhaseGreenText(parts))
+                        rowSignalOffset(CStr(CLng(Trim(CStr(parts(3)))))) = CDbl(Trim(CStr(parts(11))))
                     End If
                 ElseIf kind = "signal_sg" Then
-                    ' N4-5 행. 13열 헤더는 그대로 두고 열을 재사용한다.
+                    ' N4-5 행. 15열 헤더를 그대로 두고 열을 재사용한다(파생 행).
                     '   dsd_no -> sg 번호   link -> 창 인덱스
-                    '   major_green -> 창 시작[s]   minor_green -> 창 끝[s]
+                    '   p1_green -> 창 시작[s]   p2_green -> 창 끝[s]
+                    '   p3_green / p4_green -> 반드시 빈 칸 (signal 행과의 판별자)
                     '   offset -> 그 SC 의 offset   green_sec -> 플랜 주기[s]
                     If Not sgPlanEnabled Then
                         invalidRows = invalidRows + 1
@@ -1022,11 +1055,11 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
             readback = SafeAtt(dsd, "DesSpeedDistr(10)") & "|" & SafeAtt(dsd, "DesSpeedDistr(70)")
         ElseIf kind = "ramp_meter" Then
             scNo = CStr(CLng(Trim(CStr(parts(3)))))
-            rampGreen(scNo) = CDbl(Trim(CStr(parts(11))))
+            rampGreen(scNo) = CDbl(Trim(CStr(parts(13))))
             readback = ApplyRampMeterSignal(CLng(scNo), CDbl(rampGreen(scNo)), simSec)
         ElseIf kind = "signal" Then
             scNo = CStr(CLng(Trim(CStr(parts(3)))))
-            ' COM 제어 인계를 **먼저** 확인한다. 예전에는 sigMajor/sigMinor/sigOffset 을 먼저
+            ' COM 제어 인계를 **먼저** 확인한다. 예전에는 sigPhaseGreen/sigOffset 을 먼저
             ' 커밋하고 반환값을 검사하지 않아, COM 을 못 받은 SC 의 값이 매초 재생됐다.
             ' 런은 signalFailures>0 로 마지막에 죽지만 그때까지 오염된 액추에이션이 이어졌다.
             ' 바로 위 VSL 분기와 같은 fail-closed 모양으로 맞춘다.
@@ -1037,10 +1070,9 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                 PerfAdd "action.apply", perfT0
                 Exit Function
             End If
-            sigMajor(scNo) = CDbl(Trim(CStr(parts(7))))
-            sigMinor(scNo) = CDbl(Trim(CStr(parts(8))))
-            sigOffset(scNo) = CDbl(Trim(CStr(parts(9))))
-            ' 축 지시와 그 축을 쪼갠 창을 같은 지점에서 커밋한다(주기 정합).
+            sigPhaseGreen(scNo) = PhaseGreenText(parts)
+            sigOffset(scNo) = CDbl(Trim(CStr(parts(11))))
+            ' 현시 지시와 그것을 쪼갠 창을 같은 지점에서 커밋한다(주기 정합).
             If sgPlanEnabled And expectedSgRows > 0 Then
                 CommitSignalGroupPlan CLng(scNo), pendingSgWindows, _
                     CDbl(DictValue(pendingSgCycle, CStr(CLng(scNo)), 0.0))
@@ -1055,8 +1087,8 @@ End Function
 Function ActionCsvHeaderValid(parts)
     Dim expected, i, actual
     ActionCsvHeaderValid = False
-    If UBound(parts) <> 12 Then Exit Function
-    expected = Split("kind,id,dsd_no,sc_no,link,lane,speed_kph,major_green,minor_green,offset,rate_vph,green_sec,metadata", ",")
+    If UBound(parts) <> 14 Then Exit Function
+    expected = Split("kind,id,dsd_no,sc_no,link,lane,speed_kph,p1_green,p2_green,p3_green,p4_green,offset,rate_vph,green_sec,metadata", ",")
     For i = 0 To UBound(expected)
         actual = LCase(Trim(CStr(parts(i))))
         If actual <> expected(i) Then Exit Function
@@ -1158,14 +1190,31 @@ Function RampActionValid(rampId, scValue, rateValue, greenValue)
     Next
 End Function
 
-Function SignalActionValuesValid(majorValue, minorValue, offsetValue)
-    Dim cycleValue, offsetNumber
+' N4-0. `signal` 행 하나의 국소 검증. 현시 4값 + offset 을 본다.
+' 현시 녹색 0 은 "그 현시를 쓰지 않는다"는 뜻이라 허용한다. 0 이 아니면 어댑터의
+' 쓰기 클램프(plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC) 안이어야 한다.
+Function SignalActionValuesValid(parts)
+    Dim phaseText, values, i, value, liveCount, cycleValue, offsetNumber
     SignalActionValuesValid = False
-    If Not IsFiniteNumberInRange(majorValue, 5.0, 90.0) Then Exit Function
-    If Not IsFiniteNumberInRange(minorValue, 5.0, 90.0) Then Exit Function
-    cycleValue = CDbl(majorValue) + CDbl(minorValue) + (2 * AMBER_SEC) + (2 * ALL_RED_SEC)
-    If Not IsFiniteNumberInRange(offsetValue, 0.0, cycleValue) Then Exit Function
-    offsetNumber = CDbl(offsetValue)
+    phaseText = PhaseGreenText(parts)
+    values = Split(phaseText, "|")
+    If UBound(values) <> 3 Then Exit Function
+    liveCount = 0
+    For i = 0 To UBound(values)
+        ' 빈 칸은 `signal_sg` 행의 판별자다. `signal` 행에는 네 값이 다 있어야 한다.
+        If Trim(CStr(values(i))) = "" Then Exit Function
+        If Not IsFiniteNumberInRange(values(i), 0.0, 90.0) Then Exit Function
+        value = CDbl(Trim(CStr(values(i))))
+        If value > 0 Then
+            If value < 5.0 Then Exit Function
+            liveCount = liveCount + 1
+        End If
+    Next
+    ' 주기를 만들려면 녹색을 받는 현시가 둘 이상이어야 한다.
+    If liveCount < 2 Then Exit Function
+    cycleValue = SignalCycleFromPhases(phaseText)
+    If Not IsFiniteNumberInRange(parts(11), 0.0, cycleValue) Then Exit Function
+    offsetNumber = CDbl(Trim(CStr(parts(11))))
     If offsetNumber >= cycleValue Then Exit Function
     SignalActionValuesValid = True
 End Function
@@ -1210,14 +1259,18 @@ Function SignalSgRowValid(parts, seenSg, pendingWindows, pendingCounts, pendingC
     If seenSg.Exists(rowKey) Then Exit Function
     expectedId = "SC" & scText & "_SG" & sgText & "_W" & CStr(windowIndex)
     If UCase(Trim(CStr(parts(1)))) <> UCase(expectedId) Then Exit Function
-    If Not IsFiniteNumberInRange(parts(11), 0.000001, 100000.0) Then Exit Function
-    cycleSec = CDbl(Trim(CStr(parts(11))))
+    ' N4-0. p3_green/p4_green 은 이 행에서 반드시 비어 있다. `signal` 행은 네 칸이
+    ' 다 차 있으므로 이 한 줄이 두 종류를 가른다 - 섞이면 그 행이 invalid 다.
+    If Trim(CStr(parts(9))) <> "" Then Exit Function
+    If Trim(CStr(parts(10))) <> "" Then Exit Function
+    If Not IsFiniteNumberInRange(parts(13), 0.000001, 100000.0) Then Exit Function
+    cycleSec = CDbl(Trim(CStr(parts(13))))
     If Not IsFiniteNumberInRange(parts(7), 0.0, cycleSec) Then Exit Function
     If Not IsFiniteNumberInRange(parts(8), 0.0, cycleSec) Then Exit Function
-    If Not IsFiniteNumberInRange(parts(9), 0.0, cycleSec) Then Exit Function
+    If Not IsFiniteNumberInRange(parts(11), 0.0, cycleSec) Then Exit Function
     startSec = CDbl(Trim(CStr(parts(7))))
     endSec = CDbl(Trim(CStr(parts(8))))
-    offsetSec = CDbl(Trim(CStr(parts(9))))
+    offsetSec = CDbl(Trim(CStr(parts(11))))
     If endSec <= startSec Then Exit Function
     If pendingCycle.Exists(scText) Then
         If Abs(CDbl(pendingCycle(scText)) - cycleSec) > 0.000001 Then Exit Function
@@ -1439,22 +1492,20 @@ Function ComBoolean(value)
 End Function
 
 Sub ApplyRuntimeSignals(simSec)
-    Dim scKey, major, minor, offset, cycle, pos, majorState, minorState, perfT0
+    Dim scKey, phaseText, offset, cycle, pos, perfT0
     perfT0 = PerfNow()
     signalTraceSimSec = CLng(simSec)
-    If sigMajor.Count <= 0 Then
+    If sigPhaseGreen.Count <= 0 Then
         PerfAdd "signals.runtime", perfT0
         Exit Sub
     End If
-    For Each scKey In sigMajor.Keys
-        major = CDbl(sigMajor(CStr(scKey)))
-        minor = CDbl(sigMinor(CStr(scKey)))
+    For Each scKey In sigPhaseGreen.Keys
+        phaseText = CStr(sigPhaseGreen(CStr(scKey)))
         offset = CDbl(sigOffset(CStr(scKey)))
-        cycle = major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC + ALL_RED_SEC
+        cycle = SignalCycleFromPhases(phaseText)
         pos = FMod(CDbl(simSec) + offset, cycle)
-        ' N4-5. 계획이 있으면 SG 별 창으로 구동한다. 축의 위치·길이·주기 공식은 위와 같고
-        ' 축 **안의** 분배만 native 배분을 따른다. 계획이 없으면 아래 이름 규칙으로 떨어지고
-        ' 그 건수가 SIGNAL_NAME_RULE_FALLBACKS 에 쌓인다.
+        ' N4-5. 계획이 있으면 SG 별 창으로 구동한다. 현시의 위치·길이·주기 공식은 위와 같고
+        ' 현시 **안의** 분배만 native 배분을 따른다.
         If sgPlanEnabled And sgPlanCycle.Exists(CStr(CLng(scKey))) Then
             If Abs(CDbl(sgPlanCycle(CStr(CLng(scKey)))) - cycle) > 0.001 Then
                 signalFailures = signalFailures + 1
@@ -1468,20 +1519,11 @@ Sub ApplyRuntimeSignals(simSec)
             signalFailures = signalFailures + 1
             WScript.Echo "ERROR=SIGNAL_SG_PLAN_MISSING_FOR_SC sc=" & CStr(scKey)
         Else
-            If pos < major Then
-                majorState = "GREEN": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC Then
-                majorState = "AMBER": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC Then
-                majorState = "RED": minorState = "RED"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor Then
-                majorState = "RED": minorState = "GREEN"
-            ElseIf pos < major + AMBER_SEC + ALL_RED_SEC + minor + AMBER_SEC Then
-                majorState = "RED": minorState = "AMBER"
-            Else
-                majorState = "RED": minorState = "RED"
-            End If
-            ApplyRuntimeSignalController CLng(scKey), majorState, minorState
+            ' N4-0. 이름 규칙(MAJOR/MINOR 두 상태)은 현시 4값을 재생할 수 없다. 여기로
+            ' 오는 조합은 ApplyActionCsv 의 ACTION_CSV_SIGNAL_WITHOUT_PLAN_CONFIG 가
+            ' 이미 막지만, 재생 루프에서도 조용히 2축으로 접히지 않게 못박는다.
+            signalFailures = signalFailures + 1
+            WScript.Echo "ERROR=SIGNAL_PHASE_PLAN_REQUIRED sc=" & CStr(scKey)
         End If
     Next
     PerfAdd "signals.runtime", perfT0

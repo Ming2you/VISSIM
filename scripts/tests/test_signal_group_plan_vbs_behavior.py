@@ -220,7 +220,7 @@ End Sub
 
 Function Row(sgNo, windowIndex, startSec, endSec, offsetSec, cycleSec)
     Row = Split("signal_sg,SC7_SG" & CStr(sgNo) & "_W" & CStr(windowIndex) & "," & CStr(sgNo) & _
-        ",7," & CStr(windowIndex) & ",0,0," & CStr(startSec) & "," & CStr(endSec) & "," & _
+        ",7," & CStr(windowIndex) & ",0,0," & CStr(startSec) & "," & CStr(endSec) & ",,," & _
         CStr(offsetSec) & ",0," & CStr(cycleSec) & ",ok", ",")
 End Function
 
@@ -316,7 +316,7 @@ Check "reject_cycle_split", Accept(2, 0, 25, 40, 4, 70), False
 ' id 가 (sc, sg, 창) 과 어긋나면 거부다.
 ResetPending
 Dim badId
-badId = Split("signal_sg,SC7_SG2_W0,1,7,0,0,0,0,20,4,0,50,ok", ",")
+badId = Split("signal_sg,SC7_SG2_W0,1,7,0,0,0,0,20,,,4,0,50,ok", ",")
 Check "reject_id_mismatch", _
     SignalSgRowValid(badId, seenSg, pendWindows, pendCounts, pendCycle, pendOffset), False
 '''
@@ -332,6 +332,10 @@ EVENT_PROCEDURES = (
     "SignalCompositeStateAt",
     "NextSignalTransitionAfter",
     "MaxSignalCycleSec",
+    # N4-0. 주기를 현시 4값에서 만든다 - 이 셋을 안 떼어내면 harness 가 조용히 죽는다.
+    "PhaseGreenSum",
+    "LivePhaseCount",
+    "SignalCycleFromPhases",
     "DictValue",
     "FMod",
 )
@@ -346,7 +350,7 @@ Const AMBER_SEC = {AMBER_SEC:g}
 Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
-Dim sigMajor, sigMinor, sigOffset, simPeriod
+Dim sigPhaseGreen, sigOffset, simPeriod
 Dim failures
 failures = 0
 simPeriod = 10000
@@ -356,8 +360,7 @@ Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
 Set sgPlanWindows = CreateObject("Scripting.Dictionary")
 Set sgPlanCycle = CreateObject("Scripting.Dictionary")
 Set sgPlanGroups = CreateObject("Scripting.Dictionary")
-Set sigMajor = CreateObject("Scripting.Dictionary")
-Set sigMinor = CreateObject("Scripting.Dictionary")
+Set sigPhaseGreen = CreateObject("Scripting.Dictionary")
 Set sigOffset = CreateObject("Scripting.Dictionary")
 
 {helpers}
@@ -387,8 +390,7 @@ RW_SIGNAL_SG_CONFLICTS = "7:1-2"
 ParseSignalGroupPlanConfig
 Check "groups_listed", sgPlanGroups("7"), "1,2,3"
 
-sigMajor("7") = 20.0
-sigMinor("7") = 20.0
+sigPhaseGreen("7") = "20|20|0|0"
 sigOffset("7") = 0.0
 sgPlanWindows("7-1") = "0|12;"
 sgPlanWindows("7-2") = "12|20;"
@@ -399,9 +401,10 @@ Check "composite_changes_inside_axis", _
     (SignalCompositeStateAt(11) <> SignalCompositeStateAt(12)), True
 Check "event_breaks_at_intra_axis_edge", NextSignalTransitionAfter(10), 12
 
-' 계획을 끄면 예전 축 전이만 남는다 - sec 12 는 더 이상 이벤트가 아니다.
+' N4-0. 계획을 끄면 이름 규칙으로 떨어지는 것이 아니라 **구동 자체가 없다**.
+' 전이가 없으므로 스케줄러도 신호 때문에 멈추지 않는다(simPeriod 까지 간다).
 sgPlanEnabled = False
-Check "legacy_has_no_intra_axis_event", NextSignalTransitionAfter(10), 20
+Check "no_plan_means_no_signal_event", NextSignalTransitionAfter(10), 10000
 '''
 
 

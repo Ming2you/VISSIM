@@ -4,10 +4,17 @@ import argparse
 import csv
 import json
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, median
 from typing import Iterable
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from evaluation.controllers import action_csv_schema  # noqa: E402
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -122,8 +129,17 @@ def action_metrics(rows: list[dict[str, str]]) -> dict[str, float]:
         elif kind == "ramp_meter":
             by_sec[sec]["ramp_green"].append(to_float(row.get("green_sec")))
         elif kind == "signal":
-            by_sec[sec]["signal_green"].append(to_float(row.get("major_green")))
-            by_sec[sec]["signal_green"].append(to_float(row.get("minor_green")))
+            # N4-0. v3 은 축 2열, v4 는 현시 4열이다. 저장소의 옛 런은 v3 이므로
+            # 헤더로 세대를 가린다. 녹색 0 인 현시는 쓰지 않는 현시라 평균에서 뺀다.
+            fields = (
+                action_csv_schema.PHASE_GREEN_FIELDS
+                if action_csv_schema.row_is_v4(row)
+                else action_csv_schema.LEGACY_AXIS_GREEN_FIELDS
+            )
+            for field in fields:
+                value = to_float(row.get(field))
+                if value > 0.0:
+                    by_sec[sec]["signal_green"].append(value)
     secs = sorted(by_sec)
     series = {
         "vsl": [mean(by_sec[sec]["vsl"]) if by_sec[sec]["vsl"] else 0.0 for sec in secs],

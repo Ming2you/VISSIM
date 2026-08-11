@@ -2572,3 +2572,98 @@ amber 정확히 **6.00 s/주기**(= 2 전이 x 3 s), dark 0.00 s, amber-over-gre
   안 건드렸다. 분석 스크립트는 **과거 런**을 해석하는 도구라 바꾸면 옛 런을 잘못 읽는다.
 - `scripts/generate_real_world_distributed_players.py:164` 주석의 "러너 clearance 가 10 s"
   는 이제 틀렸다. 그 파일은 직전 회차의 미커밋 작업이 올라가 있어 손대지 않았다.
+
+---
+
+## N4-0 작업 4 — action CSV 스키마 v3(축 2값) → v4(현시 4값) (2026-08-12)
+
+### 무엇이 정본인가 — 지시서가 물은 것
+
+`signal_sg` 행이 이미 SG별 타이밍을 싣는데 현시 4값과 무엇이 정본인지 정하라고 했다.
+플랜트 실물을 읽고 정했다.
+
+러너의 계획 구동 경로(`ApplyRuntimeSignalControllerFromPlan`)는 축 녹색을 **쓰지 않는다.**
+그 함수가 받는 것은 `pos` 와 `cycle` 뿐이고, SG 상태는 `CommitSignalGroupPlan` 이 저장해
+둔 창에서 나온다. 즉 v3 시점에도 `major_green`/`minor_green` 은 이미 (a) 주기의 가수와
+(b) 계획 staleness 대조값 두 가지 역할뿐이었다.
+
+그래서 v4 의 결정은 이렇다.
+
+    signal 행의 현시 4값   = 모델의 결정. **정본**.
+    signal_sg 창           = 어댑터가 signal_group_plan 으로 유도한 **파생**.
+    러너                    파생을 다시 만들지 않는다. 만들 수 없다 - 창 분수는 실 .sig
+                            파싱에서 나오고 그 파서는 파이썬에 있다. 러너는 대조만 한다.
+
+대조식은 `Sum(현시 녹색) + (녹색 있는 현시 수) x clearance == 모든 signal_sg 행의 green_sec`
+이고, 어긋나면 `SignalGroupPlanRejectReason` 이 그 CSV 를 통째로 거부한다. VISSIM 에 실제로
+실리는 값이 파생이라는 것과 정본이 `signal` 행이라는 것은 모순되지 않는다 - 매 결정마다
+파생이 정본에서 나왔음이 위 항등식으로 증명되기 때문이다.
+
+### clearance 계수를 데이터로 만든 이유
+
+v3 러너는 주기에 clearance 를 **두 번** 더했다(축이 둘). 목표 스펙은 4현시 4회다.
+그런데 지금 계획 산출물은 현시가 둘뿐이다 - `.sig` 재작성(작업 1)이 사용자 결정 대기라
+4현시 phase→SG 귀속이 아직 없다. 상수 4 로 박으면 오늘 15 SC 가 전량 거부되고, 상수 2 로
+두면 4현시가 와도 주기가 6 s 모자란다.
+
+그래서 계수를 **녹색이 있는 현시의 수**로 만들었다(`live_phases`). 오늘 데이터(p3=p4=0)에서
+2 가 나와 v3 과 값이 같고, 계획이 4현시가 되는 날 코드 변경 없이 4 가 된다. 어댑터와 러너가
+같은 식을 각자 구현하므로(파이썬/VBScript) 둘이 갈라지면 위 대조가 잡는다.
+
+**0 을 조용한 폴백으로 쓰지 않기 위해** 어댑터에 짝이 되는 게이트를 걸었다 - 액션이 녹색을
+준 현시 집합과 계획이 SG 를 붙여 둔 현시 집합이 다르면 예외다. 계획이 4현시인데 모델이
+2현시 값을 주면(= 지금 vendor 스냅샷 상태) 그 순간 죽는다.
+
+### 창 배치 순서 — 아직 임시다
+
+`phase_layout_order(major_maps_to)` 는 major 축 현시를 맨 앞에 두고 나머지를 모델 phase
+순서로 둔다. major 를 앞에 두는 것은 v3 배치와 2현시에서 **비트 동일**하게 만드는 조건이고
+(`tests/test_signal_group_plan` 13건이 창 좌표를 그대로 고정한다), 나머지 셋의 상대 순서는
+근거가 없다. 목표 스펙의 순서(major 직진 → major 좌 → minor 직진 → minor 좌)는 phase →
+이동류 귀속이 있어야 쓸 수 있고 그것이 작업 1의 미결 사항이다. **4현시 계획이 실제로 생기면
+이 함수가 순서를 받아야 한다.**
+
+### 옛 action CSV 8,201개 — 버전 필드를 두지 않았다
+
+헤더가 이미 판별자다(`major_green` 이 있으면 v3, `p1_green` 이 있으면 v4). 열을 하나 더
+늘려 버전을 싣는 것은 모든 행에 같은 값을 반복하면서 헤더가 이미 주는 정보를 중복하는 일이라
+안 했다. 옛 파일은 다시 쓰지 않는다 - 읽는 쪽 4곳을 `action_csv_schema.phase_green_sum_sec`
+/ `window_bounds_sec` 으로 옮겨 두 세대를 같은 코드로 읽게 했다.
+
+`validate_baseline_snapshot` 은 **두 헤더 목록 중 하나와 정확히 같을 것**을 요구한다.
+느슨해진 것이 아니라 세대가 둘이다(봉인된 스냅샷은 v3, 새로 뽑으면 v4).
+
+### 이름 규칙 폴백을 잘라낸 판단
+
+v3 러너는 계획이 없으면 `SignalStateForGroup` 의 이름 규칙(EB/WB→major, NB/SB→minor)으로
+떨어졌다. 현시 4값을 그 두 상태로 재생하면 네 현시가 조용히 두 축으로 접힌다. 그래서
+`signal` 행이 계획 없이 오면 CSV 를 거부한다(`ACTION_CSV_SIGNAL_WITHOUT_PLAN_CONFIG`).
+
+이것이 실질적 변화가 아닌 근거 - 어댑터는 계획 산출물이 있으면 `signal_sg` 행을 **무조건**
+싣고(`write_action_csv` 호출부가 하나뿐이고 `load_signal_group_actuation_plan()` 을 그대로
+넘긴다), 계획 config 가 없는 러너는 그 행들을 이미 전부 invalid 로 셌다. 즉 이름 규칙
+경로는 **이미 도달 불가능**했다. 바뀐 것은 그 사실이 명시적이 된 것뿐이다.
+
+`SignalStateForGroup`/`ApplyRuntimeSignalController` 는 지우지 않았다 -
+`scripts/tests/test_signal_group_plan_real_plan_actuation.py` 가 "이름 규칙이었다면 어땠는지"
+의 **대조군**으로 이 두 프로시저를 cscript 로 떼어 돌린다. 대신 `SIGNAL_NAME_RULE_FALLBACKS`
+echo 는 이제 자명하게 0 이므로 증거로 쓸 수 없다.
+
+### 확인 못 한 것
+
+- **실 COM 런은 안 했다.** VISSIM 을 띄우지 않았다. 러너 쪽 수치는 전부 러너에서 프로시저를
+  떼어낸 cscript 실행이다. 실 런에서 15 SC 가 통과하는지는 런을 해야 안다.
+- **4현시를 15 SC 전부로 재지 못했다.** 실 4현시 계획이 없다. `Real4PhaseWindowTests` 는
+  실 `.sig` 의 SC1001 하나를 SG 이름으로 네 현시에 묶어 잰다. 나머지 14 SC 는 안 쟀고,
+  작업 1의 조사에 따르면 그중 8개는 목표 현시 중 등두 0 인 현시를 갖는다.
+- **다른 러너 3개(`_perf`, `run_stackelberg_vissim_controller`, `_8seg`)를 안 옮겼다.**
+  셋 다 같은 어댑터를 부르므로 지금 그 셋으로는 못 돈다(헤더 불일치 → 전량 거부).
+  실 런 경로가 아니라는 판단이고, 인벤토리 검사가 이 목록을 고정한다.
+- **미추적 `scripts/test_strict_actuation_contract.py` 에 v3 헤더 리터럴이 남아 있다.**
+  직전 회차의 미커밋 작업이라 손대지 않았다.
+- **모델 주기 동일성 5건은 그대로 빨간불이다.** 작업 3이 남긴 것과 같은 건이고, 이 작업은
+  모델 config(`lost_time`)를 건드리지 않았다.
+- **vendor 스냅샷은 여전히 2현시다**(`vendor/NumSim-mine/src/models/state.py` 에
+  `MODEL_PHASES` 가 없다 = 4현시 이전 스냅샷). 실 런의 모델은 p1/p2 만 낸다. 어댑터는
+  p3/p4 를 0.0 으로 채우고 계획도 2현시라 오늘은 정합하지만, **상류와 vendor 가 어긋나 있다**
+  는 사실은 작업 2가 남긴 그대로다.
