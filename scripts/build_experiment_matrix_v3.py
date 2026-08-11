@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -49,6 +50,25 @@ RUN_KEY_FIELDS = (
     "action_payload_hash",
     "replicate",
 )
+
+# 실행 키 중 **설계가 아니라 신원** 인 필드. spec 에는 없고 런 전에 외부에서 주입된다.
+# 봉인이 이것을 빼면 매트릭스는 어떤 위상에도 묶이지 않는다 - 격자를 바꿔도 봉인이 그대로라
+# 사후에 "같은 위상에서 돌린 결과" 라고 주장할 근거가 없다. 실제로 그랬다: `--topology-sha256`
+# 을 서로 다르게 줘도 봉인이 d397fa07d1c05692 로 같았다.
+IDENTITY_FIELDS = (
+    "inpx_hash",
+    "topology_sha256",
+    "calibration_version",
+    "controller_version",
+)
+
+# 신원이 아직 안 정해졌다는 표시. 이 값으로 봉인된 매트릭스는 위상에 묶이지 않은 것이고,
+# 그 사실이 산출물의 `identity` 에 그대로 남는다.
+IDENTITY_PENDING = "PENDING"
+
+# 위상 해시는 sha256 이거나 PENDING 이다. 짧은/오타난 값을 받아 봉인하면 묶인 것처럼
+# 보이는데 묶인 것이 없다. 형식은 canonical topology 의 `topology_hash` 와 같다.
+_SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 # 사전등록 진폭. base 대비 (low, base, high).
 LEVER_AMPLITUDES: dict[str, tuple[float, float, float]] = {
@@ -134,14 +154,29 @@ def _canonical(value: Any) -> Any:
     return value
 
 
-def seal_hash(spec: Mapping[str, Any]) -> str:
-    """Hash the spec so a post-hoc amplitude edit is detectable.
+def seal_hash(spec: Mapping[str, Any], identity: Mapping[str, Any]) -> str:
+    """Hash the spec **and the run identity** so both are covered by one seal.
 
     Tuples and lists collapse to the same canonical form on purpose - the seal is about
     the values, not the Python container they arrived in.
+
+    `identity` is mandatory and must be exactly `IDENTITY_FIELDS`. Defaulting a missing
+    field to "" (or leaving it out of the hash, which is what v3 did until now) makes two
+    genuinely different topologies produce one seal - the same failure mode `run_key`
+    already refuses, one level up.
     """
+    supplied = set(identity)
+    missing = sorted(set(IDENTITY_FIELDS) - supplied)
+    if missing:
+        raise MatrixError(f"seal identity is missing fields: {missing}")
+    extra = sorted(supplied - set(IDENTITY_FIELDS))
+    if extra:
+        raise MatrixError(f"seal identity has unknown fields: {extra}")
     encoded = json.dumps(
-        _canonical(spec), ensure_ascii=True, sort_keys=True, separators=(",", ":")
+        {"spec": _canonical(spec), "identity": _canonical(identity)},
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
@@ -196,8 +231,9 @@ def expand(
     """Expand the spec into one cell per (demand, seed, anchor, H, lever, level, replicate).
 
     Identity placeholders default to "PENDING" so the matrix can be sealed before the
-    network and calibration are pinned; the runner fills them and the seal covers the
-    spec, not the identities.
+    network and calibration are pinned. The seal covers the identity too, so a matrix
+    sealed with "PENDING" is on the record as *not bound to a topology* - re-sealing with
+    the real values is what binds it, and that changes the seal.
     """
     interval = int(spec["control_interval_sec"])
     period = int(spec["sim_period_sec"])
@@ -266,21 +302,28 @@ def material_comparison_counts(spec: Mapping[str, Any]) -> dict[str, int]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Expand and seal the N9 experiment matrix")
     parser.add_argument("--out", required=True, type=Path)
-    parser.add_argument("--inpx-hash", default="PENDING")
-    parser.add_argument("--topology-sha256", default="PENDING")
-    parser.add_argument("--calibration-version", default="PENDING")
-    parser.add_argument("--controller-version", default="PENDING")
+    parser.add_argument("--inpx-hash", default=IDENTITY_PENDING)
+    parser.add_argument("--topology-sha256", default=IDENTITY_PENDING)
+    parser.add_argument("--calibration-version", default=IDENTITY_PENDING)
+    parser.add_argument("--controller-version", default=IDENTITY_PENDING)
     args = parser.parse_args(argv)
 
     spec = default_spec()
+    # 셀과 봉인이 **같은 하나의 신원** 을 읽는다. 둘을 따로 채우면 조용히 어긋난다.
+    identity = {
+        "inpx_hash": args.inpx_hash,
+        "topology_sha256": args.topology_sha256,
+        "calibration_version": args.calibration_version,
+        "controller_version": args.controller_version,
+    }
     try:
-        cells = expand(
-            spec,
-            inpx_hash=args.inpx_hash,
-            topology_sha256=args.topology_sha256,
-            calibration_version=args.calibration_version,
-            controller_version=args.controller_version,
-        )
+        topology = identity["topology_sha256"]
+        if topology != IDENTITY_PENDING and not _SHA256_RE.fullmatch(topology):
+            raise MatrixError(
+                f"topology_sha256 must be 64 lowercase hex or {IDENTITY_PENDING!r}, "
+                f"got {topology!r}"
+            )
+        cells = expand(spec, **identity)
         keys = [run_key(cell) for cell in cells]
         if len(keys) != len(set(keys)):
             raise MatrixError("run keys collide - the matrix identity is not unique")
@@ -302,8 +345,10 @@ def main(argv: list[str] | None = None) -> int:
     payload = {
         "schema_version": SCHEMA_VERSION,
         "status": "PASS",
-        "seal_sha256": seal_hash(spec),
+        "seal_sha256": seal_hash(spec, identity),
         "run_key_fields": list(RUN_KEY_FIELDS),
+        # 봉인 입력을 산출물에 그대로 싣는다. 없으면 제3자가 봉인을 재계산할 수 없다.
+        "identity": _canonical(identity),
         "spec": _canonical(spec),
         "sample_dimensions": {
             "cells": len(cells),
@@ -322,8 +367,14 @@ def main(argv: list[str] | None = None) -> int:
         newline="\n",
     )
     print(
-        "status=PASS cells=%d runnable=%d blocked=%d seal=%s"
-        % (len(cells), len(cells) - blocked, blocked, payload["seal_sha256"][:16])
+        "status=PASS cells=%d runnable=%d blocked=%d topology=%s seal=%s"
+        % (
+            len(cells),
+            len(cells) - blocked,
+            blocked,
+            identity["topology_sha256"][:16],
+            payload["seal_sha256"][:16],
+        )
     )
     print(
         "cost: %.0f simulated hours over %d control decisions"
