@@ -22,6 +22,28 @@
 
 이 모듈은 그 상수를 **러너 원문에서 읽어** 한 곳에 모은다. 숫자를 복사해 두면 러너가
 바뀌었을 때 조용히 어긋난다.
+
+## 녹색 예산 계약 — 다섯 값 중 자유 파라미터는 셋뿐이다
+
+    자유  cycle_length  플랜트가 한 주기에 쓰는 시간 [s]
+    자유  lost_time     = 2 x (AMBER_SEC + ALL_RED_SEC). 러너 원문이 정한다
+    자유  green_min     현시 하나에 보장하는 최소 녹색 [s]
+
+    유도  effective_green_total = cycle_length - lost_time     (state.py:400)
+    유도  green_max             = effective_green_total - green_min
+
+`green_max` 가 유도값인 이유는 컨트롤러가 예외 없이 `p2 = effective_green_total - p1`
+로 배분하기 때문이다(distributed_coordinator:1256, structured_grid:30,
+rollout_endpoint:128, centralized_mpc:166, ...). 그래서 `p2 in [green_min, green_max]`
+는 `p1 in [total - green_max, total - green_min]` 과 같은 말이고, 실제 상자는
+
+    p1 in [max(green_min, total - green_max),  min(green_max, total - green_min)]
+
+이다. 두 끝이 **둘 다 살아 있으려면** `green_min + green_max == total` 이어야 한다.
+합이 total 보다 크면 `green_max` 가, 작으면 `green_min` 이 절대 도달할 수 없는 죽은
+상한/하한이 된다 — 상자는 남은 쪽 끝의 거울상으로 좁아진다.
+
+`green_box_residual_sec` 이 그 어긋남을 초 단위로 잰다. 0 이 계약이다.
 """
 
 from __future__ import annotations
@@ -86,6 +108,21 @@ def plant_cycle_sec(p1_green_sec: float, p2_green_sec: float,
         written_axis_green_sec(p2_green_sec)
         + written_axis_green_sec(p1_green_sec)
         + plant_lost_time_sec(vbs_path)
+    )
+
+
+def green_box_residual_sec(net) -> float:
+    """`green_min + green_max - effective_green_total` [s]. 계약이 성립하면 0 이다.
+
+    부호가 어느 쪽 끝이 죽었는지를 말한다(모듈 docstring 의 계약 참조).
+
+        > 0  `green_max` 가 죽은 상한 — 리더는 `total - green_min` 까지밖에 못 간다
+        < 0  `green_min` 이 죽은 하한 — 리더는 `total - green_max` 아래로 못 내려간다
+    """
+    return (
+        float(net.green_min)
+        + float(net.green_max)
+        - float(net.effective_green_total)
     )
 
 

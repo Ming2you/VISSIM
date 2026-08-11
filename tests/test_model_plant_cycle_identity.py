@@ -177,5 +177,48 @@ class ProductionCycleIdentityTests(unittest.TestCase):
         self.assertEqual(self.net.cycle_length_by_signal, {})
 
 
+class GreenBudgetContractTests(unittest.TestCase):
+    """`lost_time` 을 10 으로 옮겼으면 상자 상한도 같이 따라와야 한다.
+
+    다섯 값의 계약은 `plant_cycle` 모듈 docstring 에 한 번만 적혀 있다. 자유 파라미터는
+    `cycle_length`, `lost_time`, `green_min` 셋이고 `effective_green_total` 과
+    `green_max` 는 유도값이다. 여기서는 **생산 config** 가 그 계약을 지키는지만 본다.
+
+    이 검사가 없으면 `lost_time` 만 바꿔도 아무것도 깨지지 않는다 — 사영이 상자를
+    조용히 되돌려 놓기 때문이다(`distributed_coordinator._bounded_leader_green`).
+    깨지는 것은 숫자가 아니라 **상한의 의미**다.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.net = _production_config().network
+
+    def test_the_two_box_ends_sum_to_the_budget(self) -> None:
+        from evaluation.controllers import plant_cycle
+
+        net = self.net
+        self.assertEqual(
+            plant_cycle.green_box_residual_sec(net),
+            0.0,
+            f"green_min({net.green_min}) + green_max({net.green_max}) 는 "
+            f"effective_green_total({net.effective_green_total}) 이어야 한다 — "
+            f"green_max 는 {net.effective_green_total - net.green_min} 이어야 한다",
+        )
+
+    def test_the_upper_bound_is_a_green_the_leader_can_actually_reach(self) -> None:
+        """죽은 상한은 산수가 아니라 도달 가능성의 문제다.
+
+        사영을 거친 리더 상자에서 어떤 현시도 `green_max` 에 닿지 못하면 그 값은
+        설정에만 있는 숫자다.
+        """
+        from evaluation.controllers import plant_cycle
+
+        net = self.net
+        reached = max(
+            max(p1, p2) for p1, p2 in plant_cycle.leader_green_box(net)
+        )
+        self.assertEqual(reached, float(net.green_max))
+
+
 if __name__ == "__main__":
     unittest.main()
