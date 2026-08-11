@@ -183,7 +183,6 @@ class G6Runtime:
     detector_mapping: dict
     calibration: dict
     tuning: dict
-    run_coupled_interval: Any
 
 
 def build_runtime(
@@ -228,7 +227,6 @@ def build_runtime(
         ad.install_local_observation_runtime_guards()
 
     from src.controllers.leader import Leader
-    from src.simulation.coupling import run_coupled_interval
 
     # 채점 전용 cfg: objective_mode 를 state_accumulation 으로 고정한다(근거는
     # objective_from_states docstring). 운영 cfg 는 건드리지 않는다.
@@ -245,7 +243,6 @@ def build_runtime(
         detector_mapping=detector_mapping,
         calibration=calibration,
         tuning=tuning,
-        run_coupled_interval=run_coupled_interval,
     )
 
 
@@ -358,20 +355,35 @@ def model_rollout_states(
 ) -> list[Any]:
     """초기상태에서 액션을 H 스텝 동안 **고정한 채** 전개한 예측 상태열.
 
-    `run_coupled_interval` 은 state 를 in-place 변형하므로 반드시 copy 로 시작한다.
-    반환 상태열은 t0+T_c, ..., t0+H·T_c (초기상태 제외) — 관측 쪽과 시각을 맞춘다.
+    상류 production rollout endpoint 를 거친다(N7 "우회 호출 0"). endpoint 가 초기상태를
+    복사해 전진시키므로 `initial_state` 는 불변이고, 반환 상태열은
+    t0+T_c, ..., t0+H·T_c (초기상태 제외) — 관측 쪽과 시각을 맞춘다.
+
+    이동 전 직접 루프와의 수치 동일성 근거(`tests/test_g6_core_rollout_endpoint.py` 가 고정).
+      - 수요 — 이동 전 클램프 `forecast[min(step, len-1)]` 를 호출 **전에** 실체화해
+        endpoint 의 `forecast[:depth]` 절단과 같은 수요열을 넘긴다. 실 런에서는
+        `demand_from_state` 가 정확히 H 개를 내므로 두 규약이 애초에 같지만,
+        len(forecast) < H 인 호출이 들어와도 동작이 갈리지 않게 여기서 맞춰 둔다.
+      - 액션 — `action_schedule=()` 이면 endpoint 는 previous 를 사본조차 만들지 않고
+        그대로 쓴다(`rollout_endpoint.py:122-125`).
+      - box-walk — 이동 전 루프에 없던 경로라 `box_walk=False` 로 끈다.
+      - 시각 — endpoint 는 `s.time_sec += interval` 로 누적하고 이동 전은
+        `t0 + interval*(step+1)` 절대식이었다. 실 런의 t0(정수초)·interval=60.0 에서
+        두 식은 비트 동일하다.
     """
 
-    state = initial_state.copy()
-    t0 = float(getattr(initial_state, "time_sec", 0.0))
-    interval = float(rt.cfg.simulation.control_interval)
-    out: list[Any] = []
-    for step in range(int(horizon_steps)):
-        demand = forecast[min(step, len(forecast) - 1)]
-        rt.run_coupled_interval(state, control, demand, rt.cfg)
-        state.time_sec = t0 + interval * (step + 1)
-        out.append(state.copy())
-    return out
+    from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
+
+    steps = int(horizon_steps)
+    demands = [forecast[min(step, len(forecast) - 1)] for step in range(steps)]
+    point = evaluate_price_point(
+        initial_state,
+        control,
+        demands,
+        (),
+        ObjectiveSpec(cfg=rt.cfg, depth_override=steps, box_walk=False),
+    )
+    return point.states
 
 
 def build_forecast(rt: G6Runtime, state_json: Mapping[str, Any], horizon_steps: int) -> list[Any]:
