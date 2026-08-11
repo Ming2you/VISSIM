@@ -356,3 +356,20 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] (e) 봉인 재생성 — 위상 해시 생산자가 아직 없고(작업 4 미구현) 승격도 막혀서 **안 함**
 - [ ] `tests/test_demand_contract.py` KNOWN MISMATCH 7건 — 승격을 못 해서 **그대로 7건**.
       0.8620배 불변
+
+## N4-0 작업 1 — `.sig` 15개 4현시 재작성 (2026-08-12) — **관문에서 멈춤**
+
+- [x] 15 SC 현 프로그램 전수 분석 생산자 `scripts/survey_signal_programs.py`.
+      프로그램 선택은 inpx `supplyFile2` + `progNo` 하나뿐(SC5→bed7, SC6→bed9, SC11→bed3, SC12→bed5)
+- [x] `.sig` 만이 아니라 inpx `signalHead` 를 같이 읽는다 — 등두 0 인 SG 는 녹색을 줘도
+      차량에 안 닿는다. 실측 35/136 SG 가 등두 0
+- [x] 검사 `scripts/tests/test_survey_signal_programs.py` 16건.
+      RED 확인 3회(midblock 제외 제거 3F, 등두 계수 왜곡 4F, progNo+1 7F) 후 GREEN
+- [x] 재배분 시산 — 현시 평균을 138 s 로 비례 축소. 주기 150 인 7 SC 는 축소율 1.0 이라
+      절대 초 보존. 배리어 총량 몫은 15 SC 전부 보존
+- [ ] **`.sig` 재작성 안 함 — green_min 20 위반이 3 SC 에서 나와 지시대로 멈췄다.**
+      SC107 minor 직진 0.00 s, SC108 minor 좌 0.00 s + major 직진 86.57 s(>78),
+      SC109 major 직진 109.95 s(>78) + 나머지 세 현시 전부 20 미만
+- [ ] **빈 현시 8 SC** — SC1·105(major 좌), SC11·108(minor 좌), SC107·109(minor 직진),
+      SC1003(major 직진), SC1005(major 좌 + minor 직진). 사용자 규칙 판단 필요
+- [ ] inpx `supplyFile2` 재배정은 손도 안 댔다(작업 5 몫)
