@@ -197,6 +197,12 @@ movement 의 `origin` 키만 본다. 실측: 실 cfg 의 `boundary_in` movement 
 | 1100 (무명) | `SC1004_SE` | `leg_absent_at_node` | 849.2 |
 | 194 `개포주민센터_NB` | `SC13_S` | `leg_occupied_by_grid_neighbour` (`S_SC16`) | 81.5 |
 
+이 셋만 채우면 계약이 닫힌다는 것을 실측으로 확인했다. 같은 회차의 경계 게이트 22개 후보
+config(`evaluation/configs/real_world_modi_pstack_distributed_core15n41gated_20260811.json`,
+**승격 아님**)에 대해 대장을 다시 생성하면 입구 22/22 가 `mapped` 이고 중복이 없으며,
+`tests/test_demand_contract.py` 가 **15/15 PASS** 한다(6구간 전부 주입/입구 = 1.0000).
+승격할 때 대장을 그 config 로 재생성하고 §4·§5 표와 대장 상수를 같이 갱신해라.
+
 ### 4.1 실측 (scale=1, `modi_eval_rw_control.inpx`)
 
 도시부 — VISSIM 유입 32개 = 입구 22 + 내부발생 10. 모델 게이트 117개 중 19개가 먹인다.

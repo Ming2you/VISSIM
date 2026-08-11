@@ -345,7 +345,9 @@ class DemandContractInvariantTests(unittest.TestCase):
 
         지금 격자에 없는 3곳(`in_SC1004_SW`, `in_SC1004_SE`, `in_SC13_S`)을 **가정으로만**
         추가해서 앵커링 기구 자체가 질량을 보존하는지 본다. 격자를 실제로 어떻게 고칠지는
-        (신설이냐 병합이냐) 이 검사의 소관이 아니다.
+        (신설이냐 병합이냐) 이 검사의 소관이 아니다. 몇 곳이 비어 있는지는 대장 검사
+        (`test_known_ledger_matches_measurement`)가 지킨다 — 여기서 또 세지 않는다.
+        격자가 완성되면 가정 집합이 비고 이 검사는 그대로 보존을 확인한다.
         """
         cfg, calibration = _build_cfg()
         gate_map = _gate_map()
@@ -354,7 +356,6 @@ class DemandContractInvariantTests(unittest.TestCase):
             for no, row in gate_map.items()
             if row["status"] not in {"mapped", "internal", "freeway_excluded"}
         }
-        self.assertEqual(3, len(hypothetical))
         cfg.network.boundary_in_links = list(cfg.network.boundary_in_links) + sorted(
             set(hypothetical.values())
         )
