@@ -134,6 +134,93 @@ def write_json(path: Path, data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
 
 
+def ensure_numsim_importable() -> Path:
+    """NumSim 소스를 `sys.path` 에 올리고 그 루트를 돌려준다."""
+    candidates = [
+        Path(os.environ["NUMSIM_REPO_ROOT"]) if os.environ.get("NUMSIM_REPO_ROOT") else None,
+        ROOT / "vendor" / "NumSim-mine",
+        ROOT.parent / "NumSim-mine",
+    ]
+    numsim_path = next(
+        (candidate for candidate in candidates if candidate and (candidate / "src").is_dir()),
+        None,
+    )
+    if numsim_path is None:
+        raise SystemExit("NumSim source not found; set NUMSIM_REPO_ROOT or restore vendor/NumSim-mine")
+    numsim = str(numsim_path)
+    if numsim not in sys.path:
+        sys.path.insert(0, numsim)
+    return numsim_path
+
+
+# ---------------------------------------------------------------------------
+# 녹색 예산 계약 (2026-08-11)
+#
+# 다섯 값 중 자유 파라미터는 셋뿐이다 — 계약 원문은 `evaluation/controllers/plant_cycle.py`
+# 모듈 docstring 에 한 번만 적혀 있다.
+#
+#     자유  cycle_length  부모 config 체인 (없으면 NumSim NetworkConfig 기본값)
+#     자유  green_min     같음
+#     자유  lost_time     러너 원문의 2 x (AMBER_SEC + ALL_RED_SEC)
+#     유도  effective_green_total = cycle_length - lost_time
+#     유도  green_max             = effective_green_total - green_min
+#
+# 유도값 둘은 **생성기가 산출물에 실어야 한다.** 안 실으면 모델이 NetworkConfig 기본값
+# (lost_time=8.0, green_max=92.0)으로 떨어지는데, 그 기본값은 자기들끼리는 항등식을
+# 만족해서(20 + 92 == 120 - 8) 예산 검사로는 아무것도 안 걸린다. 어긋나는 것은 플랜트
+# 주기다 — 러너 clearance 가 10 s 라 모델 주기가 2 s 짧아진다(a1e73da 가 생산 config 에
+# 손으로 넣어 닫았던 그 간극).
+# ---------------------------------------------------------------------------
+PARENT_CONFIG = "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json"
+
+
+def resolved_parent_network(parent_path: Path) -> dict[str, Any]:
+    """부모 config 체인이 실제로 정한 `config_overrides.network`.
+
+    자식(이 생성기가 쓰는 config)이 아무것도 안 얹은 상태의 기준선이다. 어댑터의
+    `load_optional_json` 과 같은 순서로 조상부터 덮어쓴다.
+    """
+    chain: list[dict[str, Any]] = []
+    path = Path(parent_path)
+    while True:
+        cfg = read_json(path)
+        chain.append(cfg)
+        extends = str(cfg.get("extends") or "")
+        if not extends:
+            break
+        parent = Path(extends)
+        path = parent if parent.is_absolute() else path.parent / parent
+    merged: dict[str, Any] = {}
+    for cfg in reversed(chain):
+        merged.update((cfg.get("config_overrides") or {}).get("network") or {})
+    return merged
+
+
+def green_budget_contract(parent_path: Path) -> dict[str, float]:
+    """녹색 예산 계약의 **유도값 둘** — `lost_time` 과 `green_max` [s].
+
+    숫자를 복사해 두지 않는다. `lost_time` 은 러너 VBS 원문에서 읽고,
+    `cycle_length` / `green_min` 은 부모 체인(없으면 NumSim `NetworkConfig` 기본값)에서
+    읽는다. 어느 한쪽이 바뀌면 여기서 나오는 값이 따라 움직인다.
+    """
+    ensure_numsim_importable()
+    from src.models.state import NetworkConfig
+
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from evaluation.controllers.plant_cycle import plant_lost_time_sec
+
+    defaults = NetworkConfig()
+    parent = resolved_parent_network(parent_path)
+    cycle_length = float(parent.get("cycle_length", defaults.cycle_length))
+    green_min = float(parent.get("green_min", defaults.green_min))
+    lost_time = float(plant_lost_time_sec())
+    return {
+        "lost_time": lost_time,
+        "green_max": cycle_length - lost_time - green_min,
+    }
+
+
 def file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -521,21 +608,7 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
     # 투영이 movement 큐를 하나도 못 채운다(2026-08-04 실측: 0/1406, 포착률 37.6% -> 13.2% 로 후퇴).
     # 모델과 같은 함수를 쓰므로 이름이 어긋날 수 없다. config 에는 그대로 실어 보내
     # 매핑과 모델이 같은 이름을 보게 한다.
-    import sys as _sys
-    _numsim_candidates = [
-        Path(os.environ["NUMSIM_REPO_ROOT"]) if os.environ.get("NUMSIM_REPO_ROOT") else None,
-        ROOT / "vendor" / "NumSim-mine",
-        ROOT.parent / "NumSim-mine",
-    ]
-    _numsim_path = next(
-        (candidate for candidate in _numsim_candidates if candidate and (candidate / "src").is_dir()),
-        None,
-    )
-    if _numsim_path is None:
-        raise SystemExit("NumSim source not found; set NUMSIM_REPO_ROOT or restore vendor/NumSim-mine")
-    _numsim = str(_numsim_path)
-    if _numsim not in _sys.path:
-        _sys.path.insert(0, _numsim)
+    ensure_numsim_importable()
     from src.models.grid_topology import build_urban_movements, derive_turning_ratios
 
     ramp_to_freeway = {"R_D_W": "FW_W", "R_F_W": "FW_W", "R_D_E": "FW_E", "R_F_E": "FW_E"}
@@ -1037,8 +1110,14 @@ def build_tuning_config(
     boundary_gate_notes: "list[str] | None" = None,
 ) -> dict[str, Any]:
     signals = network_override["signals"]
+    # 유도값 둘을 앞에 세워 부모 체인 위에 다시 깐다. 이 두 키가 없으면 모델이
+    # NetworkConfig 기본값으로 떨어져 플랜트 주기와 2 s 어긋난다(위 계약 주석 참조).
+    network_override = {
+        **green_budget_contract(CONFIG_DIR / PARENT_CONFIG),
+        **network_override,
+    }
     return {
-        "extends": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json",
+        "extends": PARENT_CONFIG,
         "name": f"real_world_modi_pstack_distributed_{slug}_{stamp}",
         "description": (
             "Copy-only distributed urban-follower experiment. Keeps the validated real-world freeway/VSL/"
