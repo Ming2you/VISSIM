@@ -262,3 +262,14 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] `signal_timing_canon` FAIL 해소 — SC5/6/11/12 에서 `signal_group_timing_v3.json` 의
       `.sig` 배정이 inpx supplyFile2 와 다르다. 표 생산자(`derive_signal_group_timing.py`)의 몫
 - [ ] `run_plant_fidelity_matrix.ps1` 의 `--required-gate` 목록에 N10 게이트 편입 — 실 런 프로필이 정해진 뒤
+
+## A — `state.demand` 계약 고정 (2026-08-11)
+
+- [x] 세 필드 전수 추적 — 러너는 **지점당 평균**(vbs:2949-2953), 어댑터는 **원소당 값**(adapter:2813-2818)
+- [x] freeway 도 같은 구조임을 확인 — 유입 2 vs 링크 2 라서 총량이 **우연히** 맞는다(배율 1.0000)
+- [x] ramp 는 러너가 리터럴 0 (vbs:2123) + 실 캘리브레이션에 램프 예측 3경로 전부 없음 -> 도착 0
+- [x] `boundary_out_links` 는 외생 도착으로 **안 쓰인다** — 주입 경로가 전부 `kind=="boundary_in"` origin
+- [x] 다만 `stackelberg_mpc._forecast_demand_metadata` 가 전 키를 합산 -> 진단값만 2.0171배 부풀음
+- [x] 계약 문서 `evaluation/controllers/demand_contract.md`
+- [x] 검사 `tests/test_demand_contract.py` — 불변식 6 PASS(전부 되돌림 증명) + 알려진 불일치 2 FAIL
+- [ ] 3.66배 해소 — **이번 회차 범위 밖**. 격자 재정렬(작업 B 후속)과 함께 결정한다

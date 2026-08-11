@@ -1859,3 +1859,69 @@ VISSIM 은 양재 EB/NB 에 수천 대를 넣고 Dummy Link 9 에 291 대를 넣
 95개를 바로 지웠으면 총량은 맞았겠지만 **원인을 모른 채** 넘어갔을 것이다. 원인이 게이트
 수가 아니라 러너-어댑터 규약 불일치라는 것을 알았으므로, 격자를 고치든 분배를 고치든
 근거를 갖고 할 수 있다.
+
+---
+
+## 2026-08-11 — `state.demand` 계약을 문서·검사로 고정했다 (작업 A)
+
+3.66배의 근본 원인은 격자도 유입도 아니라 **러너-어댑터 규약이 어디에도 없던 것**이다.
+이번에는 배율을 고치지 않고 의미를 못박고 어긋남을 검사로 드러내는 데까지 했다.
+
+### 새로 확인한 것 (계획서에 없던 것들)
+
+1. **freeway 는 지금 맞다. 그러나 우연이다.**
+   유입 지점 2개(no=1098 link 74, no=1099 link 26) vs 모델 `freeway_links` 2개라 총량이 맞고,
+   두 유입의 시간구간별 volume 이 **완전히 동일**(3080/4400/4620/3960/3080/2200)해서
+   "평균 == 각 값" 이 되어 방향 분해까지 맞는다. 둘 중 하나만 깨지면 도시부와 같은 오류가 난다.
+   -> "freeway 도 3.66배 같은 게 있나" 를 재 보기 전에 **개수를 세는 것**이 먼저였다.
+
+2. **ramp 는 실 런에서 0 이다.** 러너가 `""ramp_volume_vph"": 0` 리터럴을 쓰고(vbs:2123),
+   실 캘리브레이션(`real_world_prediction_calibration_pshb4500fix_20260724.json`)의
+   `prediction` 키는 `["audit_calibration"]` 뿐이라 `onramp_route_forecast` /
+   `local_ramp_arrival_forecast` / `route_bias` 세 경로가 전부 꺼져 있다.
+   어댑터의 기본값 `max(120, 0.12*freeway_vph)` 는 키가 존재하므로 **절대 발동하지 않는다**.
+
+3. **`boundary_out` 는 주입에 안 쓰인다 — 확인했다.** 모든 도착 계산이
+   `kind == "boundary_in"` movement 의 `origin` 만 본다(8개 소비 지점 전수 확인).
+   실 cfg 에서 `boundary_in` movement 641개의 서로 다른 origin 이 정확히 117개이고
+   `boundary_in_links` 와 일치하며 `boundary_out_links` 와 교집합이 없다.
+
+4. **그런데 진단값은 샌다.** `stackelberg_mpc._forecast_demand_metadata`(:2237-2246)가
+   `urban_boundary` 의 **전 키**를 합산한다. t=1800 s 에서 실제 주입 69,909 veh/h 인데
+   로그의 `leader_forecast_boundary_*` 는 141,012 veh/h — `(117+119)/117 = 2.0171` 배다.
+   `classical_hierarchical:408-411` 도 전 키를 합산하지만 그 컨트롤러는 실 런에서
+   생성되지 않는다(어댑터는 Stackelberg/StackelbergWuMetered/DistributedCoordinator 만 만든다).
+   -> "쓰이지 않는 코드 경로를 재지 마라" 를 여기서 적용했다. 둘을 갈라서 적었다.
+
+5. **배율은 망마다 다르다.** 같은 117 게이트 격자에 붙였을 때
+   `modi_eval_rw_control.inpx` 32지점 -> 3.656, `..._peakplateau_20260729.inpx` 및
+   `..._peakhold4500_recovery_20260729.inpx` 는 29지점 -> 4.034.
+   게이트는 `generate_real_world_distributed_players.py:391-396` 이 VISSIM 을 안 보고
+   만들므로 두 수를 이어 주는 것이 아무것도 없다.
+
+### 산출물
+
+- `evaluation/controllers/demand_contract.md` — 필드별 의미(스칼라 1개, 소비자가 복제),
+  생산자·소비자 코드 위치, 알려진 불일치 `KNOWN-URBAN-GATE-MEAN`, 6구간 실측표
+- `tests/test_demand_contract.py` — `python -m unittest tests.test_demand_contract`
+  기대: **Ran 8, FAILED (failures=7)**. 불변식 6 PASS + 알려진 불일치 2 FAIL(6 subTest 포함)
+
+### 검사 설계 판단
+
+- **문자열 대조 대신 양쪽에서 단위를 계산했다.** 생산자 쪽은 `LoadInpxDemandSchedule`
+  의 산식(분류 -> 구간별 sum/n -> 평균)을 실 `.inpx` + `vehicle_input_roles.csv` 로
+  재현하고, 소비자 쪽은 `adapter.profiled_demand_rates` 를 실 cfg 로 **실제 호출**한다.
+- **xfail 을 안 썼다.** 이 저장소에는 CI 가 없어서(`.github` 없음) FAIL 이 막는 것이 없다.
+  대신 클래스를 갈라 `DemandContractKnownMismatchTests` 로 이름 붙이고 문서 §4 와 1:1 대응시켰다.
+  대장 상수(117/32)는 `DemandContractInvariantTests` 쪽에서 드리프트 감지로 따로 지킨다 —
+  누가 격자를 118 로 바꾸면 문서 갱신 없이는 통과 못 한다.
+- **되돌림 증명 6/6.** 각 불변식이 지키는 성질을 인위로 깨서 FAIL 로 뒤집히는 것을 확인했다
+  (고속부 유입 오분류 / 대장 117->118 / 램프 예측 주입 / `boundary_out` 비우기 /
+  필드 집합 변조 / 가짜 게이트 추가). 통과만 하고 아무것도 안 지키는 검사가 아니다.
+
+### 한 번 헛디딘 것
+
+producer 필드 집합 검사가 처음에 FAIL 했다. 원인은 정규식 `""([a-z_]+)"":` 이 바깥 래퍼
+`""demand"":` 까지 잡은 것 — 계약 위반이 아니라 검사 오타였다. 첫 `{` 이후만 보게 고쳤고,
+줄 번호 인덱스 대신 `""demand"": {` 를 포함한 줄을 찾아 **정확히 하나**임을 함께 확인하도록 바꿨다.
+
