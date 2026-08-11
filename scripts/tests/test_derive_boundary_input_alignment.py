@@ -7,7 +7,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
-from derive_boundary_input_alignment import derive
+from derive_boundary_input_alignment import _sha256, derive
 
 REAL_INPX = REPO_ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 REAL_VI = REPO_ROOT / "evaluation" / "real_world_modi_inventory" / "vehicle_input_roles.csv"
@@ -389,6 +389,71 @@ class RealNetworkSealTests(unittest.TestCase):
         self.assertEqual(board["centroid_to_link_start"]["gross_error_gt_45deg"], 38)
         self.assertEqual(board["link_last_segment_reversed"]["gross_error_gt_45deg"], 13)
         self.assertEqual(board["link_chord_reversed"]["gross_error_gt_45deg"], 11)
+
+
+TRACKED_ARTIFACT = REPO_ROOT / "outputs" / "boundary_input_alignment_20260811.json"
+
+# 봉인 키 -> 저장소 상대 경로. 생성기가 입력을 늘리면 여기도 늘어나야 한다.
+TRACKED_SOURCES = {
+    "network": REAL_INPX,
+    "vehicle_input_roles": REAL_VI,
+    "sc_roles": REAL_SC,
+    "assignment": REAL_ASSIGN,
+    "config": REAL_CONFIG,
+}
+
+
+class TrackedArtifactSealTests(unittest.TestCase):
+    """추적 산출물의 봉인이 실제 입력 파일과 맞는지 본다.
+
+    RealNetworkSealTests 는 매번 derive() 를 새로 돌리므로 파일에 적힌 봉인이
+    낡아도 통과한다. 입력이 바뀌면 잡히는 검사는 여기뿐이다.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        if not TRACKED_ARTIFACT.is_file():
+            raise unittest.SkipTest("tracked alignment artifact unavailable")
+        if not all(path.is_file() for path in TRACKED_SOURCES.values()):
+            raise unittest.SkipTest("real network inputs unavailable")
+        cls.tracked = json.loads(TRACKED_ARTIFACT.read_text(encoding="utf-8"))
+
+    def test_sealed_source_hashes_match_the_files_on_disk(self):
+        stale = []
+        for key, path in TRACKED_SOURCES.items():
+            sealed = self.tracked["sources"][key]["sha256"]
+            actual = _sha256(path)
+            if sealed != actual:
+                stale.append(f"{key}: sealed={sealed[:16]} actual={actual[:16]} ({path.name})")
+        self.assertEqual(
+            [], stale,
+            "정렬 봉인이 입력과 어긋났다. 재생성해라 -- "
+            "scripts/derive_boundary_input_alignment.py "
+            "--json-out outputs/boundary_input_alignment_20260811.json\n" + "\n".join(stale),
+        )
+
+    def test_every_sealed_source_is_covered_by_this_test(self):
+        self.assertEqual(sorted(TRACKED_SOURCES), sorted(self.tracked["sources"]))
+
+    def test_sealed_paths_point_at_the_repo_files(self):
+        for key, path in TRACKED_SOURCES.items():
+            recorded = self.tracked["sources"][key]["path"].replace("\\", "/")
+            tail = path.relative_to(REPO_ROOT).as_posix()
+            self.assertTrue(
+                recorded.endswith(tail),
+                f"{key}: sealed path {recorded} does not end with {tail}",
+            )
+
+    def test_tracked_gate_plan_matches_a_fresh_derive(self):
+        fresh = derive(
+            network_path=REAL_INPX,
+            vehicle_input_roles_path=REAL_VI,
+            sc_roles_path=REAL_SC,
+            assignment_path=REAL_ASSIGN,
+            config_path=REAL_CONFIG,
+        )
+        for block in ("vehicle_inputs", "summary", "bearing_convention"):
+            self.assertEqual(fresh[block], self.tracked[block], f"{block} block is stale")
 
 
 if __name__ == "__main__":
