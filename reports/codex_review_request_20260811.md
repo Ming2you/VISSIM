@@ -80,8 +80,11 @@ N1b(MPC 캡처 61회)는 N8-4 런타임 계약 충족 후에 돌린다. **미착
 `stage2_mechanism:133`, `centralized_mpc:299/328`, `distributed_coordinator:673`,
 `wu_distributed:862`. 상류만 고치고 vendor 를 안 옮기면 N7 은 실 런에서 미완이다.
 
-앵커 상수는 **3파일 11개**다(`verify_runtime_source.py` 5, `validate_baseline_snapshot.py` 5,
-`build_preflight_manifest.py` 1). 계획서에 6개로 적혀 있던 것이 이전 회차에 정정됐다.
+앵커는 **3파일에 걸친 11개 앵커 사실**이다(`verify_runtime_source.py` 5,
+`validate_baseline_snapshot.py` 5, `build_preflight_manifest.py` 1). 11개가 전부 커밋
+해시 문자열인 것은 아니고, **같은 `UPSTREAM_TREE.json` 스냅샷을 검증하는 사실 11개**다
+(commit / root_tree / src_tree / python_file_count / semantic_sha256).
+계획서에 6개로 적혀 있던 것이 이전 회차에 정정됐다.
 
 **[검토]**
 
@@ -96,7 +99,11 @@ N1b(MPC 캡처 61회)는 N8-4 런타임 계약 충족 후에 돌린다. **미착
 **상태 ✅ (이전 회차)**
 
 전역 항등식 `N_close = N_open + accepted_external − sink_out`.
-109 시나리오 × 24 스텝, 최대 잔차 **6.7e-12 veh**.
+
+**정정(Codex 지적, 2026-08-11).** 내가 "109 시나리오 × 24 스텝" 이라고 적었으나 실제
+회귀는 **3개 시나리오**다 — `SCENARIOS = ("sweet_115", "urban_gridlock", "sweet_220")`
+(`src/tests/test_global_mass_conservation.py:32`). 이전 회차 숫자를 검증 없이 옮겨 적었다.
+109개 전수 산출물은 현재 봉인돼 있지 않다.
 
 이 과정에서 두 결함을 찾아 고쳤다 — off-ramp storage 를 urban/freeway 어느 쪽도 안 세던
 누수(35.46 veh), `boundary_out` 게이트가 링크 주행을 건너뛰던 것(3,691.07 veh).
@@ -433,8 +440,17 @@ holdout anchor 12 상태가 실 런 산출물이고 N8-1 하네스가 없다. �
 
 **상태 ⛔ 실 런 필요. 실측 여유는 크다.**
 
-실 런로그 실측 — 제어 결정 **중앙값 9.94s / p95 11.2s**, 워밍업 결정 0.16s(62배 차).
-계약 30s 대비 여유 3배.
+**봉인된 실측값 (2026-08-11 재측정).**
+
+    출처   evaluation/runs/new_baseline_ab_20260801  (실 15-SC 망, pstack)
+    필터   CONTROLLER_DECISION 의 decision_wall_sec, sim_sec > 900 (워밍업 제외)
+    표본   n = 240
+    값     median 9.94 s   p95 11.17 s
+
+문서 간 충돌(9.94/11.2 대 11.0/12.9)의 원인은 **8구간 합성망 런이 섞인 것**이다 —
+`8seg_sweet_w_20260714` 는 n=165 median 18.89s 로 실 망과 자릿수가 다르다. 실 망 기준은
+위 값 하나다. 워밍업 구간(sim_sec<=900, no-control)은 median 0.16 s 로 62배 싸다.
+계약 30s 대비 여유 약 3배.
 
 **[검토]** 계획서에 "결정당 300초" 라고 적혀 있던 것은 **근거 없는 값**이었다(이전 회차
 정정). 지금 문서에 남은 값이 실측인지 확인해 달라.
