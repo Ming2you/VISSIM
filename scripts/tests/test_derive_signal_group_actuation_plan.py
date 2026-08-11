@@ -12,7 +12,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import shutil
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -20,6 +23,7 @@ from scripts import derive_signal_group_actuation_plan as producer
 
 
 ROOT = Path(__file__).resolve().parents[2]
+CANONICAL_PLAN = ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
 NETWORK = ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 MOVEMENT_MAP = ROOT / "outputs" / "movement_signal_group_map_v3.json"
 MAPPING = (
@@ -175,6 +179,77 @@ class DeriveTests(unittest.TestCase):
         for sg_no in plan["phase_signal_groups"]["p1"]:
             share = float(plan["native_green_sec"][sg_no]) / axis_green
             self.assertAlmostEqual(realized[sg_no], 61.0 * share, places=6)
+
+
+class RenderSiblingFromCanonicalPlanTests(unittest.TestCase):
+    """`--from-plan` — 이미 있는 계획 산출물에서 sgplan 형제 파일만 뽑는다.
+
+    러너의 sgplan 은 **config 마다** 형제 파일이어야 하는데(`<config>_sgplan.vbs`),
+    지금까지 그것을 만드는 길은 `main()` 뿐이었고 그 길은 계획 JSON 을 **다시 유도해
+    덮어쓴다**. 그래서 config 하나 더 붙이려면 추적 산출물을 건드려야 했다.
+
+    형제 파일이 실을 sha 는 **어댑터가 실제로 읽는 파일**(`SIGNAL_GROUP_ACTUATION_PLAN_PATH`)
+    의 sha 여야 한다. 재유도한 사본의 sha 면 `test_action_csv_contract` 의 드리프트
+    대조가 통과할 수 없다.
+    """
+
+    def setUp(self) -> None:
+        if not CANONICAL_PLAN.is_file():
+            self.skipTest("signal group actuation plan artifact is not built")
+
+    def test_renders_the_sibling_without_rederiving_or_touching_the_plan(self) -> None:
+        before = CANONICAL_PLAN.read_bytes()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out_vbs = Path(temp_dir) / "some_config_sgplan.vbs"
+            code = producer.main(
+                ["--from-plan", str(CANONICAL_PLAN), "--out-vbs", str(out_vbs)]
+            )
+            self.assertEqual(code, 0)
+            text = out_vbs.read_text(encoding="utf-8")
+        self.assertEqual(CANONICAL_PLAN.read_bytes(), before)
+        self.assertIn(
+            f'RW_SIGNAL_SG_PLAN_SOURCE_SHA256 = "{hashlib.sha256(before).hexdigest()}"',
+            text,
+        )
+        table = json.loads(before.decode("utf-8"))
+        joined = text.replace('" & _\n    "', "")
+        self.assertIn(",".join(producer.expected_token_list(table)), joined)
+        self.assertIn(";".join(producer.conflict_token_list(table)), joined)
+
+    def test_the_rendered_sibling_is_byte_identical_to_the_committed_one(self) -> None:
+        """같은 계획에서 나온 형제 파일은 config 이름과 무관하게 같은 바이트여야 한다.
+
+        계약(SG 집합·충돌 쌍·원본 sha)은 계획에서만 나온다. config 이름이 들어가면
+        그 순간 형제 파일마다 내용이 갈리고 드리프트 대조가 의미를 잃는다.
+        """
+        committed = (
+            ROOT
+            / "evaluation"
+            / "generated"
+            / "real_world_modi_control_config_distributed_core15n41_20260805_sgplan.vbs"
+        )
+        if not committed.is_file():
+            self.skipTest("committed sgplan sibling is not present")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            out_vbs = Path(temp_dir) / "other_config_sgplan.vbs"
+            self.assertEqual(
+                producer.main(["--from-plan", str(CANONICAL_PLAN), "--out-vbs", str(out_vbs)]),
+                0,
+            )
+            self.assertEqual(out_vbs.read_bytes(), committed.read_bytes())
+
+    def test_from_plan_refuses_a_plan_that_did_not_pass(self) -> None:
+        """FAIL 계획으로 형제 파일을 만들 수 없다 - 그러면 fail-closed 가 아니다."""
+        table = json.loads(CANONICAL_PLAN.read_text(encoding="utf-8"))
+        table["status"] = "FAIL"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            broken = Path(temp_dir) / "broken_plan.json"
+            broken.write_text(json.dumps(table, ensure_ascii=False), encoding="utf-8")
+            out_vbs = Path(temp_dir) / "broken_sgplan.vbs"
+            self.assertEqual(
+                producer.main(["--from-plan", str(broken), "--out-vbs", str(out_vbs)]), 1
+            )
+            self.assertFalse(out_vbs.exists())
 
 
 if __name__ == "__main__":

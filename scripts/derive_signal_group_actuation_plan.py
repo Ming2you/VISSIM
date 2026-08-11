@@ -296,13 +296,44 @@ def render_vbs(table: Mapping[str, Any], plan_sha256: str = "") -> str:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Derive the per-signal-group actuation plan")
     parser.add_argument("--network", type=Path, default=DEFAULT_NETWORK)
-    parser.add_argument("--mapping", type=Path, required=True)
+    parser.add_argument("--mapping", type=Path, default=None)
     parser.add_argument("--movement-map", type=Path, default=DEFAULT_MOVEMENT_MAP)
     parser.add_argument("--timing", type=Path, default=DEFAULT_TIMING)
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--out-vbs", type=Path, default=None)
+    # 러너의 sgplan 은 config 마다 형제 파일(<config>_sgplan.vbs)이라 config 를 하나
+    # 더 붙일 때마다 형제 파일이 하나 더 필요하다. 그때 계획을 **다시 유도하면** 추적
+    # 산출물을 덮어쓰게 되므로, 이미 있는 계획에서 형제 파일만 뽑는 길을 따로 둔다.
+    # 실리는 sha 는 어댑터가 실제로 읽는 그 파일의 sha 다.
+    parser.add_argument("--from-plan", type=Path, default=None)
     args = parser.parse_args(argv)
 
+    if args.from_plan is not None:
+        if args.out_vbs is None:
+            parser.error("--from-plan requires --out-vbs")
+        table = json.loads(Path(args.from_plan).read_text(encoding="utf-8"))
+        if str(table.get("status")) != "PASS":
+            print(f"refusing to render a sibling from a {table.get('status')} plan: {args.from_plan}")
+            return 1
+        args.out_vbs.parent.mkdir(parents=True, exist_ok=True)
+        args.out_vbs.write_text(
+            render_vbs(table, _sha256(Path(args.from_plan))), encoding="utf-8", newline="\n"
+        )
+        counts = table["counts"]
+        print(
+            "rendered=%s from=%s groups=%d windows=%d conflicts=%d"
+            % (
+                args.out_vbs,
+                args.from_plan,
+                counts["signal_groups"],
+                counts["planned_windows"],
+                counts["conflict_pairs"],
+            )
+        )
+        return 0
+
+    if args.mapping is None:
+        parser.error("--mapping is required unless --from-plan is given")
     table = derive(args.network, args.mapping, args.movement_map, args.timing)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     text = json.dumps(table, ensure_ascii=False, indent=2) + "\n"
