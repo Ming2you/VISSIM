@@ -559,6 +559,20 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
     if storage_capacity:
         known = set(storage)
         nodes_all = set(signals) | set(uncontrolled or ())
+        # 경계 저류는 **leg 이 실제로 만든 이름**만 존재한다. 유도 대장의 이름은
+        # 배정 산출물의 8방위 링크 기하로 지어지므로(derive_urban_storage_capacity.py:124)
+        # 격자에 그 방위 게이트가 있는지와 무관하다. 예전에는 노드 이름만 맞으면 전부
+        # 받아서, 어느 leg 도 뒷받침하지 않는 유령 저류가 생겼다(2026-08-11 실측:
+        # 생산 격자 56개, 22게이트 후보 62개). 유령은 movement 가 채우지도 비우지도
+        # 않는데 `total_urban_vehicles` 는 저류 키 전수를 세므로, 어댑터가 적재한
+        # 관측 차량이 얼어붙은 채 리더 목적함수에 남는다(생산 실측 평균 360.9 대).
+        gate_out_links = {
+            str(spec["out_link"])
+            for legs in grid_node_legs.values()
+            for spec in legs.values()
+            if spec.get("type") == "boundary"
+        }
+        rejected: list[str] = []
         for name, cap in storage_capacity.items():
             # 유도 이름 중 모델이 실제로 세우는 저류만 받는다: 이미 있는 이름이거나,
             # 양끝이 모두 이 네트워크의 신호인 내부 링크(SCa_to_SCb).
@@ -570,13 +584,17 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
             if sep and a in nodes_all and b in nodes_all:
                 storage[name] = float(cap)
                 continue
-            # 유입 경계 저류 SC{n}_{leg}_out — 상류 SC 가 없는 링크가 담기는 곳이다.
-            # 위 351행은 인접 이웃이 있는 방위만 만들어서, 이웃 없는 방위(진짜 유입구)에는
-            # 저류가 없었다. 그 방위의 링크가 갈 데를 잃어 라우팅에서 224개가 탈락했다.
-            if name.endswith("_out") and name.split("_", 1)[0] in nodes_all:
-                storage[name] = float(cap)
+            # 유입 경계 저류 SC{n}_{leg}_out — 그 방위에 **게이트가 있을 때만** 존재한다.
+            if name.endswith("_out"):
+                if name in gate_out_links:
+                    storage[name] = float(cap)
+                elif name.split("_", 1)[0] in nodes_all:
+                    rejected.append(name)
         print(f"   저류 용량: 유도 {len(storage_capacity)}개 중 {len(storage)-len(known)}개 신규 + "
               f"{len(known & set(storage_capacity))}개 갱신 -> 총 {len(storage)}개")
+        if rejected:
+            print(f"   경계 leg 이 없어 저류를 만들지 않은 유도 이름 {len(rejected)}개: "
+                  f"{sorted(rejected)[:6]}{' ...' if len(rejected) > 6 else ''}")
 
     return {
         "signals": signals,
@@ -865,14 +883,22 @@ def build_detector_mapping(
         storages = set(network_override.get("urban_link_storage_veh", {}))
         stat = {"내부": 0, "경계": 0, "저류없음": 0}
         missing: dict[str, int] = {}
+        unrouted: dict[str, str] = {}
         for link, sc in owner_of.items():
             link = str(link)
             up = upstream_of.get(link)
             name = (f"{signal_id(int(up))}_to_{signal_id(int(sc))}" if up is not None
                     else f"{signal_id(int(sc))}_{leg_of.get(link, '?')}_out")
             if name not in storages:
+                # 모델에 그 저류가 없다. 예전에는 `continue` 라 위(757행)의 방위 살포가
+                # 그대로 남아 링크가 **엉뚱한 저류**(주로 유령)로 흘러들어갔다. 권위
+                # 라우팅이 실패했으면 origin 을 비우고 명시적으로 계상한다 —
+                # 그래야 그 관측분이 어디로도 안 가는 것이 `unrepresented` 로 드러난다.
                 stat["저류없음"] += 1
                 missing[name] = missing.get(name, 0) + 1
+                unrouted[link] = name
+                observable.add(link)
+                link_to_origins[link] = []
                 continue
             observable.add(link)
             link_to_origins[link] = [name]      # 방위 살포를 덮어쓴다(권위)
@@ -924,6 +950,12 @@ def build_detector_mapping(
                 (str(value) for value in (link_assignment.get("monitor_only_exit_links") or [])),
                 key=int,
             ),
+            # 권위 라우팅이 저류를 못 찾아 origin 을 비운 링크와, 그 링크가 원했던 이름.
+            # 비어 있어야 정상이다 — 값이 있으면 그만큼의 관측이 모델 상태에 안 실린다.
+            "unrouted_links": {
+                str(link): str(name)
+                for link, name in sorted(unrouted.items(), key=lambda item: int(item[0]))
+            },
             "source": "outputs/link_player_assignment_20260805.json",
             "assignment_evidence": dict(link_assignment_evidence or {}),
         }
