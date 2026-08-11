@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 import unittest
 from pathlib import Path
 
@@ -15,6 +16,33 @@ generator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(generator)
 
 REAL_ALIGNMENT = ROOT / "outputs/boundary_input_alignment_20260811.json"
+
+
+class _VendorSrcIsolation(unittest.TestCase):
+    """생성기는 vendor/NumSim-mine 의 `src.models` 를 임포트한다.
+
+    전 스위트를 한 프로세스에서 돌리면 `scripts/tests/test_b1a_*` 가 임포트 시점에
+    `plant` 를 sys.path 에 넣어 `sys.modules["src"]` 를 plant/src 로 선점한다.
+    그러면 `src.models` 가 없어 ModuleNotFoundError 가 난다. 단독 실행에서는 안 난다.
+    호출 구간에서만 바인딩을 걷어내고 tearDown 에서 원상복구해 다른 검사에 번지지 않게 한다.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._saved_src = {
+            name: mod for name, mod in sys.modules.items()
+            if name == "src" or name.startswith("src.")
+        }
+        self._saved_path = list(sys.path)
+        for name in self._saved_src:
+            del sys.modules[name]
+
+    def tearDown(self) -> None:
+        sys.path[:] = self._saved_path
+        for name in [n for n in sys.modules if n == "src" or n.startswith("src.")]:
+            del sys.modules[name]
+        sys.modules.update(self._saved_src)
+        super().tearDown()
 
 
 def _vehicle_input(no: str, node: str, name: str, geometry_leg: str | None,
@@ -90,7 +118,7 @@ class BoundaryGatePlanTests(unittest.TestCase):
         self.assertNotIn(("SC9001", "SE"), pairs)
 
 
-class BoundaryGateOverrideTests(unittest.TestCase):
+class BoundaryGateOverrideTests(_VendorSrcIsolation):
     """(a) 정렬 입력이 주어지면 경계 leg 집합이 그것과 정확히 같다."""
 
     ADJACENCY = {"1": {"E_2": 2}, "2": {"W_1": 1}}
