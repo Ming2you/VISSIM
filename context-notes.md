@@ -2390,3 +2390,24 @@ test_native_phase_axis_composition.py` 의 KNOWN MISMATCH 4건은 승격해도 �
   특히 (e)는 작업 4가 정한 "격자 semantic hash" 생산자가 아직 **코드로 없다.**
 - 감사 `reports/` 정본을 안 건드렸다. 임시 경로로만 돌렸고 `git status` 로 확인했다.
 - 실 런을 안 돌렸다. 141.0 의 TTT 영향은 여전히 미측정이다.
+
+### (g) 전 스위트 실측 — vendor 스위트가 원래 초록이 아니다
+
+작업 1이 못 돌린 `scripts/tests` 40모듈을 모듈별 subprocess 로 전부 돌렸다(552건 OK).
+`plant/tests` 11모듈 132건도 OK. `tests/` 154건 중 11 FAIL 은 전부 의도된 KNOWN MISMATCH
+(demand 7 + axis 4)다.
+
+vendor 스위트는 이번에 처음 전수로 돌렸다. 지난 회차는 16건만 봤다.
+
+    45 모듈 중 37 OK / 8 not OK   (실행된 모듈 합계 278건)
+      TIMEOUT 200s      test_constraints, test_six_controller_comparison
+      NO TESTS RAN      test_demand_scenarios
+      FAILED            test_forecast_awareness (4F+1E)  test_post_analysis (2F)
+                        test_rl_ddqn (1E = torch 미설치)  test_segment_local_plant (2F)
+                        test_wu_faithful_follower (1F+2skip)
+
+내 변경 탓이 아니다. `vendor/` 는 `b879269` 이후 이 브랜치의 어느 커밋도 안 건드렸고
+(`git log 3379f1b..HEAD -- vendor/` 비어 있음, working tree 도 clean), 실패 내용도
+freeway VSL / off-ramp forecast / segment coupling 같은 상류 모델 거동이다. 다만
+**이 상태가 언제부터였는지는 확인하지 못했다** — 이전 회차들이 전수를 안 돌렸다.
+vendor 수정 금지라 손대지 않았다.

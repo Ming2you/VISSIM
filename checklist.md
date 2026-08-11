@@ -348,7 +348,7 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
       봉인 8건이 낡았다(파일 3개). `preflight_manifest_v3.json` 과
       `reports/plant_fidelity_evidence_manifest.json` 이 낡은 adapter/runner/config 에 묶여 있다
 - [x] (b) **승격 판단 = NO-GO.** 세 가지가 각각 독립적으로 막는다(아래 context-notes)
-- [x] (g) 전 스위트 — VISSIM `scripts/tests` 40모듈 542건 OK(작업 1 미실행분 해소),
+- [x] (g) 전 스위트 — VISSIM `scripts/tests` 40모듈 552건 OK(작업 1 미실행분 해소),
       `plant/tests` 11모듈 132건 OK, `tests/` 154건 중 11 FAIL(전부 의도된 KNOWN MISMATCH)
 - [x] (f) 감사 재실행(임시 경로) — 게이트 12 PASS / 16 NE / 0 FAIL, 추적본과 **완전 동일**.
       정본 `reports/` 미터치
