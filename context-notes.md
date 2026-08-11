@@ -2085,3 +2085,106 @@ fail-closed 에 걸리지 않는다.
 
 앵커링 기구는 이미 맞고, 남은 것은 격자뿐이라는 뜻이다. 승격하면 대장을 그 config 로
 재생성(`--config`)하고 러너의 `DefaultUrbanInputGateMapPath()` 를 옮기면 된다.
+
+---
+
+## 2026-08-11 (3) — 배정 혈통과 141 대 72 (작업 1)
+
+### 메커니즘 — `tie_status` 가 아니라 `link_to_origins` 가 끊긴다
+
+`tie_status` 자체는 아무 계산에도 안 쓰인다. 오직 생성기의 문지기
+(`generate_real_world_distributed_players.validate_link_assignment:151`)가 읽는
+승인 플래그다. 실제로 물리량을 바꾸는 것은 그 문 뒤의 `--link-assignment-json` 이다.
+
+    배정 있음   link_to_origins  1,194개   32 -> ['SC1004_to_SC1001']
+    배정 없음   link_to_origins    326개   32 -> ['SC1001_N_out','SC1001_S_out','SC1001_E_out','SC1001_W_out']
+
+`derive_movement_signal_group_map.derive_signal_group_phase` 는 SG 의 신호두 링크를
+`link_to_origins` 로 origin 에 붙이고, 그 origin 들의 모델 축이 **하나로 모이면**
+`origin_movement` 로 phase 를 정한다. 배정이 없으면 링크 32 가 저류 4개에 동시에 붙어
+축이 p1·p2 로 갈리고 → `signal_group_name_after_conflict` → SG 이름 규칙으로 떨어진다.
+
+    배정 있음   signal_group_phase_by_method = {origin_movement: 87, signal_group_name: 49}
+    배정 없음   signal_group_phase_by_method = {signal_group_name: 136}   ← 전량 폴백
+
+그 결과가 `native_phase_green` 의 분모다.
+
+    SC1001/SC1004  p1 = SG{2,3,4,5,7,8} -> 141.0 s   (배정 있음)
+                   p1 = SG{3,4,7,8}     ->  72.0 s   (배정 없음, 이름 규칙)
+
+gated 와 ungated 에서 값이 같다 — 격자 재정렬 탓이 아니라는 브리핑의 판단은 맞다.
+
+### 판정 — 72.0 이 실망이다. 141.0 은 현시가 아니다
+
+`.sig` 원본(`개포동 test-bed1001.sig` prog 1 `mor_peak`)을 XML 로 직접 읽었다.
+주기 150 s, 현시 넷이다.
+
+    [0,45]     SG2 EBT  · SG6 WBT
+    [48,72]    SG1 WBL  · SG5 EBL
+    [75,115/126]  SG4 SBT · SG8 NBT
+    [118/129,147] SG3 NBL · SG7 SBL
+
+`.inpx` 신호두 기하로 SG 를 물리 접근 방위에 붙이면 (SG 이름을 안 쓰고) 축이 갈린다.
+
+    링크 32(W 접근) SG2·SG5 | 링크 29·10696(E) SG6·SG1  -> EW 축 69.0 s
+    링크 40(S)      SG3·SG8 | 링크 37(NW)        SG4·SG7 -> NS 축 72.0 s
+
+두 축의 동시 녹색은 **0 s** 다. 141.0 = 69 + 72 로, 두 축의 합집합이지 현시가 아니다.
+한 현시가 주기의 94% 를 먹을 수는 없다.
+
+### 그러면 왜 141.0 이 나오나 — 격자 leg 방위가 물리 접근과 어긋난다
+
+`derive_intersection_adjacency.py:183` 이 leg 방위를 **두 교차로 중심 사이 방위각**으로
+정한다. SC1004 는 SC1001 의 남쪽이라 leg 키가 `S_SC1004` 다. 그런데 그 접근을 나르는
+정지선 링크 32 는 SC1001 에 **서쪽에서** 들어온다. 배정 산출물 자신이 이미
+`link_leg["32"] = "W"`, `link_leg["71"] = "SW"` 로 알고 있다.
+
+`fixed_signal_schedule.NS_AXIS` 가 leg 키의 방위로 phase 를 정하므로 `S_SC1004` 는 p1 이
+되고, 그 origin 을 잡는 SG2·SG5(실제로는 EW 축)가 p1 으로 끌려 들어간다.
+
+되돌림 증명으로 이걸 못박았다 — 검사에서 축 분류에 `W` 를 NS 쪽으로 옮기니
+p1 이 정확히 `{2,3,4,5,7,8}` = 141.0 s 가 되고 두 축 겹침이 69.0 s 로 나온다.
+**생산 표의 141.0 은 "서쪽 접근을 남쪽으로 본" 결과와 비트 단위로 같다.**
+
+### 혈통 복구 — 승인 경로가 유일하다
+
+`assign_links_to_players` 의 `tie_evidence.status` 는 tie 가 하나라도 있으면
+정책과 무관하게 UNRESOLVED 다. 세 정책 전부 downstream 33 · ambiguous upstream 6 이다.
+**이 망에서 CLEAR 는 도달 불가능** 이므로 "CLEAR 를 재생성" 은 실재하는 선택지가 아니다.
+남는 길은 `--assignment-approval-manifest` 뿐이고, 가드 주석도 그렇게 설계돼 있다.
+
+정책은 `freeway-first` 를 골랐다. 근거는 재현 불가능성이다 — 생산 산출물
+`link_player_assignment_20260805.json` 은 구판(897fc0f)이 만든 것인데 그 판은
+`downstream` **집합**을 순회하는 deque BFS 라 tie 해소가 문자열 해시 순서에 달렸다.
+같은 입력으로 5회 돌리니 귀속이 968 / 972 / 972 / 962 / 958 로 매번 달랐고
+생산 산출물(957)과 같은 것은 하나도 없었다. 생산 배정은 **한 번의 난수 추첨** 이다.
+
+    freeway-first  957 / 22 / 226   생산과 범주 개수 일치. 차이는 tie 항목 안에만
+                                    (link_owner 3, freeway_bound 값 11, upstream 6)
+    lowest-id      957 / 22 / 226   owner 2건 차이 (141, 360)
+    signal-first   973 /  6 / 226   16개 링크가 freeway -> signal 로 이동
+
+링크 32·71 의 owner/leg/upstream 은 다섯 번의 구판 실행과 세 정책 전부에서 동일하다.
+141.0 판정은 tie 난수의 영향을 받지 않는다.
+
+### 복구 후 실측 (작업 1-4)
+
+새 격자(gated, 경계 leg 22) + 복구된 배정으로 생성하고 매핑을 다시 유도했다.
+
+    미해결 movement  123 -> 37 (전부 synthetic_boundary_leg)
+    해소 방법        {name fallback 136} -> {origin_movement 87, signal_group_name 49}
+    SC1001/SC1004 p1        141.0 s   ← 생산과 같다. "유지" 된다
+    SC1001/SC1004 p2         69.0 s
+
+즉 혈통 복구는 매핑 커버리지를 실제로 되살리고, 그러면서 141.0 결함을 **다시 드러낸다**.
+141.0 은 혈통이 만든 것이 아니라 격자 leg 방위가 만든 것이고, 혈통은 그걸 충실히 옮길 뿐이다.
+
+### 하지 않은 것
+
+- **승인 매니페스트에 서명하지 않았다.** `outputs/link_player_assignment_approval_20260811.draft.json`
+  은 `approved:false` 초안이다. 이 가드의 목적이 사람의 명시적 승인이므로 에이전트가
+  대신 서명하면 가드를 위조하는 것이다. 위 실측은 스크래치패드의 진단용 fixture 로 돌렸고
+  그 산출물은 지웠다.
+- **격자 leg 방위를 고치지 않았다.** `S_SC1004` -> `W_SC1004` 로 바꾸면 SC1001·SC1004 의
+  movement 집합·phase·저류 이름이 전부 바뀐다. 파급이 크고 사용자 결정 사항이다.
+- **141.0 이 실 런 TTT 에 얼마나 영향을 주는지는 안 쟀다.** 런이 필요하다.
