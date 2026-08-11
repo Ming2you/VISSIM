@@ -1,0 +1,2373 @@
+{
+ "schema_version": 1,
+ "generator": "scripts/derive_boundary_input_alignment.py",
+ "sources": {
+  "network": {
+   "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+   "sha256": "f3ce390f281c2bd60a367435dd5567767edafb4681cb66a2c566a480aa74d635"
+  },
+  "vehicle_input_roles": {
+   "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv",
+   "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+  },
+  "sc_roles": {
+   "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\real_world_modi_inventory\\signal_controller_roles.csv",
+   "sha256": "376f1a23efab8ae4270aba09e72d3cf75915a885b24a6f32464a3ef800bb5ead"
+  },
+  "assignment": {
+   "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\link_player_assignment_20260805.json",
+   "sha256": "ba9c13ba9fe9e05c51866a50221a1054d73a3379315bf97c108a0552397eb01f"
+  },
+  "config": {
+   "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\configs\\real_world_modi_pstack_distributed_core15n41_20260805.json",
+   "sha256": "e5f8adcb2cba949cad6e2b7e8d98c80710925632e66ec17bc8472c96343c4fd4"
+  }
+ },
+ "bearing_convention": {
+  "frame": "inpx linkPolyPoint x/y; SC centroid = mean signal-head position (same frame)",
+  "north_dir_attribute": "0",
+  "leg_orientation": "outward_from_intersection_centre",
+  "primary_estimator": "link_chord_reversed",
+  "ground_truth": "signal group names NBT/SBT/EBT/WBT declare the travel direction; the approach leg is its opposite",
+  "estimator_scoreboard": [
+   {
+    "estimator": "centroid_to_link_start",
+    "n": 170,
+    "median_abs_error_deg": 29.028,
+    "mean_abs_error_deg": 37.397,
+    "gross_error_gt_45deg": 38,
+    "is_primary": false
+   },
+   {
+    "estimator": "link_chord_reversed",
+    "n": 170,
+    "median_abs_error_deg": 23.747,
+    "mean_abs_error_deg": 31.414,
+    "gross_error_gt_45deg": 11,
+    "is_primary": true
+   },
+   {
+    "estimator": "link_last_segment_reversed",
+    "n": 170,
+    "median_abs_error_deg": 24.451,
+    "mean_abs_error_deg": 31.304,
+    "gross_error_gt_45deg": 13,
+    "is_primary": false
+   },
+   {
+    "estimator": "centroid_to_signal_head",
+    "n": 170,
+    "median_abs_error_deg": 42.295,
+    "mean_abs_error_deg": 56.557,
+    "gross_error_gt_45deg": 79,
+    "is_primary": false
+   }
+  ],
+  "assignment_leg_reproduction": {
+   "estimator": "centroid_to_link_start",
+   "n": 957,
+   "match": 957,
+   "mismatch_examples": []
+  }
+ },
+ "vehicle_inputs": [
+  {
+   "vehicle_input_no": "114",
+   "link": "364",
+   "name": "우리은행포이_NB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    109.76,
+    156.8,
+    164.64,
+    141.12,
+    109.76,
+    78.4
+   ],
+   "downstream_sc": "9001",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "364",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 245.488,
+    "link_chord_reversed": 301.07,
+    "link_last_segment_reversed": 280.594,
+    "centroid_to_signal_head": 203.91
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "S",
+    "centroid_to_link_start": "SW",
+    "centroid_to_signal_head": "SW",
+    "assignment": "SW"
+   },
+   "model_node": "SC9001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC9002",
+    "W_SC105"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "194",
+   "link": "1220013100",
+   "name": "개포주민센터_NB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    54.32,
+    77.6,
+    81.48,
+    69.84,
+    54.32,
+    38.8
+   ],
+   "downstream_sc": "13",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "1220013100",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 309.696,
+    "link_chord_reversed": 300.418,
+    "link_last_segment_reversed": 289.03,
+    "centroid_to_signal_head": 359.39
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "S",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "E",
+    "assignment": "SE"
+   },
+   "model_node": "SC13",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC106",
+    "NW_SC10",
+    "S_SC16",
+    "W_SC12",
+    "W_SC3"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "282",
+   "link": "1220011200",
+   "name": "경기여고_WB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    87.92,
+    125.6,
+    131.88,
+    113.04,
+    87.92,
+    62.8
+   ],
+   "downstream_sc": "16",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "1220011200",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 22.547,
+    "link_chord_reversed": 21.991,
+    "link_last_segment_reversed": 29.64,
+    "centroid_to_signal_head": 31.216
+   },
+   "leg": {
+    "link_geometry": "E",
+    "link_last_segment": "NE",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC16",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "N_SC12",
+    "N_SC13",
+    "SE_SC17",
+    "SW_SC7"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC16_E"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1013",
+   "link": "117",
+   "name": "매봉터널_SB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    585.76,
+    836.8,
+    878.64,
+    753.12,
+    585.76,
+    418.4
+   ],
+   "downstream_sc": "2005",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "117",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 113.012,
+    "link_chord_reversed": 111.393,
+    "link_last_segment_reversed": 111.393,
+    "centroid_to_signal_head": 131.611
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "NW",
+    "centroid_to_signal_head": "NW",
+    "assignment": "NW"
+   },
+   "model_node": "SC2005",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC102",
+    "SE_SC101",
+    "SW_SC1002",
+    "W_SC2004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2005_N"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1023",
+   "link": "293",
+   "name": "도곡역_SB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    416.08,
+    594.4,
+    624.12,
+    534.96,
+    416.08,
+    297.2
+   ],
+   "downstream_sc": "102",
+   "downstream_hops": 6,
+   "downstream_ties": [],
+   "stop_line_link": "1220023101",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 112.923,
+    "link_chord_reversed": 110.877,
+    "link_last_segment_reversed": 111.863,
+    "centroid_to_signal_head": 115.767
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "NW",
+    "centroid_to_signal_head": "NW",
+    "assignment": "NW"
+   },
+   "model_node": "SC102",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC103",
+    "S_SC9003",
+    "W_SC2005"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC102_N"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1032",
+   "link": "55",
+   "name": "대치역_WB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    1250.48,
+    1786.4,
+    1875.72,
+    1607.76,
+    1250.48,
+    893.2
+   ],
+   "downstream_sc": "104",
+   "downstream_hops": 6,
+   "downstream_ties": [],
+   "stop_line_link": "1220061200",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 22.742,
+    "link_chord_reversed": 20.211,
+    "link_last_segment_reversed": 18.576,
+    "centroid_to_signal_head": 29.842
+   },
+   "leg": {
+    "link_geometry": "E",
+    "link_last_segment": "E",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC104",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "SE_SC106",
+    "W_SC14"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC104_E"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1033",
+   "link": "113",
+   "name": "대치역_SB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    535.92,
+    765.6,
+    803.88,
+    689.04,
+    535.92,
+    382.8
+   ],
+   "downstream_sc": "103",
+   "downstream_hops": 2,
+   "downstream_ties": [],
+   "stop_line_link": "1220024801",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 115.431,
+    "link_chord_reversed": 113.592,
+    "link_last_segment_reversed": 113.592,
+    "centroid_to_signal_head": 124.21
+   },
+   "leg": {
+    "link_geometry": "NW",
+    "link_last_segment": "NW",
+    "centroid_to_link_start": "NW",
+    "centroid_to_signal_head": "NW",
+    "assignment": "NW"
+   },
+   "model_node": "SC103",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "SE_SC9",
+    "SW_SC102"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1052",
+   "link": "13",
+   "name": "대모산역사거리_WB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    207.2,
+    296.0,
+    310.8,
+    266.4,
+    207.2,
+    148.0
+   ],
+   "downstream_sc": "106",
+   "downstream_hops": 8,
+   "downstream_ties": [],
+   "stop_line_link": "1220017202",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 24.791,
+    "link_chord_reversed": 22.123,
+    "link_last_segment_reversed": 22.123,
+    "centroid_to_signal_head": 39.038
+   },
+   "leg": {
+    "link_geometry": "E",
+    "link_last_segment": "E",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC106",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC104",
+    "SW_SC13"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC106_E"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1053",
+   "link": "60",
+   "name": "대모산역사거리_SB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    506.8,
+    724.0,
+    760.2,
+    651.6,
+    506.8,
+    362.0
+   ],
+   "downstream_sc": "104",
+   "downstream_hops": 4,
+   "downstream_ties": [],
+   "stop_line_link": "1220002202",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 116.642,
+    "link_chord_reversed": 112.801,
+    "link_last_segment_reversed": 108.061,
+    "centroid_to_signal_head": 129.765
+   },
+   "leg": {
+    "link_geometry": "NW",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "NW",
+    "centroid_to_signal_head": "NW",
+    "assignment": "NW"
+   },
+   "model_node": "SC104",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "SE_SC106",
+    "W_SC14"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1054",
+   "link": "42",
+   "name": "대모산역사거리_NB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    499.52,
+    713.6,
+    749.28,
+    642.24,
+    499.52,
+    356.8
+   ],
+   "downstream_sc": "106",
+   "downstream_hops": 8,
+   "downstream_ties": [],
+   "stop_line_link": "1220001200",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 298.667,
+    "link_chord_reversed": 293.402,
+    "link_last_segment_reversed": 292.953,
+    "centroid_to_signal_head": 308.473
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC106",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC104",
+    "SW_SC13"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1064",
+   "link": "379",
+   "name": "구룡터널_NB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    269.36,
+    384.8,
+    404.04,
+    346.32,
+    269.36,
+    192.4
+   ],
+   "downstream_sc": "107",
+   "downstream_hops": 4,
+   "downstream_ties": [],
+   "stop_line_link": "382",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 319.512,
+    "link_chord_reversed": 311.018,
+    "link_last_segment_reversed": 311.018,
+    "centroid_to_signal_head": 326.818
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC107",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC108",
+    "NW_SC1",
+    "SW_SC1004",
+    "SW_SC1005"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1065",
+   "link": "1220042300",
+   "name": "구룡터널_NB(터널직진)",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    890.4,
+    1272.0,
+    1335.6,
+    1144.8,
+    890.4,
+    636.0
+   ],
+   "downstream_sc": "1",
+   "downstream_hops": 6,
+   "downstream_ties": [],
+   "stop_line_link": "1220006903",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 309.215,
+    "link_chord_reversed": 308.191,
+    "link_last_segment_reversed": 308.191,
+    "centroid_to_signal_head": 312.398
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC1",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC2",
+    "NW_SC15",
+    "SE_SC107",
+    "SW_SC9002"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1074",
+   "link": "1220044500",
+   "name": "구룡마을_NB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    596.96,
+    852.8,
+    895.44,
+    767.52,
+    596.96,
+    426.4
+   ],
+   "downstream_sc": "108",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "1220044500",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 309.245,
+    "link_chord_reversed": 309.828,
+    "link_last_segment_reversed": 314.337,
+    "centroid_to_signal_head": 286.617
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "S",
+    "assignment": "SE"
+   },
+   "model_node": "SC108",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC109",
+    "NE_SC17",
+    "NW_SC8",
+    "SW_SC107"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1082",
+   "link": "1220000704",
+   "name": "개포3,4단지_WB",
+   "role": "urban_input",
+   "entry_class": "named",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    897.12,
+    1281.6,
+    1345.68,
+    1153.44,
+    897.12,
+    640.8
+   ],
+   "downstream_sc": "109",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "1220000704",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 42.393,
+    "link_chord_reversed": 41.724,
+    "link_last_segment_reversed": 44.435,
+    "centroid_to_signal_head": 56.45
+   },
+   "leg": {
+    "link_geometry": "NE",
+    "link_last_segment": "NE",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC109",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC17",
+    "SW_SC108"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1083",
+   "link": "21",
+   "name": "Dummy link 1",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    280.0,
+    400.0,
+    420.0,
+    360.0,
+    280.0,
+    200.0
+   ],
+   "downstream_sc": "108",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "21",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 312.564,
+    "link_chord_reversed": 279.437,
+    "link_last_segment_reversed": 271.248,
+    "centroid_to_signal_head": 341.643
+   },
+   "leg": {
+    "link_geometry": "S",
+    "link_last_segment": "S",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "E",
+    "assignment": "SE"
+   },
+   "model_node": "SC108",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC109",
+    "NE_SC17",
+    "NW_SC8",
+    "SW_SC107"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC108_S"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1085",
+   "link": "138",
+   "name": "Dummy Link 6",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    280.0,
+    400.0,
+    420.0,
+    360.0,
+    280.0,
+    200.0
+   ],
+   "downstream_sc": "10",
+   "downstream_hops": 2,
+   "downstream_ties": [],
+   "stop_line_link": "1220018301",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 299.795,
+    "link_chord_reversed": 292.777,
+    "link_last_segment_reversed": 293.044,
+    "centroid_to_signal_head": 317.078
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC10",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC6",
+    "SE_SC12",
+    "SE_SC13"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1086",
+   "link": "343",
+   "name": "Dummy link 3",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    196.0,
+    280.0,
+    294.0,
+    252.0,
+    196.0,
+    140.0
+   ],
+   "downstream_sc": "15",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "343",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 219.55,
+    "link_chord_reversed": 219.616,
+    "link_last_segment_reversed": 218.886,
+    "centroid_to_signal_head": 219.137
+   },
+   "leg": {
+    "link_geometry": "SW",
+    "link_last_segment": "SW",
+    "centroid_to_link_start": "SW",
+    "centroid_to_signal_head": "SW",
+    "assignment": "SW"
+   },
+   "model_node": "SC15",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC101",
+    "SE_SC1"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1087",
+   "link": "341",
+   "name": "Dummy link 4",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    196.0,
+    280.0,
+    294.0,
+    252.0,
+    196.0,
+    140.0
+   ],
+   "downstream_sc": "15",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "341",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 45.273,
+    "link_chord_reversed": 38.667,
+    "link_last_segment_reversed": 35.365,
+    "centroid_to_signal_head": 60.007
+   },
+   "leg": {
+    "link_geometry": "NE",
+    "link_last_segment": "NE",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC15",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NW_SC101",
+    "SE_SC1"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1091",
+   "link": "236",
+   "name": "Dummy Link 8",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    112.0,
+    160.0,
+    168.0,
+    144.0,
+    112.0,
+    80.0
+   ],
+   "downstream_sc": "2",
+   "downstream_hops": 2,
+   "downstream_ties": [
+    "SC11@1210008303"
+   ],
+   "stop_line_link": "1210008203",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 49.0,
+    "link_chord_reversed": 59.629,
+    "link_last_segment_reversed": 59.36,
+    "centroid_to_signal_head": 46.461
+   },
+   "leg": {
+    "link_geometry": "NE",
+    "link_last_segment": "NE",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC2",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC11",
+    "N_SC18",
+    "SW_SC1"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1092",
+   "link": "217",
+   "name": "Dummy Link 9",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    42.0,
+    60.0,
+    63.0,
+    54.0,
+    42.0,
+    30.0
+   ],
+   "downstream_sc": "3",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "217",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 61.352,
+    "link_chord_reversed": 109.071,
+    "link_last_segment_reversed": 133.215,
+    "centroid_to_signal_head": 45.888
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "NW",
+    "centroid_to_link_start": "NE",
+    "centroid_to_signal_head": "NE",
+    "assignment": "NE"
+   },
+   "model_node": "SC3",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC13",
+    "NE_SC12",
+    "SW_SC11",
+    "W_SC18"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC3_N"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1093",
+   "link": "225",
+   "name": "Dummy Link 10",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    42.0,
+    60.0,
+    63.0,
+    54.0,
+    42.0,
+    30.0
+   ],
+   "downstream_sc": "3",
+   "downstream_hops": 2,
+   "downstream_ties": [
+    "SC11@1220012001"
+   ],
+   "stop_line_link": "1220012102",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 218.551,
+    "link_chord_reversed": 212.064,
+    "link_last_segment_reversed": 224.073,
+    "centroid_to_signal_head": 22.097
+   },
+   "leg": {
+    "link_geometry": "SW",
+    "link_last_segment": "SW",
+    "centroid_to_link_start": "SW",
+    "centroid_to_signal_head": "E",
+    "assignment": "NE"
+   },
+   "model_node": "SC3",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC13",
+    "NE_SC12",
+    "SW_SC11",
+    "W_SC18"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1095",
+   "link": "164",
+   "name": "Dummy Linl 11",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    168.0,
+    240.0,
+    252.0,
+    216.0,
+    168.0,
+    120.0
+   ],
+   "downstream_sc": "16",
+   "downstream_hops": 4,
+   "downstream_ties": [],
+   "stop_line_link": "1210009503",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 295.565,
+    "link_chord_reversed": 292.145,
+    "link_last_segment_reversed": 291.409,
+    "centroid_to_signal_head": 304.799
+   },
+   "leg": {
+    "link_geometry": "S",
+    "link_last_segment": "S",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC16",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "N_SC12",
+    "N_SC13",
+    "SE_SC17",
+    "SW_SC7"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC16_S"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1096",
+   "link": "201",
+   "name": "Dummy Link 5",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    56.0,
+    80.0,
+    84.0,
+    72.0,
+    56.0,
+    40.0
+   ],
+   "downstream_sc": "16",
+   "downstream_hops": 2,
+   "downstream_ties": [],
+   "stop_line_link": "1210009700",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 218.779,
+    "link_chord_reversed": 218.414,
+    "link_last_segment_reversed": 208.468,
+    "centroid_to_signal_head": 220.124
+   },
+   "leg": {
+    "link_geometry": "SW",
+    "link_last_segment": "SW",
+    "centroid_to_link_start": "SW",
+    "centroid_to_signal_head": "SW",
+    "assignment": "SW"
+   },
+   "model_node": "SC16",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "N_SC12",
+    "N_SC13",
+    "SE_SC17",
+    "SW_SC7"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1097",
+   "link": "256",
+   "name": "Dummy Link 12",
+   "role": "urban_input",
+   "entry_class": "dummy",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    112.0,
+    160.0,
+    168.0,
+    144.0,
+    112.0,
+    80.0
+   ],
+   "downstream_sc": "5",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "256",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 330.598,
+    "link_chord_reversed": 340.503,
+    "link_last_segment_reversed": 291.63,
+    "centroid_to_signal_head": 317.732
+   },
+   "leg": {
+    "link_geometry": "E",
+    "link_last_segment": "S",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC5",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC4",
+    "N_SC9003",
+    "SE_SC11",
+    "SE_SC18",
+    "SW_SC101"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC5_E"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_occupied_by_grid_neighbour",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1098",
+   "link": "74",
+   "name": "경부_EB",
+   "role": "freeway_feeder_input_candidate",
+   "entry_class": "freeway",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    3080.0,
+    4400.0,
+    4620.0,
+    3960.0,
+    3080.0,
+    2200.0
+   ],
+   "downstream_sc": "1001",
+   "downstream_hops": 4,
+   "downstream_ties": [],
+   "stop_line_link": "32",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 189.824,
+    "link_chord_reversed": 189.703,
+    "link_last_segment_reversed": 189.703,
+    "centroid_to_signal_head": 193.537
+   },
+   "leg": {
+    "link_geometry": "W",
+    "link_last_segment": "W",
+    "centroid_to_link_start": "W",
+    "centroid_to_signal_head": "W",
+    "assignment": null
+   },
+   "model_node": "SC1001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "E_SC1002",
+    "NW_SC2001",
+    "NW_SC2002",
+    "S_SC1003",
+    "S_SC1004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC1001_W"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_undetermined",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1099",
+   "link": "26",
+   "name": "경부_NB",
+   "role": "freeway_mainline_input",
+   "entry_class": "freeway",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    3080.0,
+    4400.0,
+    4620.0,
+    3960.0,
+    3080.0,
+    2200.0
+   ],
+   "downstream_sc": "1001",
+   "downstream_hops": 2,
+   "downstream_ties": [],
+   "stop_line_link": "32",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 189.824,
+    "link_chord_reversed": 189.703,
+    "link_last_segment_reversed": 189.703,
+    "centroid_to_signal_head": 193.537
+   },
+   "leg": {
+    "link_geometry": "W",
+    "link_last_segment": "W",
+    "centroid_to_link_start": "W",
+    "centroid_to_signal_head": "W",
+    "assignment": null
+   },
+   "model_node": "SC1001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "E_SC1002",
+    "NW_SC2001",
+    "NW_SC2002",
+    "S_SC1003",
+    "S_SC1004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC1001_W"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_undetermined",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1100",
+   "link": "66",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    566.16,
+    808.8,
+    849.24,
+    727.92,
+    566.16,
+    404.4
+   ],
+   "downstream_sc": "1004",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "66",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 329.594,
+    "link_chord_reversed": 329.505,
+    "link_last_segment_reversed": 311.477,
+    "centroid_to_signal_head": 335.253
+   },
+   "leg": {
+    "link_geometry": "SE",
+    "link_last_segment": "SE",
+    "centroid_to_link_start": "SE",
+    "centroid_to_signal_head": "SE",
+    "assignment": "SE"
+   },
+   "model_node": "SC1004",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC1005",
+    "NE_SC107",
+    "NW_SC1003",
+    "NW_SC2001",
+    "N_SC1001"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1101",
+   "link": "69",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    934.0,
+    1333.0,
+    1400.0,
+    1200.0,
+    934.0,
+    667.0
+   ],
+   "downstream_sc": "1004",
+   "downstream_hops": 2,
+   "downstream_ties": [],
+   "stop_line_link": "71",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 227.329,
+    "link_chord_reversed": 220.937,
+    "link_last_segment_reversed": 220.937,
+    "centroid_to_signal_head": 241.675
+   },
+   "leg": {
+    "link_geometry": "SW",
+    "link_last_segment": "SW",
+    "centroid_to_link_start": "SW",
+    "centroid_to_signal_head": "SW",
+    "assignment": null
+   },
+   "model_node": "SC1004",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "E",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "NE_SC1005",
+    "NE_SC107",
+    "NW_SC1003",
+    "NW_SC2001",
+    "N_SC1001"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_undetermined",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1102",
+   "link": "32",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    933.0,
+    1333.0,
+    1400.0,
+    1200.0,
+    933.0,
+    667.0
+   ],
+   "downstream_sc": "1001",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "32",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 189.824,
+    "link_chord_reversed": 189.703,
+    "link_last_segment_reversed": 189.703,
+    "centroid_to_signal_head": 193.537
+   },
+   "leg": {
+    "link_geometry": "W",
+    "link_last_segment": "W",
+    "centroid_to_link_start": "W",
+    "centroid_to_signal_head": "W",
+    "assignment": "W"
+   },
+   "model_node": "SC1001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "E_SC1002",
+    "NW_SC2001",
+    "NW_SC2002",
+    "S_SC1003",
+    "S_SC1004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC1001_W"
+    },
+    "assignment": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC1001_W"
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1103",
+   "link": "90",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    168.0,
+    240.0,
+    252.0,
+    216.0,
+    168.0,
+    120.0
+   ],
+   "downstream_sc": "2002",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "90",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 113.113,
+    "link_chord_reversed": 112.033,
+    "link_last_segment_reversed": 112.033,
+    "centroid_to_signal_head": 128.691
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "NW",
+    "centroid_to_signal_head": "NW",
+    "assignment": "NW"
+   },
+   "model_node": "SC2002",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC2003",
+    "SE_SC1001",
+    "W_SC2001"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2002_N"
+    },
+    "assignment": {
+     "status": "unaligned",
+     "reason": "leg_absent_at_node",
+     "gate": null
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1104",
+   "link": "112",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    56.0,
+    80.0,
+    84.0,
+    72.0,
+    56.0,
+    40.0
+   ],
+   "downstream_sc": "2004",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "112",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 111.758,
+    "link_chord_reversed": 110.475,
+    "link_last_segment_reversed": 110.475,
+    "centroid_to_signal_head": 127.751
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "N",
+    "centroid_to_signal_head": "NW",
+    "assignment": "N"
+   },
+   "model_node": "SC2004",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N"
+   ],
+   "model_node_grid_legs": [
+    "E_SC2005",
+    "S_SC1002",
+    "W_SC2003"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2004_N"
+    },
+    "assignment": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2004_N"
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1105",
+   "link": "99",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    566.16,
+    808.8,
+    849.24,
+    727.92,
+    566.16,
+    404.4
+   ],
+   "downstream_sc": "2003",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "99",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 111.001,
+    "link_chord_reversed": 111.285,
+    "link_last_segment_reversed": 111.285,
+    "centroid_to_signal_head": 106.255
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "N",
+    "centroid_to_signal_head": "N",
+    "assignment": "N"
+   },
+   "model_node": "SC2003",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S"
+   ],
+   "model_node_grid_legs": [
+    "E_SC2004",
+    "W_SC2002"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2003_N"
+    },
+    "assignment": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2003_N"
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1106",
+   "link": "80",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    566.16,
+    808.8,
+    849.24,
+    727.92,
+    566.16,
+    404.4
+   ],
+   "downstream_sc": "2001",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "80",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 112.111,
+    "link_chord_reversed": 111.314,
+    "link_last_segment_reversed": 111.314,
+    "centroid_to_signal_head": 126.265
+   },
+   "leg": {
+    "link_geometry": "N",
+    "link_last_segment": "N",
+    "centroid_to_link_start": "N",
+    "centroid_to_signal_head": "NW",
+    "assignment": "N"
+   },
+   "model_node": "SC2001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "E_SC2002",
+    "SE_SC1001",
+    "SE_SC1004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2001_N"
+    },
+    "assignment": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2001_N"
+    }
+   }
+  },
+  {
+   "vehicle_input_no": "1107",
+   "link": "76",
+   "name": "",
+   "role": "urban_input",
+   "entry_class": "unnamed",
+   "time_intervals_sec": [
+    0.0,
+    900.0,
+    1800.0,
+    2700.0,
+    3600.0,
+    4500.0
+   ],
+   "volumes_vph": [
+    566.16,
+    808.8,
+    849.24,
+    727.92,
+    566.16,
+    404.4
+   ],
+   "downstream_sc": "2001",
+   "downstream_hops": 0,
+   "downstream_ties": [],
+   "stop_line_link": "76",
+   "leg_bearing_deg": {
+    "centroid_to_link_start": 202.018,
+    "link_chord_reversed": 200.905,
+    "link_last_segment_reversed": 200.905,
+    "centroid_to_signal_head": 216.24
+   },
+   "leg": {
+    "link_geometry": "W",
+    "link_last_segment": "W",
+    "centroid_to_link_start": "W",
+    "centroid_to_signal_head": "SW",
+    "assignment": "W"
+   },
+   "model_node": "SC2001",
+   "model_node_present": true,
+   "model_node_boundary_gates": [
+    "N",
+    "S",
+    "W"
+   ],
+   "model_node_grid_legs": [
+    "E_SC2002",
+    "SE_SC1001",
+    "SE_SC1004"
+   ],
+   "alignment": {
+    "link_geometry": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2001_W"
+    },
+    "assignment": {
+     "status": "aligned",
+     "reason": "boundary_gate_on_same_leg",
+     "gate": "in_SC2001_W"
+    }
+   }
+  }
+ ],
+ "summary": {
+  "vehicle_input_count": 34,
+  "by_role": {
+   "freeway_feeder_input_candidate": 1,
+   "freeway_mainline_input": 1,
+   "urban_input": 32
+  },
+  "by_entry_class": {
+   "dummy": 10,
+   "freeway": 2,
+   "named": 14,
+   "unnamed": 8
+  },
+  "join": {
+   "resolved": 34,
+   "unresolved": 0
+  },
+  "urban_entry_points": {
+   "count": 22,
+   "first_volume_vph": 11263.24,
+   "peak_volume_vph": 16894.36,
+   "by_entry_class": {
+    "named": {
+     "count": 14,
+     "first_volume_vph": 6907.6,
+     "peak_volume_vph": 10361.4
+    },
+    "unnamed": {
+     "count": 8,
+     "first_volume_vph": 4355.64,
+     "peak_volume_vph": 6532.96
+    }
+   },
+   "by_estimator": {
+    "link_geometry": {
+     "aligned": 11,
+     "unaligned": 11,
+     "diagonal_leg": 11,
+     "cardinal_leg": 11,
+     "undetermined_leg": 0,
+     "unaligned_reasons": {
+      "leg_absent_at_node": 10,
+      "leg_occupied_by_grid_neighbour": 1
+     },
+     "aligned_volume": {
+      "first_volume_vph": 5402.92,
+      "peak_volume_vph": 8104.88
+     },
+     "unaligned_volume": {
+      "first_volume_vph": 5860.32,
+      "peak_volume_vph": 8789.48
+     },
+     "matched_gates": [
+      "in_SC1001_W",
+      "in_SC102_N",
+      "in_SC104_E",
+      "in_SC106_E",
+      "in_SC16_E",
+      "in_SC2001_N",
+      "in_SC2001_W",
+      "in_SC2002_N",
+      "in_SC2003_N",
+      "in_SC2004_N",
+      "in_SC2005_N"
+     ]
+    },
+    "assignment": {
+     "aligned": 5,
+     "unaligned": 17,
+     "diagonal_leg": 16,
+     "cardinal_leg": 5,
+     "undetermined_leg": 1,
+     "unaligned_reasons": {
+      "leg_absent_at_node": 15,
+      "leg_occupied_by_grid_neighbour": 1,
+      "leg_undetermined": 1
+     },
+     "aligned_volume": {
+      "first_volume_vph": 2687.48,
+      "peak_volume_vph": 4031.72
+     },
+     "unaligned_volume": {
+      "first_volume_vph": 8575.76,
+      "peak_volume_vph": 12862.64
+     },
+     "matched_gates": [
+      "in_SC1001_W",
+      "in_SC2001_N",
+      "in_SC2001_W",
+      "in_SC2003_N",
+      "in_SC2004_N"
+     ]
+    }
+   }
+  },
+  "dummy_inputs": {
+   "count": 10,
+   "first_volume_vph": 1484.0,
+   "peak_volume_vph": 2226.0
+  },
+  "model_gates": {
+   "node_count": 41,
+   "boundary_leg_count": 119,
+   "boundary_in_declared": 117,
+   "boundary_out_declared": 119,
+   "gates_with_matched_input_link_geometry": 11,
+   "gates_without_matched_input_link_geometry": 106,
+   "gates_with_matched_input_assignment": 5,
+   "gates_without_matched_input_assignment": 112
+  }
+ }
+}
