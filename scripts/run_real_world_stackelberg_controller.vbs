@@ -182,8 +182,14 @@ ParseSignalGroupPlanConfig
 
 Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
+' N4-0. 현시 전이당 clearance 는 실 프로그램과 같아야 한다. 2026-08-12 실측 - 제어 15 SC 의
+' 활성 프로그램(inpx supplyFile2 + progNo)에서 녹색창 118개 중 116개가 amber 정확히 3.0 s
+' 이고 녹색 끝에서 다음 SG 녹색 시작까지의 간격도 정확히 3.0 s 다. 즉 all-red 는 없다.
+' (나머지 2개는 SC5 SG10/14 의 주기 경계 wrap 이라 전이가 아니다. `signalsequence` 도 15 SC
+' 전부 RED -> GREEN -> AMBER(fixed 3.0) 하나뿐이다.)
+' ALL_RED_SEC = 2 이던 동안 러너는 전이당 5 s 를 태워 실 프로그램보다 전이마다 2 s 길었다.
 Const AMBER_SEC = 3
-Const ALL_RED_SEC = 2
+Const ALL_RED_SEC = 0
 Const B1A_POSITION_TOLERANCE_M = 0.000001
 ' VISSIM hands a vehicle to a link before its reference point reaches the link start, so
 ' Pos is briefly negative while the vehicle straddles the boundary. Measured 2026-08-07:

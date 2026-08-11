@@ -40,7 +40,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from evaluation.controllers import signal_group_plan
+from evaluation.controllers import plant_cycle, signal_group_plan
 
 try:
     from .test_b1a_vbs_verified_capture_static import SOURCE, procedure
@@ -61,9 +61,8 @@ NETWORK = ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inp
 
 CSCRIPT = shutil.which("cscript.exe") or shutil.which("cscript")
 
-# 러너 Const 와 같은 값이어야 한다.
-AMBER_SEC = 3.0
-ALL_RED_SEC = 2.0
+# 러너 Const 와 같은 값이어야 한다 - 그래서 베끼지 않고 러너 원문에서 읽는다.
+AMBER_SEC, ALL_RED_SEC = plant_cycle.runner_clearance_sec()
 
 PROCEDURES = (
     "ParseSignalGroupPlanConfig",
@@ -186,8 +185,8 @@ class RealPlanActuationTests(unittest.TestCase):
     def _run(self, source: str, body: str) -> str:
         helpers = "\n\n".join(procedure(source, name) for name in PROCEDURES)
         script = f'''Option Explicit
-Const AMBER_SEC = 3
-Const ALL_RED_SEC = 2
+Const AMBER_SEC = {AMBER_SEC:g}
+Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_PLAN_SOURCE_SHA256
 Dim RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS

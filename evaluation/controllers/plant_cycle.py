@@ -8,7 +8,13 @@
 
     플랜트 cycle             == major + AMBER_SEC + ALL_RED_SEC
                                 + minor + AMBER_SEC + ALL_RED_SEC
-           (`scripts/run_real_world_stackelberg_controller.vbs:764`)
+           (`scripts/run_real_world_stackelberg_controller.vbs:769`)
+
+clearance 가 식에 **두 번** 들어가는 것은 러너가 축 경계에서만 전이하기 때문이다. 계획
+구동(sgplan)이 켜져도 축 **안의** SG 경계에는 clearance 가 없다 — `signal_group_plan` 이
+native 간격을 짜내 창을 붙여 펴고, 러너는 그 경계에서 amber 조차 억제한다
+(`SignalGroupStateFromPlan` 의 `AnySignalGroupGreenAt` 방어). 4현시로 가면 그 축 안 경계가
+전이가 되므로 이 계수가 2 에서 4 로 올라간다.
 
 `major`/`minor` 는 어댑터가 모델의 `green_p2`/`green_p1` 을 그대로 실은 값이므로
 (`vissim_stackelberg_adapter.py:5120-5123`), 두 식의 차이는 정확히
@@ -26,7 +32,7 @@
 ## 녹색 예산 계약 — 다섯 값 중 자유 파라미터는 셋뿐이다
 
     자유  cycle_length  플랜트가 한 주기에 쓰는 시간 [s]
-    자유  lost_time     = 2 x (AMBER_SEC + ALL_RED_SEC). 러너 원문이 정한다
+    자유  lost_time     = 전이 수 x (AMBER_SEC + ALL_RED_SEC). 러너 원문이 정한다
     자유  green_min     현시 하나에 보장하는 최소 녹색 [s]
 
     유도  effective_green_total = cycle_length - lost_time     (state.py:400)
@@ -53,6 +59,10 @@ from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
 RUNNER_VBS = WORKSPACE_ROOT / "scripts" / "run_real_world_stackelberg_controller.vbs"
+
+# 러너가 한 주기에 무는 clearance 전이의 개수. 러너 :769 의 주기 식이 amber+all_red 를
+# 두 번 더하는 그 2 다. 축이 둘이라 축 경계도 둘이다. 4현시가 되면 4 가 된다.
+RUNNER_CLEARANCE_TRANSITIONS_PER_CYCLE = 2
 
 # 어댑터가 `signal` 행에 major/minor 를 쓸 때 거는 안전 클램프.
 # 모델의 [green_min, green_max] 가 이 밖으로 나가면 플랜트가 지시받은 녹색을 그대로
@@ -83,12 +93,12 @@ def runner_clearance_sec(vbs_path: Path | None = None) -> tuple[float, float]:
 
 
 def plant_lost_time_sec(vbs_path: Path | None = None) -> float:
-    """플랜트가 한 주기에서 녹색이 아닌 채로 쓰는 시간 [s] = 2 x (amber + all_red).
+    """플랜트가 한 주기에서 녹색이 아닌 채로 쓰는 시간 [s] = 전이 수 x (amber + all_red).
 
     모델의 `network.lost_time` 이 이 값과 같아야 두 주기가 같아진다.
     """
     amber, all_red = runner_clearance_sec(vbs_path)
-    return 2.0 * (amber + all_red)
+    return float(RUNNER_CLEARANCE_TRANSITIONS_PER_CYCLE) * (amber + all_red)
 
 
 def written_axis_green_sec(green_sec: float) -> float:

@@ -117,7 +117,7 @@ class NativeStructureTests(unittest.TestCase):
         self.assertEqual(row["implied_lost_sec"], 12.0)
 
     def test_every_native_clearance_is_a_three_second_amber_with_no_all_red(self) -> None:
-        """러너 상수는 amber 3 + all_red 2 = 5 지만 실 `.sig` 의 clearance 는 3 뿐이다."""
+        """실 `.sig` 의 clearance 는 amber 3 뿐이다. N4-0 작업3 이 러너를 여기에 맞췄다."""
         table = _table()
         durations = {
             round(end - start, 6)

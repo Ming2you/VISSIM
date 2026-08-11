@@ -2477,3 +2477,98 @@ SC109 는 그 위에 구조가 더 깨져 있다. EBT 가 0~144 s 로 **두 단�
 - 등두 0 이 "기하가 없다"인지 "비신호 이동류"인지 구분하지 않았다. 어느 쪽이든 VISSIM
   거동은 같지만(녹색을 줘도 무영향) 스펙 판단은 갈릴 수 있다.
 - `.sig` 를 하나도 안 썼다. 원본 15개 전부 손대지 않았고 inpx `supplyFile2` 도 그대로다.
+
+## N4-0 작업 3 — 러너 clearance 를 실 프로그램에 맞추면 무엇이 따라 움직이나 (2026-08-12)
+
+### 실물부터 열었다 — 실 `.sig` 의 clearance 는 amber 3 뿐이다
+
+제어 15 SC 의 활성 프로그램(inpx `supplyFile2` + `progNo`)을 `parse_sig` 로 전부 열었다.
+`signalsequence` 는 15 SC 전부 하나뿐이다.
+
+    display 1:RED(1.0) -> 3:GREEN(5.0) -> 4:AMBER fixed 3.0
+
+녹색창 118개 중 116개에서 amber = 3.0 s 이고, 녹색이 끝나고 **다음 SG 의 녹색이 시작될
+때까지의 간격**도 3.0 s 다. 즉 all-red 는 0 이다. 나머지 2개(SC5 SG10·SG14)는 주기 경계에서
+잘린 같은 녹색의 두 조각이라 전이가 아니다.
+
+amber 만 재면 "3 s 다"까지밖에 못 말한다. all-red 가 없다는 것은 **다른 자**로 확인했다 —
+SC 마다 `|녹색창 ∪ 황색창| == 주기` 다(15/15, 오차 0). 전 SG 이 동시에 적색인 순간이
+한 번이라도 있으면 그 구멍만큼 합집합이 짧아진다.
+
+그래서 목표 clearance 3 은 `AMBER_SEC 3 + ALL_RED_SEC 0` 이다. amber 를 줄이는 것이 아니라
+all-red 를 없애는 것이다.
+
+### 한 곳만 고치면 조용히 어긋나는 자리가 실제로 있었다
+
+`ALL_RED_SEC` 는 러너 안에서만 쓰이는 값이 아니다. 어댑터가 action CSV 의 `signal_sg` 행에
+싣는 **계획 주기**가 같은 상수로 계산되고, 러너는 그것을 자기 축 주기와 대조해
+0.001 s 라도 다르면 그 SC 를 통째로 거부한다(`ERROR=SIGNAL_SG_PLAN_CYCLE_STALE`, :1453).
+
+    scripts/derive_signal_group_actuation_plan.py:54  AMBER_SEC/ALL_RED_SEC 리터럴
+      -> outputs/signal_group_actuation_plan_v3.json 의 amber_sec/all_red_sec
+      -> vissim_stackelberg_adapter.signal_group_action_rows 가 읽어 plan_cycle_sec
+      -> action CSV green_sec 열
+      -> 러너 :1453 대조
+
+러너만 고치고 이 사슬을 안 고쳤으면 런은 **15 SC 전량 거부**로 죽는다. 검사로는 안 잡혔을
+것이다 — 정적 검사가 아니라 런타임 대조이기 때문이다. 그래서 생산자와 어댑터가 러너 원문을
+읽게 바꾸고(`plant_cycle.runner_clearance_sec`), 계획 표에 키가 없을 때 떨어지는 기본값도
+리터럴에서 러너 유도값으로 바꿨다. 그 기본값이 리터럴로 돌아가면 깨지는 검사를 새로 넣었다
+(되돌림 증명 확인).
+
+추적 계획 산출물은 재생성했다. `all_red_sec` 한 줄만 2.0 -> 0.0 이고 나머지는 바이트 동일이다
+(SG 136 · 창 118 · 충돌쌍 312 · 위반 0 전부 그대로). `*_sgplan.vbs` 형제 3개는 sha 한 줄만
+바뀐다. `reports/plant_fidelity_evidence_manifest.json` 이 이 계획의 옛 sha 를 들고 있는데,
+감사 재실행으로 추적 `reports/` 를 덮지 말라는 지시라 **그대로 뒀다 — 이제 낡았다.**
+
+### 러너를 실제로 돌려서 잰 것
+
+`cscript` 로 러너에서 프로시저를 그대로 떼어 돌렸다(실 COM 런은 못 한다).
+
+    MaxSignalCycleSec       69 / 69 (유효녹색 138)  ->  주기 144      150 이 아니다
+                            57 / 57 (실 캡처)       ->  주기 120
+    SignalActionValuesValid 118 / 20 (상자 끝)       ->  거부(상한 90)
+
+실 계획 15 SC 를 먹여 `SignalGroupStateFromPlan` 을 주기 전체에 대해 조각으로 재면
+amber 정확히 **6.00 s/주기**(= 2 전이 x 3 s), dark 0.00 s, amber-over-green 0 셀이다.
+축 경계 amber 는 all-red 가 사라져도 살아 있다 — 다음 축의 녹색이 `major + 3` 에서
+시작하므로 `[major, major+3)` 구간에는 녹색인 SG 가 없기 때문이다.
+
+### 150 이 왜 아직 안 나오나 — 두 겹의 벽
+
+첫째, 러너 주기 식은 clearance 를 **두 번**만 더한다. 축이 둘이라 축 경계도 둘이다.
+계획 구동이 켜져도 축 **안의** SG 경계에는 clearance 가 없다(`_cumulative` 가 native 간격을
+짜내 창을 붙여 펴고, 러너가 그 경계의 amber 를 억제한다). 4현시란 그 축 안 경계를 전이로
+승격시키는 일이고, 그때 비로소 lost_time 이 4 x 3 = 12 가 된다.
+
+둘째, 설령 식을 4전이로 바꿔도 **두 축짜리 지시값**으로는 138 을 실을 수 없다. green_min 20
+을 한쪽에 주면 반대쪽이 118 s 인데, 러너의 쓰기 계약(`SignalActionValuesValid`)과 어댑터
+클램프가 축당 [5, 90] 이다. 4현시로 쪼개면 현시당 최대 78 이라 그 벽에 안 닿는다.
+
+### 모델 주기 5건이 빨간불인 채로 둔 이유
+
+플랜트 lost_time 이 10.0 -> 6.0 이 됐는데 생산 config 는 `lost_time 10.0` 그대로다.
+`tests/test_model_plant_cycle_identity` 의 생산 항등성 3건 + 승격 후보 2건이 그 4 s 를
+빨간불로 들고 있다. 단언을 느슨하게 하는 것은 이 파일의 존재 이유를 지우는 일이라 안 했다.
+
+닫는 길 둘 다 모델 쪽 결정이다.
+
+  (a) 2현시 유지 + 모델 주기 116 — 녹색 예산 110 과 상자 [20, 90] 이 그대로라 리더 행동은
+      비트동일하고 분모만 정확해진다. 다만 `green_budget_contract` 가 `cycle_length` 를
+      부모에서 읽고 `green_max` 를 유도하는 구조라 유도 방향을 뒤집어야 한다. 그대로 두고
+      `lost_time` 만 6 으로 내리면 `green_max` 가 94 가 되고 쓰기 클램프 90 에 물려
+      주기가 다시 어긋난다(계산 확인).
+  (b) 목표 스펙대로 4현시 — lost 12 · 주기 150 · green_max 78. 러너 주기 식과 어댑터의
+      축 2개 지시 구조를 같이 바꿔야 한다.
+
+### 확인 못 한 것
+
+- **실 COM 런은 못 했다.** VISSIM 을 띄우지 않았다. 위 수치는 전부 러너 프로시저를 떼어낸
+  cscript 실행과 파이썬 재현이다. 실제 런에서 `SIGNAL_SG_PLAN_CYCLE_STALE` 이 안 뜨는지는
+  런을 해야 안다.
+- 다른 러너 5개(`_perf`, `_8seg`, `com_fixed_time`, `calibration_probe`,
+  `run_stackelberg_vissim_controller`)와 분석 스크립트 2개(`analyze_signal_green_fit`,
+  `analyze_signal_service_curve`)에 같은 상수 사본이 남아 있다. 실 런 경로가 아니라
+  안 건드렸다. 분석 스크립트는 **과거 런**을 해석하는 도구라 바꾸면 옛 런을 잘못 읽는다.
+- `scripts/generate_real_world_distributed_players.py:164` 주석의 "러너 clearance 가 10 s"
+  는 이제 틀렸다. 그 파일은 직전 회차의 미커밋 작업이 올라가 있어 손대지 않았다.

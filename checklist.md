@@ -373,3 +373,33 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] **빈 현시 8 SC** — SC1·105(major 좌), SC11·108(minor 좌), SC107·109(minor 직진),
       SC1003(major 직진), SC1005(major 좌 + minor 직진). 사용자 규칙 판단 필요
 - [ ] inpx `supplyFile2` 재배정은 손도 안 댔다(작업 5 몫)
+
+## N4-0 작업 3 — 러너 clearance 5 → 3 (2026-08-12)
+
+- [x] 실 `.sig` 15개 clearance 구조 전수 실측 — `signalsequence` 는 15 SC 전부
+      `RED -> GREEN -> AMBER(fixed 3.0)` 하나. 녹색창 118개 중 116개가 amber 3.0 s +
+      다음 SG 녹색까지의 간격 3.0 s(= all-red 0). 나머지 2개는 SC5 SG10/14 의 주기 wrap
+- [x] all-red 0 을 두 번째 자로 재확인 — 15 SC 전부 `|녹색 ∪ 황색| == 주기`(dark 0.0 s)
+- [x] 러너 `ALL_RED_SEC` 2 → **0** (`AMBER_SEC` 3 유지). 전이당 5 s → 3 s
+- [x] 상수 소비처 전수 추적 — `derive_signal_group_actuation_plan.py` 와 어댑터
+      `signal_group_action_rows` 의 리터럴을 러너 원문 읽기로 바꿨다. 두 곳은 계획 주기를
+      만들어 러너의 `:1453` 대조를 통과해야 하는 자리라, 어긋나면 15 SC 가 런 중에 전량 거부된다
+- [x] 추적 산출물 재생성 — `outputs/signal_group_actuation_plan_v3.json` 은 `all_red_sec`
+      한 줄만 바뀌고(2.0 → 0.0) 나머지 바이트 동일. `*_sgplan.vbs` 3개는 sha 한 줄만 바뀜
+- [x] `RAMP_AMBER_SEC = 1` 은 램프미터 전용이라 그대로(`RampStateAt` :713, :1906 만 쓴다)
+- [x] amber 침범 방어(`AnySignalGroupGreenAt`) 생존 확인 — 실 계획 15 SC 를 cscript 로
+      돌려 amber 정확히 6.00 s/주기 · amber-over-green 0 셀 · dark 0.00 s. 방어를 빼면 깨진다
+- [x] 검사 갱신 — `tests/test_model_plant_cycle_identity` 에 실 `.sig` 를 재는
+      `NativeClearanceTests` 4건 추가(되돌림 증명 확인), 주기 리터럴 갱신,
+      `tests/test_action_csv_signal_group_rows` 의 `+10.0` 을 러너 유도값으로 교체(RED 확인)
+- [x] cscript 실측 — 러너 `MaxSignalCycleSec` 이 69/69(유효녹색 138)에 대해 내는 주기는
+      **144** 다. 150 이 아니다
+- [ ] **주기 150 은 2현시로는 안 된다 — 사용자/후속 작업 판단 필요.** 러너 식이 clearance 를
+      두 번만 더하고(축이 둘), 138 을 두 축으로 나누면 상자 끝이 118 s 라 러너의 쓰기 계약
+      `SignalActionValuesValid` 상한 90 에 걸려 거부된다(cscript 로 `accepted=False` 확인)
+- [ ] **모델 주기 동일성 5건 FAIL** — 플랜트 lost_time 이 10 → 6 이 됐는데 생산 config 는
+      아직 `lost_time 10.0`. 닫는 길은 (a) 2현시 유지 + 모델 주기 116, (b) 4현시 + 150.
+      둘 다 모델 쪽 결정이라 손대지 않았다
+- [ ] 다른 러너 5개(`*_perf`, `*_8seg`, `com_fixed_time`, `calibration_probe`,
+      `run_stackelberg_vissim_controller`)와 분석 스크립트 2개는 옛 상수 그대로다. 실 런
+      경로가 아니라 안 건드렸다 — 승격 전에 판단 필요

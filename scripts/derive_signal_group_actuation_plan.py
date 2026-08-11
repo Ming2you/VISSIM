@@ -41,7 +41,7 @@ REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
-from evaluation.controllers import signal_group_plan  # noqa: E402
+from evaluation.controllers import plant_cycle, signal_group_plan  # noqa: E402
 from evaluation.controllers.fixed_signal_schedule import (  # noqa: E402
     compile_fixed_signal_schedules,
 )
@@ -50,9 +50,10 @@ from evaluation.controllers.fixed_signal_schedule import (  # noqa: E402
 SCHEMA_VERSION = "signal-group-actuation-plan-v3"
 VBS_SCHEMA = 1
 
-# 러너와 같은 값이어야 한다(run_real_world_stackelberg_controller.vbs Const).
-AMBER_SEC = 3.0
-ALL_RED_SEC = 2.0
+# 러너 원문에서 읽는다. 숫자를 복사해 두면 러너가 바뀌었을 때 조용히 어긋나는데, 그 어긋남은
+# 여기서 끝나지 않는다 - 이 두 값이 그대로 계획 주기(`plan_cycle_sec`)에 실려 action CSV 로
+# 나가고, 러너는 그것을 자기 축 주기와 대조해(:1453) 다르면 그 SC 를 통째로 거부한다.
+AMBER_SEC, ALL_RED_SEC = plant_cycle.runner_clearance_sec()
 
 DEFAULT_NETWORK = REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
 DEFAULT_MOVEMENT_MAP = REPO / "outputs" / "movement_signal_group_map_v3.json"

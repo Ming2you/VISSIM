@@ -15,6 +15,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from evaluation.controllers import plant_cycle
+
 try:
     from .test_b1a_vbs_verified_capture_static import SOURCE, procedure
 except ImportError:
@@ -22,6 +24,10 @@ except ImportError:
 
 
 CSCRIPT = shutil.which("cscript.exe") or shutil.which("cscript")
+
+# harness 는 러너에서 떼어낸 **진짜** 프로시저를 돌린다. 상수를 여기에 베껴 두면 러너가
+# 바뀐 뒤에도 옛 clearance 로만 돌아, 검사가 지금 돌아가는 코드를 재지 않게 된다.
+AMBER_SEC, ALL_RED_SEC = plant_cycle.runner_clearance_sec()
 
 PLAN_PROCEDURES = (
     "ParseSignalGroupPlanConfig",
@@ -41,8 +47,8 @@ def harness_source(source: str | None = None, body: str = "") -> str:
         source = SOURCE
     helpers = "\n\n".join(procedure(source, name) for name in PLAN_PROCEDURES)
     return f'''Option Explicit
-Const AMBER_SEC = 3
-Const ALL_RED_SEC = 2
+Const AMBER_SEC = {AMBER_SEC:g}
+Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
 Dim failures
@@ -187,8 +193,8 @@ def contract_harness_source(source: str | None = None, body: str = "") -> str:
         source = SOURCE
     helpers = "\n\n".join(procedure(source, name) for name in CONTRACT_PROCEDURES)
     return f'''Option Explicit
-Const AMBER_SEC = 3
-Const ALL_RED_SEC = 2
+Const AMBER_SEC = {AMBER_SEC:g}
+Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS, RW_SIGNAL_SCS
 Dim seenSg, pendWindows, pendCounts, pendCycle, pendOffset, rowCycle, rowOffset
@@ -336,8 +342,8 @@ def event_harness_source(source: str | None = None, body: str = "") -> str:
         source = SOURCE
     helpers = "\n\n".join(procedure(source, name) for name in EVENT_PROCEDURES)
     return f'''Option Explicit
-Const AMBER_SEC = 3
-Const ALL_RED_SEC = 2
+Const AMBER_SEC = {AMBER_SEC:g}
+Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
 Dim sigMajor, sigMinor, sigOffset, simPeriod

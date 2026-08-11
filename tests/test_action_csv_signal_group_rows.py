@@ -8,7 +8,7 @@
     major_green   -> 녹색창 시작[s]   (플랜 주기 좌표)
     minor_green   -> 녹색창 끝[s]
     offset        -> 그 SC 의 offset (같은 SC 의 signal 행과 같아야 한다)
-    green_sec     -> 플랜 주기[s]     (= major + minor + 2*amber + 2*all_red)
+    green_sec     -> 플랜 주기[s]     (= major + minor + 전이 수 x (amber + all_red))
 
 헤더를 늘리지 않은 이유는 하위호환이다. 늘리면 기존 action CSV 소비자가 전부 깨지고,
 러너의 `UBound(parts) <> 12` 계약도 함께 바뀐다. 대신 재사용 열의 의미를 여기와
@@ -24,12 +24,15 @@ import types
 import unittest
 from pathlib import Path
 
-from evaluation.controllers import signal_group_plan
+from evaluation.controllers import plant_cycle, signal_group_plan
 from evaluation.controllers import vissim_stackelberg_adapter as adapter
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN_PATH = ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
+# 플랜 주기의 clearance 몫. 러너 원문에서 읽는다 - 여기에 숫자를 적어 두면 러너가
+# clearance 를 바꿔도 이 검사가 옛 주기를 계속 정답이라고 우긴다.
+PLAN_LOST_TIME_SEC = plant_cycle.plant_lost_time_sec()
 
 
 def load_plan() -> dict:
@@ -48,16 +51,35 @@ class SignalGroupRowTests(unittest.TestCase):
             metadata="ok",
         )
         expected = sum(self.plan["controllers"]["1001"]["window_counts"].values())
+        plan_cycle = 61.0 + 79.0 + PLAN_LOST_TIME_SEC
         self.assertEqual(len(rows), expected)
         for row in rows:
             self.assertEqual(row["kind"], "signal_sg")
             self.assertEqual(int(row["sc_no"]), 1001)
-            self.assertEqual(float(row["green_sec"]), 150.0)
+            self.assertEqual(float(row["green_sec"]), plan_cycle)
             self.assertEqual(float(row["offset"]), 7.0)
             self.assertLess(float(row["major_green"]), float(row["minor_green"]))
             self.assertGreaterEqual(float(row["major_green"]), 0.0)
-            self.assertLessEqual(float(row["minor_green"]), 150.0)
+            self.assertLessEqual(float(row["minor_green"]), plan_cycle)
         self.assertEqual(len({row["id"] for row in rows}), len(rows))
+
+    def test_a_plan_without_clearance_keys_still_lands_on_the_runner_cycle(self) -> None:
+        """계획 표에 clearance 가 없어도 러너와 같은 주기가 나와야 한다.
+
+        러너는 이 `green_sec` 을 자기 축 주기와 대조해 다르면 그 SC 의 창을 통째로
+        거부한다(`SIGNAL_SG_PLAN_CYCLE_STALE`). 어댑터의 기본값이 리터럴이면 러너가
+        clearance 를 바꾼 순간 15 SC 가 전부 거부되고, 그 거부는 런 중에만 보인다.
+        """
+        stripped = dict(self.plan)
+        stripped.pop("amber_sec", None)
+        stripped.pop("all_red_sec", None)
+        rows = adapter.signal_group_action_rows(
+            stripped, sc_no=1001, major_green=61.0, minor_green=79.0, offset=0.0,
+            metadata="ok",
+        )
+        self.assertTrue(rows)
+        for row in rows:
+            self.assertEqual(float(row["green_sec"]), 61.0 + 79.0 + PLAN_LOST_TIME_SEC)
 
     def test_row_green_matches_the_model_native_share(self) -> None:
         rows = adapter.signal_group_action_rows(
@@ -152,7 +174,9 @@ class WriteActionCsvTests(unittest.TestCase):
             self.assertEqual(row["offset"], signal_row["offset"])
             self.assertAlmostEqual(
                 float(row["green_sec"]),
-                float(signal_row["major_green"]) + float(signal_row["minor_green"]) + 10.0,
+                float(signal_row["major_green"])
+                + float(signal_row["minor_green"])
+                + PLAN_LOST_TIME_SEC,
                 places=6,
             )
 

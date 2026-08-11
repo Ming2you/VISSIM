@@ -1298,6 +1298,9 @@ def load_movement_signal_group_map(path: Path | None = None) -> dict[str, Any] |
 SIGNAL_GROUP_ACTUATION_PLAN_PATH = (
     WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
 )
+# 러너 원문에서 한 번만 읽는다. 결정마다 읽으면 15 SC x 60 결정 = 900 번 러너를 다시
+# 파싱하게 된다. 상수는 런 도중 바뀌지 않는다.
+RUNNER_CLEARANCE_SEC = plant_cycle.runner_clearance_sec()
 
 
 def load_signal_group_actuation_plan(path: Path | None = None) -> dict[str, Any] | None:
@@ -1340,8 +1343,12 @@ def signal_group_action_rows(
             f"actuation plan has no controller {sc_no}"
         )
     plan = signal_group_plan.node_plan_from_json(node)
-    amber = float(plan_table.get("amber_sec", 3.0))
-    all_red = float(plan_table.get("all_red_sec", 2.0))
+    # 계획 표에 없으면 리터럴이 아니라 **러너 원문** 으로 떨어진다. 여기서 나온 주기는
+    # 러너가 자기 축 주기와 대조하는 값이라(:1453), 4 s 만 달라도 그 SC 의 창이 통째로
+    # 거부된다. 리터럴을 두면 러너가 clearance 를 바꾼 순간 조용히 그 상태가 된다.
+    amber, all_red = RUNNER_CLEARANCE_SEC
+    amber = float(plan_table.get("amber_sec", amber))
+    all_red = float(plan_table.get("all_red_sec", all_red))
     cycle = signal_group_plan.plan_cycle_sec(major_green, minor_green, amber, all_red)
     windows = signal_group_plan.plan_windows(
         plan,
