@@ -59,6 +59,64 @@ def urban_follower_scs(uf_ids: list[int], uf_map: dict[int, int]) -> list[int]:
     return sorted(uf_map[uf] for uf in uf_ids)
 
 
+# ---------------------------------------------------------------------------
+# VISSIM vehicle input -> 모델 경계 leg (2026-08-11)
+#
+# 유입 이름의 **진행방향** 접미사가 접근 leg 의 정본이다. NB(북행)로 들어오는 차는
+# 교차로의 **남쪽** 접근로에 선다 -> NB->S. 이름이 없으면 기하 추정을 쓴다
+# (`outputs/boundary_input_alignment_20260811.json` 의 `leg.link_geometry`).
+#
+# 이 우선순위를 뒤집으면 안 된다. 기하를 primary 로 두면 정렬되는 유입이 22개 중
+# 11개로 줄고(같은 산출물 summary.by_estimator.link_geometry.aligned = 11),
+# 이름이 있는 14개 중 9개가 대각 방위로 잘못 떨어진다.
+TRAVEL_SUFFIX_TO_APPROACH_LEG = {"NB": "S", "SB": "N", "EB": "W", "WB": "E"}
+TRAVEL_SUFFIX_RE = re.compile(r"(?<![A-Za-z])(NB|SB|EB|WB)(?![A-Za-z])")
+
+
+def boundary_gate_plan_from_alignment(
+    alignment: dict[str, Any],
+) -> tuple[dict[str, list[str]], list[dict[str, Any]]]:
+    """정렬 산출물 -> {노드: [경계 leg 방위]} 와 근거 행.
+
+    센다/안 센다 규칙은 사용자 확정 사실을 그대로 따른다.
+      - `role != "urban_input"` (고속도로 본선·피더)은 도시부 경계 게이트가 아니다.
+      - `entry_class == "dummy"` (Dummy Link 1~12, 10개)는 **내부 발생**이라 망 입구가 아니다.
+    남는 것이 진짜 망 입구 22개다.
+    """
+    plan: dict[str, list[str]] = {}
+    evidence: list[dict[str, Any]] = []
+    for entry in alignment.get("vehicle_inputs") or []:
+        if str(entry.get("role", "")) != "urban_input":
+            continue
+        if str(entry.get("entry_class", "")) == "dummy":
+            continue
+        vi_no = str(entry.get("vehicle_input_no", ""))
+        name = str(entry.get("name") or "")
+        node = entry.get("model_node")
+        suffixes = TRAVEL_SUFFIX_RE.findall(name)
+        if suffixes:
+            leg, source = TRAVEL_SUFFIX_TO_APPROACH_LEG[suffixes[-1]], "name_suffix"
+        else:
+            leg, source = (entry.get("leg") or {}).get("link_geometry"), "link_geometry"
+        if not node or not leg:
+            raise SystemExit(
+                f"경계 유입 {vi_no}({name!r})의 접근 leg 을 정할 수 없다: "
+                f"node={node!r} leg={leg!r}. 정렬 산출물을 다시 만들 것."
+            )
+        legs = plan.setdefault(str(node), [])
+        if leg not in legs:
+            legs.append(str(leg))
+        evidence.append({
+            "vehicle_input_no": vi_no,
+            "name": name,
+            "node": str(node),
+            "leg": str(leg),
+            "source": source,
+            "volumes_vph": list(entry.get("volumes_vph") or []),
+        })
+    return {node: sorted(legs) for node, legs in sorted(plan.items())}, evidence
+
+
 def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
@@ -318,7 +376,8 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
                            monitor_rows: "list[dict[str, str]] | None" = None,
                            adjacency_legs: "dict[str, dict[str, int]] | None" = None,
                            storage_capacity: "dict[str, float] | None" = None,
-                           ramp_queue_by_ramp: "dict[str, float] | None" = None) -> dict[str, Any]:
+                           ramp_queue_by_ramp: "dict[str, float] | None" = None,
+                           boundary_gates: "dict[str, list[str]] | None" = None) -> dict[str, Any]:
     # 통제 대상(rows)과 비통제(monitor_rows)를 **같은 모델로** 세운다.
     #
     # 왜. 나중에 컨트롤러 분석은 "통제 교차로의 TTT 절감 대 인접 비통제 구간의 TTT 증가"를
@@ -371,7 +430,22 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
             spec["on"][side] = ramp
             spec["off"][side] = off_ramp
 
+    # 경계 게이트를 어디에 심을 것인가.
+    #
+    # boundary_gates 가 None 이면 예전 규칙 그대로 — 이웃이 안 쓴 정방위마다 기계적으로 하나씩
+    # 만든다. 그 규칙은 VISSIM 을 안 보므로 실제 유입이 없는 유령 게이트를 낳는다(2026-08-11
+    # 실측: 경계 leg 119개 중 100개가 대응 유입 없음). 정렬 입력을 주면 **그 (노드, 방위)
+    # 조합에만** 만든다.
+    if boundary_gates is not None:
+        unknown = sorted(set(boundary_gates) - node_set)
+        if unknown:
+            raise SystemExit(
+                f"경계 게이트 계획에 이 네트워크에 없는 노드가 있다: {unknown}\n"
+                f"  노드 {len(node_set)}개, selector 밖이거나 정렬 산출물이 낡았다."
+            )
+
     CARDINAL = ("N", "S", "E", "W")
+    merged_gates: list[str] = []
     for sid in all_nodes:
         legs: dict[str, Any] = {}
         for leg_key, nb in sorted(adj.get(sid, {}).items()):
@@ -388,14 +462,38 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
                 storage[f"{sid}_{r}_queue"] = 180.0
             for o in ramp_spec["off"].values():
                 storage[f"{o}_storage"] = 120.0
-        # 남은 기본 방위는 경계 게이트 — 수요 유입·유출 경로.
-        for leg in free:
+        # 경계 게이트 — 수요 유입·유출 경로.
+        gate_dirs = list(free) if boundary_gates is None else list(boundary_gates.get(sid, ()))
+        for leg in gate_dirs:
+            # leg 병합(2026-08-11 사용자 결정). 그 방위를 이미 grid 이웃이 쓰고 있으면
+            # 게이트를 버리지 않고 **같은 방위에 나란히** 심는다. 물리적으로 "이웃에서 오는
+            # 차 + 외부에서 오는 차"가 같은 접근로를 쓰기 때문이다.
+            #
+            # 상류 모델은 이 형태를 이미 지원한다. grid leg 키는 항상 '방위_이웃ID' 라
+            # 맨 방위 키가 비어 있고, `grid_topology.leg_base_dir` 이 두 키에서 같은 방위를
+            # 뽑는다(:189-198). `derive_turning_ratios` 도 같은 방위 leg 이 여럿인 경우를
+            # 직진 후보 균등분배로 처리한다(:143-151). phase 도 방위로 정해지므로 병합된
+            # 두 접근로는 같은 phase 로 서비스된다. 새 leg type 을 만들지 않는다 —
+            # 상류 `_approach_tokens` 는 grid/boundary/ramp 외의 type 을 조용히 버린다.
+            #
+            # 맨 방위 키가 이미 차 있는 경우는 램프 leg 뿐이다(grid 는 항상 복합 키).
+            # 램프 방위에 도시부 게이트를 얹는 건 사용자가 결정한 적 없는 상황이라 끊는다 —
+            # 그냥 대입하면 램프 leg 를 조용히 덮어써서 고속도로 결합이 사라진다.
+            if leg in legs:
+                raise SystemExit(
+                    f"{sid} 의 {leg} 방위는 이미 {legs[leg].get('type')} leg 이 쓰고 있다.\n"
+                    "  격자 이웃과의 병합은 지원하지만 램프 leg 와의 병합은 결정된 바 없다."
+                )
+            if any(str(k).split("_", 1)[0] == leg for k in legs):
+                merged_gates.append(f"{sid}_{leg}")
             legs[leg] = {"type": "boundary", "in": f"in_{sid}_{leg}",
                          "out": f"out_{sid}_{leg}", "out_link": f"{sid}_{leg}_out"}
             boundary_in.append(f"in_{sid}_{leg}")
             boundary_out.append(f"out_{sid}_{leg}")
             storage[f"{sid}_{leg}_out"] = 220.0
         grid_node_legs[sid] = legs
+    if merged_gates:
+        print(f"   경계 게이트 병합 {len(merged_gates)}곳(기존 leg 과 같은 방위): {sorted(merged_gates)}")
     # urban_movements / turning_ratios / 내부링크 저류는 **모델이 grid_node_legs 에서 자동 유도**한다
     # (NetworkConfig.__post_init__ L298-316). 수동 나열은 저장소가 명시적으로 금한다.
 
@@ -904,6 +1002,7 @@ def build_tuning_config(
     slug: str,
     monitor_rows: list[dict[str, str]],
     stamp: str = "20260728",
+    boundary_gate_notes: "list[str] | None" = None,
 ) -> dict[str, Any]:
     signals = network_override["signals"]
     return {
@@ -960,7 +1059,7 @@ def build_tuning_config(
             "SC1 receives the freeway-interface ramp/off-ramp coupling when included in the selected control set.",
             "Monitoring-only signal controllers are scanned into local observations but are not listed in network.signals, so they do not get green/offset actions.",
             "The first smoke should be short because distributed urban agents enlarge the signal action space.",
-        ],
+        ] + list(boundary_gate_notes or ()),
     }
 
 
@@ -1167,6 +1266,9 @@ def main() -> None:
     )
     parser.add_argument("--storage-capacity-json", default="",
                         help="scripts/derive_urban_storage_capacity.py 산출 JSON. 주면 상수 대신 실측 기하 용량을 쓴다")
+    parser.add_argument("--boundary-input-alignment", default="",
+                        help="scripts/derive_boundary_input_alignment.py 산출 JSON. 주면 VISSIM 유입이 "
+                             "있는 (노드, 방위)에만 경계 leg 을 만든다(없으면 정방위 전수 = 기존 동작)")
     args = parser.parse_args()
 
     all_signal_rows = active_fixedtime_signal_rows(read_csv(DEFAULT_SIGNAL_ROLES))
@@ -1228,6 +1330,17 @@ def main() -> None:
               f" jam {_cap.get('jam_density_veh_km_lane')} veh/km/lane")
         if ramp_queue_by_ramp:
             print(f"   램프별 큐 상한 {len(ramp_queue_by_ramp)}개: {ramp_queue_by_ramp}")
+    boundary_gates = None
+    boundary_gate_evidence: list[dict[str, Any]] = []
+    if args.boundary_input_alignment:
+        _alignment = read_json(Path(args.boundary_input_alignment))
+        boundary_gates, boundary_gate_evidence = boundary_gate_plan_from_alignment(_alignment)
+        _by_source: dict[str, int] = {}
+        for _row in boundary_gate_evidence:
+            _by_source[_row["source"]] = _by_source.get(_row["source"], 0) + 1
+        print(f"정렬 JSON: {args.boundary_input_alignment}  유입 {len(boundary_gate_evidence)}개 -> "
+              f"게이트 {sum(len(v) for v in boundary_gates.values())}개, 노드 {len(boundary_gates)}개")
+        print(f"   방위 근거: {dict(sorted(_by_source.items()))}")
     ramp_interface_sc: dict[str, str] = {}
     for part in str(args.ramp_interface_sc or "").split(","):
         part = part.strip()
@@ -1253,6 +1366,7 @@ def main() -> None:
         adjacency_legs=adjacency_legs,
         storage_capacity=storage_capacity,
         ramp_queue_by_ramp=ramp_queue_by_ramp,
+        boundary_gates=boundary_gates,
     )
     network_override = prune_network_movements_to_observed_axes(
         network_override,
@@ -1289,7 +1403,28 @@ def main() -> None:
             + ", ".join(f"{node}={len(movements)}" for node, movements in permanent_red_removed.items())
         )
     mapping = build_control_mapping(base_mapping, rows, monitor_rows, detector_path, args.selector)
-    tuning = build_tuning_config(network_override, mapping_path, detector_path, args.selector, slug, monitor_rows, stamp)
+    boundary_gate_notes: list[str] = []
+    if boundary_gates is not None:
+        merged = sorted(
+            f"{node}_{str(key).split('_', 1)[0]}"
+            for node, node_legs in network_override["grid_node_legs"].items()
+            for key, spec in node_legs.items()
+            if spec.get("type") == "boundary"
+            and any(
+                other is not spec and str(other_key).split("_", 1)[0] == str(key).split("_", 1)[0]
+                for other_key, other in node_legs.items()
+            )
+        )
+        boundary_gate_notes = [
+            "Boundary legs are restricted to the (node, bearing) pairs that actually receive a VISSIM "
+            f"vehicle input: {Path(args.boundary_input_alignment).name}. Approach bearing comes from the "
+            "input name's travel-direction suffix (NB->S, SB->N, EB->W, WB->E); geometry is used only for "
+            "unnamed inputs.",
+            "Merged boundary legs (a gate sharing its bearing with a grid neighbour leg, i.e. neighbour "
+            f"traffic and external traffic use the same approach): {merged or 'none'}.",
+        ]
+    tuning = build_tuning_config(network_override, mapping_path, detector_path, args.selector, slug,
+                                monitor_rows, stamp, boundary_gate_notes)
     player_config = {
         "schema_version": 1,
         "created_at": "2026-07-28",
