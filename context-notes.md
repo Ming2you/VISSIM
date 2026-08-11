@@ -2300,3 +2300,93 @@ RED 5건을 먼저 봤고, 되돌림 증명은 구 config 를 되돌려 2 FAIL �
 - **default.yaml 의 장난감 격자 이름 7개**(`A_top_out` 등)가 실 config 런타임 저류에
   그대로 남는다(`NetworkConfig` 병합). 관측이 닿지 않아 점유는 0 이지만 leg 없는 스톡이다.
 - **실 런을 돌리지 않았다.** TTT 영향은 안 쟀다.
+
+## 2026-08-11 — 정렬 봉인 드리프트와 승격 판단
+
+### (a) 드리프트는 정렬 파일 하나가 아니었다
+
+브리핑은 `boundary_input_alignment_20260811.json` 의 `sources.config.sha256` 한 건을
+지목했다. 맞다 — 재생성하니 정확히 그 한 줄만 바뀌었고(e5f8adcb -> aaa7caf7) 게이트 계획
+자체(`vehicle_inputs`/`summary`/`bearing_convention`)는 byte 동일이었다. 원인도 지목대로
+`a1e73da`(green_max 92 -> 90) 다.
+
+그런데 그 해시로 저장소를 훑으니 같은 값이 네 곳 더 나왔다. 추적 `outputs/*.json` +
+`reports/*.json` 100개에서 (경로, sha256) 쌍 229건을 전부 디스크와 대조한 결과.
+
+    낡은 봉인 8건 / 파일 3개
+      evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json
+        e5f8adcb -> aaa7caf7   (a1e73da)
+      evaluation/controllers/vissim_stackelberg_adapter.py
+        270478bc -> e7064fab   (700ac87)
+      scripts/run_real_world_stackelberg_controller.vbs
+        1f70c8be -> dcc5305d   (700ac87, 00ffa40)
+
+    담고 있는 산출물
+      outputs/preflight_manifest_v3.json                 (4 포인터)
+      reports/plant_fidelity_evidence_manifest.json      (4 포인터)
+
+`preflight_manifest_v3.json` 은 `f31a54e` 에서 마지막으로 재생성됐고 그 뒤로 **26 커밋**이
+지났다. 즉 프리플라이트 사슬은 낡은 어댑터 + 낡은 러너 + 낡은 config 에 묶여 있다.
+
+### 왜 26 커밋 동안 아무것도 안 깨졌나 — 검증이 셋 다 공허하다
+
+세 곳이 해시를 **기록만** 하고 **대조하지 않는다.** 코드를 직접 읽고 확인했다.
+
+    audit_plant_fidelity.py:2950   input_provenance 게이트는 `is_file` 만 본다.
+                                   매 실행 새로 해싱하고 이전 봉인과 비교하지 않는다.
+    preflight_manifest_v3.json     artifact.*.sha256 검사의 expected 가
+                                   "non-empty SHA-256" 이다. 비지 않으면 PASS.
+    run_readiness.py:160           seal_sha256 이 **있는지**만 본다 (작업 4가 이미 지적).
+
+그래서 감사 게이트 `input_provenance` 는 낡은 봉인 3건을 안고도 PASS 다. 실제로 재실행해
+확인했다 — 게이트 12 PASS / 16 NE / 0 FAIL 로 추적본과 **완전히 동일**하다.
+
+이번에 넣은 `TrackedArtifactSealTests` 는 정렬 파일 하나에 대해서만 그 구멍을 막는다.
+나머지 둘(preflight, evidence manifest)은 **여전히 무방비다.**
+
+### (b) 승격 판단 — NO-GO. 세 가지가 각각 독립적으로 막는다
+
+**1. 혈통을 실은 재생성이 미서명 승인 가드에 막힌다.** 실행해서 확인했다.
+
+    --link-assignment-json 만                 -> "link assignment has unresolved or
+                                                 unverifiable topology ties; refusing
+                                                 to generate live artifacts"
+    + --assignment-approval-manifest (초안)   -> "assignment approval is not approved"
+
+가드는 `generate_real_world_distributed_players.py:151-170` 에서 네 겹이다 —
+CLEAR 여부 / 매니페스트 유무 / `approved is True` / `approved_by`+`reason` 비어있지 않음.
+초안은 `approved:false`, `approved_by:""`, `reason:""` 라 세 겹에 걸린다.
+**에이전트가 대신 서명하면 가드를 위조하는 것이므로 하지 않는다.** 작업 1의 판단을 유지한다.
+
+**2. 지금 있는 후보를 그대로 승격하면 혈통이 사라진다.** 후보 2종은 혈통 없이 생성됐다.
+
+    산출물                          link_to_origins   observable_links   link_partition
+    production core15n41_20260805        1,194             1,207            있음
+    gated_20260811 후보                    326               339            **없음**
+    ungated_20260811 후보                  326               339            **없음**
+
+`link_partition` 이 없다는 것이 `--link-assignment-json` 없이 만들어졌다는 직접 증거다.
+이대로 승격하면 라우팅 혈통 868링크가 날아가고 SG phase 가 전량 이름규칙 폴백이 된다
+(작업 1 측정: resolved 416 -> 187, `signal_group_name` 136건).
+
+**3. 새 격자는 141.0 결함을 고치지도 않는다.** 승격 기준이 "141.0 유지" 였는데,
+격자 leg 방위를 직접 대조하니 세 config 가 전부 동일하다.
+
+    배정이 아는 물리 접근 leg    link 32 = W (SC1001<-SC1004) · link 71 = SW (SC1004<-SC1001)
+    production                   S_SC1004 / N_SC1001
+    gated_20260811 후보          S_SC1004 / N_SC1001   <- 같다
+    ungated_20260811 후보        S_SC1004 / N_SC1001   <- 같다
+
+이번 격자 재정렬이 건드린 것은 **경계 leg**(119 -> 22)이고 `grid` leg 은 안 건드렸다.
+141.0 의 원인은 grid leg 방위이므로 승격해도 그대로 옮겨온다. `tests/
+test_native_phase_axis_composition.py` 의 KNOWN MISMATCH 4건은 승격해도 안 닫힌다.
+
+정리하면 승격의 이득은 수요 주입 0.8620 -> 1.0 하나뿐인데, 비용은 (1) 사람 서명 위조 또는
+(2) 혈통 868링크 상실이다. 어느 쪽도 받을 수 없다. **승격하지 않는다.**
+
+### 하지 않은 것
+
+- (c)(d)(e) 사슬·신호 체인·봉인 재생성 — 전부 승격을 전제로 한 작업이라 안 했다.
+  특히 (e)는 작업 4가 정한 "격자 semantic hash" 생산자가 아직 **코드로 없다.**
+- 감사 `reports/` 정본을 안 건드렸다. 임시 경로로만 돌렸고 `git status` 로 확인했다.
+- 실 런을 안 돌렸다. 141.0 의 TTT 영향은 여전히 미측정이다.

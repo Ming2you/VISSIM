@@ -338,3 +338,21 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
       실측 기하는 전부 유령 쪽에 실려 있었다. 사용자 결정 필요
 - [ ] 유입 링크 33~34개(224~271대)의 제자리 — 물리적으로는 그 노드 게이트의 boundary_in
       대기열이다. 방위 규약이 두 갈래(배정=centroid, 게이트 대장=유입명/기하)라 **재조정 필요**
+
+## 작업 3+승격 — 정렬 봉인, 승격 판단 (2026-08-11)
+
+- [x] (a) 정렬 봉인 드리프트 재생성 — `sources.config.sha256` e5f8adcb -> aaa7caf7.
+      바뀌는 줄은 그 한 줄뿐이고 `vehicle_inputs`/`summary`/`bearing_convention` 은 byte 동일
+- [x] (a) 드리프트를 잡는 검사 — `TrackedArtifactSealTests` 4건. RED(config 1건) 확인 후 GREEN
+- [x] **드리프트가 정렬 파일만이 아니었다** — 추적 `outputs/`+`reports/` 전수 대조에서
+      봉인 8건이 낡았다(파일 3개). `preflight_manifest_v3.json` 과
+      `reports/plant_fidelity_evidence_manifest.json` 이 낡은 adapter/runner/config 에 묶여 있다
+- [x] (b) **승격 판단 = NO-GO.** 세 가지가 각각 독립적으로 막는다(아래 context-notes)
+- [x] (g) 전 스위트 — VISSIM `scripts/tests` 40모듈 542건 OK(작업 1 미실행분 해소),
+      `plant/tests` 11모듈 132건 OK, `tests/` 154건 중 11 FAIL(전부 의도된 KNOWN MISMATCH)
+- [x] (f) 감사 재실행(임시 경로) — 게이트 12 PASS / 16 NE / 0 FAIL, 추적본과 **완전 동일**.
+      정본 `reports/` 미터치
+- [ ] (c)(d) 사슬·신호 체인 재생성 — 승격이 막혀서 **안 함**
+- [ ] (e) 봉인 재생성 — 위상 해시 생산자가 아직 없고(작업 4 미구현) 승격도 막혀서 **안 함**
+- [ ] `tests/test_demand_contract.py` KNOWN MISMATCH 7건 — 승격을 못 해서 **그대로 7건**.
+      0.8620배 불변
