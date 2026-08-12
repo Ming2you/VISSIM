@@ -63,9 +63,9 @@ from plant.src.vissim_strict.signal_program import parse_sig  # noqa: E402
 NETWORK_INPX = REPO / "network/real_world_gaepo_modi/modi_eval_rw_control.inpx"
 ROLES_CSV = REPO / "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
 # 4현시 config 위에서 다시 유도한 map. v3 판은 movement 가 2현시라 p3/p4 가 비어 있다.
-MOVEMENT_SG_MAP = REPO / "outputs/movement_signal_group_map_n4p4_20260812.json"
+MOVEMENT_SG_MAP = REPO / "outputs/movement_signal_group_map_legfix_20260812.json"
 LINK_ASSIGNMENT = REPO / "outputs/link_player_assignment_20260805.json"
-TUNING_JSON = REPO / "evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json"
+TUNING_JSON = REPO / "evaluation/configs/real_world_modi_pstack_distributed_core15n41legfix_20260812.json"
 
 # 프리웨이 인터페이스 두 교차로. 여기서만 격자 leg 방위와 물리 접근 방위가 갈린다.
 INTERFACE_NODES = ("1001", "1004")

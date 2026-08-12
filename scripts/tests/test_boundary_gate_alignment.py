@@ -118,6 +118,49 @@ class BoundaryGatePlanTests(unittest.TestCase):
         self.assertNotIn(("SC9001", "SE"), pairs)
 
 
+class MeasuredAdjacencyBeatsSymmetryTests(_VendorSrcIsolation):
+    """양쪽 방위가 실측된 인접은 대칭화가 덮지 말아야 한다.
+
+    실 도로망의 방위는 서로 정반대가 아니다. SC1001-SC1004 를 잇는 램프 회랑은 굽어서
+    한쪽 접근이 W, 반대쪽이 SW 다(`link_player_assignment.link_leg` 의 링크 32/71).
+    `derive_intersection_adjacency.py` 는 접근로 기하로 그 둘을 각각 맞게 낸다.
+
+    생성기의 관대 대칭화는 **역방향이 없을 때** 정반대 방위를 합성하라는 것이지,
+    있는 실측을 밀어내라는 것이 아니다. dict 순회 순서상 SC1001 을 먼저 처리하면
+    SC1004 의 `SW_SC1001` 자리를 합성값 `E_SC1001` 이 선점한다.
+    """
+
+    ADJACENCY = {"1001": {"W_1004": 1004}, "1004": {"SW_1001": 1001}}
+
+    def _legs(self, adjacency):
+        override = generator.build_network_override(
+            _rows(1001, 1004),
+            include_freeway_interface_coupling=False,
+            adjacency_legs=adjacency,
+            boundary_gates={},
+        )
+        return {
+            node: {k for k, spec in legs.items() if spec.get("type") == "grid"}
+            for node, legs in override["grid_node_legs"].items()
+        }
+
+    def test_both_measured_bearings_survive(self) -> None:
+        legs = self._legs(self.ADJACENCY)
+        self.assertEqual({"W_SC1004"}, legs["SC1001"])
+        self.assertEqual({"SW_SC1001"}, legs["SC1004"])
+
+    def test_the_order_of_the_input_does_not_change_the_result(self) -> None:
+        """되돌림 증명 - 순회 순서에 기대면 뒤집어 넣었을 때 답이 달라진다."""
+        reversed_input = {"1004": {"SW_1001": 1001}, "1001": {"W_1004": 1004}}
+        self.assertEqual(self._legs(self.ADJACENCY), self._legs(reversed_input))
+
+    def test_a_one_sided_adjacency_still_gets_the_opposite_bearing(self) -> None:
+        """대칭화 자체는 살아 있어야 한다 - 한쪽만 있으면 정반대를 만든다."""
+        legs = self._legs({"1001": {"W_1004": 1004}})
+        self.assertEqual({"W_SC1004"}, legs["SC1001"])
+        self.assertEqual({"E_SC1001"}, legs["SC1004"])
+
+
 class BoundaryGateOverrideTests(_VendorSrcIsolation):
     """(a) 정렬 입력이 주어지면 경계 leg 집합이 그것과 정확히 같다."""
 

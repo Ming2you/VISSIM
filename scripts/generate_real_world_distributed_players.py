@@ -500,18 +500,30 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
     # 관대(㉮) 대칭화 — 한쪽 방향만 잡힌 인접도 양방향 leg 로 심는다(일방통행·회전제한으로
     # 역방향 탐색이 끊긴 경우가 많아, 버리면 연결이 과소해진다).
     adj: dict[str, dict[str, str]] = {}
+    measured: list[tuple[str, str, str]] = []
     for sc_txt, legmap in (adjacency_legs or {}).items():
         a = signal_id(int(sc_txt))
         for leg_key, nb in legmap.items():
             b = signal_id(int(nb))
             if a not in node_set or b not in node_set:
                 continue
-            base = str(leg_key).split("_", 1)[0]
-            adj.setdefault(a, {})[f"{base}_{b}"] = b
-            # 역방향이 없으면 만들어 준다. 방위는 정반대로 둔다.
-            opp = {"N": "S", "S": "N", "E": "W", "W": "E",
-                   "NE": "SW", "SW": "NE", "NW": "SE", "SE": "NW"}.get(base, base)
-            adj.setdefault(b, {}).setdefault(f"{opp}_{a}", a)
+            measured.append((a, str(leg_key).split("_", 1)[0], b))
+
+    # 1차 — 유도된 방위를 **전부 먼저** 심는다. 실 도로망의 두 접근 방위는 서로 정반대가
+    # 아니다(SC1001-SC1004 는 램프 회랑이 굽어 W 와 SW 다). 합성보다 실측이 먼저다.
+    for a, base, b in measured:
+        adj.setdefault(a, {})[f"{base}_{b}"] = b
+
+    # 2차 — 역방향이 아예 없는 쌍만 정반대 방위로 채운다. 일방통행·회전제한으로 역방향
+    # 탐색이 끊긴 경우가 많아 버리면 연결이 과소해진다. 한 패스로 섞으면 dict 순회 순서에
+    # 따라 합성값이 실측 자리를 선점한다.
+    have = {(a, b) for a, _, b in measured}
+    for a, base, b in measured:
+        if (b, a) in have:
+            continue
+        opp = {"N": "S", "S": "N", "E": "W", "W": "E",
+               "NE": "SW", "SW": "NE", "NW": "SE", "SE": "NW"}.get(base, base)
+        adj.setdefault(b, {}).setdefault(f"{opp}_{a}", a)
 
     # 램프 leg 를 어느 노드에 심을 것인가 — ramp_interface_sc 의 역방향.
     # default.yaml 의 D·F 노드와 같은 형태로 두면 movement 도 모델이 자동 유도한다

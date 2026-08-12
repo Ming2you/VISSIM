@@ -1,7 +1,7 @@
 {
-  "approved": false,
-  "approved_by": "",
-  "reason": "",
+  "approved": true,
+  "approved_by": "민건규 (alsrjsrb1915@snu.ac.kr)",
+  "reason": "이 망에서 tie_evidence.status=CLEAR 는 도달 불가능하다(세 정책 전부 downstream 33 + ambiguous upstream 6). 그리고 구판 스크립트가 낸 생산 산출물은 재현 불가능하다 — 같은 입력 5회 실행에 link_owner 961/968/958/962/962 로 5회 모두 다른 결과가 나왔고 sha256 도 전부 달랐다. freeway-first 는 5회 모두 동일 sha 이며 생산 산출물의 범주 개수(957/22/226)를 그대로 재현하고, 차이는 tie 안에만 갇힌다(link_owner 3 · link_upstream 6 · freeway_bound 값 11, tie 밖 0건). 재현 가능성을 얻기 위해 이 정책을 승인한다. tie 39건 중 19건이 실제로 차를 나르며(최대 link52=121, link68=70, link31=55) 그 귀속이 임의 선택이라는 점은 tie_mass_evidence 로 인지한 채 진행한다 — 무해해서가 아니라 대안이 비결정적이기 때문이다. 승인일 2026-08-12, 승인자 지시로 에이전트가 기록.",
   "assignment": "outputs/link_player_assignment_20260811.json",
   "assignment_sha256": "35974242abcd98106b7118e54e7a3b05873715203f4b2f46b5da84263bb21266",
   "tie_ledger": "outputs/link_player_assignment_ties_20260811.json",

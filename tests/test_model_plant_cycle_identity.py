@@ -82,7 +82,7 @@ PARENT_TUNING = (
 # 것이다(`scripts/repair_movement_phases_to_model_rule.py`). 직전 n4dr150 판은 config 의
 # urban_movements 가 2현시라 p3/p4 가 빈 채로 굳어 있었다.
 ACTUATION_PLAN = (
-    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_n4p4_20260812.json"
+    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_legfix_20260812.json"
 )
 CALIBRATION = (
     WORKSPACE_ROOT
