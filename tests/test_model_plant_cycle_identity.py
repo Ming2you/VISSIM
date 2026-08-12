@@ -78,8 +78,11 @@ PARENT_TUNING = (
     / "real_world_modi_pstack_distributed_core15n41_20260805.json"
 )
 # N4-0 이후 재생성한 계획. 러너의 `LivePhaseCount` 가 세는 그 현시 수의 출처다.
+# n4p4 는 movement 의 phase 를 상류 4현시 규칙으로 되계산한 config 위에서 다시 유도한
+# 것이다(`scripts/repair_movement_phases_to_model_rule.py`). 직전 n4dr150 판은 config 의
+# urban_movements 가 2현시라 p3/p4 가 빈 채로 굳어 있었다.
 ACTUATION_PLAN = (
-    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_n4dr150_20260812.json"
+    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_n4p4_20260812.json"
 )
 CALIBRATION = (
     WORKSPACE_ROOT
@@ -450,7 +453,12 @@ class ProductionCycleIdentityTests(unittest.TestCase):
             for name in vars(parent)
             if repr(getattr(parent, name)) != repr(getattr(child, name))
         }
-        self.assertEqual(moved, {"cycle_length", "lost_time", "green_max"}, moved)
+        # `cycle_length` 는 더 이상 이동 항목이 아니다. vendor 스냅샷이 `.py` 만 복사해
+        # `src/config/default.yaml` 이 낡아 있었고(vendor 120 vs 상류 150), 부모가 주기를
+        # 선언하지 않으므로 실 런은 vendor 의 120 을 썼다. 스냅샷이 yaml 도 싣게 고친 뒤
+        # 부모의 해석값이 150 이 되어 자식과 같아졌다 - 누수가 막혔다는 뜻이다.
+        self.assertEqual(moved, {"lost_time", "green_max"}, moved)
+        self.assertEqual(150.0, parent.cycle_length, "부모 주기가 150 이 아니면 위 서술이 깨진다")
         self.assertEqual(
             (child.cycle_length, child.lost_time, child.green_min, child.green_max),
             (150.0, 12.0, 20.0, 78.0),

@@ -180,6 +180,16 @@ def build_node_plan(
         )
         total = sum(end - start for start, end in union)
         if total <= 0.0:
+            # `.sig` 가 영구적색이라 선언한 SG 만 붙은 현시는 플랜트가 아예 안 돌리는
+            # 현시다(SC107·108·109 가 실측에서 3현시인 이유). 녹색 0 으로 싣는다.
+            # 선언이 없는데 녹색만 없으면 매핑이 틀린 것이므로 그대로 죽인다.
+            if all(
+                getattr(program.sg_timelines.get(sg_no), "permanent_red", False)
+                for sg_no in ids
+            ):
+                segments[phase] = ()
+                axis_green[phase] = 0.0
+                continue
             raise SignalGroupPlanError(
                 f"{node_id}: model phase {phase} has signal groups {list(ids)} but no native green"
             )

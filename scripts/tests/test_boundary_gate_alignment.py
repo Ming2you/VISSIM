@@ -165,13 +165,15 @@ class BoundaryGateOverrideTests(_VendorSrcIsolation):
         legs = override["grid_node_legs"]["SC1"]
         at_e = {key: spec["type"] for key, spec in legs.items() if str(key).split("_", 1)[0] == "E"}
         self.assertEqual({"E_SC2": "grid", "E": "boundary"}, at_e)
-        # 병합된 두 접근로는 같은 방위이므로 같은 phase 로 서비스된다.
+        # 병합된 두 접근로는 같은 방위이므로 같은 phase 로 서비스된다. 4현시에서 E 는
+        # minor 축이고 이 픽스처의 movement 는 직진뿐이라 p3 다(좌회전이 생기면 p4 가
+        # 섞여 이 검사가 깨진다 - 그게 이 assertEqual 이 드는 것이다).
         phases = {
             spec["phase"]
             for spec in override["urban_movements"].values()
             if spec["intersection"] == "SC1" and spec["approach"] in {"E", "E_SC2"}
         }
-        self.assertEqual({"SC1_p2"}, phases)
+        self.assertEqual({"SC1_p3"}, phases)
 
     def test_gate_on_a_ramp_bearing_fails_closed(self) -> None:
         # 램프 leg 는 맨 방위 키를 쓴다. 게이트를 그냥 대입하면 램프 결합이 조용히 사라진다.

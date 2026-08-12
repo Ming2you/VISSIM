@@ -169,6 +169,24 @@ class SignalGroupPhaseTests(unittest.TestCase):
         self.assertEqual(table["9"]["method"], "unassigned")
 
 
+def _upstream_movement_phase_id():
+    """vendor 의 `movement_phase_id` 를 **파일 경로로** 싣는다.
+
+    `import src.models...` 로 받으면 안 된다 - 같은 프로세스에서 `plant/src` 가 먼저
+    `src` 라는 이름을 차지하면 `No module named 'src.models'` 로 죽는다. 이 파일 하나만
+    돌리면 통과하고 전체를 돌리면 깨지는, 순서에 기대는 검사가 된다.
+    """
+    import importlib.util
+
+    from scripts.generate_real_world_distributed_players import ensure_numsim_importable
+
+    source = ensure_numsim_importable() / "src" / "models" / "grid_topology.py"
+    spec = importlib.util.spec_from_file_location("_upstream_grid_topology", source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.movement_phase_id
+
+
 class FourPhaseNameRuleTests(unittest.TestCase):
     """SG 이름 규칙이 상류 `movement_phase_id` 와 같은 4현시를 낸다.
 
@@ -194,10 +212,8 @@ class FourPhaseNameRuleTests(unittest.TestCase):
     def test_the_name_rule_agrees_with_the_upstream_contract(self) -> None:
         """같은 값을 두 번 적지 않는다 - 상류 함수에 직접 물어본다."""
         from scripts.derive_movement_signal_group_map import _phase_from_signal_group_name
-        from scripts.generate_real_world_distributed_players import ensure_numsim_importable
 
-        ensure_numsim_importable()
-        from src.models.grid_topology import movement_phase_id
+        movement_phase_id = _upstream_movement_phase_id()
 
         # 이름의 접근 방위를 leg 키로, 회전을 exit leg 키로 옮겨 상류에 그대로 묻는다.
         opposite = {"N": "S", "S": "N", "E": "W", "W": "E"}

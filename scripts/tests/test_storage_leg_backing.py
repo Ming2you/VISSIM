@@ -209,9 +209,13 @@ class ShippedConfigsCarryNoGhostStorageTests(unittest.TestCase):
     #       `--link-assignment-json` 재생성이 가드에 막힌다. 승인 후 재생성하면 닫힌다.
     #   v6/v7_urban* — 상류 default.yaml 의 장난감 격자 이름(A_top_out 등)이
     #       config override 에 그대로 실려 있다. 실 격자와 무관하고 관측이 닿지 않는다.
+    #   core15n41p4_20260812 — 위 core15n41 에서 `urban_movements[*].phase` 만 상류
+    #       4현시 규칙으로 되계산한 것이라(`scripts/repair_movement_phases_to_model_rule.py`)
+    #       저류·leg 은 부모와 비트 동일하다. 같은 56개를 그대로 물려받는다.
     KNOWN_OPEN = {
         "real_world_modi_pstack_distributed_core15full_20260805.json": 56,
         "real_world_modi_pstack_distributed_core15n41_20260805.json": 56,
+        "real_world_modi_pstack_distributed_core15n41p4_20260812.json": 56,
         "real_world_modi_pstack_v6_urban15_20260804.json": 7,
         "real_world_modi_pstack_v7_urban36_20260804.json": 7,
     }

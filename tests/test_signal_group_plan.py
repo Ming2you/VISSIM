@@ -31,6 +31,7 @@ class FakeInterval:
 class FakeTimeline:
     name: str
     intervals: tuple
+    permanent_red: bool = False
 
 
 @dataclass(frozen=True)
@@ -45,13 +46,19 @@ def green(*spans: tuple[float, float]) -> tuple:
     return tuple(FakeInterval("GREEN", start, end) for start, end in spans)
 
 
-def program(cycle: float, spans: dict[str, tuple]) -> FakeProgram:
+def program(
+    cycle: float, spans: dict[str, tuple], permanent_red: tuple[str, ...] = ()
+) -> FakeProgram:
     return FakeProgram(
         controller_id="SCX",
         cycle_length_sec=cycle,
         program_offset_sec=0.0,
         sg_timelines={
-            sg_id: FakeTimeline(name=f"SG{sg_id}", intervals=green(*value))
+            sg_id: FakeTimeline(
+                name=f"SG{sg_id}",
+                intervals=green(*value),
+                permanent_red=sg_id in permanent_red,
+            )
             for sg_id, value in spans.items()
         },
     )
@@ -76,6 +83,49 @@ def axis_windows(plan, major_green, minor_green, major_maps_to, amber_sec, all_r
         amber_sec=amber_sec,
         all_red_sec=all_red_sec,
     )
+
+
+class PermanentRedPhaseTests(unittest.TestCase):
+    """SC107·108·109 - 한 현시의 SG 가 `.sig` 에서 영구적색이라 네이티브 녹색이 0 이다.
+
+    실측(`outputs/live_signal_cycle_probe_n4dr150_20260812.json`)에서 15 SC 중 그 셋만
+    현시가 3 이었다. 모델의 어휘는 4현시이므로 계획은 남는 현시를 **녹색 0 으로 실어야**
+    한다. 거부하면 그 셋은 계획 자체가 안 만들어진다.
+
+    가드를 없애는 게 아니다. `.sig` 가 영구적색이라고 선언한 SG 일 때만 허용한다.
+    """
+
+    def test_a_phase_whose_groups_are_all_permanently_red_takes_zero_green(self) -> None:
+        prog = program(
+            100.0,
+            {"1": ((0.0, 30.0),), "2": ((40.0, 50.0),), "9": ()},
+            permanent_red=("9",),
+        )
+        plan = signal_group_plan.build_node_plan(
+            node_id="SC107",
+            program=prog,
+            phase_signal_groups={"p1": ["9"], "p2": ["1"], "p3": ["2"], "p4": []},
+            signal_group_ids=["1", "2", "9"],
+        )
+        self.assertEqual(0.0, plan.axis_green_sec["p1"])
+        self.assertEqual((), plan.phase_segments["p1"])
+        # 나머지 현시는 그대로 살아 있어야 한다.
+        self.assertEqual(30.0, plan.axis_green_sec["p2"])
+        self.assertEqual(10.0, plan.axis_green_sec["p3"])
+
+    def test_a_dark_group_that_is_not_declared_permanently_red_still_raises(self) -> None:
+        """되돌림 증명의 반대편 - 선언 없이 녹색만 없으면 여전히 죽는다.
+
+        이게 없으면 매핑이 틀려 엉뚱한 SG 가 붙은 현시도 조용히 0 이 된다.
+        """
+        prog = program(100.0, {"1": ((0.0, 30.0),), "9": ()})
+        with self.assertRaises(signal_group_plan.SignalGroupPlanError):
+            signal_group_plan.build_node_plan(
+                node_id="SC107",
+                program=prog,
+                phase_signal_groups={"p1": ["9"], "p2": ["1"], "p3": [], "p4": []},
+                signal_group_ids=["1", "9"],
+            )
 
 
 class BuildNodePlanTests(unittest.TestCase):

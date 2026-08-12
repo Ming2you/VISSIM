@@ -62,7 +62,8 @@ from plant.src.vissim_strict.signal_program import parse_sig  # noqa: E402
 
 NETWORK_INPX = REPO / "network/real_world_gaepo_modi/modi_eval_rw_control.inpx"
 ROLES_CSV = REPO / "evaluation/real_world_modi_inventory/signal_controller_roles.csv"
-MOVEMENT_SG_MAP = REPO / "outputs/movement_signal_group_map_v3.json"
+# 4현시 config 위에서 다시 유도한 map. v3 판은 movement 가 2현시라 p3/p4 가 비어 있다.
+MOVEMENT_SG_MAP = REPO / "outputs/movement_signal_group_map_n4p4_20260812.json"
 LINK_ASSIGNMENT = REPO / "outputs/link_player_assignment_20260805.json"
 TUNING_JSON = REPO / "evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json"
 
@@ -284,17 +285,23 @@ class AxisCompositionKnownMismatchTests(unittest.TestCase):
     """
 
     def test_map_axis_matches_the_plant_axis(self) -> None:
-        """`movement_signal_group_map_v3.json` 의 p1/p2 가 실망의 축과 같아야 한다."""
+        """movement map 의 축이 실망의 축과 같아야 한다.
+
+        `physical_axis_groups` 의 p1/p2 는 **모델 현시가 아니라 축**이다(NS/EW). 모델이
+        4현시가 된 뒤로 한 축은 두 현시로 쪼개지므로 NS 는 p1∪p2(major 직진+좌), EW 는
+        p3∪p4(minor 직진+좌) 와 맞춰야 한다.
+        """
         table = json.loads(MOVEMENT_SG_MAP.read_text(encoding="utf-8"))["controllers"]
         for sc_no in INTERFACE_NODES:
             with self.subTest(sc=sc_no):
                 axes = physical_axis_groups(sc_no)
                 mapped = table[f"SC{sc_no}"]["phase_signal_groups"]
-                for phase in ("p1", "p2"):
+                for axis, phases in (("p1", ("p1", "p2")), ("p2", ("p3", "p4"))):
+                    union = set().union(*(set(mapped.get(p, ())) for p in phases))
                     self.assertEqual(
-                        sorted(axes[phase], key=int),
-                        sorted(mapped.get(phase, ()), key=int),
-                        f"SC{sc_no} {phase}",
+                        sorted(axes[axis], key=int),
+                        sorted(union, key=int),
+                        f"SC{sc_no} {axis} = {'∪'.join(phases)}",
                     )
 
     def test_grid_leg_bearing_matches_the_physical_approach_bearing(self) -> None:
