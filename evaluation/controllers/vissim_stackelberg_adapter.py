@@ -1319,15 +1319,24 @@ def load_signal_group_actuation_plan(path: Path | None = None) -> dict[str, Any]
 
 
 def plan_live_phases(plan_table: Mapping[str, Any], sc_no: int) -> tuple[str, ...]:
-    """계획이 그 SC 에서 실제로 SG 를 붙여 둔 현시. 액션의 현시 집합과 같아야 한다."""
+    """계획이 그 SC 에서 **실제로 켤 수 있는** 현시. 액션의 현시 집합과 같아야 한다.
+
+    SG 가 붙어 있는 것만으로는 부족하다. SC107·108·109 는 한 현시의 SG 가 `.sig` 에서
+    영구적색이라 네이티브 녹색이 0 이고, 아무리 녹색을 명령해도 0 초가 실현된다. 그
+    현시를 살아 있다고 세면 러너가 clearance 를 한 번 더 물고(주기가 3 s 밀린다) 모델은
+    켜지지 않을 현시에 예산을 붓는다(실측 SC107 p1 지시 97.5 s, 실현 0.0 s).
+    """
     node = (plan_table.get("controllers") or {}).get(str(int(sc_no)))
     if node is None:
         raise signal_group_plan.SignalGroupPlanError(
             f"actuation plan has no controller {sc_no}"
         )
     groups = node.get("phase_signal_groups") or {}
+    native = node.get("axis_green_sec") or {}
     return tuple(
-        phase for phase in signal_group_plan.MODEL_PHASES if tuple(groups.get(phase) or ())
+        phase
+        for phase in signal_group_plan.MODEL_PHASES
+        if tuple(groups.get(phase) or ()) and float(native.get(phase, 0.0)) > 0.0
     )
 
 
@@ -2818,7 +2827,30 @@ def build_config(
             "leader_candidate_count": 5,
             "max_nash_iter": 2,
         })
-    return ExperimentConfig.from_file(config_path, overrides=overrides)
+    cfg = ExperimentConfig.from_file(config_path, overrides=overrides)
+    _plant_phase_counts_into(cfg)
+    return cfg
+
+
+def _plant_phase_counts_into(cfg) -> None:
+    """계획이 센 SC별 현시 수를 모델에 심는다.
+
+    이걸 안 심으면 모델은 legacy 스칼라 모드로 떨어져 전 SC 에 같은 예산을 준다. 실 망은
+    SC107·108·109 가 3현시라(한 현시의 SG 가 `.sig` 에서 영구적색) 그 셋만 예산이 3 s 더
+    커야 한다. 스칼라로 밀면 그 3 s 가 죽은 현시로 흘러가 실현 0 이 된다.
+
+    계획은 config 뒤에 유도되므로 config 생성기가 이 값을 알 수 없다 — 두 산출물을 모두
+    쥐고 있는 여기가 유일하게 순환이 없는 자리다. 계획이 없으면 아무것도 안 한다.
+    """
+    plan = load_signal_group_actuation_plan()
+    if not plan:
+        return
+    counts = plant_cycle.plan_live_phase_counts(plan)
+    if not counts:
+        return
+    cfg.network.live_phase_count_by_signal = {
+        f"SC{sc_no}": int(live) for sc_no, live in counts.items()
+    }
 
 
 def profiled_demand_rates(

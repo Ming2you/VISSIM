@@ -3,96 +3,100 @@
   "amber_sec": 3.0,
   "all_red_sec": 0.0,
   "source": {
-    "network": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
-    "network_sha256": "f3ce390f281c2bd60a367435dd5567767edafb4681cb66a2c566a480aa74d635",
-    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
-    "control_mapping_sha256": "9a3f246d9fd4c9f939a6b9d412ac093fc04254d7c7c209f844303d6309126792",
-    "movement_signal_group_map": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\outputs\\movement_signal_group_map_v3.json",
-    "movement_signal_group_map_sha256": "b33159dd683b3f5741d0c646a439aca8c0ec4282e6c4ae2bc4d139305daa9823",
+    "network": "network\\real_world_gaepo_modi\\modi_eval_rw_control_n4dr150_20260812.inpx",
+    "network_sha256": "37f1cc1fcafbec5affe3ed1f350b76ae89fb45b686b254b82e97f8db91476bbe",
+    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41legfix_20260812.json",
+    "control_mapping_sha256": "dda5fa5992cfe6589e5ff76f36c1014cb067211f453a8beb9c6553b21f64a7c9",
+    "movement_signal_group_map": "outputs\\movement_signal_group_map_legfix_20260812.json",
+    "movement_signal_group_map_sha256": "c937648be83875f467b6611ab160d1c45d3b882fa5abca29ff1546040897766e",
     "program_source": "inpx supplyFile2 (not signal_group_timing_v3.json)",
-    "signal_group_timing_v3_sha256": "e4dcb6f9a8924ffcb95ca42a714ba4538a90e573abe30002c778881c628fb35c"
+    "signal_group_timing_v3_sha256": "204840adc0002b43a071630110ef038e2b8c0acc1245e8ec8b5554f8be63cd51"
   },
   "controllers": {
     "1": {
       "node_id": "SC1",
-      "native_cycle_sec": 160.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 83.0,
-        "p2": 68.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 54.0,
+        "p2": 21.0,
+        "p3": 32.0,
+        "p4": 31.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.6506024096385542,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6144578313253012
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.8192771084337349,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7831325301204819
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5441176470588235
-          },
-          {
-            "sg_no": "2",
-            "window_index": 0,
-            "start_fraction": 0.5441176470588235,
             "end_fraction": 1.0
           },
           {
-            "sg_no": "5",
+            "sg_no": "7",
             "window_index": 0,
-            "start_fraction": 0.5441176470588235,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
+          {
+            "sg_no": "2",
+            "window_index": 0,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5441176470588235
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -120,7 +124,7 @@
         ],
         [
           "1",
-          "5"
+          "6"
         ],
         [
           "1",
@@ -140,7 +144,7 @@
         ],
         [
           "2",
-          "6"
+          "5"
         ],
         [
           "2",
@@ -161,6 +165,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -202,82 +210,72 @@
       "sc_no": 1,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 37.0,
-        "2": 31.0,
-        "3": 29.0,
-        "4": 51.0,
+        "1": 31.0,
+        "2": 32.0,
+        "3": 21.0,
+        "4": 54.0,
         "5": 31.0,
-        "6": 37.0,
-        "7": 15.0,
-        "8": 65.0
+        "6": 32.0,
+        "7": 21.0,
+        "8": 54.0
       }
     },
     "5": {
       "node_id": "SC5",
-      "native_cycle_sec": 160.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8",
-          "11",
           "12",
-          "15",
           "16",
-          "19",
           "20",
-          "23",
           "24"
         ],
         "p2": [
-          "1",
+          "3",
+          "7",
+          "11",
+          "15",
+          "19",
+          "23"
+        ],
+        "p3": [
           "2",
-          "5",
           "6",
-          "9",
           "10",
-          "13",
           "14",
-          "17",
           "18",
-          "21",
           "22"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5",
+          "9",
+          "13",
+          "17",
+          "21"
+        ]
       },
       "axis_green_sec": {
-        "p1": 104.0,
-        "p2": 102.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 97.0,
+        "p2": 23.0,
+        "p3": 101.0,
+        "p4": 25.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.7115384615384616,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
-            "start_fraction": 0.28846153846153844,
-            "end_fraction": 0.6826923076923077
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.8173076923076923,
-            "end_fraction": 1.0
+            "start_fraction": 0.28865979381443296,
+            "end_fraction": 0.7319587628865979
           },
           {
             "sg_no": "8",
             "window_index": 0,
-            "start_fraction": 0.28846153846153844,
-            "end_fraction": 0.7884615384615384
+            "start_fraction": 0.28865979381443296,
+            "end_fraction": 0.7319587628865979
           },
           {
             "sg_no": "20",
@@ -294,56 +292,70 @@
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.5196078431372549,
-            "end_fraction": 0.7843137254901961
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.49019607843137253
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.5196078431372549,
-            "end_fraction": 0.7843137254901961
+            "end_fraction": 0.46534653465346537
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.49019607843137253
+            "end_fraction": 0.46534653465346537
           },
           {
             "sg_no": "10",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7843137254901961
+            "end_fraction": 0.7425742574257426
           },
           {
             "sg_no": "10",
             "window_index": 1,
-            "start_fraction": 0.7843137254901961,
+            "start_fraction": 0.7425742574257426,
             "end_fraction": 1.0
           },
           {
             "sg_no": "14",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7843137254901961
+            "end_fraction": 0.7425742574257426
           },
           {
             "sg_no": "14",
             "window_index": 1,
-            "start_fraction": 0.7843137254901961,
+            "start_fraction": 0.7425742574257426,
             "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -438,6 +450,10 @@
           "6"
         ],
         [
+          "3",
+          "8"
+        ],
+        [
           "4",
           "5"
         ],
@@ -501,112 +517,116 @@
       "sc_no": 5,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 27.0,
-        "2": 50.0,
-        "3": 30.0,
-        "4": 41.0,
-        "5": 27.0,
-        "6": 50.0,
-        "7": 19.0,
-        "8": 52.0,
+        "1": 25.0,
+        "2": 47.0,
+        "3": 23.0,
+        "4": 43.0,
+        "5": 25.0,
+        "6": 47.0,
+        "7": 23.0,
+        "8": 43.0,
         "9": 0,
-        "10": 102.0,
+        "10": 101.0,
         "11": 0,
         "12": 0,
         "13": 0,
-        "14": 102.0,
+        "14": 101.0,
         "15": 0,
         "16": 0,
         "17": 0,
         "18": 0,
         "19": 0,
-        "20": 104.0,
+        "20": 97.0,
         "21": 0,
         "22": 0,
         "23": 0,
-        "24": 104.0
+        "24": 97.0
       }
     },
     "6": {
       "node_id": "SC6",
-      "native_cycle_sec": 160.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 69.0,
-        "p2": 82.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 43.0,
+        "p2": 21.0,
+        "p3": 52.0,
+        "p4": 22.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.6666666666666666,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6666666666666666
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.6666666666666666,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6666666666666666
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.7682926829268293,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7317073170731707
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.6707317073170732,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6341463414634146
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -651,6 +671,10 @@
         [
           "2",
           "4"
+        ],
+        [
+          "2",
+          "5"
         ],
         [
           "2",
@@ -716,14 +740,14 @@
       "sc_no": 6,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 19.0,
-        "2": 60.0,
-        "3": 23.0,
-        "4": 46.0,
-        "5": 27.0,
+        "1": 22.0,
+        "2": 52.0,
+        "3": 21.0,
+        "4": 43.0,
+        "5": 22.0,
         "6": 52.0,
-        "7": 23.0,
-        "8": 46.0
+        "7": 21.0,
+        "8": 43.0
       }
     },
     "11": {
@@ -731,81 +755,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 71.0,
-        "p2": 67.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 36.0,
+        "p2": 35.0,
+        "p3": 34.0,
+        "p4": 33.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.0,
-            "end_fraction": 0.5211267605633803
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
-            "start_fraction": 0.5211267605633803,
-            "end_fraction": 1.0
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.5211267605633803,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5211267605633803
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.5223880597014925,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5223880597014925
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "6",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           },
           {
             "sg_no": "5",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5223880597014925
-          },
-          {
-            "sg_no": "6",
-            "window_index": 0,
-            "start_fraction": 0.5223880597014925,
             "end_fraction": 1.0
           }
-        ],
-        "p3": [],
-        "p4": []
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -833,7 +861,7 @@
         ],
         [
           "1",
-          "5"
+          "6"
         ],
         [
           "1",
@@ -853,7 +881,7 @@
         ],
         [
           "2",
-          "6"
+          "5"
         ],
         [
           "2",
@@ -877,7 +905,7 @@
         ],
         [
           "3",
-          "7"
+          "8"
         ],
         [
           "4",
@@ -889,7 +917,7 @@
         ],
         [
           "4",
-          "8"
+          "7"
         ],
         [
           "5",
@@ -919,96 +947,100 @@
       "sc_no": 11,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 32.0,
-        "2": 35.0,
-        "3": 37.0,
-        "4": 34.0,
-        "5": 35.0,
-        "6": 32.0,
-        "7": 34.0,
-        "8": 37.0
+        "1": 33.0,
+        "2": 34.0,
+        "3": 35.0,
+        "4": 36.0,
+        "5": 33.0,
+        "6": 34.0,
+        "7": 35.0,
+        "8": 36.0
       }
     },
     "12": {
       "node_id": "SC12",
-      "native_cycle_sec": 140.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 69.0,
-        "p2": 59.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 50.0,
+        "p2": 24.0,
+        "p3": 32.0,
+        "p4": 32.0
       },
       "phase_segments": {
         "p1": [
           {
+            "sg_no": "4",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "8",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p2": [
+          {
             "sg_no": "3",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.3188405797101449
-          },
-          {
-            "sg_no": "4",
-            "window_index": 0,
-            "start_fraction": 0.3188405797101449,
             "end_fraction": 1.0
           },
           {
             "sg_no": "7",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.3188405797101449
-          },
-          {
-            "sg_no": "8",
-            "window_index": 0,
-            "start_fraction": 0.3188405797101449,
             "end_fraction": 1.0
           }
         ],
-        "p2": [
-          {
-            "sg_no": "1",
-            "window_index": 0,
-            "start_fraction": 0.6101694915254238,
-            "end_fraction": 1.0
-          },
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6101694915254238
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "6",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           },
           {
             "sg_no": "5",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6101694915254238
-          },
-          {
-            "sg_no": "6",
-            "window_index": 0,
-            "start_fraction": 0.6101694915254238,
             "end_fraction": 1.0
           }
-        ],
-        "p3": [],
-        "p4": []
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -1036,7 +1068,7 @@
         ],
         [
           "1",
-          "5"
+          "6"
         ],
         [
           "1",
@@ -1056,7 +1088,7 @@
         ],
         [
           "2",
-          "6"
+          "5"
         ],
         [
           "2",
@@ -1122,96 +1154,100 @@
       "sc_no": 12,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 23.0,
-        "2": 36.0,
-        "3": 22.0,
-        "4": 47.0,
-        "5": 36.0,
-        "6": 23.0,
-        "7": 22.0,
-        "8": 47.0
+        "1": 32.0,
+        "2": 32.0,
+        "3": 24.0,
+        "4": 50.0,
+        "5": 32.0,
+        "6": 32.0,
+        "7": 24.0,
+        "8": 50.0
       }
     },
     "101": {
       "node_id": "SC101",
-      "native_cycle_sec": 160.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 83.0,
-        "p2": 71.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 48.0,
+        "p2": 27.0,
+        "p3": 39.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.5060240963855421,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.46987951807228917
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.7951807228915663,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7590361445783133
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.5633802816901409,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5211267605633803
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.7183098591549296,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.676056338028169
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -1239,6 +1275,10 @@
         ],
         [
           "1",
+          "6"
+        ],
+        [
+          "1",
           "7"
         ],
         [
@@ -1276,6 +1316,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -1317,14 +1361,14 @@
       "sc_no": 101,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 31.0,
-        "2": 37.0,
-        "3": 41.0,
-        "4": 39.0,
-        "5": 20.0,
-        "6": 48.0,
-        "7": 17.0,
-        "8": 63.0
+        "1": 24.0,
+        "2": 39.0,
+        "3": 27.0,
+        "4": 48.0,
+        "5": 24.0,
+        "6": 39.0,
+        "7": 27.0,
+        "8": 48.0
       }
     },
     "105": {
@@ -1332,81 +1376,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 69.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 48.0,
+        "p2": 21.0,
+        "p3": 35.0,
+        "p4": 34.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.6956521739130435,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6956521739130435
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.6956521739130435,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6956521739130435
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.5072463768115942,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5072463768115942
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "6",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           },
           {
             "sg_no": "5",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5072463768115942
-          },
-          {
-            "sg_no": "6",
-            "window_index": 0,
-            "start_fraction": 0.5072463768115942,
             "end_fraction": 1.0
           }
-        ],
-        "p3": [],
-        "p4": []
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -1434,7 +1482,7 @@
         ],
         [
           "1",
-          "5"
+          "6"
         ],
         [
           "1",
@@ -1454,7 +1502,7 @@
         ],
         [
           "2",
-          "6"
+          "5"
         ],
         [
           "2",
@@ -1524,39 +1572,42 @@
         "2": 35.0,
         "3": 21.0,
         "4": 48.0,
-        "5": 35.0,
-        "6": 34.0,
+        "5": 34.0,
+        "6": 35.0,
         "7": 21.0,
         "8": 48.0
       }
     },
     "107": {
       "node_id": "SC107",
-      "native_cycle_sec": 170.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 28.0,
-        "p2": 136.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 0.0,
+        "p2": 25.0,
+        "p3": 78.0,
+        "p4": 38.0
       },
       "phase_segments": {
-        "p1": [
+        "p1": [],
+        "p2": [
           {
             "sg_no": "3",
             "window_index": 0,
@@ -1570,34 +1621,34 @@
             "end_fraction": 1.0
           }
         ],
-        "p2": [
+        "p3": [
+          {
+            "sg_no": "2",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "6",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p4": [
           {
             "sg_no": "1",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.41911764705882354
-          },
-          {
-            "sg_no": "2",
-            "window_index": 0,
-            "start_fraction": 0.4411764705882353,
             "end_fraction": 1.0
           },
           {
             "sg_no": "5",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.22794117647058823
-          },
-          {
-            "sg_no": "6",
-            "window_index": 0,
-            "start_fraction": 0.25,
             "end_fraction": 1.0
           }
-        ],
-        "p3": [],
-        "p4": []
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -1618,6 +1669,10 @@
         [
           "1",
           "3"
+        ],
+        [
+          "1",
+          "6"
         ],
         [
           "1",
@@ -1659,40 +1714,42 @@
       "sc_no": 107,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 57.0,
-        "2": 76.0,
-        "3": 28.0,
+        "1": 38.0,
+        "2": 78.0,
+        "3": 25.0,
         "4": 0,
-        "5": 31.0,
-        "6": 102.0,
-        "7": 28.0,
+        "5": 38.0,
+        "6": 78.0,
+        "7": 25.0,
         "8": 0
       }
     },
     "108": {
       "node_id": "SC108",
-      "native_cycle_sec": 170.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 35.0,
-        "p2": 129.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 31.0,
+        "p2": 0.0,
+        "p3": 88.0,
+        "p4": 22.0
       },
       "phase_segments": {
         "p1": [
@@ -1709,34 +1766,35 @@
             "end_fraction": 1.0
           }
         ],
-        "p2": [
-          {
-            "sg_no": "1",
-            "window_index": 0,
-            "start_fraction": 0.8372093023255814,
-            "end_fraction": 1.0
-          },
+        "p2": [],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.813953488372093
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.7751937984496124,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.751937984496124
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -1772,6 +1830,10 @@
         ],
         [
           "2",
+          "5"
+        ],
+        [
+          "2",
           "8"
         ],
         [
@@ -1798,43 +1860,46 @@
       "sc_no": 108,
       "major_maps_to": "p2",
       "native_green_sec": {
-        "1": 21.0,
-        "2": 105.0,
+        "1": 22.0,
+        "2": 88.0,
         "3": 0,
-        "4": 35.0,
-        "5": 29.0,
-        "6": 97.0,
+        "4": 31.0,
+        "5": 22.0,
+        "6": 88.0,
         "7": 0,
-        "8": 35.0
+        "8": 31.0
       }
     },
     "109": {
       "node_id": "SC109",
-      "native_cycle_sec": 170.0,
+      "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 20.0,
-        "p2": 144.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 0.0,
+        "p2": 20.0,
+        "p3": 90.0,
+        "p4": 31.0
       },
       "phase_segments": {
-        "p1": [
+        "p1": [],
+        "p2": [
           {
             "sg_no": "7",
             "window_index": 0,
@@ -1842,7 +1907,7 @@
             "end_fraction": 1.0
           }
         ],
-        "p2": [
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
@@ -1850,20 +1915,20 @@
             "end_fraction": 1.0
           },
           {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.7083333333333334,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6875
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 0,
@@ -1877,6 +1942,10 @@
       },
       "red_only_signal_groups": [],
       "conflict_pairs": [
+        [
+          "2",
+          "5"
+        ],
         [
           "2",
           "7"
@@ -1898,11 +1967,11 @@
       "major_maps_to": "p2",
       "native_green_sec": {
         "1": 0,
-        "2": 144.0,
+        "2": 90.0,
         "3": 0,
         "4": 0,
-        "5": 42.0,
-        "6": 99.0,
+        "5": 31.0,
+        "6": 90.0,
         "7": 20.0,
         "8": 0
       }
@@ -1912,81 +1981,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "2",
-          "3",
           "4",
-          "5",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 141.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 46.0,
+        "p2": 23.0,
+        "p3": 45.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "2",
-            "window_index": 0,
-            "start_fraction": 0.0,
-            "end_fraction": 0.3191489361702128
-          },
-          {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.7943262411347518,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
-            "start_fraction": 0.48936170212765956,
-            "end_fraction": 0.7730496453900709
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.3191489361702128,
-            "end_fraction": 0.48936170212765956
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.8723404255319149,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
-            "start_fraction": 0.48936170212765956,
-            "end_fraction": 0.851063829787234
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6521739130434783,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
+          {
+            "sg_no": "2",
+            "window_index": 0,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -2055,6 +2128,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -2098,12 +2175,12 @@
       "native_green_sec": {
         "1": 24.0,
         "2": 45.0,
-        "3": 29.0,
-        "4": 40.0,
+        "3": 23.0,
+        "4": 46.0,
         "5": 24.0,
         "6": 45.0,
-        "7": 18.0,
-        "8": 51.0
+        "7": 23.0,
+        "8": 46.0
       }
     },
     "1002": {
@@ -2111,81 +2188,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 72.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 46.0,
+        "p2": 23.0,
+        "p3": 45.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.5972222222222222,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5555555555555556
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.75,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7083333333333334
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6521739130434783,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.6521739130434783,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -2254,6 +2335,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -2297,12 +2382,12 @@
       "native_green_sec": {
         "1": 24.0,
         "2": 45.0,
-        "3": 29.0,
-        "4": 40.0,
+        "3": 23.0,
+        "4": 46.0,
         "5": 24.0,
         "6": 45.0,
-        "7": 18.0,
-        "8": 51.0
+        "7": 23.0,
+        "8": 46.0
       }
     },
     "1003": {
@@ -2310,81 +2395,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 72.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 46.0,
+        "p2": 23.0,
+        "p3": 45.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.5972222222222222,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5555555555555556
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.75,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7083333333333334
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6521739130434783,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.6521739130434783,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -2453,6 +2542,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -2496,12 +2589,12 @@
       "native_green_sec": {
         "1": 24.0,
         "2": 45.0,
-        "3": 29.0,
-        "4": 40.0,
+        "3": 23.0,
+        "4": 46.0,
         "5": 24.0,
         "6": 45.0,
-        "7": 18.0,
-        "8": 51.0
+        "7": 23.0,
+        "8": 46.0
       }
     },
     "1004": {
@@ -2509,81 +2602,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "2",
-          "3",
           "4",
-          "5",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 141.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 46.0,
+        "p2": 23.0,
+        "p3": 45.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "2",
-            "window_index": 0,
-            "start_fraction": 0.0,
-            "end_fraction": 0.3191489361702128
-          },
-          {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.7943262411347518,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
-            "start_fraction": 0.48936170212765956,
-            "end_fraction": 0.7730496453900709
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.3191489361702128,
-            "end_fraction": 0.48936170212765956
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.8723404255319149,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
-            "start_fraction": 0.48936170212765956,
-            "end_fraction": 0.851063829787234
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6521739130434783,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
+          {
+            "sg_no": "2",
+            "window_index": 0,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -2652,6 +2749,10 @@
         [
           "3",
           "6"
+        ],
+        [
+          "3",
+          "8"
         ],
         [
           "4",
@@ -2695,12 +2796,12 @@
       "native_green_sec": {
         "1": 24.0,
         "2": 45.0,
-        "3": 29.0,
-        "4": 40.0,
+        "3": 23.0,
+        "4": 46.0,
         "5": 24.0,
         "6": 45.0,
-        "7": 18.0,
-        "8": 51.0
+        "7": 23.0,
+        "8": 46.0
       }
     },
     "1005": {
@@ -2708,81 +2809,85 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "3",
           "4",
-          "7",
           "8"
         ],
         "p2": [
-          "1",
+          "3",
+          "7"
+        ],
+        "p3": [
           "2",
-          "5",
           "6"
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          "1",
+          "5"
+        ]
       },
       "axis_green_sec": {
-        "p1": 72.0,
-        "p2": 69.0,
-        "p3": 0.0,
-        "p4": 0.0
+        "p1": 46.0,
+        "p2": 23.0,
+        "p3": 45.0,
+        "p4": 24.0
       },
       "phase_segments": {
         "p1": [
           {
-            "sg_no": "3",
-            "window_index": 0,
-            "start_fraction": 0.5972222222222222,
-            "end_fraction": 1.0
-          },
-          {
             "sg_no": "4",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.5555555555555556
-          },
-          {
-            "sg_no": "7",
-            "window_index": 0,
-            "start_fraction": 0.75,
             "end_fraction": 1.0
           },
           {
             "sg_no": "8",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.7083333333333334
+            "end_fraction": 1.0
           }
         ],
         "p2": [
           {
-            "sg_no": "1",
+            "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6521739130434783,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
           {
             "sg_no": "2",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
-          },
-          {
-            "sg_no": "5",
-            "window_index": 0,
-            "start_fraction": 0.6521739130434783,
             "end_fraction": 1.0
           },
           {
             "sg_no": "6",
             "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6521739130434783
+            "end_fraction": 1.0
           }
         ],
-        "p3": [],
-        "p4": []
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "5",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
       },
       "window_counts": {
         "1": 1,
@@ -2853,6 +2958,10 @@
           "6"
         ],
         [
+          "3",
+          "8"
+        ],
+        [
           "4",
           "5"
         ],
@@ -2894,12 +3003,12 @@
       "native_green_sec": {
         "1": 24.0,
         "2": 45.0,
-        "3": 29.0,
-        "4": 40.0,
+        "3": 23.0,
+        "4": 46.0,
         "5": 24.0,
         "6": 45.0,
-        "7": 18.0,
-        "8": 51.0
+        "7": 23.0,
+        "8": 46.0
       }
     }
   },
@@ -2910,7 +3019,7 @@
     "planned_windows": 118,
     "uncovered_signal_groups": 0,
     "never_green_signal_groups": 20,
-    "conflict_pairs": 312,
+    "conflict_pairs": 325,
     "conflict_violations": 0
   },
   "never_green_signal_groups": [

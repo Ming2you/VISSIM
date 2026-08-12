@@ -271,13 +271,14 @@ class PlantCycleFormulaTests(unittest.TestCase):
         low, high = plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC
         # 계획이 실제로 구동하는 현시에만 녹색을 준다(그 밖은 어댑터가 fail-closed 로 죽는다).
         live = adapter.plan_live_phases(plan, 1001)
-        self.assertEqual(live, ("p1", "p2"))
-        for phase, raw, expected in (
-            (live[0], high + 50.0, high),
-            (live[0], low / 2.0, low),
-            (live[1], high + 50.0, high),
-            (live[1], low / 2.0, low),
-        ):
+        # 현시 어휘를 여기 적지 않는다. 클램프는 **어느 현시로 들어와도** 물려야 하므로
+        # 계획이 구동하는 현시 전부를 양끝으로 두드린다.
+        self.assertGreaterEqual(len(live), 2)
+        for phase, raw, expected in [
+            (phase, bound, clamped)
+            for phase in live
+            for bound, clamped in ((high + 50.0, high), (low / 2.0, low))
+        ]:
             with self.subTest(phase=phase, raw=raw):
                 control = types.SimpleNamespace(
                     green_times={f"SC1001_{name}": 40.0 for name in live},
@@ -666,14 +667,58 @@ class PlanPhaseCountTests(unittest.TestCase):
 
         counts = plant_cycle.plan_live_phase_counts(self.plan)
         self.assertEqual(len(counts), 15, counts)
+        # 배선을 먼저 든다. 항등식만 보면 예산이 유도값이라 정의상 참이 되어 아무것도
+        # 증명하지 못한다 - 실제로 확인해야 할 것은 **어댑터가 계획의 SC별 N 을 모델에
+        # 심었는가** 다. 안 심으면 legacy 스칼라로 떨어져 3현시 SC 가 3 s 를 잃는다.
+        self.assertEqual(
+            {f"SC{sc_no}": live for sc_no, live in counts.items()},
+            dict(self.net.live_phase_count_by_signal),
+            "어댑터가 계획의 현시 수를 모델에 안 심었다",
+        )
         gaps = {}
         for sc_no, live in sorted(counts.items()):
-            budget = float(self.net.effective_green_total)
+            budget = self.net.signal_effective_green_total(f"SC{sc_no}")
             replayed = budget + plant_cycle.plant_lost_time_sec(live)
             gap = round(replayed - float(self.net.cycle_length), 6)
             if gap:
                 gaps[sc_no] = gap
         self.assertEqual(gaps, {}, f"플랜트 주기가 모델 주기와 다른 SC: {gaps}")
+
+    def test_the_derived_budget_matches_the_green_vissim_actually_showed(self) -> None:
+        """유도식의 정박점은 실측이다. `C - N x clearance` 를 실 녹색과 맞춘다.
+
+        VISSIM 안에서 400 초를 돌려 받은 SG 상태(`outputs/live_sg_states_n4dr150_*.csv`)
+        에서 한 주기 구간 [150, 300) 중 **한 SG 라도 녹색인 초**를 세면 그 SC 가 실제로
+        낸 녹색이 나온다. 여기가 어긋나면 유도식이 틀린 것이지 검사가 틀린 게 아니다.
+
+        SC5 만 제외한다 - SG 24개짜리 다중 링이라 링이 겹쳐 늘 어딘가 녹색이고(실측 150),
+        단일 링 식으로는 애초에 못 담는다. 빼는 것을 여기 적어 둔다.
+        """
+        import csv
+        import collections
+
+        from evaluation.controllers import plant_cycle
+
+        samples: dict[str, dict[int, str]] = collections.defaultdict(dict)
+        path = WORKSPACE_ROOT / "outputs" / "live_sg_states_n4dr150_20260812.csv"
+        with path.open(encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                samples[row["sc"]][int(float(row["simsec"]))] = row["states"]
+        self.assertEqual(15, len(samples))
+
+        counts = plant_cycle.plan_live_phase_counts(self.plan)
+        for sc_no, live in sorted(counts.items()):
+            if sc_no == 5:
+                continue
+            with self.subTest(sc=sc_no):
+                states = samples[str(sc_no)]
+                measured = sum(1 for t in range(150, 300) if "G" in states.get(t, ""))
+                self.assertAlmostEqual(
+                    float(measured),
+                    self.net.signal_effective_green_total(f"SC{sc_no}"),
+                    places=6,
+                    msg=f"SC{sc_no} N={live}",
+                )
 
     def test_the_plan_uses_the_same_phase_vocabulary_as_the_model(self) -> None:
         """계획의 현시 어휘가 모델의 것과 같아야 한다. 이건 지금도 성립한다."""

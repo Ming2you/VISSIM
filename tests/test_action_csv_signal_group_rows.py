@@ -50,9 +50,25 @@ def load_plan() -> dict:
     return json.loads(PLAN_PATH.read_text(encoding="utf-8"))
 
 
-def two_phase(p1: float, p2: float) -> dict[str, float]:
-    """현시 둘만 쓰는 지시. 지금 계획 산출물이 담을 수 있는 전부다."""
-    return {"p1": float(p1), "p2": float(p2), "p3": 0.0, "p4": 0.0}
+# 계획이 유도된 주기. `.sig` 실측 150 s 와 같아야 한다.
+PLAN_CYCLE_SEC = 150.0
+
+
+def plan_greens(plan: dict, sc_no: int) -> dict[str, float]:
+    """그 SC 가 **실제로 켤 수 있는** 현시에만 녹색을 고르게 싣는다.
+
+    값을 손으로 적지 않는다. 살아 있는 현시 수 N 을 계획에서 읽고 예산을
+    `cycle - N x clearance` 로 유도한다 — SC107·108·109 는 N=3 이라 141 이 나오고
+    나머지는 N=4 라 138 이 나온다. 138/141 을 리터럴로 두면 현시 수가 바뀔 때
+    검사가 조용히 틀린 값을 통과시킨다.
+    """
+    live = adapter.plan_live_phases(plan, int(sc_no))
+    budget = PLAN_CYCLE_SEC - plant_cycle.clearance_sec() * float(len(live))
+    each = budget / float(len(live))
+    return {
+        phase: (each if phase in live else 0.0)
+        for phase in signal_group_plan.MODEL_PHASES
+    }
 
 
 class SignalGroupRowTests(unittest.TestCase):
@@ -60,12 +76,13 @@ class SignalGroupRowTests(unittest.TestCase):
         self.plan = load_plan()
 
     def test_rows_cover_every_planned_window_of_the_controller(self) -> None:
-        greens = two_phase(61.0, 79.0)
+        greens = plan_greens(self.plan, 1001)
         rows = adapter.signal_group_action_rows(
             self.plan, sc_no=1001, phase_greens=greens, offset=7.0, metadata="ok",
         )
         expected = sum(self.plan["controllers"]["1001"]["window_counts"].values())
-        plan_cycle = 61.0 + 79.0 + 2 * CLEARANCE_SEC
+        live = [value for value in greens.values() if value > 0.0]
+        plan_cycle = sum(live) + len(live) * CLEARANCE_SEC
         self.assertEqual(len(rows), expected)
         for row in rows:
             self.assertEqual(row["kind"], "signal_sg")
@@ -85,7 +102,7 @@ class SignalGroupRowTests(unittest.TestCase):
         invalid 로 센다(`SignalSgRowValid`).
         """
         rows = adapter.signal_group_action_rows(
-            self.plan, sc_no=1001, phase_greens=two_phase(61.0, 79.0), offset=0.0,
+            self.plan, sc_no=1001, phase_greens=plan_greens(self.plan, sc_no=1001), offset=0.0,
             metadata="ok",
         )
         self.assertTrue(rows)
@@ -104,16 +121,19 @@ class SignalGroupRowTests(unittest.TestCase):
         stripped.pop("amber_sec", None)
         stripped.pop("all_red_sec", None)
         rows = adapter.signal_group_action_rows(
-            stripped, sc_no=1001, phase_greens=two_phase(61.0, 79.0), offset=0.0,
+            stripped, sc_no=1001, phase_greens=plan_greens(self.plan, sc_no=1001), offset=0.0,
             metadata="ok",
         )
         self.assertTrue(rows)
         for row in rows:
-            self.assertEqual(float(row["green_sec"]), 61.0 + 79.0 + 2 * CLEARANCE_SEC)
+            live = [value for value in plan_greens(self.plan, 1001).values() if value > 0.0]
+            self.assertEqual(
+                float(row["green_sec"]), sum(live) + len(live) * CLEARANCE_SEC
+            )
 
     def test_row_green_matches_the_model_native_share(self) -> None:
         rows = adapter.signal_group_action_rows(
-            self.plan, sc_no=1001, phase_greens=two_phase(61.0, 79.0), offset=0.0,
+            self.plan, sc_no=1001, phase_greens=plan_greens(self.plan, sc_no=1001), offset=0.0,
             metadata="ok",
         )
         realized: dict[str, float] = {}
@@ -125,12 +145,14 @@ class SignalGroupRowTests(unittest.TestCase):
         axis = float(node["axis_green_sec"]["p1"])
         for sg_no in node["phase_signal_groups"]["p1"]:
             share = float(node["native_green_sec"][sg_no]) / axis
-            self.assertAlmostEqual(realized[sg_no], 61.0 * share, places=5)
+            self.assertAlmostEqual(
+                realized[sg_no], plan_greens(self.plan, 1001)["p1"] * share, places=5
+            )
 
     def test_plan_rows_never_co_green_a_conflicting_pair(self) -> None:
         for sc_no, node in self.plan["controllers"].items():
             rows = adapter.signal_group_action_rows(
-                self.plan, sc_no=int(sc_no), phase_greens=two_phase(57.0, 63.0),
+                self.plan, sc_no=int(sc_no), phase_greens=plan_greens(self.plan, int(sc_no)),
                 offset=0.0, metadata="ok",
             )
             windows = tuple(
@@ -150,7 +172,7 @@ class SignalGroupRowTests(unittest.TestCase):
     def test_unknown_controller_is_rejected_rather_than_silently_skipped(self) -> None:
         with self.assertRaises(signal_group_plan.SignalGroupPlanError):
             adapter.signal_group_action_rows(
-                self.plan, sc_no=424242, phase_greens=two_phase(40.0, 40.0), offset=0.0,
+                self.plan, sc_no=424242, phase_greens=plan_greens(self.plan, sc_no=1001), offset=0.0,
                 metadata="ok",
             )
 
@@ -172,18 +194,41 @@ class SignalGroupRowTests(unittest.TestCase):
                         metadata="ok",
                     )
 
-    def test_every_controller_of_the_real_plan_uses_exactly_two_phases_today(self) -> None:
-        """실 산출물의 현재 상태를 못박는다 - 15 SC 전부 현시 둘뿐이다.
+    def test_live_phases_are_the_ones_the_plant_can_actually_serve(self) -> None:
+        """살아 있는 현시 = SG 가 붙어 있고 **그 SG 가 켜질 수 있는** 현시.
 
-        4현시 계획이 들어오면 이 검사가 **깨져야 한다**. 그때 위의 현시 집합 대조가
-        4현시를 실제로 받는지 다시 봐야 하기 때문이다.
+        SG 가 붙어 있기만 하면 살아 있다고 세면 안 된다. SC107·108·109 는 한 현시의 SG 가
+        `.sig` 에서 영구적색이라 아무리 녹색을 명령해도 0 초가 실현된다. 그 현시를 세면
+        러너가 clearance 를 한 번 더 물고, 모델은 켜지지 않을 현시에 예산을 붓는다.
+
+        정답은 실측이다 — VISSIM 안에서 400 초를 돌려 SG 상태를 초당 받아 센 서로 다른
+        동시녹색 집합의 수(`outputs/live_signal_cycle_probe_n4dr150_20260812.json`).
+        여기 값을 손으로 적지 않는다.
         """
+        probe = json.loads(
+            (ROOT / "outputs" / "live_signal_cycle_probe_n4dr150_20260812.json")
+            .read_text(encoding="utf-8")
+        )["controllers"]
         live = {
-            sc_no: adapter.plan_live_phases(self.plan, int(sc_no))
+            str(sc_no): adapter.plan_live_phases(self.plan, int(sc_no))
             for sc_no in self.plan["controllers"]
         }
         self.assertEqual(len(live), 15)
-        self.assertEqual({value for value in live.values()}, {("p1", "p2")})
+        for sc_no, phases in sorted(live.items(), key=lambda kv: int(kv[0])):
+            with self.subTest(sc=sc_no):
+                measured = int(probe[sc_no]["rewritten"]["green_sets"])
+                # SC5 는 SG 24개짜리 대형 교차로라 실측 동시녹색 집합이 6 이다. 모델의
+                # 어휘는 4현시이므로 그 SC 만 min 을 취한다 - 나머지 14 개는 실측 그대로다.
+                self.assertEqual(min(measured, 4), len(phases), f"SC{sc_no} {phases}")
+
+    def test_the_probe_says_three_controllers_run_three_phases(self) -> None:
+        """되돌림 증명 - 실측이 15 SC 전부 4현시였다면 위 검사는 아무것도 안 든다."""
+        probe = json.loads(
+            (ROOT / "outputs" / "live_signal_cycle_probe_n4dr150_20260812.json")
+            .read_text(encoding="utf-8")
+        )["controllers"]
+        three = {sc for sc, entry in probe.items() if entry["rewritten"]["green_sets"] == 3}
+        self.assertEqual({"107", "108", "109"}, three)
 
 
 class Real4PhaseWindowTests(unittest.TestCase):
@@ -311,9 +356,20 @@ class WriteActionCsvTests(unittest.TestCase):
         freeway_follower = types.SimpleNamespace(vsl_set=[60.0, 80.0, 100.0])
         return types.SimpleNamespace(network=network, freeway_follower=freeway_follower)
 
-    def _control(self):
+    def _control(self, plan_table):
+        """SC1001 의 살아 있는 현시에만 녹색을 싣는다.
+
+        비워 두면 어댑터가 기본값으로 떨어져 두 현시만 지시하고, 4현시 계획과 부딪혀
+        `signal_group_action_rows` 가 죽는다 - 그 죽음은 픽스처 문제이지 계약 위반이 아니다.
+        """
+        if plan_table is None:
+            # 계획 없이 도는 legacy 경로. 어댑터가 기본값을 쓰는 것이 검사 대상이다.
+            return types.SimpleNamespace(
+                green_times={}, offsets={}, ramp_metering={}, diagnostics={}
+            )
+        greens = plan_greens(plan_table, 1001)
         return types.SimpleNamespace(
-            green_times={},
+            green_times={f"SC1001_{phase}": value for phase, value in greens.items()},
             offsets={},
             ramp_metering={},
             diagnostics={},
@@ -328,7 +384,7 @@ class WriteActionCsvTests(unittest.TestCase):
             path = Path(tmp) / "action.csv"
             adapter.write_action_csv(
                 path,
-                self._control(),
+                self._control(plan_table),
                 self._cfg(),
                 mapping,
                 lambda control, link, index, cfg: 80.0,
@@ -368,10 +424,15 @@ class WriteActionCsvTests(unittest.TestCase):
         signal_row = next(row for row in rows if row["kind"] == "signal")
         greens = action_csv_schema.phase_greens(signal_row)
         self.assertEqual(sorted(greens), ["p1", "p2", "p3", "p4"])
-        # 계획이 두 현시뿐이므로 나머지 둘은 0 이고, 러너의 clearance 계수도 2 가 된다.
-        self.assertEqual(signal_group_plan.live_phases(greens), ("p1", "p2"))
-        self.assertEqual(greens["p3"], 0.0)
-        self.assertEqual(greens["p4"], 0.0)
+        # 살아 있는 현시는 계획이 정한다 - 여기에 ("p1","p2") 를 적어 두면 4현시
+        # 계획이 들어와도 검사가 옛 상태를 정답이라 우긴다.
+        self.assertEqual(
+            signal_group_plan.live_phases(greens),
+            adapter.plan_live_phases(load_plan(), 1001),
+        )
+        for phase, value in greens.items():
+            if phase not in adapter.plan_live_phases(load_plan(), 1001):
+                self.assertEqual(value, 0.0, phase)
 
     def test_no_plan_table_keeps_the_legacy_row_set(self) -> None:
         _, rows = self._write(None)

@@ -139,8 +139,11 @@ def plan_live_phase_counts(plan_table: Mapping[str, Any]) -> dict[int, int]:
     out: dict[int, int] = {}
     for key, node in (plan_table.get("controllers") or {}).items():
         groups = node.get("phase_signal_groups") or {}
+        native = node.get("axis_green_sec") or {}
         out[int(key)] = sum(
-            1 for phase in signal_group_plan.MODEL_PHASES if tuple(groups.get(phase) or ())
+            1
+            for phase in signal_group_plan.MODEL_PHASES
+            if tuple(groups.get(phase) or ()) and float(native.get(phase, 0.0)) > 0.0
         )
     return out
 

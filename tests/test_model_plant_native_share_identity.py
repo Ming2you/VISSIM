@@ -48,7 +48,12 @@ from evaluation.controllers.fixed_signal_schedule import (  # noqa: E402
 )
 from evaluation.controllers.native_phase_green import union_green_seconds  # noqa: E402
 
-NETWORK = REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
+# 계획은 dual-ring 150 s `.sig` 를 물린 망 위에서 유도된다. 구 `modi_eval_rw_control.inpx`
+# 는 140/150/160/170 네 종 주기의 옛 프로그램을 가리킨다(실측:
+# outputs/live_signal_cycle_probe_n4dr150_20260812.json).
+NETWORK = (
+    REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control_n4dr150_20260812.inpx"
+)
 PLAN = REPO / "outputs" / "signal_group_actuation_plan_v3.json"
 MOVEMENT_MAP = REPO / "outputs" / "movement_signal_group_map_v3.json"
 
@@ -98,10 +103,10 @@ class ModelPlantNativeShareIdentityTests(unittest.TestCase):
 
     def _windows_by_group(self, payload, plan, major, minor):
         major_phase = str(payload["major_maps_to"])
-        minor_phase = "p1" if major_phase == "p2" else "p2"
+        # 창 배치와 지시는 **같은 현시 집합**을 써야 한다. 여기만 2현시로 두면 지시가 있는
+        # 현시에 창이 안 생겨 결손으로 잡히고, 그 결손은 계약이 아니라 픽스처 탓이다.
         greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
-        greens[major_phase] = float(major)
-        greens[minor_phase] = float(minor)
+        greens.update(self._commanded_by_phase(payload, major, minor))
         windows = signal_group_plan.plan_windows(
             plan,
             phase_greens=greens,
@@ -116,10 +121,31 @@ class ModelPlantNativeShareIdentityTests(unittest.TestCase):
             )
         return grouped
 
+    @staticmethod
+    def _live_phases(payload) -> tuple[str, ...]:
+        """그 SC 가 실제로 켤 수 있는 현시. 생산 규칙(`adapter.plan_live_phases`)과 같다.
+
+        SG 가 붙어 있어도 네이티브 녹색이 0 이면(영구적색) 켤 수 없다. 그 현시에 지시를
+        주면 실현이 0 이라 결손으로 잡히는데, 그것은 계약 위반이 아니라 픽스처 잘못이다.
+        """
+        return tuple(
+            phase
+            for phase in signal_group_plan.MODEL_PHASES
+            if payload["phase_signal_groups"].get(phase)
+            and float(payload["axis_green_sec"].get(phase, 0.0)) > 0.0
+        )
+
     def _commanded_by_phase(self, payload, major, minor):
-        major_phase = str(payload["major_maps_to"])
-        minor_phase = "p1" if major_phase == "p2" else "p2"
-        return {major_phase: float(major), minor_phase: float(minor)}
+        """두 값을 살아 있는 현시에 번갈아 싣는다.
+
+        현시 어휘를 여기 적지 않는다 - COMMANDED 가 쓸어 보려는 것은 극단 배분(5/90 등)
+        이지 현시가 둘이라는 사실이 아니다.
+        """
+        values = (float(major), float(minor))
+        return {
+            phase: values[index % 2]
+            for index, phase in enumerate(self._live_phases(payload))
+        }
 
     def test_the_plan_divides_by_the_same_axis_set_the_model_divides_by(self) -> None:
         """분모가 같은 SG 집합인가. 여기가 어긋나면 아래 대조는 의미가 없다.
@@ -201,32 +227,53 @@ class ModelPlantNativeShareIdentityTests(unittest.TestCase):
                 groups = tuple(str(value) for value in item.get("signal_groups", ()))
                 if not groups:
                     continue
+                # 4현시에서 한 접근로는 **한 축**에 속하되 그 안에서 직진/좌로 갈린다.
+                # 실측 - origin 61개 중 21개가 한 현시, 40개가 한 축, 두 축을 걸치는 것 0개.
                 axis = next(
                     (
-                        phase
-                        for phase in signal_group_plan.MODEL_PHASES
-                        if set(groups) <= set(payload["phase_signal_groups"].get(phase, ()))
+                        phases
+                        for phases in (("p1", "p2"), ("p3", "p4"))
+                        if set(groups)
+                        <= {
+                            sg
+                            for phase in phases
+                            for sg in payload["phase_signal_groups"].get(phase, ())
+                        }
                     ),
-                    "",
+                    (),
                 )
                 self.assertTrue(axis, f"{node} {origin}: SG {groups} 가 한 축에 담기지 않는다")
                 if len(groups) > 1:
                     multi_group_origins += 1
-                model = union_green_seconds(program, groups) / axis_native[axis]
-                for major, minor in COMMANDED:
-                    grouped = self._windows_by_group(payload, plan, major, minor)
-                    commanded = self._commanded_by_phase(payload, major, minor)[axis]
-                    if commanded <= 0.0:
+                # 항등식은 **현시 단위**다. 플랜트(`plan_windows`)가 현시마다 그 현시의
+                # 지시 녹색을 그 현시 SG 들의 native 비로 나누기 때문이다. 축 단위로 묶으면
+                # 두 현시의 지시가 다를 때(5 대 90) 분수가 어긋난다 - 실제로 15 SC 중 7 개가
+                # 그렇게 걸렸다. 좌회전을 가진 접근로는 현시별로 쪼개서 대조한다.
+                for phase in axis:
+                    in_phase = tuple(
+                        sg
+                        for sg in groups
+                        if sg in set(payload["phase_signal_groups"].get(phase, ()))
+                    )
+                    if not in_phase or axis_native[phase] <= 0.0:
                         continue
-                    spans = [span for sg in groups for span in grouped.get(sg, ())]
-                    plant = _merged_length(spans) / commanded
-                    checked += 1
-                    if abs(model - plant) > worst[0]:
-                        worst = (
-                            abs(model - plant),
-                            f"{node} {origin} sgs={groups} 지시=({major},{minor}) "
-                            f"모델={model!r} 플랜트={plant!r}",
+                    model = union_green_seconds(program, in_phase) / axis_native[phase]
+                    for major, minor in COMMANDED:
+                        grouped = self._windows_by_group(payload, plan, major, minor)
+                        commanded = self._commanded_by_phase(payload, major, minor).get(
+                            phase, 0.0
                         )
+                        if commanded <= 0.0:
+                            continue
+                        spans = [span for sg in in_phase for span in grouped.get(sg, ())]
+                        plant = _merged_length(spans) / commanded
+                        checked += 1
+                        if abs(model - plant) > worst[0]:
+                            worst = (
+                                abs(model - plant),
+                                f"{node} {origin} {phase} sgs={in_phase} "
+                                f"지시=({major},{minor}) 모델={model!r} 플랜트={plant!r}",
+                            )
         self.assertGreater(multi_group_origins, 0, "SG 를 둘 이상 잡는 origin 이 하나도 없다")
         self.assertGreater(checked, 0)
         self.assertLessEqual(worst[0], TOLERANCE, f"가장 큰 어긋남: {worst[1]}")
