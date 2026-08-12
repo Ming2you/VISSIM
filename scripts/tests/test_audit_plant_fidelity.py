@@ -1715,8 +1715,19 @@ class N10AuditCommandTest(unittest.TestCase):
     def test_repository_signal_artifacts_are_actually_wired(self) -> None:
         outputs = REPO / "outputs"
         with tempfile.TemporaryDirectory() as directory:
+            # 정본 산출물 넷은 dual-ring 150 s `.sig` 를 물린 망 위에서 만들어졌다. 감사
+            # 기본 망(`modi_eval_rw_control.inpx`)으로 재면 "다른 .inpx 에서 나왔다" 로
+            # 정당하게 FAIL 한다 - 감사할 망을 산출물과 맞춘다. 저장소 전역 기본값 승격은
+            # 별건이다(`.ps1` 배선).
             _, payload = self.run_audit(
                 Path(directory),
+                "--network",
+                str(
+                    REPO
+                    / "network"
+                    / "real_world_gaepo_modi"
+                    / "modi_eval_rw_control_n4dr150_20260812.inpx"
+                ),
                 "--canonical-topology",
                 str(outputs / "canonical_topology_v3.json"),
                 "--signal-timing",

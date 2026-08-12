@@ -115,24 +115,39 @@ class RealPlanActuationTests(unittest.TestCase):
 
     # ------------------------------------------------------------------ 준비
 
-    def _commanded(self, sc_no: str, point: str) -> tuple[float, float]:
-        node = self.plan["controllers"][sc_no]
-        major_phase = str(node["major_maps_to"])
-        minor_phase = "p1" if major_phase == "p2" else "p2"
-        if point == "native":
-            return (
-                float(node["axis_green_sec"][major_phase]),
-                float(node["axis_green_sec"][minor_phase]),
-            )
-        return 80.0, 35.0
+    @staticmethod
+    def _live_phases(node) -> tuple[str, ...]:
+        """그 SC 가 실제로 켤 수 있는 현시. 생산 규칙(`adapter.plan_live_phases`)과 같다.
 
-    def _windows(self, sc_no: str, major: float, minor: float):
+        SG 가 붙어 있어도 네이티브 녹색이 0 이면(영구적색) 못 켠다 - SC107·108·109 가
+        그렇다. 그 현시에 지시를 주면 실현이 0 이라 결손으로 잡히는데, 그것은 계약
+        위반이 아니라 harness 잘못이다.
+        """
+        return tuple(
+            phase
+            for phase in signal_group_plan.MODEL_PHASES
+            if node["phase_signal_groups"].get(phase)
+            and float(node["axis_green_sec"].get(phase, 0.0)) > 0.0
+        )
+
+    def _commanded(self, sc_no: str, point: str) -> dict[str, float]:
+        """운전점 -> 현시별 지시 녹색. 현시 수를 여기 적지 않는다.
+
+        native  그 SC 의 native 배분 그대로. 현시가 셋이면 셋에 싣는다.
+        asym    첫 현시만 크게(80) 주고 나머지는 작게(35) 주는 치우친 배분. 두 현시
+                시절의 (80, 35) 를 N 현시로 그대로 옮긴 것이다.
+        """
+        node = self.plan["controllers"][sc_no]
+        live = self._live_phases(node)
+        if point == "native":
+            return {phase: float(node["axis_green_sec"][phase]) for phase in live}
+        return {phase: (80.0 if index == 0 else 35.0) for index, phase in enumerate(live)}
+
+    def _windows(self, sc_no: str, commanded: dict[str, float]):
         node = self.plan["controllers"][sc_no]
         major_phase = str(node["major_maps_to"])
-        minor_phase = "p1" if major_phase == "p2" else "p2"
         greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
-        greens[major_phase] = float(major)
-        greens[minor_phase] = float(minor)
+        greens.update(commanded)
         return signal_group_plan.plan_windows(
             signal_group_plan.node_plan_from_json(node),
             phase_greens=greens,
@@ -252,15 +267,11 @@ WScript.Echo "HARNESS_DONE"
 
         for sc_no in sorted(self.plan["controllers"], key=int):
             node = self.plan["controllers"][sc_no]
-            major, minor = self._commanded(sc_no, point)
-            major_phase = str(node["major_maps_to"])
-            minor_phase = "p1" if major_phase == "p2" else "p2"
+            commanded = self._commanded(sc_no, point)
             cycle = signal_group_plan.plan_cycle_sec(
-                {major_phase: float(major), minor_phase: float(minor)},
-                AMBER_SEC,
-                ALL_RED_SEC,
+                commanded, AMBER_SEC, ALL_RED_SEC
             )
-            windows = self._windows(sc_no, major, minor)
+            windows = self._windows(sc_no, commanded)
             spec: dict[str, list[str]] = {}
             for window in windows:
                 spec.setdefault(window.sg_no, []).append(
@@ -272,8 +283,11 @@ WScript.Echo "HARNESS_DONE"
                 )
             body.append(f'sgPlanCycle("{int(sc_no)}") = {cycle:.9f}')
             per_sc[sc_no] = {
-                "major": major,
-                "minor": minor,
+                # 채점은 현시 단위다. 이름 규칙 경로(`_axis_boundaries`)만 2축을 쓰므로
+                # 그쪽에 줄 값은 축별 합계로 따로 만든다 - major 축은 p1+p2, minor 는 p3+p4.
+                "commanded": commanded,
+                "major": sum(commanded.get(phase, 0.0) for phase in ("p1", "p2")),
+                "minor": sum(commanded.get(phase, 0.0) for phase in ("p3", "p4")),
                 "cycle": cycle,
                 "windows": windows,
                 "sgs": sorted(node["window_counts"], key=int),
@@ -318,10 +332,16 @@ WScript.Echo "HARNESS_DONE"
         for point in OPERATING_POINTS:
             with self.subTest(point=point):
                 measured = self._measure(point)
+                # 금지 쌍 동시녹색은 0 이어야 한다. 이것이 안전 계약이다.
                 self.assertEqual(measured["plan"]["cogreen_forbidden_pairs"], 0)
+                self.assertEqual(measured["plan"]["cogreen_sec_per_cycle"], 0.0)
+                # 정본 토폴로지가 dual-ring 망으로 올라간 뒤로는 이름 규칙 쌍도 0 이다.
+                # 구 토폴로지(2현시 프로그램)에서는 10 개가 겹쳤는데, 그것들은 대향
+                # 좌회전끼리(WBL+EBL, NBL+SBL)·대향 직진끼리(EBT+WBT, SBT+NBT) 같은 현시에
+                # 도는 정상 동작이었고 플랜트 금지 목록에도 없었다.
                 self.assertEqual(measured["plan"]["cogreen_name_rule_pairs"], 0)
-                self.assertEqual(measured["plan"]["forbidden_pair_total"], 312)
-                self.assertEqual(measured["plan"]["name_rule_pair_total"], 214)
+                self.assertEqual(measured["plan"]["forbidden_pair_total"], 325)
+                self.assertEqual(measured["plan"]["name_rule_pair_total"], 227)
 
     def test_the_name_rule_path_really_does_create_them(self) -> None:
         """양성 대조. 같은 harness·같은 산출물로 알려진 나쁜 수치가 나와야 한다.
@@ -331,12 +351,12 @@ WScript.Echo "HARNESS_DONE"
         for point in OPERATING_POINTS:
             with self.subTest(point=point):
                 measured = self._measure(point)
-                self.assertEqual(measured["name_rule"]["cogreen_forbidden_pairs"], 93)
-                self.assertEqual(measured["name_rule"]["cogreen_name_rule_pairs"], 214)
+                self.assertEqual(measured["name_rule"]["cogreen_forbidden_pairs"], 106)
+                self.assertEqual(measured["name_rule"]["cogreen_name_rule_pairs"], 227)
                 self.assertGreater(measured["name_rule"]["cogreen_sec_per_cycle"], 1000.0)
 
     def test_plan_driving_reproduces_the_model_native_share_exactly(self) -> None:
-        """실현 녹색 / 모델이 예측하는 녹색 = 1. 이름 규칙에서는 최악 7.8~13.4 배다."""
+        """실현 녹색 / 모델이 예측하는 녹색 = 1. 이름 규칙에서는 최악 6.1~7.1 배다."""
         for point in OPERATING_POINTS:
             with self.subTest(point=point):
                 measured = self._measure(point)
@@ -347,9 +367,9 @@ WScript.Echo "HARNESS_DONE"
                 self.assertAlmostEqual(plan["min_green_ratio"], 1.0, places=6)
         native = self._measure("native")["name_rule"]
         asym = self._measure("asym80_35")["name_rule"]
-        self.assertEqual(native["signal_groups_off_by_1pct"], 106)
-        self.assertAlmostEqual(native["worst_green_ratio"], 7.8333, places=3)
-        self.assertAlmostEqual(asym["worst_green_ratio"], 13.4286, places=3)
+        self.assertEqual(native["signal_groups_off_by_1pct"], 116)
+        self.assertAlmostEqual(native["worst_green_ratio"], 6.05, places=2)
+        self.assertAlmostEqual(asym["worst_green_ratio"], 7.0608, places=3)
 
     def test_amber_never_covers_another_groups_green_in_the_real_plan(self) -> None:
         for point in OPERATING_POINTS:
@@ -359,7 +379,7 @@ WScript.Echo "HARNESS_DONE"
     def test_ignoring_the_planned_window_bounds_breaks_the_real_plan(self) -> None:
         """되돌림 증명. 창 경계 판정을 빼면 위 두 검사가 실 계획에서 깨져야 한다.
 
-        빼면 모든 SG 가 주기 내내 녹색이 되고, 금지 쌍 312개가 **전부** 동시녹색이 되며
+        빼면 모든 SG 가 주기 내내 녹색이 되고, 금지 쌍 325개가 **전부** 동시녹색이 되며
         116개 SG 전부가 모델이 예측한 녹색과 어긋난다. 이 수치가 나오지 않으면 위
         검사들은 harness 가 아무것도 재지 않아도 통과하는 것이다.
         """
@@ -369,7 +389,7 @@ WScript.Echo "HARNESS_DONE"
         )
         self.assertNotEqual(mutant, SOURCE, "mutation target line not found")
         measured = self._measure("native", source=mutant)["plan"]
-        self.assertEqual(measured["cogreen_forbidden_pairs"], 312)
+        self.assertEqual(measured["cogreen_forbidden_pairs"], 325)
         self.assertEqual(measured["signal_groups_off_by_1pct"], 116)
 
     def test_removing_the_amber_suppression_breaks_the_real_plan(self) -> None:
@@ -475,9 +495,7 @@ def _summarise(tag, lines, layout, per_sc, plan, forbidden, name_rule_pairs) -> 
     for sc_no in sorted(plan["controllers"], key=int):
         node = plan["controllers"][sc_no]
         info = per_sc[sc_no]
-        major_phase = str(node["major_maps_to"])
-        minor_phase = "p1" if major_phase == "p2" else "p2"
-        for phase, commanded in ((major_phase, info["major"]), (minor_phase, info["minor"])):
+        for phase, commanded in sorted(info["commanded"].items()):
             union = float(node["axis_green_sec"][phase])
             if union <= 0.0:
                 continue

@@ -46,14 +46,19 @@ def simulated_action_rows(
     rows: list[dict[str, Any]] = []
     for sc_no in sorted((plan_table.get("controllers") or {}), key=int):
         node = (plan_table.get("controllers") or {})[str(sc_no)]
-        # N4-0. 열이 현시 이름이 됐다. 축 인자 두 개는 그 SC 의 `major_maps_to` 현시와
-        # 그 짝에 놓는다 - v3 이 하던 것과 같은 배치이고, 계획이 4현시가 되면 그때
-        # 이 CLI 도 현시 4값을 받아야 한다.
-        major_phase = str(node.get("major_maps_to", "p2"))
-        minor_phase = "p1" if major_phase == "p2" else "p2"
+        # N4-6. 계획이 4현시가 됐으므로 축 인자 두 개를 그 SC 가 **켤 수 있는 현시**에
+        # 번갈아 편다. `major_maps_to` 와 그 짝에만 놓으면 어댑터가 fail-closed 로 죽는다.
+        # 현시 수를 여기 적지 않는다 - SC107·108·109 는 셋이고 나머지는 넷이다.
+        live = tuple(
+            phase
+            for phase in signal_group_plan.MODEL_PHASES
+            if (node.get("phase_signal_groups") or {}).get(phase)
+            and float((node.get("axis_green_sec") or {}).get(phase, 0.0)) > 0.0
+        )
+        values = (float(major_green), float(minor_green))
         phase_greens = {phase: 0.0 for phase in signal_group_plan.MODEL_PHASES}
-        phase_greens[major_phase] = float(major_green)
-        phase_greens[minor_phase] = float(minor_green)
+        for index, phase in enumerate(live):
+            phase_greens[phase] = values[index % 2]
         signal_row: dict[str, Any] = {
             "sim_sec": "0", "kind": "signal", "id": f"SC{sc_no}", "sc_no": sc_no,
             "offset": str(offset), "green_sec": "", "dsd_no": "", "link": "",

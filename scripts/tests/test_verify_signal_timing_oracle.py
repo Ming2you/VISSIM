@@ -25,6 +25,26 @@ class VerifyCliTests(unittest.TestCase):
             raise unittest.SkipTest(f"actuation plan missing: {PLAN_PATH}")
         cls.plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
 
+    def test_simulated_rows_command_exactly_the_live_phases(self) -> None:
+        """두 인자를 그 SC 가 **켤 수 있는 현시**에 편다. 현시 수는 계획이 정한다.
+
+        축 두 값을 `major_maps_to` 와 그 짝에만 놓으면 4현시 계획에서 어댑터가
+        fail-closed 로 죽는다(`action commands green on ('p1','p2') but the plan has
+        signal groups on ('p1','p2','p3','p4')`). SC107·108·109 는 현시가 셋이므로
+        그 셋에만 실려야 한다 - 영구적색 현시에 실으면 실현이 0 이다.
+        """
+        from evaluation.controllers import action_csv_schema
+        from evaluation.controllers import vissim_stackelberg_adapter as adapter
+
+        rows = cli.simulated_action_rows(self.plan, major_green=57.0, minor_green=63.0)
+        signal_rows = {int(row["sc_no"]): row for row in rows if row["kind"] == "signal"}
+        self.assertEqual(15, len(signal_rows))
+        for sc_no, row in sorted(signal_rows.items()):
+            with self.subTest(sc=sc_no):
+                greens = action_csv_schema.phase_greens(row)
+                lit = tuple(phase for phase in sorted(greens) if float(greens[phase]) > 0.0)
+                self.assertEqual(adapter.plan_live_phases(self.plan, sc_no), lit)
+
     def test_simulated_rows_cover_every_planned_window(self) -> None:
         rows = cli.simulated_action_rows(self.plan, major_green=57.0, minor_green=63.0)
         sg_rows = [row for row in rows if row["kind"] == "signal_sg"]

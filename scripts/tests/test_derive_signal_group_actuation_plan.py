@@ -24,7 +24,12 @@ from scripts import derive_signal_group_actuation_plan as producer
 
 ROOT = Path(__file__).resolve().parents[2]
 CANONICAL_PLAN = ROOT / "outputs" / "signal_group_actuation_plan_v3.json"
-NETWORK = ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control.inpx"
+# 정본 movement map 은 dual-ring 150 s `.sig` 를 물린 망에서 유도됐다. 구
+# `modi_eval_rw_control.inpx` 와 섞으면 정본 표가 충돌이라 부르는 22 쌍을 계획이 못
+# 담는다 - 두 산출물의 신호군 구성이 다르기 때문이고, 계약 위반이 아니라 입력 불일치다.
+NETWORK = (
+    ROOT / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control_n4dr150_20260812.inpx"
+)
 MOVEMENT_MAP = ROOT / "outputs" / "movement_signal_group_map_v3.json"
 MAPPING = (
     ROOT
@@ -55,14 +60,15 @@ class DeriveTests(unittest.TestCase):
 
     def test_program_source_is_the_inpx_supply_file_not_the_timing_table(self) -> None:
         # SC5/SC6/SC11/SC12 는 두 출처가 다르다. 계획은 inpx 쪽을 따라야 한다.
+        # dual-ring 재작성 뒤로는 15 SC 가 전부 150 s 다 - 구 프로그램의 140/150/160/170
+        # 네 종은 VISSIM 실측으로도 사라진 것을 확인했다
+        # (outputs/live_signal_cycle_probe_n4dr150_20260812.json).
         cycles = {
             str(key): float(value["native_cycle_sec"])
             for key, value in self.table["controllers"].items()
         }
-        self.assertEqual(cycles["5"], 160.0)
-        self.assertEqual(cycles["6"], 160.0)
-        self.assertEqual(cycles["11"], 150.0)
-        self.assertEqual(cycles["12"], 140.0)
+        self.assertEqual({150.0}, set(cycles.values()))
+        self.assertEqual(15, len(cycles))
         # 표 생산자가 파일명 번호로 `.sig` 를 고르던 동안 이 넷이 어긋나 있었다. 표가 inpx
         # supplyFile2 를 읽게 된 뒤로는 비어 있어야 한다 - 값이 아니라 **비어 있음**을 고정한다.
         self.assertEqual(sorted(self.table["timing_table_disagreements"]), [])
@@ -146,9 +152,9 @@ class DeriveTests(unittest.TestCase):
                         else:
                             uncovered.append((sc_no, key))
         self.assertEqual(uncovered, [])
-        self.assertEqual(covered, 149)
+        self.assertEqual(covered, 170)
         self.assertEqual(vacuous, 838)
-        self.assertEqual(ambiguous, 171)
+        self.assertEqual(ambiguous, 162)
 
     def test_vbs_config_lists_expected_groups_and_conflicts(self) -> None:
         text = producer.render_vbs(self.table)

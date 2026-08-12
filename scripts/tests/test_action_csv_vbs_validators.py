@@ -20,7 +20,7 @@ import types
 import unittest
 from pathlib import Path
 
-from evaluation.controllers import action_csv_schema, plant_cycle
+from evaluation.controllers import action_csv_schema, plant_cycle, signal_group_plan
 from evaluation.controllers import vissim_stackelberg_adapter as adapter
 
 try:
@@ -116,8 +116,19 @@ def real_action_csv_rows() -> tuple[list[str], list[list[str]]]:
             for sc_no, node in sorted(plan["controllers"].items(), key=lambda kv: int(kv[0]))
         ],
     }
+    # 비워 두면 어댑터가 기본값으로 떨어져 두 현시만 지시하고, 4현시 계획과 부딪혀
+    # `signal_group_action_rows` 가 죽는다. SC 마다 **켤 수 있는 현시**에만 고르게 싣는다 -
+    # SC107·108·109 는 셋, 나머지는 넷이다. 현시 수를 여기 적지 않는다.
+    green_times: dict[str, float] = {}
+    for sc_no in plan["controllers"]:
+        live = adapter.plan_live_phases(plan, int(sc_no))
+        each = (150.0 - 3.0 * len(live)) / float(len(live))
+        # 죽은 현시는 **명시적으로 0** 을 넣는다. 키를 빼면 어댑터가 기본값을 채워 넣어
+        # SC107 이 네 현시를 지시하게 되고 계획(셋)과 어긋나 죽는다.
+        for phase in signal_group_plan.MODEL_PHASES:
+            green_times[f"SC{int(sc_no)}_{phase}"] = each if phase in live else 0.0
     control = types.SimpleNamespace(
-        green_times={}, offsets={}, ramp_metering={}, diagnostics={}
+        green_times=green_times, offsets={}, ramp_metering={}, diagnostics={}
     )
     cfg = types.SimpleNamespace(
         network=types.SimpleNamespace(ramp_capacity_veh_h={}),
