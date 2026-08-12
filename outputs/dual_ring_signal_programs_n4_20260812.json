@@ -1,0 +1,3185 @@
+{
+  "schema_version": "dual-ring-signal-program-plan-v1",
+  "source": {
+    "network": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+    "network_sha256": "f3ce390f281c2bd60a367435dd5567767edafb4681cb66a2c566a480aa74d635",
+    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41_20260805.json",
+    "control_mapping_sha256": "9a3f246d9fd4c9f939a6b9d412ac093fc04254d7c7c209f844303d6309126792",
+    "program_source": "inpx supplyFile2 + progNo"
+  },
+  "target_spec": {
+    "cycle_sec": 150.0,
+    "clearance_sec": 3.0,
+    "all_red_sec": 0.0,
+    "green_min_sec": 20.0,
+    "phase_order": [
+      "major_through",
+      "major_left",
+      "minor_through",
+      "minor_left"
+    ],
+    "phase_count_rule": "a phase exists only when a signal group receives green in it"
+  },
+  "controllers": [
+    {
+      "sc_no": 1,
+      "sig_file": "개포동 test-bed1.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1.sig",
+      "source_sig_sha256": "52d980be92ac6e82fff31407fca9a1ef3b5dbd4c0f42c5750f3bcf03395739d6",
+      "output_sig_name": "개포동 test-bed1_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 160.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 131.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 0.9324324324324325,
+      "native_barrier_green_sec": {
+        "major": 68.0,
+        "minor": 80.0
+      },
+      "target_barrier_green_sec": {
+        "major": 63.0,
+        "minor": 75.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 32.0,
+          "amber_start_sec": 32.0,
+          "native_mean_green_sec": 34.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 35.0,
+          "green_sec": 31.0,
+          "amber_start_sec": 66.0,
+          "native_mean_green_sec": 34.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 69.0,
+          "green_sec": 54.0,
+          "amber_start_sec": 123.0,
+          "native_mean_green_sec": 58.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 126.0,
+          "green_sec": 21.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 22.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 37.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 31.0,
+          "green_start_sec": 35.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 31.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 1.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": -8.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 54.0,
+          "green_start_sec": 69.0,
+          "delta_green_sec": 3.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 31.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 31.0,
+          "green_start_sec": 35.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 37.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -5.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 15.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 65.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 54.0,
+          "green_start_sec": 69.0,
+          "delta_green_sec": -11.0
+        }
+      ]
+    },
+    {
+      "sc_no": 5,
+      "sig_file": "개포동 test-bed7.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed7.sig",
+      "source_sig_sha256": "46bc879ec36d239cfa7b701a5a21ad9f503d90ca00a6afa0d9aaeae85e4d040f",
+      "output_sig_name": "개포동 test-bed7_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 160.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 36.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 0.9324324324324325,
+      "native_barrier_green_sec": {
+        "major": 77.0,
+        "minor": 71.0
+      },
+      "target_barrier_green_sec": {
+        "major": 72.0,
+        "minor": 66.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 47.0,
+          "amber_start_sec": 47.0,
+          "native_mean_green_sec": 50.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 50.0,
+          "green_sec": 25.0,
+          "amber_start_sec": 75.0,
+          "native_mean_green_sec": 27.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 78.0,
+          "green_sec": 43.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 46.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 24.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 27.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 25.0,
+          "green_start_sec": 50.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 50.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 47.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -3.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 30.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -7.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 41.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 43.0,
+          "green_start_sec": 78.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 27.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 25.0,
+          "green_start_sec": 50.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 50.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 47.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -3.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 19.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 4.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 52.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 43.0,
+          "green_start_sec": 78.0,
+          "delta_green_sec": -9.0
+        },
+        {
+          "sg_id": "9",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "1",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "10",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": "2",
+          "native_green_sec": 102.0,
+          "phase_span": [
+            "minor_left",
+            "major_through",
+            "major_left"
+          ],
+          "target_green_sec": 101.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -1.0
+        },
+        {
+          "sg_id": "11",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "3",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "12",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "4",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "13",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "5",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "14",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": "6",
+          "native_green_sec": 102.0,
+          "phase_span": [
+            "minor_left",
+            "major_through",
+            "major_left"
+          ],
+          "target_green_sec": 101.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -1.0
+        },
+        {
+          "sg_id": "15",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "7",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "16",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "8",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "17",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "1",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "18",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 1,
+          "permanent_red": true,
+          "midblock_parent_sg": "2",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "19",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "3",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "20",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": "4",
+          "native_green_sec": 104.0,
+          "phase_span": [
+            "major_left",
+            "minor_through",
+            "minor_left"
+          ],
+          "target_green_sec": 97.0,
+          "green_start_sec": 50.0,
+          "delta_green_sec": -7.0
+        },
+        {
+          "sg_id": "21",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "5",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "22",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "6",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "23",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": "7",
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "24",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": "8",
+          "native_green_sec": 104.0,
+          "phase_span": [
+            "major_left",
+            "minor_through",
+            "minor_left"
+          ],
+          "target_green_sec": 97.0,
+          "green_start_sec": 50.0,
+          "delta_green_sec": -7.0
+        }
+      ]
+    },
+    {
+      "sc_no": 6,
+      "sig_file": "개포동 test-bed9.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed9.sig",
+      "source_sig_sha256": "ae919f5881a925931dd81526fad4132de14407befeb5c851d03d02fc6c820853",
+      "output_sig_name": "개포동 test-bed9_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 160.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 137.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 0.9324324324324325,
+      "native_barrier_green_sec": {
+        "major": 79.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 74.0,
+        "minor": 64.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 52.0,
+          "amber_start_sec": 52.0,
+          "native_mean_green_sec": 56.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 55.0,
+          "green_sec": 22.0,
+          "amber_start_sec": 77.0,
+          "native_mean_green_sec": 23.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 80.0,
+          "green_sec": 43.0,
+          "amber_start_sec": 123.0,
+          "native_mean_green_sec": 46.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 126.0,
+          "green_sec": 21.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 19.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 22.0,
+          "green_start_sec": 55.0,
+          "delta_green_sec": 3.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 60.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 52.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -8.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 23.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 46.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 43.0,
+          "green_start_sec": 80.0,
+          "delta_green_sec": -3.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 27.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 22.0,
+          "green_start_sec": 55.0,
+          "delta_green_sec": -5.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 52.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 52.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 23.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 46.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 43.0,
+          "green_start_sec": 80.0,
+          "delta_green_sec": -3.0
+        }
+      ]
+    },
+    {
+      "sc_no": 11,
+      "sig_file": "개포동 test-bed3.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed3.sig",
+      "source_sig_sha256": "8d455a5935623d77185d017af1a4d0751ecec9156ed7a0a2de4e15832730475c",
+      "output_sig_name": "개포동 test-bed3_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 95.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 67.0,
+        "minor": 71.0
+      },
+      "target_barrier_green_sec": {
+        "major": 67.0,
+        "minor": 71.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 34.0,
+          "amber_start_sec": 34.0,
+          "native_mean_green_sec": 33.5,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 37.0,
+          "green_sec": 33.0,
+          "amber_start_sec": 70.0,
+          "native_mean_green_sec": 33.5,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 73.0,
+          "green_sec": 36.0,
+          "amber_start_sec": 109.0,
+          "native_mean_green_sec": 35.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 112.0,
+          "green_sec": 35.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 35.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 32.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 33.0,
+          "green_start_sec": 37.0,
+          "delta_green_sec": 1.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 34.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -1.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 37.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 35.0,
+          "green_start_sec": 112.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 34.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 36.0,
+          "green_start_sec": 73.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 33.0,
+          "green_start_sec": 37.0,
+          "delta_green_sec": -2.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 32.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 34.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 34.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 35.0,
+          "green_start_sec": 112.0,
+          "delta_green_sec": 1.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 37.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 36.0,
+          "green_start_sec": 73.0,
+          "delta_green_sec": -1.0
+        }
+      ]
+    },
+    {
+      "sc_no": 12,
+      "sig_file": "개포동 test-bed5.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed5.sig",
+      "source_sig_sha256": "7986c75571e5641f4492969754a2f143f4f7eb2f4d5982fb2f67469abaaa456a",
+      "output_sig_name": "개포동 test-bed5_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 140.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 5.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.078125,
+      "native_barrier_green_sec": {
+        "major": 59.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 64.0,
+        "minor": 74.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 32.0,
+          "amber_start_sec": 32.0,
+          "native_mean_green_sec": 29.5,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 35.0,
+          "green_sec": 32.0,
+          "amber_start_sec": 67.0,
+          "native_mean_green_sec": 29.5,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 70.0,
+          "green_sec": 50.0,
+          "amber_start_sec": 120.0,
+          "native_mean_green_sec": 47.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 123.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 22.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 23.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 35.0,
+          "delta_green_sec": 9.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 36.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -4.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 22.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 123.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 47.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 50.0,
+          "green_start_sec": 70.0,
+          "delta_green_sec": 3.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 36.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 35.0,
+          "delta_green_sec": -4.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 23.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 32.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 9.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 22.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 123.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 47.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 50.0,
+          "green_start_sec": 70.0,
+          "delta_green_sec": 3.0
+        }
+      ]
+    },
+    {
+      "sc_no": 101,
+      "sig_file": "개포동 test-bed101.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed101.sig",
+      "source_sig_sha256": "6e9e3f46e01de3856995c664d0caf42f6eb873333bf3373461c586c850501f0e",
+      "output_sig_name": "개포동 test-bed101_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 160.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 125.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 0.9324324324324325,
+      "native_barrier_green_sec": {
+        "major": 68.0,
+        "minor": 80.0
+      },
+      "target_barrier_green_sec": {
+        "major": 63.0,
+        "minor": 75.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 39.0,
+          "amber_start_sec": 39.0,
+          "native_mean_green_sec": 42.5,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 42.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 66.0,
+          "native_mean_green_sec": 25.5,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 69.0,
+          "green_sec": 48.0,
+          "amber_start_sec": 117.0,
+          "native_mean_green_sec": 51.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 120.0,
+          "green_sec": 27.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 29.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 31.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 42.0,
+          "delta_green_sec": -7.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 37.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 39.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 41.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 27.0,
+          "green_start_sec": 120.0,
+          "delta_green_sec": -14.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 39.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 48.0,
+          "green_start_sec": 69.0,
+          "delta_green_sec": 9.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 20.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 42.0,
+          "delta_green_sec": 4.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 48.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 39.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -9.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 17.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 27.0,
+          "green_start_sec": 120.0,
+          "delta_green_sec": 10.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 63.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 48.0,
+          "green_start_sec": 69.0,
+          "delta_green_sec": -15.0
+        }
+      ]
+    },
+    {
+      "sc_no": 105,
+      "sig_file": "개포동 test-bed105.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed105.sig",
+      "source_sig_sha256": "d6945142840dc48475f355e26d2809ed1428f31e3ade90fa95dce447091e586e",
+      "output_sig_name": "개포동 test-bed105_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 35.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 35.0,
+          "amber_start_sec": 35.0,
+          "native_mean_green_sec": 34.5,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 38.0,
+          "green_sec": 34.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 34.5,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 48.0,
+          "amber_start_sec": 123.0,
+          "native_mean_green_sec": 48.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 126.0,
+          "green_sec": 21.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 21.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 34.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 34.0,
+          "green_start_sec": 38.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 35.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 21.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 48.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 48.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 34.0,
+          "green_start_sec": 38.0,
+          "delta_green_sec": -1.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 34.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 35.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 1.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 21.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 21.0,
+          "green_start_sec": 126.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 48.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 48.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 0.0
+        }
+      ]
+    },
+    {
+      "sc_no": 107,
+      "sig_file": "개포동 test-bed107.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed107.sig",
+      "source_sig_sha256": "7cfe0a4349fa1d02a7aa10c557555d0fbc7345fd7cc3a36816ef00c5b7fcf3d2",
+      "output_sig_name": "개포동 test-bed107_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 170.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 138.0,
+      "phase_count": 3,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_left"
+      ],
+      "absent_phases": [
+        "minor_through"
+      ],
+      "lost_time_sec": 9.0,
+      "effective_green_total_sec": 141.0,
+      "green_max_sec": 101.0,
+      "scale_factor": 0.8757763975155279,
+      "native_barrier_green_sec": {
+        "major": 133.0,
+        "minor": 28.0
+      },
+      "target_barrier_green_sec": {
+        "major": 116.0,
+        "minor": 25.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 78.0,
+          "amber_start_sec": 78.0,
+          "native_mean_green_sec": 89.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 81.0,
+          "green_sec": 38.0,
+          "amber_start_sec": 119.0,
+          "native_mean_green_sec": 44.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 122.0,
+          "green_sec": 25.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 28.0,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 57.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 38.0,
+          "green_start_sec": 81.0,
+          "delta_green_sec": -19.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 76.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 78.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 2.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 28.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 25.0,
+          "green_start_sec": 122.0,
+          "delta_green_sec": -3.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 31.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 38.0,
+          "green_start_sec": 81.0,
+          "delta_green_sec": 7.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 102.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 78.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -24.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 28.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 25.0,
+          "green_start_sec": 122.0,
+          "delta_green_sec": -3.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        }
+      ]
+    },
+    {
+      "sc_no": 108,
+      "sig_file": "개포동 test-bed108.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed108.sig",
+      "source_sig_sha256": "46adf3c9612990c019e697f97d694473715efc2699fcf08c026cb3d5a8be0afe",
+      "output_sig_name": "개포동 test-bed108_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 170.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 112.0,
+      "phase_count": 3,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through"
+      ],
+      "absent_phases": [
+        "minor_left"
+      ],
+      "lost_time_sec": 9.0,
+      "effective_green_total_sec": 141.0,
+      "green_max_sec": 101.0,
+      "scale_factor": 0.8757763975155279,
+      "native_barrier_green_sec": {
+        "major": 126.0,
+        "minor": 35.0
+      },
+      "target_barrier_green_sec": {
+        "major": 110.0,
+        "minor": 31.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 88.0,
+          "amber_start_sec": 88.0,
+          "native_mean_green_sec": 101.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 91.0,
+          "green_sec": 22.0,
+          "amber_start_sec": 113.0,
+          "native_mean_green_sec": 25.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 116.0,
+          "green_sec": 31.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 35.0,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 21.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 22.0,
+          "green_start_sec": 91.0,
+          "delta_green_sec": 1.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 6,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 105.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 88.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -17.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 31.0,
+          "green_start_sec": 116.0,
+          "delta_green_sec": -4.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 22.0,
+          "green_start_sec": 91.0,
+          "delta_green_sec": -7.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 97.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 88.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -9.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 35.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 31.0,
+          "green_start_sec": 116.0,
+          "delta_green_sec": -4.0
+        }
+      ]
+    },
+    {
+      "sc_no": 109,
+      "sig_file": "개포동 test-bed109.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed109.sig",
+      "source_sig_sha256": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d",
+      "output_sig_name": "개포동 test-bed109_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 170.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 111.0,
+      "phase_count": 3,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_left"
+      ],
+      "absent_phases": [
+        "minor_through"
+      ],
+      "lost_time_sec": 9.0,
+      "effective_green_total_sec": 141.0,
+      "green_max_sec": 101.0,
+      "scale_factor": 0.8757763975155279,
+      "native_barrier_green_sec": {
+        "major": 141.0,
+        "minor": 20.0
+      },
+      "target_barrier_green_sec": {
+        "major": 121.0,
+        "minor": 20.0
+      },
+      "green_min_borrow_sec": 2.484,
+      "green_min_borrow_from": "major",
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 90.0,
+          "amber_start_sec": 90.0,
+          "native_mean_green_sec": 121.5,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 93.0,
+          "green_sec": 31.0,
+          "amber_start_sec": 124.0,
+          "native_mean_green_sec": 42.0,
+          "sg_ids": [
+            "5"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 127.0,
+          "green_sec": 20.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 20.0,
+          "sg_ids": [
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 144.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 90.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -54.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 42.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 31.0,
+          "green_start_sec": 93.0,
+          "delta_green_sec": -11.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 4,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 99.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 90.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": -9.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 20.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 20.0,
+          "green_start_sec": 127.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": true,
+          "midblock_parent_sg": null,
+          "native_green_sec": 0,
+          "phase_span": [],
+          "target_green_sec": 0.0,
+          "green_start_sec": null,
+          "delta_green_sec": 0.0
+        }
+      ]
+    },
+    {
+      "sc_no": 1001,
+      "sig_file": "개포동 test-bed1001.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1001.sig",
+      "source_sig_sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+      "output_sig_name": "개포동 test-bed1001_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 75.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 45.0,
+          "amber_start_sec": 45.0,
+          "native_mean_green_sec": 45.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 48.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 24.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 46.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 45.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 40.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 18.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 5.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": -5.0
+        }
+      ]
+    },
+    {
+      "sc_no": 1002,
+      "sig_file": "개포동 test-bed1002.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1002.sig",
+      "source_sig_sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+      "output_sig_name": "개포동 test-bed1002_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 75.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 45.0,
+          "amber_start_sec": 45.0,
+          "native_mean_green_sec": 45.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 48.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 24.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 46.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 45.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 40.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 18.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 5.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": -5.0
+        }
+      ]
+    },
+    {
+      "sc_no": 1003,
+      "sig_file": "개포동 test-bed1003.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1003.sig",
+      "source_sig_sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+      "output_sig_name": "개포동 test-bed1003_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 75.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 45.0,
+          "amber_start_sec": 45.0,
+          "native_mean_green_sec": 45.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 48.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 24.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 46.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 45.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 40.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 18.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 5.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": -5.0
+        }
+      ]
+    },
+    {
+      "sc_no": 1004,
+      "sig_file": "개포동 test-bed1004.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1004.sig",
+      "source_sig_sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+      "output_sig_name": "개포동 test-bed1004_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 75.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 45.0,
+          "amber_start_sec": 45.0,
+          "native_mean_green_sec": 45.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 48.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 24.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 46.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 45.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 40.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 1,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 18.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 5.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 3,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": -5.0
+        }
+      ]
+    },
+    {
+      "sc_no": 1005,
+      "sig_file": "개포동 test-bed1005.sig",
+      "source_sig_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\network\\real_world_gaepo_modi\\개포동 test-bed1005.sig",
+      "source_sig_sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+      "output_sig_name": "개포동 test-bed1005_n4dr150.sig",
+      "prog_no": 1,
+      "program_name": "mor_peak",
+      "native_cycle_sec": 150.0,
+      "target_cycle_sec": 150.0,
+      "program_offset_sec": 75.0,
+      "phase_count": 4,
+      "phase_order": [
+        "major_through",
+        "major_left",
+        "minor_through",
+        "minor_left"
+      ],
+      "absent_phases": [],
+      "lost_time_sec": 12.0,
+      "effective_green_total_sec": 138.0,
+      "green_max_sec": 78.0,
+      "scale_factor": 1.0,
+      "native_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "target_barrier_green_sec": {
+        "major": 69.0,
+        "minor": 69.0
+      },
+      "green_min_borrow_sec": 0.0,
+      "green_min_borrow_from": null,
+      "phases": {
+        "major_through": {
+          "green_start_sec": 0.0,
+          "green_sec": 45.0,
+          "amber_start_sec": 45.0,
+          "native_mean_green_sec": 45.0,
+          "sg_ids": [
+            "2",
+            "6"
+          ]
+        },
+        "major_left": {
+          "green_start_sec": 48.0,
+          "green_sec": 24.0,
+          "amber_start_sec": 72.0,
+          "native_mean_green_sec": 24.0,
+          "sg_ids": [
+            "1",
+            "5"
+          ]
+        },
+        "minor_through": {
+          "green_start_sec": 75.0,
+          "green_sec": 46.0,
+          "amber_start_sec": 121.0,
+          "native_mean_green_sec": 45.5,
+          "sg_ids": [
+            "4",
+            "8"
+          ]
+        },
+        "minor_left": {
+          "green_start_sec": 124.0,
+          "green_sec": 23.0,
+          "amber_start_sec": 147.0,
+          "native_mean_green_sec": 23.5,
+          "sg_ids": [
+            "3",
+            "7"
+          ]
+        }
+      },
+      "signal_groups": [
+        {
+          "sg_id": "1",
+          "name": "WBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "2",
+          "name": "EBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "3",
+          "name": "NBL",
+          "phase": "minor_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 29.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": -6.0
+        },
+        {
+          "sg_id": "4",
+          "name": "SBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 40.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": 6.0
+        },
+        {
+          "sg_id": "5",
+          "name": "EBL",
+          "phase": "major_left",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 24.0,
+          "phase_span": [
+            "major_left"
+          ],
+          "target_green_sec": 24.0,
+          "green_start_sec": 48.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "6",
+          "name": "WBT",
+          "phase": "major_through",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 45.0,
+          "phase_span": [
+            "major_through"
+          ],
+          "target_green_sec": 45.0,
+          "green_start_sec": 0.0,
+          "delta_green_sec": 0.0
+        },
+        {
+          "sg_id": "7",
+          "name": "SBL",
+          "phase": "minor_left",
+          "head_count": 2,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 18.0,
+          "phase_span": [
+            "minor_left"
+          ],
+          "target_green_sec": 23.0,
+          "green_start_sec": 124.0,
+          "delta_green_sec": 5.0
+        },
+        {
+          "sg_id": "8",
+          "name": "NBT",
+          "phase": "minor_through",
+          "head_count": 0,
+          "permanent_red": false,
+          "midblock_parent_sg": null,
+          "native_green_sec": 51.0,
+          "phase_span": [
+            "minor_through"
+          ],
+          "target_green_sec": 46.0,
+          "green_start_sec": 75.0,
+          "delta_green_sec": -5.0
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "controllers": 15,
+    "signal_groups": 136,
+    "permanent_red_signal_groups": 20,
+    "three_phase_controllers": 3,
+    "green_min_borrow_controllers": 1
+  },
+  "green_min_borrow_controllers": [
+    109
+  ],
+  "status": "PASS_WITH_BORROW"
+}

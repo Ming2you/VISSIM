@@ -440,3 +440,32 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
       `tests/test_action_csv_contract` 의 러너 인벤토리 검사가 이 목록을 못박는다
 - [ ] **`SIGNAL_NAME_RULE_FALLBACKS = 0` 은 이제 자명하다.** 이름 규칙 호출부를 없앴으므로
       실 런에서 0 인 것이 아무것도 증명하지 않는다. 위 405행 근처의 체크 항목은 폐기 대상
+
+## N4-0 작업1 — 실 `.sig` 15개 150 s dual-ring 재작성 (2026-08-12)
+
+- [x] 생산자 `scripts/build_dual_ring_signal_programs.py` — 손편집 없음.
+      파서는 `plant/src/vissim_strict/signal_program.py` 의 `parse_sig` 정본,
+      프로그램 선택은 앞 회차 `scripts/survey_signal_programs.py` 를 그대로 재사용
+- [x] **N 유도** — "그 현시에 녹색을 받는 SG 가 있는가". 영구적색 20개(SC5 12·107 2·108 2·109 4)는
+      현시를 만들지 않는다. 결과 **107·108·109 만 N=3**, 나머지 12개 N=4 — 사용자 실측과 일치
+- [x] 배리어 회계 — 배리어 안 살아있는 main SG 의 (녹색 ∪ 황색) **합집합** 길이 − 현시수 × 3.
+      15 SC 전부 합집합이 **한 덩어리**이고 `Bmajor + Bminor + N×3 = native 주기` 가 정확히 닫힌다
+- [x] 재배분 — 배리어 총량 `B × f` 비례 보존, 배리어 안은 현시별 평균 녹색 비율.
+      정수화는 최대잔여법(동점이면 앞 현시). 주기가 이미 150 이고 N=4 인 7 SC 는 `f=1` 이라 절대 초 보존
+- [x] SC5(SG 24개) — 살아있는 12개 중 main 8개는 현시 그대로, midblock 슬레이브 4개
+      (SG10·14·20·24)는 **native 로 덮던 현시 집합을 유지**(≥50% 덮개). 둘 다 순환 연속 구간이라 성립
+- [x] `.sig` 실제로 씀 — `<stem>_n4dr150.sig` 15개. 활성 prog 1 의 `cycletime` 과 SG 당 `cmd` 2개만 고침.
+      `signaldisplays`·`signalsequences`·`sgs` 선언·`intergreenmatrices`·prog 2·3·영구적색 `<sg>` 는 무수정
+- [x] 왕복 — 쓴 15개를 `parse_sig` 로 다시 읽어 주기 150 · SG 136개 녹색 초 · 영구적색 집합 ·
+      황색 전부 3.0 s 확인. 원본 15개 sha256 불변
+- [x] 검사 31건 `scripts/tests/test_build_dual_ring_signal_programs.py` — 목표 표는
+      실측 배리어에서 **손으로 유도**해 박았고 구현이 그대로 맞췄다(첫 실행 30/31 통과,
+      나머지 1건은 산출물 미생성)
+- [x] 되돌림 증명 2건(역적용으로 복구) — 정수화 동점 규칙 뒤집기 → 2건 FAIL,
+      `GREEN_MIN_SEC` 20→21 → 5건 FAIL
+- [ ] **SC109 는 배리어 총량 보존이 깨진다.** minor 배리어가 native 20 s 인데 현시가 하나뿐이라
+      170→150 축소(17.516 s)에서 배리어 안으로 green_min 을 못 맞춘다. 기본값은 **거부**이고
+      `--allow-green-min-borrow` 로만 major 에서 2.484 s 를 빌린다. 산출물에 이름으로 남아 있다
+- [ ] **새 `.sig` 를 아무도 안 읽는다.** `modi_eval_rw_control.inpx` 의 `supplyFile2` 는 원본을
+      가리킨 채다(원본 inpx 덮어쓰기 금지). 배선은 다음 작업 몫
+- [ ] **VISSIM 을 안 띄웠다.** `checkSum` 속성을 원본 값 그대로 뒀다. VISSIG 가 이를 검사하는지 모른다
