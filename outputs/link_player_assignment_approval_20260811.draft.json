@@ -1,14 +1,14 @@
 {
- "approved": false,
- "approved_by": "",
- "reason": "",
- "assignment": "outputs/link_player_assignment_20260811.json",
- "assignment_sha256": "35974242abcd98106b7118e54e7a3b05873715203f4b2f46b5da84263bb21266",
- "tie_ledger": "outputs/link_player_assignment_ties_20260811.json",
- "tie_policy": "freeway-first",
- "why_not_CLEAR": "assign_links_to_players.py 의 tie_evidence.status 는 tie 가 하나라도 있으면 정책과 무관하게 UNRESOLVED 다. 세 정책 전부 downstream 33 + ambiguous upstream 6 으로 같다. 이 망에서 CLEAR 는 도달 불가능하므로 승인 경로가 유일한 통로다.",
- "why_freeway_first": "생산 산출물(link_player_assignment_20260805.json)은 구판 스크립트의 집합 순회 순서에 의존해 재현 불가능하다(같은 입력 5회 실행 -> 귀속 968/972/972/962/958). freeway-first 만이 생산 산출물의 범주 개수(957/22/226)를 그대로 재현하고, 차이는 tie 항목 안에만 있다(link_owner 3건, freeway_bound 값 11건, upstream 6건).",
- "tie_mass_evidence": "N10(2026-08-10) 에서 tie 27건은 실 관측 차량 0, 나머지 6건은 detector_local_mapping.off_ramp_connectors 에 from_link 로 선언된 off-ramp 커넥터.",
- "known_defect_this_does_not_fix": "혈통을 되살리면 SC1001/SC1004 의 p1 축이 SG{2,3,4,5,7,8}=141.0 s 가 된다. 이는 실 .sig 의 현시가 아니다(두 축 합집합). tests/test_native_phase_axis_composition.py 참조. 원인은 격자 leg 방위(centroid 기준)와 물리 접근 방위의 불일치다.",
- "note": "초안이다. approved/approved_by/reason 은 사람이 채워야 가드를 통과한다."
+  "approved": false,
+  "approved_by": "",
+  "reason": "",
+  "assignment": "outputs/link_player_assignment_20260811.json",
+  "assignment_sha256": "35974242abcd98106b7118e54e7a3b05873715203f4b2f46b5da84263bb21266",
+  "tie_ledger": "outputs/link_player_assignment_ties_20260811.json",
+  "tie_policy": "freeway-first",
+  "why_not_CLEAR": "assign_links_to_players.py 의 tie_evidence.status 는 tie 가 하나라도 있으면 정책과 무관하게 UNRESOLVED 다. 세 정책 전부 downstream 33 + ambiguous upstream 6 으로 같다. 이 망에서 CLEAR 는 도달 불가능하므로 승인 경로가 유일한 통로다.",
+  "why_freeway_first": "생산 산출물(link_player_assignment_20260805.json)은 구판 스크립트의 집합 순회 순서에 의존해 재현 불가능하다(같은 입력 5회 실행 -> 귀속 968/972/972/962/958). freeway-first 만이 생산 산출물의 범주 개수(957/22/226)를 그대로 재현하고, 차이는 tie 항목 안에만 있다(link_owner 3건, freeway_bound 값 11건, upstream 6건).",
+  "tie_mass_evidence": "2026-08-12 재측정. 저장된 런 전수(상태파일 7,748개, link_counts 기준)에서 tie 39건 중 19건이 실제로 차를 나른다 — 최대 link52=121, link68=70, link1220000201=58, link31=55. downstream 33 = off-ramp 커넥터 6 + 나머지 27 이고, 그 27 중 차를 나르는 것 13, 관측 0 이 3, 링크표에 아예 없는 것 11(커넥터라 미측정 — 부재는 0이 아니다)이다. ambiguous upstream 6 은 여섯 건 모두 차를 나른다. 초안 최초본이 적었던 \"27건 관측 차량 0\" 은 사실이 아니며 그 근거로 든 N10(2026-08-10) 런은 저장소에 남아 있지 않다. 따라서 이 승인의 정당성은 \"tie 가 무해해서\" 가 아니다 — why_freeway_first 하나로 선다.",
+  "known_defect_this_does_not_fix": "(2026-08-12 갱신) 최초본은 SC1001/SC1004 의 p1 축이 SG{2,3,4,5,7,8}=141.0 s 라는 결함이 남는다고 적었다. 그 결함은 닫혔다. 원인이던 격자 leg 방위(중심 방위각)는 08e9459 에서 접근로 기하로 고쳤고, 축 불일치 자체는 a035c91 에서 leg 방위를 배선하지 않고도 사라졌다 — 결함이 movement map 의 origin 경로로만 새어들어왔는데 4현시에서는 origin 이 현시를 정하지 못해 SG 이름이 결정자가 되기 때문이다. 지금 map 의 p1∪p2 는 두 SC 모두 신호두 링크 기하와 정확히 같다(tests/test_native_phase_axis_composition.py). 이 승인이 여전히 못 고치는 것은 config 의 grid_node_legs 자체이며, 그것을 읽는 test_grid_leg_bearing_matches_the_physical_approach_bearing 2건은 열려 있다.",
+  "note": "초안이다. approved/approved_by/reason 은 사람이 채워야 가드를 통과한다. 산문 필드(tie_mass_evidence, known_defect_this_does_not_fix)는 2026-08-12 실측으로 정정됐고 서명 세 칸은 손대지 않았다. assignment_sha256 은 배정 파일의 해시라 이 정정에 영향받지 않는다."
 }
