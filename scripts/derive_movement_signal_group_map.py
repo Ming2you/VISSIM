@@ -63,6 +63,7 @@ import argparse
 import collections
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -228,13 +229,26 @@ def resolve_origin_signal_groups(
     )
 
 
+# VISSIM 이 선언한 SG 이름은 진행 방위(NB/SB/EB/WB)와 회전(T 직진 · L 좌 · R 우)을 둘 다
+# 담는다. 통제 15 SC 의 SG 136개가 예외 없이 이 꼴이고, 그 축은 신호두 링크 기하와도
+# 93/95 에서 같다(`tests/test_native_phase_axis_composition.physical_axis_groups`).
+_SG_NAME_MOVEMENT = re.compile(r"([NSEW])B([TLR])")
+
+
 def _phase_from_signal_group_name(name: str) -> str:
-    upper = str(name).upper()
-    if "EB" in upper or "WB" in upper:
-        return "p2"
-    if "NB" in upper or "SB" in upper:
-        return "p1"
-    return ""
+    """SG 이름 -> 모델 4현시. 상류 `movement_phase_id` 와 같은 배정이다.
+
+    major 축은 상류 `MAJOR_AXIS_LEGS = NS_AXIS` 를 따른다 - NS 가 p1/p2, EW 가 p3/p4.
+    우회전은 상류와 같이 같은 축의 직진 현시에 붙인다.
+    """
+    match = _SG_NAME_MOVEMENT.search(str(name).upper())
+    if match is None:
+        return ""
+    approach, turn = match.groups()
+    left = turn == "L"
+    if approach in ("N", "S"):
+        return "p2" if left else "p1"
+    return "p4" if left else "p3"
 
 
 def derive_signal_group_phase(

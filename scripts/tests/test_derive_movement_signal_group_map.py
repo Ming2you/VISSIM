@@ -134,14 +134,14 @@ class SignalGroupPhaseTests(unittest.TestCase):
         )
         self.assertEqual(table["2"]["phase"], "p1")
         self.assertEqual(table["2"]["method"], "origin_movement")
-        # 되돌림 증명 - origin 근거를 빼면 이름 규칙이 p2 를 준다.
+        # 되돌림 증명 - origin 근거를 빼면 이름 규칙이 p3(minor 직진)을 준다.
         without_origin = derive_signal_group_phase(
             group_names={"2": "EBT", "6": "WBT"},
             head_links_by_group={"2": ("32",), "6": ("29",)},
             link_to_origins={},
             origin_phases={},
         )
-        self.assertEqual(without_origin["2"]["phase"], "p2")
+        self.assertEqual(without_origin["2"]["phase"], "p3")
         self.assertEqual(without_origin["2"]["method"], "signal_group_name")
 
     def test_conflicting_origin_phases_fall_back_and_are_marked(self) -> None:
@@ -154,7 +154,7 @@ class SignalGroupPhaseTests(unittest.TestCase):
             origin_phases={"a": {"p1"}, "b": {"p2"}},
         )
         self.assertEqual(table["2"]["method"], "signal_group_name_after_conflict")
-        self.assertEqual(table["2"]["phase"], "p2")
+        self.assertEqual(table["2"]["phase"], "p3")
 
     def test_nameless_signal_group_without_topology_is_unassigned(self) -> None:
         from scripts.derive_movement_signal_group_map import derive_signal_group_phase
@@ -167,6 +167,56 @@ class SignalGroupPhaseTests(unittest.TestCase):
         )
         self.assertEqual(table["9"]["phase"], "")
         self.assertEqual(table["9"]["method"], "unassigned")
+
+
+class FourPhaseNameRuleTests(unittest.TestCase):
+    """SG 이름 규칙이 상류 `movement_phase_id` 와 같은 4현시를 낸다.
+
+    상류 계약은 `src/models/grid_topology.py:239` 이고 `MAJOR_AXIS_LEGS = NS_AXIS` 다 -
+    major 직진 p1 · major 좌 p2 · minor 직진 p3 · minor 좌 p4. VISSIM 이 선언한 SG
+    이름(NBT/NBL/...)은 접근 방위와 회전을 둘 다 담으므로 그대로 4현시로 떨어진다.
+    """
+
+    CASES = (
+        ("NBT", "p1"), ("SBT", "p1"),
+        ("NBL", "p2"), ("SBL", "p2"),
+        ("EBT", "p3"), ("WBT", "p3"),
+        ("EBL", "p4"), ("WBL", "p4"),
+    )
+
+    def test_the_name_rule_splits_through_and_left_into_four_phases(self) -> None:
+        from scripts.derive_movement_signal_group_map import _phase_from_signal_group_name
+
+        for name, phase in self.CASES:
+            with self.subTest(name=name):
+                self.assertEqual(phase, _phase_from_signal_group_name(name))
+
+    def test_the_name_rule_agrees_with_the_upstream_contract(self) -> None:
+        """같은 값을 두 번 적지 않는다 - 상류 함수에 직접 물어본다."""
+        from scripts.derive_movement_signal_group_map import _phase_from_signal_group_name
+        from scripts.generate_real_world_distributed_players import ensure_numsim_importable
+
+        ensure_numsim_importable()
+        from src.models.grid_topology import movement_phase_id
+
+        # 이름의 접근 방위를 leg 키로, 회전을 exit leg 키로 옮겨 상류에 그대로 묻는다.
+        opposite = {"N": "S", "S": "N", "E": "W", "W": "E"}
+        left_of = {"N": "E", "S": "W", "E": "S", "W": "N"}
+        for name, _ in self.CASES:
+            approach = opposite[name[0]]  # NB = 북"행" 이므로 접근 leg 는 남쪽이다
+            exit_leg = left_of[approach] if name[2] == "L" else opposite[approach]
+            with self.subTest(name=name):
+                self.assertEqual(
+                    movement_phase_id(approach, exit_leg),
+                    _phase_from_signal_group_name(name),
+                )
+
+    def test_a_name_without_a_turn_token_stays_unassigned(self) -> None:
+        from scripts.derive_movement_signal_group_map import _phase_from_signal_group_name
+
+        for name in ("보행", "RW_SG_RM_C10480", ""):
+            with self.subTest(name=name):
+                self.assertEqual("", _phase_from_signal_group_name(name))
 
 
 class RealNetworkDerivationTests(unittest.TestCase):
