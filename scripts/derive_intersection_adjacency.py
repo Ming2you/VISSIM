@@ -10,10 +10,32 @@
 #   정지선 신호두가 있는 링크 = 그 SC 로 진입하는 approach 다.
 #   A 의 approach 링크에서 커넥터 그래프를 하류로 따라가다 처음 만나는 다른 SC 의
 #   approach 링크가 B 라면 A -> B 가 인접이다(중간에 제3의 SC 를 지나면 중단).
-#   leg 방위는 두 SC 의 centroid 방위각으로 N/S/E/W 에 배정한다.
+#   leg 방위는 **그 접근을 실제로 나르는 정지선 링크가 A 에 들어오는 방향**이다.
+#
+# leg 방위를 왜 중심 방위각으로 정하면 안 되는가(2026-08-11).
+#   모델은 노드 A 의 leg `{방위}_SC{B}` 를 origin `SCB_to_SCA` — 즉 **B 에서 A 로 들어오는
+#   접근** — 의 방위로 읽는다(derive_movement_signal_group_map.origin_leg_bearings).
+#   그런데 두 교차로 중심을 잇는 현(弦)의 방위각은 그 접근로가 실제로 어느 쪽에서
+#   들어오는지와 다르다. 도로가 굽기 때문이다. 실측:
+#
+#       SC1004 는 SC1001 의 남쪽   -> 중심 방위각 S      (구 규칙)
+#       그 접근을 나르는 정지선 링크 32 는 SC1001 에 **서쪽**에서 들어온다
+#       배정 산출물이 이미 안다:  link_leg["32"] = "W", link_leg["71"] = "SW"
+#
+#   `NS_AXIS = {N,S,NW,SE}` 가 leg 방위로 현시를 정하므로 S 는 p1(남북), W 는 p2(동서)다.
+#   그래서 EW 축 SG2·SG5 가 p1 으로 끌려 들어가 SC1001/SC1004 의 p1 이 두 축의 합집합
+#   141.0 s (주기 150 s 의 94%) 가 됐다. 한 현시가 그럴 수는 없다.
+#
+#   측정된 접근 방위와 두 폴백 후보를 실측 114쌍으로 대조했다.
+#       중심 방위각      정확 93/114 (81.6%)   축 일치 112/114 (98.2%)  <- 축 오류 2건이 이 결함
+#       역방향의 반대    정확 88/108 (81.5%)   축 일치 108/108 (100%)
+#   역방향-반대는 축은 다 맞지만 SC1001 의 `NW_SC2001` 을 `N` 으로 옮겨 램프 leg 이
+#   설 자리(빈 정방위)를 없앤다. 그래서 채택하지 않았다. 측정값이 없으면 중심 방위각으로
+#   떨어지고 그 수를 산출물과 콘솔에 남긴다.
 #
 # 사용:
 #   python scripts/derive_intersection_adjacency.py [--max-hops 40] [--json-out out.json]
+#       [--link-assignment-json outputs/link_player_assignment_20260805.json]
 import argparse
 import csv
 import io
@@ -28,6 +50,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_NET = os.path.join(REPO, "network", "real_world_gaepo_modi", "modi_eval_rw_control.inpx")
 DEFAULT_ROLES = os.path.join(REPO, "evaluation", "real_world_modi_inventory", "signal_controller_roles.csv")
+DEFAULT_ASSIGNMENT = os.path.join(REPO, "outputs", "link_player_assignment_20260805.json")
 
 
 def numeric_id(value):
@@ -63,12 +86,45 @@ def bearing_leg(dx, dy, legs8=True):
     return LEG8[int((ang + 22.5) // 45.0) % 8]
 
 
+def approach_legs_from_assignment(assignment):
+    """(소유 SC, 상류 SC) -> 그 접근을 나르는 정지선 링크의 물리 방위.
+
+    `assign_links_to_players.py` 산출물이 재료다. 그 스크립트는 링크마다
+    `link_owner`(하류 최초 SC), `link_upstream`(상류 최초 SC), `link_leg`(그 링크가
+    도달하는 정지선의 방위 = 정지선 시작점에서 소유 SC 중심으로 본 방향)를 준다.
+    그러므로 owner=A, upstream=B 인 링크들의 `link_leg` 가 곧 "B 에서 A 로 들어오는
+    접근의 방위" 다.
+
+    한 접근에 링크가 여럿이면(직진·좌회전 차로가 별 링크) 어떻게 하나로 모으는가.
+    `assign_links_to_players` 가 이미 **정지선 단위가 아니라 방위 단위로** 묶어 두었다
+    (같은 방위의 정지선들은 한 접근로의 차로다). 실측으로 확인했다 — 114쌍 전부에서
+    `link_leg` 값이 하나뿐이라 모을 것이 없다. 그래도 망이 바뀌면 갈릴 수 있으므로
+    갈리면 버리지 말고 **그 쌍을 미측정으로 돌려** 폴백이 세도록 한다(조용한 임의 선택 금지).
+    """
+    owner = assignment.get("link_owner") or {}
+    upstream = assignment.get("link_upstream") or {}
+    leg = assignment.get("link_leg") or {}
+    seen = defaultdict(set)
+    for link, a in owner.items():
+        b = upstream.get(link)
+        if b is None:
+            continue
+        d = leg.get(link)
+        if d and d != "?":
+            seen[(int(a), int(b))].add(d)
+    return {pair: next(iter(v)) for pair, v in seen.items() if len(v) == 1}, \
+           {pair: sorted(v) for pair, v in seen.items() if len(v) > 1}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--network", default=DEFAULT_NET)
     ap.add_argument("--roles", default=DEFAULT_ROLES)
     ap.add_argument("--max-hops", type=int, default=40)
-    ap.add_argument("--legs4", action="store_true", help="구 4방위로 유도(비교용)")
+    ap.add_argument("--legs4", action="store_true", help="구 4방위로 유도(비교용). 접근로 방위를 안 쓴다")
+    ap.add_argument("--link-assignment-json", default=DEFAULT_ASSIGNMENT,
+                    help="assign_links_to_players.py 산출 JSON. leg 방위의 근거. "
+                         "빈 문자열이면 구 규칙(중심 방위각)으로 떨어진다")
     ap.add_argument("--json-out", default="")
     args = ap.parse_args()
 
@@ -168,9 +224,20 @@ def main() -> int:
     # 그래서 leg 키를 **'방위_이웃'** 복합으로 둔다. 방위는 접두사로 그대로 복원되므로
     # phase 배정(NS_AXIS)과 직진 유도(OPPOSITE_LEG)가 살아 있고 이웃은 하나도 안 버려진다.
     # 모델 쪽 지원: NumSim-mine/src/models/grid_topology.py 의 leg_base_dir().
+    approach_leg, split_pairs = {}, {}
+    if args.link_assignment_json and not args.legs4:
+        _assign = json.load(open(args.link_assignment_json, encoding="utf-8"))
+        approach_leg, split_pairs = approach_legs_from_assignment(_assign)
+        print()
+        print(f"배정 JSON: {args.link_assignment_json}  접근 방위 {len(approach_leg)}쌍"
+              f"  방위가 갈린 쌍 {len(split_pairs)}개")
+
     legs = defaultdict(dict)
     plain = defaultdict(dict)   # 비교용: 구 방식(방위 하나당 이웃 하나)
     conflicts = []
+    leg_source = {}             # (sc, nb) -> "approach" | "centroid_fallback"
+    centroid_fallback = []      # 접근로 측정이 없어 현(弦) 방위각으로 떨어진 쌍
+    changed_by_approach = []    # 구 규칙과 달라진 쌍
     for sc in sorted(adjacency):
         nbs = adjacency[sc]
         if sc not in centroid:
@@ -180,13 +247,33 @@ def main() -> int:
             if nb not in centroid:
                 continue
             bx, by = centroid[nb]
-            leg = bearing_leg(bx - ax, by - ay, legs8=not args.legs4)
+            chord = bearing_leg(bx - ax, by - ay, legs8=not args.legs4)
+            leg = approach_leg.get((sc, nb))
+            if leg is None:
+                leg, source = chord, "centroid_fallback"
+                centroid_fallback.append((sc, nb, chord))
+            else:
+                source = "approach"
+                if leg != chord:
+                    changed_by_approach.append((sc, nb, chord, leg))
+            leg_source[(sc, nb)] = source
             legs[sc][f"{leg}_SC{nb}"] = nb
             if leg in plain[sc] and plain[sc][leg] != nb:
                 conflicts.append((sc, leg, plain[sc][leg], nb))
             else:
                 plain[sc][leg] = nb
     print()
+    n_app = sum(1 for v in leg_source.values() if v == "approach")
+    print(f"leg 방위 근거: 접근로 실측 {n_app}개, 중심 방위각 폴백 {len(centroid_fallback)}개")
+    if centroid_fallback:
+        print("   폴백 쌍(접근을 나르는 링크가 배정 산출물에 없다):")
+        for a, b, d in centroid_fallback:
+            print(f"      SC{a} -> SC{b}: {d}")
+    print(f"구 규칙(중심 방위각)과 달라진 leg {len(changed_by_approach)}개:")
+    for a, b, old, new in changed_by_approach:
+        ns = {"N", "S", "NW", "SE"}
+        flip = "  ** 축 뒤집힘 **" if ((old in ns) != (new in ns)) else ""
+        print(f"      SC{a} -> SC{b}: {old} -> {new}{flip}")
     kept = sum(len(v) for v in legs.values())
     print(f"leg 배정된 SC {len(legs)}개, 복합 키 leg {kept}개 (인접쌍 {total}개 중 보존 {100*kept/max(total,1):.1f}%)")
     if conflicts:
