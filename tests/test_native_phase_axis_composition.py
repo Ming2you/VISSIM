@@ -16,6 +16,30 @@ SG{2,3,4,5,7,8} = 141.0 s 로 잡고 있는데, 배정 혈통(`--link-assignment
   세운다. 어떤 생성 산출물도 근거로 쓰지 않는다. 깨지면 망이 바뀐 것이다.
 - `AxisCompositionKnownMismatchTests` — 지금 **깨져 있는** 것. 일부러 FAIL 한다.
   모델 격자 leg 방위가 물리 접근 leg 과 어긋나서 p1 이 두 축의 합집합이 된다.
+
+## N4-0 작업4 — "4현시가 되면 축 개념이 없어진다" 를 실측으로 확인했다 (2026-08-12)
+
+없어지지 않았다. 새 dual-ring `.sig` 15개로 배선을 옮기고 신호 체인을 통째로
+재생성했는데(`outputs/movement_signal_group_map_n4dr150_20260812.json`),
+SC1001/SC1004 의 `phase_signal_groups` 는 **글자 하나 안 바뀌었다** — p1 은 여전히
+SG{2,3,4,5,7,8}, p2 는 SG{1,6} 이다.
+
+이유는 `derive_movement_signal_group_map` 가 `(SC,SG) -> 현시` 를 **movement 의
+`phase` 문자열**에서 받아오기 때문이다(`origin_phases`, 폴백은 SG 이름 규칙). 그
+문자열은 `SC1001_p1` / `_p2` 두 값뿐이고, 그것을 만드는 것은 모델 config 다. 모델이
+4현시가 되려면 `vendor/NumSim-mine` 이 4현시여야 하는데 vendor 는
+`green_times[f"{signal}_p1"]` / `_p2` 를 컨트롤러 여섯 곳에 하드코딩한 2현시 스냅샷이다.
+
+그래서 이 네 건은 **소멸하지 않는다.** 닫는 길은 하나뿐이고 둘 다 이 작업의 범위 밖이다 —
+격자 leg 승격(`scripts/derive_intersection_adjacency.py` 의 접근로 방위를 config 의
+`grid_node_legs` 로 올리는 것), 그리고 vendor 재스냅샷.
+
+새 프로그램에서 축을 다시 재면 이렇다(`ForwardDualRingAxisTests` 가 잰다).
+
+    주기 150 s 그대로,  p1(NS) 72.0 -> 69.0,  p2(EW) 69.0 그대로,  합집합 141.0 -> 138.0
+
+두 축은 새 프로그램에서도 동시녹색이 0 이다. 축이 사라진 것이 아니라 **배리어가 각각
+두 현시로 쪼개졌을 뿐**이고, 그 쪼갬은 아직 모델까지 올라오지 않았다.
 """
 
 from __future__ import annotations
@@ -197,6 +221,56 @@ class PlantAxisInvariantTests(unittest.TestCase):
                     + union_green_seconds(program, axes["p2"]),
                     places=6,
                     msg="두 축이 겹치지 않으므로 합집합 = 합",
+                )
+
+
+class ForwardDualRingAxisTests(unittest.TestCase):
+    """N4-0 새 `.sig` 위에서 같은 축을 다시 잰다. 옛 숫자에 못박힌 채 두지 않는다.
+
+    `PlantAxisInvariantTests` 는 **생산이 지금 로드하는** 원본 프로그램을 잰다. 배선을
+    새 `.sig` 로 옮기면 그 숫자가 통째로 달라지므로, 옮긴 뒤에도 축이 성립하는지는
+    여기서 따로 재야 한다. 두 클래스가 같은 기하(`physical_axis_groups`)를 쓰고
+    프로그램만 다르다.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.programs = {}
+        for sc_no in INTERFACE_NODES:
+            path = NETWORK_INPX.parent / f"개포동 test-bed{sc_no}_n4dr150.sig"
+            if not path.is_file():
+                raise unittest.SkipTest(f"dual-ring program is not built: {path.name}")
+            cls.programs[sc_no] = parse_sig(path, 1)
+
+    def test_the_two_axes_stay_conflict_free_after_the_rewrite(self) -> None:
+        """배리어를 두 현시로 쪼개도 축끼리는 여전히 안 겹친다."""
+        for sc_no in INTERFACE_NODES:
+            with self.subTest(sc=sc_no):
+                axes = physical_axis_groups(sc_no)
+                program = self.programs[sc_no]
+                self.assertEqual(
+                    0.0,
+                    overlap_seconds(
+                        green_windows(program, axes["p1"]),
+                        green_windows(program, axes["p2"]),
+                    ),
+                )
+
+    def test_the_rewritten_axis_green_is_69_and_69_seconds(self) -> None:
+        """주기 150 s 는 그대로, 축 녹색은 72/69 -> 69/69, 합집합 141 -> 138.
+
+        138 = 150 - 4 x 3 이다. 옛 141 은 청산이 셋(150-9)이던 값이고, 새 프로그램은
+        네 현시라 청산을 네 번 문다. 그 3 s 가 major 배리어 안에 생긴 현시 경계다.
+        """
+        for sc_no in INTERFACE_NODES:
+            with self.subTest(sc=sc_no):
+                axes = physical_axis_groups(sc_no)
+                program = self.programs[sc_no]
+                self.assertEqual(150.0, program.cycle_length_sec)
+                self.assertAlmostEqual(69.0, union_green_seconds(program, axes["p1"]), places=6)
+                self.assertAlmostEqual(69.0, union_green_seconds(program, axes["p2"]), places=6)
+                self.assertAlmostEqual(
+                    138.0, union_green_seconds(program, axes["p1"] | axes["p2"]), places=6
                 )
 
 

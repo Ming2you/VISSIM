@@ -159,17 +159,21 @@ def ensure_numsim_importable() -> Path:
 # 다섯 값 중 자유 파라미터는 셋뿐이다 — 계약 원문은 `evaluation/controllers/plant_cycle.py`
 # 모듈 docstring 에 한 번만 적혀 있다.
 #
-#     자유  cycle_length  부모 config 체인 (없으면 NumSim NetworkConfig 기본값)
-#     자유  green_min     같음
-#     자유  lost_time     러너 원문의 2 x (AMBER_SEC + ALL_RED_SEC)
+#     자유  cycle_length  부모 config 체인 (없으면 N4-0 목표 주기)
+#     자유  green_min     부모 config 체인 (없으면 NumSim NetworkConfig 기본값)
+#     자유  lost_time     러너 원문의 N x (AMBER_SEC + ALL_RED_SEC)
 #     유도  effective_green_total = cycle_length - lost_time
-#     유도  green_max             = effective_green_total - green_min
+#     유도  green_max             = effective_green_total - (N-1) x green_min
 #
-# 유도값 둘은 **생성기가 산출물에 실어야 한다.** 안 실으면 모델이 NetworkConfig 기본값
+# 유도값들은 **생성기가 산출물에 실어야 한다.** 안 실으면 모델이 NetworkConfig 기본값
 # (lost_time=8.0, green_max=92.0)으로 떨어지는데, 그 기본값은 자기들끼리는 항등식을
 # 만족해서(20 + 92 == 120 - 8) 예산 검사로는 아무것도 안 걸린다. 어긋나는 것은 플랜트
 # 주기다 — 러너 clearance 가 10 s 라 모델 주기가 2 s 짧아진다(a1e73da 가 생산 config 에
 # 손으로 넣어 닫았던 그 간극).
+#
+# N4-0 이후 `cycle_length` 도 같이 싣는다. 부모 체인이 주기를 선언하지 않으면 값이
+# **어느 NumSim 트리로 config 를 세우느냐**에 달리기 때문이다 — vendor 스냅샷은 120,
+# 상류는 150 이라 같은 config 가 두 주기를 낸다. 목표 주기를 명시하면 그 갈림이 사라진다.
 # ---------------------------------------------------------------------------
 PARENT_CONFIG = "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json"
 
@@ -197,27 +201,31 @@ def resolved_parent_network(parent_path: Path) -> dict[str, Any]:
 
 
 def green_budget_contract(parent_path: Path) -> dict[str, float]:
-    """녹색 예산 계약의 **유도값 둘** — `lost_time` 과 `green_max` [s].
+    """녹색 예산 계약의 유도값 — `cycle_length` · `lost_time` · `green_max` [s].
 
-    숫자를 복사해 두지 않는다. `lost_time` 은 러너 VBS 원문에서 읽고,
-    `cycle_length` / `green_min` 은 부모 체인(없으면 NumSim `NetworkConfig` 기본값)에서
-    읽는다. 어느 한쪽이 바뀌면 여기서 나오는 값이 따라 움직인다.
+    숫자를 복사해 두지 않는다. `lost_time` 은 러너 VBS 원문의 clearance 와 모델이
+    선언한 현시 수에서 나오고, `cycle_length` / `green_min` 은 부모 체인에서 읽는다.
+    부모가 주기를 선언하지 않으면 N4-0 목표 주기로 떨어진다 — NumSim 기본값으로
+    떨어뜨리면 vendor(120) 와 상류(150) 가 서로 다른 config 를 만든다.
+    어느 한쪽이 바뀌면 여기서 나오는 값이 따라 움직인다.
     """
     ensure_numsim_importable()
     from src.models.state import NetworkConfig
 
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
-    from evaluation.controllers.plant_cycle import plant_lost_time_sec
+    from evaluation.controllers import plant_cycle
 
     defaults = NetworkConfig()
     parent = resolved_parent_network(parent_path)
-    cycle_length = float(parent.get("cycle_length", defaults.cycle_length))
+    cycle_length = float(parent.get("cycle_length", plant_cycle.TARGET_CYCLE_SEC))
     green_min = float(parent.get("green_min", defaults.green_min))
-    lost_time = float(plant_lost_time_sec())
+    phases = int(plant_cycle.MODEL_PHASE_COUNT)
+    lost_time = float(plant_cycle.plant_lost_time_sec(phases))
     return {
+        "cycle_length": cycle_length,
         "lost_time": lost_time,
-        "green_max": cycle_length - lost_time - green_min,
+        "green_max": cycle_length - lost_time - float(phases - 1) * green_min,
     }
 
 

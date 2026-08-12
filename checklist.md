@@ -469,3 +469,41 @@ MPC 가 후보를 고르는 근거가 곧 G6 가 재는 그 서열이고, 서열
 - [ ] **새 `.sig` 를 아무도 안 읽는다.** `modi_eval_rw_control.inpx` 의 `supplyFile2` 는 원본을
       가리킨 채다(원본 inpx 덮어쓰기 금지). 배선은 다음 작업 몫
 - [ ] **VISSIM 을 안 띄웠다.** `checkSum` 속성을 원본 값 그대로 뒀다. VISSIG 가 이를 검사하는지 모른다
+
+## N4-0 작업2 — 새 `.sig` 배선 · 신호 체인 재생성 · 주기 동일성 (2026-08-12)
+
+전문은 [`outputs/n4dr150_wiring_and_cycle_identity_20260812.md`](outputs/n4dr150_wiring_and_cycle_identity_20260812.md).
+
+- [x] **배선** — `scripts/rewire_inpx_signal_programs.py` 가 제어 15 SC 의 `supplyFile2` 만
+      바이트 수술로 옮긴 새 망 `modi_eval_rw_control_n4dr150_20260812.inpx`.
+      줄 단위 diff 15 줄 · +120 바이트 · 원본 sha256 `f3ce390f…` 불변
+- [x] **감사 파급** — 새 망에서 토폴로지 재컴파일. 옛 것과 다른 top-level 키는 다섯
+      (`schedules`·`signal_controllers`·`signal_reference`·`source`·`topology_hash`).
+      links 448 · cells 5,844 · SC 50 · SG 440 은 그대로. `canonical_topology` 게이트 전·후 PASS
+- [x] **체인 재생성** — timing(native cycles = [150.0]) → movement map → actuation plan(+`--out-vbs`).
+      windows 118 · uncovered 0 · never_green 20(작업1 영구적색과 일치) · violations 0
+- [x] **주기 식에서 전이 수 리터럴 2 제거** — `plant_cycle.plant_lost_time_sec(N)` = N × 3.
+      `plan_live_phase_counts` 로 SC별 N 을 계획에서 읽는다. 러너 :800 은 이미 그렇게 세고 있었다
+- [x] **녹색 예산 계약을 N 현시로** — `green_max = eff − (N−1) × green_min`,
+      `green_budget_contract` 가 `cycle_length` 도 싣는다(vendor 120 대 상류 150 갈림 제거)
+- [x] **N4-0 config** `real_world_modi_pstack_distributed_core15n4dr150_20260812.json`
+      (150 / 12 / 20 / 78). 부모와 다른 `NetworkConfig` 필드는 정확히 그 셋뿐임을 검사가 확인.
+      승격 후보 둘도 같은 값. **원본 production config 는 안 건드렸다**
+- [x] 미정합 5건 닫힘 — `tests/` 189 tests / 16 fail → **197 tests / 12 fail**
+- [ ] **현시 N 이 계획에 반영되지 않았다.** `phase_signal_groups` 는 재생성 뒤에도 p1/p2 뿐이고
+      p3·p4 는 15 SC 전부 비어 있다. movement 의 `phase` 가 2값이라 그렇고, 그 값을 만드는
+      모델이 2현시인 이유는 **`vendor/NumSim-mine` 스냅샷이 2현시**이기 때문이다
+      (`green_times[f"{signal}_p1"]/_p2` 가 컨트롤러 6곳에 리터럴). vendor 재스냅샷은 범위 밖
+- [ ] **그래서 플랜트는 144 를 돈다** — 모델 138+4×3=150, 플랜트 138+2×3=144. 15 SC 전부 −6.0 s.
+      `PlanPhaseCountTests.test_every_controlled_sc_replays_the_model_cycle` 이 빨간불로 들고 있다
+- [ ] **계획이 4현시가 되어도 N=3 인 3 SC 는 남는다.** SC107·108·109 는 예산이 141 s 여야
+      150 이 나오는데 `effective_green_total` 은 스칼라 138 하나다. `lost_time_by_signal`
+      같은 **상류 필드**가 있어야 닫힌다 — `cycle_length_by_signal` 로는 안 된다
+- [ ] **축 방위 4건은 소멸하지 않았다.** 재생성한 movement map 의 SC1001/SC1004
+      `phase_signal_groups` 는 글자 하나 안 바뀌었다. 닫는 길은 격자 leg 승격 + vendor
+      재스냅샷인데 둘 다 범위 밖. 새 프로그램 위의 축 실측(150 s · 69/69 · 합집합 138 ·
+      동시녹색 0)은 `ForwardDualRingAxisTests` 가 따로 든다
+- [ ] **VISSIM 을 안 띄웠다** — 새 `.inpx` 에 `.err` 이 없어 감사 `vissim_error_log` 가
+      PASS → NOT_EVALUATED 로 내려갔다(충실도 후퇴가 아니라 미검증). `checkSum` 도 그대로
+- [ ] **실런에 안 물렸다** — production `.ps1` 의 `$Network`·`$Tuning`·`RW_SIGNAL_SG_PLAN` 은
+      여전히 옛 것을 가리킨다

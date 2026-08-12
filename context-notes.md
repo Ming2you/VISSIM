@@ -2744,3 +2744,82 @@ CRLF 로 되쓰면 **바이트 동일**하다는 것을 먼저 확인했다. 그
   즉 이 5건은 `.sig` 가 아니라 러너 전이 수와 모델 config `lost_time` 이 닫는다. 이번 작업이
   손댈 수 있는 것이 아니었다.
 - **축 방위 4건도 그대로다.** 축 개념이 사라지는 것은 어댑터/맵 쪽 작업이다.
+
+
+---
+
+## N4-0 작업2 — 배선과 주기 동일성 (2026-08-12)
+
+전문·수치는 [`outputs/n4dr150_wiring_and_cycle_identity_20260812.md`](outputs/n4dr150_wiring_and_cycle_identity_20260812.md).
+
+### 배선을 XML 재직렬화로 안 한 이유
+
+`.inpx` 는 3.0 MB · 34,255 줄이고 감사 `canonical_topology` 가 `inpx_sha256` 으로 붙잡는다.
+`ET` 왕복은 속성 순서·자기닫힘 태그·공백을 흔들 수 있어서, 링크 하나 안 건드렸는데도 파일
+전체가 달라진다. 그러면 "무엇이 바뀌었는가" 를 diff 로 증명할 수 없다. 그래서
+`<signalController ...>` 시작 태그를 찾아 그 **안에서만** `supplyFile2` 값을 바꿨다.
+전역 문자열 치환도 안 된다 — 같은 `.sig` 를 두 컨트롤러가 가리키는 경우가 실제로 있다
+(`test-bed109.sig` 가 두 번 나온다).
+
+줄 단위 diff 15 줄, +120 바이트(= 15 × `_n4dr150` 8자). 원본 sha256 불변.
+
+### 전이 수 2 는 어디에 있었나 — 러너가 아니라 이쪽이었다
+
+앞 회차 보고서는 "러너의 주기 식이 clearance 를 두 번만 더하므로 러너 주기 식 자체를
+4전이로 바꿔야 한다" 고 적었다. **틀렸다.** 러너 :800 을 열어 보면
+
+    Function SignalCycleFromPhases(phaseText)
+        SignalCycleFromPhases = PhaseGreenSum(phaseText) + _
+            LivePhaseCount(phaseText) * (AMBER_SEC + ALL_RED_SEC)
+
+이미 현시 수만큼 문다. 2 를 박아 두고 있던 것은 `plant_cycle.py` 의
+`RUNNER_CLEARANCE_TRANSITIONS_PER_CYCLE = 2` 였다. 러너 원문을 안 열고 파이썬 쪽 상수의
+주석("러너 :769 의 주기 식이 amber+all_red 를 두 번 더하는 그 2 다")을 근거로 삼았던 것이다.
+**주석이 아니라 원문을 열어라** 가 또 한 번 확인됐다.
+
+### 왜 `cycle_length` 를 `green_budget_contract` 에 넣었나
+
+`green_budget_contract` 는 `cycle_length` 를 부모 체인에서 읽고, 없으면 `NetworkConfig()`
+기본값으로 떨어졌다. 그 기본값이 **어느 NumSim 트리로 세우느냐에 따라 갈린다** — vendor
+스냅샷은 120, 상류는 150 이다. 같은 config 가 두 주기를 내는 상태였다. 계약이 주기를
+직접 실으면 그 갈림이 없어진다. 부모가 선언하면 부모가 이기므로 유도 방향은 그대로다.
+
+### config 를 새 파일로 만든 이유
+
+`원본 production config 를 덮어쓰지 마라` 를 `.sig` 때와 같게 읽었다 — 새 파일로 쓴다.
+`…core15n4dr150_20260812.json` 이 `…core15n41_20260805.json` 을 부모로 두고 녹색 예산
+세 값만 얹는다. 부모와 나란히 세워 `NetworkConfig` 필드를 전수 대조하면 다른 것이 정확히
+`cycle_length`·`lost_time`·`green_max` 뿐임을 검사가 확인한다 — 신호 목록·격자 leg·
+calibration 이 같이 흔들리면 이 회차의 차이를 주기 하나로 돌릴 수 없기 때문이다.
+
+### 닫히지 않은 것을 검사로 남긴 이유
+
+미정합 5건은 닫혔지만, **닫힌 것은 모델 쪽 산수뿐이다.** 계획이 아직 2현시라 러너가
+합성하는 주기는 144 이고 모델이 예측하는 150 과 6 s 어긋난다. 여기서 검사를 안 두면
+`ProductionCycleIdentityTests` 5건이 초록인데 플랜트는 다른 주기를 도는 상태가 되고,
+그건 이 파일이 존재하는 이유("어긋남을 소리내는 것")를 정면으로 배반한다. 그래서
+`PlanPhaseCountTests` 를 새로 두어 SC별 N 으로 재고 −6.0 을 15개 다 찍게 했다.
+xfail 로 감추지 않는다.
+
+### 벽 두 개 — 둘 다 이 작업의 범위 밖
+
+1. **vendor 2현시.** `vendor/NumSim-mine`(upstream `e4bf4d01`) 의 컨트롤러 여섯 곳이
+   `green_times[f"{signal}_p1"]` / `_p2` 를 리터럴로 쓴다. 그래서 movement `phase` 가
+   2값이고, 그래서 `derive_movement_signal_group_map` 이 만드는 `phase_signal_groups` 가
+   2현시고, 그래서 계획의 p3·p4 가 빈다. 상류 `NumSim-mine` 은 이미 4현시다.
+2. **스칼라 예산.** 계획이 4현시가 되어도 SC107·108·109 는 N=3 이라 예산 141 s 가 필요한데
+   `effective_green_total` 은 스칼라 138 하나다. `cycle_length_by_signal` 로는 못 고친다 —
+   그쪽은 g/C 의 분모만 바꾸고 예산 자체를 못 바꾼다. `lost_time_by_signal` 이 있어야 한다.
+
+축 방위 4건도 같은 1번 벽에 걸린다. 재생성한 movement map 의 SC1001/SC1004
+`phase_signal_groups` 는 글자 하나 안 바뀌었다 — "4현시가 되면 축 개념이 없어진다" 는
+아직 참이 아니다. 격자 leg 승격(`derive_intersection_adjacency.py` 의 접근로 방위를
+config `grid_node_legs` 로 올리는 것)도 범위 밖이라 지금은 지울 근거가 없다.
+
+### 확인 못 한 것
+
+- **VISSIM 을 안 띄웠다.** 새 `.inpx` 에 `.err` 이 없어 감사 `vissim_error_log` 가
+  PASS → NOT_EVALUATED 로 내려갔다. 게이트 28개 중 전·후로 바뀐 것은 이것 하나뿐이다.
+  작업1 의 `checkSum` 미검증도 그대로다.
+- **실런을 안 돌렸다.** 새 망·새 계획·새 config 는 어떤 `.ps1` 에도 안 물려 있다.
+- **연동(progression)** 은 안 쟀다. `offset` 을 원본 값 그대로 뒀다.

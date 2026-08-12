@@ -20,28 +20,38 @@
 
 `major/minor` 는 어댑터가 `p2/p1` 을 그대로 실은 값이므로 차이는 `8 대 10` 뿐이었다.
 
-## N4-0 작업3 이후 — 지금 이 파일이 무엇을 말하고 있는가
+## N4-0 작업4 — (b) 를 골랐다
 
-러너 clearance 를 실 `.sig` 에 맞췄다(`ALL_RED_SEC` 2 -> 0, 전이당 5 s -> 3 s). 근거는
-`NativeClearanceTests` 가 실 프로그램 15개에서 직접 잰다. 그래서 플랜트 lost_time 은
-2 x 3 = **6.0** 이 됐는데 생산 config 의 `network.lost_time` 은 아직 **10.0** 이다.
+이전 판은 닫는 길을 둘로 적어 두었다. (a) 2현시를 유지하고 모델 주기를 116 으로 내리기,
+(b) 목표 스펙대로 4현시로 가서 lost_time 4 x 3 = 12 · 주기 150 · green_max 78.
 
-    플랜트  C = p1 + p2 + 6      (지시 57/57 이면 120)
-    모델    C = 120,  lost_time 10,  effective 110,  green_min 20,  green_max 90
+**(b) 로 갔다.** 그때 (b) 를 막던 것 — "러너의 주기 식이 clearance 를 두 번만 더한다" —
+는 이미 사라져 있었다. 러너 :800 의 `SignalCycleFromPhases` 는
+`PhaseGreenSum + LivePhaseCount x (AMBER+ALL_RED)` 라 현시 수만큼 문다. 2 를 박아 두고
+있던 것은 **이쪽**(`plant_cycle.RUNNER_CLEARANCE_TRANSITIONS_PER_CYCLE`)이었다.
 
-`ProductionCycleIdentityTests` 와 `GeneratorGreenBudgetContractTests` 는 그 4 s 를 지금
-**빨간불로** 들고 있다. 이 파일의 존재 이유가 그 어긋남을 소리내는 것이므로 단언을
-느슨하게 하지 않는다. 닫는 길은 둘뿐이고 둘 다 모델 쪽 결정이다.
+그래서 이 회차가 바꾼 것은 셋이다.
 
-  (a) 2현시를 유지한 채 모델 주기를 116 으로 내린다 — 녹색 예산(110)과 상자
-      [20, 90] 이 그대로라 리더 행동은 비트동일하고 분모만 정확해진다. 다만
-      `green_budget_contract` 가 `cycle_length` 를 부모에서 **읽고** `green_max` 를
-      유도하는 구조라, 유도 방향을 뒤집어야 한다(그대로 두면 green_max 가 94 가 되고
-      쓰기 클램프 90 에 물려 주기가 다시 어긋난다).
-  (b) 목표 스펙대로 4현시로 간다 — lost_time 4 x 3 = 12, 주기 150, green_max 78.
-      러너의 주기 식이 clearance 를 **두 번**만 더하므로(축이 둘이다) 이쪽은 러너
-      주기 식 자체를 4전이로 바꿔야 성립한다. 지금 그대로는 지시 녹색 합 138 에
-      대해 러너가 합성하는 주기는 150 이 아니라 **144** 다.
+    plant_cycle   전이 수 상수 2 를 지우고 현시 수를 인자로 받는다. SC별 N 을 다루는
+                  자리(`plan_live_phase_counts`, `model_effective_green_sec`)를 연다.
+    생성기        `green_budget_contract` 가 `green_max = eff - (N-1) x green_min` 으로
+                  가고 `cycle_length` 도 같이 싣는다(vendor 120 대 상류 150 갈림 제거).
+    config        150 / 12 / 20 / 78 을 명시한 N4-0 config 로 옮긴다.
+
+## 아직 닫히지 않은 것 — `PlanPhaseCountTests`
+
+모델은 4현시가 됐는데 **계획(`signal_group_actuation_plan`)은 아직 2현시**다.
+`phase_signal_groups` 의 p3/p4 가 비어 있어서 러너의 `LivePhaseCount` 가 2 로 나온다.
+그러면 러너가 합성하는 주기는 138 + 2 x 3 = **144** 이고 모델의 150 과 6 s 어긋난다.
+
+그 6 s 를 `PlanPhaseCountTests` 가 빨간불로 든다. 여기를 통과하게 만드는 것은 계획을
+4현시로 유도하는 일이고, 그것은 movement 의 `phase` 가 4값이어야 가능하다 — 즉
+`vendor/NumSim-mine` 이 2현시(`green_times[f"{s}_p1"]` / `_p2` 하드코딩)인 동안은
+불가능하다. 재스냅샷은 이 작업의 범위 밖이다.
+
+SC별 N 도 같은 검사가 든다. 실 `.sig` 에서 SC107·108·109 는 N=3 이라 예산이 141 s 여야
+하는데 모델의 `effective_green_total` 은 스칼라 138 하나뿐이다. 스칼라로는 두 값을
+못 담는다 — `lost_time_by_signal` 같은 상류 필드가 있어야 닫힌다.
 """
 
 from __future__ import annotations
@@ -52,11 +62,24 @@ import unittest
 from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
+# N4-0 생산 후보. 앞 판의 `..._core15n41_20260805.json` 을 부모로 두고 녹색 예산 넷만
+# 얹은 config 다(원본은 덮어쓰지 않는다). 실 런 스크립트의 `$Tuning` 이 가리킬 값이다.
 TUNING = (
     WORKSPACE_ROOT
     / "evaluation"
     / "configs"
+    / "real_world_modi_pstack_distributed_core15n4dr150_20260812.json"
+)
+# 그 부모. 두 config 가 **녹색 예산 넷 말고는 같은 것**임을 검사가 확인한다.
+PARENT_TUNING = (
+    WORKSPACE_ROOT
+    / "evaluation"
+    / "configs"
     / "real_world_modi_pstack_distributed_core15n41_20260805.json"
+)
+# N4-0 이후 재생성한 계획. 러너의 `LivePhaseCount` 가 세는 그 현시 수의 출처다.
+ACTUATION_PLAN = (
+    WORKSPACE_ROOT / "outputs" / "signal_group_actuation_plan_n4dr150_20260812.json"
 )
 CALIBRATION = (
     WORKSPACE_ROOT
@@ -121,7 +144,25 @@ class RunnerConstantsTests(unittest.TestCase):
         from evaluation.controllers import plant_cycle
 
         self.assertEqual(plant_cycle.runner_clearance_sec(), (3.0, 0.0))
-        self.assertEqual(plant_cycle.plant_lost_time_sec(), 6.0)
+        self.assertEqual(plant_cycle.clearance_sec(), 3.0)
+
+    def test_lost_time_is_the_phase_count_not_a_constant(self) -> None:
+        """N4-0 본체 — 전이 수는 현시 수다. 2 를 박아 두면 3현시 SC 가 3 s 를 잃는다.
+
+        `.sig` 실측이 준 두 값(N=4 인 12 SC, N=3 인 SC107·108·109)에 그대로 건다.
+        """
+        from evaluation.controllers import plant_cycle
+
+        self.assertEqual(plant_cycle.MODEL_PHASE_COUNT, 4)
+        self.assertEqual(plant_cycle.plant_lost_time_sec(4), 12.0)
+        self.assertEqual(plant_cycle.plant_lost_time_sec(3), 9.0)
+        self.assertEqual(plant_cycle.plant_lost_time_sec(2), 6.0)
+        # 인자를 안 주면 모델이 선언한 현시 수를 쓴다.
+        self.assertEqual(
+            plant_cycle.plant_lost_time_sec(), plant_cycle.plant_lost_time_sec(4)
+        )
+        with self.assertRaises(ValueError):
+            plant_cycle.plant_lost_time_sec(0)
 
     def test_a_runner_without_the_constant_is_an_error_not_a_default(self) -> None:
         import tempfile
@@ -132,37 +173,52 @@ class RunnerConstantsTests(unittest.TestCase):
             fake = Path(tmp) / "no_consts.vbs"
             fake.write_text("Const RAMP_CYCLE_SEC = 10\n", encoding="utf-8")
             with self.assertRaises(plant_cycle.RunnerConstantMissing):
-                plant_cycle.plant_lost_time_sec(fake)
+                plant_cycle.plant_lost_time_sec(4, fake)
 
 
 class PlantCycleFormulaTests(unittest.TestCase):
-    """러너 :769 의 식을 그대로 옮겼는지."""
+    """러너 :800 `SignalCycleFromPhases` 의 식을 그대로 옮겼는지."""
 
-    def test_cycle_is_the_two_axis_greens_plus_two_clearances(self) -> None:
+    def test_cycle_is_the_live_phase_greens_plus_one_clearance_each(self) -> None:
         from evaluation.controllers import plant_cycle
 
-        self.assertEqual(plant_cycle.plant_cycle_sec(50.0, 60.0), 116.0)
-        self.assertEqual(plant_cycle.plant_cycle_sec(*CAPTURED_GREEN_P1_P2), 120.0)
+        # v3 2현시(구 식) — 남는 현시가 0 이면 세지 않는다.
+        self.assertEqual(
+            plant_cycle.plant_cycle_sec({"p1": 50.0, "p2": 60.0, "p3": 0.0, "p4": 0.0}),
+            116.0,
+        )
+        p1, p2 = CAPTURED_GREEN_P1_P2
+        self.assertEqual(plant_cycle.plant_cycle_sec({"p1": p1, "p2": p2}), 120.0)
 
-    def test_the_two_axis_formula_cannot_reach_the_target_cycle(self) -> None:
-        """목표 150 은 clearance 를 고쳐도 2현시 식으로는 안 나온다.
+    def test_the_four_phase_formula_reaches_the_target_cycle(self) -> None:
+        """N4-0 목표 150 은 **4현시라야** 나온다. 유효녹색 138 + 4 x 3 = 150.
 
-        유효녹색 138 을 두 축에 실으면 러너는 138 + 2 x 3 = 144 를 합성한다. 150 은
-        전이가 **넷** 이어야 나오는 값이다(138 + 4 x 3). 게다가 두 축으로 138 을 나누면
-        한 축은 최소 69 s 인데, 상자 끝(green_min 20 을 준 반대편)은 118 s 라 러너의
-        쓰기 계약 `SignalActionValuesValid` 의 상한 90 을 넘는다.
+        같은 138 을 두 현시에 실으면 144 다. 6 s 차이가 곧 축 안 경계 두 개의 clearance 다.
         """
         from evaluation.controllers import plant_cycle
 
         target_effective_green = 138.0
+        quarter = target_effective_green / 4.0
+        self.assertEqual(
+            plant_cycle.plant_cycle_sec({f"p{i + 1}": quarter for i in range(4)}),
+            plant_cycle.TARGET_CYCLE_SEC,
+        )
         self.assertEqual(
             plant_cycle.plant_cycle_sec(
-                target_effective_green / 2.0, target_effective_green / 2.0
+                {"p1": target_effective_green / 2.0, "p2": target_effective_green / 2.0}
             ),
             144.0,
         )
+
+    def test_the_four_phase_box_end_stays_inside_the_write_clamp(self) -> None:
+        """2현시에서는 상자 끝 118 s 가 쓰기 상한 90 을 넘었다. 4현시에서는 78 이라 안 넘는다."""
+        from evaluation.controllers import plant_cycle
+
         _, clamp_high = plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC
-        self.assertGreater(target_effective_green - 20.0, clamp_high)
+        two_phase_end = 138.0 - 20.0
+        four_phase_end = 138.0 - 3 * 20.0
+        self.assertGreater(two_phase_end, clamp_high)
+        self.assertLessEqual(four_phase_end, clamp_high)
 
     def test_the_write_clamp_shortens_the_plant_cycle(self) -> None:
         """모델이 92 s 를 지시해도 어댑터는 90 s 만 싣는다 - 주기가 2 s 짧아진다."""
@@ -171,7 +227,7 @@ class PlantCycleFormulaTests(unittest.TestCase):
         low, high = plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC
         self.assertEqual(plant_cycle.written_axis_green_sec(92.0), high)
         self.assertEqual(plant_cycle.written_axis_green_sec(2.0), low)
-        self.assertEqual(plant_cycle.plant_cycle_sec(20.0, 92.0), 116.0)
+        self.assertEqual(plant_cycle.plant_cycle_sec({"p1": 20.0, "p2": 92.0}), 116.0)
 
     def test_the_adapter_writer_uses_this_clamp_not_its_own_literals(self) -> None:
         """되돌림 증명 - 어댑터가 5.0/90.0 리터럴로 돌아가면 이 단언이 깨진다.
@@ -376,10 +432,29 @@ class ProductionCycleIdentityTests(unittest.TestCase):
         from evaluation.controllers import plant_cycle
 
         low, high = plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC
-        for p1, p2 in plant_cycle.leader_green_box(self.net):
-            for green in (p1, p2):
-                self.assertGreaterEqual(green, low, (p1, p2))
-                self.assertLessEqual(green, high, (p1, p2))
+        for allocation in plant_cycle.leader_green_box(self.net):
+            for green in allocation.values():
+                self.assertGreaterEqual(green, low, allocation)
+                self.assertLessEqual(green, high, allocation)
+
+    def test_the_budget_config_only_moves_the_four_green_budget_scalars(self) -> None:
+        """N4-0 config 가 부모에서 바꾼 것은 녹색 예산뿐이다.
+
+        신호 목록·격자 leg·calibration 이 같이 흔들리면 이 회차의 차이를 주기 하나로
+        돌릴 수 없다. 그래서 부모와 나란히 세워 **다른 필드가 있는지** 본다.
+        """
+        parent = _config_from_tuning(PARENT_TUNING).network
+        child = self.net
+        moved = {
+            name
+            for name in vars(parent)
+            if repr(getattr(parent, name)) != repr(getattr(child, name))
+        }
+        self.assertEqual(moved, {"cycle_length", "lost_time", "green_max"}, moved)
+        self.assertEqual(
+            (child.cycle_length, child.lost_time, child.green_min, child.green_max),
+            (150.0, 12.0, 20.0, 78.0),
+        )
 
     def test_the_green_budget_still_fills_the_cycle_exactly(self) -> None:
         """모델 자신의 항등식(metrics.py:242)이 깨지지 않았는지."""
@@ -431,7 +506,8 @@ class GreenBudgetContractTests(unittest.TestCase):
 
         net = self.net
         reached = max(
-            max(p1, p2) for p1, p2 in plant_cycle.leader_green_box(net)
+            max(allocation.values())
+            for allocation in plant_cycle.leader_green_box(net)
         )
         self.assertEqual(reached, float(net.green_max))
 
@@ -504,21 +580,32 @@ class GeneratorGreenBudgetContractTests(unittest.TestCase):
             "core15", "slugtest", [], "29991231",
         )
         network = tuning["config_overrides"]["network"]
-        self.assertIn("lost_time", network)
-        self.assertIn("green_max", network)
+        for key in ("cycle_length", "lost_time", "green_max"):
+            self.assertIn(key, network)
         # 값은 그 config **자신의** 부모 체인에 묶여야 한다. 다른 부모의 값을 베껴
         # 오면(또는 리터럴이면) 부모를 바꿔도 안 따라온다.
         contract = gen.green_budget_contract(gen.CONFIG_DIR / tuning["extends"])
         self.assertEqual(network["lost_time"], plant_cycle.plant_lost_time_sec())
         self.assertEqual(network["green_max"], contract["green_max"])
+        self.assertEqual(network["cycle_length"], contract["cycle_length"])
+        # 예산 항등식이 생성기 산출물 안에서 닫히는지. N=4 면 20 x 3 + 78 == 138 이다.
+        others = plant_cycle.MODEL_PHASE_COUNT - 1
+        self.assertEqual(
+            network["green_max"] + others * 20.0,
+            network["cycle_length"] - network["lost_time"],
+        )
 
     def test_green_max_follows_the_parent_chain_not_a_literal(self) -> None:
         """되돌림 증명 — 유도를 리터럴로 바꾸면 이 검사가 깨진다.
 
-        부모가 `green_min` 을 5 s 올리면 `green_max` 는 5 s 내려가야 한다. 생성기가
-        90.0 을 박아두면 두 부모가 같은 값을 내서 두 번째 단언이 실패한다.
+        부모가 `green_min` 을 5 s 올리면 나머지 (N-1) 현시가 각각 5 s 씩 더 먹으므로
+        `green_max` 는 (N-1) x 5 s 내려가야 한다. 생성기가 78.0 을 박아두면 두 부모가
+        같은 값을 내서 두 번째 단언이 실패한다. 계수가 (N-1) 인 것도 여기서 걸린다 —
+        구 2현시 규칙(-5.0)으로 되돌리면 N=4 에서 -15.0 과 달라진다.
         """
         import tempfile
+
+        from evaluation.controllers import plant_cycle
 
         gen = self.gen
         with tempfile.TemporaryDirectory() as tmp:
@@ -529,8 +616,83 @@ class GeneratorGreenBudgetContractTests(unittest.TestCase):
             )
             shifted = gen.green_budget_contract(parent)
         baseline = gen.green_budget_contract(gen.CONFIG_DIR / gen.PARENT_CONFIG)
+        others = plant_cycle.MODEL_PHASE_COUNT - 1
         self.assertEqual(shifted["lost_time"], baseline["lost_time"])
-        self.assertEqual(shifted["green_max"], baseline["green_max"] - 5.0)
+        self.assertEqual(shifted["cycle_length"], baseline["cycle_length"])
+        self.assertEqual(
+            shifted["green_max"], baseline["green_max"] - float(others) * 5.0
+        )
+
+
+class PlanPhaseCountTests(unittest.TestCase):
+    """지금 **깨져 있는** 것. 모델은 4현시인데 계획이 아직 2현시다.
+
+    러너는 액션이 녹색을 준 현시 수만큼 clearance 를 문다(`LivePhaseCount`). 계획이
+    SG 를 붙여 둔 현시가 둘뿐이면 어댑터도 둘에만 녹색을 실으므로(그 밖은
+    `signal_group_action_rows` 가 현시 집합 불일치로 죽는다) 러너가 합성하는 주기는
+    138 + 2 x 3 = 144 다. 모델이 150 이라고 예측하는 동안 플랜트는 144 를 돈다.
+
+    xfail 로 감추지 않는다. 여기를 닫으려면 movement 의 `phase` 가 4값이어야 하고,
+    그것은 `vendor/NumSim-mine` 이 2현시인 동안은 불가능하다 —
+    `green_times[f"{signal}_p1"]` / `_p2` 가 컨트롤러 여섯 곳에 하드코딩돼 있다
+    (distributed_coordinator:1255, structured_grid:42, rollout_endpoint:135, ...).
+
+    실 산출물에만 건다. 합성 계획을 만들면 아무것도 안 드러난다.
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if not ACTUATION_PLAN.is_file():
+            raise unittest.SkipTest("N4-0 actuation plan artifact is not built")
+        cls.plan = json.loads(ACTUATION_PLAN.read_text(encoding="utf-8"))
+        cls.net = _production_config().network
+
+    def test_every_controlled_sc_replays_the_model_cycle(self) -> None:
+        """SC별 N 으로 잰 플랜트 주기가 15 SC 전부에서 모델 주기와 같아야 한다.
+
+        SC별로 재는 것이 핵심이다. `.sig` 는 SC107·108·109 를 N=3 으로 만들었으므로
+        (영구적색 SG 가 그 현시를 지웠다) 그 셋은 예산이 141 s 여야 150 이 나온다.
+        스칼라 `effective_green_total` 하나로는 138 과 141 을 같이 담지 못한다.
+        """
+        from evaluation.controllers import plant_cycle
+
+        counts = plant_cycle.plan_live_phase_counts(self.plan)
+        self.assertEqual(len(counts), 15, counts)
+        gaps = {}
+        for sc_no, live in sorted(counts.items()):
+            budget = float(self.net.effective_green_total)
+            replayed = budget + plant_cycle.plant_lost_time_sec(live)
+            gap = round(replayed - float(self.net.cycle_length), 6)
+            if gap:
+                gaps[sc_no] = gap
+        self.assertEqual(gaps, {}, f"플랜트 주기가 모델 주기와 다른 SC: {gaps}")
+
+    def test_the_plan_uses_the_same_phase_vocabulary_as_the_model(self) -> None:
+        """계획의 현시 어휘가 모델의 것과 같아야 한다. 이건 지금도 성립한다."""
+        from evaluation.controllers import plant_cycle, signal_group_plan
+
+        self.assertEqual(
+            len(signal_group_plan.MODEL_PHASES), plant_cycle.MODEL_PHASE_COUNT
+        )
+        for sc_key, node in self.plan["controllers"].items():
+            with self.subTest(sc=sc_key):
+                self.assertEqual(
+                    sorted(node["phase_signal_groups"]),
+                    sorted(signal_group_plan.MODEL_PHASES),
+                )
+
+    def test_the_plan_runs_the_target_cycle_natively(self) -> None:
+        """배선 확인 — 재생성한 계획이 새 `.sig` (주기 150 s)를 읽었는가."""
+        from evaluation.controllers import plant_cycle
+
+        cycles = {
+            int(sc): float(node["native_cycle_sec"])
+            for sc, node in self.plan["controllers"].items()
+        }
+        self.assertEqual(len(cycles), 15)
+        self.assertEqual(
+            set(cycles.values()), {plant_cycle.TARGET_CYCLE_SEC}, cycles
+        )
 
 
 if __name__ == "__main__":
