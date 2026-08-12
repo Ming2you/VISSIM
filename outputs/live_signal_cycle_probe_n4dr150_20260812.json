@@ -1,0 +1,219 @@
+{
+  "method": "VISSIM COM 으로 망을 열고 SimRes=1 로 400 초를 돌리며 통제 15 SC 의 SG 상태를 초당 받았다. 주기는 warm-up 60 초 뒤 상태열이 스스로 반복하는 최소 주기, 현시는 서로 다른 동시녹색 집합의 개수다. 제어기·모델은 안 붙였다 - 순수 플랜트다.",
+  "reproducer": "scripts/probe_live_signal_cycle.vbs <inpx> <out.csv> 400",
+  "measured_on": "2026-08-12",
+  "sim_seconds": 400,
+  "sample_period_sec": 1,
+  "warmup_sec": 60,
+  "networks": {
+    "original": "network/real_world_gaepo_modi/modi_eval_rw_control.inpx",
+    "rewritten": "network/real_world_gaepo_modi/modi_eval_rw_control_n4dr150_20260812.inpx"
+  },
+  "raw_samples": {
+    "original": "outputs/live_sg_states_original_20260812.csv",
+    "rewritten": "outputs/live_sg_states_n4dr150_20260812.csv"
+  },
+  "raw_sha256": {
+    "original": "1d15e5879da1cf892606d81d36ca6542026de1348a620b30606b18018e74907e",
+    "rewritten": "c237a16f743671e1fd0830e6421f3a1ce44fc51d7791067543a737bbe9546f7d"
+  },
+  "vissim_accepted_stale_checksum": true,
+  "checksum_note": "재작성 .sig 는 원본과 같은 checkSum 을 그대로 단다. VISSIM 이 LoadNet 에서 거절하지 않았다.",
+  "controllers": {
+    "1": {
+      "original_sig": "개포동 test-bed1.sig",
+      "rewritten_sig": "개포동 test-bed1_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 160,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "5": {
+      "original_sig": "개포동 test-bed7.sig",
+      "rewritten_sig": "개포동 test-bed7_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 160,
+        "green_sets": 9
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 6
+      }
+    },
+    "6": {
+      "original_sig": "개포동 test-bed9.sig",
+      "rewritten_sig": "개포동 test-bed9_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 160,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "11": {
+      "original_sig": "개포동 test-bed3.sig",
+      "rewritten_sig": "개포동 test-bed3_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "12": {
+      "original_sig": "개포동 test-bed5.sig",
+      "rewritten_sig": "개포동 test-bed5_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 140,
+        "green_sets": 4
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "101": {
+      "original_sig": "개포동 test-bed101.sig",
+      "rewritten_sig": "개포동 test-bed101_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 160,
+        "green_sets": 10
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "105": {
+      "original_sig": "개포동 test-bed105.sig",
+      "rewritten_sig": "개포동 test-bed105_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "107": {
+      "original_sig": "개포동 test-bed107.sig",
+      "rewritten_sig": "개포동 test-bed107_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 170,
+        "green_sets": 6
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 3
+      }
+    },
+    "108": {
+      "original_sig": "개포동 test-bed108.sig",
+      "rewritten_sig": "개포동 test-bed108_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 170,
+        "green_sets": 6
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 3
+      }
+    },
+    "109": {
+      "original_sig": "개포동 test-bed109.sig",
+      "rewritten_sig": "개포동 test-bed109_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 170,
+        "green_sets": 4
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 3
+      }
+    },
+    "1001": {
+      "original_sig": "개포동 test-bed1001.sig",
+      "rewritten_sig": "개포동 test-bed1001_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "1002": {
+      "original_sig": "개포동 test-bed1002.sig",
+      "rewritten_sig": "개포동 test-bed1002_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "1003": {
+      "original_sig": "개포동 test-bed1003.sig",
+      "rewritten_sig": "개포동 test-bed1003_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "1004": {
+      "original_sig": "개포동 test-bed1004.sig",
+      "rewritten_sig": "개포동 test-bed1004_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    },
+    "1005": {
+      "original_sig": "개포동 test-bed1005.sig",
+      "rewritten_sig": "개포동 test-bed1005_n4dr150.sig",
+      "prog_no": 1,
+      "original": {
+        "cycle_sec": 150,
+        "green_sets": 7
+      },
+      "rewritten": {
+        "cycle_sec": 150,
+        "green_sets": 4
+      }
+    }
+  }
+}
