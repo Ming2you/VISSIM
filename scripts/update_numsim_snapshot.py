@@ -89,12 +89,35 @@ def _git_blob_oid(data: bytes) -> str:
     return hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
 
 
+# 스냅샷이 옮겨야 하는 소스. `.py` 만 옮기면 config 가 영원히 낡는다 - 2026-08-12 에
+# 상류를 4현시로 옮기며 default.yaml 을 150/12/78 로 바꿨는데 재스냅샷 뒤에도 vendor 는
+# 120/8/92 였다. 247 키 중 셋이 어긋났고 그중 `cycle_length` 는 생산 config 가 안 덮어
+# **실 런이 vendor 의 120 을 썼다.** 모델이 150 을 쓴다고 믿는 동안 플랜트는 다른 주기를 돈다.
+SOURCE_GLOBS: tuple[str, ...] = ("*.py", "*.yaml", "*.yml")
+
+
 def _upstream_python_files(upstream: Path) -> list[Path]:
     return sorted(
         path
         for path in (upstream / "src").rglob("*.py")
         if "__pycache__" not in path.parts
     )
+
+
+def _upstream_source_files(upstream: Path) -> list[Path]:
+    """앵커가 검증하는 소스 전부. 파이썬과 config 를 같은 규약으로 다룬다."""
+    out: list[Path] = []
+    for pattern in SOURCE_GLOBS:
+        out.extend(
+            path
+            for path in (upstream / "src").rglob(pattern)
+            if "__pycache__" not in path.parts
+        )
+    return sorted(set(out))
+
+
+def _upstream_non_python_files(upstream: Path) -> list[Path]:
+    return [p for p in _upstream_source_files(upstream) if p.suffix != ".py"]
 
 
 def assert_clean_upstream(upstream: Path) -> None:
@@ -114,7 +137,7 @@ def sync_sources(upstream: Path, vendor: Path) -> tuple[int, int]:
     """
     wanted = {
         path.relative_to(upstream).as_posix(): path
-        for path in _upstream_python_files(upstream)
+        for path in _upstream_source_files(upstream)
     }
     for relative, source in wanted.items():
         target = vendor / relative
@@ -127,9 +150,13 @@ def sync_sources(upstream: Path, vendor: Path) -> tuple[int, int]:
             continue
         target.write_bytes(data)
     removed = 0
-    for path in sorted((vendor / "src").rglob("*.py")):
-        if "__pycache__" in path.parts:
-            continue
+    swept = [
+        path
+        for pattern in SOURCE_GLOBS
+        for path in (vendor / "src").rglob(pattern)
+        if "__pycache__" not in path.parts
+    ]
+    for path in sorted(set(swept)):
         if path.relative_to(vendor).as_posix() not in wanted:
             path.unlink()
             removed += 1
@@ -243,6 +270,14 @@ def build_anchor(upstream: Path, upstream_repository: str) -> dict:
         "object_format": OBJECT_FORMAT,
         "python_file_count": len(blobs),
         "python_blobs": dict(sorted(blobs.items())),
+        # 비파이썬 소스(config)를 따로 싣는다. `python_file_count`/`python_blobs` 의 의미를
+        # 바꾸면 그 값을 박아 둔 앵커 상수 11개가 전부 흔들리므로 새 열쇠를 쓴다.
+        "source_blobs": {
+            path.relative_to(upstream).as_posix(): _git_blob_oid(
+                _normalise_eol(path.read_bytes())
+            )
+            for path in sorted(_upstream_non_python_files(upstream))
+        },
     }
 
 

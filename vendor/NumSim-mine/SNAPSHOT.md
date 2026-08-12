@@ -6,12 +6,12 @@ a source snapshot, not a standalone Git checkout.
 | Field | Value |
 |---|---|
 | Upstream repository | `https://github.com/Ming2you/Numerical-Sim.git` |
-| Upstream commit | `e4bf4d01af6c9a750d877bb00d4bfa5d20ac6201` |
-| Upstream root tree | `19a9775825d90f735c138168613640b41b27ce81` |
-| Upstream `src` tree | `bdf856bf7ecfe7825e737b890e6c0dc5705b4be4` |
+| Upstream commit | `9a5786939abe3ebc99ec146ab4c3f93433229cf1` |
+| Upstream root tree | `bcf843c5a9f00b13bd0a9940c59b3172043588e8` |
+| Upstream `src` tree | `499913ef5e0c745a20acacd8b4ec414dc2b4b2c2` |
 | Git object format | `sha1` |
-| Immutable anchor | `UPSTREAM_TREE.json` (`numsim-upstream-tree-v1`, 115 Python blobs) |
-| Snapshot date | `2026-08-10` |
+| Immutable anchor | `UPSTREAM_TREE.json` (`numsim-upstream-tree-v1`, 119 Python blobs) |
+| Snapshot date | `2026-08-12` |
 | Runtime source | `src/**/*.py` |
 
 ## Import contract

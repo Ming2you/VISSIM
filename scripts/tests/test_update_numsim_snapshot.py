@@ -14,7 +14,11 @@ REPO = Path(__file__).resolve().parents[2]
 if str(REPO / "scripts") not in sys.path:
     sys.path.insert(0, str(REPO / "scripts"))
 
+import update_numsim_snapshot as snapshot  # noqa: E402
 from update_numsim_snapshot import main as snapshot_main  # noqa: E402
+
+VENDOR = REPO / "vendor" / "NumSim-mine"
+UPSTREAM = REPO.parent / "NumSim-mine"
 
 
 def git(repo: Path, *args: str) -> str:
@@ -345,3 +349,54 @@ class AnchorConstantCoverageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NonPythonSourceTests(unittest.TestCase):
+    """스냅샷은 `.py` 만 복사했다. 그래서 `src/config/*.yaml` 이 영원히 낡는다.
+
+    **2026-08-12 실측.** 상류를 4현시로 옮기면서 `default.yaml` 을 150/12/78 로 바꿨는데
+    재스냅샷 뒤에도 vendor 는 120/8/92 였다. 247 키 중 셋이 어긋났고 그중
+    **`cycle_length` 는 생산 config 가 안 덮어** 실 런이 vendor 의 120 을 쓴다.
+    모델이 150 을 쓴다고 믿는 동안 플랜트는 다른 주기를 돈다.
+
+    앵커도 이것을 못 잡는다 - `python_file_count` 와 `python_blobs` 만 검증한다.
+    파이썬이 아닌 소스는 검증 대상 밖이라 드리프트가 조용하다.
+    """
+
+    def test_upstream_sources_include_non_python_config(self) -> None:
+        upstream = snapshot._upstream_source_files(UPSTREAM) if hasattr(
+            snapshot, "_upstream_source_files"
+        ) else []
+        names = {path.as_posix() for path in upstream}
+        self.assertTrue(
+            any(name.endswith("config/default.yaml") for name in names),
+            "src/config/default.yaml 이 복사 대상에 없다",
+        )
+
+    def test_the_anchor_covers_non_python_sources(self) -> None:
+        """복사만 하고 앵커에 안 넣으면 드리프트가 여전히 조용하다."""
+        self.assertTrue(
+            hasattr(snapshot, "SOURCE_GLOBS") or hasattr(snapshot, "_upstream_source_files"),
+            "비파이썬 소스를 다루는 지점이 없다",
+        )
+        tree = json.loads((VENDOR / "UPSTREAM_TREE.json").read_text(encoding="utf-8"))
+        self.assertIn(
+            "source_blobs", tree,
+            "앵커가 비파이썬 소스 해시를 담지 않는다",
+        )
+        self.assertIn("src/config/default.yaml", tree["source_blobs"])
+
+    def test_vendor_config_matches_upstream_byte_for_byte(self) -> None:
+        """이 검사가 이번 결함의 직접 재현이다."""
+        a = UPSTREAM / "src" / "config" / "default.yaml"
+        b = VENDOR / "src" / "config" / "default.yaml"
+        if not a.is_file():
+            self.skipTest("상류 저장소 없음")
+        self.assertEqual(
+            _normalise(b.read_bytes()), _normalise(a.read_bytes()),
+            "vendor config 가 상류와 다르다 - 재스냅샷이 복사하지 않았다",
+        )
+
+
+def _normalise(data: bytes) -> bytes:
+    return data.replace(b"\r\n", b"\n")
