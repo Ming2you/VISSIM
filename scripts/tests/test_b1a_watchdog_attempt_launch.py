@@ -253,7 +253,12 @@ class B1aWatchdogAttemptLaunchStaticTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            hang_spec = self.write_synthetic_fixture(root, mode="hang", max_attempts=2, stall_sec=1)
+            # `stall_sec` 은 워치독의 시도별 예산이다. 1차는 30 초를 자므로 어떤 값이든
+            # 타임아웃되지만, **2차(성공 경로)도 같은 예산 안에 끝나야** 한다. 1 초로 두면
+            # 관측 JSON 쓰기까지 1 초 안에 마쳐야 해서 기계가 조금만 느려지면 성공한 시도가
+            # `termination=watchdog_timeout` 으로 죽는다(실측: 1 초 실패, 3 초부터 통과).
+            # 5 초는 그 관측에 여유를 더한 값이고, 1차 타임아웃은 30 초 sleep 이 보장한다.
+            hang_spec = self.write_synthetic_fixture(root, mode="hang", max_attempts=2, stall_sec=5)
             hang = self.run_synthetic_watchdog(hang_spec, timeout=90)
             self.assertEqual(hang.returncode, 0, hang.stdout + hang.stderr)
             attempts = sorted((root / "out").glob("*/attempt_*"))
