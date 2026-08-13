@@ -1073,6 +1073,7 @@ def build_detector_mapping(
 def prune_permanent_red_monitor_movements(
     network_override: dict[str, Any],
     detector_mapping: dict[str, Any],
+    network: Path = DEFAULT_NETWORK,
 ) -> dict[str, list[str]]:
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
@@ -1080,7 +1081,7 @@ def prune_permanent_red_monitor_movements(
 
     monitor_nodes = {str(value) for value in network_override.get("uncontrolled_nodes", [])}
     schedules, errors = compile_fixed_signal_schedules(
-        DEFAULT_NETWORK,
+        network,
         monitor_nodes,
         detector_mapping,
     )
@@ -1283,8 +1284,19 @@ def write_wrapper(
     mapping_path: Path,
     generated_path: Path,
     calibration_path: Path,
+    network_path: Path | None = None,
 ) -> None:
+    """실행 wrapper 를 낸다. `network_path` 를 주면 `$Network` 기본값도 그 망으로 옮긴다.
+
+    안 옮기면 dual-ring 망에서 만든 산출물을 물린 wrapper 가 구 `.inpx` 를 연다. 모델은
+    150 s 4현시로 명령하는데 플랜트는 옛 프로그램을 돌리고, 그 어긋남은 런 중에만 보인다.
+    """
     text = (ROOT / "scripts/run_real_world_single_watchdog.ps1").read_text(encoding="utf-8")
+    if network_path is not None:
+        text = text.replace(
+            "network\\real_world_gaepo_modi\\modi_eval_rw_control.inpx",
+            str(network_path.relative_to(ROOT)).replace("/", "\\"),
+        )
     text = text.replace(
         'evaluation\\configs\\real_world_modi_pstack_adapter_v0_20260719.json',
         str(tuning_path.relative_to(ROOT)).replace("/", "\\"),
@@ -1397,6 +1409,9 @@ def main() -> None:
     )
     parser.add_argument("--storage-capacity-json", default="",
                         help="scripts/derive_urban_storage_capacity.py 산출 JSON. 주면 상수 대신 실측 기하 용량을 쓴다")
+    parser.add_argument("--network", default=str(DEFAULT_NETWORK),
+                        help="산출물이 나온 VISSIM 망. wrapper 의 $Network 기본값과 "
+                             "player_config 의 source_files.network_inpx 가 이 값을 따른다")
     parser.add_argument("--boundary-input-alignment", default="",
                         help="scripts/derive_boundary_input_alignment.py 산출 JSON. 주면 VISSIM 유입이 "
                              "있는 (노드, 방위)에만 경계 leg 을 만든다(없으면 정방위 전수 = 기존 동작)")
@@ -1410,8 +1425,10 @@ def main() -> None:
     monitor_rows = [row for row in all_signal_rows if int(row["no"]) not in controlled_sc]
     base_mapping = read_json(DEFAULT_CONTROL_MAPPING)
     base_detector = read_json(DEFAULT_DETECTOR_MAPPING)
-    head_axes_by_sc = signal_head_link_axes(DEFAULT_NETWORK)
-    head_pos_by_sc = signal_head_link_max_pos(DEFAULT_NETWORK)
+    # 산출물 전부가 이 한 망에서 나온다 - wrapper 의 $Network 도 같은 값으로 간다.
+    network = Path(args.network).resolve()
+    head_axes_by_sc = signal_head_link_axes(network)
+    head_pos_by_sc = signal_head_link_max_pos(network)
     # 인벤토리(modi.inpx 기준)에는 있지만 eval 네트워크에는 아직 없는 SC가 있으면
     # movement가 빈 채로 조용히 생성된다 — 2026-07-31 UF/SC 혼동과 같은 부류의
     # 침묵 실패라 여기서 끊는다. 네트워크 재빌드 순서는 아래 안내 참조.
@@ -1419,7 +1436,7 @@ def main() -> None:
     if stale:
         raise SystemExit(
             f"eval 네트워크에 없는 signal controller {stale}\n"
-            f"  네트워크: {DEFAULT_NETWORK}\n"
+            f"  네트워크: {network}\n"
             "  modi.inpx를 수정했다면 eval 네트워크를 먼저 재빌드할 것:\n"
             "    1) python scripts/prepare_real_world_modi_eval_copy.py\n"
             "    2) cscript //nologo scripts\\install_real_world_freeway_controls.vbs "
@@ -1527,7 +1544,9 @@ def main() -> None:
         link_assignment=link_assignment,
         link_assignment_evidence=link_assignment_evidence,
     )
-    permanent_red_removed = prune_permanent_red_monitor_movements(network_override, detector)
+    permanent_red_removed = prune_permanent_red_monitor_movements(
+        network_override, detector, network
+    )
     if permanent_red_removed:
         print(
             "monitor permanent-red movements removed: "
@@ -1603,7 +1622,7 @@ def main() -> None:
         ],
         "source_files": {
             "signal_roles": str(DEFAULT_SIGNAL_ROLES.relative_to(ROOT)),
-            "network_inpx": str(DEFAULT_NETWORK.relative_to(ROOT)),
+            "network_inpx": str(network.relative_to(ROOT)),
             "base_control_mapping": str(DEFAULT_CONTROL_MAPPING.relative_to(ROOT)),
             "base_detector_mapping": str(DEFAULT_DETECTOR_MAPPING.relative_to(ROOT)),
             "prediction_calibration": str(DEFAULT_PREDICTION_CALIBRATION.relative_to(ROOT)),
@@ -1615,7 +1634,14 @@ def main() -> None:
     write_json(player_path, player_config)
     write_json(tuning_path, tuning)
     write_generated_vbs(generated_path, base_mapping, detector_path, detector["observable_links"], rows)
-    write_wrapper(wrapper_path, tuning_path, mapping_path, generated_path, DEFAULT_PREDICTION_CALIBRATION)
+    write_wrapper(
+        wrapper_path,
+        tuning_path,
+        mapping_path,
+        generated_path,
+        DEFAULT_PREDICTION_CALIBRATION,
+        network_path=network,
+    )
     write_report(report_path, rows, monitor_rows, {
         "control mapping": mapping_path,
         "detector mapping": detector_path,

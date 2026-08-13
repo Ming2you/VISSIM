@@ -78,7 +78,7 @@ if ($StateLogIntervalSec -le 0) {
 
 $runner = Join-Path $repo "scripts\run_real_world_stackelberg_controller.vbs"
 if ($Network -eq "") {
-  $Network = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control.inpx"
+  $Network = Join-Path $repo "network\real_world_gaepo_modi\modi_eval_rw_control_n4dr150_20260812.inpx"
 }
 $net = Resolve-RepoPath $Network
 $adapter = Join-Path $repo "evaluation\controllers\vissim_stackelberg_adapter.py"
