@@ -1,0 +1,231 @@
+<title>개포동 격자 토폴로지 — 교정판</title>
+<style>
+:root{
+  --ground:#F5F7F5; --surface:#FFFFFF; --sunk:#ECEFED;
+  --ink:#131917; --ink-2:#3C4744; --muted:#6B7772; --rule:#DAE1DC;
+  --accent:#0B6E75; --gate:#B0761A; --bnd:#8478AE; --ok:#2E7D4F;
+  --e-cc:#0B6E75; --e-cu:#6C7C77; --e-uu:#A9B4AF;
+  --shadow:0 1px 2px #1319170D, 0 10px 28px #1319170F;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1110; --surface:#151A18; --sunk:#1D2321;
+    --ink:#E7EEE9; --ink-2:#B7C3BE; --muted:#8A9791; --rule:#28312E;
+    --accent:#4FBFC7; --gate:#E0A93F; --bnd:#A79AD6; --ok:#5FBE86;
+    --e-cc:#4FBFC7; --e-cu:#8B9994; --e-uu:#4E5A56;
+    --shadow:0 1px 2px #0007, 0 10px 28px #0009;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1110; --surface:#151A18; --sunk:#1D2321;
+  --ink:#E7EEE9; --ink-2:#B7C3BE; --muted:#8A9791; --rule:#28312E;
+  --accent:#4FBFC7; --gate:#E0A93F; --bnd:#A79AD6; --ok:#5FBE86;
+  --e-cc:#4FBFC7; --e-cu:#8B9994; --e-uu:#4E5A56;
+  --shadow:0 1px 2px #0007, 0 10px 28px #0009;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  font-size:15px; line-height:1.55}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px; margin:0 auto; padding:36px 24px 72px; display:flex; flex-direction:column; gap:24px}
+.eyebrow{font-family:ui-monospace,Consolas,monospace; font-size:11px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent)}
+h1{margin:0; font-size:clamp(25px,3.4vw,36px); line-height:1.12; letter-spacing:-.022em; text-wrap:balance}
+.sub{margin:0; color:var(--muted); max-width:70ch}
+.counts{display:flex; flex-wrap:wrap; gap:20px 34px; padding:14px 0; border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule)}
+.counts div{display:flex; flex-direction:column; gap:1px}
+.counts .k{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.counts .v{font-size:21px; font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums}
+.plate{background:var(--surface); border:1px solid var(--rule); border-radius:5px; box-shadow:var(--shadow); overflow:hidden}
+.bar{display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid var(--rule); background:var(--sunk)}
+.tg{font:inherit; font-size:12px; padding:5px 10px; border:1px solid var(--rule); border-radius:3px;
+  background:var(--surface); color:var(--ink-2); cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--surface)}
+.tg:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+svg#plate{display:block; width:100%; height:min(80vh,820px); background:var(--surface); touch-action:none; cursor:grab}
+svg#plate.drag{cursor:grabbing}
+.legend{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px 26px;
+  padding:16px 18px; border-top:1px solid var(--rule); font-size:13px; background:var(--sunk)}
+.legend div{display:flex; align-items:center; gap:9px}
+.sw{width:26px; height:0; border-top-width:2.5px; border-top-style:solid; flex:none}
+.dot{width:12px; height:12px; flex:none; border:1.6px solid var(--ink); border-radius:2px}
+table{border-collapse:collapse; width:100%; font-size:13px}
+th,td{text-align:left; padding:6px 9px; border-bottom:1px solid var(--rule)}
+th{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+td.num{text-align:right; font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums}
+h2.big{margin:0 0 4px; font-size:19px; letter-spacing:-.01em}
+p.note{margin:0 0 12px; color:var(--muted); font-size:14px; max-width:74ch}
+.scroll{overflow-x:auto}
+footer{color:var(--muted); font-size:12.5px; border-top:1px solid var(--rule); padding-top:14px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">corrected grid · 2026-08-13</div>
+  <h1>개포동 격자 토폴로지 — 교정판</h1>
+  <p class="sub">자유 우회전으로 신호교차로를 관통하던 인접 8쌍과 고속도로·램프를 타고 이어지던 3쌍을
+  걷어낸 뒤의 격자다. 노드 위치는 VISSIM 측량 좌표, 선은 재유도한 인접이다.</p>
+</header>
+
+<div class="counts" id="counts"></div>
+
+<div class="plate">
+  <div class="bar" id="bar"></div>
+  <svg id="plate" role="img" aria-label="개포동 격자 토폴로지 교정판"></svg>
+  <div class="legend">
+    <div><span class="sw" style="border-top-color:var(--e-cc); border-top-width:3px"></span> 제어–제어</div>
+    <div><span class="sw" style="border-top-color:var(--e-cu)"></span> 제어–비제어</div>
+    <div><span class="sw" style="border-top-color:var(--e-uu); border-top-width:1.6px"></span> 비제어–비제어</div>
+    <div><span class="dot" style="background:var(--accent); border-color:var(--accent)"></span> urban player · 제어</div>
+    <div><span class="dot" style="background:transparent"></span> urban player · 관측</div>
+    <div><span class="sw" style="border-top-color:var(--gate); border-top-width:3px"></span> 유입 게이트 (18개)</div>
+    <div><span class="dot" style="background:transparent; border-color:var(--bnd); transform:rotate(45deg)"></span> 비-player 노드 (분기점·midblock)</div>
+  </div>
+</div>
+
+<section>
+  <h2 class="big">교차로 명세</h2>
+  <p class="note">follower 번호는 <span class="mono">urban_follower_sc_map.csv</span> 기준이다.
+  차수는 교정판 인접 기준이며, 소유 링크는 그 교차로의 approach queue 범위다.</p>
+  <div class="scroll"><table id="tbl"></table></div>
+</section>
+
+<footer id="foot"></footer>
+</div>
+
+<script id="d" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('d').textContent);
+const N = D.nodes.filter(n => n.x !== null);
+const byId = Object.fromEntries(N.map(n => [n.node, n]));
+const EDGES = D.adj_b.filter(([a, b]) => byId[a] && byId[b]);
+const gateLeg = new Set(D.gates.map(g => g.node + '|' + g.leg));
+const SIDE = {N:0, NE:45, E:90, SE:135, S:180, SW:225, W:270, NW:315};
+const ownedCount = {}; D.nodes.forEach(n => ownedCount[n.node] = n.owned_links.length);
+const cls = (a, b) => (byId[a].controlled && byId[b].controlled) ? 'cc'
+  : (!byId[a].controlled && !byId[b].controlled) ? 'uu' : 'cu';
+
+const THRU = N.filter(n => n.through), INT = N.filter(n => !n.through);
+document.getElementById('counts').innerHTML = [
+  ['urban player', INT.length, `제어 ${INT.filter(n => n.controlled).length} · 관측 ${INT.filter(n => !n.controlled).length}`],
+  ['비-player 노드', THRU.length, '노드로 남기되 player 인접이 그 위를 건넌다'],
+  ['인접', EDGES.length, `구 규칙 ${D.adj_a.length}에서 ${D.removed.length}쌍 제거`],
+  ['유입 게이트', D.gates.length, '경계 leg 중 실제 수요가 있는 것'],
+  ['평균 차수', (2 * EDGES.length / INT.length).toFixed(1), '교차로 기준'],
+].map(([k, v, n]) => `<div><span class="k">${k}</span><span class="v">${v}</span><span style="font-size:12.5px;color:var(--ink-2)">${n}</span></div>`).join('');
+
+const svg = document.getElementById('plate'), NS = 'http://www.w3.org/2000/svg';
+const minX = Math.min(...N.map(n => n.x)), maxX = Math.max(...N.map(n => n.x));
+const minY = Math.min(...N.map(n => n.y)), maxY = Math.max(...N.map(n => n.y));
+const PAD = 96, VW = 1180, VH = 1120;
+const sx = v => PAD + (v - minX) / (maxX - minX) * (VW - 2 * PAD);
+const sy = v => VH - PAD - (v - minY) / (maxY - minY) * (VH - 2 * PAD);
+svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+const root = document.createElementNS(NS, 'g'); svg.appendChild(root);
+const L = {}; ['road','edge','gate','node','label'].forEach(k => { L[k] = document.createElementNS(NS,'g'); root.appendChild(L[k]); });
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || root).appendChild(e); return e; };
+
+/* 실제 도로 — 기본은 끈다. 켜면 인접선이 도로와 맞는지 대조할 수 있다. */
+D.links.forEach(l => {
+  let d = ''; for (let i = 0; i < l.pts.length; i += 2) d += (i ? 'L' : 'M') + sx(l.pts[i]) + ' ' + sy(l.pts[i+1]) + ' ';
+  el('path', {d, fill:'none', stroke:'var(--muted)', 'stroke-width':1, 'stroke-opacity':.3, 'stroke-linecap':'round'}, L.road);
+});
+/* 도로는 기본으로 켜둔다 — 인접선이 실제 도로 위에 놓였는지 바로 대조하라고. */
+
+const EW = {cc:3, cu:2.1, uu:1.6}, EC = {cc:'var(--e-cc)', cu:'var(--e-cu)', uu:'var(--e-uu)'};
+EDGES.forEach(([a, b]) => {
+  const c = cls(a, b), p = byId[a], q = byId[b];
+  el('line', {x1:sx(p.x), y1:sy(p.y), x2:sx(q.x), y2:sy(q.y),
+    stroke:EC[c], 'stroke-width':EW[c], 'stroke-opacity':c === 'uu' ? .7 : .9, 'stroke-linecap':'round'}, L.edge);
+});
+
+/* 실제 수요가 있는 유입 게이트만 그린다 */
+N.forEach(n => n.boundary_legs.forEach(k => {
+  if (!gateLeg.has(n.node + '|' + k)) return;
+  const h = k.split('_')[0].toUpperCase(); if (!(h in SIDE)) return;
+  const th = SIDE[h] * Math.PI / 180, x2 = sx(n.x) + Math.sin(th) * 30, y2 = sy(n.y) - Math.cos(th) * 30;
+  el('line', {x1:sx(n.x), y1:sy(n.y), x2, y2, stroke:'var(--gate)', 'stroke-width':3, 'stroke-linecap':'round'}, L.gate);
+  el('circle', {cx:x2, cy:y2, r:3.4, fill:'var(--gate)'}, L.gate);
+}));
+
+/* 라벨은 이웃 반대쪽에 놓는다 — 겹침을 줄이는 가장 싼 방법 */
+const nbrs = {}; EDGES.forEach(([a, b]) => { (nbrs[a] ||= []).push(b); (nbrs[b] ||= []).push(a); });
+N.forEach(n => {
+  const g = el('g', {}, L.node);
+  if (n.through) {   /* 블록 중간 요소 — 교차로가 아니다. 마름모로 작게. */
+    const s = 4.6, X = sx(n.x), Y = sy(n.y);
+    el('polygon', {points:`${X},${Y-s} ${X+s},${Y} ${X},${Y+s} ${X-s},${Y}`,
+      fill:'var(--surface)', stroke:'var(--bnd)', 'stroke-width':1.6}, g);
+    const t0 = el('text', {x:X + 7, y:Y + 4, 'font-size':10, fill:'var(--bnd)',
+      'font-family':'ui-monospace,Consolas,monospace'}, L.label);
+    t0.textContent = n.node.replace('SC', '');
+    return;
+  }
+  const s = n.controlled ? 8 : 5.5;
+  el('rect', {x:sx(n.x) - s, y:sy(n.y) - s, width:s*2, height:s*2, rx:2,
+    fill:n.controlled ? 'var(--accent)' : 'var(--surface)',
+    stroke:n.controlled ? 'var(--accent)' : 'var(--ink-2)', 'stroke-width':1.7}, g);
+
+  let ux = 0, uy = 0;
+  (nbrs[n.node] || []).forEach(m => { ux += sx(byId[m].x) - sx(n.x); uy += sy(byId[m].y) - sy(n.y); });
+  const mag = Math.hypot(ux, uy) || 1;
+  const ox = -ux / mag * (s + 13), oy = -uy / mag * (s + 13);
+  const anchor = ox < -3 ? 'end' : ox > 3 ? 'start' : 'middle';
+  const t = el('text', {x:sx(n.x) + ox, y:sy(n.y) + oy + 4.5, 'text-anchor':anchor,
+    'font-size':n.controlled ? 15 : 12.5, 'font-weight':n.controlled ? 600 : 400,
+    fill:n.controlled ? 'var(--ink)' : 'var(--muted)',
+    'font-family':'ui-monospace,Consolas,monospace'}, L.label);
+  t.textContent = n.follower ? String(n.follower) : n.node.replace('SC', '');
+  if (n.controlled && n.name) {
+    const t2 = el('text', {x:sx(n.x) + ox, y:sy(n.y) + oy + 19, 'text-anchor':anchor,
+      'font-size':11, fill:'var(--muted)'}, L.label);
+    t2.textContent = n.name;
+  }
+});
+
+/* toggles + pan/zoom */
+const bar = document.getElementById('bar');
+[['실제 도로','road', true], ['인접','edge', true], ['유입 게이트','gate', true], ['이름','label', true]].forEach(([txt, key, on]) => {
+  const b = document.createElement('button'); b.className = 'tg'; b.textContent = txt; b.setAttribute('aria-pressed', on);
+  L[key].style.display = on ? '' : 'none';
+  b.onclick = () => { const v = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', v); L[key].style.display = v ? '' : 'none'; };
+  bar.appendChild(b);
+});
+const rb = document.createElement('button'); rb.className = 'tg'; rb.textContent = '보기 초기화';
+rb.onclick = () => { k = 1; px = 0; py = 0; apply(); }; bar.appendChild(rb);
+const hint = document.createElement('span');
+hint.style.cssText = 'font-size:12px;color:var(--muted);align-self:center;margin-left:4px';
+hint.textContent = '숫자 = urban follower 번호 (없으면 SC 번호)'; bar.appendChild(hint);
+
+let k = 1, px = 0, py = 0, drag = null;
+const apply = () => root.setAttribute('transform', `translate(${px} ${py}) scale(${k})`);
+svg.addEventListener('wheel', e => { e.preventDefault();
+  const r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width * VW, my = (e.clientY - r.top) / r.height * VH;
+  const nk = Math.min(10, Math.max(.6, k * (e.deltaY < 0 ? 1.16 : 1/1.16)));
+  px = mx - (mx - px) * (nk / k); py = my - (my - py) * (nk / k); k = nk; apply(); }, {passive:false});
+svg.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, px, py}; svg.classList.add('drag'); svg.setPointerCapture(e.pointerId); });
+svg.addEventListener('pointermove', e => { if (!drag) return; const r = svg.getBoundingClientRect();
+  px = drag.px + (e.clientX - drag.x) / r.width * VW; py = drag.py + (e.clientY - drag.y) / r.height * VH; apply(); });
+['pointerup','pointercancel'].forEach(t => svg.addEventListener(t, () => { drag = null; svg.classList.remove('drag'); }));
+
+/* table */
+const deg = {}; EDGES.forEach(([a, b]) => { deg[a] = (deg[a]||0)+1; deg[b] = (deg[b]||0)+1; });
+document.getElementById('tbl').innerHTML =
+  `<thead><tr><th>follower</th><th>SC</th><th>이름</th><th>제어</th><th style="text-align:right">차수</th>
+   <th>인접</th><th style="text-align:right">소유 링크</th><th style="text-align:right">게이트</th></tr></thead><tbody>` +
+  D.nodes.slice().sort((a, b) => (a.follower || 99) - (b.follower || 99) || a.node.localeCompare(b.node)).map(n => {
+    const nb = (nbrs[n.node] || []).slice().sort();
+    const gates = D.gates.filter(g => g.node === n.node).length;
+    return `<tr><td class="mono">${n.follower ?? '–'}</td><td class="mono">${n.node}</td>
+      <td>${n.name || '–'}</td><td>${n.controlled ? '●' : ''}</td>
+      <td class="num">${deg[n.node] || 0}</td>
+      <td class="mono" style="font-size:12px">${nb.map(x => byId[x] && byId[x].follower ? byId[x].follower : x.replace('SC','')).join(' ')}</td>
+      <td class="num">${ownedCount[n.node]}</td><td class="num">${gates || ''}</td></tr>`;
+  }).join('') + '</tbody>';
+
+document.getElementById('foot').textContent =
+  `인접 ${D.sources.adj_b} · 좌표 ${D.sources.roles} · 망 ${D.sources.network} · ` +
+  `재생성: python scripts/build_topology_inspector.py --view clean --out outputs/topology_clean.html`;
+</script>
