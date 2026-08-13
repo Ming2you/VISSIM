@@ -1,7 +1,7 @@
 Option Explicit
 
 If WScript.Arguments.Count < 4 Then
-    WScript.Echo "Usage: cscript run_real_world_stackelberg_controller.vbs <network.inpx> <state_output.csv> <action_output.csv> <decision_dir> [sim_period_sec] [control_interval_sec] [rand_seed] [adapter_py] [calibration_json] [tuning_json] [mapping_json] [controller] [control_start_sec] [warmup_controller] [generated_config.vbs] [state_log_interval_sec] [demand_scale] [demand_profile_csv] [vehicle_input_roles_csv] [incident_link] [incident_lane] [incident_pos_m] [incident_start_sec] [incident_end_sec] [incident_name]"
+    WScript.Echo "Usage: cscript run_real_world_stackelberg_controller.vbs <network.inpx> <state_output.csv> <action_output.csv> <decision_dir> [sim_period_sec] [control_interval_sec] [rand_seed] [adapter_py] [calibration_json] [tuning_json] [mapping_json] [controller] [control_start_sec] [warmup_controller] [generated_config.vbs] [state_log_interval_sec] [demand_scale] [demand_profile_csv] [vehicle_input_roles_csv] [incident_link] [incident_lane] [incident_pos_m] [incident_start_sec] [incident_end_sec] [incident_name] [urban_input_gate_map_csv]"
     WScript.Quit 2
 End If
 
@@ -47,6 +47,7 @@ signalTraceStage = "immediate"
 Dim netPath, stateOutPath, actionOutPath, bottleneckLinkOutPath, bottleneckSegmentOutPath, signalTraceOutPath, decisionDir, simPeriod, controlInterval, randSeed, stateLogIntervalSec, demandScale, demandProfilePath, vehicleInputRolesPath
 Dim adapterPath, calibrationPath, tuningPath, mappingPath, detectorMappingPath, controllerName, controlStartSec, warmupControllerName, generatedConfigPath
 Dim incidentLinkNo, incidentLaneNo, incidentPosM, incidentStartSec, incidentEndSec, incidentName, incidentEnabled
+Dim urbanInputGateMapPath
 Dim incidentSignalControllerNo, incidentSignalGroupNo, incidentStateLast, incidentSc, incidentSg, incidentSignalHead
 netPath = WScript.Arguments(0)
 stateOutPath = WScript.Arguments(1)
@@ -74,6 +75,12 @@ incidentStartSec = CLng(ArgOrDefault(22, -1))
 incidentEndSec = CLng(ArgOrDefault(23, -1))
 incidentName = ArgOrDefaultText(24, "")
 If Trim(CStr(incidentName)) = "" Then incidentName = "INCIDENT_LANE_CLOSURE"
+' 도시 유입 게이트 맵. 격자 leg 방위에서 유도되므로 leg 을 고치면 같이 움직인다 - 경로를
+' 박아 두면 새 배선으로 런이 안 돈다(실측: leg 수정 뒤 SC1001 의 W 가 격자 leg 이 되어
+' 경계 게이트가 아닌데 러너가 in_SC1001_W 를 계속 넘겨 결정이 죽었다).
+' 안 주면 종전 기본값 그대로다 - 기존 런 스크립트는 안 깨진다.
+urbanInputGateMapPath = ArgOrDefaultText(25, "")
+If urbanInputGateMapPath = "" Then urbanInputGateMapPath = DefaultUrbanInputGateMapPath()
 incidentEnabled = (CLng(incidentLinkNo) > 0 And CLng(incidentLaneNo) > 0 And CLng(incidentStartSec) >= 0 And CLng(incidentEndSec) > CLng(incidentStartSec))
 incidentSignalControllerNo = 9901
 incidentSignalGroupNo = 1
@@ -316,7 +323,7 @@ Else
     WScript.Echo "DEMAND=ORIGINAL_INPX_UNCHANGED"
 End If
 ConfigureEvaluationOutput fso.BuildPath(fso.GetParentFolderName(stateOutPath), "vissim_eval")
-LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, DefaultUrbanInputGateMapPath()
+LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, urbanInputGateMapPath
 DemandForecastAtSimSec 0, urbanDemandVph, freewayDemandVph
 WScript.Echo "DEMAND_FORECAST_CURRENT sim_sec=0 urban_vph=" & Num(urbanDemandVph) & " freeway_vph=" & Num(freewayDemandVph) & " profile=" & demandForecastProfileName
 

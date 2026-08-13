@@ -1,4 +1,4 @@
-<#
+﻿<#
 Run one real-world Gaepo modi VISSIM controller case with a no-progress watchdog.
 
 Progress is the newest mtime among the run log, state CSV, action CSV, and
@@ -29,6 +29,9 @@ param(
   [int]$IncidentStartSec = -1,
   [int]$IncidentEndSec = -1,
   [string]$IncidentName = "",
+  # 도시 유입 게이트 맵. 격자 leg 방위에서 유도되므로 leg 을 고치면 같이 움직인다.
+  # 비우면 러너가 자기 기본값(urban_input_gate_map_20260811.csv)으로 떨어진다.
+  [string]$UrbanInputGateMap = "",
   [switch]$ForceStepwise,
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
@@ -274,6 +277,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   $argline = $argline + " $DemandScale"
   $argline = $argline + " " + (Q $DemandProfile) + " " + (Q $VehicleInputRoles)
   $argline = $argline + " $IncidentLink $IncidentLane $IncidentPos $IncidentStartSec $IncidentEndSec " + (Q $IncidentName)
+  $argline = $argline + " " + (Q $UrbanInputGateMap)
 
   $t0 = Get-Date
   Normalize-ProcessPathEnv
