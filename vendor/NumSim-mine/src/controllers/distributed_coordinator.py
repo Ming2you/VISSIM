@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from itertools import product
-from typing import Dict, Iterable, Mapping, Optional
+from typing import Any, Dict, Iterable, Mapping, Optional
+
+# 코너 열거 가법 단축의 한계값.
+#   신호 수 상한 — 2^N 부분합 배열을 만드므로 메모리가 지수다. 20 이면 100만 개(약 8 MB)로
+#   아직 싸고, 그 위는 기존 열거로 되돌린다(어차피 기존 경로도 그 규모면 못 쓴다).
+#   허용오차 — 가법 예측과 실측 잔차의 차이가 이보다 크면 분리가능성이 깨진 것으로 본다.
+_ADDITIVE_CORNER_MAX_SIGNALS = 20
+_ADDITIVE_CORNER_TOLERANCE_VEH = 1.0e-6
 
 import numpy as np
 
@@ -749,15 +756,22 @@ class DistributedCoordinator:
         })
         return candidate, objective, control, diag
 
-    def _leader_direct_feasible_set_diagnostics(
+    def _leader_service_projection(
         self,
         state: TrafficState,
         control: ControlAction,
         forecast: list[DemandStep],
-        leader: Optional[LeaderAction],
-    ) -> Dict[str, float]:
-        if leader is None:
-            return {}
+    ) -> tuple[Dict[str, float], Dict[str, float], float, Any, float, float, bool]:
+        """movement 별 서비스량과 순유입 원재료를 만든다.
+
+        `_leader_direct_feasible_set_diagnostics` 의 앞부분을 **그대로** 옮긴 것이다.
+        잔차만 필요한 탐색 경로(`_leader_projected_net_inflow_veh`)와 전체 진단이 같은
+        코드를 쓰게 묶어, 합산 순서가 갈려 부동소수 결과가 달라지는 일을 막는다.
+
+        반환 마지막 값은 **on_ramp 스케일링이 발동했는가**다. 그 스케일링만이 서로 다른
+        신호의 movement 를 묶으므로, 켜져 있으면 순유입이 신호별로 분리되지 않는다
+        (`_leader_target_net_inflow_projected_control` 의 가법 단축이 이 값을 본다).
+        """
         ensure_urban_state(state, self.cfg)
         net = self.cfg.network
         _demand, horizon_h, steps = self._response_horizon_demand(forecast)
@@ -796,10 +810,6 @@ class DistributedCoordinator:
                 if movement in service:
                     service[movement] *= scale
 
-        remaining: Dict[str, float] = {
-            movement: max(0.0, available_by_movement.get(movement, 0.0) - service.get(movement, 0.0))
-            for movement in self._specs
-        }
         inflow_veh = sum(
             service.get(movement, 0.0)
             for movement, spec in self._specs.items()
@@ -810,6 +820,44 @@ class DistributedCoordinator:
             for movement, spec in self._specs.items()
             if str(spec.get("kind", "")) in OUTFLOW_KINDS
         )
+        return (service, available_by_movement, horizon_h, steps,
+                inflow_veh, outflow_veh, bool(raw_onramp_by_ramp))
+
+    def _leader_projected_net_inflow_veh(
+        self,
+        state: TrafficState,
+        control: ControlAction,
+        forecast: list[DemandStep],
+    ) -> tuple[float, bool]:
+        """순유입 예측값만 낸다. 탐색 안에서 20개 진단키를 매번 만들지 않기 위한 경로.
+
+        전체 진단은 여기에 더해 저류 위반과 balance tiebreak(`grouped_densities`)를
+        계산하는데, 탐색은 `..._abs_residual_veh` 하나만 읽는다. 2026-08-13 프로파일에서
+        `grouped_densities` 가 상위 표본이었다.
+        """
+        _svc, _avail, _h, _steps, inflow_veh, outflow_veh, ramp_scaled = (
+            self._leader_service_projection(state, control, forecast)
+        )
+        return inflow_veh - outflow_veh, ramp_scaled
+
+    def _leader_direct_feasible_set_diagnostics(
+        self,
+        state: TrafficState,
+        control: ControlAction,
+        forecast: list[DemandStep],
+        leader: Optional[LeaderAction],
+    ) -> Dict[str, float]:
+        if leader is None:
+            return {}
+        net = self.cfg.network
+        (service, available_by_movement, horizon_h, steps,
+         inflow_veh, outflow_veh, _ramp_scaled) = self._leader_service_projection(
+            state, control, forecast
+        )
+        remaining: Dict[str, float] = {
+            movement: max(0.0, available_by_movement.get(movement, 0.0) - service.get(movement, 0.0))
+            for movement in self._specs
+        }
         projected_net_inflow_veh = inflow_veh - outflow_veh
         projected_net_inflow_rate = projected_net_inflow_veh / max(horizon_h, 1.0e-9)
         target_net_inflow_veh = float(leader.N_P_star)
@@ -1384,23 +1432,92 @@ class DistributedCoordinator:
         best = self._project_control_to_leader_constraints(control, leader, allocation_plan)
         best_diag = self._leader_direct_feasible_set_diagnostics(state, best, forecast, leader)
         best_abs = float(best_diag.get("distributed_grid_leader_net_inflow_abs_residual_veh", np.inf))
-        for values in product(
-            (float(net.green_min), float(net.green_max)),
-            repeat=len(net.signals),
-        ):
+
+        target_veh = float(leader.N_P_star)
+        lo, hi = float(net.green_min), float(net.green_max)
+
+        def corner_control(values: tuple[float, ...]) -> ControlAction:
             trial = best.copy()
             for signal, p1 in zip(net.signals, values):
                 set_signal_green(trial, net, signal, float(p1))
-            trial = self._project_control_to_leader_constraints(trial, leader, allocation_plan)
-            diag = self._leader_direct_feasible_set_diagnostics(state, trial, forecast, leader)
-            residual_abs = float(diag.get(
-                "distributed_grid_leader_net_inflow_abs_residual_veh",
-                np.inf,
-            ))
-            if residual_abs < best_abs - 1.0e-9:
-                best = trial
-                best_diag = diag
-                best_abs = residual_abs
+            return self._project_control_to_leader_constraints(trial, leader, allocation_plan)
+
+        # 코너 열거의 가법 단축.
+        #
+        # 왜 필요한가(2026-08-13 실측). 이 루프는 신호 하나당 {green_min, green_max} 를
+        # 모두 조합해 2^N 개 코너를 돌고, 코너마다 movement 전체(실런 1,480개)를 다시
+        # 훑는다. 도시 신호가 SC1 하나였을 때는 2^1=2 라 공짜였지만 core15 로 늘면서
+        # 2^15=32,768 이 됐고, 이 함수는 후보 루프 안에서 다시 불린다. 결정 1회가 52분이
+        # 된 주된 자리다.
+        #
+        # 왜 가법이 성립하는가. 순유입은 movement 별 서비스량의 합이고, 각 movement 의
+        # 서비스량은 **자기 신호의 녹색에만** 의존한다 — `_phase_green_fraction` 은
+        # `spec["phase"]` 에서 신호를 뽑아 그 녹색만 읽고, `set_signal_green` 은 그 신호의
+        # 현시만 쓰며, `_project_control_to_leader_constraints` 의 밴드 클리핑도 신호별
+        # 독립이고, `_movement_capacity_flow` 가 보는 allocation 은 호출 내내 고정이다.
+        # 그래서 net(코너) = net(전부 min) + Σ_{max 인 신호} Δ_s 로 접힌다.
+        #
+        # 유일한 예외가 on_ramp 스케일링이다. 램프를 공유하는 movement 를 한 비율로
+        # 묶으므로 신호별로 분리되지 않는다. 그때는 단축을 쓰지 않는다.
+        n_signals = len(net.signals)
+        base_values = tuple(lo for _ in net.signals)
+        base_net, base_ramp_scaled = self._leader_projected_net_inflow_veh(
+            state, corner_control(base_values), forecast
+        )
+        deltas: list[float] = []
+        ramp_scaled = base_ramp_scaled
+        for index in range(n_signals):
+            probe = list(base_values)
+            probe[index] = hi
+            probe_net, probe_ramp = self._leader_projected_net_inflow_veh(
+                state, corner_control(tuple(probe)), forecast
+            )
+            ramp_scaled = ramp_scaled or probe_ramp
+            deltas.append(probe_net - base_net)
+
+        # 2^N 개 부분합을 O(2^N) 산술로 만든다. movement 를 다시 훑지 않는다.
+        # product 는 마지막 좌표가 가장 빨리 바뀌므로, 정수 i 의 비트 (N-1-s) 가 신호 s 다.
+        # 그래서 i 오름차순이 곧 product 순서이고 동률 처리가 기존과 같다.
+        use_additive = (not ramp_scaled) and 0 < n_signals <= _ADDITIVE_CORNER_MAX_SIGNALS
+        if use_additive:
+            total = 1 << n_signals
+            sums = [0.0] * total
+            for i in range(1, total):
+                low = i & -i
+                sums[i] = sums[i ^ low] + deltas[n_signals - 1 - (low.bit_length() - 1)]
+            win_i, win_abs = -1, np.inf
+            for i in range(total):
+                residual_abs = abs(base_net + sums[i] - target_veh)
+                if residual_abs < win_abs - 1.0e-9:
+                    win_i, win_abs = i, residual_abs
+            if win_i >= 0 and win_abs < best_abs - 1.0e-9:
+                values = tuple(
+                    hi if (win_i >> (n_signals - 1 - s)) & 1 else lo
+                    for s in range(n_signals)
+                )
+                trial = corner_control(values)
+                diag = self._leader_direct_feasible_set_diagnostics(state, trial, forecast, leader)
+                residual_abs = float(diag.get(
+                    "distributed_grid_leader_net_inflow_abs_residual_veh", np.inf
+                ))
+                # 가법 예측과 실측이 어긋나면 분리가능성 전제가 깨진 것이다. 조용히 틀린
+                # 답을 내지 않고 기존 열거로 되돌아간다.
+                if abs(residual_abs - win_abs) <= _ADDITIVE_CORNER_TOLERANCE_VEH:
+                    best, best_diag, best_abs = trial, diag, residual_abs
+                else:
+                    use_additive = False
+        if not use_additive:
+            for values in product((lo, hi), repeat=n_signals):
+                trial = corner_control(values)
+                diag = self._leader_direct_feasible_set_diagnostics(state, trial, forecast, leader)
+                residual_abs = float(diag.get(
+                    "distributed_grid_leader_net_inflow_abs_residual_veh",
+                    np.inf,
+                ))
+                if residual_abs < best_abs - 1.0e-9:
+                    best = trial
+                    best_diag = diag
+                    best_abs = residual_abs
         # Coordinate search is cheap compared with rollout and can move several
         # signals at once, unlike the one-axis structured grid.
         for _pass in range(2):

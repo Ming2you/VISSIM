@@ -1331,6 +1331,36 @@ def signal_phase_keys(signal: str) -> List[str]:
     return [phase_key(signal, phase) for phase in MODEL_PHASES]
 
 
+def _equal_green_over_live_phases(net: NetworkConfig) -> Dict[str, float]:
+    """신호별로 **살아 있는 현시에만** 예산을 균등 배분한다. 죽은 현시는 0 이다.
+
+    왜 필요한가(2026-08-13 실측). `ControlAction.uncontrolled`/`fixed` 는 `net.signals`
+    전부에 대해 `MODEL_PHASES` 4개 모두 `default_phase_green` 을 넣었다. 그런데 SC107·108·
+    109 는 한 현시의 신호군이 `.sig` 에서 영구적색이라 플랜트가 3현시로 돈다. 죽은 현시에
+    실린 34.5 s 는 실현되지 않고 전현시 적색으로 흘러가고, 어댑터의 계획 검사는 그 액션을
+    `sc 107: action commands green on phases ('p1','p2','p3','p4') but the actuation plan
+    has signal groups on ('p2','p3','p4')` 로 거부한다.
+
+    무제어 폴백이 선택되는 경우가 실제로 있었다(정예산 결정 1회에서 탐색 후보 전부가
+    무제어보다 나빴다). 그래서 이 경로가 실 액션이 되고, 커플드 런이 거기서 죽었다.
+
+    4현시가 다 살아 있는 신호에서는 `signal_effective_green_total/4 = default_phase_green`
+    이라 기존 값과 같다.
+    """
+    green: Dict[str, float] = {}
+    for signal in net.signals:
+        live = net.signal_live_phases(signal)
+        if not live:
+            continue
+        share = net.signal_effective_green_total(signal) / float(len(live))
+        # 나눠 담는 것은 정본 헬퍼에 맡긴다 - green_min/green_max 사영과 죽은 현시 0 이
+        # 한 곳에서만 정의되게 한다.
+        values = distribute_phase_green(net, share, None, signal=signal)
+        for phase in MODEL_PHASES:
+            green[phase_key(signal, phase)] = float(values.get(phase, 0.0))
+    return green
+
+
 def clamp_primary_green(net: NetworkConfig, value: float) -> float:
     """주 현시 녹색을 실행가능 상자로 자른다.
 
@@ -1539,15 +1569,10 @@ class ControlAction:
         따라서 equal green fraction이 service capacity에 정확히 한 번만 적용된다.
         """
         net = cfg.network
-        phase_green = net.default_phase_green
         return cls(
             ramp_metering={r: net.ramp_capacity_veh_h[r] for r in net.ramps},
             vsl={link: max(cfg.freeway_follower.vsl_set) for link in net.freeway_links},
-            green_times={
-                phase_key(signal, phase): phase_green
-                for signal in net.signals
-                for phase in MODEL_PHASES
-            },
+            green_times=_equal_green_over_live_phases(net),
             offsets={signal: 0.0 for signal in net.signals},
             inflow_outflow_allocation={},
         )
@@ -1555,11 +1580,7 @@ class ControlAction:
     @classmethod
     def fixed(cls, cfg: ExperimentConfig) -> "ControlAction":
         net = cfg.network
-        green = {}
-        phase_green = net.default_phase_green
-        for signal in net.signals:
-            for phase in MODEL_PHASES:
-                green[phase_key(signal, phase)] = phase_green
+        green = _equal_green_over_live_phases(net)
         # allocation은 perimeter(경계/램프) 제어 전용 신호다. 내부 movement는 사전충전하지
         # 않는다(green×saturation으로만 제어; allocation으로 throttle되면 안 됨).
         perimeter_kinds = {"boundary_in", "off_ramp", "boundary_out", "on_ramp"}
