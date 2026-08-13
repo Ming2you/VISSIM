@@ -23,23 +23,82 @@
 ## 1. 받을 것
 
 ```
-VISSIM     origin/codex/plant-fidelity-v2-1   47e143b
+VISSIM     origin/codex/plant-fidelity-v2-1   49e26ed   (이 문서를 담은 커밋)
 NumSim     origin/freeway-zone-followers      0546d76
 ```
 
-`vendor/NumSim-mine` 은 VISSIM 저장소 안의 스냅샷이라 따로 받을 필요 없다. 다만 상류를 고칠
-때는 반드시 **상류에서 고치고 스냅샷 스크립트로 옮긴다**(직접 편집 금지, 4절 참조).
+NumSim 은 **VISSIM 저장소의 형제 디렉터리 `NumSim-mine` 으로** 받는다. 이름과 위치가 고정이다 —
+`scripts/tests/test_update_numsim_snapshot.py:21` 이 `REPO.parent / "NumSim-mine"` 을 본다.
+
+```bash
+git clone --branch freeway-zone-followers https://github.com/Ming2you/Numerical-Sim.git ../NumSim-mine
+```
+
+`vendor/NumSim-mine` 은 VISSIM 저장소 안의 스냅샷이라 그것 자체를 따로 받을 필요는 없다. 다만
+상류를 고칠 때는 반드시 **상류에서 고치고 스냅샷 스크립트로 옮긴다**(직접 편집 금지, 4절 참조).
+
+상류를 안 받으면 `test_upstream_sources_include_non_python_config` 가 실패한다. 이 검사만은
+상류 부재를 skip 으로 처리하지 않는다(형제 검사
+`test_vendor_config_matches_upstream_byte_for_byte` 는 skip 한다). **2026-08-13 실측.**
 
 ## 2. 받자마자 할 것 — 이걸 안 하면 전부 FAIL 한다
+
+### 2-0. 줄바꿈(EOL) 정렬 — 2-1 보다 먼저 한다
+
+**이 저장소는 워킹트리 줄바꿈이 섞여 있어야 맞는다.** git 이 체크아웃한 파일은 CRLF, 세션 중
+파이썬이 직접 쓴 산출물은 LF 다. 봉인된 해시들이 그 혼합 상태를 가리키므로 **어느 한쪽으로
+통일하면 검사가 깨진다.** 새 기계에서 클론하면 `git status` 는 깨끗한데 검사만 더 실패한다.
+
+**2026-08-13 이관 실측.** `core.autocrlf=true`(Windows 기본) 로 클론했을 때:
+
+| 파일 | 원 기계 워킹트리 | git blob | 봉인한 쪽 |
+| --- | --- | --- | --- |
+| `outputs/signal_group_actuation_plan_v3.json` | LF `5955cc18…` 52,214 B | 같음 | `_sgplan.vbs` 4개가 LF 를 봉인 |
+| `evaluation/generated/*_sgplan.vbs` (4개) | LF 3,978 B | 같음 | 렌더 결과와 바이트 대조 |
+| `network/…/modi_eval_rw_control_n4dr150_20260812.inpx` | CRLF `37f1cc1f…` 3,029,984 B | LF `da352bf3…` 2,995,729 B | 계획이 **CRLF** 를 봉인 |
+| `outputs/movement_signal_group_map_v3.json` | CRLF `c937648b…` 73,624 B | LF `312b4dc8…` 70,844 B | 계획이 **CRLF** 를 봉인 |
+
+`core.autocrlf` 는 **true 로 두고**, 그 위에서 파이썬 산출물 5개만 LF 로 되돌린다.
+
+```bash
+git config core.autocrlf true
+python - <<'PY'
+import pathlib
+targets = [pathlib.Path("outputs/signal_group_actuation_plan_v3.json")]
+targets += sorted(pathlib.Path("evaluation/generated").glob("*_sgplan.vbs"))
+for p in targets:
+    p.write_bytes(p.read_bytes().replace(b"\r\n", b"\n"))
+    print(p, p.stat().st_size)
+PY
+```
+
+**전체를 LF 로 통일하지 말 것.** 실제로 해 봤다 — `_sgplan.vbs` 5건은 낫지만 계획이 봉인한
+`.inpx`·movement map 이 어긋나 `test_model_plant_native_share_identity` 2건이 새로 깨진다.
+`tests/` 실패가 12 → 9 로 바뀌었을 뿐 7 이 되지 않았다.
+
+**이 조치는 영구적이지 않다.** git 이 그 파일들을 다시 건드리면 CRLF 로 되돌아간다.
+`git status` 가 ` M` 으로 표시해도 내용 차이가 아니다 — `git hash-object` 가 HEAD blob 과
+같으면 EOL 부기일 뿐이다. `checkout`·`reset`·`stash` 뒤에는 위 블록을 다시 돌린다.
+
+근본 해결은 `.gitattributes` 로 이 파일들의 EOL 을 고정하고 계획·vbs 를 함께 재생성하는
+것이다. 생산 산출물을 덮는 일이라 이번에는 하지 않았다.
 
 ### 2-1. 정본 토폴로지 재생성 (필수)
 
 `outputs/canonical_topology_v3.json` 은 `.gitignore:41` 대상이라 **푸시에 안 담긴다.**
 새 기계에는 없거나 구판이다.
 
-```bash
-python scripts/build_canonical_topology.py --inpx network/real_world_gaepo_modi/modi_eval_rw_control_n4dr150_20260812.inpx
+**`--inpx` 는 절대경로로 준다.** 이 스크립트는 컴파일러를 `cwd=plant` 로 띄우는데
+(`build_canonical_topology.py:98-100`) 상대경로가 그 안에서 풀려
+`plant\network\…` 를 찾다 `FileNotFoundError` 로 죽는다.
+
+```powershell
+$inpx = (Resolve-Path "network\real_world_gaepo_modi\modi_eval_rw_control_n4dr150_20260812.inpx").Path
+python scripts/build_canonical_topology.py --inpx $inpx
 ```
+
+기대 출력 — `signal_controllers=50 signal_groups=440 observation_operators=479`,
+`inpx_sha256=37f1cc1f…`(2-0 의 CRLF 판). 약 25 s 걸린다.
 
 안 하면 감사가 `canonical topology was compiled from a different .inpx than the audited
 network` 로 FAIL 한다.
@@ -62,7 +121,11 @@ python scripts/verify_runtime_source.py --out outputs/runtime_source_v2_1.json
 python scripts/build_preflight_manifest.py --repo . --runtime-source outputs/runtime_source_v2_1.json --out outputs/preflight_manifest_v3.json
 ```
 
-둘 다 `status: PASS` 여야 한다. 기준 지문은 `b36a6b8c…` 다.
+둘 다 `status: PASS` 여야 한다. **지문은 기계 간 비교 기준이 못 된다** — 지문 입력에
+저장소 절대경로와 `python.exe` 바이너리 해시가 들어가서, 기계가 바뀌면 반드시 달라진다.
+문서 초판이 적었던 `b36a6b8c…` 는 원 기계(`C:\Users\alsrj\…`, Python 3.13.5) 전용 값이다.
+이관 기계에서는 `58f39377…` 이 나왔고 차이 161건을 전부 분류했더니 경로 126 · 파이썬 10 ·
+지문 2 · 그 둘의 파생 23 이었다. **볼 것은 `status: PASS` 다.**
 
 검사 스위트도 확인한다.
 
@@ -71,8 +134,23 @@ python -m unittest $(ls tests/test_*.py | sed 's|/|.|;s|\.py$||')
 python -m unittest $(ls scripts/tests/test_*.py | sed 's|/|.|g;s|\.py$||')
 ```
 
-기대값 — `tests/` 209개 중 **7 실패**(전부 수요 계약, 아래 6절), `scripts/tests` 643개 **전부 통과**.
-이 숫자와 다르면 2-1 을 안 했거나 환경이 다른 것이다.
+기대값 — `tests/` 209개 중 **7 실패**(전부 수요 계약, 아래 6절, skip 5),
+`scripts/tests` 643개 중 **8 실패**(skip 12, 약 16분).
+
+**`scripts/tests` 8건은 원 기계에서만 통과한다.** 문서 초판의 "643개 전부 통과" 는
+원 기계 한정 값이었다. `test_wrapper_network_wiring` 의
+`test_every_wrapper_opens_the_network_its_artifacts_came_from` 이 옛 wrapper 8개에서 깨진다.
+wrapper 는 죄가 없다 — 망을 `Join-Path $repo` 로 상대 참조한다. 원인은 짝이 되는
+`player_config_*.json` 의 `source_files.network_inpx` 가 **원 기계 절대경로**
+(`C:/Users/alsrj/Desktop/학술/찐찐막/Claude/VISSIM/…`)를 기록해 둔 것이고,
+검사의 `_repo_relative()` 가 다른 기계에서는 그 접두사를 못 떼기 때문이다.
+
+생성기는 그 뒤 고쳐졌다. 상대경로를 기록한 최신 4개는 통과한다 — `core15n41_20260805`,
+`core15n41gated/ungated_20260811`, **`core15n41legfix_20260812`**. 즉 **5절에서 실제로 쓸
+wrapper 는 깨끗하다.** 옛 8개는 이번 작업과 무관하므로 산출물을 덮어 고치지 않았다.
+
+이 숫자와 다르면 2-0 이나 2-1 을 안 했거나 상류(`../NumSim-mine`)를 안 받은 것이다.
+`scripts/tests` 전량은 약 17분 걸린다.
 
 ## 3. 첫 작업 — 병렬 백엔드 켜고 solve 시간 재기
 
@@ -267,6 +345,13 @@ URBAN_GATE_ANCHOR_LOADED   mapped_inputs=18
   판 교체 대조로 사전 존재를 증명했다(현재 판과 부모 판 `9a57869` 에서 같은 이름이 같이 깨진다).
 
 ## 9. 이 세션에서 배운 것 (같은 실수 반복 방지)
+
+- **"내 기계에서 나온 값"을 기준값으로 적지 않는다.** 지문 `b36a6b8c…` 와 "643개 전부 통과"
+  둘 다 원 기계 전용이었다. 절대경로·인터프리터 바이너리·줄바꿈이 들어간 값은 이관하는
+  순간 무의미해진다. 기준으로 적을 것은 **판정**(`status: PASS`)과 **실패의 정체**(어느
+  검사가 왜)이지 해시가 아니다.
+- **줄바꿈은 조용히 해시를 바꾼다.** 이관 첫 검사에서 5건이 더 깨졌는데 코드 문제가 하나도
+  아니었다. 봉인 해시를 쓰는 저장소는 `.gitattributes` 로 EOL 을 고정해야 한다.
 
 - **"고쳤다" 고 말하기 전에 실 경로를 확인한다.** 배분 함수 둘만 보고 고쳤다고 했다가
   `set_signal_green` 을 빠뜨려 52분짜리 solve 를 두 번 태웠다.
