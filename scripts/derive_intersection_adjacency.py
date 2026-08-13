@@ -53,6 +53,20 @@ DEFAULT_ROLES = os.path.join(REPO, "evaluation", "real_world_modi_inventory", "s
 DEFAULT_ASSIGNMENT = os.path.join(REPO, "outputs", "link_player_assignment_20260805.json")
 
 
+# assign_links_to_players.py 의 FREEWAY_LINKS 와 같은 집합이다. 두 곳이 갈리면 안 된다.
+FREEWAY_MAINLINE = {"2", "24", "26", "74", "10699", "10702"}
+
+
+def _point_seg_dist(px, py, a, b):
+    """점 (px,py) 에서 선분 a-b 까지의 거리."""
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    L2 = dx * dx + dy * dy
+    t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / L2))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
 def numeric_id(value):
     return int(value)
 
@@ -126,10 +140,62 @@ def main() -> int:
                     help="assign_links_to_players.py 산출 JSON. leg 방위의 근거. "
                          "빈 문자열이면 구 규칙(중심 방위각)으로 떨어진다")
     ap.add_argument("--json-out", default="")
+    # ── 2026-08-13 추가. 기본값은 구 동작 그대로다(radius 0, 배제 없음). ──────────
+    ap.add_argument(
+        "--intersection-radius", type=float, default=0.0,
+        help="0 보다 크면 **형상으로도** 통과를 판정한다. 걷는 링크의 폴리라인이 제3 SC 의 "
+             "centroid 이 반경[m] 안을 지나면 그 SC 에 도달한 것으로 보고 멈춘다. "
+             "구 규칙은 정지선 신호두가 달린 링크로만 통과를 판정해서, 신호두가 없는 "
+             "자유 우회전으로 교차로를 빠져나가면 중단이 발동하지 않았다(2026-08-13 실측: "
+             "8쌍이 제어 신호 SC11·SC12·SC101·SC109 를 관통했고 전부 A-C-B 2홉의 중복이었다)")
+    ap.add_argument(
+        "--exclude-freeway", action="store_true",
+        help="고속도로 본선·램프 링크를 걷기에서 뺀다. 도시 격자 인접을 유도하는데 커넥터가 "
+             "램프로 올라가 본선을 타고 다른 램프로 내려오면, 도시 도로로는 안 이어진 두 "
+             "교차로가 인접이 된다(2026-08-13 실측: 7쌍이 도시 링크를 하나도 안 쓴다)")
+    ap.add_argument(
+        "--through-nodes", default="",
+        help="쉼표로 구분한 SC 번호. 이 노드는 **교차로가 아니라 블록 중간 요소**로 본다 — "
+             "걷기가 여기서 멈추지 않고 지나가며, 그 링크는 지나온 구간의 저류에 들어간다. "
+             "보행자 midblock 신호가 노드로 들어오면 한 블록이 여러 구간으로 쪼개져, 실제로는 "
+             "이웃인 교차로 둘이 인접이 아니게 된다(예: SC105 포이사거리 ↔ SC1 구룡초교 사이에 "
+             "SC9001·SC9002 가 끼어 있다). 이 목록의 노드는 인접 그래프에서 빠진다")
+    ap.add_argument(
+        "--player-nodes", default="",
+        help="쉼표로 구분한 SC 번호 = urban player. 주면 **2차 걷기**를 한 번 더 돌린다 — "
+             "player 에서 출발해 다른 player 를 만날 때까지 비-player 를 그냥 지나가며, "
+             "그렇게 찾은 player↔player 인접을 기존 인접에 **더한다**. 분기점(비-player) 은 "
+             "노드로 그대로 남는다. 비-player 는 제어 레버가 아니므로 그 위를 건너뛰는 간선이 "
+             "신호를 우회하지 않는다 — 제어 신호를 우회하던 2026-08-13 결함과는 다른 경우다")
+    ap.add_argument(
+        "--player-max-span", type=int, default=0,
+        help="2차 걷기에서 player↔player 간선이 건너뛸 수 있는 **비-player SC 개수 상한**. "
+             "0 이면 무제한. 무제한이면 비-player 가 사슬로 늘어선 구간(SC2001~SC2005)에서 "
+             "2 km 짜리 '인접' 이 생긴다 — 물리적으로 인접이라 보기 어렵다")
+    ap.add_argument(
+        "--player-barrier-degree", type=int, default=0,
+        help="2차 걷기에서 **비-player 라도 이 차수 이상이면 멈춘다**(1차 인접 기준 차수). "
+             "3 을 주면 분기점을 넘지 않는다 — midblock(차수 2) 만 접힌다. 분기점을 건너뛰면 "
+             "갈래가 다른 두 player 가 한 구간처럼 묶인다(예: SC108↔SC12 가 SC7·SC16 을 넘어 "
+             "1,085 m). 0 이면 끄기")
+    ap.add_argument(
+        "--player-barrier-nodes", default="",
+        help="차수와 무관하게 2차 걷기를 멈출 비-player SC 번호. --player-barrier-degree 와 합쳐진다")
     args = ap.parse_args()
 
     import xml.etree.ElementTree as ET
     root = ET.parse(args.network).getroot()
+
+    # 링크 폴리라인 — 형상 기반 통과 판정과 배제에 쓴다.
+    link_pts = {}
+    for ln in root.iter("link"):
+        no = ln.get("no")
+        pp = ln.find("./geometry/linkPolyPts")
+        if no is None or pp is None:
+            continue
+        pts = [(float(p.get("x")), float(p.get("y"))) for p in pp]
+        if len(pts) >= 2:
+            link_pts[no] = pts
 
     # 커넥터 그래프: fromLink -> [toLink]
     downstream = defaultdict(set)
@@ -159,12 +225,43 @@ def main() -> int:
                 centroid[no] = (float(xy[0]), float(xy[1]))
         except Exception:
             pass
+    # 통과 노드 — 교차로가 아니라 블록 중간 요소. 노드 집합에서 빼고, 그 정지선 링크는
+    # 소유자 없는 링크로 남겨 지나온 구간의 저류 멤버가 되게 한다.
+    through = {int(x) for x in parse_int_csv(args.through_nodes)} if args.through_nodes else set()
+    through &= set(sc_links)
+    through_links = set()
+    if through:
+        for sc in sorted(through):
+            through_links |= sc_links.pop(sc)
+            centroid.pop(sc, None)
+        print(f"통과 노드 {len(through)}개 제외: {sorted(through)}  (정지선 링크 {len(through_links)}개는 구간 멤버로 남긴다)")
+
     link_owner = {}
     for sc in sorted(sc_links):
         for l in sorted(sc_links[sc], key=numeric_id):
             link_owner.setdefault(l, sc)
 
     print(f"활성 SC {len(sc_links)}개, 정지선 링크 {len(link_owner)}개, 커넥터 그래프 노드 {len(downstream)}개")
+
+    # 배제 링크 — 고속도로 본선·램프.
+    excluded = set()
+    if args.exclude_freeway:
+        excluded |= FREEWAY_MAINLINE
+        if args.link_assignment_json and os.path.isfile(args.link_assignment_json):
+            _a = json.load(open(args.link_assignment_json, encoding="utf-8"))
+            excluded |= {str(x) for x in _a.get("freeway_bound_links", [])}
+        print(f"배제 링크 {len(excluded)}개(고속도로 본선·램프)")
+
+    # 형상 통과 판정 — 링크 -> 그 폴리라인이 반경 안을 지나는 SC 집합.
+    near_sc = defaultdict(set)
+    if args.intersection_radius > 0:
+        R = args.intersection_radius
+        for lid, pts in link_pts.items():
+            for sc, (cx, cy) in centroid.items():
+                if any(_point_seg_dist(cx, cy, pts[i], pts[i + 1]) < R for i in range(len(pts) - 1)):
+                    near_sc[lid].add(sc)
+        hit = sum(1 for v in near_sc.values() if v)
+        print(f"형상 통과 판정 반경 {R:.0f} m — 링크 {hit}개가 SC 중심 반경 안을 지난다")
     print()
 
     # A -> B 인접과 **그 사이 경로상의 링크**를 함께 모은다.
@@ -175,33 +272,96 @@ def main() -> int:
     # BFS 에서 부모 포인터를 남겨 A 의 정지선에서 B 의 정지선까지 지나온 링크를 기록한다.
     adjacency = defaultdict(set)
     path_links = defaultdict(set)   # (A, B) -> 그 사이 링크 집합
-    for sc in sorted(sc_links):
-        for start in sorted(sc_links[sc], key=numeric_id):
-            seen = {start}
-            parent = {}
-            seeds = sorted(downstream.get(start, ()), key=numeric_id)
-            q = deque((nxt, 1) for nxt in seeds)
-            for nxt in seeds:
-                parent[nxt] = None
-            while q:
-                cur, hops = q.popleft()
-                if cur in seen or hops > args.max_hops:
-                    continue
-                seen.add(cur)
-                owner = link_owner.get(cur)
-                if owner is not None and owner != sc:
-                    adjacency[sc].add(owner)
-                    # 경로 역추적 — B 의 정지선 링크는 B 소유이므로 제외한다.
-                    node = parent.get(cur)
-                    while node is not None:
-                        if link_owner.get(node) is None:
-                            path_links[(sc, owner)].add(node)
-                        node = parent.get(node)
-                    continue  # 제3 SC 를 지나치지 않는다
-                for nxt in sorted(downstream.get(cur, ()), key=numeric_id):
-                    if nxt not in parent:
-                        parent[nxt] = cur
-                    q.append((nxt, hops + 1))
+    geometric_stops = []            # 형상으로만 잡힌 통과 (sc, 도달SC, 링크)
+
+    def walk(origins, stop_owner, stop_near, record_geo=True, max_span=0):
+        """origins 의 정지선에서 출발해 stop_owner 에 잡히는 SC 까지 걷는다.
+
+        stop_owner 에 없는 SC 는 **그냥 지나간다** — 그 SC 의 정지선 링크도 소유자가
+        없으므로 지나온 구간의 저류 멤버가 된다. 두 번째 호출에서 player 만 stop_owner
+        에 넣으면 player↔player 인접이 나온다.
+        """
+        for sc in sorted(origins):
+            for start in sorted(origins[sc], key=numeric_id):
+                seen = {start}
+                parent = {}
+                seeds = [n for n in sorted(downstream.get(start, ()), key=numeric_id) if n not in excluded]
+                q = deque((nxt, 1) for nxt in seeds)
+                for nxt in seeds:
+                    parent[nxt] = None
+                while q:
+                    cur, hops = q.popleft()
+                    if cur in seen or hops > args.max_hops:
+                        continue
+                    seen.add(cur)
+                    owner = stop_owner.get(cur)
+                    # 정지선으로 못 잡는 통과를 형상으로 잡는다. 신호두가 없는 자유 우회전이
+                    # 여기로 걸린다. 도달 SC 는 반경 안에 든 것 중 하나면 된다(중단이 목적).
+                    if owner is None or owner == sc:
+                        geo_hit = sorted(stop_near.get(cur, frozenset()) - {sc})
+                        if geo_hit:
+                            owner = geo_hit[0]
+                            if record_geo:
+                                geometric_stops.append((sc, owner, cur))
+                    if owner is not None and owner != sc:
+                        # 경로 역추적 — B 의 정지선 링크는 B 소유이므로 제외한다.
+                        chain, spanned = [], set()
+                        node = parent.get(cur)
+                        while node is not None:
+                            if stop_owner.get(node) is None:
+                                chain.append(node)
+                                mid = link_owner.get(node)
+                                if mid is not None and mid not in (sc, owner):
+                                    spanned.add(mid)
+                            node = parent.get(node)
+                        if max_span and len(spanned) > max_span:
+                            continue  # 너무 멀리 건너뛴다 — 인접으로 세지 않는다
+                        adjacency[sc].add(owner)
+                        path_links[(sc, owner)].update(chain)
+                        continue  # 도달 SC 를 지나치지 않는다
+                    for nxt in sorted(downstream.get(cur, ()), key=numeric_id):
+                        if nxt in excluded:
+                            continue
+                        if nxt not in parent:
+                            parent[nxt] = cur
+                        q.append((nxt, hops + 1))
+
+    walk(sc_links, link_owner, near_sc)
+
+    # 2차 걷기 — player 만 정차점으로 두고 비-player 를 지나간다. 결과는 **더한다**.
+    players = {int(x) for x in parse_int_csv(args.player_nodes)} if args.player_nodes else set()
+    players &= set(sc_links)
+    player_pairs_added = 0
+    barrier = set()
+    if players:
+        before = {k: set(v) for k, v in adjacency.items()}
+
+        # 장벽 — player 가 아니어도 2차 걷기를 멈추는 노드. 분기점을 건너뛰지 않기 위한 것.
+        base_deg = defaultdict(set)
+        for a, nbs in adjacency.items():
+            for b in nbs:
+                base_deg[a].add(b)
+                base_deg[b].add(a)
+        barrier = {int(x) for x in parse_int_csv(args.player_barrier_nodes)} if args.player_barrier_nodes else set()
+        if args.player_barrier_degree > 0:
+            barrier |= {sc for sc in sc_links
+                        if sc not in players and len(base_deg.get(sc, ())) >= args.player_barrier_degree}
+        barrier &= set(sc_links) - players
+        if barrier:
+            print(f"2차 걷기 장벽 {len(barrier)}개(비-player 분기점): {sorted(barrier)}")
+
+        stops = players | barrier
+        p_owner = {l: sc for l, sc in link_owner.items() if sc in stops}
+        p_near = defaultdict(set)
+        for lid, scs in near_sc.items():
+            hit = scs & stops
+            if hit:
+                p_near[lid] = hit
+        walk({sc: sc_links[sc] for sc in players}, p_owner, p_near,
+             record_geo=False, max_span=args.player_max_span)
+        player_pairs_added = sum(len(adjacency[k] - before.get(k, set())) for k in adjacency)
+        span_note = f", 건너뛰기 상한 {args.player_max_span}" if args.player_max_span else ", 상한 없음"
+        print(f"player {len(players)}개로 2차 걷기{span_note} — 방향성 인접 {player_pairs_added}개 추가")
 
     print(f"{'SC':>7}{'차수':>5}  인접 SC")
     total = 0
@@ -296,6 +456,24 @@ def main() -> int:
                 for k in sorted(legs)
             },
             "isolated": isolated,
+            # 이 산출물이 어떤 규칙으로 나왔는지. 구 산출물과 섞이면 안 된다.
+            "derivation": {
+                "network": os.path.basename(args.network),
+                "intersection_radius_m": args.intersection_radius,
+                "exclude_freeway": bool(args.exclude_freeway),
+                "excluded_link_count": len(excluded),
+                "player_nodes": sorted(players),
+                "player_pairs_added": player_pairs_added,
+                "player_max_span": args.player_max_span,
+                "player_barrier_degree": args.player_barrier_degree,
+                "player_barrier_nodes": sorted(barrier) if players else [],
+                "through_nodes": sorted(through),
+                "through_link_count": len(through_links),
+                "geometric_stop_count": len(geometric_stops),
+                "geometric_stops": [
+                    {"from": a, "reached": b, "link": l} for a, b, l in geometric_stops
+                ],
+            },
             "would_be_dropped_if_single_neighbor_per_direction": [
                 {"sc": c[0], "leg": c[1], "kept": c[2], "dropped": c[3]} for c in conflicts
             ],
