@@ -410,13 +410,17 @@ def _select_by_sc(rows: list[dict[str, str]], wanted: set[int], label: str) -> l
     return selected
 
 
-def selected_signal_rows(rows: list[dict[str, str]], selector: str) -> list[dict[str, str]]:
+def selected_signal_rows(
+    rows: list[dict[str, str]],
+    selector: str,
+    follower_map_path: Path = DEFAULT_URBAN_FOLLOWER_MAP,
+) -> list[dict[str, str]]:
     if selector == "primary19":
         # Urban Follower 1~19 전체(SC 번호 1~19가 아니다 — 위 매핑 주석 참조).
-        uf_map = load_urban_follower_sc_map()
+        uf_map = load_urban_follower_sc_map(follower_map_path)
         selected = _select_by_sc(rows, set(uf_map.values()), "primary19")
     elif selector == "core15":
-        uf_map = load_urban_follower_sc_map()
+        uf_map = load_urban_follower_sc_map(follower_map_path)
         wanted = set(urban_follower_scs(CORE15_URBAN_FOLLOWER_IDS, uf_map))
         selected = _select_by_sc(rows, wanted, "core15")
     elif selector == "all-active-heads":
@@ -1409,16 +1413,31 @@ def main() -> None:
     )
     parser.add_argument("--storage-capacity-json", default="",
                         help="scripts/derive_urban_storage_capacity.py 산출 JSON. 주면 상수 대신 실측 기하 용량을 쓴다")
+    # 2026-08-13. 두 입력이 상수로 박혀 있어 망을 바꿔도 범용판을 읽었다. `active` 열은
+    # 망별 큐레이션 값이고(7절), follower 맵은 Urban-Follower.xlsx 가 24개로 늘어난 뒤에도
+    # 19행짜리 구판이 커밋돼 있었다. 둘 다 인자로 연다 - 기본값은 종전 그대로다.
+    parser.add_argument("--signal-roles", default=str(DEFAULT_SIGNAL_ROLES),
+                        help="signal_controller_roles CSV. 망별 판이 있으면 그것을 준다")
+    parser.add_argument("--urban-follower-map", default=str(DEFAULT_URBAN_FOLLOWER_MAP),
+                        help="urban_follower_sc_map CSV. extract_urban_follower_map.py 산출물")
     parser.add_argument("--network", default=str(DEFAULT_NETWORK),
                         help="산출물이 나온 VISSIM 망. wrapper 의 $Network 기본값과 "
                              "player_config 의 source_files.network_inpx 가 이 값을 따른다")
     parser.add_argument("--boundary-input-alignment", default="",
                         help="scripts/derive_boundary_input_alignment.py 산출 JSON. 주면 VISSIM 유입이 "
                              "있는 (노드, 방위)에만 경계 leg 을 만든다(없으면 정방위 전수 = 기존 동작)")
+    # 2026-08-13. 위 정렬은 **유입** 근거만 담는다. 경계 leg 은 유출로도 실재할 수 있고
+    # (유출은 sink 라 유량이 없어 유입 대장에 안 잡힌다), 실측에서 유입 근거가 없는데
+    # 유출·신호두 근거가 있는 leg 이 17개였다. 그것까지 넣어야 경계가 한쪽으로 안 쏠린다.
+    parser.add_argument("--boundary-extra-legs", default="",
+                        help="쉼표로 구분한 CSV 경로들. `model_node`,`leg` 열을 읽어 경계 leg 에 "
+                             "**더한다**(status 열이 있으면 mapped 만). "
+                             "예: scripts/derive_urban_exit_gate_map.py 산출물")
     args = parser.parse_args()
 
-    all_signal_rows = active_fixedtime_signal_rows(read_csv(DEFAULT_SIGNAL_ROLES))
-    rows = selected_signal_rows(all_signal_rows, args.selector)
+    signal_roles_path = Path(args.signal_roles)
+    all_signal_rows = active_fixedtime_signal_rows(read_csv(signal_roles_path))
+    rows = selected_signal_rows(all_signal_rows, args.selector, Path(args.urban_follower_map))
     slug = args.slug or selector_slug(args.selector, len(rows))
     stamp = args.stamp
     controlled_sc = {int(row["no"]) for row in rows}
@@ -1489,6 +1508,27 @@ def main() -> None:
         print(f"정렬 JSON: {args.boundary_input_alignment}  유입 {len(boundary_gate_evidence)}개 -> "
               f"게이트 {sum(len(v) for v in boundary_gates.values())}개, 노드 {len(boundary_gates)}개")
         print(f"   방위 근거: {dict(sorted(_by_source.items()))}")
+    if args.boundary_extra_legs:
+        if boundary_gates is None:
+            raise SystemExit("--boundary-extra-legs 는 --boundary-input-alignment 와 같이 준다 "
+                             "(정렬 없이 쓰면 경계 leg 이 전수 생성이라 더할 것이 없다)")
+        _added = 0
+        for _path in [p.strip() for p in str(args.boundary_extra_legs).split(",") if p.strip()]:
+            _lines = [l for l in Path(_path).read_text(encoding="utf-8-sig").splitlines()
+                      if not l.startswith("#")]
+            for _row in csv.DictReader(_lines):
+                if _row.get("status") and _row["status"] != "mapped":
+                    continue
+                _node, _leg = (_row.get("model_node") or "").strip(), (_row.get("leg") or "").strip()
+                if not _node or not _leg:
+                    continue
+                _cur = boundary_gates.setdefault(_node, [])
+                if _leg not in _cur:
+                    _cur.append(_leg)
+                    _added += 1
+            print(f"추가 경계 leg: {Path(_path).name}")
+        print(f"   더해진 (노드, 방위) {_added}개 -> 총 "
+              f"{sum(len(v) for v in boundary_gates.values())}개, 노드 {len(boundary_gates)}개")
     ramp_interface_sc: dict[str, str] = {}
     for part in str(args.ramp_interface_sc or "").split(","):
         part = part.strip()
@@ -1621,7 +1661,7 @@ def main() -> None:
             for row in monitor_rows
         ],
         "source_files": {
-            "signal_roles": str(DEFAULT_SIGNAL_ROLES.relative_to(ROOT)),
+            "signal_roles": str(signal_roles_path.relative_to(ROOT)),
             "network_inpx": str(network.relative_to(ROOT)),
             "base_control_mapping": str(DEFAULT_CONTROL_MAPPING.relative_to(ROOT)),
             "base_detector_mapping": str(DEFAULT_DETECTOR_MAPPING.relative_to(ROOT)),

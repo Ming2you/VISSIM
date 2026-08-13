@@ -1,0 +1,58 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core15n41legfix_20260812.json",
+  "name": "real_world_modi_pstack_distributed_core17n41_20260813",
+  "description": "legfix 위에 SC7(개포도서관, urban follower 25)·SC16(경기여고, 26)을 제어 신호로 올린다. 다른 필드는 부모와 같다. 2026-08-13 사용자 결정 — 이 둘은 격자에서 차수 3 분기점이라 player 인접이 그 위를 건너뛰면 갈래가 다른 두 player 가 한 구간으로 묶인다. 주의: net.signals 가 15 -> 17 이 되면 distributed_coordinator._leader_target_net_inflow_projected_control 의 코너 열거가 2^15=32,768 -> 2^17=131,072 로 4배가 된다. 그 열거를 분리가능성으로 재배열하기 전에는 결정 1회가 4배로 늘어난다.",
+  "config_overrides": {
+    "network": {
+      "signals": [
+        "SC1",
+        "SC5",
+        "SC6",
+        "SC7",
+        "SC11",
+        "SC12",
+        "SC16",
+        "SC101",
+        "SC105",
+        "SC107",
+        "SC108",
+        "SC109",
+        "SC1001",
+        "SC1002",
+        "SC1003",
+        "SC1004",
+        "SC1005"
+      ],
+      "uncontrolled_nodes": [
+        "SC2",
+        "SC3",
+        "SC4",
+        "SC8",
+        "SC9",
+        "SC10",
+        "SC13",
+        "SC14",
+        "SC15",
+        "SC17",
+        "SC18",
+        "SC19",
+        "SC102",
+        "SC103",
+        "SC104",
+        "SC106",
+        "SC2001",
+        "SC2002",
+        "SC2003",
+        "SC2004",
+        "SC2005",
+        "SC9001",
+        "SC9002",
+        "SC9003"
+      ]
+    }
+  },
+  "notes": [
+    "control mapping/detector mapping 은 아직 15신호판(core15n41legfix)이다. 실행하려면 generate_real_world_distributed_players.py 로 17신호 매핑을 새로 뽑아야 한다.",
+    "SC7·SC16 은 Urban-Follower.xlsx 에 신호두 행이 없어 major_maps_to 의 근거가 없다."
+  ]
+}
