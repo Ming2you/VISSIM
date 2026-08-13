@@ -2845,12 +2845,13 @@ def _plant_phase_counts_into(cfg) -> None:
     plan = load_signal_group_actuation_plan()
     if not plan:
         return
-    counts = plant_cycle.plan_live_phase_counts(plan)
-    if not counts:
-        return
-    cfg.network.live_phase_count_by_signal = {
-        f"SC{sc_no}": int(live) for sc_no, live in counts.items()
+    live = {
+        f"SC{int(sc_no)}": list(plan_live_phases(plan, int(sc_no)))
+        for sc_no in (plan.get("controllers") or {})
     }
+    if not live:
+        return
+    cfg.network.live_phases_by_signal = live
 
 
 def profiled_demand_rates(

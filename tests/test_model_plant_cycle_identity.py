@@ -664,16 +664,22 @@ class PlanPhaseCountTests(unittest.TestCase):
         스칼라 `effective_green_total` 하나로는 138 과 141 을 같이 담지 못한다.
         """
         from evaluation.controllers import plant_cycle
+        from evaluation.controllers import vissim_stackelberg_adapter as adapter
 
         counts = plant_cycle.plan_live_phase_counts(self.plan)
         self.assertEqual(len(counts), 15, counts)
         # 배선을 먼저 든다. 항등식만 보면 예산이 유도값이라 정의상 참이 되어 아무것도
         # 증명하지 못한다 - 실제로 확인해야 할 것은 **어댑터가 계획의 SC별 N 을 모델에
         # 심었는가** 다. 안 심으면 legacy 스칼라로 떨어져 3현시 SC 가 3 s 를 잃는다.
+        # 개수가 아니라 **집합**을 든다. SC107 의 살아 있는 현시는 (p2,p3,p4) 이고,
+        # "3개" 로는 어느 셋인지 담지 못해 모델이 죽은 p1 에 녹색을 준다.
         self.assertEqual(
-            {f"SC{sc_no}": live for sc_no, live in counts.items()},
-            dict(self.net.live_phase_count_by_signal),
-            "어댑터가 계획의 현시 수를 모델에 안 심었다",
+            {
+                f"SC{sc_no}": list(adapter.plan_live_phases(self.plan, sc_no))
+                for sc_no in counts
+            },
+            {key: list(value) for key, value in self.net.live_phases_by_signal.items()},
+            "어댑터가 계획의 살아 있는 현시 집합을 모델에 안 심었다",
         )
         gaps = {}
         for sc_no, live in sorted(counts.items()):
