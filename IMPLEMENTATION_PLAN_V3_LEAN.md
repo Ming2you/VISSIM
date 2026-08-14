@@ -1069,6 +1069,57 @@ fallback 분율 사용 `<=10%`.
 > N6 가 "포화 lane-group 의 **시간축 궤적**" 을 요구하게 되면 anchor 4시점으로는 부족해
 > 러너를 고쳐(집계 키에 차로 추가) 9셀을 다시 돌려야 한다. 현행 임계는 독립 lane-group
 > 개수와 표본 수만 요구하므로 해당하지 않는다.
+>
+> ### 착지 (2026-08-15) — **PASS**, jam density 130 → 168
+>
+> `scripts/build_physical_stock_calibration_v3.py` 로
+> `evaluation/calibration/physical_stock_calibration_v3.json` 을 냈다. training 시드
+> 6셀(13/29 × demand 0.75/1.0/1.25), holdout(47)은 **읽지 않았다**.
+>
+> | 기준 | 요구 | 실측 |
+> |---|---|---:|
+> | 포화 독립 lane-group | ≥30 | **1,688** |
+> | 표본 | ≥200 | **20,338** |
+> | jam CI 반폭 | ≤10% | **0.3%** |
+> | geometry prior 차이 | ≤15% | **7.6%** |
+> | training 시드별 적합 차이 | ≤15% | **1.2%** |
+> | fallback 분율 | ≤10% | **0.0%** |
+> | split 중복 | 0 | 0 |
+>
+> #### 추정기 셋을 다 내고 비교한다
+>
+> | 추정기 | k_jam | CI95 반폭 | n |
+> |---|---:|---:|---:|
+> | headway (채택) | **168.18** | 0.3% | 20,338 |
+> | queue_occupancy | 152.28 | 4.3% | 942 |
+> | link_p90 | 133.74 | **10.1%** | 1,180 |
+>
+> **현재 plant 상수 130.0 이 사실상 `link_p90` 값이다.** 그 추정기는 밀도를 링크 전체
+> 길이로 나누는데 큐는 링크 일부만 차지하므로 하향 편의가 있고, 계획의 CI 반폭 10% 기준을
+> 혼자 못 넘긴다. **저장용량이 약 29% 과소평가돼 있었다.**
+>
+> #### prior 를 망에서 닫았다
+>
+> 차량 길이는 `vehicleInput/timeIntervalVehVolume[vehComp,volume]` 볼륨 가중 구성 →
+> `model2D3DSegment[length]`, 정지거리는 도시부 `drivingBehavior` 의 Wiedemann 74 `ax`.
+> 둘 다 돌고 있는 `.inpx` 가 출처라 자기참조가 아니다.
+>
+> ```
+> 차량길이 4.897 m + 정지거리 prior 1.500 m  ->  prior k_jam 156.33
+> 관측 간격 5.946 m, 관측 정지간격 1.049 m   ->  적합 k_jam 168.18   (차이 7.6%)
+> ```
+>
+> 관측 정지간격이 prior 보다 작다 — 실제 큐가 파라미터보다 촘촘히 선다는 뜻이다.
+> 큐꼬리 fallback 이 **0.0%** 라, 계획이 우려한 고정분율(0.35/0.50) 대체가 완전히
+> 관측으로 이뤄졌다.
+>
+> #### 적용은 N5 가 **다 끝난 뒤**에 한다
+>
+> jam 168.18 로 저류를 다시 유도하면 토폴로지 해시가 바뀌고 생산 상수·승인 사슬을 같이
+> 옮겨야 한다. 그것을 N5 중간에 하면 안 된다 — 워치독 provenance 가 `storage_capacity`
+> 해시를 기록하므로 부모런과 base replay 의 provenance 가 갈려 "같은 설정을 그대로
+> 재실행했다" 는 주장이 깨진다. 부모런이 no-control 이라 물리에는 영향이 없으므로
+> 뒤로 미뤄도 손해가 없다.
 
 ## N7. production MPC rollout endpoint — P0
 
