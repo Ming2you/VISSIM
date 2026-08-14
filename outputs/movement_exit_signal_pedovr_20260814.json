@@ -1,0 +1,3279 @@
+{
+ "network": "modi_eval_userfix_20260814e.inpx",
+ "rule": "movement 진입->진출 경로가 그 SC 의 신호두를 지나면 phase 유지, 안 지나면 phase=''",
+ "counts": {
+  "resolved": 200,
+  "unresolved": 0,
+  "by_turn": {
+   "left": {
+    "passes": 72,
+    "free": 0
+   },
+   "right": {
+    "passes": 69,
+    "free": 3
+   },
+   "through": {
+    "passes": 52,
+    "free": 0
+   },
+   "u_turn": {
+    "passes": 0,
+    "free": 4
+   }
+  },
+  "phase_override_count": 7,
+  "beta_freed": 1.3333,
+  "beta_signalled_total": 39.9,
+  "beta_freed_share": 0.03342
+ },
+ "phase_override": {
+  "SC5_SW_SC101_to_SE_SC11": "",
+  "SC101_NW_SC2005_to_SW_SC1002": "",
+  "SC107_SW_SC1004_to_SW_SC1005": "",
+  "SC107_SW_SC1005_to_SW_SC1004": "",
+  "SC109_NW_SC16_to_SW_SC108": "",
+  "SC1004_NE_SC1005_to_NE_SC107": "",
+  "SC1004_NE_SC107_to_NE_SC1005": ""
+ },
+ "movements": [
+  {
+   "movement": "SC1_NE_SC11_to_SW_SC9001",
+   "signal": "SC1",
+   "turn": "through",
+   "phase_geometric": "SC1_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1 6"
+   ],
+   "path": [
+    "1220008201",
+    "10564"
+   ]
+  },
+  {
+   "movement": "SC1_NE_SC11_to_NW_SC15",
+   "signal": "SC1",
+   "turn": "right",
+   "phase_geometric": "SC1_p3",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "1 6"
+   ],
+   "path": [
+    "1220008201",
+    "10029"
+   ]
+  },
+  {
+   "movement": "SC1_NE_SC11_to_SE_SC107",
+   "signal": "SC1",
+   "turn": "left",
+   "phase_geometric": "SC1_p4",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "1 6"
+   ],
+   "path": [
+    "1220008201",
+    "10566"
+   ]
+  },
+  {
+   "movement": "SC1_NW_SC15_to_SE_SC107",
+   "signal": "SC1",
+   "turn": "through",
+   "phase_geometric": "SC1_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1 4",
+    "1 7"
+   ],
+   "path": [
+    "1210008401",
+    "10567"
+   ]
+  },
+  {
+   "movement": "SC1_NW_SC15_to_NE_SC11",
+   "signal": "SC1",
+   "turn": "left",
+   "phase_geometric": "SC1_p2",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "1 4",
+    "1 7"
+   ],
+   "path": [
+    "1210008401",
+    "10568"
+   ]
+  },
+  {
+   "movement": "SC1_NW_SC15_to_SW_SC9001",
+   "signal": "SC1",
+   "turn": "right",
+   "phase_geometric": "SC1_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "1 4",
+    "1 7"
+   ],
+   "path": [
+    "1210008401",
+    "10569"
+   ]
+  },
+  {
+   "movement": "SC1_SE_SC107_to_NW_SC15",
+   "signal": "SC1",
+   "turn": "through",
+   "phase_geometric": "SC1_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1 3",
+    "1 8"
+   ],
+   "path": [
+    "1220006903",
+    "10025"
+   ]
+  },
+  {
+   "movement": "SC1_SE_SC107_to_NE_SC11",
+   "signal": "SC1",
+   "turn": "right",
+   "phase_geometric": "SC1_p1",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "1 3",
+    "1 8"
+   ],
+   "path": [
+    "1220006903",
+    "10572"
+   ]
+  },
+  {
+   "movement": "SC1_SE_SC107_to_SW_SC9001",
+   "signal": "SC1",
+   "turn": "left",
+   "phase_geometric": "SC1_p2",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "1 3",
+    "1 8"
+   ],
+   "path": [
+    "1220006903",
+    "10571"
+   ]
+  },
+  {
+   "movement": "SC1_SW_SC9001_to_NE_SC11",
+   "signal": "SC1",
+   "turn": "through",
+   "phase_geometric": "SC1_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1 2"
+   ],
+   "path": [
+    "1220007104",
+    "10561"
+   ]
+  },
+  {
+   "movement": "SC1_SW_SC9001_to_NW_SC15",
+   "signal": "SC1",
+   "turn": "left",
+   "phase_geometric": "SC1_p4",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "1 2"
+   ],
+   "path": [
+    "1220007104",
+    "10562"
+   ]
+  },
+  {
+   "movement": "SC1_SW_SC9001_to_SE_SC107",
+   "signal": "SC1",
+   "turn": "right",
+   "phase_geometric": "SC1_p3",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "1 2"
+   ],
+   "path": [
+    "1220007104",
+    "10563"
+   ]
+  },
+  {
+   "movement": "SC5_NE_SC4_to_SW_SC101",
+   "signal": "SC5",
+   "turn": "through",
+   "phase_geometric": "SC5_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "5 1",
+    "5 14",
+    "5 6"
+   ],
+   "path": [
+    "1220018401",
+    "10032",
+    "1220014203",
+    "10526"
+   ]
+  },
+  {
+   "movement": "SC5_NE_SC4_to_N_SC9003",
+   "signal": "SC5",
+   "turn": "right",
+   "phase_geometric": "SC5_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "5 1",
+    "5 6"
+   ],
+   "path": [
+    "1220018401",
+    "10428"
+   ]
+  },
+  {
+   "movement": "SC5_NE_SC4_to_SE_SC11",
+   "signal": "SC5",
+   "turn": "left",
+   "phase_geometric": "SC5_p4",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "5 1",
+    "5 20",
+    "5 6"
+   ],
+   "path": [
+    "1220018401",
+    "10429",
+    "1220014000",
+    "10409",
+    "259",
+    "10411"
+   ]
+  },
+  {
+   "movement": "SC5_N_SC9003_to_NE_SC4",
+   "signal": "SC5",
+   "turn": "left",
+   "phase_geometric": "SC5_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 4",
+    "5 7"
+   ],
+   "path": [
+    "1220019201",
+    "10422"
+   ]
+  },
+  {
+   "movement": "SC5_N_SC9003_to_SE_SC11",
+   "signal": "SC5",
+   "turn": "left",
+   "phase_geometric": "SC5_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 20",
+    "5 4",
+    "5 7"
+   ],
+   "path": [
+    "1220019201",
+    "10421",
+    "1220014000",
+    "10409",
+    "259",
+    "10411"
+   ]
+  },
+  {
+   "movement": "SC5_N_SC9003_to_SW_SC101",
+   "signal": "SC5",
+   "turn": "right",
+   "phase_geometric": "SC5_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 14",
+    "5 4",
+    "5 7"
+   ],
+   "path": [
+    "1220019201",
+    "10423",
+    "1220014203",
+    "10526"
+   ]
+  },
+  {
+   "movement": "SC5_SE_SC11_to_NE_SC4",
+   "signal": "SC5",
+   "turn": "right",
+   "phase_geometric": "SC5_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 24",
+    "5 3",
+    "5 8"
+   ],
+   "path": [
+    "1220011103",
+    "10414",
+    "1220014100",
+    "10420"
+   ]
+  },
+  {
+   "movement": "SC5_SE_SC11_to_N_SC9003",
+   "signal": "SC5",
+   "turn": "right",
+   "phase_geometric": "SC5_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 24",
+    "5 3",
+    "5 8"
+   ],
+   "path": [
+    "1220011103",
+    "10414",
+    "1220014100",
+    "10418"
+   ]
+  },
+  {
+   "movement": "SC5_SE_SC11_to_SW_SC101",
+   "signal": "SC5",
+   "turn": "left",
+   "phase_geometric": "SC5_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "5 14",
+    "5 24",
+    "5 3",
+    "5 8"
+   ],
+   "path": [
+    "1220011103",
+    "10414",
+    "1220014100",
+    "10419",
+    "1220014203",
+    "10526"
+   ]
+  },
+  {
+   "movement": "SC5_SW_SC101_to_NE_SC4",
+   "signal": "SC5",
+   "turn": "through",
+   "phase_geometric": "SC5_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "5 10",
+    "5 2",
+    "5 5"
+   ],
+   "path": [
+    "1210014303",
+    "10525",
+    "265",
+    "10416",
+    "1220014303",
+    "10424"
+   ]
+  },
+  {
+   "movement": "SC5_SW_SC101_to_N_SC9003",
+   "signal": "SC5",
+   "turn": "left",
+   "phase_geometric": "SC5_p4",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "5 10",
+    "5 2",
+    "5 5"
+   ],
+   "path": [
+    "1210014303",
+    "10525",
+    "265",
+    "10416",
+    "1220014303",
+    "10425"
+   ]
+  },
+  {
+   "movement": "SC5_SW_SC101_to_SE_SC11",
+   "signal": "SC5",
+   "turn": "right",
+   "phase_geometric": "SC5_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": null
+  },
+  {
+   "movement": "SC6_NE_SC14_to_SW_SC4",
+   "signal": "SC6",
+   "turn": "through",
+   "phase_geometric": "SC6_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "6 1",
+    "6 6"
+   ],
+   "path": [
+    "1220021201",
+    "10200"
+   ]
+  },
+  {
+   "movement": "SC6_NE_SC14_to_NW_SC9",
+   "signal": "SC6",
+   "turn": "right",
+   "phase_geometric": "SC6_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 1",
+    "6 6"
+   ],
+   "path": [
+    "1220021201",
+    "10142"
+   ]
+  },
+  {
+   "movement": "SC6_NE_SC14_to_SE_SC10",
+   "signal": "SC6",
+   "turn": "left",
+   "phase_geometric": "SC6_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 1",
+    "6 6"
+   ],
+   "path": [
+    "1220021201",
+    "10201"
+   ]
+  },
+  {
+   "movement": "SC6_NW_SC9_to_SE_SC10",
+   "signal": "SC6",
+   "turn": "through",
+   "phase_geometric": "SC6_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "6 4",
+    "6 7"
+   ],
+   "path": [
+    "1220021801",
+    "10202"
+   ]
+  },
+  {
+   "movement": "SC6_NW_SC9_to_NE_SC14",
+   "signal": "SC6",
+   "turn": "left",
+   "phase_geometric": "SC6_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 4",
+    "6 7"
+   ],
+   "path": [
+    "1220021801",
+    "10203"
+   ]
+  },
+  {
+   "movement": "SC6_NW_SC9_to_SW_SC4",
+   "signal": "SC6",
+   "turn": "right",
+   "phase_geometric": "SC6_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 4",
+    "6 7"
+   ],
+   "path": [
+    "1220021801",
+    "10204"
+   ]
+  },
+  {
+   "movement": "SC6_SE_SC10_to_NW_SC9",
+   "signal": "SC6",
+   "turn": "through",
+   "phase_geometric": "SC6_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "6 3",
+    "6 8"
+   ],
+   "path": [
+    "1210018302",
+    "10205"
+   ]
+  },
+  {
+   "movement": "SC6_SE_SC10_to_NE_SC14",
+   "signal": "SC6",
+   "turn": "right",
+   "phase_geometric": "SC6_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 3",
+    "6 8"
+   ],
+   "path": [
+    "1210018302",
+    "10207"
+   ]
+  },
+  {
+   "movement": "SC6_SE_SC10_to_SW_SC4",
+   "signal": "SC6",
+   "turn": "left",
+   "phase_geometric": "SC6_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 3",
+    "6 8"
+   ],
+   "path": [
+    "1210018302",
+    "10206"
+   ]
+  },
+  {
+   "movement": "SC6_SW_SC4_to_NE_SC14",
+   "signal": "SC6",
+   "turn": "through",
+   "phase_geometric": "SC6_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "6 2",
+    "6 5"
+   ],
+   "path": [
+    "1220018504",
+    "10197"
+   ]
+  },
+  {
+   "movement": "SC6_SW_SC4_to_NW_SC9",
+   "signal": "SC6",
+   "turn": "left",
+   "phase_geometric": "SC6_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 2",
+    "6 5"
+   ],
+   "path": [
+    "1220018504",
+    "10198"
+   ]
+  },
+  {
+   "movement": "SC6_SW_SC4_to_SE_SC10",
+   "signal": "SC6",
+   "turn": "right",
+   "phase_geometric": "SC6_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "6 2",
+    "6 5"
+   ],
+   "path": [
+    "1220018504",
+    "10199"
+   ]
+  },
+  {
+   "movement": "SC11_NE_SC12_to_SW_SC1",
+   "signal": "SC11",
+   "turn": "through",
+   "phase_geometric": "SC11_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "11 1",
+    "11 6"
+   ],
+   "path": [
+    "1220012001",
+    "10365",
+    "1210012001",
+    "10367"
+   ]
+  },
+  {
+   "movement": "SC11_NE_SC12_to_NW_SC5",
+   "signal": "SC11",
+   "turn": "right",
+   "phase_geometric": "SC11_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "11 1",
+    "11 6"
+   ],
+   "path": [
+    "1220012001",
+    "10365",
+    "1210012001",
+    "10366"
+   ]
+  },
+  {
+   "movement": "SC11_NE_SC12_to_SE_SC7",
+   "signal": "SC11",
+   "turn": "left",
+   "phase_geometric": "SC11_p4",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "11 1",
+    "11 6"
+   ],
+   "path": [
+    "1220012001",
+    "10365",
+    "1210012001",
+    "10107"
+   ]
+  },
+  {
+   "movement": "SC11_NW_SC5_to_SE_SC7",
+   "signal": "SC11",
+   "turn": "through",
+   "phase_geometric": "SC11_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "11 4"
+   ],
+   "path": [
+    "1220011001",
+    "10373"
+   ]
+  },
+  {
+   "movement": "SC11_NW_SC5_to_NE_SC12",
+   "signal": "SC11",
+   "turn": "left",
+   "phase_geometric": "SC11_p2",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "11 4"
+   ],
+   "path": [
+    "1220011001",
+    "10375"
+   ]
+  },
+  {
+   "movement": "SC11_NW_SC5_to_SW_SC1",
+   "signal": "SC11",
+   "turn": "right",
+   "phase_geometric": "SC11_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "11 4"
+   ],
+   "path": [
+    "1220011001",
+    "10374"
+   ]
+  },
+  {
+   "movement": "SC11_SE_SC7_to_NW_SC5",
+   "signal": "SC11",
+   "turn": "through",
+   "phase_geometric": "SC11_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "11 8"
+   ],
+   "path": [
+    "1210008703",
+    "10376"
+   ]
+  },
+  {
+   "movement": "SC11_SE_SC7_to_NE_SC12",
+   "signal": "SC11",
+   "turn": "right",
+   "phase_geometric": "SC11_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "11 8"
+   ],
+   "path": [
+    "1210008703",
+    "10108"
+   ]
+  },
+  {
+   "movement": "SC11_SE_SC7_to_SW_SC1",
+   "signal": "SC11",
+   "turn": "left",
+   "phase_geometric": "SC11_p2",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "11 8"
+   ],
+   "path": [
+    "1210008703",
+    "10378"
+   ]
+  },
+  {
+   "movement": "SC11_SW_SC1_to_NE_SC12",
+   "signal": "SC11",
+   "turn": "through",
+   "phase_geometric": "SC11_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "11 2"
+   ],
+   "path": [
+    "1210008303",
+    "10370"
+   ]
+  },
+  {
+   "movement": "SC11_SW_SC1_to_NW_SC5",
+   "signal": "SC11",
+   "turn": "left",
+   "phase_geometric": "SC11_p4",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "11 2"
+   ],
+   "path": [
+    "1210008303",
+    "10372"
+   ]
+  },
+  {
+   "movement": "SC11_SW_SC1_to_SE_SC7",
+   "signal": "SC11",
+   "turn": "right",
+   "phase_geometric": "SC11_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "11 2"
+   ],
+   "path": [
+    "1210008303",
+    "10104"
+   ]
+  },
+  {
+   "movement": "SC12_E_SC13_to_W_SC11",
+   "signal": "SC12",
+   "turn": "through",
+   "phase_geometric": "SC12_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "12 1",
+    "12 6"
+   ],
+   "path": [
+    "1220013600",
+    "10238"
+   ]
+  },
+  {
+   "movement": "SC12_E_SC13_to_NW_SC10",
+   "signal": "SC12",
+   "turn": "right",
+   "phase_geometric": "SC12_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "12 1",
+    "12 6"
+   ],
+   "path": [
+    "1220013600",
+    "10239"
+   ]
+  },
+  {
+   "movement": "SC12_E_SC13_to_SE_SC16",
+   "signal": "SC12",
+   "turn": "left",
+   "phase_geometric": "SC12_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "12 1",
+    "12 6"
+   ],
+   "path": [
+    "1220013600",
+    "10240"
+   ]
+  },
+  {
+   "movement": "SC12_NW_SC10_to_SE_SC16",
+   "signal": "SC12",
+   "turn": "through",
+   "phase_geometric": "SC12_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "12 4",
+    "12 7"
+   ],
+   "path": [
+    "1220015000",
+    "10235"
+   ]
+  },
+  {
+   "movement": "SC12_NW_SC10_to_E_SC13",
+   "signal": "SC12",
+   "turn": "left",
+   "phase_geometric": "SC12_p2",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 4",
+    "12 7"
+   ],
+   "path": [
+    "1220015000",
+    "10237"
+   ]
+  },
+  {
+   "movement": "SC12_NW_SC10_to_W_SC11",
+   "signal": "SC12",
+   "turn": "right",
+   "phase_geometric": "SC12_p1",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 4",
+    "12 7"
+   ],
+   "path": [
+    "1220015000",
+    "10236"
+   ]
+  },
+  {
+   "movement": "SC12_SE_SC16_to_NW_SC10",
+   "signal": "SC12",
+   "turn": "through",
+   "phase_geometric": "SC12_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "12 3",
+    "12 8"
+   ],
+   "path": [
+    "1210012700",
+    "10244"
+   ]
+  },
+  {
+   "movement": "SC12_SE_SC16_to_E_SC13",
+   "signal": "SC12",
+   "turn": "right",
+   "phase_geometric": "SC12_p1",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 3",
+    "12 8"
+   ],
+   "path": [
+    "1210012700",
+    "10246"
+   ]
+  },
+  {
+   "movement": "SC12_SE_SC16_to_W_SC11",
+   "signal": "SC12",
+   "turn": "left",
+   "phase_geometric": "SC12_p2",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 3",
+    "12 8"
+   ],
+   "path": [
+    "1210012700",
+    "10245"
+   ]
+  },
+  {
+   "movement": "SC12_W_SC11_to_E_SC13",
+   "signal": "SC12",
+   "turn": "through",
+   "phase_geometric": "SC12_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "12 2",
+    "12 5"
+   ],
+   "path": [
+    "1220012103",
+    "10241"
+   ]
+  },
+  {
+   "movement": "SC12_W_SC11_to_NW_SC10",
+   "signal": "SC12",
+   "turn": "left",
+   "phase_geometric": "SC12_p4",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 2",
+    "12 5"
+   ],
+   "path": [
+    "1220012103",
+    "10242"
+   ]
+  },
+  {
+   "movement": "SC12_W_SC11_to_SE_SC16",
+   "signal": "SC12",
+   "turn": "right",
+   "phase_geometric": "SC12_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "12 2",
+    "12 5"
+   ],
+   "path": [
+    "1220012103",
+    "10243"
+   ]
+  },
+  {
+   "movement": "SC101_NE_SC5_to_SW_SC1002",
+   "signal": "SC101",
+   "turn": "through",
+   "phase_geometric": "SC101_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "101 1",
+    "101 6"
+   ],
+   "path": [
+    "1220014201",
+    "10534"
+   ]
+  },
+  {
+   "movement": "SC101_NE_SC5_to_NW_SC2005",
+   "signal": "SC101",
+   "turn": "right",
+   "phase_geometric": "SC101_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 1",
+    "101 6"
+   ],
+   "path": [
+    "1220014201",
+    "10510"
+   ]
+  },
+  {
+   "movement": "SC101_NE_SC5_to_SE_SC15",
+   "signal": "SC101",
+   "turn": "left",
+   "phase_geometric": "SC101_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 1",
+    "101 6"
+   ],
+   "path": [
+    "1220014201",
+    "10535"
+   ]
+  },
+  {
+   "movement": "SC101_NW_SC2005_to_SE_SC15",
+   "signal": "SC101",
+   "turn": "through",
+   "phase_geometric": "SC101_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "101 4",
+    "101 7"
+   ],
+   "path": [
+    "1220016001",
+    "10536"
+   ]
+  },
+  {
+   "movement": "SC101_NW_SC2005_to_NE_SC5",
+   "signal": "SC101",
+   "turn": "left",
+   "phase_geometric": "SC101_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 4",
+    "101 7"
+   ],
+   "path": [
+    "1220016001",
+    "10537"
+   ]
+  },
+  {
+   "movement": "SC101_NW_SC2005_to_SW_SC1002",
+   "signal": "SC101",
+   "turn": "right",
+   "phase_geometric": "SC101_p1",
+   "beta": 0.25,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": [
+    "314",
+    "10504",
+    "316",
+    "10512",
+    "321"
+   ]
+  },
+  {
+   "movement": "SC101_SE_SC15_to_NW_SC2005",
+   "signal": "SC101",
+   "turn": "through",
+   "phase_geometric": "SC101_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "101 3",
+    "101 8"
+   ],
+   "path": [
+    "1220011503",
+    "10538"
+   ]
+  },
+  {
+   "movement": "SC101_SE_SC15_to_NE_SC5",
+   "signal": "SC101",
+   "turn": "right",
+   "phase_geometric": "SC101_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 3",
+    "101 8"
+   ],
+   "path": [
+    "1220011503",
+    "10528"
+   ]
+  },
+  {
+   "movement": "SC101_SE_SC15_to_SW_SC1002",
+   "signal": "SC101",
+   "turn": "left",
+   "phase_geometric": "SC101_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 3",
+    "101 8"
+   ],
+   "path": [
+    "1220011503",
+    "10539"
+   ]
+  },
+  {
+   "movement": "SC101_SW_SC1002_to_NE_SC5",
+   "signal": "SC101",
+   "turn": "through",
+   "phase_geometric": "SC101_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "101 2",
+    "101 5"
+   ],
+   "path": [
+    "1220012502",
+    "10532"
+   ]
+  },
+  {
+   "movement": "SC101_SW_SC1002_to_NW_SC2005",
+   "signal": "SC101",
+   "turn": "left",
+   "phase_geometric": "SC101_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 2",
+    "101 5"
+   ],
+   "path": [
+    "1220012502",
+    "10533"
+   ]
+  },
+  {
+   "movement": "SC101_SW_SC1002_to_SE_SC15",
+   "signal": "SC101",
+   "turn": "right",
+   "phase_geometric": "SC101_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "101 2",
+    "101 5"
+   ],
+   "path": [
+    "1220012502",
+    "10527"
+   ]
+  },
+  {
+   "movement": "SC105_E_SC9001_to_NW_SC1002",
+   "signal": "SC105",
+   "turn": "right",
+   "phase_geometric": "SC105_p3",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 6"
+   ],
+   "path": [
+    "1220007001",
+    "10668"
+   ]
+  },
+  {
+   "movement": "SC105_E_SC9001_to_SE_SC1005",
+   "signal": "SC105",
+   "turn": "left",
+   "phase_geometric": "SC105_p4",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 6"
+   ],
+   "path": [
+    "1220007001",
+    "10669"
+   ]
+  },
+  {
+   "movement": "SC105_E_SC9001_to_SW_SC1003",
+   "signal": "SC105",
+   "turn": "left",
+   "phase_geometric": "SC105_p4",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 6"
+   ],
+   "path": [
+    "1220007001",
+    "10667"
+   ]
+  },
+  {
+   "movement": "SC105_NW_SC1002_to_SE_SC1005",
+   "signal": "SC105",
+   "turn": "through",
+   "phase_geometric": "SC105_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "105 4",
+    "105 7"
+   ],
+   "path": [
+    "1220007200",
+    "10661"
+   ]
+  },
+  {
+   "movement": "SC105_NW_SC1002_to_E_SC9001",
+   "signal": "SC105",
+   "turn": "left",
+   "phase_geometric": "SC105_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "105 4",
+    "105 7"
+   ],
+   "path": [
+    "1220007200",
+    "10662"
+   ]
+  },
+  {
+   "movement": "SC105_NW_SC1002_to_SW_SC1003",
+   "signal": "SC105",
+   "turn": "right",
+   "phase_geometric": "SC105_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "105 4",
+    "105 7"
+   ],
+   "path": [
+    "1220007200",
+    "10663"
+   ]
+  },
+  {
+   "movement": "SC105_SE_SC1005_to_NW_SC1002",
+   "signal": "SC105",
+   "turn": "through",
+   "phase_geometric": "SC105_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "105 3",
+    "105 8"
+   ],
+   "path": [
+    "1220006503",
+    "10664"
+   ]
+  },
+  {
+   "movement": "SC105_SE_SC1005_to_E_SC9001",
+   "signal": "SC105",
+   "turn": "right",
+   "phase_geometric": "SC105_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "105 3",
+    "105 8"
+   ],
+   "path": [
+    "1220006503",
+    "10665"
+   ]
+  },
+  {
+   "movement": "SC105_SE_SC1005_to_SW_SC1003",
+   "signal": "SC105",
+   "turn": "left",
+   "phase_geometric": "SC105_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "105 3",
+    "105 8"
+   ],
+   "path": [
+    "1220006503",
+    "10666"
+   ]
+  },
+  {
+   "movement": "SC105_SW_SC1003_to_E_SC9001",
+   "signal": "SC105",
+   "turn": "right",
+   "phase_geometric": "SC105_p3",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 2"
+   ],
+   "path": [
+    "416",
+    "10670"
+   ]
+  },
+  {
+   "movement": "SC105_SW_SC1003_to_NW_SC1002",
+   "signal": "SC105",
+   "turn": "left",
+   "phase_geometric": "SC105_p4",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 2"
+   ],
+   "path": [
+    "416",
+    "10672"
+   ]
+  },
+  {
+   "movement": "SC105_SW_SC1003_to_SE_SC1005",
+   "signal": "SC105",
+   "turn": "right",
+   "phase_geometric": "SC105_p3",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "105 2"
+   ],
+   "path": [
+    "416",
+    "10671"
+   ]
+  },
+  {
+   "movement": "SC107_NE_SC108_to_SW_SC1004",
+   "signal": "SC107",
+   "turn": "through",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "107 1",
+    "107 6"
+   ],
+   "path": [
+    "183",
+    "10619"
+   ]
+  },
+  {
+   "movement": "SC107_NE_SC108_to_SW_SC1005",
+   "signal": "SC107",
+   "turn": "through",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "107 1",
+    "107 6"
+   ],
+   "path": [
+    "183",
+    "10619",
+    "1220000102",
+    "10500"
+   ]
+  },
+  {
+   "movement": "SC107_NE_SC108_to_NW_SC1",
+   "signal": "SC107",
+   "turn": "right",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "107 1",
+    "107 6"
+   ],
+   "path": [
+    "183",
+    "10600"
+   ]
+  },
+  {
+   "movement": "SC107_NW_SC1_to_NE_SC108",
+   "signal": "SC107",
+   "turn": "left",
+   "phase_geometric": "SC107_p2",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "107 7"
+   ],
+   "path": [
+    "1220043200",
+    "10103"
+   ]
+  },
+  {
+   "movement": "SC107_NW_SC1_to_SW_SC1004",
+   "signal": "SC107",
+   "turn": "right",
+   "phase_geometric": "SC107_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "107 7"
+   ],
+   "path": [
+    "1220043200",
+    "10610"
+   ]
+  },
+  {
+   "movement": "SC107_NW_SC1_to_SW_SC1005",
+   "signal": "SC107",
+   "turn": "right",
+   "phase_geometric": "SC107_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "107 7"
+   ],
+   "path": [
+    "1220043200",
+    "10610",
+    "385",
+    "10611",
+    "1220000102",
+    "10500"
+   ]
+  },
+  {
+   "movement": "SC107_SW_SC1004_to_NE_SC108",
+   "signal": "SC107",
+   "turn": "through",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "107 2",
+    "107 5"
+   ],
+   "path": [
+    "1220000201",
+    "10023"
+   ]
+  },
+  {
+   "movement": "SC107_SW_SC1004_to_NW_SC1",
+   "signal": "SC107",
+   "turn": "left",
+   "phase_geometric": "SC107_p4",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "107 2",
+    "107 5"
+   ],
+   "path": [
+    "1220000201",
+    "10622"
+   ]
+  },
+  {
+   "movement": "SC107_SW_SC1004_to_SW_SC1005",
+   "signal": "SC107",
+   "turn": "u_turn",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.125,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": null
+  },
+  {
+   "movement": "SC107_SW_SC1005_to_NE_SC108",
+   "signal": "SC107",
+   "turn": "through",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "107 2",
+    "107 5"
+   ],
+   "path": [
+    "10499",
+    "387",
+    "10615",
+    "1220000201",
+    "10023"
+   ]
+  },
+  {
+   "movement": "SC107_SW_SC1005_to_NW_SC1",
+   "signal": "SC107",
+   "turn": "left",
+   "phase_geometric": "SC107_p4",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "107 2",
+    "107 5"
+   ],
+   "path": [
+    "10499",
+    "387",
+    "10615",
+    "1220000201",
+    "10622"
+   ]
+  },
+  {
+   "movement": "SC107_SW_SC1005_to_SW_SC1004",
+   "signal": "SC107",
+   "turn": "u_turn",
+   "phase_geometric": "SC107_p3",
+   "beta": 0.125,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": null
+  },
+  {
+   "movement": "SC108_NE_SC109_to_SW_SC107",
+   "signal": "SC108",
+   "turn": "through",
+   "phase_geometric": "SC108_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "108 1",
+    "108 6"
+   ],
+   "path": [
+    "176",
+    "10292"
+   ]
+  },
+  {
+   "movement": "SC108_NE_SC109_to_NW_SC7",
+   "signal": "SC108",
+   "turn": "right",
+   "phase_geometric": "SC108_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "108 1",
+    "108 6"
+   ],
+   "path": [
+    "176",
+    "10296"
+   ]
+  },
+  {
+   "movement": "SC108_NW_SC7_to_NE_SC109",
+   "signal": "SC108",
+   "turn": "left",
+   "phase_geometric": "SC108_p2",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "108 4"
+   ],
+   "path": [
+    "1220007401",
+    "10300"
+   ]
+  },
+  {
+   "movement": "SC108_NW_SC7_to_SW_SC107",
+   "signal": "SC108",
+   "turn": "right",
+   "phase_geometric": "SC108_p1",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "108 4"
+   ],
+   "path": [
+    "1220007401",
+    "10299"
+   ]
+  },
+  {
+   "movement": "SC108_SW_SC107_to_NE_SC109",
+   "signal": "SC108",
+   "turn": "through",
+   "phase_geometric": "SC108_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "108 2",
+    "108 5"
+   ],
+   "path": [
+    "178",
+    "10293"
+   ]
+  },
+  {
+   "movement": "SC108_SW_SC107_to_NW_SC7",
+   "signal": "SC108",
+   "turn": "left",
+   "phase_geometric": "SC108_p4",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "108 2",
+    "108 5"
+   ],
+   "path": [
+    "178",
+    "10294"
+   ]
+  },
+  {
+   "movement": "SC109_NW_SC16_to_SW_SC108",
+   "signal": "SC109",
+   "turn": "right",
+   "phase_geometric": "SC109_p1",
+   "beta": 0.3333333333333333,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": [
+    "168",
+    "10271",
+    "170",
+    "10284",
+    "1220000502"
+   ]
+  },
+  {
+   "movement": "SC109_SW_SC108_to_NW_SC16",
+   "signal": "SC109",
+   "turn": "left",
+   "phase_geometric": "SC109_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "109 2",
+    "109 5"
+   ],
+   "path": [
+    "173",
+    "10286"
+   ]
+  },
+  {
+   "movement": "SC1001_E_SC1002_to_NW_SC2002",
+   "signal": "SC1001",
+   "turn": "right",
+   "phase_geometric": "SC1001_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 1",
+    "1001 6"
+   ],
+   "path": [
+    "29",
+    "10122"
+   ]
+  },
+  {
+   "movement": "SC1001_E_SC1002_to_S_SC1003",
+   "signal": "SC1001",
+   "turn": "left",
+   "phase_geometric": "SC1001_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 1",
+    "1001 6"
+   ],
+   "path": [
+    "29",
+    "10696",
+    "39"
+   ]
+  },
+  {
+   "movement": "SC1001_NW_SC2002_to_E_SC1002",
+   "signal": "SC1001",
+   "turn": "left",
+   "phase_geometric": "SC1001_p2",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 4",
+    "1001 7"
+   ],
+   "path": [
+    "37",
+    "10697"
+   ]
+  },
+  {
+   "movement": "SC1001_NW_SC2002_to_S_SC1003",
+   "signal": "SC1001",
+   "turn": "right",
+   "phase_geometric": "SC1001_p1",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 4",
+    "1001 7"
+   ],
+   "path": [
+    "37",
+    "10124"
+   ]
+  },
+  {
+   "movement": "SC1001_S_SC1003_to_E_SC1002",
+   "signal": "SC1001",
+   "turn": "right",
+   "phase_geometric": "SC1001_p1",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 3",
+    "1001 8"
+   ],
+   "path": [
+    "40",
+    "10377"
+   ]
+  },
+  {
+   "movement": "SC1001_S_SC1003_to_NW_SC2002",
+   "signal": "SC1001",
+   "turn": "left",
+   "phase_geometric": "SC1001_p2",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1001 3",
+    "1001 8"
+   ],
+   "path": [
+    "40",
+    "10371"
+   ]
+  },
+  {
+   "movement": "SC1002_E_SC101_to_W_SC1001",
+   "signal": "SC1002",
+   "turn": "through",
+   "phase_geometric": "SC1002_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 1",
+    "1002 6"
+   ],
+   "path": [
+    "329",
+    "10691"
+   ]
+  },
+  {
+   "movement": "SC1002_E_SC101_to_N_SC2004",
+   "signal": "SC1002",
+   "turn": "right",
+   "phase_geometric": "SC1002_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 1",
+    "1002 6"
+   ],
+   "path": [
+    "329",
+    "10692"
+   ]
+  },
+  {
+   "movement": "SC1002_E_SC101_to_S_SC105",
+   "signal": "SC1002",
+   "turn": "left",
+   "phase_geometric": "SC1002_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 1",
+    "1002 6"
+   ],
+   "path": [
+    "329",
+    "10693"
+   ]
+  },
+  {
+   "movement": "SC1002_N_SC2004_to_S_SC105",
+   "signal": "SC1002",
+   "turn": "through",
+   "phase_geometric": "SC1002_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 4",
+    "1002 7"
+   ],
+   "path": [
+    "72",
+    "10683"
+   ]
+  },
+  {
+   "movement": "SC1002_N_SC2004_to_E_SC101",
+   "signal": "SC1002",
+   "turn": "left",
+   "phase_geometric": "SC1002_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 4",
+    "1002 7"
+   ],
+   "path": [
+    "72",
+    "10687"
+   ]
+  },
+  {
+   "movement": "SC1002_N_SC2004_to_W_SC1001",
+   "signal": "SC1002",
+   "turn": "right",
+   "phase_geometric": "SC1002_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 4",
+    "1002 7"
+   ],
+   "path": [
+    "72",
+    "10684"
+   ]
+  },
+  {
+   "movement": "SC1002_S_SC105_to_N_SC2004",
+   "signal": "SC1002",
+   "turn": "through",
+   "phase_geometric": "SC1002_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 3",
+    "1002 8"
+   ],
+   "path": [
+    "427",
+    "10689"
+   ]
+  },
+  {
+   "movement": "SC1002_S_SC105_to_E_SC101",
+   "signal": "SC1002",
+   "turn": "right",
+   "phase_geometric": "SC1002_p1",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 3",
+    "1002 8"
+   ],
+   "path": [
+    "427",
+    "10688"
+   ]
+  },
+  {
+   "movement": "SC1002_S_SC105_to_W_SC1001",
+   "signal": "SC1002",
+   "turn": "left",
+   "phase_geometric": "SC1002_p2",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 3",
+    "1002 8"
+   ],
+   "path": [
+    "427",
+    "10690"
+   ]
+  },
+  {
+   "movement": "SC1002_W_SC1001_to_E_SC101",
+   "signal": "SC1002",
+   "turn": "through",
+   "phase_geometric": "SC1002_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 2",
+    "1002 5"
+   ],
+   "path": [
+    "30",
+    "10685"
+   ]
+  },
+  {
+   "movement": "SC1002_W_SC1001_to_N_SC2004",
+   "signal": "SC1002",
+   "turn": "left",
+   "phase_geometric": "SC1002_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 2",
+    "1002 5"
+   ],
+   "path": [
+    "30",
+    "10694"
+   ]
+  },
+  {
+   "movement": "SC1002_W_SC1001_to_S_SC105",
+   "signal": "SC1002",
+   "turn": "right",
+   "phase_geometric": "SC1002_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1002 2",
+    "1002 5"
+   ],
+   "path": [
+    "30",
+    "10686"
+   ]
+  },
+  {
+   "movement": "SC1003_NE_SC105_to_N_SC1001",
+   "signal": "SC1003",
+   "turn": "right",
+   "phase_geometric": "SC1003_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 1"
+   ],
+   "path": [
+    "425",
+    "10492"
+   ]
+  },
+  {
+   "movement": "SC1003_NE_SC105_to_SE_SC1004",
+   "signal": "SC1003",
+   "turn": "left",
+   "phase_geometric": "SC1003_p4",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 1"
+   ],
+   "path": [
+    "425",
+    "10497"
+   ]
+  },
+  {
+   "movement": "SC1003_N_SC1001_to_NE_SC105",
+   "signal": "SC1003",
+   "turn": "left",
+   "phase_geometric": "SC1003_p2",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 4",
+    "1003 7"
+   ],
+   "path": [
+    "39",
+    "10496"
+   ]
+  },
+  {
+   "movement": "SC1003_N_SC1001_to_SE_SC1004",
+   "signal": "SC1003",
+   "turn": "left",
+   "phase_geometric": "SC1003_p2",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 4",
+    "1003 7"
+   ],
+   "path": [
+    "39",
+    "10495"
+   ]
+  },
+  {
+   "movement": "SC1003_SE_SC1004_to_NE_SC105",
+   "signal": "SC1003",
+   "turn": "right",
+   "phase_geometric": "SC1003_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 8"
+   ],
+   "path": [
+    "47",
+    "10494"
+   ]
+  },
+  {
+   "movement": "SC1003_SE_SC1004_to_N_SC1001",
+   "signal": "SC1003",
+   "turn": "right",
+   "phase_geometric": "SC1003_p1",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1003 8"
+   ],
+   "path": [
+    "47",
+    "10493"
+   ]
+  },
+  {
+   "movement": "SC1004_NE_SC1005_to_NE_SC107",
+   "signal": "SC1004",
+   "turn": "u_turn",
+   "phase_geometric": "SC1004_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": null
+  },
+  {
+   "movement": "SC1004_NE_SC1005_to_NW_SC1003",
+   "signal": "SC1004",
+   "turn": "right",
+   "phase_geometric": "SC1004_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "1004 1",
+    "1004 6"
+   ],
+   "path": [
+    "10498",
+    "52",
+    "10628"
+   ]
+  },
+  {
+   "movement": "SC1004_NE_SC107_to_NE_SC1005",
+   "signal": "SC1004",
+   "turn": "u_turn",
+   "phase_geometric": "SC1004_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": false,
+   "signal_groups": [],
+   "path": null
+  },
+  {
+   "movement": "SC1004_NE_SC107_to_NW_SC1003",
+   "signal": "SC1004",
+   "turn": "right",
+   "phase_geometric": "SC1004_p3",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "1004 1",
+    "1004 6"
+   ],
+   "path": [
+    "52",
+    "10628"
+   ]
+  },
+  {
+   "movement": "SC1004_NW_SC1003_to_NE_SC1005",
+   "signal": "SC1004",
+   "turn": "left",
+   "phase_geometric": "SC1004_p2",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "1004 4",
+    "1004 7"
+   ],
+   "path": [
+    "46",
+    "10627"
+   ]
+  },
+  {
+   "movement": "SC1004_NW_SC1003_to_NE_SC107",
+   "signal": "SC1004",
+   "turn": "left",
+   "phase_geometric": "SC1004_p2",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "1004 4",
+    "1004 7"
+   ],
+   "path": [
+    "46",
+    "10627",
+    "56",
+    "10621"
+   ]
+  },
+  {
+   "movement": "SC1005_NE_SC107_to_SW_SC1004",
+   "signal": "SC1005",
+   "turn": "through",
+   "phase_geometric": "SC1005_p3",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 6"
+   ],
+   "path": [
+    "62",
+    "10612"
+   ]
+  },
+  {
+   "movement": "SC1005_NE_SC107_to_NW_SC105",
+   "signal": "SC1005",
+   "turn": "right",
+   "phase_geometric": "SC1005_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 6"
+   ],
+   "path": [
+    "62",
+    "10603"
+   ]
+  },
+  {
+   "movement": "SC1005_NW_SC105_to_NE_SC107",
+   "signal": "SC1005",
+   "turn": "left",
+   "phase_geometric": "SC1005_p2",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 7"
+   ],
+   "path": [
+    "403",
+    "10570"
+   ]
+  },
+  {
+   "movement": "SC1005_NW_SC105_to_SW_SC1004",
+   "signal": "SC1005",
+   "turn": "right",
+   "phase_geometric": "SC1005_p1",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 7"
+   ],
+   "path": [
+    "403",
+    "10565"
+   ]
+  },
+  {
+   "movement": "SC1005_SW_SC1004_to_NE_SC107",
+   "signal": "SC1005",
+   "turn": "through",
+   "phase_geometric": "SC1005_p3",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 2",
+    "1005 5"
+   ],
+   "path": [
+    "57",
+    "10624"
+   ]
+  },
+  {
+   "movement": "SC1005_SW_SC1004_to_NW_SC105",
+   "signal": "SC1005",
+   "turn": "left",
+   "phase_geometric": "SC1005_p4",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "1005 2",
+    "1005 5"
+   ],
+   "path": [
+    "57",
+    "10623"
+   ]
+  },
+  {
+   "movement": "SC4_NE_SC6_to_SW_SC5",
+   "signal": "SC4",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "4 14",
+    "4 17",
+    "4 22",
+    "4 6",
+    "4 9"
+   ],
+   "path": [
+    "118",
+    "10190",
+    "1220018403",
+    "10183",
+    "1220018402",
+    "10188",
+    "121008402",
+    "10191"
+   ]
+  },
+  {
+   "movement": "SC4_SW_SC5_to_NE_SC6",
+   "signal": "SC4",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "4 10",
+    "4 13",
+    "4 18",
+    "4 2",
+    "4 21"
+   ],
+   "path": [
+    "128",
+    "10192",
+    "1220018502",
+    "10186",
+    "1220018503",
+    "10185",
+    "122",
+    "10189"
+   ]
+  },
+  {
+   "movement": "SC7_NE_SC16_to_NW_SC11",
+   "signal": "SC7",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "7 1",
+    "7 16"
+   ],
+   "path": [
+    "1210009600",
+    "10332",
+    "1220008701",
+    "10334"
+   ]
+  },
+  {
+   "movement": "SC7_NE_SC16_to_SE_SC108",
+   "signal": "SC7",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "7 1"
+   ],
+   "path": [
+    "1210009600",
+    "10333"
+   ]
+  },
+  {
+   "movement": "SC7_NW_SC11_to_SE_SC108",
+   "signal": "SC7",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "7 12",
+    "7 4",
+    "7 7"
+   ],
+   "path": [
+    "1220008602",
+    "10335",
+    "1220008601",
+    "10328"
+   ]
+  },
+  {
+   "movement": "SC7_NW_SC11_to_NE_SC16",
+   "signal": "SC7",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "7 12",
+    "7 4",
+    "7 7"
+   ],
+   "path": [
+    "1220008602",
+    "10335",
+    "1220008601",
+    "10330"
+   ]
+  },
+  {
+   "movement": "SC7_SE_SC108_to_NW_SC11",
+   "signal": "SC7",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "7 16",
+    "7 8"
+   ],
+   "path": [
+    "1220007502",
+    "10329",
+    "1220008701",
+    "10334"
+   ]
+  },
+  {
+   "movement": "SC7_SE_SC108_to_NE_SC16",
+   "signal": "SC7",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "7 8"
+   ],
+   "path": [
+    "1220007502",
+    "10331"
+   ]
+  },
+  {
+   "movement": "SC9_NW_SC103_to_SE_SC6",
+   "signal": "SC9",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "9 12",
+    "9 15",
+    "9 4"
+   ],
+   "path": [
+    "1220021803",
+    "10153",
+    "1220021802",
+    "10524"
+   ]
+  },
+  {
+   "movement": "SC9_SE_SC6_to_NW_SC103",
+   "signal": "SC9",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "9 16",
+    "9 8"
+   ],
+   "path": [
+    "94",
+    "10146",
+    "1220021903",
+    "10152"
+   ]
+  },
+  {
+   "movement": "SC10_NW_SC6_to_SE_SC12",
+   "signal": "SC10",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "10 4"
+   ],
+   "path": [
+    "1210018202",
+    "10218"
+   ]
+  },
+  {
+   "movement": "SC10_SE_SC12_to_NW_SC6",
+   "signal": "SC10",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "10 8"
+   ],
+   "path": [
+    "1220018301",
+    "10216"
+   ]
+  },
+  {
+   "movement": "SC13_E_SC106_to_W_SC12",
+   "signal": "SC13",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "13 6"
+   ],
+   "path": [
+    "1210015600",
+    "10225"
+   ]
+  },
+  {
+   "movement": "SC13_W_SC12_to_E_SC106",
+   "signal": "SC13",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "13 10",
+    "13 2"
+   ],
+   "path": [
+    "1220013700",
+    "10226"
+   ]
+  },
+  {
+   "movement": "SC14_NE_SC104_to_W_SC6",
+   "signal": "SC14",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "14 1",
+    "14 6"
+   ],
+   "path": [
+    "1210021204",
+    "10135"
+   ]
+  },
+  {
+   "movement": "SC14_W_SC6_to_NE_SC104",
+   "signal": "SC14",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "14 2"
+   ],
+   "path": [
+    "1220021303",
+    "10136"
+   ]
+  },
+  {
+   "movement": "SC15_NW_SC101_to_SE_SC1",
+   "signal": "SC15",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "15 4",
+    "15 7"
+   ],
+   "path": [
+    "1220008402",
+    "10547"
+   ]
+  },
+  {
+   "movement": "SC15_SE_SC1_to_NW_SC101",
+   "signal": "SC15",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "15 3",
+    "15 8"
+   ],
+   "path": [
+    "1210008501",
+    "10550"
+   ]
+  },
+  {
+   "movement": "SC16_NW_SC12_to_SE_SC109",
+   "signal": "SC16",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "16 4",
+    "16 7"
+   ],
+   "path": [
+    "1210012600",
+    "10248"
+   ]
+  },
+  {
+   "movement": "SC16_NW_SC12_to_SW_SC7",
+   "signal": "SC16",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "16 4",
+    "16 7"
+   ],
+   "path": [
+    "1210012600",
+    "10252"
+   ]
+  },
+  {
+   "movement": "SC16_SE_SC109_to_NW_SC12",
+   "signal": "SC16",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "16 3",
+    "16 8"
+   ],
+   "path": [
+    "1210009503",
+    "10249"
+   ]
+  },
+  {
+   "movement": "SC16_SE_SC109_to_SW_SC7",
+   "signal": "SC16",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "16 3",
+    "16 8"
+   ],
+   "path": [
+    "1210009503",
+    "10251"
+   ]
+  },
+  {
+   "movement": "SC16_SW_SC7_to_NW_SC12",
+   "signal": "SC16",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "16 2"
+   ],
+   "path": [
+    "1210009700",
+    "10256"
+   ]
+  },
+  {
+   "movement": "SC16_SW_SC7_to_SE_SC109",
+   "signal": "SC16",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.1,
+   "passes_head": true,
+   "signal_groups": [
+    "16 2"
+   ],
+   "path": [
+    "1210009700",
+    "10255"
+   ]
+  },
+  {
+   "movement": "SC102_NE_SC103_to_S_SC9003",
+   "signal": "SC102",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "102 1",
+    "102 14",
+    "102 6"
+   ],
+   "path": [
+    "1220022501",
+    "10093",
+    "1210019201",
+    "10436"
+   ]
+  },
+  {
+   "movement": "SC102_NE_SC103_to_W_SC2005",
+   "signal": "SC102",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "102 1",
+    "102 6"
+   ],
+   "path": [
+    "1220022501",
+    "10460"
+   ]
+  },
+  {
+   "movement": "SC102_S_SC9003_to_NE_SC103",
+   "signal": "SC102",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "102 18",
+    "102 3",
+    "102 8"
+   ],
+   "path": [
+    "271",
+    "10438",
+    "274",
+    "10022",
+    "1220019303",
+    "10089"
+   ]
+  },
+  {
+   "movement": "SC102_S_SC9003_to_W_SC2005",
+   "signal": "SC102",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "102 18",
+    "102 3",
+    "102 8"
+   ],
+   "path": [
+    "271",
+    "10438",
+    "274",
+    "10022",
+    "1220019303",
+    "10065"
+   ]
+  },
+  {
+   "movement": "SC102_W_SC2005_to_NE_SC103",
+   "signal": "SC102",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "102 2",
+    "102 5"
+   ],
+   "path": [
+    "1220020904",
+    "10457"
+   ]
+  },
+  {
+   "movement": "SC102_W_SC2005_to_S_SC9003",
+   "signal": "SC102",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "102 14",
+    "102 2",
+    "102 5"
+   ],
+   "path": [
+    "1220020904",
+    "10063",
+    "1210019201",
+    "10436"
+   ]
+  },
+  {
+   "movement": "SC103_SE_SC9_to_SW_SC102",
+   "signal": "SC103",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "103 3",
+    "103 8"
+   ],
+   "path": [
+    "1210021904",
+    "10097"
+   ]
+  },
+  {
+   "movement": "SC103_SW_SC102_to_SE_SC9",
+   "signal": "SC103",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "103 2",
+    "103 5"
+   ],
+   "path": [
+    "1220022604",
+    "10098"
+   ]
+  },
+  {
+   "movement": "SC104_SE_SC106_to_SW_SC14",
+   "signal": "SC104",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "104 3",
+    "104 8"
+   ],
+   "path": [
+    "1220002001",
+    "10170"
+   ]
+  },
+  {
+   "movement": "SC104_SW_SC14_to_SE_SC106",
+   "signal": "SC104",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "104 2",
+    "104 5"
+   ],
+   "path": [
+    "1210021304",
+    "10123"
+   ]
+  },
+  {
+   "movement": "SC106_NW_SC104_to_SW_SC13",
+   "signal": "SC106",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "106 4",
+    "106 7"
+   ],
+   "path": [
+    "1220001501",
+    "10052"
+   ]
+  },
+  {
+   "movement": "SC106_SW_SC13_to_NW_SC104",
+   "signal": "SC106",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.125,
+   "passes_head": true,
+   "signal_groups": [
+    "106 2"
+   ],
+   "path": [
+    "1210015700",
+    "10060"
+   ]
+  },
+  {
+   "movement": "SC2002_NE_SC2003_to_SE_SC1001",
+   "signal": "SC2002",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 1",
+    "2002 6"
+   ],
+   "path": [
+    "88",
+    "10733"
+   ]
+  },
+  {
+   "movement": "SC2002_NE_SC2003_to_W_SC2001",
+   "signal": "SC2002",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 1",
+    "2002 6"
+   ],
+   "path": [
+    "88",
+    "10732"
+   ]
+  },
+  {
+   "movement": "SC2002_SE_SC1001_to_NE_SC2003",
+   "signal": "SC2002",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 3",
+    "2002 8"
+   ],
+   "path": [
+    "38",
+    "10739"
+   ]
+  },
+  {
+   "movement": "SC2002_SE_SC1001_to_W_SC2001",
+   "signal": "SC2002",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 3",
+    "2002 8"
+   ],
+   "path": [
+    "38",
+    "10770"
+   ]
+  },
+  {
+   "movement": "SC2002_W_SC2001_to_NE_SC2003",
+   "signal": "SC2002",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 2",
+    "2002 5"
+   ],
+   "path": [
+    "83",
+    "10729"
+   ]
+  },
+  {
+   "movement": "SC2002_W_SC2001_to_SE_SC1001",
+   "signal": "SC2002",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2002 2",
+    "2002 5"
+   ],
+   "path": [
+    "83",
+    "10737"
+   ]
+  },
+  {
+   "movement": "SC2003_E_SC2004_to_SW_SC2002",
+   "signal": "SC2003",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "2003 6"
+   ],
+   "path": [
+    "102",
+    "10741"
+   ]
+  },
+  {
+   "movement": "SC2003_SW_SC2002_to_E_SC2004",
+   "signal": "SC2003",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "2003 2",
+    "2003 5"
+   ],
+   "path": [
+    "87",
+    "10740"
+   ]
+  },
+  {
+   "movement": "SC2004_E_SC2005_to_SW_SC2003",
+   "signal": "SC2004",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 1",
+    "2004 6"
+   ],
+   "path": [
+    "108",
+    "10752"
+   ]
+  },
+  {
+   "movement": "SC2004_E_SC2005_to_S_SC1002",
+   "signal": "SC2004",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 1",
+    "2004 6"
+   ],
+   "path": [
+    "108",
+    "10753"
+   ]
+  },
+  {
+   "movement": "SC2004_SW_SC2003_to_E_SC2005",
+   "signal": "SC2004",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 2",
+    "2004 5"
+   ],
+   "path": [
+    "104",
+    "10746"
+   ]
+  },
+  {
+   "movement": "SC2004_SW_SC2003_to_S_SC1002",
+   "signal": "SC2004",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.3333333333333333,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 2",
+    "2004 5"
+   ],
+   "path": [
+    "104",
+    "10747"
+   ]
+  },
+  {
+   "movement": "SC2004_S_SC1002_to_E_SC2005",
+   "signal": "SC2004",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 3",
+    "2004 8"
+   ],
+   "path": [
+    "73",
+    "10751"
+   ]
+  },
+  {
+   "movement": "SC2004_S_SC1002_to_SW_SC2003",
+   "signal": "SC2004",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2004 3",
+    "2004 8"
+   ],
+   "path": [
+    "73",
+    "10750"
+   ]
+  },
+  {
+   "movement": "SC2005_NE_SC102_to_SE_SC101",
+   "signal": "SC2005",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 1",
+    "2005 6"
+   ],
+   "path": [
+    "298",
+    "10763"
+   ]
+  },
+  {
+   "movement": "SC2005_NE_SC102_to_W_SC2004",
+   "signal": "SC2005",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 1",
+    "2005 6"
+   ],
+   "path": [
+    "298",
+    "10761"
+   ]
+  },
+  {
+   "movement": "SC2005_SE_SC101_to_NE_SC102",
+   "signal": "SC2005",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 3",
+    "2005 8"
+   ],
+   "path": [
+    "310",
+    "10759"
+   ]
+  },
+  {
+   "movement": "SC2005_SE_SC101_to_W_SC2004",
+   "signal": "SC2005",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.16666666666666666,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 3",
+    "2005 8"
+   ],
+   "path": [
+    "310",
+    "10760"
+   ]
+  },
+  {
+   "movement": "SC2005_W_SC2004_to_NE_SC102",
+   "signal": "SC2005",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 2",
+    "2005 5"
+   ],
+   "path": [
+    "107",
+    "10767"
+   ]
+  },
+  {
+   "movement": "SC2005_W_SC2004_to_SE_SC101",
+   "signal": "SC2005",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 0.25,
+   "passes_head": true,
+   "signal_groups": [
+    "2005 2",
+    "2005 5"
+   ],
+   "path": [
+    "107",
+    "10768"
+   ]
+  },
+  {
+   "movement": "SC9001_E_SC1_to_W_SC105",
+   "signal": "SC9001",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "9001 16",
+    "9001 6"
+   ],
+   "path": [
+    "354",
+    "10578",
+    "358",
+    "10586"
+   ]
+  },
+  {
+   "movement": "SC9001_W_SC105_to_E_SC1",
+   "signal": "SC9001",
+   "turn": "through",
+   "phase_geometric": "",
+   "beta": 0.5,
+   "passes_head": true,
+   "signal_groups": [
+    "9001 12",
+    "9001 2"
+   ],
+   "path": [
+    "1220007101",
+    "10588",
+    "359",
+    "10579"
+   ]
+  },
+  {
+   "movement": "SC9003_NW_SC102_to_S_SC5",
+   "signal": "SC9003",
+   "turn": "right",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "9003 4"
+   ],
+   "path": [
+    "268",
+    "10430"
+   ]
+  },
+  {
+   "movement": "SC9003_S_SC5_to_NW_SC102",
+   "signal": "SC9003",
+   "turn": "left",
+   "phase_geometric": "",
+   "beta": 1.0,
+   "passes_head": true,
+   "signal_groups": [
+    "9003 8"
+   ],
+   "path": [
+    "1220019301",
+    "10431"
+   ]
+  }
+ ],
+ "unresolved": []
+}
