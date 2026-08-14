@@ -297,6 +297,19 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   }
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $runId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $provenancePath, "Process")
+  # 결정을 푸는 동안 워치독에게 "살아 있다" 를 알리는 유일한 신호다.
+  #
+  # 워치독은 runlog/state·action CSV/action_*.json 의 mtime 만 본다. 그런데 결정 1회는
+  # 그 어느 것도 안 쓰면서 수 분이 걸리므로(2026-08-13 실측 478초), 정상 solve 가 정지로
+  # 보인다. 그래서 StallSec 을 결정 시간보다 크게 잡아 왔고, 그러면 진짜 정지도 그만큼
+  # 늦게 잡힌다.
+  #
+  # 이 파일은 리더 후보를 하나 평가할 때마다 한 줄씩 붙는다(stackelberg_mpc 의
+  # `_append_progress_event`). 결정 중에는 계속 자라고, 진짜로 멈추면 안 자란다.
+  # 워치독이 이것도 신호로 보면 StallSec 을 결정 시간과 무관하게 짧게 둘 수 있다.
+  $oldProgressFile = [Environment]::GetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", "Process")
+  $progressFile = Join-Path $decisionDir "stackelberg_progress_$Name.jsonl"
+  [Environment]::SetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", $progressFile, "Process")
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
@@ -305,6 +318,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   [Environment]::SetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", $oldAuditAnchors, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $oldRunId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $oldRunManifest, "Process")
+  [Environment]::SetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", $oldProgressFile, "Process")
   if (-not $proc -or -not $proc.Id) {
     throw "Failed to start cscript for $Name attempt=$attempt"
   }
@@ -333,6 +347,10 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $signals += Get-Item $bottleneckSegmentCsv -ErrorAction SilentlyContinue
     $signals += Get-ChildItem (Join-Path $decisionDir "action_*.json") -ErrorAction SilentlyContinue |
       Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    # 결정을 푸는 중이라는 신호. 후보 평가마다 한 줄씩 붙으므로 solve 가 길어도 계속
+    # 자라고, 진짜로 멈추면 안 자란다. 덕분에 StallSec 이 결정 시간에 안 묶인다.
+    $signals += Get-Item $progressFile -ErrorAction SilentlyContinue
+    $signals += Get-Item ([IO.Path]::ChangeExtension($progressFile, ".csv")) -ErrorAction SilentlyContinue
     foreach ($signal in $signals) {
       if ($signal -and $signal.LastWriteTime -gt $lastT) {
         $lastT = $signal.LastWriteTime

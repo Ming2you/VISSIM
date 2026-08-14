@@ -76,9 +76,12 @@ def main() -> int:
     ap.add_argument("--adjacency-b", default=J("outputs", "intersection_adjacency_n4dr150_geo30_20260813.json"),
                     help="비교 대상(새 규칙)")
     ap.add_argument("--out", default=J("outputs", "topology_inspector.html"))
-    ap.add_argument("--view", choices=["inspect", "clean"], default="inspect",
+    ap.add_argument("--view", choices=["inspect", "clean", "ties"], default="inspect",
                     help="inspect = 감사용(구·새 인접 겹침, 소유 링크 강조), "
-                         "clean = 새 규칙 결과만 읽기 쉽게 그린 판")
+                         "clean = 새 규칙 결과만 읽기 쉽게 그린 판, "
+                         "ties = 미해결 라우팅 tie 를 도로 위에 띄워 판정하는 판")
+    ap.add_argument("--ties-json", default=J("outputs", "link_player_assignment_ties_n4dr150_20260813.json"),
+                    help="assign_links_to_players.py --tie-evidence-out 산출물")
     args = ap.parse_args()
 
     cfg_net = load_config_chain(args.config)["config_overrides"]["network"]
@@ -169,8 +172,26 @@ def main() -> int:
                                    if r["owner"] and "SC%s" % r["owner"] == node), 1),
         })
 
+    # tie 판정용 — 링크 폴리라인은 이미 links 에 다 있으므로 구조만 싣는다.
+    ties: list[dict] = []
+    if os.path.isfile(args.ties_json):
+        raw_ties = load_json(args.ties_json)
+        for group, key in (("downstream", "downstream_ties"), ("upstream", "ambiguous_upstream_ties")):
+            for t in raw_ties.get(key) or []:
+                ties.append({
+                    "group": group,
+                    "link": str(t.get("link")),
+                    "hop": t.get("hop"),
+                    "old_owner": ("SC%s" % own[str(t.get("link"))]) if own.get(str(t.get("link"))) else "",
+                    "selected": (t.get("selected") or {}).get("sc"),
+                    "candidates": [
+                        {"link": str(c.get("link")), "sc": c.get("sc"), "kind": c.get("kind", "signal")}
+                        for c in (t.get("candidates") or [])
+                    ],
+                })
+
     payload = {
-        "nodes": nodes, "links": links, "gates": gates,
+        "nodes": nodes, "links": links, "gates": gates, "ties": ties,
         "adj_a": adjA, "adj_b": adjB,
         "removed": sorted(setA - setB), "added": sorted(setB - setA),
         "seg_a": rawA.get("internal_link_members", {}),
@@ -183,8 +204,9 @@ def main() -> int:
         },
     }
 
-    tpl_name = ("topology_inspector_template.html" if args.view == "inspect"
-                else "topology_clean_template.html")
+    tpl_name = {"inspect": "topology_inspector_template.html",
+                "clean": "topology_clean_template.html",
+                "ties": "topology_ties_template.html"}[args.view]
     tpl = os.path.join(os.path.dirname(os.path.abspath(__file__)), tpl_name)
     with open(tpl, encoding="utf-8") as fh:
         html = fh.read()

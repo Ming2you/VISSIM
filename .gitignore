@@ -39,5 +39,10 @@ outputs/physical_stock_topology_v2_1.json
 # 낡았는지는 --check-only 로 본다. 저장해 두면 낡는다 - 07-31 사본이 소스 네트워크와
 # 컴파일러 판번호 둘 다 낡은 채로 신호를 37/392/475 로 과소 계상했다(실제 50/440/541).
 outputs/canonical_topology_v3.json
+# 2026-08-14: 망 판본마다 정본 토폴로지가 하나씩 생긴다(판당 23 MB). v3 초판과 같은
+# 이유로 커밋하지 않는다 - build_canonical_topology.py 로 재생성되고 산출물이 자기
+# provenance 에 inpx_sha256 을 싣고 있어 어느 망에서 나왔는지 추적 가능하다.
+outputs/canonical_topology_*.json
+plant/outputs/canonical_topology_*.json
 # topology_approval_v2_1.json 은 무시하지 않는다. v3 초판이 승인 사슬을 뺀 것은 오판이었고
 # N0-3 에서 되살렸다 - validate_state_projection_v2_1.py:22-26 이 그것을 import 한다.

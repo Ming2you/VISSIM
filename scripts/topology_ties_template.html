@@ -1,0 +1,234 @@
+<title>라우팅 tie 판정판 — 개포동</title>
+<style>
+:root{
+  --ground:#F5F7F5; --surface:#FFFFFF; --sunk:#ECEFED;
+  --ink:#131917; --ink-2:#3C4744; --muted:#6B7772; --rule:#DAE1DC;
+  --accent:#0B6E75; --tie:#C1322B; --gate:#B0761A;
+  --c1:#1F6FB2; --c2:#7A3FA6; --c3:#0E8A5F; --c4:#B0761A; --c5:#8A6A3A;
+  --shadow:0 1px 2px #1319170D, 0 10px 28px #1319170F;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0D1110; --surface:#151A18; --sunk:#1D2321;
+    --ink:#E7EEE9; --ink-2:#B7C3BE; --muted:#8A9791; --rule:#28312E;
+    --accent:#4FBFC7; --tie:#F2705F; --gate:#E0A93F;
+    --c1:#63AEEA; --c2:#BC90E0; --c3:#5FC79A; --c4:#E0A93F; --c5:#C4A878;
+    --shadow:0 1px 2px #0007, 0 10px 28px #0009;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0D1110; --surface:#151A18; --sunk:#1D2321;
+  --ink:#E7EEE9; --ink-2:#B7C3BE; --muted:#8A9791; --rule:#28312E;
+  --accent:#4FBFC7; --tie:#F2705F; --gate:#E0A93F;
+  --c1:#63AEEA; --c2:#BC90E0; --c3:#5FC79A; --c4:#E0A93F; --c5:#C4A878;
+  --shadow:0 1px 2px #0007, 0 10px 28px #0009;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--ground); color:var(--ink);
+  font-family:ui-sans-serif,-apple-system,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  font-size:15px; line-height:1.55}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-variant-numeric:tabular-nums}
+.wrap{max-width:1440px; margin:0 auto; padding:32px 24px 72px; display:flex; flex-direction:column; gap:24px}
+.eyebrow{font-family:ui-monospace,Consolas,monospace; font-size:11px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--tie)}
+h1{margin:0; font-size:clamp(24px,3.2vw,34px); line-height:1.14; letter-spacing:-.02em; text-wrap:balance}
+.sub{margin:0; color:var(--muted); max-width:74ch}
+.board{display:grid; grid-template-columns:minmax(0,1fr) 380px; gap:20px; align-items:start}
+@media (max-width:1080px){.board{grid-template-columns:minmax(0,1fr)}}
+.plate{background:var(--surface); border:1px solid var(--rule); border-radius:5px; box-shadow:var(--shadow); overflow:hidden}
+.bar{display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid var(--rule); background:var(--sunk)}
+.tg{font:inherit; font-size:12px; padding:5px 10px; border:1px solid var(--rule); border-radius:3px;
+  background:var(--surface); color:var(--ink-2); cursor:pointer}
+.tg[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--surface)}
+.tg:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+svg#plate{display:block; width:100%; height:min(76vh,760px); background:var(--surface); touch-action:none; cursor:grab}
+svg#plate.drag{cursor:grabbing}
+.rail{display:flex; flex-direction:column; gap:12px; position:sticky; top:20px; max-height:calc(100vh - 40px); overflow:auto}
+.card{background:var(--surface); border:1px solid var(--rule); border-radius:5px; padding:14px 16px; box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.tielist{display:flex; flex-direction:column; gap:4px}
+.tiebtn{display:flex; justify-content:space-between; gap:8px; align-items:baseline; width:100%;
+  font:inherit; font-size:13px; text-align:left; padding:6px 9px; border:1px solid var(--rule);
+  border-radius:3px; background:var(--surface); color:var(--ink); cursor:pointer}
+.tiebtn:hover{border-color:var(--accent)}
+.tiebtn[aria-current="true"]{background:var(--tie); border-color:var(--tie); color:#fff}
+.tiebtn .who{font-family:ui-monospace,Consolas,monospace; font-size:11.5px; opacity:.85}
+table{border-collapse:collapse; width:100%; font-size:13px}
+th,td{text-align:left; padding:5px 8px; border-bottom:1px solid var(--rule)}
+th{font-size:11px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); font-weight:600}
+td.num{text-align:right; font-family:ui-monospace,Consolas,monospace; font-variant-numeric:tabular-nums}
+.swatch{display:inline-block; width:11px; height:11px; border-radius:2px; vertical-align:-1px; margin-right:5px}
+.legend{display:flex; flex-direction:column; gap:6px; font-size:13px}
+.legend div{display:flex; align-items:center; gap:9px}
+.sw{width:24px; height:0; border-top-width:3px; border-top-style:solid; flex:none}
+footer{color:var(--muted); font-size:12.5px; border-top:1px solid var(--rule); padding-top:14px}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">unresolved routing ties · fail-closed</div>
+  <h1>라우팅 tie 판정판 — 개포동</h1>
+  <p class="sub">링크 소유는 <b>하류로 따라가 처음 만나는 정지선의 SC</b> 다. tie 는 그 하류가
+  갈릴 때 생긴다. 굵은 빨간 선이 판정 대상 링크이고 화살표가 진행 방향이다. 색 선이 후보
+  정지선 링크다 — 빨간 선의 화살표가 어느 색으로 이어지는지가 답이다.</p>
+</header>
+
+<div class="board">
+  <div class="plate">
+    <div class="bar" id="bar"></div>
+    <svg id="plate" role="img" aria-label="라우팅 tie 판정 도면"></svg>
+  </div>
+  <div class="rail">
+    <div class="card">
+      <h2>선택한 tie</h2>
+      <div id="sel" style="font-size:13px;color:var(--ink-2)">아래 목록에서 tie 를 고르면 도면이 그리로 확대된다.</div>
+    </div>
+    <div class="card">
+      <h2>tie 목록</h2>
+      <div class="tielist" id="list"></div>
+    </div>
+    <div class="card">
+      <h2>범례</h2>
+      <div class="legend">
+        <div><span class="sw" style="border-top-color:var(--tie)"></span> 판정 대상 링크 (화살표 = 진행방향)</div>
+        <div><span class="sw" style="border-top-color:var(--muted); border-top-width:1px"></span> 그 외 도로</div>
+        <div><span class="swatch" style="background:var(--accent)"></span> 교차로 중심</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer id="foot"></footer>
+</div>
+
+<script id="d" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('d').textContent);
+const LK = Object.fromEntries(D.links.map(l => [l.no, l]));
+const N = Object.fromEntries(D.nodes.filter(n => n.x !== null).map(n => [n.node, n]));
+const FOLLOWER = Object.fromEntries(D.nodes.filter(n => n.follower).map(n => [n.node, n.follower]));
+const CAND_COLORS = ['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)'];
+
+/* 삼각지대 = SC1004/SC1005/SC107 가 후보로 걸린 tie */
+const TRI = new Set(['1004','1005','107']);
+const isTri = t => t.candidates.some(c => c.sc !== null && c.sc !== undefined && TRI.has(String(c.sc)));
+let onlyTri = true;
+const shown = () => D.ties.filter(t => !onlyTri || isTri(t));
+
+const svg = document.getElementById('plate'), NS = 'http://www.w3.org/2000/svg';
+const P = D.nodes.filter(n => n.x !== null);
+const minX = Math.min(...P.map(n => n.x)), maxX = Math.max(...P.map(n => n.x));
+const minY = Math.min(...P.map(n => n.y)), maxY = Math.max(...P.map(n => n.y));
+const PAD = 80, VW = 1240, VH = 1120;
+const sx = v => PAD + (v - minX) / (maxX - minX) * (VW - 2 * PAD);
+const sy = v => VH - PAD - (v - minY) / (maxY - minY) * (VH - 2 * PAD);
+svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`);
+const root = document.createElementNS(NS, 'g'); svg.appendChild(root);
+const L = {}; ['road','cand','tie','node','label'].forEach(k => { L[k] = document.createElementNS(NS,'g'); root.appendChild(L[k]); });
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || root).appendChild(e); return e; };
+const pathOf = l => { let d = ''; for (let i = 0; i < l.pts.length; i += 2) d += (i ? 'L' : 'M') + sx(l.pts[i]) + ' ' + sy(l.pts[i+1]) + ' '; return d; };
+
+D.links.forEach(l => el('path', {d:pathOf(l), fill:'none', stroke:'var(--muted)',
+  'stroke-width':1, 'stroke-opacity':.28, 'stroke-linecap':'round'}, L.road));
+
+P.forEach(n => {
+  el('rect', {x:sx(n.x) - 5, y:sy(n.y) - 5, width:10, height:10, rx:1.5,
+    fill:n.controlled ? 'var(--accent)' : 'var(--surface)',
+    stroke:'var(--accent)', 'stroke-width':1.5}, L.node);
+  const t = el('text', {x:sx(n.x) + 9, y:sy(n.y) - 7, 'font-size':12, fill:'var(--muted)',
+    'font-family':'ui-monospace,Consolas,monospace'}, L.label);
+  t.textContent = n.node.replace('SC','') + (FOLLOWER[n.node] ? `·f${FOLLOWER[n.node]}` : '');
+});
+
+function arrow(l, color, width) {
+  const p = l.pts, n = p.length;
+  el('path', {d:pathOf(l), fill:'none', stroke:color, 'stroke-width':width,
+    'stroke-linecap':'round', 'stroke-linejoin':'round'}, L.tie);
+  const x1 = sx(p[n-4]), y1 = sy(p[n-3]), x2 = sx(p[n-2]), y2 = sy(p[n-1]);
+  const a = Math.atan2(y2 - y1, x2 - x1), s = 13;
+  el('polygon', {points:
+    `${x2},${y2} ${x2 - s*Math.cos(a - .4)},${y2 - s*Math.sin(a - .4)} ${x2 - s*Math.cos(a + .4)},${y2 - s*Math.sin(a + .4)}`,
+    fill:color}, L.tie);
+}
+
+let current = null;
+function select(idx) {
+  const t = shown()[idx];
+  current = t;
+  L.tie.replaceChildren(); L.cand.replaceChildren();
+  const tl = LK[t.link];
+  if (tl) arrow(tl, 'var(--tie)', 5);
+  const rows = t.candidates.map((c, i) => {
+    const col = CAND_COLORS[i % CAND_COLORS.length];
+    const cl = LK[c.link];
+    if (cl) {
+      el('path', {d:pathOf(cl), fill:'none', stroke:col, 'stroke-width':10,
+        'stroke-opacity':.25, 'stroke-linecap':'round'}, L.cand);
+      el('path', {d:pathOf(cl), fill:'none', stroke:col, 'stroke-width':3.2,
+        'stroke-linecap':'round'}, L.cand);
+    }
+    const who = c.sc !== null && c.sc !== undefined ? `SC${c.sc}` : `고속 ${c.link}`;
+    const f = FOLLOWER['SC' + c.sc];
+    return `<tr><td><span class="swatch" style="background:${col}"></span><span class="mono">${c.link}</span></td>
+      <td class="mono">${who}${f ? ` f${f}` : ''}</td><td class="mono">${cl ? cl.len + 'm' : '-'}</td></tr>`;
+  }).join('');
+  document.getElementById('sel').innerHTML =
+    `<div style="margin-bottom:8px"><b class="mono">링크 ${t.link}</b>
+       <span class="mono" style="color:var(--muted)">${t.group === 'downstream' ? '하류' : '상류'} · hop ${t.hop ?? '-'}</span><br>
+       <span style="font-size:12px;color:var(--muted)">구 배정 ${t.old_owner || '없음'}${t.selected ? ` · 구 선택 SC${t.selected}` : ''}</span></div>
+     <table><thead><tr><th>후보 링크</th><th>귀속</th><th>길이</th></tr></thead><tbody>${rows}</tbody></table>`;
+  [...document.querySelectorAll('.tiebtn')].forEach((b, i) => b.setAttribute('aria-current', String(i === idx)));
+  zoomTo(t);
+}
+
+function zoomTo(t) {
+  const ids = [t.link, ...t.candidates.map(c => c.link)];
+  const xs = [], ys = [];
+  ids.forEach(id => { const l = LK[id]; if (!l) return;
+    for (let i = 0; i < l.pts.length; i += 2) { xs.push(sx(l.pts[i])); ys.push(sy(l.pts[i+1])); } });
+  if (!xs.length) return;
+  const w = Math.max(Math.max(...xs) - Math.min(...xs), 80), h = Math.max(Math.max(...ys) - Math.min(...ys), 80);
+  k = Math.min(9, Math.max(.5, 0.78 * Math.min(VW / w, VH / h)));
+  px = VW / 2 - ((Math.min(...xs) + Math.max(...xs)) / 2) * k;
+  py = VH / 2 - ((Math.min(...ys) + Math.max(...ys)) / 2) * k;
+  apply();
+}
+
+function renderList() {
+  const list = document.getElementById('list');
+  list.innerHTML = shown().map((t, i) => {
+    const who = t.candidates.map(c => c.sc != null ? 'SC' + c.sc : 'FW').join(' / ');
+    return `<button class="tiebtn" data-i="${i}"><span class="mono">${t.link}</span><span class="who">${who}</span></button>`;
+  }).join('');
+  [...list.querySelectorAll('.tiebtn')].forEach(b => b.onclick = () => select(+b.dataset.i));
+  if (shown().length) select(0);
+}
+
+const bar = document.getElementById('bar');
+const tb = document.createElement('button');
+tb.className = 'tg'; tb.textContent = '삼각지대만 (SC1004·1005·107)'; tb.setAttribute('aria-pressed', 'true');
+tb.onclick = () => { onlyTri = tb.getAttribute('aria-pressed') !== 'true'; tb.setAttribute('aria-pressed', String(onlyTri)); renderList(); };
+bar.appendChild(tb);
+const rb = document.createElement('button');
+rb.className = 'tg'; rb.textContent = '전체 보기';
+rb.onclick = () => { k = 1; px = 0; py = 0; apply(); }; bar.appendChild(rb);
+const hint = document.createElement('span');
+hint.style.cssText = 'font-size:12px;color:var(--muted);align-self:center;margin-left:4px';
+hint.textContent = '목록에서 고르면 그리로 확대된다 · 휠 확대 · 끌어서 이동'; bar.appendChild(hint);
+
+let k = 1, px = 0, py = 0, drag = null;
+const apply = () => root.setAttribute('transform', `translate(${px} ${py}) scale(${k})`);
+svg.addEventListener('wheel', e => { e.preventDefault();
+  const r = svg.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width * VW, my = (e.clientY - r.top) / r.height * VH;
+  const nk = Math.min(14, Math.max(.4, k * (e.deltaY < 0 ? 1.16 : 1/1.16)));
+  px = mx - (mx - px) * (nk / k); py = my - (my - py) * (nk / k); k = nk; apply(); }, {passive:false});
+svg.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, px, py}; svg.classList.add('drag'); svg.setPointerCapture(e.pointerId); });
+svg.addEventListener('pointermove', e => { if (!drag) return; const r = svg.getBoundingClientRect();
+  px = drag.px + (e.clientX - drag.x) / r.width * VW; py = drag.py + (e.clientY - drag.y) / r.height * VH; apply(); });
+['pointerup','pointercancel'].forEach(t => svg.addEventListener(t, () => { drag = null; svg.classList.remove('drag'); }));
+
+renderList();
+document.getElementById('foot').textContent =
+  `tie ${D.ties.length}건 (삼각지대 ${D.ties.filter(isTri).length}건) · 망 ${D.sources.network} · ` +
+  `재생성: python scripts/build_topology_inspector.py --view ties --out outputs/topology_ties.html`;
+</script>
