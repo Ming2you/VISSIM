@@ -1,0 +1,265 @@
+{
+  "schema_version": "physical-stock-calibration-v3",
+  "status": "PASS",
+  "reasons": [],
+  "split": {
+    "training_seeds": [
+      13,
+      29
+    ],
+    "holdout_seeds": [
+      47
+    ],
+    "training_cells": [
+      "n5parent_20260814_congested_d125_s13",
+      "n5parent_20260814_congested_d125_s29",
+      "n5parent_20260814_training_d075_s13",
+      "n5parent_20260814_training_d075_s29",
+      "n5parent_20260814_training_d100_s13",
+      "n5parent_20260814_training_d100_s29"
+    ],
+    "holdout_cells_not_read": [],
+    "incomplete_cells_excluded": [
+      "n5parent_20260814_holdout_d075_s47"
+    ],
+    "note": "holdout 셀은 적합·임계선택·후보교체에 쓰지 않았다. 이 도구는 읽지도 않는다."
+  },
+  "prior": {
+    "vehicle_length_m": 4.896882443225589,
+    "standstill_gap_m": 1.5,
+    "k_jam_prior_veh_km_lane": 156.3261493196608,
+    "source": "inpx vehicleInput volume-weighted composition -> model2D3DSegment length; standstill = drivingBehavior[1] WIEDEMANN74 ax",
+    "network": "modi_eval_userfix_20260814e.inpx",
+    "urban_driving_behavior": {
+      "name": "Urban (motorized)",
+      "car_following_model": "WIEDEMANN74",
+      "w74ax_m": 1.5,
+      "w99cc0_m": 1.5
+    },
+    "all_driving_behaviors": {
+      "1": {
+        "name": "Urban (motorized)",
+        "car_following_model": "WIEDEMANN74",
+        "w74ax_m": 1.5,
+        "w99cc0_m": 1.5
+      },
+      "2": {
+        "name": "Right-side rule (motorized)",
+        "car_following_model": "WIEDEMANN99",
+        "w74ax_m": 2.0,
+        "w99cc0_m": 1.5
+      },
+      "3": {
+        "name": "Freeway (free lane selection)",
+        "car_following_model": "WIEDEMANN99",
+        "w74ax_m": 2.0,
+        "w99cc0_m": 1.5
+      },
+      "4": {
+        "name": "Footpath (no interaction)",
+        "car_following_model": "NOINTERACTION",
+        "w74ax_m": 2.0,
+        "w99cc0_m": 1.5
+      },
+      "5": {
+        "name": "Cycle-Track (free overtaking)",
+        "car_following_model": "WIEDEMANN99",
+        "w74ax_m": 2.0,
+        "w99cc0_m": 0.5
+      }
+    },
+    "composition_count": 13,
+    "vehicle_type_count": 8,
+    "weighted_volume_vph": 130998.52000000005,
+    "per_composition_length_m": {
+      "1": 4.9184,
+      "10": 4.7781,
+      "11": 4.9944,
+      "12": 4.5795,
+      "13": 6.254,
+      "2": 4.4858,
+      "3": 7.3214,
+      "4": 4.6611,
+      "5": 4.6962,
+      "6": 5.1212,
+      "7": 4.954,
+      "8": 4.9552,
+      "9": 5.1237
+    }
+  },
+  "definitions": {
+    "saturated": "speed < 3.0 kph 이고 stopped >= 0.5 * count",
+    "stopped_threshold_kph_in_runner": [
+      1.0
+    ],
+    "note": "러너의 stopped 플래그는 위 임계로 찍힌다(계획의 lane-group 필터 3 kph 와 다를 수 있다). 보수적인 쪽이며 어느 정의를 썼는지 여기 기록한다.",
+    "max_queue_gap_m": 15.0,
+    "t0_sec": 900.0
+  },
+  "estimators": {
+    "headway": {
+      "k_jam_veh_km_lane": 168.17639850821593,
+      "median_gap_m": 5.946137560741896,
+      "samples": 20338,
+      "lane_groups": 1688,
+      "ci95": {
+        "available": true,
+        "clusters": 6,
+        "draws": 2000,
+        "point": 168.17639850821593,
+        "ci95_low": 167.7265819854828,
+        "ci95_high": 168.67372463731698,
+        "half_width": 0.47357132591709217,
+        "half_width_fraction": 0.002815920248725964
+      },
+      "method": "정지차 연속쌍 간격의 중앙값 -> 1000/gap"
+    },
+    "queue_occupancy": {
+      "k_jam_veh_km_lane": 152.27617690558043,
+      "samples": 942,
+      "ci95": {
+        "available": true,
+        "clusters": 6,
+        "draws": 2000,
+        "point": 152.27617690558043,
+        "ci95_low": 145.95091767329686,
+        "ci95_high": 158.92262167901063,
+        "half_width": 6.485852002856888,
+        "half_width_fraction": 0.04259269003633097
+      },
+      "method": "포화 링크에서 stopped / ((len - queue_tail)/1000 * lanes) 의 p90"
+    },
+    "link_p90": {
+      "k_jam_veh_km_lane": 133.7365861275315,
+      "samples": 1180,
+      "ci95": {
+        "available": true,
+        "clusters": 6,
+        "draws": 2000,
+        "point": 133.7365861275315,
+        "ci95_low": 118.83664457682819,
+        "ci95_high": 145.97356703042632,
+        "half_width": 13.568461226799066,
+        "half_width_fraction": 0.10145661422716558
+      },
+      "method": "링크별 최대밀도의 p90 (링크 전체 길이로 나눔 - 하향 편의 있음)"
+    }
+  },
+  "fit": {
+    "jam_density_veh_km_lane": 168.17639850821593,
+    "chosen_estimator": "headway",
+    "why": "간격을 직접 재므로 큐가 링크의 어디를 차지하는지에 의존하지 않는다. link_p90 은 밀도를 링크 전체 길이로 나눠 하향 편의가 있고, queue_occupancy 는 큐꼬리 관측이 anchor 4시점에만 있어 표본이 얇다.",
+    "vehicle_length_m": 4.896882443225589,
+    "standstill_gap_m_observed": 1.0492551175163065,
+    "standstill_gap_m_prior": 1.5,
+    "k_jam_prior_veh_km_lane": 156.3261493196608,
+    "prior_diff_fraction": 0.07580465098211656,
+    "seed_fit_spread_fraction": 0.01246902788155445,
+    "queue_tail_fallback_fraction": 0.0
+  },
+  "per_cell": [
+    {
+      "name": "n5parent_20260814_congested_d125_s13",
+      "role": "congested",
+      "demand": 1.25,
+      "seed": 13,
+      "headway_gap_samples": 5087,
+      "headway_lane_groups": 348,
+      "headway_median_gap_m": 5.940631471147981,
+      "headway_k_jam": 168.33227323673012,
+      "queue_occupancy_samples": 186,
+      "queue_occupancy_links": 100,
+      "queue_occupancy_p90": 154.4040707170632,
+      "link_p90_links": 214,
+      "link_p90": 150.7064162975293
+    },
+    {
+      "name": "n5parent_20260814_congested_d125_s29",
+      "role": "congested",
+      "demand": 1.25,
+      "seed": 29,
+      "headway_gap_samples": 5034,
+      "headway_lane_groups": 334,
+      "headway_median_gap_m": 5.956073090989927,
+      "headway_k_jam": 167.89585767722596,
+      "queue_occupancy_samples": 178,
+      "queue_occupancy_links": 98,
+      "queue_occupancy_p90": 162.52582715800938,
+      "link_p90_links": 211,
+      "link_p90": 144.26381962852784
+    },
+    {
+      "name": "n5parent_20260814_training_d075_s13",
+      "role": "training",
+      "demand": 0.75,
+      "seed": 13,
+      "headway_gap_samples": 1914,
+      "headway_lane_groups": 230,
+      "headway_median_gap_m": 5.983433148098246,
+      "headway_k_jam": 167.12813116627476,
+      "queue_occupancy_samples": 135,
+      "queue_occupancy_links": 67,
+      "queue_occupancy_p90": 138.79351529581595,
+      "link_p90_links": 181,
+      "link_p90": 115.30993638858692
+    },
+    {
+      "name": "n5parent_20260814_training_d075_s29",
+      "role": "training",
+      "demand": 0.75,
+      "seed": 29,
+      "headway_gap_samples": 1679,
+      "headway_lane_groups": 229,
+      "headway_median_gap_m": 5.9418708753020155,
+      "headway_k_jam": 168.29716111075396,
+      "queue_occupancy_samples": 144,
+      "queue_occupancy_links": 79,
+      "queue_occupancy_p90": 140.38810759336272,
+      "link_p90_links": 185,
+      "link_p90": 103.54212287543471
+    },
+    {
+      "name": "n5parent_20260814_training_d100_s13",
+      "role": "training",
+      "demand": 1.0,
+      "seed": 13,
+      "headway_gap_samples": 3363,
+      "headway_lane_groups": 280,
+      "headway_median_gap_m": 5.9565626124399955,
+      "headway_k_jam": 167.882059681795,
+      "queue_occupancy_samples": 153,
+      "queue_occupancy_links": 83,
+      "queue_occupancy_p90": 150.88202443932855,
+      "link_p90_links": 196,
+      "link_p90": 126.1717847328436
+    },
+    {
+      "name": "n5parent_20260814_training_d100_s29",
+      "role": "training",
+      "demand": 1.0,
+      "seed": 29,
+      "headway_gap_samples": 3261,
+      "headway_lane_groups": 267,
+      "headway_median_gap_m": 5.909309569338006,
+      "headway_k_jam": 169.22450724002695,
+      "queue_occupancy_samples": 146,
+      "queue_occupancy_links": 83,
+      "queue_occupancy_p90": 145.22333770012747,
+      "link_p90_links": 193,
+      "link_p90": 126.92106134994056
+    }
+  ],
+  "sample_dimensions": {
+    "training_cells": 6,
+    "anchors_per_cell": 4,
+    "headway_samples": 20338,
+    "saturated_lane_groups": 1688
+  },
+  "inputs": {
+    "run_dir": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\VISSIM\\evaluation\\runs\\n5_parent_20260814",
+    "assignment": "link_player_assignment_pedfold_20260814.json",
+    "assignment_sha256": "c2a03de32ab29eef2a0a20eb2ddbad32a44ecf91a963ab0f58554b79363b5bff",
+    "network": "modi_eval_userfix_20260814e.inpx"
+  },
+  "semantic_sha256": "34d54900030ca944cc8e8bcb7f9a9ac19d9e3817a45f09030c8acecf12867e19"
+}

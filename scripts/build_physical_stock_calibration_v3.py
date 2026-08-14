@@ -58,6 +58,7 @@ MIN_SAMPLES = 200
 MAX_CI_HALF_WIDTH_FRACTION = 0.10
 MAX_PRIOR_DIFF_FRACTION = 0.15
 MAX_SEED_FIT_DIFF_FRACTION = 0.15
+MAX_FALLBACK_FRACTION = 0.10
 # 같은 차로에서 이 간격을 넘으면 큐가 끊긴 것으로 본다. 정지차가 떨어져 서 있으면
 # 그 사이는 차간거리가 아니라 빈 공간이다.
 MAX_QUEUE_GAP_M = 15.0
@@ -70,8 +71,8 @@ INCOMPLETE_CELLS: list[str] = []
 # --------------------------------------------------------------------------- 기하 prior
 
 
-def vehicle_length_prior(inpx: Path) -> dict[str, Any]:
-    """볼륨 가중 차종 구성의 평균 차량 길이(m)를 망에서 계산한다."""
+def vehicle_length_prior(inpx: Path, urban_behavior_no: int = 1) -> dict[str, Any]:
+    """차량 길이와 정지거리 prior 를 **망에서** 계산한다. 임의 상수를 쓰지 않는다."""
     root = ET.parse(inpx).getroot()
 
     model_length: dict[str, float] = {}
@@ -128,10 +129,36 @@ def vehicle_length_prior(inpx: Path) -> dict[str, Any]:
         num += volume * length
         den += volume
 
+    # 정지거리도 망에서 나온다. Wiedemann 74 의 ax 가 평균 정지거리이고
+    # (w99cc0 은 Wiedemann 99 쪽), 도시부 링크가 쓰는 행태가 그 값을 준다.
+    behaviors: dict[str, Any] = {}
+    for db in root.iter("drivingBehavior"):
+        behaviors[str(db.get("no"))] = {
+            "name": db.get("name"),
+            "car_following_model": db.get("carFollowModType"),
+            "w74ax_m": float(db.get("w74ax")) if db.get("w74ax") else None,
+            "w99cc0_m": float(db.get("w99cc0")) if db.get("w99cc0") else None,
+        }
+    urban = behaviors.get(str(urban_behavior_no)) or {}
+    standstill = urban.get("w74ax_m") if urban.get("car_following_model") == "WIEDEMANN74" else urban.get("w99cc0_m")
+
+    length = (num / den) if den > 0 else float("nan")
+    prior_k = (
+        1000.0 / (length + standstill)
+        if standstill and not math.isnan(length) and (length + standstill) > 0
+        else float("nan")
+    )
     return {
-        "vehicle_length_m": (num / den) if den > 0 else float("nan"),
-        "source": "inpx vehicleInput volume-weighted composition -> model2D3DSegment length",
+        "vehicle_length_m": length,
+        "standstill_gap_m": standstill,
+        "k_jam_prior_veh_km_lane": prior_k,
+        "source": (
+            "inpx vehicleInput volume-weighted composition -> model2D3DSegment length; "
+            f"standstill = drivingBehavior[{urban_behavior_no}] {urban.get('car_following_model')} ax"
+        ),
         "network": inpx.name,
+        "urban_driving_behavior": urban,
+        "all_driving_behaviors": behaviors,
         "composition_count": len(comp_length),
         "vehicle_type_count": len(type_length),
         "weighted_volume_vph": den,
@@ -233,6 +260,8 @@ def queue_occupancy_samples(decision_dir: Path, geometry: dict[str, Any]) -> dic
     densities: list[float] = []
     links: set[str] = set()
     skipped_no_geometry = 0
+    # 큐꼬리 관측이 없어 링크 전체 길이로 떨어진 표본. 계획의 "fallback 분율 <=10%" 대상이다.
+    fallback_full_length = 0
     for path in _anchor_paths(decision_dir):
         payload = json.loads(path.read_text(encoding="utf-8"))
         obs = payload.get("local_observation") or {}
@@ -254,8 +283,13 @@ def queue_occupancy_samples(decision_dir: Path, geometry: dict[str, Any]) -> dic
             lanes = float(geo.get("lanes", 0) or 0)
             length_m = float(geo.get("len_m", 0.0) or 0.0)
             tail = float(tails.get(link, 0.0) or 0.0)
-            # 큐는 정지선(하류 끝)에서 꼬리까지다. 꼬리가 0 이면 링크 전체로 본다.
-            occupied_m = length_m - tail if tail > 0 else length_m
+            # 큐는 정지선(하류 끝)에서 꼬리까지다. 꼬리 관측이 없으면 링크 전체로
+            # 떨어지는데 그것이 바로 하향 편의를 만드는 폴백이라 따로 센다.
+            if tail > 0:
+                occupied_m = length_m - tail
+            else:
+                occupied_m = length_m
+                fallback_full_length += 1
             if lanes <= 0 or occupied_m <= 5.0:
                 continue
             densities.append(stp / (occupied_m / 1000.0) / lanes)
@@ -264,6 +298,7 @@ def queue_occupancy_samples(decision_dir: Path, geometry: dict[str, Any]) -> dic
         "densities": densities,
         "links": len(links),
         "skipped_no_geometry": skipped_no_geometry,
+        "fallback_full_length": fallback_full_length,
     }
 
 
@@ -398,6 +433,8 @@ def build(
     linkp90_by_cell: dict[str, list[float]] = {}
     thresholds: set[float] = set()
     lane_group_total = 0
+    fallback_total = 0
+    occupancy_attempts = 0
 
     for cell in training:
         hw = headway_samples(cell["decision_dir"])
@@ -408,6 +445,8 @@ def build(
         linkp90_by_cell[cell["name"]] = lp["per_link_max"]
         thresholds.update(hw["stopped_threshold_kph"])
         lane_group_total += hw["lane_groups"]
+        fallback_total += qo["fallback_full_length"]
+        occupancy_attempts += len(qo["densities"]) + qo["fallback_full_length"]
         per_cell.append(
             {
                 "name": cell["name"],
@@ -459,6 +498,20 @@ def build(
             reasons.append(
                 f"정지간격이 음수다({standstill_gap:.3f} m) - 차량길이 prior {length_prior:.3f} m 가 관측 간격 {median_gap:.3f} m 보다 크다"
             )
+    # geometry prior 와의 차이. prior 도 망에서 나오므로 자기참조가 아니다.
+    prior_k = prior.get("k_jam_prior_veh_km_lane", float("nan"))
+    prior_diff = (
+        abs(k_jam - prior_k) / prior_k
+        if prior_k and not math.isnan(prior_k) and not math.isnan(k_jam)
+        else float("nan")
+    )
+    if not math.isnan(prior_diff) and prior_diff > MAX_PRIOR_DIFF_FRACTION:
+        reasons.append(f"geometry prior 차이 {prior_diff:.1%} > {MAX_PRIOR_DIFF_FRACTION:.0%}")
+
+    fallback_fraction = (fallback_total / occupancy_attempts) if occupancy_attempts else float("nan")
+    if not math.isnan(fallback_fraction) and fallback_fraction > MAX_FALLBACK_FRACTION:
+        reasons.append(f"fallback 분율 {fallback_fraction:.1%} > {MAX_FALLBACK_FRACTION:.0%}")
+
     seed_fits = [c["headway_k_jam"] for c in per_cell if not math.isnan(c["headway_k_jam"])]
     if len(seed_fits) >= 2:
         spread = (max(seed_fits) - min(seed_fits)) / st.mean(seed_fits)
@@ -525,8 +578,12 @@ def build(
                 "큐꼬리 관측이 anchor 4시점에만 있어 표본이 얇다."
             ),
             "vehicle_length_m": length_prior,
-            "standstill_gap_m": standstill_gap,
+            "standstill_gap_m_observed": standstill_gap,
+            "standstill_gap_m_prior": prior.get("standstill_gap_m"),
+            "k_jam_prior_veh_km_lane": prior_k,
+            "prior_diff_fraction": prior_diff,
             "seed_fit_spread_fraction": spread,
+            "queue_tail_fallback_fraction": fallback_fraction,
         },
         "per_cell": per_cell,
         "sample_dimensions": {
@@ -602,12 +659,23 @@ def main(argv: Sequence[str] | None = None) -> int:
             payload["semantic_sha256"][:16],
         )
     )
+    fit = payload["fit"]
     print(
-        "  차량길이 prior %.3f m   관측 간격 중앙값 %.3f m   정지간격 %.3f m"
+        "  차량길이 %.3f m + 정지거리 prior %.3f m -> prior k_jam %.2f   (관측 간격 %.3f m, 정지간격 %.3f m)"
         % (
             payload["prior"]["vehicle_length_m"],
+            payload["prior"]["standstill_gap_m"] or float("nan"),
+            fit["k_jam_prior_veh_km_lane"],
             est["headway"]["median_gap_m"],
-            payload["fit"]["standstill_gap_m"],
+            fit["standstill_gap_m_observed"],
+        )
+    )
+    print(
+        "  prior 차이 %.1f%%   시드별 차이 %.1f%%   큐꼬리 fallback %.1f%%"
+        % (
+            100.0 * fit["prior_diff_fraction"],
+            100.0 * fit["seed_fit_spread_fraction"],
+            100.0 * fit["queue_tail_fallback_fraction"],
         )
     )
     for name in ("headway", "queue_occupancy", "link_p90"):
