@@ -999,6 +999,77 @@ training/holdout 시드 중복 0.
 jam CI 반폭 `<= 추정값의 10%`, geometry prior 차이 `<=15%`, training 시드별 적합 차이 `<=15%`,
 fallback 분율 사용 `<=10%`.
 
+> ### 데이터 점검 (2026-08-15) — **부모런 재실행 불필요**
+>
+> N5 부모런이 도는 중에 N6 가 요구하는 데이터가 실제로 남는지 확인했다. 남는다.
+>
+> #### 지금 무엇을 쓰고 있나 — 표본 0개짜리 상수
+>
+> `outputs/urban_storage_capacity_ovr_20260814.json` 이
+> `"jam_density_veh_km_lane": 130.0`, **`"jam_sample_count": 0`** 이다.
+> 지금 plant 는 관측이 하나도 없는 폴백 상수로 돌고 있다. N6 이 갈아끼워야 하는 값이
+> 바로 이것이고, 이 부모런이 그것을 채울 **첫 데이터**다.
+>
+> 추정기는 이미 있다 — `scripts/derive_urban_storage_capacity.py:39 derive_jam_density()`
+> 가 계획의 필터(`speed < 3.0` 이고 `stopped >= 0.5 * count`, 링크별 최대밀도의 p90,
+> 표본 `<10` 이면 폴백)를 그대로 구현하고 입력도 정확히 `bottleneck_links` CSV +
+> `link_geometry` 다.
+>
+> #### 데이터가 두 층으로 나뉜다
+>
+> | 층 | 어디에 | 무엇이 | 시간 해상도 |
+> |---|---|---|---|
+> | 링크 | `bottleneck_links_*.csv` (셀당 22만 행) | 링크별 대수·정지수·속도 | **5초** |
+> | 차로 | `decisions_*/anchor_*.json` | **전 차량 레코드** `veh_no, link_no, lane_no, position_m, speed_kph, stopped` | anchor 4시점 |
+>
+> 러너가 `ScanVehicleState` 에서 차로·위치까지 읽지만
+> (`run_real_world_stackelberg_controller.vbs:2453`) 집계 키가 `CStr(linkNo)` 라
+> (`:2581`) **5초 CSV 에서는 차로가 버려진다.** lane-group 해상도는 anchor 4시점에만 있다.
+> 큐꼬리(`linkQueueTails`)도 계산은 되지만(`:2590`) `WriteBottleneckRows` 인자에 없어
+> CSV 로 안 나가고, `local_observation.link_queue_tail_pos_m`(`:2219`)로 anchor 에만 남는다.
+>
+> #### 그래도 충분한 이유 — 실측 표본
+>
+> **완료 4셀만으로** 고유 포화 lane-group **355개**(기하 있는 것 319개), 차량 표본
+> **8,745개**. 계획 임계 `lane-group >= 30`, `표본 >= 200` 을 이미 크게 넘는다.
+> 링크 층은 셀당 포화 링크 181~196개 / 포화 링크-시점 2만여 행.
+>
+> #### 두 추정치가 갈리고, 그 차이가 큐꼬리를 필수로 만든다
+>
+> | 방법 | k_jam (veh/km/lane) |
+> |---|---:|
+> | 정지차 연속쌍 간격 중앙값 5.94 m | **168** |
+> | 링크별 최대밀도 p90 | 103 ~ 129 |
+>
+> 링크 층이 낮게 나오는 것은 밀도를 **링크 전체 길이**로 나누기 때문이다 — 큐가 링크의
+> 일부만 차지하면 하향 편의가 생긴다. 그래서 계획이 말한 "큐꼬리 관측으로 고정 분율
+> (0.35/0.50)을 대체한다" 가 선택이 아니라 **사실상 필수**다. 그리고 그 관측은 anchor
+> 4시점에만 있다(9셀이면 36 스냅샷, training/congested 6셀이면 24개).
+>
+> #### 정정과 주의
+>
+> - **고속도로 세그먼트는 jam density 에 기여 0.** `bottleneck_segments_*.csv` 가 밀도·
+>   길이·차로수를 유일하게 자체 보유하지만, 이 수요에서 최대 밀도가 28.8 veh/km/lane 이라
+>   포화 행이 **0개**다. jam density 는 전부 도시부에서 나온다.
+> - **정지 판정 임계가 다르다.** 러너는 `B1A_STOPPED_THRESHOLD_KPH = 1.0`(`:211`) 로
+>   `stopped` 를 찍는데 계획의 lane-group 필터는 `speed <= 3 kph` 다. 보수적인 쪽이라
+>   막지는 않지만 산출물에 어느 정의를 썼는지 기록해야 한다.
+> - **기하는 `link_player_assignment_pedfold_20260814.json` 의 `link_geometry` 를 쓴다.**
+>   952링크 전부를 돌고 있는 `.inpx` 폴리라인에서 재계산해 대조했고 3% 초과 불일치 **0건**,
+>   그리고 이 파일이 `run_provenance.files.link_assignment` 로 런에 묶여 있다.
+>   `evaluation/real_world_modi_inventory/link_roles.csv` 는 쓰지 마라 — 길이 3% 초과
+>   불일치 17건, 차로수 불일치 4건(10139 10492 10603 10614)으로 **망보다 낡았다**.
+> - **차량 길이 속성은 어디에도 기록되지 않는다.** 간격에서 얻는 것은 (차량길이 + 정지간격)
+>   의 합뿐이라 둘의 분해에는 prior 가 필요하다. 계획이 prior 를 요구한 이유가 이것이다.
+> - run-cluster bootstrap 의 클러스터는 training + congested **6셀**이다. CI 반폭 `<=10%`
+>   는 9셀 완주 전에는 확인할 수 없다.
+>
+> #### 유일한 재실행 사유 (지금 기준으로는 해당 없음)
+>
+> N6 가 "포화 lane-group 의 **시간축 궤적**" 을 요구하게 되면 anchor 4시점으로는 부족해
+> 러너를 고쳐(집계 키에 차로 추가) 9셀을 다시 돌려야 한다. 현행 임계는 독립 lane-group
+> 개수와 표본 수만 요구하므로 해당하지 않는다.
+
 ## N7. production MPC rollout endpoint — P0
 
 순수 함수 `evaluate_price_point(state, previous, forecast, action_schedule, objective_spec)` 를 만들고
