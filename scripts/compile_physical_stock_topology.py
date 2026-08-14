@@ -42,22 +42,30 @@ SCHEMA_VERSION = "physical-stock-topology-v2.1"
 COMMAND_VERSION = "compile-physical-stock-topology/2.1.1"
 POSITION_TOLERANCE_M = 1.0e-6
 WEIGHT_TOLERANCE = 1.0e-9
+# 생산 격자를 못 박는 세 상수. 격자를 바꾸면 여기도 같이 바꿔야 하고, 바꾸는 순간
+# 옛 격자로는 컴파일이 안 된다. 그래서 새 격자로 실런이 도는 것을 본 뒤에 갱신한다.
+#
+# 2026-08-14 갱신 — pedovrx 격자. 이전 값은 2026-08-05 판이었다.
+#   보행자 노드 7개(SC2 SC3 SC8 SC17 SC18 SC19 SC9002)를 midblock 으로 접고,
+#   tie 38건을 분수 귀속으로 해소하고, 유입 게이트 30개를 vehicleInput 근거로 추가하고,
+#   저류 강제 지정 46링크(941 veh)를 얹은 결과다. 검증 런: 결정 31건 전부 exit=0,
+#   실패·COM오류·관측실패 0, SIGNAL_SG_PLAN_ROWS 3,658, 표현률 92.0%, 저류 클리핑 0.
 PRODUCTION_PARTITION_COUNTS = {
-    "urban_owned": 957,
-    "freeway_bound": 22,
-    "boundary_out": 226,
-    "total": 1205,
+    "urban_owned": 952,
+    "freeway_bound": 10,
+    "boundary_out": 242,
+    "total": 1204,
 }
 TRUSTED_PRODUCTION_FILE_HASHES = {
-    "ownership_evidence": "ba9c13ba9fe9e05c51866a50221a1054d73a3379315bf97c108a0552397eb01f",
-    "adjacency_evidence": "a7cafe52693dfc46098f14763e37772a6f680ec56af28ac432bfcbfb907ae8ae",
-    "capacity_evidence": "f196de2c444c72b117fec7f0e16f2c81189acada686b76f3def273096d8f87d5",
+    "ownership_evidence": "c2a03de32ab29eef2a0a20eb2ddbad32a44ecf91a963ab0f58554b79363b5bff",
+    "adjacency_evidence": "b200ebe9a40b7943b883c4b6f5a47b5ff9937d03f89842a17550ce03c4c55d2d",
+    "capacity_evidence": "87e3858a44797094037516d0f4e533223bcefeaf62cc4d3c92cb2994b730c918",
 }
 TRUSTED_PRODUCTION_EVIDENCE_HASHES = {
-    "ownership_evidence_semantic_sha256": "a0024f2d5560aec48e71425ced7601f16a634747fe560f6d483fc9930704c01a",
-    "adjacency_evidence_semantic_sha256": "41bf3d1218243a480c806fd8429680c6c1c290ee3539909728fec9d6fe7c12fb",
-    "capacity_evidence_semantic_sha256": "32265f0a887f5a7d5002bd5ea81bac3fdc51e8a206c4a2ea329cc4208339a2b3",
-    "legacy_partition_identity_sha256": "d386df06e9d583c6263741a80c6038d0ec80534566a44f5f0bf02947172a22e6",
+    "ownership_evidence_semantic_sha256": "4988054c98d657ecbff287286eb281b8ead95fab0ad29467b8e0ba3282f038f1",
+    "adjacency_evidence_semantic_sha256": "1f9311c5841c683f894ed937ccf1703e4848df9ed32c13f24e3cd57901b39d48",
+    "capacity_evidence_semantic_sha256": "0277a749acfc8a23f1babe0bce85a6607703890e6811de9d8d36093c72b658b0",
+    "legacy_partition_identity_sha256": "827537702b11cb2a011ca265583796782fb62d842b56996ca041e4400f41d395",
 }
 OBJECTIVE_POLICIES = {
     "physical_total": "include every in-network physical stock",
