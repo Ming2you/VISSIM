@@ -51,14 +51,23 @@ ADVISORY_ARTIFACTS = (
 STAGES: tuple[dict[str, Any], ...] = (
     {
         "name": "N5_parent_runs",
-        "what": "개발용 부모 런 9개(demand 3 x seed 3) + 부모-anchor 당 base replay 20회",
+        "what": "개발용 부모 런 9개(demand 3 x seed 3) + 부모당 base replay 20회",
         "command": (
-            "powershell -File scripts/run_plant_fidelity_matrix.ps1 "
-            "-Strict -RequireComplete -OutDir evaluation\\runs\\<new>"
+            "powershell -File scripts/run_n5_parent_runs.ps1        # 부모 9개\n"
+            "        powershell -File scripts/run_n5_base_replays.ps1 -Replays 20\n"
+            "        python scripts/build_n5_parent_run_evidence.py --run-dir <dir> --out outputs/n5_parent_run_evidence_20260814.json\n"
+            "        python scripts/measure_eps_j_vissim.py --run-dir <dir> --prefix <parent> --out outputs/development_noise_v3.json"
         ),
         "produces": ["anchor 상태 900/1500/2100/2700", "eps_J_vissim"],
         "unblocks": ["N6_calibration", "N9_paired_matrix"],
-        "note": "러너 기본값이 시드 13/29/47 x demand 0.75/1.0/1.25 라 부모 9개와 일치한다.",
+        "note": (
+            "2026-08-15 정정. 이전 항목은 run_plant_fidelity_matrix.ps1 하나가 eps_J_vissim 까지 "
+            "낸다고 적었는데 **사실이 아니다** - 그 러너는 (demand x seed) 9셀을 한 번씩 돌 뿐이라 "
+            "부모런만 나오고 반복 표본이 없다. 게다가 워치독을 core15n41 로 못박아 pedovrx 격자를 "
+            "못 돈다(:43, 인자 해시에 Network/Tuning 키가 없어 덮어쓸 통로도 없다). "
+            "base replay 는 부모-anchor 당이 아니라 **부모당** 20회면 된다 - 한 replay 의 상태 "
+            "시계열에서 창만 다르게 잘라 anchor 4개의 J 를 전부 얻는다."
+        ),
     },
     {
         "name": "N4_6_signal_oracle",
