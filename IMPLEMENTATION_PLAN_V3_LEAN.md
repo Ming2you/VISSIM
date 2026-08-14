@@ -907,6 +907,25 @@ one-step / H=3 통합 테스트 PASS.
 > vendor 가 `5a2fe7d` 로 재앵커돼 이제 어댑터가 endpoint 를 import 할 수 있다 —
 > 그전까지는 `rollout_endpoint.py` 가 스냅샷에 없어 통합 자체가 불가능했다.
 
+> ### 재확인 (2026-08-14) — **우회 0, N7 충족**
+>
+> 위 착지 뒤에 남은 7곳이 전부 정리됐다. 오늘 실측이다(테스트·주석 제외).
+>
+> | plant 전진 함수 | 직접 호출 |
+> |---|---:|
+> | `urban_step` · `freeway_step` · `step_plant` · `advance_plant` | **0** |
+> | `run_coupled_interval` | **2** — `rollout_endpoint.py:299`(endpoint 본체) · `simulator.py:40`(plant 전진). 둘 다 정당 |
+>
+> 어댑터의 두 곳도 endpoint 를 쓴다 — `flagship_sup_score`(`:2539` 정의, `:2547` 에서
+> `evaluate_price_point`) · `build_one_step_prediction`(`:3765` 정의, `:3772` 에서 호출).
+> 정본 decide 경로 넷이 모두 endpoint 를 참조한다(`stackelberg_mpc` 4 ·
+> `stackelberg_wu_metered` 16 · `wu_faithful_follower` 2 · `distributed_coordinator` 2).
+>
+> **위 표의 "NumSim 잔여 우회 5 / 어댑터 잔여 우회 2" 는 낡은 기록이다.** 줄 번호도
+> 코드 이동으로 더 이상 맞지 않는다(예: `centralized_mpc.py:299` 는 지금 `state,` 한 줄).
+> 남은 미충족은 "endpoint 호출 수 = 후보 평가 수" 계수 확인과 one-step / H=3 통합
+> 테스트뿐이다.
+
 ## N8. marginal price 와 런타임 — P0
 
 ### N8-1. exact FD 대 SPSA 자격심사
