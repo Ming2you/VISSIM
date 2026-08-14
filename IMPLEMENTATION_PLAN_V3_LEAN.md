@@ -248,6 +248,59 @@ $inpx = "network/real_world_gaepo_modi/modi_eval_rw_control.inpx"
 2026-08-07 기준 이 세 파일 합계 **23개**가 통과했다. 개수는 테스트 추가에 따라 변하므로
 **개수가 아니라 실패 0 이 게이트다.**
 
+#### 2026-08-14 — 생산 격자를 pedovrx 로 옮기고 승인 사슬을 다시 세웠다
+
+위 명령의 파일 이름은 2026-08-05 판(core15n41)이다. 지금 정본은 아래다.
+
+```powershell
+$py = $env:RW_PYTHON_EXE
+$inpx = "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx"
+& $py -B scripts/build_vissim_lane_graph.py --inpx $inpx --output outputs/lane_route_graph_pedovrx_20260814.json
+& $py -B scripts/resolve_lane_routes.py --inpx $inpx --graph outputs/lane_route_graph_pedovrx_20260814.json --output outputs/lane_route_proofs_pedovrx_20260814.json
+& $py -B scripts/compile_physical_stock_topology.py --graph outputs/lane_route_graph_pedovrx_20260814.json --routes outputs/lane_route_proofs_pedovrx_20260814.json --ownership outputs/link_player_assignment_pedfold_20260814.json --adjacency outputs/intersection_adjacency_pedfold_20260814.json --capacity outputs/urban_storage_capacity_ovr_20260814.json --output outputs/physical_stock_topology_pedovrx_20260814.json
+& $py -B scripts/build_preflight_manifest.py --repo $R --runtime-source outputs/runtime_source_pedovrx_20260814.json --strict --out outputs/preflight_pedovrx_20260814.json
+& $py -B scripts/approve_physical_stock_topology.py --workspace-root $R --preflight outputs/preflight_pedovrx_20260814.json --graph outputs/lane_route_graph_pedovrx_20260814.json --routes outputs/lane_route_proofs_pedovrx_20260814.json --topology outputs/physical_stock_topology_pedovrx_20260814.json --out outputs/topology_approval_v2_1.json
+```
+
+**PASS.** 그래프 `5c69d7fa…`(nodes 2,648 / edges 2,790 / coverage 1.0),
+경로증명 `5d8fc9b1…`(routes 339 / proofs 2,678 / unresolved 0),
+토폴로지 `d48a1897bd4a2af9…`(stocks 7,267 / edges 7,409 / gaps 0 / owners 0),
+승인 `4de9f6eb…`. `--validate-existing` 자기검증도 PASS.
+
+세 가지가 걸렸고 셋 다 고쳤다.
+
+1. **역할표가 망보다 낡아 있었다.** `signal_controller_roles` 는 순수한 망 사본이 아니라
+   `active`(모형 플레이어 후보인가)와 `role` 두 열이 사람의 판단이다. 나머지 열은 망이
+   정본인데 사용자의 신호두 삭제 4건과 `_n4dr150.sig` 전환이 반영돼 있지 않았다.
+   망 e 로 인벤토리를 다시 뽑고 큐레이션 두 열만 얹어
+   `signal_controller_roles_pedovrx_20260814.csv` 를 만들었다. **생성기는 이 CSV 의
+   `signal_head_count` 를 `>0` 판정과 보고표에만 쓰고 `supplyFile2` 는 안 쓴다** —
+   낡은 값이 산출물을 오염시킨 곳은 없었다.
+
+2. **보행자 접기를 preflight 가 몰랐다.** `signal_roles.active_scope` 는 역할표의 활성
+   집합이 망의 모형 컨트롤러와 정확히 같기를 요구한다. 접힌 7개는 의도적 이탈이라
+   `--folded-sc` 로 **선언**하게 했다. 선언한 것만 비활성이어도 되고
+   (`signal_roles.folded_sc_inactive_in_roles`), 망에 없는 번호를 선언하면 잡히고
+   (`signal_roles.folded_sc_in_network`), **선언 없이 빠진 신호기는 그대로 실패한다.**
+   기본값은 `DEFAULT_FOLDED_SC`(생산 격자의 접기)이고 접기가 없는 격자는 빈 값을 준다.
+
+3. **생산 포인터가 두 곳으로 갈려 있었다.** `compile_physical_stock_topology.py` 는
+   생산 격자를 `TRUSTED_PRODUCTION_*` 해시로 **하나만** 못 박는 설계인데 그것은 이미
+   pedovrx 로 옮겨 놓고, `build_preflight_manifest.DEFAULT_PATHS` 는 core15n41 을
+   가리키고 있었다. 그러면 `approve_physical_stock_topology` 의 `is_production` 이
+   **파일 이름으로** 판정하므로 False 로 떨어지고, 승인은 공급된 근거끼리의
+   자기일관성만 보는 약한 경로로 조용히 내려앉는다 — 통과하지만 아무것도 증명하지
+   못한다. `DEFAULT_PATHS` 와 `CONFIGURATION_INPUT_DEFAULT_PATHS` 를 pedovrx 로 옮겨
+   `is_production=True` 를 세웠다. 다른 격자는 CLI 인자로 여전히 preflight 할 수 있고,
+   다만 생산이라 불리지 않을 뿐이다.
+
+   이 어긋남을 다시 겪지 않도록 `test_default_paths_name_the_grid_the_compiler_trusts`
+   가 경로표의 근거 3개를 해시로 컴파일러 상수와 대조한다.
+
+회귀: `test_build_preflight_manifest` · `test_compile_physical_stock_topology` ·
+`test_topology_generation_guard` · `test_validate_baseline_snapshot` ·
+`test_build_canonical_topology` **53 passed, 2 skipped** (실패 0).
+
 ## N1. 차량단위 초기상태 투영 — P0
 
 **목적.** VISSIM 을 한 순간 정지시켜 차량을 전부 긁고, A2 stock 위에 초기 상태를 확정한다.

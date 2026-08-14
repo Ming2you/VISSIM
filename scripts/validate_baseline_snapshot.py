@@ -120,6 +120,8 @@ PREFLIGHT_STATIC_CHECK_IDS = (
     "network.excluded_sc_head_reference_count",
     "network.unexpected_excluded_controllers",
     "signal_roles.readable",
+    "signal_roles.folded_sc_in_network",
+    "signal_roles.folded_sc_inactive_in_roles",
     "signal_roles.active_scope",
     "signal_roles.network_alignment",
     "tuning.json",

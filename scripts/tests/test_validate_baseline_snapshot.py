@@ -113,8 +113,11 @@ class BaselineFixture:
         }
 
     def copy_network_inputs(self) -> Path:
-        source_dir = REPO / "network" / "real_world_gaepo_modi"
-        network_path = self.network_dir / "modi_eval_rw_control.inpx"
+        # 망 이름을 못 박지 않는다. 생산 격자가 옮겨 가면 역할표(signal_roles)도 같이
+        # 옮겨 가는데, 여기만 옛 망을 붙들면 signal_roles.network_alignment 가 깨진다.
+        production_network = Path(preflight_builder.DEFAULT_PATHS["network"])
+        source_dir = REPO / production_network.parent
+        network_path = self.network_dir / production_network.name
         shutil.copy2(source_dir / network_path.name, network_path)
         for signal_path in source_dir.glob("*.sig"):
             shutil.copy2(signal_path, self.network_dir / signal_path.name)

@@ -100,7 +100,7 @@ PRODUCER_SOURCE_ROLES = (
     "supported_version_policy",
 )
 PRODUCER_SOURCE_DEFAULT_PATHS = {
-    "watchdog": "scripts/run_real_world_single_watchdog_distributed_core15n41.ps1",
+    "watchdog": "scripts/run_real_world_single_watchdog_distributed_pedovrx.ps1",
     "vbs": "scripts/run_real_world_stackelberg_controller.vbs",
     "adapter": "evaluation/controllers/vissim_stackelberg_adapter.py",
     "run_manifest_producer": "scripts/build_run_manifest_v2_1.py",
@@ -111,13 +111,15 @@ PRODUCER_SOURCE_DEFAULT_PATHS = {
     "monotonic_clock_helper": "scripts/read_monotonic_clock.py",
     "supported_version_policy": "plant/policies/supported_vissim_versions_v2_1.json",
 }
+# 2026-08-14: core15n41(2026-08-05) -> pedovrx 격자. 이 표는
+# build_preflight_manifest.DEFAULT_PATHS 를 덮어쓰므로 둘이 갈리면 안 된다.
 CONFIGURATION_INPUT_DEFAULT_PATHS = {
-    "network": "network/real_world_gaepo_modi/modi_eval_rw_control.inpx",
-    "generated_vbs_config": "evaluation/generated/real_world_modi_control_config_distributed_core15n41_20260805.vbs",
+    "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+    "generated_vbs_config": "evaluation/generated/real_world_modi_control_config_distributed_pedovrx_20260814.vbs",
     "adapter": "evaluation/controllers/vissim_stackelberg_adapter.py",
     "calibration": "evaluation/calibration/real_world_prediction_calibration_pshb4500fix_20260724.json",
-    "tuning": "evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json",
-    "control_mapping": "evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core15n41_20260805.json",
+    "tuning": "evaluation/configs/real_world_modi_pstack_distributed_pedovrx_20260814.json",
+    "control_mapping": "evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_pedovrx_20260814.json",
     "vehicle_input_roles": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
     "demand_profile": None,
 }

@@ -54,20 +54,35 @@ EXPECTED_MODEL_SC_COUNT = 41
 EXPECTED_RESOLVED_SIG_COUNT = 41
 EXPECTED_AUXILIARY_SC_COUNT = 8
 DEFAULT_EXCLUDED_SC = "9004"
+# 망에는 고정시간 신호기로 남아 있지만 모형에서는 midblock 으로 접은 노드.
+# 전부 movement 가 phase="" 라 제어 레버가 아니었고, 노드로 남아 한 블록을 여러
+# 구간으로 쪼개고 있었다. 역할표에서 비활성인 것을 여기 선언한 것만 허용한다 -
+# 선언 없이 빠진 신호기는 signal_roles.active_scope 가 그대로 잡는다.
+DEFAULT_FOLDED_SC = "2,3,8,17,18,19,9002"
 
+# 생산 격자의 파일 이름을 못 박는 표. 생산은 하나뿐이다 - 여기 네 항목
+# (network / link_assignment / adjacency / storage_capacity) 이 곧
+# approve_physical_stock_topology.py 의 is_production 판정이고, 그 판정이 서야
+# compile_physical_stock_topology.py 의 TRUSTED_PRODUCTION_* 해시와 분할 수를
+# 실제로 대조한다. 판정이 안 서면 승인은 공급된 근거끼리의 자기일관성만 보는
+# 약한 경로로 떨어진다 - 통과는 하지만 아무것도 증명하지 못한다.
+#
+# 그래서 격자를 갈아탈 때는 저 컴파일러 상수와 **여기를 같이** 옮겨야 한다.
+# 2026-08-14: core15n41(2026-08-05) -> pedovrx. 다른 격자도 CLI 인자로 여전히
+# preflight 할 수 있고, 다만 생산이라 불리지 않을 뿐이다.
 DEFAULT_PATHS = {
-    "network": "network/real_world_gaepo_modi/modi_eval_rw_control.inpx",
-    "signal_roles": "evaluation/real_world_modi_inventory/signal_controller_roles.csv",
-    "link_assignment": "outputs/link_player_assignment_20260805.json",
-    "adjacency": "outputs/intersection_adjacency8_20260805.json",
-    "storage_capacity": "outputs/urban_storage_capacity_20260805.json",
-    "tuning": "evaluation/configs/real_world_modi_pstack_distributed_core15n41_20260805.json",
+    "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+    "signal_roles": "evaluation/real_world_modi_inventory/signal_controller_roles_pedovrx_20260814.csv",
+    "link_assignment": "outputs/link_player_assignment_pedfold_20260814.json",
+    "adjacency": "outputs/intersection_adjacency_pedfold_20260814.json",
+    "storage_capacity": "outputs/urban_storage_capacity_ovr_20260814.json",
+    "tuning": "evaluation/configs/real_world_modi_pstack_distributed_pedovrx_20260814.json",
     "calibration": "evaluation/calibration/real_world_prediction_calibration_pshb4500fix_20260724.json",
-    "control_mapping": "evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core15n41_20260805.json",
-    "detector_mapping": "evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core15n41_20260805.json",
-    "generated_vbs": "evaluation/generated/real_world_modi_control_config_distributed_core15n41_20260805.vbs",
+    "control_mapping": "evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_pedovrx_20260814.json",
+    "detector_mapping": "evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_pedovrx_20260814.json",
+    "generated_vbs": "evaluation/generated/real_world_modi_control_config_distributed_pedovrx_20260814.vbs",
     "runner": "scripts/run_real_world_stackelberg_controller.vbs",
-    "watchdog": "scripts/run_real_world_single_watchdog_distributed_core15n41.ps1",
+    "watchdog": "scripts/run_real_world_single_watchdog_distributed_pedovrx.ps1",
     "adapter": "evaluation/controllers/vissim_stackelberg_adapter.py",
     "runtime_source_verifier": "scripts/verify_runtime_source.py",
     "runtime_source_anchor": "vendor/NumSim-mine/UPSTREAM_TREE.json",
@@ -226,6 +241,7 @@ def _parse_network(
     expected_resolved_sig_count: int,
     expected_auxiliary_count: int,
     excluded_sc: str,
+    folded_sc: Sequence[str] = (),
 ) -> dict[str, Any]:
     if not network.is_file():
         checks.add("network.exists", False, True, False)
@@ -382,8 +398,16 @@ def _parse_network(
     checks.add("signal_roles.readable", roles_error is None, "readable unique controller rows", roles_error or "readable")
     if roles_error is None:
         role_active = {number for number, row in roles.items() if row.get("active", "").strip().lower() == "true"}
-        expected_role_active = {item["controller_no"] for item in model_controllers}
-        expected_role_active.add(excluded_sc)
+        network_role_active = {item["controller_no"] for item in model_controllers}
+        network_role_active.add(excluded_sc)
+        # 선언된 접기 - 망에는 신호기로 남아 있지만 모형에서는 midblock 으로 접은 노드.
+        # 선언된 것만 비활성이어도 되고, 선언 없이 빠진 것은 그대로 실패한다.
+        declared_folded = {str(sc).strip() for sc in folded_sc if str(sc).strip()}
+        unknown_folded = sorted(declared_folded - network_role_active, key=_controller_sort_key)
+        checks.add("signal_roles.folded_sc_in_network", not unknown_folded, [], unknown_folded)
+        still_active_folded = sorted(declared_folded & role_active, key=_controller_sort_key)
+        checks.add("signal_roles.folded_sc_inactive_in_roles", not still_active_folded, [], still_active_folded)
+        expected_role_active = network_role_active - declared_folded
         checks.add(
             "signal_roles.active_scope",
             role_active == expected_role_active,
@@ -637,7 +661,12 @@ def build_manifest(
     expected_resolved_sig_count: int = EXPECTED_RESOLVED_SIG_COUNT,
     expected_auxiliary_count: int = EXPECTED_AUXILIARY_SC_COUNT,
     excluded_sc: str = DEFAULT_EXCLUDED_SC,
+    # 기본값은 생산 격자의 접기다(DEFAULT_EXCLUDED_SC 와 같은 규약). 접기가 없는
+    # 망을 검사할 때는 빈 값을 명시해서 "이 격자엔 접기가 없다"를 선언한다.
+    folded_sc: Sequence[str] | None = None,
 ) -> dict[str, Any]:
+    if folded_sc is None:
+        folded_sc = [part.strip() for part in DEFAULT_FOLDED_SC.split(",") if part.strip()]
     repo = repo.resolve()
     overrides = dict(path_overrides or {})
     paths = {
@@ -669,7 +698,9 @@ def build_manifest(
         expected_resolved_sig_count=expected_resolved_sig_count,
         expected_auxiliary_count=expected_auxiliary_count,
         excluded_sc=str(excluded_sc),
+        folded_sc=folded_sc,
     )
+    network["folded_sc"] = [str(sc).strip() for sc in folded_sc if str(sc).strip()]
     _check_configuration_links(repo, paths, checks)
     runtime_identity = _runtime_source_identity(
         runtime_source,
@@ -785,6 +816,13 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--expected-resolved-sig-count", type=int, default=EXPECTED_RESOLVED_SIG_COUNT)
     parser.add_argument("--expected-auxiliary-sc-count", type=int, default=EXPECTED_AUXILIARY_SC_COUNT)
     parser.add_argument("--excluded-sc", default=DEFAULT_EXCLUDED_SC)
+    parser.add_argument(
+        "--folded-sc",
+        default=DEFAULT_FOLDED_SC,
+        help="모형에서 midblock 으로 접은 SC 번호(쉼표 구분). 망에는 신호기로 남아 있어도 "
+        "역할표에서 비활성인 것을 허용한다. 선언하지 않은 이탈은 그대로 실패한다. "
+        "접기가 없는 격자는 빈 문자열을 준다.",
+    )
     for key, default in DEFAULT_PATHS.items():
         parser.add_argument(
             "--" + key.replace("_", "-"),
@@ -818,6 +856,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         expected_resolved_sig_count=args.expected_resolved_sig_count,
         expected_auxiliary_count=args.expected_auxiliary_sc_count,
         excluded_sc=args.excluded_sc,
+        folded_sc=[part.strip() for part in str(args.folded_sc).split(",") if part.strip()],
     )
     out = Path(args.out)
     write_manifest_atomic(out, manifest)

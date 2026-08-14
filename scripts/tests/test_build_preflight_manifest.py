@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest import mock
 
 from scripts import build_preflight_manifest as preflight
+from scripts import compile_physical_stock_topology as compile_topology
 from scripts import verify_runtime_source as runtime_verifier
 from scripts.approve_physical_stock_topology import validate_preflight_artifact
 from src.vissim_strict.run_evidence import (
@@ -226,6 +227,9 @@ class SyntheticPreflight:
             expected_model_count=1,
             expected_resolved_sig_count=1,
             expected_auxiliary_count=1,
+            # 합성 망에는 보행자 접기가 없다. 생산 격자의 접기를 물려받지 않도록
+            # 빈 값을 명시한다.
+            folded_sc=(),
         )
 
 
@@ -350,11 +354,35 @@ class BuildPreflightManifestTests(unittest.TestCase):
             report["reasons"],
         )
 
-    def test_default_watchdog_is_the_distributed_core15n41_launcher(self) -> None:
+    def test_default_watchdog_is_the_distributed_pedovrx_launcher(self) -> None:
         self.assertEqual(
             preflight.DEFAULT_PATHS["watchdog"],
-            "scripts/run_real_world_single_watchdog_distributed_core15n41.ps1",
+            "scripts/run_real_world_single_watchdog_distributed_pedovrx.ps1",
         )
+
+    def test_default_paths_name_the_grid_the_compiler_trusts(self) -> None:
+        """경로표와 컴파일러 상수가 같은 격자를 가리키는지 본다.
+
+        approve_physical_stock_topology 의 is_production 은 A2 근거 **파일 이름**이
+        DEFAULT_PATHS 와 같은지로 판정하고, 판정이 서야 compile_physical_stock_topology
+        의 TRUSTED_PRODUCTION_* 해시를 실제로 대조한다. 둘이 갈리면 승인은 통과하되
+        공급된 근거끼리의 자기일관성만 보는 약한 경로로 조용히 떨어진다.
+        """
+        repo = REPO
+        pinned = {
+            "ownership_evidence": "link_assignment",
+            "adjacency_evidence": "adjacency",
+            "capacity_evidence": "storage_capacity",
+        }
+        for evidence_key, path_key in pinned.items():
+            path = repo / preflight.DEFAULT_PATHS[path_key]
+            self.assertTrue(path.is_file(), f"{path_key} 기본 경로가 없다: {path}")
+            self.assertEqual(
+                preflight.file_sha256(path),
+                compile_topology.TRUSTED_PRODUCTION_FILE_HASHES[evidence_key],
+                f"{path_key} 가 컴파일러의 {evidence_key} 신뢰 해시와 다르다",
+            )
+        self.assertTrue((repo / preflight.DEFAULT_PATHS["network"]).is_file())
 
     def test_tuning_mapping_mismatch_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
