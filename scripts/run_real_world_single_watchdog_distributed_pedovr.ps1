@@ -33,6 +33,10 @@ param(
   # 비우면 러너가 자기 기본값(urban_input_gate_map_20260811.csv)으로 떨어진다.
   [string]$UrbanInputGateMap = "",
   [switch]$ForceStepwise,
+  # 어댑터 리더 탐색 폭. "" 면 어댑터 기본값(fast-smoke, 후보 1개)이다.
+  # fuller-smoke 는 후보 3개 - 균등분할이 아닌 실제 배분을 보려면 필요하다.
+  [ValidateSet("", "fast-smoke", "fuller-smoke")]
+  [string]$AdapterMode = "",
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
   [int]$DoneRows = 0,
@@ -285,6 +289,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   $oldAuditAnchors = [Environment]::GetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", "Process")
   $oldRunId = [Environment]::GetEnvironmentVariable("RW_RUN_ID", "Process")
   $oldRunManifest = [Environment]::GetEnvironmentVariable("RW_RUN_MANIFEST_PATH", "Process")
+  $oldAdapterMode = [Environment]::GetEnvironmentVariable("RW_ADAPTER_MODE", "Process")
+  [Environment]::SetEnvironmentVariable("RW_ADAPTER_MODE",
+    $(if ([string]::IsNullOrWhiteSpace($AdapterMode)) { $null } else { $AdapterMode }), "Process")
   if ($ForceStepwise) {
     [Environment]::SetEnvironmentVariable("RW_FORCE_STEPWISE", "1", "Process")
   } else {
@@ -297,6 +304,12 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   }
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $runId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $provenancePath, "Process")
+  # 결정 1건이 8분 넘게 걸린다(리더 코너 열거). 그동안 state/action 파일이 안 움직여
+  # 무진행 워치독(StallSec=300)이 정상 풀이를 죽인다. 솔버가 진행을 흘리는 파일을
+  # 지정하고, 아래 워치독의 신호 목록에 넣어 예외로 둔다.
+  $oldProgressFile = [Environment]::GetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", "Process")
+  $progressFile = Join-Path $decisionDir "stackelberg_progress_$Name.jsonl"
+  [Environment]::SetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", $progressFile, "Process")
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
@@ -305,6 +318,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   [Environment]::SetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", $oldAuditAnchors, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $oldRunId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $oldRunManifest, "Process")
+  [Environment]::SetEnvironmentVariable("NUMSIM_STACKELBERG_PROGRESS_FILE", $oldProgressFile, "Process")
+  [Environment]::SetEnvironmentVariable("RW_ADAPTER_MODE", $oldAdapterMode, "Process")
   if (-not $proc -or -not $proc.Id) {
     throw "Failed to start cscript for $Name attempt=$attempt"
   }
@@ -333,6 +348,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $signals += Get-Item $bottleneckSegmentCsv -ErrorAction SilentlyContinue
     $signals += Get-ChildItem (Join-Path $decisionDir "action_*.json") -ErrorAction SilentlyContinue |
       Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    # 결정 풀이 중 진행 신호 — 이게 움직이면 무진행이 아니다.
+    $signals += Get-Item $progressFile -ErrorAction SilentlyContinue
+    $signals += Get-Item ([IO.Path]::ChangeExtension($progressFile, ".csv")) -ErrorAction SilentlyContinue
     foreach ($signal in $signals) {
       if ($signal -and $signal.LastWriteTime -gt $lastT) {
         $lastT = $signal.LastWriteTime

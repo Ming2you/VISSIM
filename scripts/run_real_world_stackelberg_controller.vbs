@@ -46,6 +46,7 @@ signalTraceStage = "immediate"
 
 Dim netPath, stateOutPath, actionOutPath, bottleneckLinkOutPath, bottleneckSegmentOutPath, signalTraceOutPath, decisionDir, simPeriod, controlInterval, randSeed, stateLogIntervalSec, demandScale, demandProfilePath, vehicleInputRolesPath
 Dim adapterPath, calibrationPath, tuningPath, mappingPath, detectorMappingPath, controllerName, controlStartSec, warmupControllerName, generatedConfigPath
+Dim adapterMode
 Dim incidentLinkNo, incidentLaneNo, incidentPosM, incidentStartSec, incidentEndSec, incidentName, incidentEnabled
 Dim urbanInputGateMapPath
 Dim incidentSignalControllerNo, incidentSignalGroupNo, incidentStateLast, incidentSc, incidentSg, incidentSignalHead
@@ -490,6 +491,18 @@ Function UseEventContinuousMode()
     End If
 End Function
 
+Function EnvText(name)
+    ' 프로세스 환경변수를 문자열로. 없거나 읽기 실패면 빈 문자열이다.
+    Dim shell, value
+    EnvText = ""
+    On Error Resume Next
+    Set shell = CreateObject("WScript.Shell")
+    value = CStr(shell.Environment("PROCESS")(name))
+    If Err.Number = 0 Then EnvText = Trim(value)
+    Err.Clear
+    On Error GoTo 0
+End Function
+
 Function ForceStepwiseMode()
     Dim shell, value
     ForceStepwiseMode = False
@@ -868,6 +881,15 @@ Sub RunControllerDecision(simSec)
     If calibrationPath <> "" Then cmd = cmd & " --calibration-json " & Q(calibrationPath)
     If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
     If lastActionJson <> "" Then cmd = cmd & " --previous-action-json " & Q(lastActionJson)
+    ' 어댑터 --mode 는 리더 탐색 폭을 정한다(vissim_stackelberg_adapter.py:2790).
+    '   fast-smoke  + local_observation -> leader_candidate_count = 1
+    '   fuller-smoke                    -> 3
+    ' 후보가 1개면 비교 대상이 없어 녹색이 균등분할(34.5x4)로 남는다. 배관 검증에는
+    ' 충분하지만 제어품질을 보려면 넓혀야 한다. 위치 인자를 늘리면 래퍼의 argline 을
+    ' 전부 건드려야 하므로 RW_FORCE_STEPWISE 와 같은 방식으로 환경변수를 쓴다.
+    ' 안 주면 어댑터 기본값(fast-smoke)이라 기존 거동과 비트 동일하다.
+    adapterMode = EnvText("RW_ADAPTER_MODE")
+    If adapterMode <> "" Then cmd = cmd & " --mode " & Q(adapterMode)
     wallT0 = Timer
     exitCode = RunCapture3(cmd, outText, errText)
     wallSec = ElapsedSec(wallT0)
