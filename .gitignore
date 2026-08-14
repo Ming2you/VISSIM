@@ -34,6 +34,11 @@ runlog_*.txt.err
 outputs/lane_route_graph_v2_1.json
 outputs/lane_route_proofs_v2_1.json
 outputs/physical_stock_topology_v2_1.json
+# 2026-08-14: 격자 판본마다 같은 셋이 생긴다(그래프 2.5 + 증명 8.5 + 토폴로지 ~30 MB).
+# v2_1 과 같은 이유로 커밋하지 않는다 - 입력에서 결정적으로 재생성되고 해시가 정본이다.
+outputs/lane_route_graph_*.json
+outputs/lane_route_proofs_*.json
+outputs/physical_stock_topology_*.json
 # canonical Phase-0 토폴로지(24 MB). 실런 네트워크에서 9초면 재생성된다.
 #   python scripts/build_canonical_topology.py
 # 낡았는지는 --check-only 로 본다. 저장해 두면 낡는다 - 07-31 사본이 소스 네트워크와

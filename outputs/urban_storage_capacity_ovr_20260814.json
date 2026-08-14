@@ -158,7 +158,11 @@
   "SC9_SE_out": 10.0,
   "SC9_W_out": 10.9,
   "SC9_to_SC103": 214.6,
-  "SC9_to_SC6": 157.0
+  "SC9_to_SC6": 157.0,
+  "SC1001_R_E": 86.0,
+  "SC1001_R_W": 118.4,
+  "SC1004_R_E": 118.7,
+  "SC1004_R_W": 134.9
  },
  "urban_link_length_km": {
   "SC1001_to_SC1002": 0.8466,
@@ -322,5 +326,13 @@
  "source": "scripts/derive_urban_storage_capacity.py",
  "note": "링크는 assign_links_to_players.py 의 분할 귀속을 쓴다(중복 없음). link_split / link_upstream_split 이 있으면 그 지분대로 나눈다.",
  "fractional_links": 10,
- "excluded_non_urban_veh": 0.0
+ "excluded_non_urban_veh": 0.0,
+ "ramp_queue_max_veh_by_ramp": {
+  "R_D_E": 86.0,
+  "R_D_W": 118.4,
+  "R_F_E": 118.7,
+  "R_F_W": 134.9
+ },
+ "ramp_queue_source": "scripts/derive_ramp_queue_capacity.py",
+ "ramp_queue_note": "램프미터 신호두가 커넥터 끝(98~99%)에 있어 큐가 커넥터 전체에 쌓인다. 커넥터를 넘치는 분은 상류 도시부 링크로 역류하며 그 링크는 도시부 분할에 있다."
 }
