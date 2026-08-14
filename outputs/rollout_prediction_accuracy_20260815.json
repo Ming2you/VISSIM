@@ -1,0 +1,524 @@
+{
+  "schema_version": "rollout-prediction-accuracy-v1",
+  "status": "PASS",
+  "reasons": [],
+  "setup": {
+    "run_dir": "evaluation\\runs\\n5_parent_20260814",
+    "horizon_steps": 10,
+    "anchors_sec": [
+      900,
+      1500,
+      2100
+    ],
+    "training_seeds": [
+      13,
+      29
+    ],
+    "holdout_seeds": [
+      47
+    ],
+    "tuning": "real_world_modi_pstack_distributed_pedovrx_20260814.json",
+    "calibration_in_effect": "real_world_prediction_calibration_pshb4500fix_20260724.json",
+    "controller": "no-control (부모런과 같은 무제어 - 동역학만 비교된다)",
+    "metric_pairs": {
+      "total_model_vehicles": "total_vehicles",
+      "urban_total_veh": "urban_vehicles",
+      "freeway_total_veh": "freeway_vehicles",
+      "freeway_mean_speed_kph": "freeway_mean_speed_kph"
+    }
+  },
+  "raw": {
+    "all": {
+      "sample_count": 270,
+      "median_ape_by_metric": {
+        "total_model_vehicles": 12.708259239837744,
+        "urban_total_veh": 9.77567207890016,
+        "freeway_total_veh": 9.4323191947318,
+        "freeway_mean_speed_kph": 26.21724258138758
+      },
+      "median_ape_by_step": {
+        "1": {
+          "total_model_vehicles": 16.357909865476437,
+          "urban_total_veh": 23.364626686845703,
+          "freeway_total_veh": 1.8058747766332874,
+          "freeway_mean_speed_kph": 10.448330336894022
+        },
+        "2": {
+          "total_model_vehicles": 13.043634216128423,
+          "urban_total_veh": 19.550682453543732,
+          "freeway_total_veh": 4.317305509462006,
+          "freeway_mean_speed_kph": 12.19393606724218
+        },
+        "3": {
+          "total_model_vehicles": 8.020367733553025,
+          "urban_total_veh": 13.679765054802699,
+          "freeway_total_veh": 7.868418413349418,
+          "freeway_mean_speed_kph": 12.262532516194765
+        },
+        "4": {
+          "total_model_vehicles": 2.223430581980755,
+          "urban_total_veh": 7.553448732953288,
+          "freeway_total_veh": 8.02575146367877,
+          "freeway_mean_speed_kph": 9.666613809850276
+        },
+        "5": {
+          "total_model_vehicles": 2.307374076075562,
+          "urban_total_veh": 3.7517151156090995,
+          "freeway_total_veh": 7.346616934893522,
+          "freeway_mean_speed_kph": 19.939245534743847
+        },
+        "6": {
+          "total_model_vehicles": 7.046093440846133,
+          "urban_total_veh": 4.369806706844786,
+          "freeway_total_veh": 11.517071321559609,
+          "freeway_mean_speed_kph": 47.60322092981423
+        },
+        "7": {
+          "total_model_vehicles": 11.68071064068739,
+          "urban_total_veh": 3.9362752153417313,
+          "freeway_total_veh": 16.559888792630243,
+          "freeway_mean_speed_kph": 61.18029918092978
+        },
+        "8": {
+          "total_model_vehicles": 17.890667265045842,
+          "urban_total_veh": 7.517032999843726,
+          "freeway_total_veh": 28.78746250514735,
+          "freeway_mean_speed_kph": 67.42373817735107
+        },
+        "9": {
+          "total_model_vehicles": 23.40409123416108,
+          "urban_total_veh": 9.029822333722617,
+          "freeway_total_veh": 50.68456882352035,
+          "freeway_mean_speed_kph": 72.39466914697792
+        },
+        "10": {
+          "total_model_vehicles": 29.009116151684225,
+          "urban_total_veh": 12.579271328584625,
+          "freeway_total_veh": 63.94040857846208,
+          "freeway_mean_speed_kph": 75.3351377396152
+        }
+      }
+    },
+    "training": {
+      "sample_count": 180,
+      "median_ape_by_metric": {
+        "total_model_vehicles": 12.696729407179067,
+        "urban_total_veh": 9.832388718603266,
+        "freeway_total_veh": 9.477622982725789,
+        "freeway_mean_speed_kph": 26.212066684489486
+      },
+      "median_ape_by_step": {
+        "1": {
+          "total_model_vehicles": 16.60422764562673,
+          "urban_total_veh": 23.31610068150221,
+          "freeway_total_veh": 1.8367200560138368,
+          "freeway_mean_speed_kph": 10.471572993910407
+        },
+        "2": {
+          "total_model_vehicles": 13.224307970568248,
+          "urban_total_veh": 19.789502854899123,
+          "freeway_total_veh": 4.223462669171856,
+          "freeway_mean_speed_kph": 12.098488827010886
+        },
+        "3": {
+          "total_model_vehicles": 8.653100076374642,
+          "urban_total_veh": 14.311324030919142,
+          "freeway_total_veh": 7.76656483564947,
+          "freeway_mean_speed_kph": 12.296902736162526
+        },
+        "4": {
+          "total_model_vehicles": 2.609782877328816,
+          "urban_total_veh": 8.116782201729167,
+          "freeway_total_veh": 8.007046293518801,
+          "freeway_mean_speed_kph": 10.493473167925337
+        },
+        "5": {
+          "total_model_vehicles": 2.297828895177684,
+          "urban_total_veh": 4.5631020769865,
+          "freeway_total_veh": 8.192843145227032,
+          "freeway_mean_speed_kph": 20.79560353509062
+        },
+        "6": {
+          "total_model_vehicles": 6.770178331014456,
+          "urban_total_veh": 3.8943716376399884,
+          "freeway_total_veh": 11.525240886974863,
+          "freeway_mean_speed_kph": 48.08629176641586
+        },
+        "7": {
+          "total_model_vehicles": 11.498704588863388,
+          "urban_total_veh": 3.923447169789024,
+          "freeway_total_veh": 14.862159790244249,
+          "freeway_mean_speed_kph": 60.4888243583691
+        },
+        "8": {
+          "total_model_vehicles": 17.336538998173907,
+          "urban_total_veh": 6.709462496332642,
+          "freeway_total_veh": 30.060835836698764,
+          "freeway_mean_speed_kph": 67.4751082971938
+        },
+        "9": {
+          "total_model_vehicles": 23.16467262252548,
+          "urban_total_veh": 8.619472333708556,
+          "freeway_total_veh": 50.88448436450565,
+          "freeway_mean_speed_kph": 72.64710288091915
+        },
+        "10": {
+          "total_model_vehicles": 29.104107179183337,
+          "urban_total_veh": 12.721841824753941,
+          "freeway_total_veh": 65.92938165496852,
+          "freeway_mean_speed_kph": 75.09604756363441
+        }
+      }
+    },
+    "holdout": {
+      "sample_count": 90,
+      "median_ape_by_metric": {
+        "total_model_vehicles": 12.708259239837744,
+        "urban_total_veh": 9.004216986180131,
+        "freeway_total_veh": 8.978036793357049,
+        "freeway_mean_speed_kph": 26.60421135649731
+      },
+      "median_ape_by_step": {
+        "1": {
+          "total_model_vehicles": 15.223539292404633,
+          "urban_total_veh": 23.364626686845703,
+          "freeway_total_veh": 1.6514548757060574,
+          "freeway_mean_speed_kph": 9.97207021357033
+        },
+        "2": {
+          "total_model_vehicles": 13.043634216128423,
+          "urban_total_veh": 19.216431019894937,
+          "freeway_total_veh": 5.851088466954344,
+          "freeway_mean_speed_kph": 12.19393606724218
+        },
+        "3": {
+          "total_model_vehicles": 7.648566882210913,
+          "urban_total_veh": 13.400933023204916,
+          "freeway_total_veh": 7.868418413349418,
+          "freeway_mean_speed_kph": 12.133673836484022
+        },
+        "4": {
+          "total_model_vehicles": 1.1782545305007637,
+          "urban_total_veh": 5.578865785369103,
+          "freeway_total_veh": 8.341292585145247,
+          "freeway_mean_speed_kph": 8.016155120129154
+        },
+        "5": {
+          "total_model_vehicles": 2.5887449569392667,
+          "urban_total_veh": 3.3713496427240917,
+          "freeway_total_veh": 7.335741273468509,
+          "freeway_mean_speed_kph": 19.939245534743847
+        },
+        "6": {
+          "total_model_vehicles": 8.180678151181297,
+          "urban_total_veh": 4.369806706844786,
+          "freeway_total_veh": 10.020305635762396,
+          "freeway_mean_speed_kph": 47.60322092981423
+        },
+        "7": {
+          "total_model_vehicles": 11.68071064068739,
+          "urban_total_veh": 4.840426494013716,
+          "freeway_total_veh": 16.559888792630243,
+          "freeway_mean_speed_kph": 61.18029918092978
+        },
+        "8": {
+          "total_model_vehicles": 19.038329650152807,
+          "urban_total_veh": 7.6156631288313585,
+          "freeway_total_veh": 28.78746250514735,
+          "freeway_mean_speed_kph": 67.42373817735107
+        },
+        "9": {
+          "total_model_vehicles": 23.40409123416108,
+          "urban_total_veh": 9.029822333722617,
+          "freeway_total_veh": 42.11106055064331,
+          "freeway_mean_speed_kph": 72.39466914697792
+        },
+        "10": {
+          "total_model_vehicles": 28.92771816408283,
+          "urban_total_veh": 12.579271328584625,
+          "freeway_total_veh": 55.55920445911959,
+          "freeway_mean_speed_kph": 75.3351377396152
+        }
+      }
+    }
+  },
+  "fitted_calibration": {
+    "method": "componentwise mean(observed)/mean(predicted), training 시드에서만 적합",
+    "fit_seeds": [
+      13,
+      29
+    ],
+    "fit_max_step": 3,
+    "why_max_step": "모델은 MPC horizon 까지만 쓰인다. 그 너머는 고속도로가 폭주해서 평균비가 통째로 그쪽에 끌려가고, 그 스케일을 horizon 안에 먹이면 멀쩡하던 구간이 망가진다.",
+    "scales": {
+      "total_model_vehicles": 1.1469966573016392,
+      "urban_total_veh": 1.2382335616644617,
+      "freeway_total_veh": 1.0430459764511604,
+      "freeway_mean_speed_kph": 0.8979262629272771
+    },
+    "before_in_horizon": {
+      "training": {
+        "sample_count": 54,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 13.224307970568248,
+          "urban_total_veh": 19.789502854899123,
+          "freeway_total_veh": 3.9889225702874103,
+          "freeway_mean_speed_kph": 11.769782717272602
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 16.60422764562673,
+            "urban_total_veh": 23.31610068150221,
+            "freeway_total_veh": 1.8367200560138368,
+            "freeway_mean_speed_kph": 10.471572993910407
+          },
+          "2": {
+            "total_model_vehicles": 13.224307970568248,
+            "urban_total_veh": 19.789502854899123,
+            "freeway_total_veh": 4.223462669171856,
+            "freeway_mean_speed_kph": 12.098488827010886
+          },
+          "3": {
+            "total_model_vehicles": 8.653100076374642,
+            "urban_total_veh": 14.311324030919142,
+            "freeway_total_veh": 7.76656483564947,
+            "freeway_mean_speed_kph": 12.296902736162526
+          }
+        }
+      },
+      "holdout": {
+        "sample_count": 27,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 12.789791046458408,
+          "urban_total_veh": 19.028810953205397,
+          "freeway_total_veh": 4.732423466639322,
+          "freeway_mean_speed_kph": 11.06257668417195
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 15.223539292404633,
+            "urban_total_veh": 23.364626686845703,
+            "freeway_total_veh": 1.6514548757060574,
+            "freeway_mean_speed_kph": 9.97207021357033
+          },
+          "2": {
+            "total_model_vehicles": 13.043634216128423,
+            "urban_total_veh": 19.216431019894937,
+            "freeway_total_veh": 5.851088466954344,
+            "freeway_mean_speed_kph": 12.19393606724218
+          },
+          "3": {
+            "total_model_vehicles": 7.648566882210913,
+            "urban_total_veh": 13.400933023204916,
+            "freeway_total_veh": 7.868418413349418,
+            "freeway_mean_speed_kph": 12.133673836484022
+          }
+        }
+      }
+    },
+    "after_in_horizon": {
+      "training": {
+        "sample_count": 54,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 2.9774142671794643,
+          "urban_total_veh": 3.9449694541980795,
+          "freeway_total_veh": 3.1843315548164135,
+          "freeway_mean_speed_kph": 1.5999500609806687
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 4.345327876445394,
+            "urban_total_veh": 5.047422224537493,
+            "freeway_total_veh": 3.7662856438646464,
+            "freeway_mean_speed_kph": 1.5619820962072768
+          },
+          "2": {
+            "total_model_vehicles": 1.0901655802532018,
+            "urban_total_veh": 1.1871955025433394,
+            "freeway_total_veh": 2.286182096282062,
+            "freeway_mean_speed_kph": 1.9873578892832118
+          },
+          "3": {
+            "total_model_vehicles": 4.7745888672656545,
+            "urban_total_veh": 6.102594439506968,
+            "freeway_total_veh": 4.45271885753138,
+            "freeway_mean_speed_kph": 1.470614511454377
+          }
+        }
+      },
+      "holdout": {
+        "sample_count": 27,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 2.713132000111638,
+          "urban_total_veh": 3.857966688198506,
+          "freeway_total_veh": 3.9025245219622913,
+          "freeway_mean_speed_kph": 1.3733439241791772
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 2.7616829505243476,
+            "urban_total_veh": 5.107508752967319,
+            "freeway_total_veh": 5.5118681369363935,
+            "freeway_mean_speed_kph": 1.2531899667526762
+          },
+          "2": {
+            "total_model_vehicles": 0.45389398622821436,
+            "urban_total_veh": 0.3180469292449171,
+            "freeway_total_veh": 2.169646005891668,
+            "freeway_mean_speed_kph": 1.181273969992954
+          },
+          "3": {
+            "total_model_vehicles": 5.9267850831199915,
+            "urban_total_veh": 7.229871139496241,
+            "freeway_total_veh": 3.9025245219622913,
+            "freeway_mean_speed_kph": 2.0413704032150113
+          }
+        }
+      }
+    },
+    "after_full_rollout": {
+      "training": {
+        "sample_count": 180,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 20.063934607848324,
+          "urban_total_veh": 20.70824148546599,
+          "freeway_total_veh": 8.100817940713494,
+          "freeway_mean_speed_kph": 33.74387678887652
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 4.345327876445394,
+            "urban_total_veh": 5.047422224537493,
+            "freeway_total_veh": 3.7662856438646464,
+            "freeway_mean_speed_kph": 1.5619820962072768
+          },
+          "2": {
+            "total_model_vehicles": 1.0901655802532018,
+            "urban_total_veh": 1.1871955025433394,
+            "freeway_total_veh": 2.286182096282062,
+            "freeway_mean_speed_kph": 1.9873578892832118
+          },
+          "3": {
+            "total_model_vehicles": 4.7745888672656545,
+            "urban_total_veh": 6.102594439506968,
+            "freeway_total_veh": 4.45271885753138,
+            "freeway_mean_speed_kph": 1.470614511454377
+          },
+          "4": {
+            "total_model_vehicles": 11.706253493584725,
+            "urban_total_veh": 13.772884031544358,
+            "freeway_total_veh": 4.413519705871556,
+            "freeway_mean_speed_kph": 3.967932660776818
+          },
+          "5": {
+            "total_model_vehicles": 16.644536335260025,
+            "urban_total_veh": 19.552374039322444,
+            "freeway_total_veh": 7.365333441277745,
+            "freeway_mean_speed_kph": 28.88029227485349
+          },
+          "6": {
+            "total_model_vehicles": 22.465037645173503,
+            "urban_total_veh": 24.421212556834405,
+            "freeway_total_veh": 9.84084948012976,
+            "freeway_mean_speed_kph": 53.385317971120784
+          },
+          "7": {
+            "total_model_vehicles": 27.888641456889253,
+            "urban_total_veh": 27.943152885426585,
+            "freeway_total_veh": 19.806513615704517,
+            "freeway_mean_speed_kph": 64.52187771224712
+          },
+          "8": {
+            "total_model_vehicles": 34.5846180102489,
+            "urban_total_veh": 32.13123781013427,
+            "freeway_total_veh": 35.65943151334354,
+            "freeway_mean_speed_kph": 70.79504554118483
+          },
+          "9": {
+            "total_model_vehicles": 41.26946779568745,
+            "urban_total_veh": 34.4962760938824,
+            "freeway_total_veh": 57.379454325305645,
+            "freeway_mean_speed_kph": 75.43911530962944
+          },
+          "10": {
+            "total_model_vehicles": 48.08197937843586,
+            "urban_total_veh": 39.57596768004316,
+            "freeway_total_veh": 73.07197391024391,
+            "freeway_mean_speed_kph": 77.63808705669558
+          }
+        }
+      },
+      "holdout": {
+        "sample_count": 90,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 19.917181031486145,
+          "urban_total_veh": 21.063751597196756,
+          "freeway_total_veh": 8.781390469719621,
+          "freeway_mean_speed_kph": 34.09599378873935
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 2.7616829505243476,
+            "urban_total_veh": 5.107508752967319,
+            "freeway_total_veh": 5.5118681369363935,
+            "freeway_mean_speed_kph": 1.2531899667526762
+          },
+          "2": {
+            "total_model_vehicles": 0.45389398622821436,
+            "urban_total_veh": 0.3180469292449171,
+            "freeway_total_veh": 2.169646005891668,
+            "freeway_mean_speed_kph": 1.181273969992954
+          },
+          "3": {
+            "total_model_vehicles": 5.9267850831199915,
+            "urban_total_veh": 7.229871139496241,
+            "freeway_total_veh": 3.9025245219622913,
+            "freeway_mean_speed_kph": 2.0413704032150113
+          },
+          "4": {
+            "total_model_vehicles": 13.34821172222904,
+            "urban_total_veh": 16.91541731498059,
+            "freeway_total_veh": 4.790431266507698,
+            "freeway_mean_speed_kph": 4.218336286771633
+          },
+          "5": {
+            "total_model_vehicles": 17.668947542379748,
+            "urban_total_veh": 20.22167806752257,
+            "freeway_total_veh": 6.826812382776375,
+            "freeway_mean_speed_kph": 28.111345935874233
+          },
+          "6": {
+            "total_model_vehicles": 24.082876224029434,
+            "urban_total_veh": 26.470150650315553,
+            "freeway_total_veh": 9.34076983872167,
+            "freeway_mean_speed_kph": 52.95155598008192
+          },
+          "7": {
+            "total_model_vehicles": 28.097401789940054,
+            "urban_total_veh": 29.816934704103794,
+            "freeway_total_veh": 21.577323020747667,
+            "freeway_mean_speed_kph": 65.14277111557733
+          },
+          "8": {
+            "total_model_vehicles": 36.53656619949588,
+            "urban_total_veh": 33.25332584689574,
+            "freeway_total_veh": 34.33124458334862,
+            "freeway_mean_speed_kph": 70.74891896144831
+          },
+          "9": {
+            "total_model_vehicles": 41.54408014292929,
+            "urban_total_veh": 35.00438523592884,
+            "freeway_total_veh": 48.22836991655573,
+            "freeway_mean_speed_kph": 75.21244843027482
+          },
+          "10": {
+            "total_model_vehicles": 47.87966176773084,
+            "urban_total_veh": 39.399432106783145,
+            "freeway_total_veh": 62.255402311028085,
+            "freeway_mean_speed_kph": 77.85277240491664
+          }
+        }
+      }
+    }
+  }
+}

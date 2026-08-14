@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-15",
+  "calibration_version": "real_world_rollout_prediction_calibration_20260815",
+  "status": "measured_not_wired",
+  "scope": "MPC horizon(3스텝=180초) 안의 다중스텝 rollout 예측 스케일. 집계 4지표만.",
+  "fit_basis": {
+    "source_runs": "evaluation/runs/n5_parent_20260814 (부모런 9셀, no-control)",
+    "anchors_sec": [
+      900,
+      1500,
+      2100
+    ],
+    "rollout_horizon_steps_measured": 10,
+    "fit_max_step": 3,
+    "mpc_horizon_steps_in_grid": 3,
+    "control_interval_sec": 60,
+    "method": "componentwise mean(observed)/mean(predicted), training 시드에서만 적합",
+    "fit_seeds": [
+      13,
+      29
+    ],
+    "holdout_seeds": [
+      47
+    ],
+    "why_no_control": "부모런이 무제어라 VISSIM 궤적이 정책에 오염되지 않는다. 동역학만 비교된다."
+  },
+  "scales_aggregate": {
+    "total_model_vehicles": 1.1469966573016392,
+    "urban_total_veh": 1.2382335616644617,
+    "freeway_total_veh": 1.0430459764511604,
+    "freeway_mean_speed_kph": 0.8979262629272771
+  },
+  "validation": {
+    "before_in_horizon": {
+      "training": {
+        "sample_count": 54,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 13.224307970568248,
+          "urban_total_veh": 19.789502854899123,
+          "freeway_total_veh": 3.9889225702874103,
+          "freeway_mean_speed_kph": 11.769782717272602
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 16.60422764562673,
+            "urban_total_veh": 23.31610068150221,
+            "freeway_total_veh": 1.8367200560138368,
+            "freeway_mean_speed_kph": 10.471572993910407
+          },
+          "2": {
+            "total_model_vehicles": 13.224307970568248,
+            "urban_total_veh": 19.789502854899123,
+            "freeway_total_veh": 4.223462669171856,
+            "freeway_mean_speed_kph": 12.098488827010886
+          },
+          "3": {
+            "total_model_vehicles": 8.653100076374642,
+            "urban_total_veh": 14.311324030919142,
+            "freeway_total_veh": 7.76656483564947,
+            "freeway_mean_speed_kph": 12.296902736162526
+          }
+        }
+      },
+      "holdout": {
+        "sample_count": 27,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 12.789791046458408,
+          "urban_total_veh": 19.028810953205397,
+          "freeway_total_veh": 4.732423466639322,
+          "freeway_mean_speed_kph": 11.06257668417195
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 15.223539292404633,
+            "urban_total_veh": 23.364626686845703,
+            "freeway_total_veh": 1.6514548757060574,
+            "freeway_mean_speed_kph": 9.97207021357033
+          },
+          "2": {
+            "total_model_vehicles": 13.043634216128423,
+            "urban_total_veh": 19.216431019894937,
+            "freeway_total_veh": 5.851088466954344,
+            "freeway_mean_speed_kph": 12.19393606724218
+          },
+          "3": {
+            "total_model_vehicles": 7.648566882210913,
+            "urban_total_veh": 13.400933023204916,
+            "freeway_total_veh": 7.868418413349418,
+            "freeway_mean_speed_kph": 12.133673836484022
+          }
+        }
+      }
+    },
+    "after_in_horizon": {
+      "training": {
+        "sample_count": 54,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 2.9774142671794643,
+          "urban_total_veh": 3.9449694541980795,
+          "freeway_total_veh": 3.1843315548164135,
+          "freeway_mean_speed_kph": 1.5999500609806687
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 4.345327876445394,
+            "urban_total_veh": 5.047422224537493,
+            "freeway_total_veh": 3.7662856438646464,
+            "freeway_mean_speed_kph": 1.5619820962072768
+          },
+          "2": {
+            "total_model_vehicles": 1.0901655802532018,
+            "urban_total_veh": 1.1871955025433394,
+            "freeway_total_veh": 2.286182096282062,
+            "freeway_mean_speed_kph": 1.9873578892832118
+          },
+          "3": {
+            "total_model_vehicles": 4.7745888672656545,
+            "urban_total_veh": 6.102594439506968,
+            "freeway_total_veh": 4.45271885753138,
+            "freeway_mean_speed_kph": 1.470614511454377
+          }
+        }
+      },
+      "holdout": {
+        "sample_count": 27,
+        "median_ape_by_metric": {
+          "total_model_vehicles": 2.713132000111638,
+          "urban_total_veh": 3.857966688198506,
+          "freeway_total_veh": 3.9025245219622913,
+          "freeway_mean_speed_kph": 1.3733439241791772
+        },
+        "median_ape_by_step": {
+          "1": {
+            "total_model_vehicles": 2.7616829505243476,
+            "urban_total_veh": 5.107508752967319,
+            "freeway_total_veh": 5.5118681369363935,
+            "freeway_mean_speed_kph": 1.2531899667526762
+          },
+          "2": {
+            "total_model_vehicles": 0.45389398622821436,
+            "urban_total_veh": 0.3180469292449171,
+            "freeway_total_veh": 2.169646005891668,
+            "freeway_mean_speed_kph": 1.181273969992954
+          },
+          "3": {
+            "total_model_vehicles": 5.9267850831199915,
+            "urban_total_veh": 7.229871139496241,
+            "freeway_total_veh": 3.9025245219622913,
+            "freeway_mean_speed_kph": 2.0413704032150113
+          }
+        }
+      }
+    },
+    "note": "training(13,29)에서 적합, holdout(47)에서 확인. 두 값이 일치하면 과적합이 아니다."
+  },
+  "not_wired_because": "어댑터 apply_prediction_audit_calibration 은 컴포넌트 6개(protected_accumulation_veh, urban_movement_queue_total_veh, urban_link_occupancy_total_veh, off_ramp_storage_veh, boundary_queue_total_veh, freeway_mean_speed_kph)와 집계 2개를 스케일한다. 그런데 VISSIM 은 그 컴포넌트들을 개별 관측하지 않는다 - 상태 CSV 는 total/urban/freeway/ramp/boundary/speed 집계뿐이다. 검증되지 않은 컴포넌트 매핑을 꽂으면 지금 발견한 오류를 그대로 반복한다. 배선은 별도 결정으로 둔다.",
+  "supersedes_recommendation": {
+    "target": "real_world_prediction_calibration_pshb4500fix_20260724.json",
+    "verdict": "disable",
+    "evidence": "그 판의 도시부 스케일 0.141~0.245 는 이 격자에서 측정한 1.238 과 약 7배 어긋나고 방향도 반대다. 고속 속도도 0.613 대 0.898 로 반대편이다. 낡은 것이 아니라 다른 망의 값이다."
+  }
+}
