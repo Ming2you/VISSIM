@@ -1416,6 +1416,10 @@ def main() -> None:
                         help="링크 -> 저류 이름 강제 지정 JSON. "
                              "derive_urban_storage_capacity.py 에 준 것과 **같은 파일**을 줘야 "
                              "용량과 라우팅이 같은 저류를 가리킨다")
+    parser.add_argument("--movement-exit-signal", default="",
+                        help="scripts/derive_movement_exit_signal.py 산출 JSON. 그 안의 "
+                             "phase_override 를 읽어 진출 경로가 신호두를 안 지나는 movement 의 "
+                             "phase 를 비운다(green=1). 안 주면 기하 규칙 그대로다")
     parser.add_argument(
         "--assignment-approval-manifest",
         default="",
@@ -1611,6 +1615,33 @@ def main() -> None:
             "monitor permanent-red movements removed: "
             + ", ".join(f"{node}={len(movements)}" for node, movements in permanent_red_removed.items())
         )
+
+    # 2026-08-14: 진출 판정. movement 의 진입->진출 경로가 그 SC 의 신호두를 지나지
+    # 않으면 phase 를 비운다(green=1). 근거는 기하가 아니라 망이다 —
+    # scripts/derive_movement_exit_signal.py 가 그 판정을 낸다.
+    #
+    # **영구 적색 가지치기 뒤에 적용해야 한다.** 그 가지치기는 `phase 가 비었고
+    # 스케줄 녹색이 0` 인 movement 를 지우는데, 먼저 비우면 자유 통과시키려던 것이
+    # 오히려 삭제된다. 지금 대상은 전부 제어 15 SC 소속이라 그 함수가 monitor 노드만
+    # 보므로 우연히 안 걸리지만, 비제어 노드로 넓히는 순간 터진다.
+    if args.movement_exit_signal:
+        _exit = read_json(Path(args.movement_exit_signal))
+        _override = _exit.get("phase_override") or {}
+        _mv = network_override.get("urban_movements") or {}
+        applied, missing = 0, []
+        for movement_key, phase in _override.items():
+            spec = _mv.get(str(movement_key))
+            if spec is None:
+                missing.append(str(movement_key))
+                continue
+            spec["phase_geometric"] = spec.get("phase")
+            spec["phase"] = str(phase)
+            spec["phase_basis"] = "exit_head_evidence"
+            applied += 1
+        print(f"진출 판정: {Path(args.movement_exit_signal).name}  "
+              f"phase 를 비운 movement {applied}/{len(_override)}개")
+        if missing:
+            print(f"   가지치기에서 이미 빠진 것 {len(missing)}개: {missing[:4]}")
     mapping = build_control_mapping(base_mapping, rows, monitor_rows, detector_path, args.selector)
     boundary_gate_notes: list[str] = []
     if boundary_gates is not None:
