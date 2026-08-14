@@ -928,6 +928,44 @@ one-step / H=3 통합 테스트 PASS.
 
 ## N8. marginal price 와 런타임 — P0
 
+> ### 착수 전 실측 (2026-08-14, pedovr 격자 · 결정 8회)
+>
+> N8 을 시작하기 전에 리더가 실제로 무엇을 하고 있는지 재 뒀다. **격자는 정상인데
+> 리더 탐색이 첫 후보에서 멈춘다.**
+>
+> | 진단 | 값 |
+> |---|---:|
+> | `leader_candidate_count` | 14 |
+> | `leader_candidate_coarse_count` | 9 |
+> | `leader_candidate_coarse_evaluated_count` | **3** |
+> | `leader_candidate_best_index` | **0** (매 결정) |
+> | `leader_candidate_best_stage_refined` | **0** |
+> | `leader_candidate_follower_early_terminated_candidates_total` | **990** |
+>
+> 후보를 14개 만들지만 9개 coarse 중 3개만 평가하고, 이긴 것은 언제나 index 0 이며
+> 정련 단계는 한 번도 안 돈다. follower 응답 조기종료가 990건이다. 결과로 녹색이
+> 15 신호 중 12개에서 현시 전부 34.5 s 로 같다 — 균등분할이다.
+>
+> **`--mode fuller-smoke` 로 후보 수를 늘려도 이건 안 풀릴 가능성이 크다.** 막히는
+> 자리가 후보 생성이 아니라 평가이기 때문이다. N8-1 의 "bound 로 붕괴된 좌표는 zero
+> gradient 가 아니라 **ineligible**" 판정이 없어서 모든 후보가 같아 보이고 첫 번째가
+> 이기는 것으로 보인다 — N8-1 착수 시 이 가설부터 확인할 것.
+>
+> **목적함수가 보는 차량이 절반이다.** 같은 런에서 잰 값이다.
+>
+> ```
+> sim 120   총 626 대   경계 제외 574 (92%)
+> sim 420   총 1,715    경계 제외 923 (54%)
+> ```
+>
+> `leader_boundary_leg_excluded_veh` 는 설계대로 빼는 것이지만(`leader.py:767`) 그
+> 양이 과반이다. N3-2 가 남긴 "포착률 20.7%" 와 같은 뿌리로 보인다. 다만 sim_sec=1
+> 에서 총 6 대인데 12 대를 제외한다(200%) — **제외량이 총량과 다른 기준으로 계산된다.**
+> N8 착수 전에 이 산식부터 맞춰야 비교가 성립한다.
+>
+> 격자 쪽은 문제가 아니다. 같은 결정에서 표현률 93.0%(1,429.4 / 1,538), 미표현 링크
+> 2개 · 2.6 대, 질량수지 오차 2.6 대(누적 안 함), `storage_capacity_clipped_veh` 0 이다.
+
 ### N8-1. exact FD 대 SPSA 자격심사
 FD 와 SPSA 가 하나의 production endpoint 를 호출한다. endpoint control, 목적함수 성분, feasibility,
 종단 상태, 실현 섭동 폭이 동일하지 않으면 비교 자체가 FAIL 이다.
