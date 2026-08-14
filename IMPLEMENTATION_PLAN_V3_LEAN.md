@@ -918,6 +918,68 @@ v2.1 도 둘을 따로 정의했다 — `IMPLEMENTATION_PLAN.md:359`(하한 `1e-
 **PASS.** 부모 9/9, anchor 완비, 누락/중복 0, base replay 부모-anchor 당 `>=20`,
 training/holdout 시드 중복 0.
 
+> ### 착지 (2026-08-15) — 부모런 실행 중, base replay 의 뜻을 확정했다
+>
+> **부모런은 no-control 이다.** 계획이 지정한 드라이버 `run_plant_fidelity_matrix.ps1:123-124`
+> 가 Controller / WarmupController 를 둘 다 no-control 로 못 박고 이름도 `fixed_nocontrol_`
+> 로 붙인다. 부모런은 플랜트 기준선 궤적이고 anchor 는 거기서 갈라져 나가는 상태이며
+> N6 가 그 궤적에서 플랜트 파라미터를 적합한다 — 제어를 켜면 셋 다 무너진다.
+>
+> 그 매트릭스는 **pedovrx 격자를 못 돈다.** `:43` 이 워치독을 core15n41 로 못박고 그
+> 워치독의 기본 망은 옛 `modi_eval_rw_control.inpx` 이며, 인자 해시에 Network/Tuning 키가
+> 없어 덮어쓸 통로도 없다. `-Strict -RequireComplete` 경로는 pedovrx 워치독에 B1a 인자
+> 넷이 없어 파라미터 바인딩 오류로 죽는다. 그래서 `scripts/run_n5_parent_runs.ps1` 을
+> 따로 만들었다.
+>
+> #### base replay = 같은 것을 그대로 다시 돌리는 것
+>
+> 시드를 바꾼 20회가 **아니다.** 같은 `.inpx`, 같은 시드, 같은 수요 배율, 같은 no-control.
+> 근거 셋:
+>
+> 1. 하한이 `1e-6 veh·h` 다. J 는 수천 veh·h 규모다 — 수요 실현 분산이라면 그런 하한이
+>    있을 이유가 없다. 그것은 "움직이면 안 되는 양" 의 하한이다.
+> 2. 형제 값 `eps_J_endpoint`(하한 `1e-9`)가 플랜트 endpoint **재현성** 잡음이다.
+>    둘은 성격이 같고 대상만 다르다(VISSIM 대 endpoint).
+> 3. N9-1 이 스냅샷 복원을 금지하고 모든 branch 를 `t=0` 부터 재실행하게 못 박은 것이
+>    접두를 바이트 단위로 같게 만들기 위해서다. 시드 분산을 재려 했다면 접두 동일성에
+>    신경 쓸 이유가 없다. 실측도 있다 — `outputs/gates_config_grid_20260802/g6_flip_analysis.json`
+>    의 arm 14개가 `t=900` 에서 `distinct_state_hashes=1`.
+>
+> 그러므로 **spread 가 0 으로 나오는 것이 정상이고 의미 있는 결과다.** 그것이 VISSIM 이
+> 재현된다는 증명이고, 이후 `ΔJ != 0` 이면 실재한다고 말할 근거가 된다. 0 이 아니게 나오면
+> 그 값이 그대로 잡음 바닥이 된다.
+>
+> #### 720회가 아니라 180회다
+>
+> 한 replay 의 상태 시계열에서 창만 다르게 잘라 anchor 4개의 J 를 전부 얻는다.
+> `J = trapezoid(total_vehicles) over [anchor, run_end] / 3600` (veh·h, TTT).
+> 표본 수는 요구대로 부모-anchor 당 20개다. **부모런 자체가 replay 1 번**이라(무섭동
+> no-control = 정의상 base arm) 부모당 19회만 더 돈다. 9 × 19 = 171회.
+>
+> #### 없던 것 / 고친 것
+>
+> - v2.1 이 이름까지 못박아 둔 `scripts/run_development_data_v2_1.ps1` 과
+>   `outputs/development_noise_v2_1.json` 은 **둘 다 존재하지 않았다.** `eps_j_vissim()`
+>   호출자도 자기 단위 테스트뿐이었다. 실행기(`run_n5_base_replays.ps1`)와
+>   측정기(`measure_eps_j_vissim.py`)를 새로 만들었다.
+> - `run_readiness.py` 의 N5 항목이 `run_plant_fidelity_matrix.ps1` 하나로 `eps_J_vissim`
+>   까지 낸다고 적고 있었다 — **사실이 아니다.** 그 러너는 9셀을 한 번씩 돌 뿐이라 반복
+>   표본이 없다. 실제 명령 넷으로 교체했다.
+> - `evaluation/runs/` 는 gitignore 이므로 `build_n5_parent_run_evidence.py` 가 해시·행수·
+>   anchor 목록을 봉인한다. 거기서 눈으로 구분 안 되는 둘을 기계로 검사한다 —
+>   `DEMAND=SCALED_IN_MEMORY` 인지(아니면 배율 미적용), `unmapped_inputs=0` 인지
+>   (아니면 옛 게이트맵이라 유입 13.8% 가 모델에서 사라진 런이다).
+>
+> #### 실측 (2026-08-15)
+>
+> 첫 셀 `training_d075_s13`: wall **17.1분**, 시작 오버헤드 ~5분, 시뮬 0.27배 실시간,
+> anchor 4개(303/413/460/478 KB), `DEMAND=SCALED_IN_MEMORY scale=0.750000` 유입 34개,
+> 게이트 `mapped=22 unmapped=0`, `DECISIONS_FAILED=0`, VISSIM `.err` Error **0건**.
+> 수요 6구간 전부 정확히 0.75배(18907.24 → 14180.43 등).
+>
+> 부모 9개 ≈ **2.5시간**. base replay 171회 ≈ **50시간**(직렬 — VISSIM 은 한 번에 하나,
+> Kill-Vissim 이 전역 kill 한다).
+
 ## N6. 캘리브레이션 — P1
 
 `evaluation/calibration/physical_stock_calibration_v3.json` 에 run ID/split, 추정기, 표본 수,
