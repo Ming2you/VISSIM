@@ -1,0 +1,94 @@
+{
+  "schema_version": "development-noise-v3",
+  "status": "PASS",
+  "reasons": [],
+  "floor_veh_h": 1e-06,
+  "scope": "VISSIM 런간 재현성. N9 의 ΔJ 재료성 판정 전용",
+  "never_mix": "eps_J_endpoint(하한 1e-9, N8-1)와 섞지 마라",
+  "objective": "TTT = trapezoid(total_vehicles) over [anchor, run_end] / 3600 (veh·h)",
+  "run_dir": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\VISSIM\\evaluation\\runs\\n5_parent_20260814",
+  "sample_dimensions": {
+    "replays": 3,
+    "anchors": 4
+  },
+  "per_anchor": {
+    "900": {
+      "replays": 3,
+      "j_min_veh_h": 1924.8430555555556,
+      "j_max_veh_h": 1924.8430555555556,
+      "j_spread_veh_h": 0.0,
+      "eps_j_vissim_veh_h": 1e-06,
+      "at_floor": true,
+      "identical_state_csv": false
+    },
+    "1500": {
+      "replays": 3,
+      "j_min_veh_h": 1575.4618055555557,
+      "j_max_veh_h": 1575.4618055555557,
+      "j_spread_veh_h": 0.0,
+      "eps_j_vissim_veh_h": 1e-06,
+      "at_floor": true,
+      "identical_state_csv": false
+    },
+    "2100": {
+      "replays": 3,
+      "j_min_veh_h": 1146.7194444444444,
+      "j_max_veh_h": 1146.7194444444444,
+      "j_spread_veh_h": 0.0,
+      "eps_j_vissim_veh_h": 1e-06,
+      "at_floor": true,
+      "identical_state_csv": false
+    },
+    "2700": {
+      "replays": 3,
+      "j_min_veh_h": 680.3881944444445,
+      "j_max_veh_h": 680.3881944444445,
+      "j_spread_veh_h": 0.0,
+      "eps_j_vissim_veh_h": 1e-06,
+      "at_floor": true,
+      "identical_state_csv": false
+    }
+  },
+  "replays": [
+    {
+      "name": "n5parent_20260814_training_d075_s13",
+      "source": "vissim_base_replay",
+      "state_csv_sha256": "5eb151190dc9f735241b30786d60690ae3c20539b1cde4c56cb4d2d5405f8e0d",
+      "state_rows": 721,
+      "last_sim_sec": 3600.0,
+      "objective_veh_h_by_anchor": {
+        "900": 1924.8430555555556,
+        "1500": 1575.4618055555557,
+        "2100": 1146.7194444444444,
+        "2700": 680.3881944444445
+      }
+    },
+    {
+      "name": "n5parent_20260814_training_d075_s13_r02",
+      "source": "vissim_base_replay",
+      "state_csv_sha256": "414b6efe0bb666d963f8688664bd6cb42ce798a5da0887337c9a630b49e70e37",
+      "state_rows": 721,
+      "last_sim_sec": 3600.0,
+      "objective_veh_h_by_anchor": {
+        "900": 1924.8430555555556,
+        "1500": 1575.4618055555557,
+        "2100": 1146.7194444444444,
+        "2700": 680.3881944444445
+      }
+    },
+    {
+      "name": "n5parent_20260814_training_d075_s13_r03",
+      "source": "vissim_base_replay",
+      "state_csv_sha256": "d38fb90ef07b104fcf84ab3f4afba9db4abda44c26238817a800a7af65204429",
+      "state_rows": 721,
+      "last_sim_sec": 3600.0,
+      "objective_veh_h_by_anchor": {
+        "900": 1924.8430555555556,
+        "1500": 1575.4618055555557,
+        "2100": 1146.7194444444444,
+        "2700": 680.3881944444445
+      }
+    }
+  ],
+  "semantic_sha256": "13ec6d50d2ff394d1132fff72112502b2d8ae3bd0224f7b3fbc52d56ae82b0af"
+}
