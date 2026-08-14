@@ -1205,11 +1205,14 @@ def build_run_provenance(
         "strict_signal_program_py": WORKSPACE_ROOT / "plant" / "src" / "vissim_strict" / "signal_program.py",
         "network_inpx": network_path,
         "main_vbs_runner": WORKSPACE_ROOT / "scripts" / "run_real_world_stackelberg_controller.vbs",
-        "watchdog_wrapper": WORKSPACE_ROOT / "scripts" / "run_real_world_single_watchdog_distributed_core15n41.ps1",
+        # 2026-08-14: 생산 격자가 pedovrx 로 옮겨 갔다. 이 넷은 모형 입력이 아니라
+        # execution_fingerprint_sha256 에 들어가는 **증거**다 - 낡은 채로 두면 모든 런이
+        # 자기가 쓰지도 않은 2026-08-05 격자를 썼다고 기록한다.
+        "watchdog_wrapper": WORKSPACE_ROOT / "scripts" / "run_real_world_single_watchdog_distributed_pedovrx.ps1",
         "numsim_default_yaml": repo_root / "src" / "config" / "default.yaml",
-        "link_assignment_json": WORKSPACE_ROOT / "outputs" / "link_player_assignment_20260805.json",
-        "intersection_adjacency_json": WORKSPACE_ROOT / "outputs" / "intersection_adjacency8_20260805.json",
-        "storage_capacity_json": WORKSPACE_ROOT / "outputs" / "urban_storage_capacity_20260805.json",
+        "link_assignment_json": WORKSPACE_ROOT / "outputs" / "link_player_assignment_pedfold_20260814.json",
+        "intersection_adjacency_json": WORKSPACE_ROOT / "outputs" / "intersection_adjacency_pedfold_20260814.json",
+        "storage_capacity_json": WORKSPACE_ROOT / "outputs" / "urban_storage_capacity_ovr_20260814.json",
         "run_manifest_json": run_manifest_path,
     }
     imported_modules = {}

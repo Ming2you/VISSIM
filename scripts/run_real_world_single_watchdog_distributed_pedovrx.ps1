@@ -72,6 +72,15 @@ $VehicleInputRoles = Resolve-RepoPath $VehicleInputRoles
 if ($DemandProfile -ne "") {
   $DemandProfile = Resolve-RepoPath $DemandProfile
 }
+# 게이트맵을 절대경로로 굳혀서 provenance 가 해시까지 남기게 한다. 비우면 러너가
+# 자기 기본값(urban_input_gate_map_20260811.csv)으로 떨어지는데, 그것은 pedovrx
+# 격자의 맵이 아니다 - 부모런은 반드시 명시로 넘긴다.
+if ($UrbanInputGateMap -ne "") {
+  $UrbanInputGateMap = Resolve-RepoPath $UrbanInputGateMap
+  if (-not (Test-Path -LiteralPath $UrbanInputGateMap -PathType Leaf)) {
+    throw "UrbanInputGateMap not found: $UrbanInputGateMap"
+  }
+}
 if ($ControlIntervalSec -le 0 -or ($ControlIntervalSec % 10) -ne 0) {
   throw "ControlIntervalSec must be a positive multiple of the 10s ramp-meter cycle. Got $ControlIntervalSec."
 }
@@ -188,9 +197,11 @@ $provenanceFiles = [ordered]@{
   control_mapping = Get-ArtifactEvidence $Mapping
   generated_vbs_config = Get-ArtifactEvidence $vbsConfig
   vehicle_input_roles = Get-ArtifactEvidence $VehicleInputRoles
-  link_assignment = Get-ArtifactEvidence (Join-Path $repo "outputs\link_player_assignment_20260805.json")
-  intersection_adjacency = Get-ArtifactEvidence (Join-Path $repo "outputs\intersection_adjacency8_20260805.json")
-  storage_capacity = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_storage_capacity_20260805.json")
+  link_assignment = Get-ArtifactEvidence (Join-Path $repo "outputs\link_player_assignment_pedfold_20260814.json")
+  intersection_adjacency = Get-ArtifactEvidence (Join-Path $repo "outputs\intersection_adjacency_pedfold_20260814.json")
+  storage_capacity = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_storage_capacity_ovr_20260814.json")
+  # 게이트맵은 런마다 달라지는데 provenance 에 빠져 있었다. 실제로 쓴 파일을 남긴다.
+  urban_input_gate_map = Get-ArtifactEvidence $UrbanInputGateMap
   numsim_snapshot = Get-ArtifactEvidence (Join-Path $repo "vendor\NumSim-mine\SNAPSHOT.md")
 }
 $signalPrograms = @(
