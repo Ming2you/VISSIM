@@ -76,7 +76,30 @@ def main() -> int:
     ap.add_argument("--jam-fallback", type=float, default=130.0)
     ap.add_argument("--min-capacity", type=float, default=10.0, help="너무 작은 저류의 하한")
     ap.add_argument("--json-out", default="")
+    ap.add_argument(
+        "--storage-override",
+        default="",
+        help="링크 -> 저류 이름 강제 지정 JSON. 유도 이름이 격자에 없는 링크를 "
+             "기존 저류로 귀속시킨다 — link_storage_override_*.json 형식",
+    )
     args = ap.parse_args()
+
+    # 2026-08-14: 결손 저류 구제.
+    #
+    # 상류 BFS 는 `stop_owner[cur] != owner[link]` 로 **자기 SC 의 정지선을 건너뛴다**.
+    # 정지선이 여럿인 큰 교차로(SC4·SC5·SC9·SC9001)에서는 한 정지선의 상류가 같은 SC 의
+    # 다른 정지선뿐이라, 후보가 영영 안 나오고 "상류 없음 -> 유입 경계"로 떨어진다.
+    # 그렇게 지어진 SC{n}_{대각방위}_out 은 격자에 게이트가 없어 저류가 안 세워지고,
+    # 그 링크 위 차량이 어느 대기행렬에도 안 잡힌다(실측 14곳 923 veh).
+    #
+    # 방위 규칙으로는 못 푸는 자리라, 어느 구간에 속하는지를 밖에서 받는다.
+    storage_override: dict[str, str] = {}
+    if args.storage_override:
+        _ov = json.load(open(args.storage_override, encoding="utf-8"))
+        for link, spec in (_ov.get("override") or {}).items():
+            name = spec.get("storage") if isinstance(spec, dict) else spec
+            if name:
+                storage_override[str(link)] = str(name)
 
     assign = json.load(open(args.assignment, encoding="utf-8"))
     owner, leg, geo = assign["link_owner"], assign["link_leg"], assign["link_geometry"]
@@ -152,10 +175,20 @@ def main() -> int:
     caps, lens = {}, {}
     n_int = n_bnd = 0
     n_split = 0
+    n_ovr = 0
+    ovr_veh = 0.0
     dropped_veh = 0.0
     for l, sc in owner.items():
         g = geo[l]
         cap_l = g["len_m"] / 1000.0 * g["lanes"] * jam
+        # 강제 지정이 있으면 유도 이름 대신 그 저류에 통째로 넣는다.
+        forced = storage_override.get(l)
+        if forced:
+            caps[forced] = caps.get(forced, 0.0) + cap_l
+            lens[forced] = lens.get(forced, 0.0) + g["len_m"]
+            n_ovr += 1
+            ovr_veh += cap_l
+            continue
         dparts, other_share = _down_parts(l, sc)
         uparts = _up_parts(l, up_owner.get(l))
         if len(dparts) > 1 or len(uparts) > 1 or other_share > 0.0:
@@ -179,6 +212,9 @@ def main() -> int:
               f"(하류분할 {len(split)}건 · 상류분할 {len(up_split)}건 근거)")
         print(f"   도시부 아닌 몫으로 제외한 저류 {dropped_veh:,.0f} veh "
               f"(freeway/termination 지분)")
+    if n_ovr:
+        print(f"저류 강제 지정 링크 {n_ovr}개 · {ovr_veh:,.0f} veh "
+              f"({os.path.basename(args.storage_override)})")
     caps = {k: max(args.min_capacity, v) for k, v in caps.items()}
 
     n_ib = sum(1 for k in caps if "_to_" in k)

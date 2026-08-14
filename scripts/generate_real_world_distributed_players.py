@@ -981,11 +981,17 @@ def build_detector_mapping(
         stat = {"내부": 0, "경계": 0, "저류없음": 0}
         missing: dict[str, int] = {}
         unrouted: dict[str, str] = {}
+        # 2026-08-14: 저류 강제 지정. 상류 BFS 가 자기 SC 정지선을 건너뛰어 "상류 없음"
+        # 으로 떨어진 링크(정지선이 여럿인 큰 교차로)를 밖에서 받은 이름으로 붙인다.
+        # derive_urban_storage_capacity.py 와 **같은 파일**을 읽어야 용량과 라우팅이
+        # 같은 저류를 가리킨다 - 안 그러면 용량만 얹히고 링크는 계속 미귀속으로 남는다.
+        storage_override = link_assignment.get("_storage_override") or {}
         for link, sc in owner_of.items():
             link = str(link)
             up = upstream_of.get(link)
-            name = (f"{signal_id(int(up))}_to_{signal_id(int(sc))}" if up is not None
-                    else f"{signal_id(int(sc))}_{leg_of.get(link, '?')}_out")
+            name = storage_override.get(link) or (
+                f"{signal_id(int(up))}_to_{signal_id(int(sc))}" if up is not None
+                else f"{signal_id(int(sc))}_{leg_of.get(link, '?')}_out")
             if name not in storages:
                 # 모델에 그 저류가 없다. 예전에는 `continue` 라 위(757행)의 방위 살포가
                 # 그대로 남아 링크가 **엉뚱한 저류**(주로 유령)로 흘러들어갔다. 권위
@@ -1406,6 +1412,10 @@ def main() -> None:
                         help="scripts/derive_intersection_adjacency.py 산출 JSON. 주면 교차로 간 grid leg 를 심는다")
     parser.add_argument("--link-assignment-json", default="",
                         help="scripts/assign_links_to_players.py 산출 JSON. 주면 관측 링크를 상류 SC 기준으로 저류에 붙인다")
+    parser.add_argument("--storage-override", default="",
+                        help="링크 -> 저류 이름 강제 지정 JSON. "
+                             "derive_urban_storage_capacity.py 에 준 것과 **같은 파일**을 줘야 "
+                             "용량과 라우팅이 같은 저류를 가리킨다")
     parser.add_argument(
         "--assignment-approval-manifest",
         default="",
@@ -1484,6 +1494,15 @@ def main() -> None:
         link_assignment = read_json(link_assignment_path)
         approval_path = Path(args.assignment_approval_manifest) if args.assignment_approval_manifest else None
         link_assignment_evidence = validate_link_assignment(link_assignment_path, link_assignment, approval_path)
+        if args.storage_override:
+            _ov = read_json(Path(args.storage_override))
+            _map = {}
+            for _l, _s in (_ov.get("override") or {}).items():
+                _name = _s.get("storage") if isinstance(_s, dict) else _s
+                if _name:
+                    _map[str(_l)] = str(_name)
+            link_assignment["_storage_override"] = _map
+            print(f"저류 강제 지정: {Path(args.storage_override).name}  링크 {len(_map)}개")
         print(f"배정 JSON: {args.link_assignment_json}  귀속 {len(link_assignment.get('link_owner') or {})}개,"
               f" 상류확정 {len(link_assignment.get('link_upstream') or {})}개,"
               f" 출구 {len(link_assignment.get('monitor_only_exit_links') or [])}개")
