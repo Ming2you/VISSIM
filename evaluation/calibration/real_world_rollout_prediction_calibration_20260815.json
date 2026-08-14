@@ -2,7 +2,7 @@
   "schema_version": 1,
   "created_at": "2026-08-15",
   "calibration_version": "real_world_rollout_prediction_calibration_20260815",
-  "status": "measured_not_wired",
+  "status": "measured_aggregate_only_not_wired",
   "scope": "MPC horizon(3스텝=180초) 안의 다중스텝 rollout 예측 스케일. 집계 4지표만.",
   "fit_basis": {
     "source_runs": "evaluation/runs/n5_parent_20260814 (부모런 9셀, no-control)",
@@ -159,5 +159,20 @@
     "target": "real_world_prediction_calibration_pshb4500fix_20260724.json",
     "verdict": "disable",
     "evidence": "그 판의 도시부 스케일 0.141~0.245 는 이 격자에서 측정한 1.238 과 약 7배 어긋나고 방향도 반대다. 고속 속도도 0.613 대 0.898 로 반대편이다. 낡은 것이 아니라 다른 망의 값이다."
+  },
+  "IMPORTANT_scope_limit": {
+    "verdict": "이 스케일은 **망 전체 집계만** 맞춘다. 공간 정확도의 증거가 아니다.",
+    "evidence_file": "outputs/rollout_spatial_accuracy_20260815.json",
+    "measured_at_mpc_horizon_3steps": {
+      "aggregate_urban_ape_pct": 19.8,
+      "urban_storage_level_median_ape_pct": 54.5,
+      "urban_storage_level_p90_ape_pct": 103.4,
+      "aggregate_freeway_ape_pct": 4.0,
+      "freeway_segment_level_median_ape_pct": 15.5,
+      "freeway_segment_level_p90_ape_pct": 40.4,
+      "freeway_segment_speed_median_ape_pct": 6.1
+    },
+    "why_it_matters": "집계가 맞는 것은 링크별 오차가 서로 상쇄되기 때문이다. 컨트롤러는 교차로별로 작동하므로 제어 품질을 좌우하는 것은 공간 분해된 정확도다. 집계 스케일을 먹여 3% 로 만들어도 저류 하나하나는 여전히 중앙값 55% 틀린다.",
+    "mapping_sanity": "모델 저류합/모델 urban 집계 = 1.0 (정확히 일치), 관측 저류합도 같은 규모. 즉 통별 오차는 링크->저류 지도의 결함이 아니라 실재하는 모델 오차다."
   }
 }

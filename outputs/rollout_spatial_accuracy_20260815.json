@@ -1,0 +1,214 @@
+{
+  "schema_version": "rollout-spatial-accuracy-v1",
+  "status": "PASS",
+  "reasons": [],
+  "setup": {
+    "run_dir": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\VISSIM\\evaluation\\runs\\n5_parent_20260814",
+    "anchors_sec": [
+      900,
+      1500,
+      2100
+    ],
+    "horizon_steps": 3,
+    "cells": [
+      "n5parent_20260814_congested_d125_s13",
+      "n5parent_20260814_congested_d125_s29",
+      "n5parent_20260814_holdout_d075_s47",
+      "n5parent_20260814_holdout_d100_s47",
+      "n5parent_20260814_holdout_d125_s47",
+      "n5parent_20260814_training_d075_s13",
+      "n5parent_20260814_training_d075_s29",
+      "n5parent_20260814_training_d100_s13",
+      "n5parent_20260814_training_d100_s29"
+    ],
+    "min_observed_veh": 5.0,
+    "min_observed_speed_kph": 1.0,
+    "note": "APE 분모가 작으면 분포가 잡음에 지배되므로 관측 대수 5 미만 / 속도 1 kph 미만 단위는 뺐다. 뺀 개수는 matched 와 n 의 차이로 드러난다."
+  },
+  "matched_units": {
+    "segments": 1296,
+    "storages": 6980
+  },
+  "freeway_segment_ape": {
+    "count": {
+      "n": 1296,
+      "median": 15.476561133380994,
+      "p90": 40.35885959640247,
+      "mean": 19.36268610227192
+    },
+    "density": {
+      "n": 1296,
+      "median": 15.494508663136504,
+      "p90": 40.34615225934381,
+      "mean": 19.36468517300167
+    },
+    "speed": {
+      "n": 1296,
+      "median": 6.052476880897632,
+      "p90": 39.335740705395054,
+      "mean": 14.353182866223149
+    }
+  },
+  "urban_storage_ape": {
+    "n": 6980,
+    "median": 54.486904761905244,
+    "p90": 103.3750000000012,
+    "mean": 66.2732964898992
+  },
+  "worst_segments_median_ape": [
+    {
+      "segment_id": "RW_FW_W_S5",
+      "median_ape": 44.12804979505727
+    },
+    {
+      "segment_id": "RW_FW_W_S4",
+      "median_ape": 23.39056307146383
+    },
+    {
+      "segment_id": "RW_FW_E_S6",
+      "median_ape": 21.37290013306685
+    },
+    {
+      "segment_id": "RW_FW_W_S6",
+      "median_ape": 19.35554940497565
+    },
+    {
+      "segment_id": "RW_FW_E_S5",
+      "median_ape": 15.91633361297284
+    },
+    {
+      "segment_id": "RW_FW_W_S7",
+      "median_ape": 15.513925384246843
+    },
+    {
+      "segment_id": "RW_FW_E_S3",
+      "median_ape": 14.518910621968303
+    },
+    {
+      "segment_id": "RW_FW_E_S0",
+      "median_ape": 14.137715457215483
+    }
+  ],
+  "worst_storages_median_ape": [
+    {
+      "storage": "SC7_to_SC11",
+      "median_ape": 208.64845679012365
+    },
+    {
+      "storage": "SC9_to_SC103",
+      "median_ape": 195.26515151515167
+    },
+    {
+      "storage": "SC101_to_SC5",
+      "median_ape": 186.50000000000034
+    },
+    {
+      "storage": "SC1001_to_SC2002",
+      "median_ape": 184.76190476190564
+    },
+    {
+      "storage": "SC1004_SW_out",
+      "median_ape": 179.96805555555548
+    },
+    {
+      "storage": "SC1001_to_SC1002",
+      "median_ape": 138.3333333333342
+    },
+    {
+      "storage": "SC1002_to_SC101",
+      "median_ape": 130.89285714285828
+    },
+    {
+      "storage": "SC1004_to_SC1005",
+      "median_ape": 125.42929292929409
+    },
+    {
+      "storage": "SC1004_to_SC1003",
+      "median_ape": 115.11024305555661
+    },
+    {
+      "storage": "SC1004_to_SC107",
+      "median_ape": 111.50007321210856
+    }
+  ],
+  "storage_units_compared": 123,
+  "mapping_sum_check": {
+    "note": "저류별 합계가 양쪽 집계와 맞아야 per-bucket 오차를 믿을 수 있다. model_storage_sum 은 model_urban_total 과, observed_storage_sum 은 VISSIM urban_vehicles 와 같은 규모여야 한다.",
+    "samples": [
+      {
+        "sim_sec": 960.0,
+        "model_storage_sum": 1508.2378691170238,
+        "model_urban_total": 1508.237869117023,
+        "observed_storage_sum": 1872.0
+      },
+      {
+        "sim_sec": 1020.0,
+        "model_storage_sum": 1735.2117459190458,
+        "model_urban_total": 1735.2117459190456,
+        "observed_storage_sum": 2023.0
+      },
+      {
+        "sim_sec": 1080.0,
+        "model_storage_sum": 1968.0236127682847,
+        "model_urban_total": 1968.023612768284,
+        "observed_storage_sum": 2139.0
+      },
+      {
+        "sim_sec": 1560.0,
+        "model_storage_sum": 2477.954447913604,
+        "model_urban_total": 2477.9544479136043,
+        "observed_storage_sum": 2889.0
+      },
+      {
+        "sim_sec": 1620.0,
+        "model_storage_sum": 2594.37677564897,
+        "model_urban_total": 2594.376775648972,
+        "observed_storage_sum": 2879.0
+      },
+      {
+        "sim_sec": 1680.0,
+        "model_storage_sum": 2759.9535318928265,
+        "model_urban_total": 2759.9535318928274,
+        "observed_storage_sum": 2951.0
+      },
+      {
+        "sim_sec": 2160.0,
+        "model_storage_sum": 2943.2095008250562,
+        "model_urban_total": 2943.209500825057,
+        "observed_storage_sum": 3514.0
+      },
+      {
+        "sim_sec": 2220.0,
+        "model_storage_sum": 3005.596629056747,
+        "model_urban_total": 3005.596629056749,
+        "observed_storage_sum": 3531.0
+      },
+      {
+        "sim_sec": 2280.0,
+        "model_storage_sum": 3067.9324549362427,
+        "model_urban_total": 3067.932454936243,
+        "observed_storage_sum": 3599.0
+      },
+      {
+        "sim_sec": 960.0,
+        "model_storage_sum": 1536.7251924747889,
+        "model_urban_total": 1536.7251924747877,
+        "observed_storage_sum": 1905.0
+      },
+      {
+        "sim_sec": 1020.0,
+        "model_storage_sum": 1731.4732029642107,
+        "model_urban_total": 1731.4732029642098,
+        "observed_storage_sum": 2022.0
+      },
+      {
+        "sim_sec": 1080.0,
+        "model_storage_sum": 1991.487648543605,
+        "model_urban_total": 1991.4876485436048,
+        "observed_storage_sum": 2140.0
+      }
+    ],
+    "model_ratio_median": 1.0
+  },
+  "segment_units_compared": 16
+}

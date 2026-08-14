@@ -169,9 +169,12 @@ def rollout_from_anchor(ad, anchor_json: Mapping[str, Any], horizon_steps: int, 
                 "step": k,
                 "sim_sec": t0 + k * control_interval,
                 "summary": ad.summarize_model_state(s, cfg),
+                # 공간 분해 비교(scripts/audit_rollout_spatial_accuracy.py)가 상태 객체에서
+                # 세그먼트별 밀도·속도와 저류별 점유를 직접 꺼낸다. 요약에는 없는 것들이다.
+                "state": s,
             }
         )
-    return steps, control_interval
+    return steps, control_interval, cfg
 
 
 def ape(pred: float | None, obs: float | None) -> float:
@@ -220,7 +223,7 @@ def collect(
                 continue
             try:
                 anchor_json = json.loads(anchor_path.read_text(encoding="utf-8"))
-                steps, interval = rollout_from_anchor(ad, anchor_json, horizon_steps, paths)
+                steps, interval, _cfg = rollout_from_anchor(ad, anchor_json, horizon_steps, paths)
             except Exception as exc:  # noqa: BLE001 - 어느 셀에서 왜 죽었는지 남긴다
                 failures.append(f"{cell['name']}@{anchor}: {type(exc).__name__}: {exc}")
                 continue
