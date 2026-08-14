@@ -68,7 +68,22 @@ def main() -> int:
         help="physical terminal ties are unresolved by default; override modes are diagnostic only",
     )
     ap.add_argument("--tie-evidence-out", default="")
+    ap.add_argument(
+        "--tie-verdicts",
+        default="",
+        help="판정 파일(JSON). 미결 tie 를 분수 배정으로 해소한다 — "
+             "downstream_split / upstream_split 를 읽는다",
+    )
     args = ap.parse_args()
+
+    # 판정 파일. tie 는 물리적으로 '한 소유자'가 없는 링크라 정책으로 못 고른다.
+    # 사용자가 도면·경로표를 보고 내린 분수 배정을 근거로 싣고, 레거시 3분할에는
+    # legacy_bucket(최대 지분)으로 한 자리만 차지한다 — 분할 불변식을 깨지 않는다.
+    verdict_down, verdict_up = {}, {}
+    if args.tie_verdicts:
+        _v = json.load(open(args.tie_verdicts, encoding="utf-8"))
+        verdict_down = {str(k): v for k, v in (_v.get("downstream_split") or {}).items()}
+        verdict_up = {str(k): v for k, v in (_v.get("upstream_split") or {}).items()}
 
     import xml.etree.ElementTree as ET
     root = ET.parse(args.network).getroot()
@@ -202,6 +217,37 @@ def main() -> int:
         elif found:
             freeway_bound[link] = found[1]
 
+    # 판정 적용 — tie 링크의 레거시 귀속을 legacy_bucket 으로 덮어쓴다.
+    # 분수 자체는 payload 의 link_split 로 나가고, 여기서는 3분할 중 한 자리만 정한다.
+    split_applied = {}
+    for link, spec in verdict_down.items():
+        if link not in geo:
+            print(f"경고 — 판정에 있는 링크 {link} 가 망에 없다. 건너뛴다.")
+            continue
+        parts = spec.get("parts") or []
+        if not parts:
+            continue
+        bucket = str(spec.get("legacy_bucket") or "")
+        if not bucket:
+            top = max(p.get("share", 0.0) for p in parts)
+            bucket = str(next(p["to"] for p in parts if p.get("share", 0.0) == top))
+        owner.pop(link, None)
+        freeway_bound.pop(link, None)
+        if bucket.startswith("SC"):
+            owner[link] = int(bucket[2:])
+            hops_to_owner.setdefault(link, 1)
+        elif bucket.startswith("freeway:"):
+            freeway_bound[link] = bucket.split(":", 1)[1]
+        # termination / monitoring_only 는 어디에도 안 넣는다 -> 아래에서 exits 로 떨어진다
+        split_applied[link] = {"parts": parts, "legacy_bucket": bucket,
+                               "governing_decision": spec.get("governing_decision"),
+                               "note": spec.get("note", "")}
+    if split_applied:
+        print(f"판정 적용 {len(split_applied)}건 "
+              f"(귀속 {sum(1 for v in split_applied.values() if v['legacy_bucket'].startswith('SC'))}"
+              f" / freeway {sum(1 for v in split_applied.values() if v['legacy_bucket'].startswith('freeway'))}"
+              f" / 출구 {sum(1 for v in split_applied.values() if not v['legacy_bucket'].startswith(('SC','freeway')))})")
+
     # 하류에 SC 가 없는 링크 = 네트워크 **출구 계열**이다. 실측 확인(2026-08-05):
     # 미귀속 77개 전부가 출구로 향한다(하류 커넥터 자체가 없는 종단 63개 + 종단까지
     # SC 없이 이어지는 14개). 이 차량들은 이미 모든 교차로를 지나 빠져나가는 중이므로
@@ -261,6 +307,24 @@ def main() -> int:
                 if stop_owner.get(cur) is None:
                     next_frontier.update(upstream.get(cur, ()))
             frontier = next_frontier - seen
+    # 상류 판정 적용 — 저류 통 이름(SCa_to_SCb)의 a 를 정한다. 분수는 payload 로.
+    up_split_applied = {}
+    for link, spec in verdict_up.items():
+        if link not in owner:
+            continue
+        legacy = str(spec.get("legacy_upstream") or "")
+        if not legacy:
+            ups = spec.get("upstream") or []
+            if ups:
+                legacy = str(max(ups, key=lambda p: p.get("share", 0.0))["to"])
+        if legacy.startswith("SC"):
+            up_owner[link] = int(legacy[2:])
+        up_split_applied[link] = {"upstream": spec.get("upstream") or [],
+                                  "legacy_upstream": legacy,
+                                  "governing_decision": spec.get("governing_decision"),
+                                  "gap": spec.get("gap", "")}
+    if up_split_applied:
+        print(f"상류 판정 적용 {len(up_split_applied)}건")
     print(f"상류 SC 확정 {len(up_owner)}/{len(owner)}   (없으면 유입 경계 = 경계 저류)")
 
     # 도착 leg 방위 — 링크 시작점에서 소유 SC 중심으로의 방위의 반대(=SC 가 본 방향)
@@ -293,9 +357,19 @@ def main() -> int:
     ambiguous_upstream_ties = [
         item for item in upstream_ties if len({candidate["sc"] for candidate in item["candidates"]}) > 1
     ]
+    # 판정으로 덮인 tie 는 해소된 것으로 본다. 안 덮인 것만 미결로 남는다.
+    unresolved_down = [t for t in downstream_ties if str(t["link"]) not in verdict_down]
+    unresolved_up = [t for t in ambiguous_upstream_ties if str(t["link"]) not in verdict_up]
     tie_evidence = {
-        "status": "UNRESOLVED" if downstream_ties or ambiguous_upstream_ties else "CLEAR",
+        "status": "UNRESOLVED" if unresolved_down or unresolved_up else "CLEAR",
         "tie_policy": args.tie_policy,
+        "tie_verdicts": args.tie_verdicts or None,
+        "resolved_by_verdict": {
+            "downstream": sorted({str(t["link"]) for t in downstream_ties} & set(verdict_down), key=numeric_id),
+            "upstream": sorted({str(t["link"]) for t in ambiguous_upstream_ties} & set(verdict_up), key=numeric_id),
+        },
+        "unresolved_downstream_ties": unresolved_down,
+        "unresolved_upstream_ties": unresolved_up,
         "downstream_ties": downstream_ties,
         "ambiguous_upstream_ties": ambiguous_upstream_ties,
     }
@@ -304,8 +378,8 @@ def main() -> int:
         json.dump(tie_evidence, open(args.tie_evidence_out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if args.tie_policy == "error" and tie_evidence["status"] == "UNRESOLVED":
         print(
-            f"ERROR unresolved physical routing ties: downstream={len(downstream_ties)} "
-            f"upstream={len(ambiguous_upstream_ties)}; no assignment artifact written",
+            f"ERROR unresolved physical routing ties: downstream={len(unresolved_down)} "
+            f"upstream={len(unresolved_up)}; no assignment artifact written",
             file=sys.stderr,
         )
         return 2
@@ -315,7 +389,10 @@ def main() -> int:
             "rule": "link -> first downstream signal controller (approach queue owner). strict partition.",
             "tie_policy": args.tie_policy,
             "tie_status": tie_evidence["status"],
-            "unresolved_tie_count": len(downstream_ties) + len(ambiguous_upstream_ties),
+            "unresolved_tie_count": len(unresolved_down) + len(unresolved_up),
+            "tie_verdicts_source": args.tie_verdicts or None,
+            "link_split": {l: split_applied[l] for l in sorted(split_applied, key=numeric_id)},
+            "link_upstream_split": {l: up_split_applied[l] for l in sorted(up_split_applied, key=numeric_id)},
             "link_owner": {l: owner[l] for l in sorted(owner, key=lambda x: int(x))},
             "link_leg": {l: legs[l] for l in sorted(legs, key=lambda x: int(x))},
             "link_upstream": {l: up_owner[l] for l in sorted(up_owner, key=lambda x: int(x))},

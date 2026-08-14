@@ -112,19 +112,73 @@ def main() -> int:
         print("오류 — assignment 에 link_upstream 이 없다. assign_links_to_players.py 를 다시 돌려라.")
         return 2
 
+    # 2026-08-14: 분수 귀속(link_split / link_upstream_split)을 받는다.
+    #
+    # tie 링크는 물리적으로 소유자가 하나가 아니다 — 지하차도·램프 분기처럼 한 링크가
+    # 정지선 둘 이상을 먹인다. assign_links_to_players.py 가 레거시 3분할에는
+    # legacy_bucket 으로 한 자리만 넣고, 실제 배분은 link_split 로 싣는다. 저류는
+    # 그 배분대로 나눠야 "SC 에 녹색을 주면 이 저류가 빠진다"는 관계가 성립한다.
+    #
+    # 하류 몫 x 상류 몫의 곱으로 통에 넣는다. freeway/termination 몫은 도시부 저류가
+    # 아니므로 버리되, 얼마를 버렸는지 반드시 출력한다(조용한 누락 금지).
+    split = assign.get("link_split") or {}
+    up_split = assign.get("link_upstream_split") or {}
+
+    def _down_parts(l, sc):
+        """[(소유 SC, 지분)] — 도시부 몫만. 비도시부 지분은 두 번째 값으로 돌려준다."""
+        spec = split.get(l)
+        if not spec:
+            return [(int(sc), 1.0)], 0.0
+        urban, other = [], 0.0
+        for p in spec.get("parts", []):
+            to, share = str(p.get("to", "")), float(p.get("share", 0.0))
+            if to.startswith("SC"):
+                urban.append((int(to[2:]), share))
+            else:
+                other += share
+        return (urban or [(int(sc), 1.0)]), (other if urban else 0.0)
+
+    def _up_parts(l, up):
+        """[(상류 SC 또는 None, 지분)]"""
+        spec = up_split.get(l)
+        if not spec:
+            return [(up, 1.0)]
+        out = []
+        for p in spec.get("upstream", []):
+            to, share = str(p.get("to", "")), float(p.get("share", 0.0))
+            out.append((int(to[2:]) if to.startswith("SC") else None, share))
+        return out or [(up, 1.0)]
+
     caps, lens = {}, {}
     n_int = n_bnd = 0
+    n_split = 0
+    dropped_veh = 0.0
     for l, sc in owner.items():
         g = geo[l]
-        up = up_owner.get(l)
-        if up is not None:
-            name = f"SC{int(up)}_to_SC{int(sc)}"   # 상류 -> 나 방향이 곧 내 approach 다
-            n_int += 1
-        else:
-            name = f"SC{int(sc)}_{leg.get(l, '?')}_out"   # 상류 SC 가 없으면 유입 경계
-            n_bnd += 1
-        caps[name] = caps.get(name, 0.0) + g["len_m"] / 1000.0 * g["lanes"] * jam
-        lens[name] = lens.get(name, 0.0) + g["len_m"]
+        cap_l = g["len_m"] / 1000.0 * g["lanes"] * jam
+        dparts, other_share = _down_parts(l, sc)
+        uparts = _up_parts(l, up_owner.get(l))
+        if len(dparts) > 1 or len(uparts) > 1 or other_share > 0.0:
+            n_split += 1
+        dropped_veh += cap_l * other_share
+        for own_sc, ds in dparts:
+            for up_sc, us in uparts:
+                w = ds * us
+                if w <= 0.0:
+                    continue
+                if up_sc is not None:
+                    name = f"SC{int(up_sc)}_to_SC{int(own_sc)}"   # 상류 -> 나 방향이 곧 내 approach 다
+                    n_int += 1
+                else:
+                    name = f"SC{int(own_sc)}_{leg.get(l, '?')}_out"   # 상류 SC 가 없으면 유입 경계
+                    n_bnd += 1
+                caps[name] = caps.get(name, 0.0) + cap_l * w
+                lens[name] = lens.get(name, 0.0) + g["len_m"] * w
+    if n_split:
+        print(f"분수 귀속 적용 링크 {n_split}개 "
+              f"(하류분할 {len(split)}건 · 상류분할 {len(up_split)}건 근거)")
+        print(f"   도시부 아닌 몫으로 제외한 저류 {dropped_veh:,.0f} veh "
+              f"(freeway/termination 지분)")
     caps = {k: max(args.min_capacity, v) for k, v in caps.items()}
 
     n_ib = sum(1 for k in caps if "_to_" in k)
@@ -150,7 +204,10 @@ def main() -> int:
             "urban_link_storage_veh": {k: round(v, 1) for k, v in sorted(caps.items())},
             "urban_link_length_km": {k: round(v / 1000.0, 4) for k, v in sorted(lens.items())},
             "source": "scripts/derive_urban_storage_capacity.py",
-            "note": "링크는 assign_links_to_players.py 의 분할 귀속을 쓴다(중복 없음).",
+            "note": "링크는 assign_links_to_players.py 의 분할 귀속을 쓴다(중복 없음). "
+                    "link_split / link_upstream_split 이 있으면 그 지분대로 나눈다.",
+            "fractional_links": n_split,
+            "excluded_non_urban_veh": round(dropped_veh, 1),
         }
         os.makedirs(os.path.dirname(os.path.abspath(args.json_out)) or ".", exist_ok=True)
         json.dump(payload, open(args.json_out, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
