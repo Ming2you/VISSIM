@@ -1619,6 +1619,10 @@ def build_local_observation_summary(
     storage_count_by_link: dict[str, float] = {}
     storage_assigned_by_link: dict[str, float] = {}
     urban_link_storage_occupancy = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
+    # 저류별 **정지 대수**. 투영이 release 버퍼를 복원할 때 "이미 정지선에 도착한 몫" 과
+    # "아직 이동 중인 몫" 을 가르는 근거다(traffic_state_from_vissim 의 버퍼 복원 참조).
+    # 관측에서 나오므로 추정이 아니다.
+    urban_link_storage_stopped = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
     storage_requested_veh = 0.0
     storage_assigned_veh = 0.0
     storage_capacity_clipped_veh = 0.0
@@ -1680,6 +1684,12 @@ def build_local_observation_summary(
                 storage_assigned_by_link[str(link)] += assigned
                 storage_assigned_veh += assigned
                 storage_capacity_clipped_veh += max(0.0, share - assigned)
+                # 배정된 몫 중 정지 비율만큼을 정지 대수로 같이 옮긴다.
+                if count > 0.0 and assigned > 0.0:
+                    stopped_share = min(1.0, max(0.0, float(link_stopped_counts.get(str(link), 0.0)) / count))
+                    urban_link_storage_stopped[storage_link] = (
+                        urban_link_storage_stopped.get(storage_link, 0.0) + assigned * stopped_share
+                    )
 
     movement_queue = {movement: 0.0 for movement in cfg.network.urban_movements}
     movement_assigned_by_link: dict[str, float] = {}
@@ -1869,6 +1879,7 @@ def build_local_observation_summary(
         "storage_fraction_by_link": storage_fraction_by_link,
         "urban_movement_queue": movement_queue,
         "urban_link_storage_occupancy": urban_link_storage_occupancy,
+        "urban_link_storage_stopped": urban_link_storage_stopped,
         "urban_link_speed_kph": urban_link_speed_kph,
         "ramp_queue": ramp_queue,
         "boundary_queue": boundary_queue,
@@ -3123,6 +3134,86 @@ def demand_from_state(
     return [step for _ in range(max(1, int(horizon_steps)))]
 
 
+def restore_urban_release_buffers(state, cfg, local_summary: Mapping[str, Any]) -> dict[str, float]:
+    """관측에서 저류의 **이동 중 예약**을 복원한다.
+
+    ## 왜 필요한가 (2026-08-15 실측으로 밝힌 결함)
+
+    투영은 저류 **점유량만** 싣고 `urban_storage_release_buffer` 를 비워 둔다. 그런데
+    plant 의 방출은 전적으로 그 버퍼에 물려 있다.
+
+        내부 링크   `released = _pop_buffer(...)` 가 >0 일 때만 available 복원
+                    (urban_queue_model.py:962-973) -> 버퍼가 비면 **영원히 안 빠진다**
+        sink(_out)  `arrived = occupancy - _pending_in_transit(...)` (:994)
+                    -> 버퍼가 비면 **점유 전량이 즉시 방출 후보**가 된다
+
+    그래서 첫 스텝에 내부 링크는 동결되어 유입만 쌓이고(+114~208%), sink 는 통째로
+    비워진다(정확히 -100%). 저류별 APE 중앙값이 스텝 0 에서 0.0% 인데 스텝 1 에서
+    54.8% 로 튀고 그 뒤 평평한 것이 이 재배치다.
+
+    sink 코드의 주석이 그 뺄셈을 넣은 이유를 직접 적어 놨다 - 안 빼면 "진입 substep 에
+    곧바로 이탈해 out 링크 통행시간이 0". 버퍼가 비면 그 옛 버그가 그대로 재현된다.
+
+    ## 어떻게 복원하는가
+
+    추정하지 않는다. 관측이 정지/이동을 갈라 준다.
+
+        정지 대수      정지선에 이미 도착한 몫. 예약 없이 둔다(즉시 방출 가능).
+        점유 - 정지    아직 이동 중. plant 자신의 `_link_delay_steps` 로 만기 스텝을
+                       구해 1..delay 에 **균등 분산**한다. 정상류가 계속 진입해 온
+                       링크의 정상상태 분포가 균등이기 때문이다.
+
+    내부 링크는 예약이 없으면 동결되므로 정지 몫도 다음 substep 에 만기로 넣는다.
+    sink 는 정지 몫을 예약하지 않아야 출구 게이트가 내보낸다.
+
+    되돌릴 수 있게 기본은 **꺼짐**이다. `RW_RESTORE_RELEASE_BUFFERS=1` 로 켠다.
+    """
+    stats = {"links": 0.0, "in_transit_veh": 0.0, "arrived_veh": 0.0}
+    mode = str(os.environ.get("RW_RESTORE_RELEASE_BUFFERS", "")).strip().lower()
+    # off(기본) / sinks(sink 만) / all(전부). 실측상 all 은 더 나쁘다 - 아래 주석 참조.
+    if mode in {"", "0", "off", "false"}:
+        return stats
+    if mode in {"1", "true"}:
+        mode = "all"
+    if mode not in {"sinks", "all"}:
+        return stats
+    buffer = getattr(state, "urban_storage_release_buffer", None)
+    if not isinstance(buffer, dict):
+        return stats
+    try:
+        from src.models.urban_queue_model import _link_delay_steps, _schedule, sink_storage_links
+    except Exception:  # noqa: BLE001 - 상류 스냅샷에 없으면 조용히 건너뛴다(기존 거동 유지)
+        return stats
+
+    occupancy_by_link = _mapping(local_summary.get("urban_link_storage_occupancy"))
+    stopped_by_link = _mapping(local_summary.get("urban_link_storage_stopped"))
+    sinks = set(sink_storage_links(cfg))
+    step_sec = max(float(cfg.simulation.T_u_sec), 1.0e-9)
+    start_step = int(round(float(getattr(state, "time_sec", 0.0)) / step_sec))
+
+    for link in cfg.network.urban_link_storage_veh:
+        if mode == "sinks" and str(link) not in sinks:
+            continue
+        occupied = max(0.0, _as_float(occupancy_by_link.get(link, 0.0)))
+        if occupied <= 0.0:
+            continue
+        stopped = min(occupied, max(0.0, _as_float(stopped_by_link.get(link, 0.0))))
+        moving = max(0.0, occupied - stopped)
+        # 지연은 plant 자신의 산식으로 잰다 - 여기서 다른 규칙을 쓰면 첫 스텝에 또 어긋난다.
+        delay = max(1, int(_link_delay_steps(state, cfg, str(link))))
+        if moving > 0.0:
+            per = moving / float(delay)
+            for k in range(1, delay + 1):
+                _schedule(buffer, str(link), start_step + k, per)
+            stats["in_transit_veh"] += moving
+        if stopped > 0.0 and str(link) not in sinks:
+            # 내부 링크는 예약이 없으면 동결된다. 도착분은 바로 다음 substep 만기.
+            _schedule(buffer, str(link), start_step + 1, stopped)
+        stats["arrived_veh"] += stopped
+        stats["links"] += 1.0
+    return stats
+
+
 def traffic_state_from_vissim(
     state_json: dict[str, Any],
     cfg,
@@ -3192,6 +3283,7 @@ def traffic_state_from_vissim(
             for link, speed_kph in observed_speeds.items():
                 if str(link) in cfg.network.urban_link_storage_veh:
                     state.urban_link_speed_kph[str(link)] = max(0.0, _as_float(speed_kph))
+        restore_urban_release_buffers(state, cfg, local_summary)
         state.local_observation_summary = local_summary
     else:
         ramp_counts = state_json.get("ramp_counts", {})
