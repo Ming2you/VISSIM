@@ -67,6 +67,16 @@ DEFAULT_CALIBRATION = WORKSPACE_ROOT / "evaluation/calibration/vissim_network_ca
 DEFAULT_DETECTOR_MAPPING = WORKSPACE_ROOT / "evaluation/detector_install/detector_local_mapping.json"
 LOCAL_OBSERVATION_INTERNAL_STORAGE_FRACTION = 0.35
 LOCAL_OBSERVATION_OFFRAMP_STORAGE_FRACTION = 0.50
+# 2026-08-15: 결정마다 상태를 다시 지을 때 release 스케줄을 plant 가 짓게 하는 warm-up 길이.
+# 0 이면 꺼진다(`RW_WARMSTART_SEC` 로 덮어쓴다). 자세한 근거는 warm_start_release_buffers.
+#
+# 실런 A/B 3쌍(시드 13, 1800 s, 제어창 [900,1800])에서 전부 개선이라 기본으로 켠다.
+#   demand 0.75  ΔJ -7.934 veh·h (-1.37%)
+#   demand 1.00  ΔJ -7.468 veh·h (-0.94%)
+#   demand 1.25  ΔJ -4.684 veh·h (-0.45%)
+# eps_J_vissim 이 1e-6 veh·h 라 가장 작은 -4.684 도 재료성이 460만 배 여유로 확정된다.
+# 혼잡할수록 효과가 주는 것은 저류가 차 있을수록 빈 버퍼 왜곡이 작아지기 때문이다.
+DEFAULT_WARMSTART_SEC = 900.0
 
 
 def _b1a_existing_path(path_text: str) -> Path:
@@ -3164,7 +3174,7 @@ def warm_start_release_buffers(state, cfg, state_json: Mapping[str, Any], calibr
     """
     stats = {"warmstart_sec": 0.0, "steps": 0.0, "rescaled_links": 0.0}
     try:
-        warm_sec = float(str(os.environ.get("RW_WARMSTART_SEC", "0")).strip() or 0.0)
+        warm_sec = float(str(os.environ.get("RW_WARMSTART_SEC", str(DEFAULT_WARMSTART_SEC))).strip() or 0.0)
     except ValueError:
         warm_sec = 0.0
     if warm_sec <= 0.0:

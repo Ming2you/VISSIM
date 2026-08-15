@@ -8210,5 +8210,13 @@
     "The first smoke should be short because distributed urban agents enlarge the signal action space.",
     "Boundary legs are restricted to the (node, bearing) pairs that actually receive a VISSIM vehicle input: boundary_input_alignment_pedfold_20260814.json. Approach bearing comes from the input name's travel-direction suffix (NB->S, SB->N, EB->W, WB->E); geometry is used only for unnamed inputs.",
     "Merged boundary legs (a gate sharing its bearing with a grid neighbour leg, i.e. neighbour traffic and external traffic use the same approach): ['SC1005_SW', 'SC108_SW', 'SC10_SE', 'SC11_NE', 'SC11_SW', 'SC12_W', 'SC16_SE', 'SC16_SW', 'SC1_NE', 'SC1_SE', 'SC5_SE', 'SC7_NE']."
-  ]
+  ],
+  "calibration_override": {
+    "_why": "2026-08-15: 상속된 real_world_prediction_calibration_pshb4500fix_20260724 의 audit_calibration 을 끈다. 그 스케일은 2026-07-24 에 옛 망(rw_cg_hb_4500_fixguard_0723)에서 적합한 것이고, 이 격자에서 rollout 실측과 대조하면 도시부가 0.18 대 1.24 로 약 7배 어긋나고 방향도 반대다(고속 속도도 0.613 대 0.898 로 반대편). 낡은 게 아니라 다른 망의 값이다. one-step 예측 오차를 도시부 27% -> 90% 로 악화시킨다. component_scales 는 지우지 않고 남겨 두므로 enabled 만 되돌리면 복원된다. 근거: outputs/rollout_prediction_accuracy_20260815.json",
+    "prediction": {
+      "audit_calibration": {
+        "enabled": false
+      }
+    }
+  }
 }
