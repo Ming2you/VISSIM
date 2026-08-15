@@ -1,10 +1,30 @@
-"""A/B 두 런의 결정을 대조해 무엇이 달라졌는지 본다."""
+#!/usr/bin/env python3
+"""A/B 두 제어런의 **결정**을 대조한다 — J 가 왜 달라졌는지 기전을 본다.
+
+warm-start A/B(2026-08-15, 수요 1.0 · 시드 13)에서 확인한 사슬:
+
+    모델이 보는 도시부 대수   1250 -> 1502   (+20%, 실측에 근접)
+    램프미터                  3개 결정에서 변경 (t=900 1250->1800, t=1440 1800->1250)
+    VSL                       9/31 결정
+    녹색시간                  11/31 결정, 차이 중앙값 3.26 s
+    -> 고속도로 TTT -8.687 veh·h, 속도 +1.068 kph
+
+보존 단위 오차가 -25.8% -> -6.7% 로 줄어든 것과 맞물린다. 상태를 고치니 컨트롤러가
+현실을 보고 다른 결정을 한 것이다 - 성능 튜닝이 아니라 결함 수정이라는 근거다.
+"""
+import argparse
 import json, io, sys, glob, os
 from pathlib import Path
 import statistics as st
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
-D = Path(r"C:\Users\TRLAB\Desktop\찐찐막\VISSIM\evaluation\runs\warmstart_ab_20260815")
+
+_ap = argparse.ArgumentParser(description=__doc__)
+_ap.add_argument("--run-dir", required=True)
+_ap.add_argument("--baseline", required=True)
+_ap.add_argument("--treatment", required=True)
+_args = _ap.parse_args()
+D = Path(_args.run_dir)
 
 
 def load(name):
@@ -15,8 +35,8 @@ def load(name):
     return out
 
 
-a = load("wsoff_20260815")
-b = load("wson900_20260815")
+a = load(_args.baseline)
+b = load(_args.treatment)
 common = sorted(set(a) & set(b))
 print(f"공통 결정 {len(common)}건")
 
