@@ -123,6 +123,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--limit-cells", type=int, default=3)
     ap.add_argument("--no-rescale", action="store_true", help="관측 점유량 재조정을 끄고 순수 warm-start 만")
     ap.add_argument(
+        "--self-warmstart", action="store_true",
+        help="**런타임 구현 가능 변형.** 과거 관측 대신 anchor 관측 자체에서 W 초를 굴려 "
+             "스케줄만 짓고 다시 같은 관측으로 되돌린다. 컨트롤러는 과거 관측을 갖고 있지 "
+             "않으므로 실제로 넣을 수 있는 것은 이쪽뿐이다.",
+    )
+    ap.add_argument(
         "--tuning", type=Path,
         default=REPO / "evaluation/configs/real_world_modi_pstack_distributed_pedovrx_20260814.json")
     ap.add_argument(
@@ -164,8 +170,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                 aj = json.loads(ap_path.read_text(encoding="utf-8"))
                 # anchor 보다 W 초 앞의 관측으로 상태를 짓는다.
                 warm_json = dict(aj)
-                warm_json["sim_sec"] = warm_sec
-                warm_json["local_observation"] = {**(aj.get("local_observation") or {}), **obs_raw[warm_sec]}
+                if args.self_warmstart:
+                    # 런타임 변형: 과거 관측을 안 쓴다. anchor 관측 자체에서 굴려 스케줄만
+                    # 짓고 아래에서 같은 관측으로 되돌린다.
+                    warm_json["sim_sec"] = float(anchor)
+                else:
+                    warm_json["sim_sec"] = warm_sec
+                    warm_json["local_observation"] = {
+                        **(aj.get("local_observation") or {}), **obs_raw[warm_sec]
+                    }
                 cfg, state, control, DemandStep, det, cal, ci = _setup(ad, warm_json, paths)
                 warm_steps = max(1, int(round(args.warmstart_sec / ci)))
                 fc = ad.demand_from_state(warm_json, cfg, DemandStep, warm_steps + args.horizon_steps, cal, det)

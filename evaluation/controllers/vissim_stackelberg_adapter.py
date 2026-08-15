@@ -3134,6 +3134,83 @@ def demand_from_state(
     return [step for _ in range(max(1, int(horizon_steps)))]
 
 
+def warm_start_release_buffers(state, cfg, state_json: Mapping[str, Any], calibration, detector_mapping):
+    """release 스케줄을 **plant 가 스스로 짓게** 한 뒤 관측 점유량으로 되돌린다.
+
+    ## 왜
+
+    투영은 저류 점유량만 싣고 `urban_storage_release_buffer` 를 비워 둔다. plant 의 방출은
+    전적으로 그 버퍼에 물려 있어(urban_queue_model.py:962-973, :994) 빈 버퍼로 시작하면
+    내부 링크는 동결되고 sink 는 즉시 전량 방출된다. **어댑터는 결정마다 상태를 다시
+    짓기 때문에 모든 제어 결정이 그 상태에서 출발한다.**
+
+    버퍼를 손으로 지어 넣는 것은 실패했다(유출만 복원되어 -37.4% 로 무너진다). 대신
+    현재 관측에서 W 초를 무제어로 굴려 plant 가 자기 규약대로 스케줄을 만들게 하고,
+    점유량은 관측값으로 되돌린다. 스케줄은 **같은 비율로** 줄여 모양을 보존한다.
+
+    ## 실측 (보존 단위, anchor 1500/2100, 3셀, 스텝 1 / G5 통과 / 부호)
+
+        기준선(꺼짐)      51.7%   29.2%   -25.8%
+        self warm 300     47.5%   37.1%   -11.8%
+        self warm 900     42.9%   38.8%    -6.7%
+
+    남는 ~43% 는 plant 대 VISSIM 의 실재하는 동역학 오차이고 이 함수의 몫이 아니다.
+
+    ## 비용
+
+    모델 한 스텝이 약 0.21 초라 15 스텝이 결정당 ~3 초다. 60 초 제어주기 안에서 감당된다.
+
+    기본은 **꺼짐**이다. `RW_WARMSTART_SEC` 에 초를 넣으면 켜진다(예: 900).
+    """
+    stats = {"warmstart_sec": 0.0, "steps": 0.0, "rescaled_links": 0.0}
+    try:
+        warm_sec = float(str(os.environ.get("RW_WARMSTART_SEC", "0")).strip() or 0.0)
+    except ValueError:
+        warm_sec = 0.0
+    if warm_sec <= 0.0:
+        return stats
+    interval = float(getattr(cfg.simulation, "control_interval", 60.0) or 60.0)
+    steps = max(1, int(round(warm_sec / max(interval, 1.0e-9))))
+    try:
+        from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
+
+        repo_root = Path(DEFAULT_REPO_ROOT)
+        _c, DemandStep, ControlAction, _e, _t, _v = repo_imports(repo_root)
+        actuation = adapter_actuation_settings(calibration or {}, {})
+        control = _guarded_no_control_baseline(ControlAction, cfg, state, dict(state_json), actuation)
+        forecast = demand_from_state(dict(state_json), cfg, DemandStep, steps, calibration, detector_mapping)
+        warmed = evaluate_price_point(
+            state, control, list(forecast), (),
+            ObjectiveSpec(cfg=cfg, depth_override=steps, box_walk=False),
+        ).states[-1]
+    except Exception as exc:  # noqa: BLE001 - warm-start 실패가 결정을 막으면 안 된다
+        stats["error"] = f"{type(exc).__name__}: {exc}"
+        return stats
+
+    # 지은 스케줄을 현재 상태로 옮기고, 점유량은 관측값으로 되돌리며 예약을 같은 비율로 줄인다.
+    capacity = cfg.network.urban_link_storage_veh
+    observed_remaining = dict(getattr(state, "urban_link_storage", {}) or {})
+    warm_buffer = getattr(warmed, "urban_storage_release_buffer", {}) or {}
+    target_buffer = getattr(state, "urban_storage_release_buffer", None)
+    if not isinstance(target_buffer, dict):
+        return stats
+    for link, cap in capacity.items():
+        cap = float(cap)
+        target_occ = max(0.0, cap - float(observed_remaining.get(link, cap)))
+        warm_occ = max(0.0, cap - float((getattr(warmed, "urban_link_storage", {}) or {}).get(link, cap)))
+        pending = warm_buffer.get(str(link)) or {}
+        if not pending:
+            continue
+        ratio = (target_occ / warm_occ) if warm_occ > 1.0e-9 else 0.0
+        if ratio <= 0.0:
+            continue
+        target_buffer[str(link)] = {int(k): float(v) * ratio for k, v in pending.items()}
+        stats["rescaled_links"] += 1.0
+    stats["warmstart_sec"] = warm_sec
+    stats["steps"] = float(steps)
+    return stats
+
+
 def restore_urban_release_buffers(state, cfg, local_summary: Mapping[str, Any]) -> dict[str, float]:
     """관측에서 저류의 **이동 중 예약**을 복원한다.
 
@@ -3284,6 +3361,10 @@ def traffic_state_from_vissim(
                 if str(link) in cfg.network.urban_link_storage_veh:
                     state.urban_link_speed_kph[str(link)] = max(0.0, _as_float(speed_kph))
         restore_urban_release_buffers(state, cfg, local_summary)
+        # 버퍼를 손으로 짓지 않고 plant 가 짓게 하는 경로. 기본 꺼짐(RW_WARMSTART_SEC).
+        state.warmstart_diagnostics = warm_start_release_buffers(
+            state, cfg, state_json, calibration, detector_mapping
+        )
         state.local_observation_summary = local_summary
     else:
         ramp_counts = state_json.get("ramp_counts", {})
