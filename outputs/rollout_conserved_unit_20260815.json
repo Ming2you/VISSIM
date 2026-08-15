@@ -1,0 +1,48 @@
+{
+  "schema_version": "rollout-conserved-unit-v1",
+  "status": "PASS",
+  "reasons": [],
+  "setup": {
+    "run_dir": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\VISSIM\\evaluation\\runs\\n5_parent_20260814",
+    "anchors_sec": [
+      900,
+      1500,
+      2100
+    ],
+    "horizon_steps": 3,
+    "cells": 3,
+    "conserved_unit": "storage_occupancy[s] + sum(movement_queue[m] for m.origin == s)",
+    "g5_threshold": "max(5.0 veh, 0.10 * observed)",
+    "min_observed_veh": 5.0
+  },
+  "median_ape_by_step": {
+    "conserved": {
+      "1": 54.85243055555576,
+      "2": 60.70149739583338,
+      "3": 58.96551724137939
+    },
+    "storage_only": {
+      "1": 50.99999999999994,
+      "2": 56.127289377289515,
+      "3": 52.99999999999986
+    }
+  },
+  "g5_pass_rate_by_step": {
+    "1": {
+      "pass": 260,
+      "total": 861,
+      "rate_pct": 30.197444831591174
+    },
+    "2": {
+      "pass": 225,
+      "total": 845,
+      "rate_pct": 26.62721893491124
+    },
+    "3": {
+      "pass": 229,
+      "total": 831,
+      "rate_pct": 27.557160048134776
+    }
+  },
+  "signed_median_pct": -29.36698717948747
+}
