@@ -1,0 +1,54 @@
+{
+  "schema_version": "warmstart-ab-v1",
+  "window_sec": [
+    900.0,
+    1800.0
+  ],
+  "objective": "TTT = trapezoid(total_vehicles)/3600 (veh·h)",
+  "why_n1_is_enough": "VISSIM 재현성을 실측으로 입증했다(교통 열 721행 차이 0, eps_J_vissim=하한). 두 런의 차이는 오직 RW_WARMSTART_SEC 이므로 ΔJ 는 잡음이 아니다.",
+  "baseline": {
+    "name": "wsoff_20260815",
+    "runlog": {
+      "DECISIONS_OK": "31",
+      "DECISIONS_FAILED": "0",
+      "OBSERVATION_FAILURES": "0",
+      "SIGNAL_SG_PLAN_ROWS": "1888"
+    },
+    "total_vehicles": 791.3930555555555,
+    "total_vehicles_final": 3803.0,
+    "urban_vehicles": 557.8861111111111,
+    "urban_vehicles_final": 2718.0,
+    "freeway_vehicles": 222.96875,
+    "freeway_vehicles_final": 1039.0,
+    "stopped_vehicles": 216.79097222222222,
+    "stopped_vehicles_final": 1465.0,
+    "mean_speed_kph": 11.21831593958333,
+    "mean_speed_kph_final": 38.924156,
+    "freeway_mean_speed_kph": 23.522618812499996,
+    "freeway_mean_speed_kph_final": 92.160386
+  },
+  "treatment": {
+    "name": "wson900_20260815",
+    "runlog": {
+      "DECISIONS_OK": "31",
+      "DECISIONS_FAILED": "0",
+      "OBSERVATION_FAILURES": "0",
+      "SIGNAL_SG_PLAN_ROWS": "1888"
+    },
+    "total_vehicles": 783.925,
+    "total_vehicles_final": 3741.0,
+    "urban_vehicles": 559.0013888888889,
+    "urban_vehicles_final": 2696.0,
+    "freeway_vehicles": 214.28194444444443,
+    "freeway_vehicles_final": 1002.0,
+    "stopped_vehicles": 217.58333333333334,
+    "stopped_vehicles_final": 1440.0,
+    "mean_speed_kph": 11.37068651805556,
+    "mean_speed_kph_final": 38.343527,
+    "freeway_mean_speed_kph": 24.59053862152777,
+    "freeway_mean_speed_kph_final": 91.157557
+  },
+  "delta_j_veh_h": -7.468055555555566,
+  "delta_j_pct": -0.9436594752923392,
+  "verdict": "개선"
+}
