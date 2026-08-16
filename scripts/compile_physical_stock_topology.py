@@ -56,15 +56,23 @@ PRODUCTION_PARTITION_COUNTS = {
     "boundary_out": 242,
     "total": 1204,
 }
+#
+# 2026-08-16 갱신 — 저류 용량만 바뀐다. jam density 를 표본 0 개짜리 폴백 상수 130.0 에서
+#   실측 168.18 로 옮겼다(표본 20,338, CI95 [167.73, 168.67], headway 추정기).
+#   evaluation/calibration/physical_stock_calibration_v3.json 이 근거다.
+#   이전 130.0 은 사실상 link_p90 값이었고 그 추정기는 밀도를 링크 **전체 길이**로 나눠
+#   하향 편의가 있다(계획의 CI 반폭 10% 기준도 혼자 못 넘긴다).
+#   도시 저류 총합 31,239 -> 41,086 veh. 소유권·인접은 안 바뀌어 분할 수는 그대로다.
+#   실런 확인: jam168_verify_20260816 (결정 31 / 실패 0 / 관측실패 0 / .err Error 0).
 TRUSTED_PRODUCTION_FILE_HASHES = {
     "ownership_evidence": "c2a03de32ab29eef2a0a20eb2ddbad32a44ecf91a963ab0f58554b79363b5bff",
     "adjacency_evidence": "b200ebe9a40b7943b883c4b6f5a47b5ff9937d03f89842a17550ce03c4c55d2d",
-    "capacity_evidence": "87e3858a44797094037516d0f4e533223bcefeaf62cc4d3c92cb2994b730c918",
+    "capacity_evidence": "5875a77f91015f27a5d313d6abfbb92de6b5fca15fdc91d34bf07b2487fb1fc6",
 }
 TRUSTED_PRODUCTION_EVIDENCE_HASHES = {
     "ownership_evidence_semantic_sha256": "4988054c98d657ecbff287286eb281b8ead95fab0ad29467b8e0ba3282f038f1",
     "adjacency_evidence_semantic_sha256": "1f9311c5841c683f894ed937ccf1703e4848df9ed32c13f24e3cd57901b39d48",
-    "capacity_evidence_semantic_sha256": "0277a749acfc8a23f1babe0bce85a6607703890e6811de9d8d36093c72b658b0",
+    "capacity_evidence_semantic_sha256": "4263a247710bbbaf7fa32b691f6e935947616475cc64e1ea44738d34a52f21e9",
     "legacy_partition_identity_sha256": "827537702b11cb2a011ca265583796782fb62d842b56996ca041e4400f41d395",
 }
 OBJECTIVE_POLICIES = {

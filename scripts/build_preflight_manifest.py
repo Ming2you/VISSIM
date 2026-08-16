@@ -75,7 +75,7 @@ DEFAULT_PATHS = {
     "signal_roles": "evaluation/real_world_modi_inventory/signal_controller_roles_pedovrx_20260814.csv",
     "link_assignment": "outputs/link_player_assignment_pedfold_20260814.json",
     "adjacency": "outputs/intersection_adjacency_pedfold_20260814.json",
-    "storage_capacity": "outputs/urban_storage_capacity_ovr_20260814.json",
+    "storage_capacity": "outputs/urban_storage_capacity_jam168_20260815.json",
     "tuning": "evaluation/configs/real_world_modi_pstack_distributed_pedovrx_20260814.json",
     "calibration": "evaluation/calibration/real_world_prediction_calibration_pshb4500fix_20260724.json",
     "control_mapping": "evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_pedovrx_20260814.json",
