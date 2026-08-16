@@ -78,6 +78,13 @@ LOCAL_OBSERVATION_OFFRAMP_STORAGE_FRACTION = 0.50
 # 혼잡할수록 효과가 주는 것은 저류가 차 있을수록 빈 버퍼 왜곡이 작아지기 때문이다.
 DEFAULT_WARMSTART_SEC = 900.0
 
+# 생산 저류 용량 측정 근거(jam 168.18). 두 곳이 쓴다.
+#   1) execution_fingerprint_sha256 의 증거 목록 - 여기가 낡으면 런이 자기가 쓰지도 않은
+#      격자를 썼다고 기록한다(2026-08-16 에 _ovr_20260814 에서 옮겼다).
+#   2) `_storage_effective_lanes` 의 차로수 유도.
+# 런타임 용량 자체는 tuning config 인라인에서 온다 - 이 파일은 그 값의 출처 증거다.
+STORAGE_CAPACITY_EVIDENCE_JSON = WORKSPACE_ROOT / "outputs" / "urban_storage_capacity_jam168_20260815.json"
+
 
 def _b1a_existing_path(path_text: str) -> Path:
     """Resolve one canonical B1a CLI file below the checked-out workspace."""
@@ -1222,7 +1229,7 @@ def build_run_provenance(
         "numsim_default_yaml": repo_root / "src" / "config" / "default.yaml",
         "link_assignment_json": WORKSPACE_ROOT / "outputs" / "link_player_assignment_pedfold_20260814.json",
         "intersection_adjacency_json": WORKSPACE_ROOT / "outputs" / "intersection_adjacency_pedfold_20260814.json",
-        "storage_capacity_json": WORKSPACE_ROOT / "outputs" / "urban_storage_capacity_ovr_20260814.json",
+        "storage_capacity_json": STORAGE_CAPACITY_EVIDENCE_JSON,
         "run_manifest_json": run_manifest_path,
     }
     imported_modules = {}
@@ -1677,6 +1684,87 @@ def _link_storage_split_fraction(cfg, origins: list[str], split_parameters: Mapp
 def _queue_origin_filter_enabled() -> bool:
     """movement 큐를 그 링크의 저류에서 출발하는 것으로 좁힐지. 기본 꺼짐."""
     return str(os.environ.get("RW_QUEUE_ORIGIN_FILTER", "")).strip().lower() in {"1", "true", "on"}
+
+
+def _lane_delay_correction_enabled() -> bool:
+    """저류 통과지연을 차로수로 나눌지. 기본 꺼짐(RW_LANE_DELAY_CORRECTION)."""
+    return str(os.environ.get("RW_LANE_DELAY_CORRECTION", "")).strip().lower() in {"1", "true", "on"}
+
+
+_STORAGE_LANES_CACHE: dict[str, float] | None = None
+
+
+def _storage_effective_lanes() -> dict[str, float]:
+    """저류별 **길이가중 평균 차로수** = 용량 / (길이 × jam).
+
+    용량이 `길이 × 차로 × jam` 으로 지어졌으므로 이 나눗셈은 항등식이고 측정이 아니다.
+    저류가 여러 링크를 묶으면 정수로 안 떨어진다(중앙 2.69, 범위 1.00~8.37) - 대수를
+    종방향 거리로 되돌리는 데 필요한 제수는 바로 이 길이가중 평균이라 그대로 쓴다.
+    길이 근거가 없는 램프 저류 4개는 1.0(보정 없음)으로 남는다.
+    """
+    global _STORAGE_LANES_CACHE
+    if _STORAGE_LANES_CACHE is not None:
+        return _STORAGE_LANES_CACHE
+    lanes: dict[str, float] = {}
+    evidence = load_optional_json(str(STORAGE_CAPACITY_EVIDENCE_JSON))
+    jam = _as_float(evidence.get("jam_density_veh_km_lane", 0.0))
+    capacity = evidence.get("urban_link_storage_veh") or {}
+    length_km = evidence.get("urban_link_length_km") or {}
+    if jam > 0.0 and isinstance(capacity, Mapping) and isinstance(length_km, Mapping):
+        for link, veh in capacity.items():
+            km = _as_float(length_km.get(link, 0.0))
+            if km > 0.0:
+                lanes[str(link)] = max(1.0, _as_float(veh) / (km * jam))
+    _STORAGE_LANES_CACHE = lanes
+    return lanes
+
+
+def _apply_lane_delay_correction(state, cfg, local_summary: dict) -> None:
+    """저류 통과지연의 **차원 오류**를 링크별 속도 통로로 정확히 상쇄한다.
+
+    plant 의 `_link_delay_steps` 는 큐 꼬리까지의 거리를
+        distance_km = available[veh] × urban_avg_vehicle_length_m / 1000
+    로 잡는데, `available` 은 **전 차로 합계 대수**다. 3차로 링크의 여유 300대는 종방향
+    600 m 인데 산식은 1,800 m 로 본다. 실측 배수는 정확히 차로수(중앙 2.69, p90 4.04)라
+    통과시간이 그만큼 길어지고, 중앙 지연이 MPC 지평(3스텝)을 넘겨 저류가 사실상 얼어붙는다.
+
+    vendor 는 수정 금지라 거리는 못 건드린다. 대신 `urban_link_speed_kph` 가 이 산식
+    **한 곳에서만** 쓰이므로(vendor/.../urban_queue_model.py:624) 속도에 차로수를 곱하면
+    distance/speed 가 정확히 같은 값이 된다 - 근사가 아니라 항등이다. 그래서 이 필드는
+    보정이 켜진 동안 "관측 속도"가 아니라 **유효 속도**를 담는다.
+
+    하한(`OBSERVED_SPEED_DELAY_CAP_RATIO`)이 주입 뒤에 `max()` 로 걸리므로 하한을 여기서
+    먼저 적용한 뒤 차로수를 곱한다. 그러면 vendor 의 `max()` 가 무해해지고 의도한 지연
+    상한이 차로보정된 거리에 그대로 적용된다.
+    """
+    if not _lane_delay_correction_enabled():
+        return
+    from src.models.urban_queue_model import OBSERVED_SPEED_DELAY_CAP_RATIO
+
+    lanes_table = _storage_effective_lanes()
+    nominal = max(_as_float(getattr(cfg.network, "urban_avg_speed_km_h", 50.0)), 1.0e-9)
+    floor = nominal / max(float(OBSERVED_SPEED_DELAY_CAP_RATIO), 1.0e-9)
+    applied = 0
+    lane_weighted = 0.0
+    for link in cfg.network.urban_link_storage_veh:
+        key = str(link)
+        lanes = lanes_table.get(key, 1.0)
+        if lanes <= 1.0:
+            continue
+        observed = state.urban_link_speed_kph.get(key)
+        base = max(_as_float(observed), floor) if observed is not None else nominal
+        state.urban_link_speed_kph[key] = lanes * base
+        applied += 1
+        lane_weighted += lanes
+    local_summary["lane_delay_correction"] = {
+        "enabled": True,
+        "links_corrected": applied,
+        "links_without_length_evidence": sum(
+            1 for link in cfg.network.urban_link_storage_veh if str(link) not in lanes_table
+        ),
+        "mean_lanes_applied": (lane_weighted / applied) if applied else 0.0,
+        "evidence": STORAGE_CAPACITY_EVIDENCE_JSON.name,
+    }
 
 
 def _movement_origin(cfg, movement: str) -> str:
@@ -3294,7 +3382,9 @@ def warm_start_release_buffers(state, cfg, state_json: Mapping[str, Any], calibr
         warm_sec = 0.0
     if warm_sec <= 0.0:
         return stats
-    interval = float(getattr(cfg.simulation, "control_interval", 60.0) or 60.0)
+    # 바깥 `simulation` 도 가드한다. 실 cfg 는 항상 갖고 있어 거동은 같고, 이 필드가 없는
+    # 축약 cfg(테스트 스텁 등)에서 warm-start 기본 켜짐이 통째로 터지던 것을 막는다.
+    interval = float(getattr(getattr(cfg, "simulation", None), "control_interval", 60.0) or 60.0)
     steps = max(1, int(round(warm_sec / max(interval, 1.0e-9))))
     try:
         from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
@@ -3485,6 +3575,7 @@ def traffic_state_from_vissim(
             for link, speed_kph in observed_speeds.items():
                 if str(link) in cfg.network.urban_link_storage_veh:
                     state.urban_link_speed_kph[str(link)] = max(0.0, _as_float(speed_kph))
+            _apply_lane_delay_correction(state, cfg, local_summary)
         restore_urban_release_buffers(state, cfg, local_summary)
         # 버퍼를 손으로 짓지 않고 plant 가 짓게 하는 경로. 기본 꺼짐(RW_WARMSTART_SEC).
         state.warmstart_diagnostics = warm_start_release_buffers(
