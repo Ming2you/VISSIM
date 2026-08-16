@@ -120,6 +120,12 @@ def main(argv: Sequence[str] | None = None) -> int:
              "**시험만** 한다. origin 별 합이 1 이 되도록 정규화한다 - 안 하면 질량이 생기거나 "
              "사라진다. 유도값이 없는 movement 는 기존 beta 를 유지한 뒤 같이 정규화된다.",
     )
+    ap.add_argument(
+        "--movement-capacity-vph", type=float, default=None,
+        help="movement 포화유율[veh/h]을 이 값으로 덮어써서 **시험만** 한다. 기본값은 "
+             "default.yaml:109 의 1400.0 이고 차로수가 안 들어간다 - 실제는 차로당 1800~1900 이라 "
+             "다차로 접근에서 계통적으로 과소하다.",
+    )
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args(argv)
 
@@ -128,6 +134,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     paths = {"tuning": args.tuning, "calibration": args.calibration, "detector_mapping": args.detector_mapping}
 
     ad = _load_adapter()
+    if args.movement_capacity_vph is not None:
+        _orig_cap = ad.build_config
+
+        def _build_config_with_cap(*a, **kw):
+            cfg = _orig_cap(*a, **kw)
+            cfg.network.movement_capacity_veh_h = float(args.movement_capacity_vph)
+            return cfg
+
+        ad.build_config = _build_config_with_cap
+        print(f"[시험] movement 포화유율을 {args.movement_capacity_vph:.0f} veh/h 로 덮어썼다")
     if args.movement_beta_json:
         derived = json.loads(args.movement_beta_json.read_text(encoding="utf-8")).get("derived_beta") or {}
         _orig_bc = ad.build_config
