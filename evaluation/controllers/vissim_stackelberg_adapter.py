@@ -1596,6 +1596,18 @@ def _link_storage_split_fraction(cfg, origins: list[str], split_parameters: Mapp
     return float(split_parameters.get("internal_storage_fraction", LOCAL_OBSERVATION_INTERNAL_STORAGE_FRACTION))
 
 
+def _queue_origin_filter_enabled() -> bool:
+    """movement 큐를 그 링크의 저류에서 출발하는 것으로 좁힐지. 기본 꺼짐."""
+    return str(os.environ.get("RW_QUEUE_ORIGIN_FILTER", "")).strip().lower() in {"1", "true", "on"}
+
+
+def _movement_origin(cfg, movement: str) -> str:
+    spec = cfg.network.urban_movements.get(movement)
+    if isinstance(spec, Mapping):
+        return str(spec.get("origin", ""))
+    return str(getattr(spec, "origin", "") or "")
+
+
 def build_local_observation_summary(
     state_json: Mapping[str, Any],
     cfg,
@@ -1639,6 +1651,9 @@ def build_local_observation_summary(
     # 관측 링크속도를 모델 storage 링크 키로 접기 위한 대수 가중 누산기(v3 N3-1b).
     speed_weight_by_storage: dict[str, float] = {}
     speed_moment_by_storage: dict[str, float] = {}
+    # 링크별 저류 목록. 아래 movement 큐 분배가 "그 링크의 저류에서 출발하는 movement"
+    # 로 좁힐 때 쓴다(RW_QUEUE_ORIGIN_FILTER).
+    storage_links_by_link: dict[str, list[str]] = {}
     for link, count in link_counts.items():
         if link in freeway_links or link in ramp_links or link in exit_links:
             storage_fraction_by_link[str(link)] = 0.0
@@ -1669,6 +1684,7 @@ def build_local_observation_summary(
             for storage_link in _storage_links_for_observed_origin(cfg, origin):
                 if storage_link not in storage_links:
                     storage_links.append(storage_link)
+        storage_links_by_link[str(link)] = list(storage_links)
         # 관측 속도는 **표본이 있는 링크만** 기여한다(v3 N3-1b). VBS 의 링크속도는
         # `speed_sum / count` 라 표본이 없으면 0 인데, 그 0 은 "정지" 가 아니라
         # "관측 없음" 이다. count=0 이거나 속도 키 자체가 없으면 건너뛴다.
@@ -1708,19 +1724,40 @@ def build_local_observation_summary(
         if count <= 0.0 or not isinstance(entries, list):
             continue
         movement_assigned_by_link[str(link)] = 0.0
-        weight_sum = sum(
-            max(0.0, _as_float(item.get("weight", 0.0)))
+        # 배정 대상만 먼저 추린다. 두 가지를 고친다(둘 다 RW_QUEUE_ORIGIN_FILTER 로 켠다).
+        #
+        # (a) **링크와 무관한 movement 로 흩뿌리지 않는다.** detector_mapping 의
+        #     link_to_movements 는 링크별이 아니라 **교차로별**이다 - SC1 의 네 접근 링크가
+        #     전부 SC1 의 movement 전체를 받는다. 그래서 SC15 쪽 접근에 선 차가 SC107 /
+        #     SC9001 / SC11 쪽 큐로도 나뉜다. 62개 링크가 이 상태이고 분수 귀속으로
+        #     설명되는 것은 2개뿐이다. 접근 링크에 선 차는 **그 링크의 저류에서 출발하는**
+        #     movement 의 큐다 - origin 으로 좁힌다.
+        #
+        # (b) **건너뛴 movement 몫이 증발하지 않게 한다.** 옛 코드는 weight_sum 을 전체
+        #     entries 로 잡고 `movement not in movement_queue` 인 것을 건너뛰어서, 배정
+        #     총합이 count 에 못 미쳤다. 모델에 없는 off-ramp movement 를 가리키는 링크가
+        #     8개 있고(D_offW_to_N 등) 그만큼 질량이 사라진다(관측의 0.57%).
+        usable = [
+            item
             for item in entries
-            if isinstance(item, Mapping)
-        )
+            if isinstance(item, Mapping) and str(item.get("movement", "")) in movement_queue
+        ]
+        if _queue_origin_filter_enabled():
+            allowed = set(storage_links_by_link.get(str(link)) or [])
+            if allowed:
+                scoped = [
+                    item
+                    for item in usable
+                    if str(_movement_origin(cfg, str(item.get("movement", "")))) in allowed
+                ]
+                # origin 이 하나도 안 맞으면 좁히지 않는다 - 질량을 버리는 것보다 낫다.
+                if scoped:
+                    usable = scoped
+        weight_sum = sum(max(0.0, _as_float(item.get("weight", 0.0))) for item in usable)
         if weight_sum <= 1.0e-9:
-            weight_sum = float(len(entries)) if entries else 1.0
-        for item in entries:
-            if not isinstance(item, Mapping):
-                continue
+            weight_sum = float(len(usable)) if usable else 1.0
+        for item in usable:
             movement = str(item.get("movement", ""))
-            if movement not in movement_queue:
-                continue
             weight = max(0.0, _as_float(item.get("weight", 1.0)))
             assigned = count * weight / weight_sum
             movement_queue[movement] += assigned
