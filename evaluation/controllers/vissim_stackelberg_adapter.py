@@ -1738,6 +1738,10 @@ def _apply_lane_delay_correction(state, cfg, local_summary: dict) -> None:
     상한이 차로보정된 거리에 그대로 적용된다.
     """
     if not _lane_delay_correction_enabled():
+        # 꺼짐도 **양성으로** 기록한다. 키가 없으면 "꺼져 있었다"와 "환경변수가 어댑터까지
+        # 안 왔다"가 구별되지 않고, A/B 에서 ΔJ≈0 이 나왔을 때 그 둘을 사후에 가를 방법이
+        # 없다. arm 이 실제로 무엇이었는지는 발사 의도가 아니라 디스크가 말해야 한다.
+        local_summary["lane_delay_correction"] = {"enabled": False, "links_corrected": 0}
         return
     from src.models.urban_queue_model import OBSERVED_SPEED_DELAY_CAP_RATIO
 
@@ -6097,6 +6101,15 @@ def main() -> None:
             for key, value in projection_diagnostics.items():
                 if isinstance(value, (int, float, bool)):
                     metadata[f"projection_{key}"] = float(value)
+        # 차로보정 arm 의 온디스크 증거. `native_phase_share_scaled_count` 가 축좁힘 arm 을
+        # 관측 가능하게 만드는 것과 같은 역할이다 - 이게 없으면 A/B 의 한 축이 사후 검증
+        # 불가능해진다. 켜짐이면 links_corrected 가 양수, 꺼짐이면 0 이어야 한다.
+        lane_correction = summary.get("lane_delay_correction")
+        if isinstance(lane_correction, Mapping):
+            metadata["lane_delay_correction"] = dict(lane_correction)
+            metadata["lane_delay_enabled"] = float(bool(lane_correction.get("enabled", False)))
+            metadata["lane_delay_links_corrected"] = float(lane_correction.get("links_corrected", 0))
+            metadata["lane_delay_mean_lanes"] = float(lane_correction.get("mean_lanes_applied", 0.0))
         summary_agents = summary.get("agents", {})
         metadata["local_observation_agent_count"] = float(len(summary_agents))
         if isinstance(summary_agents, Mapping):

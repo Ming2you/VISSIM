@@ -173,7 +173,10 @@ function Get-ExactGitCommit([string]$RepositoryPath) {
 function Copy-VissimError([string]$DestinationDir) {
   $vissimErr = [System.IO.Path]::ChangeExtension($net, ".err")
   if (Test-Path -LiteralPath $vissimErr -PathType Leaf) {
-    Copy-Item -LiteralPath $vissimErr -Destination (Join-Path $DestinationDir "vissim_network.err") `
+    # 파일명에 $Name 을 넣는다. 예전에는 고정 "vissim_network.err" 라 한 OutDir 에 여러 런을
+    # 넣으면 마지막 것만 남았다. "망 편집 후 .err 의 Error 델타부터 봐라"가 운영 규칙인데
+    # 배치 런에서는 그 근거가 사라져 있었다.
+    Copy-Item -LiteralPath $vissimErr -Destination (Join-Path $DestinationDir "vissim_network_$Name.err") `
       -Force -ErrorAction SilentlyContinue
   }
 }
@@ -199,10 +202,26 @@ $provenanceFiles = [ordered]@{
   vehicle_input_roles = Get-ArtifactEvidence $VehicleInputRoles
   link_assignment = Get-ArtifactEvidence (Join-Path $repo "outputs\link_player_assignment_pedfold_20260814.json")
   intersection_adjacency = Get-ArtifactEvidence (Join-Path $repo "outputs\intersection_adjacency_pedfold_20260814.json")
-  storage_capacity = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_storage_capacity_ovr_20260814.json")
+  # 2026-08-16: jam168 로 옮긴다. 여기가 낡은 채로 있으면 런이 자기가 쓰지도 않은 격자를
+  # 증거로 기록한다 - 게다가 이 파일이 어댑터의 `_storage_effective_lanes` 가 차로수를
+  # 유도하는 바로 그 근거라, 차로보정 A/B 의 핵심 근거를 틀리게 남기게 된다.
+  storage_capacity = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_storage_capacity_jam168_20260815.json")
   # 게이트맵은 런마다 달라지는데 provenance 에 빠져 있었다. 실제로 쓴 파일을 남긴다.
   urban_input_gate_map = Get-ArtifactEvidence $UrbanInputGateMap
   numsim_snapshot = Get-ArtifactEvidence (Join-Path $repo "vendor\NumSim-mine\SNAPSHOT.md")
+  # 거동을 바꾸는 RW_* 환경변수를 그대로 남긴다. 어댑터가 metadata 에 적는 것이 "Python 이
+  # 실제로 읽은 값"이라면, 이건 "셸이 무엇을 물려줬는가"다. A/B arm 을 사후에 확정하려면
+  # 둘 다 있어야 하고, 둘이 어긋나면 전파가 끊긴 것이다.
+  env = @{
+    RW_LANE_DELAY_CORRECTION   = "$env:RW_LANE_DELAY_CORRECTION"
+    RW_NARROW_AXIS_SG          = "$env:RW_NARROW_AXIS_SG"
+    RW_ADAPTER_MODE            = "$env:RW_ADAPTER_MODE"
+    RW_WARMSTART_SEC           = "$env:RW_WARMSTART_SEC"
+    RW_QUEUE_ORIGIN_FILTER     = "$env:RW_QUEUE_ORIGIN_FILTER"
+    RW_VALIDATION_FIXED_SIGNAL = "$env:RW_VALIDATION_FIXED_SIGNAL"
+    RW_RESTORE_RELEASE_BUFFERS = "$env:RW_RESTORE_RELEASE_BUFFERS"
+    RW_PYTHON                  = "$env:RW_PYTHON"
+  }
 }
 $signalPrograms = @(
   Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -Filter "*.sig" -File -ErrorAction SilentlyContinue |

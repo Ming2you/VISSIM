@@ -30,6 +30,8 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from measure_eps_j_vissim import integrate_veh_hours, read_state_series  # noqa: E402
 
+EPS_J_VISSIM = 1.0e-6
+
 COLS = (
     "total_vehicles", "urban_vehicles", "freeway_vehicles",
     "stopped_vehicles", "mean_speed_kph", "freeway_mean_speed_kph",
@@ -90,9 +92,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         "treatment": rows["treatment"],
         "delta_j_veh_h": delta,
         "delta_j_pct": (100.0 * delta / j_base) if j_base else None,
+        # 2026-08-16: 하한이 1.0e-9 였다. 그건 N8-1 의 `eps_J_endpoint` 이고 이 스크립트가
+        # 재는 것은 VISSIM 재현성 하한 `eps_J_vissim` = 1e-6 이다(docstring 도 1e-6 이라
+        # 적고 있어 코드와 3자릿수가 어긋나 있었다). 두 하한을 섞으면 안 된다.
+        # 8/15 판정에는 영향이 없다 - 그때 Δ가 -4.68 ~ -7.93 veh·h 로 두 하한 모두보다
+        # 여섯 자릿수 이상 컸다.
+        "eps_j_vissim": EPS_J_VISSIM,
         "verdict": (
             "동일 — warm-start 가 결정에 영향 없음(또는 env 미전파)"
-            if abs(delta) < 1.0e-9
+            if abs(delta) < EPS_J_VISSIM
             else ("개선" if delta < 0 else "악화")
         ),
     }
