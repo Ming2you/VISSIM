@@ -1437,6 +1437,41 @@ class MonitorFixedSignalPatchError(RuntimeError):
     """
 
 
+_NARROW_SG_CACHE: dict[str, Any] = {}
+
+
+def _narrowed_signal_groups(spec: Mapping[str, Any], schedule) -> tuple[str, ...] | None:
+    """movement 를 **자기 현시의 SG** 로 좁힌다. 못 좁히면 None(기존 해석 유지).
+
+    기본 해석은 origin 링크에 달린 신호두의 SG 를 전부 합집합으로 준다. 신호두의 `lane`
+    이 링크 단위라 직진과 보호좌회전이 한 덩어리가 되기 때문이다. movement 의 `phase`
+    (예: "SC1_p3")로 `movement_signal_group_map_v3.json` 의 `phase_signal_groups` 를
+    찾아 교집합하면 자기 현시만 남는다.
+
+    교집합이 비면 **좁히지 않는다** - 맵이 낡아 SG 이름이 안 맞는 경우가 있고(실측 38건),
+    그때 0 을 돌려주면 그 movement 가 영영 방출 못 한다. 과대가 낫지 무방출은 안 된다.
+    """
+    phase = str(spec.get("phase", ""))
+    node = str(spec.get("intersection", ""))
+    if not phase or not node:
+        return None
+    if "map" not in _NARROW_SG_CACHE:
+        payload = load_movement_signal_group_map()
+        _NARROW_SG_CACHE["map"] = _mapping((payload or {}).get("controllers"))
+    controllers = _NARROW_SG_CACHE["map"]
+    entry = _mapping(controllers.get(node))
+    table = _mapping(entry.get("phase_signal_groups"))
+    if not table:
+        return None
+    key = phase.split("_", 1)[1] if "_" in phase else phase
+    own = {str(g) for g in (table.get(key) or [])}
+    if not own:
+        return None
+    current = {str(g) for g in schedule.movement_signal_groups(spec)}
+    narrowed = tuple(sorted(current & own)) if current else tuple(sorted(own))
+    return narrowed or None
+
+
 def _validation_fixed_signal_enabled() -> bool:
     """검증 rollout 에서 제어 SC 도 고정시간 신호를 쓸지. **생산에서는 켜지 마라.**
 
@@ -1476,12 +1511,20 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
                 node = str(spec.get("intersection", ""))
                 schedule = schedules.get(node)
                 if schedule is not None:
+                    # movement 자기 현시의 SG 로 좁힌다. 좁히지 않으면 신호두 lane 이 링크
+                    # 단위라 직진이 보호좌회전 녹색까지 받는다(실측: 542개 중 339개가
+                    # 녹색창 2~4개에 걸치고 union 이 단일 SG 의 중앙값 1.39배).
+                    groups = _narrowed_signal_groups(spec, schedule)
                     if urban_step_index is None:
-                        return float(clamp(schedule.movement_green_fraction(spec), 0.0, 1.0))
+                        return float(clamp(schedule.movement_green_fraction(spec, group_ids=groups), 0.0, 1.0))
                     duration_sec = float(cfg_arg.simulation.T_u_sec)
                     start_sec = _absolute_urban_step_start_sec(urban_step_index, duration_sec)
                     return float(
-                        clamp(schedule.movement_green_fraction(spec, start_sec, duration_sec), 0.0, 1.0)
+                        clamp(
+                            schedule.movement_green_fraction(spec, start_sec, duration_sec, group_ids=groups),
+                            0.0,
+                            1.0,
+                        )
                     )
             share = share_table.share_for(spec)
             if share is None:

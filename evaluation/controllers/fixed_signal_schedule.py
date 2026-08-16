@@ -103,8 +103,19 @@ class FixedControllerSchedule:
         spec: Mapping[str, object],
         start_sec: float | None = None,
         duration_sec: float | None = None,
+        group_ids: tuple[str, ...] | None = None,
     ) -> float:
-        return self._green_fraction(self.movement_signal_groups(spec), start_sec, duration_sec)
+        """`group_ids` 를 주면 그 신호그룹만 적분한다.
+
+        기본 해석(`movement_signal_groups`)은 신호두의 `lane` 이 링크 단위라
+        **한 접근로의 직진과 보호좌회전을 같은 SG 집합으로 묶는다.** 그러면 movement 가
+        자기 현시가 아닌 녹색까지 받아 방출이 과대해진다 - 542개 중 339개(62.5%)가 서로
+        떨어진 녹색창 2~4개에 걸치고, union 녹색이 올바른 단일 SG 녹색의 중앙값 1.39배
+        (p90 1.81, 최대 2.96)다. 호출부가 movement 자기 현시의 SG 로 좁혀 넣을 수 있게
+        통로를 낸다.
+        """
+        groups = group_ids if group_ids is not None else self.movement_signal_groups(spec)
+        return self._green_fraction(tuple(groups), start_sec, duration_sec)
 
     def _green_fraction(
         self,
