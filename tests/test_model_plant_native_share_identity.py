@@ -51,9 +51,12 @@ from evaluation.controllers.native_phase_green import union_green_seconds  # noq
 # 계획은 dual-ring 150 s `.sig` 를 물린 망 위에서 유도된다. 구 `modi_eval_rw_control.inpx`
 # 는 140/150/160/170 네 종 주기의 옛 프로그램을 가리킨다(실측:
 # outputs/live_signal_cycle_probe_n4dr150_20260812.json).
-NETWORK = (
-    REPO / "network" / "real_world_gaepo_modi" / "modi_eval_rw_control_n4dr150_20260812.inpx"
-)
+#
+# 2026-08-16: 생산 망이 pedovrx(`modi_eval_userfix_20260814e.inpx`)로 옮겨 갔는데 이 핀만
+# n4dr150_20260812 에 남아 있었다. 그 사이 정본 계획도 옛 격자에서 지어진 채였고 SC1003 의
+# SG 4 가 p1 에 남아 p2 녹색 예산이 69 s 대신 23 s(1/3)로 들어가 있었다. 핀은 항상
+# scripts/build_preflight_manifest.py 의 DEFAULT_PATHS["network"] 와 같아야 한다.
+NETWORK = REPO / "network" / "real_world_gaepo_modi" / "modi_eval_userfix_20260814e.inpx"
 PLAN = REPO / "outputs" / "signal_group_actuation_plan_v3.json"
 MOVEMENT_MAP = REPO / "outputs" / "movement_signal_group_map_v3.json"
 

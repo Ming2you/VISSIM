@@ -3,12 +3,12 @@
   "amber_sec": 3.0,
   "all_red_sec": 0.0,
   "source": {
-    "network": "network\\real_world_gaepo_modi\\modi_eval_rw_control_n4dr150_20260812.inpx",
-    "network_sha256": "37f1cc1fcafbec5affe3ed1f350b76ae89fb45b686b254b82e97f8db91476bbe",
-    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15n41legfix_20260812.json",
-    "control_mapping_sha256": "dda5fa5992cfe6589e5ff76f36c1014cb067211f453a8beb9c6553b21f64a7c9",
-    "movement_signal_group_map": "outputs\\movement_signal_group_map_legfix_20260812.json",
-    "movement_signal_group_map_sha256": "c937648be83875f467b6611ab160d1c45d3b882fa5abca29ff1546040897766e",
+    "network": "network\\real_world_gaepo_modi\\modi_eval_userfix_20260814e.inpx",
+    "network_sha256": "aff70f096c91a91bc24c0ca1bfe5aeb42864f4281f412b21a9a5b656c9917954",
+    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_pedovrx_20260814.json",
+    "control_mapping_sha256": "a7d95b6ed2ac48356a065a2f45dbc7f854ac3dfcdbcb4d728ebc3d192f42d6b9",
+    "movement_signal_group_map": "outputs\\movement_signal_group_map_v3.json",
+    "movement_signal_group_map_sha256": "ce16e9bed0dc37cba5b8856c311d02cd729e2a186d6d6fee1c3549bb46d4fde8",
     "program_source": "inpx supplyFile2 (not signal_group_timing_v3.json)",
     "signal_group_timing_v3_sha256": "204840adc0002b43a071630110ef038e2b8c0acc1245e8ec8b5554f8be63cd51"
   },
@@ -2395,11 +2395,11 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
-          "4",
           "8"
         ],
         "p2": [
           "3",
+          "4",
           "7"
         ],
         "p3": [
@@ -2413,18 +2413,12 @@
       },
       "axis_green_sec": {
         "p1": 46.0,
-        "p2": 23.0,
+        "p2": 69.0,
         "p3": 45.0,
         "p4": 24.0
       },
       "phase_segments": {
         "p1": [
-          {
-            "sg_no": "4",
-            "window_index": 0,
-            "start_fraction": 0.0,
-            "end_fraction": 1.0
-          },
           {
             "sg_no": "8",
             "window_index": 0,
@@ -2436,13 +2430,19 @@
           {
             "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.0,
+            "start_fraction": 0.6666666666666666,
             "end_fraction": 1.0
+          },
+          {
+            "sg_no": "4",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 0.6666666666666666
           },
           {
             "sg_no": "7",
             "window_index": 0,
-            "start_fraction": 0.0,
+            "start_fraction": 0.6666666666666666,
             "end_fraction": 1.0
           }
         ],
