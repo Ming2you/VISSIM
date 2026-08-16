@@ -114,6 +114,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="저류 용량을 이 파일로 덮어써서 **시험만** 한다. 생산 config 는 안 건드린다. "
              "jam density 재보정 효과를 격리해 보려는 용도다.",
     )
+    ap.add_argument(
+        "--movement-beta-json", type=Path, default=None,
+        help="movement beta 를 이 파일(derive_movement_beta_from_routes.py 산출)로 덮어써서 "
+             "**시험만** 한다. origin 별 합이 1 이 되도록 정규화한다 - 안 하면 질량이 생기거나 "
+             "사라진다. 유도값이 없는 movement 는 기존 beta 를 유지한 뒤 같이 정규화된다.",
+    )
     ap.add_argument("--out", required=True, type=Path)
     args = ap.parse_args(argv)
 
@@ -122,6 +128,39 @@ def main(argv: Sequence[str] | None = None) -> int:
     paths = {"tuning": args.tuning, "calibration": args.calibration, "detector_mapping": args.detector_mapping}
 
     ad = _load_adapter()
+    if args.movement_beta_json:
+        derived = json.loads(args.movement_beta_json.read_text(encoding="utf-8")).get("derived_beta") or {}
+        _orig_bc = ad.build_config
+
+        def _build_config_with_beta(*a, **kw):
+            cfg = _orig_bc(*a, **kw)
+            mvs = cfg.network.urban_movements
+            by_origin = defaultdict(list)
+            for name, spec in mvs.items():
+                origin = str(spec.get("origin", "") if isinstance(spec, dict) else getattr(spec, "origin", ""))
+                by_origin[origin].append(name)
+            n_set = 0
+            for origin, names in by_origin.items():
+                vals = {}
+                for nm in names:
+                    spec = mvs[nm]
+                    old = float(spec.get("beta", 0.0) if isinstance(spec, dict) else getattr(spec, "beta", 0.0))
+                    vals[nm] = float(derived.get(nm, old))
+                    if nm in derived:
+                        n_set += 1
+                total = sum(vals.values())
+                if total <= 0:
+                    continue
+                for nm, v in vals.items():
+                    spec = mvs[nm]
+                    if isinstance(spec, dict):
+                        spec["beta"] = v / total
+                    else:
+                        setattr(spec, "beta", v / total)
+            return cfg
+
+        ad.build_config = _build_config_with_beta
+        print(f"[시험] beta {len(derived)}개를 {args.movement_beta_json.name} 로 덮어쓰고 origin 별 정규화")
     if args.storage_capacity_json:
         # build_config 를 감싸 반환된 cfg 의 용량만 갈아끼운다. 생산 config 는 그대로다.
         override = json.loads(args.storage_capacity_json.read_text(encoding="utf-8"))
