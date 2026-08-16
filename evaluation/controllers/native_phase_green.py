@@ -45,12 +45,22 @@ SG)와 분모(모델 phase 의 SG)를 둘 다 그 산출물에서 읽는다. 산
 
 from __future__ import annotations
 
+import os
+
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping
 
 
 # (intersection, phase, origin, approach) - `movement_signal_groups` 가 보는 필드 전부다.
 ShareKey = tuple[str, str, str, str]
+
+
+def _narrow_axis_enabled() -> bool:
+    """movement SG 를 자기 현시 SG 로 교집합해 살릴지. 기본 꺼짐.
+
+    이 경로는 **생산** 컨트롤러가 쓴다. 실런 검증 전에 거동을 바꾸지 않는다.
+    """
+    return str(os.environ.get("RW_NARROW_AXIS_SG", "")).strip().lower() in {"1", "true", "on"}
 
 _UNRESOLVED_REASONS = (
     "no_schedule",
@@ -198,6 +208,8 @@ def build_native_phase_share_table(
     missing_nodes: set[str] = set()
     name_fallback: list[str] = []
     axis_name_fallback: list[str] = []
+    # 자기 현시 SG 로 좁혀서 살린 movement (RW_NARROW_AXIS_SG).
+    narrowed_movements: list[str] = []
     axis_green_cache: dict[tuple[str, str], float] = {}
 
     for name, spec in urban_movements.items():
@@ -243,9 +255,24 @@ def build_native_phase_share_table(
                 for value in (mapped.get("phase_signal_groups") or {}).get(axis, ())
             )
         if not set(group_ids) <= set(axis_group_ids):
-            # 축이 어긋나면 분자와 분모가 다른 현시를 재는 셈이다. 섞지 않고 남긴다.
-            unresolved[str(name)] = "axis_mismatch"
-            continue
+            # 축이 어긋나는 이유는 거의 항상 하나다 - `group_ids` 가 origin **링크**의
+            # 신호두에서 오므로 한 접근로의 직진과 보호좌회전이 한 덩어리로 섞인다.
+            # 그래서 자기 현시(axis)의 부분집합이 될 수 없다.
+            #
+            # 2026-08-16 실측: 이 교집합이 옳다. 검증 rollout 에서 movement 를 자기 현시
+            # SG 로 좁히니 스텝1 보존단위 오차가 44.9% -> 36.4%, G5 32.4% -> 38.8% 였다.
+            # 좁히지 않으면 union 녹색이 단일 SG 의 중앙값 1.39배(최대 2.96배)라 방출이
+            # 과대해지고, 직진이 보호좌회전 현시에까지 흐른다.
+            #
+            # 기본은 종전대로 남긴다(RW_NARROW_AXIS_SG 로 켠다) - 이 경로는 **생산**
+            # 컨트롤러가 쓰므로 실런 검증 전에 거동을 바꾸지 않는다.
+            narrowed = tuple(g for g in group_ids if g in set(axis_group_ids))
+            if _narrow_axis_enabled() and narrowed:
+                group_ids = narrowed
+                narrowed_movements.append(str(name))
+            else:
+                unresolved[str(name)] = "axis_mismatch"
+                continue
 
         cache_key = (node, axis)
         axis_green = axis_green_cache.get(cache_key)
