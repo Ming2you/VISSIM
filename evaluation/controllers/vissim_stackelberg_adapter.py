@@ -1437,6 +1437,16 @@ class MonitorFixedSignalPatchError(RuntimeError):
     """
 
 
+def _validation_fixed_signal_enabled() -> bool:
+    """검증 rollout 에서 제어 SC 도 고정시간 신호를 쓸지. **생산에서는 켜지 마라.**
+
+    실제 컨트롤러는 후보의 녹색 배분으로 굴려야 하고 그것이 MPC 다. 이 스위치는
+    무제어 rollout 으로 동역학 충실도를 잴 때만 쓴다 - VISSIM 이 실제로 돌린 신호를
+    재현해야 모델 오차와 신호 불일치가 갈린다.
+    """
+    return str(os.environ.get("RW_VALIDATION_FIXED_SIGNAL", "")).strip().lower() in {"1", "true", "on"}
+
+
 def build_patched_phase_green_fraction(original, schedules, share_table):
     """`_phase_green_fraction` 대체본을 만든다.
 
@@ -1448,6 +1458,31 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
 
     def patched_phase_green_fraction(control, cfg_arg, spec, urban_step_index=None):
         if str(spec.get("phase", "")):
+            # **검증 전용 경로.** 제어 SC 도 VISSIM 이 실제로 돌린 고정시간 신호를 쓴다.
+            #
+            # 왜 필요한가: 무제어 rollout 으로 동역학을 검증할 때, 제어 SC 는
+            # ControlAction.uncontrolled 의 **주기 균등분할** 녹색을 받는다. 그러면 모델은
+            # 모든 movement 를 동시에 평균 녹색률로 방출하는데 VISSIM 은 현시를 순차로 돌려
+            # 한 번에 한 무리만 전 속도로 뺀다. 한 주기 적분하면 총량은 같지만 60초 창 안의
+            # 공간 분포가 달라서, 그 차이가 모델 오차로 잘못 계상된다.
+            #
+            # 실측 근거(2026-08-16): 창 정확 녹색을 쓰는 비제어 노드 스텝1 39.4%(G5 42.7%) 대
+            # 평균 녹색을 쓰는 제어 노드 48.3%(G5 27.1%). 그리고 포화유율을 낮출수록 적합이
+            # 좋아지는 것(400 veh/h 에서 최적)이 "과다 동시 방출" 의 서명이다.
+            #
+            # **생산에서는 켜면 안 된다.** 실제 컨트롤러는 후보의 녹색 배분으로 굴려야 하고
+            # 그것이 MPC 다. 이 경로는 동역학 충실도를 재는 동안만 쓴다.
+            if _validation_fixed_signal_enabled():
+                node = str(spec.get("intersection", ""))
+                schedule = schedules.get(node)
+                if schedule is not None:
+                    if urban_step_index is None:
+                        return float(clamp(schedule.movement_green_fraction(spec), 0.0, 1.0))
+                    duration_sec = float(cfg_arg.simulation.T_u_sec)
+                    start_sec = _absolute_urban_step_start_sec(urban_step_index, duration_sec)
+                    return float(
+                        clamp(schedule.movement_green_fraction(spec, start_sec, duration_sec), 0.0, 1.0)
+                    )
             share = share_table.share_for(spec)
             if share is None:
                 return original(control, cfg_arg, spec, urban_step_index)
