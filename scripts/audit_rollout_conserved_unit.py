@@ -228,9 +228,42 @@ def attribution_diagnostics(pairs: Mapping[int, Sequence[tuple[float, float, str
                 "movements_attributed": origin_count.get(s, 0),
                 "n": len(ps),
             })
+        # 저류별 곱셈 보정을 걸면 **총합**이 어떻게 되나. 개별 오차를 줄이는 보정이 이미
+        # 잡음 바닥에 있는 총량을 깨는지 보는 것이 요점이다. 보존량에 저류마다 다른 계수를
+        # 곱하면 보존이 유지될 이유가 없다. k 는 수요를 뺀 LODO 로 뽑아 자기적합을 피한다.
+        def _demand(cell: str) -> str:
+            for t in ("d075", "d100", "d125"):
+                if t in cell:
+                    return t
+            return "unknown"
+
+        by_sd: dict[str, dict[str, list[tuple[float, float]]]] = defaultdict(lambda: defaultdict(list))
+        for m, o, s, c in samples:
+            by_sd[s][_demand(c)].append((m, o))
+        k_lodo: dict[tuple[str, str], float] = {}
+        for s, dd in by_sd.items():
+            for held in dd:
+                train = [p for d, ps in dd.items() if d != held for p in ps]
+                rs = [o / m for m, o in train if m > 0]
+                if rs:
+                    k_lodo[(s, held)] = st.median(rs)
+        corr_model: dict[str, float] = defaultdict(float)
+        corr_obs: dict[str, float] = defaultdict(float)
+        for m, o, s, c in samples:
+            k = k_lodo.get((s, _demand(c)))
+            if k is None:
+                continue
+            corr_model[c] += k * m
+            corr_obs[c] += o
+        tot_ape_corr = [
+            100.0 * abs(corr_model[c] - corr_obs[c]) / corr_obs[c]
+            for c in corr_obs if corr_obs[c] > 0
+        ]
+
         rows.sort(key=lambda r: -(r["mean_observed_veh"] - r["mean_model_veh"]))
         out[str(step)] = {
             "total_mdape_pct": st.median(tot_ape) if tot_ape else None,
+            "total_mdape_pct_after_per_storage_lodo": st.median(tot_ape_corr) if tot_ape_corr else None,
             "storages": len(rows),
             "storages_with_zero_movements": sum(1 for r in rows if r["movements_attributed"] == 0),
             "model_near_zero": sum(1 for r in rows if r["mean_model_veh"] < 1.0),
