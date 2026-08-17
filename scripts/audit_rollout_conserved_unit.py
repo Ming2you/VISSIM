@@ -181,6 +181,65 @@ def bias_decomposition(samples: Sequence[tuple[float, float, str, str]]) -> dict
     return out
 
 
+def attribution_diagnostics(pairs: Mapping[int, Sequence[tuple[float, float, str, str]]], cfg) -> dict[str, Any]:
+    """저류별 계통 어긋남이 **귀속 오배정**인지 가른다.
+
+    가설: movement 의 `origin` 이 엉뚱한 저류를 가리키면 관측 질량이 저류 사이를 옮겨 다닌다.
+    그러면 (a) 저류 총합은 잘 맞고, (b) 개별 저류는 양방향으로 크게 틀리고, (c) 그 어긋남은
+    기하가 정해 놓은 것이라 수요와 무관하다. 세 조건이 우리가 본 것과 정확히 같다.
+
+    총합 오차를 개별 오차와 나란히 낸다. 총합이 잘 맞는데 개별이 틀리면 재분배이고, 총합도
+    틀리면 질량 자체가 생성/소멸하는 다른 문제다. 이 둘은 고치는 방향이 완전히 다르다.
+    """
+    out: dict[str, Any] = {}
+    movements = getattr(cfg.network, "urban_movements", {}) or {}
+    origin_count: dict[str, int] = defaultdict(int)
+    for spec in movements.values():
+        origin = str((spec or {}).get("origin", "")) if isinstance(spec, Mapping) else ""
+        if origin:
+            origin_count[origin] += 1
+
+    for step, samples in sorted(pairs.items()):
+        # 같은 (셀, 시각) 안에서 저류를 전부 합친 총합끼리 비교한다. 표본이 (모형, 관측, 저류,
+        # 셀) 뿐이라 시각 구분이 없으므로 셀 단위로 합친다 - 재분배 여부 판정에는 충분하다.
+        by_cell_model: dict[str, float] = defaultdict(float)
+        by_cell_obs: dict[str, float] = defaultdict(float)
+        per_storage: dict[str, list[tuple[float, float]]] = defaultdict(list)
+        for m, o, s, c in samples:
+            by_cell_model[c] += m
+            by_cell_obs[c] += o
+            per_storage[s].append((m, o))
+        tot_ape = [
+            100.0 * abs(by_cell_model[c] - by_cell_obs[c]) / by_cell_obs[c]
+            for c in by_cell_obs if by_cell_obs[c] > 0
+        ]
+        rows = []
+        for s, ps in per_storage.items():
+            if len(ps) < 3:
+                continue
+            mm = st.fmean([m for m, _ in ps])
+            mo = st.fmean([o for _, o in ps])
+            rows.append({
+                "storage": s,
+                "mean_model_veh": round(mm, 2),
+                "mean_observed_veh": round(mo, 2),
+                "k": round(mo / mm, 3) if mm > 0 else None,
+                "capacity_veh": round(float(cfg.network.urban_link_storage_veh.get(s, 0.0) or 0.0), 1),
+                "movements_attributed": origin_count.get(s, 0),
+                "n": len(ps),
+            })
+        rows.sort(key=lambda r: -(r["mean_observed_veh"] - r["mean_model_veh"]))
+        out[str(step)] = {
+            "total_mdape_pct": st.median(tot_ape) if tot_ape else None,
+            "storages": len(rows),
+            "storages_with_zero_movements": sum(1 for r in rows if r["movements_attributed"] == 0),
+            "model_near_zero": sum(1 for r in rows if r["mean_model_veh"] < 1.0),
+            "most_under": rows[:10],
+            "most_over": rows[-10:][::-1],
+        }
+    return out
+
+
 def g5_threshold(observed: float) -> float:
     return max(G5_FLOOR_VEH, G5_RATIO * abs(observed))
 
@@ -342,6 +401,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     storage_only: dict[int, list[float]] = defaultdict(list)
     conserved: dict[int, list[float]] = defaultdict(list)
+    conserved_physical: dict[int, list[float]] = defaultdict(list)
+    conserved_synthetic: dict[int, list[float]] = defaultdict(list)
     abs_err: dict[int, list[float]] = defaultdict(list)
     # (모형, 관측, 저류, 셀) 짝을 남긴다. 편향-분산 분해와 편향 제거 후 재계산에는 오차만으로는
     # 부족하고 원 짝이 있어야 한다. MdAPE 는 분해되지 않으므로(제곱오차 스케일에서만 성립)
@@ -391,6 +452,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     # 실현 편차가 중앙 1.7~2.1 veh 이므로 그것과 직접 비교되는 값이다.
                     abs_err[stp["step"]].append(err)
                     pairs[stp["step"]].append((mval, oval, s, state_csv.stem))
+                    # 물리 저류인가, 합성 경계 유입 origin 인가. 후자는 `in_*` 8개인데
+                    # 용량 근거가 어디에도 없다(용량·길이 파일 모두 부재, movement 맵에만
+                    # origin 으로 존재). 모형은 거기에 점유를 담도록 되어 있지 않으므로
+                    # 그걸 채점하면 모형이 예측하도록 요구받지 않은 것을 벌하는 셈이다.
+                    # 헤드라인 숫자는 물리 저류만으로 내고 합성 쪽은 따로 보고한다.
+                    physical = float(cfg.network.urban_link_storage_veh.get(s, 0.0) or 0.0) > 0.0
+                    (conserved_physical if physical else conserved_synthetic)[stp["step"]].append(
+                        100.0 * err / oval
+                    )
                     signed.append(100.0 * (mval - oval) / oval)
                     ok = err <= g5_threshold(oval)
                     g5_pass[stp["step"]][0] += 1 if ok else 0
@@ -419,6 +489,19 @@ def main(argv: Sequence[str] | None = None) -> int:
         "median_ape_by_step": {
             "conserved": {str(k): st.median(v) for k, v in sorted(conserved.items()) if v},
             "storage_only": {str(k): st.median(v) for k, v in sorted(storage_only.items()) if v},
+            "conserved_physical_storage": {
+                str(k): st.median(v) for k, v in sorted(conserved_physical.items()) if v
+            },
+            "conserved_synthetic_origin": {
+                str(k): st.median(v) for k, v in sorted(conserved_synthetic.items()) if v
+            },
+        },
+        "sample_counts_by_step": {
+            str(k): {
+                "physical": len(conserved_physical.get(k, [])),
+                "synthetic": len(conserved_synthetic.get(k, [])),
+            }
+            for k in sorted(conserved)
         },
         "abs_err_veh_by_step": {
             str(k): {
@@ -437,6 +520,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "bias_decomposition_by_step": {
             str(k): bias_decomposition(v) for k, v in sorted(pairs.items()) if v
         },
+        "attribution_diagnostics": attribution_diagnostics(pairs, cfg),
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n",
@@ -452,6 +536,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{k:>4d}  {c:8.1f}%  {s:8.1f}%  {a.get('median', float('nan')):7.2f}veh  "
               f"{g['rate_pct']:7.1f}%  ({g['pass']}/{g['total']})")
     print(f"부호 있는 중앙값 {payload['signed_median_pct']:+.1f}%")
+    ph = payload["median_ape_by_step"]["conserved_physical_storage"]
+    sy = payload["median_ape_by_step"]["conserved_synthetic_origin"]
+    if ph:
+        print(f"\n{'스텝':>4s} {'물리 저류만':>12s} {'합성 origin':>13s}   (표본)")
+        for k in sorted(ph, key=int):
+            cnt = payload["sample_counts_by_step"].get(k, {})
+            syv = sy.get(k)
+            print(f"{k:>4s} {ph[k]:11.1f}% {(f'{syv:.1f}%' if syv is not None else '-'):>13s}"
+                  f"   ({cnt.get('physical', 0)} / {cnt.get('synthetic', 0)})")
     bd = payload["bias_decomposition_by_step"]
     if bd:
         print(f"\n{'스텝':>4s} {'ME':>9s} {'MPE':>8s} {'RMSE':>8s} {'Theil U2':>9s} "
