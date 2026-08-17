@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import statistics as st
 import sys
 from collections import defaultdict
@@ -44,6 +45,140 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 G5_FLOOR_VEH = 5.0
 G5_RATIO = 0.10
 MIN_OBS_VEH = 5.0
+
+
+def _mdape(pairs: Sequence[tuple[float, float]]) -> float:
+    vals = [100.0 * abs(m - o) / o for m, o in pairs if o > 0]
+    return st.median(vals) if vals else float("nan")
+
+
+def bias_decomposition(samples: Sequence[tuple[float, float, str, str]]) -> dict[str, Any]:
+    """계통 편향과 산포를 가른다 — MdAPE 만으로는 안 되는 일.
+
+    MdAPE 는 분해되지 않는다. 편향-분산 분해는 제곱오차 스케일에서만 성립한다:
+        E[(m-o)^2] = (E[m]-E[o])^2 + (sd(m)-sd(o))^2 + 2(1-r)sd(m)sd(o)
+    세 항을 MSE 로 나눈 것이 Theil 의 bias / variance / covariance 비율이고 합이 1 이다.
+    Toledo & Koutsopoulos (2004, TRR 1876) 의 해석 규범: bias 와 variance 비율은 작을수록
+    좋고 **covariance 비율은 1 에 가까워야 한다** - 즉 covariance 몫은 0 으로 몰 대상이
+    아니다. 우리 부호 있는 중앙값 -11.6% 는 bias 쪽이고 그건 처리 대상이다.
+
+    편향 제거 후 MdAPE 를 두 가지로 낸다.
+      global   : 곱셈 보정 k 하나(k = median(o/m))를 전 표본에 적용. 파라미터 1개라 과적합이
+                 거의 없다.
+      per-storage LOCO : 저류별 k 를 **그 셀을 뺀** 나머지 셀에서 적합해 held-out 셀에 적용한다.
+                 in-sample 로 저류별 k 를 맞추면 표본이 적어 오차가 인위적으로 0 에 가까워지므로
+                 leave-one-cell-out 이 아니면 숫자가 거짓이 된다.
+    """
+    xs = [(m, o, s, c) for m, o, s, c in samples if o > 0]
+    if len(xs) < 3:
+        return {}
+    m_all = [m for m, _, _, _ in xs]
+    o_all = [o for _, o, _, _ in xs]
+    n = len(xs)
+    errs = [m - o for m, o in zip(m_all, o_all)]
+    mse = sum(e * e for e in errs) / n
+    mean_m, mean_o = st.fmean(m_all), st.fmean(o_all)
+    # 모집단 표준편차(분해 항등식이 성립하는 형태)
+    sd_m = (sum((x - mean_m) ** 2 for x in m_all) / n) ** 0.5
+    sd_o = (sum((x - mean_o) ** 2 for x in o_all) / n) ** 0.5
+    cov = sum((a - mean_m) * (b - mean_o) for a, b in zip(m_all, o_all)) / n
+    r = cov / (sd_m * sd_o) if sd_m > 0 and sd_o > 0 else 0.0
+    out: dict[str, Any] = {
+        "n": n,
+        "me_veh": st.fmean(errs),
+        "mpe_pct": st.fmean([100.0 * (m - o) / o for m, o, _, _ in xs]),
+        "rmse_veh": mse ** 0.5,
+        "theil_u2": (mse ** 0.5) / ((sum(x * x for x in m_all) / n) ** 0.5 + (sum(x * x for x in o_all) / n) ** 0.5)
+        if (m_all or o_all) else None,
+        "pearson_r": r,
+    }
+    if mse > 0:
+        out["proportions"] = {
+            "bias": (mean_m - mean_o) ** 2 / mse,
+            "variance": (sd_m - sd_o) ** 2 / mse,
+            "covariance": 2.0 * (1.0 - r) * sd_m * sd_o / mse,
+        }
+
+    base = _mdape([(m, o) for m, o, _, _ in xs])
+    out["mdape_before"] = base
+
+    ratios = [o / m for m, o, _, _ in xs if m > 0]
+    if ratios:
+        k = st.median(ratios)
+        out["global_k"] = k
+        out["mdape_after_global_k"] = _mdape([(k * m, o) for m, o, _, _ in xs])
+
+    # 저류별 k, leave-one-cell-out
+    by_storage_cell: dict[str, dict[str, list[tuple[float, float]]]] = defaultdict(lambda: defaultdict(list))
+    for m, o, s, c in xs:
+        by_storage_cell[s][c].append((m, o))
+    loco: list[tuple[float, float]] = []
+    for storage, cells in by_storage_cell.items():
+        if len(cells) < 2:
+            continue
+        for held, held_pairs in cells.items():
+            train = [p for c, ps in cells.items() if c != held for p in ps]
+            rs = [o / m for m, o in train if m > 0]
+            if not rs:
+                continue
+            k_s = st.median(rs)
+            loco.extend((k_s * m, o) for m, o in held_pairs)
+    if loco:
+        out["mdape_after_per_storage_loco"] = _mdape(loco)
+        out["loco_n"] = len(loco)
+
+    # leave-one-DEMAND-out. LOCO 는 셀 하나만 빼므로 같은 수요의 다른 시드가 훈련에 남아
+    # "수요를 건너서도 통하는가"를 검정하지 못한다. 저류별 보정이 파라미터가 될 수 있으려면
+    # 수요 0.75+1.0 에서 적합한 k 가 1.25 에서도 통해야 한다. 통하지 않으면 그것은 고정
+    # 파라미터가 아니라 상태의존 함수이고, 모형 구조를 바꿔야 하는 문제다.
+    def demand_of(cell: str) -> str:
+        for token in ("d075", "d100", "d125"):
+            if token in cell:
+                return token
+        return "unknown"
+
+    by_storage_demand: dict[str, dict[str, list[tuple[float, float]]]] = defaultdict(lambda: defaultdict(list))
+    for m, o, s, c in xs:
+        by_storage_demand[s][demand_of(c)].append((m, o))
+    lodo: list[tuple[float, float]] = []
+    lodo_by_demand: dict[str, list[tuple[float, float]]] = defaultdict(list)
+    for storage, demands in by_storage_demand.items():
+        if len(demands) < 2:
+            continue
+        for held, held_pairs in demands.items():
+            train = [p for d, ps in demands.items() if d != held for p in ps]
+            rs = [o / m for m, o in train if m > 0]
+            if not rs:
+                continue
+            k_s = st.median(rs)
+            corrected = [(k_s * m, o) for m, o in held_pairs]
+            lodo.extend(corrected)
+            lodo_by_demand[held].extend(corrected)
+    if lodo:
+        out["mdape_after_per_storage_lodo"] = _mdape(lodo)
+        out["lodo_n"] = len(lodo)
+        out["mdape_after_per_storage_lodo_by_demand"] = {
+            d: _mdape(v) for d, v in sorted(lodo_by_demand.items()) if v
+        }
+
+    # 저류별 k 를 그대로 내보낸다. 어느 저류가 계통적으로 어긋나 있는지 알아야 다음 수정을
+    # 겨눌 수 있다. k > 1 은 모형이 과소예측(보정하려면 키워야 함), k < 1 은 과대예측이다.
+    ks: dict[str, float] = {}
+    for storage, cells_ in by_storage_cell.items():
+        rs = [o / m for ps in cells_.values() for m, o in ps if m > 0]
+        if len(rs) >= 3:
+            ks[storage] = st.median(rs)
+    if ks:
+        ordered = sorted(ks.items(), key=lambda kv: abs(math.log(max(kv[1], 1e-9))), reverse=True)
+        out["per_storage_k"] = {s: round(v, 4) for s, v in sorted(ks.items())}
+        out["per_storage_k_summary"] = {
+            "n": len(ks),
+            "median": st.median(ks.values()),
+            "within_10pct": sum(1 for v in ks.values() if 0.9 <= v <= 1.1),
+            "over_2x": sum(1 for v in ks.values() if v >= 2.0 or v <= 0.5),
+            "worst": [{"storage": s, "k": round(v, 3)} for s, v in ordered[:12]],
+        }
+    return out
 
 
 def g5_threshold(observed: float) -> float:
@@ -208,6 +343,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     storage_only: dict[int, list[float]] = defaultdict(list)
     conserved: dict[int, list[float]] = defaultdict(list)
     abs_err: dict[int, list[float]] = defaultdict(list)
+    # (모형, 관측, 저류, 셀) 짝을 남긴다. 편향-분산 분해와 편향 제거 후 재계산에는 오차만으로는
+    # 부족하고 원 짝이 있어야 한다. MdAPE 는 분해되지 않으므로(제곱오차 스케일에서만 성립)
+    # 계통 편향이 41.6% 중 몇 pt 인지는 이 짝에서만 나온다.
+    pairs: dict[int, list[tuple[float, float, str, str]]] = defaultdict(list)
     g5_pass = defaultdict(lambda: [0, 0])
     signed: list[float] = []
     failures: list[str] = []
@@ -251,6 +390,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     # 둬야 "분모 효과 아니냐"는 반론에 답할 수 있다. VISSIM 자신의 시드 간
                     # 실현 편차가 중앙 1.7~2.1 veh 이므로 그것과 직접 비교되는 값이다.
                     abs_err[stp["step"]].append(err)
+                    pairs[stp["step"]].append((mval, oval, s, state_csv.stem))
                     signed.append(100.0 * (mval - oval) / oval)
                     ok = err <= g5_threshold(oval)
                     g5_pass[stp["step"]][0] += 1 if ok else 0
@@ -294,6 +434,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             for k, v in sorted(g5_pass.items())
         },
         "signed_median_pct": st.median(signed) if signed else None,
+        "bias_decomposition_by_step": {
+            str(k): bias_decomposition(v) for k, v in sorted(pairs.items()) if v
+        },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n",
@@ -309,6 +452,30 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{k:>4d}  {c:8.1f}%  {s:8.1f}%  {a.get('median', float('nan')):7.2f}veh  "
               f"{g['rate_pct']:7.1f}%  ({g['pass']}/{g['total']})")
     print(f"부호 있는 중앙값 {payload['signed_median_pct']:+.1f}%")
+    bd = payload["bias_decomposition_by_step"]
+    if bd:
+        print(f"\n{'스텝':>4s} {'ME':>9s} {'MPE':>8s} {'RMSE':>8s} {'Theil U2':>9s} "
+              f"{'편향':>7s} {'분산':>7s} {'공분산':>7s}")
+        for k in sorted(bd, key=int):
+            d = bd[k]
+            p = d.get("proportions") or {}
+            print(f"{k:>4s} {d['me_veh']:+8.2f}v {d['mpe_pct']:+7.1f}% {d['rmse_veh']:7.2f}v "
+                  f"{d.get('theil_u2') or float('nan'):9.4f} "
+                  f"{p.get('bias', float('nan')):6.3f} {p.get('variance', float('nan')):6.3f} "
+                  f"{p.get('covariance', float('nan')):6.3f}")
+        print("\n편향 제거 후 MdAPE (스텝: 원래 -> 전역 k -> 저류별 k, 셀 하나 빼고 -> 수요 하나 빼고)")
+        for k in sorted(bd, key=int):
+            d = bd[k]
+            print(f"  {k}: {d.get('mdape_before', float('nan')):5.1f}% -> "
+                  f"{d.get('mdape_after_global_k', float('nan')):5.1f}% (k={d.get('global_k', float('nan')):.3f}) -> "
+                  f"{d.get('mdape_after_per_storage_loco', float('nan')):5.1f}% -> "
+                  f"{d.get('mdape_after_per_storage_lodo', float('nan')):5.1f}%")
+        print("\n수요 하나 빼고 적합한 저류별 보정을, 그 빠진 수요에 적용한 결과")
+        for k in sorted(bd, key=int):
+            byd = bd[k].get("mdape_after_per_storage_lodo_by_demand") or {}
+            if byd:
+                cells = "  ".join(f"{d}: {v:5.1f}%" for d, v in byd.items())
+                print(f"  스텝 {k}   {cells}")
     for r in payload["reasons"][:3]:
         print("  " + r)
     return 0 if payload["status"] == "PASS" else 2
