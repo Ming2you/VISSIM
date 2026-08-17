@@ -48,8 +48,8 @@ def objective(run_dir: Path, name: str, start_sec: float, end_sec: float) -> flo
     path = run_dir / f"state_{name}.csv"
     if not path.is_file():
         return None
-    times, values = read_state_series(path, "total_vehicles")
-    return integrate_veh_hours(times, values, start_sec, end_sec)
+    points = read_state_series(path, "total_vehicles")
+    return integrate_veh_hours(points, start_sec, end_sec)
 
 
 def runlog_flags(run_dir: Path, name: str) -> dict[str, str]:
