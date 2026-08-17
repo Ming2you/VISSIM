@@ -207,6 +207,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     storage_only: dict[int, list[float]] = defaultdict(list)
     conserved: dict[int, list[float]] = defaultdict(list)
+    abs_err: dict[int, list[float]] = defaultdict(list)
     g5_pass = defaultdict(lambda: [0, 0])
     signed: list[float] = []
     failures: list[str] = []
@@ -244,6 +245,12 @@ def main(argv: Sequence[str] | None = None) -> int:
                     mval = m_cons.get(s, 0.0)
                     err = abs(mval - oval)
                     conserved[stp["step"]].append(100.0 * err / oval)
+                    # 절대 대수(veh)도 같이 남긴다. 문헌이 링크 단위 오차를 보고할 때 쓰는
+                    # 유일한 공통 통화가 절대 veh 다(예: Portilla et al. 2020 의 링크상태
+                    # RMS 4.94 veh). MdAPE 는 분모가 작은 이동류에서 부풀려지므로 둘을 나란히
+                    # 둬야 "분모 효과 아니냐"는 반론에 답할 수 있다. VISSIM 자신의 시드 간
+                    # 실현 편차가 중앙 1.7~2.1 veh 이므로 그것과 직접 비교되는 값이다.
+                    abs_err[stp["step"]].append(err)
                     signed.append(100.0 * (mval - oval) / oval)
                     ok = err <= g5_threshold(oval)
                     g5_pass[stp["step"]][0] += 1 if ok else 0
@@ -273,6 +280,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             "conserved": {str(k): st.median(v) for k, v in sorted(conserved.items()) if v},
             "storage_only": {str(k): st.median(v) for k, v in sorted(storage_only.items()) if v},
         },
+        "abs_err_veh_by_step": {
+            str(k): {
+                "median": st.median(v),
+                "p90": sorted(v)[int(0.9 * (len(v) - 1))],
+                "mean": st.fmean(v),
+                "n": len(v),
+            }
+            for k, v in sorted(abs_err.items()) if v
+        },
         "g5_pass_rate_by_step": {
             str(k): {"pass": v[0], "total": v[1], "rate_pct": 100.0 * v[0] / v[1] if v[1] else None}
             for k, v in sorted(g5_pass.items())
@@ -284,12 +300,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                         encoding="utf-8", newline="\n")
 
     print(f"status={payload['status']}  셀={len(cells)}")
-    print(f"{'스텝':>4s}  {'보존단위':>9s}  {'저류만':>9s}  {'G5 통과':>9s}")
+    print(f"{'스텝':>4s}  {'보존단위':>9s}  {'저류만':>9s}  {'절대오차':>11s}  {'G5 통과':>9s}")
     for k in sorted(conserved):
         c = st.median(conserved[k])
         s = st.median(storage_only[k]) if storage_only.get(k) else float("nan")
+        a = payload["abs_err_veh_by_step"].get(str(k), {})
         g = payload["g5_pass_rate_by_step"][str(k)]
-        print(f"{k:>4d}  {c:8.1f}%  {s:8.1f}%  {g['rate_pct']:7.1f}%  ({g['pass']}/{g['total']})")
+        print(f"{k:>4d}  {c:8.1f}%  {s:8.1f}%  {a.get('median', float('nan')):7.2f}veh  "
+              f"{g['rate_pct']:7.1f}%  ({g['pass']}/{g['total']})")
     print(f"부호 있는 중앙값 {payload['signed_median_pct']:+.1f}%")
     for r in payload["reasons"][:3]:
         print("  " + r)
