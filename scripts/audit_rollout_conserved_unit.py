@@ -273,6 +273,43 @@ def attribution_diagnostics(pairs: Mapping[int, Sequence[tuple[float, float, str
     return out
 
 
+MAGNITUDE_BINS = ((5.0, 10.0), (10.0, 20.0), (20.0, 50.0), (50.0, 100.0), (100.0, float("inf")))
+
+
+def magnitude_strata(samples: Sequence[tuple[float, float, str, str]]) -> list[dict[str, Any]]:
+    """오차를 **관측 대수 구간별로** 가른다 — "분모 효과 아니냐" 에 답하는 표.
+
+    MdAPE 는 분모가 작을수록 부풀려진다. 5 veh 를 7 veh 로 예측하면 40% 지만 절대차는
+    2 veh 뿐이고, 그런 저류가 담는 질량도 작다. 반대로 100 veh 저류가 40% 틀리면 40 veh 다.
+    같은 41.6% 라도 둘 중 어디서 온 것이냐에 따라 의미가 완전히 다르다.
+
+    구간마다 표본수·MdAPE·절대오차·**그 구간이 담는 관측 질량 비중**을 같이 낸다.
+    질량 비중이 없으면 "작은 저류가 많아서 중앙값을 끌어올린다" 를 판정할 수 없다.
+    """
+    total_mass = sum(o for _, o, _, _ in samples) or 1.0
+    rows: list[dict[str, Any]] = []
+    for lo, hi in MAGNITUDE_BINS:
+        part = [(m, o) for m, o, _, _ in samples if lo <= o < hi]
+        if not part:
+            continue
+        apes = sorted(100.0 * abs(m - o) / o for m, o in part)
+        errs = sorted(abs(m - o) for m, o in part)
+        mass = sum(o for _, o in part)
+        passed = sum(1 for m, o in part if abs(m - o) <= g5_threshold(o))
+        rows.append({
+            "range": f"{lo:.0f}-{'inf' if hi == float('inf') else f'{hi:.0f}'}",
+            "n": len(part),
+            "share_of_samples_pct": 100.0 * len(part) / len(samples),
+            "share_of_observed_mass_pct": 100.0 * mass / total_mass,
+            "median_observed_veh": st.median([o for _, o in part]),
+            "mdape_pct": st.median(apes),
+            "median_abs_err_veh": st.median(errs),
+            "p90_abs_err_veh": errs[int(0.9 * (len(errs) - 1))],
+            "g5_pass_pct": 100.0 * passed / len(part),
+        })
+    return rows
+
+
 def g5_threshold(observed: float) -> float:
     return max(G5_FLOOR_VEH, G5_RATIO * abs(observed))
 
@@ -554,6 +591,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             str(k): bias_decomposition(v) for k, v in sorted(pairs.items()) if v
         },
         "attribution_diagnostics": attribution_diagnostics(pairs, cfg),
+        "magnitude_strata_by_step": {
+            str(k): magnitude_strata(v) for k, v in sorted(pairs.items()) if v
+        },
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n",
@@ -578,6 +618,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             syv = sy.get(k)
             print(f"{k:>4s} {ph[k]:11.1f}% {(f'{syv:.1f}%' if syv is not None else '-'):>13s}"
                   f"   ({cnt.get('physical', 0)} / {cnt.get('synthetic', 0)})")
+    ms = payload["magnitude_strata_by_step"].get("1") or []
+    if ms:
+        print(f"\n스텝1 을 관측 대수 구간으로 가른다 (분모 효과 판정)")
+        print(f"  {'구간':>9s} {'표본':>6s} {'표본%':>6s} {'질량%':>6s} {'중앙관측':>8s} "
+              f"{'MdAPE':>7s} {'절대오차':>9s} {'p90':>7s} {'G5':>6s}")
+        for r in ms:
+            print(f"  {r['range']:>9s} {r['n']:6d} {r['share_of_samples_pct']:5.1f}% "
+                  f"{r['share_of_observed_mass_pct']:5.1f}% {r['median_observed_veh']:8.1f} "
+                  f"{r['mdape_pct']:6.1f}% {r['median_abs_err_veh']:8.2f}v {r['p90_abs_err_veh']:6.2f}v "
+                  f"{r['g5_pass_pct']:5.1f}%")
     bd = payload["bias_decomposition_by_step"]
     if bd:
         print(f"\n{'스텝':>4s} {'ME':>9s} {'MPE':>8s} {'RMSE':>8s} {'Theil U2':>9s} "
