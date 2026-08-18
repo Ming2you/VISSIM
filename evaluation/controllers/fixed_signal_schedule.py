@@ -148,7 +148,53 @@ def _angular_distance(left: float | None, right: float) -> float:
     return min(distance, 360.0 - distance)
 
 
+# 녹색 합집합 적분 캐시.
+#
+# 왜. 이 함수가 어댑터 호출 시간의 단독 1위다 - 생산 config 에서 13.2%(279초 중 36.9초),
+# 램프 결합을 켜면 24.3%(7,730초 중 1,877초)다. 그런데 `.sig` 에서 온 **고정시간** 계획을
+# 적분하는 것이라 컨트롤러가 정하는 녹색과 무관하다. leader 가 코너 2^15 개를 열거할 때
+# 같은 (movement, 창) 이 완전히 동일한 입력으로 수만 번 재계산된다.
+#
+# 안전한 이유. `ControllerProgram` 은 frozen dataclass 이고(signal_program.py:113),
+# 이 함수는 cycle_length_sec / program_offset_sec / sg_timelines 만 읽는다. 저장소 전체에서
+# sg_timelines 를 변형하는 곳이 없다(전부 조회). 즉 출력이 인자만의 함수다 - 캐시는
+# 비트 동일해야 하고, 실제로 그렇게 검증한다.
+#
+# id(program) 을 키에 쓰므로 그 program 에 강한 참조를 함께 들고 있어야 한다. 안 그러면
+# GC 후 id 가 재사용돼 다른 계획의 값을 돌려줄 수 있다.
+_GREEN_OVERLAP_CACHE: dict[tuple, float] = {}
+_GREEN_OVERLAP_PROGRAMS: dict[int, "ControllerProgram"] = {}
+_GREEN_OVERLAP_STATS = {"hit": 0, "miss": 0}
+
+
+def green_overlap_cache_stats() -> dict[str, int]:
+    """캐시 적중 통계. 진단에 실어 적중률이 실제로 높은지 보이게 한다."""
+    return dict(_GREEN_OVERLAP_STATS)
+
+
 def _union_green_overlap(
+    program: ControllerProgram,
+    group_ids: Iterable[str],
+    start_sec: float,
+    end_sec: float,
+    controller_offset_sec: float,
+) -> float:
+    if end_sec <= start_sec:
+        return 0.0
+    groups = tuple(group_ids)
+    key = (id(program), groups, start_sec, end_sec, controller_offset_sec)
+    cached = _GREEN_OVERLAP_CACHE.get(key)
+    if cached is not None:
+        _GREEN_OVERLAP_STATS["hit"] += 1
+        return cached
+    _GREEN_OVERLAP_PROGRAMS.setdefault(id(program), program)
+    value = _union_green_overlap_uncached(program, groups, start_sec, end_sec, controller_offset_sec)
+    _GREEN_OVERLAP_CACHE[key] = value
+    _GREEN_OVERLAP_STATS["miss"] += 1
+    return value
+
+
+def _union_green_overlap_uncached(
     program: ControllerProgram,
     group_ids: Iterable[str],
     start_sec: float,
