@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import csv
 import sys
@@ -1598,7 +1599,36 @@ class StackelbergMPCController:
         diag.update(evaluation.nash.control.diagnostics)
         if "distributed_response_rollout_ttt" not in diag:
             return None
-        return float(diag["distributed_response_rollout_ttt"])
+        # 2026-08-18: 프록시 평가기가 이 키를 **빼는 대신 0.0 을 쓴다**
+        # (distributed_coordinator.py:3720-3722, 바로 옆에 rollout_active=0.0 도 같이 쓴다).
+        # 존재만 확인하면 그 센티널이 실측 TTT 로 통과하고, guard 가 실측 leader TTT(114~180)를
+        # 0.0 과 비교해 언제나 "worse" 로 판정한다.
+        #
+        # 실측(런 전수, guard 활성 결정 328건):
+        #   fallback_rollout_ttt == 0.0  150건(45.7%) -> 150건 전부 무제어 선택,
+        #                                 그중 136건은 leader 가 objective 로도 더 좋았다
+        #   fallback_rollout_ttt != 0    178건        -> 무제어 0건
+        # 패턴이 완전하다. 센티널이면 leader 가 지고, 실값이면 leader 가 이긴다.
+        #
+        # rollout_active 가 정확히 이 둘을 구분하라고 있는 플래그인데 소비자가 안 읽고 있었다.
+        try:
+            value = float(diag["distributed_response_rollout_ttt"])
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(value):
+            return None
+        active_raw = diag.get("distributed_response_rollout_active")
+        if active_raw is not None:
+            try:
+                active = float(active_raw)
+            except (TypeError, ValueError):
+                active = 0.0
+            if active < 0.5:
+                return None
+        elif value <= 0.0 and not evaluation.rollout_used:
+            # 플래그가 없는 옛 진단은 rollout_used 로 판정한다.
+            return None
+        return value
 
     def _fallback_guard_rejects(
         self,
