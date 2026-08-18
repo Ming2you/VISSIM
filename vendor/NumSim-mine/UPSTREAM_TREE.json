@@ -132,5 +132,21 @@
   "source_blobs": {
     "src/config/default.yaml": "96b11fcbe588e596a01368efa5250119cda78255",
     "src/config/scenarios.yaml": "7a12f704582b6e09378fcb037919ba90f3e71e55"
-  }
+  },
+  "local_patches": [
+    {
+      "path": "src/controllers/stackelberg_mpc.py",
+      "upstream_blob": "e3ceebbdb45dacbfd83ec8e5e6ae58db54d5af53",
+      "patched_blob": "5ac97daf281d003013ba4a1f76739357dadc683d",
+      "applied_at": "2026-08-18",
+      "workspace_commit": "452229a",
+      "function": "StackelbergMPCController._evaluation_rollout_ttt",
+      "why": "폴백 가드가 프록시 평가기의 센티널을 실측 TTT 로 읽었다. 프록시는 distributed_response_rollout_ttt 키를 빼는 대신 0.0 을 쓰는데(distributed_coordinator.py:3720-3722) 판정부가 키 존재만 확인했다. TTT 는 작을수록 좋으므로 실측 leader TTT(114~180)가 0.0 을 이길 수 없다.",
+      "evidence": "guard 활성 결정 328건 중 fallback_rollout_ttt==0.0 이 150건(45.7%)이고 그 150건 전부가 무제어를 선택했다. 그중 136건은 leader 가 objective 로도 우세했다. 실값인 178건에서는 무제어가 0건이다.",
+      "fix": "바로 옆의 distributed_response_rollout_active 를 읽어 센티널을 거른다. 비유한값도 막고, 플래그가 없는 옛 진단은 rollout_used 로 판정한다.",
+      "upstream_status": "상류 Numerical-Sim-git 에 같은 수정이 미커밋 상태로 존재한다. 로컬 발명이 아니라 상류 방향을 먼저 당겨쓴 것이다. 상류가 정리되면 이 항목을 지우고 재스냅샷할 것.",
+      "why_not_resnapshot": "핀 커밋 e77b7d65 가 우리 상류 체크아웃에 없다. 거기서 스냅샷하면 파일 25개가 사라지고(rollout_endpoint.py 포함) state.py 가 23KB 줄어드는 등 몇 달치가 롤백된다."
+    }
+  ],
+  "local_patches_note": "이 절은 vendor 트리가 upstream commit 과 **정확히 같지 않다**는 사실을 1급으로 기록한다. blob OID 를 조용히 갱신하면 앵커가 'commit 에 이 내용이 있다'는 거짓을 주장하게 되므로 그렇게 하지 않는다. verify_runtime_source.py 는 여기 등재된 (path, patched_blob) 조합만 이탈로 허용하고, 등재되지 않은 이탈이나 patched_blob 불일치는 여전히 FAIL 이다. 나머지 120개 파일에 대한 보증은 그대로 유지된다."
 }

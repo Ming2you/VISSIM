@@ -19,7 +19,9 @@ EXPECTED_SNAPSHOT_COMMIT = "e77b7d656a9cb6deca6cc7d8bc89dee50038f043"
 EXPECTED_ROOT_TREE = "18152f85fca2f58969954fb094f43e9fb9abe87d"
 EXPECTED_SRC_TREE = "6bdf291c8e0ef65925784442ba7221152180ee79"
 EXPECTED_OBJECT_FORMAT = "sha1"
-EXPECTED_ANCHOR_SEMANTIC_SHA256 = "d1be359de3f33206e123373f8ed7a2e14366d6d5bd1101778265a0cd982a14f0"
+# 2026-08-18: 앵커에 local_patches 절이 추가되며 갱신됐다. 앵커와 이 상수는 두 열쇠라
+# 한쪽만 바꿔서는 검증이 통과하지 않는다 - 의도된 설계다.
+EXPECTED_ANCHOR_SEMANTIC_SHA256 = "420586d5df3620f5b3e4ab452970f9730b60a702464ce119f638dc4adab81e1c"
 EXPECTED_PYTHON_FILE_COUNT = 121
 IMPORT_MARKER = "__RUNTIME_SOURCE_IMPORTS__="
 
@@ -404,12 +406,60 @@ def _anchored_blob_map(source: Mapping[str, Any]) -> dict[str, str]:
     }
 
 
-def _blob_mismatches(expected: Mapping[str, str], actual: Mapping[str, str]) -> list[str]:
-    return sorted(
-        path
-        for path in set(expected) | set(actual)
-        if expected.get(path) != actual.get(path)
-    )
+def _blob_mismatches(
+    expected: Mapping[str, str],
+    actual: Mapping[str, str],
+    local_patches: Mapping[str, str] | None = None,
+) -> list[str]:
+    """앵커와 실제 트리의 blob 불일치. **등재된 로컬 패치만** 예외로 인정한다.
+
+    왜 예외를 두는가. vendor 는 상류 커밋의 스냅샷이지만, 상류에 아직 반영되지 않은 수정을
+    당겨써야 할 때가 있다(2026-08-18 의 폴백 가드 센티널 건). 그때 앵커의 blob OID 를 조용히
+    새 값으로 바꾸면 앵커가 "그 커밋에 이 내용이 있다"는 **거짓**을 주장하게 된다. 이 저장소가
+    계속 잡아온 실패가 정확히 그 부류다.
+
+    대신 앵커의 `local_patches` 에 (path, upstream_blob, patched_blob, 사유, 증거)를 적고,
+    여기서는 **정확히 그 조합만** 통과시킨다. 등재되지 않은 이탈, 또는 등재됐는데 실제 지문이
+    `patched_blob` 과 다른 경우는 그대로 불일치로 남는다 - 즉 패치 자체도 핀된다.
+    """
+    allowed = dict(local_patches or {})
+    mismatches: list[str] = []
+    for path in set(expected) | set(actual):
+        if expected.get(path) == actual.get(path):
+            continue
+        pinned = allowed.get(path)
+        if pinned is not None and actual.get(path) == pinned:
+            continue
+        mismatches.append(path)
+    return sorted(mismatches)
+
+
+def _local_patch_index(anchor: Mapping[str, Any]) -> tuple[dict[str, str], list[str]]:
+    """앵커의 local_patches 를 (path -> patched_blob) 로 편다. 형식 오류는 사유와 함께 돌려준다."""
+    entries = anchor.get("local_patches") or []
+    index: dict[str, str] = {}
+    problems: list[str] = []
+    if not isinstance(entries, list):
+        return {}, ["local_patches must be a list"]
+    for i, item in enumerate(entries):
+        if not isinstance(item, Mapping):
+            problems.append(f"[{i}] not an object")
+            continue
+        path = str(item.get("path", ""))
+        patched = str(item.get("patched_blob", ""))
+        upstream = str(item.get("upstream_blob", ""))
+        why = str(item.get("why", "")).strip()
+        if not path:
+            problems.append(f"[{i}] missing path")
+        if not re.fullmatch(r"[0-9a-f]{40}", patched):
+            problems.append(f"[{i}] {path}: patched_blob must be a 40-hex OID")
+        if not re.fullmatch(r"[0-9a-f]{40}", upstream):
+            problems.append(f"[{i}] {path}: upstream_blob must be a 40-hex OID")
+        if not why:
+            problems.append(f"[{i}] {path}: why is required")
+        if path and patched:
+            index[path] = patched
+    return index, problems
 
 
 def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[str, Any]:
@@ -451,8 +501,14 @@ def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[s
     anchor_paths = list(anchor_blobs)
     canonical_anchor_blobs = _anchored_blob_map(canonical)
     selected_anchor_blobs = _anchored_blob_map(selected)
-    canonical_anchor_mismatches = _blob_mismatches(anchor_blobs, canonical_anchor_blobs)
-    selected_anchor_mismatches = _blob_mismatches(anchor_blobs, selected_anchor_blobs)
+    local_patch_index, local_patch_problems = _local_patch_index(anchor)
+    canonical_anchor_mismatches = _blob_mismatches(anchor_blobs, canonical_anchor_blobs, local_patch_index)
+    selected_anchor_mismatches = _blob_mismatches(anchor_blobs, selected_anchor_blobs, local_patch_index)
+    # 등재된 패치가 실제로 그 지문으로 존재하는지. 사라지거나 다시 바뀌면 여기서 걸린다.
+    local_patch_unapplied = sorted(
+        path for path, oid in local_patch_index.items()
+        if canonical_anchor_blobs.get(path) != oid
+    )
     canonical_modules = _module_projection(canonical_probe)
     selected_modules = _module_projection(selected_probe)
 
@@ -472,6 +528,10 @@ def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[s
             _check("trust_anchor.paths_sorted", anchor_paths == sorted(anchor_paths), "sorted paths", anchor_paths == sorted(anchor_paths)),
             _check("trust_anchor.blob_oids", all(re.fullmatch(r"[0-9a-f]{40}", oid) for oid in anchor_blobs.values()), "96 SHA-1 blob OIDs", len([oid for oid in anchor_blobs.values() if re.fullmatch(r"[0-9a-f]{40}", oid)])),
             _check("canonical.anchor_python_file_set", set(canonical_anchor_blobs) == set(anchor_blobs), sorted(anchor_blobs), sorted(canonical_anchor_blobs)),
+            _check("trust_anchor.local_patches_wellformed", not local_patch_problems, [], local_patch_problems),
+            _check("trust_anchor.local_patches_applied", not local_patch_unapplied, [], local_patch_unapplied),
+            # 등재 건수를 항상 드러낸다. 0 이 아닌 것이 조용히 지나가면 안 된다.
+            _check("trust_anchor.local_patch_count", True, "informational", sorted(local_patch_index)),
             _check("canonical.anchor_python_blobs", not canonical_anchor_mismatches, [], canonical_anchor_mismatches),
             _check(
                 "canonical.snapshot_commit",
