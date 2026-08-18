@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from itertools import product
 from typing import Any, Dict, Iterable, Mapping, Optional
@@ -1478,7 +1479,27 @@ class DistributedCoordinator:
         # 2^N 개 부분합을 O(2^N) 산술로 만든다. movement 를 다시 훑지 않는다.
         # product 는 마지막 좌표가 가장 빨리 바뀌므로, 정수 i 의 비트 (N-1-s) 가 신호 s 다.
         # 그래서 i 오름차순이 곧 product 순서이고 동률 처리가 기존과 같다.
-        use_additive = (not ramp_scaled) and 0 < n_signals <= _ADDITIVE_CORNER_MAX_SIGNALS
+        # 2026-08-18: `not ramp_scaled` 는 **선제 차단**이다 - 램프가 걸리면 분리가능성이
+        # 깨진다고 보고 가법 경로를 시도조차 안 한다. 그런데 아래에 이미 검증-복귀 장치가 있다:
+        # 가법 최적 코너를 1회 실측해 예측과 `_ADDITIVE_CORNER_TOLERANCE_VEH`(1e-6) 안에서
+        # 맞으면 채택하고, 어긋나면 `use_additive = False` 로 전수열거로 되돌아간다.
+        #
+        # 왜 푸는가. 램프 결합을 켜면 ramp_scaled 가 True 가 되어 이 차단이 걸리고,
+        # product((lo,hi), repeat=15) = 32,768 회 전체평가로 떨어진다. 실측 결정당 6,700 초
+        # (기준 220 초의 30배)라 램프 결합을 실런에 쓸 수 없다. 예측은 램프 결합이 고쳐야만
+        # 하는데(off-ramp 저류가 240~300 s 에 포화해 본선 배출을 막는다) 계산이 막고 있다.
+        #
+        # 주의. 검증은 **선택된 코너의 잔차 1점**만 맞춰 보지 그것이 전역 최적임을 증명하지
+        # 않는다. 지금도 그 위험을 안고 쓰지만, 여기서는 저자들이 "깨진다" 고 본 영역으로
+        # 확장하는 것이다. 그래서 기본 꺼짐이고, 켜기 전에 같은 앵커에서 두 경로가 같은 액션을
+        # 내는지 직접 대조해야 한다.
+        _relax_ramp_gate = str(
+            os.environ.get("RW_ADDITIVE_CORNER_WITH_RAMPS", "")
+        ).strip().lower() in {"1", "true", "on"}
+        use_additive = (
+            (_relax_ramp_gate or not ramp_scaled)
+            and 0 < n_signals <= _ADDITIVE_CORNER_MAX_SIGNALS
+        )
         if use_additive:
             total = 1 << n_signals
             sums = [0.0] * total
