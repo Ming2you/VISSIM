@@ -1527,7 +1527,28 @@ class DistributedCoordinator:
                     best, best_diag, best_abs = trial, diag, residual_abs
                 else:
                     use_additive = False
-        if not use_additive:
+        # 2026-08-18: 전수열거를 건너뛰는 모드(RW_LEADER_CORNER_SKIP_ENUM, 기본 꺼짐).
+        #
+        # 아래 좌표하강이 이미 있고 base 코너에서 출발해도 돈다. 열거는 그 **출발점**을 고르는
+        # 일인데, 램프 결합이 켜지면 2^15 = 32,768 회 전체평가가 되어 결정당 6,700 초가 된다.
+        #
+        # 열거로 얻는 이득이 실제로 얼마인지가 관건이다. 같은 앵커에서 가법(다른 코너 선택)과
+        # 대조했을 때 최종 목적값 차이가 **0.0026** 이었다 - 코너들이 사실상 동률이라는 신호다.
+        # 그렇다면 출발점을 base 로 두고 좌표하강에 맡겨도 실질 손해가 작을 수 있다.
+        #
+        # 이 모드는 답을 바꾼다. 켜기 전에 여러 앵커에서 목적값 손실 분포를 재야 한다.
+        _skip_enum = str(
+            os.environ.get("RW_LEADER_CORNER_SKIP_ENUM", "")
+        ).strip().lower() in {"1", "true", "on"}
+        if not use_additive and _skip_enum:
+            trial = corner_control(base_values)
+            diag = self._leader_direct_feasible_set_diagnostics(state, trial, forecast, leader)
+            residual_abs = float(diag.get(
+                "distributed_grid_leader_net_inflow_abs_residual_veh", np.inf
+            ))
+            if residual_abs < best_abs - 1.0e-9:
+                best, best_diag, best_abs = trial, diag, residual_abs
+        elif not use_additive:
             for values in product((lo, hi), repeat=n_signals):
                 trial = corner_control(values)
                 diag = self._leader_direct_feasible_set_diagnostics(state, trial, forecast, leader)
