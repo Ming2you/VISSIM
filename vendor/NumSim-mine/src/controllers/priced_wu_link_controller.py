@@ -58,6 +58,7 @@ from typing import Dict, List, Mapping, Optional
 from src.controllers.rollout_endpoint import evaluate_price_point
 from src.controllers.stackelberg_wu_metered import (
     _PRICE_WORKER_CTX,
+    _adapter_patch_present,
     StackelbergWuMeteredController,
     _price_worker_init,
 )
@@ -318,6 +319,38 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     def _make_follower_solver(self, cfg: ExperimentConfig):
         return LinkAgentWuFollower(cfg)
 
+    def _evaluate_full_candidate(self, index, action, state, forecast, previous,
+                                 stage="coarse", incumbent_obj=float("inf"),
+                                 rollout_abort_obj=float("inf")):
+        """상류 그대로 + 후보별 벽시계와 N_UF 재사용 계측만 덧붙인다(거동 불변).
+
+        왜 재나. 결정 wall 373초 중 가격 배치가 약 134초고 나머지는 후보 full 평가다
+        (가격만 병렬화했을 때 1.48배에서 멈춘 이유). 그런데 후보 평가를 병렬로 쪼개는 게
+        이득인지는 **N_UF 재사용 캐시**(`_nuf_solve_cache`)에 달렸다 — 상류 설계상 N_UF 가
+        같은 후보는 follower solve 와 rollout 을 통째로 재사용하므로, 직렬에서 2·3번째
+        후보가 거의 공짜면 병렬로 쪼개도 각 워커가 다시 계산해 이득이 사라진다.
+
+        그래서 먼저 재고 나서 정한다. `..._wall_sec_{stage}_{index}` 와 재사용 적중 수를
+        남긴다.
+        """
+        import time as _time
+
+        hits_before = int(getattr(self, "_dedupe_hits", 0) or 0)
+        t0 = _time.perf_counter()
+        out = super()._evaluate_full_candidate(
+            index, action, state, forecast, previous,
+            stage=stage, incumbent_obj=incumbent_obj,
+            rollout_abort_obj=rollout_abort_obj,
+        )
+        elapsed = float(_time.perf_counter() - t0)
+        hit = int(getattr(self, "_dedupe_hits", 0) or 0) - hits_before
+        out.metadata[f"leader_candidate_wall_sec_{stage}_{index}"] = elapsed
+        out.metadata[f"leader_candidate_nuf_reuse_{stage}_{index}"] = float(hit)
+        out.metadata[f"leader_candidate_nuf_star_{stage}_{index}"] = float(
+            getattr(action, "N_UF_star", 0.0)
+        )
+        return out
+
     def _phase_vector(self, control: ControlAction, signal: str) -> Dict[str, float]:
         return {pid: float(control.green_times.get(phase_key(signal, pid), 0.0))
                 for pid in MODEL_PHASES}
@@ -413,7 +446,7 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
             with ProcessPoolExecutor(
                 max_workers=min(workers, len(tasks)),
                 initializer=_price_worker_init,
-                initargs=(self, state, previous, forecast),
+                initargs=(self, state, previous, forecast, _adapter_patch_present()),
             ) as pool:
                 for sig, pid, ttt in pool.map(_price_worker_phase, tasks):
                     out[(sig, pid)] = float(ttt)

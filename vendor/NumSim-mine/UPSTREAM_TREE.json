@@ -236,13 +236,24 @@
    "fix": "호출 7곳에 signal=signal 을 넘긴다. 단위검증: SC7 은 죽은 p3 가 32.7 -> 0.0 이 되고 live 총량 141 로 배분된다. 4현시 신호(SC1·SC1002)는 값이 안 바뀐다 = 비트동일.",
    "upstream_status": "상류에 없다. distribute_phase_green 독스트링이 기본값의 이유를 '호출부 45곳을 한꺼번에 안 건드리기 위한 기본값' 이라 적어놨다 — wu 팔로워는 live 현시가 신호마다 다른 망에서 돌아본 적이 없다. 이 망은 17 SC 중 5개가 3현시다. 상류에 올릴 값어치가 있다.",
    "why_not_resnapshot": "상류 커밋을 다시 스냅샷하면 이 수정이 상류에 있는 것처럼 기록된다."
+  },
+  {
+   "path": "src/controllers/stackelberg_wu_metered.py",
+   "upstream_blob": "27befb180698882037605b273bca542849f8f369",
+   "patched_blob": "79cb173e5f837f52829151109eb78a1e90c3b096",
+   "applied_at": "2026-08-20",
+   "function": "VSL·offset 가격 롤아웃을 병렬 배치로 돌리고, 워커의 어댑터 패치 유무를 부모와 대조한다",
+   "why": "프로파일(결정 t=600)에서 결정 시간의 88%가 가격 갱신인데 채널 4개 중 2개만 병렬이었다 — offset walk 354.0s(롤아웃 64, walk 15)와 VSL 176.9s(롤아웃 32)가 직렬로 남아 병렬 비중이 롤아웃 230회 중 98회(43%)였다. 암달 1/(0.57+0.043)=1.63배가 실측 1.48배와 맞았다.",
+   "fix": "VSL 은 인자가 루프 전 v_corners 로 확정되므로 프리페치 배치(_vsl_price_rollouts)를 끼운다. offset walk 은 신호 안에서 순차(앵커가 앞 결과로 이동)지만 신호끼리 독립이라 walk 통째로를 태스크로 보낸다(_offset_walk_batch) — 롤아웃 낱개가 아니다. 공통 배치기 _price_batch 가 green 과 같은 규약(직렬 폴백 + 카운터)을 쓴다.",
+   "guard": "_price_worker_init 이 부모에서 잰 _adapter_patch_present() 를 받아 워커와 대조하고 다르면 raise 한다. spawn 이 모듈 몽키패치를 안 넘기는 문제(phasepar 런에서 조용히 틀린 가격을 냄)가 어떤 가격 채널에서도 재발하지 않게 한다. 부모에도 패치가 없는 순수 NumSim 실행은 정상 통과한다.",
+   "evidence": "재실행 t=600: workers=1 과 workers=10 이 가격 진단 155개(green·offset·현시) 전부와 커밋 제어가 동일, 목적함수 Δ 0.000000. 이 패치 전후의 직렬끼리도 동일(비트 보존). 결정 wall 368.4 -> 136.0s (2.71배, 직전 1.48배)."
   }
  ],
  "local_patches_note": "이 절은 vendor 트리가 upstream commit 과 **정확히 같지 않다**는 사실을 1급으로 기록한다. blob OID 를 조용히 갱신하면 앵커가 'commit 에 이 내용이 있다'는 거짓을 주장하게 되므로 그렇게 하지 않는다. verify_runtime_source.py 는 여기 등재된 (path, patched_blob) 조합만 이탈로 허용하고, 등재되지 않은 이탈이나 patched_blob 불일치는 여전히 FAIL 이다. 나머지 120개 파일에 대한 보증은 그대로 유지된다.",
  "local_additions": [
   {
    "path": "src/controllers/priced_wu_link_controller.py",
-   "blob": "6dd303505802ed96417d73a38136b2529f3d3bb2",
+   "blob": "0f2953ba2990b1eea82b1a2453882530783a91db",
    "added_at": "2026-08-20",
    "renamed_from": "src/controllers/priced_distributed_coordinator.py",
    "upstream_status": "상류에 없다. 로컬 신규 파일이다.",

@@ -41,12 +41,62 @@ from typing import Dict, List, Optional
 _PRICE_WORKER_CTX: Dict[str, object] = {}
 
 
-def _price_worker_init(ctrl, state, previous, forecast) -> None:
-    """워커 프로세스당 한 번. 컨트롤러와 작동점을 고정한다."""
+def _adapter_patch_present() -> bool:
+    """어댑터의 `_phase_green_fraction` 런타임 패치가 이 프로세스에 살아 있는가."""
+    import importlib
+
+    module = importlib.import_module("src.models.urban_queue_model")
+    return hasattr(module, "_vissim_original_phase_green_fraction")
+
+
+def _price_worker_init(ctrl, state, previous, forecast, expect_patch=None) -> None:
+    """워커 프로세스당 한 번. 컨트롤러와 작동점을 고정한다.
+
+    `expect_patch` 는 **부모에서 잰** 어댑터 런타임 패치 유무다. spawn 워커는 모듈을 새로
+    import 하므로 부모가 런타임에 심은 `_phase_green_fraction` 패치를 안 물려받는다 —
+    그대로 두면 워커가 조용히 다른 plant 로 가격을 매긴다(2026-08-20 phasepar 런이 그랬다).
+    되살리기는 컨트롤러의 `__setstate__` 가 하고, 여기서는 **결과만 확인**한다. 부모에
+    패치가 없으면(순수 NumSim 실행) 워커에도 없는 게 맞으므로 부모 상태와 같기만 하면 된다.
+
+    실패는 raise 다. pool 이 깨지고 호출처가 직렬로 재실행하며 카운터와 사유를 남긴다.
+    """
+    if expect_patch is not None and bool(expect_patch) != _adapter_patch_present():
+        raise RuntimeError(
+            "가격 워커의 어댑터 런타임 패치 상태가 부모와 다르다 "
+            f"(부모={bool(expect_patch)}, 워커={_adapter_patch_present()}) — "
+            "워커가 패치 안 된 _phase_green_fraction 으로 가격을 매기게 된다"
+        )
     _PRICE_WORKER_CTX["ctrl"] = ctrl
     _PRICE_WORKER_CTX["state"] = state
     _PRICE_WORKER_CTX["previous"] = previous
     _PRICE_WORKER_CTX["forecast"] = forecast
+
+
+def _price_worker_vsl(task):
+    """(key, which, link, value, vsl_upper) -> (key, which, ttt). 직렬 호출과 인자 동일."""
+    key, which, link, value, vsl_upper = task
+    ctx = _PRICE_WORKER_CTX
+    ttt = ctx["ctrl"]._global_rollout_ttt_with_vsl(  # noqa: SLF001
+        ctx["state"], ctx["previous"], ctx["forecast"], link, key, value, vsl_upper,
+    )
+    return key, which, float(ttt)
+
+
+def _price_worker_offset_walk(task):
+    """(signal, anchor0, delta_o, inner_k, grid, lc_map, o_weight, cycle) -> 워크 결과.
+
+    walk 은 신호 **안에서는** 순차(앵커가 앞 결과로 움직인다)지만 신호끼리는 독립이다 —
+    각 walk 이 같은 `previous` 를 고정 운영점으로 쓴다. 그래서 walk 통째로를 한 태스크로
+    보낸다(롤아웃 낱개가 아니라). 벽시계가 가장 긴 walk 하나로 줄어든다.
+    """
+    signal, anchor0, delta_o, inner_k, grid, lc_map, o_weight, cycle = task
+    ctx = _PRICE_WORKER_CTX
+    anchor, iters, g_ext = ctx["ctrl"]._offset_price_relinearize_walk(  # noqa: SLF001
+        ctx["state"], ctx["previous"], ctx["forecast"], signal, anchor0,
+        delta_o, inner_k, list(grid), dict(lc_map), o_weight, cycle,
+    )
+    # `_price_batch` 는 (키0, 키1, *값) 규약이라 라벨을 끼워 넣는다.
+    return signal, "walk", float(anchor), int(iters), float(g_ext)
 
 
 def _price_worker_green(task):
@@ -751,7 +801,7 @@ class StackelbergWuMeteredController(StackelbergMPCController):
             with ProcessPoolExecutor(
                 max_workers=min(workers, len(tasks)),
                 initializer=_price_worker_init,
-                initargs=(self, state, previous, forecast),
+                initargs=(self, state, previous, forecast, _adapter_patch_present()),
             ) as pool:
                 for sig, which, ttt, bar in pool.map(_price_worker_green, tasks):
                     out[(sig, which)] = (ttt, bar)
@@ -797,6 +847,78 @@ class StackelbergWuMeteredController(StackelbergMPCController):
             ),
         )
         return float(point.objective), float(point.barrier), float(point.max_rho)
+
+    def _price_batch(self, tasks, worker, serial_fn, state, previous, forecast):
+        """가격 롤아웃 태스크를 병렬로 돌린다 — green 배치와 같은 규약.
+
+        `price_parallel_workers <= 1` 이면 직렬이고 기존과 비트 동일하다. 병렬 실패는
+        **조용히 넘기지 않는다** — 직렬로 재실행하되 카운터와 사유를 남긴다.
+        """
+        if not tasks:
+            return {}
+        workers = int(getattr(self, "price_parallel_workers", 0) or 0)
+        if workers <= 1 or len(tasks) <= 1:
+            return serial_fn()
+
+        from concurrent.futures import ProcessPoolExecutor
+
+        try:
+            out = {}
+            with ProcessPoolExecutor(
+                max_workers=min(workers, len(tasks)),
+                initializer=_price_worker_init,
+                initargs=(self, state, previous, forecast, _adapter_patch_present()),
+            ) as pool:
+                for row in pool.map(worker, tasks):
+                    out[row[0], row[1]] = row[2:]
+            return out
+        except Exception as exc:  # noqa: BLE001
+            self.price_parallel_serial_rerun_count += 1
+            self.price_parallel_last_error = f"{type(exc).__name__}: {exc}"
+            return serial_fn()
+
+    def _vsl_price_rollouts(self, state, previous, forecast, v_corners, vsl_upper):
+        """VSL corner 전역 롤아웃 일괄 평가 — (seg_key, 'lo'|'hi') -> TTT.
+
+        루프 전에 `v_corners` 로 인자가 이미 확정돼 있어 프리페치가 가능하다. 프로파일에서
+        이 채널이 176.9초(롤아웃 32회)로 offset 다음으로 컸는데 직렬이었다.
+        """
+        tasks = []
+        for key, (_x0, v_lo, v_hi, link, _req) in v_corners.items():
+            if float(v_hi) - float(v_lo) <= 1.0e-9:
+                continue
+            tasks.append((key, "hi", link, float(v_hi), vsl_upper))
+            tasks.append((key, "lo", link, float(v_lo), vsl_upper))
+
+        def serial():
+            return {
+                (k, w): (self._global_rollout_ttt_with_vsl(
+                    state, previous, forecast, link, k, val, up),)
+                for k, w, link, val, up in tasks
+            }
+
+        return self._price_batch(tasks, _price_worker_vsl, serial, state, previous, forecast)
+
+    def _offset_walk_batch(self, state, previous, forecast, walk_tasks):
+        """offset 재선형화 walk 을 신호 단위로 일괄 평가 — signal -> (anchor, iters, g_ext).
+
+        walk 은 신호 안에서 순차지만 신호끼리 독립이다(모두 같은 `previous` 를 고정 운영점
+        으로 쓴다). 그래서 롤아웃 낱개가 아니라 **walk 통째로**를 태스크로 보낸다.
+        프로파일에서 이 채널이 354.0초(롤아웃 64회, walk 15회)로 가장 컸는데 직렬이었다.
+        """
+        def serial():
+            out = {}
+            for (signal, a0, d_o, k, grid, lc, ow, cyc) in walk_tasks:
+                out[signal, "walk"] = self._offset_price_relinearize_walk(
+                    state, previous, forecast, signal, a0, d_o, k,
+                    list(grid), dict(lc), ow, cyc,
+                )
+            return out
+
+        raw = self._price_batch(
+            walk_tasks, _price_worker_offset_walk, serial, state, previous, forecast,
+        )
+        return {sig: vals for (sig, _w), vals in raw.items()}
 
     def _global_rollout_ttt_with_vsl(
         self,
@@ -1556,15 +1678,29 @@ class StackelbergWuMeteredController(StackelbergMPCController):
                     {signal: grid_offsets for signal in op_offset},
                     state, previous, forecast[0],
                 )
-                for signal, off0 in op_offset.items():
-                    lc_map = {
-                        grid_keys[i]: float(local_all[signal][i])
-                        for i in range(len(grid_offsets))
-                    }
-                    anchor, iters, g_ext = self._offset_price_relinearize_walk(
-                        state, previous, forecast, signal, float(off0) % cycle,
-                        delta_o, inner_k, grid_offsets, lc_map, o_weight, cycle,
+                # walk 은 신호 안에서 순차지만 신호끼리 독립이다 — walk 통째로를 태스크로
+                # 보낸다. workers<=1 이면 배치가 그대로 직렬이라 기존과 비트 동일하다.
+                _walk_tasks = [
+                    (
+                        signal,
+                        float(off0) % cycle,
+                        delta_o,
+                        inner_k,
+                        tuple(grid_offsets),
+                        tuple(
+                            (grid_keys[i], float(local_all[signal][i]))
+                            for i in range(len(grid_offsets))
+                        ),
+                        o_weight,
+                        cycle,
                     )
+                    for signal, off0 in op_offset.items()
+                ]
+                _walk_out = self._offset_walk_batch(
+                    state, previous, forecast, _walk_tasks,
+                )
+                for signal, off0 in op_offset.items():
+                    anchor, iters, g_ext = _walk_out[signal]
                     o_prices[signal] = float(g_ext)
                     o_refs[signal] = float(anchor)
                     meta[f"wu_f3_offset_price_{signal}"] = float(g_ext)
@@ -1726,6 +1862,12 @@ class StackelbergWuMeteredController(StackelbergMPCController):
             local_v = follower.local_vsl_costs(v_requests, state, previous, forecast[0])
             v_prices: Dict[str, float] = {}
             v_refs: Dict[str, float] = {}
+            # 롤아웃 인자가 v_corners 로 이미 확정돼 있어 루프 앞에서 일괄 평가할 수 있다.
+            # workers<=1 이면 아래 조회가 그대로 직렬 계산이라 기존과 비트 동일하다.
+            _v_batch = (
+                {} if spsa_g is not None
+                else self._vsl_price_rollouts(state, previous, forecast, v_corners, vsl_upper)
+            )
             for key, (x0, v_lo, v_hi, link, req_idx) in v_corners.items():
                 span = v_hi - v_lo
                 if span <= 1.0e-9:
@@ -1734,10 +1876,12 @@ class StackelbergWuMeteredController(StackelbergMPCController):
                     if spsa_g is not None:
                         g_i = float(spsa_g.get(("vsl", key), 0.0))
                     else:
-                        ttt_hi = self._global_rollout_ttt_with_vsl(
+                        _hi = _v_batch.get((key, "hi"))
+                        _lo = _v_batch.get((key, "lo"))
+                        ttt_hi = float(_hi[0]) if _hi else self._global_rollout_ttt_with_vsl(
                             state, previous, forecast, link, key, v_hi, vsl_upper,
                         )
-                        ttt_lo = self._global_rollout_ttt_with_vsl(
+                        ttt_lo = float(_lo[0]) if _lo else self._global_rollout_ttt_with_vsl(
                             state, previous, forecast, link, key, v_lo, vsl_upper,
                         )
                         g_i = (ttt_hi - ttt_lo) / span
