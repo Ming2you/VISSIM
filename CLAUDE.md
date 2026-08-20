@@ -494,6 +494,51 @@ patched_blob   d29b1b02c98787a19339731615af9019469cef58
 **두 열쇠를 같이 돌려야 한다** — 앵커에 항목을 넣고, `scripts/verify_runtime_source.py:24` 의
 `EXPECTED_ANCHOR_SEMANTIC_SHA256` 을 새 앵커 해시로 갱신한다. `vendor/` 쓰기가 필요하다.
 
+## 런타임 몽키패치는 프로세스 경계를 못 넘는다 (2026-08-20 실측)
+
+어댑터는 vendor 를 안 고치려고 **런타임에 모듈을 몽키패치**한다. 그중 하나가
+`install_monitor_fixed_signal_runtime_patch` 의 `_phase_green_fraction` 이고, 모듈 5개
+(`urban_queue_model`·`distributed_coordinator`·`local_signal_plant`·`wu_distributed`·
+`wu_faithful_follower`)에 실제 VISSIG 스케줄로 만든 클로저를 심는다. 모델의
+**green -> 유량** 변환을 진짜 신호 프로그램에 맞추는 패치다.
+
+Windows 의 `ProcessPoolExecutor` 는 **spawn** 이다. 워커는 새 인터프리터라 모듈을 새로
+import 하고, 부모가 런타임에 심은 것은 하나도 안 따라온다. 그래서 **가격 롤아웃을
+병렬화하면 워커가 조용히 다른 plant 로 가격을 매긴다.** 실패가 아니라 틀린 값이라 더 나쁘다.
+
+무엇이 넘어가고 무엇이 안 넘어가는가:
+
+| 패치 | 대상 | spawn |
+|---|---|---|
+| `install_monitor_fixed_signal_runtime_patch` | 모듈 5개의 `_phase_green_fraction` | **유실** |
+| `install_vsl_metanet_rollout_runtime_patch` | `DistributedCoordinator` 클래스 속성 | 유실(단 wu 팔은 그 클래스를 안 쓴다) |
+| `install_vissim_calibration_runtime_patches` | `cfg.network` 속성 | 살아남음(컨트롤러와 함께 피클) |
+
+`phasepar_20260820` 이 이걸 맞았다. `phaseprice3`(직렬)과 t=600 입력이 비트 동일한데
+결과가 갈렸다 — 가격 15개 중 14개 불일치(SC5 27%, SC6 부호 반전), 커밋된 녹색이
+SC1002·SC12·SC5 에서 8초씩 반대. `ramp_metering`·`vsl`·`offsets` 는 비트 동일했고,
+이게 "green 전용 패치" 예측과 정확히 맞는다. **그 런의 가격·TTT 는 무효다.**
+
+판별 방법(재현 비용 4분): 같은 결정을 워커 수만 바꿔 재실행한다.
+`w4 == w10` 인데 `w1` 만 다르면 청킹·해시시드·부동소수 순서가 아니라 **프로세스 경계**다.
+
+지금은 `PricedWuLinkStackelbergController.__setstate__` 가 언피클 직후 패치를 되살린다
+(어댑터가 `install_price_worker_bootstrap` 으로 최소 페이로드를 실어 보낸다 — 설치 함수는
+`state_json` 에서 network_path 하나만 읽으므로 상태 전체를 싣지 않는다). 되살리기 실패나
+부트스트랩 부재는 **raise** 한다 — 직렬 재실행 + `price_parallel_serial_rerun_count` 로
+떨어지지 조용히 넘어가지 않는다.
+
+### 리더 후보 병렬은 켜지 마라 — 느린 게 아니라 틀린다
+
+`leader_candidate_parallel_backend` 를 `process` 로 두면 워커가
+`_stackelberg_candidate_worker` 에서 `StackelbergMPCController(payload["cfg"])` 를 **새로
+만든다**. 우리 컨트롤러도, wu 팔로워도, 가격도 아닌 기반 클래스다. 몽키패치까지 없다.
+상류가 `serial` 로 둔 이유가 이것이고, flagship 이 그대로 물려받은 것도 맞는 판단이다.
+그래서 "가격 병렬화 후 남은 1.5배 병목" 은 설정 한 줄로 풀 자리가 아니다.
+
+스레드 백엔드(`grid_parallel.py` 의 `ThreadPoolExecutor`)는 같은 프로세스라 이 함정이
+없다. 다만 롤아웃이 순수 파이썬이면 GIL 때문에 가속이 안 붙는다 — 쓰려면 먼저 재야 한다.
+
 ## 롤백 위험 지점 (2026-08-19 감사, 미조치)
 
 고치려면 근원을 봐야 한다. 단순 경로 치환은 대부분 더 나쁘다.

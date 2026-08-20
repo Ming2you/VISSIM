@@ -264,6 +264,57 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     phase_price_delta_sec: float = 6.0
     phase_price_weight: float = 1.0
 
+    def __setstate__(self, state):
+        """언피클 직후 — 가격 워커에서 어댑터의 런타임 몽키패치를 되살린다.
+
+        가격 롤아웃 병렬화는 워커를 **spawn** 한다(Windows). 새 인터프리터는 모듈을
+        새로 import 하므로 부모가 런타임에 심은 패치가 워커에는 없다. 대상은
+        `_phase_green_fraction`(어댑터가 5개 모듈에 심는다) 이고, 그게 없으면 워커는
+        실제 신호 프로그램이 아니라 일반 공식으로 green->유량을 계산한다. 실패가 아니라
+        **조용히 틀린 값**이라 더 나쁘다.
+
+        2026-08-20 실측(phasepar 런). 같은 입력 t=600 에서 직렬과 병렬이 갈렸다 —
+        가격 15개 중 14개 불일치(SC5 27%, SC6 부호 반전), 커밋된 녹색이 SC1002·SC12·SC5
+        에서 8초씩 반대. `ramp_metering`·`vsl`·`offsets` 는 비트 동일했는데, 이 패치가
+        green 전용이라는 것과 정확히 맞는다. 워커 4개와 10개는 서로 비트 동일해
+        (청킹이 다른데도) 비결정성·해시시드·부동소수 순서는 전부 배제됐다.
+
+        cfg 속성으로 들어가는 패치는 해당 없다 — 캘리브레이션 v2
+        (`freeway_segment_length_profile_km`)와 VSL/METANET 은 컨트롤러와 함께 피클된다.
+
+        되살리기에 실패하면 **raise 한다**. pool 이 깨지고 호출처의 except 가 직렬로
+        재실행하며 `price_parallel_serial_rerun_count` 와 사유를 남긴다. 워커인데
+        부트스트랩이 아예 없는 경우도 같이 막는다 — 그게 이 버그의 원래 모습이다.
+        """
+        self.__dict__.update(state)
+        boot = state.get("price_worker_bootstrap")
+        import multiprocessing as _mp
+
+        in_worker = _mp.parent_process() is not None
+        if not boot:
+            if in_worker:
+                raise RuntimeError(
+                    "가격 워커에 런타임 패치 부트스트랩이 없다 — 워커가 패치 안 된 "
+                    "_phase_green_fraction 으로 가격을 매기게 된다"
+                )
+            return
+        import importlib
+        import sys as _sys
+
+        path = boot.get("sys_path")
+        if path and path not in _sys.path:
+            _sys.path.insert(0, path)
+        module = importlib.import_module(boot["module"])
+        getattr(module, boot["func"])(
+            self.cfg, boot["state_json"], boot["detector_mapping"],
+        )
+        probe = importlib.import_module(boot["verify_module"])
+        if not hasattr(probe, boot["verify_attr"]):
+            raise RuntimeError(
+                "가격 워커 부트스트랩이 "
+                f"{boot['verify_module']}.{boot['verify_attr']} 를 심지 못했다"
+            )
+
     def _make_follower_solver(self, cfg: ExperimentConfig):
         return LinkAgentWuFollower(cfg)
 

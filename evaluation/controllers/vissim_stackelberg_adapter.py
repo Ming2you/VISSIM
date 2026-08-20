@@ -1653,6 +1653,38 @@ def install_monitor_fixed_signal_runtime_patch(
     return diagnostics
 
 
+def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> dict[str, float]:
+    """가격 롤아웃 워커가 되살려야 할 런타임 패치를 컨트롤러에 실어 보낸다.
+
+    워커는 spawn 된 **새 인터프리터**라 이 어댑터가 모듈에 심은 몽키패치를 못 물려받는다.
+    유실 대상은 `install_monitor_fixed_signal_runtime_patch` 의 `_phase_green_fraction`
+    (5개 모듈) 하나다 — 캘리브레이션 v2 와 VSL/METANET 은 `cfg` 속성으로 들어가므로
+    컨트롤러와 함께 피클되어 살아남는다.
+
+    2026-08-20 실측(phasepar). 이걸 안 실어 보낸 병렬 런이 같은 입력 t=600 에서 직렬과
+    다른 가격을 냈고(SC5 27%, SC6 부호 반전) SC1002·SC12·SC5 의 녹색을 8초씩 반대로
+    커밋했다. green 채널에서만 갈린 것이 이 패치가 green->유량 변환 전용이라는 것과 맞는다.
+
+    페이로드는 최소로 싣는다 — 설치 함수는 `state_json` 에서 `_network_path_from_state`
+    로 경로 하나만 읽는다. 상태 전체를 실으면 워커마다 차량 기록을 통째로 피클한다.
+
+    되살리기는 `PricedWuLinkStackelbergController.__setstate__` 가 한다. 실패하면 raise 해
+    직렬 재실행 + 카운터로 떨어진다(조용한 경로 없음).
+    """
+    if int(getattr(controller, "price_parallel_workers", 0) or 0) <= 1:
+        return {"price_worker_bootstrap_installed": 0.0}
+    controller.price_worker_bootstrap = {
+        "sys_path": str(WORKSPACE_ROOT),
+        "module": "evaluation.controllers.vissim_stackelberg_adapter",
+        "func": "install_monitor_fixed_signal_runtime_patch",
+        "state_json": {"network_path": str(_network_path_from_state(state_json))},
+        "detector_mapping": dict(detector_mapping or {}),
+        "verify_module": "src.models.urban_queue_model",
+        "verify_attr": "_vissim_original_phase_green_fraction",
+    }
+    return {"price_worker_bootstrap_installed": 1.0}
+
+
 def _absolute_urban_step_start_sec(urban_step_index: int, duration_sec: float) -> float:
     """NumSim urban step indices are already based on absolute state.time_sec."""
     return int(urban_step_index) * float(duration_sec)
@@ -6482,6 +6514,9 @@ def main() -> None:
                 else StackelbergMPCController(cfg)
             )
             metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
+            metadata.update(
+                install_price_worker_bootstrap(controller, state_json, detector_mapping)
+            )
             if hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)
                 control = result.control
