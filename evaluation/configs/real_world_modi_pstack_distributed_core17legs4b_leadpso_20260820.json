@@ -1,0 +1,17 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_leadpso_20260820",
+  "description": "리더 강제 커밋 + 원래 §3.2 PSO allocation",
+  "notes": [
+    "2026-08-20: shape_off 와 boxfix 의 VISSIM 궤적이 12개 구간 전부 비트 동일했다. 가드가 두 런 모두 리더를 7/7 기각해 커밋된 제어가 폴백으로 같았기 때문이다. 즉 가드가 통과시키기 전에는 리더 쪽 어떤 수정도 plant 에 도달하지 않는다.",
+    "stackelberg_enable_fallback=false 면 _evaluate_fallback_candidates 가 빈 목록을 내고(_pfo_incumbent_fallback_enabled 는 하드코딩 False), 가드는 leader_best 를 그대로 돌려준다. 리더가 항상 커밋된다.",
+    "목적은 성능 개선이 아니라 판정이다 - 모델이 리더를 비관한 것(완료차량 1520 대 1769)이 실제로 맞는지 VISSIM 에서 잰다.",
+    "모델은 같은 450초 구간에서 완료차량을 20~32% 적게 예측한다(모델 1769 대 실측 2206, t=1350 에는 1914 대 2832). 가드는 그 모델 위에서 판정한다."
+  ],
+  "config_overrides": {
+    "mpc": {
+      "stackelberg_enable_fallback": false,
+      "stackelberg_allocation_mode": "pso"
+    }
+  }
+}

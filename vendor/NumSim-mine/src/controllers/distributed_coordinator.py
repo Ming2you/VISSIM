@@ -209,6 +209,41 @@ def build_agent_specs(cfg: ExperimentConfig) -> tuple[list[AgentSpec], list[Agen
         if ramp_movements and ramp_movements[0] in specs and movement_owner.get(ramp_movements[0])
     }
     freeway_agents: list[AgentSpec] = []
+    # freeway agent 입도 (2026-08-20). 기본 "segment" = 세그먼트당 1개 = 비트동일.
+    #
+    # "link" 를 쓰는 이유. 레버가 agent 보다 훨씬 적다 — VSL 은 **링크당 1개**인데
+    # 세그먼트 agent 8개가 그 하나를 공유하고 실제로 합의가 안 된다(실측: vsl_selected 가
+    # 16개 중 100.0/120.0 두 값으로 갈리고, 병합은 out.vsl[link] 한 줄이라 사실상 마지막
+    # 승자). 링크 단위면 agent 가 VSL 1개 + 자기 램프를 정확히 소유해 경합이 사라진다.
+    #
+    # 그리고 국소 시각의 손실이 메워진다. 실측(shape_off t=900): agent 별
+    # projected_freeway_tts 합 67.77 대 결합 롤아웃 freeway_ttt 87.40 — 세그먼트로 쪼갠
+    # 시각이 22% 적게 본다. segment_index<0 이면 해석부가 자동으로 링크 전 세그먼트를
+    # 본다(2641행 `rhos = [...] if 0 <= idx < len else all_rhos`, 2510행 indices=range(전체)).
+    #
+    # `AgentSpec.segment_index` 기본값이 -1 이고 `_freeway_agent_id(link, None)` 이
+    # `F_E`/`F_W` 를 내며 모든 소비처가 음수를 명시적으로 처리한다 — 상류가 이미 상정한 형태다.
+    granularity = str(getattr(cfg.mpc, "freeway_agent_granularity", "segment"))
+    if granularity not in {"segment", "link"}:
+        raise ValueError(f"Unknown freeway_agent_granularity: {granularity}")
+    if granularity == "link":
+        for link in net.freeway_links:
+            ramps = tuple(r for r in net.ramps if net.ramp_to_freeway.get(r) == link)
+            off_ramps = tuple(o for o in net.off_ramps if net.off_ramp_from_freeway.get(o) == link)
+            neighbors = sorted(
+                {urban_by_ramp[r] for r in ramps if r in urban_by_ramp}
+                | {urban_by_offramp[o] for o in off_ramps if o in urban_by_offramp}
+            )
+            freeway_agents.append(AgentSpec(
+                id=_freeway_agent_id(link),
+                kind="freeway",
+                link=link,
+                ramps=ramps,
+                off_ramps=off_ramps,
+                neighbors=tuple(neighbors),
+                segment_index=-1,
+            ))
+        return urban_agents, freeway_agents
     for link in net.freeway_links:
         for segment_index in range(net.freeway_segments_per_link):
             ramps = tuple(
@@ -2583,6 +2618,28 @@ class DistributedCoordinator:
         target = max(vsl_set) - 25.0 * min(2.0, pressure)
         return float(0.65 * target + 0.35 * previous_vsl)
 
+    def _agent_merge_index(self, agent, state, ramp=None) -> int:
+        """agent 의 merge 세그먼트 인덱스.
+
+        세그먼트 agent 는 자기 인덱스가 곧 merge 지점이라 그대로 쓴다. **링크 단위
+        agent(segment_index<0)** 는 램프를 여럿 소유하므로 `len//2`(중앙)로 떨어뜨리면
+        `ramp_merge_segment_index`({R_D_W:2, R_F_W:4, R_F_E:3, R_D_E:5})를 통째로 잃는다.
+        램프가 지정되면 그 램프의 설정값을, 아니면 자기 램프들의 merge 중 **가장 혼잡한**
+        세그먼트를 쓴다(방류를 구속하는 쪽).
+        """
+        net = self.cfg.network
+        rhos = state.freeway_density.get(agent.link, [])
+        n = len(rhos) or int(net.freeway_segments_per_link)
+        if agent.segment_index >= 0:
+            return int(agent.segment_index)
+        table = getattr(net, "ramp_merge_segment_index", {})
+        if ramp is not None:
+            return _configured_segment_index(table, ramp, n // 2, n)
+        indices = [_configured_segment_index(table, r, n // 2, n) for r in agent.ramps]
+        if not indices:
+            return n // 2
+        return max(indices, key=lambda i: float(rhos[i]) if i < len(rhos) else 0.0)
+
     def _solve_freeway_agent(
         self,
         agent: AgentSpec,
@@ -2609,7 +2666,7 @@ class DistributedCoordinator:
         receiving_limit: Dict[str, float] = {}
         min_receiving = 1.0
         for ramp in agent.ramps:
-            merge_idx = agent.segment_index if agent.segment_index >= 0 else len(state.freeway_density[agent.link]) // 2
+            merge_idx = self._agent_merge_index(agent, state, ramp)
             rho_merge = state.freeway_density[agent.link][merge_idx]
             receiving = float(np.clip(
                 (net.rho_max - rho_merge) / max(net.rho_max - net.rho_crit, 1.0e-9),
@@ -2933,7 +2990,7 @@ class DistributedCoordinator:
         total_upper = sum(max(0.0, v) for v in upper.values())
         if total_upper <= 1.0e-9 or not agent.ramps:
             return total_upper
-        merge_idx = agent.segment_index if agent.segment_index >= 0 else len(state.freeway_density[agent.link]) // 2
+        merge_idx = self._agent_merge_index(agent, state)
         rho_merge = state.freeway_density[agent.link][merge_idx]
         speed = max(state.freeway_speed[agent.link][merge_idx], net.v_min)
         seg_cap_veh = net.freeway_segment_length_km * net.freeway_lanes

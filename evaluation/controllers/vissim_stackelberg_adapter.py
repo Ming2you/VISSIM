@@ -2598,6 +2598,46 @@ def flagship_config_overrides() -> dict[str, Any]:
     }
 
 
+def build_priced_distributed_controller(cfg, tuning: Mapping[str, Any]):
+    """가격 리더(wu) + 분산 player(17 도시 + 2 고속) 하이브리드 (2026-08-20).
+
+    `build_pstack_flagship_controller` 와 **가격 설정은 같고 팔로워만 다르다.** 그쪽은
+    `WuFaithfulFollower` 를 물고 오는데, 그러면 오늘까지 다듬은 17+16 player 구조가 통째로
+    사라진다(그 파일 독스트링이 폴백 비활성까지 명시한다). 여기서는
+    `PricedDistributedStackelbergController` 가 `_make_follower_solver` 만 바꿔
+    `PricedDistributedCoordinator` 를 돌려준다 — 리더의 가격 계산·GNE 반복은 불변이다.
+
+    flagship 빌더가 켜는 것 중 `nash_solver.*`(f1_spillback_weight · joint_green_offset_enabled ·
+    ramp_offset_enabled · segment_agents)는 **여기서 설정하지 않는다.** 전부
+    `WuFaithfulFollower` 의 속성이고 분산 코디네이터엔 대응물이 없다. 실제로 안 도는 가지를
+    만들지 않는다(2026-08-20 사용자 지시).
+
+    offset 가격은 끈다 — 오라클이 96줄이고 이 팔에 구현하지 않았다. 리더가 각 `local_*_costs`
+    호출을 자기 enable 플래그로 감싸므로 끈 채널의 오라클은 호출되지 않는다.
+    """
+    from src.controllers.priced_distributed_coordinator import (
+        PricedDistributedStackelbergController,
+    )
+
+    settings = flagship_settings(tuning)
+    os.environ["NASH_SMAX"] = str(int(_as_float(settings.get("nash_smax"), 10.0)))
+    if bool(settings.get("opt12", True)):
+        cfg.mpc.leader_skip_local_refinement = True
+        cfg.mpc.leader_rollout_early_stop = True
+
+    controller = PricedDistributedStackelbergController(cfg)
+    # 가격 4채널 중 구현한 셋만 켠다. 교차가격은 flagship 빌더에서도 False 다.
+    controller.signal_price_enabled = True
+    controller.metering_price_enabled = True
+    controller.vsl_price_enabled = True
+    controller.offset_price_enabled = False
+    controller.green_offset_cross_price_enabled = False
+    controller.vsl_meter_cross_price_enabled = False
+    controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
+    controller.metering_price_trust_frac = _as_float(settings.get("metering_price_trust_frac"), 0.20)
+    return controller
+
+
 def build_pstack_flagship_controller(cfg, tuning: Mapping[str, Any]):
     """P-STACK-WU-FAITHFUL-ALLPRICE-JOINT 컨트롤러 구성(러너 make_controller L244-316 이식).
 
@@ -3105,7 +3145,32 @@ def build_config(
     _plant_phase_counts_into(cfg)
     _plant_phase_shape_into(cfg, tuning)
     _plant_rollout_far_into(cfg, tuning)
+    _plant_agent_topology_into(cfg, tuning)
     return cfg
+
+
+def _plant_agent_topology_into(cfg, tuning) -> None:
+    """tuning 의 `agent_topology` 절을 런타임 속성으로 심는다 (2026-08-20).
+
+        freeway_granularity   "segment"(기본) | "link"
+
+    **plant 모델을 바꾸지 않는다.** `freeway_segments_per_link` 도 `ramps` 도 그대로라
+    METANET 롤아웃은 여전히 2링크 x 8세그먼트 = 16셀 + 램프 4개를 굴린다. 바뀌는 것은
+    `build_agent_specs` 의 **agent 분할**뿐이다 — 누가 어느 레버를 소유하고 어느 셀을 보는가.
+
+      segment  agent 16개. 각자 자기 1셀만 본다. VSL 은 링크당 1개뿐이라 8 agent 가
+               하나를 공유하고 합의가 안 된다(실측 vsl_selected 100.0/120.0 로 갈림).
+      link     agent 2개. 각자 VSL 1 + 램프 2 = 액션 3개를 정확히 소유하고,
+               segment_index<0 이라 해석부가 자기 링크 8셀을 **전부** 본다.
+
+    `phase_shape`/`rollout_far` 와 같은 이유로 dataclass 필드를 안 늘린다 —
+    `src/models/state.py` 를 건드리면 앵커 등재가 하나 더 는다.
+    """
+    section = (tuning or {}).get("agent_topology")
+    if not isinstance(section, Mapping):
+        return
+    if "freeway_granularity" in section:
+        setattr(cfg.mpc, "freeway_agent_granularity", str(section["freeway_granularity"]))
 
 
 def _plant_rollout_far_into(cfg, tuning) -> None:
@@ -5810,6 +5875,7 @@ def main() -> None:
             "stackelberg",
             "stackelberg-wu-metered",
             "pstack-flagship",
+            "priced-distributed",
             "pfo",
             "wu",
             "wu-leader",
@@ -6050,7 +6116,7 @@ def main() -> None:
         calibration,
         tuning,
         local_observation=local_observation,
-        flagship=(args.controller == "pstack-flagship"),
+        flagship=(args.controller in ("pstack-flagship", "priced-distributed")),
     )
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
@@ -6065,7 +6131,7 @@ def main() -> None:
     if local_observation:
         install_local_observation_runtime_guards()
     forecast_horizon_steps = int(cfg.mpc.horizon_steps)
-    if args.controller == "pstack-flagship":
+    if args.controller in ("pstack-flagship", "priced-distributed"):
         # 러너 L1044: 리더 value-depth rollout이 horizon 밖 수요를 소비한다 —
         # forecast 길이 = horizon_steps + max(0, leader_value_depth).
         forecast_horizon_steps += max(0, int(getattr(cfg.mpc, "leader_value_depth", 0)))
@@ -6367,8 +6433,12 @@ def main() -> None:
         elif args.controller == "diagnostic-combined-extreme":
             control = diagnostic_combined_extreme_control(cfg, ControlAction)
             metadata["diagnostic_combined_extreme_active"] = 1.0
-        elif args.controller == "stackelberg":
-            controller = StackelbergMPCController(cfg)
+        elif args.controller in ("stackelberg", "priced-distributed"):
+            controller = (
+                build_priced_distributed_controller(cfg, tuning)
+                if args.controller == "priced-distributed"
+                else StackelbergMPCController(cfg)
+            )
             metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
             if hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)

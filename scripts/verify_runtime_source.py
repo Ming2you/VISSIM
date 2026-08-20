@@ -21,7 +21,7 @@ EXPECTED_SRC_TREE = "6bdf291c8e0ef65925784442ba7221152180ee79"
 EXPECTED_OBJECT_FORMAT = "sha1"
 # 2026-08-18: 앵커에 local_patches 절이 추가되며 갱신됐다. 앵커와 이 상수는 두 열쇠라
 # 한쪽만 바꿔서는 검증이 통과하지 않는다 - 의도된 설계다.
-EXPECTED_ANCHOR_SEMANTIC_SHA256 = "2745a81779f3d649a37c9306e8992b00292a0a4a1d08d49a91fd40dfe01e69cd"
+EXPECTED_ANCHOR_SEMANTIC_SHA256 = "4d222758803dfc9bb5a1ef181e934724944bdce04f0429a9fbc65c970a6ca9bf"
 EXPECTED_PYTHON_FILE_COUNT = 121
 IMPORT_MARKER = "__RUNTIME_SOURCE_IMPORTS__="
 
@@ -434,6 +434,41 @@ def _blob_mismatches(
     return sorted(mismatches)
 
 
+def _local_addition_index(anchor: Mapping[str, Any]) -> tuple[dict[str, str], list[str]]:
+    """앵커의 `local_additions` 를 (path -> blob) 으로 편다. 형식 오류는 사유와 함께 돌려준다.
+
+    왜 `local_patches` 로 안 되나. 그쪽은 **상류에 있는 파일을 로컬에서 고친 것**이라
+    `upstream_blob` 과 `patched_blob` 두 지문을 요구한다. 상류에 아예 없는 **신규 파일**은
+    `upstream_blob` 이 존재하지 않아 그 스키마로 표현할 수 없다(40-hex OID 검사에 걸린다).
+
+    그렇다고 `python_blobs` 에 끼워 넣으면 앵커가 "상류 커밋에 이 파일이 있다" 는 거짓을
+    주장하게 된다 — `local_patches_note` 가 금지한 바로 그것이다. 그래서 별도 절을 둔다.
+    여기 등재된 경로만 파일집합 비교에서 예외로 인정하고, 등재됐는데 실제 지문이 다르거나
+    파일이 사라지면 그대로 실패로 남는다.
+    """
+    entries = anchor.get("local_additions") or []
+    index: dict[str, str] = {}
+    problems: list[str] = []
+    if not isinstance(entries, list):
+        return {}, ["local_additions must be a list"]
+    for i, item in enumerate(entries):
+        if not isinstance(item, Mapping):
+            problems.append(f"[{i}] not an object")
+            continue
+        path = str(item.get("path", ""))
+        blob = str(item.get("blob", ""))
+        why = str(item.get("why", "")).strip()
+        if not path:
+            problems.append(f"[{i}] missing path")
+        if not re.fullmatch(r"[0-9a-f]{40}", blob):
+            problems.append(f"[{i}] {path}: blob must be a 40-hex OID")
+        if not why:
+            problems.append(f"[{i}] {path}: why is required")
+        if path and blob:
+            index[path] = blob
+    return index, problems
+
+
 def _local_patch_index(anchor: Mapping[str, Any]) -> tuple[dict[str, str], list[str]]:
     """앵커의 local_patches 를 (path -> patched_blob) 로 편다. 형식 오류는 사유와 함께 돌려준다."""
     entries = anchor.get("local_patches") or []
@@ -502,8 +537,15 @@ def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[s
     canonical_anchor_blobs = _anchored_blob_map(canonical)
     selected_anchor_blobs = _anchored_blob_map(selected)
     local_patch_index, local_patch_problems = _local_patch_index(anchor)
-    canonical_anchor_mismatches = _blob_mismatches(anchor_blobs, canonical_anchor_blobs, local_patch_index)
-    selected_anchor_mismatches = _blob_mismatches(anchor_blobs, selected_anchor_blobs, local_patch_index)
+    local_addition_index, local_addition_problems = _local_addition_index(anchor)
+    # 신규 파일도 "등재된 지문과 정확히 같을 때만" 통과시킨다 — 패치와 같은 규율.
+    allowed_blobs = {**local_patch_index, **local_addition_index}
+    canonical_anchor_mismatches = _blob_mismatches(anchor_blobs, canonical_anchor_blobs, allowed_blobs)
+    selected_anchor_mismatches = _blob_mismatches(anchor_blobs, selected_anchor_blobs, allowed_blobs)
+    local_addition_unapplied = sorted(
+        path for path, oid in local_addition_index.items()
+        if canonical_anchor_blobs.get(path) != oid
+    )
     # 등재된 패치가 실제로 그 지문으로 존재하는지. 사라지거나 다시 바뀌면 여기서 걸린다.
     local_patch_unapplied = sorted(
         path for path, oid in local_patch_index.items()
@@ -527,9 +569,12 @@ def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[s
             _check("trust_anchor.python_file_count", anchor.get("python_file_count") == EXPECTED_PYTHON_FILE_COUNT and len(anchor_blobs) == EXPECTED_PYTHON_FILE_COUNT, EXPECTED_PYTHON_FILE_COUNT, {"declared": anchor.get("python_file_count"), "listed": len(anchor_blobs)}),
             _check("trust_anchor.paths_sorted", anchor_paths == sorted(anchor_paths), "sorted paths", anchor_paths == sorted(anchor_paths)),
             _check("trust_anchor.blob_oids", all(re.fullmatch(r"[0-9a-f]{40}", oid) for oid in anchor_blobs.values()), "96 SHA-1 blob OIDs", len([oid for oid in anchor_blobs.values() if re.fullmatch(r"[0-9a-f]{40}", oid)])),
-            _check("canonical.anchor_python_file_set", set(canonical_anchor_blobs) == set(anchor_blobs), sorted(anchor_blobs), sorted(canonical_anchor_blobs)),
+            _check("canonical.anchor_python_file_set", set(canonical_anchor_blobs) == set(anchor_blobs) | set(local_addition_index), sorted(set(anchor_blobs) | set(local_addition_index)), sorted(canonical_anchor_blobs)),
             _check("trust_anchor.local_patches_wellformed", not local_patch_problems, [], local_patch_problems),
             _check("trust_anchor.local_patches_applied", not local_patch_unapplied, [], local_patch_unapplied),
+            _check("trust_anchor.local_additions_wellformed", not local_addition_problems, [], local_addition_problems),
+            _check("trust_anchor.local_additions_applied", not local_addition_unapplied, [], local_addition_unapplied),
+            _check("trust_anchor.local_addition_count", True, "informational", sorted(local_addition_index)),
             # 등재 건수를 항상 드러낸다. 0 이 아닌 것이 조용히 지나가면 안 된다.
             _check("trust_anchor.local_patch_count", True, "informational", sorted(local_patch_index)),
             _check("canonical.anchor_python_blobs", not canonical_anchor_mismatches, [], canonical_anchor_mismatches),
@@ -547,7 +592,7 @@ def build_report(repo: Path, selected_root: Path, strict: bool = True) -> dict[s
             _check("selected.adapter_default_root", selected_probe.get("adapter_default_root") == str(selected_root.resolve()), str(selected_root.resolve()), selected_probe.get("adapter_default_root", "")),
             _check("selected.snapshot_commit", selected["snapshot_commit"] == EXPECTED_SNAPSHOT_COMMIT, EXPECTED_SNAPSHOT_COMMIT, selected["snapshot_commit"]),
             _check("selected.commit", commit_ok, EXPECTED_SNAPSHOT_COMMIT, commit_actual),
-            _check("selected.anchor_python_file_set", set(selected_anchor_blobs) == set(anchor_blobs), sorted(anchor_blobs), sorted(selected_anchor_blobs)),
+            _check("selected.anchor_python_file_set", set(selected_anchor_blobs) == set(anchor_blobs) | set(local_addition_index), sorted(set(anchor_blobs) | set(local_addition_index)), sorted(selected_anchor_blobs)),
             _check("selected.anchor_python_blobs", not selected_anchor_mismatches, [], selected_anchor_mismatches),
             _check("selected.python_file_set", selected_files == canonical_files, sorted(canonical_files), sorted(selected_files)),
             _check("selected.python_tree", selected["normalised_tree_sha256"] == canonical["normalised_tree_sha256"], canonical["normalised_tree_sha256"], selected["normalised_tree_sha256"]),
