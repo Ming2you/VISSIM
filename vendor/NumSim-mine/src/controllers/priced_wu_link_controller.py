@@ -197,6 +197,21 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 improved += 1
         control.diagnostics["wu_phase_price_signals_refined"] = float(improved)
         control.diagnostics["wu_phase_price_signals_priced"] = float(len(prices))
+        # 가격 g 와 실제 이동량을 내보낸다 — 이게 없으면 "재배분됐다" 만 알고 **얼마나
+        # 값어치가 있었는지** 를 모른다. 경량화(대상 신호를 좁힐지, 채널을 끌지)는 이
+        # 분포로만 판정할 수 있다. 2026-08-20 첫 런에서 이걸 빠뜨려 재실행했다.
+        for signal, price in prices.items():
+            ref = refs.get(signal) or {}
+            for pid, value in price.items():
+                control.diagnostics[f"wu_phase_price_{signal}_{pid}"] = float(value)
+            moved = sum(
+                abs(float(control.green_times.get(phase_key(signal, pid), 0.0))
+                    - float(ref.get(pid, 0.0)))
+                for pid in MODEL_PHASES
+            )
+            control.diagnostics[f"wu_phase_price_moved_sec_{signal}"] = float(moved)
+            spread = (max(price.values()) - min(price.values())) if price else 0.0
+            control.diagnostics[f"wu_phase_price_spread_{signal}"] = float(spread)
         return improved
 
     def solve(self, state, leader, demand, previous_control=None, leader_incumbent_obj=None):
