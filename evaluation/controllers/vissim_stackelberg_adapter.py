@@ -2634,8 +2634,23 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     controller.nash_solver.ramp_offset_enabled = True
     controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
     controller.metering_price_trust_frac = _as_float(settings.get("metering_price_trust_frac"), 0.20)
+    # 가격 롤아웃 병렬화 (tuning 절 `price_parallel`). 기본 10 워커.
+    #
+    # 가격 FD 는 같은 작동점에서 레버를 하나씩 흔든 **독립 롤아웃**이라 병렬이 자연스럽다.
+    # 상류가 green 채널에 이미 기구를 갖고 있고(`_green_price_rollouts`), 독스트링이
+    # "병렬이어도 각 롤아웃 인자가 같고 순수 함수이므로 결과가 같다(수집 순서만 다르다)" 를
+    # 보증한다. 여기서 현시별 가격(`_phase_price_rollouts`)도 같은 규약으로 병렬화했다.
+    #
+    # flagship 이 parallel_backend 를 serial 로 두는 것은 "러너 build_cfg 원문" 을 옮긴
+    # 것이지 병렬을 배제한 판단이 아니다 — 그 자리에 경고 주석이 없다.
+    #
+    # 병렬 실패는 조용히 넘어가지 않는다. 직렬로 재실행하되
+    # `price_parallel_serial_rerun_count` 와 `price_parallel_last_error` 를 남긴다.
+    _par = _mapping((tuning or {}).get("price_parallel"))
+    controller.price_parallel_workers = int(_as_float(_par.get("workers"), 10.0))
+
     # 현시별 교환 가격 (tuning 절 `phase_price`). 기본 꺼짐 — 켜면 리더의 가격 롤아웃이
-    # 신호당 2회에서 2 + live현시수 로 늘어 약 3배가 된다.
+    # 신호당 2회에서 2 + live현시수 로 늘어 약 3배가 된다. 병렬이 그 비용을 흡수한다.
     section = _mapping((tuning or {}).get("phase_price"))
     if section:
         if "enabled" in section:

@@ -242,7 +242,7 @@
   "local_additions": [
     {
       "path": "src/controllers/priced_wu_link_controller.py",
-      "blob": "fe688b96855607d14835863dd60a91394490c3c3",
+      "blob": "cd06c73d0ef298ad3bed56a7f54facf4ccf10154",
       "added_at": "2026-08-20",
       "renamed_from": "src/controllers/priced_distributed_coordinator.py",
       "upstream_status": "상류에 없다. 로컬 신규 파일이다.",
@@ -250,7 +250,8 @@
       "what": "LinkAgentWuFollower 는 segment_agents=False 를 세우고 **현시별 교환 가격**을 소비한다(phase_shape_local_cost · _phase_exchange_candidates · apply_phase_price_refinement, solve 오버라이드는 super() 뒤에 정제만 얹는다). PricedWuLinkStackelbergController 는 _make_follower_solver + 현시별 가격 계산(_phase_direction · _global_ttt_with_phases · _refresh_phase_prices, _maybe_refresh_signal_prices 는 super() 뒤에 얹는다). Wu 의 GNE(순수 Jacobi)·오라클 7개·λ_P·기존 4채널 가격 경로는 한 줄도 안 건드린다.",
       "history": "초판(333줄, 커밋 fe52cfd)은 DistributedCoordinator 를 베이스로 가격 오라클 3개·λ_P·neighbor 결합항을 직접 구현했다. 요청은 'wu 구조를 홀드하고 player 만' 이었는데 초판은 팔로워의 GNE 를 분산 것으로 바꿔놨다(순수 Jacobi 대 블록 Gauss-Seidel, 결합변수 4키 대 48키). 직접 구현한 것도 전부 wu 에 이미 있거나(오라클·λ_P) 열등했다(neighbor 휴리스틱 대 wu 의 substep FIFO + follower_terminal_cost). 2026-08-20 에 wu 베이스로 전면 재작성하고 파일명도 바로잡았다.",
       "why_not_python_blobs": "python_blobs 에 넣으면 앵커가 '상류 커밋에 이 파일이 있다' 는 거짓을 주장하게 된다.",
-      "phase_price": "왜: 기존 green 가격은 p1 축 하나다. set_signal_green 이 p1 을 흔들면 나머지 현시가 현재 비율대로 함께 움직이므로 g_ext 는 편미분이 아니라 그 광선의 방향미분이다. 2현시면 p2 = total - p1 이라 광선이 유일해 완전하지만, 4현시면 총합 고정 단체의 자유도 3 중 1방향만 가격이 붙는다. 실측: 17 SC 중 14개가 현시별 movement 종류가 다르고, SC1001(p3 off_ramp 6)·SC1004(p3 off_ramp 8)는 p1/p2 에 off_ramp 가 없다 — 그 둘이 freeway agent 의 이웃이다. 형태: 교환 가격. 방향 d_i(현시 i 에 +delta, 나머지 live 에서 delta/(n-1))의 방향미분을 g_i 로 두고 팔로워가 sum(g_i*(p_i-ref_i))를 더한다. sum(p_i-ref_i)=0 이라 게이지가 자동 고정되어 사영이 필요 없다. 총합 보존은 단위검증했다(위반 0). 국소분을 뺀다 — 안 빼면 팔로워가 자기 비용을 두 번 센다. 비용: 리더 가격 롤아웃이 34 -> 약 103 (신호당 2 + live현시수). 기본 꺼짐. 방향 배분은 **균등**이다(δ/(n-1) 씩) — 비례가 아니다. 그래야 d_i - d_j 가 순수 교환에 비례해 g_i - g_j 가 교환 가격이 되고, 기저가 현재 모양에 안 의존해 결정 간 비교가 된다. 다만 d_i - d_j = (n/(n-1))(e_i - e_j) 라 그대로 쓰면 가격항이 참값의 n/(n-1) 배다(4현시 4/3, 3현시 3/2 — 현시 수마다 다르다). (n-1)/n 로 되돌린다."
+      "phase_price": "왜: 기존 green 가격은 p1 축 하나다. set_signal_green 이 p1 을 흔들면 나머지 현시가 현재 비율대로 함께 움직이므로 g_ext 는 편미분이 아니라 그 광선의 방향미분이다. 2현시면 p2 = total - p1 이라 광선이 유일해 완전하지만, 4현시면 총합 고정 단체의 자유도 3 중 1방향만 가격이 붙는다. 실측: 17 SC 중 14개가 현시별 movement 종류가 다르고, SC1001(p3 off_ramp 6)·SC1004(p3 off_ramp 8)는 p1/p2 에 off_ramp 가 없다 — 그 둘이 freeway agent 의 이웃이다. 형태: 교환 가격. 방향 d_i(현시 i 에 +delta, 나머지 live 에서 delta/(n-1))의 방향미분을 g_i 로 두고 팔로워가 sum(g_i*(p_i-ref_i))를 더한다. sum(p_i-ref_i)=0 이라 게이지가 자동 고정되어 사영이 필요 없다. 총합 보존은 단위검증했다(위반 0). 국소분을 뺀다 — 안 빼면 팔로워가 자기 비용을 두 번 센다. 비용: 리더 가격 롤아웃이 34 -> 약 103 (신호당 2 + live현시수). 기본 꺼짐. 방향 배분은 **균등**이다(δ/(n-1) 씩) — 비례가 아니다. 그래야 d_i - d_j 가 순수 교환에 비례해 g_i - g_j 가 교환 가격이 되고, 기저가 현재 모양에 안 의존해 결정 간 비교가 된다. 다만 d_i - d_j = (n/(n-1))(e_i - e_j) 라 그대로 쓰면 가격항이 참값의 n/(n-1) 배다(4현시 4/3, 3현시 3/2 — 현시 수마다 다르다). (n-1)/n 로 되돌린다.",
+      "parallel": "가격 롤아웃 병렬화(2026-08-20). _phase_price_rollouts 가 상류 _green_price_rollouts 와 같은 규약이다 — price_parallel_workers<=1 이면 직렬(비트동일), 병렬이어도 각 롤아웃 인자가 같고 순수 함수라 결과가 같다. 워커는 stackelberg_wu_metered._price_worker_init 컨텍스트를 재사용하고 _price_worker_phase 는 모듈 수준이라 Windows spawn 에서 피클된다(컨트롤러 267.8 KB, 검증됨). 병렬 실패는 직렬 재실행하되 price_parallel_serial_rerun_count·_last_error 를 남긴다."
     }
   ],
   "local_additions_note": "상류에 **없는** 로컬 신규 파일을 1급으로 기록한다. local_patches 는 상류 파일의 수정이라 upstream_blob 을 요구하는데, 신규 파일은 그 지문이 존재하지 않아 그 스키마로 표현할 수 없다. python_blobs 에 넣는 것은 앵커가 없는 사실을 주장하게 하므로 금지다. verify_runtime_source.py 는 여기 등재된 (path, blob) 조합만 파일집합 비교에서 예외로 인정하고, 등재됐는데 지문이 다르거나 파일이 사라지면 그대로 실패로 남는다. python_file_count 121 은 **상류 기준**이라 신규 파일이 늘어도 바뀌지 않는다."

@@ -56,7 +56,11 @@ from __future__ import annotations
 from typing import Dict, List, Mapping, Optional
 
 from src.controllers.rollout_endpoint import evaluate_price_point
-from src.controllers.stackelberg_wu_metered import StackelbergWuMeteredController
+from src.controllers.stackelberg_wu_metered import (
+    _PRICE_WORKER_CTX,
+    StackelbergWuMeteredController,
+    _price_worker_init,
+)
 from src.controllers.wu_faithful_follower import WuFaithfulFollower
 from src.models.state import (
     MODEL_PHASES,
@@ -67,6 +71,21 @@ from src.models.state import (
     phase_key,
 )
 from src.models.urban_queue_model import movement_specs
+
+
+def _price_worker_phase(task):
+    """(signal, pid, phases) -> (signal, pid, ttt). 직렬 호출과 인자가 동일하다.
+
+    `stackelberg_wu_metered._price_worker_init` 이 워커당 한 번 컨트롤러·작동점을 고정한
+    컨텍스트를 그대로 쓴다 — green 가격 병렬 경로와 같은 규약이라 결과가 같고 수집 순서만
+    다르다. 모듈 수준 함수여야 spawn(Windows) 에서 피클된다.
+    """
+    signal, pid, phases = task
+    ctx = _PRICE_WORKER_CTX
+    ttt = ctx["ctrl"]._global_ttt_with_phases(  # noqa: SLF001
+        ctx["state"], ctx["previous"], ctx["forecast"], signal, phases,
+    )
+    return signal, pid, float(ttt)
 
 
 class LinkAgentWuFollower(WuFaithfulFollower):
@@ -308,6 +327,51 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         )
         return float(point.objective)
 
+    def _phase_price_rollouts(
+        self,
+        state: TrafficState,
+        previous: ControlAction,
+        forecast: List[DemandStep],
+        tasks: List[tuple],
+    ) -> Dict[tuple, float]:
+        """현시 방향 전역 롤아웃을 일괄 평가한다 — (signal, pid) -> TTT.
+
+        `_green_price_rollouts` 와 같은 규약이다. `price_parallel_workers <= 1` 이면 직렬이고
+        기존과 비트 동일하다. 병렬이어도 각 롤아웃 인자가 같고 순수 함수이므로 결과가 같다.
+        병렬 실패는 **조용히 넘기지 않는다** — 직렬로 재실행하되 카운터와 사유를 남긴다
+        (그러지 않으면 런타임 예산이 조용히 몇 배로 늘고 병렬 경로가 한 번도 안 돈 채
+        "동일" 로 읽힌다).
+        """
+        if not tasks:
+            return {}
+        workers = int(getattr(self, "price_parallel_workers", 0) or 0)
+
+        def serial() -> Dict[tuple, float]:
+            return {
+                (sig, pid): self._global_ttt_with_phases(state, previous, forecast, sig, phases)
+                for sig, pid, phases in tasks
+            }
+
+        if workers <= 1 or len(tasks) <= 1:
+            return serial()
+
+        from concurrent.futures import ProcessPoolExecutor
+
+        out: Dict[tuple, float] = {}
+        try:
+            with ProcessPoolExecutor(
+                max_workers=min(workers, len(tasks)),
+                initializer=_price_worker_init,
+                initargs=(self, state, previous, forecast),
+            ) as pool:
+                for sig, pid, ttt in pool.map(_price_worker_phase, tasks):
+                    out[(sig, pid)] = float(ttt)
+        except Exception as exc:  # noqa: BLE001
+            self.price_parallel_serial_rerun_count += 1
+            self.price_parallel_last_error = f"{type(exc).__name__}: {exc}"
+            return serial()
+        return out
+
     def _refresh_phase_prices(
         self, state: TrafficState, forecast: List[DemandStep], previous: ControlAction,
     ) -> None:
@@ -315,6 +379,9 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
 
         기존 p1 축 가격과 같은 규약이다 — 국소분을 빼서 **팔로워가 이미 보는 몫**을 제거한다.
         빼지 않으면 팔로워가 자기 비용을 두 번 센다.
+
+        전역 롤아웃은 **한 번에 모아 병렬로** 돈다. 국소분(`phase_shape_local_cost`)은 큐
+        배수 모형이라 싸므로 직렬로 둔다.
         """
         follower = self.nash_solver
         if not isinstance(follower, LinkAgentWuFollower):
@@ -322,9 +389,10 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         net = self.cfg.network
         delta = float(self.phase_price_delta_sec)
         base_ttt = self._global_ttt_with_phases(state, previous, forecast, "", None)
-        prices: Dict[str, Dict[str, float]] = {}
+
+        tasks: List[tuple] = []
+        meta: Dict[tuple, tuple] = {}
         refs: Dict[str, Dict[str, float]] = {}
-        rollouts = 1
         for signal in net.signals:
             base = self._phase_vector(previous, signal)
             live = [pid for pid in net.signal_live_phases(signal) if base.get(pid, 0.0) > 0.0]
@@ -332,32 +400,37 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
                 # 2현시 이하는 p1 축 가격이 이미 완전하다 — 자유도가 1뿐이다.
                 continue
             base_local = follower.phase_shape_local_cost(signal, base, state)
-            g: Dict[str, float] = {}
+            added = False
             for pid in live:
                 moved = self._phase_direction(signal, base, pid, delta)
                 if moved is None:
                     continue
-                ttt = self._global_ttt_with_phases(state, previous, forecast, signal, moved)
-                rollouts += 1
-                local = follower.phase_shape_local_cost(signal, moved, state)
-                # 척도 보정 (n-1)/n. 방향 d_i = e_i - (1/(n-1))*sum_{j!=i} e_j 로 재면
-                #   d_i - d_j = (n/(n-1)) * (e_i - e_j)
-                # 이라 g_i - g_j 가 순수 교환 미분의 n/(n-1) 배가 된다. 팔로워는 순수
-                # 교환(step 을 i 에서 빼 j 에 준다)으로 움직이므로 그대로 쓰면 가격항이
-                # 참값보다 n/(n-1) 배 크다 — 4현시 4/3, 3현시 3/2 로 **현시 수마다 다르다**.
-                # 한 신호 안에서는 상수배라 argmin 이 안 바뀌지만, 국소비용 대비 가격항의
-                # 상대 가중치가 신호마다 12.5% 어긋난다. 여기서 참값으로 되돌린다.
-                scale = float(len(live) - 1) / float(len(live))
-                raw_g = ((ttt - base_ttt) - (local - base_local)) / max(delta, 1.0e-9)
-                g[pid] = float(raw_g * scale)
-            if g:
-                prices[signal] = g
+                tasks.append((signal, pid, moved))
+                meta[(signal, pid)] = (moved, base_local, len(live))
+                added = True
+            if added:
                 refs[signal] = base
+
+        rollouts = self._phase_price_rollouts(state, previous, forecast, tasks)
+
+        prices: Dict[str, Dict[str, float]] = {}
+        for (signal, pid), ttt in rollouts.items():
+            moved, base_local, n_live = meta[(signal, pid)]
+            local = follower.phase_shape_local_cost(signal, moved, state)
+            # 척도 보정 (n-1)/n. 방향 d_i = e_i - (1/(n-1))*sum_{j!=i} e_j 로 재면
+            #   d_i - d_j = (n/(n-1)) * (e_i - e_j)
+            # 이라 g_i - g_j 가 순수 교환 미분의 n/(n-1) 배가 된다. 팔로워는 순수 교환으로
+            # 움직이므로 그대로 쓰면 가격항이 참값보다 크고, 그 배율이 **현시 수마다 다르다**
+            # (4현시 4/3, 3현시 3/2). 여기서 참값으로 되돌린다.
+            scale = float(n_live - 1) / float(n_live)
+            raw_g = ((float(ttt) - base_ttt) - (local - base_local)) / max(delta, 1.0e-9)
+            prices.setdefault(signal, {})[pid] = float(raw_g * scale)
+
         follower.signal_phase_price = prices or None
-        follower.signal_phase_price_ref = refs or None
+        follower.signal_phase_price_ref = {s: refs[s] for s in prices} or None
         follower.signal_phase_price_weight = float(self.phase_price_weight)
-        self._phase_price_rollouts = rollouts
-        self._phase_price_signals = len(prices)
+        self._phase_price_rollout_count = len(tasks) + 1
+        self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
 
     def _maybe_refresh_signal_prices(
         self,
