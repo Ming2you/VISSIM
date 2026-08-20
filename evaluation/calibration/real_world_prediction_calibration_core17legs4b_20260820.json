@@ -17,8 +17,22 @@
  "method": "componentwise median(observed/raw_predicted) — 두 부하영역 모두에서 이득인 성분만 보정, 나머지는 1.0",
  "fit_sources": {
   "trajectories": [
-   {"tag": "iv150", "run": "shape_off_20260820", "pairs": 11, "sim_sec": "300-1800", "control_interval_sec": 150, "seed": 13},
-   {"tag": "iv60", "run": "smoke_core17legs4b_20260819", "pairs": 9, "sim_sec": "120-600", "control_interval_sec": 60, "seed": 13}
+   {
+    "tag": "iv150",
+    "run": "shape_off_20260820",
+    "pairs": 11,
+    "sim_sec": "300-1800",
+    "control_interval_sec": 150,
+    "seed": 13
+   },
+   {
+    "tag": "iv60",
+    "run": "smoke_core17legs4b_20260819",
+    "pairs": 9,
+    "sim_sec": "120-600",
+    "control_interval_sec": 60,
+    "seed": 13
+   }
   ],
   "deduplicated": "shape_on_20260820 · smoke_core17legs4b_iv150b_20260819 · smoke_core17legs4b_iv150_20260819 는 iv150 과 예측행이 비트 일치라 제외했다(3중 가중 방지).",
   "raw_source": "앞 결정의 prediction.state_summary (원시). prediction_error 의 predicted 는 이미 보정된 값이라 재적합에 쓰면 순환이다."
@@ -33,11 +47,13 @@
     "urban_link_occupancy_total_veh": 0.6166,
     "urban_movement_queue_total_veh": 1.5,
     "off_ramp_storage_veh": 1.0,
-    "boundary_queue_total_veh": 1.0
+    "boundary_queue_total_veh": 1.0,
+    "protected_accumulation_veh": 1.0
    },
    "recompute_urban_queue_plus_storage_from_components": true,
    "recompute_urban_total_from_components": true,
-   "recompute_total_model_vehicles_from_components": true
+   "recompute_total_model_vehicles_from_components": true,
+   "deep_update_note": "**생략은 중립이 아니다.** 어댑터가 tuning 의 calibration_override 를 deep_update 로 이 파일 위에 덮는데, 재귀 병합이라 여기서 생략한 키는 부모 사슬의 옛 값이 그대로 살아남는다. 실측: protected_accumulation_veh 를 '보정 안 함' 의도로 뺐더니 옛 0.183347858615 이 계속 적용됐다(phaseprice_20260820 런). 보정하지 않을 성분도 **명시적으로 1.0** 을 적는다."
   }
  },
  "not_corrected": {
@@ -50,14 +66,23 @@
  },
  "measured_mean_abs_relative_error": {
   "unit": "지표 8개 평균",
-  "iv150_in_sample": {"raw": 0.258, "previous_calibration": 0.613, "this": 0.102},
-  "iv60_out_of_sample": {"raw": 0.148, "previous_calibration": 0.622, "this": 0.115}
+  "iv150_in_sample": {
+   "raw": 0.258,
+   "previous_calibration": 0.613,
+   "this": 0.102
+  },
+  "iv60_out_of_sample": {
+   "raw": 0.148,
+   "previous_calibration": 0.622,
+   "this": 0.115
+  }
  },
  "caveats": [
   "적합 궤적이 시드 13 하나뿐이다. iv150 수치(10.2%)는 표본내라 예측정확도로 인용하면 순환이다.",
   "인용 가능한 값은 표본외 iv60 의 11.5% 이거나, 보류 시드로 다시 잰 값이다.",
   "urban_movement_queue 는 비율이 시간에 따라 1.05 -> 2.41 로 표류한다(모델의 큐 성장률이 느리다). 배율 1.5 는 두 영역 오차를 40.2% -> 22.6% 로 줄이는 절충일 뿐 편의를 제거하지 못한다. 근원은 동역학이다.",
-  "iv60 궤적은 t<=600 경부하·무제어라 순수한 보류표본이 아니라 응력시험에 가깝다."
+  "iv60 궤적은 t<=600 경부하·무제어라 순수한 보류표본이 아니라 응력시험에 가깝다.",
+  "component_scales 에 1.0 으로 적힌 것은 '보정하지 않음' 이다 — 생략하면 부모 사슬의 옛 배율이 deep_update 로 살아남는다. 위 deep_update_note 참조."
  ],
  "next": "다른 시드로 1800s 런 1회를 돌려 표본외에서 재검증한다. 그 값이 논문에 인용할 수치다."
 }

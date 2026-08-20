@@ -2650,6 +2650,18 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             )
     # flagship 이 여기서 segment_agents=True 를 켠다. 이 팔은 켜지 않는다 —
     # LinkAgentWuFollower.__init__ 이 False 로 못박아 두었다.
+    #
+    # 그래서 **SEG13 전용 설정을 같이 걷어내야 한다.** `flagship_config_overrides()` 가
+    # seg13_meter_box_veh_h=300 · seg13_vsl_box_kmh=20 을 넣는데, wu 팔로워가
+    # `segment_agents and metering_enabled` 를 요구하며 RuntimeError 로 즉사시킨다
+    # (wu_faithful_follower.py:4024-4034). 실측: 2026-08-20 첫 스모크가 전 결정
+    # controller_status=fallback_fixed 로 떨어졌고 controller_error 가 정확히 그 메시지였다.
+    #
+    # 대체 수단은 에러 메시지 자신이 알려준다 — "비-SEG13은 metering_marginal_price_trust_frac
+    # 이 이미 묶는다". 위에서 0.20 으로 세워 두었다.
+    for _seg13_only in ("seg13_meter_box_veh_h", "seg13_vsl_box_kmh", "freeway_agent_groups"):
+        if getattr(cfg.mpc, _seg13_only, None) is not None:
+            setattr(cfg.mpc, _seg13_only, None)
     return controller
 
 
