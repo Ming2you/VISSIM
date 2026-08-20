@@ -2634,6 +2634,20 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     controller.nash_solver.ramp_offset_enabled = True
     controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
     controller.metering_price_trust_frac = _as_float(settings.get("metering_price_trust_frac"), 0.20)
+    # 현시별 교환 가격 (tuning 절 `phase_price`). 기본 꺼짐 — 켜면 리더의 가격 롤아웃이
+    # 신호당 2회에서 2 + live현시수 로 늘어 약 3배가 된다.
+    section = _mapping((tuning or {}).get("phase_price"))
+    if section:
+        if "enabled" in section:
+            controller.phase_price_enabled = bool(section["enabled"])
+        if "delta_sec" in section:
+            controller.phase_price_delta_sec = _as_float(section["delta_sec"], 6.0)
+        if "weight" in section:
+            controller.phase_price_weight = _as_float(section["weight"], 1.0)
+        if "exchange_steps_sec" in section:
+            cfg.mpc.phase_price_exchange_steps_sec = tuple(
+                float(x) for x in section["exchange_steps_sec"]
+            )
     # flagship 이 여기서 segment_agents=True 를 켠다. 이 팔은 켜지 않는다 —
     # LinkAgentWuFollower.__init__ 이 False 로 못박아 두었다.
     return controller

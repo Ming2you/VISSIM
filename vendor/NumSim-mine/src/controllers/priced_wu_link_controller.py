@@ -53,9 +53,20 @@ freeway→urban 은 `_last_offramp_flow`).
 """
 from __future__ import annotations
 
+from typing import Dict, List, Mapping, Optional
+
+from src.controllers.rollout_endpoint import evaluate_price_point
 from src.controllers.stackelberg_wu_metered import StackelbergWuMeteredController
 from src.controllers.wu_faithful_follower import WuFaithfulFollower
-from src.models.state import ExperimentConfig
+from src.models.state import (
+    MODEL_PHASES,
+    ControlAction,
+    ExperimentConfig,
+    TrafficState,
+    _project_to_budget,
+    phase_key,
+)
+from src.models.urban_queue_model import movement_specs
 
 
 class LinkAgentWuFollower(WuFaithfulFollower):
@@ -71,6 +82,136 @@ class LinkAgentWuFollower(WuFaithfulFollower):
         self.segment_agents = False
 
 
+    # ================= 현시별 가격 (2026-08-20) =================
+    #
+    # 왜 필요한가. 기존 green 가격은 `p1` 축 하나다 — `set_signal_green` 이 p1 을 δ 흔들면
+    # 나머지 현시가 **현재 비율대로** 함께 움직이므로, g_ext 는 편미분이 아니라 그 광선을
+    # 따라간 방향미분이다. 2현시면 p2 = total - p1 이라 광선이 유일해 완전하지만, 4현시면
+    # 총합 고정 단체(simplex)의 자유도가 3인데 그중 **1방향만** 가격이 붙는다.
+    #
+    # 그게 문제인 이유는 한 신호의 현시들이 서로 다른 종류의 movement 를 먹이기 때문이다.
+    # 실측(core17legs4b): 17 SC 중 **14개**가 현시별 movement 종류가 다르고, 특히
+    #
+    #     SC1001   p3 off_ramp 6개 · p4 off_ramp 2개 · p1/p2 없음
+    #     SC1004   p3 off_ramp 8개 · p4 off_ramp 2개 · p1/p2 없음
+    #
+    # 이 둘은 freeway agent 의 이웃 교차로다. p3 에 녹색을 주는 것과 p2 에 주는 것은 망
+    # 외부효과가 근본적으로 다른데, p1 축 가격은 나머지에서 **비율대로** 걷어오므로 정작
+    # 중요한 현시를 다른 현시와 섞어 희석한다.
+    #
+    # 가격 형태. 총합이 고정이라 절대 가격이 아니라 **교환 가격**이어야 한다. 현시 i 에
+    # +δ 를 주고 나머지 live 현시에서 δ/(n-1) 씩 걷는 방향 d_i 를 잡고 그 방향미분을 g_i 로
+    # 둔다. 팔로워는 `Σ_i g_i · (p_i - ref_i)` 를 더하는데, 총합 고정이라
+    # `Σ(p_i - ref_i) = 0` 이므로 g 에 상수를 더해도 값이 안 변한다 — 게이지가 자동으로
+    # 고정되어 사영이 필요 없다.
+    signal_phase_price: Optional[Dict[str, Dict[str, float]]] = None
+    signal_phase_price_ref: Optional[Dict[str, Dict[str, float]]] = None
+    signal_phase_price_weight: float = 1.0
+
+    def phase_shape_local_cost(
+        self,
+        signal: str,
+        phases: Mapping[str, float],
+        state: TrafficState,
+    ) -> float:
+        """현시 벡터 하나의 국소 큐 TTS [veh*h]. 가격항 제외.
+
+        `UrbanFollower._urban_stage2_signal_cost` 와 같은 큐 배수 모형이되 p1 스칼라가 아니라
+        **명시적 현시 벡터**를 받는다. 교환 후보를 채점하려면 그 프리미티브가 필요하다.
+        """
+        net = self.cfg.network
+        specs = movement_specs(self.cfg)
+        horizon = max(1, int(self.cfg.mpc.horizon_steps))
+        dt_h = float(self.cfg.simulation.T_c_h)
+        q: Dict[str, float] = {}
+        sat: Dict[str, float] = {}
+        for pid in MODEL_PHASES:
+            movements = [m for m, s in specs.items() if s.get("phase") == phase_key(signal, pid)]
+            q[pid] = sum(max(0.0, float(state.urban_movement_queue.get(m, 0.0))) for m in movements)
+            sat[pid] = max(len(movements) * float(net.movement_capacity_veh_h), 1.0e-9)
+        cost = 0.0
+        for _ in range(horizon):
+            for pid in MODEL_PHASES:
+                service = (float(phases.get(pid, 0.0)) / max(net.cycle_length, 1.0e-9)) * sat[pid] * dt_h
+                q[pid] = max(0.0, q[pid] - service)
+            cost += sum(q.values()) * dt_h
+        return float(cost)
+
+    def _phase_exchange_candidates(self, signal: str, base: Mapping[str, float], step: float):
+        """총합을 보존하는 쌍교환 후보 — (i 에서 step 빼서 j 에 준다)."""
+        net = self.cfg.network
+        live = [pid for pid in net.signal_live_phases(signal) if float(base.get(pid, 0.0)) > 0.0]
+        lo, hi = float(net.green_min), float(net.green_max)
+        out = []
+        for i in live:
+            for j in live:
+                if i == j:
+                    continue
+                cand = dict(base)
+                cand[i] = float(base[i]) - step
+                cand[j] = float(base[j]) + step
+                if cand[i] < lo - 1.0e-9 or cand[j] > hi + 1.0e-9:
+                    continue
+                out.append(cand)
+        return out
+
+    def apply_phase_price_refinement(self, control: ControlAction, state: TrafficState) -> int:
+        """가격이 붙은 방향으로만 현시를 재배분한다. 총합·주기는 불변.
+
+        `p1` 축 탐색(기존)이 끝난 뒤에 돈다. 시드가 그 결과이고 개선될 때만 교체하므로
+        같은 목적함수 아래에서 기존 답보다 나빠지지 않는다. 가격이 없으면 즉시 반환한다
+        (= 비트동일).
+        """
+        prices = self.signal_phase_price
+        if not prices:
+            return 0
+        refs = self.signal_phase_price_ref or {}
+        weight = float(self.signal_phase_price_weight)
+        net = self.cfg.network
+        steps = tuple(getattr(self.cfg.mpc, "phase_price_exchange_steps_sec", (6.0, 2.0)))
+        improved = 0
+        for signal, price in prices.items():
+            ref = refs.get(signal) or {}
+            base = {pid: float(control.green_times.get(phase_key(signal, pid), 0.0))
+                    for pid in MODEL_PHASES}
+
+            def scored(vec: Mapping[str, float]) -> float:
+                local = self.phase_shape_local_cost(signal, vec, state)
+                ext = sum(
+                    float(price.get(pid, 0.0)) * (float(vec.get(pid, 0.0)) - float(ref.get(pid, 0.0)))
+                    for pid in MODEL_PHASES
+                )
+                return local + weight * ext
+
+            best, best_obj = base, scored(base)
+            for step in steps:
+                for cand in self._phase_exchange_candidates(signal, best, float(step)):
+                    obj = scored(cand)
+                    if obj < best_obj - 1.0e-12:
+                        best, best_obj = cand, obj
+            if best is not base:
+                for pid, value in best.items():
+                    key = phase_key(signal, pid)
+                    if key in control.green_times:
+                        control.green_times[key] = float(value)
+                improved += 1
+        control.diagnostics["wu_phase_price_signals_refined"] = float(improved)
+        control.diagnostics["wu_phase_price_signals_priced"] = float(len(prices))
+        return improved
+
+    def solve(self, state, leader, demand, previous_control=None, leader_incumbent_obj=None):
+        import numpy as _np
+
+        result = (
+            super().solve(state, leader, demand, previous_control)
+            if leader_incumbent_obj is None
+            else super().solve(state, leader, demand, previous_control, leader_incumbent_obj)
+        )
+        if self.signal_phase_price:
+            self.apply_phase_price_refinement(result.control, state)
+        return result
+
+
 class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     """가격 리더 그대로 + 링크 단위 player.
 
@@ -79,5 +220,128 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     건드리지 않는다.
     """
 
+    # 현시별 교환 가격 (2026-08-20). 기본 꺼짐 = 비트동일.
+    #
+    # **비용 경고.** 소스가 `_maybe_refresh_signal_prices` 의 98.4% 가 전역 롤아웃이라고
+    # 적어 놨다(stackelberg_wu_metered.py:29). 지금은 신호당 2회(lo/hi)인데 여기에
+    # 신호당 live 현시 수만큼이 더 붙는다 — 기준 1 + Σn_live ≈ 1 + 17x4 = 69 롤아웃이
+    # 기존 34 에 **추가**된다. 리더에서 제일 비싼 자리를 약 3배로 만든다.
+    phase_price_enabled: bool = False
+    phase_price_delta_sec: float = 6.0
+    phase_price_weight: float = 1.0
+
     def _make_follower_solver(self, cfg: ExperimentConfig):
         return LinkAgentWuFollower(cfg)
+
+    def _phase_vector(self, control: ControlAction, signal: str) -> Dict[str, float]:
+        return {pid: float(control.green_times.get(phase_key(signal, pid), 0.0))
+                for pid in MODEL_PHASES}
+
+    def _phase_direction(
+        self, signal: str, base: Mapping[str, float], target: str, delta: float,
+    ) -> Optional[Dict[str, float]]:
+        """현시 `target` 에 +δ, 나머지 live 에서 δ/(n-1) 씩 — 총합 보존 + 박스 사영.
+
+        총합을 보존해야 하는 이유는 유효녹색 총량이 신호마다 고정이기 때문이다. 안 지키면
+        가격이 "재배분" 이 아니라 "총량 증감" 을 재게 되어 p1 축 가격과 중복된다.
+        """
+        net = self.cfg.network
+        live = [pid for pid in net.signal_live_phases(signal) if float(base.get(pid, 0.0)) > 0.0]
+        if target not in live or len(live) < 2:
+            return None
+        share = float(delta) / float(len(live) - 1)
+        raw = {pid: float(base.get(pid, 0.0)) for pid in MODEL_PHASES}
+        raw[target] += float(delta)
+        for pid in live:
+            if pid != target:
+                raw[pid] -= share
+        rest = [pid for pid in live]
+        total = sum(float(base.get(pid, 0.0)) for pid in live)
+        projected = _project_to_budget(
+            [raw[pid] for pid in rest], total, float(net.green_min), float(net.green_max),
+        )
+        out = {pid: 0.0 for pid in MODEL_PHASES}
+        for pid, value in zip(rest, projected):
+            out[pid] = float(value)
+        return out
+
+    def _global_ttt_with_phases(
+        self,
+        state: TrafficState,
+        previous: ControlAction,
+        forecast: List[DemandStep],
+        signal: str,
+        phases: Optional[Mapping[str, float]],
+    ) -> float:
+        """그 신호의 현시 벡터만 바꾼 control 로 전역 롤아웃.
+
+        `evaluate_price_point` 는 schedule 이 비면 넘긴 control 을 그대로 쓴다
+        (`rollout_endpoint.py:129`). 그래서 `green` 레버(p1 전용)를 확장하지 않고도
+        임의 현시 벡터를 평가할 수 있다 — vendor 의 레버 종류를 안 건드린다.
+        """
+        ctrl = previous
+        if phases is not None:
+            ctrl = previous.copy()
+            ctrl.green_times = dict(previous.green_times)
+            for pid, value in phases.items():
+                key = phase_key(signal, pid)
+                if key in ctrl.green_times:
+                    ctrl.green_times[key] = float(value)
+        point = evaluate_price_point(
+            state, ctrl, forecast, (),
+            self._rollout_spec(score_mode="price", barrier=True),
+        )
+        return float(point.objective)
+
+    def _refresh_phase_prices(
+        self, state: TrafficState, forecast: List[DemandStep], previous: ControlAction,
+    ) -> None:
+        """g_i = (전역 방향미분) - (국소 방향미분) = 현시 i 로의 재배분이 갖는 외부효과.
+
+        기존 p1 축 가격과 같은 규약이다 — 국소분을 빼서 **팔로워가 이미 보는 몫**을 제거한다.
+        빼지 않으면 팔로워가 자기 비용을 두 번 센다.
+        """
+        follower = self.nash_solver
+        if not isinstance(follower, LinkAgentWuFollower):
+            return
+        net = self.cfg.network
+        delta = float(self.phase_price_delta_sec)
+        base_ttt = self._global_ttt_with_phases(state, previous, forecast, "", None)
+        prices: Dict[str, Dict[str, float]] = {}
+        refs: Dict[str, Dict[str, float]] = {}
+        rollouts = 1
+        for signal in net.signals:
+            base = self._phase_vector(previous, signal)
+            live = [pid for pid in net.signal_live_phases(signal) if base.get(pid, 0.0) > 0.0]
+            if len(live) < 3:
+                # 2현시 이하는 p1 축 가격이 이미 완전하다 — 자유도가 1뿐이다.
+                continue
+            base_local = follower.phase_shape_local_cost(signal, base, state)
+            g: Dict[str, float] = {}
+            for pid in live:
+                moved = self._phase_direction(signal, base, pid, delta)
+                if moved is None:
+                    continue
+                ttt = self._global_ttt_with_phases(state, previous, forecast, signal, moved)
+                rollouts += 1
+                local = follower.phase_shape_local_cost(signal, moved, state)
+                g[pid] = float(((ttt - base_ttt) - (local - base_local)) / max(delta, 1.0e-9))
+            if g:
+                prices[signal] = g
+                refs[signal] = base
+        follower.signal_phase_price = prices or None
+        follower.signal_phase_price_ref = refs or None
+        follower.signal_phase_price_weight = float(self.phase_price_weight)
+        self._phase_price_rollouts = rollouts
+        self._phase_price_signals = len(prices)
+
+    def _maybe_refresh_signal_prices(
+        self,
+        state: TrafficState,
+        forecast: List[DemandStep],
+        previous: ControlAction,
+        force: bool = False,
+    ) -> None:
+        super()._maybe_refresh_signal_prices(state, forecast, previous, force=force)
+        if bool(self.phase_price_enabled):
+            self._refresh_phase_prices(state, forecast, previous)
