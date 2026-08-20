@@ -3033,8 +3033,51 @@ def build_config(
         "leader": {
             "N_P_crit_veh": 390.0,
             "mfd_penalty_mode": "all_urban_halfcap",
-            "N_P_star_range": [0.0, 780.0],
-            "N_UF_star_range": [0.0, 5000.0],
+            # N_P_star 는 horizon 순유입[veh] 목표다(누적 수준이 아니다).
+            #
+            # 2026-08-20 재산정. 옛 값 [0.0, 780.0] 은 `Leader._candidate_bounds` 가 매 결정
+            # 유도하는 movement-level 도달가능 범위의 **양끝을 다 잘랐다**:
+            #
+            #   측정(core17legs4b, 18결정)   movement 하한 -216.3 ~ -0.4
+            #                                movement 상한   517.1 ~ 2135.9
+            #                                사영 순유입   1068.9 ~ 1105.8 (적재 구간)
+            #
+            # 결과 두 가지. (1) 상한 780 이 자연 순유입 ~1,100 보다 낮아 리더의 모든 선택이
+            # "지금 흐르는 것보다 조여라" 가 됐고, 가장 느슨한 780 을 골라도 318 veh 를 조인다
+            # — 완료차량이 폴백 대비 14~17% 줄어 가드가 7/7 기각했다. (2) 하한 0 이 18결정
+            # 전부에서 물려 리더가 순유출(배수)을 아예 표현하지 못했다.
+            #
+            # 앵커까지 무너진다 — `_np_anchor_values` 는 movement 양끝과 직전 N_P_star 를
+            # 앵커로 쓰는데 셋 다 [0,780] 으로 클립돼 앵커 집합이 {0, 780} 으로 붕괴했다.
+            # linspace 는 n_np = round(sqrt(9)) = 3 개뿐이라 앵커가 사실상 후보 전부다.
+            #
+            # 새 값은 측정된 도달가능 범위를 여유 두고 덮는다(하한 -216.3 -> -250,
+            # 상한 2135.9 -> 2400). 상류 설계 의도와도 맞다 — `test_constraints.py:1799` 가
+            # 파생 경계는 base 범위 **안에** 들어간다고 검사한다(상류 기본 [-3500, 3500]).
+            "N_P_star_range": [-250.0, 2400.0],
+            # N_UF_star 는 램프 미터링 합[veh/h] 목표다.
+            #
+            # 2026-08-20 재산정. 옛 상한 5000.0 은 이 망의 **물리 램프 용량 7,200 의 69%** 였다
+            # (ramp_capacity_veh_h = 1800 x 4, `real_world_modi_pstack_adapter_v0_20260719.json`).
+            #
+            # `Leader._candidate_bounds` 는 자유류에서
+            #     feasible_nuf = max(feasible_nuf, total_ramp_capacity)   # = 7200
+            #     nuf_upper    = min(N_UF_star_range[1], nuf_upper_target)
+            # 을 계산하는데, 상한 5000 이 항상 이겼다 — 실런 전 결정에서
+            # `leader_nuf_bound_upper = 5000` 이고 `leader_nuf_heuristic_target` 마저 5000 으로
+            # 잘렸다.
+            #
+            # 결과가 이것이다. 폴백(무제어)은 `ControlAction.uncontrolled` 로 램프를 용량 그대로
+            # 열어 7,200 을 실현하는데, 리더는 `_leader_metering_projection` 이 합을 5,000 에
+            # 맞춰 **매 결정 램프 유입을 30.6% 강제 차단**당했다. 완료차량이 폴백 대비
+            # 14~17% 적었던 직접 원인이고, 가드가 `completed_severe` 로 7/7 기각한 이유다.
+            #
+            # N_P 축만 넓힌 대조군(npbox, 2026-08-20)에서 리더 의도가 780 -> 1078.7 로 움직여도
+            # 완료차량이 1520.61 로 **소수점까지 동일**했다 — 물리는 축은 N_P 가 아니라 N_UF 다.
+            #
+            # 새 상한은 물리 용량 그 자체다. 리더가 "미터링 안 함" 을 고를 수 있어야
+            # 폴백과 같은 출발선에 선다.
+            "N_UF_star_range": [0.0, 7200.0],
         },
         "freeway_follower": {
             "vsl_set": [60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0],
@@ -3060,7 +3103,64 @@ def build_config(
         })
     cfg = ExperimentConfig.from_file(config_path, overrides=overrides)
     _plant_phase_counts_into(cfg)
+    _plant_phase_shape_into(cfg, tuning)
+    _plant_rollout_far_into(cfg, tuning)
     return cfg
+
+
+def _plant_rollout_far_into(cfg, tuning) -> None:
+    """tuning 의 `rollout_far` 절을 런타임 속성으로 심는다 (2026-08-20).
+
+    far(MFD tail) terminal cost 는 `mfd_far_cost_to_go` 로 이미 구현돼 있고
+    `cfg.mpc.leader_mfd_far_enabled` 도 상류 기본이 True 다. 그런데 분산 경로
+    (`distributed_coordinator._evaluate_grid_candidate`)가 `ObjectiveSpec` 을
+    `score_mode="raw"` 로 만들어 far 를 계산조차 하지 않았다 — 실런 진단에 far 키가 0건이다.
+
+        enabled     분산 rollout 채점에 far 를 태운다 (기본 False = 비트동일)
+        ncrit       urban reservoir 임계 누적[veh] (상류 기본 1700)
+        g_free      임계 미만 배수율, g_cong 임계 초과 배수율
+        weight      far 가중치 (1.0 이 물리 정확값)
+
+    `phase_shape` 와 같은 이유로 dataclass 필드를 안 늘린다 —
+    `src/models/state.py` 를 건드리면 앵커 등재가 하나 더 는다.
+    """
+    section = (tuning or {}).get("rollout_far")
+    if not isinstance(section, Mapping):
+        return
+    mpc = cfg.mpc
+    if "enabled" in section:
+        setattr(mpc, "distributed_rollout_far_enabled", bool(section["enabled"]))
+    for key, cast in (("ncrit", float), ("g_free", float), ("g_cong", float),
+                      ("g_fw", float), ("weight", float)):
+        if key in section:
+            setattr(mpc, f"leader_mfd_far_{key}", cast(section[key]))
+
+
+def _plant_phase_shape_into(cfg, tuning) -> None:
+    """tuning 의 `phase_shape` 절을 런타임 속성으로 심는다 (2026-08-20).
+
+    dataclass 필드로 넣지 않는 이유는 `ExperimentConfig.from_dict` 가 strict 라
+    `src/models/state.py` 를 건드리게 되고, 그러면 앵커 등재가 하나 늘기 때문이다.
+    vendor 쪽은 전부 `getattr(..., 기본값)` 으로만 읽으므로 안 심으면 오늘과 같다.
+
+        mode / weight        압력 shape 주입 (3단계, 아직 vendor 미구현)
+        search               쌍교환 탐색 stage 켜기
+        steps_sec            교환 스텝 사다리
+        signal_top_k         압력 치우침 상위 k 신호만
+        candidate_limit      하드캡
+    """
+    section = (tuning or {}).get("phase_shape")
+    if not isinstance(section, Mapping):
+        return
+    uf = cfg.urban_follower
+    if "search" in section:
+        setattr(uf, "phase_shape_search", bool(section["search"]))
+    if "steps_sec" in section:
+        setattr(uf, "phase_shape_steps_sec", tuple(float(x) for x in section["steps_sec"]))
+    for key, cast in (("signal_top_k", int), ("candidate_limit", int),
+                      ("weight", float), ("mode", str)):
+        if key in section:
+            setattr(uf, f"phase_shape_{key}", cast(section[key]))
 
 
 def _plant_phase_counts_into(cfg) -> None:

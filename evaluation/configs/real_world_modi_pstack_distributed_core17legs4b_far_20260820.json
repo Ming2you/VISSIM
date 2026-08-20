@@ -1,0 +1,15 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_far_20260820",
+  "description": "far(MFD tail) terminal cost 를 분산 rollout 채점에 태우는 A/B arm. 정본을 extends 로 얇게 덮는다.",
+  "notes": [
+    "2026-08-20: far 는 `mfd_far_cost_to_go` 로 이미 구현돼 있고 cfg.mpc.leader_mfd_far_enabled 도 상류 기본이 True 다. 그런데 분산 경로가 ObjectiveSpec 을 score_mode='raw' 로 만들어 far 를 계산조차 하지 않았다 — 실런 진단에 far 키가 0건이었다. 가격 팔(stackelberg_wu_metered.py:2606)만 쓰고 있었다.",
+    "켜면 far 가 (1) 후보 랭킹 objective 와 (2) guard 가 읽는 distributed_response_rollout_ttt 양쪽에 실린다. 폴백 PFO 도 leader=None 으로 같은 _evaluate_grid_candidate 를 타므로 대칭이다 — 리더에게만 유리한 가산이 아니다.",
+    "far 는 n_u = protected_accumulation + boundary_in_queue 로 계산한다. 게이팅으로 차를 경계 큐에 밀어넣어도 그대로 계상되므로 '조이기가 공짜로 보이는' 경로가 막혀 있다(상류 주석).",
+    "크기 추정: n_u ~ 1,446, n_crit 1700 미만이라 G = g_free = 640 -> far ~ 1446^2/(2*640)*T_c_h ~ 68. base(팔로워 TTT) 298 대비 약 23%.",
+    "n_crit/g 는 상류 기본값(1700/640/500)을 그대로 쓴다. 이 망의 MFD 를 아직 안 쟀으므로 여기서 추정하지 않는다 — 별도 측정 뒤에 조정한다."
+  ],
+  "rollout_far": {
+    "enabled": true
+  }
+}

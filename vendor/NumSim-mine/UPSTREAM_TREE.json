@@ -135,6 +135,74 @@
   },
   "local_patches": [
     {
+      "path": "src/controllers/distributed_coordinator.py",
+      "upstream_blob": "e5d7824ef90694b807746dee68a2e3cf7a8a12a0",
+      "patched_blob": "5f1999e69716f2f25da3ff8508475887dd9f4921",
+      "applied_at": "2026-08-20",
+      "workspace_commit": "e407adf",
+      "delta_vs_upstream": "203 insertions / 5 deletions",
+      "function": "DistributedCoordinator — 로컬 변경 5건(전부 기본 꺼짐). 상세는 changes.",
+      "why": "상류에 아직 없는 로컬 실험 5건이 한 파일에 쌓였다. 전부 기본값이 꺼짐이라 켜지 않으면 산출물이 상류와 같고, 켜야만 답이 바뀐다. 앵커가 '이 내용이 상류 커밋에 있다'고 주장하지 않도록 blob 을 조용히 갱신하는 대신 여기 적는다.",
+      "changes": [
+        {
+          "id": "far-wiring",
+          "applied_at": "2026-08-20",
+          "where": "_evaluate_grid_candidate (hunks @@685 @@709 @@744 @@771)",
+          "what": "ObjectiveSpec 에 score_mode/far_enabled 를 넘기고, point.far 를 후보 랭킹 objective 와 guard 가 읽는 distributed_response_rollout_ttt 에 가산한다. 진단 3키(rollout_ttt_raw · rollout_far · rollout_far_active) 추가.",
+          "why": "far(MFD tail) terminal cost 는 mfd_far_cost_to_go 로 구현돼 있고 cfg.mpc.leader_mfd_far_enabled 도 상류 기본이 True 인데, 이 경로가 ObjectiveSpec 을 기본값(score_mode='raw')으로 만들어 far 를 계산조차 하지 않았다 — 실런 진단에 far 키가 0건. 게다가 코디네이터는 point.objective 를 안 보고 point.partial_ttt 로 자기 objective 를 다시 만들어, far_enabled 만 켜도 far 는 계산되고 버려진다.",
+          "gate": "cfg.mpc.distributed_rollout_far_enabled (기본 False). tuning 절 rollout_far.enabled 로만 켠다.",
+          "bit_identical_when_off": "PricePointResult.far 기본값이 0.0 이고 score_mode!='raw' 안에서만 대입되므로 far_term 이 정확히 0.0 이다. objective 와 rollout_ttt 가 옛 식과 같다.",
+          "symmetry": "폴백 PFO 도 nash_solver.solve(leader=None) 으로 같은 _evaluate_grid_candidate 를 타므로 leader/fallback 양쪽에 같이 실린다. 리더에게만 주는 가산이 아니다."
+        },
+        {
+          "id": "phase-shape-helpers",
+          "applied_at": "2026-08-20",
+          "where": "새 메서드 4개 (@@1049, +103줄)",
+          "what": "_phase_shape_live · _phase_pressure · _phase_pressure_skew · _phase_shape_candidates",
+          "why": "green:{signal} 축이 주 현시만 움직이고 나머지는 distribute_phase_green 이 균등으로 펴서 SC 당 자유도가 1이었다. 현시 쌍교환('i 에서 d 초 빼서 j 에 준다')으로 4현시 자유도를 준다. 합이 구조적으로 불변이라 사영이 필요 없다.",
+          "gate": "cfg.urban_follower.phase_shape_search (기본 False)"
+        },
+        {
+          "id": "phase-shape-stage",
+          "applied_at": "2026-08-20",
+          "where": "_structured_grid_refinement (@@1236 @@1254 @@1291)",
+          "what": "기존 4-stage 뒤에 5번째 stage 를 잇고 진단 4키 추가",
+          "why": "위 후보 생성기를 실제 탐색에 연결한다. 후보가 0이면 완전 무연산이다.",
+          "gate": "같음 (phase_shape_search)",
+          "measured": "켠 A/B(shape_on_20260820): 후보 168개 평가 · 개선 1건 · 목적값 2833.15 -> 2832.64 (-0.018%) · 결정당 +31초. 끈 A/B(shape_off)는 17 SC 전 키가 기준선과 일치했다."
+        },
+        {
+          "id": "additive-corner-ramp-gate",
+          "applied_at": "2026-08-18",
+          "where": "리더 코너 선택부 (@@1630 @@1678)",
+          "what": "가법 코너 단축의 `not ramp_scaled` 선제 차단을 환경변수로 풀 수 있게 한다",
+          "why": "램프 결합을 켜면 ramp_scaled 가 True 가 되어 차단이 걸리고 product((lo,hi), repeat=15) = 32,768 회 전체평가로 떨어진다. 실측 결정당 6,700 초(기준 220 초의 30배)라 램프 결합을 실런에 쓸 수 없다.",
+          "gate": "환경변수 RW_ADDITIVE_CORNER_WITH_RAMPS (기본 꺼짐)",
+          "risk": "아래의 검증-복귀 장치는 **선택된 코너의 잔차 1점**만 맞춰 보지 그것이 전역 최적임을 증명하지 않는다. 저자들이 '분리가능성이 깨진다'고 본 영역으로 확장하는 것이라, 켜기 전에 같은 앵커에서 두 경로가 같은 액션을 내는지 직접 대조해야 한다.",
+          "note": "2026-08-19 등재문은 이 항목을 'RW_LEADER_CORNER_SKIP_ENUM' 으로 잘못 적었다. 실제 변수명은 위와 같다."
+        },
+        {
+          "id": "diagnostics-passthrough",
+          "applied_at": "2026-08-20",
+          "where": "진단 필터 (@@3215, +8줄)",
+          "what": "urban_stage2_* · phase_shape_* 접두를 통과시킨다",
+          "why": "이 필터가 막고 있어 액션 JSON 에 urban_stage2_* 가 한 건도 안 실렸고, 그래서 현시별 탐색을 붙일 때 계산량을 실측으로 잡을 수 없었다.",
+          "gate": "없음 — 값만 내보내므로 행동이 안 바뀐다"
+        },
+        {
+          "id": "import-os",
+          "applied_at": "2026-08-18",
+          "where": "파일 상단 (@@3)",
+          "what": "import os",
+          "why": "additive-corner-ramp-gate 의 환경변수 판독에 필요하다.",
+          "gate": "없음"
+        }
+      ],
+      "evidence": "상류 blob e5d7824e 를 git cat-file 로 꺼내 현재 파일과 직접 diff 한 결과가 203 insertions / 5 deletions 이고, 위 6개 hunk 그룹으로 전부 설명된다. 잔여 미설명 델타는 없다.",
+      "upstream_status": "다섯 건 모두 상류에 없다. 전부 기본 꺼짐이라 켜지 않은 산출물은 상류와 같다. 값이 있다고 판정된 것만 상류에 올린다.",
+      "why_not_resnapshot": "상류 커밋을 다시 스냅샷하면 이 변경들이 상류에 있는 것처럼 기록된다. 없는 사실을 앵커가 주장하게 하지 않는다."
+    },
+    {
       "path": "src/controllers/stackelberg_mpc.py",
       "upstream_blob": "e3ceebbdb45dacbfd83ec8e5e6ae58db54d5af53",
       "patched_blob": "5ac97daf281d003013ba4a1f76739357dadc683d",

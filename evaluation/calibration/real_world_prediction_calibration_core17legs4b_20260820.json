@@ -1,0 +1,63 @@
+{
+ "schema": "prediction_audit_calibration/core17legs4b",
+ "name": "real_world_prediction_calibration_core17legs4b_20260820",
+ "generated": "2026-08-20",
+ "replaces": "real_world_prediction_calibration_pshb4500fix_20260724.json",
+ "why_replaced": [
+  "옛 배율은 core17legs4b 이전 세대(저류 160키 개편·link_to_origins 전면교체 이전)에서 맞춘 값이다.",
+  "그 배율을 지금 망에 씌우면 protected_accumulation 을 0.183 배로 깎아 실측 대비 -79% 로 만든다.",
+  "원시 모델은 같은 구간에서 +8~19% 로 따라가고 있었다 — 즉 오차의 대부분이 보정 자체였다.",
+  "측정: 평균 |상대오차| 기존 61.3%(iv150) / 62.2%(iv60) 대 원시 25.8% / 14.8%."
+ ],
+ "scope": {
+  "consumer": "vissim_stackelberg_adapter.apply_prediction_audit_calibration",
+  "affects_control": false,
+  "note": "prediction / prediction_error 페이로드에만 적용된다. MPC 롤아웃은 원시 state 를 쓴다. post_guard·component_penalty 경로는 이 런에서 비활성이라 제어에 새지 않는다(2026-08-20 확인)."
+ },
+ "method": "componentwise median(observed/raw_predicted) — 두 부하영역 모두에서 이득인 성분만 보정, 나머지는 1.0",
+ "fit_sources": {
+  "trajectories": [
+   {"tag": "iv150", "run": "shape_off_20260820", "pairs": 11, "sim_sec": "300-1800", "control_interval_sec": 150, "seed": 13},
+   {"tag": "iv60", "run": "smoke_core17legs4b_20260819", "pairs": 9, "sim_sec": "120-600", "control_interval_sec": 60, "seed": 13}
+  ],
+  "deduplicated": "shape_on_20260820 · smoke_core17legs4b_iv150b_20260819 · smoke_core17legs4b_iv150_20260819 는 iv150 과 예측행이 비트 일치라 제외했다(3중 가중 방지).",
+  "raw_source": "앞 결정의 prediction.state_summary (원시). prediction_error 의 predicted 는 이미 보정된 값이라 재적합에 쓰면 순환이다."
+ },
+ "prediction": {
+  "audit_calibration": {
+   "enabled": true,
+   "freeway_total_scale": 1.0,
+   "urban_queue_plus_storage_scale": 1.0,
+   "component_scales": {
+    "freeway_mean_speed_kph": 0.9115,
+    "urban_link_occupancy_total_veh": 0.6166,
+    "urban_movement_queue_total_veh": 1.5,
+    "off_ramp_storage_veh": 1.0,
+    "boundary_queue_total_veh": 1.0
+   },
+   "recompute_urban_queue_plus_storage_from_components": true,
+   "recompute_urban_total_from_components": true,
+   "recompute_total_model_vehicles_from_components": true
+  }
+ },
+ "not_corrected": {
+  "protected_accumulation_veh": "원시 편의가 작고(iv150 0.898 / iv60 1.059) 부하영역마다 방향이 갈린다. 배율을 씌우면 표본외에서 12.3% -> 17.5% 로 나빠진다.",
+  "freeway_total_veh": "같은 이유. 배율 1.09 를 씌우면 iv60 에서 2.8% -> 9.7%.",
+  "urban_total_veh / total_model_vehicles / urban_queue_plus_link_occupancy_total_veh": "성분에서 재계산한다(recompute_* = true). 별도 배율을 주면 이중 보정이다.",
+  "off_ramp_storage_veh": "VISSIM 관측이 39/39 표본 전부 정확히 0인데 모델은 0.1~24.6 을 낸다. 관측 채널 결측으로 판단 — 0 에 맞추는 것은 계측 결함을 적합하는 것이다. 보정하지 않고 남긴다.",
+  "boundary_queue_total_veh": "같음. 관측 39/39 전부 0, 모델 2.1~19.0.",
+  "ramp_queue_total_veh": "반대 방향 결측 — 관측은 38/39 비영(최대 56)인데 모델이 39/39 전부 0. 모델 채널이 비어 있어 배율로 못 고친다."
+ },
+ "measured_mean_abs_relative_error": {
+  "unit": "지표 8개 평균",
+  "iv150_in_sample": {"raw": 0.258, "previous_calibration": 0.613, "this": 0.102},
+  "iv60_out_of_sample": {"raw": 0.148, "previous_calibration": 0.622, "this": 0.115}
+ },
+ "caveats": [
+  "적합 궤적이 시드 13 하나뿐이다. iv150 수치(10.2%)는 표본내라 예측정확도로 인용하면 순환이다.",
+  "인용 가능한 값은 표본외 iv60 의 11.5% 이거나, 보류 시드로 다시 잰 값이다.",
+  "urban_movement_queue 는 비율이 시간에 따라 1.05 -> 2.41 로 표류한다(모델의 큐 성장률이 느리다). 배율 1.5 는 두 영역 오차를 40.2% -> 22.6% 로 줄이는 절충일 뿐 편의를 제거하지 못한다. 근원은 동역학이다.",
+  "iv60 궤적은 t<=600 경부하·무제어라 순수한 보류표본이 아니라 응력시험에 가깝다."
+ ],
+ "next": "다른 시드로 1800s 런 1회를 돌려 표본외에서 재검증한다. 그 값이 논문에 인용할 수치다."
+}

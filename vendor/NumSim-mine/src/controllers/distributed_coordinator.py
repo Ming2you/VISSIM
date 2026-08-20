@@ -682,6 +682,20 @@ class DistributedCoordinator:
         control = self._prepare_grid_control(candidate.control, leader)
         horizon = max(1, min(len(forecast), self.cfg.mpc.horizon_steps))
         horizon_h = self.cfg.simulation.T_c_h * horizon
+        # far(MFD tail) terminal cost 를 이 경로에 흘릴지 (2026-08-20).
+        #
+        # `cfg.mpc.leader_mfd_far_enabled` 는 상류 기본이 True 이고 `mfd_far_cost_to_go` 도
+        # 구현돼 있지만, 이 경로는 `ObjectiveSpec` 을 기본값(`score_mode="raw"`,
+        # `far_enabled=False`)으로 만들어 far 를 **계산조차 하지 않았다** — 실런 진단에
+        # far 키가 0건이다. 가격 팔(`stackelberg_wu_metered.py:2606`)만 쓰고 있었다.
+        #
+        # 새 플래그 기본 False = 비트동일. 켜면 far 가 후보 랭킹 objective 와
+        # guard 비교값에 **양쪽 대칭으로** 들어간다 — 폴백 PFO 도 leader=None 으로
+        # 같은 `_evaluate_grid_candidate` 를 타므로 같은 처리를 받는다.
+        far_enabled = bool(
+            getattr(self.cfg.mpc, "distributed_rollout_far_enabled", False)
+            and getattr(self.cfg.mpc, "leader_mfd_far_enabled", True)
+        )
         point = evaluate_price_point(
             state,
             control,
@@ -692,6 +706,10 @@ class DistributedCoordinator:
                 depth_override=horizon,
                 box_walk=False,
                 split_ttt=True,
+                score_mode="leader" if far_enabled else "raw",
+                far_enabled=far_enabled,
+                # abort_above 는 partial_ttt 기준인데 incumbent_obj 에는 far 가 섞인다.
+                # far >= 0 이라 문턱이 느슨해질 뿐이라 조기절단이 덜 걸린다(보수적).
                 abort_above=(
                     float(incumbent_obj) + 1.0e-12 if np.isfinite(incumbent_obj) else None
                 ),
@@ -723,7 +741,9 @@ class DistributedCoordinator:
             * self.cfg.simulation.T_c_h
             * horizon
         )
-        objective = float(total_ttt + spillback_penalty)
+        # far 는 spec 이 꺼져 있으면 0.0 이라 기본 경로는 그대로다.
+        far_term = float(getattr(point, "far", 0.0) or 0.0)
+        objective = float(total_ttt + spillback_penalty + far_term)
         if early_terminated:
             objective = float(max(objective, incumbent_obj + 1.0e-9))
         diag = dict(proxy_diag)
@@ -748,7 +768,12 @@ class DistributedCoordinator:
                 "target_net_inflow" in candidate.label
             ),
             "distributed_response_rollout_active": 1.0,
-            "distributed_response_rollout_ttt": float(total_ttt),
+            # guard(`stackelberg_mpc._evaluation_rollout_ttt`)가 읽는 값. far 가 꺼져 있으면
+            # far_term=0.0 이라 옛 값과 동일하다. 켜면 leader/fallback 양쪽에 같이 실린다.
+            "distributed_response_rollout_ttt": float(total_ttt + far_term),
+            "distributed_response_rollout_ttt_raw": float(total_ttt),
+            "distributed_response_rollout_far": float(far_term),
+            "distributed_rollout_far_active": float(far_enabled),
             "distributed_response_rollout_freeway_ttt": float(freeway_ttt),
             "distributed_response_rollout_urban_ttt": float(urban_ttt),
             "distributed_response_terminal_rollout_vehicles": float(
@@ -1021,6 +1046,109 @@ class DistributedCoordinator:
             result[3].update(parallel_diag)
         return results
 
+    # ---------- 현시별 녹색 자유도 (2026-08-20, 전부 기본 꺼짐) ----------
+    #
+    # 배경. 지금 신호당 자유도는 1이다. 커밋되는 control 은 leaderless structured grid 가
+    # 만드는데, `green:{signal}` 축이 주 현시 하나를 ±6 s 움직이고 나머지는
+    # `distribute_phase_green` 이 균등으로 편다. 실측: 17 SC 중 12개가 34.5x4 로 완전 균등.
+    #
+    # 벡터 writer 를 새로 만들지 않는다. 합이 예산과 같고 상자 안이면
+    #   set_signal_green(control, net, s, v[live0], reference=v)
+    # 가 임의의 실행가능 벡터 v 를 **그대로 재현**한다(실행 검증함). 덕분에 예산 보존과
+    # [green_min, green_max] 상자, 죽은 현시 0 이 전부 기존 코드로 강제된다.
+
+    def _phase_shape_live(self, signal: str) -> tuple:
+        net = self.cfg.network
+        try:
+            live = tuple(net.signal_live_phases(signal))
+        except Exception:
+            live = tuple(MODEL_PHASES)
+        return live or tuple(MODEL_PHASES)
+
+    def _phase_pressure(self, state: TrafficState, signal: str) -> Dict[str, float]:
+        """현시별 압력 = 그 현시가 서비스하는 movement 들의 대기행렬 합."""
+        specs = self._specs
+        out: Dict[str, float] = {}
+        queues = getattr(state, "urban_movement_queue", {}) or {}
+        for movement, spec in specs.items():
+            if str(spec.get("signal", spec.get("intersection", ""))) != signal:
+                continue
+            pid = str(spec.get("phase", ""))
+            if not pid:
+                continue
+            pid = pid.split("_")[-1] if pid.startswith(signal) else pid
+            out[pid] = out.get(pid, 0.0) + max(0.0, float(queues.get(movement, 0.0)))
+        return out
+
+    def _phase_pressure_skew(self, state: TrafficState, signal: str) -> float:
+        """압력이 얼마나 치우쳤나. 균등이면 0. 상위 k 신호를 고르는 데만 쓴다."""
+        live = self._phase_shape_live(signal)
+        w = self._phase_pressure(state, signal)
+        vals = [max(0.0, float(w.get(pid, 0.0))) for pid in live]
+        total = sum(vals)
+        if total <= 1.0e-9 or len(vals) < 2:
+            return 0.0
+        even = total / float(len(vals))
+        return sum(abs(v - even) for v in vals) / total
+
+    def _phase_shape_candidates(self, center: ControlAction, state: TrafficState) -> list:
+        """예산 보존 쌍교환 이웃 — "현시 i 에서 d 초 빼서 j 에 준다".
+
+        합이 구조적으로 불변이라 사영이 필요 없고, 리더 코너 열거가 2^15 로 터진 실패 모드를
+        원천적으로 피한다. 시드가 기존 4-stage 최적점이라 개선될 때만 채택되면 절대 나빠지지 않는다.
+        """
+        uf = self.cfg.urban_follower
+        if not bool(getattr(uf, "phase_shape_search", False)):
+            return []
+        net = self.cfg.network
+        steps = tuple(getattr(uf, "phase_shape_steps_sec", (6.0, 2.0)))
+        top_k = int(getattr(uf, "phase_shape_signal_top_k", 6))
+        limit = int(getattr(uf, "phase_shape_candidate_limit", 24))
+        gmin, gmax = float(net.green_min), float(net.green_max)
+
+        ranked = sorted(net.signals, key=lambda sg: -self._phase_pressure_skew(state, sg))
+        if top_k > 0:
+            ranked = ranked[:top_k]
+
+        out: list = []
+        seen: set = set()
+        for signal in ranked:
+            live = self._phase_shape_live(signal)
+            if len(live) < 2:
+                continue
+            v = {
+                pid: float(center.green_times.get(phase_key(signal, pid), net.default_phase_green))
+                for pid in live
+            }
+            for i in live:
+                for j in live:
+                    if i == j:
+                        continue
+                    for d in steps:
+                        d = float(d)
+                        if v[i] - d < gmin - 1.0e-9 or v[j] + d > gmax + 1.0e-9:
+                            continue
+                        nv = dict(v)
+                        nv[i] -= d
+                        nv[j] += d
+                        key = (signal, tuple(round(nv[pid], 4) for pid in live))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        trial = center.copy()
+                        set_signal_green(trial, net, signal, nv[live[0]], reference=nv)
+                        out.append(GridControlCandidate(
+                            label=f"gshape:{signal}:{i}->{j}:{d:g}",
+                            control=trial,
+                            stage="phase_shape",
+                            scope="local",
+                            axis=f"gshape:{signal}",
+                            delta=float(d),
+                        ))
+                        if len(out) >= limit:
+                            return out
+        return out
+
     def _structured_grid_refinement(
         self,
         state: TrafficState,
@@ -1105,9 +1233,25 @@ class DistributedCoordinator:
                 best_control = control
                 best_diag = diag
 
+        # 5번째 stage — 현시별 예산 보존 쌍교환. 기본 꺼짐이라 후보가 0이면 완전 무연산이다.
+        # 시드가 위 4-stage 최적점(best_control)이고 _response_is_better 로만 교체하므로
+        # 같은 목적함수 아래에서 절대 기존 답보다 나빠지지 않는다.
+        shape_candidates = self._phase_shape_candidates(best_control, state)
+        shape_results = (
+            self._evaluate_grid_stage(state, shape_candidates, forecast, leader, incumbent_obj=best_obj)
+            if shape_candidates else []
+        )
+        shape_improved = 0
+        for _candidate, obj, control, diag in shape_results:
+            if self._response_is_better(obj, diag, best_obj, best_diag):
+                best_obj = float(obj)
+                best_control = control
+                best_diag = diag
+                shape_improved += 1
+
         if not np.isfinite(best_obj):
             return center.copy(), np.inf, {}
-        stage_results = [coarse_results, probe_results, direction_results, fine_results]
+        stage_results = [coarse_results, probe_results, direction_results, fine_results, shape_results]
 
         def stage_diag_sum(key: str) -> float:
             return float(sum(
@@ -1144,6 +1288,10 @@ class DistributedCoordinator:
             "distributed_grid_refresh_interval_sec": float(refresh_sec),
             "distributed_grid_authority_wu": float(authority == "wu"),
             "distributed_grid_authority_proposed": float(authority == "proposed"),
+            "distributed_grid_phase_shape_candidates": float(len(shape_candidates)),
+            "distributed_grid_phase_shape_evaluated": float(len(shape_results)),
+            "distributed_grid_phase_shape_improved": float(shape_improved),
+            "distributed_grid_phase_shape_active": float(bool(shape_candidates)),
         })
         return best_control, float(best_obj), best_diag
 
@@ -3063,6 +3211,14 @@ class DistributedCoordinator:
             key: float(value)
             for key, value in result.metrics.items()
             if key.startswith("urban_uncontrolled_node_")
+        })
+        # 2026-08-20: stage2 후보 수와 현시 shape 진단을 밖으로 내보낸다. 지금까지 이 필터가
+        # 막고 있어 액션 JSON 에 urban_stage2_* 가 한 건도 안 실렸고, 그래서 현시별 탐색을
+        # 붙일 때 계산량을 실측으로 잡을 수 없었다. 값만 통과시키므로 행동은 안 바뀐다.
+        diagnostics.update({
+            key: float(value)
+            for key, value in result.metrics.items()
+            if key.startswith("urban_stage2_") or key.startswith("phase_shape_")
         })
         return AgentSolve(
             agent_id=agent.id,
