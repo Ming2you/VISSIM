@@ -229,18 +229,15 @@
   "local_patches_note": "이 절은 vendor 트리가 upstream commit 과 **정확히 같지 않다**는 사실을 1급으로 기록한다. blob OID 를 조용히 갱신하면 앵커가 'commit 에 이 내용이 있다'는 거짓을 주장하게 되므로 그렇게 하지 않는다. verify_runtime_source.py 는 여기 등재된 (path, patched_blob) 조합만 이탈로 허용하고, 등재되지 않은 이탈이나 patched_blob 불일치는 여전히 FAIL 이다. 나머지 120개 파일에 대한 보증은 그대로 유지된다.",
   "local_additions": [
     {
-      "path": "src/controllers/priced_distributed_coordinator.py",
-      "blob": "e1779a8711b08eaec38a4279545cda9ec5b735c3",
+      "path": "src/controllers/priced_wu_link_controller.py",
+      "blob": "a50f194e60a09b0b1bc58a5e7825b3515c2b6d80",
       "added_at": "2026-08-20",
-      "workspace_commit": "9dac804",
+      "renamed_from": "src/controllers/priced_distributed_coordinator.py",
       "upstream_status": "상류에 없다. 로컬 신규 파일이다.",
-      "why": "가격 리더(StackelbergWuMeteredController)와 분산 player(17 도시 + 2 고속)를 잇는 하이브리드 팔로워. 저장소의 두 컨트롤러가 반쪽씩만 갖고 있었다 — 분산 팔은 player 구조가 있고 가격이 없으며, wu 팔은 가격 4채널 + λ_P/λ_UF 가 있고 player 구조가 없다. 리더를 한 줄도 안 건드리고 `_make_follower_solver` 만 바꿔 둘을 합친다.",
-      "what": "PricedDistributedCoordinator 는 베이스에서 __init__ 과 _agent_queue_tts_terms 둘만 오버라이드한다. 새로 넣은 것은 (a) 가격 오라클 3개(local_green/metering/vsl_costs) (b) λ_P 듀얼 갱신 (c) neighbor 결합항이다. PricedDistributedStackelbergController 는 _make_follower_solver 한 줄이다.",
-      "design": "국소와 전역을 분리한다(사용자 설계). neighbor = 최인접 교차로로 퍼지는 국소 결합, price = 그 너머 망 전반의 외부효과. 베이스는 국소 쪽이 문턱형이라 반쪽이었다 — blocked_to_urban 이 램프 저수지가 **넘친 뒤**에만 값을 내서, 조이기 시작한 순간부터 상류 교차로가 무는 대수가 0 으로 보였다(λ_UF 주석의 'metering 은 절벽 레버'). 점유율 r=terminal/capacity 에 비례하는 매끄러운 항을 문턱 항과 함께 더해 r=1 에서 잇는다.",
-      "revives": "`AgentSpec.neighbors` 는 베이스에서 죽은 필드였다 — build_agent_specs 가 채우지만 해석부가 안 읽고 src/tests/test_constraints.py:696 만 읽었다. 여기서 처음 쓴다.",
-      "omitted": "offset 가격(오라클 96줄) · 교차가격 2종 · price_far/price_hinge 는 안 넣었다. flagship 빌더에서도 꺼져 있고, 리더가 각 local_*_costs 호출을 enable 플래그로 감싸므로 끈 채널의 오라클은 호출되지 않는다. 실제로 도는 경로만 만든다(사용자 지시).",
-      "bit_identical_when_off": "neighbor_coupling_weight 기본 0.0, 가격 속성 전부 None -> 베이스와 같은 경로다.",
-      "why_not_python_blobs": "python_blobs 에 끼워 넣으면 앵커가 '상류 커밋에 이 파일이 있다' 는 거짓을 주장하게 된다 — local_patches_note 가 금지한 바로 그것이다. 그래서 별도 절을 둔다."
+      "why": "가격 리더(StackelbergWuMeteredController) + Wu 충실 팔로워(WuFaithfulFollower)를 그대로 쓰되 freeway player 입도만 링크 단위(2개)로 고정한다. flagship 빌더가 segment_agents=True 로 세그먼트 16개로 쪼개는데, VSL 은 링크당 1개뿐이라 8 agent 가 하나를 두고 경합한다(실측 vsl_selected 100.0/120.0 로 갈림, 병합은 out.vsl[link] 한 줄).",
+      "what": "LinkAgentWuFollower 는 __init__ 에서 segment_agents=False 만 세운다. PricedWuLinkStackelbergController 는 _make_follower_solver 한 줄이다. Wu 의 GNE(순수 Jacobi, z̃ 동결·동시갱신, S_max, warm-start)·오라클 7개·λ_P/λ_UF·가격 소비 경로를 한 줄도 안 건드린다.",
+      "history": "초판(333줄, 커밋 fe52cfd)은 DistributedCoordinator 를 베이스로 가격 오라클 3개·λ_P·neighbor 결합항을 직접 구현했다. 요청은 'wu 구조를 홀드하고 player 만' 이었는데 초판은 팔로워의 GNE 를 분산 것으로 바꿔놨다(순수 Jacobi 대 블록 Gauss-Seidel, 결합변수 4키 대 48키). 직접 구현한 것도 전부 wu 에 이미 있거나(오라클·λ_P) 열등했다(neighbor 휴리스틱 대 wu 의 substep FIFO + follower_terminal_cost). 2026-08-20 에 wu 베이스로 전면 재작성하고 파일명도 바로잡았다.",
+      "why_not_python_blobs": "python_blobs 에 넣으면 앵커가 '상류 커밋에 이 파일이 있다' 는 거짓을 주장하게 된다."
     }
   ],
   "local_additions_note": "상류에 **없는** 로컬 신규 파일을 1급으로 기록한다. local_patches 는 상류 파일의 수정이라 upstream_blob 을 요구하는데, 신규 파일은 그 지문이 존재하지 않아 그 스키마로 표현할 수 없다. python_blobs 에 넣는 것은 앵커가 없는 사실을 주장하게 하므로 금지다. verify_runtime_source.py 는 여기 등재된 (path, blob) 조합만 파일집합 비교에서 예외로 인정하고, 등재됐는데 지문이 다르거나 파일이 사라지면 그대로 실패로 남는다. python_file_count 121 은 **상류 기준**이라 신규 파일이 늘어도 바뀌지 않는다."

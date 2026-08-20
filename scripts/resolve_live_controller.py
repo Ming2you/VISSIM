@@ -131,7 +131,7 @@ def main(argv=None) -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
     vsa = _load_adapter()
-    flagship = args.controller in ("pstack-flagship", "priced-distributed")
+    flagship = args.controller in ("pstack-flagship", "wu-link")
     tuning = vsa.load_optional_json(str(args.tuning))
     calibration = vsa.load_optional_json(str(args.calibration))
     cfg = vsa.build_config(
@@ -142,13 +142,12 @@ def main(argv=None) -> int:
     from src.controllers.distributed_coordinator import build_agent_specs  # noqa: E402
 
     mode = str(getattr(cfg.mpc, "follower_solver_mode", "?"))
-    if args.controller == "priced-distributed":
-        controller_cls = "PricedDistributedStackelbergController"
-        follower_cls = "PricedDistributedCoordinator"
-        seeds = ["priced_distributed_coordinator.py"]
+    if args.controller == "wu-link":
+        controller_cls = "PricedWuLinkStackelbergController"
+        follower_cls = "LinkAgentWuFollower (WuFaithfulFollower · segment_agents=False)"
+        seeds = ["priced_wu_link_controller.py"]
         price = dict(FLAGSHIP_PRICE_FLAGS)
-        price["offset_price_enabled"] = False   # 오라클 미구현 — 끈 채로 둔다
-        price_src = "build_priced_distributed_controller (코드 주입)"
+        price_src = "build_priced_wu_link_controller (코드 주입)"
     elif flagship:
         controller_cls, follower_cls = "F1StackelbergWuMeteredController", "WuFaithfulFollower"
         seeds = ["f1_wu_faithful_follower.py", "stackelberg_wu_metered.py"]
@@ -161,8 +160,21 @@ def main(argv=None) -> int:
         price = {k: False for k in WU_CLASS_PRICE_DEFAULTS}
         price_src = "해당 없음 — 이 팔에 가격 채널이 없다"
 
-    urban, freeway = build_agent_specs(cfg)
     net = cfg.network
+    if follower_cls.startswith(("WuFaithfulFollower", "LinkAgentWuFollower")):
+        # wu 팔로워는 자기 agent 목록을 따로 갖는다 — build_agent_specs 는 분산 코디네이터 것이다.
+        class _A:
+            def __init__(self, i): self.id = i
+        seg = follower_cls.endswith("segment_agents=False)") is False
+        urban = [_A(f"U_{s}") for s in net.signals]
+        freeway = (
+            [_A(f"F_{l.split('_')[-1]}{i}") for l in net.freeway_links
+             for i in range(net.freeway_segments_per_link)]
+            if (flagship and args.controller == "pstack-flagship")
+            else [_A(f"F_{l.split('_')[-1]}") for l in net.freeway_links]
+        )
+    else:
+        urban, freeway = build_agent_specs(cfg)
     live_phases = sum(
         1 for sig in net.signals
         for ph in range(1, 5)
@@ -184,8 +196,15 @@ def main(argv=None) -> int:
     p("--- player ---")
     p(f"  도시 agent           {len(urban):3d}   {', '.join(a.id for a in urban[:6])}{' …' if len(urban) > 6 else ''}")
     p(f"  고속 agent           {len(freeway):3d}   {', '.join(a.id for a in freeway[:8])}{' …' if len(freeway) > 8 else ''}")
-    p(f"  freeway 입도         {getattr(cfg.mpc, 'freeway_agent_granularity', 'segment')}"
-      f"   (agent 분할만 바꾼다 — plant 모델은 불변)")
+    _gran = (
+        ("segment" if args.controller == "pstack-flagship" else "link")
+        + "  (wu: segment_agents 스위치)"
+        if follower_cls.startswith(("WuFaithfulFollower", "LinkAgentWuFollower"))
+        else str(getattr(cfg.mpc, "freeway_agent_granularity", "segment"))
+        + "  (분산: freeway_agent_granularity)"
+    )
+    p(f"  freeway 입도         {_gran}")
+    p("                       agent 분할만 바꾼다 — plant 모델은 불변")
     p(f"  freeway 셀           {len(net.freeway_links)} 링크 x {net.freeway_segments_per_link} 세그먼트 = "
       f"{len(net.freeway_links) * net.freeway_segments_per_link}   <- 롤아웃이 굴리는 것")
     p()

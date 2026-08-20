@@ -418,6 +418,60 @@ urban_tts        = 0.5 * blocked_to_urban * horizon_h
 **`AgentSpec.neighbors` 는 죽은 필드다.** 최인접 교차로를 선언해 두지만 해석부가 안 읽고
 `tests/test_constraints.py:696` 만 읽는다. 램프-교차로 결합을 제대로 걸려면 여기가 그 자리다.
 
+## 팔이 셋이다 — 헷갈리지 마라 (2026-08-20)
+
+```bash
+python scripts/resolve_live_controller.py --controller <이름>
+```
+
+| `--controller` | 리더 | 팔로워 | player | 가격 | GNE |
+| --- | --- | --- | --- | --- | --- |
+| `stackelberg` | StackelbergMPC | DistributedCoordinator | 17 + 16(세그먼트) | **없음** | 블록 Jacobi + 블록간 Gauss-Seidel |
+| `pstack-flagship` | StackelbergWuMetered | WuFaithfulFollower | 17 + 16(`segment_agents=True`) | 4채널 + λ_P | 순수 Jacobi |
+| `wu-link` | 〃 | LinkAgentWuFollower | 17 + **2**(링크) | 〃 | 〃 |
+
+`wu-link` 가 2026-08-20 에 만든 것이다. **`pstack-flagship` 과 딱 한 줄 다르다** —
+`segment_agents = False`. Wu 의 GNE·오라클 7개·λ_P/λ_UF·가격 소비 경로를 한 줄도 안 건드린다.
+
+왜 링크 단위인가. VSL 은 **링크당 1개**인데 세그먼트 agent 8개가 그 하나를 공유하고
+합의가 안 된다(실측 `vsl_selected` 가 100.0/120.0 로 갈리고 병합은 `out.vsl[link]` 한 줄이라
+사실상 마지막 승자). 링크 단위면 agent 가 VSL 1 + 램프 2 = **액션 3개를 정확히 소유**한다.
+
+**plant 모델은 어느 팔에서도 안 바뀐다.** `freeway_segments_per_link = 8` · `ramps = 4` 라
+METANET 롤아웃은 항상 2링크 x 8세그먼트 = 16셀 + 램프 4개를 굴린다. agent 분할만 바뀐다.
+
+### 초판(커밋 `fe52cfd`)은 요청과 달랐다 — 기록해 둔다
+
+`priced_distributed_coordinator.py`(333줄)는 `DistributedCoordinator` 를 베이스로 가격
+오라클 3개·λ_P·neighbor 결합항을 **직접 구현**했다. 요청은 "wu 구조를 홀드하고 player 만"
+이었는데 초판은 리더의 가격 기구만 보존하고 **팔로워의 GNE 를 분산 것으로 바꿔놨다.**
+
+```
+순수 Jacobi (wu)            대   블록 Jacobi + 블록간 Gauss-Seidel (분산)
+결합변수 4키                대   48키 (세그먼트별 밀도·속도·유량 x8)
+국소 최선응답 + 국소 롤아웃  대   structured grid + 전 망 450초 롤아웃
+```
+
+그리고 직접 구현한 것이 전부 불필요하거나 열등했다.
+
+- 가격 오라클 3개 — wu 에 **7개**가 이미 있다
+- λ_P 듀얼 — wu 의 `_lambda_np_update` + `use_dual_np`(기본 True)가 이미 한다
+- neighbor 결합항 — 문턱은 **물리적으로 옳다**(저수지에 공간이 있는 동안 차량은 램프에
+  대기하고 그건 `link_ramp_queue` 로 이미 계상된다). wu 는 그 회계를 substep FIFO 로
+  돌려 더 정교하고(`count_blocked_ramp_inflow`), 근시 병리는
+  `follower_terminal_cost_enabled`(Q²/2R 삼각 배수)가 더 잘 다룬다
+
+2026-08-20 에 wu 베이스로 전면 재작성하고 파일명을 `priced_wu_link_controller.py` 로
+바로잡았다. **초판 코드는 남아 있지 않다 — git 이력에만 있다.**
+
+### 앵커에 `local_additions` 를 신설했다
+
+`local_patches` 는 상류 파일의 **수정**이라 `upstream_blob` 을 요구한다. 상류에 없는
+**신규 파일**은 그 지문이 존재하지 않아 표현할 수 없었다. `python_blobs` 에 끼워 넣으면
+앵커가 "상류 커밋에 이 파일이 있다" 는 거짓을 주장하게 되므로 별도 절을 둔다.
+등재된 `(path, blob)` 조합만 파일집합 비교에서 예외로 인정하고, 지문이 다르거나 파일이
+사라지면 그대로 실패다. `python_file_count` 121 은 **상류 기준**이라 안 바뀐다.
+
 ## 승인 사슬 — 앵커 등재 하나 남았다
 
 ```bash

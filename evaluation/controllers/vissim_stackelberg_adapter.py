@@ -2598,25 +2598,20 @@ def flagship_config_overrides() -> dict[str, Any]:
     }
 
 
-def build_priced_distributed_controller(cfg, tuning: Mapping[str, Any]):
-    """가격 리더(wu) + 분산 player(17 도시 + 2 고속) 하이브리드 (2026-08-20).
+def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
+    """가격 리더 + Wu 충실 팔로워, player 입도만 링크 단위 (2026-08-20).
 
-    `build_pstack_flagship_controller` 와 **가격 설정은 같고 팔로워만 다르다.** 그쪽은
-    `WuFaithfulFollower` 를 물고 오는데, 그러면 오늘까지 다듬은 17+16 player 구조가 통째로
-    사라진다(그 파일 독스트링이 폴백 비활성까지 명시한다). 여기서는
-    `PricedDistributedStackelbergController` 가 `_make_follower_solver` 만 바꿔
-    `PricedDistributedCoordinator` 를 돌려준다 — 리더의 가격 계산·GNE 반복은 불변이다.
+    `build_pstack_flagship_controller` 와 **가격 설정이 같고 `segment_agents` 만 다르다.**
+    flagship 은 freeway agent 를 세그먼트 16개로 쪼개는데, 그러면 VSL 은 링크당 1개뿐이라
+    8 agent 가 하나를 두고 경합한다(실측 vsl_selected 가 100.0/120.0 로 갈리고 병합은
+    out.vsl[link] 한 줄이라 사실상 마지막 승자). 링크 단위면 agent 가 VSL 1 + 램프 2 =
+    액션 3개를 정확히 소유한다.
 
-    flagship 빌더가 켜는 것 중 `nash_solver.*`(f1_spillback_weight · joint_green_offset_enabled ·
-    ramp_offset_enabled · segment_agents)는 **여기서 설정하지 않는다.** 전부
-    `WuFaithfulFollower` 의 속성이고 분산 코디네이터엔 대응물이 없다. 실제로 안 도는 가지를
-    만들지 않는다(2026-08-20 사용자 지시).
-
-    offset 가격은 끈다 — 오라클이 96줄이고 이 팔에 구현하지 않았다. 리더가 각 `local_*_costs`
-    호출을 자기 enable 플래그로 감싸므로 끈 채널의 오라클은 호출되지 않는다.
+    Wu 팔로워는 그대로다 — 순수 Jacobi, 결합변수 z̃ 동결·동시갱신, 오라클 7개, λ_P/λ_UF.
+    `PricedWuLinkStackelbergController` 는 `_make_follower_solver` 한 줄만 오버라이드한다.
     """
-    from src.controllers.priced_distributed_coordinator import (
-        PricedDistributedStackelbergController,
+    from src.controllers.priced_wu_link_controller import (
+        PricedWuLinkStackelbergController,
     )
 
     settings = flagship_settings(tuning)
@@ -2625,16 +2620,22 @@ def build_priced_distributed_controller(cfg, tuning: Mapping[str, Any]):
         cfg.mpc.leader_skip_local_refinement = True
         cfg.mpc.leader_rollout_early_stop = True
 
-    controller = PricedDistributedStackelbergController(cfg)
-    # 가격 4채널 중 구현한 셋만 켠다. 교차가격은 flagship 빌더에서도 False 다.
+    controller = PricedWuLinkStackelbergController(cfg)
+    controller.nash_solver.f1_spillback_weight = 0.0
+    # 가격 4채널 — flagship 과 동일. wu 팔로워라 offset 오라클도 있으므로 켠다.
     controller.signal_price_enabled = True
     controller.metering_price_enabled = True
     controller.vsl_price_enabled = True
-    controller.offset_price_enabled = False
+    controller.offset_price_enabled = True
+    controller.offset_price_inner_iters = 4
     controller.green_offset_cross_price_enabled = False
     controller.vsl_meter_cross_price_enabled = False
+    controller.nash_solver.joint_green_offset_enabled = True
+    controller.nash_solver.ramp_offset_enabled = True
     controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
     controller.metering_price_trust_frac = _as_float(settings.get("metering_price_trust_frac"), 0.20)
+    # flagship 이 여기서 segment_agents=True 를 켠다. 이 팔은 켜지 않는다 —
+    # LinkAgentWuFollower.__init__ 이 False 로 못박아 두었다.
     return controller
 
 
@@ -5875,7 +5876,7 @@ def main() -> None:
             "stackelberg",
             "stackelberg-wu-metered",
             "pstack-flagship",
-            "priced-distributed",
+            "wu-link",
             "pfo",
             "wu",
             "wu-leader",
@@ -6116,7 +6117,7 @@ def main() -> None:
         calibration,
         tuning,
         local_observation=local_observation,
-        flagship=(args.controller in ("pstack-flagship", "priced-distributed")),
+        flagship=(args.controller in ("pstack-flagship", "wu-link")),
     )
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
@@ -6131,7 +6132,7 @@ def main() -> None:
     if local_observation:
         install_local_observation_runtime_guards()
     forecast_horizon_steps = int(cfg.mpc.horizon_steps)
-    if args.controller in ("pstack-flagship", "priced-distributed"):
+    if args.controller in ("pstack-flagship", "wu-link"):
         # 러너 L1044: 리더 value-depth rollout이 horizon 밖 수요를 소비한다 —
         # forecast 길이 = horizon_steps + max(0, leader_value_depth).
         forecast_horizon_steps += max(0, int(getattr(cfg.mpc, "leader_value_depth", 0)))
@@ -6433,10 +6434,10 @@ def main() -> None:
         elif args.controller == "diagnostic-combined-extreme":
             control = diagnostic_combined_extreme_control(cfg, ControlAction)
             metadata["diagnostic_combined_extreme_active"] = 1.0
-        elif args.controller in ("stackelberg", "priced-distributed"):
+        elif args.controller in ("stackelberg", "wu-link"):
             controller = (
-                build_priced_distributed_controller(cfg, tuning)
-                if args.controller == "priced-distributed"
+                build_priced_wu_link_controller(cfg, tuning)
+                if args.controller == "wu-link"
                 else StackelbergMPCController(cfg)
             )
             metadata.update(install_vissim_terminal_cost_objective(controller, cfg, tuning))
