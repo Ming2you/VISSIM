@@ -51,6 +51,19 @@ from src.controllers.relaxed_quantization import (
 from src.controllers.wu_distributed import WuDistributedController, _split_link_offramp_flow
 from src.models.demand import DemandStep
 from src.models.metanet import compute_ramp_release_flows
+# 2026-08-20: `distribute_phase_green` 에 signal= 을 넘긴다.
+#
+# 안 넘기면 4현시 전체(MODEL_PHASES)와 4현시 총량(net.effective_green_total)으로 배분하고
+# `_project_to_budget` 이 green_min 으로 클램프해, **그 SC 가 켤 수 없는 현시에도 녹색이 실린다.**
+# 실측(phaseprice2_20260820): SC7 은 live 가 (p1,p2,p4) 인데 액션이 (55.0, 27.5, **20.0**, 35.5)
+# 로 죽은 p3 에 green_min 20 초를 실었고 합이 138(4현시 총량)이었다. 실 live 총량은 103.5 다.
+# 그 결과 액션 CSV 검증이 `SignalGroupPlanError: sc 7: action commands green on phases
+# (p1,p2,p3,p4) but the actuation plan has signal groups on (p1,p2,p4)` 로 죽어 제어가
+# 한 결정도 안 걸렸다(DECISION_EXIT_NONZERO).
+#
+# `distribute_phase_green` 독스트링이 기본값의 이유를 적어놨다 — "호출부 45곳을 한꺼번에
+# 안 건드리기 위한 기본값". wu 팔로워는 live 현시가 신호마다 다른 망에서 돌아본 적이 없다.
+# 이 망은 17 SC 중 5개가 3현시다.
 from src.models.state import (
     MODEL_PHASES,
     PRIMARY_PHASE,
@@ -641,7 +654,7 @@ class WuFaithfulFollower:
         model = self._local_models[signal]
         total = net.effective_green_total
         cycle = max(net.cycle_length, 1.0e-9)
-        green = distribute_phase_green(net, float(green_p1))
+        green = distribute_phase_green(net, float(green_p1), signal=signal)
 
         served: Dict[str, float] = {}
         raw_onramp_by_ramp: Dict[str, float] = {}
@@ -915,7 +928,7 @@ class WuFaithfulFollower:
         best_p1, best_obj, best_nin = prev_p1, float("inf"), 0.0
         evals = 0
         for p1 in candidates:
-            greens = distribute_phase_green(net, p1, signal_green_reference(previous, net, signal))
+            greens = distribute_phase_green(net, p1, signal_green_reference(previous, net, signal), signal=signal)
             if model.has_ramps:
                 if use_phased_ramp:
                     # phase-resolved 서비스(offset-aware) + platoon 도착(P1.5). offset은
@@ -1526,7 +1539,7 @@ class WuFaithfulFollower:
         probe = ControlAction.uncontrolled(self.cfg)
         probe.green_times = {
             phase_key(signal, pid): float(value)
-            for pid, value in distribute_phase_green(net, float(green_p1)).items()
+            for pid, value in distribute_phase_green(net, float(green_p1), signal=signal).items()
         }
         probe.offsets = {signal: float(offset)}
         probe.inflow_outflow_allocation = {}
@@ -1873,7 +1886,7 @@ class WuFaithfulFollower:
             m: prof for m, prof in arr_by_substep.items()
             if model.kind_of.get(m) != "off_ramp"
         }
-        greens = distribute_phase_green(net, float(green_p1), signal_green_reference(snapshot, net, signal))
+        greens = distribute_phase_green(net, float(green_p1), signal_green_reference(snapshot, net, signal), signal=signal)
 
         price_active = (
             self.offset_marginal_price is not None
@@ -3784,7 +3797,7 @@ class WuFaithfulFollower:
         model = self._local_models[signal]
         total = net.effective_green_total
         cycle = max(net.cycle_length, 1.0e-9)
-        green = distribute_phase_green(net, float(green_p1))
+        green = distribute_phase_green(net, float(green_p1), signal=signal)
         steps = max(1, int(round(horizon_h / max(sim.T_c_h, 1.0e-9))))
         arr_scale = (1.0 / steps) if mode == "current_interval" else 1.0
         # phase_substep: 후보 green으로 만든 임시 control의 substep green window로 용량 적분.
@@ -4265,7 +4278,7 @@ class WuFaithfulFollower:
                         committed_prev=previous,
                     )
                     for pid, green_sec in distribute_phase_green(
-                        net, p1, signal_green_reference(snapshot, net, signal)
+                        net, p1, signal_green_reference(snapshot, net, signal), signal=signal
                     ).items():
                         new_green[phase_key(signal, pid)] = float(green_sec)
                     sum_nin += nin_i
@@ -4495,7 +4508,7 @@ class WuFaithfulFollower:
                         if joint is not None:
                             jp1, joff, _, je, _ = joint
                             for pid, green_sec in distribute_phase_green(
-                                net, float(jp1), signal_green_reference(control, net, signal)
+                                net, float(jp1), signal_green_reference(control, net, signal), signal=signal
                             ).items():
                                 control.green_times[phase_key(signal, pid)] = float(green_sec)
                             control.offsets[signal] = float(joff)

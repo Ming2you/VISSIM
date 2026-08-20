@@ -224,6 +224,18 @@
       "fix": "바로 옆의 distributed_response_rollout_active 를 읽어 센티널을 거른다. 비유한값도 막고, 플래그가 없는 옛 진단은 rollout_used 로 판정한다.",
       "upstream_status": "상류 Numerical-Sim-git 에 같은 수정이 미커밋 상태로 존재한다. 로컬 발명이 아니라 상류 방향을 먼저 당겨쓴 것이다. 상류가 정리되면 이 항목을 지우고 재스냅샷할 것.",
       "why_not_resnapshot": "핀 커밋 e77b7d65 가 우리 상류 체크아웃에 없다. 거기서 스냅샷하면 파일 25개가 사라지고(rollout_endpoint.py 포함) state.py 가 23KB 줄어드는 등 몇 달치가 롤백된다."
+    },
+    {
+      "path": "src/controllers/wu_faithful_follower.py",
+      "upstream_blob": "bb237bc3339385356a5aeaa4cf52d22c7ad4dd59",
+      "patched_blob": "532e784c8faea7d9fd2673e4db73b96311e2e0ed",
+      "applied_at": "2026-08-20",
+      "function": "distribute_phase_green 호출 7곳에 signal= 을 넘긴다",
+      "why": "signal= 을 안 넘기면 4현시 전체(MODEL_PHASES)와 4현시 총량(net.effective_green_total)으로 배분하고 _project_to_budget 이 green_min 으로 클램프해, **그 SC 가 켤 수 없는 현시에도 녹색이 실린다.** 실측(phaseprice2_20260820): SC7 은 live 가 (p1,p2,p4) 인데 액션이 (55.0, 27.5, 20.0, 35.5) 로 죽은 p3 에 green_min 20 초를 실었고 합이 138(4현시 총량)이었다 — 실 live 총량은 103.5 다.",
+      "evidence": "액션 CSV 검증이 SignalGroupPlanError 로 죽었다: 'sc 7: action commands green on phases (p1,p2,p3,p4) but the actuation plan has signal groups on (p1,p2,p4)'. 그 결과 DECISION_EXIT_NONZERO 로 제어가 한 결정도 안 걸렸다(attempt 1·2 모두).",
+      "fix": "호출 7곳에 signal=signal 을 넘긴다. 단위검증: SC7 은 죽은 p3 가 32.7 -> 0.0 이 되고 live 총량 141 로 배분된다. 4현시 신호(SC1·SC1002)는 값이 안 바뀐다 = 비트동일.",
+      "upstream_status": "상류에 없다. distribute_phase_green 독스트링이 기본값의 이유를 '호출부 45곳을 한꺼번에 안 건드리기 위한 기본값' 이라 적어놨다 — wu 팔로워는 live 현시가 신호마다 다른 망에서 돌아본 적이 없다. 이 망은 17 SC 중 5개가 3현시다. 상류에 올릴 값어치가 있다.",
+      "why_not_resnapshot": "상류 커밋을 다시 스냅샷하면 이 수정이 상류에 있는 것처럼 기록된다."
     }
   ],
   "local_patches_note": "이 절은 vendor 트리가 upstream commit 과 **정확히 같지 않다**는 사실을 1급으로 기록한다. blob OID 를 조용히 갱신하면 앵커가 'commit 에 이 내용이 있다'는 거짓을 주장하게 되므로 그렇게 하지 않는다. verify_runtime_source.py 는 여기 등재된 (path, patched_blob) 조합만 이탈로 허용하고, 등재되지 않은 이탈이나 patched_blob 불일치는 여전히 FAIL 이다. 나머지 120개 파일에 대한 보증은 그대로 유지된다.",
