@@ -325,7 +325,16 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
                 ttt = self._global_ttt_with_phases(state, previous, forecast, signal, moved)
                 rollouts += 1
                 local = follower.phase_shape_local_cost(signal, moved, state)
-                g[pid] = float(((ttt - base_ttt) - (local - base_local)) / max(delta, 1.0e-9))
+                # 척도 보정 (n-1)/n. 방향 d_i = e_i - (1/(n-1))*sum_{j!=i} e_j 로 재면
+                #   d_i - d_j = (n/(n-1)) * (e_i - e_j)
+                # 이라 g_i - g_j 가 순수 교환 미분의 n/(n-1) 배가 된다. 팔로워는 순수
+                # 교환(step 을 i 에서 빼 j 에 준다)으로 움직이므로 그대로 쓰면 가격항이
+                # 참값보다 n/(n-1) 배 크다 — 4현시 4/3, 3현시 3/2 로 **현시 수마다 다르다**.
+                # 한 신호 안에서는 상수배라 argmin 이 안 바뀌지만, 국소비용 대비 가격항의
+                # 상대 가중치가 신호마다 12.5% 어긋난다. 여기서 참값으로 되돌린다.
+                scale = float(len(live) - 1) / float(len(live))
+                raw_g = ((ttt - base_ttt) - (local - base_local)) / max(delta, 1.0e-9)
+                g[pid] = float(raw_g * scale)
             if g:
                 prices[signal] = g
                 refs[signal] = base
