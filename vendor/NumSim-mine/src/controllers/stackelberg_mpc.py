@@ -1677,7 +1677,27 @@ class StackelbergMPCController:
             # 128의 누적 이득(+13.7%)을 전부 살린다. 대가로 저혼잡(115)에서 PFO 대비 ~0.9% 회귀가
             # 있으나, leader 가치를 주장하지 않는 저부하라 수용한다(2026-06-25 사용자 결정).
             ttt_margin = max(1.0, 1.0e-3 * max(fallback_ttt, 1.0))
-            ttt_worse = leader_ttt_guard > fallback_ttt + ttt_margin
+            # 최소 이득 게이트(2026-08-21). 기본 0.0 = 기존 거동(동률 채택).
+            #
+            # 왜. 위 주석의 "동률 채택" 은 per-step 예측이 복리 이득(128)과 근소 손해(115)를
+            # 구분 못 하니 동률을 살려 128 의 누적 이득을 취하자는 2026-06-25 결정이다.
+            # 그 대가가 저부하 -0.9% 로 잡혀 있었다.
+            #
+            # 5400초 실런에서 그 대가가 훨씬 컸다. 무제어 대비 TTT +7.98%(현시가격 OFF) /
+            # +12.36%(ON). 그리고 리더의 자기 예측 이득이 33결정 중앙 **정확히 0** 이다
+            # (합 4.159, 목적함수 규모 1200). t=2400 실측은 리더 rollout TTT 가 폴백보다
+            # 0.00058 **나쁜데** margin 1.0 안이라 채택됐다. 즉 모델이 중립이라고 말하는
+            # 행동을 커밋하고 plant 에서 손해를 본다. `insufficient_gain` 은 terminal/
+            # completed 가 함께 나쁠 때만 쓰여 이 경우를 못 막는다.
+            #
+            # frac > 0 이면 **실질 개선을 요구**한다 - 없으면 폴백을 쓴다.
+            _min_frac = float(getattr(
+                self.cfg.mpc, "stackelberg_fallback_guard_min_ttt_gain_frac", 0.0) or 0.0)
+            if _min_frac > 0.0:
+                _need = _min_frac * max(fallback_ttt, 1.0)
+                ttt_worse = (fallback_ttt - leader_ttt_guard) < _need
+            else:
+                ttt_worse = leader_ttt_guard > fallback_ttt + ttt_margin
             # 1차 기각을 TTT로. 잔류/완료 severe는 throughput 안전장치로 유지.
             reject = bool(ttt_worse or terminal_severe or completed_severe)
         else:

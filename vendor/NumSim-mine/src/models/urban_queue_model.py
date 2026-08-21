@@ -241,6 +241,13 @@ def _effective_available_space(
     전파된다(spec §3.3.2, 397행). 게이팅 계산에만 쓰고 storage 값 자체는 바꾸지 않으므로
     차량보존 불변이다."""
     available = max(0.0, state.urban_link_storage.get(link, 0.0))
+    # 정지선 규모 상한(2026-08-21). 비어 있으면 기존과 비트 동일하다.
+    # 하류가 받을 수 있는 공간은 링크 전체가 아니라 **정지선 앞 대기공간**이다.
+    # 이걸 안 걸면 링크 점유 10% 에서 막힘이 영원히 안 생기고, 모든 큐가 녹색마다
+    # 완전히 비워진다 — 실측: 참 큐에서 출발해 150초에 400~550대 과다 방류.
+    stopline = cfg.network.urban_stopline_storage_veh.get(link)
+    if stopline is not None:
+        available = min(available, max(0.0, float(stopline)))
     point_queue = 0.0
     for movement in _origin_storage_movements(cfg).get(link, ()):  # noqa: B007
         point_queue += max(0.0, state.urban_movement_queue.get(movement, 0.0))
@@ -707,10 +714,12 @@ def _movement_capacity_flow(
 ) -> float:
     net = cfg.network
     kind = str(spec.get("kind", ""))
+    # movement 별 용량이 주어지면 그것을 쓴다(2026-08-21). 비어 있으면 기존과 비트 동일.
+    per_movement = net.movement_capacity_by_movement_veh_h.get(movement)
     # 내부(internal) movement는 allocation으로 throttle되지 않는다(불변식).
     # allocation cap은 perimeter movement(boundary_in/boundary_out/on_ramp/off_ramp)에만 적용.
     if kind not in PERIMETER_MOVEMENT_KINDS:
-        return float(net.movement_capacity_veh_h)
+        return float(per_movement) if per_movement is not None else float(net.movement_capacity_veh_h)
     origin = str(spec.get("origin", ""))
     destination = str(spec.get("destination", ""))
     return float(min(

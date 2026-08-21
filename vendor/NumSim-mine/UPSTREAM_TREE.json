@@ -215,7 +215,7 @@
   {
    "path": "src/controllers/stackelberg_mpc.py",
    "upstream_blob": "e3ceebbdb45dacbfd83ec8e5e6ae58db54d5af53",
-   "patched_blob": "5ac97daf281d003013ba4a1f76739357dadc683d",
+   "patched_blob": "90edd161014f9f9696b6273762477c7afcc9d0bc",
    "applied_at": "2026-08-18",
    "workspace_commit": "452229a",
    "function": "StackelbergMPCController._evaluation_rollout_ttt",
@@ -247,6 +247,26 @@
    "fix": "VSL 은 인자가 루프 전 v_corners 로 확정되므로 프리페치 배치(_vsl_price_rollouts)를 끼운다. offset walk 은 신호 안에서 순차(앵커가 앞 결과로 이동)지만 신호끼리 독립이라 walk 통째로를 태스크로 보낸다(_offset_walk_batch) — 롤아웃 낱개가 아니다. 공통 배치기 _price_batch 가 green 과 같은 규약(직렬 폴백 + 카운터)을 쓴다.",
    "guard": "_price_worker_init 이 부모에서 잰 _adapter_patch_present() 를 받아 워커와 대조하고 다르면 raise 한다. spawn 이 모듈 몽키패치를 안 넘기는 문제(phasepar 런에서 조용히 틀린 가격을 냄)가 어떤 가격 채널에서도 재발하지 않게 한다. 부모에도 패치가 없는 순수 NumSim 실행은 정상 통과한다.",
    "evidence": "재실행 t=600: workers=1 과 workers=10 이 가격 진단 155개(green·offset·현시) 전부와 커밋 제어가 동일, 목적함수 Δ 0.000000. 이 패치 전후의 직렬끼리도 동일(비트 보존). 결정 wall 368.4 -> 136.0s (2.71배, 직전 1.48배)."
+  },
+  {
+   "path": "src/models/state.py",
+   "upstream_blob": "ad4eb9da3f65795d1ce7a9db3600f59542a34508",
+   "patched_blob": "308630e747a4f9dea1d25fe53b70cb221444327c",
+   "applied_at": "2026-08-21",
+   "function": "신호별 녹색 예산 오버라이드 · movement 별 용량 · 정지선 저류 필드를 더한다",
+   "why": "세 값이 전부 전역 스칼라 하나로 묶여 있었다. (1) 녹색 예산이 `C - N x clearance` 로 유도돼 모든 신호가 138/141 이 된다 — 망의 실제 계획은 SC16 107, SC5 246, SC7 205 다. (2) movement 용량이 전역 1400 이라 1차로 좌회전과 3차로 직진이 같다. (3) 막힘 제약이 0.5~2.1km 링크 저류를 써서 첨두 점유율 10% 에서 안 물린다.",
+   "fix": "Dict 필드 셋을 더하고 접근자가 비면 기존 유도식으로 폴백한다. 매핑이 비어 있으면 **기존과 비트 동일**하다. signal_effective_green_total 은 스칼라 cycle_length 대신 signal_cycle_length(signal) 을 읽게 바꿨다(역시 매핑이 비면 동일).",
+   "evidence": "링크 단위 분석: 정체 최악 12개 중 10개가 SC5·SC6, SC5 가 고정신호의 56% 만 받는다. 162개 링크는 오히려 개선."
+  },
+  {
+   "path": "src/models/urban_queue_model.py",
+   "upstream_blob": "23ae5620506d2177667bd270b723b37ef4be91de",
+   "patched_blob": "cd5a8954ba1ffafaa0ac5da6487bbbd0d71ba6df",
+   "applied_at": "2026-08-21",
+   "function": "movement 별 용량과 정지선 저류를 방류·막힘 제약에 연결한다",
+   "why": "_movement_capacity_flow 가 내부 movement 474개 전부에 net.movement_capacity_veh_h 를 돌려주고, _effective_available_space 가 링크 전체 저류를 쓴다. 그래서 큐가 안 쌓인다 — 참 큐에서 출발해도 150초에 400~550대 과다 방류하고 부족분이 혼잡과 함께 커진다(t=600 -5 대 t=4800 -556).",
+   "fix": "둘 다 dict 를 먼저 보고 비면 기존 값으로 떨어진다. 기본은 비어 있어 비트 동일하다.",
+   "evidence": "3시점 예측 검정(750/2400/4800). movement 큐 오차 base -32.3/-40.1/-55.2% 가 차로수 비례+큐원점필터에서 -12.1/+0.8/-12.0% 로."
   }
  ],
  "local_patches_note": "이 절은 vendor 트리가 upstream commit 과 **정확히 같지 않다**는 사실을 1급으로 기록한다. blob OID 를 조용히 갱신하면 앵커가 'commit 에 이 내용이 있다'는 거짓을 주장하게 되므로 그렇게 하지 않는다. verify_runtime_source.py 는 여기 등재된 (path, patched_blob) 조합만 이탈로 허용하고, 등재되지 않은 이탈이나 patched_blob 불일치는 여전히 FAIL 이다. 나머지 120개 파일에 대한 보증은 그대로 유지된다.",

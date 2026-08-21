@@ -1653,6 +1653,245 @@ def install_monitor_fixed_signal_runtime_patch(
     return diagnostics
 
 
+PERIMETER_MOVEMENT_KINDS_ADAPTER = {"boundary_in", "boundary_out", "on_ramp", "off_ramp"}
+
+
+def install_movement_capacity_by_lanes(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """movement 방류 용량을 **차로수 비례**로 배분한다. `urban.capacity.per_lane` 없으면 no-op.
+
+    왜. `_movement_capacity_flow` 가 내부 movement 184개 전부에 전역 스칼라 하나를 준다.
+    spec 에 차로 수도 포화유율도 없어서 1차로 보호좌회전과 3차로 직진이 같은 값을 받는다.
+    3시점 검정에서 전역 600 이 집계는 잘 맞췄지만(잔차 -6.3/+7.5/-10.0%) **상대 용량은
+    여전히 틀려 있다** — 신호제어가 쓰는 게 정확히 그 상대값이다.
+
+    유도. 산출물의 길이·jam 으로 링크 차로수를 역산하고, 그 링크에서 출발하는 movement
+    들에 회전 분율 `beta` 로 나눈다(실제 차로 배정이 수요 비례인 것과 맞는다).
+
+        lanes(L)  = storage(L) / (length_km(L) x jam_density)
+        lanes(m)  = lanes(origin(m)) x beta(m) / sum(beta over same origin)
+        cap(m)    = per_lane x lanes(m)
+
+    정규화. `equivalent_uniform_veh_h`(기본 600)를 주면 내부 movement 총 용량이
+    N x 그 값과 같아지도록 per_lane 을 정한다. 3시점 검정으로 확보한 집계 적합을 유지한
+    채 **배분만** 바꾼다.
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("capacity"))
+    # `_is_enabled` 는 문자열 집합 비교라 float 1.0 을 "1.0" 으로 만들어 **꺼진 것으로**
+    # 읽는다(실측: per_lane:1.0 이 조용히 무시돼 base 와 소수점까지 같은 결과가 나왔다).
+    # 설정이 true / 1 / 1.0 / "on" 중 무엇이어도 켜지도록 여기서는 직접 본다.
+    _flag = section.get("per_lane", False)
+    _on = bool(_flag) if isinstance(_flag, (bool, int, float)) else         str(_flag).strip().lower() in {"1", "true", "yes", "on"}
+    if not _on:
+        return {"movement_capacity_by_lanes_enabled": 0.0}
+    # movement 별 **실측 차로수**. VISSIM 커넥터 기하에서 뽑는다.
+    #
+    # 이전 판은 `storage/(length x jam)` 로 링크 차로수를 역산해 beta 로 나눴는데 그게
+    # 틀렸다. 산출물 정의가 `sum(link_length_km * lanes) * jam` 이라 그 역산은 **권역
+    # 구간의 길이가중 평균 차로수**(중앙 2.77, 정수 근처가 11%뿐)지 정지선에서 그 회전을
+    # 담당하는 차로수가 아니다. 방류 용량을 정하는 건 후자다.
+    #
+    # 지금은 leg 권역의 정지선 유출 커넥터를 목적 SC 로 매칭해 커넥터 `lanes` 수를 쓴다.
+    # 실측: internal 184개 중 171개(93%) 해결, 직진 중앙 2.0 / 좌·우 중앙 1.0 차로.
+    src = WORKSPACE_ROOT / "outputs/movement_lanes_core17legs4b_20260821.json"
+    if not src.is_file():
+        return {"movement_capacity_by_lanes_enabled": 0.0, "movement_capacity_by_lanes_source_missing": 1.0}
+    lanes_by_movement = _mapping(json.loads(src.read_text(encoding="utf-8")).get("movement_lanes"))
+    movements = cfg.network.urban_movements or {}
+    internal = {m: sp for m, sp in movements.items()
+                if str(sp.get("kind", "")) not in PERIMETER_MOVEMENT_KINDS_ADAPTER}
+    # 미해결 movement 는 같은 회전 종류의 중앙값으로 채운다(빠뜨리면 전역 스칼라로 떨어져
+    # 구조가 반쪽이 된다).
+    by_turn: dict[str, list[float]] = {}
+    for m, sp in internal.items():
+        v = _as_float(lanes_by_movement.get(m), 0.0)
+        if v > 0.0:
+            by_turn.setdefault(str(sp.get("turn", "")), []).append(v)
+    median_by_turn = {t: sorted(v)[len(v) // 2] for t, v in by_turn.items() if v}
+    share: dict[str, float] = {}
+    for m, sp in internal.items():
+        v = _as_float(lanes_by_movement.get(m), 0.0)
+        if v <= 0.0:
+            v = median_by_turn.get(str(sp.get("turn", "")), 1.0)
+        share[m] = float(v)
+    if not share:
+        return {"movement_capacity_by_lanes_enabled": 0.0, "movement_capacity_by_lanes_empty": 1.0}
+
+    equiv = _as_float(section.get("equivalent_uniform_veh_h"), 600.0)
+    total_target = equiv * float(len(share))
+    total_share = sum(share.values())
+    per_lane = total_target / total_share if total_share > 1.0e-9 else 0.0
+    caps = {m: per_lane * v for m, v in share.items()}
+    setattr(cfg.network, "movement_capacity_by_movement_veh_h", caps)
+    vals = sorted(caps.values())
+    return {
+        "movement_capacity_by_lanes_enabled": 1.0,
+        "movement_capacity_by_lanes_count": float(len(caps)),
+        "movement_capacity_by_lanes_per_lane_veh_h": float(per_lane),
+        "movement_capacity_by_lanes_equivalent_uniform": float(equiv),
+        "movement_capacity_by_lanes_min_veh_h": float(vals[0]),
+        "movement_capacity_by_lanes_median_veh_h": float(vals[len(vals) // 2]),
+        "movement_capacity_by_lanes_max_veh_h": float(vals[-1]),
+    }
+
+
+def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """망의 **실제 신호 구조**(주기·녹색 예산)를 모델에 심는다. `urban.native_signal` 없으면 no-op.
+
+    왜. 지금까지 컨트롤러는 모든 신호를 주기 150초 · 녹색 예산 138초(4현시)로 다뤘다.
+    망의 실제 계획은 그렇지 않다.
+
+        SC107/108/109   141      이미 일치 (live 3현시 -> 150-9)
+        SC16            107      컨트롤러가 141 을 줘 **과잉 공급**
+        SC5             246      p1 97 + p3 101 = 198 > 150 -> **동시 현시**
+        SC7             205      동시 현시 + 주기 120
+
+    링크 단위 분석에서 정체 최악 12개 중 10개가 SC5·SC6 이었다(SC6 은 SC5 하류).
+    SC5 가 고정신호의 56%, SC7 이 69% 만 받고 있었다. 나머지 162개 링크는 무제어보다
+    좋아졌는데 이 두 곳이 망 전체를 무너뜨린다.
+
+    세 조각.
+
+    (1) 신호별 주기. `cycle_length_by_signal` 에 `native_cycle_sec` 를 넣는다. SC7 이
+        120초가 된다. 기반은 이미 있었고 매핑만 비어 있었다.
+
+    (2) 신호별 녹색 예산. `min(계획 총합, C - N x clearance)`. SC16 이 141 -> 107 로
+        내려간다. 상한을 두는 이유는 (3) 이다.
+
+    (3) 동시 현시. `_phase_green_fraction` 이 현시를 **순차로 배치**하고
+        `end = min(start + green, cycle)` 로 자르므로, 246초를 150초 주기에 넣으면 뒤쪽
+        현시가 통째로 잘린다. 동시성을 제대로 넣으려면 "어느 현시가 겹치는지" 를 모델이
+        알아야 하는데 그건 별건이다. 대신 **처리량 등가**로 근사한다 — 두 현시가 겹쳐
+        켜지면 그 접근로의 시간당 처리량이 그만큼 는다. 그 신호 movement 들의 용량에
+        `계획총합 / 예산` 을 곱한다(SC5 1.78, SC7 1.85). 근사임을 명시해 둔다.
+
+    (3) 은 movement 용량 맵을 쓰므로 `install_movement_capacity_by_lanes` **뒤에** 불러야
+    한다. 맵이 비어 있으면 전역 스칼라로 씨를 뿌린 뒤 곱한다.
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("native_signal"))
+    _flag = section.get("enabled", False)
+    _on = bool(_flag) if isinstance(_flag, (bool, int, float)) else         str(_flag).strip().lower() in {"1", "true", "yes", "on"}
+    if not _on:
+        return {"native_signal_structure_enabled": 0.0}
+    src = WORKSPACE_ROOT / "outputs/signal_group_actuation_plan_v3.json"
+    if not src.is_file():
+        return {"native_signal_structure_enabled": 0.0, "native_signal_source_missing": 1.0}
+    plan = {str(v.get("node_id")): v for v in
+            (_mapping(json.loads(src.read_text(encoding="utf-8")).get("controllers"))).values()}
+
+    net = cfg.network
+    cycles: dict[str, float] = {}
+    budgets: dict[str, float] = {}
+    factors: dict[str, float] = {}
+    for signal in _controlled_signal_names(cfg):
+        entry = plan.get(str(signal))
+        if entry is None:
+            continue
+        cyc = _as_float(entry.get("native_cycle_sec"), 0.0)
+        if cyc > 0.0:
+            cycles[str(signal)] = cyc
+        greens = _mapping(entry.get("axis_green_sec"))
+        plan_total = sum(max(0.0, _as_float(v, 0.0)) for v in greens.values())
+        if plan_total <= 0.0:
+            continue
+        # 순차 배치가 담을 수 있는 상한. signal_lost_time 은 live 현시 수로 정해진다.
+        seq_cap = max(0.0, (cyc if cyc > 0.0 else float(net.cycle_length)) - net.signal_lost_time(str(signal)))
+        budgets[str(signal)] = min(plan_total, seq_cap)
+        if plan_total > seq_cap + 1.0e-9 and seq_cap > 1.0e-9:
+            factors[str(signal)] = plan_total / seq_cap
+
+    if cycles:
+        setattr(net, "cycle_length_by_signal", dict(cycles))
+    if budgets:
+        setattr(net, "effective_green_total_by_signal", dict(budgets))
+
+    # (3) 동시 현시 -> 처리량 등가 배율.
+    applied_factor = 0
+    if factors:
+        caps = dict(getattr(net, "movement_capacity_by_movement_veh_h", {}) or {})
+        for movement, spec in (net.urban_movements or {}).items():
+            if str(spec.get("kind", "")) in PERIMETER_MOVEMENT_KINDS_ADAPTER:
+                continue
+            f = factors.get(str(spec.get("signal", "")))
+            if f is None:
+                continue
+            base = caps.get(movement, float(net.movement_capacity_veh_h))
+            caps[movement] = float(base) * float(f)
+            applied_factor += 1
+        # 배율을 안 받은 movement 도 맵에 넣어야 전역 스칼라로 안 떨어진다.
+        for movement, spec in (net.urban_movements or {}).items():
+            if str(spec.get("kind", "")) in PERIMETER_MOVEMENT_KINDS_ADAPTER:
+                continue
+            caps.setdefault(movement, float(net.movement_capacity_veh_h))
+        setattr(net, "movement_capacity_by_movement_veh_h", caps)
+
+    meta = {
+        "native_signal_structure_enabled": 1.0,
+        "native_signal_cycle_count": float(len(cycles)),
+        "native_signal_budget_count": float(len(budgets)),
+        "native_signal_concurrency_signals": float(len(factors)),
+        "native_signal_concurrency_movements": float(applied_factor),
+    }
+    for sig, f in sorted(factors.items()):
+        meta[f"native_signal_concurrency_factor_{sig}"] = float(f)
+    return meta
+
+
+def install_urban_stopline_storage(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """정지선 규모 저류를 유도해 cfg 에 주입한다. `urban.stopline_bay_m` 이 없으면 no-op.
+
+    왜 필요한가. 기존 막힘 제약은 교차로간 링크(0.5~2.1 km, 링크당 중앙 431대) 저류를
+    쓴다. 첨두에도 망 전체 4,500대가 185개 링크에 흩어져 점유율 10% 수준이라 제약이
+    **절대 안 물린다** — 혼잡기 진단에 저류/막힘 항목이 하나도 안 뜬다. 그래서 모든 큐가
+    녹색마다 완전히 비워지고, 참 큐에서 출발해도 150초에 400~550대를 과다 방류한다.
+    부족분이 혼잡과 함께 커진다(t=600 -5 대 t=4800 -556).
+
+    실제 막힘은 정지선 앞 대기공간과 좌회전 포켓에서 일어난다. 그 규모를 넣는다.
+
+    유도. 산출물이 링크 길이와 jam 밀도를 들고 있어 차로수를 역산할 수 있다.
+
+        lanes(L)    = storage(L) / (length_km(L) x jam_density)
+        stopline(L) = lanes(L) x bay_km x jam_density
+                    = storage(L) x bay_km / length_km(L)
+
+    즉 링크 길이에 비례해 줄인다 — 짧은 링크는 덜 줄고 긴 링크는 많이 준다. 물리적으로
+    맞다(정지선 대기공간은 링크 길이와 무관하게 일정하다).
+
+    이건 방류율을 낮추는 대증요법(movement_capacity 1400->600)과 다르다. 그쪽은 모든
+    movement 를 균일하게 굶겨 **movement 간 상대 비교를 왜곡**한다 — 신호제어가 쓰는 게
+    정확히 그 상대 비교다. 이쪽은 혼잡할 때만, 막힌 곳에서만 물린다.
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("stopline"))
+    bay_m = _as_float(section.get("bay_m"), 0.0)
+    if bay_m <= 0.0:
+        return {"urban_stopline_storage_enabled": 0.0}
+    src = WORKSPACE_ROOT / "outputs/urban_storage_capacity_core17legs4b_20260819.json"
+    if not src.is_file():
+        return {"urban_stopline_storage_enabled": 0.0, "urban_stopline_storage_source_missing": 1.0}
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    lengths = _mapping(doc.get("urban_link_length_km"))
+    storages = _mapping(doc.get("urban_link_storage_veh"))
+    bay_km = bay_m / 1000.0
+    out: dict[str, float] = {}
+    for link, cap in (cfg.network.urban_link_storage_veh or {}).items():
+        base = _as_float(storages.get(link), _as_float(cap, 0.0))
+        length_km = _as_float(lengths.get(link), 0.0)
+        if base <= 0.0 or length_km <= 0.0:
+            continue
+        out[str(link)] = float(base) * bay_km / float(length_km)
+    if not out:
+        return {"urban_stopline_storage_enabled": 0.0, "urban_stopline_storage_empty": 1.0}
+    setattr(cfg.network, "urban_stopline_storage_veh", out)
+    vals = sorted(out.values())
+    return {
+        "urban_stopline_storage_enabled": 1.0,
+        "urban_stopline_bay_m": float(bay_m),
+        "urban_stopline_link_count": float(len(out)),
+        "urban_stopline_storage_median_veh": float(vals[len(vals) // 2]),
+        "urban_stopline_storage_min_veh": float(vals[0]),
+        "urban_stopline_storage_max_veh": float(vals[-1]),
+    }
+
+
 def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> dict[str, float]:
     """가격 롤아웃 워커가 되살려야 할 런타임 패치를 컨트롤러에 실어 보낸다.
 
@@ -2666,6 +2905,15 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     controller.nash_solver.ramp_offset_enabled = True
     controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
     controller.metering_price_trust_frac = _as_float(settings.get("metering_price_trust_frac"), 0.20)
+    # 녹색 신뢰영역[s]. 기본 6.0 = 기존 거동.
+    #
+    # 왜 노출하나. 5400초 실런에서 컨트롤러가 무제어보다 나빴는데(TTT +12.4%), SG 단위
+    # 녹색이 망의 고정신호 대비 **중앙 65%(최대 129%)** 어긋나 있었다. 총 녹색합은
+    # 보존되므로(비 1.000) 용량 손실이 아니라 **재분배 크기**의 문제다. 결정당 ±6초씩
+    # 33결정이면 누적 드리프트가 그만큼 커진다. 모델이 큐를 40~73% 과소예측하는 상태에서
+    # 그 크기로 재분배하면 손해가 난다는 가설을 이 값으로 검정한다.
+    if settings.get("signal_price_trust_sec") is not None:
+        controller.signal_price_trust_sec = _as_float(settings.get("signal_price_trust_sec"), 6.0)
     # 가격 롤아웃 병렬화 (tuning 절 `price_parallel`). 기본 10 워커.
     #
     # 가격 FD 는 같은 작동점에서 레버를 하나씩 흔든 **독립 롤아웃**이라 병렬이 자연스럽다.
@@ -5506,6 +5754,44 @@ def diagnostic_vsl_rm_control(cfg, ControlAction):
     return control
 
 
+def native_fixed_control(cfg, ControlAction):
+    """망의 **실제 고정신호 계획**을 그대로 ControlAction 으로 낸다.
+
+    왜. "모델이 고정신호가 더 낫다는 걸 볼 수 있는가" 를 묻기 위해서다. 답에 따라 진단이
+    갈린다 — 모델도 고정신호가 낫다고 하면 리더의 **탐색**이 문제고, 모델이 제어안을 더
+    낫게 채점하면 **모델**이 문제다.
+
+    출처는 `outputs/signal_group_actuation_plan_v3.json` 의 `axis_green_sec` 다. 이미
+    모델 현시(p1..p4) 단위로 정리돼 있고, .sig 에서 SG 별 union green 을 뽑은 값과
+    일치한다(SC1: SG4=54->p1, SG3=21->p2, SG2=32->p3, SG1=31->p4).
+
+    주의: 고정 계획에는 **녹색이 0 인 현시**가 있다(SC7 p3, SC16 p4, SC107 p1, SC108 p2,
+    SC109 p1). 그대로 0 을 넣는다 — 컨트롤러도 그 현시에 0 을 준다(실측 확인).
+    VSL·metering 은 무제어와 같은 자유 방출로 둬 신호만 비교되게 한다.
+    """
+    control = ControlAction.uncontrolled(cfg)
+    src = WORKSPACE_ROOT / "outputs/signal_group_actuation_plan_v3.json"
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    plan = {str(v.get("node_id")): v for v in (doc.get("controllers") or {}).values()}
+    applied = 0
+    for signal in _controlled_signal_names(cfg):
+        entry = plan.get(str(signal))
+        if entry is None:
+            continue
+        greens = _mapping(entry.get("axis_green_sec"))
+        for pid in ("p1", "p2", "p3", "p4"):
+            key = f"{signal}_{pid}"
+            if key in control.green_times or greens.get(pid) is not None:
+                control.green_times[key] = max(0.0, _as_float(greens.get(pid), 0.0))
+        control.offsets[signal] = 0.0
+        applied += 1
+    control.diagnostics.update({
+        "native_fixed_actuation_active": 1.0,
+        "native_fixed_signals_applied": float(applied),
+    })
+    return control
+
+
 def diagnostic_fixed57_control(cfg, ControlAction):
     return _diagnostic_fixed_control(cfg, ControlAction)
 
@@ -5955,6 +6241,7 @@ def main() -> None:
             "wu-leader",
             "no-control",
             "diagnostic-vsl-rm",
+            "native-fixed",
             "diagnostic-fixed57",
             "diagnostic-ramp-hold",
             "diagnostic-ramp-d1364",
@@ -6195,6 +6482,11 @@ def main() -> None:
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
+    # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
+    runtime_patch_metadata.update(install_urban_stopline_storage(cfg, tuning))
+    runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
+    # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
+    runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))
     state = traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input,
@@ -6415,6 +6707,9 @@ def main() -> None:
         elif args.controller == "diagnostic-vsl-rm":
             control = diagnostic_vsl_rm_control(cfg, ControlAction)
             metadata["diagnostic_forced_vsl_rm_active"] = 1.0
+        elif args.controller == "native-fixed":
+            control = native_fixed_control(cfg, ControlAction)
+            metadata["native_fixed_active"] = 1.0
         elif args.controller == "diagnostic-fixed57":
             control = diagnostic_fixed57_control(cfg, ControlAction)
             metadata["diagnostic_fixed57_active"] = 1.0

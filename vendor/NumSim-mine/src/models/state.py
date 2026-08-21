@@ -282,6 +282,29 @@ class NetworkConfig:
     # binding해 off-ramp spillback을 형성한다(유입을 끊으면 urban 회복). 0 이하이면 자유 sink.
     boundary_out_capacity_veh_h: float = 1600.0
     movement_capacity_veh_h: float = 1400.0
+    # 정지선 규모 저류[veh] (2026-08-21). 비어 있으면 기존 거동(링크 전체 저류를 씀).
+    #
+    # 왜. 기존 막힘 제약은 `urban_link_storage_veh`(교차로간 0.5~2.1 km 링크, 링크당
+    # 중앙 431대)를 쓴다. 첨두에도 망 전체 4,500대가 185개 링크에 흩어져 점유율이 10%
+    # 수준이라 제약이 **절대 안 물린다**(혼잡기 진단에 저류/막힘 항목이 하나도 안 뜬다).
+    # 실제 막힘은 정지선 앞 대기공간과 좌회전 포켓에서 일어난다.
+    urban_stopline_storage_veh: Dict[str, float] = field(default_factory=dict)
+    # movement 별 방류 용량[veh/h] (2026-08-21). 비어 있으면 기존 거동(전역 스칼라).
+    #
+    # 왜. `_movement_capacity_flow` 가 내부 movement 474개 전부에 movement_capacity_veh_h
+    # 하나를 돌려준다. spec 에 차로 수도 포화유율도 없어서 1차로 보호좌회전과 3차로 직진이
+    # 같은 값을 받는다. 집계는 맞출 수 있어도 **movement 간 상대 용량이 틀리고**, 신호제어가
+    # 쓰는 게 정확히 그 상대값이다.
+    movement_capacity_by_movement_veh_h: Dict[str, float] = field(default_factory=dict)
+    # 신호별 녹색 예산[s] 오버라이드 (2026-08-21). 비면 기존 유도식.
+    #
+    # 왜. 기본 유도는 `C - N x clearance` 라 모든 신호가 138(4현시)/141(3현시)로 묶인다.
+    # 그런데 망의 실제 계획은 신호마다 다르다 — SC16 은 107 이고, SC5 는 246, SC7 은 205 다.
+    # SC5·SC7 이 주기를 넘는 이유는 **현시가 동시에 켜지기** 때문이다(SC5: p1 97 + p3 101
+    # = 198 > 150). 순차 배치를 가정하는 이 모델은 그 예산을 담을 수 없으므로, 여기에는
+    # `min(계획 총합, C - N x clearance)` 만 넣고 초과분은 처리량 등가로 따로 다룬다
+    # (어댑터의 install_native_signal_structure 가 movement 용량에 곱한다).
+    effective_green_total_by_signal: Dict[str, float] = field(default_factory=dict)
     # urban_movements/turning_ratios/on·off_ramp_to_movement는 비워두면
     # grid_node_legs 토폴로지에서 자동 유도된다(__post_init__, grid_routing_proposal §3).
     grid_node_legs: Dict[str, Dict[str, Dict[str, Any]]] = field(default_factory=dict)
@@ -458,7 +481,12 @@ class NetworkConfig:
         상수가 아니라 `C - N x clearance` 로 유도한다. 138 이나 141 을 손으로 적으면
         현시 수가 바뀔 때 조용히 틀린다.
         """
-        return max(0.0, float(self.cycle_length) - self.signal_lost_time(signal))
+        # 오버라이드가 있으면 그것을 쓴다(2026-08-21). 비면 기존과 비트 동일하다.
+        override = self.effective_green_total_by_signal.get(str(signal))
+        if override is not None:
+            return max(0.0, float(override))
+        # 주기도 신호별로 읽는다 — `cycle_length_by_signal` 이 비면 스칼라라 기존과 같다.
+        return max(0.0, self.signal_cycle_length(signal) - self.signal_lost_time(signal))
 
     @property
     def num_phases(self) -> int:
@@ -631,6 +659,10 @@ class MPCConfig:
     # fallback guard의 leader vs PFO 비교 척도를 penalized objective 대신 realized rollout-TTT로.
     # (penalized obj는 TTT와 어긋나 sweet_128 등에서 TTT 좋은 leader를 잘못 기각했다, 2026-06-25.)
     stackelberg_fallback_guard_use_rollout_ttt: bool = True
+    # 폴백 가드 최소 이득 문턱(2026-08-21). 0.0 = 기존 거동(동률 채택).
+    # > 0 이면 리더가 폴백 대비 rollout TTT 를 이 비율만큼 **실제로** 줄여야 커밋한다.
+    # 근거는 stackelberg_mpc._fallback_guard_rejects 주석에 있다.
+    stackelberg_fallback_guard_min_ttt_gain_frac: float = 0.0
     # ---- 층2(2026-07-14): 낙관편향 β̂ 추정기 + β̂ 보정 guard + trailing-regret 스위치 ----
     # 배경: leader 내부 rollout은 체계적으로 낙관(~30%: 제약 누락·capacity-drop 절벽 평활·
     # horizon 절단·동결 결합)이고 argmax 선택이 이를 증폭(optimizer's curse) — 그 결과

@@ -237,6 +237,11 @@ End If
 ' instead of surfacing after a multi-hour run.
 Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
+Dim signalWriteSkips
+' 결정 시점 스캔 캐시 — WriteStateJson 이 채우고 LogStateCsv 가 재사용한다(추가 스캔 0).
+Dim scanCacheSec, scanCacheValid, scanCacheTotal, scanCacheUrban, scanCacheFreeway
+Dim scanCacheRamp, scanCacheBoundary, scanCacheOther, scanCacheMeanSpeed
+Dim scanCacheFreewayMeanSpeed, scanCacheStopped
 pythonExe = ""
 decisionsOk = 0
 decisionsFailed = 0
@@ -246,6 +251,9 @@ actionFormatFailures = 0
 comFailures = 0
 optionalAttSkips = 0
 signalWriteAttempts = 0
+signalWriteSkips = 0
+scanCacheValid = False
+scanCacheSec = -1
 signalReadbackOk = 0
 signalPersistenceChecks = 0
 signalPersistenceOk = 0
@@ -376,6 +384,7 @@ WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
 WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
 WScript.Echo "SIGNAL_FAILURES=" & CStr(signalFailures)
 WScript.Echo "SIGNAL_WRITE_ATTEMPTS=" & CStr(signalWriteAttempts)
+WScript.Echo "SIGNAL_WRITE_SKIPPED_UNCHANGED=" & CStr(signalWriteSkips)
 WScript.Echo "SIGNAL_READBACK_OK=" & CStr(signalReadbackOk)
 WScript.Echo "SIGNAL_PERSISTENCE_CHECKS=" & CStr(signalPersistenceChecks)
 WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
@@ -1988,9 +1997,34 @@ Function ApplyRampMeterSignal(scNo, greenSec, simSec)
     ApplyRampMeterSignal = SetSignalGroupState(scNo, 1, state)
 End Function
 
+' 바뀐 SG 만 쓴다. 기본 꺼짐 = 기존과 비트 동일.
+'
+' 왜. `ApplySignalGroupPlan` 이 매 스텝 그 SC 의 SG **전부**에 쓰고, `SetSignalGroupState`
+' 는 쓰기 1회 + 검증 읽기 1회를 한다. 여기에 지속성 확인이 스텝마다 전량 1회 더 붙어
+' 스텝당 왕복이 168 x 3 = 504 회, 5400초 런이면 약 272만 회가 된다. 그런데 그 초에 실제로
+' 상태가 바뀌는 SG 는 몇 개뿐이다 — 나머지는 같은 값을 다시 쓰고 다시 읽는다.
+'
+' 같은 값 재기록은 의미상 no-op 이다. ContrByCOM 상태는 유지된다 — 실측(phasefull_on,
+' 5400초): 지속성 확인 811,192 건 중 **불일치 0 건**. 그래도 기본은 켜지 않는다.
+' 건너뛴 건수는 SIGNAL_WRITE_SKIPPED_UNCHANGED 로 따로 센다(조용히 줄지 않게).
+Function SkipUnchangedSignalWrites()
+    SkipUnchangedSignalWrites = _
+        (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_WRITE_ON_CHANGE%")) = "1")
+End Function
+
 Function SetSignalGroupState(scNo, sgNo, state)
-    Dim sg
+    Dim sg, skipKey
     SetSignalGroupState = ""
+    If SkipUnchangedSignalWrites() Then
+        skipKey = CStr(CLng(scNo)) & "-" & CStr(CLng(sgNo))
+        If sigRequestedState.Exists(skipKey) Then
+            If UCase(Trim(CStr(sigRequestedState(skipKey)))) = UCase(Trim(CStr(state))) Then
+                signalWriteSkips = signalWriteSkips + 1
+                SetSignalGroupState = CStr(state)
+                Exit Function
+            End If
+        End If
+    End If
     Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNo))
     If sg Is Nothing Then
         signalFailures = signalFailures + 1
@@ -2181,6 +2215,14 @@ Sub WriteStateJson(simSec, path)
     If Not scanOk Then
         AbortVehicleObservation simSec
     End If
+    ' 이 스캔 결과를 LogStateCsv 가 재사용한다(RW_STATE_LOG=decision). 호출 순서는
+    ' 그대로 두므로 status·decision_wall_sec 열의 의미가 안 바뀐다.
+    scanCacheSec = CLng(simSec)
+    scanCacheValid = CBool(scanOk)
+    scanCacheTotal = total : scanCacheUrban = urban : scanCacheFreeway = freeway
+    scanCacheRamp = ramp : scanCacheBoundary = boundary : scanCacheOther = other
+    scanCacheMeanSpeed = meanSpeed : scanCacheFreewayMeanSpeed = freewayMeanSpeed
+    scanCacheStopped = stopped
     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
 
     Dim ts
@@ -2331,7 +2373,51 @@ Sub QuickSortB1aLongKeys(ByRef values, first, last)
     If low < last Then QuickSortB1aLongKeys values, low, last
 End Sub
 
+' 상태 로그 모드. 기본 full = 기존과 비트 동일.
+'
+'   full      stateLogIntervalSec 마다 전용 스캔(현행). 5400초 런에서 1,081 회.
+'   decision  전용 스캔을 **아예 하지 않는다**. 결정 시점에 WriteStateJson 이 이미
+'             돌린 스캔 결과로 같은 CSV 행을 쓴다 - 추가 스캔 0 회.
+'
+' 왜 되나. LogStateCsv 가 쓰는 13개 열(total·urban·freeway·ramp·boundary·other·
+' meanSpeed·freewayMeanSpeed·stopped + mode·status·wall)이 전부 WriteStateJson 의
+' 스캔 산출과 같다. 두 Sub 가 같은 ScanVehicleState 를 각자 부르고 있었고, 결정 초에는
+' **같은 초에 두 번** 스캔하고 있었다.
+'
+' 잃는 것: 5초 해상도 시계열과 bottleneck CSV. 전해상도가 필요하면 RW_NATIVE_EVAL=1 로
+' VISSIM 네이티브 VehRecWriteFile 을 켜고 사후에 처리한다 - 시뮬 루프에 COM 왕복이
+' 안 붙는다. 컨트롤러는 셋 다 안 읽는다(제어 입력은 WriteStateJson 쪽이다).
+Function StateLogMode()
+    Dim v
+    v = LCase(Trim(shell.ExpandEnvironmentStrings("%RW_STATE_LOG%")))
+    If v = "decision" Then
+        StateLogMode = "decision"
+    Else
+        StateLogMode = "full"
+    End If
+End Function
+
+Sub WriteStateCsvRow(simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped)
+    Dim rowStatus, rowWall
+    rowStatus = LastControllerStatus()
+    rowWall = LastDecisionWallSec()
+    stateFile.WriteLine CStr(simSec) & "," & CStr(total) & "," & CStr(urban) & "," & CStr(freeway) & "," & _
+        CStr(ramp) & "," & CStr(boundary) & "," & CStr(other) & "," & Num(meanSpeed) & "," & _
+        Num(freewayMeanSpeed) & "," & CStr(stopped) & ",VISSIM_REAL_WORLD_" & UCase(controllerName) & "," & _
+        rowStatus & "," & rowWall
+End Sub
+
 Sub LogStateCsv(simSec)
+    If StateLogMode() = "decision" Then
+        ' 결정 초면 WriteStateJson 이 방금 채운 캐시로 행을 쓴다. 그 외 초는 스캔도
+        ' 기록도 하지 않는다 - 시뮬 루프에 COM 왕복이 안 붙는다.
+        If scanCacheValid And CLng(scanCacheSec) = CLng(simSec) Then
+            WriteStateCsvRow simSec, scanCacheTotal, scanCacheUrban, scanCacheFreeway, _
+                scanCacheRamp, scanCacheBoundary, scanCacheOther, scanCacheMeanSpeed, _
+                scanCacheFreewayMeanSpeed, scanCacheStopped
+        End If
+        Exit Sub
+    End If
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
     Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, perfT0
@@ -2347,11 +2433,7 @@ Sub LogStateCsv(simSec)
     If Not scanOk Then
         AbortVehicleObservation simSec
     End If
-    status = LastControllerStatus()
-    wall = LastDecisionWallSec()
-    stateFile.WriteLine CStr(simSec) & "," & CStr(total) & "," & CStr(urban) & "," & CStr(freeway) & "," & _
-        CStr(ramp) & "," & CStr(boundary) & "," & CStr(other) & "," & Num(meanSpeed) & "," & _
-        Num(freewayMeanSpeed) & "," & CStr(stopped) & ",VISSIM_REAL_WORLD_" & UCase(controllerName) & "," & status & "," & wall
+    WriteStateCsvRow simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
     If LogBottleneckDetailsEnabled() And scanOk Then
         WriteBottleneckRows simSec, countE, stoppedE, speedE, countW, stoppedW, speedW, linkCounts, linkStopped, linkSpeedSums
     End If
@@ -2734,9 +2816,37 @@ Function LocalObservationLinkCountsJson(counts)
     LocalObservationLinkCountsJson = s
 End Function
 
+' 되읽기 주기[초]. 기본 1 = 기존과 완전히 동일하다.
+'
+' 왜 스위치가 필요한가. 이 Sub 는 시뮬 루프의 **매 스텝** 불리고, 스텝은 신호 전이가
+' 매초 있어 사실상 초 단위다. 신호그룹 168개를 **개별** COM 으로 읽으므로 5400초 런에서
+' immediate+post_step 합쳐 약 162만 회의 왕복이 된다(실측: signal_readback.csv 162만 행,
+' 고유 시각 5,400개, 간격 1초). 상태 스캔은 GetMultiAttValues 벌크라 1,081회뿐인데
+' 이쪽이 그 1,500배다.
+'
+' 늘려도 **보증은 유지된다** — 불일치 시 signalFailures 를 올리는 검사 자체는 그대로고
+' 표본만 성글어진다. 세밀한 신호 타임라인이 필요하면 VISSIM 네이티브
+' SigChangesWriteFile 을 켜라(RW_NATIVE_EVAL=1). 그쪽은 폴링이 아니라 **상태 변화 시점**을
+' 정확한 타임스탬프로 남기므로 1 Hz 폴링보다 해상도가 오히려 좋다.
+Function SignalReadbackIntervalSec()
+    Dim v
+    v = Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_READBACK_SEC%"))
+    If IsNumeric(v) Then
+        SignalReadbackIntervalSec = CLng(v)
+        If SignalReadbackIntervalSec < 1 Then SignalReadbackIntervalSec = 1
+    Else
+        SignalReadbackIntervalSec = 1
+    End If
+End Function
+
 Sub ValidateRuntimeSignalPersistence(simSec)
-    Dim key, parts, scNo, sgNo, sg, requestedState, readbackState, ok
+    Dim key, parts, scNo, sgNo, sg, requestedState, readbackState, ok, readbackT0
     If sigRequestedState.Count <= 0 Then Exit Sub
+    If SignalReadbackIntervalSec() > 1 Then
+        If (CLng(simSec) Mod SignalReadbackIntervalSec()) <> 0 _
+           And CLng(simSec) <> CLng(simPeriod) Then Exit Sub
+    End If
+    readbackT0 = PerfNow()
     signalTraceSimSec = CLng(simSec)
     signalTraceStage = "post_step"
     For Each key In sigRequestedState.Keys
@@ -2759,6 +2869,7 @@ Sub ValidateRuntimeSignalPersistence(simSec)
         RecordSignalReadback scNo, sgNo, requestedState, readbackState, ok
     Next
     signalTraceStage = "immediate"
+    PerfAdd "signals.readback", readbackT0
 End Sub
 
 Sub RecordSignalReadback(scNo, sgNo, requestedState, readbackState, ok)
@@ -3535,6 +3646,19 @@ Function LoadVehicleInputRoles(rolesPath)
     Set LoadVehicleInputRoles = dict
 End Function
 
+' 차량 기록 해상도[스텝]. 기본 5 = 걷어낸 인루프 5초 로깅과 같은 해상도.
+' 1 로 두면 4,400대 x 5,400초 = 약 2,400만 행이라 파일이 수 GB 가 된다.
+Function NativeVehRecResolution()
+    Dim v
+    v = Trim(shell.ExpandEnvironmentStrings("%RW_VEHREC_RESOLUTION%"))
+    If IsNumeric(v) Then
+        NativeVehRecResolution = CLng(v)
+        If NativeVehRecResolution < 1 Then NativeVehRecResolution = 1
+    Else
+        NativeVehRecResolution = 5
+    End If
+End Function
+
 Sub ConfigureEvaluationOutput(path)
     EnsureFolder path
     TrySetEvaluationAtt "EvalOutDir", path
@@ -3542,6 +3666,29 @@ Sub ConfigureEvaluationOutput(path)
     ' 실패가 곧 보장이다(실측 문구: "put_AttValue failed - module not active").
     TrySetUnreachableEvaluationAtt "DatabaseConnection", "", "database module inactive means no DB output is possible"
     TrySetEvaluationAtt "ListAutoExportType", "FILE"
+    ' RW_NATIVE_EVAL=1 이면 VISSIM 자체 기록을 켠다. **.inpx 는 건드리지 않는다** —
+    ' 파일을 고치면 network sha256 이 바뀌어 지금까지 모든 런과의 비트 비교가 끊긴다
+    ' (병렬화 정확성을 그 비교로 증명했다). COM 으로 켜면 그대로 유지된다.
+    '
+    '   VehRecWriteFile     차량 전수 기록. 인루프 5초 스캔을 대체한다(사후 처리).
+    '   SigChangesWriteFile 신호 상태 변화. 초당 168회 개별 되읽기를 대체한다.
+    '
+    ' 속성 이름은 이 설치본에서 직접 열거해 확인했다(VehRecInterval·SigChgs* 는 없다).
+    If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) = "1" Then
+        TrySetEvaluationAtt "VehRecWriteFile", True
+        TrySetEvaluationAtt "VehRecFromTime", 0
+        TrySetEvaluationAtt "VehRecToTime", CLng(simPeriod)
+        ' 이 망의 vehRec 은 filterType=BYCLASS 에 클래스 80(Emergency Vehicle) 하나만
+        ' 걸려 있다. 켜기만 하면 헤더만 나오고 **데이터 행이 0** 이다(실측: perflean 런의
+        ' .fzp 가 1,705바이트 헤더뿐이었다). 이 망의 교통은 승용차·HGV·택시·버스다.
+        TrySetEvaluationAtt "VehRecFilterType", "ALL"
+        ' resolution = 몇 스텝마다 기록. 망 기본값 50(= simRes 1 에서 50초)은 너무 성글다.
+        ' 기본 5 로 두어 걷어낸 인루프 5초 로깅과 같은 해상도를 유지한다.
+        TrySetEvaluationAtt "VehRecResolution", NativeVehRecResolution()
+        TrySetEvaluationAtt "SigChangesWriteFile", True
+        WScript.Echo "NATIVE_EVAL=1 vehRec=1 sigChanges=1 from=0 to=" & CStr(simPeriod) & _
+            " filter=ALL resolution=" & CStr(NativeVehRecResolution())
+    End If
     WScript.Echo "EVAL_OUT_DIR=" & path
 End Sub
 
