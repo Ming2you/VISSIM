@@ -1772,56 +1772,54 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     _on = bool(_flag) if isinstance(_flag, (bool, int, float)) else         str(_flag).strip().lower() in {"1", "true", "yes", "on"}
     if not _on:
         return {"native_signal_structure_enabled": 0.0}
-    src = WORKSPACE_ROOT / "outputs/signal_group_actuation_plan_v3.json"
+    # **측정값**을 쓴다. 유도(C - N x clearance)는 손실시간을 3초 x live현시수 로 고정하는데
+    # 실측은 신호마다 전혀 다르다 — SC5 는 0초(항상 어딘가 녹색, 최대 6 SG 동시), SC16 은
+    # 43초다. 유도를 쓰면 SC5 예산이 138(참값 150)이 되고 동시현시 배율의 분모까지 틀린다.
+    src = WORKSPACE_ROOT / "outputs/signal_timeline_measured_20260821.json"
     if not src.is_file():
         return {"native_signal_structure_enabled": 0.0, "native_signal_source_missing": 1.0}
-    plan = {str(v.get("node_id")): v for v in
-            (_mapping(json.loads(src.read_text(encoding="utf-8")).get("controllers"))).values()}
+    measured = _mapping(json.loads(src.read_text(encoding="utf-8")).get("signals"))
 
     net = cfg.network
     cycles: dict[str, float] = {}
     budgets: dict[str, float] = {}
     factors: dict[str, float] = {}
     for signal in _controlled_signal_names(cfg):
-        entry = plan.get(str(signal))
-        if entry is None:
+        entry = _mapping(measured.get(str(signal)))
+        if not entry:
             continue
-        cyc = _as_float(entry.get("native_cycle_sec"), 0.0)
+        cyc = _as_float(entry.get("cycle_sec"), 0.0)
+        green = _as_float(entry.get("green_sec"), 0.0)
+        fac = _as_float(entry.get("concurrency_factor"), 1.0)
         if cyc > 0.0:
             cycles[str(signal)] = cyc
-        greens = _mapping(entry.get("axis_green_sec"))
-        plan_total = sum(max(0.0, _as_float(v, 0.0)) for v in greens.values())
-        if plan_total <= 0.0:
-            continue
-        # 순차 배치가 담을 수 있는 상한. signal_lost_time 은 live 현시 수로 정해진다.
-        seq_cap = max(0.0, (cyc if cyc > 0.0 else float(net.cycle_length)) - net.signal_lost_time(str(signal)))
-        budgets[str(signal)] = min(plan_total, seq_cap)
-        if plan_total > seq_cap + 1.0e-9 and seq_cap > 1.0e-9:
-            factors[str(signal)] = plan_total / seq_cap
+        if green > 0.0:
+            budgets[str(signal)] = green
+        if fac > 1.0 + 1.0e-9:
+            factors[str(signal)] = fac
 
     if cycles:
         setattr(net, "cycle_length_by_signal", dict(cycles))
     if budgets:
         setattr(net, "effective_green_total_by_signal", dict(budgets))
 
-    # (3) 동시 현시 -> 처리량 등가 배율.
+    # 동시 현시 -> 처리량 등가 배율. 순차 배치 모델은 겹침을 담을 수 없으므로
+    # 그 신호 movement 들의 용량에 곱한다(배율 = 계획 현시녹색 합 / 실제 녹색초).
     applied_factor = 0
     if factors:
         caps = dict(getattr(net, "movement_capacity_by_movement_veh_h", {}) or {})
         for movement, spec in (net.urban_movements or {}).items():
             if str(spec.get("kind", "")) in PERIMETER_MOVEMENT_KINDS_ADAPTER:
                 continue
-            f = factors.get(str(spec.get("signal", "")))
-            if f is None:
-                continue
-            base = caps.get(movement, float(net.movement_capacity_veh_h))
-            caps[movement] = float(base) * float(f)
-            applied_factor += 1
-        # 배율을 안 받은 movement 도 맵에 넣어야 전역 스칼라로 안 떨어진다.
+            caps.setdefault(movement, float(net.movement_capacity_veh_h))
         for movement, spec in (net.urban_movements or {}).items():
             if str(spec.get("kind", "")) in PERIMETER_MOVEMENT_KINDS_ADAPTER:
                 continue
-            caps.setdefault(movement, float(net.movement_capacity_veh_h))
+            f = factors.get(str(spec.get("signal", "")))
+            if f is None:
+                continue
+            caps[movement] = float(caps[movement]) * float(f)
+            applied_factor += 1
         setattr(net, "movement_capacity_by_movement_veh_h", caps)
 
     meta = {

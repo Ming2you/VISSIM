@@ -237,7 +237,7 @@ End If
 ' instead of surfacing after a multi-hour run.
 Dim pythonExe, decisionsOk, decisionsFailed, observationFailures, signalFailures, actionFormatFailures, comFailures, optionalAttSkips
 Dim signalWriteAttempts, signalReadbackOk, signalPersistenceChecks, signalPersistenceOk, signalTraceSimSec
-Dim signalWriteSkips
+Dim signalWriteSkips, sgPlanMidblockSkips, sgEnableMidblockSkips
 ' 결정 시점 스캔 캐시 — WriteStateJson 이 채우고 LogStateCsv 가 재사용한다(추가 스캔 0).
 Dim scanCacheSec, scanCacheValid, scanCacheTotal, scanCacheUrban, scanCacheFreeway
 Dim scanCacheRamp, scanCacheBoundary, scanCacheOther, scanCacheMeanSpeed
@@ -252,6 +252,9 @@ comFailures = 0
 optionalAttSkips = 0
 signalWriteAttempts = 0
 signalWriteSkips = 0
+' sgPlanMidblockSkips 는 여기서 초기화하지 않는다 — ParseSignalGroupPlanConfig(:189)가
+' 이 줄(:254)보다 먼저 돌아 이미 값을 올린다. 되돌리면 계수가 사라진다.
+sgEnableMidblockSkips = 0
 scanCacheValid = False
 scanCacheSec = -1
 signalReadbackOk = 0
@@ -385,6 +388,8 @@ WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
 WScript.Echo "SIGNAL_FAILURES=" & CStr(signalFailures)
 WScript.Echo "SIGNAL_WRITE_ATTEMPTS=" & CStr(signalWriteAttempts)
 WScript.Echo "SIGNAL_WRITE_SKIPPED_UNCHANGED=" & CStr(signalWriteSkips)
+WScript.Echo "SIGNAL_MIDBLOCK_PLAN_SKIPS=" & CStr(sgPlanMidblockSkips)
+WScript.Echo "SIGNAL_MIDBLOCK_COM_SKIPS=" & CStr(sgEnableMidblockSkips)
 WScript.Echo "SIGNAL_READBACK_OK=" & CStr(signalReadbackOk)
 WScript.Echo "SIGNAL_PERSISTENCE_CHECKS=" & CStr(signalPersistenceChecks)
 WScript.Echo "SIGNAL_PERSISTENCE_OK=" & CStr(signalPersistenceOk)
@@ -1492,6 +1497,10 @@ Function EnableSignalControllerForRuntime(scNo)
     sgCount = SignalGroupCount(sc)
     enableOk = True
     For sgNo = 1 To sgCount
+        If Not IsControlledSignalGroup(CLng(sgNo)) Then
+            ' 미드블록은 COM 으로 넘기지 않는다 — VISSIM 자체 프로그램이 돈다.
+            sgEnableMidblockSkips = sgEnableMidblockSkips + 1
+        Else
         On Error Resume Next
         Set sg = sc.SGs.ItemByKey(CLng(sgNo))
         If Err.Number <> 0 Then
@@ -1511,6 +1520,7 @@ Function EnableSignalControllerForRuntime(scNo)
             End If
         End If
         On Error GoTo 0
+        End If
     Next
     ' signalControlled 는 매초 신호 재생의 게이트다(:1199 참조). COM 인계가 실패한 SC 를
     ' 여기 등록하면, 제어를 못 받은 컨트롤러에 대해 재생 루프가 계속 값을 밀어 넣는다.
@@ -1752,6 +1762,35 @@ Sub LoadSignalGroupPlanConfig(configPath)
     WScript.Echo "SIGNAL_SG_PLAN_CONFIG_LOADED=" & planPath
 End Sub
 
+' 본선(=제어 대상) 신호그룹인가. 기본은 전부 제어(기존 거동).
+'
+' 이 망의 규약: **SG 1~8 이 본선 교차로, 9 이상은 미드블록**이다. 미드블록은 제어 대상이
+' 아닌데 지금까지 컨트롤러가 함께 눌러 왔다. 실측(t=2400):
+'
+'   SC5  SG10 EBT 101s -> 22s (21%)   SG14 WBT 101s -> 22s   SG20/24 97s -> 45s
+'   SC7  SG12 SBT  91s -> 75s          SG16 NBT  91s -> 75s
+'
+' 미드블록 SG10·14 는 주기의 2/3 를 녹색으로 흘려보내는 통과 구간인데 5분의 1 로 잘린다.
+' 링크 단위 분석에서 정체 최악 12개 중 10개가 SC5·SC6(SC6 은 SC5 하류)이었던 것이 이것으로
+' 설명된다. 모델이 SC5 를 교차로 1개·현시 4개로 보기 때문에, 본선 EBT(SG2)를 줄이는 결정이
+' 이름이 같은 미드블록 EBT(SG10)까지 끌어내린다.
+'
+' 켜면 SG 9 이상을 **COM 제어로 넘기지 않는다** — 계획 목록에서 빼고 ContrByCOM 도 안
+' 세운다. 그래야 VISSIM 자체 프로그램이 그대로 돈다. 목록에서만 빼고 ContrByCOM 을 세우면
+' 마지막 상태로 얼어붙어 더 나쁘다.
+Function MainlineSignalGroupsOnly()
+    MainlineSignalGroupsOnly = _
+        (Trim(shell.ExpandEnvironmentStrings("%RW_MAINLINE_SG_ONLY%")) = "1")
+End Function
+
+Function IsControlledSignalGroup(sgNo)
+    If MainlineSignalGroupsOnly() Then
+        IsControlledSignalGroup = (CLng(sgNo) <= 8)
+    Else
+        IsControlledSignalGroup = True
+    End If
+End Function
+
 Sub ParseSignalGroupPlanConfig
     Dim tokens, i, parts, pairParts, sides, scText, sgText
     sgPlanEnabled = (CLng(RW_SIGNAL_SG_PLAN_SCHEMA) >= 1)
@@ -1768,7 +1807,9 @@ Sub ParseSignalGroupPlanConfig
             ' SC 별 SG 목록. 이벤트 스케줄러와 재생 루프가 COM 조회 없이 돌게 한다.
             scText = CStr(CLng(Trim(CStr(parts(0)))))
             sgText = CStr(CLng(Trim(CStr(parts(1)))))
-            If sgPlanGroups.Exists(scText) Then
+            If Not IsControlledSignalGroup(CLng(sgText)) Then
+                sgPlanMidblockSkips = sgPlanMidblockSkips + 1
+            ElseIf sgPlanGroups.Exists(scText) Then
                 sgPlanGroups(scText) = CStr(sgPlanGroups(scText)) & "," & sgText
             Else
                 sgPlanGroups.Add scText, sgText
