@@ -1108,10 +1108,26 @@ def _observation_split_parameters(calibration: Mapping[str, Any] | None = None) 
 
 
 def _link_counts_from_local_observation(state_json: Mapping[str, Any]) -> dict[str, float]:
+    """링크별 점유 대수. `RW_QUEUE_WINDOW_STAT` 이 켜져 있으면 직전 구간 창 집계를 쓴다.
+
+    **큐 배정이 이 값에서 나온다** — `queue_count = link_counts x (1 - storage_fraction)`.
+    `link_stopped_counts` 는 저류 몫의 정지 비율에만 쓰인다. 2026-08-22 에 창 집계를
+    정지차에만 걸었다가 결정이 하나도 안 바뀌는 걸 뒤늦게 발견했다(leave-one-out
+    리플레이에서 `no_window` 가 `all` 과 현시 0개 차이).
+
+    창을 쓰는 이유는 위상 잠금이다 — 제어주기 150s 가 신호주기 150s 와 같아 관측이 늘
+    같은 신호 위상에 떨어진다(SC1 동서: 결정시점 0.1 vs 창평균 3.3 vs 창최대 12.8).
+    필드가 없으면 순간값으로 폴백해 **비트 동일**이다."""
     local = state_json.get("local_observation", {})
     if not isinstance(local, Mapping):
         return {}
     raw = local.get("link_counts", {})
+    mode = str(os.environ.get("RW_QUEUE_WINDOW_STAT", "")).strip().lower()
+    if mode in {"mean", "max"}:
+        windowed = local.get("link_counts_window_mean")
+        samples = _as_float(local.get("queue_window_samples"), 0.0)
+        if isinstance(windowed, Mapping) and windowed and samples >= 1.0:
+            raw = windowed
     if not isinstance(raw, Mapping):
         return {}
     return {str(k): max(0.0, _as_float(v)) for k, v in raw.items()}
@@ -1734,6 +1750,299 @@ def install_movement_capacity_by_lanes(cfg, tuning: Mapping[str, Any]) -> dict[s
     }
 
 
+def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mapping[str, Any]):
+    """미드블록 정지선 링크를 **관측에서** 뺀다. `urban.midblock.exclude_links` 없으면 no-op.
+
+    왜. 권역 정의가 "leg 정지선 접근로 + 상류로 앞 교차로까지" 라, 중간에 미드블록 신호가
+    있으면 **그 미드블록의 정지선과 대기 구간까지 본선 leg 가 소유**한다. 그러면 미드블록
+    적색에 서 있는 차가 본선 leg 의 큐로 집계되고, 컨트롤러는 "본선 접근로에 큐가 길다"로
+    읽어 녹색을 배분한다 — 그 차들은 본선 정지선까지 도달하지도 못한 상태인데.
+
+    실측(2026-08-22): 미드블록 정지선을 품은 leg 이 24개(11개 교차로)이고 SC5 가 5개로
+    가장 많다. SC5 본선 배분이 직진 47->10.1초(21%), 좌회전 23->61.7초(268%)로 뒤집혀
+    있는 것이 이 오염과 맞는다.
+
+    권역 정본(urban_player_territory_v1)은 **건드리지 않는다** — "재유도하지 않는다,
+    읽어서 쓴다" 가 그 파일의 규칙이고 오늘 자동 규칙이 틀린 전례가 있다. 대신 관측
+    단계에서 뺀다. 되돌리기 쉽고 정본이 그대로 남는다.
+
+    주의: 31개 중 2개(1220013600, 1220013700)는 본선 신호두도 함께 있어 빼면 본선 관측도
+    잃는다. `keep_mixed` 로 남길 수 있다(기본은 규칙대로 전부 뺀다).
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("midblock"))
+    _flag = section.get("exclude_links", False)
+    _on = bool(_flag) if isinstance(_flag, (bool, int, float)) else         str(_flag).strip().lower() in {"1", "true", "yes", "on"}
+    if not _on or not detector_mapping:
+        return detector_mapping, {"midblock_link_exclusion_enabled": 0.0}
+    src = WORKSPACE_ROOT / "outputs/midblock_stopline_links_20260822.json"
+    if not src.is_file():
+        return detector_mapping, {"midblock_link_exclusion_enabled": 0.0,
+                                  "midblock_link_source_missing": 1.0}
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    drop = {str(k) for k in (_mapping(doc.get("links")) or {})}
+    keep_mixed = str(section.get("keep_mixed", "")).strip().lower() in {"1", "true", "yes", "on"}
+    if keep_mixed:
+        drop -= {str(x) for x in (doc.get("mixed_with_mainline") or [])}
+    out = dict(detector_mapping)
+    meta = {"midblock_link_exclusion_enabled": 1.0,
+            "midblock_link_candidates": float(len(drop)),
+            "midblock_keep_mixed": 1.0 if keep_mixed else 0.0}
+    for key in ("link_to_origins", "link_to_movements"):
+        table = _mapping(detector_mapping.get(key))
+        if not table:
+            continue
+        kept = {k: v for k, v in table.items() if str(k) not in drop}
+        meta[f"midblock_dropped_{key}"] = float(len(table) - len(kept))
+        out[key] = kept
+    obs = detector_mapping.get("observable_links")
+    if isinstance(obs, list):
+        kept = [x for x in obs if str(x) not in drop]
+        meta["midblock_dropped_observable_links"] = float(len(obs) - len(kept))
+        out["observable_links"] = kept
+    return out, meta
+
+
+def _native_live_phases_by_signal(cfg) -> dict[str, list[str]]:
+    """실측 SG 타이밍에서 SC 별 **녹색 0 이 아닌 현시**를 뽑는다.
+
+    NEMA 이름으로 현시를 정한다(진행방향 기준이라 접근로는 반대다):
+    NBT/SBT -> p1(주축 직진) · NBL/SBL -> p2(주축 좌) · EBT/WBT -> p3 · EBL/WBL -> p4.
+    미드블록(SG 9+)은 뺀다 — 우리가 구동하지 않는다.
+    """
+    src = WORKSPACE_ROOT / "outputs/signal_group_timing_core17legs4b_20260819.json"
+    if not src.is_file():
+        return {}
+    nema = {"NBT": "p1", "SBT": "p1", "NBL": "p2", "SBL": "p2",
+            "EBT": "p3", "WBT": "p3", "EBL": "p4", "WBL": "p4"}
+    controlled = {str(x) for x in _controlled_signal_names(cfg)}
+    doc = json.loads(src.read_text(encoding="utf-8"))
+    out: dict[str, list[str]] = {}
+    for entry in doc.get("controllers", []) or []:
+        sid = f"SC{entry.get('sc_no')}"
+        if sid not in controlled:
+            continue
+        best: dict[str, float] = {}
+        for grp in entry.get("groups", []) or []:
+            raw_sg = str(grp.get("sg_id", ""))
+            if not raw_sg.isdigit() or int(raw_sg) > 8:
+                continue
+            pid = nema.get(str(grp.get("name", "")).strip().upper())
+            if pid is None:
+                continue
+            best[pid] = max(best.get(pid, 0.0), _as_float(grp.get("green_sec"), 0.0))
+        live = [pid for pid in ("p1", "p2", "p3", "p4") if best.get(pid, 0.0) > 0.0]
+        # 전부 0 이면 유도 실패다 — 그 SC 는 손대지 않고 전 현시 폴백으로 둔다.
+        if live and len(live) < 4:
+            out[sid] = live
+    return out
+
+
+def _is_enabled_value(flag: Any) -> bool:
+    """단일 값 on/off. bool·수·문자열을 다 받는다.
+
+    `_is_enabled` 는 설정 절 전체를 받고 문자열 집합으로 비교해서 float 1.0 이
+    "1.0" 이 되어 조용히 꺼진 적이 있다(2026-08-21 lanes600). 여기서는 수를 먼저 본다.
+    """
+    if isinstance(flag, bool):
+        return flag
+    if isinstance(flag, (int, float)):
+        return float(flag) != 0.0
+    return str(flag).strip().lower() in {"1", "true", "yes", "on"}
+
+
+MEASURED_SATURATION_EVIDENCE_JSON = WORKSPACE_ROOT / "outputs/movement_saturation_measured_20260822.json"
+
+
+def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -> dict[str, float]:
+    """**직전 구간 실측 방류율**로 movement 용량을 갱신한다. `urban.capacity.measured` 없으면 no-op.
+
+    왜. 지금 용량은 가정값이다 — 플랜트/GNE 가 `차로수 x 330`, 정련 채점기가
+    `len(movements) x 1400`. 실측(무제어 .knr)은 정지선 차로군이 1,100~4,400 veh/h 라
+    전자는 3~5배 과소, 후자는 신호 합이 4배 과대다. 리더가 녹색을 나눌 때 쓰는 게
+    movement 간 **상대** 용량이라 이 왜곡이 그대로 배분 왜곡이 된다.
+
+    무엇을 재나. 러너가 5초 스캔에서 차량별 (No, Link) 를 이미 읽으므로 연속 스캔을
+    비교해 **정지선 링크를 떠난 대수**를 세고 `link_departures_window` 로 실어 보낸다
+    (`RW_QUEUE_WINDOW=1`). 그 링크 차로군의 직전 구간 녹색초로 나누면 방류율이다.
+
+        cap_obs[link] = departures[link] / green_sec[link] x 3600
+
+    수요제약을 어떻게 거르나. 한산한 구간의 `departures/green` 은 용량이 아니라 수요다.
+    오프라인 분위수로 거르려 했으나 실패했다(중앙값 기준 차로환산 0.52 — 1차로 미만).
+    대신 **감쇠 러닝맥스**를 쓴다:
+
+        cap_est = max(cap_obs, decay x cap_est_prev)
+
+    증거가 나오면 즉시 올라가고 없으면 천천히 잊는다. 포화점이 안정 고정점이라
+    아래에서 수렴한다 — 녹색이 줄면 큐가 덜 비어 `departures/green` 이 올라간다.
+    어댑터는 결정마다 새 프로세스라 직전 추정치를 **직전 action JSON 진단**으로 나른다.
+
+    씨앗. 첫 결정에는 직전값이 없다. 무제어 런에서 유도한
+    `movement_saturation_measured_20260822.json` 의 차로군 값을 쓴다.
+
+    차로군 -> movement 배분. 한 접근로의 직진·좌·우는 **같은 차로를 나눠 쓴다**.
+    차로군 총량을 movement 마다 복제하면 그 접근로가 용량의 3배를 방류한다.
+    모델 자신의 회전 분율 `beta` 로 나눈다 — 총량이 보존된다.
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("capacity"))
+    if not _is_enabled_value(section.get("measured")):
+        return {"measured_capacity_enabled": 0.0}
+    decay = _as_float(section.get("decay"), 0.98)
+    local = _mapping(state_json.get("local_observation"))
+    departures = {str(k): _as_float(v, 0.0) for k, v in _mapping(local.get("link_departures_window")).items()}
+
+    prev_est: dict[str, float] = {}
+    try:
+        prev_doc = json.loads(Path(previous_path).read_text(encoding="utf-8"))
+        for holder in ("metadata", "diagnostics"):
+            for key, value in _mapping(prev_doc.get(holder)).items():
+                if key.startswith("sat_est_"):
+                    prev_est[key[len("sat_est_"):]] = _as_float(value, 0.0)
+    except (OSError, ValueError):
+        pass
+
+    groups: list[Mapping[str, Any]] = []
+    if MEASURED_SATURATION_EVIDENCE_JSON.is_file():
+        doc = json.loads(MEASURED_SATURATION_EVIDENCE_JSON.read_text(encoding="utf-8"))
+        groups = [g for g in (doc.get("lane_groups") or []) if isinstance(g, Mapping)]
+    # 씨앗. 기본은 **플랜트가 지금 믿는 값**(차로수 x equivalent_uniform, 통상 330)이다.
+    #
+    # 왜 기하값(차로수 x 1800)을 안 쓰나. `max(실측, 씨앗)` 에서 기하 씨앗은 실측보다
+    # 3~8배 커서 사실상 늘 이긴다(실측: 60개 중 2개만 채택). 그러면 "직전 실측을 쓴다"가
+    # 아니라 "1800/차로를 가정한다"가 되고, 이 망이 실제로 그 근처도 못 가므로 낙관적이다.
+    # 플랜트 현재값에서 출발하면 대부분의 접근로에서 실측이 즉시 이겨 데이터가 지배한다
+    # (예: SC6 1220021201 실측 7,912 vs 4차로x330 = 1,320).
+    #
+    # `seed: "geometric"` 으로 옛 거동(차로수 x 1800)을 되살릴 수 있다.
+    seed_mode = str(section.get("seed", "plant")).strip().lower()
+    base_caps = dict(getattr(cfg.network, "movement_capacity_by_movement_veh_h", {}) or {})
+    seed: dict[str, float] = {}
+    if seed_mode == "geometric":
+        for g in groups:
+            link = str(g.get("stopline_link", ""))
+            if link:
+                seed[link] = seed.get(link, 0.0) + _as_float(g.get("saturation_veh_h"), 0.0)
+    else:
+        # 접근로 총량 = 그 접근로 movement 들의 현재 용량 합. 이탈 계수(링크 단위)와
+        # 같은 단위가 되고, 아래 배분에서 그대로 되돌려 놓으므로 실측이 없으면 무변화다.
+        for link, (sig, pids) in _approach_topology(groups).items():
+            total = sum(
+                float(base_caps.get(m, cfg.network.movement_capacity_veh_h))
+                for m, spec in (cfg.network.urban_movements or {}).items()
+                if str(spec.get("signal", "")) == sig
+                and any(str(spec.get("phase", "")).endswith("_" + pid) for pid in pids)
+                and str(spec.get("kind", "")) not in PERIMETER_MOVEMENT_KINDS_ADAPTER
+            )
+            if total > 0.0:
+                seed[link] = total
+
+    # 그 링크 차로군의 직전 구간 녹색초. 커밋한 계획을 쓴다(러너가 그대로 적용한다).
+    green_sec = _measured_green_sec_by_link(cfg, groups, previous_path)
+    interval = _as_float(state_json.get("control_interval_sec"), 150.0)
+    est: dict[str, float] = {}
+    observed_used = 0
+    for link in set(seed) | set(prev_est) | set(departures):
+        g = green_sec.get(link, 0.0)
+        obs = 0.0
+        if g > 1.0 and link in departures:
+            cycles = max(1.0, interval / max(1.0, _as_float(cfg.network.cycle_length, 150.0)))
+            obs = departures[link] / (g * cycles) * 3600.0
+        carried = decay * prev_est.get(link, seed.get(link, 0.0))
+        value = max(obs, carried)
+        if value > 0.0:
+            est[link] = value
+            if obs >= carried and obs > 0.0:
+                observed_used += 1
+
+    caps = dict(getattr(cfg.network, "movement_capacity_by_movement_veh_h", {}) or {})
+    applied = _distribute_group_capacity_to_movements(cfg, groups, est, caps)
+    if applied:
+        setattr(cfg.network, "movement_capacity_by_movement_veh_h", caps)
+    meta = {
+        "measured_capacity_enabled": 1.0,
+        "measured_capacity_links": float(len(est)),
+        "measured_capacity_observed_links": float(observed_used),
+        "measured_capacity_movements": float(applied),
+        "measured_capacity_decay": float(decay),
+    }
+    for link, value in sorted(est.items()):
+        meta[f"sat_est_{link}"] = float(value)
+    return meta
+
+
+def _approach_topology(groups) -> dict[str, tuple[str, tuple[str, ...]]]:
+    """정지선 링크 -> (신호, 그 접근로가 받는 현시들). 링크 하나 = 접근로 하나다."""
+    nema = {"NBT": "p1", "SBT": "p1", "NBL": "p2", "SBL": "p2",
+            "EBT": "p3", "WBT": "p3", "EBL": "p4", "WBL": "p4"}
+    pids: dict[str, set[str]] = {}
+    sigs: dict[str, str] = {}
+    for g in groups:
+        link = str(g.get("stopline_link", ""))
+        pid = nema.get(str(g.get("sg_name", "")).upper())
+        sig = str(g.get("signal", ""))
+        if link and pid and sig:
+            pids.setdefault(link, set()).add(pid)
+            sigs[link] = sig
+    return {lk: (sigs[lk], tuple(sorted(v))) for lk, v in pids.items()}
+
+
+def _measured_green_sec_by_link(cfg, groups, previous_path) -> dict[str, float]:
+    """정지선 링크별 직전 구간 녹색초. 차로군의 SG 이름 -> 현시 -> 커밋 녹색."""
+    nema = {"NBT": "p1", "SBT": "p1", "NBL": "p2", "SBL": "p2",
+            "EBT": "p3", "WBT": "p3", "EBL": "p4", "WBL": "p4"}
+    try:
+        prev = json.loads(Path(previous_path).read_text(encoding="utf-8"))
+        greens = {str(k): _as_float(v, 0.0) for k, v in _mapping(prev.get("green_times")).items()}
+    except (OSError, ValueError):
+        greens = {}
+    # **합**이지 최대가 아니다. 이탈 계수는 링크 단위라 그 접근로 전체(좌·직·우)의
+    # 방출을 센다. 한 링크에 차로군이 둘 붙으면(WBL+WBT) 두 현시의 녹색을 다 받는다.
+    # 최대만 쓰면 분모가 작아 방류율이 과대해진다.
+    out: dict[str, float] = {}
+    seen: set[tuple[str, str]] = set()
+    for g in groups:
+        link = str(g.get("stopline_link", ""))
+        pid = nema.get(str(g.get("sg_name", "")).upper())
+        sig = str(g.get("signal", ""))
+        if not link or pid is None or not sig or (link, pid) in seen:
+            continue
+        seen.add((link, pid))
+        value = greens.get(f"{sig}_{pid}")
+        if value is None:
+            value = _as_float(g.get("green_sec"), 0.0)   # 첫 결정: 고정계획 녹색
+        out[link] = out.get(link, 0.0) + float(value)
+    return out
+
+
+def _distribute_group_capacity_to_movements(cfg, groups, est, caps) -> int:
+    """접근로 용량을 그 접근로 movement 들에 `beta` 비율로 나눈다(총량 보존)."""
+    # 링크 하나 = 접근로 하나다. 그 접근로의 좌·직·우는 **같은 차로를 나눠 쓰므로**
+    # 용량 총량을 공유한다. 현시(p1·p2)를 가로질러 배분해야 총량이 보존된다 —
+    # 현시별로 각각 총량을 주면 그 접근로가 용량의 2배를 방류한다.
+    by_key: dict[tuple[str, tuple[str, ...]], float] = {}
+    for link, key in _approach_topology(groups).items():
+        if link in est:
+            by_key[key] = by_key.get(key, 0.0) + float(est[link])
+    applied = 0
+    for key, total in by_key.items():
+        sig, pids = key
+        members = [
+            (m, max(0.0, _as_float(spec.get("beta"), 0.0)))
+            for m, spec in (cfg.network.urban_movements or {}).items()
+            if str(spec.get("signal", "")) == sig
+            and any(str(spec.get("phase", "")).endswith("_" + pid) for pid in pids)
+            and str(spec.get("kind", "")) not in PERIMETER_MOVEMENT_KINDS_ADAPTER
+        ]
+        if not members:
+            continue
+        weight = sum(w for _, w in members) or float(len(members))
+        for m, w in members:
+            share = (w / weight) if weight > 0 else 1.0 / len(members)
+            caps[m] = float(total) * float(share)
+            applied += 1
+    return applied
+
+
 def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
     """망의 **실제 신호 구조**(주기·녹색 예산)를 모델에 심는다. `urban.native_signal` 없으면 no-op.
 
@@ -1803,6 +2112,18 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     if budgets:
         setattr(net, "effective_green_total_by_signal", dict(budgets))
 
+    # (4) **죽은 현시**. 실 계획에서 녹색 0 인 현시가 있다 — SC7 p3 · SC16 p4 ·
+    #     SC107 p1 · SC108 p2 · SC109 p1. 모델이 4현시로 강제하면 없는 현시에 녹색을
+    #     주고, 그만큼이 실제 접근로에서 사라진다. `signal_live_phases` 는 이 경우를
+    #     위해 만들어져 있었는데 매핑이 비어 있었다.
+    #
+    #     상한도 같이 풀린다. green_max 는 total - (live-1) x green_min 의 유도값이라
+    #     3현시 141 이면 101 이어야 하는데 스칼라 78 이 걸려 SC108(88) · SC109(90) 의
+    #     실계획을 재현조차 못 했다(`NetworkConfig.signal_green_max`).
+    live_map = _native_live_phases_by_signal(cfg)
+    if live_map:
+        setattr(net, "live_phases_by_signal", dict(live_map))
+
     # 동시 현시 -> 처리량 등가 배율. 순차 배치 모델은 겹침을 담을 수 없으므로
     # 그 신호 movement 들의 용량에 곱한다(배율 = 계획 현시녹색 합 / 실제 녹색초).
     applied_factor = 0
@@ -1828,7 +2149,11 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
         "native_signal_budget_count": float(len(budgets)),
         "native_signal_concurrency_signals": float(len(factors)),
         "native_signal_concurrency_movements": float(applied_factor),
+        "native_signal_dead_phase_signals": float(len(live_map)),
     }
+    for sig, live in sorted(live_map.items()):
+        meta[f"native_signal_live_phases_{sig}"] = float(len(live))
+        meta[f"native_signal_green_max_{sig}"] = float(net.signal_green_max(sig))
     for sig, f in sorted(factors.items()):
         meta[f"native_signal_concurrency_factor_{sig}"] = float(f)
     return meta
@@ -2047,6 +2372,38 @@ def _movement_origin(cfg, movement: str) -> str:
     return str(getattr(spec, "origin", "") or "")
 
 
+def _observed_stopped_counts(state_json: Mapping[str, Any]) -> dict[str, float]:
+    """큐 관측을 순간 표본에서 **직전 제어구간 창 집계**로 바꾼다(RW_QUEUE_WINDOW).
+
+    왜. 제어주기 150 s 가 신호주기 150 s 와 같아 결정 시점이 항상 신호 위상의 같은
+    지점에 떨어진다 — 무작위 잡음이 아니라 계통 편향이다. 실측(SC1, 무제어 고정계획):
+
+        접근  결정시점  창평균  창최대
+        N      15.3     11.0    27.7     (+39%)
+        E       0.1      3.3    12.8     (-97%)
+        W       0.1      1.4     5.2     (-93%)
+
+    결정 시점이 동서 녹색 직후라 동서가 늘 빈 것으로 읽힌다. 리더가 쓰는 건 현시 간
+    **상대** 큐라 이 편향이 그대로 배분 왜곡이 된다(남북:동서 = 99.3:0.7 -> 84:16).
+
+    러너가 5초 스캔을 이미 돌리므로 창 집계에 COM 왕복이 안 붙는다. 필드가 없으면
+    (스위치 꺼짐·구 상태 JSON) 순간값으로 폴백해 **비트 동일**하다.
+    """
+    # 기본은 꺼짐. `link_counts` 쪽과 같은 스위치를 써서 둘이 어긋나지 않게 한다 —
+    # 하나만 창값이면 저류/큐 분할 비율이 뒤틀린다.
+    mode = str(os.environ.get("RW_QUEUE_WINDOW_STAT", "")).strip().lower()
+    if mode in {"mean", "max"}:
+        key = f"link_stopped_counts_window_{mode}"
+        windowed = _link_metric_from_local_observation(state_json, key)
+        if windowed:
+            samples = _as_float(
+                _mapping(state_json.get("local_observation")).get("queue_window_samples"), 0.0
+            )
+            if samples >= 1.0:
+                return windowed
+    return _link_metric_from_local_observation(state_json, "link_stopped_counts")
+
+
 def build_local_observation_summary(
     state_json: Mapping[str, Any],
     cfg,
@@ -2065,7 +2422,7 @@ def build_local_observation_summary(
         return {}
 
     link_speeds_kph = _link_metric_from_local_observation(state_json, "link_speeds_kph")
-    link_stopped_counts = _link_metric_from_local_observation(state_json, "link_stopped_counts")
+    link_stopped_counts = _observed_stopped_counts(state_json)
     link_queue_tail_pos_m = _link_metric_from_local_observation(state_json, "link_queue_tail_pos_m")
     split_parameters = _observation_split_parameters(calibration)
     partition = _mapping(detector_mapping.get("link_partition"))
@@ -2937,6 +3294,11 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             controller.phase_price_delta_sec = _as_float(section["delta_sec"], 6.0)
         if "weight" in section:
             controller.phase_price_weight = _as_float(section["weight"], 1.0)
+        if "local_cost_model" in section:
+            # "phased" 면 정련이 GNE 와 같은 국소 물리(rollout_local_tts_phased —
+            # 플래툰 도착·하류 S_eff·offset·per-movement 용량)로 후보를 채점한다.
+            # 기본 "drain" 은 기존 큐 배수 모형이라 비트 동일.
+            controller.phase_price_local_cost_model = str(section["local_cost_model"])
         if "exchange_steps_sec" in section:
             cfg.mpc.phase_price_exchange_steps_sec = tuple(
                 float(x) for x in section["exchange_steps_sec"]
@@ -6445,9 +6807,24 @@ def main() -> None:
     else:
         state_json = json.loads(state_path.read_text(encoding="utf-8"))
     mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
-    detector_mapping = load_optional_json(args.detector_mapping_json)
     calibration = load_optional_json(args.calibration_json)
     tuning = load_optional_json(args.tuning_json)
+    # **검지 매핑은 tuning 이 이긴다** (2026-08-22).
+    #
+    # 러너는 생성 VBS 설정의 `RW_DETECTOR_MAPPING_PATH` 를 --detector-mapping-json 으로
+    # 넘긴다. 그 값은 망 단위 상수라 팔마다 바뀌지 않는다. 그래서 tuning 에
+    # `detector_mapping_json` 을 넣어도 조용히 무시됐다 — 매핑을 바꾼 팔 셋이 전부
+    # 옛 매핑으로 돌았고, 상태 JSON 에 옛 경로가 찍혀 있는 걸 나중에야 발견했다.
+    # 매핑은 관측 귀속을 정하는 실험 변수이므로 설정으로 갈아끼울 수 있어야 한다.
+    _tuned_detector = str(tuning.get("detector_mapping_json", "") or "").strip()
+    detector_mapping_path = _tuned_detector or args.detector_mapping_json
+    if _tuned_detector and not Path(detector_mapping_path).is_absolute():
+        detector_mapping_path = str(WORKSPACE_ROOT / detector_mapping_path)
+    detector_mapping = load_optional_json(detector_mapping_path)
+    # 미드블록 정지선 링크를 관측에서 뺀다(tuning `urban.midblock.exclude_links`).
+    # 투영보다 먼저여야 한다 — traffic_state_from_vissim 이 이 매핑으로 큐를 귀속한다.
+    detector_mapping, _midblock_meta = filter_midblock_links_from_detector_mapping(
+        detector_mapping, tuning)
     calibration_override = tuning.get("calibration_override", {})
     if isinstance(calibration_override, Mapping):
         calibration = deep_update(dict(calibration), calibration_override)
@@ -6478,6 +6855,10 @@ def main() -> None:
         flagship=(args.controller in ("pstack-flagship", "wu-link")),
     )
     adapter_runtime_metadata = install_adapter_calibration_fingerprints(cfg, tuning)
+    # 실제로 쓴 검지 매핑을 남긴다. 상태 JSON 의 `detector_mapping_json` 은 **러너가**
+    # 쓰는 값이라 tuning 이 덮은 경우를 못 잡는다(2026-08-22 에 그걸로 팔 셋을 헛돌렸다).
+    adapter_runtime_metadata["detector_mapping_effective"] = Path(detector_mapping_path).name
+    adapter_runtime_metadata["detector_mapping_from_tuning"] = 1.0 if _tuned_detector else 0.0
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
@@ -6485,6 +6866,10 @@ def main() -> None:
     runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
     # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
     runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))
+    # 직전 구간 실측 방류율로 용량을 갱신한다. 가정값(차로수 x 330)을 덮는다 —
+    # 동시현시 배율은 실측 통과량에 이미 반영돼 있으므로 그 뒤여야 한다.
+    runtime_patch_metadata.update(install_measured_movement_capacity(
+        cfg, tuning, state_json, args.previous_action_json))
     state = traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input,

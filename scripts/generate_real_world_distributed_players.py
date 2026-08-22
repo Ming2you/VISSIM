@@ -75,6 +75,7 @@ TRAVEL_SUFFIX_RE = re.compile(r"(?<![A-Za-z])(NB|SB|EB|WB)(?![A-Za-z])")
 
 def boundary_gate_plan_from_alignment(
     alignment: dict[str, Any],
+    drop_nodes: "set[str] | None" = None,
 ) -> tuple[dict[str, list[str]], list[dict[str, Any]]]:
     """정렬 산출물 -> {노드: [경계 leg 방위]} 와 근거 행.
 
@@ -90,6 +91,10 @@ def boundary_gate_plan_from_alignment(
             continue
         if str(entry.get("entry_class", "")) == "dummy":
             continue
+        if drop_nodes and str(entry.get("model_node") or "") in drop_nodes:
+            # 그 노드는 mid-block 으로 강등됐다. 게이트는 사라지는 게 아니라
+            # --boundary-extra-legs 가 하류 player 로 재배치한다(경로 relFlow 기준).
+            continue
         vi_no = str(entry.get("vehicle_input_no", ""))
         name = str(entry.get("name") or "")
         node = entry.get("model_node")
@@ -98,6 +103,11 @@ def boundary_gate_plan_from_alignment(
             leg, source = TRAVEL_SUFFIX_TO_APPROACH_LEG[suffixes[-1]], "name_suffix"
         else:
             leg, source = (entry.get("leg") or {}).get("link_geometry"), "link_geometry"
+        # 4방위 통일(2026-08-18 사용자 결정). 이름 접미사는 이미 정방위지만 기하 폴백은
+        # 대각을 뱉는다. 격자 leg 이 --legs4 로 정방위가 됐으므로 게이트도 같은 축을 써야
+        # 같은 접근로가 두 이름을 받지 않는다. NE->E · NW->N · SW->W · SE->S 는 신호군
+        # 이름(NBT/SBT/EBT/WBT)과 전수 대조해 확인했다.
+        leg = {"NE": "E", "NW": "N", "SW": "W", "SE": "S"}.get(str(leg), leg)
         if not node or not leg:
             raise SystemExit(
                 f"경계 유입 {vi_no}({name!r})의 접근 leg 을 정할 수 없다: "
@@ -296,6 +306,10 @@ def parse_sg_ref(text: str | None) -> tuple[int, int] | None:
     return parts[0], parts[1]
 
 
+AXIS_PHASE_SUFFIXES = {"NS": ("_p1", "_p2"), "EW": ("_p3", "_p4")}
+PHASE_SUFFIX_AXIS = {"_p1": "NS", "_p2": "NS", "_p3": "EW", "_p4": "EW"}
+
+
 def signal_group_axis(name: str, sg_no: int) -> str:
     upper = str(name or "").upper()
     if "EB" in upper or "WB" in upper:
@@ -476,7 +490,9 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
                            adjacency_legs: "dict[str, dict[str, int]] | None" = None,
                            storage_capacity: "dict[str, float] | None" = None,
                            ramp_queue_by_ramp: "dict[str, float] | None" = None,
-                           boundary_gates: "dict[str, list[str]] | None" = None) -> dict[str, Any]:
+                           boundary_gates: "dict[str, list[str]] | None" = None,
+                           ramp_leg_dir_by_node: "dict[str, str] | None" = None,
+                           ramp_on_to_freeway: bool = False) -> dict[str, Any]:
     # 통제 대상(rows)과 비통제(monitor_rows)를 **같은 모델로** 세운다.
     #
     # 왜. 나중에 컨트롤러 분석은 "통제 교차로의 TTT 절감 대 인접 비통제 구간의 TTT 증가"를
@@ -538,7 +554,8 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
             side = ramp.rsplit("_", 1)[-1]          # R_D_W -> W
             off_ramp = "OR_" + ramp[2:]            # R_D_W -> OR_D_W
             spec = ramp_legs_by_node.setdefault(sid, {"type": "ramp", "on": {}, "off": {}})
-            spec["on"][side] = ramp
+            if not ramp_on_to_freeway:
+                spec["on"][side] = ramp
             spec["off"][side] = off_ramp
 
     # 경계 게이트를 어디에 심을 것인가.
@@ -556,6 +573,7 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
             )
 
     CARDINAL = ("N", "S", "E", "W")
+    ramp_leg_dir_by_node = ramp_leg_dir_by_node or {}
     merged_gates: list[str] = []
     for sid in all_nodes:
         legs: dict[str, Any] = {}
@@ -566,11 +584,29 @@ def build_network_override(rows: list[dict[str, str]], include_freeway_interface
         # 램프 인터페이스 노드는 빈 기본 방위 하나(가능하면 S)를 램프 leg 로 쓴다.
         ramp_spec = ramp_legs_by_node.get(sid)
         if ramp_spec and free:
-            slot = "S" if "S" in free else free[0]
-            legs[slot] = ramp_spec
+            # 램프가 실제로 붙는 방위는 망 형상이 정한다. 예전 규칙은 "빈 방위 중 S 우선"
+            # 이었는데 그건 근거가 아니라 기본값이었다(2026-08-18: D·F 램프 둘 다 서쪽인데
+            # SC1004 만 S 로 잡혔다). --ramp-leg-dir 로 노드별 방위를 박는다.
+            want = ramp_leg_dir_by_node.get(sid)
+            if want and want in free:
+                slot = want
+            elif want:
+                raise SystemExit(
+                    f"{sid} 의 램프 방위로 {want} 를 받았는데 그 방위가 비어 있지 않다"
+                    f"(빈 방위 {free}). 격자 leg 이 이미 쓰고 있으면 램프를 얹을 수 없다.")
+            else:
+                slot = "S" if "S" in free else free[0]
+            # 맨 방위 대신 복합 키를 쓴다(2026-08-18). 4방위로 오면서 SC1001 은 남는
+            # 정방위가 W 하나뿐이라 램프와 경계 게이트가 같은 자리를 요구한다. 격자 leg 이
+            # 늘 '방위_이웃' 이라 맨 방위가 비어 있는 것과 같은 구조로 맞추면, 게이트는
+            # 맨 방위를 쓰고 둘은 `leg_base_dir` 에서 같은 축으로 묶인다 — 이미 지원되는
+            # 병합이다. 램프를 다른 방위로 밀면 실제 접속 방향과 어긋난다.
+            legs[f"{slot}_RAMP"] = ramp_spec
             free = [d for d in free if d != slot]
             for r in ramp_spec["on"].values():
                 storage[f"{sid}_{r}_queue"] = 180.0
+            # on 이 비면(freeway 권역) 접근부 저수지도 안 만든다 — 램프 대기열은
+            # state.ramp_queue + ramp_queue_max_veh_by_ramp 로 freeway 쪽이 들고 있다.
             for o in ramp_spec["off"].values():
                 storage[f"{o}_storage"] = 120.0
         # 경계 게이트 — 수요 유입·유출 경로.
@@ -732,11 +768,12 @@ def prune_network_movements_to_observed_axes(
         signal = str(spec.get("signal", ""))
         phase = str(spec.get("phase", ""))
         axes = observed_axes_by_signal.get(signal, {"NS", "EW"})
+        # 4현시 기준. 옛 코드는 p1=NS · p2=EW 라는 2현시 가정이라 p2(남북 좌회전)를
+        # 동서 관측 유무로 잘라내고 p3·p4 는 아예 검사하지 않았다.
         keep = True
-        if phase.endswith("_p1") and axes and "NS" not in axes:
-            keep = False
-        if phase.endswith("_p2") and axes and "EW" not in axes:
-            keep = False
+        for suffix, axis in PHASE_SUFFIX_AXIS.items():
+            if phase.endswith(suffix) and axes and axis not in axes:
+                keep = False
         if keep:
             urban_movements[movement_key] = spec
         else:
@@ -876,6 +913,17 @@ def build_detector_mapping(
             entries = link_to_movements.setdefault(link, [])
             existing = {str(item.get("movement")) for item in entries if isinstance(item, dict)}
             link_axes = head_axes_by_sc.get(sc_no, {}).get(str(link), set())
+            # 축 -> 현시 표. `grid_topology.movement_phase_id` 는 2026-08-12 부터 4현시다:
+            # p1=주축(NS) 직진 · p2=주축 좌 · p3=부축(EW) 직진 · p4=부축 좌.
+            # 이 표 없이 `_p1`/`_p2` 만 검사하면 NS 링크가 좌회전(p2)을 잃고 EW 링크는
+            # **남북 좌회전**으로 귀속된다 — 동서 접근로가 통째로 관측에서 빠진다.
+            # (2026-08-22 진단: p3·p4 가 17개 신호 전부·전 시점 큐 0, 동서축이 실측
+            #  정지차의 45~55% 를 지는데도 리더가 green_min 으로 굶겼다.)
+            allowed_suffixes = tuple(
+                suffix
+                for axis in sorted(link_axes)
+                for suffix in AXIS_PHASE_SUFFIXES.get(axis, ())
+            )
             phase_filtered = [
                 movement_key
                 for movement_key in signal_movements
@@ -883,12 +931,8 @@ def build_detector_mapping(
                     "unknown" in link_axes
                     or not link_axes
                     or (
-                        "NS" in link_axes
-                        and str(movement_phase_by_key.get(movement_key, "")).endswith("_p1")
-                    )
-                    or (
-                        "EW" in link_axes
-                        and str(movement_phase_by_key.get(movement_key, "")).endswith("_p2")
+                        bool(allowed_suffixes)
+                        and str(movement_phase_by_key.get(movement_key, "")).endswith(allowed_suffixes)
                     )
                 )
             ] or list(signal_movements)
@@ -1443,6 +1487,16 @@ def main() -> None:
     # 2026-08-13. 위 정렬은 **유입** 근거만 담는다. 경계 leg 은 유출로도 실재할 수 있고
     # (유출은 sink 라 유량이 없어 유입 대장에 안 잡힌다), 실측에서 유입 근거가 없는데
     # 유출·신호두 근거가 있는 leg 이 17개였다. 그것까지 넣어야 경계가 한쪽으로 안 쏠린다.
+    parser.add_argument("--ramp-on-to-freeway", action="store_true",
+                        help="on-ramp 를 freeway segment agent 권역으로 넘긴다. urban 램프 leg 은 "
+                             "off-ramp 만 갖고, 가로->램프 회전 movement 를 만들지 않는다. "
+                             "램프 대기열은 state.ramp_queue + ramp_queue_max_veh_by_ramp 가 든다")
+    parser.add_argument("--ramp-leg-dir", default="",
+                        help="쉼표로 구분한 SC:방위. 램프 leg 을 그 방위에 붙인다(예 1001:W,1004:W). "
+                             "주지 않으면 예전 기본값(빈 방위 중 S 우선)")
+    parser.add_argument("--boundary-drop-nodes", default="",
+                        help="쉼표로 구분한 SC 번호. 정렬표 게이트 계획에서 뺀다(mid-block 강등). "
+                             "그 게이트는 --boundary-extra-legs 가 하류 player 로 재배치한다")
     parser.add_argument("--boundary-extra-legs", default="",
                         help="쉼표로 구분한 CSV 경로들. `model_node`,`leg` 열을 읽어 경계 leg 에 "
                              "**더한다**(status 열이 있으면 mapped 만). "
@@ -1524,7 +1578,10 @@ def main() -> None:
     boundary_gate_evidence: list[dict[str, Any]] = []
     if args.boundary_input_alignment:
         _alignment = read_json(Path(args.boundary_input_alignment))
-        boundary_gates, boundary_gate_evidence = boundary_gate_plan_from_alignment(_alignment)
+        _drop = {f"SC{int(x)}" for x in str(args.boundary_drop_nodes or "").split(",") if x.strip()}
+        boundary_gates, boundary_gate_evidence = boundary_gate_plan_from_alignment(_alignment, _drop)
+        if _drop:
+            print(f"   정렬표에서 뺀 강등 노드 {len(_drop)}개: {sorted(_drop)}")
         _by_source: dict[str, int] = {}
         for _row in boundary_gate_evidence:
             _by_source[_row["source"]] = _by_source.get(_row["source"], 0) + 1
@@ -1578,6 +1635,12 @@ def main() -> None:
         storage_capacity=storage_capacity,
         ramp_queue_by_ramp=ramp_queue_by_ramp,
         boundary_gates=boundary_gates,
+        ramp_on_to_freeway=bool(args.ramp_on_to_freeway),
+        ramp_leg_dir_by_node={
+            f"SC{int(k)}": v.strip().upper()
+            for part in str(args.ramp_leg_dir or "").split(",") if ":" in part
+            for k, v in [part.split(":", 1)]
+        },
     )
     network_override = prune_network_movements_to_observed_axes(
         network_override,

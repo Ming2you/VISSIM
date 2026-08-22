@@ -62,6 +62,8 @@ from src.controllers.stackelberg_wu_metered import (
     StackelbergWuMeteredController,
     _price_worker_init,
 )
+from src.controllers.local_signal_plant import rollout_local_tts_phased
+from src.models.demand import DemandStep
 from src.controllers.wu_faithful_follower import WuFaithfulFollower
 from src.models.state import (
     MODEL_PHASES,
@@ -71,7 +73,7 @@ from src.models.state import (
     _project_to_budget,
     phase_key,
 )
-from src.models.urban_queue_model import movement_specs
+from src.models.urban_queue_model import _urban_step_index, movement_specs
 
 
 def _price_worker_phase(task):
@@ -128,6 +130,143 @@ class LinkAgentWuFollower(WuFaithfulFollower):
     signal_phase_price_ref: Optional[Dict[str, Dict[str, float]]] = None
     signal_phase_price_weight: float = 1.0
 
+    # 정련이 쓸 국소 비용 모형. "drain"(기본) = 기존 큐 배수 모형 → 비트 동일.
+    # "phased" = GNE 팔로워가 쓰는 `rollout_local_tts_phased`(도착·스필백·offset 포함).
+    #
+    # 왜 바꿀 수 있어야 하는가. 정련은 GNE 가 끝난 뒤 green_times 를 **덮어쓴다**
+    # (실측: 매 결정 17개 신호 중 평균 13.7개). 그런데 `phase_shape_local_cost` 는
+    # 도착도 스필백도 per-movement 용량도 안 본다 — GNE 가 계산한 물리를 버린다.
+    # 게다가 sat 을 `len(movements) x movement_capacity_veh_h` 로 잡아 SC1_p1 이
+    # 28,000 veh/h 가 된다(실측 통과 2,640 veh/h). 그래서 어떤 큐도 첫 스텝에 비어
+    # local 이 항등 0 이 되고, 남는 선형 가격항이 해를 상자 꼭짓점으로 몬다.
+    phase_price_local_cost_model: str = "drain"
+
+    def __getstate__(self):
+        """가격 워커로 보낼 때 정련 캐시는 빼고 피클한다.
+
+        캐시에는 신호 17개분 플래툰 프로파일(약 25k float)이 들어간다. 워커 작업마다
+        직렬화하면 계산보다 전송이 비싸진다. 워커는 정련을 돌지 않으므로 버려도 된다."""
+        st = dict(self.__dict__)
+        st.pop("_phase_ctx_cache", None)
+        return st
+
+    @staticmethod
+    def _phase_refine_signature(state, control, demand):
+        """ctx 재사용 판정 키. control 이 조금이라도 다르면 coupling 이 달라진다."""
+        def _d(m):
+            return tuple(sorted((str(k), round(float(v), 9)) for k, v in (m or {}).items()))
+        return (
+            round(float(getattr(state, "time_sec", 0.0)), 6),
+            id(demand),
+            _d(getattr(control, "green_times", None)),
+            _d(getattr(control, "offsets", None)),
+            _d(getattr(control, "vsl", None)),
+            _d(getattr(control, "ramp_metering", None)),
+        )
+
+    def _phase_refine_context(self, state, control, demand):
+        """정련 1회분 공통 셋업. drain 모드거나 demand 가 없으면 None(= 기존 경로).
+
+        결정 1회에 리더가 후보를 여러 번 평가하면서 팔로워 solve 가 반복 호출된다.
+        `_coupling`(전 신호 도착 결합) 과 신호별 플래툰 프로파일이 그때마다 다시 계산되면
+        정련이 GNE 보다 비싸진다. 입력(state·control·demand)이 같으면 결과도 같으므로
+        서명으로 캐시한다 — 같은 입력에 같은 값이라 **비트 동일**이다.
+        """
+        if str(getattr(self, "phase_price_local_cost_model", "drain")).lower() != "phased":
+            return None
+        if demand is None:
+            return None
+        # `solve()` 의 demand 는 단일 DemandStep 일 수도, 예측 리스트일 수도 있다
+        # (DistributedCoordinator.solve 와 같은 규약). 첫 스텝이 현재 구간이다.
+        # 2026-08-22: 이 정규화를 빠뜨려 첫 스모크가 controller_status=fallback_fixed 로
+        # 떨어졌다 — "'list' object has no attribute 'urban_boundary'".
+        if not isinstance(demand, DemandStep):
+            try:
+                seq = list(demand)
+            except TypeError:
+                return None
+            if not seq:
+                return None
+            demand = seq[0]
+        sig = self._phase_refine_signature(state, control, demand)
+        cached = getattr(self, "_phase_ctx_cache", None)
+        if cached is not None and cached[0] == sig:
+            cached[1]["cache_hits"] = int(cached[1].get("cache_hits", 0)) + 1
+            return cached[1]
+        sim = self.cfg.simulation
+        ctrl = ControlAction.uncontrolled(self.cfg)
+        ctrl.green_times = dict(control.green_times)
+        ctrl.offsets = dict(control.offsets)
+        ctrl.vsl = dict(control.vsl)
+        ctrl.ramp_metering = dict(control.ramp_metering)
+        ctrl.inflow_outflow_allocation = {}
+        snapshot = ControlAction(
+            ramp_metering=dict(ctrl.ramp_metering), vsl=dict(ctrl.vsl),
+            green_times=dict(ctrl.green_times), offsets=dict(ctrl.offsets),
+            inflow_outflow_allocation={},
+        )
+        ctx = {
+            "coupling": self._wu._coupling(state, ctrl, demand),
+            "s_eff_frozen": self._frozen_s_eff(state),
+            "snapshot": snapshot,
+            "demand": demand,
+            "substeps": max(1, int(self.cfg.mpc.horizon_steps)) * max(1, int(sim.K_cu)),
+            "dt_h": float(sim.T_u_h),
+            "start_idx": _urban_step_index(state, self.cfg),
+            "setups": {},
+            "cache_hits": 0,
+        }
+        self._phase_ctx_cache = (sig, ctx)
+        return ctx
+
+    def _phase_refine_signal_setup(self, signal: str, state: TrafficState, ctx):
+        """신호 하나의 롤아웃 입력. ego green 에 불변이라 후보마다 다시 안 만든다."""
+        setups = ctx.get("setups")
+        if setups is not None and signal in setups:
+            return setups[signal]
+        model = self._local_models.get(signal)
+        if model is None or model.has_ramps:
+            if setups is not None:
+                setups[signal] = None
+            return None
+        arr_movement = self._per_movement_arrivals(signal, state, ctx["snapshot"], ctx["demand"])
+        arr_phase = {
+            pid: float(ctx["coupling"].get(f"arr_{phase_key(signal, pid)}", 0.0))
+            for pid in MODEL_PHASES
+        }
+        arr_mv: Dict[str, float] = {}
+        for pid in MODEL_PHASES:
+            movs = [m for m in model.movements
+                    if model.phase_of[m] == pid and model.kind_of[m] != "off_ramp"]
+            raw = sum(max(0.0, float(arr_movement.get(m, 0.0))) for m in movs)
+            target = max(0.0, arr_phase[pid])
+            scale = (target / raw) if raw > 1.0e-12 else 0.0
+            for m in movs:
+                arr_mv[m] = max(0.0, float(arr_movement.get(m, 0.0))) * scale
+        q0 = {m: max(0.0, float(state.urban_movement_queue.get(m, 0.0))) for m in model.movements}
+        s_eff0 = {
+            model.receiving_of[m]: float(ctx["s_eff_frozen"].get(model.receiving_of[m], 0.0))
+            for m in model.movements if model.receiving_of[m]
+        }
+        arr_by_substep = self._platoon_arrival_profiles(
+            signal, state, ctx["snapshot"], ctx["demand"], arr_mv, ctx["substeps"], ctx["start_idx"],
+        )
+        setup = {"model": model, "q0": q0, "arr": arr_by_substep, "s_eff0": s_eff0}
+        if setups is not None:
+            setups[signal] = setup
+        return setup
+
+    def _phase_local_cost_phased(self, signal, phases, setup, ctx) -> float:
+        """GNE 와 **같은** 국소 물리로 현시 벡터를 채점한다."""
+        offset = float(ctx["snapshot"].offsets.get(signal, 0.0))
+        gf = self._offset_green_fractions_vec(
+            signal, phases, offset, ctx["substeps"], ctx["start_idx"],
+        )
+        return float(rollout_local_tts_phased(
+            setup["model"], setup["q0"], setup["arr"], gf, setup["s_eff0"],
+            ctx["substeps"], ctx["dt_h"],
+        ))
+
     def phase_shape_local_cost(
         self,
         signal: str,
@@ -161,7 +300,9 @@ class LinkAgentWuFollower(WuFaithfulFollower):
         """총합을 보존하는 쌍교환 후보 — (i 에서 step 빼서 j 에 준다)."""
         net = self.cfg.network
         live = [pid for pid in net.signal_live_phases(signal) if float(base.get(pid, 0.0)) > 0.0]
-        lo, hi = float(net.green_min), float(net.green_max)
+        # 신호별 상한. 3현시 141 이면 101 이고, 스칼라 78 을 걸면 그 신호에서
+        # 실계획을 재현할 수 없다(2026-08-22).
+        lo, hi = float(net.green_min), float(net.signal_green_max(signal))
         out = []
         for i in live:
             for j in live:
@@ -175,7 +316,8 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 out.append(cand)
         return out
 
-    def apply_phase_price_refinement(self, control: ControlAction, state: TrafficState) -> int:
+    def apply_phase_price_refinement(self, control: ControlAction, state: TrafficState,
+                                     demand=None) -> int:
         """가격이 붙은 방향으로만 현시를 재배분한다. 총합·주기는 불변.
 
         `p1` 축 탐색(기존)이 끝난 뒤에 돈다. 시드가 그 결과이고 개선될 때만 교체하므로
@@ -189,14 +331,24 @@ class LinkAgentWuFollower(WuFaithfulFollower):
         weight = float(self.signal_phase_price_weight)
         net = self.cfg.network
         steps = tuple(getattr(self.cfg.mpc, "phase_price_exchange_steps_sec", (6.0, 2.0)))
+        # phased 모드면 정련도 GNE 와 같은 물리로 채점한다. drain 이면 ctx 가 None 이라
+        # 아래 분기가 기존 경로 그대로 — 비트 동일이다.
+        ctx = self._phase_refine_context(state, control, demand)
+        phased_signals = 0
         improved = 0
         for signal, price in prices.items():
             ref = refs.get(signal) or {}
             base = {pid: float(control.green_times.get(phase_key(signal, pid), 0.0))
                     for pid in MODEL_PHASES}
+            setup = self._phase_refine_signal_setup(signal, state, ctx) if ctx else None
+            if setup is not None:
+                phased_signals += 1
 
-            def scored(vec: Mapping[str, float]) -> float:
-                local = self.phase_shape_local_cost(signal, vec, state)
+            def scored(vec: Mapping[str, float], _setup=setup) -> float:
+                if _setup is not None:
+                    local = self._phase_local_cost_phased(signal, vec, _setup, ctx)
+                else:
+                    local = self.phase_shape_local_cost(signal, vec, state)
                 ext = sum(
                     float(price.get(pid, 0.0)) * (float(vec.get(pid, 0.0)) - float(ref.get(pid, 0.0)))
                     for pid in MODEL_PHASES
@@ -216,6 +368,9 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                         control.green_times[key] = float(value)
                 improved += 1
         control.diagnostics["wu_phase_price_signals_refined"] = float(improved)
+        control.diagnostics["wu_phase_price_local_cost_phased_signals"] = float(phased_signals)
+        if ctx is not None:
+            control.diagnostics["wu_phase_refine_ctx_cache_hits"] = float(ctx.get("cache_hits", 0))
         control.diagnostics["wu_phase_price_signals_priced"] = float(len(prices))
         # 가격 g 와 실제 이동량을 내보낸다 — 이게 없으면 "재배분됐다" 만 알고 **얼마나
         # 값어치가 있었는지** 를 모른다. 경량화(대상 신호를 좁힐지, 채널을 끌지)는 이
@@ -243,7 +398,7 @@ class LinkAgentWuFollower(WuFaithfulFollower):
             else super().solve(state, leader, demand, previous_control, leader_incumbent_obj)
         )
         if self.signal_phase_price:
-            self.apply_phase_price_refinement(result.control, state)
+            self.apply_phase_price_refinement(result.control, state, demand)
         return result
 
 
@@ -264,6 +419,9 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     phase_price_enabled: bool = False
     phase_price_delta_sec: float = 6.0
     phase_price_weight: float = 1.0
+    # 정련의 국소 비용 모형. 어댑터가 tuning `phase_price.local_cost_model` 로 심고,
+    # 가격을 하달할 때 팔로워로 그대로 넘긴다. 기본 "drain" = 비트 동일.
+    phase_price_local_cost_model: str = "drain"
 
     def __setstate__(self, state):
         """언피클 직후 — 가격 워커에서 어댑터의 런타임 몽키패치를 되살린다.
@@ -513,6 +671,9 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         follower.signal_phase_price = prices or None
         follower.signal_phase_price_ref = {s: refs[s] for s in prices} or None
         follower.signal_phase_price_weight = float(self.phase_price_weight)
+        follower.phase_price_local_cost_model = str(
+            getattr(self, "phase_price_local_cost_model", "drain")
+        )
         self._phase_price_rollout_count = len(tasks) + 1
         self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
 

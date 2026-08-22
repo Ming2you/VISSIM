@@ -1,0 +1,209 @@
+{
+ "schema": "midblock_stopline_links/v1",
+ "generated": "2026-08-22",
+ "rule": "이 망 규약: SG 1~8 = 본선 교차로, 9 이상 = 미드블록. signalHead 의 sg='<SC> <SG>' 에서 SG>=9 인 신호두가 붙은 링크가 미드블록 정지선이다.",
+ "why": "권역 정의가 'leg 정지선 + 상류로 앞 교차로까지' 라, 중간에 미드블록이 있으면 그 정지선과 대기 구간까지 본선 leg 가 소유한다. 미드블록 적색에 선 차가 본선 큐로 집계돼 컨트롤러가 잘못된 배분을 한다(SC5 본선: 직진 47->10.1초 21%, 좌회전 23->61.7초 268%).",
+ "count": 31,
+ "mixed_with_mainline": [
+  "1220013600",
+  "1220013700"
+ ],
+ "links": {
+  "245": {
+   "midblock": [
+    "SC2/SG10"
+   ],
+   "mainline_too": []
+  },
+  "1220008202": {
+   "midblock": [
+    "SC2/SG14"
+   ],
+   "mainline_too": []
+  },
+  "1220008301": {
+   "midblock": [
+    "SC2/SG18"
+   ],
+   "mainline_too": []
+  },
+  "1210008202": {
+   "midblock": [
+    "SC2/SG22"
+   ],
+   "mainline_too": []
+  },
+  "251": {
+   "midblock": [
+    "SC2/SG23"
+   ],
+   "mainline_too": []
+  },
+  "1220012102": {
+   "midblock": [
+    "SC3/SG10"
+   ],
+   "mainline_too": []
+  },
+  "213": {
+   "midblock": [
+    "SC3/SG14"
+   ],
+   "mainline_too": []
+  },
+  "217": {
+   "midblock": [
+    "SC3/SG15"
+   ],
+   "mainline_too": []
+  },
+  "1220013600": {
+   "midblock": [
+    "SC13/SG14"
+   ],
+   "mainline_too": [
+    "SC12/SG1",
+    "SC12/SG6"
+   ]
+  },
+  "1220013700": {
+   "midblock": [
+    "SC13/SG10"
+   ],
+   "mainline_too": [
+    "SC13/SG2"
+   ]
+  },
+  "1220014203": {
+   "midblock": [
+    "SC5/SG14"
+   ],
+   "mainline_too": []
+  },
+  "257": {
+   "midblock": [
+    "SC5/SG18"
+   ],
+   "mainline_too": []
+  },
+  "469": {
+   "midblock": [
+    "SC4/SG11"
+   ],
+   "mainline_too": []
+  },
+  "128": {
+   "midblock": [
+    "SC4/SG10",
+    "SC4/SG13"
+   ],
+   "mainline_too": []
+  },
+  "121008402": {
+   "midblock": [
+    "SC4/SG9",
+    "SC4/SG14"
+   ],
+   "mainline_too": []
+  },
+  "467": {
+   "midblock": [
+    "SC4/SG13"
+   ],
+   "mainline_too": []
+  },
+  "118": {
+   "midblock": [
+    "SC4/SG17",
+    "SC4/SG22"
+   ],
+   "mainline_too": []
+  },
+  "122": {
+   "midblock": [
+    "SC4/SG18",
+    "SC4/SG21"
+   ],
+   "mainline_too": []
+  },
+  "1220008602": {
+   "midblock": [
+    "SC7/SG12"
+   ],
+   "mainline_too": []
+  },
+  "1220008701": {
+   "midblock": [
+    "SC7/SG16"
+   ],
+   "mainline_too": []
+  },
+  "1220021802": {
+   "midblock": [
+    "SC9/SG12",
+    "SC9/SG15"
+   ],
+   "mainline_too": []
+  },
+  "97": {
+   "midblock": [
+    "SC9/SG15"
+   ],
+   "mainline_too": []
+  },
+  "94": {
+   "midblock": [
+    "SC9/SG16"
+   ],
+   "mainline_too": []
+  },
+  "1210019201": {
+   "midblock": [
+    "SC102/SG14"
+   ],
+   "mainline_too": []
+  },
+  "271": {
+   "midblock": [
+    "SC102/SG18"
+   ],
+   "mainline_too": []
+  },
+  "359": {
+   "midblock": [
+    "SC9001/SG12"
+   ],
+   "mainline_too": []
+  },
+  "354": {
+   "midblock": [
+    "SC9001/SG16"
+   ],
+   "mainline_too": []
+  },
+  "1210014303": {
+   "midblock": [
+    "SC5/SG10"
+   ],
+   "mainline_too": []
+  },
+  "256": {
+   "midblock": [
+    "SC5/SG24"
+   ],
+   "mainline_too": []
+  },
+  "1220011103": {
+   "midblock": [
+    "SC5/SG24"
+   ],
+   "mainline_too": []
+  },
+  "259": {
+   "midblock": [
+    "SC5/SG20"
+   ],
+   "mainline_too": []
+  }
+ }
+}

@@ -37,6 +37,22 @@ vissimVersionRaw = ""
 
 ' Signal COM handle caches - see CachedSignalController.
 Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, signalTraceStage
+' 큐 관측 창 집계(2026-08-22). 결정 순간 1회 표본은 **신호 주기에 위상 잠금**된다 —
+' 제어주기 150s 가 신호주기 150s 와 같아 표본이 항상 같은 위상에 떨어진다. 실측(SC1
+' 무제어): 동서 접근로가 결정시점 0.1대인데 150s 창 평균 3.3 · 창 최대 12.8 이다(-97%).
+' 5초 스캔은 이미 돌고 있으므로 누적만 하면 된다(COM 왕복 0).
+' 링크 이탈 계수(2026-08-22). 5초 스캔이 차량별 (No, Link) 를 이미 읽으므로 연속 두
+' 스캔을 비교하면 각 링크를 **떠난 대수**가 나온다 - COM 왕복 0. 정지선 링크의 이탈
+' 대수 / 그 구간 녹색초 = 실측 방류율이고, 그게 그 차로군 용량의 하한이다.
+' (점유 스캔만으로는 통과량을 못 구한다. 유입을 모르니 점유 차분으로도 안 나온다.)
+Dim prevVehLink, winDepart
+Set prevVehLink = CreateObject("Scripting.Dictionary")
+Set winDepart = CreateObject("Scripting.Dictionary")
+Dim winStoppedSum, winStoppedMax, winCountSum, winSamples
+Set winStoppedSum = CreateObject("Scripting.Dictionary")
+Set winStoppedMax = CreateObject("Scripting.Dictionary")
+Set winCountSum = CreateObject("Scripting.Dictionary")
+winSamples = 0
 Set sigScCache = CreateObject("Scripting.Dictionary")
 Set sigSgCache = CreateObject("Scripting.Dictionary")
 Set sigSgCountCache = CreateObject("Scripting.Dictionary")
@@ -2299,8 +2315,17 @@ Sub WriteStateJson(simSec, path)
     ts.WriteLine "    ""link_counts"": " & LocalObservationLinkCountsJson(localCounts) & ","
     ts.WriteLine "    ""link_speeds_kph"": " & LocalObservationLinkSpeedsJson(localCounts, localSpeedSums) & ","
     ts.WriteLine "    ""link_stopped_counts"": " & LocalObservationLinkStoppedCountsJson(localStopped) & ","
+    If QueueWindowEnabled() Then
+        ' 직전 제어구간 [t-interval, t] 의 5초 표본 집계. 위상 잠금 편향을 걷어낸다.
+        ts.WriteLine "    ""link_stopped_counts_window_mean"": " & QueueWindowMeanJson(winStoppedSum, winSamples) & ","
+        ts.WriteLine "    ""link_stopped_counts_window_max"": " & QueueWindowMaxJson(winStoppedMax) & ","
+        ts.WriteLine "    ""link_counts_window_mean"": " & QueueWindowMeanJson(winCountSum, winSamples) & ","
+        ts.WriteLine "    ""link_departures_window"": " & QueueWindowMaxJson(winDepart) & ","
+        ts.WriteLine "    ""queue_window_samples"": " & CStr(winSamples) & ","
+    End If
     ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails)
     ts.WriteLine "  },"
+    If QueueWindowEnabled() Then ResetQueueWindow
     WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
         captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
         recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
@@ -2475,6 +2500,10 @@ Sub LogStateCsv(simSec)
         AbortVehicleObservation simSec
     End If
     WriteStateCsvRow simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
+    If scanOk Then
+        AccumulateQueueWindow linkCounts, linkStopped
+        AccumulateDepartures recordVehNos, recordLinkNos
+    End If
     If LogBottleneckDetailsEnabled() And scanOk Then
         WriteBottleneckRows simSec, countE, stoppedE, speedE, countW, stoppedW, speedW, linkCounts, linkStopped, linkSpeedSums
     End If
@@ -2815,6 +2844,99 @@ Function RampCountsJson(counts)
     s = s & """D"": " & CStr(CLng(sums("R_D_W")) + CLng(sums("R_D_E"))) & ", "
     s = s & """F"": " & CStr(CLng(sums("R_F_W")) + CLng(sums("R_F_E"))) & "}"
     RampCountsJson = s
+End Function
+
+Function QueueWindowEnabled()
+    QueueWindowEnabled = (Trim(shell.ExpandEnvironmentStrings("%RW_QUEUE_WINDOW%")) = "1")
+End Function
+
+Sub AccumulateQueueWindow(linkCounts, linkStopped)
+    Dim item, key, v
+    If Not QueueWindowEnabled() Then Exit Sub
+    If Not IsObject(linkStopped) Then Exit Sub
+    For Each item In linkStopped.Keys
+        key = CStr(item)
+        v = CDbl(linkStopped(item))
+        If winStoppedSum.Exists(key) Then
+            winStoppedSum(key) = CDbl(winStoppedSum(key)) + v
+        Else
+            winStoppedSum(key) = v
+        End If
+        If winStoppedMax.Exists(key) Then
+            If v > CDbl(winStoppedMax(key)) Then winStoppedMax(key) = v
+        Else
+            winStoppedMax(key) = v
+        End If
+    Next
+    If IsObject(linkCounts) Then
+        For Each item In linkCounts.Keys
+            key = CStr(item)
+            If winCountSum.Exists(key) Then
+                winCountSum(key) = CDbl(winCountSum(key)) + CDbl(linkCounts(item))
+            Else
+                winCountSum(key) = CDbl(linkCounts(item))
+            End If
+        Next
+    End If
+    winSamples = winSamples + 1
+End Sub
+
+Sub AccumulateDepartures(vehNos, linkNos)
+    Dim i, veh, cur, prev, seen
+    If Not QueueWindowEnabled() Then Exit Sub
+    If IsEmpty(vehNos) Then Exit Sub
+    Set seen = CreateObject("Scripting.Dictionary")
+    For i = LBound(vehNos) To UBound(vehNos)
+        veh = CStr(vehNos(i))
+        cur = CStr(linkNos(i))
+        seen(veh) = cur
+        If prevVehLink.Exists(veh) Then
+            prev = CStr(prevVehLink(veh))
+            If prev <> cur Then AddDictNumber winDepart, prev, 1.0
+        End If
+    Next
+    For Each veh In prevVehLink.Keys
+        If Not seen.Exists(veh) Then AddDictNumber winDepart, CStr(prevVehLink(veh)), 1.0
+    Next
+    Set prevVehLink = seen
+End Sub
+
+Sub ResetQueueWindow()
+    winDepart.RemoveAll
+    winStoppedSum.RemoveAll
+    winStoppedMax.RemoveAll
+    winCountSum.RemoveAll
+    winSamples = 0
+End Sub
+
+Function QueueWindowMeanJson(sums, samples)
+    Dim parts, i, linkText, s2, denom
+    denom = samples
+    If denom < 1 Then denom = 1
+    parts = Split(RW_LOCAL_OBSERVABLE_LINKS, ",")
+    s2 = "{"
+    For i = 0 To UBound(parts)
+        linkText = Trim(parts(i))
+        If linkText <> "" Then
+            If Len(s2) > 1 Then s2 = s2 & ", "
+            s2 = s2 & """" & JsonEscape(linkText) & """: " & Num(DictNumber(sums, CStr(CLng(linkText))) / denom)
+        End If
+    Next
+    QueueWindowMeanJson = s2 & "}"
+End Function
+
+Function QueueWindowMaxJson(maxes)
+    Dim parts, i, linkText, s2
+    parts = Split(RW_LOCAL_OBSERVABLE_LINKS, ",")
+    s2 = "{"
+    For i = 0 To UBound(parts)
+        linkText = Trim(parts(i))
+        If linkText <> "" Then
+            If Len(s2) > 1 Then s2 = s2 & ", "
+            s2 = s2 & """" & JsonEscape(linkText) & """: " & Num(DictNumber(maxes, CStr(CLng(linkText))))
+        End If
+    Next
+    QueueWindowMaxJson = s2 & "}"
 End Function
 
 Function DictCount(counts, linkNo)

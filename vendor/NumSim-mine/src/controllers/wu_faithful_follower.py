@@ -1535,11 +1535,29 @@ class WuFaithfulFollower:
     ) -> Dict[str, List[float]]:
         """movement별 offset-aware green fraction gf[m][sub] — service가 substep window 겹침."""
         net = self.cfg.network
+        return self._offset_green_fractions_vec(
+            signal,
+            distribute_phase_green(net, float(green_p1), signal=signal),
+            offset, substeps, start_idx,
+        )
+
+    def _offset_green_fractions_vec(
+        self,
+        signal: str,
+        greens: Mapping[str, float],
+        offset: float,
+        substeps: int,
+        start_idx: int,
+    ) -> Dict[str, List[float]]:
+        """`_offset_green_fractions` 와 같되 **명시적 현시 벡터**를 받는다.
+
+        현시 교환 후보는 p1 스칼라로 표현할 수 없다(총합 고정 단체의 자유도가 3인데
+        p1 축은 1방향뿐). 가격 정련이 GNE 와 같은 물리(도착·스필백·offset)로 후보를
+        채점하려면 이 프리미티브가 필요하다."""
         model = self._local_models[signal]
         probe = ControlAction.uncontrolled(self.cfg)
         probe.green_times = {
-            phase_key(signal, pid): float(value)
-            for pid, value in distribute_phase_green(net, float(green_p1), signal=signal).items()
+            phase_key(signal, pid): float(value) for pid, value in greens.items()
         }
         probe.offsets = {signal: float(offset)}
         probe.inflow_outflow_allocation = {}

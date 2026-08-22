@@ -1,0 +1,16 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_lanes_20260821.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_phasefix_20260822",
+ "description": "검지 매핑의 link_to_movements 를 접근로 기준으로 재귀속(4c). 그 외 전부 lanes 팔과 동일.",
+ "notes": [
+  "2026-08-22. 관측 귀속 버그 수정. 기존 매핑(4b)은 동서 접근로 링크의 차량을 남북 좌회전 movement 로 돌렸다.",
+  "원인: generate_real_world_distributed_players.py:911 의 필터가 `_p1`/`_p2` 만 검사한다. 2026-08-12 4현시 전환(grid_topology.movement_phase_id: p1=주축직진 p2=주축좌 p3=부축직진 p4=부축좌) 이후 이 필터의 의미가 바뀌었다 — NS 링크는 남북 좌회전(p2)을 잃고, EW 링크는 남북 좌회전으로 귀속된다. 생성기에 _p3/_p4 는 한 번도 안 나온다.",
+  "증상: p3·p4 가 17개 신호 전부·전 시점 큐 0. 리더는 빈 현시를 굶기는 비용이 0 이라 green_min 으로 밀고 남북에 몰아준다(SC1 [76.0, 20.7, 20.7, 20.7], SC5_p3 는 고정 101초를 20.7초로).",
+  "실측 대조(t=2400): VISSIM 정지차 남북 861 / 동서 702, 모델 큐 합 879.6 — 모델이 본 건 남북뿐이다. 동서 비중은 혼잡과 함께 34%→45%→55% 로 커진다.",
+  "수정 규칙: 정지선 링크 L 이 신호 S 의 leg X 것이면 {m : m.signal==S and m.approach==X} 에만 귀속. 권역은 정본(urban_player_territory_v1_20260819.json)을 읽는다.",
+  "범위: 대상 65개 링크가 전부 이미 observable_links·link_to_movements 에 있다. 새 링크 0개 — 관측 범위는 그대로고 귀속만 바뀐다. 동서 접근로 50개 전부 SG 1-8 이 구동하므로 미드블록(SG 9+) 규칙과 무관하다.",
+  "검산: 현시분포 p1 246/p2 115/p3 0/p4 0 -> p1 120/p2 54/p3 103/p4 40. 권역 일치 36/72 -> 68/72. 고정계획 녹색과 모델큐의 순위상관 +0.009 -> +0.315.",
+  "생성기: scripts/build_link_to_movements_approach.py"
+ ],
+ "detector_mapping_json": "evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core17legs4c_20260822.json"
+}

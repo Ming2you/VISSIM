@@ -475,6 +475,26 @@ class NetworkConfig:
         clearance = float(self.lost_time) / float(len(MODEL_PHASES))
         return clearance * float(len(self.signal_live_phases(signal)))
 
+    def signal_green_max(self, signal: Optional[str] = None) -> float:
+        """그 SC 의 주현시 상한 [s].
+
+        `green_max` 는 독립 상수가 아니라 **유도값**이다(이 파일 269-271행 주석):
+
+            green_max = effective_green_total - (live현시수 - 1) x green_min
+
+        스칼라 78 은 (138, 4현시) 에서 나왔다. 실 망에는 그렇지 않은 SC 가 있다 —
+        SC107/108/109 는 3현시 141 이라 상한이 101 이어야 하고(실계획 p3 = 88~90),
+        SC7 은 주기 120 이다. 스칼라를 그대로 걸면 컨트롤러가 **고정계획을 재현조차
+        못 한다**. 매핑이 둘 다 비면 스칼라를 돌려줘 기존과 비트 동일하다.
+        """
+        if signal is None:
+            return float(self.green_max)
+        if not self.live_phases_by_signal and not self.effective_green_total_by_signal:
+            return float(self.green_max)
+        total = self.signal_effective_green_total(signal)
+        n_live = max(1, len(self.signal_live_phases(signal)))
+        return max(float(self.green_min), total - (n_live - 1) * float(self.green_min))
+
     def signal_effective_green_total(self, signal: str) -> float:
         """그 SC 가 현시들에 나눠 줄 수 있는 녹색 예산 [s].
 
@@ -1393,7 +1413,8 @@ def _equal_green_over_live_phases(net: NetworkConfig) -> Dict[str, float]:
     return green
 
 
-def clamp_primary_green(net: NetworkConfig, value: float) -> float:
+def clamp_primary_green(net: NetworkConfig, value: float,
+                        signal: Optional[str] = None) -> float:
     """주 현시 녹색을 실행가능 상자로 자른다.
 
     나머지 (N-1) 현시가 각각 [green_min, green_max] 를 지킬 수 있어야 하므로 상자는
@@ -1401,13 +1422,24 @@ def clamp_primary_green(net: NetworkConfig, value: float) -> float:
         [max(green_min, total - (N-1) x green_max), min(green_max, total - (N-1) x green_min)]
 
     이다. N=2 에서 `[green_min, green_max]` 와 정확히 같다(구 규칙 비트 동일).
+
+    `signal` 을 주면 그 SC 의 예산·live현시수·상한으로 상자를 만든다. 안 주면 스칼라라
+    종전과 비트 동일하다 — `distribute_phase_green` 이 신호별 total 을 쓰면서 여기서는
+    스칼라를 쓰던 불일치를 없앤다(2026-08-22).
     """
-    total = net.effective_green_total
-    others = max(net.num_phases - 1, 1)
-    low = max(float(net.green_min), total - others * float(net.green_max))
-    high = min(float(net.green_max), total - others * float(net.green_min))
+    if signal is None:
+        total = net.effective_green_total
+        others = max(net.num_phases - 1, 1)
+        gmax = float(net.green_max)
+    else:
+        total = net.signal_effective_green_total(signal)
+        others = max(len(net.signal_live_phases(signal)) - 1, 1)
+        gmax = net.signal_green_max(signal)
+    low = max(float(net.green_min), total - others * gmax)
+    high = min(gmax, total - others * float(net.green_min))
     if low > high:
-        low = high = total / float(net.num_phases)
+        denom = float(net.num_phases) if signal is None else float(max(1, len(net.signal_live_phases(signal))))
+        low = high = total / denom
     return float(min(max(float(value), low), high))
 
 
@@ -1457,7 +1489,7 @@ def distribute_phase_green(
     # (호출부 45곳을 한꺼번에 안 건드리기 위한 기본값이다).
     live = net.signal_live_phases(signal) if signal is not None else tuple(MODEL_PHASES)
     total = net.effective_green_total if signal is None else net.signal_effective_green_total(signal)
-    primary = clamp_primary_green(net, primary)
+    primary = clamp_primary_green(net, primary, signal)
     rest_ids = list(live[1:])
     out: Dict[str, float] = {pid: 0.0 for pid in MODEL_PHASES}
     out[live[0]] = float(primary)
@@ -1470,7 +1502,8 @@ def distribute_phase_green(
         raw = [rest_budget / float(len(rest_ids))] * len(rest_ids)
     else:
         raw = [rest_budget * w / weight_sum for w in weights]
-    projected = _project_to_budget(raw, rest_budget, float(net.green_min), float(net.green_max))
+    projected = _project_to_budget(raw, rest_budget, float(net.green_min),
+                                   net.signal_green_max(signal))
     for pid, value in zip(rest_ids, projected):
         out[pid] = float(value)
     return out
