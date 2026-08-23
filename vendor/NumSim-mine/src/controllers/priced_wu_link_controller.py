@@ -373,6 +373,11 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 improved += 1
         control.diagnostics["wu_phase_price_signals_refined"] = float(improved)
         control.diagnostics["wu_phase_price_local_cost_phased_signals"] = float(phased_signals)
+        pmap = dict(getattr(self.cfg.network, "primary_phase_by_signal", {}) or {})
+        if pmap:
+            control.diagnostics["wu_primary_by_price_signals"] = float(len(pmap))
+            for sig, pid in sorted(pmap.items()):
+                control.diagnostics[f"wu_primary_phase_{sig}"] = float(int(str(pid)[1:]))
         if ctx is not None:
             control.diagnostics["wu_phase_refine_ctx_cache_hits"] = float(ctx.get("cache_hits", 0))
         control.diagnostics["wu_phase_price_signals_priced"] = float(len(prices))
@@ -426,6 +431,15 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     # 정련의 국소 비용 모형. 어댑터가 tuning `phase_price.local_cost_model` 로 심고,
     # 가격을 하달할 때 팔로워로 그대로 넘긴다. 기본 "drain" = 비트 동일.
     phase_price_local_cost_model: str = "drain"
+    # 주현시를 **가격 최고 현시**로 잡을지. 기본 꺼짐 = 비트 동일.
+    #
+    # 왜. `distribute_phase_green` 은 주현시 하나를 정하고 나머지를 비율대로 나눈다 —
+    # 신호당 자유도가 1차원이고 그 축이 늘 p1 이다. 실측(map4d SC5): p3 가격이 SC5 에서
+    # 1위인 결정 14개 **전부**에서 p3 가 하한(22.7)에 묶였다(고정계획은 47). 가격은
+    # 옳게 가리키는데 그 방향으로 갈 대역폭이 없다 — 정련의 6초 교환만이 되돌릴 수
+    # 있는데 GNE 가 매 결정 비율을 다시 뭉갠다.
+    phase_price_primary_by_price: bool = False
+    phase_price_primary_margin: float = 0.0
 
     def __setstate__(self, state):
         """언피클 직후 — 가격 워커에서 어댑터의 런타임 몽키패치를 되살린다.
@@ -672,6 +686,8 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
             raw_g = ((float(ttt) - base_ttt) - (local - base_local)) / max(delta, 1.0e-9)
             prices.setdefault(signal, {})[pid] = float(raw_g * scale)
 
+        if bool(getattr(self, "phase_price_primary_by_price", False)) and prices:
+            self._assign_primary_by_price(prices)
         follower.signal_phase_price = prices or None
         follower.signal_phase_price_ref = {s: refs[s] for s in prices} or None
         follower.signal_phase_price_weight = float(self.phase_price_weight)
@@ -680,6 +696,34 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         )
         self._phase_price_rollout_count = len(tasks) + 1
         self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
+
+    def _assign_primary_by_price(self, prices) -> None:
+        """가격이 가장 높은 현시를 그 신호의 주현시로 잡는다.
+
+        가격은 교환가격이라 합이 0 에 가깝다 — 최고가 현시가 "녹색을 더 주면 망 전체
+        한계이득이 가장 큰 곳" 이고, 그게 자유변수가 되어야 할 축이다.
+
+        진동 방지. 현 주현시보다 `phase_price_primary_margin` 이상 비쌀 때만 바꾼다.
+        매 결정 축이 뒤집히면 나머지 현시의 reference 비율이 매번 재해석되어 불안정해진다.
+        """
+        net = self.cfg.network
+        current = dict(getattr(net, "primary_phase_by_signal", {}) or {})
+        margin = float(getattr(self, "phase_price_primary_margin", 0.0))
+        changed = 0
+        for signal, price in prices.items():
+            live = set(net.signal_live_phases(signal))
+            cand = {pid: float(v) for pid, v in price.items() if pid in live}
+            if not cand:
+                continue
+            best_pid = max(cand, key=lambda k: cand[k])
+            cur_pid = current.get(str(signal)) or net.signal_primary_phase(signal)
+            cur_v = cand.get(cur_pid)
+            if cur_v is None or cand[best_pid] > cur_v + margin:
+                if current.get(str(signal)) != best_pid:
+                    changed += 1
+                current[str(signal)] = best_pid
+        setattr(net, "primary_phase_by_signal", current)
+        self._primary_by_price_changed = changed
 
     def _maybe_refresh_signal_prices(
         self,

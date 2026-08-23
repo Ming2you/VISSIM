@@ -262,6 +262,14 @@ class NetworkConfig:
     # SC별 **켤 수 있는 현시 목록**. 비면 legacy(전 현시)다. 개수만 들고 있으면 어느
     # 현시가 죽었는지 못 담는다 - 실 망의 SC107 은 (p2,p3,p4) 라 "3개" 로는 부족하다.
     live_phases_by_signal: Dict[str, List[str]] = field(default_factory=dict)
+    # 신호별 **주현시**. 비면 종전대로 live 목록의 첫 현시(사실상 p1)라 비트 동일하다.
+    #
+    # 왜 필요한가. `distribute_phase_green` 은 주현시 녹색 하나를 정하고 나머지를
+    # reference 비율대로 나눈다 — 즉 신호당 자유도가 1차원이고, 그 축이 늘 p1 이다.
+    # 실측(map4d SC5): p3 가격이 SC5 에서 1위인 결정 14개 전부에서 p3 가 하한(22.7)에
+    # 묶였다. 고정계획은 p3 에 47 을 준다. 가격은 옳게 가리키는데 그 방향으로 갈
+    # 대역폭이 없다 — 정련의 6초 교환만이 되돌릴 수 있는데 GNE 가 매번 비율을 뭉갠다.
+    primary_phase_by_signal: Dict[str, str] = field(default_factory=dict)
     # 4현시 전이 4회 x clearance 3 s. 실 `.sig` 136 SG 의 amber 는 전부 3.0 s 단독이고
     # all-red 는 없다(VISSIM/scripts/survey_signal_programs.py 실측).
     lost_time: float = 12.0
@@ -474,6 +482,15 @@ class NetworkConfig:
             return float(self.lost_time)
         clearance = float(self.lost_time) / float(len(MODEL_PHASES))
         return clearance * float(len(self.signal_live_phases(signal)))
+
+    def signal_primary_phase(self, signal: Optional[str] = None) -> str:
+        """그 SC 의 주현시 id. 지정이 없으면 live 목록의 첫 현시(종전 동작)."""
+        live = self.signal_live_phases(signal) if signal is not None else tuple(MODEL_PHASES)
+        if signal is not None:
+            chosen = str(self.primary_phase_by_signal.get(str(signal), ""))
+            if chosen in live:
+                return chosen
+        return live[0] if live else PRIMARY_PHASE
 
     def signal_green_max(self, signal: Optional[str] = None) -> float:
         """그 SC 의 주현시 상한 [s].
@@ -1490,9 +1507,10 @@ def distribute_phase_green(
     live = net.signal_live_phases(signal) if signal is not None else tuple(MODEL_PHASES)
     total = net.effective_green_total if signal is None else net.signal_effective_green_total(signal)
     primary = clamp_primary_green(net, primary, signal)
-    rest_ids = list(live[1:])
+    head = net.signal_primary_phase(signal) if signal is not None else live[0]
+    rest_ids = [pid for pid in live if pid != head]
     out: Dict[str, float] = {pid: 0.0 for pid in MODEL_PHASES}
-    out[live[0]] = float(primary)
+    out[head] = float(primary)
     if not rest_ids:
         return out
     rest_budget = total - primary
@@ -1586,8 +1604,12 @@ def set_signal_green(
 
 
 def primary_green(control: "ControlAction", net: NetworkConfig, signal: str) -> float:
-    """주 현시 녹색(없으면 균등분배값)."""
-    return float(control.green_times.get(phase_key(signal, PRIMARY_PHASE), net.default_phase_green))
+    """주 현시 녹색(없으면 균등분배값).
+
+    주현시는 신호별로 다를 수 있다(`primary_phase_by_signal`). 매핑이 비면
+    `PRIMARY_PHASE` 라 종전과 비트 동일하다."""
+    pid = net.signal_primary_phase(signal)
+    return float(control.green_times.get(phase_key(signal, pid), net.default_phase_green))
 
 
 def segment_vsl(control: "ControlAction", link: str, i: int, cfg: ExperimentConfig) -> float:

@@ -3302,6 +3302,13 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             controller.phase_price_delta_sec = _as_float(section["delta_sec"], 6.0)
         if "weight" in section:
             controller.phase_price_weight = _as_float(section["weight"], 1.0)
+        if "primary_by_price" in section:
+            # 주현시를 가격 최고 현시로. `distribute_phase_green` 의 자유도가 1차원이라
+            # 그 축이 p1 에 고정돼 있으면 다른 현시를 못 올린다(실측: SC5 p3 가 가격 1위인
+            # 결정 14개 전부에서 하한에 묶임).
+            controller.phase_price_primary_by_price = _is_enabled_value(section["primary_by_price"])
+        if "primary_margin" in section:
+            controller.phase_price_primary_margin = _as_float(section["primary_margin"], 0.0)
         if "local_cost_model" in section:
             # "phased" 면 정련이 GNE 와 같은 국소 물리(rollout_local_tts_phased —
             # 플래툰 도착·하류 S_eff·offset·per-movement 용량)로 후보를 채점한다.

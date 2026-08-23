@@ -1,0 +1,16 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_map4d_20260823.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_prim_20260823",
+ "description": "주현시를 가격 최고 현시로 잡는다. 4d 매핑 + phased 위에서 그것만 바꾼다.",
+ "notes": [
+  "2026-08-23. distribute_phase_green 은 주현시 녹색 하나를 정하고 나머지를 reference 비율대로 나눈다 — 신호당 자유도가 1차원이고 그 축이 늘 p1(live[0])이다.",
+  "실측(map4d SC5): p3 가격이 SC5 에서 1위인 결정 14개 **전부**에서 p3 가 하한 22.7 에 묶였다. 고정계획은 p3 에 47 을 준다. 즉 가격은 옳게 가리키는데 그 방향으로 갈 대역폭이 없다.",
+  "t=3600 정련 진단: GNE 출력이 이미 [58.0, 22.7, 22.7, 34.7] 이고 정련은 p4->p1 로 6초만 옮긴다(p3 는 손도 못 댐). 굶기는 주체는 정련이 아니라 GNE 다.",
+  "수정: NetworkConfig.primary_phase_by_signal + signal_primary_phase(). 비면 종전대로 live[0] 이라 비트 동일. 컨트롤러가 가격 최고 현시로 매 갱신 지정한다.",
+  "진동 방지로 primary_margin 문턱을 둔다(0 이면 항상 최고가 채택)."
+ ],
+ "phase_price": {
+  "primary_by_price": true,
+  "primary_margin": 0.0
+ }
+}
