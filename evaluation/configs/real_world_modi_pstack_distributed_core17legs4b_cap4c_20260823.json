@@ -1,0 +1,16 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_phased_20260822.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_cap4c_20260823",
+ "description": "4c·phased 위에 실측 용량 온라인 갱신만. 러너 RW_QUEUE_WINDOW=1 필요(이탈 계수).",
+ "notes": [
+  "직전 구간 링크 이탈 대수 / 그 접근로 녹색초 x 3600. 씨앗은 플랜트 현재값(차로수x330), 감쇠 러닝맥스 0.98.",
+  "회계 단위는 **접근로**다 — 링크 하나 = 접근로 하나. 좌·직·우가 같은 차로를 나눠 쓰므로 총량을 공유하고 beta 로 배분한다.",
+  "full3(4b 기준)에서 결정 15개를 바꿔 가장 큰 영향이었다. 4c 위에서 단독 판정한다."
+ ],
+ "urban": {
+  "capacity": {
+   "measured": true,
+   "decay": 0.98
+  }
+ }
+}
