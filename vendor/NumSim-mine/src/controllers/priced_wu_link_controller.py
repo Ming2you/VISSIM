@@ -140,6 +140,11 @@ class LinkAgentWuFollower(WuFaithfulFollower):
     # 28,000 veh/h 가 된다(실측 통과 2,640 veh/h). 그래서 어떤 큐도 첫 스텝에 비어
     # local 이 항등 0 이 되고, 남는 선형 가격항이 해를 상자 꼭짓점으로 몬다.
     phase_price_local_cost_model: str = "drain"
+    # 나머지 현시 배분의 기준. "previous"(기본) = 직전 녹색 비율 → 비트 동일.
+    # "pressure" = 현시별 큐 비례.
+    green_reference_mode: str = "previous"
+    # 정련 반복 횟수 상한. 1 이면 종전과 비트 동일. 개선이 없으면 조기 종료한다.
+    phase_price_refine_rounds: int = 1
 
     def __getstate__(self):
         """가격 워커로 보낼 때 정련 캐시는 빼고 피클한다.
@@ -335,6 +340,7 @@ class LinkAgentWuFollower(WuFaithfulFollower):
         # 아래 분기가 기존 경로 그대로 — 비트 동일이다.
         ctx = self._phase_refine_context(state, control, demand)
         phased_signals = 0
+        refine_rounds_used = 0
         improved = 0
         for signal, price in prices.items():
             ref = refs.get(signal) or {}
@@ -359,12 +365,26 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 )
                 return local + weight * ext
 
+            # 개선이 없을 때까지 반복한다(좌표하강). 목적함수는 이미 TTT 단위다 —
+            # local[veh*h] + Σ price[veh*h/s] x Δg[s]. 그런데 지금까지 그 목적함수로
+            # 실제 탐색한 범위는 **쌍교환 6초 한 걸음**뿐이고, 나머지 배분은 GNE 의
+            # 휴리스틱(직전 녹색 비율)이 정했다. 반복하면 최종 배분을 TTT 가 정한다.
+            # rounds=1 이면 종전과 비트 동일.
             best, best_obj = base, scored(base)
-            for step in steps:
-                for cand in self._phase_exchange_candidates(signal, best, float(step)):
-                    obj = scored(cand)
-                    if obj < best_obj - 1.0e-12:
-                        best, best_obj = cand, obj
+            max_rounds = max(1, int(getattr(self, "phase_price_refine_rounds", 1)))
+            used = 0
+            for _round in range(max_rounds):
+                moved = False
+                for step in steps:
+                    for cand in self._phase_exchange_candidates(signal, best, float(step)):
+                        obj = scored(cand)
+                        if obj < best_obj - 1.0e-12:
+                            best, best_obj = cand, obj
+                            moved = True
+                used += 1
+                if not moved:
+                    break
+            refine_rounds_used += used
             if best is not base:
                 for pid, value in best.items():
                     key = phase_key(signal, pid)
@@ -373,6 +393,9 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 improved += 1
         control.diagnostics["wu_phase_price_signals_refined"] = float(improved)
         control.diagnostics["wu_phase_price_local_cost_phased_signals"] = float(phased_signals)
+        control.diagnostics["wu_phase_refine_rounds_used"] = float(refine_rounds_used)
+        control.diagnostics["wu_green_reference_pressure_signals"] = float(
+            len(getattr(self.cfg.network, "phase_pressure_by_signal", {}) or {}))
         pmap = dict(getattr(self.cfg.network, "primary_phase_by_signal", {}) or {})
         if pmap:
             control.diagnostics["wu_primary_by_price_signals"] = float(len(pmap))
@@ -398,8 +421,40 @@ class LinkAgentWuFollower(WuFaithfulFollower):
             control.diagnostics[f"wu_phase_price_spread_{signal}"] = float(spread)
         return improved
 
+    def _refresh_phase_pressure(self, state) -> int:
+        """신호별 현시 압력(큐 합)을 심는다. `distribute_phase_green` 의 나머지 배분이
+        직전 녹색 비율 대신 이걸 쓴다.
+
+        왜. 나머지 배분이 직전 녹색이면 "직전에 낮았으면 계속 낮게" 라는 자기강화 고리가
+        된다. 실측(map4d SC5): p3 가격이 SC5 에서 1위인 결정 14개 **전부**에서 p3 가
+        하한 22.7 에 묶였다(고정계획 47). 큐 비례로 나누면 축을 고정하지 않고도 큐가 큰
+        현시가 몫을 받는다 — 주현시 교체(prim)와 달리 축을 안 바꾸므로 reference
+        재해석 비용이 없다.
+
+        팔로워는 이미 현시별 압력을 계산해 두고도 "주현시 대 나머지 **합**" 으로만
+        쓴다(wu_faithful_follower:729). 여기서는 그 값을 나머지 배분에도 쓴다.
+        """
+        net = self.cfg.network
+        press: Dict[str, Dict[str, float]] = {}
+        for movement, spec in (net.urban_movements or {}).items():
+            phase = str(spec.get("phase", ""))
+            if not phase:
+                continue
+            signal, _, pid = phase.rpartition("_")
+            if not signal or pid not in MODEL_PHASES:
+                continue
+            q = max(0.0, float(state.urban_movement_queue.get(movement, 0.0)))
+            press.setdefault(signal, {p: 0.0 for p in MODEL_PHASES})[pid] += q
+        # 전부 0 인 신호는 뺀다 — 남기면 균등이 아니라 0 가중치가 되어 상자 사영이 엉킨다.
+        press = {k: v for k, v in press.items() if sum(v.values()) > 1.0e-9}
+        setattr(net, "phase_pressure_by_signal", press)
+        return len(press)
+
     def solve(self, state, leader, demand, previous_control=None, leader_incumbent_obj=None):
         import numpy as _np
+
+        if str(getattr(self, "green_reference_mode", "previous")).lower() == "pressure":
+            self._pressure_signal_count = self._refresh_phase_pressure(state)
 
         result = (
             super().solve(state, leader, demand, previous_control)
@@ -431,6 +486,9 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
     # 정련의 국소 비용 모형. 어댑터가 tuning `phase_price.local_cost_model` 로 심고,
     # 가격을 하달할 때 팔로워로 그대로 넘긴다. 기본 "drain" = 비트 동일.
     phase_price_local_cost_model: str = "drain"
+    # 나머지 현시 배분 기준. 어댑터가 tuning `urban.green_reference` 로 심는다.
+    green_reference_mode: str = "previous"
+    phase_price_refine_rounds: int = 1
     # 주현시를 **가격 최고 현시**로 잡을지. 기본 꺼짐 = 비트 동일.
     #
     # 왜. `distribute_phase_green` 은 주현시 하나를 정하고 나머지를 비율대로 나눈다 —
@@ -694,6 +752,8 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         follower.phase_price_local_cost_model = str(
             getattr(self, "phase_price_local_cost_model", "drain")
         )
+        follower.green_reference_mode = str(getattr(self, "green_reference_mode", "previous"))
+        follower.phase_price_refine_rounds = int(getattr(self, "phase_price_refine_rounds", 1))
         self._phase_price_rollout_count = len(tasks) + 1
         self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
 

@@ -3294,6 +3294,17 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
 
     # 현시별 교환 가격 (tuning 절 `phase_price`). 기본 꺼짐 — 켜면 리더의 가격 롤아웃이
     # 신호당 2회에서 2 + live현시수 로 늘어 약 3배가 된다. 병렬이 그 비용을 흡수한다.
+    # 나머지 현시 배분 기준(tuning `urban.green_reference`). "pressure" 면 큐 비례.
+    # 가격이 꺼져 있어도 걸려야 하므로 팔로워(`nash_solver`)에 직접 심는다 —
+    # 가격 하달 경로(`_refresh_phase_prices`)는 phase_price.enabled 일 때만 돈다.
+    _gref = str(_mapping(_mapping((tuning or {}).get("urban")).get("green_reference"))
+                or (_mapping((tuning or {}).get("urban")).get("green_reference") or "")).strip()
+    if _gref:
+        controller.green_reference_mode = _gref
+        follower_obj = getattr(controller, "nash_solver", None)
+        if follower_obj is not None:
+            follower_obj.green_reference_mode = _gref
+
     section = _mapping((tuning or {}).get("phase_price"))
     if section:
         if "enabled" in section:
@@ -3309,6 +3320,10 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             controller.phase_price_primary_by_price = _is_enabled_value(section["primary_by_price"])
         if "primary_margin" in section:
             controller.phase_price_primary_margin = _as_float(section["primary_margin"], 0.0)
+        if "refine_rounds" in section:
+            # 정련을 수렴까지 반복. 목적함수는 이미 TTT 단위인데 탐색 범위가 6초
+            # 한 걸음뿐이었다 — 반복하면 최종 배분을 휴리스틱이 아니라 TTT 가 정한다.
+            controller.phase_price_refine_rounds = int(_as_float(section["refine_rounds"], 1.0))
         if "local_cost_model" in section:
             # "phased" 면 정련이 GNE 와 같은 국소 물리(rollout_local_tts_phased —
             # 플래툰 도착·하류 S_eff·offset·per-movement 용량)로 후보를 채점한다.

@@ -1,0 +1,15 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_map4d_20260823.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_conv_20260824",
+ "description": "정련을 수렴까지 반복(최대 12라운드). 보폭은 [6.0] 그대로 — map4d 대비 변수 하나.",
+ "notes": [
+  "2026-08-24. 목적함수는 **이미 TTT 단위**다: local[veh*h] + Σ price[veh*h/s] x Δg[s], weight=1.0. 가격은 (전역 TTT 차 - 국소 TTT 차)/δ_sec 이라 외부효과 TTT 이고, local 은 phased 모드에서 rollout_local_tts_phased 의 실제 TTS 다.",
+  "그런데 그 목적함수로 실제 탐색한 범위는 **쌍교환 6초 한 걸음**뿐이었다. 나머지 배분은 GNE 휴리스틱(직전 녹색 비율)이 정했다.",
+  "개선이 없을 때까지 반복하면 단체 위의 좌표하강이 되고, 최종 배분을 TTT 가 정한다. rounds=1 이면 비트 동일.",
+  "실측 근거: SC5 p3 를 22.7 -> 47 로 되돌리려면 24초가 필요한데 보폭 6초로는 4결정 걸린다. 그 사이 GNE 가 매 결정 비율을 다시 뭉갠다.",
+  "대조: map4d 4863.3(+1.72%) · map4c 4860.7(최선) · qref(큐 비례 배분) · noprice4d(순수 GNE) · 무제어 4781.1"
+ ],
+ "phase_price": {
+  "refine_rounds": 12
+ }
+}

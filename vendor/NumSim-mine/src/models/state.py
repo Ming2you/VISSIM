@@ -270,6 +270,15 @@ class NetworkConfig:
     # 묶였다. 고정계획은 p3 에 47 을 준다. 가격은 옳게 가리키는데 그 방향으로 갈
     # 대역폭이 없다 — 정련의 6초 교환만이 되돌릴 수 있는데 GNE 가 매번 비율을 뭉갠다.
     primary_phase_by_signal: Dict[str, str] = field(default_factory=dict)
+    # 신호별 **현시 압력**(큐 기반). 비면 종전대로 reference(=직전 녹색)를 쓴다 → 비트 동일.
+    #
+    # 왜. `distribute_phase_green` 은 주현시 스칼라를 뺀 나머지 예산을 `reference` 비율로
+    # 나누는데, 그 reference 가 **직전 녹색**이다. 즉 "직전에 낮았으면 계속 낮게" 라는
+    # 자기강화 고리가 된다. 실측(map4d SC5): p3 큐가 크고 p3 가격이 1위인데도 p3 가
+    # 하한 22.7 에 14/33 결정 동안 묶였다 — 나머지 배분이 직전 비율로만 굴러가서다.
+    # 팔로워는 이미 현시별 압력(큐 + 도착x지평)을 계산해 두고도 "주현시 대 나머지 **합**"
+    # 으로만 쓴다(wu_faithful_follower:729). 그 값을 나머지 배분에도 쓰면 대칭이 된다.
+    phase_pressure_by_signal: Dict[str, Dict[str, float]] = field(default_factory=dict)
     # 4현시 전이 4회 x clearance 3 s. 실 `.sig` 136 SG 의 amber 는 전부 3.0 s 단독이고
     # all-red 는 없다(VISSIM/scripts/survey_signal_programs.py 실측).
     lost_time: float = 12.0
@@ -1514,7 +1523,13 @@ def distribute_phase_green(
     if not rest_ids:
         return out
     rest_budget = total - primary
-    weights = [max(0.0, float((reference or {}).get(pid, 0.0))) for pid in rest_ids]
+    # 압력 맵이 있으면 나머지 배분을 **큐 비례**로 한다. 없으면 종전대로 reference.
+    ref: Mapping[str, float] = reference or {}
+    if signal is not None:
+        pressure = net.phase_pressure_by_signal.get(str(signal))
+        if pressure and sum(max(0.0, float(v)) for v in pressure.values()) > 1.0e-9:
+            ref = pressure
+    weights = [max(0.0, float(ref.get(pid, 0.0))) for pid in rest_ids]
     weight_sum = sum(weights)
     if weight_sum <= 1.0e-12:
         raw = [rest_budget / float(len(rest_ids))] * len(rest_ids)
