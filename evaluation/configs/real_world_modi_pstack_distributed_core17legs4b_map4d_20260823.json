@@ -1,0 +1,14 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_phased_20260822.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_map4d_20260823",
+ "description": "4d 매핑 — 정지선 상류 대기행렬을 그 접근로 movement 큐로 회수. 그 외 4c·phased 와 동일.",
+ "notes": [
+  "2026-08-23. 4c 는 정지선 링크의 귀속을 고쳤지만 정지선 **뒤** 대기행렬은 여전히 저류로 빠졌다 — link_to_movements 에 없는 링크는 storage_fraction=1.0 이 강제되고, 저류는 리더의 현시 배분에 안 쓰인다.",
+  "실측(map4c t=3600, SC5 동쪽): 정지차 222대 중 146대(66%)가 큐에서 사라졌다. 그래서 모델이 SC5 동서를 64.4 로 보는데 실측은 238 이다(남북 86.5 vs 116). 동서가 남북의 2배인데 모델은 더 작게 본다.",
+  "결과: p3(동서 직진)를 고정 47 -> 28.7 로 계속 깎고, SC5 동쪽 정지차가 무제어 31 -> 231 로 쌓인다. SC5 하나가 남은 초과의 79%(+304 veh*h)다.",
+  "규칙: 통제 신호 접근로 권역 링크를 그 접근로 movement 에 beta 로 연결. 정지선/상류를 구분하지 않는다 — 대기행렬은 원래 링크를 가로질러 늘어선다. 관측되는 링크만(515개는 관측 밖이라 제외).",
+  "검산: 상류 링크 122개 추가(E36·N34·W33·S19), link_to_movements 82 -> 204. SC5 동서 64.4 -> 122.9, 동서/남북 비 0.74 -> 1.26(실측 2.05). 망 전체 큐 854.9 -> 1274.2.",
+  "생성기: scripts/build_approach_queue_links.py"
+ ],
+ "detector_mapping_json": "evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core17legs4d_20260823.json"
+}

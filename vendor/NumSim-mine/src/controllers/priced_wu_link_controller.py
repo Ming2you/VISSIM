@@ -340,6 +340,10 @@ class LinkAgentWuFollower(WuFaithfulFollower):
             ref = refs.get(signal) or {}
             base = {pid: float(control.green_times.get(phase_key(signal, pid), 0.0))
                     for pid in MODEL_PHASES}
+            # 정련 **직전**(=GNE 출력) 값을 남긴다. 이게 없으면 커밋된 녹색만 보이고
+            # GNE 가 뭘 내놨는지 / 정련이 얼마나 바꿨는지를 가를 수 없다.
+            for pid in MODEL_PHASES:
+                control.diagnostics[f"wu_pre_refine_{signal}_{pid}"] = float(base.get(pid, 0.0))
             setup = self._phase_refine_signal_setup(signal, state, ctx) if ctx else None
             if setup is not None:
                 phased_signals += 1

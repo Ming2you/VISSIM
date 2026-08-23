@@ -2084,7 +2084,15 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     # **측정값**을 쓴다. 유도(C - N x clearance)는 손실시간을 3초 x live현시수 로 고정하는데
     # 실측은 신호마다 전혀 다르다 — SC5 는 0초(항상 어딘가 녹색, 최대 6 SG 동시), SC16 은
     # 43초다. 유도를 쓰면 SC5 예산이 138(참값 150)이 되고 동시현시 배율의 분모까지 틀린다.
-    src = WORKSPACE_ROOT / "outputs/signal_timeline_measured_20260821.json"
+    # `.sig` 원본 유도본을 우선한다(2026-08-23). 구본(`..._measured_20260821.json`)의
+    # `plan_total_sec`·`concurrency_factor` 가 원본과 안 맞았다 — SC5 가 246/1.64 인데
+    # `.sig` 어디에서도 246 이 안 나온다(주기 150 · SG1-8 합 300 · SG9+ 408 · 전체 708).
+    # 원본 유도: SC5 는 0-50-78-124-150 순차라 **겹침 0, 배율 1.00**. 겹침이 있는 건
+    # SC7 하나뿐이다(최대 2개 동시, 1.59). 그 배율이 movement 용량에 곱해지므로
+    # 검증 안 된 수를 쓰면 `cap4c` 와 같은 기전으로 악화된다.
+    src = WORKSPACE_ROOT / "outputs/signal_timeline_from_sig_20260823.json"
+    if not src.is_file():
+        src = WORKSPACE_ROOT / "outputs/signal_timeline_measured_20260821.json"
     if not src.is_file():
         return {"native_signal_structure_enabled": 0.0, "native_signal_source_missing": 1.0}
     measured = _mapping(json.loads(src.read_text(encoding="utf-8")).get("signals"))
