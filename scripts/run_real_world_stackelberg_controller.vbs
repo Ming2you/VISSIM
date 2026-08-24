@@ -3020,6 +3020,19 @@ End Function
 ' 표본만 성글어진다. 세밀한 신호 타임라인이 필요하면 VISSIM 네이티브
 ' SigChangesWriteFile 을 켜라(RW_NATIVE_EVAL=1). 그쪽은 폴링이 아니라 **상태 변화 시점**을
 ' 정확한 타임스탬프로 남기므로 1 Hz 폴링보다 해상도가 오히려 좋다.
+' 되읽기 간격 기본 **30초**(2026-08-24, 종전 1초).
+'
+' 이게 이 러너의 최대 병목이다. 위 실측대로 1초 폴링이면 immediate+post_step 합쳐
+' **162만 회** COM 왕복이 된다 - 5초 상태 스캔(1,081회)의 **1,500배**다.
+' 시뮬 150초 구간이 74.4초 걸리는(실시간 2.02배) 주된 이유가 여기다.
+'
+' 30초로 두면 왕복이 162만 -> 약 5.4만(97% 감소)이고, **보증은 유지된다** -
+' 불일치 시 signalFailures 를 올리는 검사 자체는 그대로고 표본만 성글어진다.
+' 세밀한 타임라인은 네이티브 SigChangesWriteFile 이 대신한다(RW_NATIVE_EVAL, 아래).
+' 그쪽은 폴링이 아니라 **상태 변화 시점**을 정확한 타임스탬프로 남기므로 1 Hz 폴링보다
+' 해상도가 오히려 좋다.
+'
+' 되돌리지 마라. 액추에이션을 1초 표본으로 재증명해야 할 때만 RW_SIGNAL_READBACK_SEC=1.
 Function SignalReadbackIntervalSec()
     Dim v
     v = Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_READBACK_SEC%"))
@@ -3027,7 +3040,7 @@ Function SignalReadbackIntervalSec()
         SignalReadbackIntervalSec = CLng(v)
         If SignalReadbackIntervalSec < 1 Then SignalReadbackIntervalSec = 1
     Else
-        SignalReadbackIntervalSec = 1
+        SignalReadbackIntervalSec = 30
     End If
 End Function
 
@@ -3866,7 +3879,18 @@ Sub ConfigureEvaluationOutput(path)
     '   SigChangesWriteFile 신호 상태 변화. 초당 168회 개별 되읽기를 대체한다.
     '
     ' 속성 이름은 이 설치본에서 직접 열거해 확인했다(VehRecInterval·SigChgs* 는 없다).
-    If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) = "1" Then
+    ' 2026-08-24 **기본 켜짐**. 끄려면 RW_NATIVE_EVAL=0.
+    '
+    ' VISSIM 자체 기록이라 시뮬 루프에 COM 왕복이 안 붙는다. 인루프 폴링 둘을 대체한다 -
+    ' VehRecWriteFile 이 5초 스캔을, SigChangesWriteFile 이 1초 되읽기를 맡는다.
+    ' 게다가 SigChanges 는 변화 시점을 정확히 남겨 폴링보다 해상도가 좋다.
+    '
+    ' .inpx 는 안 건드린다. 파일을 고치면 network sha256 이 바뀌어 지금까지 모든 런과의
+    ' 비트 비교가 끊긴다(병렬화 정확성을 그 비교로 증명했다). COM 으로 켜면 유지된다.
+    '
+    ' 부수 이득: .fzp 차량 전수 기록이 쌓이면 TTT 를 state CSV 적분이 아니라 궤적에서
+    ' 직접 낼 수 있다. 지금 TTT 는 total_vehicles 사다리꼴 적분이 유일한 경로다.
+    If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) <> "0" Then
         TrySetEvaluationAtt "VehRecWriteFile", True
         TrySetEvaluationAtt "VehRecFromTime", 0
         TrySetEvaluationAtt "VehRecToTime", CLng(simPeriod)
