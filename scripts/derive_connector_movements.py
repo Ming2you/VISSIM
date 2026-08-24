@@ -128,6 +128,22 @@ def main() -> int:
                 owner.setdefault(str(i), (sig, leg))
 
     # --- leg 병합 ---
+    #
+    # 규칙 A(포함). 링크 집합이 같거나 부분집합이면 한 접근로다. 17 leg 가 흡수된다.
+    #   SC1: E vs E_SC11 은 27/27 로 완전히 같고, N/S/W 는 링크 1개가 내부판에 들어 있다.
+    #
+    # 규칙 B(합류). leg 의 **유출 커넥터가 전부 같은 한 leg 로만** 향하면 독립 접근로가
+    # 아니라 그 leg 로 합류하는 상류다. 규칙 A 가 못 잡는 자리를 여기서 잡는다 —
+    #   SC5·S 는 링크 256("Dummy Link 12") 하나뿐이고 S_SC11 과 교집합이 0 이라 규칙 A 에
+    #   안 걸리는데, 유출 커넥터 10415 가 S_SC11 의 본선 정지선 1220014100 으로만 간다.
+    #   256 의 신호두는 SG24(미드블록)이고 본선 정지선은 SG3·SG8 이다. 즉 그 사이 분기는
+    #   movement 가 아니라 beta 가 다룰 몫이다.
+    # 실측 6개(SC1·S, SC5·S, SC6·S, SC16·S, SC108·W, SC1005·W) 전부 같은 방위 쌍이다.
+    #
+    # **규칙 B 가 지상/지하 분기를 건드리지 않는 것이 중요하다.** SC107 `W_SC1004`/
+    # `W_SC1005` 와 SC1004 `E_SC1005`/`E_SC107` 은 CLAUDE.md 가 갈라 두라고 한 곳인데,
+    # 유출이 한 곳으로 모이지 않아 규칙 B 에 걸리지 않는다. 규칙이 두 경우를 자동으로
+    # 가른다 — 예외 목록을 손으로 관리하지 않아도 된다.
     merged: dict[tuple[str, str], tuple[str, str]] = {}
     for sig, legs in terr.items():
         items = [(leg, set(str(x) for x in ids)) for leg, ids in legs.items()]
@@ -139,6 +155,15 @@ def main() -> int:
                 if sa < sb or (sa == sb and "_SC" in b and "_SC" not in a):
                     rep = (sig, b)
                     break
+            if rep == (sig, a):
+                dests = set()
+                for fl, tl in conn.values():
+                    if fl in sa and tl not in sa:
+                        dests.add(owner.get(tl))
+                if len(dests) == 1:
+                    d = next(iter(dests))
+                    if d and d[0] == sig and d[1] != a:
+                        rep = (sig, d[1])
             merged[(sig, a)] = rep
 
     def rep_of(key):
@@ -186,7 +211,15 @@ def main() -> int:
         for t in r["turns"]:
             by_dest[t["dest"]].append(t)
         for dest, ts in by_dest.items():
-            name = "%s_%s_to_%s" % (r["signal"], r["approach"], dest.split("_", 1)[1])
+            # 이름은 기존 규약과 같아야 한다 — **자기 기준 출구 방위 + 하류 신호**.
+            # `dest` 는 하류 권역의 leg 이름이라 기준이 뒤집혀 있다(SC1 에서 북쪽
+            # SC101 로 가는 회전의 하류 leg 이름이 `SC101_S_SC1` 이다). 그대로 쓰면
+            # `SC1_..._to_S_SC1` 이 되어 기존 `SC1_..._to_N_SC101` 과 안 맞는다.
+            # beta 1판을 무너뜨린 것이 정확히 이 뒤집힘이었다.
+            b = collections.Counter(t["bearing"] for t in ts).most_common(1)[0][0]
+            dsig = ts[0]["dest_signal"]
+            name = "%s_%s_to_%s" % (r["signal"], r["approach"],
+                                    ("%s_%s" % (b, dsig)) if dsig else b)
             proposal[name] = {
                 "signal": r["signal"], "approach": r["approach"],
                 "dest": dest, "connectors": [t["connector"] for t in ts],
