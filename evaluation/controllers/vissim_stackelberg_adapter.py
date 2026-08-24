@@ -1802,7 +1802,22 @@ def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mappin
     return out, meta
 
 
-MEASURED_BETA_EVIDENCE_JSON = WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json"
+# beta 증거원 둘. 기본은 routing 이다.
+#
+#   routing : `.inpx` 의 정적 경로결정(vehicleRoutingDecisionStatic) relFlow.
+#             VISSIM 이 차량을 배분할 때 쓰는 **입력**이라 신호 타이밍과 무관하다.
+#             모델의 beta 와 정의가 같다(링크 끝 도착의 수요 배분).
+#   knr     : 노드평가 통과 대수. **내생적이라 쓰지 마라** — 남겨 둔 건 대조용이다.
+#             교차로를 통과 완료한 차량은 그 방향에 준 녹색의 결과이므로,
+#             컨트롤러가 최적화하는 변수에서 그 입력을 역산하는 자기실현 루프가 된다.
+#             실제로 미매칭 6.16%, movement 244개 중 85개가 정확히 0 이 됐고
+#             그 중 internal 25개(우회전 17·직진 2)가 섞여 있었다. beta=0 은
+#             `urban_queue_model:1018 queue[m] += beta * arrived` 를 영구히 0 으로
+#             만들어 그 현시를 굶긴다 — 동서축 관측 실명과 같은 실패 모드다.
+BETA_EVIDENCE_JSON = {
+    "routing": WORKSPACE_ROOT / "outputs/movement_beta_routing_20260824.json",
+    "knr": WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json",
+}
 
 
 def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
@@ -1829,9 +1844,13 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
     section = _mapping(_mapping(tuning.get("urban")).get("beta"))
     if not _is_enabled_value(section.get("measured")):
         return {"measured_beta_enabled": 0.0}
-    if not MEASURED_BETA_EVIDENCE_JSON.is_file():
+    source = str(section.get("source") or "routing")
+    path = BETA_EVIDENCE_JSON.get(source)
+    if path is None:
+        raise ValueError(f"urban.beta.source 는 {sorted(BETA_EVIDENCE_JSON)} 중 하나여야 한다: {source!r}")
+    if not path.is_file():
         return {"measured_beta_enabled": 0.0, "measured_beta_source_missing": 1.0}
-    doc = json.loads(MEASURED_BETA_EVIDENCE_JSON.read_text(encoding="utf-8"))
+    doc = json.loads(path.read_text(encoding="utf-8"))
     beta = _mapping(doc.get("beta"))
     floor = _as_float(section.get("floor"), 0.0)
     applied, changed = 0, 0.0
@@ -1848,6 +1867,7 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
         "measured_beta_movements": float(applied),
         "measured_beta_total_shift": float(round(changed, 3)),
         "measured_beta_floor": float(floor),
+        "measured_beta_source_routing": 1.0 if source == "routing" else 0.0,
     }
 
 

@@ -1,0 +1,3076 @@
+{
+ "schema": "movement_beta_routing/core17legs4b",
+ "generated": "2026-08-24",
+ "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+ "definition": "VISSIM 정적 경로결정(vehicleRoutingDecisionStatic)의 relFlow. 결정 link 를 권역으로 접어 출발 접근로를, route destLink 를 권역으로 접어 하류 신호를 얻는다. 신호 타이밍과 무관한 외생 입력이다.",
+ "supersedes": "outputs/movement_beta_measured_20260824.json",
+ "beta": {
+  "SC1_W_SC105_to_E": 0.25,
+  "SC1_W_SC105_to_S": 0.1,
+  "SC1_W_SC105_to_N": 0.1,
+  "SC1_W_SC105_to_W": 0.1,
+  "SC1_W_SC105_to_N_SC101": 0.105,
+  "SC1_W_SC105_to_E_SC11": 0.2444,
+  "SC1_W_SC105_to_S_SC107": 0.1007,
+  "SC1_E_SC11_to_W": 0.25,
+  "SC1_E_SC11_to_S": 0.1,
+  "SC1_E_SC11_to_E": 0.1,
+  "SC1_E_SC11_to_N": 0.1,
+  "SC1_E_SC11_to_S_SC107": 0.1796,
+  "SC1_E_SC11_to_W_SC105": 0.1469,
+  "SC1_E_SC11_to_N_SC101": 0.1236,
+  "SC1_N_SC101_to_S": 0.25,
+  "SC1_N_SC101_to_E": 0.1,
+  "SC1_N_SC101_to_N": 0.1,
+  "SC1_N_SC101_to_W": 0.1,
+  "SC1_N_SC101_to_E_SC11": 0.0098,
+  "SC1_N_SC101_to_S_SC107": 0.3932,
+  "SC1_N_SC101_to_W_SC105": 0.047,
+  "SC1_S_SC107_to_N": 0.25,
+  "SC1_S_SC107_to_S": 0.1,
+  "SC1_S_SC107_to_E": 0.1,
+  "SC1_S_SC107_to_W": 0.1,
+  "SC1_S_SC107_to_W_SC105": 0.0136,
+  "SC1_S_SC107_to_N_SC101": 0.4012,
+  "SC1_S_SC107_to_E_SC11": 0.0352,
+  "SC11_W_SC1_to_E": 0.25,
+  "SC11_W_SC1_to_W": 0.1667,
+  "SC11_W_SC1_to_N_SC5": 0.2485,
+  "SC11_W_SC1_to_E_SC12": 0.2474,
+  "SC11_W_SC1_to_S_SC7": 0.0874,
+  "SC11_E_SC12_to_W": 0.25,
+  "SC11_E_SC12_to_E": 0.1667,
+  "SC11_E_SC12_to_S_SC7": 0.0566,
+  "SC11_E_SC12_to_W_SC1": 0.391,
+  "SC11_E_SC12_to_N_SC5": 0.1357,
+  "SC11_N_SC5_to_E_SC12": 0.0645,
+  "SC11_N_SC5_to_S_SC7": 0.2849,
+  "SC11_N_SC5_to_W_SC1": 0.3508,
+  "SC11_N_SC5_to_W": 0.1499,
+  "SC11_N_SC5_to_E": 0.1499,
+  "SC11_S_SC7_to_W_SC1": 0.1247,
+  "SC11_S_SC7_to_N_SC5": 0.7859,
+  "SC11_S_SC7_to_E_SC12": 0.0873,
+  "SC11_S_SC7_to_W": 0.001,
+  "SC11_S_SC7_to_E": 0.001,
+  "SC12_W_SC11_to_E": 0.25,
+  "SC12_W_SC11_to_W": 0.1667,
+  "SC12_W_SC11_to_N_SC6": 0.2869,
+  "SC12_W_SC11_to_E_SC106": 0.2247,
+  "SC12_W_SC11_to_S_SC16": 0.0717,
+  "SC12_E_SC106_to_W": 0.25,
+  "SC12_E_SC106_to_E": 0.1667,
+  "SC12_E_SC106_to_S_SC16": 0.0701,
+  "SC12_E_SC106_to_W_SC11": 0.2714,
+  "SC12_E_SC106_to_N_SC6": 0.2418,
+  "SC12_N_SC6_to_W": 0.125,
+  "SC12_N_SC6_to_E": 0.125,
+  "SC12_N_SC6_to_E_SC106": 0.0588,
+  "SC12_N_SC6_to_S_SC16": 0.5972,
+  "SC12_N_SC6_to_W_SC11": 0.0939,
+  "SC12_S_SC16_to_W": 0.125,
+  "SC12_S_SC16_to_E": 0.125,
+  "SC12_S_SC16_to_W_SC11": 0.0362,
+  "SC12_S_SC16_to_N_SC6": 0.6826,
+  "SC12_S_SC16_to_E_SC106": 0.0312,
+  "SC7_N_SC11_to_E": 0.25,
+  "SC7_N_SC11_to_E_SC16": 0.0928,
+  "SC7_N_SC11_to_S_SC108": 0.6572,
+  "SC16_W_SC7_to_N_SC12": 0.6747,
+  "SC16_W_SC7_to_E": 0.1847,
+  "SC16_W_SC7_to_S_SC109": 0.1325,
+  "SC16_W_SC7_to_S": 0.004,
+  "SC16_W_SC7_to_W": 0.004,
+  "SC16_E_to_W": 0.25,
+  "SC16_E_to_S": 0.1667,
+  "SC16_E_to_S_SC109": 0.1932,
+  "SC16_E_to_W_SC7": 0.1709,
+  "SC16_E_to_N_SC12": 0.2192,
+  "SC16_N_SC12_to_S": 0.25,
+  "SC16_N_SC12_to_W": 0.1667,
+  "SC16_N_SC12_to_E": 0.0479,
+  "SC16_N_SC12_to_S_SC109": 0.4832,
+  "SC16_N_SC12_to_W_SC7": 0.0522,
+  "SC16_S_SC109_to_S": 0.125,
+  "SC16_S_SC109_to_W": 0.125,
+  "SC16_S_SC109_to_W_SC7": 0.0193,
+  "SC16_S_SC109_to_N_SC12": 0.7145,
+  "SC16_S_SC109_to_E": 0.0162,
+  "SC101_W_SC1002_to_S": 0.1667,
+  "SC101_W_SC1002_to_N_SC2005": 0.1197,
+  "SC101_W_SC1002_to_E_SC5": 0.5792,
+  "SC101_W_SC1002_to_S_SC1": 0.1345,
+  "SC101_E_SC5_to_S": 0.1667,
+  "SC101_E_SC5_to_S_SC1": 0.1399,
+  "SC101_E_SC5_to_W_SC1002": 0.5507,
+  "SC101_E_SC5_to_N_SC2005": 0.1427,
+  "SC101_N_SC2005_to_S": 0.25,
+  "SC101_N_SC2005_to_E_SC5": 0.1166,
+  "SC101_N_SC2005_to_S_SC1": 0.5335,
+  "SC101_N_SC2005_to_W_SC1002": 0.0999,
+  "SC101_S_SC1_to_S": 0.1667,
+  "SC101_S_SC1_to_W_SC1002": 0.1944,
+  "SC101_S_SC1_to_N_SC2005": 0.6023,
+  "SC101_S_SC1_to_E_SC5": 0.0366,
+  "SC5_W_SC101_to_S": 0.1667,
+  "SC5_W_SC101_to_N_SC102": 0.1189,
+  "SC5_W_SC101_to_E_SC6": 0.6528,
+  "SC5_W_SC101_to_S_SC11": 0.0617,
+  "SC5_E_SC6_to_S": 0.1667,
+  "SC5_E_SC6_to_S_SC11": 0.0915,
+  "SC5_E_SC6_to_W_SC101": 0.6383,
+  "SC5_E_SC6_to_N_SC102": 0.1036,
+  "SC5_N_SC102_to_S": 0.25,
+  "SC5_N_SC102_to_E_SC6": 0.1847,
+  "SC5_N_SC102_to_S_SC11": 0.3715,
+  "SC5_N_SC102_to_W_SC101": 0.1938,
+  "SC5_S_SC11_to_S": 0.1667,
+  "SC5_S_SC11_to_W_SC101": 0.1891,
+  "SC5_S_SC11_to_N_SC102": 0.5415,
+  "SC5_S_SC11_to_E_SC6": 0.1028,
+  "SC6_W_SC5_to_S": 0.1667,
+  "SC6_W_SC5_to_N_SC103": 0.1795,
+  "SC6_W_SC5_to_E_SC104": 0.6051,
+  "SC6_W_SC5_to_S_SC12": 0.0487,
+  "SC6_E_SC104_to_S": 0.1667,
+  "SC6_E_SC104_to_S_SC12": 0.0534,
+  "SC6_E_SC104_to_W_SC5": 0.5221,
+  "SC6_E_SC104_to_N_SC103": 0.2579,
+  "SC6_N_SC103_to_S": 0.25,
+  "SC6_N_SC103_to_E_SC104": 0.152,
+  "SC6_N_SC103_to_S_SC12": 0.4208,
+  "SC6_N_SC103_to_W_SC5": 0.1771,
+  "SC6_S_SC12_to_S": 0.1667,
+  "SC6_S_SC12_to_W_SC5": 0.1238,
+  "SC6_S_SC12_to_N_SC103": 0.6381,
+  "SC6_S_SC12_to_E_SC104": 0.0714,
+  "SC105_W_SC1003_to_E": 0.25,
+  "SC105_W_SC1003_to_N_SC1002": 0.3313,
+  "SC105_W_SC1003_to_E_SC1": 0.1837,
+  "SC105_W_SC1003_to_S_SC1005": 0.2349,
+  "SC105_E_SC1_to_E": 0.1667,
+  "SC105_E_SC1_to_S_SC1005": 0.2061,
+  "SC105_E_SC1_to_W_SC1003": 0.2267,
+  "SC105_E_SC1_to_N_SC1002": 0.4005,
+  "SC105_N_SC1002_to_E": 0.1667,
+  "SC105_N_SC1002_to_E_SC1": 0.1422,
+  "SC105_N_SC1002_to_S_SC1005": 0.6294,
+  "SC105_N_SC1002_to_W_SC1003": 0.0617,
+  "SC105_S_SC1005_to_W_SC1003": 0.1882,
+  "SC105_S_SC1005_to_N_SC1002": 0.7918,
+  "SC105_S_SC1005_to_E_SC1": 0.0188,
+  "SC105_S_SC1005_to_E": 0.0012,
+  "SC106_W_SC12_to_W": 0.1667,
+  "SC106_W_SC12_to_N_SC104": 0.2976,
+  "SC106_W_SC12_to_E": 0.2868,
+  "SC106_W_SC12_to_S": 0.2489,
+  "SC106_E_to_W": 0.25,
+  "SC106_E_to_S": 0.2027,
+  "SC106_E_to_W_SC12": 0.3466,
+  "SC106_E_to_N_SC104": 0.2007,
+  "SC106_N_SC104_to_W": 0.1667,
+  "SC106_N_SC104_to_E": 0.1685,
+  "SC106_N_SC104_to_S": 0.6547,
+  "SC106_N_SC104_to_W_SC12": 0.0101,
+  "SC106_S_to_W": 0.1667,
+  "SC106_S_to_W_SC12": 0.0859,
+  "SC106_S_to_N_SC104": 0.6867,
+  "SC106_S_to_E": 0.0607,
+  "SC107_W_SC1005_to_W_SC1004": 0.1667,
+  "SC107_W_SC1005_to_N_SC1": 0.0813,
+  "SC107_W_SC1005_to_E_SC108": 0.7125,
+  "SC107_W_SC1005_to_S": 0.0396,
+  "SC107_E_SC108_to_W_SC1004": 0.25,
+  "SC107_E_SC108_to_S": 0.145,
+  "SC107_E_SC108_to_W_SC1005": 0.5774,
+  "SC107_E_SC108_to_N_SC1": 0.0276,
+  "SC107_N_SC1_to_W_SC1004": 0.1667,
+  "SC107_N_SC1_to_E_SC108": 0.1135,
+  "SC107_N_SC1_to_S": 0.6804,
+  "SC107_N_SC1_to_W_SC1005": 0.0394,
+  "SC108_W_SC107_to_W": 0.1667,
+  "SC108_W_SC107_to_N_SC7": 0.0133,
+  "SC108_W_SC107_to_E_SC109": 0.8028,
+  "SC108_W_SC107_to_S": 0.0172,
+  "SC108_E_SC109_to_S": 0.1827,
+  "SC108_E_SC109_to_W_SC107": 0.6567,
+  "SC108_E_SC109_to_N_SC7": 0.0166,
+  "SC108_E_SC109_to_W": 0.1441,
+  "SC108_N_SC7_to_E_SC109": 0.0588,
+  "SC108_N_SC7_to_S": 0.8901,
+  "SC108_N_SC7_to_W_SC107": 0.0506,
+  "SC108_N_SC7_to_W": 0.0005,
+  "SC108_S_to_W": 0.1667,
+  "SC108_S_to_W_SC107": 0.0438,
+  "SC108_S_to_N_SC7": 0.7856,
+  "SC108_S_to_E_SC109": 0.0039,
+  "SC109_W_SC108_to_N_SC16": 0.2379,
+  "SC109_W_SC108_to_E": 0.7621,
+  "SC109_E_to_W_SC108": 0.9625,
+  "SC109_E_to_N_SC16": 0.0375,
+  "SC109_N_SC16_to_E": 0.8588,
+  "SC109_N_SC16_to_W_SC108": 0.1412,
+  "SC102_W_SC2005_to_N": 0.3333,
+  "SC102_W_SC2005_to_E_SC103": 0.3333,
+  "SC102_W_SC2005_to_S_SC5": 0.3333,
+  "SC102_E_SC103_to_S_SC5": 0.3333,
+  "SC102_E_SC103_to_W_SC2005": 0.3333,
+  "SC102_E_SC103_to_N": 0.3333,
+  "SC102_N_to_E_SC103": 0.3333,
+  "SC102_N_to_S_SC5": 0.3333,
+  "SC102_N_to_W_SC2005": 0.3333,
+  "SC102_S_SC5_to_W_SC2005": 0.3333,
+  "SC102_S_SC5_to_N": 0.3333,
+  "SC102_S_SC5_to_E_SC103": 0.3333,
+  "SC103_W_SC102_to_N": 0.3333,
+  "SC103_W_SC102_to_E": 0.3333,
+  "SC103_W_SC102_to_S_SC6": 0.3333,
+  "SC103_E_to_S_SC6": 0.3333,
+  "SC103_E_to_W_SC102": 0.3333,
+  "SC103_E_to_N": 0.3333,
+  "SC103_N_to_E": 0.25,
+  "SC103_N_to_S_SC6": 0.5,
+  "SC103_N_to_W_SC102": 0.25,
+  "SC103_S_SC6_to_W_SC102": 0.3333,
+  "SC103_S_SC6_to_N": 0.3333,
+  "SC103_S_SC6_to_E": 0.3333,
+  "SC104_E_to_S_SC106": 0.25,
+  "SC104_E_to_N": 0.25,
+  "SC104_E_to_W_SC6": 0.5,
+  "SC104_W_SC6_to_S_SC106": 0.25,
+  "SC104_W_SC6_to_E": 0.375,
+  "SC104_W_SC6_to_N": 0.375,
+  "SC11_W_to_E_SC12": 0.25,
+  "SC11_W_to_E": 0.25,
+  "SC11_W_to_N_SC5": 0.1667,
+  "SC11_W_to_S_SC7": 0.1667,
+  "SC11_W_to_W_SC1": 0.1667,
+  "SC104_N_to_W_SC6": 0.25,
+  "SC104_N_to_E": 0.25,
+  "SC104_N_to_S_SC106": 0.5,
+  "SC1002_N_SC2004_to_S_SC105": 0.7143,
+  "SC1002_N_SC2004_to_E_SC101": 0.1429,
+  "SC1002_N_SC2004_to_W_SC1001": 0.1429,
+  "SC1002_S_SC105_to_N_SC2004": 0.7143,
+  "SC1002_S_SC105_to_E_SC101": 0.1429,
+  "SC1002_S_SC105_to_W_SC1001": 0.1429,
+  "SC1002_E_SC101_to_W_SC1001": 0.1429,
+  "SC1002_E_SC101_to_N_SC2004": 0.1429,
+  "SC1002_E_SC101_to_S_SC105": 0.7143,
+  "SC1002_W_SC1001_to_E_SC101": 0.1429,
+  "SC1002_W_SC1001_to_N_SC2004": 0.1429,
+  "SC1002_W_SC1001_to_S_SC105": 0.7143,
+  "SC1001_N_SC2002_to_E_SC1002": 0.1429,
+  "SC1001_N_SC2002_to_S_SC1003": 0.7143,
+  "SC1001_N_SC2002_to_W": 0.1429,
+  "SC1001_E_SC1002_to_S_SC1003": 0.0909,
+  "SC1001_E_SC1002_to_W": 0.4545,
+  "SC1001_E_SC1002_to_N_SC2002": 0.4545,
+  "SC1001_S_SC1003_to_W": 0.7143,
+  "SC1001_S_SC1003_to_N_SC2002": 0.1429,
+  "SC1001_S_SC1003_to_E_SC1002": 0.1429,
+  "SC1003_N_SC1001_to_S_SC1004": 0.5,
+  "SC1003_N_SC1001_to_E_SC105": 0.5,
+  "SC1003_E_SC105_to_N_SC1001": 0.5,
+  "SC1003_E_SC105_to_S_SC1004": 0.5,
+  "SC1003_S_SC1004_to_N_SC1001": 0.5,
+  "SC1003_S_SC1004_to_E_SC105": 0.5,
+  "SC1004_E_SC1005_to_E_SC107": 0.1667,
+  "SC1004_E_SC1005_to_N_SC1003": 0.119,
+  "SC1004_E_SC1005_to_W": 0.3571,
+  "SC1004_E_SC1005_to_S": 0.3571,
+  "SC1004_E_SC107_to_W": 0.2143,
+  "SC1004_E_SC107_to_S": 0.2143,
+  "SC1004_E_SC107_to_N_SC1003": 0.2857,
+  "SC1004_E_SC107_to_E_SC1005": 0.2857,
+  "SC1004_N_SC1003_to_E_SC107": 0.1667,
+  "SC1004_N_SC1003_to_S": 0.3333,
+  "SC1004_N_SC1003_to_W": 0.3333,
+  "SC1004_N_SC1003_to_E_SC1005": 0.1667,
+  "SC1005_N_SC105_to_W": 0.3333,
+  "SC1005_N_SC105_to_E_SC107": 0.3333,
+  "SC1005_N_SC105_to_W_SC1004": 0.3333,
+  "SC1005_E_SC107_to_W": 0.25,
+  "SC1005_E_SC107_to_N_SC105": 0.375,
+  "SC1005_E_SC107_to_W_SC1004": 0.375,
+  "SC1005_W_SC1004_to_W": 0.25,
+  "SC1005_W_SC1004_to_E_SC107": 0.675,
+  "SC1005_W_SC1004_to_N_SC105": 0.075,
+  "SC2001_W_to_N": 0.3333,
+  "SC2001_W_to_S": 0.3333,
+  "SC2001_W_to_E_SC2002": 0.3333,
+  "SC2001_N_to_S": 0.3333,
+  "SC2001_N_to_W": 0.3333,
+  "SC2001_N_to_E_SC2002": 0.3333,
+  "SC2001_E_SC2002_to_W": 0.3333,
+  "SC2001_E_SC2002_to_N": 0.3333,
+  "SC2001_E_SC2002_to_S": 0.3333,
+  "SC2001_S_to_N": 0.3333,
+  "SC2001_S_to_W": 0.3333,
+  "SC2001_S_to_E_SC2002": 0.3333,
+  "SC2002_W_SC2001_to_S_SC1001": 0.3333,
+  "SC2002_W_SC2001_to_E_SC2003": 0.3333,
+  "SC2002_W_SC2001_to_N": 0.3333,
+  "SC2002_N_to_W_SC2001": 0.3333,
+  "SC2002_N_to_S_SC1001": 0.3333,
+  "SC2002_N_to_E_SC2003": 0.3333,
+  "SC2002_E_SC2003_to_N": 0.3333,
+  "SC2002_E_SC2003_to_W_SC2001": 0.3333,
+  "SC2002_E_SC2003_to_S_SC1001": 0.3333,
+  "SC2002_S_SC1001_to_W_SC2001": 0.3333,
+  "SC2002_S_SC1001_to_N": 0.3333,
+  "SC2002_S_SC1001_to_E_SC2003": 0.3333,
+  "SC2003_W_SC2002_to_N": 0.5,
+  "SC2003_W_SC2002_to_E_SC2004": 0.5,
+  "SC2003_E_SC2004_to_N": 0.5,
+  "SC2003_E_SC2004_to_W_SC2002": 0.5,
+  "SC2003_N_to_W_SC2002": 0.5,
+  "SC2003_N_to_E_SC2004": 0.5,
+  "SC2004_W_SC2003_to_N": 0.3333,
+  "SC2004_W_SC2003_to_E_SC2005": 0.3333,
+  "SC2004_W_SC2003_to_S_SC1002": 0.3333,
+  "SC2004_N_to_W_SC2003": 0.3333,
+  "SC2004_N_to_S_SC1002": 0.3333,
+  "SC2004_N_to_E_SC2005": 0.3333,
+  "SC2004_E_SC2005_to_N": 0.3333,
+  "SC2004_E_SC2005_to_W_SC2003": 0.3333,
+  "SC2004_E_SC2005_to_S_SC1002": 0.3333,
+  "SC2004_S_SC1002_to_W_SC2003": 0.3333,
+  "SC2004_S_SC1002_to_N": 0.3333,
+  "SC2004_S_SC1002_to_E_SC2005": 0.3333,
+  "SC2005_W_SC2004_to_N": 0.3333,
+  "SC2005_W_SC2004_to_E_SC102": 0.3333,
+  "SC2005_W_SC2004_to_S_SC101": 0.3333,
+  "SC2005_N_to_W_SC2004": 0.3333,
+  "SC2005_N_to_S_SC101": 0.3333,
+  "SC2005_N_to_E_SC102": 0.3333,
+  "SC2005_E_SC102_to_N": 0.3333,
+  "SC2005_E_SC102_to_W_SC2004": 0.3333,
+  "SC2005_E_SC102_to_S_SC101": 0.3333,
+  "SC2005_S_SC101_to_W_SC2004": 0.3333,
+  "SC2005_S_SC101_to_N": 0.3333,
+  "SC2005_S_SC101_to_E_SC102": 0.3333
+ },
+ "approaches": [
+  {
+   "signal": "SC1",
+   "approach": "W_SC105",
+   "decisions": [
+    {
+     "no": "11",
+     "name": "구룡초교_EB",
+     "link": "359",
+     "veh": 523.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 523.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.55,
+   "beta": {
+    "SC1_W_SC105_to_E_SC11": 0.2444,
+    "SC1_W_SC105_to_E": 0.25,
+    "SC1_W_SC105_to_N_SC101": 0.105,
+    "SC1_W_SC105_to_S_SC107": 0.1007,
+    "SC1_W_SC105_to_S": 0.1,
+    "SC1_W_SC105_to_N": 0.1,
+    "SC1_W_SC105_to_W": 0.1
+   },
+   "beta_prev": {
+    "SC1_W_SC105_to_E_SC11": 0.25,
+    "SC1_W_SC105_to_E": 0.25,
+    "SC1_W_SC105_to_N_SC101": 0.1,
+    "SC1_W_SC105_to_S_SC107": 0.1,
+    "SC1_W_SC105_to_S": 0.1,
+    "SC1_W_SC105_to_N": 0.1,
+    "SC1_W_SC105_to_W": 0.1
+   }
+  },
+  {
+   "signal": "SC1",
+   "approach": "E_SC11",
+   "decisions": [
+    {
+     "no": "12",
+     "name": "구룡초교_WB",
+     "link": "1210008203",
+     "veh": 812.0,
+     "how": "목적지집합 역추론"
+    }
+   ],
+   "veh": 812.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.55,
+   "beta": {
+    "SC1_E_SC11_to_W_SC105": 0.1469,
+    "SC1_E_SC11_to_W": 0.25,
+    "SC1_E_SC11_to_N_SC101": 0.1236,
+    "SC1_E_SC11_to_S_SC107": 0.1796,
+    "SC1_E_SC11_to_S": 0.1,
+    "SC1_E_SC11_to_E": 0.1,
+    "SC1_E_SC11_to_N": 0.1
+   },
+   "beta_prev": {
+    "SC1_E_SC11_to_W_SC105": 0.25,
+    "SC1_E_SC11_to_W": 0.25,
+    "SC1_E_SC11_to_N_SC101": 0.1,
+    "SC1_E_SC11_to_S_SC107": 0.1,
+    "SC1_E_SC11_to_S": 0.1,
+    "SC1_E_SC11_to_E": 0.1,
+    "SC1_E_SC11_to_N": 0.1
+   }
+  },
+  {
+   "signal": "SC1",
+   "approach": "N_SC101",
+   "decisions": [
+    {
+     "no": "13",
+     "name": "구룡초교_SB",
+     "link": "1210008402",
+     "veh": 2059.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2059.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.55,
+   "beta": {
+    "SC1_N_SC101_to_S_SC107": 0.3932,
+    "SC1_N_SC101_to_S": 0.25,
+    "SC1_N_SC101_to_E_SC11": 0.0098,
+    "SC1_N_SC101_to_W_SC105": 0.047,
+    "SC1_N_SC101_to_E": 0.1,
+    "SC1_N_SC101_to_N": 0.1,
+    "SC1_N_SC101_to_W": 0.1
+   },
+   "beta_prev": {
+    "SC1_N_SC101_to_S_SC107": 0.25,
+    "SC1_N_SC101_to_S": 0.25,
+    "SC1_N_SC101_to_E_SC11": 0.1,
+    "SC1_N_SC101_to_W_SC105": 0.1,
+    "SC1_N_SC101_to_E": 0.1,
+    "SC1_N_SC101_to_N": 0.1,
+    "SC1_N_SC101_to_W": 0.1
+   }
+  },
+  {
+   "signal": "SC1",
+   "approach": "S_SC107",
+   "decisions": [
+    {
+     "no": "14",
+     "name": "구룡초교_NB",
+     "link": "1210006903",
+     "veh": 2381.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2381.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.55,
+   "beta": {
+    "SC1_S_SC107_to_N_SC101": 0.4012,
+    "SC1_S_SC107_to_N": 0.25,
+    "SC1_S_SC107_to_E_SC11": 0.0352,
+    "SC1_S_SC107_to_W_SC105": 0.0136,
+    "SC1_S_SC107_to_S": 0.1,
+    "SC1_S_SC107_to_E": 0.1,
+    "SC1_S_SC107_to_W": 0.1
+   },
+   "beta_prev": {
+    "SC1_S_SC107_to_N_SC101": 0.25,
+    "SC1_S_SC107_to_N": 0.25,
+    "SC1_S_SC107_to_E_SC11": 0.1,
+    "SC1_S_SC107_to_W_SC105": 0.1,
+    "SC1_S_SC107_to_S": 0.1,
+    "SC1_S_SC107_to_E": 0.1,
+    "SC1_S_SC107_to_W": 0.1
+   }
+  },
+  {
+   "signal": "SC11",
+   "approach": "W_SC1",
+   "decisions": [
+    {
+     "no": "21",
+     "name": "개포고교_EB",
+     "link": "1220008301",
+     "veh": 547.0,
+     "how": "목적지집합 역추론"
+    }
+   ],
+   "veh": 547.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC11_W_SC1_to_E_SC12": 0.2474,
+    "SC11_W_SC1_to_E": 0.25,
+    "SC11_W_SC1_to_N_SC5": 0.2485,
+    "SC11_W_SC1_to_S_SC7": 0.0874,
+    "SC11_W_SC1_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC11_W_SC1_to_E_SC12": 0.25,
+    "SC11_W_SC1_to_E": 0.25,
+    "SC11_W_SC1_to_N_SC5": 0.16666666666666666,
+    "SC11_W_SC1_to_S_SC7": 0.16666666666666666,
+    "SC11_W_SC1_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "decisions": [
+    {
+     "no": "22",
+     "name": "개포고교_WB",
+     "link": "1220012001",
+     "veh": 361.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 361.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC11_E_SC12_to_W_SC1": 0.391,
+    "SC11_E_SC12_to_W": 0.25,
+    "SC11_E_SC12_to_N_SC5": 0.1357,
+    "SC11_E_SC12_to_S_SC7": 0.0566,
+    "SC11_E_SC12_to_E": 0.1667
+   },
+   "beta_prev": {
+    "SC11_E_SC12_to_W_SC1": 0.25,
+    "SC11_E_SC12_to_W": 0.25,
+    "SC11_E_SC12_to_N_SC5": 0.16666666666666666,
+    "SC11_E_SC12_to_S_SC7": 0.16666666666666666,
+    "SC11_E_SC12_to_E": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC11",
+   "approach": "N_SC5",
+   "decisions": [
+    {
+     "no": "23",
+     "name": "개포고교_SB",
+     "link": "1220014000",
+     "veh": 667.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 667.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC11_N_SC5_to_S_SC7": 0.2849,
+    "SC11_N_SC5_to_E_SC12": 0.0645,
+    "SC11_N_SC5_to_W_SC1": 0.3508,
+    "SC11_N_SC5_to_W": 0.1499,
+    "SC11_N_SC5_to_E": 0.1499
+   },
+   "beta_prev": {
+    "SC11_N_SC5_to_S_SC7": 0.5,
+    "SC11_N_SC5_to_E_SC12": 0.125,
+    "SC11_N_SC5_to_W_SC1": 0.125,
+    "SC11_N_SC5_to_W": 0.125,
+    "SC11_N_SC5_to_E": 0.125
+   }
+  },
+  {
+   "signal": "SC11",
+   "approach": "S_SC7",
+   "decisions": [
+    {
+     "no": "24",
+     "name": "개포고교_NB",
+     "link": "1220008701",
+     "veh": 480.0,
+     "how": "목적지집합 역추론"
+    },
+    {
+     "no": "1101",
+     "name": "",
+     "link": "209",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 481.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC11_S_SC7_to_N_SC5": 0.7859,
+    "SC11_S_SC7_to_E_SC12": 0.0873,
+    "SC11_S_SC7_to_W_SC1": 0.1247,
+    "SC11_S_SC7_to_W": 0.001,
+    "SC11_S_SC7_to_E": 0.001
+   },
+   "beta_prev": {
+    "SC11_S_SC7_to_N_SC5": 0.5,
+    "SC11_S_SC7_to_E_SC12": 0.125,
+    "SC11_S_SC7_to_W_SC1": 0.125,
+    "SC11_S_SC7_to_W": 0.125,
+    "SC11_S_SC7_to_E": 0.125
+   }
+  },
+  {
+   "signal": "SC12",
+   "approach": "W_SC11",
+   "decisions": [
+    {
+     "no": "31",
+     "name": "영동5교_EB",
+     "link": "1210012101",
+     "veh": 244.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 244.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC12_W_SC11_to_E_SC106": 0.2247,
+    "SC12_W_SC11_to_E": 0.25,
+    "SC12_W_SC11_to_N_SC6": 0.2869,
+    "SC12_W_SC11_to_S_SC16": 0.0717,
+    "SC12_W_SC11_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC12_W_SC11_to_E_SC106": 0.25,
+    "SC12_W_SC11_to_E": 0.25,
+    "SC12_W_SC11_to_N_SC6": 0.16666666666666666,
+    "SC12_W_SC11_to_S_SC16": 0.16666666666666666,
+    "SC12_W_SC11_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC12",
+   "approach": "E_SC106",
+   "decisions": [
+    {
+     "no": "32",
+     "name": "영동5교_WB",
+     "link": "1220013600",
+     "veh": 316.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 316.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC12_E_SC106_to_W_SC11": 0.2714,
+    "SC12_E_SC106_to_W": 0.25,
+    "SC12_E_SC106_to_N_SC6": 0.2418,
+    "SC12_E_SC106_to_S_SC16": 0.0701,
+    "SC12_E_SC106_to_E": 0.1667
+   },
+   "beta_prev": {
+    "SC12_E_SC106_to_W_SC11": 0.25,
+    "SC12_E_SC106_to_W": 0.25,
+    "SC12_E_SC106_to_N_SC6": 0.16666666666666666,
+    "SC12_E_SC106_to_S_SC16": 0.16666666666666666,
+    "SC12_E_SC106_to_E": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC12",
+   "approach": "N_SC6",
+   "decisions": [
+    {
+     "no": "33",
+     "name": "영동5교_SB",
+     "link": "1220018202",
+     "veh": 599.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 599.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC12_N_SC6_to_S_SC16": 0.5972,
+    "SC12_N_SC6_to_E_SC106": 0.0588,
+    "SC12_N_SC6_to_W_SC11": 0.0939,
+    "SC12_N_SC6_to_W": 0.125,
+    "SC12_N_SC6_to_E": 0.125
+   },
+   "beta_prev": {
+    "SC12_N_SC6_to_S_SC16": 0.5,
+    "SC12_N_SC6_to_E_SC106": 0.125,
+    "SC12_N_SC6_to_W_SC11": 0.125,
+    "SC12_N_SC6_to_W": 0.125,
+    "SC12_N_SC6_to_E": 0.125
+   }
+  },
+  {
+   "signal": "SC12",
+   "approach": "S_SC16",
+   "decisions": [
+    {
+     "no": "34",
+     "name": "영동5교_NB",
+     "link": "1220012700",
+     "veh": 890.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 890.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC12_S_SC16_to_N_SC6": 0.6826,
+    "SC12_S_SC16_to_E_SC106": 0.0312,
+    "SC12_S_SC16_to_W_SC11": 0.0362,
+    "SC12_S_SC16_to_W": 0.125,
+    "SC12_S_SC16_to_E": 0.125
+   },
+   "beta_prev": {
+    "SC12_S_SC16_to_N_SC6": 0.5,
+    "SC12_S_SC16_to_E_SC106": 0.125,
+    "SC12_S_SC16_to_W_SC11": 0.125,
+    "SC12_S_SC16_to_W": 0.125,
+    "SC12_S_SC16_to_E": 0.125
+   }
+  },
+  {
+   "signal": "SC7",
+   "approach": "N_SC11",
+   "decisions": [
+    {
+     "no": "253",
+     "name": "개포도서관_SB",
+     "link": "1210008603",
+     "veh": 299.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 299.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC7_N_SC11_to_S_SC108": 0.6572,
+    "SC7_N_SC11_to_E_SC16": 0.0928,
+    "SC7_N_SC11_to_E": 0.25
+   },
+   "beta_prev": {
+    "SC7_N_SC11_to_S_SC108": 0.5,
+    "SC7_N_SC11_to_E_SC16": 0.25,
+    "SC7_N_SC11_to_E": 0.25
+   }
+  },
+  {
+   "signal": "SC16",
+   "approach": "W_SC7",
+   "decisions": [
+    {
+     "no": "281",
+     "name": "경기여고_EB",
+     "link": "1220009700",
+     "veh": 82.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1102",
+     "name": "",
+     "link": "201",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 83.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC16_W_SC7_to_E": 0.1847,
+    "SC16_W_SC7_to_N_SC12": 0.6747,
+    "SC16_W_SC7_to_S_SC109": 0.1325,
+    "SC16_W_SC7_to_S": 0.004,
+    "SC16_W_SC7_to_W": 0.004
+   },
+   "beta_prev": {
+    "SC16_W_SC7_to_E": 0.5,
+    "SC16_W_SC7_to_N_SC12": 0.125,
+    "SC16_W_SC7_to_S_SC109": 0.125,
+    "SC16_W_SC7_to_S": 0.125,
+    "SC16_W_SC7_to_W": 0.125
+   }
+  },
+  {
+   "signal": "SC16",
+   "approach": "E",
+   "decisions": [
+    {
+     "no": "282",
+     "name": "경기여고_WB",
+     "link": "1220011200",
+     "veh": 157.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 157.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC16_E_to_W_SC7": 0.1709,
+    "SC16_E_to_W": 0.25,
+    "SC16_E_to_N_SC12": 0.2192,
+    "SC16_E_to_S_SC109": 0.1932,
+    "SC16_E_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC16_E_to_W_SC7": 0.25,
+    "SC16_E_to_W": 0.25,
+    "SC16_E_to_N_SC12": 0.16666666666666666,
+    "SC16_E_to_S_SC109": 0.16666666666666666,
+    "SC16_E_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC16",
+   "approach": "N_SC12",
+   "decisions": [
+    {
+     "no": "283",
+     "name": "경기여고_SB",
+     "link": "10235",
+     "veh": 670.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 670.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.4167,
+   "beta": {
+    "SC16_N_SC12_to_S_SC109": 0.4832,
+    "SC16_N_SC12_to_S": 0.25,
+    "SC16_N_SC12_to_W_SC7": 0.0522,
+    "SC16_N_SC12_to_E": 0.0479,
+    "SC16_N_SC12_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC16_N_SC12_to_S_SC109": 0.25,
+    "SC16_N_SC12_to_S": 0.25,
+    "SC16_N_SC12_to_W_SC7": 0.16666666666666666,
+    "SC16_N_SC12_to_E": 0.16666666666666666,
+    "SC16_N_SC12_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC16",
+   "approach": "S_SC109",
+   "decisions": [
+    {
+     "no": "284",
+     "name": "경기여고_NB",
+     "link": "1220009503",
+     "veh": 972.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 972.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC16_S_SC109_to_N_SC12": 0.7145,
+    "SC16_S_SC109_to_W_SC7": 0.0193,
+    "SC16_S_SC109_to_E": 0.0162,
+    "SC16_S_SC109_to_S": 0.125,
+    "SC16_S_SC109_to_W": 0.125
+   },
+   "beta_prev": {
+    "SC16_S_SC109_to_N_SC12": 0.5,
+    "SC16_S_SC109_to_W_SC7": 0.125,
+    "SC16_S_SC109_to_E": 0.125,
+    "SC16_S_SC109_to_S": 0.125,
+    "SC16_S_SC109_to_W": 0.125
+   }
+  },
+  {
+   "signal": "SC101",
+   "approach": "W_SC1002",
+   "decisions": [
+    {
+     "no": "1011",
+     "name": "매봉터널_EB",
+     "link": "328",
+     "veh": 1518.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1518.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC101_W_SC1002_to_E_SC5": 0.5792,
+    "SC101_W_SC1002_to_N_SC2005": 0.1197,
+    "SC101_W_SC1002_to_S_SC1": 0.1345,
+    "SC101_W_SC1002_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC101_W_SC1002_to_E_SC5": 0.5,
+    "SC101_W_SC1002_to_N_SC2005": 0.16666666666666666,
+    "SC101_W_SC1002_to_S_SC1": 0.16666666666666666,
+    "SC101_W_SC1002_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC101",
+   "approach": "E_SC5",
+   "decisions": [
+    {
+     "no": "1012",
+     "name": "매봉터널_WB",
+     "link": "1220014203",
+     "veh": 2020.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2020.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC101_E_SC5_to_W_SC1002": 0.5507,
+    "SC101_E_SC5_to_N_SC2005": 0.1427,
+    "SC101_E_SC5_to_S_SC1": 0.1399,
+    "SC101_E_SC5_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC101_E_SC5_to_W_SC1002": 0.5,
+    "SC101_E_SC5_to_N_SC2005": 0.16666666666666666,
+    "SC101_E_SC5_to_S_SC1": 0.16666666666666666,
+    "SC101_E_SC5_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC101",
+   "approach": "N_SC2005",
+   "decisions": [
+    {
+     "no": "1013",
+     "name": "매봉터널_SB",
+     "link": "308",
+     "veh": 1569.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1569.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC101_N_SC2005_to_S_SC1": 0.5335,
+    "SC101_N_SC2005_to_S": 0.25,
+    "SC101_N_SC2005_to_E_SC5": 0.1166,
+    "SC101_N_SC2005_to_W_SC1002": 0.0999
+   },
+   "beta_prev": {
+    "SC101_N_SC2005_to_S_SC1": 0.25,
+    "SC101_N_SC2005_to_S": 0.25,
+    "SC101_N_SC2005_to_E_SC5": 0.25,
+    "SC101_N_SC2005_to_W_SC1002": 0.25
+   }
+  },
+  {
+   "signal": "SC101",
+   "approach": "S_SC1",
+   "decisions": [
+    {
+     "no": "1014",
+     "name": "매봉터널_NB",
+     "link": "1220008501",
+     "veh": 2868.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2868.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC101_S_SC1_to_N_SC2005": 0.6023,
+    "SC101_S_SC1_to_E_SC5": 0.0366,
+    "SC101_S_SC1_to_W_SC1002": 0.1944,
+    "SC101_S_SC1_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC101_S_SC1_to_N_SC2005": 0.5,
+    "SC101_S_SC1_to_E_SC5": 0.16666666666666666,
+    "SC101_S_SC1_to_W_SC1002": 0.16666666666666666,
+    "SC101_S_SC1_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC5",
+   "approach": "W_SC101",
+   "decisions": [
+    {
+     "no": "1021",
+     "name": "도곡역_EB",
+     "link": "1210014303",
+     "veh": 1689.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1689.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC5_W_SC101_to_E_SC6": 0.6528,
+    "SC5_W_SC101_to_N_SC102": 0.1189,
+    "SC5_W_SC101_to_S_SC11": 0.0617,
+    "SC5_W_SC101_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC5_W_SC101_to_E_SC6": 0.5,
+    "SC5_W_SC101_to_N_SC102": 0.16666666666666666,
+    "SC5_W_SC101_to_S_SC11": 0.16666666666666666,
+    "SC5_W_SC101_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC5",
+   "approach": "E_SC6",
+   "decisions": [
+    {
+     "no": "1022",
+     "name": "도곡역_WB",
+     "link": "1220018404",
+     "veh": 2059.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2059.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC5_E_SC6_to_W_SC101": 0.6383,
+    "SC5_E_SC6_to_N_SC102": 0.1036,
+    "SC5_E_SC6_to_S_SC11": 0.0915,
+    "SC5_E_SC6_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC5_E_SC6_to_W_SC101": 0.5,
+    "SC5_E_SC6_to_N_SC102": 0.16666666666666666,
+    "SC5_E_SC6_to_S_SC11": 0.16666666666666666,
+    "SC5_E_SC6_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC5",
+   "approach": "N_SC102",
+   "decisions": [
+    {
+     "no": "1023",
+     "name": "도곡역_SB",
+     "link": "1210019201",
+     "veh": 743.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 743.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC5_N_SC102_to_S_SC11": 0.3715,
+    "SC5_N_SC102_to_S": 0.25,
+    "SC5_N_SC102_to_E_SC6": 0.1847,
+    "SC5_N_SC102_to_W_SC101": 0.1938
+   },
+   "beta_prev": {
+    "SC5_N_SC102_to_S_SC11": 0.25,
+    "SC5_N_SC102_to_S": 0.25,
+    "SC5_N_SC102_to_E_SC6": 0.25,
+    "SC5_N_SC102_to_W_SC101": 0.25
+   }
+  },
+  {
+   "signal": "SC5",
+   "approach": "S_SC11",
+   "decisions": [
+    {
+     "no": "1024",
+     "name": "도곡역_NB",
+     "link": "1220011101",
+     "veh": 908.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 908.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC5_S_SC11_to_N_SC102": 0.5415,
+    "SC5_S_SC11_to_E_SC6": 0.1028,
+    "SC5_S_SC11_to_W_SC101": 0.1891,
+    "SC5_S_SC11_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC5_S_SC11_to_N_SC102": 0.5,
+    "SC5_S_SC11_to_E_SC6": 0.16666666666666666,
+    "SC5_S_SC11_to_W_SC101": 0.16666666666666666,
+    "SC5_S_SC11_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC6",
+   "approach": "W_SC5",
+   "decisions": [
+    {
+     "no": "1031",
+     "name": "대치역_EB",
+     "link": "1220018501",
+     "veh": 1402.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1402.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC6_W_SC5_to_E_SC104": 0.6051,
+    "SC6_W_SC5_to_N_SC103": 0.1795,
+    "SC6_W_SC5_to_S_SC12": 0.0487,
+    "SC6_W_SC5_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC6_W_SC5_to_E_SC104": 0.5,
+    "SC6_W_SC5_to_N_SC103": 0.16666666666666666,
+    "SC6_W_SC5_to_S_SC12": 0.16666666666666666,
+    "SC6_W_SC5_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC6",
+   "approach": "E_SC104",
+   "decisions": [
+    {
+     "no": "1032",
+     "name": "대치역_WB",
+     "link": "1220021204",
+     "veh": 2233.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2233.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC6_E_SC104_to_W_SC5": 0.5221,
+    "SC6_E_SC104_to_N_SC103": 0.2579,
+    "SC6_E_SC104_to_S_SC12": 0.0534,
+    "SC6_E_SC104_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC6_E_SC104_to_W_SC5": 0.5,
+    "SC6_E_SC104_to_N_SC103": 0.16666666666666666,
+    "SC6_E_SC104_to_S_SC12": 0.16666666666666666,
+    "SC6_E_SC104_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC6",
+   "approach": "N_SC103",
+   "decisions": [
+    {
+     "no": "1033",
+     "name": "대치역_SB",
+     "link": "1220021803",
+     "veh": 957.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 957.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC6_N_SC103_to_S_SC12": 0.4208,
+    "SC6_N_SC103_to_S": 0.25,
+    "SC6_N_SC103_to_E_SC104": 0.152,
+    "SC6_N_SC103_to_W_SC5": 0.1771
+   },
+   "beta_prev": {
+    "SC6_N_SC103_to_S_SC12": 0.25,
+    "SC6_N_SC103_to_S": 0.25,
+    "SC6_N_SC103_to_E_SC104": 0.25,
+    "SC6_N_SC103_to_W_SC5": 0.25
+   }
+  },
+  {
+   "signal": "SC6",
+   "approach": "S_SC12",
+   "decisions": [
+    {
+     "no": "1034",
+     "name": "대치역_NB",
+     "link": "1220018301",
+     "veh": 1366.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1366.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC6_S_SC12_to_N_SC103": 0.6381,
+    "SC6_S_SC12_to_E_SC104": 0.0714,
+    "SC6_S_SC12_to_W_SC5": 0.1238,
+    "SC6_S_SC12_to_S": 0.1667
+   },
+   "beta_prev": {
+    "SC6_S_SC12_to_N_SC103": 0.5,
+    "SC6_S_SC12_to_E_SC104": 0.16666666666666666,
+    "SC6_S_SC12_to_W_SC5": 0.16666666666666666,
+    "SC6_S_SC12_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC105",
+   "approach": "W_SC1003",
+   "decisions": [
+    {
+     "no": "1041",
+     "name": "포이사거리_EB",
+     "link": "426",
+     "veh": 249.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 249.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC105_W_SC1003_to_E_SC1": 0.1837,
+    "SC105_W_SC1003_to_E": 0.25,
+    "SC105_W_SC1003_to_N_SC1002": 0.3313,
+    "SC105_W_SC1003_to_S_SC1005": 0.2349
+   },
+   "beta_prev": {
+    "SC105_W_SC1003_to_E_SC1": 0.25,
+    "SC105_W_SC1003_to_E": 0.25,
+    "SC105_W_SC1003_to_N_SC1002": 0.25,
+    "SC105_W_SC1003_to_S_SC1005": 0.25
+   }
+  },
+  {
+   "signal": "SC105",
+   "approach": "E_SC1",
+   "decisions": [
+    {
+     "no": "1042",
+     "name": "포이사거리_WB",
+     "link": "1220007001",
+     "veh": 283.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 283.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC105_E_SC1_to_W_SC1003": 0.2267,
+    "SC105_E_SC1_to_N_SC1002": 0.4005,
+    "SC105_E_SC1_to_S_SC1005": 0.2061,
+    "SC105_E_SC1_to_E": 0.1667
+   },
+   "beta_prev": {
+    "SC105_E_SC1_to_W_SC1003": 0.5,
+    "SC105_E_SC1_to_N_SC1002": 0.16666666666666666,
+    "SC105_E_SC1_to_S_SC1005": 0.16666666666666666,
+    "SC105_E_SC1_to_E": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC105",
+   "approach": "N_SC1002",
+   "decisions": [
+    {
+     "no": "1043",
+     "name": "포이사거리_SB",
+     "link": "420",
+     "veh": 797.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 797.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC105_N_SC1002_to_S_SC1005": 0.6294,
+    "SC105_N_SC1002_to_E_SC1": 0.1422,
+    "SC105_N_SC1002_to_W_SC1003": 0.0617,
+    "SC105_N_SC1002_to_E": 0.1667
+   },
+   "beta_prev": {
+    "SC105_N_SC1002_to_S_SC1005": 0.5,
+    "SC105_N_SC1002_to_E_SC1": 0.16666666666666666,
+    "SC105_N_SC1002_to_W_SC1003": 0.16666666666666666,
+    "SC105_N_SC1002_to_E": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC105",
+   "approach": "S_SC1005",
+   "decisions": [
+    {
+     "no": "1044",
+     "name": "포이사거리_NB",
+     "link": "404",
+     "veh": 849.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1110",
+     "name": "",
+     "link": "43",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 850.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC105_S_SC1005_to_N_SC1002": 0.7918,
+    "SC105_S_SC1005_to_E_SC1": 0.0188,
+    "SC105_S_SC1005_to_W_SC1003": 0.1882,
+    "SC105_S_SC1005_to_E": 0.0012
+   },
+   "beta_prev": {
+    "SC105_S_SC1005_to_N_SC1002": 0.5,
+    "SC105_S_SC1005_to_E_SC1": 0.16666666666666666,
+    "SC105_S_SC1005_to_W_SC1003": 0.16666666666666666,
+    "SC105_S_SC1005_to_E": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC106",
+   "approach": "W_SC12",
+   "decisions": [
+    {
+     "no": "1051",
+     "name": "대모산입구역_EB",
+     "link": "1220015700",
+     "veh": 154.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 154.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC106_W_SC12_to_E": 0.2868,
+    "SC106_W_SC12_to_N_SC104": 0.2976,
+    "SC106_W_SC12_to_S": 0.2489,
+    "SC106_W_SC12_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC106_W_SC12_to_E": 0.5,
+    "SC106_W_SC12_to_N_SC104": 0.16666666666666666,
+    "SC106_W_SC12_to_S": 0.16666666666666666,
+    "SC106_W_SC12_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC106",
+   "approach": "E",
+   "decisions": [
+    {
+     "no": "1052",
+     "name": "대모산입구역_WB",
+     "link": "13",
+     "veh": 370.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 370.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC106_E_to_W_SC12": 0.3466,
+    "SC106_E_to_W": 0.25,
+    "SC106_E_to_N_SC104": 0.2007,
+    "SC106_E_to_S": 0.2027
+   },
+   "beta_prev": {
+    "SC106_E_to_W_SC12": 0.25,
+    "SC106_E_to_W": 0.25,
+    "SC106_E_to_N_SC104": 0.25,
+    "SC106_E_to_S": 0.25
+   }
+  },
+  {
+   "signal": "SC106",
+   "approach": "N_SC104",
+   "decisions": [
+    {
+     "no": "1053",
+     "name": "대모산입구역_SB",
+     "link": "1220001900",
+     "veh": 905.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 905.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC106_N_SC104_to_S": 0.6547,
+    "SC106_N_SC104_to_W_SC12": 0.0101,
+    "SC106_N_SC104_to_E": 0.1685,
+    "SC106_N_SC104_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC106_N_SC104_to_S": 0.5,
+    "SC106_N_SC104_to_W_SC12": 0.16666666666666666,
+    "SC106_N_SC104_to_E": 0.16666666666666666,
+    "SC106_N_SC104_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC106",
+   "approach": "S",
+   "decisions": [
+    {
+     "no": "1054",
+     "name": "대모산입구역_NB",
+     "link": "42",
+     "veh": 892.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 892.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC106_S_to_N_SC104": 0.6867,
+    "SC106_S_to_W_SC12": 0.0859,
+    "SC106_S_to_E": 0.0607,
+    "SC106_S_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC106_S_to_N_SC104": 0.5,
+    "SC106_S_to_W_SC12": 0.16666666666666666,
+    "SC106_S_to_E": 0.16666666666666666,
+    "SC106_S_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC107",
+   "approach": "W_SC1005",
+   "decisions": [
+    {
+     "no": "1061",
+     "name": "구룡터널_EB",
+     "link": "387",
+     "veh": 1200.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1200.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC107_W_SC1005_to_E_SC108": 0.7125,
+    "SC107_W_SC1005_to_N_SC1": 0.0813,
+    "SC107_W_SC1005_to_W_SC1004": 0.1667,
+    "SC107_W_SC1005_to_S": 0.0396
+   },
+   "beta_prev": {
+    "SC107_W_SC1005_to_E_SC108": 0.5,
+    "SC107_W_SC1005_to_N_SC1": 0.16666666666666666,
+    "SC107_W_SC1005_to_W_SC1004": 0.16666666666666666,
+    "SC107_W_SC1005_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC107",
+   "approach": "E_SC108",
+   "decisions": [
+    {
+     "no": "1062",
+     "name": "구룡터널_WB",
+     "link": "182",
+     "veh": 1386.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1386.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC107_E_SC108_to_W_SC1004": 0.25,
+    "SC107_E_SC108_to_W_SC1005": 0.5774,
+    "SC107_E_SC108_to_N_SC1": 0.0276,
+    "SC107_E_SC108_to_S": 0.145
+   },
+   "beta_prev": {
+    "SC107_E_SC108_to_W_SC1004": 0.25,
+    "SC107_E_SC108_to_W_SC1005": 0.25,
+    "SC107_E_SC108_to_N_SC1": 0.25,
+    "SC107_E_SC108_to_S": 0.25
+   }
+  },
+  {
+   "signal": "SC107",
+   "approach": "N_SC1",
+   "decisions": [
+    {
+     "no": "1063",
+     "name": "구룡터널_SB",
+     "link": "1220006803",
+     "veh": 2240.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2240.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC107_N_SC1_to_S": 0.6804,
+    "SC107_N_SC1_to_E_SC108": 0.1135,
+    "SC107_N_SC1_to_W_SC1004": 0.1667,
+    "SC107_N_SC1_to_W_SC1005": 0.0394
+   },
+   "beta_prev": {
+    "SC107_N_SC1_to_S": 0.5,
+    "SC107_N_SC1_to_E_SC108": 0.16666666666666666,
+    "SC107_N_SC1_to_W_SC1004": 0.16666666666666666,
+    "SC107_N_SC1_to_W_SC1005": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC108",
+   "approach": "W_SC107",
+   "decisions": [
+    {
+     "no": "1071",
+     "name": "구룡마을입구_EB",
+     "link": "1220000402",
+     "veh": 1063.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1063.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC108_W_SC107_to_E_SC109": 0.8028,
+    "SC108_W_SC107_to_N_SC7": 0.0133,
+    "SC108_W_SC107_to_S": 0.0172,
+    "SC108_W_SC107_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC108_W_SC107_to_E_SC109": 0.5,
+    "SC108_W_SC107_to_N_SC7": 0.16666666666666666,
+    "SC108_W_SC107_to_S": 0.16666666666666666,
+    "SC108_W_SC107_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC108",
+   "approach": "E_SC109",
+   "decisions": [
+    {
+     "no": "1072",
+     "name": "구룡마을입구_WB",
+     "link": "1220000502",
+     "veh": 1631.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1631.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC108_E_SC109_to_W_SC107": 0.6567,
+    "SC108_E_SC109_to_W": 0.1441,
+    "SC108_E_SC109_to_N_SC7": 0.0166,
+    "SC108_E_SC109_to_S": 0.1827
+   },
+   "beta_prev": {
+    "SC108_E_SC109_to_W_SC107": 0.25,
+    "SC108_E_SC109_to_W": 0.25,
+    "SC108_E_SC109_to_N_SC7": 0.25,
+    "SC108_E_SC109_to_S": 0.25
+   }
+  },
+  {
+   "signal": "SC108",
+   "approach": "N_SC7",
+   "decisions": [
+    {
+     "no": "1073",
+     "name": "구룡마을입구_SB",
+     "link": "1220007402",
+     "veh": 1105.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1106",
+     "name": "",
+     "link": "187",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1106.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC108_N_SC7_to_S": 0.8901,
+    "SC108_N_SC7_to_E_SC109": 0.0588,
+    "SC108_N_SC7_to_W_SC107": 0.0506,
+    "SC108_N_SC7_to_W": 0.0005
+   },
+   "beta_prev": {
+    "SC108_N_SC7_to_S": 0.5,
+    "SC108_N_SC7_to_E_SC109": 0.16666666666666666,
+    "SC108_N_SC7_to_W_SC107": 0.16666666666666666,
+    "SC108_N_SC7_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC108",
+   "approach": "S",
+   "decisions": [
+    {
+     "no": "1074",
+     "name": "구룡마을입구_NB",
+     "link": "1220044500",
+     "veh": 1066.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1066.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC108_S_to_N_SC7": 0.7856,
+    "SC108_S_to_E_SC109": 0.0039,
+    "SC108_S_to_W_SC107": 0.0438,
+    "SC108_S_to_W": 0.1667
+   },
+   "beta_prev": {
+    "SC108_S_to_N_SC7": 0.5,
+    "SC108_S_to_E_SC109": 0.16666666666666666,
+    "SC108_S_to_W_SC107": 0.16666666666666666,
+    "SC108_S_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC109",
+   "approach": "W_SC108",
+   "decisions": [
+    {
+     "no": "1081",
+     "name": "개포3,4단지_EB",
+     "link": "174",
+     "veh": 1711.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1711.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC109_W_SC108_to_E": 0.7621,
+    "SC109_W_SC108_to_N_SC16": 0.2379
+   },
+   "beta_prev": {
+    "SC109_W_SC108_to_E": 0.5,
+    "SC109_W_SC108_to_N_SC16": 0.5
+   }
+  },
+  {
+   "signal": "SC109",
+   "approach": "E",
+   "decisions": [
+    {
+     "no": "1082",
+     "name": "개포3,4단지_WB",
+     "link": "1220000704",
+     "veh": 1602.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 1602.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC109_E_to_W_SC108": 0.9625,
+    "SC109_E_to_N_SC16": 0.0375
+   },
+   "beta_prev": {
+    "SC109_E_to_W_SC108": 0.5,
+    "SC109_E_to_N_SC16": 0.5
+   }
+  },
+  {
+   "signal": "SC109",
+   "approach": "N_SC16",
+   "decisions": [
+    {
+     "no": "1083",
+     "name": "개포3,4단지_SB",
+     "link": "1220009403",
+     "veh": 595.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 595.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC109_N_SC16_to_W_SC108": 0.1412,
+    "SC109_N_SC16_to_E": 0.8588
+   },
+   "beta_prev": {
+    "SC109_N_SC16_to_W_SC108": 0.5,
+    "SC109_N_SC16_to_E": 0.5
+   }
+  },
+  {
+   "signal": "SC102",
+   "approach": "W_SC2005",
+   "decisions": [
+    {
+     "no": "1085",
+     "name": "한티역_EB",
+     "link": "297",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC102_W_SC2005_to_E_SC103": 0.3333,
+    "SC102_W_SC2005_to_S_SC5": 0.3333,
+    "SC102_W_SC2005_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC102_W_SC2005_to_E_SC103": 0.5,
+    "SC102_W_SC2005_to_S_SC5": 0.25,
+    "SC102_W_SC2005_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC102",
+   "approach": "E_SC103",
+   "decisions": [
+    {
+     "no": "1086",
+     "name": "한티역_WB",
+     "link": "1220022504",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC102_E_SC103_to_W_SC2005": 0.3333,
+    "SC102_E_SC103_to_S_SC5": 0.3333,
+    "SC102_E_SC103_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC102_E_SC103_to_W_SC2005": 0.5,
+    "SC102_E_SC103_to_S_SC5": 0.25,
+    "SC102_E_SC103_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC102",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1087",
+     "name": "한티역_SB",
+     "link": "293",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC102_N_to_S_SC5": 0.3333,
+    "SC102_N_to_E_SC103": 0.3333,
+    "SC102_N_to_W_SC2005": 0.3333
+   },
+   "beta_prev": {
+    "SC102_N_to_S_SC5": 0.5,
+    "SC102_N_to_E_SC103": 0.25,
+    "SC102_N_to_W_SC2005": 0.25
+   }
+  },
+  {
+   "signal": "SC102",
+   "approach": "S_SC5",
+   "decisions": [
+    {
+     "no": "1088",
+     "name": "한티역_NB",
+     "link": "1220019301",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC102_S_SC5_to_N": 0.3333,
+    "SC102_S_SC5_to_E_SC103": 0.3333,
+    "SC102_S_SC5_to_W_SC2005": 0.3333
+   },
+   "beta_prev": {
+    "SC102_S_SC5_to_N": 0.5,
+    "SC102_S_SC5_to_E_SC103": 0.25,
+    "SC102_S_SC5_to_W_SC2005": 0.25
+   }
+  },
+  {
+   "signal": "SC103",
+   "approach": "W_SC102",
+   "decisions": [
+    {
+     "no": "1089",
+     "name": "은마아파트입구_EB",
+     "link": "1220022601",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC103_W_SC102_to_E": 0.3333,
+    "SC103_W_SC102_to_S_SC6": 0.3333,
+    "SC103_W_SC102_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC103_W_SC102_to_E": 0.5,
+    "SC103_W_SC102_to_S_SC6": 0.25,
+    "SC103_W_SC102_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC103",
+   "approach": "E",
+   "decisions": [
+    {
+     "no": "1090",
+     "name": "은마아파트입구_WB",
+     "link": "111",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC103_E_to_W_SC102": 0.3333,
+    "SC103_E_to_S_SC6": 0.3333,
+    "SC103_E_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC103_E_to_W_SC102": 0.5,
+    "SC103_E_to_S_SC6": 0.25,
+    "SC103_E_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC103",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1091",
+     "name": "은마아파트입구_SB",
+     "link": "113",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1096",
+     "name": "",
+     "link": "1220024801",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 4.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC103_N_to_S_SC6": 0.5,
+    "SC103_N_to_W_SC102": 0.25,
+    "SC103_N_to_E": 0.25
+   },
+   "beta_prev": {
+    "SC103_N_to_S_SC6": 0.5,
+    "SC103_N_to_W_SC102": 0.25,
+    "SC103_N_to_E": 0.25
+   }
+  },
+  {
+   "signal": "SC103",
+   "approach": "S_SC6",
+   "decisions": [
+    {
+     "no": "1092",
+     "name": "은마아파트입구_NB",
+     "link": "94",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC103_S_SC6_to_N": 0.3333,
+    "SC103_S_SC6_to_W_SC102": 0.3333,
+    "SC103_S_SC6_to_E": 0.3333
+   },
+   "beta_prev": {
+    "SC103_S_SC6_to_N": 0.5,
+    "SC103_S_SC6_to_W_SC102": 0.25,
+    "SC103_S_SC6_to_E": 0.25
+   }
+  },
+  {
+   "signal": "SC104",
+   "approach": "E",
+   "decisions": [
+    {
+     "no": "1095",
+     "name": "",
+     "link": "55",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.5,
+   "beta": {
+    "SC104_E_to_W_SC6": 0.5,
+    "SC104_E_to_S_SC106": 0.25,
+    "SC104_E_to_N": 0.25
+   },
+   "beta_prev": {
+    "SC104_E_to_W_SC6": 0.5,
+    "SC104_E_to_S_SC106": 0.25,
+    "SC104_E_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC104",
+   "approach": "W_SC6",
+   "decisions": [
+    {
+     "no": "1098",
+     "name": "",
+     "link": "1220021303",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC104_W_SC6_to_E": 0.375,
+    "SC104_W_SC6_to_S_SC106": 0.25,
+    "SC104_W_SC6_to_N": 0.375
+   },
+   "beta_prev": {
+    "SC104_W_SC6_to_E": 0.5,
+    "SC104_W_SC6_to_S_SC106": 0.25,
+    "SC104_W_SC6_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC11",
+   "approach": "W",
+   "decisions": [
+    {
+     "no": "1105",
+     "name": "",
+     "link": "236",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.8333,
+   "beta": {
+    "SC11_W_to_E_SC12": 0.25,
+    "SC11_W_to_E": 0.25,
+    "SC11_W_to_N_SC5": 0.1667,
+    "SC11_W_to_S_SC7": 0.1667,
+    "SC11_W_to_W_SC1": 0.1667
+   },
+   "beta_prev": {
+    "SC11_W_to_E_SC12": 0.25,
+    "SC11_W_to_E": 0.25,
+    "SC11_W_to_N_SC5": 0.16666666666666666,
+    "SC11_W_to_S_SC7": 0.16666666666666666,
+    "SC11_W_to_W_SC1": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC104",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1109",
+     "name": "",
+     "link": "1220002202",
+     "veh": 1.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 1.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.5,
+   "beta": {
+    "SC104_N_to_S_SC106": 0.5,
+    "SC104_N_to_W_SC6": 0.25,
+    "SC104_N_to_E": 0.25
+   },
+   "beta_prev": {
+    "SC104_N_to_S_SC106": 0.5,
+    "SC104_N_to_W_SC6": 0.25,
+    "SC104_N_to_E": 0.25
+   }
+  },
+  {
+   "signal": "SC1002",
+   "approach": "N_SC2004",
+   "decisions": [
+    {
+     "no": "1111",
+     "name": "",
+     "link": "72",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1002_N_SC2004_to_S_SC105": 0.7143,
+    "SC1002_N_SC2004_to_E_SC101": 0.1429,
+    "SC1002_N_SC2004_to_W_SC1001": 0.1429
+   },
+   "beta_prev": {
+    "SC1002_N_SC2004_to_S_SC105": 0.5,
+    "SC1002_N_SC2004_to_E_SC101": 0.25,
+    "SC1002_N_SC2004_to_W_SC1001": 0.25
+   }
+  },
+  {
+   "signal": "SC1002",
+   "approach": "S_SC105",
+   "decisions": [
+    {
+     "no": "1112",
+     "name": "",
+     "link": "1220007300",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1002_S_SC105_to_N_SC2004": 0.7143,
+    "SC1002_S_SC105_to_E_SC101": 0.1429,
+    "SC1002_S_SC105_to_W_SC1001": 0.1429
+   },
+   "beta_prev": {
+    "SC1002_S_SC105_to_N_SC2004": 0.5,
+    "SC1002_S_SC105_to_E_SC101": 0.25,
+    "SC1002_S_SC105_to_W_SC1001": 0.25
+   }
+  },
+  {
+   "signal": "SC1002",
+   "approach": "E_SC101",
+   "decisions": [
+    {
+     "no": "1113",
+     "name": "",
+     "link": "321",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1002_E_SC101_to_W_SC1001": 0.1429,
+    "SC1002_E_SC101_to_N_SC2004": 0.1429,
+    "SC1002_E_SC101_to_S_SC105": 0.7143
+   },
+   "beta_prev": {
+    "SC1002_E_SC101_to_W_SC1001": 0.5,
+    "SC1002_E_SC101_to_N_SC2004": 0.25,
+    "SC1002_E_SC101_to_S_SC105": 0.25
+   }
+  },
+  {
+   "signal": "SC1002",
+   "approach": "W_SC1001",
+   "decisions": [
+    {
+     "no": "1115",
+     "name": "",
+     "link": "30",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1002_W_SC1001_to_E_SC101": 0.1429,
+    "SC1002_W_SC1001_to_N_SC2004": 0.1429,
+    "SC1002_W_SC1001_to_S_SC105": 0.7143
+   },
+   "beta_prev": {
+    "SC1002_W_SC1001_to_E_SC101": 0.5,
+    "SC1002_W_SC1001_to_N_SC2004": 0.25,
+    "SC1002_W_SC1001_to_S_SC105": 0.25
+   }
+  },
+  {
+   "signal": "SC1001",
+   "approach": "N_SC2002",
+   "decisions": [
+    {
+     "no": "1116",
+     "name": "",
+     "link": "37",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1001_N_SC2002_to_S_SC1003": 0.7143,
+    "SC1001_N_SC2002_to_E_SC1002": 0.1429,
+    "SC1001_N_SC2002_to_W": 0.1429
+   },
+   "beta_prev": {
+    "SC1001_N_SC2002_to_S_SC1003": 0.5,
+    "SC1001_N_SC2002_to_E_SC1002": 0.25,
+    "SC1001_N_SC2002_to_W": 0.25
+   }
+  },
+  {
+   "signal": "SC1001",
+   "approach": "E_SC1002",
+   "decisions": [
+    {
+     "no": "1118",
+     "name": "",
+     "link": "29",
+     "veh": 11.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 11.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1001_E_SC1002_to_W": 0.4545,
+    "SC1001_E_SC1002_to_N_SC2002": 0.4545,
+    "SC1001_E_SC1002_to_S_SC1003": 0.0909
+   },
+   "beta_prev": {
+    "SC1001_E_SC1002_to_W": 0.5,
+    "SC1001_E_SC1002_to_N_SC2002": 0.25,
+    "SC1001_E_SC1002_to_S_SC1003": 0.25
+   }
+  },
+  {
+   "signal": "SC1001",
+   "approach": "S_SC1003",
+   "decisions": [
+    {
+     "no": "1119",
+     "name": "",
+     "link": "40",
+     "veh": 7.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1001_S_SC1003_to_N_SC2002": 0.1429,
+    "SC1001_S_SC1003_to_E_SC1002": 0.1429,
+    "SC1001_S_SC1003_to_W": 0.7143
+   },
+   "beta_prev": {
+    "SC1001_S_SC1003_to_N_SC2002": 0.5,
+    "SC1001_S_SC1003_to_E_SC1002": 0.25,
+    "SC1001_S_SC1003_to_W": 0.25
+   }
+  },
+  {
+   "signal": "SC1003",
+   "approach": "N_SC1001",
+   "decisions": [
+    {
+     "no": "1120",
+     "name": "",
+     "link": "39",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1003_N_SC1001_to_S_SC1004": 0.5,
+    "SC1003_N_SC1001_to_E_SC105": 0.5
+   },
+   "beta_prev": {
+    "SC1003_N_SC1001_to_S_SC1004": 0.5,
+    "SC1003_N_SC1001_to_E_SC105": 0.5
+   }
+  },
+  {
+   "signal": "SC1003",
+   "approach": "E_SC105",
+   "decisions": [
+    {
+     "no": "1121",
+     "name": "",
+     "link": "417",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1003_E_SC105_to_N_SC1001": 0.5,
+    "SC1003_E_SC105_to_S_SC1004": 0.5
+   },
+   "beta_prev": {
+    "SC1003_E_SC105_to_N_SC1001": 0.5,
+    "SC1003_E_SC105_to_S_SC1004": 0.5
+   }
+  },
+  {
+   "signal": "SC1003",
+   "approach": "S_SC1004",
+   "decisions": [
+    {
+     "no": "1122",
+     "name": "",
+     "link": "47",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1003_S_SC1004_to_N_SC1001": 0.5,
+    "SC1003_S_SC1004_to_E_SC105": 0.5
+   },
+   "beta_prev": {
+    "SC1003_S_SC1004_to_N_SC1001": 0.5,
+    "SC1003_S_SC1004_to_E_SC105": 0.5
+   }
+  },
+  {
+   "signal": "SC1004",
+   "approach": "E_SC1005",
+   "decisions": [
+    {
+     "no": "1123",
+     "name": "",
+     "link": "52",
+     "veh": 7.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 7.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC1004_E_SC1005_to_W": 0.3571,
+    "SC1004_E_SC1005_to_E_SC107": 0.1667,
+    "SC1004_E_SC1005_to_N_SC1003": 0.119,
+    "SC1004_E_SC1005_to_S": 0.3571
+   },
+   "beta_prev": {
+    "SC1004_E_SC1005_to_W": 0.5,
+    "SC1004_E_SC1005_to_E_SC107": 0.16666666666666666,
+    "SC1004_E_SC1005_to_N_SC1003": 0.16666666666666666,
+    "SC1004_E_SC1005_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC1004",
+   "approach": "E_SC107",
+   "decisions": [
+    {
+     "no": "1124",
+     "name": "",
+     "link": "66",
+     "veh": 5.0,
+     "how": "목적지집합 역추론"
+    },
+    {
+     "no": "1126",
+     "name": "",
+     "link": "10643",
+     "veh": 3.0,
+     "how": "목적지집합 역추론"
+    },
+    {
+     "no": "1138",
+     "name": "",
+     "link": "10640",
+     "veh": 3.0,
+     "how": "목적지집합 역추론"
+    },
+    {
+     "no": "1140",
+     "name": "",
+     "link": "70",
+     "veh": 3.0,
+     "how": "목적지집합 역추론"
+    }
+   ],
+   "veh": 14.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC1004_E_SC107_to_W": 0.2143,
+    "SC1004_E_SC107_to_E_SC1005": 0.2857,
+    "SC1004_E_SC107_to_N_SC1003": 0.2857,
+    "SC1004_E_SC107_to_S": 0.2143
+   },
+   "beta_prev": {
+    "SC1004_E_SC107_to_W": 0.5,
+    "SC1004_E_SC107_to_E_SC1005": 0.16666666666666666,
+    "SC1004_E_SC107_to_N_SC1003": 0.16666666666666666,
+    "SC1004_E_SC107_to_S": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC1004",
+   "approach": "N_SC1003",
+   "decisions": [
+    {
+     "no": "1125",
+     "name": "",
+     "link": "46",
+     "veh": 5.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 5.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.1667,
+   "beta": {
+    "SC1004_N_SC1003_to_S": 0.3333,
+    "SC1004_N_SC1003_to_E_SC1005": 0.1667,
+    "SC1004_N_SC1003_to_E_SC107": 0.1667,
+    "SC1004_N_SC1003_to_W": 0.3333
+   },
+   "beta_prev": {
+    "SC1004_N_SC1003_to_S": 0.5,
+    "SC1004_N_SC1003_to_E_SC1005": 0.16666666666666666,
+    "SC1004_N_SC1003_to_E_SC107": 0.16666666666666666,
+    "SC1004_N_SC1003_to_W": 0.16666666666666666
+   }
+  },
+  {
+   "signal": "SC1005",
+   "approach": "N_SC105",
+   "decisions": [
+    {
+     "no": "1127",
+     "name": "",
+     "link": "1220006403",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.3333,
+   "beta": {
+    "SC1005_N_SC105_to_E_SC107": 0.3333,
+    "SC1005_N_SC105_to_W_SC1004": 0.3333,
+    "SC1005_N_SC105_to_W": 0.3333
+   },
+   "beta_prev": {
+    "SC1005_N_SC105_to_E_SC107": 0.3333333333333333,
+    "SC1005_N_SC105_to_W_SC1004": 0.3333333333333333,
+    "SC1005_N_SC105_to_W": 0.3333333333333333
+   }
+  },
+  {
+   "signal": "SC1005",
+   "approach": "E_SC107",
+   "decisions": [
+    {
+     "no": "1128",
+     "name": "",
+     "link": "1220000102",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC1005_E_SC107_to_W_SC1004": 0.375,
+    "SC1005_E_SC107_to_W": 0.25,
+    "SC1005_E_SC107_to_N_SC105": 0.375
+   },
+   "beta_prev": {
+    "SC1005_E_SC107_to_W_SC1004": 0.25,
+    "SC1005_E_SC107_to_W": 0.25,
+    "SC1005_E_SC107_to_N_SC105": 0.5
+   }
+  },
+  {
+   "signal": "SC1005",
+   "approach": "W_SC1004",
+   "decisions": [
+    {
+     "no": "1129",
+     "name": "",
+     "link": "56",
+     "veh": 10.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 10.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0.25,
+   "beta": {
+    "SC1005_W_SC1004_to_E_SC107": 0.675,
+    "SC1005_W_SC1004_to_N_SC105": 0.075,
+    "SC1005_W_SC1004_to_W": 0.25
+   },
+   "beta_prev": {
+    "SC1005_W_SC1004_to_E_SC107": 0.5,
+    "SC1005_W_SC1004_to_N_SC105": 0.25,
+    "SC1005_W_SC1004_to_W": 0.25
+   }
+  },
+  {
+   "signal": "SC2001",
+   "approach": "W",
+   "decisions": [
+    {
+     "no": "1141",
+     "name": "",
+     "link": "76",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2001_W_to_E_SC2002": 0.3333,
+    "SC2001_W_to_N": 0.3333,
+    "SC2001_W_to_S": 0.3333
+   },
+   "beta_prev": {
+    "SC2001_W_to_E_SC2002": 0.5,
+    "SC2001_W_to_N": 0.25,
+    "SC2001_W_to_S": 0.25
+   }
+  },
+  {
+   "signal": "SC2001",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1142",
+     "name": "",
+     "link": "80",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2001_N_to_S": 0.3333,
+    "SC2001_N_to_E_SC2002": 0.3333,
+    "SC2001_N_to_W": 0.3333
+   },
+   "beta_prev": {
+    "SC2001_N_to_S": 0.5,
+    "SC2001_N_to_E_SC2002": 0.25,
+    "SC2001_N_to_W": 0.25
+   }
+  },
+  {
+   "signal": "SC2001",
+   "approach": "E_SC2002",
+   "decisions": [
+    {
+     "no": "1143",
+     "name": "",
+     "link": "85",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2001_E_SC2002_to_W": 0.3333,
+    "SC2001_E_SC2002_to_N": 0.3333,
+    "SC2001_E_SC2002_to_S": 0.3333
+   },
+   "beta_prev": {
+    "SC2001_E_SC2002_to_W": 0.5,
+    "SC2001_E_SC2002_to_N": 0.25,
+    "SC2001_E_SC2002_to_S": 0.25
+   }
+  },
+  {
+   "signal": "SC2001",
+   "approach": "S",
+   "decisions": [
+    {
+     "no": "1144",
+     "name": "",
+     "link": "79",
+     "veh": 3.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2001_S_to_N": 0.3333,
+    "SC2001_S_to_E_SC2002": 0.3333,
+    "SC2001_S_to_W": 0.3333
+   },
+   "beta_prev": {
+    "SC2001_S_to_N": 0.5,
+    "SC2001_S_to_E_SC2002": 0.25,
+    "SC2001_S_to_W": 0.25
+   }
+  },
+  {
+   "signal": "SC2002",
+   "approach": "W_SC2001",
+   "decisions": [
+    {
+     "no": "1145",
+     "name": "",
+     "link": "82",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2002_W_SC2001_to_E_SC2003": 0.3333,
+    "SC2002_W_SC2001_to_S_SC1001": 0.3333,
+    "SC2002_W_SC2001_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2002_W_SC2001_to_E_SC2003": 0.5,
+    "SC2002_W_SC2001_to_S_SC1001": 0.25,
+    "SC2002_W_SC2001_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2002",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1146",
+     "name": "",
+     "link": "90",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2002_N_to_S_SC1001": 0.3333,
+    "SC2002_N_to_E_SC2003": 0.3333,
+    "SC2002_N_to_W_SC2001": 0.3333
+   },
+   "beta_prev": {
+    "SC2002_N_to_S_SC1001": 0.5,
+    "SC2002_N_to_E_SC2003": 0.25,
+    "SC2002_N_to_W_SC2001": 0.25
+   }
+  },
+  {
+   "signal": "SC2002",
+   "approach": "E_SC2003",
+   "decisions": [
+    {
+     "no": "1147",
+     "name": "",
+     "link": "93",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2002_E_SC2003_to_W_SC2001": 0.3333,
+    "SC2002_E_SC2003_to_S_SC1001": 0.3333,
+    "SC2002_E_SC2003_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2002_E_SC2003_to_W_SC2001": 0.5,
+    "SC2002_E_SC2003_to_S_SC1001": 0.25,
+    "SC2002_E_SC2003_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2002",
+   "approach": "S_SC1001",
+   "decisions": [
+    {
+     "no": "1148",
+     "name": "",
+     "link": "38",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2002_S_SC1001_to_N": 0.3333,
+    "SC2002_S_SC1001_to_E_SC2003": 0.3333,
+    "SC2002_S_SC1001_to_W_SC2001": 0.3333
+   },
+   "beta_prev": {
+    "SC2002_S_SC1001_to_N": 0.5,
+    "SC2002_S_SC1001_to_E_SC2003": 0.25,
+    "SC2002_S_SC1001_to_W_SC2001": 0.25
+   }
+  },
+  {
+   "signal": "SC2003",
+   "approach": "W_SC2002",
+   "decisions": [
+    {
+     "no": "1149",
+     "name": "",
+     "link": "86",
+     "veh": 2.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2003_W_SC2002_to_E_SC2004": 0.5,
+    "SC2003_W_SC2002_to_N": 0.5
+   },
+   "beta_prev": {
+    "SC2003_W_SC2002_to_E_SC2004": 0.5,
+    "SC2003_W_SC2002_to_N": 0.5
+   }
+  },
+  {
+   "signal": "SC2003",
+   "approach": "E_SC2004",
+   "decisions": [
+    {
+     "no": "1150",
+     "name": "",
+     "link": "101",
+     "veh": 2.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2003_E_SC2004_to_W_SC2002": 0.5,
+    "SC2003_E_SC2004_to_N": 0.5
+   },
+   "beta_prev": {
+    "SC2003_E_SC2004_to_W_SC2002": 0.5,
+    "SC2003_E_SC2004_to_N": 0.5
+   }
+  },
+  {
+   "signal": "SC2003",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1151",
+     "name": "",
+     "link": "99",
+     "veh": 2.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 2.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2003_N_to_E_SC2004": 0.5,
+    "SC2003_N_to_W_SC2002": 0.5
+   },
+   "beta_prev": {
+    "SC2003_N_to_E_SC2004": 0.5,
+    "SC2003_N_to_W_SC2002": 0.5
+   }
+  },
+  {
+   "signal": "SC2004",
+   "approach": "W_SC2003",
+   "decisions": [
+    {
+     "no": "1152",
+     "name": "",
+     "link": "103",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2004_W_SC2003_to_E_SC2005": 0.3333,
+    "SC2004_W_SC2003_to_S_SC1002": 0.3333,
+    "SC2004_W_SC2003_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2004_W_SC2003_to_E_SC2005": 0.5,
+    "SC2004_W_SC2003_to_S_SC1002": 0.25,
+    "SC2004_W_SC2003_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2004",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1153",
+     "name": "",
+     "link": "112",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2004_N_to_S_SC1002": 0.3333,
+    "SC2004_N_to_E_SC2005": 0.3333,
+    "SC2004_N_to_W_SC2003": 0.3333
+   },
+   "beta_prev": {
+    "SC2004_N_to_S_SC1002": 0.5,
+    "SC2004_N_to_E_SC2005": 0.25,
+    "SC2004_N_to_W_SC2003": 0.25
+   }
+  },
+  {
+   "signal": "SC2004",
+   "approach": "E_SC2005",
+   "decisions": [
+    {
+     "no": "1154",
+     "name": "",
+     "link": "108",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2004_E_SC2005_to_W_SC2003": 0.3333,
+    "SC2004_E_SC2005_to_S_SC1002": 0.3333,
+    "SC2004_E_SC2005_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2004_E_SC2005_to_W_SC2003": 0.5,
+    "SC2004_E_SC2005_to_S_SC1002": 0.25,
+    "SC2004_E_SC2005_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2004",
+   "approach": "S_SC1002",
+   "decisions": [
+    {
+     "no": "1155",
+     "name": "",
+     "link": "73",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2004_S_SC1002_to_N": 0.3333,
+    "SC2004_S_SC1002_to_E_SC2005": 0.3333,
+    "SC2004_S_SC1002_to_W_SC2003": 0.3333
+   },
+   "beta_prev": {
+    "SC2004_S_SC1002_to_N": 0.5,
+    "SC2004_S_SC1002_to_E_SC2005": 0.25,
+    "SC2004_S_SC1002_to_W_SC2003": 0.25
+   }
+  },
+  {
+   "signal": "SC2005",
+   "approach": "W_SC2004",
+   "decisions": [
+    {
+     "no": "1156",
+     "name": "",
+     "link": "107",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2005_W_SC2004_to_E_SC102": 0.3333,
+    "SC2005_W_SC2004_to_S_SC101": 0.3333,
+    "SC2005_W_SC2004_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2005_W_SC2004_to_E_SC102": 0.5,
+    "SC2005_W_SC2004_to_S_SC101": 0.25,
+    "SC2005_W_SC2004_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2005",
+   "approach": "N",
+   "decisions": [
+    {
+     "no": "1157",
+     "name": "",
+     "link": "117",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2005_N_to_S_SC101": 0.3333,
+    "SC2005_N_to_E_SC102": 0.3333,
+    "SC2005_N_to_W_SC2004": 0.3333
+   },
+   "beta_prev": {
+    "SC2005_N_to_S_SC101": 0.5,
+    "SC2005_N_to_E_SC102": 0.25,
+    "SC2005_N_to_W_SC2004": 0.25
+   }
+  },
+  {
+   "signal": "SC2005",
+   "approach": "E_SC102",
+   "decisions": [
+    {
+     "no": "1158",
+     "name": "",
+     "link": "1220020804",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2005_E_SC102_to_W_SC2004": 0.3333,
+    "SC2005_E_SC102_to_S_SC101": 0.3333,
+    "SC2005_E_SC102_to_N": 0.3333
+   },
+   "beta_prev": {
+    "SC2005_E_SC102_to_W_SC2004": 0.5,
+    "SC2005_E_SC102_to_S_SC101": 0.25,
+    "SC2005_E_SC102_to_N": 0.25
+   }
+  },
+  {
+   "signal": "SC2005",
+   "approach": "S_SC101",
+   "decisions": [
+    {
+     "no": "1159",
+     "name": "",
+     "link": "1220016101",
+     "veh": 3.0,
+     "how": "목적지집합+권역 합치"
+    }
+   ],
+   "veh": 3.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC2005_S_SC101_to_N": 0.3333,
+    "SC2005_S_SC101_to_E_SC102": 0.3333,
+    "SC2005_S_SC101_to_W_SC2004": 0.3333
+   },
+   "beta_prev": {
+    "SC2005_S_SC101_to_N": 0.5,
+    "SC2005_S_SC101_to_E_SC102": 0.25,
+    "SC2005_S_SC101_to_W_SC2004": 0.25
+   }
+  }
+ ]
+}
