@@ -1,0 +1,8424 @@
+{
+ "schema": "movement_connector_map/v1",
+ "generated": "2026-08-24",
+ "note": "movement 를 정지선 커넥터로 다시 유도한다. 정지선은 SG 1-8 신호두가 달린 링크. leg 는 링크 집합이 같거나 부분집합이면 병합하고 이름은 하류가 드러나는 쪽(_SC 붙은 쪽)을 쓴다.",
+ "approaches": {
+  "SC1|E_SC11": {
+   "signal": "SC1",
+   "approach": "E_SC11",
+   "stoplines": [
+    "1220008201"
+   ],
+   "n_links": 27,
+   "turns": [
+    {
+     "connector": "10029",
+     "from_link": "1220008201",
+     "to_link": "1220008501",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "S_SC1",
+     "dest": "SC101_S_SC1",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10564",
+     "from_link": "1220008201",
+     "to_link": "1220007004",
+     "lanes": 2,
+     "dest_signal": "SC105",
+     "dest_leg": "E_SC1",
+     "dest": "SC105_E_SC1",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10566",
+     "from_link": "1220008201",
+     "to_link": "1220006803",
+     "lanes": 1,
+     "dest_signal": "SC107",
+     "dest_leg": "N_SC1",
+     "dest": "SC107_N_SC1",
+     "bearing": "S",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC1|N_SC101": {
+   "signal": "SC1",
+   "approach": "N_SC101",
+   "stoplines": [
+    "1210008401"
+   ],
+   "n_links": 25,
+   "turns": [
+    {
+     "connector": "10567",
+     "from_link": "1210008401",
+     "to_link": "1220006803",
+     "lanes": 4,
+     "dest_signal": "SC107",
+     "dest_leg": "N_SC1",
+     "dest": "SC107_N_SC1",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10568",
+     "from_link": "1210008401",
+     "to_link": "1220008301",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "W_SC1",
+     "dest": "SC11_W_SC1",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10569",
+     "from_link": "1210008401",
+     "to_link": "1220007004",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "E_SC1",
+     "dest": "SC105_E_SC1",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC1|S_SC107": {
+   "signal": "SC1",
+   "approach": "S_SC107",
+   "stoplines": [
+    "1220006903"
+   ],
+   "n_links": 17,
+   "turns": [
+    {
+     "connector": "10025",
+     "from_link": "1220006903",
+     "to_link": "1220008501",
+     "lanes": 4,
+     "dest_signal": "SC101",
+     "dest_leg": "S_SC1",
+     "dest": "SC101_S_SC1",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10571",
+     "from_link": "1220006903",
+     "to_link": "1220007004",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "E_SC1",
+     "dest": "SC105_E_SC1",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10572",
+     "from_link": "1220006903",
+     "to_link": "1220008301",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "W_SC1",
+     "dest": "SC11_W_SC1",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC1|W_SC105": {
+   "signal": "SC1",
+   "approach": "W_SC105",
+   "stoplines": [
+    "1220007104"
+   ],
+   "n_links": 19,
+   "turns": [
+    {
+     "connector": "10561",
+     "from_link": "1220007104",
+     "to_link": "1220008301",
+     "lanes": 2,
+     "dest_signal": "SC11",
+     "dest_leg": "W_SC1",
+     "dest": "SC11_W_SC1",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10562",
+     "from_link": "1220007104",
+     "to_link": "1220008501",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "S_SC1",
+     "dest": "SC101_S_SC1",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10563",
+     "from_link": "1220007104",
+     "to_link": "1220006803",
+     "lanes": 1,
+     "dest_signal": "SC107",
+     "dest_leg": "N_SC1",
+     "dest": "SC107_N_SC1",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    }
+   ]
+  },
+  "SC1001|E_SC1002": {
+   "signal": "SC1001",
+   "approach": "E_SC1002",
+   "stoplines": [
+    "29"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10119",
+     "from_link": "29",
+     "to_link": "31",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10122",
+     "from_link": "29",
+     "to_link": "38",
+     "lanes": 1,
+     "dest_signal": "SC2002",
+     "dest_leg": "S_SC1001",
+     "dest": "SC2002_S_SC1001",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10696",
+     "from_link": "29",
+     "to_link": "39",
+     "lanes": 1,
+     "dest_signal": "SC1003",
+     "dest_leg": "N_SC1001",
+     "dest": "SC1003_N_SC1001",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC1001|N_SC2002": {
+   "signal": "SC1001",
+   "approach": "N_SC2002",
+   "stoplines": [
+    "37"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10121",
+     "from_link": "37",
+     "to_link": "31",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10124",
+     "from_link": "37",
+     "to_link": "39",
+     "lanes": 2,
+     "dest_signal": "SC1003",
+     "dest_leg": "N_SC1001",
+     "dest": "SC1003_N_SC1001",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10697",
+     "from_link": "37",
+     "to_link": "30",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "W_SC1001",
+     "dest": "SC1002_W_SC1001",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC1001|S_SC1003": {
+   "signal": "SC1001",
+   "approach": "S_SC1003",
+   "stoplines": [
+    "40"
+   ],
+   "n_links": 6,
+   "turns": [
+    {
+     "connector": "10371",
+     "from_link": "40",
+     "to_link": "38",
+     "lanes": 2,
+     "dest_signal": "SC2002",
+     "dest_leg": "S_SC1001",
+     "dest": "SC2002_S_SC1001",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10377",
+     "from_link": "40",
+     "to_link": "30",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "W_SC1001",
+     "dest": "SC1002_W_SC1001",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10698",
+     "from_link": "40",
+     "to_link": "31",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC1001|W_RAMP": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "stoplines": [
+    "32"
+   ],
+   "n_links": 6,
+   "turns": [
+    {
+     "connector": "10118",
+     "from_link": "32",
+     "to_link": "30",
+     "lanes": 2,
+     "dest_signal": "SC1002",
+     "dest_leg": "W_SC1001",
+     "dest": "SC1002_W_SC1001",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10368",
+     "from_link": "32",
+     "to_link": "39",
+     "lanes": 1,
+     "dest_signal": "SC1003",
+     "dest_leg": "N_SC1001",
+     "dest": "SC1003_N_SC1001",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10482",
+     "from_link": "32",
+     "to_link": "26",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10490",
+     "from_link": "32",
+     "to_link": "2",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10695",
+     "from_link": "32",
+     "to_link": "38",
+     "lanes": 1,
+     "dest_signal": "SC2002",
+     "dest_leg": "S_SC1001",
+     "dest": "SC2002_S_SC1001",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC1002|E_SC101": {
+   "signal": "SC1002",
+   "approach": "E_SC101",
+   "stoplines": [
+    "329"
+   ],
+   "n_links": 21,
+   "turns": [
+    {
+     "connector": "10691",
+     "from_link": "329",
+     "to_link": "29",
+     "lanes": 2,
+     "dest_signal": "SC1001",
+     "dest_leg": "E_SC1002",
+     "dest": "SC1001_E_SC1002",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10692",
+     "from_link": "329",
+     "to_link": "73",
+     "lanes": 1,
+     "dest_signal": "SC2004",
+     "dest_leg": "S_SC1002",
+     "dest": "SC2004_S_SC1002",
+     "bearing": "N",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10693",
+     "from_link": "329",
+     "to_link": "420",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "N_SC1002",
+     "dest": "SC105_N_SC1002",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC1002|N_SC2004": {
+   "signal": "SC1002",
+   "approach": "N_SC2004",
+   "stoplines": [
+    "72"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10683",
+     "from_link": "72",
+     "to_link": "420",
+     "lanes": 2,
+     "dest_signal": "SC105",
+     "dest_leg": "N_SC1002",
+     "dest": "SC105_N_SC1002",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10684",
+     "from_link": "72",
+     "to_link": "29",
+     "lanes": 1,
+     "dest_signal": "SC1001",
+     "dest_leg": "E_SC1002",
+     "dest": "SC1001_E_SC1002",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10687",
+     "from_link": "72",
+     "to_link": "328",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "W_SC1002",
+     "dest": "SC101_W_SC1002",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC1002|S_SC105": {
+   "signal": "SC1002",
+   "approach": "S_SC105",
+   "stoplines": [
+    "427"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10688",
+     "from_link": "427",
+     "to_link": "328",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "W_SC1002",
+     "dest": "SC101_W_SC1002",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10689",
+     "from_link": "427",
+     "to_link": "73",
+     "lanes": 2,
+     "dest_signal": "SC2004",
+     "dest_leg": "S_SC1002",
+     "dest": "SC2004_S_SC1002",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10690",
+     "from_link": "427",
+     "to_link": "29",
+     "lanes": 1,
+     "dest_signal": "SC1001",
+     "dest_leg": "E_SC1002",
+     "dest": "SC1001_E_SC1002",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC1002|W_SC1001": {
+   "signal": "SC1002",
+   "approach": "W_SC1001",
+   "stoplines": [
+    "30"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10685",
+     "from_link": "30",
+     "to_link": "328",
+     "lanes": 2,
+     "dest_signal": "SC101",
+     "dest_leg": "W_SC1002",
+     "dest": "SC101_W_SC1002",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10686",
+     "from_link": "30",
+     "to_link": "420",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "N_SC1002",
+     "dest": "SC105_N_SC1002",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10694",
+     "from_link": "30",
+     "to_link": "73",
+     "lanes": 1,
+     "dest_signal": "SC2004",
+     "dest_leg": "S_SC1002",
+     "dest": "SC2004_S_SC1002",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC1003|E_SC105": {
+   "signal": "SC1003",
+   "approach": "E_SC105",
+   "stoplines": [
+    "425"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10492",
+     "from_link": "425",
+     "to_link": "40",
+     "lanes": 1,
+     "dest_signal": "SC1001",
+     "dest_leg": "S_SC1003",
+     "dest": "SC1001_S_SC1003",
+     "bearing": "N",
+     "sg": [
+      1
+     ]
+    },
+    {
+     "connector": "10497",
+     "from_link": "425",
+     "to_link": "46",
+     "lanes": 2,
+     "dest_signal": "SC1004",
+     "dest_leg": "N_SC1003",
+     "dest": "SC1004_N_SC1003",
+     "bearing": "S",
+     "sg": [
+      1
+     ]
+    }
+   ]
+  },
+  "SC1003|N_SC1001": {
+   "signal": "SC1003",
+   "approach": "N_SC1001",
+   "stoplines": [
+    "39"
+   ],
+   "n_links": 6,
+   "turns": [
+    {
+     "connector": "10495",
+     "from_link": "39",
+     "to_link": "46",
+     "lanes": 2,
+     "dest_signal": "SC1004",
+     "dest_leg": "N_SC1003",
+     "dest": "SC1004_N_SC1003",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10496",
+     "from_link": "39",
+     "to_link": "426",
+     "lanes": 2,
+     "dest_signal": "SC105",
+     "dest_leg": "W_SC1003",
+     "dest": "SC105_W_SC1003",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC1003|S_SC1004": {
+   "signal": "SC1003",
+   "approach": "S_SC1004",
+   "stoplines": [
+    "47"
+   ],
+   "n_links": 6,
+   "turns": [
+    {
+     "connector": "10493",
+     "from_link": "47",
+     "to_link": "40",
+     "lanes": 3,
+     "dest_signal": "SC1001",
+     "dest_leg": "S_SC1003",
+     "dest": "SC1001_S_SC1003",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10494",
+     "from_link": "47",
+     "to_link": "426",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "W_SC1003",
+     "dest": "SC105_W_SC1003",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    }
+   ]
+  },
+  "SC1004|E_SC1005": {
+   "signal": "SC1004",
+   "approach": "E_SC1005",
+   "stoplines": [
+    "52"
+   ],
+   "n_links": 13,
+   "turns": [
+    {
+     "connector": "10628",
+     "from_link": "52",
+     "to_link": "47",
+     "lanes": 2,
+     "dest_signal": "SC1003",
+     "dest_leg": "S_SC1004",
+     "dest": "SC1003_S_SC1004",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10629",
+     "from_link": "52",
+     "to_link": "68",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10630",
+     "from_link": "52",
+     "to_link": "67",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC1004|E_SC107": {
+   "signal": "SC1004",
+   "approach": "E_SC107",
+   "stoplines": [],
+   "n_links": 1,
+   "turns": []
+  },
+  "SC1004|N_SC1003": {
+   "signal": "SC1004",
+   "approach": "N_SC1003",
+   "stoplines": [
+    "46"
+   ],
+   "n_links": 6,
+   "turns": [
+    {
+     "connector": "10625",
+     "from_link": "46",
+     "to_link": "68",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10626",
+     "from_link": "46",
+     "to_link": "67",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10627",
+     "from_link": "46",
+     "to_link": "56",
+     "lanes": 1,
+     "dest_signal": "SC1005",
+     "dest_leg": "W_SC1004",
+     "dest": "SC1005_W_SC1004",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC1004|S": {
+   "signal": "SC1004",
+   "approach": "S",
+   "stoplines": [
+    "66"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10631",
+     "from_link": "66",
+     "to_link": "47",
+     "lanes": 3,
+     "dest_signal": "SC1003",
+     "dest_leg": "S_SC1004",
+     "dest": "SC1003_S_SC1004",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10632",
+     "from_link": "66",
+     "to_link": "56",
+     "lanes": 1,
+     "dest_signal": "SC1005",
+     "dest_leg": "W_SC1004",
+     "dest": "SC1005_W_SC1004",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10633",
+     "from_link": "66",
+     "to_link": "68",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC1004|W": {
+   "signal": "SC1004",
+   "approach": "W",
+   "stoplines": [
+    "71"
+   ],
+   "n_links": 5,
+   "turns": [
+    {
+     "connector": "10634",
+     "from_link": "71",
+     "to_link": "56",
+     "lanes": 3,
+     "dest_signal": "SC1005",
+     "dest_leg": "W_SC1004",
+     "dest": "SC1005_W_SC1004",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10635",
+     "from_link": "71",
+     "to_link": "47",
+     "lanes": 2,
+     "dest_signal": "SC1003",
+     "dest_leg": "S_SC1004",
+     "dest": "SC1003_S_SC1004",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10642",
+     "from_link": "71",
+     "to_link": "67",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC1004|W_RAMP": {
+   "signal": "SC1004",
+   "approach": "W_RAMP",
+   "stoplines": [],
+   "n_links": 6,
+   "turns": []
+  },
+  "SC1005|E_SC107": {
+   "signal": "SC1005",
+   "approach": "E_SC107",
+   "stoplines": [
+    "62"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10603",
+     "from_link": "62",
+     "to_link": "404",
+     "lanes": 1,
+     "dest_signal": "SC105",
+     "dest_leg": "S_SC1005",
+     "dest": "SC105_S_SC1005",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10612",
+     "from_link": "62",
+     "to_link": "58",
+     "lanes": 2,
+     "dest_signal": "SC1004",
+     "dest_leg": "E_SC1005",
+     "dest": "SC1004_E_SC1005",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC1005|N_SC105": {
+   "signal": "SC1005",
+   "approach": "N_SC105",
+   "stoplines": [
+    "403"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10565",
+     "from_link": "403",
+     "to_link": "58",
+     "lanes": 1,
+     "dest_signal": "SC1004",
+     "dest_leg": "E_SC1005",
+     "dest": "SC1004_E_SC1005",
+     "bearing": "S",
+     "sg": [
+      7
+     ]
+    },
+    {
+     "connector": "10570",
+     "from_link": "403",
+     "to_link": "61",
+     "lanes": 2,
+     "dest_signal": "SC107",
+     "dest_leg": "W_SC1005",
+     "dest": "SC107_W_SC1005",
+     "bearing": "E",
+     "sg": [
+      7
+     ]
+    }
+   ]
+  },
+  "SC1005|W": {
+   "signal": "SC1005",
+   "approach": "W",
+   "stoplines": [],
+   "n_links": 3,
+   "turns": []
+  },
+  "SC1005|W_SC1004": {
+   "signal": "SC1005",
+   "approach": "W_SC1004",
+   "stoplines": [
+    "57"
+   ],
+   "n_links": 8,
+   "turns": [
+    {
+     "connector": "10623",
+     "from_link": "57",
+     "to_link": "404",
+     "lanes": 2,
+     "dest_signal": "SC105",
+     "dest_leg": "S_SC1005",
+     "dest": "SC105_S_SC1005",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10624",
+     "from_link": "57",
+     "to_link": "61",
+     "lanes": 2,
+     "dest_signal": "SC107",
+     "dest_leg": "W_SC1005",
+     "dest": "SC107_W_SC1005",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC101|E_SC5": {
+   "signal": "SC101",
+   "approach": "E_SC5",
+   "stoplines": [
+    "1220014201"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10510",
+     "from_link": "1220014201",
+     "to_link": "319",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "S_SC101",
+     "dest": "SC2005_S_SC101",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10534",
+     "from_link": "1220014201",
+     "to_link": "1220012402",
+     "lanes": 4,
+     "dest_signal": "SC1002",
+     "dest_leg": "E_SC101",
+     "dest": "SC1002_E_SC101",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10535",
+     "from_link": "1220014201",
+     "to_link": "1220011403",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "N_SC101",
+     "dest": "SC1_N_SC101",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC101|N_SC2005": {
+   "signal": "SC101",
+   "approach": "N_SC2005",
+   "stoplines": [
+    "1220016001"
+   ],
+   "n_links": 15,
+   "turns": [
+    {
+     "connector": "10536",
+     "from_link": "1220016001",
+     "to_link": "1220011403",
+     "lanes": 3,
+     "dest_signal": "SC1",
+     "dest_leg": "N_SC101",
+     "dest": "SC1_N_SC101",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10537",
+     "from_link": "1220016001",
+     "to_link": "1210014303",
+     "lanes": 2,
+     "dest_signal": "SC5",
+     "dest_leg": "W_SC101",
+     "dest": "SC5_W_SC101",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC101|S_SC1": {
+   "signal": "SC101",
+   "approach": "S_SC1",
+   "stoplines": [
+    "1220011503"
+   ],
+   "n_links": 21,
+   "turns": [
+    {
+     "connector": "10528",
+     "from_link": "1220011503",
+     "to_link": "336",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10538",
+     "from_link": "1220011503",
+     "to_link": "1220016101",
+     "lanes": 3,
+     "dest_signal": "SC2005",
+     "dest_leg": "S_SC101",
+     "dest": "SC2005_S_SC101",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10539",
+     "from_link": "1220011503",
+     "to_link": "1220012402",
+     "lanes": 2,
+     "dest_signal": "SC1002",
+     "dest_leg": "E_SC101",
+     "dest": "SC1002_E_SC101",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC101|W_SC1002": {
+   "signal": "SC101",
+   "approach": "W_SC1002",
+   "stoplines": [
+    "1220012502"
+   ],
+   "n_links": 15,
+   "turns": [
+    {
+     "connector": "10527",
+     "from_link": "1220012502",
+     "to_link": "332",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "N_SC101",
+     "dest": "SC1_N_SC101",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10532",
+     "from_link": "1220012502",
+     "to_link": "1210014303",
+     "lanes": 4,
+     "dest_signal": "SC5",
+     "dest_leg": "W_SC101",
+     "dest": "SC5_W_SC101",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10533",
+     "from_link": "1220012502",
+     "to_link": "1220016101",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "S_SC101",
+     "dest": "SC2005_S_SC101",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC102|E_SC103": {
+   "signal": "SC102",
+   "approach": "E_SC103",
+   "stoplines": [
+    "1220022501"
+   ],
+   "n_links": 23,
+   "turns": [
+    {
+     "connector": "10093",
+     "from_link": "1220022501",
+     "to_link": "1210019201",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "N_SC102",
+     "dest": "SC5_N_SC102",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10460",
+     "from_link": "1220022501",
+     "to_link": "1220020804",
+     "lanes": 4,
+     "dest_signal": "SC2005",
+     "dest_leg": "E_SC102",
+     "dest": "SC2005_E_SC102",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10462",
+     "from_link": "1220022501",
+     "to_link": "1220023201",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC102|N": {
+   "signal": "SC102",
+   "approach": "N",
+   "stoplines": [
+    "1220023101"
+   ],
+   "n_links": 13,
+   "turns": [
+    {
+     "connector": "10094",
+     "from_link": "1220023101",
+     "to_link": "1210019201",
+     "lanes": 2,
+     "dest_signal": "SC5",
+     "dest_leg": "N_SC102",
+     "dest": "SC5_N_SC102",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10467",
+     "from_link": "1220023101",
+     "to_link": "1220022601",
+     "lanes": 1,
+     "dest_signal": "SC103",
+     "dest_leg": "W_SC102",
+     "dest": "SC103_W_SC102",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10468",
+     "from_link": "1220023101",
+     "to_link": "1220020804",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "E_SC102",
+     "dest": "SC2005_E_SC102",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC102|S_SC5": {
+   "signal": "SC102",
+   "approach": "S_SC5",
+   "stoplines": [
+    "1220019303"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10064",
+     "from_link": "1220019303",
+     "to_link": "1220023201",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10065",
+     "from_link": "1220019303",
+     "to_link": "1220020804",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "E_SC102",
+     "dest": "SC2005_E_SC102",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10089",
+     "from_link": "1220019303",
+     "to_link": "1220022601",
+     "lanes": 1,
+     "dest_signal": "SC103",
+     "dest_leg": "W_SC102",
+     "dest": "SC103_W_SC102",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC102|W_SC2005": {
+   "signal": "SC102",
+   "approach": "W_SC2005",
+   "stoplines": [
+    "1220020904"
+   ],
+   "n_links": 14,
+   "turns": [
+    {
+     "connector": "10063",
+     "from_link": "1220020904",
+     "to_link": "1210019201",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "N_SC102",
+     "dest": "SC5_N_SC102",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10457",
+     "from_link": "1220020904",
+     "to_link": "1220022601",
+     "lanes": 4,
+     "dest_signal": "SC103",
+     "dest_leg": "W_SC102",
+     "dest": "SC103_W_SC102",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10458",
+     "from_link": "1220020904",
+     "to_link": "1220023201",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC103|E": {
+   "signal": "SC103",
+   "approach": "E",
+   "stoplines": [
+    "1220024201"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10101",
+     "from_link": "1220024201",
+     "to_link": "1220021803",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "N_SC103",
+     "dest": "SC6_N_SC103",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10176",
+     "from_link": "1220024201",
+     "to_link": "1220022504",
+     "lanes": 4,
+     "dest_signal": "SC102",
+     "dest_leg": "E_SC103",
+     "dest": "SC102_E_SC103",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10177",
+     "from_link": "1220024201",
+     "to_link": "1220024901",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC103|N": {
+   "signal": "SC103",
+   "approach": "N",
+   "stoplines": [
+    "1220024801"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10100",
+     "from_link": "1220024801",
+     "to_link": "1220021803",
+     "lanes": 3,
+     "dest_signal": "SC6",
+     "dest_leg": "N_SC103",
+     "dest": "SC6_N_SC103",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10168",
+     "from_link": "1220024801",
+     "to_link": "1220022504",
+     "lanes": 1,
+     "dest_signal": "SC102",
+     "dest_leg": "E_SC103",
+     "dest": "SC102_E_SC103",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10169",
+     "from_link": "1220024801",
+     "to_link": "1220024301",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC103|S_SC6": {
+   "signal": "SC103",
+   "approach": "S_SC6",
+   "stoplines": [
+    "1210021904"
+   ],
+   "n_links": 24,
+   "turns": [
+    {
+     "connector": "10095",
+     "from_link": "1210021904",
+     "to_link": "1220024901",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10096",
+     "from_link": "1210021904",
+     "to_link": "1220024301",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10097",
+     "from_link": "1210021904",
+     "to_link": "1220022504",
+     "lanes": 2,
+     "dest_signal": "SC102",
+     "dest_leg": "E_SC103",
+     "dest": "SC102_E_SC103",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC103|W_SC102": {
+   "signal": "SC103",
+   "approach": "W_SC102",
+   "stoplines": [
+    "1220022604"
+   ],
+   "n_links": 22,
+   "turns": [
+    {
+     "connector": "10098",
+     "from_link": "1220022604",
+     "to_link": "1220021803",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "N_SC103",
+     "dest": "SC6_N_SC103",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10173",
+     "from_link": "1220022604",
+     "to_link": "1220024301",
+     "lanes": 4,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10174",
+     "from_link": "1220022604",
+     "to_link": "1220024901",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC104|E": {
+   "signal": "SC104",
+   "approach": "E",
+   "stoplines": [
+    "1220061200"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10091",
+     "from_link": "1220061200",
+     "to_link": "64",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10125",
+     "from_link": "1220061200",
+     "to_link": "1220021204",
+     "lanes": 4,
+     "dest_signal": "SC6",
+     "dest_leg": "E_SC104",
+     "dest": "SC6_E_SC104",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10126",
+     "from_link": "1220061200",
+     "to_link": "1220001900",
+     "lanes": 2,
+     "dest_signal": "SC106",
+     "dest_leg": "N_SC104",
+     "dest": "SC106_N_SC104",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC104|N": {
+   "signal": "SC104",
+   "approach": "N",
+   "stoplines": [
+    "1220002202"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10088",
+     "from_link": "1220002202",
+     "to_link": "63",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "E_SC104",
+     "dest": "SC6_E_SC104",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10099",
+     "from_link": "1220002202",
+     "to_link": "1220061100",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10128",
+     "from_link": "1220002202",
+     "to_link": "1220001900",
+     "lanes": 4,
+     "dest_signal": "SC106",
+     "dest_leg": "N_SC104",
+     "dest": "SC106_N_SC104",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC104|S_SC106": {
+   "signal": "SC104",
+   "approach": "S_SC106",
+   "stoplines": [
+    "1220002001"
+   ],
+   "n_links": 14,
+   "turns": [
+    {
+     "connector": "10167",
+     "from_link": "1220002001",
+     "to_link": "1220002302",
+     "lanes": 4,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10170",
+     "from_link": "1220002001",
+     "to_link": "1220021204",
+     "lanes": 2,
+     "dest_signal": "SC6",
+     "dest_leg": "E_SC104",
+     "dest": "SC6_E_SC104",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10171",
+     "from_link": "1220002001",
+     "to_link": "65",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC104|W_SC6": {
+   "signal": "SC104",
+   "approach": "W_SC6",
+   "stoplines": [
+    "1210021304"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10102",
+     "from_link": "1210021304",
+     "to_link": "1220061100",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10120",
+     "from_link": "1210021304",
+     "to_link": "1220002302",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10123",
+     "from_link": "1210021304",
+     "to_link": "1220001900",
+     "lanes": 1,
+     "dest_signal": "SC106",
+     "dest_leg": "N_SC104",
+     "dest": "SC106_N_SC104",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC105|E_SC1": {
+   "signal": "SC105",
+   "approach": "E_SC1",
+   "stoplines": [
+    "1220007001"
+   ],
+   "n_links": 17,
+   "turns": [
+    {
+     "connector": "10667",
+     "from_link": "1220007001",
+     "to_link": "417",
+     "lanes": 2,
+     "dest_signal": "SC1003",
+     "dest_leg": "E_SC105",
+     "dest": "SC1003_E_SC105",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10668",
+     "from_link": "1220007001",
+     "to_link": "1220007300",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "S_SC105",
+     "dest": "SC1002_S_SC105",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10669",
+     "from_link": "1220007001",
+     "to_link": "1220006403",
+     "lanes": 1,
+     "dest_signal": "SC1005",
+     "dest_leg": "N_SC105",
+     "dest": "SC1005_N_SC105",
+     "bearing": "S",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC105|N_SC1002": {
+   "signal": "SC105",
+   "approach": "N_SC1002",
+   "stoplines": [
+    "1220007200"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10661",
+     "from_link": "1220007200",
+     "to_link": "1220006403",
+     "lanes": 3,
+     "dest_signal": "SC1005",
+     "dest_leg": "N_SC105",
+     "dest": "SC1005_N_SC105",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10662",
+     "from_link": "1220007200",
+     "to_link": "1220007101",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "W_SC105",
+     "dest": "SC1_W_SC105",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10663",
+     "from_link": "1220007200",
+     "to_link": "417",
+     "lanes": 1,
+     "dest_signal": "SC1003",
+     "dest_leg": "E_SC105",
+     "dest": "SC1003_E_SC105",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC105|S_SC1005": {
+   "signal": "SC105",
+   "approach": "S_SC1005",
+   "stoplines": [
+    "1220006503"
+   ],
+   "n_links": 17,
+   "turns": [
+    {
+     "connector": "10664",
+     "from_link": "1220006503",
+     "to_link": "1220007300",
+     "lanes": 3,
+     "dest_signal": "SC1002",
+     "dest_leg": "S_SC105",
+     "dest": "SC1002_S_SC105",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10665",
+     "from_link": "1220006503",
+     "to_link": "1220007101",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "W_SC105",
+     "dest": "SC1_W_SC105",
+     "bearing": "E",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10666",
+     "from_link": "1220006503",
+     "to_link": "417",
+     "lanes": 1,
+     "dest_signal": "SC1003",
+     "dest_leg": "E_SC105",
+     "dest": "SC1003_E_SC105",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC105|W_SC1003": {
+   "signal": "SC105",
+   "approach": "W_SC1003",
+   "stoplines": [
+    "416"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10670",
+     "from_link": "416",
+     "to_link": "1220007101",
+     "lanes": 2,
+     "dest_signal": "SC1",
+     "dest_leg": "W_SC105",
+     "dest": "SC1_W_SC105",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10671",
+     "from_link": "416",
+     "to_link": "1220006403",
+     "lanes": 1,
+     "dest_signal": "SC1005",
+     "dest_leg": "N_SC105",
+     "dest": "SC1005_N_SC105",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10672",
+     "from_link": "416",
+     "to_link": "1220007300",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "S_SC105",
+     "dest": "SC1002_S_SC105",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    }
+   ]
+  },
+  "SC106|E": {
+   "signal": "SC106",
+   "approach": "E",
+   "stoplines": [
+    "1220017202"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10037",
+     "from_link": "1220017202",
+     "to_link": "27",
+     "lanes": 1,
+     "dest_signal": "SC104",
+     "dest_leg": "S_SC106",
+     "dest": "SC104_S_SC106",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10057",
+     "from_link": "1220017202",
+     "to_link": "1220015600",
+     "lanes": 2,
+     "dest_signal": "SC12",
+     "dest_leg": "E_SC106",
+     "dest": "SC12_E_SC106",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10058",
+     "from_link": "1220017202",
+     "to_link": "1220001100",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC106|N_SC104": {
+   "signal": "SC106",
+   "approach": "N_SC104",
+   "stoplines": [
+    "1220001501"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10051",
+     "from_link": "1220001501",
+     "to_link": "1220001100",
+     "lanes": 4,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10052",
+     "from_link": "1220001501",
+     "to_link": "1220015600",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "E_SC106",
+     "dest": "SC12_E_SC106",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10053",
+     "from_link": "1220001501",
+     "to_link": "1220017300",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC106|S": {
+   "signal": "SC106",
+   "approach": "S",
+   "stoplines": [
+    "1220001200"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10054",
+     "from_link": "1220001200",
+     "to_link": "1220001602",
+     "lanes": 4,
+     "dest_signal": "SC104",
+     "dest_leg": "S_SC106",
+     "dest": "SC104_S_SC106",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10055",
+     "from_link": "1220001200",
+     "to_link": "1220015600",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "E_SC106",
+     "dest": "SC12_E_SC106",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10056",
+     "from_link": "1220001200",
+     "to_link": "1220017300",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC106|W_SC12": {
+   "signal": "SC106",
+   "approach": "W_SC12",
+   "stoplines": [
+    "1210015700"
+   ],
+   "n_links": 13,
+   "turns": [
+    {
+     "connector": "10059",
+     "from_link": "1210015700",
+     "to_link": "1220017300",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10060",
+     "from_link": "1210015700",
+     "to_link": "1220001602",
+     "lanes": 1,
+     "dest_signal": "SC104",
+     "dest_leg": "S_SC106",
+     "dest": "SC104_S_SC106",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10061",
+     "from_link": "1210015700",
+     "to_link": "1220001100",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    }
+   ]
+  },
+  "SC107|E_SC108": {
+   "signal": "SC107",
+   "approach": "E_SC108",
+   "stoplines": [
+    "183"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10600",
+     "from_link": "183",
+     "to_link": "374",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "S_SC107",
+     "dest": "SC1_S_SC107",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10619",
+     "from_link": "183",
+     "to_link": "1220000102",
+     "lanes": 4,
+     "dest_signal": "SC1005",
+     "dest_leg": "E_SC107",
+     "dest": "SC1005_E_SC107",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10620",
+     "from_link": "183",
+     "to_link": "1",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC107|N_SC1": {
+   "signal": "SC107",
+   "approach": "N_SC1",
+   "stoplines": [
+    "1220043200"
+   ],
+   "n_links": 11,
+   "turns": [
+    {
+     "connector": "10103",
+     "from_link": "1220043200",
+     "to_link": "1220000402",
+     "lanes": 2,
+     "dest_signal": "SC108",
+     "dest_leg": "W_SC107",
+     "dest": "SC108_W_SC107",
+     "bearing": "E",
+     "sg": [
+      7
+     ]
+    },
+    {
+     "connector": "10610",
+     "from_link": "1220043200",
+     "to_link": "385",
+     "lanes": 1,
+     "dest_signal": "SC1004",
+     "dest_leg": "E_SC1005",
+     "dest": "SC1004_E_SC1005",
+     "bearing": "S",
+     "sg": [
+      7
+     ]
+    }
+   ]
+  },
+  "SC107|S": {
+   "signal": "SC107",
+   "approach": "S",
+   "stoplines": [
+    "382"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10618",
+     "from_link": "382",
+     "to_link": "1220000102",
+     "lanes": 3,
+     "dest_signal": "SC1005",
+     "dest_leg": "E_SC107",
+     "dest": "SC1005_E_SC107",
+     "bearing": "W",
+     "sg": [
+      3
+     ]
+    }
+   ]
+  },
+  "SC107|W_SC1004": {
+   "signal": "SC107",
+   "approach": "W_SC1004",
+   "stoplines": [],
+   "n_links": 1,
+   "turns": []
+  },
+  "SC107|W_SC1005": {
+   "signal": "SC107",
+   "approach": "W_SC1005",
+   "stoplines": [
+    "1220000201"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10023",
+     "from_link": "1220000201",
+     "to_link": "1220000402",
+     "lanes": 4,
+     "dest_signal": "SC108",
+     "dest_leg": "W_SC107",
+     "dest": "SC108_W_SC107",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10616",
+     "from_link": "1220000201",
+     "to_link": "381",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10622",
+     "from_link": "1220000201",
+     "to_link": "1220043300",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "S_SC107",
+     "dest": "SC1_S_SC107",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC108|E_SC109": {
+   "signal": "SC108",
+   "approach": "E_SC109",
+   "stoplines": [
+    "176"
+   ],
+   "n_links": 15,
+   "turns": [
+    {
+     "connector": "10292",
+     "from_link": "176",
+     "to_link": "1220000300",
+     "lanes": 4,
+     "dest_signal": "SC107",
+     "dest_leg": "E_SC108",
+     "dest": "SC107_E_SC108",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10296",
+     "from_link": "176",
+     "to_link": "1220007501",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "S_SC108",
+     "dest": "SC7_S_SC108",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10297",
+     "from_link": "176",
+     "to_link": "1220044400",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC108|N_SC7": {
+   "signal": "SC108",
+   "approach": "N_SC7",
+   "stoplines": [
+    "1220007401"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10298",
+     "from_link": "1220007401",
+     "to_link": "1220044400",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      4
+     ]
+    },
+    {
+     "connector": "10299",
+     "from_link": "1220007401",
+     "to_link": "1220000300",
+     "lanes": 1,
+     "dest_signal": "SC107",
+     "dest_leg": "E_SC108",
+     "dest": "SC107_E_SC108",
+     "bearing": "S",
+     "sg": [
+      4
+     ]
+    },
+    {
+     "connector": "10300",
+     "from_link": "1220007401",
+     "to_link": "1220000600",
+     "lanes": 1,
+     "dest_signal": "SC109",
+     "dest_leg": "W_SC108",
+     "dest": "SC109_W_SC108",
+     "bearing": "E",
+     "sg": [
+      4
+     ]
+    }
+   ]
+  },
+  "SC108|S": {
+   "signal": "SC108",
+   "approach": "S",
+   "stoplines": [
+    "1220044500"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10301",
+     "from_link": "1220044500",
+     "to_link": "1220000300",
+     "lanes": 1,
+     "dest_signal": "SC107",
+     "dest_leg": "E_SC108",
+     "dest": "SC107_E_SC108",
+     "bearing": "W",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10302",
+     "from_link": "1220044500",
+     "to_link": "1220007501",
+     "lanes": 2,
+     "dest_signal": "SC7",
+     "dest_leg": "S_SC108",
+     "dest": "SC7_S_SC108",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10303",
+     "from_link": "1220044500",
+     "to_link": "1220000600",
+     "lanes": 1,
+     "dest_signal": "SC109",
+     "dest_leg": "W_SC108",
+     "dest": "SC109_W_SC108",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    }
+   ]
+  },
+  "SC108|W_SC107": {
+   "signal": "SC108",
+   "approach": "W_SC107",
+   "stoplines": [
+    "178"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10293",
+     "from_link": "178",
+     "to_link": "1220000600",
+     "lanes": 4,
+     "dest_signal": "SC109",
+     "dest_leg": "W_SC108",
+     "dest": "SC109_W_SC108",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10294",
+     "from_link": "178",
+     "to_link": "1220007501",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "S_SC108",
+     "dest": "SC7_S_SC108",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10295",
+     "from_link": "178",
+     "to_link": "1220044400",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC109|E": {
+   "signal": "SC109",
+   "approach": "E",
+   "stoplines": [
+    "1220000704"
+   ],
+   "n_links": 3,
+   "turns": [
+    {
+     "connector": "10274",
+     "from_link": "1220000704",
+     "to_link": "172",
+     "lanes": 1,
+     "dest_signal": "SC16",
+     "dest_leg": "S_SC109",
+     "dest": "SC16_S_SC109",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10282",
+     "from_link": "1220000704",
+     "to_link": "1220000502",
+     "lanes": 4,
+     "dest_signal": "SC108",
+     "dest_leg": "E_SC109",
+     "dest": "SC108_E_SC109",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC109|N_SC16": {
+   "signal": "SC109",
+   "approach": "N_SC16",
+   "stoplines": [
+    "1210009402"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10283",
+     "from_link": "1210009402",
+     "to_link": "1220000803",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      7
+     ]
+    }
+   ]
+  },
+  "SC109|W_SC108": {
+   "signal": "SC109",
+   "approach": "W_SC108",
+   "stoplines": [
+    "173"
+   ],
+   "n_links": 13,
+   "turns": [
+    {
+     "connector": "10285",
+     "from_link": "173",
+     "to_link": "1220000803",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10286",
+     "from_link": "173",
+     "to_link": "1220009502",
+     "lanes": 2,
+     "dest_signal": "SC16",
+     "dest_leg": "S_SC109",
+     "dest": "SC16_S_SC109",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC11|E_SC12": {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "stoplines": [
+    "1210012001",
+    "1220012001"
+   ],
+   "n_links": 23,
+   "turns": [
+    {
+     "connector": "10107",
+     "from_link": "1210012001",
+     "to_link": "18",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "N_SC11",
+     "dest": "SC7_N_SC11",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10365",
+     "from_link": "1220012001",
+     "to_link": "1210012001",
+     "lanes": 2,
+     "dest_signal": "SC11",
+     "dest_leg": "E_SC12",
+     "dest": "SC11_E_SC12",
+     "bearing": "S",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10366",
+     "from_link": "1210012001",
+     "to_link": "1220011101",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "S_SC11",
+     "dest": "SC5_S_SC11",
+     "bearing": "N",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10367",
+     "from_link": "1210012001",
+     "to_link": "1220008203",
+     "lanes": 2,
+     "dest_signal": "SC1",
+     "dest_leg": "E_SC11",
+     "dest": "SC1_E_SC11",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC11|N_SC5": {
+   "signal": "SC11",
+   "approach": "N_SC5",
+   "stoplines": [
+    "1220011001"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10373",
+     "from_link": "1220011001",
+     "to_link": "1220008603",
+     "lanes": 2,
+     "dest_signal": "SC7",
+     "dest_leg": "N_SC11",
+     "dest": "SC7_N_SC11",
+     "bearing": "S",
+     "sg": [
+      4
+     ]
+    },
+    {
+     "connector": "10374",
+     "from_link": "1220011001",
+     "to_link": "1220008203",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "E_SC11",
+     "dest": "SC1_E_SC11",
+     "bearing": "S",
+     "sg": [
+      4
+     ]
+    },
+    {
+     "connector": "10375",
+     "from_link": "1220011001",
+     "to_link": "1220012101",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "W_SC11",
+     "dest": "SC12_W_SC11",
+     "bearing": "S",
+     "sg": [
+      4
+     ]
+    }
+   ]
+  },
+  "SC11|S_SC7": {
+   "signal": "SC11",
+   "approach": "S_SC7",
+   "stoplines": [
+    "1210008703"
+   ],
+   "n_links": 11,
+   "turns": [
+    {
+     "connector": "10108",
+     "from_link": "1210008703",
+     "to_link": "19",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "W_SC11",
+     "dest": "SC12_W_SC11",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10376",
+     "from_link": "1210008703",
+     "to_link": "1220011101",
+     "lanes": 2,
+     "dest_signal": "SC5",
+     "dest_leg": "S_SC11",
+     "dest": "SC5_S_SC11",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10378",
+     "from_link": "1210008703",
+     "to_link": "1220008203",
+     "lanes": 1,
+     "dest_signal": "SC1",
+     "dest_leg": "E_SC11",
+     "dest": "SC1_E_SC11",
+     "bearing": "W",
+     "sg": [
+      8
+     ]
+    }
+   ]
+  },
+  "SC11|W_SC1": {
+   "signal": "SC11",
+   "approach": "W_SC1",
+   "stoplines": [
+    "1210008303"
+   ],
+   "n_links": 27,
+   "turns": [
+    {
+     "connector": "10104",
+     "from_link": "1210008303",
+     "to_link": "17",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "N_SC11",
+     "dest": "SC7_N_SC11",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10370",
+     "from_link": "1210008303",
+     "to_link": "1220012101",
+     "lanes": 2,
+     "dest_signal": "SC12",
+     "dest_leg": "W_SC11",
+     "dest": "SC12_W_SC11",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10372",
+     "from_link": "1210008303",
+     "to_link": "1220011101",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "S_SC11",
+     "dest": "SC5_S_SC11",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    }
+   ]
+  },
+  "SC12|E_SC106": {
+   "signal": "SC12",
+   "approach": "E_SC106",
+   "stoplines": [
+    "1220013600"
+   ],
+   "n_links": 13,
+   "turns": [
+    {
+     "connector": "10238",
+     "from_link": "1220013600",
+     "to_link": "1220012003",
+     "lanes": 2,
+     "dest_signal": "SC11",
+     "dest_leg": "E_SC12",
+     "dest": "SC11_E_SC12",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10239",
+     "from_link": "1220013600",
+     "to_link": "1220015100",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "S_SC12",
+     "dest": "SC6_S_SC12",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10240",
+     "from_link": "1220013600",
+     "to_link": "1220012600",
+     "lanes": 1,
+     "dest_signal": "SC16",
+     "dest_leg": "N_SC12",
+     "dest": "SC16_N_SC12",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC12|N_SC6": {
+   "signal": "SC12",
+   "approach": "N_SC6",
+   "stoplines": [
+    "1220015000"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10235",
+     "from_link": "1220015000",
+     "to_link": "1220012600",
+     "lanes": 3,
+     "dest_signal": "SC16",
+     "dest_leg": "N_SC12",
+     "dest": "SC16_N_SC12",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10236",
+     "from_link": "1220015000",
+     "to_link": "1220012003",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "E_SC12",
+     "dest": "SC11_E_SC12",
+     "bearing": "W",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10237",
+     "from_link": "1220015000",
+     "to_link": "1220013700",
+     "lanes": 1,
+     "dest_signal": "SC106",
+     "dest_leg": "W_SC12",
+     "dest": "SC106_W_SC12",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC12|S_SC16": {
+   "signal": "SC12",
+   "approach": "S_SC16",
+   "stoplines": [
+    "1210012700"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10244",
+     "from_link": "1210012700",
+     "to_link": "1220015100",
+     "lanes": 3,
+     "dest_signal": "SC6",
+     "dest_leg": "S_SC12",
+     "dest": "SC6_S_SC12",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10245",
+     "from_link": "1210012700",
+     "to_link": "1220012003",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "E_SC12",
+     "dest": "SC11_E_SC12",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10246",
+     "from_link": "1210012700",
+     "to_link": "1220013700",
+     "lanes": 1,
+     "dest_signal": "SC106",
+     "dest_leg": "W_SC12",
+     "dest": "SC106_W_SC12",
+     "bearing": "E",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC12|W_SC11": {
+   "signal": "SC12",
+   "approach": "W_SC11",
+   "stoplines": [
+    "1220012103"
+   ],
+   "n_links": 25,
+   "turns": [
+    {
+     "connector": "10241",
+     "from_link": "1220012103",
+     "to_link": "1220013700",
+     "lanes": 2,
+     "dest_signal": "SC106",
+     "dest_leg": "W_SC12",
+     "dest": "SC106_W_SC12",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10242",
+     "from_link": "1220012103",
+     "to_link": "1220015100",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "S_SC12",
+     "dest": "SC6_S_SC12",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10243",
+     "from_link": "1220012103",
+     "to_link": "1220012600",
+     "lanes": 1,
+     "dest_signal": "SC16",
+     "dest_leg": "N_SC12",
+     "dest": "SC16_N_SC12",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC16|E": {
+   "signal": "SC16",
+   "approach": "E",
+   "stoplines": [
+    "1220011200"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10257",
+     "from_link": "1220011200",
+     "to_link": "1220009600",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "E_SC16",
+     "dest": "SC7_E_SC16",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10258",
+     "from_link": "1220011200",
+     "to_link": "1220012700",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "S_SC16",
+     "dest": "SC12_S_SC16",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10259",
+     "from_link": "1220011200",
+     "to_link": "1220009403",
+     "lanes": 1,
+     "dest_signal": "SC109",
+     "dest_leg": "N_SC16",
+     "dest": "SC109_N_SC16",
+     "bearing": "S",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC16|N_SC12": {
+   "signal": "SC16",
+   "approach": "N_SC12",
+   "stoplines": [
+    "1210012600"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10248",
+     "from_link": "1210012600",
+     "to_link": "1220009403",
+     "lanes": 3,
+     "dest_signal": "SC109",
+     "dest_leg": "N_SC16",
+     "dest": "SC109_N_SC16",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10250",
+     "from_link": "1210012600",
+     "to_link": "1220011300",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10252",
+     "from_link": "1210012600",
+     "to_link": "1220009600",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "E_SC16",
+     "dest": "SC7_E_SC16",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC16|S_SC109": {
+   "signal": "SC16",
+   "approach": "S_SC109",
+   "stoplines": [
+    "1210009503"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10249",
+     "from_link": "1210009503",
+     "to_link": "1220012700",
+     "lanes": 3,
+     "dest_signal": "SC12",
+     "dest_leg": "S_SC16",
+     "dest": "SC12_S_SC16",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10251",
+     "from_link": "1210009503",
+     "to_link": "1220009600",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "E_SC16",
+     "dest": "SC7_E_SC16",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10253",
+     "from_link": "1210009503",
+     "to_link": "1220011300",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC16|W_SC7": {
+   "signal": "SC16",
+   "approach": "W_SC7",
+   "stoplines": [
+    "1210009700"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10254",
+     "from_link": "1210009700",
+     "to_link": "1220011300",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10255",
+     "from_link": "1210009700",
+     "to_link": "1220009403",
+     "lanes": 1,
+     "dest_signal": "SC109",
+     "dest_leg": "N_SC16",
+     "dest": "SC109_N_SC16",
+     "bearing": "E",
+     "sg": [
+      2
+     ]
+    },
+    {
+     "connector": "10256",
+     "from_link": "1210009700",
+     "to_link": "1220012700",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "S_SC16",
+     "dest": "SC12_S_SC16",
+     "bearing": "N",
+     "sg": [
+      2
+     ]
+    }
+   ]
+  },
+  "SC2001|E_SC2002": {
+   "signal": "SC2001",
+   "approach": "E_SC2002",
+   "stoplines": [
+    "84"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10720",
+     "from_link": "84",
+     "to_link": "77",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10725",
+     "from_link": "84",
+     "to_link": "81",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10726",
+     "from_link": "84",
+     "to_link": "78",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC2001|N": {
+   "signal": "SC2001",
+   "approach": "N",
+   "stoplines": [
+    "80"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10721",
+     "from_link": "80",
+     "to_link": "78",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10727",
+     "from_link": "80",
+     "to_link": "77",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_S",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10728",
+     "from_link": "80",
+     "to_link": "82",
+     "lanes": 1,
+     "dest_signal": "SC2002",
+     "dest_leg": "W_SC2001",
+     "dest": "SC2002_W_SC2001",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC2001|S": {
+   "signal": "SC2001",
+   "approach": "S",
+   "stoplines": [
+    "79"
+   ],
+   "n_links": 1,
+   "turns": [
+    {
+     "connector": "10717",
+     "from_link": "79",
+     "to_link": "81",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10718",
+     "from_link": "79",
+     "to_link": "82",
+     "lanes": 1,
+     "dest_signal": "SC2002",
+     "dest_leg": "W_SC2001",
+     "dest": "SC2002_W_SC2001",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10719",
+     "from_link": "79",
+     "to_link": "77",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC2001|W": {
+   "signal": "SC2001",
+   "approach": "W",
+   "stoplines": [
+    "76"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10722",
+     "from_link": "76",
+     "to_link": "82",
+     "lanes": 2,
+     "dest_signal": "SC2002",
+     "dest_leg": "W_SC2001",
+     "dest": "SC2002_W_SC2001",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10723",
+     "from_link": "76",
+     "to_link": "78",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_E",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10724",
+     "from_link": "76",
+     "to_link": "81",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC2002|E_SC2003": {
+   "signal": "SC2002",
+   "approach": "E_SC2003",
+   "stoplines": [
+    "88"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10732",
+     "from_link": "88",
+     "to_link": "85",
+     "lanes": 2,
+     "dest_signal": "SC2001",
+     "dest_leg": "E_SC2002",
+     "dest": "SC2001_E_SC2002",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10733",
+     "from_link": "88",
+     "to_link": "37",
+     "lanes": 1,
+     "dest_signal": "SC1001",
+     "dest_leg": "N_SC2002",
+     "dest": "SC1001_N_SC2002",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10734",
+     "from_link": "88",
+     "to_link": "89",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC2002|N": {
+   "signal": "SC2002",
+   "approach": "N",
+   "stoplines": [
+    "90"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10731",
+     "from_link": "90",
+     "to_link": "37",
+     "lanes": 2,
+     "dest_signal": "SC1001",
+     "dest_leg": "N_SC2002",
+     "dest": "SC1001_N_SC2002",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10735",
+     "from_link": "90",
+     "to_link": "85",
+     "lanes": 1,
+     "dest_signal": "SC2001",
+     "dest_leg": "E_SC2002",
+     "dest": "SC2001_E_SC2002",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10736",
+     "from_link": "90",
+     "to_link": "86",
+     "lanes": 1,
+     "dest_signal": "SC2003",
+     "dest_leg": "W_SC2002",
+     "dest": "SC2003_W_SC2002",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC2002|S_SC1001": {
+   "signal": "SC2002",
+   "approach": "S_SC1001",
+   "stoplines": [
+    "38"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10730",
+     "from_link": "38",
+     "to_link": "89",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10739",
+     "from_link": "38",
+     "to_link": "86",
+     "lanes": 1,
+     "dest_signal": "SC2003",
+     "dest_leg": "W_SC2002",
+     "dest": "SC2003_W_SC2002",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10770",
+     "from_link": "38",
+     "to_link": "85",
+     "lanes": 1,
+     "dest_signal": "SC2001",
+     "dest_leg": "E_SC2002",
+     "dest": "SC2001_E_SC2002",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC2002|W_SC2001": {
+   "signal": "SC2002",
+   "approach": "W_SC2001",
+   "stoplines": [
+    "83"
+   ],
+   "n_links": 10,
+   "turns": [
+    {
+     "connector": "10729",
+     "from_link": "83",
+     "to_link": "86",
+     "lanes": 2,
+     "dest_signal": "SC2003",
+     "dest_leg": "W_SC2002",
+     "dest": "SC2003_W_SC2002",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10737",
+     "from_link": "83",
+     "to_link": "37",
+     "lanes": 1,
+     "dest_signal": "SC1001",
+     "dest_leg": "N_SC2002",
+     "dest": "SC1001_N_SC2002",
+     "bearing": "S",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10738",
+     "from_link": "83",
+     "to_link": "89",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC2003|E_SC2004": {
+   "signal": "SC2003",
+   "approach": "E_SC2004",
+   "stoplines": [
+    "102"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10741",
+     "from_link": "102",
+     "to_link": "93",
+     "lanes": 3,
+     "dest_signal": "SC2002",
+     "dest_leg": "E_SC2003",
+     "dest": "SC2002_E_SC2003",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    },
+    {
+     "connector": "10745",
+     "from_link": "102",
+     "to_link": "95",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      6
+     ]
+    }
+   ]
+  },
+  "SC2003|N": {
+   "signal": "SC2003",
+   "approach": "N",
+   "stoplines": [
+    "99"
+   ],
+   "n_links": 3,
+   "turns": [
+    {
+     "connector": "10742",
+     "from_link": "99",
+     "to_link": "93",
+     "lanes": 1,
+     "dest_signal": "SC2002",
+     "dest_leg": "E_SC2003",
+     "dest": "SC2002_E_SC2003",
+     "bearing": "S",
+     "sg": [
+      7
+     ]
+    },
+    {
+     "connector": "10743",
+     "from_link": "99",
+     "to_link": "103",
+     "lanes": 2,
+     "dest_signal": "SC2004",
+     "dest_leg": "W_SC2003",
+     "dest": "SC2004_W_SC2003",
+     "bearing": "E",
+     "sg": [
+      7
+     ]
+    }
+   ]
+  },
+  "SC2003|W_SC2002": {
+   "signal": "SC2003",
+   "approach": "W_SC2002",
+   "stoplines": [
+    "87"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10740",
+     "from_link": "87",
+     "to_link": "103",
+     "lanes": 2,
+     "dest_signal": "SC2004",
+     "dest_leg": "W_SC2003",
+     "dest": "SC2004_W_SC2003",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10744",
+     "from_link": "87",
+     "to_link": "95",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC2004|E_SC2005": {
+   "signal": "SC2004",
+   "approach": "E_SC2005",
+   "stoplines": [
+    "108"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10752",
+     "from_link": "108",
+     "to_link": "101",
+     "lanes": 2,
+     "dest_signal": "SC2003",
+     "dest_leg": "E_SC2004",
+     "dest": "SC2003_E_SC2004",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10753",
+     "from_link": "108",
+     "to_link": "72",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "N_SC2004",
+     "dest": "SC1002_N_SC2004",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10754",
+     "from_link": "108",
+     "to_link": "109",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_W",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC2004|N": {
+   "signal": "SC2004",
+   "approach": "N",
+   "stoplines": [
+    "112"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10755",
+     "from_link": "112",
+     "to_link": "72",
+     "lanes": 2,
+     "dest_signal": "SC1002",
+     "dest_leg": "N_SC2004",
+     "dest": "SC1002_N_SC2004",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10756",
+     "from_link": "112",
+     "to_link": "107",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "W_SC2004",
+     "dest": "SC2005_W_SC2004",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10757",
+     "from_link": "112",
+     "to_link": "101",
+     "lanes": 1,
+     "dest_signal": "SC2003",
+     "dest_leg": "E_SC2004",
+     "dest": "SC2003_E_SC2004",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC2004|S_SC1002": {
+   "signal": "SC2004",
+   "approach": "S_SC1002",
+   "stoplines": [
+    "73"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10749",
+     "from_link": "73",
+     "to_link": "109",
+     "lanes": 2,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10750",
+     "from_link": "73",
+     "to_link": "101",
+     "lanes": 1,
+     "dest_signal": "SC2003",
+     "dest_leg": "E_SC2004",
+     "dest": "SC2003_E_SC2004",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10751",
+     "from_link": "73",
+     "to_link": "107",
+     "lanes": 1,
+     "dest_signal": "SC2005",
+     "dest_leg": "W_SC2004",
+     "dest": "SC2005_W_SC2004",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC2004|W_SC2003": {
+   "signal": "SC2004",
+   "approach": "W_SC2003",
+   "stoplines": [
+    "104"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10746",
+     "from_link": "104",
+     "to_link": "107",
+     "lanes": 2,
+     "dest_signal": "SC2005",
+     "dest_leg": "W_SC2004",
+     "dest": "SC2005_W_SC2004",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10747",
+     "from_link": "104",
+     "to_link": "72",
+     "lanes": 1,
+     "dest_signal": "SC1002",
+     "dest_leg": "N_SC2004",
+     "dest": "SC1002_N_SC2004",
+     "bearing": "S",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10748",
+     "from_link": "104",
+     "to_link": "109",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC2005|E_SC102": {
+   "signal": "SC2005",
+   "approach": "E_SC102",
+   "stoplines": [
+    "298"
+   ],
+   "n_links": 17,
+   "turns": [
+    {
+     "connector": "10761",
+     "from_link": "298",
+     "to_link": "108",
+     "lanes": 3,
+     "dest_signal": "SC2004",
+     "dest_leg": "E_SC2005",
+     "dest": "SC2004_E_SC2005",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10762",
+     "from_link": "298",
+     "to_link": "115",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10763",
+     "from_link": "298",
+     "to_link": "308",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "N_SC2005",
+     "dest": "SC101_N_SC2005",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC2005|N": {
+   "signal": "SC2005",
+   "approach": "N",
+   "stoplines": [
+    "117"
+   ],
+   "n_links": 4,
+   "turns": [
+    {
+     "connector": "10764",
+     "from_link": "117",
+     "to_link": "308",
+     "lanes": 2,
+     "dest_signal": "SC101",
+     "dest_leg": "N_SC2005",
+     "dest": "SC101_N_SC2005",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10765",
+     "from_link": "117",
+     "to_link": "297",
+     "lanes": 1,
+     "dest_signal": "SC102",
+     "dest_leg": "W_SC2005",
+     "dest": "SC102_W_SC2005",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10766",
+     "from_link": "117",
+     "to_link": "108",
+     "lanes": 1,
+     "dest_signal": "SC2004",
+     "dest_leg": "E_SC2005",
+     "dest": "SC2004_E_SC2005",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC2005|S_SC101": {
+   "signal": "SC2005",
+   "approach": "S_SC101",
+   "stoplines": [
+    "310"
+   ],
+   "n_links": 12,
+   "turns": [
+    {
+     "connector": "10758",
+     "from_link": "310",
+     "to_link": "115",
+     "lanes": 3,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10759",
+     "from_link": "310",
+     "to_link": "297",
+     "lanes": 1,
+     "dest_signal": "SC102",
+     "dest_leg": "W_SC2005",
+     "dest": "SC102_W_SC2005",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10760",
+     "from_link": "310",
+     "to_link": "108",
+     "lanes": 1,
+     "dest_signal": "SC2004",
+     "dest_leg": "E_SC2005",
+     "dest": "SC2004_E_SC2005",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC2005|W_SC2004": {
+   "signal": "SC2005",
+   "approach": "W_SC2004",
+   "stoplines": [
+    "107"
+   ],
+   "n_links": 7,
+   "turns": [
+    {
+     "connector": "10767",
+     "from_link": "107",
+     "to_link": "297",
+     "lanes": 2,
+     "dest_signal": "SC102",
+     "dest_leg": "W_SC2005",
+     "dest": "SC102_W_SC2005",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10768",
+     "from_link": "107",
+     "to_link": "308",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "N_SC2005",
+     "dest": "SC101_N_SC2005",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10769",
+     "from_link": "107",
+     "to_link": "115",
+     "lanes": 1,
+     "dest_signal": null,
+     "dest_leg": null,
+     "dest": "OUT_N",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC5|E_SC6": {
+   "signal": "SC5",
+   "approach": "E_SC6",
+   "stoplines": [
+    "1220018401"
+   ],
+   "n_links": 28,
+   "turns": [
+    {
+     "connector": "10032",
+     "from_link": "1220018401",
+     "to_link": "1220014203",
+     "lanes": 4,
+     "dest_signal": "SC101",
+     "dest_leg": "E_SC5",
+     "dest": "SC101_E_SC5",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10428",
+     "from_link": "1220018401",
+     "to_link": "1220019301",
+     "lanes": 1,
+     "dest_signal": "SC102",
+     "dest_leg": "S_SC5",
+     "dest": "SC102_S_SC5",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10429",
+     "from_link": "1220018401",
+     "to_link": "1220014000",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "N_SC5",
+     "dest": "SC11_N_SC5",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC5|N_SC102": {
+   "signal": "SC5",
+   "approach": "N_SC102",
+   "stoplines": [
+    "1220019201"
+   ],
+   "n_links": 11,
+   "turns": [
+    {
+     "connector": "10421",
+     "from_link": "1220019201",
+     "to_link": "1220014000",
+     "lanes": 2,
+     "dest_signal": "SC11",
+     "dest_leg": "N_SC5",
+     "dest": "SC11_N_SC5",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10422",
+     "from_link": "1220019201",
+     "to_link": "1220018501",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "W_SC5",
+     "dest": "SC6_W_SC5",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10423",
+     "from_link": "1220019201",
+     "to_link": "1220014203",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "E_SC5",
+     "dest": "SC101_E_SC5",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC5|S": {
+   "signal": "SC5",
+   "approach": "S",
+   "stoplines": [],
+   "n_links": 1,
+   "turns": []
+  },
+  "SC5|S_SC11": {
+   "signal": "SC5",
+   "approach": "S_SC11",
+   "stoplines": [
+    "1220014100"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10418",
+     "from_link": "1220014100",
+     "to_link": "1220019301",
+     "lanes": 2,
+     "dest_signal": "SC102",
+     "dest_leg": "S_SC5",
+     "dest": "SC102_S_SC5",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10419",
+     "from_link": "1220014100",
+     "to_link": "1220014203",
+     "lanes": 1,
+     "dest_signal": "SC101",
+     "dest_leg": "E_SC5",
+     "dest": "SC101_E_SC5",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10420",
+     "from_link": "1220014100",
+     "to_link": "1220018501",
+     "lanes": 1,
+     "dest_signal": "SC6",
+     "dest_leg": "W_SC5",
+     "dest": "SC6_W_SC5",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC5|W_SC101": {
+   "signal": "SC5",
+   "approach": "W_SC101",
+   "stoplines": [
+    "1220014303"
+   ],
+   "n_links": 9,
+   "turns": [
+    {
+     "connector": "10424",
+     "from_link": "1220014303",
+     "to_link": "1220018501",
+     "lanes": 4,
+     "dest_signal": "SC6",
+     "dest_leg": "W_SC5",
+     "dest": "SC6_W_SC5",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10425",
+     "from_link": "1220014303",
+     "to_link": "1220019301",
+     "lanes": 1,
+     "dest_signal": "SC102",
+     "dest_leg": "S_SC5",
+     "dest": "SC102_S_SC5",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10426",
+     "from_link": "1220014303",
+     "to_link": "1220014000",
+     "lanes": 1,
+     "dest_signal": "SC11",
+     "dest_leg": "N_SC5",
+     "dest": "SC11_N_SC5",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC6|E_SC104": {
+   "signal": "SC6",
+   "approach": "E_SC104",
+   "stoplines": [
+    "1220021201"
+   ],
+   "n_links": 19,
+   "turns": [
+    {
+     "connector": "10142",
+     "from_link": "1220021201",
+     "to_link": "96",
+     "lanes": 1,
+     "dest_signal": "SC103",
+     "dest_leg": "S_SC6",
+     "dest": "SC103_S_SC6",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10200",
+     "from_link": "1220021201",
+     "to_link": "1220018404",
+     "lanes": 4,
+     "dest_signal": "SC5",
+     "dest_leg": "E_SC6",
+     "dest": "SC5_E_SC6",
+     "bearing": "W",
+     "sg": [
+      1,
+      6
+     ]
+    },
+    {
+     "connector": "10201",
+     "from_link": "1220021201",
+     "to_link": "1220018202",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "N_SC6",
+     "dest": "SC12_N_SC6",
+     "bearing": "S",
+     "sg": [
+      1,
+      6
+     ]
+    }
+   ]
+  },
+  "SC6|N_SC103": {
+   "signal": "SC6",
+   "approach": "N_SC103",
+   "stoplines": [
+    "1220021801"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10202",
+     "from_link": "1220021801",
+     "to_link": "1220018202",
+     "lanes": 3,
+     "dest_signal": "SC12",
+     "dest_leg": "N_SC6",
+     "dest": "SC12_N_SC6",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10203",
+     "from_link": "1220021801",
+     "to_link": "1220021301",
+     "lanes": 1,
+     "dest_signal": "SC104",
+     "dest_leg": "W_SC6",
+     "dest": "SC104_W_SC6",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10204",
+     "from_link": "1220021801",
+     "to_link": "1220018404",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "E_SC6",
+     "dest": "SC5_E_SC6",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC6|S_SC12": {
+   "signal": "SC6",
+   "approach": "S_SC12",
+   "stoplines": [
+    "1210018302"
+   ],
+   "n_links": 22,
+   "turns": [
+    {
+     "connector": "10205",
+     "from_link": "1210018302",
+     "to_link": "1220021902",
+     "lanes": 3,
+     "dest_signal": "SC103",
+     "dest_leg": "S_SC6",
+     "dest": "SC103_S_SC6",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10206",
+     "from_link": "1210018302",
+     "to_link": "1220018404",
+     "lanes": 1,
+     "dest_signal": "SC5",
+     "dest_leg": "E_SC6",
+     "dest": "SC5_E_SC6",
+     "bearing": "W",
+     "sg": [
+      3,
+      8
+     ]
+    },
+    {
+     "connector": "10207",
+     "from_link": "1210018302",
+     "to_link": "1220021301",
+     "lanes": 1,
+     "dest_signal": "SC104",
+     "dest_leg": "W_SC6",
+     "dest": "SC104_W_SC6",
+     "bearing": "N",
+     "sg": [
+      3,
+      8
+     ]
+    }
+   ]
+  },
+  "SC6|W_SC5": {
+   "signal": "SC6",
+   "approach": "W_SC5",
+   "stoplines": [
+    "1220018504"
+   ],
+   "n_links": 28,
+   "turns": [
+    {
+     "connector": "10197",
+     "from_link": "1220018504",
+     "to_link": "1220021301",
+     "lanes": 4,
+     "dest_signal": "SC104",
+     "dest_leg": "W_SC6",
+     "dest": "SC104_W_SC6",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10198",
+     "from_link": "1220018504",
+     "to_link": "1220021902",
+     "lanes": 1,
+     "dest_signal": "SC103",
+     "dest_leg": "S_SC6",
+     "dest": "SC103_S_SC6",
+     "bearing": "N",
+     "sg": [
+      2,
+      5
+     ]
+    },
+    {
+     "connector": "10199",
+     "from_link": "1220018504",
+     "to_link": "1220018202",
+     "lanes": 1,
+     "dest_signal": "SC12",
+     "dest_leg": "N_SC6",
+     "dest": "SC12_N_SC6",
+     "bearing": "E",
+     "sg": [
+      2,
+      5
+     ]
+    }
+   ]
+  },
+  "SC7|E_SC16": {
+   "signal": "SC7",
+   "approach": "E_SC16",
+   "stoplines": [
+    "1210009600"
+   ],
+   "n_links": 16,
+   "turns": [
+    {
+     "connector": "10332",
+     "from_link": "1210009600",
+     "to_link": "1220008701",
+     "lanes": 1,
+     "dest_signal": "SC7",
+     "dest_leg": "S_SC108",
+     "dest": "SC7_S_SC108",
+     "bearing": "W",
+     "sg": [
+      1
+     ]
+    },
+    {
+     "connector": "10333",
+     "from_link": "1210009600",
+     "to_link": "1220007402",
+     "lanes": 1,
+     "dest_signal": "SC108",
+     "dest_leg": "N_SC7",
+     "dest": "SC108_N_SC7",
+     "bearing": "S",
+     "sg": [
+      1
+     ]
+    }
+   ]
+  },
+  "SC7|N_SC11": {
+   "signal": "SC7",
+   "approach": "N_SC11",
+   "stoplines": [
+    "1220008601"
+   ],
+   "n_links": 18,
+   "turns": [
+    {
+     "connector": "10328",
+     "from_link": "1220008601",
+     "to_link": "1220007402",
+     "lanes": 2,
+     "dest_signal": "SC108",
+     "dest_leg": "N_SC7",
+     "dest": "SC108_N_SC7",
+     "bearing": "S",
+     "sg": [
+      4,
+      7
+     ]
+    },
+    {
+     "connector": "10330",
+     "from_link": "1220008601",
+     "to_link": "1220009700",
+     "lanes": 1,
+     "dest_signal": "SC16",
+     "dest_leg": "W_SC7",
+     "dest": "SC16_W_SC7",
+     "bearing": "E",
+     "sg": [
+      4,
+      7
+     ]
+    }
+   ]
+  },
+  "SC7|S_SC108": {
+   "signal": "SC7",
+   "approach": "S_SC108",
+   "stoplines": [
+    "1220007502"
+   ],
+   "n_links": 15,
+   "turns": [
+    {
+     "connector": "10329",
+     "from_link": "1220007502",
+     "to_link": "1220008701",
+     "lanes": 2,
+     "dest_signal": "SC7",
+     "dest_leg": "S_SC108",
+     "dest": "SC7_S_SC108",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    },
+    {
+     "connector": "10331",
+     "from_link": "1220007502",
+     "to_link": "1220009700",
+     "lanes": 1,
+     "dest_signal": "SC16",
+     "dest_leg": "W_SC7",
+     "dest": "SC16_W_SC7",
+     "bearing": "N",
+     "sg": [
+      8
+     ]
+    }
+   ]
+  }
+ },
+ "proposal": {
+  "SC1_E_SC11_to_S_SC1": {
+   "signal": "SC1",
+   "approach": "E_SC11",
+   "dest": "SC101_S_SC1",
+   "connectors": [
+    "10029"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC1_E_SC11_to_E_SC1": {
+   "signal": "SC1",
+   "approach": "E_SC11",
+   "dest": "SC105_E_SC1",
+   "connectors": [
+    "10564"
+   ],
+   "lanes": 2,
+   "sg": [
+    6
+   ]
+  },
+  "SC1_E_SC11_to_N_SC1": {
+   "signal": "SC1",
+   "approach": "E_SC11",
+   "dest": "SC107_N_SC1",
+   "connectors": [
+    "10566"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC1_N_SC101_to_N_SC1": {
+   "signal": "SC1",
+   "approach": "N_SC101",
+   "dest": "SC107_N_SC1",
+   "connectors": [
+    "10567"
+   ],
+   "lanes": 4,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1_N_SC101_to_W_SC1": {
+   "signal": "SC1",
+   "approach": "N_SC101",
+   "dest": "SC11_W_SC1",
+   "connectors": [
+    "10568"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1_N_SC101_to_E_SC1": {
+   "signal": "SC1",
+   "approach": "N_SC101",
+   "dest": "SC105_E_SC1",
+   "connectors": [
+    "10569"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1_S_SC107_to_S_SC1": {
+   "signal": "SC1",
+   "approach": "S_SC107",
+   "dest": "SC101_S_SC1",
+   "connectors": [
+    "10025"
+   ],
+   "lanes": 4,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1_S_SC107_to_E_SC1": {
+   "signal": "SC1",
+   "approach": "S_SC107",
+   "dest": "SC105_E_SC1",
+   "connectors": [
+    "10571"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1_S_SC107_to_W_SC1": {
+   "signal": "SC1",
+   "approach": "S_SC107",
+   "dest": "SC11_W_SC1",
+   "connectors": [
+    "10572"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1_W_SC105_to_W_SC1": {
+   "signal": "SC1",
+   "approach": "W_SC105",
+   "dest": "SC11_W_SC1",
+   "connectors": [
+    "10561"
+   ],
+   "lanes": 2,
+   "sg": [
+    2
+   ]
+  },
+  "SC1_W_SC105_to_S_SC1": {
+   "signal": "SC1",
+   "approach": "W_SC105",
+   "dest": "SC101_S_SC1",
+   "connectors": [
+    "10562"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC1_W_SC105_to_N_SC1": {
+   "signal": "SC1",
+   "approach": "W_SC105",
+   "dest": "SC107_N_SC1",
+   "connectors": [
+    "10563"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC1001_E_SC1002_to_W": {
+   "signal": "SC1001",
+   "approach": "E_SC1002",
+   "dest": "OUT_W",
+   "connectors": [
+    "10119"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1001_E_SC1002_to_S_SC1001": {
+   "signal": "SC1001",
+   "approach": "E_SC1002",
+   "dest": "SC2002_S_SC1001",
+   "connectors": [
+    "10122"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1001_E_SC1002_to_N_SC1001": {
+   "signal": "SC1001",
+   "approach": "E_SC1002",
+   "dest": "SC1003_N_SC1001",
+   "connectors": [
+    "10696"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1001_N_SC2002_to_W": {
+   "signal": "SC1001",
+   "approach": "N_SC2002",
+   "dest": "OUT_W",
+   "connectors": [
+    "10121"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1001_N_SC2002_to_N_SC1001": {
+   "signal": "SC1001",
+   "approach": "N_SC2002",
+   "dest": "SC1003_N_SC1001",
+   "connectors": [
+    "10124"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1001_N_SC2002_to_W_SC1001": {
+   "signal": "SC1001",
+   "approach": "N_SC2002",
+   "dest": "SC1002_W_SC1001",
+   "connectors": [
+    "10697"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1001_S_SC1003_to_S_SC1001": {
+   "signal": "SC1001",
+   "approach": "S_SC1003",
+   "dest": "SC2002_S_SC1001",
+   "connectors": [
+    "10371"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1001_S_SC1003_to_W_SC1001": {
+   "signal": "SC1001",
+   "approach": "S_SC1003",
+   "dest": "SC1002_W_SC1001",
+   "connectors": [
+    "10377"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1001_S_SC1003_to_W": {
+   "signal": "SC1001",
+   "approach": "S_SC1003",
+   "dest": "OUT_W",
+   "connectors": [
+    "10698"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1001_W_RAMP_to_W_SC1001": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "dest": "SC1002_W_SC1001",
+   "connectors": [
+    "10118"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1001_W_RAMP_to_N_SC1001": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "dest": "SC1003_N_SC1001",
+   "connectors": [
+    "10368"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1001_W_RAMP_to_E": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "dest": "OUT_E",
+   "connectors": [
+    "10482"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1001_W_RAMP_to_S": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "dest": "OUT_S",
+   "connectors": [
+    "10490"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1001_W_RAMP_to_S_SC1001": {
+   "signal": "SC1001",
+   "approach": "W_RAMP",
+   "dest": "SC2002_S_SC1001",
+   "connectors": [
+    "10695"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1002_E_SC101_to_E_SC1002": {
+   "signal": "SC1002",
+   "approach": "E_SC101",
+   "dest": "SC1001_E_SC1002",
+   "connectors": [
+    "10691"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1002_E_SC101_to_S_SC1002": {
+   "signal": "SC1002",
+   "approach": "E_SC101",
+   "dest": "SC2004_S_SC1002",
+   "connectors": [
+    "10692"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1002_E_SC101_to_N_SC1002": {
+   "signal": "SC1002",
+   "approach": "E_SC101",
+   "dest": "SC105_N_SC1002",
+   "connectors": [
+    "10693"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1002_N_SC2004_to_N_SC1002": {
+   "signal": "SC1002",
+   "approach": "N_SC2004",
+   "dest": "SC105_N_SC1002",
+   "connectors": [
+    "10683"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1002_N_SC2004_to_E_SC1002": {
+   "signal": "SC1002",
+   "approach": "N_SC2004",
+   "dest": "SC1001_E_SC1002",
+   "connectors": [
+    "10684"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1002_N_SC2004_to_W_SC1002": {
+   "signal": "SC1002",
+   "approach": "N_SC2004",
+   "dest": "SC101_W_SC1002",
+   "connectors": [
+    "10687"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1002_S_SC105_to_W_SC1002": {
+   "signal": "SC1002",
+   "approach": "S_SC105",
+   "dest": "SC101_W_SC1002",
+   "connectors": [
+    "10688"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1002_S_SC105_to_S_SC1002": {
+   "signal": "SC1002",
+   "approach": "S_SC105",
+   "dest": "SC2004_S_SC1002",
+   "connectors": [
+    "10689"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1002_S_SC105_to_E_SC1002": {
+   "signal": "SC1002",
+   "approach": "S_SC105",
+   "dest": "SC1001_E_SC1002",
+   "connectors": [
+    "10690"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1002_W_SC1001_to_W_SC1002": {
+   "signal": "SC1002",
+   "approach": "W_SC1001",
+   "dest": "SC101_W_SC1002",
+   "connectors": [
+    "10685"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1002_W_SC1001_to_N_SC1002": {
+   "signal": "SC1002",
+   "approach": "W_SC1001",
+   "dest": "SC105_N_SC1002",
+   "connectors": [
+    "10686"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1002_W_SC1001_to_S_SC1002": {
+   "signal": "SC1002",
+   "approach": "W_SC1001",
+   "dest": "SC2004_S_SC1002",
+   "connectors": [
+    "10694"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1003_E_SC105_to_S_SC1003": {
+   "signal": "SC1003",
+   "approach": "E_SC105",
+   "dest": "SC1001_S_SC1003",
+   "connectors": [
+    "10492"
+   ],
+   "lanes": 1,
+   "sg": [
+    1
+   ]
+  },
+  "SC1003_E_SC105_to_N_SC1003": {
+   "signal": "SC1003",
+   "approach": "E_SC105",
+   "dest": "SC1004_N_SC1003",
+   "connectors": [
+    "10497"
+   ],
+   "lanes": 2,
+   "sg": [
+    1
+   ]
+  },
+  "SC1003_N_SC1001_to_N_SC1003": {
+   "signal": "SC1003",
+   "approach": "N_SC1001",
+   "dest": "SC1004_N_SC1003",
+   "connectors": [
+    "10495"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1003_N_SC1001_to_W_SC1003": {
+   "signal": "SC1003",
+   "approach": "N_SC1001",
+   "dest": "SC105_W_SC1003",
+   "connectors": [
+    "10496"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1003_S_SC1004_to_S_SC1003": {
+   "signal": "SC1003",
+   "approach": "S_SC1004",
+   "dest": "SC1001_S_SC1003",
+   "connectors": [
+    "10493"
+   ],
+   "lanes": 3,
+   "sg": [
+    8
+   ]
+  },
+  "SC1003_S_SC1004_to_W_SC1003": {
+   "signal": "SC1003",
+   "approach": "S_SC1004",
+   "dest": "SC105_W_SC1003",
+   "connectors": [
+    "10494"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  },
+  "SC1004_E_SC1005_to_S_SC1004": {
+   "signal": "SC1004",
+   "approach": "E_SC1005",
+   "dest": "SC1003_S_SC1004",
+   "connectors": [
+    "10628"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1004_E_SC1005_to_W": {
+   "signal": "SC1004",
+   "approach": "E_SC1005",
+   "dest": "OUT_W",
+   "connectors": [
+    "10629"
+   ],
+   "lanes": 3,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1004_E_SC1005_to_S": {
+   "signal": "SC1004",
+   "approach": "E_SC1005",
+   "dest": "OUT_S",
+   "connectors": [
+    "10630"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC1004_N_SC1003_to_S": {
+   "signal": "SC1004",
+   "approach": "N_SC1003",
+   "dest": "OUT_S",
+   "connectors": [
+    "10625"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1004_N_SC1003_to_E": {
+   "signal": "SC1004",
+   "approach": "N_SC1003",
+   "dest": "OUT_E",
+   "connectors": [
+    "10626"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1004_N_SC1003_to_W_SC1004": {
+   "signal": "SC1004",
+   "approach": "N_SC1003",
+   "dest": "SC1005_W_SC1004",
+   "connectors": [
+    "10627"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC1004_S_to_S_SC1004": {
+   "signal": "SC1004",
+   "approach": "S",
+   "dest": "SC1003_S_SC1004",
+   "connectors": [
+    "10631"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1004_S_to_W_SC1004": {
+   "signal": "SC1004",
+   "approach": "S",
+   "dest": "SC1005_W_SC1004",
+   "connectors": [
+    "10632"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1004_S_to_W": {
+   "signal": "SC1004",
+   "approach": "S",
+   "dest": "OUT_W",
+   "connectors": [
+    "10633"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC1004_W_to_W_SC1004": {
+   "signal": "SC1004",
+   "approach": "W",
+   "dest": "SC1005_W_SC1004",
+   "connectors": [
+    "10634"
+   ],
+   "lanes": 3,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1004_W_to_S_SC1004": {
+   "signal": "SC1004",
+   "approach": "W",
+   "dest": "SC1003_S_SC1004",
+   "connectors": [
+    "10635"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1004_W_to_E": {
+   "signal": "SC1004",
+   "approach": "W",
+   "dest": "OUT_E",
+   "connectors": [
+    "10642"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1005_E_SC107_to_S_SC1005": {
+   "signal": "SC1005",
+   "approach": "E_SC107",
+   "dest": "SC105_S_SC1005",
+   "connectors": [
+    "10603"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC1005_E_SC107_to_E_SC1005": {
+   "signal": "SC1005",
+   "approach": "E_SC107",
+   "dest": "SC1004_E_SC1005",
+   "connectors": [
+    "10612"
+   ],
+   "lanes": 2,
+   "sg": [
+    6
+   ]
+  },
+  "SC1005_N_SC105_to_E_SC1005": {
+   "signal": "SC1005",
+   "approach": "N_SC105",
+   "dest": "SC1004_E_SC1005",
+   "connectors": [
+    "10565"
+   ],
+   "lanes": 1,
+   "sg": [
+    7
+   ]
+  },
+  "SC1005_N_SC105_to_W_SC1005": {
+   "signal": "SC1005",
+   "approach": "N_SC105",
+   "dest": "SC107_W_SC1005",
+   "connectors": [
+    "10570"
+   ],
+   "lanes": 2,
+   "sg": [
+    7
+   ]
+  },
+  "SC1005_W_SC1004_to_S_SC1005": {
+   "signal": "SC1005",
+   "approach": "W_SC1004",
+   "dest": "SC105_S_SC1005",
+   "connectors": [
+    "10623"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC1005_W_SC1004_to_W_SC1005": {
+   "signal": "SC1005",
+   "approach": "W_SC1004",
+   "dest": "SC107_W_SC1005",
+   "connectors": [
+    "10624"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC101_E_SC5_to_S_SC101": {
+   "signal": "SC101",
+   "approach": "E_SC5",
+   "dest": "SC2005_S_SC101",
+   "connectors": [
+    "10510"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC101_E_SC5_to_E_SC101": {
+   "signal": "SC101",
+   "approach": "E_SC5",
+   "dest": "SC1002_E_SC101",
+   "connectors": [
+    "10534"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC101_E_SC5_to_N_SC101": {
+   "signal": "SC101",
+   "approach": "E_SC5",
+   "dest": "SC1_N_SC101",
+   "connectors": [
+    "10535"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC101_N_SC2005_to_N_SC101": {
+   "signal": "SC101",
+   "approach": "N_SC2005",
+   "dest": "SC1_N_SC101",
+   "connectors": [
+    "10536"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC101_N_SC2005_to_W_SC101": {
+   "signal": "SC101",
+   "approach": "N_SC2005",
+   "dest": "SC5_W_SC101",
+   "connectors": [
+    "10537"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC101_S_SC1_to_N": {
+   "signal": "SC101",
+   "approach": "S_SC1",
+   "dest": "OUT_N",
+   "connectors": [
+    "10528"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC101_S_SC1_to_S_SC101": {
+   "signal": "SC101",
+   "approach": "S_SC1",
+   "dest": "SC2005_S_SC101",
+   "connectors": [
+    "10538"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC101_S_SC1_to_E_SC101": {
+   "signal": "SC101",
+   "approach": "S_SC1",
+   "dest": "SC1002_E_SC101",
+   "connectors": [
+    "10539"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC101_W_SC1002_to_N_SC101": {
+   "signal": "SC101",
+   "approach": "W_SC1002",
+   "dest": "SC1_N_SC101",
+   "connectors": [
+    "10527"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC101_W_SC1002_to_W_SC101": {
+   "signal": "SC101",
+   "approach": "W_SC1002",
+   "dest": "SC5_W_SC101",
+   "connectors": [
+    "10532"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC101_W_SC1002_to_S_SC101": {
+   "signal": "SC101",
+   "approach": "W_SC1002",
+   "dest": "SC2005_S_SC101",
+   "connectors": [
+    "10533"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC102_E_SC103_to_N_SC102": {
+   "signal": "SC102",
+   "approach": "E_SC103",
+   "dest": "SC5_N_SC102",
+   "connectors": [
+    "10093"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC102_E_SC103_to_E_SC102": {
+   "signal": "SC102",
+   "approach": "E_SC103",
+   "dest": "SC2005_E_SC102",
+   "connectors": [
+    "10460"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC102_E_SC103_to_W": {
+   "signal": "SC102",
+   "approach": "E_SC103",
+   "dest": "OUT_W",
+   "connectors": [
+    "10462"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC102_N_to_N_SC102": {
+   "signal": "SC102",
+   "approach": "N",
+   "dest": "SC5_N_SC102",
+   "connectors": [
+    "10094"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC102_N_to_W_SC102": {
+   "signal": "SC102",
+   "approach": "N",
+   "dest": "SC103_W_SC102",
+   "connectors": [
+    "10467"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC102_N_to_E_SC102": {
+   "signal": "SC102",
+   "approach": "N",
+   "dest": "SC2005_E_SC102",
+   "connectors": [
+    "10468"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC102_S_SC5_to_N": {
+   "signal": "SC102",
+   "approach": "S_SC5",
+   "dest": "OUT_N",
+   "connectors": [
+    "10064"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC102_S_SC5_to_E_SC102": {
+   "signal": "SC102",
+   "approach": "S_SC5",
+   "dest": "SC2005_E_SC102",
+   "connectors": [
+    "10065"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC102_S_SC5_to_W_SC102": {
+   "signal": "SC102",
+   "approach": "S_SC5",
+   "dest": "SC103_W_SC102",
+   "connectors": [
+    "10089"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC102_W_SC2005_to_N_SC102": {
+   "signal": "SC102",
+   "approach": "W_SC2005",
+   "dest": "SC5_N_SC102",
+   "connectors": [
+    "10063"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC102_W_SC2005_to_W_SC102": {
+   "signal": "SC102",
+   "approach": "W_SC2005",
+   "dest": "SC103_W_SC102",
+   "connectors": [
+    "10457"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC102_W_SC2005_to_N": {
+   "signal": "SC102",
+   "approach": "W_SC2005",
+   "dest": "OUT_N",
+   "connectors": [
+    "10458"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC103_E_to_N_SC103": {
+   "signal": "SC103",
+   "approach": "E",
+   "dest": "SC6_N_SC103",
+   "connectors": [
+    "10101"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC103_E_to_E_SC103": {
+   "signal": "SC103",
+   "approach": "E",
+   "dest": "SC102_E_SC103",
+   "connectors": [
+    "10176"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC103_E_to_W": {
+   "signal": "SC103",
+   "approach": "E",
+   "dest": "OUT_W",
+   "connectors": [
+    "10177"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC103_N_to_N_SC103": {
+   "signal": "SC103",
+   "approach": "N",
+   "dest": "SC6_N_SC103",
+   "connectors": [
+    "10100"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC103_N_to_E_SC103": {
+   "signal": "SC103",
+   "approach": "N",
+   "dest": "SC102_E_SC103",
+   "connectors": [
+    "10168"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC103_N_to_E": {
+   "signal": "SC103",
+   "approach": "N",
+   "dest": "OUT_E",
+   "connectors": [
+    "10169"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC103_S_SC6_to_N": {
+   "signal": "SC103",
+   "approach": "S_SC6",
+   "dest": "OUT_N",
+   "connectors": [
+    "10095",
+    "10096"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC103_S_SC6_to_E_SC103": {
+   "signal": "SC103",
+   "approach": "S_SC6",
+   "dest": "SC102_E_SC103",
+   "connectors": [
+    "10097"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC103_W_SC102_to_N_SC103": {
+   "signal": "SC103",
+   "approach": "W_SC102",
+   "dest": "SC6_N_SC103",
+   "connectors": [
+    "10098"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC103_W_SC102_to_E": {
+   "signal": "SC103",
+   "approach": "W_SC102",
+   "dest": "OUT_E",
+   "connectors": [
+    "10173"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC103_W_SC102_to_N": {
+   "signal": "SC103",
+   "approach": "W_SC102",
+   "dest": "OUT_N",
+   "connectors": [
+    "10174"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC104_E_to_W": {
+   "signal": "SC104",
+   "approach": "E",
+   "dest": "OUT_W",
+   "connectors": [
+    "10091"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC104_E_to_E_SC104": {
+   "signal": "SC104",
+   "approach": "E",
+   "dest": "SC6_E_SC104",
+   "connectors": [
+    "10125"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC104_E_to_N_SC104": {
+   "signal": "SC104",
+   "approach": "E",
+   "dest": "SC106_N_SC104",
+   "connectors": [
+    "10126"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC104_N_to_E_SC104": {
+   "signal": "SC104",
+   "approach": "N",
+   "dest": "SC6_E_SC104",
+   "connectors": [
+    "10088"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC104_N_to_E": {
+   "signal": "SC104",
+   "approach": "N",
+   "dest": "OUT_E",
+   "connectors": [
+    "10099"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC104_N_to_N_SC104": {
+   "signal": "SC104",
+   "approach": "N",
+   "dest": "SC106_N_SC104",
+   "connectors": [
+    "10128"
+   ],
+   "lanes": 4,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC104_S_SC106_to_N": {
+   "signal": "SC104",
+   "approach": "S_SC106",
+   "dest": "OUT_N",
+   "connectors": [
+    "10167",
+    "10171"
+   ],
+   "lanes": 5,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC104_S_SC106_to_E_SC104": {
+   "signal": "SC104",
+   "approach": "S_SC106",
+   "dest": "SC6_E_SC104",
+   "connectors": [
+    "10170"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC104_W_SC6_to_E": {
+   "signal": "SC104",
+   "approach": "W_SC6",
+   "dest": "OUT_E",
+   "connectors": [
+    "10102"
+   ],
+   "lanes": 3,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC104_W_SC6_to_N": {
+   "signal": "SC104",
+   "approach": "W_SC6",
+   "dest": "OUT_N",
+   "connectors": [
+    "10120"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC104_W_SC6_to_N_SC104": {
+   "signal": "SC104",
+   "approach": "W_SC6",
+   "dest": "SC106_N_SC104",
+   "connectors": [
+    "10123"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC105_E_SC1_to_E_SC105": {
+   "signal": "SC105",
+   "approach": "E_SC1",
+   "dest": "SC1003_E_SC105",
+   "connectors": [
+    "10667"
+   ],
+   "lanes": 2,
+   "sg": [
+    6
+   ]
+  },
+  "SC105_E_SC1_to_S_SC105": {
+   "signal": "SC105",
+   "approach": "E_SC1",
+   "dest": "SC1002_S_SC105",
+   "connectors": [
+    "10668"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC105_E_SC1_to_N_SC105": {
+   "signal": "SC105",
+   "approach": "E_SC1",
+   "dest": "SC1005_N_SC105",
+   "connectors": [
+    "10669"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC105_N_SC1002_to_N_SC105": {
+   "signal": "SC105",
+   "approach": "N_SC1002",
+   "dest": "SC1005_N_SC105",
+   "connectors": [
+    "10661"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC105_N_SC1002_to_W_SC105": {
+   "signal": "SC105",
+   "approach": "N_SC1002",
+   "dest": "SC1_W_SC105",
+   "connectors": [
+    "10662"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC105_N_SC1002_to_E_SC105": {
+   "signal": "SC105",
+   "approach": "N_SC1002",
+   "dest": "SC1003_E_SC105",
+   "connectors": [
+    "10663"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC105_S_SC1005_to_S_SC105": {
+   "signal": "SC105",
+   "approach": "S_SC1005",
+   "dest": "SC1002_S_SC105",
+   "connectors": [
+    "10664"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC105_S_SC1005_to_W_SC105": {
+   "signal": "SC105",
+   "approach": "S_SC1005",
+   "dest": "SC1_W_SC105",
+   "connectors": [
+    "10665"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC105_S_SC1005_to_E_SC105": {
+   "signal": "SC105",
+   "approach": "S_SC1005",
+   "dest": "SC1003_E_SC105",
+   "connectors": [
+    "10666"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC105_W_SC1003_to_W_SC105": {
+   "signal": "SC105",
+   "approach": "W_SC1003",
+   "dest": "SC1_W_SC105",
+   "connectors": [
+    "10670"
+   ],
+   "lanes": 2,
+   "sg": [
+    2
+   ]
+  },
+  "SC105_W_SC1003_to_N_SC105": {
+   "signal": "SC105",
+   "approach": "W_SC1003",
+   "dest": "SC1005_N_SC105",
+   "connectors": [
+    "10671"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC105_W_SC1003_to_S_SC105": {
+   "signal": "SC105",
+   "approach": "W_SC1003",
+   "dest": "SC1002_S_SC105",
+   "connectors": [
+    "10672"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC106_E_to_S_SC106": {
+   "signal": "SC106",
+   "approach": "E",
+   "dest": "SC104_S_SC106",
+   "connectors": [
+    "10037"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC106_E_to_E_SC106": {
+   "signal": "SC106",
+   "approach": "E",
+   "dest": "SC12_E_SC106",
+   "connectors": [
+    "10057"
+   ],
+   "lanes": 2,
+   "sg": [
+    6
+   ]
+  },
+  "SC106_E_to_S": {
+   "signal": "SC106",
+   "approach": "E",
+   "dest": "OUT_S",
+   "connectors": [
+    "10058"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC106_N_SC104_to_S": {
+   "signal": "SC106",
+   "approach": "N_SC104",
+   "dest": "OUT_S",
+   "connectors": [
+    "10051"
+   ],
+   "lanes": 4,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC106_N_SC104_to_E_SC106": {
+   "signal": "SC106",
+   "approach": "N_SC104",
+   "dest": "SC12_E_SC106",
+   "connectors": [
+    "10052"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC106_N_SC104_to_E": {
+   "signal": "SC106",
+   "approach": "N_SC104",
+   "dest": "OUT_E",
+   "connectors": [
+    "10053"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC106_S_to_S_SC106": {
+   "signal": "SC106",
+   "approach": "S",
+   "dest": "SC104_S_SC106",
+   "connectors": [
+    "10054"
+   ],
+   "lanes": 4,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC106_S_to_E_SC106": {
+   "signal": "SC106",
+   "approach": "S",
+   "dest": "SC12_E_SC106",
+   "connectors": [
+    "10055"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC106_S_to_N": {
+   "signal": "SC106",
+   "approach": "S",
+   "dest": "OUT_N",
+   "connectors": [
+    "10056"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC106_W_SC12_to_E": {
+   "signal": "SC106",
+   "approach": "W_SC12",
+   "dest": "OUT_E",
+   "connectors": [
+    "10059",
+    "10061"
+   ],
+   "lanes": 3,
+   "sg": [
+    2
+   ]
+  },
+  "SC106_W_SC12_to_S_SC106": {
+   "signal": "SC106",
+   "approach": "W_SC12",
+   "dest": "SC104_S_SC106",
+   "connectors": [
+    "10060"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC107_E_SC108_to_S_SC107": {
+   "signal": "SC107",
+   "approach": "E_SC108",
+   "dest": "SC1_S_SC107",
+   "connectors": [
+    "10600"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC107_E_SC108_to_E_SC107": {
+   "signal": "SC107",
+   "approach": "E_SC108",
+   "dest": "SC1005_E_SC107",
+   "connectors": [
+    "10619"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC107_E_SC108_to_S": {
+   "signal": "SC107",
+   "approach": "E_SC108",
+   "dest": "OUT_S",
+   "connectors": [
+    "10620"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC107_N_SC1_to_W_SC107": {
+   "signal": "SC107",
+   "approach": "N_SC1",
+   "dest": "SC108_W_SC107",
+   "connectors": [
+    "10103"
+   ],
+   "lanes": 2,
+   "sg": [
+    7
+   ]
+  },
+  "SC107_N_SC1_to_E_SC1005": {
+   "signal": "SC107",
+   "approach": "N_SC1",
+   "dest": "SC1004_E_SC1005",
+   "connectors": [
+    "10610"
+   ],
+   "lanes": 1,
+   "sg": [
+    7
+   ]
+  },
+  "SC107_S_to_E_SC107": {
+   "signal": "SC107",
+   "approach": "S",
+   "dest": "SC1005_E_SC107",
+   "connectors": [
+    "10618"
+   ],
+   "lanes": 3,
+   "sg": [
+    3
+   ]
+  },
+  "SC107_W_SC1005_to_W_SC107": {
+   "signal": "SC107",
+   "approach": "W_SC1005",
+   "dest": "SC108_W_SC107",
+   "connectors": [
+    "10023"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC107_W_SC1005_to_E": {
+   "signal": "SC107",
+   "approach": "W_SC1005",
+   "dest": "OUT_E",
+   "connectors": [
+    "10616"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC107_W_SC1005_to_S_SC107": {
+   "signal": "SC107",
+   "approach": "W_SC1005",
+   "dest": "SC1_S_SC107",
+   "connectors": [
+    "10622"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC108_E_SC109_to_E_SC108": {
+   "signal": "SC108",
+   "approach": "E_SC109",
+   "dest": "SC107_E_SC108",
+   "connectors": [
+    "10292"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC108_E_SC109_to_S_SC108": {
+   "signal": "SC108",
+   "approach": "E_SC109",
+   "dest": "SC7_S_SC108",
+   "connectors": [
+    "10296"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC108_E_SC109_to_S": {
+   "signal": "SC108",
+   "approach": "E_SC109",
+   "dest": "OUT_S",
+   "connectors": [
+    "10297"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC108_N_SC7_to_S": {
+   "signal": "SC108",
+   "approach": "N_SC7",
+   "dest": "OUT_S",
+   "connectors": [
+    "10298"
+   ],
+   "lanes": 1,
+   "sg": [
+    4
+   ]
+  },
+  "SC108_N_SC7_to_E_SC108": {
+   "signal": "SC108",
+   "approach": "N_SC7",
+   "dest": "SC107_E_SC108",
+   "connectors": [
+    "10299"
+   ],
+   "lanes": 1,
+   "sg": [
+    4
+   ]
+  },
+  "SC108_N_SC7_to_W_SC108": {
+   "signal": "SC108",
+   "approach": "N_SC7",
+   "dest": "SC109_W_SC108",
+   "connectors": [
+    "10300"
+   ],
+   "lanes": 1,
+   "sg": [
+    4
+   ]
+  },
+  "SC108_S_to_E_SC108": {
+   "signal": "SC108",
+   "approach": "S",
+   "dest": "SC107_E_SC108",
+   "connectors": [
+    "10301"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  },
+  "SC108_S_to_S_SC108": {
+   "signal": "SC108",
+   "approach": "S",
+   "dest": "SC7_S_SC108",
+   "connectors": [
+    "10302"
+   ],
+   "lanes": 2,
+   "sg": [
+    8
+   ]
+  },
+  "SC108_S_to_W_SC108": {
+   "signal": "SC108",
+   "approach": "S",
+   "dest": "SC109_W_SC108",
+   "connectors": [
+    "10303"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  },
+  "SC108_W_SC107_to_W_SC108": {
+   "signal": "SC108",
+   "approach": "W_SC107",
+   "dest": "SC109_W_SC108",
+   "connectors": [
+    "10293"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC108_W_SC107_to_S_SC108": {
+   "signal": "SC108",
+   "approach": "W_SC107",
+   "dest": "SC7_S_SC108",
+   "connectors": [
+    "10294"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC108_W_SC107_to_E": {
+   "signal": "SC108",
+   "approach": "W_SC107",
+   "dest": "OUT_E",
+   "connectors": [
+    "10295"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC109_E_to_S_SC109": {
+   "signal": "SC109",
+   "approach": "E",
+   "dest": "SC16_S_SC109",
+   "connectors": [
+    "10274"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC109_E_to_E_SC109": {
+   "signal": "SC109",
+   "approach": "E",
+   "dest": "SC108_E_SC109",
+   "connectors": [
+    "10282"
+   ],
+   "lanes": 4,
+   "sg": [
+    6
+   ]
+  },
+  "SC109_N_SC16_to_E": {
+   "signal": "SC109",
+   "approach": "N_SC16",
+   "dest": "OUT_E",
+   "connectors": [
+    "10283"
+   ],
+   "lanes": 3,
+   "sg": [
+    7
+   ]
+  },
+  "SC109_W_SC108_to_E": {
+   "signal": "SC109",
+   "approach": "W_SC108",
+   "dest": "OUT_E",
+   "connectors": [
+    "10285"
+   ],
+   "lanes": 3,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC109_W_SC108_to_S_SC109": {
+   "signal": "SC109",
+   "approach": "W_SC108",
+   "dest": "SC16_S_SC109",
+   "connectors": [
+    "10286"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC11_E_SC12_to_N_SC11": {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "dest": "SC7_N_SC11",
+   "connectors": [
+    "10107"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC11_E_SC12_to_E_SC12": {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "dest": "SC11_E_SC12",
+   "connectors": [
+    "10365"
+   ],
+   "lanes": 2,
+   "sg": [
+    6
+   ]
+  },
+  "SC11_E_SC12_to_S_SC11": {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "dest": "SC5_S_SC11",
+   "connectors": [
+    "10366"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC11_E_SC12_to_E_SC11": {
+   "signal": "SC11",
+   "approach": "E_SC12",
+   "dest": "SC1_E_SC11",
+   "connectors": [
+    "10367"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC11_N_SC5_to_N_SC11": {
+   "signal": "SC11",
+   "approach": "N_SC5",
+   "dest": "SC7_N_SC11",
+   "connectors": [
+    "10373"
+   ],
+   "lanes": 2,
+   "sg": [
+    4
+   ]
+  },
+  "SC11_N_SC5_to_E_SC11": {
+   "signal": "SC11",
+   "approach": "N_SC5",
+   "dest": "SC1_E_SC11",
+   "connectors": [
+    "10374"
+   ],
+   "lanes": 1,
+   "sg": [
+    4
+   ]
+  },
+  "SC11_N_SC5_to_W_SC11": {
+   "signal": "SC11",
+   "approach": "N_SC5",
+   "dest": "SC12_W_SC11",
+   "connectors": [
+    "10375"
+   ],
+   "lanes": 1,
+   "sg": [
+    4
+   ]
+  },
+  "SC11_S_SC7_to_W_SC11": {
+   "signal": "SC11",
+   "approach": "S_SC7",
+   "dest": "SC12_W_SC11",
+   "connectors": [
+    "10108"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  },
+  "SC11_S_SC7_to_S_SC11": {
+   "signal": "SC11",
+   "approach": "S_SC7",
+   "dest": "SC5_S_SC11",
+   "connectors": [
+    "10376"
+   ],
+   "lanes": 2,
+   "sg": [
+    8
+   ]
+  },
+  "SC11_S_SC7_to_E_SC11": {
+   "signal": "SC11",
+   "approach": "S_SC7",
+   "dest": "SC1_E_SC11",
+   "connectors": [
+    "10378"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  },
+  "SC11_W_SC1_to_N_SC11": {
+   "signal": "SC11",
+   "approach": "W_SC1",
+   "dest": "SC7_N_SC11",
+   "connectors": [
+    "10104"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC11_W_SC1_to_W_SC11": {
+   "signal": "SC11",
+   "approach": "W_SC1",
+   "dest": "SC12_W_SC11",
+   "connectors": [
+    "10370"
+   ],
+   "lanes": 2,
+   "sg": [
+    2
+   ]
+  },
+  "SC11_W_SC1_to_S_SC11": {
+   "signal": "SC11",
+   "approach": "W_SC1",
+   "dest": "SC5_S_SC11",
+   "connectors": [
+    "10372"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC12_E_SC106_to_E_SC12": {
+   "signal": "SC12",
+   "approach": "E_SC106",
+   "dest": "SC11_E_SC12",
+   "connectors": [
+    "10238"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC12_E_SC106_to_S_SC12": {
+   "signal": "SC12",
+   "approach": "E_SC106",
+   "dest": "SC6_S_SC12",
+   "connectors": [
+    "10239"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC12_E_SC106_to_N_SC12": {
+   "signal": "SC12",
+   "approach": "E_SC106",
+   "dest": "SC16_N_SC12",
+   "connectors": [
+    "10240"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC12_N_SC6_to_N_SC12": {
+   "signal": "SC12",
+   "approach": "N_SC6",
+   "dest": "SC16_N_SC12",
+   "connectors": [
+    "10235"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC12_N_SC6_to_E_SC12": {
+   "signal": "SC12",
+   "approach": "N_SC6",
+   "dest": "SC11_E_SC12",
+   "connectors": [
+    "10236"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC12_N_SC6_to_W_SC12": {
+   "signal": "SC12",
+   "approach": "N_SC6",
+   "dest": "SC106_W_SC12",
+   "connectors": [
+    "10237"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC12_S_SC16_to_S_SC12": {
+   "signal": "SC12",
+   "approach": "S_SC16",
+   "dest": "SC6_S_SC12",
+   "connectors": [
+    "10244"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC12_S_SC16_to_E_SC12": {
+   "signal": "SC12",
+   "approach": "S_SC16",
+   "dest": "SC11_E_SC12",
+   "connectors": [
+    "10245"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC12_S_SC16_to_W_SC12": {
+   "signal": "SC12",
+   "approach": "S_SC16",
+   "dest": "SC106_W_SC12",
+   "connectors": [
+    "10246"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC12_W_SC11_to_W_SC12": {
+   "signal": "SC12",
+   "approach": "W_SC11",
+   "dest": "SC106_W_SC12",
+   "connectors": [
+    "10241"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC12_W_SC11_to_S_SC12": {
+   "signal": "SC12",
+   "approach": "W_SC11",
+   "dest": "SC6_S_SC12",
+   "connectors": [
+    "10242"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC12_W_SC11_to_N_SC12": {
+   "signal": "SC12",
+   "approach": "W_SC11",
+   "dest": "SC16_N_SC12",
+   "connectors": [
+    "10243"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC16_E_to_E_SC16": {
+   "signal": "SC16",
+   "approach": "E",
+   "dest": "SC7_E_SC16",
+   "connectors": [
+    "10257"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC16_E_to_S_SC16": {
+   "signal": "SC16",
+   "approach": "E",
+   "dest": "SC12_S_SC16",
+   "connectors": [
+    "10258"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC16_E_to_N_SC16": {
+   "signal": "SC16",
+   "approach": "E",
+   "dest": "SC109_N_SC16",
+   "connectors": [
+    "10259"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC16_N_SC12_to_N_SC16": {
+   "signal": "SC16",
+   "approach": "N_SC12",
+   "dest": "SC109_N_SC16",
+   "connectors": [
+    "10248"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC16_N_SC12_to_E": {
+   "signal": "SC16",
+   "approach": "N_SC12",
+   "dest": "OUT_E",
+   "connectors": [
+    "10250"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC16_N_SC12_to_E_SC16": {
+   "signal": "SC16",
+   "approach": "N_SC12",
+   "dest": "SC7_E_SC16",
+   "connectors": [
+    "10252"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC16_S_SC109_to_S_SC16": {
+   "signal": "SC16",
+   "approach": "S_SC109",
+   "dest": "SC12_S_SC16",
+   "connectors": [
+    "10249"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC16_S_SC109_to_E_SC16": {
+   "signal": "SC16",
+   "approach": "S_SC109",
+   "dest": "SC7_E_SC16",
+   "connectors": [
+    "10251"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC16_S_SC109_to_N": {
+   "signal": "SC16",
+   "approach": "S_SC109",
+   "dest": "OUT_N",
+   "connectors": [
+    "10253"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC16_W_SC7_to_E": {
+   "signal": "SC16",
+   "approach": "W_SC7",
+   "dest": "OUT_E",
+   "connectors": [
+    "10254"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC16_W_SC7_to_N_SC16": {
+   "signal": "SC16",
+   "approach": "W_SC7",
+   "dest": "SC109_N_SC16",
+   "connectors": [
+    "10255"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC16_W_SC7_to_S_SC16": {
+   "signal": "SC16",
+   "approach": "W_SC7",
+   "dest": "SC12_S_SC16",
+   "connectors": [
+    "10256"
+   ],
+   "lanes": 1,
+   "sg": [
+    2
+   ]
+  },
+  "SC2001_E_SC2002_to_W": {
+   "signal": "SC2001",
+   "approach": "E_SC2002",
+   "dest": "OUT_W",
+   "connectors": [
+    "10720"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2001_E_SC2002_to_N": {
+   "signal": "SC2001",
+   "approach": "E_SC2002",
+   "dest": "OUT_N",
+   "connectors": [
+    "10725"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2001_E_SC2002_to_S": {
+   "signal": "SC2001",
+   "approach": "E_SC2002",
+   "dest": "OUT_S",
+   "connectors": [
+    "10726"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2001_N_to_S": {
+   "signal": "SC2001",
+   "approach": "N",
+   "dest": "OUT_S",
+   "connectors": [
+    "10721",
+    "10727"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2001_N_to_W_SC2001": {
+   "signal": "SC2001",
+   "approach": "N",
+   "dest": "SC2002_W_SC2001",
+   "connectors": [
+    "10728"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2001_S_to_N": {
+   "signal": "SC2001",
+   "approach": "S",
+   "dest": "OUT_N",
+   "connectors": [
+    "10717"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2001_S_to_W_SC2001": {
+   "signal": "SC2001",
+   "approach": "S",
+   "dest": "SC2002_W_SC2001",
+   "connectors": [
+    "10718"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2001_S_to_W": {
+   "signal": "SC2001",
+   "approach": "S",
+   "dest": "OUT_W",
+   "connectors": [
+    "10719"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2001_W_to_W_SC2001": {
+   "signal": "SC2001",
+   "approach": "W",
+   "dest": "SC2002_W_SC2001",
+   "connectors": [
+    "10722"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2001_W_to_E": {
+   "signal": "SC2001",
+   "approach": "W",
+   "dest": "OUT_E",
+   "connectors": [
+    "10723"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2001_W_to_N": {
+   "signal": "SC2001",
+   "approach": "W",
+   "dest": "OUT_N",
+   "connectors": [
+    "10724"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2002_E_SC2003_to_E_SC2002": {
+   "signal": "SC2002",
+   "approach": "E_SC2003",
+   "dest": "SC2001_E_SC2002",
+   "connectors": [
+    "10732"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2002_E_SC2003_to_N_SC2002": {
+   "signal": "SC2002",
+   "approach": "E_SC2003",
+   "dest": "SC1001_N_SC2002",
+   "connectors": [
+    "10733"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2002_E_SC2003_to_W": {
+   "signal": "SC2002",
+   "approach": "E_SC2003",
+   "dest": "OUT_W",
+   "connectors": [
+    "10734"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2002_N_to_N_SC2002": {
+   "signal": "SC2002",
+   "approach": "N",
+   "dest": "SC1001_N_SC2002",
+   "connectors": [
+    "10731"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2002_N_to_E_SC2002": {
+   "signal": "SC2002",
+   "approach": "N",
+   "dest": "SC2001_E_SC2002",
+   "connectors": [
+    "10735"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2002_N_to_W_SC2002": {
+   "signal": "SC2002",
+   "approach": "N",
+   "dest": "SC2003_W_SC2002",
+   "connectors": [
+    "10736"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2002_S_SC1001_to_N": {
+   "signal": "SC2002",
+   "approach": "S_SC1001",
+   "dest": "OUT_N",
+   "connectors": [
+    "10730"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2002_S_SC1001_to_W_SC2002": {
+   "signal": "SC2002",
+   "approach": "S_SC1001",
+   "dest": "SC2003_W_SC2002",
+   "connectors": [
+    "10739"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2002_S_SC1001_to_E_SC2002": {
+   "signal": "SC2002",
+   "approach": "S_SC1001",
+   "dest": "SC2001_E_SC2002",
+   "connectors": [
+    "10770"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2002_W_SC2001_to_W_SC2002": {
+   "signal": "SC2002",
+   "approach": "W_SC2001",
+   "dest": "SC2003_W_SC2002",
+   "connectors": [
+    "10729"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2002_W_SC2001_to_N_SC2002": {
+   "signal": "SC2002",
+   "approach": "W_SC2001",
+   "dest": "SC1001_N_SC2002",
+   "connectors": [
+    "10737"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2002_W_SC2001_to_N": {
+   "signal": "SC2002",
+   "approach": "W_SC2001",
+   "dest": "OUT_N",
+   "connectors": [
+    "10738"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2003_E_SC2004_to_E_SC2003": {
+   "signal": "SC2003",
+   "approach": "E_SC2004",
+   "dest": "SC2002_E_SC2003",
+   "connectors": [
+    "10741"
+   ],
+   "lanes": 3,
+   "sg": [
+    6
+   ]
+  },
+  "SC2003_E_SC2004_to_W": {
+   "signal": "SC2003",
+   "approach": "E_SC2004",
+   "dest": "OUT_W",
+   "connectors": [
+    "10745"
+   ],
+   "lanes": 1,
+   "sg": [
+    6
+   ]
+  },
+  "SC2003_N_to_E_SC2003": {
+   "signal": "SC2003",
+   "approach": "N",
+   "dest": "SC2002_E_SC2003",
+   "connectors": [
+    "10742"
+   ],
+   "lanes": 1,
+   "sg": [
+    7
+   ]
+  },
+  "SC2003_N_to_W_SC2003": {
+   "signal": "SC2003",
+   "approach": "N",
+   "dest": "SC2004_W_SC2003",
+   "connectors": [
+    "10743"
+   ],
+   "lanes": 2,
+   "sg": [
+    7
+   ]
+  },
+  "SC2003_W_SC2002_to_W_SC2003": {
+   "signal": "SC2003",
+   "approach": "W_SC2002",
+   "dest": "SC2004_W_SC2003",
+   "connectors": [
+    "10740"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2003_W_SC2002_to_N": {
+   "signal": "SC2003",
+   "approach": "W_SC2002",
+   "dest": "OUT_N",
+   "connectors": [
+    "10744"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2004_E_SC2005_to_E_SC2004": {
+   "signal": "SC2004",
+   "approach": "E_SC2005",
+   "dest": "SC2003_E_SC2004",
+   "connectors": [
+    "10752"
+   ],
+   "lanes": 2,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2004_E_SC2005_to_N_SC2004": {
+   "signal": "SC2004",
+   "approach": "E_SC2005",
+   "dest": "SC1002_N_SC2004",
+   "connectors": [
+    "10753"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2004_E_SC2005_to_W": {
+   "signal": "SC2004",
+   "approach": "E_SC2005",
+   "dest": "OUT_W",
+   "connectors": [
+    "10754"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2004_N_to_N_SC2004": {
+   "signal": "SC2004",
+   "approach": "N",
+   "dest": "SC1002_N_SC2004",
+   "connectors": [
+    "10755"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2004_N_to_W_SC2004": {
+   "signal": "SC2004",
+   "approach": "N",
+   "dest": "SC2005_W_SC2004",
+   "connectors": [
+    "10756"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2004_N_to_E_SC2004": {
+   "signal": "SC2004",
+   "approach": "N",
+   "dest": "SC2003_E_SC2004",
+   "connectors": [
+    "10757"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2004_S_SC1002_to_N": {
+   "signal": "SC2004",
+   "approach": "S_SC1002",
+   "dest": "OUT_N",
+   "connectors": [
+    "10749"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2004_S_SC1002_to_E_SC2004": {
+   "signal": "SC2004",
+   "approach": "S_SC1002",
+   "dest": "SC2003_E_SC2004",
+   "connectors": [
+    "10750"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2004_S_SC1002_to_W_SC2004": {
+   "signal": "SC2004",
+   "approach": "S_SC1002",
+   "dest": "SC2005_W_SC2004",
+   "connectors": [
+    "10751"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2004_W_SC2003_to_W_SC2004": {
+   "signal": "SC2004",
+   "approach": "W_SC2003",
+   "dest": "SC2005_W_SC2004",
+   "connectors": [
+    "10746"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2004_W_SC2003_to_N_SC2004": {
+   "signal": "SC2004",
+   "approach": "W_SC2003",
+   "dest": "SC1002_N_SC2004",
+   "connectors": [
+    "10747"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2004_W_SC2003_to_N": {
+   "signal": "SC2004",
+   "approach": "W_SC2003",
+   "dest": "OUT_N",
+   "connectors": [
+    "10748"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2005_E_SC102_to_E_SC2005": {
+   "signal": "SC2005",
+   "approach": "E_SC102",
+   "dest": "SC2004_E_SC2005",
+   "connectors": [
+    "10761"
+   ],
+   "lanes": 3,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2005_E_SC102_to_N": {
+   "signal": "SC2005",
+   "approach": "E_SC102",
+   "dest": "OUT_N",
+   "connectors": [
+    "10762"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2005_E_SC102_to_N_SC2005": {
+   "signal": "SC2005",
+   "approach": "E_SC102",
+   "dest": "SC101_N_SC2005",
+   "connectors": [
+    "10763"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC2005_N_to_N_SC2005": {
+   "signal": "SC2005",
+   "approach": "N",
+   "dest": "SC101_N_SC2005",
+   "connectors": [
+    "10764"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2005_N_to_W_SC2005": {
+   "signal": "SC2005",
+   "approach": "N",
+   "dest": "SC102_W_SC2005",
+   "connectors": [
+    "10765"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2005_N_to_E_SC2005": {
+   "signal": "SC2005",
+   "approach": "N",
+   "dest": "SC2004_E_SC2005",
+   "connectors": [
+    "10766"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC2005_S_SC101_to_N": {
+   "signal": "SC2005",
+   "approach": "S_SC101",
+   "dest": "OUT_N",
+   "connectors": [
+    "10758"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2005_S_SC101_to_W_SC2005": {
+   "signal": "SC2005",
+   "approach": "S_SC101",
+   "dest": "SC102_W_SC2005",
+   "connectors": [
+    "10759"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2005_S_SC101_to_E_SC2005": {
+   "signal": "SC2005",
+   "approach": "S_SC101",
+   "dest": "SC2004_E_SC2005",
+   "connectors": [
+    "10760"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC2005_W_SC2004_to_W_SC2005": {
+   "signal": "SC2005",
+   "approach": "W_SC2004",
+   "dest": "SC102_W_SC2005",
+   "connectors": [
+    "10767"
+   ],
+   "lanes": 2,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2005_W_SC2004_to_N_SC2005": {
+   "signal": "SC2005",
+   "approach": "W_SC2004",
+   "dest": "SC101_N_SC2005",
+   "connectors": [
+    "10768"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC2005_W_SC2004_to_N": {
+   "signal": "SC2005",
+   "approach": "W_SC2004",
+   "dest": "OUT_N",
+   "connectors": [
+    "10769"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC5_E_SC6_to_E_SC5": {
+   "signal": "SC5",
+   "approach": "E_SC6",
+   "dest": "SC101_E_SC5",
+   "connectors": [
+    "10032"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC5_E_SC6_to_S_SC5": {
+   "signal": "SC5",
+   "approach": "E_SC6",
+   "dest": "SC102_S_SC5",
+   "connectors": [
+    "10428"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC5_E_SC6_to_N_SC5": {
+   "signal": "SC5",
+   "approach": "E_SC6",
+   "dest": "SC11_N_SC5",
+   "connectors": [
+    "10429"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC5_N_SC102_to_N_SC5": {
+   "signal": "SC5",
+   "approach": "N_SC102",
+   "dest": "SC11_N_SC5",
+   "connectors": [
+    "10421"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC5_N_SC102_to_W_SC5": {
+   "signal": "SC5",
+   "approach": "N_SC102",
+   "dest": "SC6_W_SC5",
+   "connectors": [
+    "10422"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC5_N_SC102_to_E_SC5": {
+   "signal": "SC5",
+   "approach": "N_SC102",
+   "dest": "SC101_E_SC5",
+   "connectors": [
+    "10423"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC5_S_SC11_to_S_SC5": {
+   "signal": "SC5",
+   "approach": "S_SC11",
+   "dest": "SC102_S_SC5",
+   "connectors": [
+    "10418"
+   ],
+   "lanes": 2,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC5_S_SC11_to_E_SC5": {
+   "signal": "SC5",
+   "approach": "S_SC11",
+   "dest": "SC101_E_SC5",
+   "connectors": [
+    "10419"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC5_S_SC11_to_W_SC5": {
+   "signal": "SC5",
+   "approach": "S_SC11",
+   "dest": "SC6_W_SC5",
+   "connectors": [
+    "10420"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC5_W_SC101_to_W_SC5": {
+   "signal": "SC5",
+   "approach": "W_SC101",
+   "dest": "SC6_W_SC5",
+   "connectors": [
+    "10424"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC5_W_SC101_to_S_SC5": {
+   "signal": "SC5",
+   "approach": "W_SC101",
+   "dest": "SC102_S_SC5",
+   "connectors": [
+    "10425"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC5_W_SC101_to_N_SC5": {
+   "signal": "SC5",
+   "approach": "W_SC101",
+   "dest": "SC11_N_SC5",
+   "connectors": [
+    "10426"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC6_E_SC104_to_S_SC6": {
+   "signal": "SC6",
+   "approach": "E_SC104",
+   "dest": "SC103_S_SC6",
+   "connectors": [
+    "10142"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC6_E_SC104_to_E_SC6": {
+   "signal": "SC6",
+   "approach": "E_SC104",
+   "dest": "SC5_E_SC6",
+   "connectors": [
+    "10200"
+   ],
+   "lanes": 4,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC6_E_SC104_to_N_SC6": {
+   "signal": "SC6",
+   "approach": "E_SC104",
+   "dest": "SC12_N_SC6",
+   "connectors": [
+    "10201"
+   ],
+   "lanes": 1,
+   "sg": [
+    1,
+    6
+   ]
+  },
+  "SC6_N_SC103_to_N_SC6": {
+   "signal": "SC6",
+   "approach": "N_SC103",
+   "dest": "SC12_N_SC6",
+   "connectors": [
+    "10202"
+   ],
+   "lanes": 3,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC6_N_SC103_to_W_SC6": {
+   "signal": "SC6",
+   "approach": "N_SC103",
+   "dest": "SC104_W_SC6",
+   "connectors": [
+    "10203"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC6_N_SC103_to_E_SC6": {
+   "signal": "SC6",
+   "approach": "N_SC103",
+   "dest": "SC5_E_SC6",
+   "connectors": [
+    "10204"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC6_S_SC12_to_S_SC6": {
+   "signal": "SC6",
+   "approach": "S_SC12",
+   "dest": "SC103_S_SC6",
+   "connectors": [
+    "10205"
+   ],
+   "lanes": 3,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC6_S_SC12_to_E_SC6": {
+   "signal": "SC6",
+   "approach": "S_SC12",
+   "dest": "SC5_E_SC6",
+   "connectors": [
+    "10206"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC6_S_SC12_to_W_SC6": {
+   "signal": "SC6",
+   "approach": "S_SC12",
+   "dest": "SC104_W_SC6",
+   "connectors": [
+    "10207"
+   ],
+   "lanes": 1,
+   "sg": [
+    3,
+    8
+   ]
+  },
+  "SC6_W_SC5_to_W_SC6": {
+   "signal": "SC6",
+   "approach": "W_SC5",
+   "dest": "SC104_W_SC6",
+   "connectors": [
+    "10197"
+   ],
+   "lanes": 4,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC6_W_SC5_to_S_SC6": {
+   "signal": "SC6",
+   "approach": "W_SC5",
+   "dest": "SC103_S_SC6",
+   "connectors": [
+    "10198"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC6_W_SC5_to_N_SC6": {
+   "signal": "SC6",
+   "approach": "W_SC5",
+   "dest": "SC12_N_SC6",
+   "connectors": [
+    "10199"
+   ],
+   "lanes": 1,
+   "sg": [
+    2,
+    5
+   ]
+  },
+  "SC7_E_SC16_to_S_SC108": {
+   "signal": "SC7",
+   "approach": "E_SC16",
+   "dest": "SC7_S_SC108",
+   "connectors": [
+    "10332"
+   ],
+   "lanes": 1,
+   "sg": [
+    1
+   ]
+  },
+  "SC7_E_SC16_to_N_SC7": {
+   "signal": "SC7",
+   "approach": "E_SC16",
+   "dest": "SC108_N_SC7",
+   "connectors": [
+    "10333"
+   ],
+   "lanes": 1,
+   "sg": [
+    1
+   ]
+  },
+  "SC7_N_SC11_to_N_SC7": {
+   "signal": "SC7",
+   "approach": "N_SC11",
+   "dest": "SC108_N_SC7",
+   "connectors": [
+    "10328"
+   ],
+   "lanes": 2,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC7_N_SC11_to_W_SC7": {
+   "signal": "SC7",
+   "approach": "N_SC11",
+   "dest": "SC16_W_SC7",
+   "connectors": [
+    "10330"
+   ],
+   "lanes": 1,
+   "sg": [
+    4,
+    7
+   ]
+  },
+  "SC7_S_SC108_to_S_SC108": {
+   "signal": "SC7",
+   "approach": "S_SC108",
+   "dest": "SC7_S_SC108",
+   "connectors": [
+    "10329"
+   ],
+   "lanes": 2,
+   "sg": [
+    8
+   ]
+  },
+  "SC7_S_SC108_to_W_SC7": {
+   "signal": "SC7",
+   "approach": "S_SC108",
+   "dest": "SC16_W_SC7",
+   "connectors": [
+    "10331"
+   ],
+   "lanes": 1,
+   "sg": [
+    8
+   ]
+  }
+ }
+}
