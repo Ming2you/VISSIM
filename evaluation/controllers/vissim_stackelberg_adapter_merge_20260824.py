@@ -1794,22 +1794,47 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
         setattr(cfg.network, "movement_capacity_by_movement_veh_h", folded)
 
     # --- 검지 매핑도 같은 이름으로 옮긴다 ---
+    #
+    # **`link_to_movements` 의 값은 문자열 리스트가 아니라 dict 리스트다.**
+    #   "17": [{"movement": "SC7_N_SC11_to_E", "weight": 0.25, "source": ..., "approach": ...}, ...]
+    # 문자열로 보고 `str(entry)` 를 키로 쓰면 하나도 안 맞아 204개 링크가 전부 빈
+    # 리스트가 되고, movement 큐 주입이 통째로 0 이 된다(실측: 투영 진단의
+    # `movement_queue_assigned_veh` 가 1291.7 -> 0.00, 못 간 물량이 storage 로 밀려
+    # `storage_assigned_veh` 917 -> 1982). 그래서 **weight 까지 합산**해야 한다 —
+    # 두 항목이 같은 병합 대상으로 오면 가중치를 더해야 링크 총량이 보존된다.
     relinked = 0
     if isinstance(detector_mapping, MutableMapping):
         l2m = detector_mapping.get("link_to_movements")
         if isinstance(l2m, MutableMapping):
-            for link, names in list(l2m.items()):
-                if not isinstance(names, list):
+            for link, entries in list(l2m.items()):
+                if not isinstance(entries, list):
                     continue
-                seen: list[str] = []
-                for n in names:
-                    new = rename.get(str(n))
-                    if new is None or new in seen:
-                        continue
-                    seen.append(new)
-                if seen != names:
+                folded: dict[str, Any] = {}
+                order: list[str] = []
+                for entry in entries:
+                    if isinstance(entry, Mapping):
+                        old = str(entry.get("movement", ""))
+                        new = rename.get(old)
+                        if new is None:
+                            continue
+                        if new in folded:
+                            folded[new]["weight"] = (_as_float(folded[new].get("weight"), 0.0)
+                                                     + _as_float(entry.get("weight"), 0.0))
+                            continue
+                        item = dict(entry)
+                        item["movement"] = new
+                        folded[new] = item
+                        order.append(new)
+                    else:
+                        new = rename.get(str(entry))
+                        if new is None or new in folded:
+                            continue
+                        folded[new] = new
+                        order.append(new)
+                out = [folded[k] for k in order]
+                if out != entries:
                     relinked += 1
-                l2m[link] = seen
+                l2m[link] = out
         agents = detector_mapping.get("agents")
         if isinstance(agents, MutableMapping):
             for _aid, spec in agents.items():
@@ -1818,7 +1843,7 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
                 vis = spec.get("visible_movements")
                 if not isinstance(vis, list):
                     continue
-                seen = []
+                seen: list[str] = []
                 for n in vis:
                     new = rename.get(str(n))
                     if new is None or new in seen:
