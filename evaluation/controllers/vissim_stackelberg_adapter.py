@@ -12,7 +12,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, MutableMapping, Sequence
 
 
 WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
@@ -1800,6 +1800,55 @@ def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mappin
         meta["midblock_dropped_observable_links"] = float(len(obs) - len(kept))
         out["observable_links"] = kept
     return out, meta
+
+
+MEASURED_BETA_EVIDENCE_JSON = WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json"
+
+
+def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """movement 회전분율 `beta` 를 **실측**으로 바꾼다. `urban.beta.measured` 없으면 no-op.
+
+    왜. 모델의 beta 474개가 전부 균등 분배 기본값이다(0.5 / 0.25 / 0.167 / 0.125 / 0.1 —
+    전부 1/2, 1/4, 1/6, 1/8, 1/10). 실측 산출물은 저장소에 없었다.
+
+    무엇이 틀어지나 (SC5 동쪽, 무제어 실측 1,694대):
+
+        to_W_SC101 (직진)   0.500 -> 0.764
+        to_N_SC102 (우)     0.167 -> 0.125
+        to_S_SC11  (좌)     0.167 -> 0.111
+        to_S       (경계좌) 0.167 -> **0.000**
+
+    좌회전 수요를 3배로 부풀린다. 그 결과 현시별 "큐/용량" 이
+    p4(좌) 102.3초 > p3(직진) 76.8초 로 역전되고, `local` 이 좌회전을 더 급하다고 본다.
+    가격이 p3 를 1위(+0.043)로 가리켜도 정련이 못 옮긴다 — conv 런에서 정련은 SC5 를
+    48초씩 움직이면서 **p3 만 건너뛴다**. SC5 동쪽 실측 정지차가 231대까지 쌓인다.
+
+    beta 는 관측 투영(링크 큐 -> movement 배분)과 플랜트 라우팅에 함께 쓰이므로
+    이 하나가 큐 분포와 동역학을 동시에 왜곡한다.
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("beta"))
+    if not _is_enabled_value(section.get("measured")):
+        return {"measured_beta_enabled": 0.0}
+    if not MEASURED_BETA_EVIDENCE_JSON.is_file():
+        return {"measured_beta_enabled": 0.0, "measured_beta_source_missing": 1.0}
+    doc = json.loads(MEASURED_BETA_EVIDENCE_JSON.read_text(encoding="utf-8"))
+    beta = _mapping(doc.get("beta"))
+    floor = _as_float(section.get("floor"), 0.0)
+    applied, changed = 0, 0.0
+    for movement, value in beta.items():
+        spec = (cfg.network.urban_movements or {}).get(str(movement))
+        if not isinstance(spec, MutableMapping):
+            continue
+        new = max(float(floor), _as_float(value, 0.0))
+        changed += abs(new - _as_float(spec.get("beta"), 0.0))
+        spec["beta"] = new
+        applied += 1
+    return {
+        "measured_beta_enabled": 1.0,
+        "measured_beta_movements": float(applied),
+        "measured_beta_total_shift": float(round(changed, 3)),
+        "measured_beta_floor": float(floor),
+    }
 
 
 def _native_live_phases_by_signal(cfg) -> dict[str, list[str]]:
@@ -6893,6 +6942,8 @@ def main() -> None:
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
     runtime_patch_metadata.update(install_urban_stopline_storage(cfg, tuning))
+    # 회전분율은 관측 투영과 플랜트 라우팅에 함께 쓰인다 — 용량/구조 설치보다 먼저다.
+    runtime_patch_metadata.update(install_measured_turn_beta(cfg, tuning))
     runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
     # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
     runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))
