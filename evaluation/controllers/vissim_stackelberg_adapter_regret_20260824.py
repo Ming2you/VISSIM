@@ -1900,8 +1900,10 @@ def restore_leader_feedback_state(controller, tuning: Mapping[str, Any],
     이 팔의 목적은 **되먹임이 살아났을 때 실제로 무엇이 보이는가**를 재는 것이다 —
     β̂ 궤적과 regret 발화 횟수가 처음으로 관측된다.
     """
-    section = _mapping(_mapping(tuning.get("config_overrides")).get("mpc"))
-    if not _is_enabled_value(section.get("leader_feedback_carry")):
+    # **config_overrides.mpc 에 두면 안 된다** — 그건 MPCConfig(**raw) 로 splat 되므로
+    # dataclass 에 없는 키는 TypeError 를 낸다(1차 시도가 그렇게 3회 죽었다).
+    section = _mapping(_mapping(tuning.get("urban")).get("leader_feedback"))
+    if not _is_enabled_value(section.get("carry")):
         return {"leader_feedback_carry_enabled": 0.0}
     raw = None
     try:

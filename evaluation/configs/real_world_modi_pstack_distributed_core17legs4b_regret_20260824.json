@@ -9,12 +9,17 @@
   "나르는 방법은 sat_est_<link> 와 같다 — 직전 action JSON 의 metadata 에 실어 보낸다. 새 채널이 아니라 이미 쓰는 채널이다. 어댑터 사본 vissim_stackelberg_adapter_regret_20260824.py 에만 있고 mpc.leader_feedback_carry 없으면 no-op(비트 동일).",
   "**기대치를 낮춰 잡는다.** regret 이 발화해도 incumbent(PFO)로 되돌릴 뿐인데 리더-PFO 는 예측 동률(≤0.105 veh·h)이라 되돌릴 곳이 사실상 같다. 이 팔의 목적은 되먹임이 살아났을 때 **무엇이 보이는가** — β̂ 궤적과 regret 발화 횟수가 처음 관측된다. TTT 개선은 부수적이다.",
   "fallback_guard_beta 도 같이 켠다(state.py:722 기본 False). β̂ 이 살아야 의미가 있는 스위치라 지금까지 켤 수 없었다.",
-  "대조: merge 4838.7(+0.61%) · 무제어(시드13) 4808.1 · 시드 σ 50.7"
+  "대조: merge 4838.7(+0.61%) · 무제어(시드13) 4808.1 · 시드 σ 50.7",
+  "함정: config_overrides.mpc 는 MPCConfig(**raw['mpc']) 로 splat 된다 — dataclass 에 없는 키를 넣으면 TypeError 로 런이 통째로 죽는다(regret 1차 시도 3회 전부 실패). 어댑터 전용 스위치는 tuning 최상위(urban.*)에 둬야 한다. fallback_guard_beta 는 state.py:722 의 실제 필드라 mpc 에 남는다."
  ],
  "config_overrides": {
   "mpc": {
-   "leader_feedback_carry": true,
    "fallback_guard_beta": true
+  }
+ },
+ "urban": {
+  "leader_feedback": {
+   "carry": true
   }
  }
 }
