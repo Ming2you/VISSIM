@@ -1,0 +1,17 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_merge_20260824.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_leadforce_20260824",
+ "description": "4위 확인 — 리더 강제 커밋. 리더 층이 정말 불활성인지 실측으로 닫는다.",
+ "notes": [
+  "왜. 검증 결론: 리더 층은 불활성이다. 후보 objective 스프레드 ≤0.15%, base guard 기각 0/33, 리더-폴백 예측 rollout TTT 차 ≤0.105 veh·h(런 합계 0.174). 즉 리더 예산 (N_P*, N_UF*) 가 팔로워 응답을 모델에서 거의 안 바꾼다.",
+  "stackelberg_enable_fallback:false 로 33/33 리더 강제 커밋한다. 두 점의 예측차가 ≤0.1 이므로 **|ΔTTT| ≈ 0 이 예측**이다.",
+  "예측대로 0 이면 '리더 층 무기여'가 실측으로 닫히고, 앞으로 리더 쪽 튜닝에 시간을 쓰지 않는다. 유의하게 움직이면 예측-실현 괴리(모델 충실도) 문제로 재정의된다.",
+  "기존 lead_20260820 은 --controller stackelberg 에 어댑터 20ee90bc 세대라 wu-link 대조로 못 쓴다. 이 팔이 첫 동일조건 대조다.",
+  "대조: merge 4838.7 · 무제어(시드13) 4808.1"
+ ],
+ "config_overrides": {
+  "mpc": {
+   "stackelberg_enable_fallback": false
+  }
+ }
+}
