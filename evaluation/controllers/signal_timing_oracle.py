@@ -45,6 +45,21 @@ SCHEMA_VERSION = "signal-timing-oracle-v3"
 # 러너가 신호를 쓰는 시각 격자[초]. 이벤트 스케줄러가 정수 초에서만 멈춘다.
 READBACK_RESOLUTION_SEC = 1.0
 # 계획(IMPLEMENTATION_PLAN_V3_LEAN.md N4-6)이 요구하는 전이 시각 오차 상한[초].
+#
+# **왜 0.5 로는 원리상 통과할 수 없나.** 계획의 녹색창 경계는 실수(지시 축 녹색 x native
+# 분율)이고 러너는 정수 초에서만 쓴다. 실현 전이는 의도의 올림이라 오차가 **구조적으로**
+# [0, 1) 초다 — 구현 품질과 무관하다. 실측 최악 0.999 s. 즉 이 게이트는 어떤 구현으로도
+# 못 넘는다.
+#
+# **그리고 과녁이 어긋나 있다.** 이 오차는 전적으로 **녹색창 경계**에서 온다. offset 은
+# 아니다 — `.sig` 의 신호별 offset 17개가 **전부 정수**다(SC1 131 · SC5 36 · SC7 1 ·
+# SC16 149 · SC1001~1005 75 …). 1초 격자가 offset 을 **정확히** 표현하므로 offset
+# 양자화 오차는 0 이다. 그런데 이 게이트가 N4-7 offset 승격을 잠근 채로 둔다.
+#
+# 그래서 `gate_sec` 을 인자로 노출한다. 기본은 계획대로 0.5 라 **비트 동일**이고,
+# 완화는 호출부가 명시해야 하며 그 값이 판정문과 증거 산출물에 그대로 찍힌다 —
+# 상수를 조용히 바꿔서 "언젠가 그냥 풀리는" 길을 막는 것이 이 모듈의 요점이다.
+# 1.0 은 액추에이션 격자 그 자체라 물리적으로 정당한 완화값이다.
 TRANSITION_TIME_GATE_SEC = 0.5
 
 TOUCH_EPS_SEC = 1.0e-9
@@ -214,7 +229,7 @@ def _cycle_wrap_gate(decisions) -> dict[str, Any]:
     )
 
 
-def _quantization_gate(decisions) -> dict[str, Any]:
+def _quantization_gate(decisions, *, gate_sec: float = TRANSITION_TIME_GATE_SEC) -> dict[str, Any]:
     """의도한 경계 시각과 러너가 실제로 쓸 수 있는 초 사이의 거리[초].
 
     실 런이 필요 없다. 계획의 경계가 실수이고 러너가 정수 초에서만 쓰기 때문에
@@ -237,12 +252,12 @@ def _quantization_gate(decisions) -> dict[str, Any]:
                     if error > worst:
                         worst = error
                         example = f"sc={sc_no} sg={sg_no} boundary={bound}"
-    status = PASS if worst <= TRANSITION_TIME_GATE_SEC + TOUCH_EPS_SEC else FAIL
+    status = PASS if worst <= gate_sec + TOUCH_EPS_SEC else FAIL
     return _gate(
         "command_quantization_sec", status,
         f"worst |intended boundary - first writable second| = {worst:.6f} s "
-        f"(gate {TRANSITION_TIME_GATE_SEC} s, worst at {example}); "
-        "the runner writes signal states only on integer seconds",
+        f"(gate {gate_sec} s{' RELAXED from %s' % TRANSITION_TIME_GATE_SEC if gate_sec != TRANSITION_TIME_GATE_SEC else ''}, "
+        f"worst at {example}); the runner writes signal states only on integer seconds",
         value=worst,
     )
 
@@ -529,6 +544,7 @@ def evaluate(
     action_rows: Iterable[Mapping[str, Any]] | None,
     readback_rows: Iterable[Mapping[str, Any]] | None,
     min_green_sec: float | None = None,
+    transition_gate_sec: float = TRANSITION_TIME_GATE_SEC,
 ) -> dict[str, Any]:
     """D-core 판정. 측정 불가는 PASS 가 아니라 BLOCKED / NOT_EVALUATED 다."""
     amber_sec = float((plan_table or {}).get("amber_sec", 3.0))
@@ -538,7 +554,7 @@ def evaluate(
     gates: list[dict[str, Any]] = [
         _plan_self_conflict_gate(decisions, conflicts),
         _cycle_wrap_gate(decisions),
-        _quantization_gate(decisions),
+        _quantization_gate(decisions, gate_sec=transition_gate_sec),
         _min_green_gate(decisions, min_green_sec),
     ]
     gates.extend(_readback_gates(decisions, readback_rows, conflicts, amber_sec))
@@ -546,13 +562,13 @@ def evaluate(
         _gate(
             "transition_time_error_sec",
             BLOCKED,
-            f"the D-core gate is {TRANSITION_TIME_GATE_SEC} s but signal states are written and "
+            f"the D-core gate is {transition_gate_sec} s but signal states are written and "
             f"read back only on a {READBACK_RESOLUTION_SEC:g} s grid, so the error cannot be "
             "resolved. Per IMPLEMENTATION_PLAN_V3_LEAN.md N4-6 this is BLOCKED, not PASS, and it "
             "keeps the N4-7 offset promotion locked.",
             needs=(
                 "sub-second signal readback (a runner that steps and reads back finer than "
-                f"{TRANSITION_TIME_GATE_SEC} s), or an agreed relaxation of the gate"
+                f"{transition_gate_sec} s), or an agreed relaxation of the gate"
             ),
         )
     )

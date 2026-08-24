@@ -116,6 +116,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--action-log-csv", type=Path, default=None)
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
     parser.add_argument("--min-green-sec", type=float, default=None)
+    # 전이시각 게이트[초]. 기본은 계획대로 0.5 라 **비트 동일**이다.
+    #
+    # 왜 노출하나. 0.5 는 원리상 통과 불가능하다 — 계획의 녹색창 경계가 실수(축 녹색 x
+    # native 분율)이고 러너는 정수 초에서만 쓰므로 전이 오차가 **구조적으로** [0,1) 초다
+    # (실측 최악 0.999). 그리고 과녁이 어긋나 있다: 그 오차는 전적으로 녹색창 경계에서
+    # 오고 offset 은 아니다 — `.sig` 의 신호별 offset 17개가 **전부 정수**라 1초 격자가
+    # offset 을 정확히 표현한다. 그런데 이 게이트가 N4-7 offset 승격을 잠근 채로 둔다.
+    #
+    # 1.0 은 액추에이션 격자 그 자체다. 완화는 반드시 여기서 **명시**해야 하고 그 값이
+    # 판정문과 증거 산출물에 그대로 찍힌다 — 상수를 조용히 바꿔 "언젠가 그냥 풀리는"
+    # 길을 막는 것이 이 잠금의 요점이다.
+    parser.add_argument("--transition-gate-sec", type=float, default=None,
+                        help="전이시각 게이트[초]. 미지정이면 계획값 0.5.")
     parser.add_argument("--simulate-major-green", type=float, default=None)
     parser.add_argument("--simulate-minor-green", type=float, default=None)
     parser.add_argument("--out", type=Path, default=None)
@@ -142,7 +155,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         action_data,
         read_csv_rows(readback_path),
         min_green_sec=args.min_green_sec,
+        **({"transition_gate_sec": float(args.transition_gate_sec)}
+           if args.transition_gate_sec is not None else {}),
     )
+    # 완화했으면 증거에 남긴다. 산출물만 보고도 어떤 기준으로 통과했는지 알아야 한다.
+    if args.transition_gate_sec is not None:
+        report["transition_gate_sec_override"] = float(args.transition_gate_sec)
+        report["transition_gate_sec_plan_default"] = float(
+            signal_timing_oracle.TRANSITION_TIME_GATE_SEC)
     report["sources"] = {
         "plan": str(args.plan),
         "readback_csv": str(readback_path) if readback_path else "",
