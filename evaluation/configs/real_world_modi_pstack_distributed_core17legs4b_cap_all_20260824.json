@@ -1,0 +1,23 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_beta2_20260824.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_cap_all_20260824",
+ "description": "perimeter movement 용량을 차로비례로. perimeter 290개 전부. 미해결 212개는 같은 turn 종류 중앙값(해결된 perimeter 에서 뽑는다).",
+ "notes": [
+  "2026-08-24. install_movement_capacity_by_lanes 가 internal 184개만 차로비례로 재정규화하고 perimeter 290개는 맵 밖에 남겨, _movement_capacity_flow 가 전역 스칼라 1400 을 준다. internal 실측 평균 ~330 대 perimeter 1400 — 없던 4배 비대칭이다. lanes 팔 이전엔 둘 다 1400 이라 상대 비교가 최소한 공정했다.",
+  "방류가 min(available, T_u_h x green x cap_flow) 라 cap 에 선형이고 리더가 현시를 고를 때 쓰는 게 그 상대값이다. 현시 68개 중 53개가 두 종류를 섞고, 라이브 leader_boundary_in_queue_veh 는 1,084대다.",
+  "vendor 수정(urban_queue_model._movement_capacity_flow): perimeter 분기가 per_movement 를 읽어 놓고 쓰지 않았다. ceiling 으로 반영한다. 맵에 없으면 전역 스칼라라 비트 동일. 회귀 테스트 test_perimeter_movement_honours_per_movement_capacity 추가.",
+  "per_lane 은 internal 정규화 값(206.53)을 그대로 쓴다 — perimeter 를 같은 풀에 넣어 재정규화하면 equivalent_uniform_veh_h=330 의 3시점 검정 적합이 깨지고 internal 도 함께 움직여 단일변수가 아니게 된다. 이렇게 하면 internal 은 비트 동일하다.",
+  "차로수 유도: pn_boundary_turns_v1 의 물리 회전 306개 -> 커넥터 -> .inpx <lanes> 자식 수(306/306). 검산: 이 유도가 내는 internal 170개가 기존 movement_lanes 파일(독립 경로)과 170/170 일치.",
+  "예상 값: perimeter 1400 -> min 207 · 중앙 207 · 최대 826.",
+  "대조: beta2(모부) · conv 4837.8 · 무제어 4781.1",
+  "모델 perimeter 290개 중 물리 회전과 매칭되는 건 78개뿐인데 나머지 212개 중 206개가 beta>0.01 로 실제 큐를 받는다. urban_movements 가 leg 교차곱 선언이라 그렇다(CLAUDE.md).",
+  "그래서 212개를 1400 에 남기면 같은 kind 안에서 7배 차이가 새로 생긴다. 일관성을 위해 전부 같은 척도로 옮긴다. 대신 212개는 추정값이다 — 그게 cap_resolved 와의 차이다."
+ ],
+ "urban": {
+  "capacity": {
+   "per_lane": true,
+   "equivalent_uniform_veh_h": 330.0,
+   "perimeter": "all"
+  }
+ }
+}

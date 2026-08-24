@@ -722,15 +722,27 @@ def _movement_capacity_flow(
         return float(per_movement) if per_movement is not None else float(net.movement_capacity_veh_h)
     origin = str(spec.get("origin", ""))
     destination = str(spec.get("destination", ""))
+    # perimeter 의 **물리 상한**. allocation 은 그 위에 걸리는 별개의 제어 제약이다.
+    #
+    # 2026-08-24 수정. 여기가 `per_movement` 를 읽어 놓고 쓰지 않아서, movement 별 용량
+    # (2026-08-21 도입, 목적이 "movement 간 상대 용량을 맞춘다")이 **절반만 배선돼 있었다.**
+    # internal 184개만 차로비례(실측 평균 ~330)를 받고 perimeter 290개는 전역 스칼라
+    # 1400 에 남아, 없던 **4배 비대칭**이 생겼다. 방류가
+    # `min(available, T_u_h x green x cap_flow)` 라 cap 에 선형이고 리더가 현시를 고를 때
+    # 쓰는 게 그 상대값이라, 경계 접근로에 과배분하고 내부를 굶는 방향으로 작용한다.
+    # 현시 68개 중 53개가 두 종류를 섞는다.
+    #
+    # 맵에 그 movement 가 없으면 `ceiling` 이 전역 스칼라라 **기존과 비트 동일**이다.
+    ceiling = float(per_movement) if per_movement is not None else float(net.movement_capacity_veh_h)
     return float(min(
         control.inflow_outflow_allocation.get(
             movement,
             control.inflow_outflow_allocation.get(
                 origin,
-                control.inflow_outflow_allocation.get(destination, net.movement_capacity_veh_h),
+                control.inflow_outflow_allocation.get(destination, ceiling),
             ),
         ),
-        net.movement_capacity_veh_h,
+        ceiling,
     ))
 
 

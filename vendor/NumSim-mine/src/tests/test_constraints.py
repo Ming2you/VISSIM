@@ -1699,6 +1699,57 @@ class ConstraintTests(unittest.TestCase):
             throttle,
         )
 
+    def test_perimeter_movement_honours_per_movement_capacity(self):
+        # 2026-08-24. perimeter 도 movement 별 용량을 물리 상한으로 쓴다.
+        # 이전엔 `per_movement` 를 읽고 버려서 internal 만 차로비례를 받고 perimeter 는
+        # 전역 스칼라에 남아 4배 비대칭이 생겼다.
+        from src.models.urban_queue_model import (
+            PERIMETER_MOVEMENT_KINDS,
+            _movement_capacity_flow,
+            movement_specs,
+        )
+
+        cfg = short_config()
+        net = cfg.network
+        specs = movement_specs(cfg)
+        perimeter = next(
+            m for m, s in specs.items() if s.get("kind") in PERIMETER_MOVEMENT_KINDS
+        )
+        control = ControlAction.fixed(cfg)
+        control.inflow_outflow_allocation.pop(perimeter, None)
+        origin = str(specs[perimeter].get("origin", ""))
+        destination = str(specs[perimeter].get("destination", ""))
+        control.inflow_outflow_allocation.pop(origin, None)
+        control.inflow_outflow_allocation.pop(destination, None)
+
+        # 맵이 비면 전역 스칼라 — 도입 전과 비트 동일.
+        self.assertEqual(
+            _movement_capacity_flow(control, cfg, perimeter, specs[perimeter]),
+            net.movement_capacity_veh_h,
+        )
+
+        # 맵에 값이 있으면 그 값이 상한이 된다.
+        narrow = net.movement_capacity_veh_h / 4.0
+        net.movement_capacity_by_movement_veh_h = {perimeter: narrow}
+        self.assertEqual(
+            _movement_capacity_flow(control, cfg, perimeter, specs[perimeter]),
+            narrow,
+        )
+
+        # allocation 이 더 조이면 allocation 이 이긴다(제어 제약이 물리 상한 아래).
+        control.inflow_outflow_allocation[perimeter] = narrow / 2.0
+        self.assertEqual(
+            _movement_capacity_flow(control, cfg, perimeter, specs[perimeter]),
+            narrow / 2.0,
+        )
+
+        # allocation 이 물리 상한보다 크면 물리 상한이 이긴다.
+        control.inflow_outflow_allocation[perimeter] = narrow * 10.0
+        self.assertEqual(
+            _movement_capacity_flow(control, cfg, perimeter, specs[perimeter]),
+            narrow,
+        )
+
     def test_stackelberg_can_use_distributed_follower_solver(self):
         cfg = ExperimentConfig.from_file(
             "src/config/default.yaml",

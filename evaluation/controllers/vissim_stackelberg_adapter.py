@@ -1737,17 +1737,92 @@ def install_movement_capacity_by_lanes(cfg, tuning: Mapping[str, Any]) -> dict[s
     total_share = sum(share.values())
     per_lane = total_target / total_share if total_share > 1.0e-9 else 0.0
     caps = {m: per_lane * v for m, v in share.items()}
+
+    # ---- perimeter 를 같은 척도로 끌어온다 (`urban.capacity.perimeter`) ----
+    #
+    # 왜. 위 정규화는 **internal 184개만** 다룬다. perimeter 290개는 맵 밖에 남아
+    # `_movement_capacity_flow` 가 전역 스칼라 1400 을 준다 — internal 실측 평균이
+    # ~330 이라 **없던 4배 비대칭**이 생긴다. lanes 팔 이전엔 둘 다 1400 이라
+    # 상대 비교가 최소한 공정했다. 방류가 cap 에 선형이고 리더가 현시를 고를 때 쓰는 게
+    # 그 상대값이라, 경계 접근로에 과배분하고 내부를 굶는 방향으로 작용한다.
+    # 현시 68개 중 53개가 두 종류를 섞는다.
+    #
+    # **`per_lane` 은 internal 정규화 값을 그대로 쓴다.** perimeter 를 같은 풀에 넣어
+    # 재정규화하면 `equivalent_uniform_veh_h` 가 184개 풀에서 3시점 검정으로 뽑힌
+    # 값이라 그 적합이 깨지고, internal 값도 함께 움직여 단일변수가 아니게 된다.
+    # 이렇게 하면 **internal 은 비트 동일**하고 perimeter 만 척도가 맞는다.
+    #
+    #   off       미설정/false. perimeter 는 전역 스칼라 그대로 — 기존과 비트 동일.
+    #   resolved  물리 회전(pn_boundary_turns_v1)으로 확인된 것만. 보수적.
+    #   all       resolved + 나머지는 같은 turn 종류 중앙값(internal 미해결 처리와 같은 규칙).
+    #
+    # `resolved` 와 `all` 을 가르는 이유: 모델 perimeter 290개 중 물리 회전과 매칭되는
+    # 것은 78개뿐인데, 나머지 212개 중 **206개가 beta > 0.01** 로 실제 큐를 받는다.
+    # 물리 회전 목록에 없는 movement 에 수요가 흐른다는 뜻이라(urban_movements 는
+    # leg 교차곱 선언이다) 그 212개를 어떻게 다룰지가 별도 변수다. 팔로 가른다.
+    peri_mode = str(section.get("perimeter") or "off").strip().lower()
+    if peri_mode in {"false", "0", "no"}:
+        peri_mode = "off"
+    peri_meta: dict[str, float] = {"movement_capacity_perimeter_mode_all": 0.0,
+                                   "movement_capacity_perimeter_count": 0.0}
+    if peri_mode != "off":
+        if peri_mode not in {"resolved", "all"}:
+            raise ValueError(f"urban.capacity.perimeter 는 off/resolved/all 중 하나여야 한다: {peri_mode!r}")
+        src_p = WORKSPACE_ROOT / "outputs/movement_lanes_perimeter_20260824.json"
+        if not src_p.is_file():
+            peri_meta["movement_capacity_perimeter_source_missing"] = 1.0
+        else:
+            doc_p = json.loads(src_p.read_text(encoding="utf-8"))
+            lanes_p = _mapping(doc_p.get("movement_lanes_perimeter"))
+            keep_out = _is_enabled_value(section.get("perimeter_include_boundary_out", True))
+            peri = {m: sp for m, sp in movements.items()
+                    if str(sp.get("kind", "")) in PERIMETER_MOVEMENT_KINDS_ADAPTER
+                    and (keep_out or str(sp.get("kind", "")) != "boundary_out")}
+            # 미해결분을 채울 중앙값은 **해결된 perimeter** 에서 뽑는다. internal 중앙값을
+            # 쓰면 다른 모집단의 값을 빌려오는 것이라 근거가 없다.
+            peri_by_turn: dict[str, list[float]] = {}
+            for m, sp in peri.items():
+                v = _as_float(lanes_p.get(m), 0.0)
+                if v > 0.0:
+                    peri_by_turn.setdefault(str(sp.get("turn", "")), []).append(v)
+            peri_median = {t: sorted(v)[len(v) // 2] for t, v in peri_by_turn.items() if v}
+            fallback_all = sorted(x for v in peri_by_turn.values() for x in v)
+            estimated = 0
+            for m, sp in peri.items():
+                v = _as_float(lanes_p.get(m), 0.0)
+                if v <= 0.0:
+                    if peri_mode != "all":
+                        continue
+                    v = peri_median.get(str(sp.get("turn", "")),
+                                        fallback_all[len(fallback_all) // 2] if fallback_all else 1.0)
+                    estimated += 1
+                caps[m] = per_lane * float(v)
+            pvals = sorted(caps[m] for m in peri if m in caps)
+            peri_meta = {
+                "movement_capacity_perimeter_mode_all": 1.0 if peri_mode == "all" else 0.0,
+                "movement_capacity_perimeter_count": float(len(pvals)),
+                "movement_capacity_perimeter_estimated": float(estimated),
+                "movement_capacity_perimeter_include_boundary_out": 1.0 if keep_out else 0.0,
+            }
+            if pvals:
+                peri_meta["movement_capacity_perimeter_min_veh_h"] = float(pvals[0])
+                peri_meta["movement_capacity_perimeter_median_veh_h"] = float(pvals[len(pvals) // 2])
+                peri_meta["movement_capacity_perimeter_max_veh_h"] = float(pvals[-1])
+
     setattr(cfg.network, "movement_capacity_by_movement_veh_h", caps)
-    vals = sorted(caps.values())
-    return {
+    ivals = sorted(per_lane * v for v in share.values())
+    out = {
         "movement_capacity_by_lanes_enabled": 1.0,
         "movement_capacity_by_lanes_count": float(len(caps)),
+        "movement_capacity_by_lanes_internal_count": float(len(share)),
         "movement_capacity_by_lanes_per_lane_veh_h": float(per_lane),
         "movement_capacity_by_lanes_equivalent_uniform": float(equiv),
-        "movement_capacity_by_lanes_min_veh_h": float(vals[0]),
-        "movement_capacity_by_lanes_median_veh_h": float(vals[len(vals) // 2]),
-        "movement_capacity_by_lanes_max_veh_h": float(vals[-1]),
+        "movement_capacity_by_lanes_min_veh_h": float(ivals[0]),
+        "movement_capacity_by_lanes_median_veh_h": float(ivals[len(ivals) // 2]),
+        "movement_capacity_by_lanes_max_veh_h": float(ivals[-1]),
     }
+    out.update(peri_meta)
+    return out
 
 
 def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mapping[str, Any]):
