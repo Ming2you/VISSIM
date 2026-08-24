@@ -1,0 +1,18 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_nfclean_20260824",
+ "description": "주기 팽창 없는 native-fixed 대조 — offset+부분창 효과만 분리한다.",
+ "notes": [
+  "nativefixed_20260824(5009.1, 무제어 대비 +201.0)는 깨끗한 대조가 아니다. 합성 주기가 녹색합+3x현시수라 동시현시 SC 의 주기가 팽창했다 — 실측 SC5 240s · SC7 213s · SC16 116s, 나머지 14개만 150s.",
+  "주기가 1.6배면 주기당 서비스 횟수가 그만큼 줄고 인접 신호와 주기가 달라 연동이 성립하지 않는다. +201 에 offset 손실과 주기 팽창이 섞여 있다.",
+  "이 팔은 팽창하는 3개를 빼고 14개만 native 분할로 고정한다. 남는 대조는 offset 상실 + 부분창 배달 + 순차 4현시이고 주기는 전부 150 으로 같다.",
+  "읽는 법: 이 값이 무제어 4808 에 가까우면 +201 의 대부분이 주기 팽창이었다는 뜻이고, 여전히 크게 나쁘면 offset+부분창이 지배한다는 뜻이다.",
+  "offset 자체를 켜는 팔은 못 만든다 — 신호별 offset 은 production writer 가 필요하고 D-core 오라클의 transition_time_error_sec 가 BLOCKED 다(게이트 0.5초 vs 러너의 1초 격자). 강제 offset 경로 둘(diagnostic_fixed · signal_green_freeze)은 녹색까지 2현시로 얼려 분할을 잃는다.",
+  "대조: 무제어(시드13) 4808.1 · nativefixed 5009.1 · merge 4838.7 · 시드 σ 50.7"
+ ],
+ "urban": {
+  "native_fixed": {
+   "cycle_safe_only": true
+  }
+ }
+}

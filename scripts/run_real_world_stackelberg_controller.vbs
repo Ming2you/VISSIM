@@ -146,8 +146,18 @@ RW_PYTHON_EXE = ""
 ' 그래서 기본값이 intent_only 이고, 손으로 고친 action CSV 든 옛 어댑터가 만든
 ' action CSV 든 nonzero offset 이 오면 그 CSV 를 **전량** 거부한다.
 ' 격리된 시험 harness 는 자기 generated config 에서 "test_only" 로 선언한다.
+' offset writer. 기본 intent_only 이고, 환경변수로 **test_only 까지만** 올라간다.
+' production 은 여기서 절대 안 열린다 - 삼중 잠금(D-core + N9 + N8-4)을 증거 산출물에서
+' 판정하는 evaluation/controllers/offset_promotion.py 만이 그것을 연다.
+'
+' test_only 는 그 모듈이 "**강제 offset arm** 만 낸다" 고 못박은 격리 시험용이다.
+' 최적화기가 고른 offset 은 test_only 에서도 안 나간다 - 어댑터가 강제 표를 실을 때만
+' 신호별 값이 CSV 에 실린다.
 Dim RW_OFFSET_WRITER
 RW_OFFSET_WRITER = "intent_only"
+If LCase(Trim(shell.ExpandEnvironmentStrings("%RW_OFFSET_WRITER%"))) = "test_only" Then
+    RW_OFFSET_WRITER = "test_only"
+End If
 ' N4-5. SG 단위 액추에이션 계획의 계약. scripts/derive_signal_group_actuation_plan.py 가
 ' generated config 옆에 <config>_sgplan.vbs 로 내보내고, 여기서 ExecuteGlobal 한다.
 '   RW_SIGNAL_SG_EXPECTED   "sc:sg:window_count,..."  이 SC 의 모든 SG 와 기대 창 수

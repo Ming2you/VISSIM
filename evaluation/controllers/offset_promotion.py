@@ -87,6 +87,39 @@ FORCED_ARM_DIAGNOSTIC_KEYS = (
     "signal_green_freeze_offset_sec",
 )
 
+# 신호별 강제 offset 표. `{signal: offset_sec}` 를 담은 JSON 문자열이다.
+#
+# 왜 필요한가. 위 두 키는 **스칼라 하나**를 전 신호에 똑같이 쓴다. 공통 주기 망에서
+# 균일 이동은 상대 위상을 하나도 안 바꾸므로 연동을 시험할 수 없다. 그런데 이 모듈이
+# `test_only` 를 둔 목적이 바로 "**강제 offset arm**" 이다 — 최적화기가 고른 offset 이
+# 아니라 harness 가 지정한 값. `.sig` 의 신호별 native offset 을 그대로 재생하는 것이
+# 정확히 그 경우다(17개 전부 정수라 1초 격자에 오차 0 으로 들어간다).
+#
+# **production 은 이 키로 열리지 않는다.** 여기서 넓히는 것은 test_only 가 표현할 수
+# 있는 강제 arm 의 모양뿐이고, 삼중 잠금과 optimizer-chosen offset 의 경로는 그대로다.
+FORCED_ARM_TABLE_KEY = "forced_signal_offsets_json"
+
+
+def forced_arm_offset_table(control: Any) -> dict[str, float]:
+    """control 이 실은 신호별 강제 offset 표. 없으면 빈 dict."""
+    diagnostics = getattr(control, "diagnostics", None) or {}
+    raw = diagnostics.get(FORCED_ARM_TABLE_KEY)
+    if not isinstance(raw, str) or not raw:
+        return {}
+    try:
+        blob = json.loads(raw)
+    except ValueError:
+        return {}
+    if not isinstance(blob, Mapping):
+        return {}
+    out: dict[str, float] = {}
+    for key, value in blob.items():
+        try:
+            out[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
+    return out
+
 
 class OffsetPromotionError(RuntimeError):
     """승격 잠금을 우회하려는 설정. 조용히 무시하지 않고 런을 세운다."""
@@ -277,8 +310,12 @@ def guard_forced_arm(control: Any, writer: str) -> None:
     offset 효과 없음으로 읽히고, 그것이 잠금보다 위험하다.
     """
     forced = forced_arm_offset_sec(control)
-    if forced is None or abs(float(forced)) <= 1.0e-9:
+    table = forced_arm_offset_table(control)
+    table_max = max((abs(v) for v in table.values()), default=0.0)
+    if (forced is None or abs(float(forced)) <= 1.0e-9) and table_max <= 1.0e-9:
         return
+    if forced is None:
+        forced = table_max
     if writer == WRITER_INTENT_ONLY:
         raise OffsetPromotionError(
             f"control carries a forced offset arm ({forced} s) but this run declares "
@@ -293,6 +330,10 @@ def written_offset_sec(signal: str, control: Any, writer: str) -> float:
     if writer == WRITER_PRODUCTION:
         return float((getattr(control, "offsets", None) or {}).get(signal, 0.0))
     if writer == WRITER_TEST_ONLY:
+        # 신호별 표가 있으면 그것이 우선이다(연동 시험용). 없으면 종전대로 스칼라.
+        table = forced_arm_offset_table(control)
+        if table:
+            return float(table.get(str(signal), 0.0))
         forced = forced_arm_offset_sec(control)
         return 0.0 if forced is None else float(forced)
     return 0.0
@@ -344,6 +385,8 @@ __all__ = [
     "WRITER_INTENT_ONLY",
     "WRITER_PRODUCTION",
     "WRITER_TEST_ONLY",
+    "FORCED_ARM_TABLE_KEY",
+    "forced_arm_offset_table",
     "action_metadata",
     "evaluate",
     "forced_arm_offset_sec",

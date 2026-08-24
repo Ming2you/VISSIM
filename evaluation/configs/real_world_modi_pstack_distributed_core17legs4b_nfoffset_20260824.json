@@ -1,0 +1,24 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_nfoffset_20260824",
+ "description": "native 분할 + native offset — 집행 채널이 충실한지 판정한다.",
+ "notes": [
+  "**test_only 강제 arm 이다. production 은 안 열었다.** offset_promotion 모듈이 test_only 를 둔 목적이 '강제 offset arm 만 낸다'이고, .sig 의 native offset 을 그대로 재생하는 것이 정확히 그 경우다. 최적화기가 고른 offset 은 여전히 안 나간다.",
+  "기존 강제 키 둘(diagnostic_forced_signal_offset_sec · signal_green_freeze_offset_sec)은 전 신호에 **같은 스칼라** 하나를 쓴다 — 공통 주기 망에서 균일 이동은 상대 위상을 안 바꾸므로 연동 시험이 불가능하고, 게다가 녹색까지 2현시로 얼려 분할을 잃는다. 그래서 신호별 표(FORCED_ARM_TABLE_KEY)를 신설했다.",
+  "격자 정합: native offset 17개가 전부 정수다(SC1 131 · SC5 36 · SC7 1 · SC12 5 · SC16 149 · SC101 125 · SC105 35 · SC107 138 · SC108 112 · SC109 111 · SC11 95 · SC6 137 · SC1001~1005 75). 러너는 정수 초에서만 쓰므로 **오차 0** 으로 들어간다. D-core 의 전이시각 오차는 전적으로 녹색창 경계(실수)에서 오는 것이지 offset 이 아니다.",
+  "발사에 RW_OFFSET_WRITER=test_only 가 필요하다. 러너는 환경변수로 test_only 까지만 올라가고 production 은 절대 안 열린다.",
+  "**핵심 검정.** 무제어(4808.1)는 native 분할 + native offset + native 프로그램이다. 이 팔은 그 중 앞의 둘을 합성 주기로 재생한다. 4808 로 돌아오면 집행 채널은 충실하고 offset 이 전부였다는 뜻이고, 여전히 나쁘면 남는 것은 부분창 배달·순차 4현시·주기 팽창이다.",
+  "주의: nativefixed(5009.1)와 마찬가지로 SC5(258s)·SC7(214s)은 주기가 팽창한다. 그 둘을 뺀 대조는 nfclean 팔이 따로 잰다.",
+  "대조: 무제어 4808.1 · nativefixed(offset 0) 5009.1 · merge 4838.7"
+ ],
+ "urban": {
+  "offset": {
+   "force_native": true
+  }
+ },
+ "actuation": {
+  "real_world_signal_control": {
+   "offset_writer": "test_only"
+  }
+ }
+}
