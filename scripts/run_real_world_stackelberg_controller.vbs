@@ -81,7 +81,22 @@ controllerName = LCase(Replace(ArgOrDefaultText(11, "stackelberg"), "_", "-"))
 controlStartSec = CLng(ArgOrDefault(12, -1))
 warmupControllerName = LCase(Replace(ArgOrDefaultText(13, "no-control"), "_", "-"))
 generatedConfigPath = ArgOrDefaultText(14, "")
-stateLogIntervalSec = CLng(ArgOrDefault(15, 5))
+' 상태 로그 간격 기본 **30초**(2026-08-24, 종전 5초).
+'
+' 5초면 5,400초 런에서 전용 차량 스캔이 1,081 회 돈다. 실측: 시뮬 150초 구간을 도는 데
+' 74.4초가 걸리고(실시간 2.02배) 런 전체의 33% 다. 스캔은 GetMultiAttValues 를 네 번
+' 부르는 COM 왕복이라 그 안에서 큰 몫을 차지한다.
+'
+' 왜 30초이고 왜 결정시점만(RW_STATE_LOG=decision)이 아닌가. TTT 를 state CSV 의
+' total_vehicles 사다리꼴 적분으로 재기 때문이다. 간격을 늘리면 적분 오차가 붙는다.
+' conv/무제어 실측:
+'     30초  점 180  오차 -0.02 ~ -0.04%  (1~2 veh*h)
+'     150초 점  36  오차 -0.15%          (7.1 veh*h)
+' 판정하려는 제어-무제어 차이가 57 veh*h(1.18%)라 150초는 그 12%를 오차로 얹는다.
+' 30초는 스캔을 83% 줄이면서 오차는 3% 수준이라 기준선을 안 건드린다.
+'
+' **되돌리지 마라.** 5초 해상도가 꼭 필요하면 그 런에만 인자로 넘긴다.
+stateLogIntervalSec = CLng(ArgOrDefault(15, 30))
 demandScale = CDbl(ArgOrDefault(16, 1.0))
 demandProfilePath = ArgOrDefaultText(17, "")
 vehicleInputRolesPath = ArgOrDefaultText(18, DefaultVehicleInputRolesPath())
@@ -2064,9 +2079,23 @@ End Function
 ' 같은 값 재기록은 의미상 no-op 이다. ContrByCOM 상태는 유지된다 — 실측(phasefull_on,
 ' 5400초): 지속성 확인 811,192 건 중 **불일치 0 건**. 그래도 기본은 켜지 않는다.
 ' 건너뛴 건수는 SIGNAL_WRITE_SKIPPED_UNCHANGED 로 따로 센다(조용히 줄지 않게).
+' 안 바뀐 SG 는 COM 쓰기를 건너뛴다. **기본 켜짐**(2026-08-24).
+'
+' 왜 기본인가. 러너가 모든 SG 에 ContrByCOM=True 를 걸어 합성 주기를 **매 초** 밀어
+' 넣는다(메인 루프의 ApplyRuntimeSignals). COM 은 프로세스 간 호출이라 하나당 비용이
+' VBScript 조건문의 수천 배다. 그런데 신호 상태는 초당 거의 안 바뀐다 - 대부분의 쓰기가
+' 같은 값을 다시 쓰는 것이다. 요청 상태가 직전과 같을 때만 건너뛰고 반환값은 그대로
+' 돌려주므로 **제어 거동은 동일**하다.
+'
+' 끄는 경우: 액추에이션 충실도를 되읽기로 증명해야 할 때. 건너뛰면
+' RecordSignalReadback 이 안 불려 "되읽기 N행 · 불일치 0" 같은 근거가 줄어든다.
+' 그때만 RW_SIGNAL_WRITE_ON_CHANGE=0 으로 끈다.
+'
+' **되돌리지 마라.** 이 스위치는 전에 구현해 두고도 기본이 꺼짐이라 어떤 런도 켜지
+' 않았고, 있는 줄 모른 채 계속 느린 경로로 돌았다.
 Function SkipUnchangedSignalWrites()
     SkipUnchangedSignalWrites = _
-        (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_WRITE_ON_CHANGE%")) = "1")
+        (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_WRITE_ON_CHANGE%")) <> "0")
 End Function
 
 Function SetSignalGroupState(scNo, sgNo, state)

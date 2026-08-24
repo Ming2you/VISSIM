@@ -22,7 +22,7 @@ param(
   [string]$VbsConfig = "",
   [int]$ControlStartSec = -1,
   [string]$WarmupController = "no-control",
-  [int]$StateLogIntervalSec = 5,
+  [int]$StateLogIntervalSec = 30,
   [double]$DemandScale = 1.0,
   [string]$DemandProfile = "",
   [string]$VehicleInputRoles = "",
