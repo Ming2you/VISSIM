@@ -1233,12 +1233,6 @@ def build_run_provenance(
         "detector_mapping_json": detector_mapping_path,
         "calibration_json": calibration_path,
         "tuning_json": tuning_path,
-        # 2026-08-27 추가. 정본 파라미터가 여기 없으면 **모든 팔이 공유하는 값 파일이
-        # 지문 밖에 있게 된다** — parameters.json 을 한 줄 고치고 같은 config·같은 어댑터로
-        # 두 팔을 돌리면 두 런의 execution_fingerprint_sha256 이 완전히 동일해져서,
-        # 나중에 결과 차이를 파일 증거로 되짚을 방법이 사라진다.
-        "parameters_json": WORKSPACE_ROOT / "evaluation" / "parameters.json",
-        "parameters_py": WORKSPACE_ROOT / "evaluation" / "parameters.py",
         "adapter_py": Path(__file__).resolve(),
         "fixed_signal_schedule_py": WORKSPACE_ROOT / "evaluation" / "controllers" / "fixed_signal_schedule.py",
         "strict_signal_program_py": WORKSPACE_ROOT / "plant" / "src" / "vissim_strict" / "signal_program.py",
@@ -1788,7 +1782,7 @@ def install_signal_aware_green_box(controller, tuning: Mapping[str, Any]) -> dic
         return {"signal_green_box_enabled": 0.0}
 
     import numpy as _np
-    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _Follower
+    from src.controllers.priced_wu_link_controller import WuFaithfulFollower as _Follower
     from src.models.state import (
         clamp_primary_green as _clamp,
         _project_to_budget as _proj,
@@ -1908,7 +1902,7 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
 
     `_phase_price_rollouts` 가 `initargs=(self, ...)` 로 컨트롤러를 피클해 spawn 한다.
     그래서 팔로워에 클로저를 심으면 안 된다(피클 불가). ctx 는 상류가 이미
-    `_phase_ctx_cache` 에 담고 `LinkAgentWuFollower.__getstate__` 가 그것을 빼고 피클하므로
+    `_phase_ctx_cache` 에 담고 `WuFaithfulFollower.__getstate__` 가 그것을 빼고 피클하므로
     안전하다. 그리고 국소항 계산은 전부 부모 프로세스에서 끝난다 - 워커는 전역 롤아웃만
     돈다. 몽키패치가 프로세스 경계를 못 넘는 함정(CLAUDE.md)에 닿지 않는다.
     """
@@ -1917,7 +1911,7 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
     if mode != "phased":
         return {"price_local_phased_enabled": 0.0}
 
-    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _Follower
+    from src.controllers.priced_wu_link_controller import WuFaithfulFollower as _Follower
 
     cls = type(controller)
     original = cls._refresh_phase_prices
@@ -3009,27 +3003,6 @@ def install_urban_stopline_storage(cfg, tuning: Mapping[str, Any]) -> dict[str, 
     }
 
 
-def install_price_worker_runtime_patches(cfg, state_json, detector_mapping):
-    """가격 워커가 되살려야 할 **모든** 런타임 패치. 부트스트랩의 func 가 이것이다.
-
-    상류 __setstate__ 는 `func(cfg, state_json, detector_mapping)` 하나만 부른다
-    (priced_wu_link_controller.py:542-545). 그래서 되살릴 게 둘 이상이면 여기서 묶어야 한다.
-
-    유실 대상 둘:
-      `_phase_green_fraction`  (5개 모듈) — green->유량 변환
-      `_link_delay_steps`      (2개 모듈) — tau 물리길이 상한
-
-    안 묶으면 **부모는 상한 tau, 워커 10개는 무상한 tau** 로 가격을 매긴다. 실측 차이:
-    TTT6 -85.4 veh*h · 가격벡터 Spearman 0.605 · 부호 30.6% 반전. 조용히 틀린다.
-
-    beta 수정(apply_dead_phase_beta_zero)은 여기 없어도 된다 — cfg.network.urban_movements
-    를 바꾸므로 컨트롤러와 함께 피클되어 워커에 그대로 간다.
-    """
-    out = dict(install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping) or {})
-    out.update(install_tau_length_cap_patch(cfg))
-    return out
-
-
 def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> dict[str, float]:
     """가격 롤아웃 워커가 되살려야 할 런타임 패치를 컨트롤러에 실어 보낸다.
 
@@ -3052,8 +3025,10 @@ def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> 
         return {"price_worker_bootstrap_installed": 0.0}
     controller.price_worker_bootstrap = {
         "sys_path": str(WORKSPACE_ROOT),
-        "module": __name__,
-        "func": "install_price_worker_runtime_patches",
+        "module": ("evaluation.controllers.vissim_stackelberg_adapter_ninref_20260825"
+                   if _nin_ref_enabled() else "evaluation.controllers.vissim_stackelberg_adapter"),
+        "func": ("install_price_worker_patches_ninref" if _nin_ref_enabled()
+                 else "install_monitor_fixed_signal_runtime_patch"),
         "state_json": {"network_path": str(_network_path_from_state(state_json))},
         "detector_mapping": dict(detector_mapping or {}),
         "verify_module": "src.models.urban_queue_model",
@@ -3063,52 +3038,135 @@ def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> 
 
 
 
-def _tau_diagnostics(state, cfg, local_summary: dict) -> None:
-    """τ 분포와 **플래툰 도착 위상**을 남긴다 — τ 팔은 TTT 하나로 판정할 수 없다.
+# ─────────────────────────────────────────────────────────────────────────────
+# NIN-REF (2026-08-25): λ 가 매겨지는 녹색벡터를 비용·커밋과 일치시킨다.
+#
+# 버그.  `_agent_net_inflow_veh`(wu_faithful_follower.py:657)는
+#            distribute_phase_green(net, p1, signal=signal)          <- reference 없음
+#        로 nin 을 재는데, 같은 후보의 국소비용(:931)과 실제 커밋(:4298, :4528)은
+#            distribute_phase_green(net, p1, signal_green_reference(previous, net, sig), signal=sig)
+#        을 쓴다. reference 가 없으면 나머지 예산이 **균등분배**되고, 있으면 직전 액션의
+#        **모양이 보존**된다(state.py:1526~1537). 압력맵이 비어 있어 reference 가 살아 있다.
+#
+#        실측(t=002250, 표본 8신호): 6개가 불일치. SC12 는 p3 가 57.7 대 34.5 — 23초.
+#        따라서 팔로워는 cost(녹색A) + λ·nin(녹색B) 를 최소화한다. 가격이 평가되지도
+#        커밋되지도 않는 벡터에 매겨진다.
+#
+# 수정.  nin 을 비용·커밋과 **같은** 녹색벡터에서 잰다. 커밋 경로가 정본이므로 그쪽에
+#        맞춘다(그 반대가 아니다).
+#
+# 기본 OFF. tuning `leader.nin_reference_fix: true` 로 켠다.
+_NIN_REF_ORIG = {}
 
-    τ 는 `urban_arrival_buffer` 의 도착 스텝을 정하므로(urban_queue_model.py:1179)
-    하류 approach 의 `available = queue + arrivals` 를 직접 바꾼다. 방출 **률**은
-    안 바뀌지만(용량은 차로·포화유율에서 나온다) 방출 **가능량의 시점**이 바뀐다.
-    그래서 offset 위상만이 아니라 망 전체 방출 회계가 움직인다 — 세 지표를 같이 봐야 한다.
 
-    여기서 두 개를 낸다: τ 분포(horizon 초과 비율 포함)와 위상 (τ·T_u) mod cycle.
-    예측 정합(세 번째 지표)은 런 뒤 비교 스크립트가 낸다.
-    """
-    try:
-        from src.models.urban_queue_model import _link_delay_steps
-    except Exception:
-        return
-    t_u_sec = max(float(cfg.simulation.T_u_h) * 3600.0, 1.0e-9)
-    horizon_sec = float(cfg.mpc.horizon_steps) * float(cfg.simulation.T_c_h) * 3600.0
-    cycle = max(float(cfg.network.cycle_length), 1.0e-9)
-    taus: list[float] = []
-    phases: list[float] = []
-    for link in cfg.network.urban_link_storage_veh:
-        try:
-            sec = float(_link_delay_steps(state, cfg, link)) * t_u_sec
-        except Exception:
-            continue
-        taus.append(sec)
-        phases.append(sec % cycle)
-    if not taus:
-        return
-    ordered = sorted(taus)
-    n = len(ordered)
-    local_summary["tau_diagnostics"] = {
-        "links": float(n),
-        "tau_median_sec": ordered[n // 2],
-        "tau_mean_sec": sum(ordered) / n,
-        "tau_p90_sec": ordered[min(n - 1, int(0.9 * n))],
-        "tau_max_sec": ordered[-1],
-        "tau_over_horizon": float(sum(1 for x in ordered if x > horizon_sec)),
-        "tau_over_horizon_frac": sum(1 for x in ordered if x > horizon_sec) / n,
-        "horizon_sec": horizon_sec,
-        # 위상 자체는 평균이 무의미하다(원형 변수) — 분포를 남겨 런끼리 비교한다.
-        "phase_cycle_sec": cycle,
-        "phase_q1_sec": sorted(phases)[n // 4],
-        "phase_median_sec": sorted(phases)[n // 2],
-        "phase_q3_sec": sorted(phases)[(3 * n) // 4],
-    }
+def _nin_ref_enabled() -> bool:
+    return _switch("nin_reference_fix", "RW_NIN_REFERENCE_FIX")
+
+
+def install_nin_reference_fix() -> dict[str, float]:
+    """`_agent_net_inflow_veh` 가 비용·커밋과 같은 현시 배분 위에서 nin 을 재게 한다."""
+    if not _nin_ref_enabled():
+        return {"nin_reference_fix": 0.0}
+    from src.controllers.wu_faithful_follower import WuFaithfulFollower
+    from src.models.state import (
+        ControlAction,
+        distribute_phase_green,
+        signal_green_reference,
+    )
+    from src.controllers.wu_faithful_follower import _INFLOW_KINDS, _OUTFLOW_KINDS
+
+    if _NIN_REF_ORIG.get("installed"):
+        return {"nin_reference_fix": 1.0, "nin_reference_fix_reinstall": 1.0}
+    # 이 함수가 던지면 main() 의 광범위 except 가 fallback_fixed 로 삼켜서 균등 녹색을
+    # 조용히 커밋한다(2026-08-25 실측: ImportError 가 그렇게 사라졌다). 설치 성공을
+    # 여기서 못박는다.
+
+    orig_nin = WuFaithfulFollower._agent_net_inflow_veh
+    _NIN_REF_ORIG["nin"] = orig_nin
+
+    def _patched_nin(self, signal, green_p1, state, forecast_arrivals, horizon_h):
+        ref_ctrl = getattr(self, "_nin_ref_control", None)
+        if ref_ctrl is None:
+            # 참조를 못 얻으면 원본 그대로 — 조용한 반쪽 수정을 만들지 않는다.
+            return orig_nin(self, signal, green_p1, state, forecast_arrivals, horizon_h)
+        net = self.cfg.network
+        model = self._local_models[signal]
+        cycle = max(net.cycle_length, 1.0e-9)
+        green = distribute_phase_green(
+            net, float(green_p1), signal_green_reference(ref_ctrl, net, signal), signal=signal
+        )
+        served = {}
+        raw_onramp = {}
+        onramp_by_movement = {m: r for r, mvs in net.on_ramp_to_movement.items() for m in mvs}
+        for movement in model.movements:
+            spec = self._specs[movement]
+            kind = model.kind_of[movement]
+            available = max(0.0, float(state.urban_movement_queue.get(movement, 0.0)))
+            if kind == "off_ramp":
+                inflow = self._frozen_offramp_inflow(str(spec.get("off_ramp", "")), state)
+                available += inflow * horizon_h * float(spec.get("beta", 0.0))
+            else:
+                available += max(0.0, float(forecast_arrivals.get(movement, 0.0)))
+            green_fraction = green[model.phase_of[movement]] / cycle
+            cap_veh = horizon_h * green_fraction * model.cap_flow_of[movement]
+            s = min(available, max(0.0, cap_veh))
+            served[movement] = s
+            if kind == "on_ramp":
+                ramp = onramp_by_movement.get(movement, "")
+                if ramp:
+                    raw_onramp[ramp] = raw_onramp.get(ramp, 0.0) + s
+        for ramp, raw_total in raw_onramp.items():
+            if raw_total <= 1.0e-9:
+                continue
+            ramp_space = max(
+                0.0,
+                float(net.ramp_queue_max_veh) - max(0.0, float(state.ramp_queue.get(ramp, 0.0))),
+            )
+            scale = min(1.0, ramp_space / raw_total)
+            for movement in net.on_ramp_to_movement.get(ramp, []):
+                if movement in served:
+                    served[movement] *= scale
+        inflow_veh = sum(served[m] for m in model.movements if model.kind_of[m] in _INFLOW_KINDS)
+        outflow_veh = sum(served[m] for m in model.movements if model.kind_of[m] in _OUTFLOW_KINDS)
+        return float(inflow_veh - outflow_veh)
+
+    WuFaithfulFollower._agent_net_inflow_veh = _patched_nin
+
+    # 참조 ControlAction 을 solve 동안 인스턴스에 물려 둔다. 두 solve 진입점 모두
+    # previous/snapshot 을 위치·키워드 어느 쪽으로도 받을 수 있어 타입으로 찾는다.
+    def _stash(name):
+        orig = getattr(WuFaithfulFollower, name)
+        _NIN_REF_ORIG[name] = orig
+
+        def wrapper(self, *args, **kwargs):
+            found = None
+            for value in list(args) + list(kwargs.values()):
+                if isinstance(value, ControlAction):
+                    found = value
+                    break
+            prev = getattr(self, "_nin_ref_control", None)
+            self._nin_ref_control = found
+            try:
+                return orig(self, *args, **kwargs)
+            finally:
+                self._nin_ref_control = prev
+
+        wrapper.__name__ = orig.__name__
+        setattr(WuFaithfulFollower, name, wrapper)
+
+    for _name in ("_solve_urban_agent_local", "_solve_urban_agent_joint"):
+        if hasattr(WuFaithfulFollower, _name):
+            _stash(_name)
+    _NIN_REF_ORIG["installed"] = True
+    if WuFaithfulFollower._agent_net_inflow_veh is orig_nin:
+        raise RuntimeError("NIN-REF 설치 실패: _agent_net_inflow_veh 가 안 바뀌었다")
+    return {"nin_reference_fix": 1.0, "nin_reference_fix_wrapped": float(len(_NIN_REF_ORIG) - 2)}
+
+
+def install_price_worker_patches_ninref(state_json, detector_mapping) -> None:
+    """워커에서 되살릴 패치 묶음 — 기존 부트스트랩 함수 + NIN-REF."""
+    install_monitor_fixed_signal_runtime_patch(state_json, detector_mapping)
+    install_nin_reference_fix()
 
 def _absolute_urban_step_start_sec(urban_step_index: int, duration_sec: float) -> float:
     """NumSim urban step indices are already based on absolute state.time_sec."""
@@ -3161,15 +3219,13 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
     """tuning 의 런타임 스위치를 모듈에 심는다. 키가 없으면 env 폴백이라 비트 동일."""
     urban = _mapping(tuning.get("urban"))
     pairs = (
-        ("moving_speed", _mapping(urban.get("tau")).get("moving_only")),
-        ("lane_delay", _mapping(urban.get("tau")).get("lane_delay_correction")),
         ("stopped_split", _mapping(urban.get("queue")).get("stopped_split")),
-        ("tau_length_cap", _mapping(urban.get("tau")).get("length_cap")),
-        ("boundary_inflow_seed", _mapping(urban.get("boundary")).get("inflow_seed")),
-        ("dead_phase_beta_zero", _mapping(urban.get("movements")).get("dead_phase_beta_zero")),
-        ("queue_origin_binding", _mapping(urban.get("queue")).get("origin_binding")),
         ("mainline_plan", _mapping(urban.get("plan")).get("mainline_only")),
         ("mainline_share", _mapping(urban.get("plan")).get("mainline_share")),
+        # NIN-REF: λ 가 매겨지는 녹색벡터를 비용·커밋과 일치시킨다.
+        # `leader` 절은 LeaderConfig 데이터클래스로 그대로 넘어가므로 쓰면 TypeError 다.
+        # 이미 안전한 `urban` 네임스페이스에 둔다.
+        ("nin_reference_fix", _mapping(urban.get("leader")).get("nin_reference_fix")),
     )
     out: dict[str, float] = {}
     for key, raw in pairs:
@@ -3181,12 +3237,6 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
     # 다리를 env 로 놓는다 — 값의 출처는 여전히 config 이고, 진단으로도 남긴다.
     if _CFG_SWITCHES.get("mainline_share"):
         os.environ["RW_MAINLINE_SHARE_SG"] = "1"
-    # tau 상한도 env 로 다리를 놓는다. 가격 워커는 spawn 이라 _CFG_SWITCHES 를 못
-    # 물려받고 env 만 본다(RW_LANE_DELAY_CORRECTION 과 같은 이유).
-    if _CFG_SWITCHES.get("tau_length_cap"):
-        os.environ["RW_TAU_LENGTH_CAP"] = "1"
-    if _CFG_SWITCHES.get("lane_delay"):
-        os.environ["RW_LANE_DELAY_CORRECTION"] = "1"
     return out
 
 
@@ -3231,307 +3281,14 @@ def _stopped_storage_fraction(link: str, count: float, stopped: Mapping[str, flo
     return float(1.0 - share)
 
 
-_MIDBLOCK_CACHE: dict = {}
-
-
-STORAGE_GEOMETRY_JSON = WORKSPACE_ROOT / "outputs/urban_storage_geometry_core17legs4f_20260826.json"
-_GEOM_CACHE: dict = {}
-
-
-def _dead_phase_beta_zero_enabled() -> bool:
-    """녹색이 구조적으로 0 인 현시의 movement beta 를 0 으로 돌릴지. 기본 꺼짐.
-
-    config `urban.movements.dead_phase_beta_zero` · env `RW_DEAD_PHASE_BETA_ZERO`.
-
-    2026-08-26 실측. 현시 5개(SC107_p1 SC108_p2 SC109_p1 SC16_p4 SC7_p3)는 구성 신호군의
-    native_green_sec 이 0 이고 VISSIM 되읽기에서 5400초 내내 RED 다(SC107 SG4/SG8 = RED 181회).
-    거기 묶인 movement 17개는 결정당 38.3대를 받아 **영원히 방류되지 않는다** — 롤아웃이
-    길어질수록 누적되는 블랙홀이다.
-
-    그 17개의 beta 는 전부 균등 1/n(1/2·1/6·1/8·1/3)이라 `.inpx` 정본이 아니라 옛 균등값
-    잔재다(vissim-uniform-beta-defect). 그리고 VISSIM 실측 재고는 해당 접근로에서 초반
-    85대 -> 후반 54대로 **줄어든다** — VISSIM 은 그 회전으로 차를 보내지 않는다.
-
-    개루프 6스텝 롤아웃 (bstoA + tau 상한 기준):
-        끔    스텝1 38.1%  스텝3 53.7%  스텝6 69.4%  총량6 3179
-        켬    스텝1 38.2%  스텝3 52.3%  스텝6 64.6%  총량6 3098   (실측 2650)
-    """
-    return _switch("dead_phase_beta_zero", "RW_DEAD_PHASE_BETA_ZERO")
-
-
-def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None) -> dict:
-    """구조적으로 죽은 현시를 계획 정본에서 판정해 그 movement 의 beta 를 0 으로 돌린다.
-
-    판정은 **계획 정본**으로 한다 — 런 기록(커밋 녹색)으로 하면 순환이다.
-    `outputs/signal_group_actuation_plan_v3.json` 의 `axis_green_sec[phase] <= 0` 이 기준이고,
-    2026-08-26 에 커밋 녹색 전수 스캔(37결정)과 5/5 일치를 확인했다.
-
-    beta 를 뺀 뒤 같은 origin 의 나머지 movement 에 **재정규화**한다 — 흐름을 버리지 않는다.
-    """
-    if not _dead_phase_beta_zero_enabled():
-        return {"dead_phase_beta_zero_enabled": 0.0}
-    src = WORKSPACE_ROOT / "outputs/signal_group_actuation_plan_v3.json"
-    if not src.is_file():
-        raise SystemExit("DEAD_PHASE_PLAN_MISSING: %s" % src)
-    ctrls = _mapping(json.loads(src.read_text(encoding="utf-8")).get("controllers"))
-    dead: set = set()
-    for sc_no, spec in ctrls.items():
-        node = str(_mapping(spec).get("node_id") or "")
-        for pid, g in _mapping(_mapping(spec).get("axis_green_sec")).items():
-            if node and _as_float(g, 0.0) <= 0.0:
-                dead.add("%s_%s" % (node, pid))
-    mv = cfg.network.urban_movements
-    trapped = [k for k, v in mv.items() if str(_mapping(v).get("phase")) in dead]
-    if not trapped:
-        return {"dead_phase_beta_zero_enabled": 1.0, "dead_phase_count": float(len(dead)),
-                "dead_phase_movements": 0.0}
-    removed = 0.0
-    for k in trapped:
-        removed += max(0.0, _as_float(_mapping(mv[k]).get("beta"), 0.0))
-        mv[k]["beta"] = 0.0
-    by_origin: dict = {}
-    for k, v in mv.items():
-        by_origin.setdefault(str(_mapping(v).get("origin") or ""), []).append(k)
-    renorm = 0
-    for o, ks in by_origin.items():
-        if not o:
-            continue
-        tot = sum(max(0.0, _as_float(_mapping(mv[k]).get("beta"), 0.0)) for k in ks)
-        if tot <= 1.0e-9:
-            continue
-        for k in ks:
-            mv[k]["beta"] = max(0.0, _as_float(_mapping(mv[k]).get("beta"), 0.0)) / tot
-        renorm += 1
-    return {
-        "dead_phase_beta_zero_enabled": 1.0,
-        "dead_phase_count": float(len(dead)),
-        "dead_phase_movements": float(len(trapped)),
-        "dead_phase_beta_removed": float(removed),
-        "dead_phase_origins_renormalized": float(renorm),
-    }
-
-
-def _boundary_inflow_seed_enabled() -> bool:
-    """관측된 경계 접근로 재고를 모델이 **실제로 쓰는 통**에 심을지. 기본 꺼짐.
-
-    config `urban.boundary.inflow_seed` · env `RW_BOUNDARY_INFLOW_SEED`.
-
-    왜. `in_*` 를 urban_link_storage 에 넣어도 모델은 그 키를 **읽지도 쓰지도 않는다** —
-    경계 유입은 `urban_inflow_transit_buffer`(전이) 와 `urban_movement_queue`(정지선)로만
-    돈다(urban_queue_model.py:1035-1055). 그래서 저류에 심은 질량은 6스텝 내내 정확히
-    고정된다(실측 2026-08-27: 556 -> 556, 변화 0). 초기 스냅샷만 맞고 롤아웃 기여가 0 이다.
-
-    나누는 기준은 **실측 정지수**다. 정지차는 정지선에서 녹색을 기다리는 것이므로
-    movement 큐(beta 배분), 주행차는 아직 링크를 통과 중이므로 전이 버퍼에 예약한다.
-    예약은 step_idx+1 .. step_idx+delay 에 균등 분배한다 — 링크 위에 고르게 퍼져 있다는
-    가정이고, 한 substep 에 몰아넣으면 그 순간 큐가 튄다.
-    """
-    return _switch("boundary_inflow_seed", "RW_BOUNDARY_INFLOW_SEED")
-
-
-def seed_boundary_inflow(cfg, state, local_summary: Mapping[str, Any] | None) -> dict:
-    """`in_*` 관측 재고를 전이버퍼 + movement 큐로 옮기고 죽은 저류는 비운다."""
-    if not _boundary_inflow_seed_enabled():
-        return {"boundary_inflow_seed_enabled": 0.0}
-    from src.models.urban_queue_model import _inflow_delay_steps, _schedule, _urban_step_index
-    summary = _mapping(local_summary)
-    occ = _mapping(summary.get("urban_link_storage_occupancy"))
-    stopped = _mapping(summary.get("urban_link_storage_stopped"))
-    by_origin: dict = {}
-    for name, spec in _mapping(cfg.network.urban_movements).items():
-        o = str(_mapping(spec).get("origin") or "")
-        b = max(0.0, _as_float(_mapping(spec).get("beta"), 0.0))
-        if o.startswith("in_") and b > 0.0:
-            by_origin.setdefault(o, []).append((str(name), b))
-    delay = max(1, int(_inflow_delay_steps(cfg)))
-    step0 = int(_urban_step_index(state, cfg))
-    to_queue = 0.0
-    to_buffer = 0.0
-    seeded = 0
-    for origin, pairs in by_origin.items():
-        total = _as_float(occ.get(origin), 0.0)
-        if total <= 0.0:
-            continue
-        stop = min(total, max(0.0, _as_float(stopped.get(origin), 0.0)))
-        move = max(0.0, total - stop)
-        wsum = sum(b for _, b in pairs) or 1.0
-        for mvn, b in pairs:
-            if mvn in state.urban_movement_queue:
-                state.urban_movement_queue[mvn] += stop * b / wsum
-        share = move / float(delay)
-        for d in range(1, delay + 1):
-            _schedule(state.urban_inflow_transit_buffer, "gate:%s" % origin, step0 + d, share)
-        # 죽은 저류는 비운다 — 안 비우면 이중계상이다.
-        if origin in cfg.network.urban_link_storage_veh:
-            state.urban_link_storage[origin] = float(cfg.network.urban_link_storage_veh[origin])
-        to_queue += stop
-        to_buffer += move
-        seeded += 1
-    return {
-        "boundary_inflow_seed_enabled": 1.0,
-        "boundary_inflow_seed_origins": float(seeded),
-        "boundary_inflow_seed_to_queue_veh": float(to_queue),
-        "boundary_inflow_seed_to_buffer_veh": float(to_buffer),
-        "boundary_inflow_seed_delay_substeps": float(delay),
-    }
-
-
-def _tau_length_cap_enabled() -> bool:
-    """tau 의 이동거리를 **저류의 물리 길이**로 상한할지. 기본 꺼짐 = 비트 동일.
-
-    config `urban.tau.length_cap` · env `RW_TAU_LENGTH_CAP`.
-
-    왜. 현행 tau = available(빈 공간) x 6m / speed 는 상한이 없어 빈 링크에서 폭주한다.
-    실측 2026-08-26: SC5_to_SC6 는 실제 1.232km / 자유주행 89초인데 모델 tau 가 **740초**
-    (8.3배). 전체 합계로도 자유주행 5,536초 대 모델 11,725초(2.1배)다. 그래서 차가
-    horizon 안에 정지선에 도착하지 못하고 모델 재고가 6스텝에 +32% 부푼다(실측은 평평).
-
-    개루프 6스텝 롤아웃 실측 (bstoA 기준선, origin 단위 규칙불변 지표):
-        상한 없음   스텝1 42.2%  스텝3 64.7%  스텝6 85.9%  총량6 3741
-        상한 있음   스텝1 38.1%  스텝3 53.7%  스텝6 69.4%  총량6 3179   (실측 2650)
-
-    차로보정과 **함께** 켜야 한다. 상한만 켜고 차로보정을 끄면 60.9%(스텝3)로 나빠지고,
-    둘 다 끄면 스텝6 오차가 102.5% 로 실측 총량을 넘어선다.
-    """
-    return _switch("tau_length_cap", "RW_TAU_LENGTH_CAP")
-
-
-def _storage_length_m() -> dict:
-    """저류별 물리 길이[m]. `.inpx` 폴리라인 합에서 유도했다.
-
-    정의는 정본 생성기와 같다 — 그 origin 에 매핑된 **모든 링크**(커넥터 포함) 길이의 합.
-    `outputs/urban_storage_capacity_core17legs4b_20260819.json` 의 80개를 비 1.0000 으로
-    재현해 확인했다.
-    """
-    if "len" in _GEOM_CACHE:
-        return _GEOM_CACHE["len"]
-    out: dict = {}
-    if STORAGE_GEOMETRY_JSON.is_file():
-        try:
-            doc = json.loads(STORAGE_GEOMETRY_JSON.read_text(encoding="utf-8"))
-            for k, v in _mapping(doc).items():
-                m = _as_float(_mapping(v).get("length_m"), 0.0)
-                if m > 0.0:
-                    out[str(k)] = m
-        except Exception:
-            out = {}
-    _GEOM_CACHE["len"] = out
-    return out
-
-
-def install_tau_length_cap_patch(cfg) -> dict:
-    """`_link_delay_steps` 를 두 모듈에 심는다. 꺼져 있으면 아무것도 안 한다.
-
-    **양쪽에 심어야 한다** — `wu_faithful_follower` 가 이름으로 import 해 두어서
-    `urban_queue_model` 만 고치면 팔로워는 옛 함수를 계속 쓴다(기존 `_phase_green_fraction`
-    5모듈 패치와 같은 이유). 그리고 spawn 워커는 이 패치를 물려받지 못한다 —
-    `__setstate__` 되살리기 경로를 타야 한다.
-    """
-    if not _tau_length_cap_enabled():
-        return {"tau_length_cap_enabled": 0.0}
-    import math as _math
-    import src.models.urban_queue_model as _uqm
-    import src.controllers.wu_faithful_follower as _wff
-    from src.models.urban_queue_model import OBSERVED_SPEED_DELAY_CAP_RATIO as _RATIO
-    lengths = _storage_length_m()
-    if not lengths:
-        raise SystemExit("TAU_LENGTH_CAP_NO_GEOMETRY: %s 를 못 읽었다" % STORAGE_GEOMETRY_JSON)
-    if not hasattr(_uqm, "_rw_orig_link_delay_steps"):
-        _uqm._rw_orig_link_delay_steps = _uqm._link_delay_steps
-
-    def _capped(state, c, storage_link):
-        net = c.network
-        capacity = net.urban_link_storage_veh.get(storage_link, net.boundary_queue_max_veh)
-        available = max(0.0, state.urban_link_storage.get(storage_link, capacity))
-        dist_m = available * net.urban_avg_vehicle_length_m
-        phys = lengths.get(str(storage_link))
-        if phys is not None:
-            dist_m = min(dist_m, float(phys))
-        nominal = max(net.urban_avg_speed_km_h, 1.0e-9)
-        obs = state.urban_link_speed_kph.get(storage_link)
-        speed = nominal if obs is None else max(float(obs), nominal / _RATIO)
-        travel_h = (dist_m / 1000.0) / speed
-        return max(1, int(_math.ceil(travel_h / max(c.simulation.T_u_h, 1.0e-9))))
-
-    _uqm._link_delay_steps = _capped
-    _wff._link_delay_steps = _capped
-    covered = sum(1 for k in cfg.network.urban_link_storage_veh if str(k) in lengths)
-    return {
-        "tau_length_cap_enabled": 1.0,
-        "tau_length_cap_storages": float(len(lengths)),
-        "tau_length_cap_covered": float(covered),
-        "tau_length_cap_uncovered": float(len(cfg.network.urban_link_storage_veh) - covered),
-    }
-
-
-def _queue_origin_binding_enabled() -> bool:
-    """movement 매핑이 없는 링크의 실측 정지분을 origin+beta 로 큐에 배정할지.
-
-    기본 꺼짐 = 비트 동일. config `urban.queue.origin_binding` · env `RW_QUEUE_ORIGIN_BINDING`.
-
-    현행은 `link_to_movements` 항목이 없으면 storage_fraction 을 1.0 으로 강제해
-    **실측 정지대수를 버린다** (2026-08-26 실측 557대/결정 = 모델 큐 990대의 56%).
-    그 링크는 대부분 `_to_` 구간이고 그 위 정지차는 하류 교차로 정지선 대기행렬이다.
-    저류로 보내면 tau 만큼 늦게 도착해 녹색 배분이 밀린다.
-    """
-    return _switch("queue_origin_binding", "RW_QUEUE_ORIGIN_BINDING")
-
-
-def _midblock_stopline_links() -> set:
-    """미드블록 신호두가 달린 정지선 링크. 그 위 정지차는 큐가 아니라 저류다.
-
-    모델에 미드블록이 없다(신호 26·현시 68·링크 길이/용량 개념 없음). 미드블록 적색차를
-    정지선 큐로 넣으면 컨트롤러가 하류 교차로 녹색으로 뺄 수 있다고 오인한다.
-    실측 2026-08-26 오염률: SC7 55% · SC5 36% · SC101 28%.
-    """
-    if "d" in _MIDBLOCK_CACHE:
-        return _MIDBLOCK_CACHE["d"]
-    src = WORKSPACE_ROOT / "outputs/midblock_stopline_links_20260822.json"
-    out: set = set()
-    if src.is_file():
-        try:
-            out = {str(k) for k in (_mapping(json.loads(src.read_text(encoding="utf-8")).get("links")) or {})}
-        except Exception:
-            out = set()
-    _MIDBLOCK_CACHE["d"] = out
-    return out
-
-
-def _movements_by_origin(cfg) -> dict:
-    """origin(상류 저류) -> [(movement, beta)]. beta 는 .inpx 정적경로 정본."""
-    cache = getattr(cfg, "_rw_mv_by_origin", None)
-    if cache is not None:
-        return cache
-    idx: dict = {}
-    for name, spec in _mapping(cfg.network.urban_movements).items():
-        if not isinstance(spec, Mapping):
-            continue
-        o = str(spec.get("origin") or "")
-        b = max(0.0, _as_float(spec.get("beta"), 0.0))
-        if o and b > 0.0:
-            idx.setdefault(o, []).append((str(name), b))
-    try:
-        setattr(cfg, "_rw_mv_by_origin", idx)
-    except Exception:
-        pass
-    return idx
-
-
 def _queue_origin_filter_enabled() -> bool:
     """movement 큐를 그 링크의 저류에서 출발하는 것으로 좁힐지. 기본 꺼짐."""
-    return _switch("queue_origin_filter", "RW_QUEUE_ORIGIN_FILTER")
+    return str(os.environ.get("RW_QUEUE_ORIGIN_FILTER", "")).strip().lower() in {"1", "true", "on"}
 
 
 def _lane_delay_correction_enabled() -> bool:
-    """저류 통과지연을 차로수로 나눌지. 기본 꺼짐.
-
-    2026-08-27 수정. 이 함수가 `_CFG_SWITCHES` 를 보지 않고 env 만 직독해서,
-    config 로 **끌 수가 없었다** — `urban.tau.lane_delay_correction: false` 를 적어도
-    같은 셸에 RW_LANE_DELAY_CORRECTION 이 남아 있으면 켜진 채로 돌았다. 그래서
-    2026-08-26 에 A/B 두 팔이 비트 동일해진 사고가 났다. `_switch` 는 config 가 값을
-    정했으면 그것을 쓰고, 없을 때만 env 로 폴백한다.
-    """
-    return _switch("lane_delay", "RW_LANE_DELAY_CORRECTION")
+    """저류 통과지연을 차로수로 나눌지. 기본 꺼짐(RW_LANE_DELAY_CORRECTION)."""
+    return str(os.environ.get("RW_LANE_DELAY_CORRECTION", "")).strip().lower() in {"1", "true", "on"}
 
 
 _STORAGE_LANES_CACHE: dict[str, float] | None = None
@@ -3653,101 +3410,6 @@ def _observed_stopped_counts(state_json: Mapping[str, Any]) -> dict[str, float]:
     return _link_metric_from_local_observation(state_json, "link_stopped_counts")
 
 
-
-def _ramp_queue_shares(ramps) -> list[tuple[str, float]]:
-    """`ramp_link_to_queues` 의 값을 (램프, 가중치) 목록으로 편다.
-
-    두 형식을 받는다:
-      list  ["R_D_E", "R_D_W"]              -> 균등 (기존 동작 그대로, 비트 동일)
-      dict  {"R_D_E": 0.25, "R_D_W": 0.75}  -> 가중
-
-    ## 왜 dict 가 필요한가 (2026-08-26)
-
-    기존 8개 항목은 전부 **단일 램프**라 균등 분배가 문제가 안 됐다. link 78·31 이 처음으로
-    두 램프에 걸린다 — `78 -10703-> 31` 이고 31 의 정적 경로결정(inpx no=1137)이
-
-        dest 24  relFlow 1.0  -> 10484 -> R_D_E -> FW_E   0.25
-        dest 31  relFlow 1.0  -> 10480 -> R_D_W -> FW_W   0.25
-        dest 26  relFlow 2.0  -> 10480 -> R_D_W -> FW_W   0.50
-
-    즉 **FW_E 25% · FW_W 75%** 다. 균등(50/50)으로 두면 31.9 veh 중 약 8 veh 가 반대쪽
-    램프로 들어가고, 나중에 "왜 FW_E 가 과다한가" 를 다시 파게 된다.
-
-    가중치 합이 0 이면 균등으로 떨어진다 — 조용히 0 을 배분하지 않는다.
-    """
-    if isinstance(ramps, Mapping):
-        pairs = [(str(k), max(0.0, _as_float(v, 0.0))) for k, v in ramps.items()]
-        total = sum(w for _, w in pairs)
-        if total > 0.0:
-            return [(k, w / total) for k, w in pairs if w > 0.0]
-        return [(k, 1.0 / len(pairs)) for k, _ in pairs] if pairs else []
-    if isinstance(ramps, list) and ramps:
-        return [(str(r), 1.0 / len(ramps)) for r in ramps]
-    return []
-
-# ─────────────────────────────────────────────────────────────────────────────
-# TAU-MOVING (2026-08-25): 링크 관측속도에서 **정지 차량을 뺀다**.
-#
-# 왜.  러너의 링크속도는 `speedSum / count` 인데(run_real_world_stackelberg_controller.vbs:3131)
-#      `count` 가 링크 위 **전 차량**이다. 정지차는 분자에 ~0(정지 임계 1.0 km/h)을 보태고
-#      분모에 1 을 보태 평균을 끌어내린다.
-#
-#      그런데 이 속도가 쓰이는 유일한 곳이 `_link_delay_steps`(urban_queue_model.py:631)이고,
-#      그 함수의 거리는 `available`(= 링크 **여유공간**, 큐가 이미 빠진 값)이다.
-#      즉 τ 는 "링크 진입 -> 큐 꼬리 도달" 시간이고 그 구간을 지나는 건 **움직이는 차량**이다.
-#      거리에서는 큐를 뺐는데 속도에서는 안 뺐다 — 한쪽만 센 것이다.
-#
-# 실측(default_20260825 t=002250):
-#      관측 3,340대 중 정지 1,483대(44%) · 링크당 정지비율 중앙 33%
-#      속도 배수 중앙 1.00 · 평균 3.29 · p90 7.50 (최대 40배)
-#      20 km/h 하한 잘림 32% -> 11%
-#      **플래툰 도착 위상(τ mod 150s) 중앙 37.5 s 이동 = 주기의 25%**
-#
-# 정지차 속도를 0 으로 보는 근사의 오차는 임계값 상한이다(1.0 km/h × 정지대수 / 이동대수).
-# 표본이 전부 정지면 보정을 포기한다(이동대수 0.5 미만) — 무한대를 만들지 않는다.
-def _moving_speed_enabled() -> bool:
-    """링크 관측속도를 **이동차량 기준**으로 볼지. 기본 꺼짐 = 비트 동일.
-
-    config `urban.tau.moving_only`, 폴백 env `RW_MOVING_SPEED`.
-    """
-    return _switch("moving_speed", "RW_MOVING_SPEED")
-
-
-def _moving_only_link_speeds(
-    state_json: Mapping[str, Any], link_speeds_kph: Mapping[str, float]
-) -> tuple[dict[str, float], dict[str, float]]:
-    """`speedSum/count` 를 `speedSum/(count - stopped)` 로 환산한다.
-
-    count·stopped 는 속도와 **같은 출처**(원 `local_observation`, 창 집계 아님)에서 읽는다 —
-    속도가 순간값이라 창 평균 대수와 섞으면 비율이 어긋난다.
-    """
-    local = _mapping(state_json.get("local_observation"))
-    counts = _mapping(local.get("link_counts"))
-    stopped = _mapping(local.get("link_stopped_counts"))
-    out: dict[str, float] = {}
-    diag = {"links": 0.0, "adjusted": 0.0, "all_stopped": 0.0, "ratio_sum": 0.0}
-    for link, speed in link_speeds_kph.items():
-        key = str(link)
-        out[key] = float(speed)
-        diag["links"] += 1.0
-        count = _as_float(counts.get(key), 0.0)
-        stop = _as_float(stopped.get(key), 0.0)
-        if count <= 0.0:
-            continue
-        moving = count - stop
-        if moving < 0.5:
-            # 전 차량이 정지면 이동차 표본이 없다. 원값을 그대로 두고 vendor 하한에 맡긴다.
-            diag["all_stopped"] += 1.0
-            continue
-        ratio = count / moving
-        if ratio <= 1.0 + 1.0e-9:
-            continue
-        out[key] = float(speed) * ratio
-        diag["adjusted"] += 1.0
-        diag["ratio_sum"] += ratio
-    diag["mean_ratio"] = diag["ratio_sum"] / diag["adjusted"] if diag["adjusted"] else 0.0
-    return out, diag
-
 def build_local_observation_summary(
     state_json: Mapping[str, Any],
     cfg,
@@ -3766,10 +3428,6 @@ def build_local_observation_summary(
         return {}
 
     link_speeds_kph = _link_metric_from_local_observation(state_json, "link_speeds_kph")
-    _moving_speed_diag: dict[str, float] = {"enabled": 0.0}
-    if _moving_speed_enabled():
-        link_speeds_kph, _moving_speed_diag = _moving_only_link_speeds(state_json, link_speeds_kph)
-        _moving_speed_diag["enabled"] = 1.0
     link_stopped_counts = _observed_stopped_counts(state_json)
     link_queue_tail_pos_m = _link_metric_from_local_observation(state_json, "link_queue_tail_pos_m")
     split_parameters = _observation_split_parameters(calibration)
@@ -3783,7 +3441,6 @@ def build_local_observation_summary(
     storage_fraction_by_link: dict[str, float] = {}
     queue_count_by_link: dict[str, float] = {}
     storage_count_by_link: dict[str, float] = {}
-    _origin_bind_links: set = set()
     storage_assigned_by_link: dict[str, float] = {}
     urban_link_storage_occupancy = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
     # 저류별 **정지 대수**. 투영이 release 버퍼를 복원할 때 "이미 정지선에 도착한 몫" 과
@@ -3823,27 +3480,7 @@ def build_local_observation_summary(
         # 그 882개는 신호두 링크가 아니라 링크 본체다 — 정지선 대기행렬이 아니라
         # 링크 저류가 물리적으로 맞으므로 전량 저류로 보낸다.
         if not (detector_mapping.get("link_to_movements", {}) or {}).get(str(link)):
-            # 2026-08-26. 켜면 **어느 정지선에 서 있느냐**로 통을 정한다.
-            #   미드블록 신호두 링크 -> 전량 저류 (아직 링크 안이다)
-            #   그 외             -> origin+beta 로 큐 배정 (아래 두 번째 루프)
-            # 해결 가능성을 여기서 판정한다 — 저류 배정이 이 루프 안에서 끝나므로
-            # 나중에 되돌리면 늦다.
-            _bound = False
-            if _queue_origin_binding_enabled() and str(link) not in _midblock_stopline_links():
-                _idx = _movements_by_origin(cfg)
-                # 후보 키는 저류링크 **와 origin 이름 자체**다. `in_*` 경계 origin 은
-                # 저류가 아니라 경계 큐라 _storage_links_for_observed_origin 이 빈 값을
-                # 낸다 — 그런데 movement 의 origin 에는 in_* 가 39개 있다(실측 2026-08-26,
-                # 그 누락으로 302대/결정이 조용히 저류로 떨어졌다).
-                for _o in origins:
-                    _keys = list(_storage_links_for_observed_origin(cfg, _o)) + [str(_o)]
-                    if any(_idx.get(str(_k)) for _k in _keys):
-                        _bound = True
-                        break
-            if _bound:
-                _origin_bind_links.add(str(link))
-            else:
-                storage_fraction = 1.0
+            storage_fraction = 1.0
         storage_fraction_by_link[str(link)] = float(storage_fraction)
         storage_count = max(0.0, count * storage_fraction)
         queue_count = max(0.0, count - storage_count)
@@ -3933,44 +3570,16 @@ def build_local_observation_summary(
             movement_queue[movement] += assigned
             movement_assigned_by_link[str(link)] += assigned
 
-    # link_to_movements 에 없는 링크의 큐 몫을 origin+beta 로 배정한다.
-    # 위 루프는 그 표를 순회하므로 표에 없는 링크는 아예 안 돈다.
-    origin_bound_veh = 0.0
-    origin_bound_links = 0
-    origin_bound_unresolved_veh = 0.0
-    if _queue_origin_binding_enabled():
-        _idx = _movements_by_origin(cfg)
-        for link in _origin_bind_links:
-            qc = float(queue_count_by_link.get(str(link), 0.0))
-            if qc <= 0.0:
-                continue
-            pairs: list = []
-            _keys = list(storage_links_by_link.get(str(link)) or [])
-            _keys += [str(o) for o in (detector_mapping.get("link_to_origins", {}).get(str(link)) or [])]
-            _seen: set = set()
-            for _k in _keys:
-                if _k in _seen:
-                    continue
-                _seen.add(_k)
-                pairs.extend(_idx.get(str(_k), []))
-            wsum = sum(b for _, b in pairs)
-            if wsum <= 1.0e-9:
-                origin_bound_unresolved_veh += qc
-                continue
-            for movement, beta in pairs:
-                if movement in movement_queue:
-                    movement_queue[movement] += qc * beta / wsum
-            origin_bound_veh += qc
-            origin_bound_links += 1
-
     ramp_queue = {ramp: 0.0 for ramp in cfg.network.ramps}
     for link, ramps in detector_mapping.get("ramp_link_to_queues", {}).items():
         count = link_counts.get(str(link), 0.0)
-        if count <= 0.0:
+        if count <= 0.0 or not isinstance(ramps, list) or not ramps:
             continue
-        for ramp_key, weight in _ramp_queue_shares(ramps):
+        share = count / len(ramps)
+        for ramp in ramps:
+            ramp_key = str(ramp)
             if ramp_key in ramp_queue:
-                ramp_queue[ramp_key] += count * weight
+                ramp_queue[ramp_key] += share
 
     # Legacy boundary_queue is kept for diagnostics/compatibility. The actual
     # urban signal queues above are the follower-visible queue state.
@@ -4102,7 +3711,6 @@ def build_local_observation_summary(
         "exit_excluded_link_count": len(exit_excluded_by_link),
         "link_speed_observed_count": len(positive_speeds),
         "urban_link_speed_observed_count": len(urban_link_speed_kph),
-        "moving_speed_correction": dict(_moving_speed_diag),
         "link_stopped_vehicle_count_veh": float(sum(link_stopped_counts.values())),
         "stopped_split_enabled": 1.0 if _stopped_split_enabled() else 0.0,
         "stopped_split_links": float(sum(
@@ -4129,14 +3737,6 @@ def build_local_observation_summary(
         "storage_count_by_link": storage_count_by_link,
         "storage_fraction_by_link": storage_fraction_by_link,
         "urban_movement_queue": movement_queue,
-        "queue_origin_binding": {
-            "enabled": 1.0 if _queue_origin_binding_enabled() else 0.0,
-            "bound_veh": float(origin_bound_veh),
-            "bound_links": float(origin_bound_links),
-            "unresolved_veh": float(origin_bound_unresolved_veh),
-            "candidate_links": float(len(_origin_bind_links)),
-            "midblock_links_forced": float(len(_midblock_stopline_links() & set(link_counts))),
-        },
         "urban_link_storage_occupancy": urban_link_storage_occupancy,
         "urban_link_storage_stopped": urban_link_storage_stopped,
         "urban_link_speed_kph": urban_link_speed_kph,
@@ -4468,57 +4068,6 @@ def repo_imports(repo_root: Path):
     return StackelbergMPCController, DemandStep, ControlAction, ExperimentConfig, TrafficState, segment_vsl
 
 
-def _relabel(meta: Mapping[str, Any], suffix: str) -> dict[str, Any]:
-    """진단 키에 꼬리표를 붙인다. 같은 설치를 두 번 부를 때 앞 결과를 덮지 않게."""
-    return {"%s_%s" % (k, suffix): v for k, v in (meta or {}).items()}
-
-
-def _canonical_parameters_module():
-    """`evaluation/parameters.py` 를 연다. 값의 단일 출처로 가는 유일한 문."""
-    import importlib.util as _ilu
-
-    spec = _ilu.spec_from_file_location(
-        "canon_parameters", WORKSPACE_ROOT / "evaluation/parameters.py")
-    mod = _ilu.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def _canonical_runtime_parameters(cfg) -> dict[str, Any]:
-    """생성자 필드가 아닌 정본 파라미터를 cfg 에 심는다."""
-    return _canonical_parameters_module().apply_runtime(cfg)
-
-
-def _canonical_parameter_overrides(tuning: Mapping[str, Any]) -> tuple[dict[str, Any], list[str]]:
-    """`evaluation/parameters.json` 을 config override 로 바꾼다. 값의 단일 출처.
-
-    돌려주는 둘. (1) override 딕셔너리 (2) tuning 이 그 값을 다르게 덮는 항목 목록.
-    (2)가 비어 있지 않다는 건 그 시나리오가 정본값에서 의도적으로 벗어났다는 뜻이고,
-    `parameters_overridden_by_tuning` 진단으로 남는다 — 조용히 달라지지 않게 한다.
-    """
-    mod = _canonical_parameters_module()
-    over = {"network": mod.network_overrides(), "mpc": mod.mpc_overrides()}
-    leader = mod.section("leader") if "leader" in mod.load() else {}
-    if leader:
-        over["leader"] = leader
-    # 진단은 tuning 이 값을 넣을 수 있는 **모든 경로**를 봐야 한다. 2026-08-27 감사에서
-    # config_overrides 만 보고 있어 최상위 network/mpc/leader 절이 사각지대였다 —
-    # `tuning_to_config_overrides` 가 그 다섯 절도 읽어 config_overrides 위에 얹는다.
-    # 그래서 새 팔을 짜며 최상위에 "mpc": {"horizon_steps": 6} 을 적으면 parameters 를
-    # 조용히 이기면서 diff 에도 안 잡혔다(= leader_value_depth 사고의 재발 경로).
-    diff: list[str] = []
-    effective = tuning_to_config_overrides(tuning)
-    for sec, block in over.items():
-        tsec = _mapping(effective.get(sec))
-        for key, val in block.items():
-            if key in tsec and tsec[key] != val:
-                top = _mapping(tuning.get(sec))
-                where = "최상위 %s 절" % sec if key in top else "config_overrides"
-                diff.append("%s.%s: parameters=%r tuning=%r (%s)"
-                            % (sec, key, val, tsec[key], where))
-    return over, diff
-
-
 def calibration_to_config_overrides(calibration: Mapping[str, Any]) -> dict[str, Any]:
     network = _calibration_child(calibration, "operational", "network")
     ramp = _calibration_child(calibration, "operational", "ramp_metering")
@@ -4536,18 +4085,18 @@ def calibration_to_config_overrides(calibration: Mapping[str, Any]) -> dict[str,
         # optimize against the non-monotone raw maximum.
         f_cap = _release_at_largest_green(f_map, f_cap)
 
-    # 2026-08-27. FD 3종·lost_time·movement 용량·N_P_crit 은 여기서 정하지 않는다.
-    #
-    # 종전에는 `network.get("v_free_kph", 100.0)` 처럼 "키 없으면 상수" 로 넣었고,
-    # 실제 캘리브레이션 파일에 그 키가 **없어서** 폴백 100/33.5/4000 이 이겼다.
-    # 그런데 그 폴백이 앞 층(build_config)의 123.825/20.401/4574.818 을 덮었고,
-    # 2026-08-02 재적합값 119.505/16.354/4914 는 컨트롤러에 도달한 적이 없다.
-    # 실측 밀도 최대가 32.7 이라 rho_crit 33.5 를 한 번도 못 넘었고 VSL 이 켜질 수 없었다.
-    #
-    # 이제 값의 출처는 `evaluation/parameters.json` 하나다. 캘리브레이션 파일이 같은
-    # 키를 갖고 있으면 조용히 덮지 않고 **불일치를 진단으로 남긴다**(아래 _fd_conflicts).
     out: dict[str, Any] = {
         "network": {
+            "v_free": float(network.get("v_free_kph", 100.0)),
+            "rho_crit": float(network.get("rho_crit_veh_km_lane", 33.5)),
+            # 지수형 속도-밀도식 V(rho)=v_free*exp(-(1/a)*(rho/rho_crit)^a)의 형상 a.
+            # 키가 없는 구 캘리브레이션 파일은 NetworkConfig 기본값 1.867을 그대로 받는다(비트 동일).
+            "metanet_a_m": float(network.get("desired_speed_shape_a", 1.867)),
+            "freeway_capacity_veh_h": float(network.get("freeway_capacity_veh_h", 4000.0)),
+            "lost_time": float(signal.get("recommended_initial_lost_time_sec", 8.0)),
+            "movement_capacity_veh_h": float(
+                signal.get("recommended_initial_saturation_flow_vph_approach", 1400.0)
+            ),
             "ramp_capacity_veh_h": {
                 "R_D_W": float(d_cap),
                 "R_D_E": float(d_cap),
@@ -4666,26 +4215,8 @@ def flagship_config_overrides() -> dict[str, Any]:
             "stackelberg_enable_fallback": True,
             "stackelberg_enable_pfo_incumbent": True,
             "stackelberg_allocation_mode": "direct",
-            # leader_value_depth — 2026-08-27 에 3 -> 0 으로 내린다(사용자 지시).
-            #
-            # 왜. rollout_endpoint.py:188 이 depth = horizon_steps + max(0, leader_value_depth)
-            # 를 쓴다. horizon_steps=3 인데 여기서 3 을 주입해 **리더만 6 스텝**을 굴려 왔다
-            # (follower 는 depth_override=horizon_steps=3). 플랜트 롤아웃 상대오차가
-            # 스텝3 53.8% · 스텝6 73.2% 이므로, 리더의 4~6번째 스텝은 플랜트가 73% 틀린
-            # 영역이다. 그 구간 TTT 를 목적함수 base 로 쓰면 terminal value 가 정보가 아니라
-            # 잡음이다. 지평은 리더·follower 모두 3 으로 맞춘다.
-            #
-            # far 를 죽이지 않는다. stackelberg_mpc.py:2421·2447 게이트가
-            # `leader_value_depth > 0 or leader_mfd_far_at_d0` 이므로 뒤엣것을 켜서
-            # 채점 형태(H-step rollout TTT + far)를 그대로 유지한다. FAR-D0(2026-07-09)
-            # 주석이 정확히 이 용도로 그 플래그를 만들었다고 적고 있다.
-            #
-            # 종전 주석은 "make_controller L252-255: LEADER_V_DEPTH env 없고 cfg 0이면
-            # depth 3" 이었는데, 그 make_controller 는 원본 run_job.sh 러너 쪽이고 이
-            # 저장소에는 `LEADER_V_DEPTH` 를 읽는 코드가 없다. 컨트롤러 생성 뒤에도 0 이
-            # 유지되는 것을 확인했다.
-            "leader_value_depth": 0,
-            "leader_mfd_far_at_d0": True,
+            # make_controller L252-255: LEADER_V_DEPTH env 없고 cfg 0이면 depth 3.
+            "leader_value_depth": 3,
             # run_job.sh env → cfg 번역(러너 L679-704, L894-896, L872-874, L602-628).
             "seg13_meter_box_veh_h": 300.0,     # METER_BOX=300
             "seg13_vsl_box_kmh": 20.0,          # VSL_BOX=15의 VISSIM DSD(20 간격) 보정값
@@ -4741,14 +4272,6 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     controller.offset_price_inner_iters = 4
     controller.green_offset_cross_price_enabled = False
     controller.vsl_meter_cross_price_enabled = False
-    # price_far — 이 빌더에는 없었다. 위 독스트링이 "가격 설정이 flagship 과 같다"고
-    # 적었지만 `build_pstack_flagship_controller` 만 이 스위치를 갖고 있어서, wu-link 팔에서는
-    # `adapter.flagship.price_far` 를 켜도 아무 일도 일어나지 않았다(2026-08-27 확인).
-    # 반대 증거는 flagship 쪽 주석에 그대로 있다 — 2026-07-09 ablation 이 gradient 증폭
-    # (44~60배)으로 실측 악화를 보고 기본 OFF 로 되돌렸다. 그래서 기본은 여전히 OFF 이고,
-    # tuning 이 명시적으로 켤 때만 켜진다.
-    if bool(settings.get("price_far", False)):
-        controller.price_far_enabled = True
     controller.nash_solver.joint_green_offset_enabled = True
     controller.nash_solver.ramp_offset_enabled = True
     controller.metering_price_delta_veh_h = _as_float(settings.get("metering_price_delta_veh_h"), 300.0)
@@ -4822,8 +4345,9 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
         install_phased_price_local(controller, tuning)
     # 신호별 녹색 상자를 GNE 후보·가격 방향에 흘려준다. 절이 없으면 no-op.
     install_signal_aware_green_box(controller, tuning)
+    install_nin_reference_fix()
     # flagship 이 여기서 segment_agents=True 를 켠다. 이 팔은 켜지 않는다 —
-    # LinkAgentWuFollower.__init__ 이 False 로 못박아 두었다.
+    # WuFaithfulFollower.__init__ 이 False 로 못박아 두었다.
     #
     # 그래서 **SEG13 전용 설정을 같이 걷어내야 한다.** `flagship_config_overrides()` 가
     # seg13_meter_box_veh_h=300 · seg13_vsl_box_kmh=20 을 넣는데, wu 팔로워가
@@ -5336,15 +4860,6 @@ def build_config(
         # 적용 순서: base < flagship < calibration < tuning (plan.md 결정).
         overrides = deep_update(overrides, flagship_config_overrides())
     overrides = deep_update(overrides, calibration_to_config_overrides(calibration))
-    # 정본 파라미터 층 (2026-08-27). 적용 순서는
-    #   base < flagship < calibration < **parameters.json** < tuning
-    # 이다. calibration 뒤에 두는 이유는, 그 층이 실제로는 "키 없으면 상수" 폴백
-    # 6개를 앞 층에 덮어씌우는 일만 하고 있었기 때문이다 — 살아 있는 캘리브레이션
-    # 파일에는 `operational` 절 자체가 없다. tuning 앞에 두는 이유는 시나리오가
-    # 명시적으로 다르게 갈 여지를 남기기 위해서다. 다만 그 차이는 조용히 넘어가지
-    # 않고 아래에서 진단으로 남는다.
-    _params_over, _params_diff = _canonical_parameter_overrides(tuning)
-    overrides = deep_update(overrides, _params_over)
     overrides = deep_update(overrides, tuning_to_config_overrides(tuning))
     if mode == "fuller-smoke":
         overrides["mpc"].update({
@@ -5352,13 +4867,6 @@ def build_config(
             "max_nash_iter": 2,
         })
     cfg = ExperimentConfig.from_file(config_path, overrides=overrides)
-    # 생성자 필드가 아닌 정본 파라미터(runtime 절)를 심는다. 아래 _plant_* 들이
-    # 같은 이름을 다시 쓰면 그쪽이 이기는데, 그건 tuning 이 명시적으로 시킨 경우뿐이다.
-    _params_runtime = _canonical_runtime_parameters(cfg)
-    cfg.__dict__["_canonical_parameters"] = {
-        "runtime_applied": _params_runtime,
-        "overridden_by_tuning": _params_diff,
-    }
     _plant_phase_counts_into(cfg)
     _plant_phase_shape_into(cfg, tuning)
     _plant_rollout_far_into(cfg, tuning)
@@ -5406,16 +4914,9 @@ def _plant_rollout_far_into(cfg, tuning) -> None:
     `phase_shape` 와 같은 이유로 dataclass 필드를 안 늘린다 —
     `src/models/state.py` 를 건드리면 앵커 등재가 하나 더 는다.
     """
-    # 2026-08-27. 기본값은 `evaluation/parameters.json` 의 runtime.mpc 가 갖는다 —
-    # 여기에 상수를 박지 않는다. 종전에는 절이 없으면 그대로 돌아가서
-    # `distributed_rollout_far_enabled` 속성이 아예 생기지 않았고, 분산 채점기가 이를
-    # False 로 읽어 far 를 계산조차 하지 않았다. 24단 튜닝 체인 어디에도 `rollout_far`
-    # 절이 없었으므로 실런에서 far 는 한 번도 돌지 않았다 — plantfix_20260827 의 결정
-    # 37개를 훑으면 far 진단 키가 0회다. far 는 urban(N^2/2G, boundary 큐 포함)과
-    # freeway(본선 N^2/2G_fw + ramp 큐 bilinear)를 함께 담는다(state.py:564).
     section = (tuning or {}).get("rollout_far")
     if not isinstance(section, Mapping):
-        section = {}
+        return
     mpc = cfg.mpc
     if "enabled" in section:
         setattr(mpc, "distributed_rollout_far_enabled", bool(section["enabled"]))
@@ -5674,11 +5175,13 @@ def profiled_demand_rates(
             link_counts = _link_counts_from_local_observation(state_json)
             for link, ramps in _mapping(detector_mapping.get("ramp_link_to_queues")).items():
                 count = max(0.0, _as_float(link_counts.get(str(link)), 0.0))
-                if count <= 0.0:
+                if count <= 0.0 or not isinstance(ramps, list) or not ramps:
                     continue
-                for ramp_key, weight in _ramp_queue_shares(ramps):
+                share = count / float(len(ramps))
+                for ramp in ramps:
+                    ramp_key = str(ramp)
                     if ramp_key in observed_counts:
-                        observed_counts[ramp_key] += count * weight
+                        observed_counts[ramp_key] += share
         queue_drain_horizon_sec = max(1.0, _as_float(local_fc.get("queue_drain_horizon_sec"), 120.0))
         multiplier = max(0.0, _as_float(local_fc.get("multiplier"), 1.0))
         min_vph = max(0.0, _as_float(local_fc.get("min_vph_if_observed"), 120.0))
@@ -5967,11 +5470,6 @@ def traffic_state_from_vissim(
                 if str(link) in cfg.network.urban_link_storage_veh:
                     state.urban_link_speed_kph[str(link)] = max(0.0, _as_float(speed_kph))
             _apply_lane_delay_correction(state, cfg, local_summary)
-            # 경계 유입 재고를 모델이 쓰는 통(전이버퍼 + movement 큐)으로 옮긴다.
-            # 꺼져 있으면 아무것도 안 한다(비트 동일).
-            local_summary["boundary_inflow_seed"] = seed_boundary_inflow(cfg, state, local_summary)
-            # 차로 보정 **뒤에** 잰다 — 실제로 모델이 쓸 τ 가 여기서 확정된다.
-            _tau_diagnostics(state, cfg, local_summary)
         restore_urban_release_buffers(state, cfg, local_summary)
         # 버퍼를 손으로 짓지 않고 plant 가 짓게 하는 경로. 기본 꺼짐(RW_WARMSTART_SEC).
         state.warmstart_diagnostics = warm_start_release_buffers(
@@ -8371,21 +7869,6 @@ def main() -> None:
     if _tuned_detector and not Path(detector_mapping_path).is_absolute():
         detector_mapping_path = str(WORKSPACE_ROOT / detector_mapping_path)
     detector_mapping = load_optional_json(detector_mapping_path)
-    # tuning 이 매핑을 지정했는데 안 열리면 **세운다**. 2026-08-26 에 config 의
-    # 백슬래시 경로가 JSON 에서 캐리지리턴으로 해석돼 파일이 없어졌고,
-    # load_optional_json 이 조용히 빈 dict 를 내서 map4etau_20260826 이 관측 없이
-    # 92분을 완주했다 (local_observation_runtime_guard=0, TTT 가 무제어와 같음).
-    # 진단의 detector_mapping_effective 는 basename 만 찍어 정상처럼 보였다.
-    if _tuned_detector and not detector_mapping:
-        raise SystemExit(
-            "DETECTOR_MAPPING_UNREADABLE: tuning 이 지정한 매핑을 못 읽었다.\n"
-            "  tuning 값 : %r\n"
-            "  해석 경로 : %r\n"
-            "  존재      : %s\n"
-            "경로에 제어문자가 있으면 JSON 백슬래시 이스케이프다. 슬래시로 써라."
-            % (_tuned_detector, detector_mapping_path,
-               Path(detector_mapping_path).is_file())
-        )
     # 미드블록 정지선 링크를 관측에서 뺀다(tuning `urban.midblock.exclude_links`).
     # 투영보다 먼저여야 한다 — traffic_state_from_vissim 이 이 매핑으로 큐를 귀속한다.
     detector_mapping, _midblock_meta = filter_midblock_links_from_detector_mapping(
@@ -8424,23 +7907,7 @@ def main() -> None:
     # 쓰는 값이라 tuning 이 덮은 경우를 못 잡는다(2026-08-22 에 그걸로 팔 셋을 헛돌렸다).
     adapter_runtime_metadata["detector_mapping_effective"] = Path(detector_mapping_path).name
     adapter_runtime_metadata["detector_mapping_from_tuning"] = 1.0 if _tuned_detector else 0.0
-    # basename 만 찍으면 깨진 경로가 정상처럼 보인다(2026-08-26). 해석 경로와 규모를 남긴다.
-    adapter_runtime_metadata["detector_mapping_resolved_path"] = str(detector_mapping_path)
-    adapter_runtime_metadata["detector_mapping_observable_link_count"] = float(
-        len(detector_mapping.get("observable_links") or []))
-    adapter_runtime_metadata["detector_mapping_link_to_origins_count"] = float(
-        len(_mapping(detector_mapping.get("link_to_origins"))))
     runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
-    # tau 물리길이 상한. 꺼져 있으면 아무것도 안 한다(비트 동일).
-    runtime_patch_metadata.update(install_tau_length_cap_patch(cfg))
-    # 구조적으로 죽은 현시의 movement beta 를 0 으로. 꺼져 있으면 비트 동일.
-    #
-    # 2026-08-27. 여기서 부르고 **끝이 아니다.** 아래 `install_measured_turn_beta` 가
-    # 실측 회전분율을 다시 심으면서 여기서 0 으로 만든 17개 중 **10개를 되살린다**
-    # (되살아난 beta 합 2.332 — SC16_W_SC7_to_N_SC12 0.675, SC107_N_SC1_to_S 0.68 등).
-    # 녹색이 구조적으로 0 인 현시로 수요가 흘러 들어가 정지선에서 영원히 안 빠진다.
-    # 그래서 beta 설치가 끝난 **뒤에 한 번 더** 부른다(아래 참조). 순서를 바꾸지 마라.
-    runtime_patch_metadata.update(apply_dead_phase_beta_zero(cfg))
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
     runtime_patch_metadata.update(install_urban_stopline_storage(cfg, tuning))
@@ -8449,10 +7916,6 @@ def main() -> None:
     # 같은 물리 회전으로 쪼개진 movement 를 합친다. **beta 설치 뒤**여야 한다 —
     # 실측 beta 가 원래 이름에 붙은 다음 합산되어야 한다. 그리고 용량 설치 **앞**이라
     # 용량은 처음부터 병합된 이름으로 심긴다.
-    # 실측 beta 가 죽은 현시의 movement 를 되살렸으므로 다시 0 으로 만든다(2026-08-27).
-    # 병합 **앞**이어야 한다 — 병합이 beta 를 합산하므로, 0 이어야 할 것이 살아 있으면
-    # 합쳐진 movement 로 그 몫이 새어 들어간다.
-    runtime_patch_metadata.update(_relabel(apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
     detector_mapping, _merge_meta = install_merged_movements(cfg, tuning, detector_mapping)
     runtime_patch_metadata.update(_merge_meta)
     runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))

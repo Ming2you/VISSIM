@@ -1,0 +1,20 @@
+{
+ "name": "real_world_modi_pstack_distributed_core17legs4b_plantfix_20260826",
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_bstoA_20260826.json",
+ "urban": {
+  "tau": {
+   "length_cap": true
+  },
+  "movements": {
+   "dead_phase_beta_zero": true
+  }
+ },
+ "notes": [
+  "2026-08-26. plant 충실도 수정 두 개를 켠다. 상속 사슬: bstoA(경계저류 39개) <- map4f <- map4e <- tau.",
+  "tau.length_cap — tau 의 이동거리를 저류 물리 길이로 상한. 현행은 available(빈 공간) x 6m 를 거리로 써서 상한이 없고, SC5_to_SC6 가 실제 1.232km/89초인데 모델 740초(8.3배)가 된다. 차가 horizon 안에 정지선에 도착 못 해 재고가 6스텝에 +32% 부푼다.",
+  "movements.dead_phase_beta_zero — 구조적으로 녹색이 0 인 현시 5개(SC107_p1 SC108_p2 SC109_p1 SC16_p4 SC7_p3)의 movement 17개는 beta 가 균등 1/n 잔재이고 VISSIM 되읽기에서 해당 SG 가 5400초 내내 RED 다. 결정당 38.3대를 영원히 가둔다. beta=0 + 같은 origin 재정규화.",
+  "차로보정(lane_delay_correction)은 반드시 함께 켠 상태여야 한다 — 끄면 스텝6 오차가 102.5%로 실측 총량을 넘는다. tau 부모 사슬에서 이미 켜져 있다.",
+  "가격 워커: install_price_worker_runtime_patches 가 monitor 패치와 tau 상한을 함께 심는다. 안 그러면 부모는 상한 tau, 워커 10개는 무상한 tau 로 가격을 매긴다(부호 30.6% 반전).",
+  "어댑터는 반드시 vissim_stackelberg_adapter_qbind_20260826.py 를 써라 — 다른 사본에는 install_tau_length_cap_patch 가 없다."
+ ]
+}

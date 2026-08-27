@@ -1,0 +1,38 @@
+{
+  "extends": "real_world_modi_pstack_bottleneck_mask_scale135_20260722.json",
+  "name": "real_world_modi_pstack_crossgate_high_budget_20260723",
+  "description": "High-budget VISSIM adapter tuning for cross-gate/b13 Numerical-Sim P-Stack smoke validation. This intentionally opens horizon, candidate, Nash, and fallback budgets before later pruning.",
+  "config_overrides": {
+    "mpc": {
+      "horizon_steps": 3,
+      "control_horizon_steps": 3,
+      "leader_candidate_count": 49,
+      "leader_refinement_candidate_count": 25,
+      "max_nash_iter": 10,
+      "stackelberg_enable_fallback": true,
+      "stackelberg_enable_pfo_incumbent": true,
+      "stackelberg_prefilter_top_k": 4,
+      "stackelberg_prefilter_local_top_k": 4,
+      "stackelberg_leader_parallel_backend": "serial",
+      "grid_parallel_backend": "serial",
+      "grid_reuse_process_pool": false
+    },
+    "urban_follower": {
+      "max_offset_step": 15.0,
+      "offset_smoothness_weight": 0.1,
+      "green_smoothness_weight": 0.1,
+      "allocation_pso_particles": 18,
+      "allocation_pso_iterations": 24
+    },
+    "freeway_follower": {
+      "horizon_beam_width": 2,
+      "horizon_ramp_candidate_limit": 3,
+      "horizon_vsl_candidate_limit_per_link": 3
+    }
+  },
+  "notes": [
+    "Use only for short VISSIM smoke runs; it deliberately spends more Python controller time.",
+    "Offset remains bounded to 15 s per control interval, but H=3 lets the controller score multi-interval phase effects instead of the old H=1 myopic setting.",
+    "After action diagnostics confirm the new budget is active, reduce candidate/Nash budgets for production runs."
+  ]
+}

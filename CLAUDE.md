@@ -10,7 +10,37 @@ core17legs4(=b 없는 판))를 기본값으로 쓰지 마라.** 되돌아간 적
 | --- | --- |
 | 진입점 | `scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1` (유일한 정본 러너) |
 | 망 원본 | 아래 "망 정본이 둘로 갈려 있다" 참조 |
-| config | `evaluation/configs/real_world_modi_pstack_distributed_core17legs4b_20260819.json` |
+| **어댑터** | `evaluation/controllers/vissim_stackelberg_adapter.py` — **유일하다.** 사본을 만들지 마라 |
+| **값** | `evaluation/parameters.json` — 값의 단일 출처. 읽는 문은 `evaluation/parameters.py` 뿐 |
+| **시나리오** | `evaluation/configs/canon_{tau,bstoA,plantfix,fdfit}_20260827.json` — 자립(extends 없음) |
+
+### 2026-08-27 정본 통합 — 되돌리지 마라
+
+어댑터 19벌(155,827행)·config 139개(사슬 24단)를 어댑터 1벌·config 4개로 합쳤다. 구버전은
+`evaluation/controllers/_superseded_20260827/` 와 `evaluation/configs/_superseded_20260827/`
+에 MANIFEST(sha256 + 그것을 쓴 런)와 함께 있다. **거기서 꺼내 쓰지 마라.**
+
+값은 `parameters.json` 하나에만 적는다. 규칙 셋을 코드가 강제한다.
+
+1. 코드에 상수를 박지 않는다. `parameters.require()` 에는 **기본값 인자가 없다** — 키가
+   없으면 예외다. 조용한 폴백이 FD 사고(재적합값이 컨트롤러에 한 번도 도달 못 함)의 원인이었다.
+2. 파생량은 `parameters.py` 의 함수로만 계산한다 — `leader_rollout_depth`,
+   `effective_green_total`, `phase_green_max`, `urban_occupancy`. 같은 식을 두 곳에 쓰면
+   `leader_value_depth` 사고(지평 3인 줄 알았는데 리더는 6)가 재발한다.
+3. 시나리오가 값을 다르게 가져가려면 **config 에 명시**한다. 그 차이는
+   `_canonical_parameters.overridden_by_tuning` 진단에 남고, 아래 검사기가 확인한다.
+
+```bash
+python scripts/verify_parameters.py evaluation/configs/canon_plantfix_20260827.json
+```
+
+정본 파라미터가 실효값이 됐는지, 선언 없는 어긋남·순수 중복이 없는지, 파생량이 정합한지
+검사한다. 정본 런처 7개가 사전점검 뒤에 자동으로 부른다. **순수 중복(config 가
+parameters 와 같은 값을 또 적는 것)은 FAIL 이다** — tuning 이 parameters 를 이기므로
+`parameters.json` 편집이 조용히 무시된다.
+
+plant 나 모델 상태를 고칠 때는 사본을 만들어 검증한 뒤 정본으로 승격하고 **사본을 지운다.**
+사본을 남긴 채 플래그로 옛 경로를 보존하는 것이 어댑터 19벌을 만든 습관이다.
 | player 권역 | `outputs/urban_player_territory_v1_20260819.json` |
 | 인접표 | `outputs/intersection_adjacency_core17legs4b_20260819.json` |
 | 제어 매핑 | `evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core17legs4b_20260819.json` |

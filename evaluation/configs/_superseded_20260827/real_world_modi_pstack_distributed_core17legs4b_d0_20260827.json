@@ -1,0 +1,39 @@
+{
+  "name": "real_world_modi_pstack_distributed_core17legs4b_d0_20260827",
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_plantfix_20260826.json",
+  "description": "예측 지평을 리더에서도 3스텝으로 되돌리고, far(MFD tail) 를 실제로 계산되게 켠다 — urban·freeway 양쪽.",
+  "notes": [
+    "2026-08-27, 사용자 지시. 두 가지가 잘못돼 있었다.",
+
+    "(1) 지평이 6이었다. horizon_steps=3 인데 rollout_endpoint.py:188 이 depth = horizon_steps + max(0, leader_value_depth) = 3 + 3 = 6 을 쓴다. follower 만 depth_override=horizon_steps=3 이고 리더는 6을 굴린다. 플랜트 롤아웃 상대오차가 스텝3 53.8% · 스텝6 73.2% 이므로 리더의 4~6번째 스텝은 플랜트가 73% 틀린 영역이다. leader_value_depth 를 0 으로 내려 리더도 3스텝만 본다.",
+
+    "(2) far 가 이름만 켜져 있었다. cfg.mpc.leader_mfd_far_enabled 는 True 지만, wu-link 가 타는 분산 경로(distributed_coordinator._evaluate_grid_candidate)가 ObjectiveSpec 을 score_mode=raw 로 만들어 far 를 계산조차 하지 않는다. 25단 튜닝 체인 어디에도 rollout_far 절이 없어 distributed_rollout_far_enabled 속성이 아예 없다. plantfix_20260827 의 결정 37개를 훑으면 far 진단 키가 0회다.",
+
+    "그래서 켜는 것 넷. leader_value_depth=0 (지평 3), leader_mfd_far_at_d0=true (depth 0 에서도 far 채점 게이트를 연다 — stackelberg_mpc.py:2421·2447 의 or 분기, FAR-D0 2026-07-09 가 정확히 이 검정용으로 만든 플래그다), rollout_far.enabled=true (분산 채점에 far 를 태운다), adapter.flagship.price_far=true (가격 rollout 채점도 TTT+far).",
+
+    "far 는 urban 과 freeway 를 함께 담는다 — state.py:564 주석이 'urban(N^2/2G, boundary 큐 포함) + freeway(본선 N^2/2G_fw + ramp 큐 bilinear)' 라고 적고 있고, 파라미터도 g_free/g_cong(urban) 과 g_fw(freeway) 로 나뉘어 있다. ncrit·g_free·g_cong·g_fw·weight 는 상류 기본값을 그대로 쓴다 — 여기서 같이 건드리면 변수가 늘어난다.",
+
+    "price_far 에 대한 반대 증거를 남긴다. 어댑터 4813~4815행이 'stackelberg_wu_metered.py:157-159 가 2026-07-09 ablation 에서 gradient 크기와 노이즈를 함께 증폭해 실측 악화로 기본 OFF 로 되돌렸다' 고 적고 있고, 44~60배 증폭은 실재한다고 본다. 사용자 지시로 켠다. 이것만 따로 끄고 싶으면 adapter.flagship.price_far 를 false 로 두면 나머지 셋은 그대로다.",
+
+    "사용자 지시 준수. 리더 목적함수의 TTT 와 lever 한계가격은 끄지 않는다. 현시 가격도 건드리지 않는다. 이 팔은 전부 켜는 방향이다.",
+
+    "대조군은 plantfix_20260827 (지평 6 · far 미계산). 시드 13 짝지어 비교한다. 시드 σ 가 50.7 veh·h 이므로 비짝지음 비교는 무효다.",
+
+    "부수효과. forecast 길이가 어댑터 8355행에서 horizon_steps + max(0, leader_value_depth) 로 산정되므로 6 -> 3 이 된다. 결정 시간도 줄어야 한다(현재 결정당 약 135초)."
+  ],
+  "rollout_far": {
+    "enabled": true
+  },
+  "adapter": {
+    "flagship": {
+      "price_far": true
+    }
+  },
+  "config_overrides": {
+    "mpc": {
+      "leader_value_depth": 0,
+      "leader_mfd_far_at_d0": true,
+      "leader_mfd_far_enabled": true
+    }
+  }
+}

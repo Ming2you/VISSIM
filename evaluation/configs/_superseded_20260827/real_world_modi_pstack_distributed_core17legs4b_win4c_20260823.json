@@ -1,0 +1,10 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_phased_20260822.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_win4c_20260823",
+ "description": "4c·phased 위에 위상 잠금 보정만. 러너 RW_QUEUE_WINDOW=1 + RW_QUEUE_WINDOW_STAT=mean 필요.",
+ "notes": [
+  "2026-08-22 에 창 집계를 정지차에만 걸어 큐 배정에 안 닿았다(leave-one-out 에서 결정 0개 변경). link_counts 에도 연결한 뒤 처음 거는 팔이다 — 큐는 link_counts x (1-storage_fraction) 에서 나온다.",
+  "제어주기 150s = 신호주기 150s 라 관측이 늘 같은 신호 위상에 떨어진다. SC1 동서: 결정시점 0.1 / 창평균 3.3 / 창최대 12.8.",
+  "설정에는 스위치가 없다 — 러너 환경변수 둘로만 켠다."
+ ]
+}

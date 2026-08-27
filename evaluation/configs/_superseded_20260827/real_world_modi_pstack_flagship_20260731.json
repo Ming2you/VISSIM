@@ -1,0 +1,40 @@
+{
+  "extends": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json",
+  "name": "real_world_modi_pstack_flagship_20260731",
+  "description": "NumSim flagship-ms-adapt-clean(7f10393) P-STACK-WU-FAITHFUL-ALLPRICE-JOINT 운영점을 pstack-flagship 모드로 실행하는 real-world tuning. 컨트롤러 구성(SEG13/가격 4채널/OPT12/BOX_WALK 등)은 adapter의 flagship 층이 주입하며, 이 파일은 VISSIM 보정값과 per-step 로직 파라미터만 노출한다.",
+  "config_overrides": {
+    "mpc": {
+      "seg13_vsl_box_kmh": 20.0
+    }
+  },
+  "adapter": {
+    "flagship": {
+      "nash_smax": 10,
+      "opt12": true,
+      "bias_sample": true,
+      "ms_adapt": {
+        "enabled": true,
+        "thr": 10.0,
+        "hold": 5,
+        "w": 0.013
+      },
+      "far_gate": {
+        "enabled": true,
+        "thr": 0.95
+      },
+      "sup_pfo": {
+        "enabled": true,
+        "gate": "fargate"
+      },
+      "post_guard_pfo_baseline": false
+    }
+  },
+  "notes": [
+    "--controller pstack-flagship 전용. 다른 모드에서는 adapter.flagship 섹션이 무시된다.",
+    "seg13_vsl_box_kmh=20은 flagship VSL_BOX=15(10km/h 간격 메뉴)의 VISSIM DSD(vsl_set [80,100,120], 20 간격) 보정값 — 15면 이웃 후보를 못 담아 VSL이 동결된다.",
+    "ms_adapt 기본은 플래그십 채택값 thr10/hold5/w0.013 (러너 코드 기본 MS_HOLD=3이 아님에 주의). 60s 결정 주기 재보정 sweep은 후속 A/B.",
+    "far_gate는 FAR_GATE=3(하이브리드)이지만 VISSIM forecast에 폐쇄 예보 입력이 없어 실질 mode 2(capdrop 상태 트리거)로 동작한다.",
+    "post_guard_pfo_baseline=false: SUP_PFO가 flagship의 정식 PFO 기권 메커니즘이므로 post_guard PFO 기준선은 이중 개입 방지를 위해 OFF. no-control 안전망은 상위 체인 설정을 따른다.",
+    "플랜트 env(VFREE/RHO_CRIT/TAU_H/NU_BASE/KAPPA/MERGE_DELTA/FW_BUFFER/TERM_ZG)는 수치실험 플랜트 물리라 복사하지 않는다 — 예측모델 기준은 상위 체인의 VISSIM 캘리브레이션(v_free 120/rho_crit 30/cap 6900)."
+  ]
+}

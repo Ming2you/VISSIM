@@ -1,0 +1,1507 @@
+{
+ "_comment": "도시부 토폴로지를 5노드 격자 -> 15 SC 로 교체한다. G6 관측 목적함수가 도시부의 1.4 %만 잡던 최상위 결함의 수정.",
+ "_defect": "플랜트/매핑/관측은 모두 SC 이름공간(SC1001_E_out ...)인데 모델만 default.yaml 의 6노드 격자(A_to_B, C_top_out ...)였다. detector_local_mapping 의 origin 64개 중 60개가 모델 저류링크로 번역되지 않아, observable_links 를 22 -> 175 로 넓혀도 투영 도시부가 83.5 대에서 소수점까지 그대로였다(v6/v7 동일). 그 결과 J_vissim 이 사실상 고속도로 전용이 되어 도시부로 차를 미는 레버(green, metering)가 전부 반대 부호로 채점됐다.",
+ "_source": "scripts/generate_real_world_distributed_players.py --selector core15 --sc1-coupling on --ramp-interface-sc R_D_W:1001,R_D_E:1001,R_F_W:1004,R_F_E:1004 --slug core15rc --stamp 20260804",
+ "_why_ramp_split": "기존 분산 config 는 램프 넷을 SC1 하나에 몰아 D/F 구분이 모델에서 사라졌다. 실측 플랜트는 인터체인지가 둘이다 — D측 SC1001(신호두가 링크 32, 오프램프 10481/10491 직결), F측 SC1004(링크 71 이 링크 70 배수, 링크 52/46/66 이 링크 68 공급, 링크 68 출구는 온램프 10646/10681 뿐). 그래서 R_D_* -> SC1001, R_F_* -> SC1004 로 나눴다.",
+ "_scope": "network 블록만 가져온다. 원본 분산 config 의 mpc/urban_follower 는 탐색예산 축소(후보 49->9, nash 10->4, PSO 18->6 등)라 flagship 설정과 충돌한다 — 가져오지 않는다.",
+ "extends": "real_world_modi_pstack_v5_tttfar_rampdemand_20260804.json",
+ "name": "real_world_modi_pstack_v6_urban15_20260804",
+ "description": "v5_tttfar_rampdemand + 도시부 토폴로지 15 SC (램프 결합 SC1001/SC1004 분리).",
+ "mapping_json": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core15rc_20260804.json",
+ "detector_mapping_json": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Claude\\VISSIM\\evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core15rc_20260804.json",
+ "config_overrides": {
+  "network": {
+   "signals": [
+    "SC1",
+    "SC5",
+    "SC6",
+    "SC11",
+    "SC12",
+    "SC101",
+    "SC105",
+    "SC107",
+    "SC108",
+    "SC109",
+    "SC1001",
+    "SC1002",
+    "SC1003",
+    "SC1004",
+    "SC1005"
+   ],
+   "uncontrolled_nodes": [],
+   "urban_links": [],
+   "grid_node_legs": {
+    "SC1": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1_N",
+      "out": "out_SC1_N",
+      "out_link": "SC1_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1_S",
+      "out": "out_SC1_S",
+      "out_link": "SC1_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1_E",
+      "out": "out_SC1_E",
+      "out_link": "SC1_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1_W",
+      "out": "out_SC1_W",
+      "out_link": "SC1_W_out"
+     }
+    },
+    "SC5": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC5_N",
+      "out": "out_SC5_N",
+      "out_link": "SC5_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC5_S",
+      "out": "out_SC5_S",
+      "out_link": "SC5_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC5_E",
+      "out": "out_SC5_E",
+      "out_link": "SC5_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC5_W",
+      "out": "out_SC5_W",
+      "out_link": "SC5_W_out"
+     }
+    },
+    "SC6": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC6_N",
+      "out": "out_SC6_N",
+      "out_link": "SC6_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC6_S",
+      "out": "out_SC6_S",
+      "out_link": "SC6_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC6_E",
+      "out": "out_SC6_E",
+      "out_link": "SC6_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC6_W",
+      "out": "out_SC6_W",
+      "out_link": "SC6_W_out"
+     }
+    },
+    "SC11": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC11_N",
+      "out": "out_SC11_N",
+      "out_link": "SC11_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC11_S",
+      "out": "out_SC11_S",
+      "out_link": "SC11_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC11_E",
+      "out": "out_SC11_E",
+      "out_link": "SC11_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC11_W",
+      "out": "out_SC11_W",
+      "out_link": "SC11_W_out"
+     }
+    },
+    "SC12": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC12_N",
+      "out": "out_SC12_N",
+      "out_link": "SC12_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC12_S",
+      "out": "out_SC12_S",
+      "out_link": "SC12_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC12_E",
+      "out": "out_SC12_E",
+      "out_link": "SC12_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC12_W",
+      "out": "out_SC12_W",
+      "out_link": "SC12_W_out"
+     }
+    },
+    "SC101": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC101_N",
+      "out": "out_SC101_N",
+      "out_link": "SC101_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC101_S",
+      "out": "out_SC101_S",
+      "out_link": "SC101_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC101_E",
+      "out": "out_SC101_E",
+      "out_link": "SC101_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC101_W",
+      "out": "out_SC101_W",
+      "out_link": "SC101_W_out"
+     }
+    },
+    "SC105": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC105_N",
+      "out": "out_SC105_N",
+      "out_link": "SC105_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC105_S",
+      "out": "out_SC105_S",
+      "out_link": "SC105_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC105_E",
+      "out": "out_SC105_E",
+      "out_link": "SC105_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC105_W",
+      "out": "out_SC105_W",
+      "out_link": "SC105_W_out"
+     }
+    },
+    "SC107": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC107_N",
+      "out": "out_SC107_N",
+      "out_link": "SC107_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC107_S",
+      "out": "out_SC107_S",
+      "out_link": "SC107_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC107_E",
+      "out": "out_SC107_E",
+      "out_link": "SC107_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC107_W",
+      "out": "out_SC107_W",
+      "out_link": "SC107_W_out"
+     }
+    },
+    "SC108": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC108_N",
+      "out": "out_SC108_N",
+      "out_link": "SC108_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC108_S",
+      "out": "out_SC108_S",
+      "out_link": "SC108_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC108_E",
+      "out": "out_SC108_E",
+      "out_link": "SC108_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC108_W",
+      "out": "out_SC108_W",
+      "out_link": "SC108_W_out"
+     }
+    },
+    "SC109": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC109_N",
+      "out": "out_SC109_N",
+      "out_link": "SC109_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC109_S",
+      "out": "out_SC109_S",
+      "out_link": "SC109_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC109_E",
+      "out": "out_SC109_E",
+      "out_link": "SC109_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC109_W",
+      "out": "out_SC109_W",
+      "out_link": "SC109_W_out"
+     }
+    },
+    "SC1001": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1001_N",
+      "out": "out_SC1001_N",
+      "out_link": "SC1001_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1001_S",
+      "out": "out_SC1001_S",
+      "out_link": "SC1001_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1001_E",
+      "out": "out_SC1001_E",
+      "out_link": "SC1001_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1001_W",
+      "out": "out_SC1001_W",
+      "out_link": "SC1001_W_out"
+     }
+    },
+    "SC1002": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1002_N",
+      "out": "out_SC1002_N",
+      "out_link": "SC1002_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1002_S",
+      "out": "out_SC1002_S",
+      "out_link": "SC1002_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1002_E",
+      "out": "out_SC1002_E",
+      "out_link": "SC1002_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1002_W",
+      "out": "out_SC1002_W",
+      "out_link": "SC1002_W_out"
+     }
+    },
+    "SC1003": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1003_N",
+      "out": "out_SC1003_N",
+      "out_link": "SC1003_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1003_S",
+      "out": "out_SC1003_S",
+      "out_link": "SC1003_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1003_E",
+      "out": "out_SC1003_E",
+      "out_link": "SC1003_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1003_W",
+      "out": "out_SC1003_W",
+      "out_link": "SC1003_W_out"
+     }
+    },
+    "SC1004": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1004_N",
+      "out": "out_SC1004_N",
+      "out_link": "SC1004_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1004_S",
+      "out": "out_SC1004_S",
+      "out_link": "SC1004_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1004_E",
+      "out": "out_SC1004_E",
+      "out_link": "SC1004_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1004_W",
+      "out": "out_SC1004_W",
+      "out_link": "SC1004_W_out"
+     }
+    },
+    "SC1005": {
+     "N": {
+      "type": "boundary",
+      "in": "in_SC1005_N",
+      "out": "out_SC1005_N",
+      "out_link": "SC1005_N_out"
+     },
+     "S": {
+      "type": "boundary",
+      "in": "in_SC1005_S",
+      "out": "out_SC1005_S",
+      "out_link": "SC1005_S_out"
+     },
+     "E": {
+      "type": "boundary",
+      "in": "in_SC1005_E",
+      "out": "out_SC1005_E",
+      "out_link": "SC1005_E_out"
+     },
+     "W": {
+      "type": "boundary",
+      "in": "in_SC1005_W",
+      "out": "out_SC1005_W",
+      "out_link": "SC1005_W_out"
+     }
+    }
+   },
+   "urban_movements": {
+    "SC1_NS_N_to_out": {
+     "intersection": "SC1",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1",
+     "phase": "SC1_p1",
+     "origin": "in_SC1_N",
+     "destination": "SC1_N_out",
+     "receiving_link": "SC1_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1_NS_S_to_out": {
+     "intersection": "SC1",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1",
+     "phase": "SC1_p1",
+     "origin": "in_SC1_S",
+     "destination": "SC1_S_out",
+     "receiving_link": "SC1_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1_EW_E_to_out": {
+     "intersection": "SC1",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1",
+     "phase": "SC1_p2",
+     "origin": "in_SC1_E",
+     "destination": "SC1_E_out",
+     "receiving_link": "SC1_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1_EW_W_to_out": {
+     "intersection": "SC1",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1",
+     "phase": "SC1_p2",
+     "origin": "in_SC1_W",
+     "destination": "SC1_W_out",
+     "receiving_link": "SC1_W_out",
+     "kind": "boundary_in"
+    },
+    "SC5_NS_N_to_out": {
+     "intersection": "SC5",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC5",
+     "phase": "SC5_p1",
+     "origin": "in_SC5_N",
+     "destination": "SC5_N_out",
+     "receiving_link": "SC5_N_out",
+     "kind": "boundary_in"
+    },
+    "SC5_NS_S_to_out": {
+     "intersection": "SC5",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC5",
+     "phase": "SC5_p1",
+     "origin": "in_SC5_S",
+     "destination": "SC5_S_out",
+     "receiving_link": "SC5_S_out",
+     "kind": "boundary_in"
+    },
+    "SC5_EW_E_to_out": {
+     "intersection": "SC5",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC5",
+     "phase": "SC5_p2",
+     "origin": "in_SC5_E",
+     "destination": "SC5_E_out",
+     "receiving_link": "SC5_E_out",
+     "kind": "boundary_in"
+    },
+    "SC5_EW_W_to_out": {
+     "intersection": "SC5",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC5",
+     "phase": "SC5_p2",
+     "origin": "in_SC5_W",
+     "destination": "SC5_W_out",
+     "receiving_link": "SC5_W_out",
+     "kind": "boundary_in"
+    },
+    "SC6_NS_N_to_out": {
+     "intersection": "SC6",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC6",
+     "phase": "SC6_p1",
+     "origin": "in_SC6_N",
+     "destination": "SC6_N_out",
+     "receiving_link": "SC6_N_out",
+     "kind": "boundary_in"
+    },
+    "SC6_NS_S_to_out": {
+     "intersection": "SC6",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC6",
+     "phase": "SC6_p1",
+     "origin": "in_SC6_S",
+     "destination": "SC6_S_out",
+     "receiving_link": "SC6_S_out",
+     "kind": "boundary_in"
+    },
+    "SC6_EW_E_to_out": {
+     "intersection": "SC6",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC6",
+     "phase": "SC6_p2",
+     "origin": "in_SC6_E",
+     "destination": "SC6_E_out",
+     "receiving_link": "SC6_E_out",
+     "kind": "boundary_in"
+    },
+    "SC6_EW_W_to_out": {
+     "intersection": "SC6",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC6",
+     "phase": "SC6_p2",
+     "origin": "in_SC6_W",
+     "destination": "SC6_W_out",
+     "receiving_link": "SC6_W_out",
+     "kind": "boundary_in"
+    },
+    "SC11_NS_N_to_out": {
+     "intersection": "SC11",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC11",
+     "phase": "SC11_p1",
+     "origin": "in_SC11_N",
+     "destination": "SC11_N_out",
+     "receiving_link": "SC11_N_out",
+     "kind": "boundary_in"
+    },
+    "SC11_NS_S_to_out": {
+     "intersection": "SC11",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC11",
+     "phase": "SC11_p1",
+     "origin": "in_SC11_S",
+     "destination": "SC11_S_out",
+     "receiving_link": "SC11_S_out",
+     "kind": "boundary_in"
+    },
+    "SC11_EW_E_to_out": {
+     "intersection": "SC11",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC11",
+     "phase": "SC11_p2",
+     "origin": "in_SC11_E",
+     "destination": "SC11_E_out",
+     "receiving_link": "SC11_E_out",
+     "kind": "boundary_in"
+    },
+    "SC11_EW_W_to_out": {
+     "intersection": "SC11",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC11",
+     "phase": "SC11_p2",
+     "origin": "in_SC11_W",
+     "destination": "SC11_W_out",
+     "receiving_link": "SC11_W_out",
+     "kind": "boundary_in"
+    },
+    "SC12_NS_N_to_out": {
+     "intersection": "SC12",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC12",
+     "phase": "SC12_p1",
+     "origin": "in_SC12_N",
+     "destination": "SC12_N_out",
+     "receiving_link": "SC12_N_out",
+     "kind": "boundary_in"
+    },
+    "SC12_NS_S_to_out": {
+     "intersection": "SC12",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC12",
+     "phase": "SC12_p1",
+     "origin": "in_SC12_S",
+     "destination": "SC12_S_out",
+     "receiving_link": "SC12_S_out",
+     "kind": "boundary_in"
+    },
+    "SC12_EW_E_to_out": {
+     "intersection": "SC12",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC12",
+     "phase": "SC12_p2",
+     "origin": "in_SC12_E",
+     "destination": "SC12_E_out",
+     "receiving_link": "SC12_E_out",
+     "kind": "boundary_in"
+    },
+    "SC12_EW_W_to_out": {
+     "intersection": "SC12",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC12",
+     "phase": "SC12_p2",
+     "origin": "in_SC12_W",
+     "destination": "SC12_W_out",
+     "receiving_link": "SC12_W_out",
+     "kind": "boundary_in"
+    },
+    "SC101_NS_N_to_out": {
+     "intersection": "SC101",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC101",
+     "phase": "SC101_p1",
+     "origin": "in_SC101_N",
+     "destination": "SC101_N_out",
+     "receiving_link": "SC101_N_out",
+     "kind": "boundary_in"
+    },
+    "SC101_NS_S_to_out": {
+     "intersection": "SC101",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC101",
+     "phase": "SC101_p1",
+     "origin": "in_SC101_S",
+     "destination": "SC101_S_out",
+     "receiving_link": "SC101_S_out",
+     "kind": "boundary_in"
+    },
+    "SC101_EW_E_to_out": {
+     "intersection": "SC101",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC101",
+     "phase": "SC101_p2",
+     "origin": "in_SC101_E",
+     "destination": "SC101_E_out",
+     "receiving_link": "SC101_E_out",
+     "kind": "boundary_in"
+    },
+    "SC101_EW_W_to_out": {
+     "intersection": "SC101",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC101",
+     "phase": "SC101_p2",
+     "origin": "in_SC101_W",
+     "destination": "SC101_W_out",
+     "receiving_link": "SC101_W_out",
+     "kind": "boundary_in"
+    },
+    "SC105_NS_N_to_out": {
+     "intersection": "SC105",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC105",
+     "phase": "SC105_p1",
+     "origin": "in_SC105_N",
+     "destination": "SC105_N_out",
+     "receiving_link": "SC105_N_out",
+     "kind": "boundary_in"
+    },
+    "SC105_NS_S_to_out": {
+     "intersection": "SC105",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC105",
+     "phase": "SC105_p1",
+     "origin": "in_SC105_S",
+     "destination": "SC105_S_out",
+     "receiving_link": "SC105_S_out",
+     "kind": "boundary_in"
+    },
+    "SC105_EW_E_to_out": {
+     "intersection": "SC105",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC105",
+     "phase": "SC105_p2",
+     "origin": "in_SC105_E",
+     "destination": "SC105_E_out",
+     "receiving_link": "SC105_E_out",
+     "kind": "boundary_in"
+    },
+    "SC105_EW_W_to_out": {
+     "intersection": "SC105",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC105",
+     "phase": "SC105_p2",
+     "origin": "in_SC105_W",
+     "destination": "SC105_W_out",
+     "receiving_link": "SC105_W_out",
+     "kind": "boundary_in"
+    },
+    "SC107_NS_N_to_out": {
+     "intersection": "SC107",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC107",
+     "phase": "SC107_p1",
+     "origin": "in_SC107_N",
+     "destination": "SC107_N_out",
+     "receiving_link": "SC107_N_out",
+     "kind": "boundary_in"
+    },
+    "SC107_NS_S_to_out": {
+     "intersection": "SC107",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC107",
+     "phase": "SC107_p1",
+     "origin": "in_SC107_S",
+     "destination": "SC107_S_out",
+     "receiving_link": "SC107_S_out",
+     "kind": "boundary_in"
+    },
+    "SC107_EW_E_to_out": {
+     "intersection": "SC107",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC107",
+     "phase": "SC107_p2",
+     "origin": "in_SC107_E",
+     "destination": "SC107_E_out",
+     "receiving_link": "SC107_E_out",
+     "kind": "boundary_in"
+    },
+    "SC107_EW_W_to_out": {
+     "intersection": "SC107",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC107",
+     "phase": "SC107_p2",
+     "origin": "in_SC107_W",
+     "destination": "SC107_W_out",
+     "receiving_link": "SC107_W_out",
+     "kind": "boundary_in"
+    },
+    "SC108_NS_N_to_out": {
+     "intersection": "SC108",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC108",
+     "phase": "SC108_p1",
+     "origin": "in_SC108_N",
+     "destination": "SC108_N_out",
+     "receiving_link": "SC108_N_out",
+     "kind": "boundary_in"
+    },
+    "SC108_NS_S_to_out": {
+     "intersection": "SC108",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC108",
+     "phase": "SC108_p1",
+     "origin": "in_SC108_S",
+     "destination": "SC108_S_out",
+     "receiving_link": "SC108_S_out",
+     "kind": "boundary_in"
+    },
+    "SC108_EW_E_to_out": {
+     "intersection": "SC108",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC108",
+     "phase": "SC108_p2",
+     "origin": "in_SC108_E",
+     "destination": "SC108_E_out",
+     "receiving_link": "SC108_E_out",
+     "kind": "boundary_in"
+    },
+    "SC108_EW_W_to_out": {
+     "intersection": "SC108",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC108",
+     "phase": "SC108_p2",
+     "origin": "in_SC108_W",
+     "destination": "SC108_W_out",
+     "receiving_link": "SC108_W_out",
+     "kind": "boundary_in"
+    },
+    "SC109_NS_N_to_out": {
+     "intersection": "SC109",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC109",
+     "phase": "SC109_p1",
+     "origin": "in_SC109_N",
+     "destination": "SC109_N_out",
+     "receiving_link": "SC109_N_out",
+     "kind": "boundary_in"
+    },
+    "SC109_NS_S_to_out": {
+     "intersection": "SC109",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC109",
+     "phase": "SC109_p1",
+     "origin": "in_SC109_S",
+     "destination": "SC109_S_out",
+     "receiving_link": "SC109_S_out",
+     "kind": "boundary_in"
+    },
+    "SC109_EW_E_to_out": {
+     "intersection": "SC109",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC109",
+     "phase": "SC109_p2",
+     "origin": "in_SC109_E",
+     "destination": "SC109_E_out",
+     "receiving_link": "SC109_E_out",
+     "kind": "boundary_in"
+    },
+    "SC109_EW_W_to_out": {
+     "intersection": "SC109",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC109",
+     "phase": "SC109_p2",
+     "origin": "in_SC109_W",
+     "destination": "SC109_W_out",
+     "receiving_link": "SC109_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1001_NS_N_to_out": {
+     "intersection": "SC1001",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p1",
+     "origin": "in_SC1001_N",
+     "destination": "SC1001_N_out",
+     "receiving_link": "SC1001_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1001_NS_S_to_out": {
+     "intersection": "SC1001",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p1",
+     "origin": "in_SC1001_S",
+     "destination": "SC1001_S_out",
+     "receiving_link": "SC1001_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1001_EW_E_to_out": {
+     "intersection": "SC1001",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p2",
+     "origin": "in_SC1001_E",
+     "destination": "SC1001_E_out",
+     "receiving_link": "SC1001_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1001_EW_W_to_out": {
+     "intersection": "SC1001",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p2",
+     "origin": "in_SC1001_W",
+     "destination": "SC1001_W_out",
+     "receiving_link": "SC1001_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1002_NS_N_to_out": {
+     "intersection": "SC1002",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1002",
+     "phase": "SC1002_p1",
+     "origin": "in_SC1002_N",
+     "destination": "SC1002_N_out",
+     "receiving_link": "SC1002_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1002_NS_S_to_out": {
+     "intersection": "SC1002",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1002",
+     "phase": "SC1002_p1",
+     "origin": "in_SC1002_S",
+     "destination": "SC1002_S_out",
+     "receiving_link": "SC1002_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1002_EW_E_to_out": {
+     "intersection": "SC1002",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1002",
+     "phase": "SC1002_p2",
+     "origin": "in_SC1002_E",
+     "destination": "SC1002_E_out",
+     "receiving_link": "SC1002_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1002_EW_W_to_out": {
+     "intersection": "SC1002",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1002",
+     "phase": "SC1002_p2",
+     "origin": "in_SC1002_W",
+     "destination": "SC1002_W_out",
+     "receiving_link": "SC1002_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1003_NS_N_to_out": {
+     "intersection": "SC1003",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1003",
+     "phase": "SC1003_p1",
+     "origin": "in_SC1003_N",
+     "destination": "SC1003_N_out",
+     "receiving_link": "SC1003_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1003_NS_S_to_out": {
+     "intersection": "SC1003",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1003",
+     "phase": "SC1003_p1",
+     "origin": "in_SC1003_S",
+     "destination": "SC1003_S_out",
+     "receiving_link": "SC1003_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1003_EW_E_to_out": {
+     "intersection": "SC1003",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1003",
+     "phase": "SC1003_p2",
+     "origin": "in_SC1003_E",
+     "destination": "SC1003_E_out",
+     "receiving_link": "SC1003_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1003_EW_W_to_out": {
+     "intersection": "SC1003",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1003",
+     "phase": "SC1003_p2",
+     "origin": "in_SC1003_W",
+     "destination": "SC1003_W_out",
+     "receiving_link": "SC1003_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1004_NS_N_to_out": {
+     "intersection": "SC1004",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p1",
+     "origin": "in_SC1004_N",
+     "destination": "SC1004_N_out",
+     "receiving_link": "SC1004_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1004_NS_S_to_out": {
+     "intersection": "SC1004",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p1",
+     "origin": "in_SC1004_S",
+     "destination": "SC1004_S_out",
+     "receiving_link": "SC1004_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1004_EW_E_to_out": {
+     "intersection": "SC1004",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p2",
+     "origin": "in_SC1004_E",
+     "destination": "SC1004_E_out",
+     "receiving_link": "SC1004_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1004_EW_W_to_out": {
+     "intersection": "SC1004",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p2",
+     "origin": "in_SC1004_W",
+     "destination": "SC1004_W_out",
+     "receiving_link": "SC1004_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1005_NS_N_to_out": {
+     "intersection": "SC1005",
+     "approach": "NS_N",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1005",
+     "phase": "SC1005_p1",
+     "origin": "in_SC1005_N",
+     "destination": "SC1005_N_out",
+     "receiving_link": "SC1005_N_out",
+     "kind": "boundary_in"
+    },
+    "SC1005_NS_S_to_out": {
+     "intersection": "SC1005",
+     "approach": "NS_S",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1005",
+     "phase": "SC1005_p1",
+     "origin": "in_SC1005_S",
+     "destination": "SC1005_S_out",
+     "receiving_link": "SC1005_S_out",
+     "kind": "boundary_in"
+    },
+    "SC1005_EW_E_to_out": {
+     "intersection": "SC1005",
+     "approach": "EW_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1005",
+     "phase": "SC1005_p2",
+     "origin": "in_SC1005_E",
+     "destination": "SC1005_E_out",
+     "receiving_link": "SC1005_E_out",
+     "kind": "boundary_in"
+    },
+    "SC1005_EW_W_to_out": {
+     "intersection": "SC1005",
+     "approach": "EW_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1005",
+     "phase": "SC1005_p2",
+     "origin": "in_SC1005_W",
+     "destination": "SC1005_W_out",
+     "receiving_link": "SC1005_W_out",
+     "kind": "boundary_in"
+    },
+    "SC1001_on_R_D_W": {
+     "intersection": "SC1001",
+     "approach": "on_R_D_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p1",
+     "origin": "in_SC1001_R_D_W",
+     "destination": "FW_W",
+     "receiving_link": "SC1001_R_D_W_queue",
+     "kind": "on_ramp",
+     "ramp": "R_D_W"
+    },
+    "SC1001_on_R_D_E": {
+     "intersection": "SC1001",
+     "approach": "on_R_D_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p2",
+     "origin": "in_SC1001_R_D_E",
+     "destination": "FW_E",
+     "receiving_link": "SC1001_R_D_E_queue",
+     "kind": "on_ramp",
+     "ramp": "R_D_E"
+    },
+    "SC1004_on_R_F_W": {
+     "intersection": "SC1004",
+     "approach": "on_R_F_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p1",
+     "origin": "in_SC1004_R_F_W",
+     "destination": "FW_W",
+     "receiving_link": "SC1004_R_F_W_queue",
+     "kind": "on_ramp",
+     "ramp": "R_F_W"
+    },
+    "SC1004_on_R_F_E": {
+     "intersection": "SC1004",
+     "approach": "on_R_F_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p2",
+     "origin": "in_SC1004_R_F_E",
+     "destination": "FW_E",
+     "receiving_link": "SC1004_R_F_E_queue",
+     "kind": "on_ramp",
+     "ramp": "R_F_E"
+    },
+    "SC1001_off_OR_D_W": {
+     "intersection": "SC1001",
+     "approach": "off_OR_D_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p1",
+     "origin": "OR_D_W",
+     "destination": "OR_D_W_storage",
+     "receiving_link": "OR_D_W_storage",
+     "kind": "off_ramp",
+     "off_ramp": "OR_D_W"
+    },
+    "SC1001_off_OR_D_E": {
+     "intersection": "SC1001",
+     "approach": "off_OR_D_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1001",
+     "phase": "SC1001_p2",
+     "origin": "OR_D_E",
+     "destination": "OR_D_E_storage",
+     "receiving_link": "OR_D_E_storage",
+     "kind": "off_ramp",
+     "off_ramp": "OR_D_E"
+    },
+    "SC1004_off_OR_F_W": {
+     "intersection": "SC1004",
+     "approach": "off_OR_F_W",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p1",
+     "origin": "OR_F_W",
+     "destination": "OR_F_W_storage",
+     "receiving_link": "OR_F_W_storage",
+     "kind": "off_ramp",
+     "off_ramp": "OR_F_W"
+    },
+    "SC1004_off_OR_F_E": {
+     "intersection": "SC1004",
+     "approach": "off_OR_F_E",
+     "exit": "out",
+     "beta": 1.0,
+     "signal": "SC1004",
+     "phase": "SC1004_p2",
+     "origin": "OR_F_E",
+     "destination": "OR_F_E_storage",
+     "receiving_link": "OR_F_E_storage",
+     "kind": "off_ramp",
+     "off_ramp": "OR_F_E"
+    }
+   },
+   "boundary_in_links": [
+    "in_SC1_N",
+    "in_SC1_S",
+    "in_SC1_E",
+    "in_SC1_W",
+    "in_SC5_N",
+    "in_SC5_S",
+    "in_SC5_E",
+    "in_SC5_W",
+    "in_SC6_N",
+    "in_SC6_S",
+    "in_SC6_E",
+    "in_SC6_W",
+    "in_SC11_N",
+    "in_SC11_S",
+    "in_SC11_E",
+    "in_SC11_W",
+    "in_SC12_N",
+    "in_SC12_S",
+    "in_SC12_E",
+    "in_SC12_W",
+    "in_SC101_N",
+    "in_SC101_S",
+    "in_SC101_E",
+    "in_SC101_W",
+    "in_SC105_N",
+    "in_SC105_S",
+    "in_SC105_E",
+    "in_SC105_W",
+    "in_SC107_N",
+    "in_SC107_S",
+    "in_SC107_E",
+    "in_SC107_W",
+    "in_SC108_N",
+    "in_SC108_S",
+    "in_SC108_E",
+    "in_SC108_W",
+    "in_SC109_N",
+    "in_SC109_S",
+    "in_SC109_E",
+    "in_SC109_W",
+    "in_SC1001_N",
+    "in_SC1001_S",
+    "in_SC1001_E",
+    "in_SC1001_W",
+    "in_SC1002_N",
+    "in_SC1002_S",
+    "in_SC1002_E",
+    "in_SC1002_W",
+    "in_SC1003_N",
+    "in_SC1003_S",
+    "in_SC1003_E",
+    "in_SC1003_W",
+    "in_SC1004_N",
+    "in_SC1004_S",
+    "in_SC1004_E",
+    "in_SC1004_W",
+    "in_SC1005_N",
+    "in_SC1005_S",
+    "in_SC1005_E",
+    "in_SC1005_W"
+   ],
+   "boundary_out_links": [
+    "out_SC1_N",
+    "out_SC1_S",
+    "out_SC1_E",
+    "out_SC1_W",
+    "out_SC5_N",
+    "out_SC5_S",
+    "out_SC5_E",
+    "out_SC5_W",
+    "out_SC6_N",
+    "out_SC6_S",
+    "out_SC6_E",
+    "out_SC6_W",
+    "out_SC11_N",
+    "out_SC11_S",
+    "out_SC11_E",
+    "out_SC11_W",
+    "out_SC12_N",
+    "out_SC12_S",
+    "out_SC12_E",
+    "out_SC12_W",
+    "out_SC101_N",
+    "out_SC101_S",
+    "out_SC101_E",
+    "out_SC101_W",
+    "out_SC105_N",
+    "out_SC105_S",
+    "out_SC105_E",
+    "out_SC105_W",
+    "out_SC107_N",
+    "out_SC107_S",
+    "out_SC107_E",
+    "out_SC107_W",
+    "out_SC108_N",
+    "out_SC108_S",
+    "out_SC108_E",
+    "out_SC108_W",
+    "out_SC109_N",
+    "out_SC109_S",
+    "out_SC109_E",
+    "out_SC109_W",
+    "out_SC1001_N",
+    "out_SC1001_S",
+    "out_SC1001_E",
+    "out_SC1001_W",
+    "out_SC1002_N",
+    "out_SC1002_S",
+    "out_SC1002_E",
+    "out_SC1002_W",
+    "out_SC1003_N",
+    "out_SC1003_S",
+    "out_SC1003_E",
+    "out_SC1003_W",
+    "out_SC1004_N",
+    "out_SC1004_S",
+    "out_SC1004_E",
+    "out_SC1004_W",
+    "out_SC1005_N",
+    "out_SC1005_S",
+    "out_SC1005_E",
+    "out_SC1005_W"
+   ],
+   "urban_link_storage_veh": {
+    "SC1_N_out": 220.0,
+    "SC1_S_out": 220.0,
+    "SC1_E_out": 220.0,
+    "SC1_W_out": 220.0,
+    "SC5_N_out": 220.0,
+    "SC5_S_out": 220.0,
+    "SC5_E_out": 220.0,
+    "SC5_W_out": 220.0,
+    "SC6_N_out": 220.0,
+    "SC6_S_out": 220.0,
+    "SC6_E_out": 220.0,
+    "SC6_W_out": 220.0,
+    "SC11_N_out": 220.0,
+    "SC11_S_out": 220.0,
+    "SC11_E_out": 220.0,
+    "SC11_W_out": 220.0,
+    "SC12_N_out": 220.0,
+    "SC12_S_out": 220.0,
+    "SC12_E_out": 220.0,
+    "SC12_W_out": 220.0,
+    "SC101_N_out": 220.0,
+    "SC101_S_out": 220.0,
+    "SC101_E_out": 220.0,
+    "SC101_W_out": 220.0,
+    "SC105_N_out": 220.0,
+    "SC105_S_out": 220.0,
+    "SC105_E_out": 220.0,
+    "SC105_W_out": 220.0,
+    "SC107_N_out": 220.0,
+    "SC107_S_out": 220.0,
+    "SC107_E_out": 220.0,
+    "SC107_W_out": 220.0,
+    "SC108_N_out": 220.0,
+    "SC108_S_out": 220.0,
+    "SC108_E_out": 220.0,
+    "SC108_W_out": 220.0,
+    "SC109_N_out": 220.0,
+    "SC109_S_out": 220.0,
+    "SC109_E_out": 220.0,
+    "SC109_W_out": 220.0,
+    "SC1001_N_out": 220.0,
+    "SC1001_S_out": 220.0,
+    "SC1001_E_out": 220.0,
+    "SC1001_W_out": 220.0,
+    "SC1002_N_out": 220.0,
+    "SC1002_S_out": 220.0,
+    "SC1002_E_out": 220.0,
+    "SC1002_W_out": 220.0,
+    "SC1003_N_out": 220.0,
+    "SC1003_S_out": 220.0,
+    "SC1003_E_out": 220.0,
+    "SC1003_W_out": 220.0,
+    "SC1004_N_out": 220.0,
+    "SC1004_S_out": 220.0,
+    "SC1004_E_out": 220.0,
+    "SC1004_W_out": 220.0,
+    "SC1005_N_out": 220.0,
+    "SC1005_S_out": 220.0,
+    "SC1005_E_out": 220.0,
+    "SC1005_W_out": 220.0,
+    "SC1001_R_D_W_queue": 180.0,
+    "SC1001_R_D_E_queue": 180.0,
+    "SC1004_R_F_W_queue": 180.0,
+    "SC1004_R_F_E_queue": 180.0,
+    "OR_D_W_storage": 120.0,
+    "OR_D_E_storage": 120.0,
+    "OR_F_W_storage": 120.0,
+    "OR_F_E_storage": 120.0,
+    "A_top_out": 0.0,
+    "A_left_out": 0.0,
+    "B_top_out": 0.0,
+    "C_top_out": 0.0,
+    "C_right_out": 0.0,
+    "D_left_out": 0.0,
+    "F_right_out": 0.0,
+    "A_to_B": 0.0,
+    "B_to_A": 0.0,
+    "B_to_C": 0.0,
+    "C_to_B": 0.0,
+    "A_to_D": 0.0,
+    "D_to_A": 0.0,
+    "B_to_E": 0.0,
+    "E_to_B": 0.0,
+    "C_to_F": 0.0,
+    "F_to_C": 0.0,
+    "D_to_E": 0.0,
+    "E_to_D": 0.0,
+    "E_to_F": 0.0,
+    "F_to_E": 0.0,
+    "D_R_W": 0.0,
+    "F_R_W": 0.0,
+    "D_R_E": 0.0,
+    "F_R_E": 0.0
+   },
+   "on_ramp_to_movement": {
+    "R_D_W": [
+     "SC1001_on_R_D_W"
+    ],
+    "R_D_E": [
+     "SC1001_on_R_D_E"
+    ],
+    "R_F_W": [
+     "SC1004_on_R_F_W"
+    ],
+    "R_F_E": [
+     "SC1004_on_R_F_E"
+    ]
+   },
+   "off_ramp_to_movement": {
+    "OR_D_W": [
+     "SC1001_off_OR_D_W"
+    ],
+    "OR_D_E": [
+     "SC1001_off_OR_D_E"
+    ],
+    "OR_F_W": [
+     "SC1004_off_OR_F_W"
+    ],
+    "OR_F_E": [
+     "SC1004_off_OR_F_E"
+    ]
+   }
+  }
+ },
+ "notes": [
+  "짝이 되는 vbs generated config: evaluation/generated/real_world_modi_control_config_distributed_core15rc_20260804.vbs — 그리드에 -VbsConfigOverride 로 넘길 것.",
+  "detector 매핑의 observable_links(175)·link_to_origins(161)는 기존 15core 와 완전히 동일하다. 즉 이미 수집된 v7 state json 으로 투영 검증이 가능하다.",
+  "이 leaf 를 쓰면 목적함수 정의가 바뀌므로 기존 G6 rho/pairwise 기준선은 전부 무효다. 재수립 필요.",
+  "유령 저류링크 25개를 용량 0 으로 명시 무력화했다: ['A_left_out', 'A_to_B', 'A_to_D', 'A_top_out', 'B_to_A', 'B_to_C'] …"
+ ],
+ "_why_ghost_zero": "config_overrides 는 _deep_update 라 dict 가 교체가 아니라 병합된다(state.py:865-869). 그래서 default.yaml 의 구 5노드 격자 저류링크 25개(A_to_B, C_top_out …)가 신규 68개와 합쳐져 93개로 살아남고, 용량 5,340 대가 유령으로 남는다. 점유는 항상 0 이라 total_urban_vehicles 합계에는 영향이 없지만 protected_accumulation_veh(N_P)와 mfd_storage 초과 판정의 분모를 부풀린다. 여기서 용량 0 으로 박아 무력화한다. signals/grid_node_legs/urban_movements 등 나머지 키는 default.yaml 에 없거나 리스트라 정상 교체된다."
+}

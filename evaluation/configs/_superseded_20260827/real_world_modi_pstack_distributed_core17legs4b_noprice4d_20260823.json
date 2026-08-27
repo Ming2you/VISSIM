@@ -1,0 +1,14 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_map4d_20260823.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_noprice4d_20260823",
+ "description": "4d 매핑 위에서 현시가격만 끈다 = 순수 GNE. 가격 채널이 아직 값어치를 하는지 검정.",
+ "notes": [
+  "2026-08-24. 가격을 끄면 signal_phase_price 가 None 이라 정련이 아예 안 돈다(priced_wu_link_controller:398). 따라서 local_cost_model 도, primary_by_price 도 함께 무효가 된다 — 이 팔은 **순수 GNE** 다.",
+  "앞서 가격 OFF 를 잰 건 4b(매핑이 깨져 동서축이 큐 0)였다: drain 5161.4 -> OFF 5127.7. 그때는 균등 뭉갬이 됐다(SC5 [34.0,34.7,34.7,34.7]).",
+  "관측이 옳아진 4d 위에서 다시 잰다. GNE 만으로 충분하면 가격 채널(리더 롤아웃 3배 비용)을 뺄 수 있고, 부족하면 가격은 남기되 그 위의 불안정(주현시 교체 진동)만 손보면 된다.",
+  "대조: map4d 4863.3(+1.72%) · prim 4889.3 · prim2 4884.4 · 무제어 4781.1"
+ ],
+ "phase_price": {
+  "enabled": false
+ }
+}

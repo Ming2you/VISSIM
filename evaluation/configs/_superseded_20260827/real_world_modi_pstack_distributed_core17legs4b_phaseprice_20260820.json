@@ -1,0 +1,29 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_phaseprice_20260820",
+  "description": "wu-link + 현시별 교환 가격 A/B arm",
+  "notes": [
+    "2026-08-20. 기존 green 가격은 p1 축 하나다 — set_signal_green 이 p1 을 흔들면 나머지 현시가 현재 비율대로 함께 움직이므로 g_ext 는 편미분이 아니라 그 광선의 방향미분이다. 2현시면 p2 = total - p1 이라 광선이 유일해 완전하지만, 4현시면 총합 고정 단체의 자유도가 3인데 1방향만 가격이 붙는다.",
+    "실측 근거: core17legs4b 17 SC 중 14개가 현시별 movement 종류가 다르다. 특히 SC1001(p3 off_ramp 6 · p4 off_ramp 2)과 SC1004(p3 off_ramp 8 · p4 off_ramp 2)는 p1/p2 에 off_ramp 가 없다. 이 둘이 freeway agent 의 이웃 교차로다. p3 에 녹색을 주는 것과 p2 에 주는 것은 망 외부효과가 다른데 p1 축 가격은 나머지에서 비율대로 걷어와 그 차이를 희석한다.",
+    "가격 형태는 교환 가격이다. 총합이 고정이라 절대 가격이 아니라 방향 d_i(현시 i 에 +delta, 나머지 live 에서 delta/(n-1) 씩)의 방향미분을 g_i 로 둔다. 팔로워는 sum(g_i * (p_i - ref_i))를 더하는데 sum(p_i - ref_i) = 0 이므로 g 에 상수를 더해도 값이 안 변한다 — 게이지가 자동 고정되어 사영이 필요 없다.",
+    "국소분을 뺀다(g = 전역 방향미분 - 국소 방향미분). 기존 p1 축 가격과 같은 규약이고, 안 빼면 팔로워가 자기 비용을 두 번 센다.",
+    "비용 경고: stackelberg_wu_metered.py:29 가 _maybe_refresh_signal_prices 의 98.4% 가 전역 롤아웃이라고 적어놨다. 지금은 신호당 2회(lo/hi)인데 여기에 1 + sum(live 현시수) = 약 69 롤아웃이 더 붙는다. 리더에서 제일 비싼 자리를 약 3배로 만든다.",
+    "2현시 이하 신호는 건너뛴다 — 자유도가 1뿐이라 p1 축 가격이 이미 완전하다.",
+    "가격 롤아웃 병렬화: price_parallel.workers (기본 10). 이 머신은 논리 코어 20개다. 가격 FD 는 같은 작동점에서 레버를 하나씩 흔든 독립 롤아웃이라 병렬이 자연스럽고, 상류가 green 채널에 기구를 이미 갖고 있다(결과 동일 보증). 현시별 가격도 같은 규약으로 병렬화했다. 3차 런 실측 결정당 wall 350초 — 그중 가격 롤아웃이 지배적이다(소스: _maybe_refresh_signal_prices 의 98.4% 가 전역 롤아웃). Windows 는 spawn 이라 워커마다 컨트롤러를 피클링해 재기동하므로 선형 가속은 기대하지 않는다."
+  ],
+  "agent_topology": {
+    "freeway_granularity": "link"
+  },
+  "phase_price": {
+    "enabled": true,
+    "delta_sec": 6.0,
+    "weight": 1.0,
+    "exchange_steps_sec": [
+      6.0,
+      2.0
+    ]
+  },
+  "price_parallel": {
+    "workers": 10
+  }
+}

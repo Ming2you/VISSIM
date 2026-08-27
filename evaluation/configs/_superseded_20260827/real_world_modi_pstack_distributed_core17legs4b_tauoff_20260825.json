@@ -1,0 +1,27 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_offarm_20260825.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_tauoff_20260825",
+ "description": "τ 수정 + offset 실시간(150s, 홀드 없음). 목표 팔.",
+ "notes": [
+  "2026-08-25. τ(링크 통과시간)의 결함 둘을 같이 고친다. 둘 다 같은 한 줄에 있다 — urban_queue_model.py:629-636 의 distance/speed.",
+  "**결함 1: 속도에 정지차가 섞인다.** 러너의 링크속도는 speedSum/count 인데(run_real_world_stackelberg_controller.vbs:3131) count 가 링크 위 전 차량이다. 정지차(임계 1.0 km/h)는 분자에 ~0, 분모에 1 을 보태 평균을 끌어내린다. 그런데 이 속도가 쓰이는 유일한 곳(_link_delay_steps)의 거리는 available = 링크 **여유공간**이라 큐가 이미 빠져 있다. 거리에서는 큐를 뺐는데 속도에서는 안 뺐다.",
+  "**결함 2: 거리가 차로수 배다.** distance = available[veh] x 6 m 인데 available 은 전 차로 합계 대수다. 3차로 링크의 여유 300대는 종방향 600 m 인데 산식은 1,800 m 로 본다. 실측 배수 중앙 2.69 · p90 4.04. 보정은 이미 구현돼 있고(_apply_lane_delay_correction, 속도에 차로수를 곱해 distance/speed 를 항등으로 맞춘다) 기본 꺼짐이었다.",
+  "실측(default_20260825 t=002250): 관측 3,340대 중 정지 1,483대(44%) · 링크당 정지비율 중앙 33% · 속도 배수 평균 3.29 · p90 7.50. 20 km/h 하한 잘림 32% -> 11%.",
+  "**플래툰 도착 위상(tau mod 150s) 이동**: 정지차 제외 중앙 37.5 s(34링크) · 차로 보정 중앙 40.0 s(157링크). 주기의 25~27% 다. 즉 지금까지 모델이 사실상 임의의 위상에서 offset 최적점을 찾고 있었다.",
+  "tau 평균 203 -> 109 s · horizon(450s) 초과 링크 22/185(12%) -> 6/185(3%).",
+  "**이건 offset 국소 변경이 아니다.** tau 는 urban_arrival_buffer 의 도착 스텝을 정하므로(urban_queue_model.py:1179) 하류 approach 의 available = queue + arrivals 를 직접 바꾼다. 방출 **률**(cap_flow_of, 차로·포화유율)은 안 바뀌지만 방출 **가능량의 시점**이 바뀐다. urban_storage_release_buffer 도 같이 걸려 상류 저류 반환 시점까지 움직인다.",
+  "**그래서 TTT 하나로 판정하면 안 된다.** 세 지표를 같이 본다 — (1) 예측 정합(집계·세그먼트·구간 3층) (2) 플래툰 위상 (3) TTT. 어댑터가 tau_diagnostics 를 매 결정 남긴다.",
+  "**왜 지금까지 차로 보정이 손해로 보였나.** 예측은 개선했는데(스텝3 오차 54.3% -> 47.7%) 폐루프 J 는 +0.2~0.4% 악화라 기본 꺼짐이 됐다. 그 측정은 **offset 이 전량 기각되던 시절**이다. offset 이 죽어 있으면 위상 정확도로 살 게 없고 변화가 전부 green 으로만 간다. 둘은 따로 재면 둘 다 손해로 보이고 같이 켜야 의미가 있다 — 그것이 tauoff 팔이다.",
+  "**남은 비대칭**: 경계 유입은 _inflow_delay_steps 가 상태 비의존 전역 상수(468 m / 50 km/h = 7 substep)를 쓴다. 내부 링크만 혼잡에 반응하고 경계는 안 한다. 이 팔에서는 안 건드린다 — 변경을 하나씩 가른다.",
+  "기준선: 무제어 4808.1(시드 13, sigma 50.7) · default_20260825 4723.9(-84.2, 현 최선) · offarm_20260825 4767.7(-40.4)",
+  "**이 팔이 목표다.** τ 가 맞으면 offset 최적점이 혼잡을 따라 매끄럽게 움직여야 한다 — offarm 에서 본 churn(204회 변경 · 평균 점프 26.8 s = 주기의 18% · 최대 75 s = 반주기)이 줄어야 한다. 안 줄면 τ 가 아직 틀렸거나 offset 목적함수가 평평하다는 뜻이다.",
+  "offarm 의 관문 둘(keep_margin 0.0 + commit_optimized)을 그대로 물려받는다. **러너 관문(RW_OFFSET_WRITER=test_only)은 config 로 못 연다 — 발사 시 환경변수로 세워야 한다.** 안 세우면 plan_reject=OFFSET_NOT_PROMOTED 로 CSV 전량 거부되고 그 구간이 무제어로 돈다(2026-08-25 에 한 번 당했다).",
+  "**반증 가능한 예측**: (a) 커밋 offset 의 결정간 점프가 offarm 대비 줄어든다 (b) 플래툰 위상 분포가 offarm 과 유의하게 다르다 (c) TTT 가 offarm(4767.7)보다 낫다. (c) 가 안 나오면 τ 만으로는 부족하다는 뜻이다."
+ ],
+ "urban": {
+  "tau": {
+   "moving_only": true,
+   "lane_delay_correction": true
+  }
+ }
+}

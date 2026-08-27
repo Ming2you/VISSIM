@@ -1,0 +1,836 @@
+{
+ "moved_at": "2026-08-27",
+ "reason": "정본 3개(canon_tau/bstoA/plantfix)를 자립 파일로 평탄화했으므로 extends 사슬 전체가 불필요해졌다.",
+ "note": "run_provenance 의 tuning sha256 대조용 증거다. 지우지 마라.",
+ "entries": [
+  {
+   "file": "_dualchk.json",
+   "sha256": "44e562cde94275f51c9ad30377704e5a2c33b932d29be7afd5f7009da742234e",
+   "runs": []
+  },
+  {
+   "file": "_ninC.json",
+   "sha256": "7c25d71cf1038bc466e44989636091d2771b0e46452fdbc3711a3a6dae1587ba",
+   "runs": []
+  },
+  {
+   "file": "_ninrep_C_ninref.json",
+   "sha256": "e34093d584e77587dd40f430a030760556b6218182d39e8181b36fd2de7457dc",
+   "runs": []
+  },
+  {
+   "file": "_tauC.json",
+   "sha256": "fe965e60f21632a67986a897d336b836cc57459b6d38e04c9b4724b965dff6a6",
+   "runs": []
+  },
+  {
+   "file": "_wbin_A_w0.json",
+   "sha256": "a44bdff8518446c786ac9f12aeb2fa39560242d91a360631a2a3a85af5f6645a",
+   "runs": []
+  },
+  {
+   "file": "baseline_scenario_global_v0.json",
+   "sha256": "3a7b6298fbf093a819361871741282e9c41888434dd15a18b555b5bdef28b012",
+   "runs": []
+  },
+  {
+   "file": "diagnostic_vsl_rm_metered_f.json",
+   "sha256": "e7513c5789e26bc2fa8b1dec2b32fd69240d8d619c2ba07d60b3ce2c3d2e9b4e",
+   "runs": []
+  },
+  {
+   "file": "low_demand_smoke_global.json",
+   "sha256": "e101a182b861d292e33b3c1742dfc77253e1506639ee6a5da7280f70a788882e",
+   "runs": []
+  },
+  {
+   "file": "pfo_h3_i3_medium.json",
+   "sha256": "35cd03f30e37d63cd18eddad067d289d5979144dc1687da76c78b617fb3e5e7e",
+   "runs": []
+  },
+  {
+   "file": "pfo_h3_i3_vsl_rm_sensitive.json",
+   "sha256": "5b70ae83eccebebbd8dfcb7182e75701c81b831c8dcb898b03f4d5ba7a084fc6",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_adapter_v0_20260719.json",
+   "sha256": "882c5086e1e34365b811948d315333f6a77948022d1613e25675abc0f6a67acc",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_adapter_v1_response_calibrated_20260721.json",
+   "sha256": "c476cf26b963fa98153bb136b82a8308b2e8a429d5fd619c19ae476aa6289ce7",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_bottleneck_mask_scale135_20260722.json",
+   "sha256": "739a39b90a21e799f95886dc0ad1aa25da3e3cb2c64dfefbebe16c462155c9ab",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_crossgate_high_budget_20260723.json",
+   "sha256": "ce6423a2ed3bfbc70bce87b71d0e929a04278a4a8cf5d97b3babbb8ea039289d",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_crossgate_predcal_20260724.json",
+   "sha256": "df922327783581046a25d26d0dff8dc2cd9c99f59885301c06ab303101f2bf6d",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_15core_20260728.json",
+   "sha256": "84433cd910881226fb2974144c938a1d78ea867629e2aad9630136db99b83684",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_19sc_20260728.json",
+   "sha256": "282dc11163e79f7fca752584669fd800fabd8130d204320df406e39113fa9ec0",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15all_20260804.json",
+   "sha256": "235d65ea1ba14bc9a9dfb3c82db40c8d8abfe9b39696fc4de4dc7357408081ea",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15axis_20260805.json",
+   "sha256": "5f738e42915d733efed30813f05ed0d6304f3c08a32df41df427565fd1b192f8",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15cap_20260805.json",
+   "sha256": "ff4f67dc8e6c219b6d33e565c0675ddad5c4d4ecb009f5940c9a500db3ff1f49",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15full_20260805.json",
+   "sha256": "bd4e27adb124dd7e7af22c2a4d8afce072b20bcd06b3adddf5eaf98f74db0cf0",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n41_20260805.json",
+   "sha256": "aaa7caf71a546a25c3dea0779e7ee3755e940c7055e58a4f0c093b2b56a12da9",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n41gated_20260811.json",
+   "sha256": "85f1c928483d0ea0ef04032163018899b45986b7d1032f2c9014d9f106245532",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n41legfix_20260812.json",
+   "sha256": "23350fb356688655176af2552e09bd40541546b0a7be0710d818e6fca1240b9e",
+   "runs": [
+    "real_world_modi_watchdog"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n41p4_20260812.json",
+   "sha256": "e303f04cad7b065a77952ebf429166776d5320564b71ecdb65e98f119647ce8e",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n41ungated_20260811.json",
+   "sha256": "1f9f9ba065e36f3a7082a184034a5ef4552f10987c12b1033552ecc9f4592175",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15n4dr150_20260812.json",
+   "sha256": "f8e22c401aae1361add2161c387807d47ca600e185333135d2c935dcc8e535f6",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15net_20260804.json",
+   "sha256": "d8f324aec4ca8bb68b7bde83f25f5f66374c882270840dec2124328023de89d5",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core15rc_20260804.json",
+   "sha256": "c46f9239be974141e8e98c425baf2f8bf7b0c2488281403f6ce797e253e51c7c",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4_20260818.json",
+   "sha256": "1b6cd35fc8bc672502d1c41e3b87f32fa4d9480d277db1b3c52aec9342806b46",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+   "sha256": "2596b3ab81dac7906384e1cace70620de5879ec3a2724b862ba27343c7de5d40",
+   "runs": [
+    "boxfix_20260820",
+    "nativefixed_20260824",
+    "nocontrol_s13_20260824",
+    "nocontrol_s14_20260824",
+    "nocontrol_s15_20260824",
+    "nocontrol_s16_20260824",
+    "nocontrol_s17_20260824",
+    "real_world_modi_watchdog",
+    "shape_off_20260820",
+    "smoke_core17legs4b_20260819",
+    "smoke_core17legs4b_iv150_20260819",
+    "smoke_core17legs4b_iv150b_20260819"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_allfix_20260825.json",
+   "sha256": "71e85632ef88bb57acd4ef30990d09eb73a7343ff739acf83d2f5a25d3a87476",
+   "runs": [
+    "allfix_20260825"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_bay_20260821.json",
+   "sha256": "34f610449090aefae3985c0ba1dc9ab9106250c27c4d4a7cc7c50f788f54e6c6",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_beta2_20260824.json",
+   "sha256": "44afa64563a928115fabb28b2d1c95780f837ec3bc5489f7a6d028ac0f2b56af",
+   "runs": [
+    "beta2_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_beta_20260824.json",
+   "sha256": "c6a654083371e5ed845831e83615f65b0e50583d274944b9d86cc6f126777a1d",
+   "runs": [
+    "beta_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_bstoA_20260826.json",
+   "sha256": "84e28ba15620fc0021d1b005ab26353722ec42de2d78647e9f62ec62a4851bfb",
+   "runs": [
+    "bstoA_20260827",
+    "nocontrolstep_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_bstoB_20260826.json",
+   "sha256": "de814ed7423e5457c1ef9f807c8fbc97f930d697631e386aa09f770317f2440e",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_cap4c_20260823.json",
+   "sha256": "a39c9ded71ef277d276bd1777e4d0707bf677d9a308785a5d5670314ed3131fa",
+   "runs": [
+    "cap4c_20260823"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_cap_all_20260824.json",
+   "sha256": "dc5a0464818bbb5d67b19a49198f149dcc7866b30aa75c07937a0d35ad9a70e3",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_cap_resolved_20260824.json",
+   "sha256": "532f093377089514501153d69df53929570a9ce6532dd0e625f8f044acb20362",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_conv_20260824.json",
+   "sha256": "f84b97dd451f227b95b6e1a4a7cff1fc3d40029d609dad737c1d533a4be45f74",
+   "runs": [
+    "conv_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_default_20260825.json",
+   "sha256": "a5379d66cb5873d70675c8d335b18ce101a90841d2b1c25409d76ec11a2bd114",
+   "runs": [
+    "default_20260825",
+    "default_s14_20260826_ABORTED_user_stop"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dual_20260826.json",
+   "sha256": "ec0344224cd13ad0ac73195faa1e50816698f8fc76b52169f387f4662c8b28e9",
+   "runs": [
+    "dual_20260826_ABORTED_user_stop"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualc0p02_20260826.json",
+   "sha256": "e3e0919dc93ae8d2abd40c83a40042d765663e3a1543aec0c447591aaa83f8d5",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualc0p05_20260826.json",
+   "sha256": "fbd68686b067df99df3049b482874bd3f583f69d22e5849e0f3ccd770be374cc",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualc0p1_20260826.json",
+   "sha256": "5600a64a4af2d3c6662dd6ea641746964d2b479d7cef560d0ff1eae282dcd7a3",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualc0p25_20260826.json",
+   "sha256": "8f0d7e39c38d535f34e32d628560193f2736c53491b02df63b291d979ca76e36",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualc0p5_20260826.json",
+   "sha256": "3282edaa77d32c7e868ae21073bb4252b4d34bdb158c91391289a7b0dc04a01e",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualg0p01_20260826.json",
+   "sha256": "7d4ebe4c444ee8637f5a4de99df816fd63bdfb495b3f1ff29a7462acf18f9d59",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualg0p02_20260826.json",
+   "sha256": "c1c95215160f8e544f4acfc1c236a657cb8f84d4f4ae856c97dff130b05b7202",
+   "runs": [
+    "dualg0p02_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualg0p05_20260826.json",
+   "sha256": "d0e1e84654edef94946e9c9b94930af3ae214fed79f42912710f3551ed70dec7",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualg0p1_20260826.json",
+   "sha256": "0a1c9f1256fd93586da2442b51a5ecbe5bf35a20afa411d316a74833dcbb6e65",
+   "runs": [
+    "dualg0p1_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_dualg_20260826.json",
+   "sha256": "42efa464db0b539100be469abc5ad39cbe70a40702bc01339ce4983a10886261",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_duallo_20260826.json",
+   "sha256": "98db4851d7dc0b3f903e860fa74d3dc60ed0142fbebc0d68726c209785c69636",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_far_20260820.json",
+   "sha256": "93696dd69fbcced5e72d890c7f7a5409ca34a7272417700b75177a07b86378ae",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_fdcal_20260825.json",
+   "sha256": "2cc015f8f2469fd62a60c2b97f71f588aa8d1642f15e37c6206b3c9e65cba0b6",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_full3_20260822.json",
+   "sha256": "0472a4c0aae73d0f1c15541fbecb8ae0d52c3d07a00cd76a2ed074def27fb35c",
+   "runs": [
+    "full3_20260822",
+    "full3b_20260822",
+    "full3c_20260822",
+    "full3smoke_20260822"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_gate_20260821.json",
+   "sha256": "71ea5b0ad8e935467189ecea51a72b7c7c0c3c7d69c6884a5936e1a2c5e8ee0b",
+   "runs": [
+    "gate_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_lanes_20260821.json",
+   "sha256": "8b7fdc8d348d66b418eacc2f107f56eed4e9073421d8a250a6bf609f2d8f2a64",
+   "runs": [
+    "lanes330_on_20260821",
+    "mainline_on_20260821",
+    "midcheck_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_lead_20260820.json",
+   "sha256": "0ac17c8d8512cdbc685d15c4a3b1d8dd902e1729a2f35099ae855610ccef45a7",
+   "runs": [
+    "lead_20260820"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_leaddirect_20260820.json",
+   "sha256": "7a00b3138d456c07e16b53de4a3e9421839284da1f31cd6016965ad3d0b4ee4c",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_leadforce_20260824.json",
+   "sha256": "b0c1059e6ad13ac2a70aee072b6d3740cea72250518e48c1ca6d4bd1da9bdf0d",
+   "runs": [
+    "leadforce_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_leadpso_20260820.json",
+   "sha256": "6f314870476f60119eeaca89437433cdb73656ff2fb57a127a2272e10cef8ae3",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_mainline_20260825.json",
+   "sha256": "e8d600f1164f84041e08e7f23f04993f469d6e4cd2c90d65c3630ea44ccb2fe7",
+   "runs": [
+    "mainline_20260825"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_map4d_20260823.json",
+   "sha256": "cea55316e5b18eca4dc676d8b86707e6b532bb541ae2796ddff17a6ab623fced",
+   "runs": [
+    "map4d_20260823"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_map4e_20260826.json",
+   "sha256": "7ff6ee9c9f34f2041c9e0b652f8a7b9282345a421500b0b872411bad219c6e9e",
+   "runs": [
+    "map4etau_20260826",
+    "map4etau_20260826_INVALID_no_observation"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_map4f_20260826.json",
+   "sha256": "348060bbbab441d4b9a9fc3359f556a5b1926b6945c9e5460d8f4853fb3b5533",
+   "runs": [
+    "map4ftau_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_merge_20260824.json",
+   "sha256": "e74b4c9541531cf1cb4e508af7925e3391bf6b9dffee0faf79a3c5ab5ed62ca0",
+   "runs": [
+    "merge_20260824",
+    "narrowaxis_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_mgoffset_20260824.json",
+   "sha256": "6021a2eefbcefe836e6ed8633ed256283edfd9e6bcbacc5dacf095f4bcb459c8",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_native_20260821.json",
+   "sha256": "6a31761fe1bb307f728cd7ee04667536a5bda565ec73d8ffda1eae9bfa2d0fb0",
+   "runs": [
+    "native_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_nfclean_20260824.json",
+   "sha256": "8cdc736b484b09bacb6cad083fa45e6b68bc7c4390f8e71c35f3dd75d3ee7301",
+   "runs": [
+    "nfclean_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_nfoffset_20260824.json",
+   "sha256": "5915621e7c06eac9d0a60d0d9944f20e7e2dc6297983935ec9bf4e3a8e81fad3",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_ninref_20260825.json",
+   "sha256": "b3485df74d4ceff06755b9e1ec0c09a7884c303226fababd9ec85a6c4f7b7b9d",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_nophaseprice_20260822.json",
+   "sha256": "43844e0a6541b95e3b165a7f6465aca97efa74b8a91cc8569b333b38f5875428",
+   "runs": [
+    "nophaseprice_20260822"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_noprice4d_20260823.json",
+   "sha256": "951234855ebbe9db25d336ceac42eef020e23351e02ff9356f844a2fe9c0ae6e",
+   "runs": [
+    "noprice4d_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_npband_20260826.json",
+   "sha256": "aec15db1a8980f6baeae730cbbea379278b5ff78a547f8208a65f9678c971756",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_npbandg0p02_20260826.json",
+   "sha256": "1033dfe8c386b7c97280bc37966a3c88da82f2967c2fee2c9f7399180499b01a",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_npbandg_20260826.json",
+   "sha256": "efd2f9f644026bd57c966eecdc1fcbf7d2acbb663a083443c60d8c59abe467c7",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_npin_20260826.json",
+   "sha256": "d30f576864fb4e3b6b662e8b9ed8e9535583ca9b9815974a5baf1939791eb554",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_offarm_20260825.json",
+   "sha256": "8fcaba45d3aef3f51b9678ce3e829de4b27faf827eb505304e21d9f49c49497c",
+   "runs": [
+    "offarm_20260825",
+    "offarm_20260825_INVALID_writer_gate"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_phased_20260822.json",
+   "sha256": "8277835b46d7f2dd941fbbe7904e492704ecaa18b4534d9e45f0bc6f5a98e8db",
+   "runs": [
+    "map4c_20260823",
+    "phased_20260822",
+    "qwsmoke_20260822"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_phasefix_20260822.json",
+   "sha256": "bc0c76be8fc6443269588198de35057a885c2efc1e8695816286b25678f5e783",
+   "runs": [
+    "phasefix_20260822",
+    "phasefixw_20260822"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_phaseoff_20260820.json",
+   "sha256": "33f47a48065ba571e28d1974c5106e5114b52b7156a94fc5d2751515def9947f",
+   "runs": [
+    "perfbase_20260821",
+    "perflean_20260821",
+    "phasefull_off_20260820"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_phaseprice_20260820.json",
+   "sha256": "7e191e4d1a0e0ad8c8d77d20283bc342d64e17774ded7078e67b70b0c52455a9",
+   "runs": [
+    "nocontrol_native_20260821",
+    "nocontrol_step_20260821",
+    "perfmin_20260821",
+    "phasefull_on_20260820",
+    "phasepar_20260820",
+    "phaseprice2_20260820",
+    "phaseprice3_20260820",
+    "phaseprice4_20260820",
+    "phaseprice_20260820",
+    "real_world_modi_watchdog"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_plantfix2_20260827.json",
+   "sha256": "e2ce72a05077a9336463d1f1da82cfb4d575bdfb580953532d10a13d05da53ce",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_plantfix_20260826.json",
+   "sha256": "4e77ee9a7641ef914c71f1fb469adfd456deb1f460a65fcbc25642dd2a1ea878",
+   "runs": [
+    "nc_fw12_ramp1_20260827",
+    "nc_fw12_ramp1_20260827_FAILED_concurrent",
+    "nc_fw12_ramp2_20260827",
+    "nc_fw12_ramp2_20260827_FAILED_concurrent",
+    "nc_fw14_ramp1_20260827",
+    "nc_fw14_ramp2_20260827",
+    "plantfix_20260827",
+    "plantfix_d3far_20260827_ABORTED_refactor"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_prim2_20260823.json",
+   "sha256": "22fbfdc4b5bd1b21a8e23ffe4427eb039dcbdee868545df33b414e465cf509f4",
+   "runs": [
+    "prim2_20260823"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_prim_20260823.json",
+   "sha256": "63ccaf759bf58d27a9f13e4a9b03f70ea385e289dd986343caed1e4be3259d97",
+   "runs": [
+    "prim_20260823"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_qprice_20260825.json",
+   "sha256": "35bdb11cd718ec7cfefa7ec9c67f5fc20649f530397426f3f643ff2891443ee7",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_qref_20260824.json",
+   "sha256": "8d4f19a67f5101a6ea92de51e18e66adc73da5c13694516f47234efe2fe2db15",
+   "runs": [
+    "qref_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_regret_20260824.json",
+   "sha256": "74491550233d4d127beb7b7c3aa158f040c4c2c001844ea6de883ab08c2f2ba8",
+   "runs": [
+    "regret_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_sat600_20260821.json",
+   "sha256": "ae61241e9582ccd609d91ec636f9d9f0b9b30a309ae8ea746ebe95c7ce2aa3dd",
+   "runs": [
+    "sat600_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_sc7native_20260824.json",
+   "sha256": "15256d91b2f272cd9fe6eeaa9522f2908a6b1b8cef89ad067611393220108bfe",
+   "runs": [
+    "sc7native_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_shape_20260820.json",
+   "sha256": "a3163788ff31d8d81fd4b90da362b608704fa8dc6ae4f3a1330d33b1be27717c",
+   "runs": [
+    "shape_on_20260820"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_sig4c_20260823.json",
+   "sha256": "d63d44a1053cd23303817b5efbbe86740cc9df04ff2c891c7b2da63ea3a270f7",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_slew15_20260826.json",
+   "sha256": "cc5a9b6d4a654811c147e8b32e80e9cfd0cb61a4de50758960757770dcb46b13",
+   "runs": [
+    "slew15_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_slew7p5_20260826.json",
+   "sha256": "0f1f78371dcf2ea0e3cf90dbe7a8740fc063d6570688102c129e37edd5e9a81c",
+   "runs": [
+    "slew7p5_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_spec_20260820.json",
+   "sha256": "2504f9aac12157603210c56e639629cbf11afae7453c68e0f1d5314a91a386a5",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_subwin_20260824.json",
+   "sha256": "e805f6a523b1594bfb5c1611ca8b33d97f20d32955520b8759ff6de6c0c5cc2c",
+   "runs": [
+    "subwin_20260824"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_tau_20260825.json",
+   "sha256": "b8d39d34d1ce8f49b4a166c7c943495b155fe18f98f3b0d3654827be734743bb",
+   "runs": [
+    "tau_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_tauoff_20260825.json",
+   "sha256": "bb36036647a7093374e166b226f6fc1aa5875a7bf9cf24cd59735a8ea1c21446",
+   "runs": [
+    "tauoff_20260826"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_trust1_20260821.json",
+   "sha256": "23f485b1bf14457465911ab8fcecb7344660e706d96338a25280c9f95b5e9a82",
+   "runs": [
+    "trust1_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_trust2_20260821.json",
+   "sha256": "e373cb5869673e24746673cfccefed0c14674e87ab000501af3123a4158d295c",
+   "runs": [
+    "trust2_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_tttfar_20260821.json",
+   "sha256": "a9637087d95395d322ba996996838d5902a091ce21cf9e39326cf10fb4e89f60",
+   "runs": [
+    "tttfar_on_20260821"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4b_win4c_20260823.json",
+   "sha256": "77435cfd5d020cd447eb465599a81f595661822f6a6c88b84e77a65fcff8cc65",
+   "runs": [
+    "win4c_20260823"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17legs4e_20260826.json",
+   "sha256": "3d2ef93a0409c35272eb7a9c46fab89b463fab4976c6a6d27e89432ba5d2cf8b",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_core17n41_20260813.json",
+   "sha256": "57044b95b6922d13c41a5f8aea96e2402ad2c22fe86112ed98683cb9026fb637",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovr_20260814.json",
+   "sha256": "e269cab1b65f799d00797bed3306deb5c9bdd1d3c1b621dbefbde55fd1d4e04b",
+   "runs": [
+    "real_world_modi_watchdog"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_20260814.json",
+   "sha256": "137b470138aca8c72a802a6e62c3cff3d61adb3291d3dbee1a5c58779cbff109",
+   "runs": [
+    "guardfix_smoke_20260818",
+    "jam168_verify_20260816",
+    "lane_narrow_ab_20260816",
+    "n5_parent_20260814",
+    "n5_parent_smoke_20260814",
+    "rampbase_iv150h3rf_20260818",
+    "rampfix_ab_20260817",
+    "real_world_modi_watchdog",
+    "warmstart_ab_20260815"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_fwmeas_20260818.json",
+   "sha256": "5751c7a1c402734d4dfba2fa03839502f67562d68b02f24056c51e792ad105b1",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_fwrho_20260818.json",
+   "sha256": "65216ee9370d145d5cc0a03e2b4ea6d2fab144f34f4e78e6bbbe12f7d6db007d",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_iv150h2_20260818.json",
+   "sha256": "8b5825fb4b68794d975f41d25d3994d67e87ab5bfc3c4801b0407cf120019e57",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_iv150h3_20260818.json",
+   "sha256": "3cdaaf5a8896fd77f026747a61bd157f0a35af3be9ac0449d65fabea9c87311c",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_iv150h3rf_20260818.json",
+   "sha256": "1c834b1f6bd76924a5a69c8af9cfc55663a699996ee32e7b0b0590d09bbb10c2",
+   "runs": [
+    "rampbase_iv150h3rf_20260818"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_iv300h2_20260818.json",
+   "sha256": "19c2c45cd8612c0439c0b3b811f4eea8226fc44f634c7208e9ee5b61e08b8e24",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_iv300h2rf_20260818.json",
+   "sha256": "0c2cc4de6f6804051a87d6312dce1453d60ebd52fc2c1be2c5d95b8db291af4b",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_distributed_pedovrx_rampfix_20260817.json",
+   "sha256": "bd221ba5606ef292c4bd6aa6442817a96554e2ddfae56570960fe1810b768f7b",
+   "runs": [
+    "rampfix_ab_20260817"
+   ]
+  },
+  {
+   "file": "real_world_modi_pstack_flagship_20260731.json",
+   "sha256": "df0f844b2be2762b23984e3883c1658d65711b6e7c37b622733becebb2af592d",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_flagship_segvsl_20260801.json",
+   "sha256": "3147eafe9fdd708345c9f9cf06c2b5451cf52ef8043a404df58e12ec417645b0",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_flagship_segvsl_fdrefit_20260802.json",
+   "sha256": "3974523df5c12c83e2cf0880db54f3bb6eef5f2db241f10b93b2d9f6e322f922",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_postrepair_20260803.json",
+   "sha256": "a8d99b43a366f66fb470e7f129c41794737d845f746f8cb87a7da793a69ee6e4",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v4_newdemand_20260804.json",
+   "sha256": "a83e11ec2c92e6dadbbc6a69bd53bcf709506bacd6c099bd803da673e5c5a355",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v5_tttfar_20260804.json",
+   "sha256": "2234a8deb73db1da36a8973fe1dc8306445dc1899d7ba20405a3ea41be8e7c7c",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v5_tttfar_rampdemand_20260804.json",
+   "sha256": "eb8c4b13656938f0917aca654bec591b8de578568577ce16e11c972669fda723",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v6_urban15_20260804.json",
+   "sha256": "28c273cc1e5017918b09bfa6472f6c33e7e8f0dd66871ff6f94f36a2f3051189",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v7_urban36_20260804.json",
+   "sha256": "81aef6d50eaa57505d08b79dc7cab8563f3bcbb4148feae478ca9f4588bb0807",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_v8_urban36_budget_20260805.json",
+   "sha256": "433c533b5a978e4098a3a04f22110621a3cc424e6b934fce47def74adf8fdb4e",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_vsl6_20260803.json",
+   "sha256": "88a469a9cc1ff0e1826f85dafa4327893530f88f9bdd2c0f50fe441e6160d616",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_vsl_rollout_consensus_20260725.json",
+   "sha256": "1ef8d1e2f6ab6a5d4bb6844eb05799e9a05b8a0edcebd004e4659650260b8701",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_vsl_rollout_unmasked_20260725.json",
+   "sha256": "6e273028d9142daad686262c84d5acbc4745b4cf9ac5935ddbb937840d114470",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_vsl_rollout_vissimdsd_20260725.json",
+   "sha256": "24488d8c04a40eeed893b09ee425e558bd4dee72d610223d0790aaf879851516",
+   "runs": []
+  },
+  {
+   "file": "real_world_modi_pstack_zone4_20260801.json",
+   "sha256": "07c0a9a138863907c58e91db9d8e75560dedac443691bff47f2fdd85f64bd19a",
+   "runs": []
+  },
+  {
+   "file": "tuning_turning_ratios_route_manifest_v2_20260715.json",
+   "sha256": "778485207636c9d25411a4db845f83b0a0924faf935031efd5b13331f751d648",
+   "runs": []
+  },
+  {
+   "file": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_guarded_20260715.json",
+   "sha256": "4b76be607492b0044ebdd03b4ac86ec592cad97676300db2e3cae6dbe6ae6195",
+   "runs": []
+  },
+  {
+   "file": "tuning_turning_ratios_route_manifest_v2_pfo_green_frozen_20260715.json",
+   "sha256": "59e31c0fbe25e3b9ef7028a4cdcd7dd6eef69ec29f8d237f381e5a9fc67df7b0",
+   "runs": []
+  }
+ ]
+}

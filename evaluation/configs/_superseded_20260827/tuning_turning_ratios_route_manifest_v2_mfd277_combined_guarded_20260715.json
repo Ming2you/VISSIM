@@ -1,0 +1,30 @@
+{
+  "extends": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_20260715.json",
+  "name": "turning_ratios_route_manifest_v2_mfd277_combined_guarded_20260715",
+  "description": "P-Stack candidate with a VISSIM-facing ramp over-closure guard, no-control fallback, and queue-aware release floor.",
+  "calibration_basis": {
+    "parent": "tuning_turning_ratios_route_manifest_v2_mfd277_combined_20260715.json",
+    "reason": "The 155/190/220 congestion ladder showed P-Stack mostly worsened TTT by over-closing ramps while freeway density was not high enough to justify the queue transfer. This guard preserves the calibrated objective but prevents plant-facing ramp actions that release far less than observed no-control capacity under queue/stopped risk."
+  },
+  "leader": {
+    "w_ramp_queue": 2.0,
+    "w_boundary_in": 0.5
+  },
+  "actuation": {
+    "ramp_release_guard": {
+      "enabled": true,
+      "min_release_ratio_of_capacity": 0.85,
+      "queue_high_release_ratio_of_capacity": 0.95,
+      "ramp_queue_threshold_veh": 10.0,
+      "boundary_queue_threshold_veh": 120.0,
+      "stopped_threshold_veh": 180.0,
+      "max_density_ratio_for_fallback": 1.35,
+      "no_control_fallback": {
+        "enabled": true,
+        "min_release_ratio_of_uncontrolled": 0.78,
+        "max_density_ratio_for_fallback": 1.35,
+        "require_queue_or_stopped": true
+      }
+    }
+  }
+}

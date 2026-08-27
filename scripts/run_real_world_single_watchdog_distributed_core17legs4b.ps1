@@ -58,10 +58,20 @@ if ($OutDir -eq "") {
   $OutDir = Join-Path $repo "evaluation\runs\real_world_modi_watchdog"
 }
 $OutDir = Resolve-RepoPath $OutDir
+# 2026-08-27. -Tuning 기본값을 없앤다. 종전 기본값
+# (real_world_modi_pstack_distributed_core17legs4b_20260819.json) 은 정본 통합 때
+# 격리 폴더로 옮겨져 더는 존재하지 않는다. 그런데 어댑터의 load_optional_json 은
+# 없는 경로에서 조용히 {} 를 돌려주므로, -Tuning 을 빠뜨리면 **무설정 런이 정상
+# 종료**하고 TTT 만 다르게 나온다. 시끄럽게 죽는 편이 낫다.
 if ($Tuning -eq "") {
-  $Tuning = Join-Path $repo "evaluation\configs\real_world_modi_pstack_distributed_core17legs4b_20260819.json"
+  Write-Output "!! -Tuning 이 필요하다. 정본: evaluation/configs/canon_{tau,bstoA,plantfix,fdfit}_20260827.json"
+  exit 2
 }
 $Tuning = Resolve-RepoPath $Tuning
+if (-not (Test-Path $Tuning)) {
+  Write-Output ("!! -Tuning 파일이 없다: {0}" -f $Tuning)
+  exit 2
+}
 if ($Calibration -eq "") {
   $Calibration = Join-Path $repo "evaluation\calibration\real_world_prediction_calibration_core17legs4b_20260820.json"
 }
@@ -98,8 +108,26 @@ else { $adapter = Join-Path $repo "evaluation\controllers\vissim_stackelberg_ada
 # projected with the distributed 175-link detector mapping, so 153 links had no data and
 # the observed objective captured 1.4% of urban vehicles. Every urban-axis candidate was
 # then scored with the wrong sign. Default keeps the old path = bit-identical.
+# 2026-08-25: 기본값을 **본선 전용 계획** 형제를 가진 사본으로 옮긴다.
+#
+# 러너는 sgplan 을 이 파일의 형제(<config>_sgplan.vbs)로 찾는다. 옛 형제는 액추에이션
+# 계획의 현시 그룹에 **미드블록 SG(9+)를 함께 넣은** 판이라, 그 축이 미드블록 창으로
+# 잡혀 본선 SG 창이 분율로 깎였다 - SC5 p1 은 axis 97(SG20 창) 기준 43/97 = 0.4433 이라
+# 컨트롤러가 54.5초를 주문해도 본선에 24.2초만 배달됐다(1초 되읽기 12주기 실측).
+#
+# 러너는 RW_MAINLINE_SG_ONLY=1 로 이미 sg<=8 만 COM 으로 몰고 미드블록엔 ContrByCOM 조차
+# 안 건다(:1827-1833). 계획만 아직 미드블록을 현시에 넣고 있었다. 본선만 보면 이미
+# 완전한 4현시 순차다(SC5 43+23+47+25 = 138 = 모델 예산, +4x3s 황색 = 150 = 주기).
+#
+# 실측: mainline_20260825 = 4723.9 (무제어 4808.1 대비 -84.2). 같은 스택에서 옛 계획을
+# 쓴 allfix_20260825 는 4783.9 였다 - **이 한 줄이 -60.0 이다.**
+#
+# 무제어 기준선은 영향을 받지 않는다 - nocontrol 런은 signal/signal_sg 행을 하나도 쓰지
+# 않고 VISSIM native 프로그램이 그대로 돈다(실측 확인: vsl 71 + ramp_meter 8 행뿐).
+#
+# 옛 계획으로 되돌리려면 -VbsConfig 로 ..._core17legs4b_20260819.vbs 를 넘기면 된다.
 if ($VbsConfig -eq "") {
-  $VbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config_distributed_core17legs4b_20260819.vbs"
+  $VbsConfig = Join-Path $repo "evaluation\generated\real_world_modi_control_config_distributed_core17legs4b_mainline_20260825.vbs"
 }
 $vbsConfig = Resolve-RepoPath $VbsConfig
 if (-not (Test-Path $vbsConfig)) { Log "ERROR vbs config not found: $vbsConfig"; exit 2 }
@@ -224,6 +252,25 @@ if (Test-Path -LiteralPath $numsimSnapshotPath -PathType Leaf) {
   $match = [regex]::Match([System.IO.File]::ReadAllText($numsimSnapshotPath), "(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])", "IgnoreCase")
   if ($match.Success) { $numsimSnapshotCommit = $match.Value }
 }
+# 거동을 바꾸는 RW_* 환경변수를 provenance 에 남긴다.
+#
+# 왜. 이 러너는 RW_FORCE_STEPWISE / RW_AUDIT_ANCHORS_SEC / RW_RUN_ID / RW_RUN_MANIFEST_PATH
+# 넷만 저장·설정·원복하고 나머지는 **부모 셸에서 그대로 상속**한다. 그런데 어댑터와 VBS 가
+# 읽는 RW_* 는 그보다 훨씬 많고(RW_ADAPTER_MODE · RW_STOPPED_SPLIT · RW_SUBWINDOW_SERVICE ·
+# RW_NARROW_AXIS_SG · RW_MAINLINE_SG_ONLY · RW_QUEUE_ORIGIN_FILTER · RW_OFFSET_WRITER ...),
+# 그것들이 실런 기록에 **한 줄도 안 남았다**. 팔끼리 비교할 때 무엇이 켜져 있었는지
+# 사후에 알 방법이 없다 - 논문 재현성에 직접 걸린다.
+#
+# 순수 추가다. 값을 바꾸지 않고 적기만 한다.
+$rwEnv = [ordered]@{}
+foreach ($e in (Get-ChildItem Env: | Where-Object { $_.Name -like "RW_*" } | Sort-Object Name)) {
+  $rwEnv[$e.Name] = [string]$e.Value
+}
+# RW_ADAPTER_MODE 는 tuning 뒤에 적용돼 설정의 leader_candidate_count / max_nash_iter 를
+# 조용히 덮어쓴다(fuller-smoke = 9->5 / 4->2). 켜져 있으면 크게 알린다.
+if (-not [string]::IsNullOrWhiteSpace($env:RW_ADAPTER_MODE)) {
+  Log "WARNING $Name RW_ADAPTER_MODE=$($env:RW_ADAPTER_MODE) - tuning 의 탐색 예산을 덮어쓴다. 의도한 것이 아니면 지우고 다시 돌려라."
+}
 $provenance = [ordered]@{
   schema_version = 1
   run_id = $runId
@@ -243,6 +290,7 @@ $provenance = [ordered]@{
   demand_profile = $DemandProfile
   controller = $Controller
   audit_anchors_sec = $AuditAnchorsSec
+  env = $rwEnv
   files = $provenanceFiles
   signal_programs = $signalPrograms
 }

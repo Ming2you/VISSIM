@@ -1,0 +1,54 @@
+{
+ "name": "real_world_modi_pstack_distributed_core17legs4b_bstoA_20260826",
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_map4f_20260826.json",
+ "config_overrides": {
+  "network": {
+   "urban_link_storage_veh": {
+    "in_SC106_E": 261.6,
+    "in_SC1001_W": 1237.8,
+    "in_SC106_S": 508.9,
+    "in_SC104_E": 610.8,
+    "in_SC104_N": 395.5,
+    "in_SC1004_S": 1824.1,
+    "in_SC1004_W": 681.2,
+    "in_SC1005_W": 289.8,
+    "in_SC2001_W": 163.5,
+    "in_SC2001_S": 159.8,
+    "in_SC2001_N": 143.6,
+    "in_SC2002_N": 276.7,
+    "in_SC2003_N": 135.8,
+    "in_SC103_E": 358.6,
+    "in_SC2004_N": 273.7,
+    "in_SC103_N": 274.2,
+    "in_SC2005_N": 287.8,
+    "in_SC6_S": 21.7,
+    "in_SC16_S": 7.2,
+    "in_SC16_W": 20.8,
+    "in_SC7_E": 20.8,
+    "in_SC11_E": 10.6,
+    "in_SC12_W": 10.6,
+    "in_SC11_W": 264.4,
+    "in_SC1_E": 265.8,
+    "in_SC5_S": 33.6,
+    "in_SC102_N": 243.1,
+    "in_SC101_S": 11.0,
+    "in_SC1_N": 12.2,
+    "in_SC105_E": 9.2,
+    "in_SC1_W": 9.2,
+    "in_SC107_S": 207.7,
+    "in_SC108_W": 114.9,
+    "in_SC16_E": 59.5,
+    "in_SC109_E": 238.9,
+    "in_SC108_S": 257.0,
+    "in_SC106_W": 46.5,
+    "in_SC12_E": 46.5,
+    "in_SC1_S": 299.0
+   }
+  }
+ },
+ "notes": [
+  "2026-08-26. 경계 유입 저류 39개 신설. 모델에 in_* 저류가 0개라 _link_storage_split_fraction 이 0.0 을 반환 -> 전량 movement 큐 -> 매 스텝 방류로 증발. 실측: 경계 접근로 재고 651.8대인데 모델 표현 154.9대.",
+  "용량 정의: 길이x차로/6 — 물리 저류량. 단 tau 가 available x 6m 를 거리로 쓰므로 차로수만큼 거리가 부풀 수 있다(lane_delay_correction 이 보정하지만 근거파일에 in_* 차로수가 없어 적용 안 됨).",
+  "근거: modi_eval_userfix_20260814e.inpx 폴리라인 길이 x lane 수."
+ ]
+}

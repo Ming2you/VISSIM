@@ -1,0 +1,28 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_sc7native_20260824.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_default_20260825",
+  "description": "새 default 스택 — merge 를 대신한다. 결함 수정 다섯을 모두 켜고, 스위치를 전부 config 키로 든다.",
+  "notes": [
+    "2026-08-25. 이 파일이 앞으로 새 팔이 extends 할 **기준 스택**이다. 종전 기준은 merge_20260824(4838.7)였다.",
+    "실측 계보: 무제어(시드13) 4808.1 · merge 4838.7 · sc7native 4829.4 · allfix 4783.9(-24.2) · mainline 4723.9(**-84.2**). 이 스택은 mainline 위에 regret 을 더한 것이다.",
+    "**왜 이것들을 묶는가.** 다섯 다 '심어 놓고 안 읽는' 결함 수정이고, 개별 ablation 을 하지 않기로 정했다(사용자 판단 2026-08-25) — 결과와 무관하게 다 적용할 것이라 팔당 82분이 낭비다. 대신 합본이 지면 그때 분해한다.",
+    "포함된 것 다섯. (1) merge_exits: 같은 정지선·같은 커넥터를 타는 출구 쌍둥이 movement 병합(474->368). (2) native_signal: .sig 의 신호별 주기·녹색예산·죽은현시·SC7 동시현시 배율 1.5877. (3) phase_price.price_local_model=phased: 가격의 국소항을 도착 없는 배수 모형에서 실제 물리(rollout_local_tts_phased)로 — 실런에서 옛 모형이 국소미분을 0 으로 뭉갠 비율이 **평균 80.9%** 였다. (4) green_box.signal_aware: GNE 후보와 가격 방향이 신호별 green_max(SC107/108/109=101)를 읽게. (5) queue.stopped_split: 큐/저류 분할을 고정 0.35 대신 실측 정지대수로.",
+    "(6) plan.mainline_only: 액추에이션 계획의 현시 그룹을 본선 SG(1-8)로만. 미드블록은 native 그대로 둔다. 이것 하나가 allfix 대비 **-60.0** 을 냈다 — 계획이 미드블록을 현시에 넣어 axis 가 97(SG20 창)이 되는 바람에 본선 SG4 창이 43/97=0.4433 으로 적혀 주문 54.5s 가 24.2s 만 배달되고 있었다. 근거: outputs/signal_group_actuation_plan_mainline_20260825.json (status=PASS · uncovered=0 · 전 17 SC 부분창 0개).",
+    "(7) leader_feedback.carry + fallback_guard_beta(regret): 러너가 결정마다 python 프로세스를 새로 띄워 _beta_prev_total_veh·_regret_window 가 매 150초 소멸했다. 상류 기본이 켜져 있는데도 realized 가 한 번도 계산된 적이 없었다(66결정 전부 window_len=0). **주의: 이 스위치만 성격이 다르다** — 나머지는 '이미 있는 값을 읽자'인데 이것은 리더 해를 뒤집을 수 있다(강제 폴백). merge 위에서는 중립이었다(beta_hat 0.822 · regret_gap -123 · 발화 0회).",
+    "**스위치를 config 키로 든 이유.** 환경변수는 (a) extends 사슬로 상속되지 않고 (b) run_provenance 에 안 남는다. 그래서 팔마다 러너 스크립트에 따로 세워야 했고 그것이 CLAUDE.md 의 'RW_ADAPTER_MODE 누출' 함정의 원인이다. 어댑터가 tuning 을 연 직후 install_config_switches 로 심고, env 는 기존 팔 재현용 폴백으로 남긴다(tuning 이 이긴다).",
+    "**러너에 같이 넘겨야 하는 것 하나.** -VbsConfig 를 evaluation/generated/real_world_modi_control_config_distributed_core17legs4b_mainline_20260825.vbs 로. 형제 _sgplan.vbs 가 본선 전용 계약(groups=160 · conflict_pairs=332)을 싣는다. 이건 config 로 옮길 수 없다 — 러너가 생성 config 의 형제 파일로 찾기 때문이다.",
+    "**아직 못 하는 주장.** 전부 시드 13 하나다. mainline 의 -84.2 는 무제어 5시드 sigma=50.7 을 넘는 첫 격차지만, 짝지은 시드 검정(14~17) 전에는 논문에 인용할 수 없다."
+  ],
+  "phase_price": {
+    "price_local_model": "phased"
+  },
+  "urban": {
+    "green_box": { "signal_aware": true },
+    "queue": { "stopped_split": true },
+    "plan": { "mainline_only": true, "mainline_share": true },
+    "leader_feedback": { "carry": true }
+  },
+  "config_overrides": {
+    "mpc": { "fallback_guard_beta": true }
+  }
+}

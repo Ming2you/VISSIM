@@ -1,0 +1,18 @@
+{
+  "extends": "real_world_modi_pstack_distributed_pedovrx_rampfix_20260817.json",
+  "name": "real_world_modi_pstack_distributed_pedovrx_iv300h2rf_20260818",
+  "description": "Control interval 300 s x horizon 2 = 600 s lookahead.",
+  "notes": [
+    "2026-08-18: 제어주기 300 s(러너 -ControlIntervalSec 300) x 지평 2 = 600 s 앞을 본다.",
+    "램프 결합을 되살린 격자 위. 600 s 앞 고속도로 속도 13~18%, 대수 16.5% 로 절벽이 없다. 600 s 를 내다보는 설정은 이쪽에서만 성립한다. 다만 leader 가 2^15 전수열거로 떨어져 결정당 6,700 초가 걸린다 - 그 문제를 풀기 전에는 실런에 못 쓴다.",
+    "절벽의 원인은 파라미터가 아니라 off-ramp 배수 차단이었다. off_ramp_to_movement 가 빈 dict 라 OR_*_storage 가 240~300 s 에 용량 60 veh 로 포화하고, 그때부터 본선이 20% 를 뺄 곳을 잃어 질량이 쌓이고 속도가 무너진다. 포화 시점과 절벽 시점이 일치한다.",
+    "300 s 주기는 coupling.py:97 의 주기정렬 가드를 켠다(30 > 15). metering error 정의가 바뀌므로 150 s 조합과 직접 비교하면 안 된다.",
+    "ControlStartSec 은 900 을 유지해야 한다 - 900 % 300 = 0 이고 코드에 가드가 없다.",
+    "기존 A/B 는 전부 60 s 다. 이 설정과 비교하려면 기준선을 새로 떠야 한다."
+  ],
+  "config_overrides": {
+    "mpc": {
+      "horizon_steps": 2
+    }
+  }
+}

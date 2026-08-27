@@ -1,0 +1,23 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_default_20260825.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_duallo_20260826",
+ "description": "듀얼 λ_P 스케일을 거래 구간으로 내린다 (cap 0.01, gain 1e-05). 내부해 구간 중앙. cap 절반, gain 절반.",
+ "notes": [
+  "2026-08-26. 듀얼이 가격이 아니라 스위치로 동작한다. 팔로워 후보비용 cost = local_TTS + lambda_P·nin_i(green) 에서 두 항 크기가 안 맞는다 — Δcost 2.7~12.3 veh·h 대 λ·Δnin 368~2350.",
+  "λ 스윕 실측(t=002250, nin 이 움직이는 5신호의 argmin p1[s]): λ=0 -> 43/39/20/20/22 · λ=0.005 -> 43/39/20/20/24 · λ=0.01 -> 43/39/20/20/49 · λ=0.02 -> 43/34/20/23/63 · λ=0.05 이상 -> 전부 상자 꼭짓점(20/78/101) 포화 · λ=10(현행 cap) -> 완전 bang-bang.",
+  "**λ ≈ 0.005~0.02 에서만 내부해가 나온다.** 현행 cap 10 은 그 구간보다 500~2000배 크다.",
+  "갱신식도 어긋나 있다 — lambda_next = clip(lambda + gain·(sum_nin - target), 0, cap), gain=0.01, 잔차 O(100) veh 라 **한 스텝에 cap 으로 튄다.** 그래서 어떤 N_P 후보를 골라도 같은 λ가 나오고, 같은 팔로워 응답이 나오고, 리더 목적함수가 평평해진다(leader_candidate_objective_gap/objective = 2.7e-06).",
+  "**이것이 정적 N_P 상자를 고쳐도 아무 일이 없었던 이유다.** B_box 팔에서 상자 폭을 2650 -> 700 으로 좁혔더니 세 결정 전부 레버 0/91 변화 · 목적함수 소수점 이하 동일. D_res(분해능만)와 C_boxres(상자+분해능)가 완전히 같은 결과라 효과는 전부 분해능에서 왔다. 상자가 문제가 아니라 상자 안 어디를 골라도 λ 가 같다는 게 문제다.",
+  "**참고 — 정정된 사실**: _np_feasible_range 는 붕괴하지 않는다. 실측 [773.67,1368.90](폭 595) / [649.61,1029.81] / [601.55,963.51]. 이전에 '사영 밴드가 점으로 무너진다' 고 적었던 것은 틀렸다.",
+  "cap 을 낮추면 λ 가 sum_nin 을 target 으로 끄는 힘도 준다. 목적은 추종이 아니라 **거래**다 — 지금은 포화라 거래 자체가 없다. 추종 성능(wu_faithful_sum_nin_veh 대 리더 target 잔차)은 별도로 본다.",
+  "세 값 모두 팔로워 **인스턴스 속성**이라 컨트롤러와 함께 피클되어 가격 워커 spawn 을 넘는다(offset keep_margin 과 같은 경계).",
+  "**반증 가능한 예측**: (a) 커밋 녹색이 base 와 달라진다 (b) leader_candidate_objective_gap/objective 가 2.7e-06 보다 커진다 — 리더가 후보를 가르기 시작한다 (c) TTT 방향은 미지.",
+  "기준선: 무제어 4808.1(시드 13, sigma 50.7) · default_20260825 4723.9(-84.2, 현 최선)"
+ ],
+ "urban": {
+  "dual": {
+   "lambda_cap": 0.01,
+   "lambda_gain": 1e-05
+  }
+ }
+}

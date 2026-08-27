@@ -1,0 +1,14 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_phaseprice_20260820.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_bay_20260821",
+ "description": "정지선 규모 저류 도입(bay 100m). 방류율은 물리값 1400 유지",
+ "notes": [
+  "2026-08-21. 모델이 큐를 못 쌓는 근본 원인을 고친다.",
+  "진단: 막힘 제약이 교차로간 링크(0.5~2.1km, 링크당 431대) 저류를 써서 첨두 점유율 10% 에서 절대 안 물린다. 그래서 모든 큐가 녹색마다 완전히 비워지고, 참 큐에서 출발해도 150초에 400~550대 과다 방류한다(부족분이 혼잡과 함께 커짐: t=600 -5 대 t=4800 -556).",
+  "고침: 정지선 앞 대기공간 규모의 저류를 유도해 receiving 게이트에 건다. stopline(L) = storage(L) x bay_km / length_km(L) — 링크 길이에 비례해 줄이므로 정지선 대기공간이 링크 길이와 무관하게 일정하다는 물리와 맞는다.",
+  "방류율(movement_capacity_veh_h)은 **물리값 1400 그대로** 둔다. 600 으로 낮추는 것은 대증요법이고 모든 movement 를 균일하게 굶겨 movement 간 상대 비교를 왜곡한다 — 신호제어가 쓰는 게 정확히 그 상대 비교다. 이쪽은 혼잡할 때 막힌 곳에서만 물린다.",
+  "bay 100m 는 첫 시도값이다. 오프라인 스크리닝으로 쓸어 정한다.",
+  "TTT 와 marginal price 는 건드리지 않는다(사용자 제약)."
+ ],
+ "urban": { "stopline": { "bay_m": 100.0 } }
+}

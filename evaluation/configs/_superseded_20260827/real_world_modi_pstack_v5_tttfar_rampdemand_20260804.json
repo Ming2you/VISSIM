@@ -1,0 +1,32 @@
+{
+  "_comment": "모델의 온램프 수요 추정을 플랜트 실측에 맞춘다. v5_tttfar(리더 목적함수 환원) 위에 얹는다.",
+  "_defect": "부모 체인의 adapter_v1_response_calibrated_20260721 이 local_ramp_arrival_forecast.queue_drain_horizon_sec 를 스칼라 120 s 로 고정해 두었다. 이 유도는 arrival_vph = ramp_counts x 3600/120 = 점유 x 30 이라, 커넥터 길이·속도와 무관하게 같은 계수를 쓴다. 실측(2026-08-04, g6_v6 앵커 t>=2700)에서 모델은 1,290 veh/h 를 보는데 플랜트는 4,436 veh/h 를 나른다 — 3.4배 과소다. 결과로 모델 세계에서만 램프 수요(그룹당 120~810)가 미터 섭동 하한(1440)보다 아래에 놓여 dTTT/d(meter) 가 정의상 0 이 됐다. G6 램프 축 부호일치가 2/6 인 근본 원인이고, 한계가격에 far/hinge 를 넣어도 안 살아나던 이유다(입력이 틀렸지 목적함수가 아니었다).",
+  "_fit": "램프별 H = 3600 x ramp_counts / q_observed 의 스텝별 중앙값. q_observed 는 커넥터 기하(<geometry><linkPolyPts><linkPolyPoint>)로 구한 q = (N/L)v 다. 표본 16스텝, 사분위 폭 R_D_W 19.8~28.2 / R_F_W 99.7~131.0 / R_D_E 28.2~33.0 / R_F_E 22.6~27.3 로 안정적이다. 이 H 를 쓰면 모델 forecast 오차가 그룹별 -0.5%~+2.1% 로 떨어진다.",
+  "_why_cap_up": "max_vph_per_ramp 900 은 실측 최대 1,265 보다 낮아 위를 자른다. 실측 최대의 1.2배로 올려 1550 으로 둔다. 이 값이 구속하면 적합이 다시 어긋나므로 verify 스크립트가 잡는다.",
+  "_scope": "diagnostic-* 후보는 상태·예보와 무관한 고정 액션이므로 이 변경은 플랜트 궤적을 바꾸지 않는다. G6 의 model_objective 만 바뀐다 = 기존 g6_v6 그리드를 재채점하는 것만으로 효과를 잴 수 있다(VISSIM 재실행 불필요).",
+  "extends": "real_world_modi_pstack_v5_tttfar_20260804.json",
+  "name": "real_world_modi_pstack_v5_tttfar_rampdemand_20260804",
+  "description": "리더 목적함수 환원(TTT+far) + 온램프 수요 추정 실측 정합.",
+  "calibration_override": {
+    "calibration_version": "v5_tttfar_rampdemand_20260804",
+    "prediction": {
+      "local_ramp_arrival_forecast": {
+        "queue_drain_horizon_sec_by_ramp": {
+          "R_D_W": 25.8,
+          "R_F_W": 116.6,
+          "R_D_E": 30.8,
+          "R_F_E": 25.7
+        },
+        "max_vph_per_ramp": 1550.0,
+        "fit_source": "outputs/ramp_flow_v6_anchor_20260804.json (scripts/measure_ramp_connector_flow.py)",
+        "fit_date": "2026-08-04"
+      }
+    }
+  },
+  "notes": [
+    "queue_drain_horizon_sec_by_ramp 는 어댑터 local_ramp_arrival_forecast 소비부가 읽는다. dict 미지정이면 스칼라 queue_drain_horizon_sec 로 폴백하므로 기존 config 는 비트 동일하다.",
+    "검증: scripts/verify_ramp_arrival_calibration.py --state-json <앵커 state> --observed-json outputs/ramp_flow_v6_anchor_20260804.json --calibration-json <cal> --tuning-json <이 파일>",
+    "H 는 앵커(미터 개방) 상태에서 적합했다. 미터를 조인 후보에서는 커넥터 속도가 떨어져 H 가 커지므로, 이 H 는 앵커 근방에서만 유효하다. 후보별 재적합은 하지 않았다(진단 목적).",
+    "네트워크 수요나 route design 이 바뀌면 반드시 재적합할 것."
+  ]
+}

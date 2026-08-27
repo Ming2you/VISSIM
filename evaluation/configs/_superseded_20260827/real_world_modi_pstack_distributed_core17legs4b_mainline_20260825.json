@@ -1,0 +1,17 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_allfix_20260825.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_mainline_20260825",
+  "description": "미드블록 SG(9+)를 모델 현시에서 통째로 뺀다 — 계획과 share 양쪽. allfix 위에서 그것만.",
+  "notes": [
+    "2026-08-25. 사용자 판정에서 나왔다: '미드블록은 다루지 말고 default 값 그대로 써라. 같은 intersection 에 있는 것도 아닌데 상충나면 어떠냐.' 조사해 보니 그 말이 맞았고, 앞선 두 팔(narrowaxis · subwin)이 같은 오염을 **잘못된 끝에서** 건드린 것이었다.",
+    "오염의 근원은 하나다. 계획의 phase_signal_groups 가 미드블록 SG 를 모델 현시에 함께 넣는다 — SC5 p1 = ['4','8','12','16','20','24']. 그래서 axis_green_sec['p1'] 이 97(SG20 의 native 창 [50,147])이 되고, 본선 SG4·SG8 이 native 로 [78,121] 43초라 계획이 그 창을 43/97 = 0.4433 분율로 적는다.",
+    "결과: 컨트롤러가 p1 에 54.5초를 주문해도 러너가 본선에 24.2초만 배달한다(1초 되읽기 12주기 실측). 컨트롤러의 레버가 자기도 모르게 0.44 배로 감쇠된다. subwin(+25.8)은 그 감쇠를 **모델에 새겨 넣었고**, narrowaxis(+53)는 share 를 좁히려다 263개 중 4개만 깎았다. 둘 다 '미드블록을 축에서 빼라' 가 답인 것을 몰랐다.",
+    "본선만 보면 이미 완전한 4현시 순차다 — SC5: p1{4,8}=43 · p2{3,7}=23 · p3{2,6}=47 · p4{1,5}=25, 합 138 = 모델 예산, +4x3s 황색 = 150 = 주기. 아무것도 억지로 맞출 필요가 없다.",
+    "**왜 안전한가.** 러너는 RW_MAINLINE_SG_ONLY=1 일 때 IsControlledSignalGroup(sg)=(sg<=8) 이고 미드블록엔 ContrByCOM 조차 안 건다(VBS:1820-1833) — VISSIM 자체 프로그램이 그대로 돈다. 즉 러너는 이미 본선만 몰고 있었고, 계획만 아직 미드블록을 현시에 넣어 본선 분율을 왜곡하고 있었다. 러너 원문 주석 자신이 앞 절반을 적어 뒀다: '미드블록은 제어 대상이 아닌데 지금까지 컨트롤러가 함께 눌러 왔다. SC5 SG10 EBT 101s -> 22s (21%)'.",
+    "**상충을 잃는 것은 문제가 아니다.** 그 '상충' 은 기하도 intergreen 행렬도 아니고 'native 에서 한 번도 안 겹쳤다' 는 추론이다(signal_group_plan.py:222-228). SC5 는 SG 24개로 본선 + 미드블록 노드 둘을 몰고, 본선과 미드블록은 다른 교차로다. 커버리지 검증은 EXPECTED(전체 SG)로 하므로 통과하고, 상충 판정의 active 필터가 window_counts>0 이라 미드블록 쌍은 자동으로 빠진다.",
+    "두 곳을 같이 바꾼다 — 플랜트(계획)와 모델(share)이 서로 다른 축을 보면 안 된다. (1) 계획: outputs/signal_group_actuation_plan_mainline_20260825.json + 형제 sgplan VBS. 생성기 사본 scripts/derive_signal_group_actuation_plan_mainline_20260825.py. (2) 모델: native_phase_green 의 share 를 본선 SG 로만 계산(RW_MAINLINE_SHARE_SG).",
+    "스위치 셋: RW_MAINLINE_PLAN=1(어댑터가 본선 계획을 읽는다) · RW_MAINLINE_SHARE_SG=1(모델 share) · 러너 -VbsConfig 를 본선 생성config 사본으로(형제 sgplan 이 딸려온다). 셋 다 빼면 비트 동일.",
+    "**생성 검증**: status=PASS · uncovered=0 · 전 17 SC 에서 **부분창 0개**(모든 본선 SG 가 현시 전체를 받는다). SC5 axis 97->43, SC7 axis 91->67. 미드블록은 SC5 [10,14,20,24] · SC7 [12,16] 이 native 유지로 기록된다.",
+    "기준선: 무제어 4808.1 (시드 13, sigma 50.7) · sc7native 4829.4 · merge 4838.7 · subwin 4864.5 · narrowaxis 4891.7"
+  ]
+}

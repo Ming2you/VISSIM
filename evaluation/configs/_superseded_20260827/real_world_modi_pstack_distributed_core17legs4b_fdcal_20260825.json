@@ -1,0 +1,24 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_default_20260825.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_fdcal_20260825",
+  "description": "freeway 기본도(FD) 스칼라를 관측에 재적합한 값으로. default 위에서 그것만. (b)단계.",
+  "notes": [
+    "2026-08-25. **지금 쓰는 FD 상수는 캘리브레이션된 적이 없다.** 어댑터가 network.get('v_free_kph', 100.0) / network.get('rho_crit_veh_km_lane', 33.5) 로 읽는데(vissim_stackelberg_adapter.py:3953-3954), 실런이 --calibration-json 으로 넘기는 것은 **예측 보정** 파일이고 거기엔 그 키가 없다. 실제 FD 값은 **운영 캘리브레이션** 파일들에 있고 다섯 개나 되는데 하나도 안 실린다.",
+    "후보들: v0_20260719 100.0/24.0 · v2_fdrefit_20260802 119.5/16.354/a2.154 · v3_postrepair 126.9/28.42/a1.365 · v4_newdemand 133.8/28.93/a1.244 · vissim_network_v2 123.8/20.40. 실사용 100.0/**33.5**/1.867 은 모든 후보보다 임계가 높다.",
+    "**적합 방법.** 관측 (밀도, 속도) 1,727 표본(default·mainline·nocontrol_s13·sc7native 4런, 밀도>=2). 밀도 = count/length_km/lanes 이고 관측이 전 세그먼트 lanes=4 를 보고한다. 이중계상을 피하려고 **비합류 세그먼트로만** V(rho) 를 맞췄다(합류를 섞으면 합류 감속이 FD 모양에 흡수된다 — 현행이 정확히 그 상태다).",
+    "비합류 적합 결과: v_free 119.0 · rho_crit 39.5 · a 1.45 (비합류 가중RMSE 7.17). 전 구간 RMSE 는 현행 16.06 → v2_fdrefit 12.12 → 이 값 15.28(합류 잔차가 남아서) → **세그먼트별 v_free 5.10**.",
+    "**이 팔은 (b) 단계다 — 스칼라만 바꾼다.** 세그먼트 이질성(합류 세그먼트 자유류가 19.7 km/h 낮다: FW_W seg5=79.3 · FW_E seg5=86.1)은 모델에 필드가 없어 (a) 단계에서 vendor 에 v_free_profile 을 신설해야 한다. 이 팔은 그 기준선이다.",
+    "**merge 교란항 delta 는 답이 아니다.** metanet_delta_merge(문헌 0.0122)는 저장소 어디에서도 안 켜지고, 켜려고 역산하니 53.2 가 나왔다 — 4천 배. 결손이 유량에 안 따르기 때문이다(q_ramp=900 인 세 세그먼트가 v_free 110.6/106.2/86.1 로 갈린다). 유량이 아니라 **기하**다.",
+    "병합 순서가 base < flagship < calibration < tuning(어댑터:4722-4725)이라 **tuning 이 이긴다** — 캘리브레이션 파일을 갈아끼울 필요 없이 config_overrides.network 한 절이면 된다.",
+    "**반증 가능한 예측**: (a) 진단의 network v_free/rho_crit 이 119.0/39.5 로 찍힌다 (b) leader_density_excess 는 **여전히 0** 일 것이다 — FW_W seg5 밀도가 평균 14.1·최대 28.4 로 새 임계 39.5 에도 못 미친다. 그 자리는 고밀도가 아니라 **저속** 구간이다(유량 3,910 = 차로당 978, 용량의 절반) (c) 그래도 롤아웃 TTS 가 달라지므로 TTT 는 움직인다. 방향은 미지.",
+    "기준선: 무제어 4808.1 (시드 13, sigma 50.7) · default_20260825 4723.9 (-84.2, 현 최선) · offarm 4767.7 (offset 은 켜면 손해)",
+    "**필드명 함정.** config_overrides.network 는 NetworkConfig(**raw) 로 splat 되므로 dataclass 필드명이어야 한다. 지수형 FD 의 형상 a 는 캘리브레이션 키가 desired_speed_shape_a 이지만 **NetworkConfig 필드는 metanet_a_m** 이다(어댑터:3867 이 그 변환을 한다). desired_speed_shape_a 를 그대로 넣으면 TypeError 로 런이 즉사한다 — regret 때 config_overrides.mpc 로 3번 죽은 것과 같은 자리다."
+  ],
+  "config_overrides": {
+    "network": {
+      "v_free": 119.0,
+      "rho_crit": 39.5,
+      "metanet_a_m": 1.45
+    }
+  }
+}

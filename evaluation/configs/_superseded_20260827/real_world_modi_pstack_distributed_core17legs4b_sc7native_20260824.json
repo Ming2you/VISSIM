@@ -1,0 +1,17 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_merge_20260824.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_sc7native_20260824",
+ "description": "2위 수정 — 실제 신호 구조(주기·예산·동시현시)를 모델에 심는다. merge 위에서 그것만.",
+ "notes": [
+  "왜. SC7 의 native 는 주기 120초에 링 중첩으로 현시녹색 181초를 방류한다(동시성 1.588). as-run 모델은 주기 150 고정·순차 141초까지만 표현하므로 **어떤 후보로도 재현 불가**다. 검증에서 SC7 권역 손실 +35.2 veh·h 로 순격차 +29.4 와 같은 규모다.",
+  "install_native_signal_structure 가 셋을 심는다 — (1) 신호별 주기(SC7 120), (2) 신호별 녹색 예산(SC16 141->107), (3) 동시현시를 **처리량 등가**로 근사(그 신호 movement 용량에 계획총합/예산 배율). 그리고 죽은 현시(SC7 p3 · SC16 p4 · SC107 p1 · SC108 p2 · SC109 p1)를 live_phases 로 넘겨 green_max 상한도 3현시 101 로 풀린다.",
+  "**정본 수치를 처음 검증한다.** 기존 native_on_20260821(+8.22%)은 구본 measured_20260821 의 SC5 1.64 / SC7 1.75 를 썼는데 .sig 원본 어디에서도 그 값이 안 나온다(SC5 는 0-50-78-124-150 순차라 겹침 0 = 배율 1.00, 겹치는 건 SC7 하나뿐 1.59). 설치기는 이제 signal_timeline_from_sig_20260823 을 우선한다.",
+  "위험: 배율이 movement 용량에 곱해지므로 검증 안 된 수를 쓰면 cap4c(+128) 와 같은 기전으로 악화된다. 정본 배율은 SC7 1.59 하나뿐이라 폭발반경이 구본보다 훨씬 작다.",
+  "대조: merge 4838.7(+0.61%) · 무제어(시드13) 4808.1 · 시드 σ 50.7"
+ ],
+ "urban": {
+  "native_signal": {
+   "enabled": true
+  }
+ }
+}

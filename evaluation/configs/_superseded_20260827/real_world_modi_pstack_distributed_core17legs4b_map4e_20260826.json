@@ -1,0 +1,28 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_tau_20260825.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_map4e_20260826",
+ "description": "매핑 누수 판정 적용 + τ 수정. tau_20260825 위에서 **매핑만** 바뀐다.",
+ "notes": [
+  "2026-08-26. 사용자 판정으로 매핑 누수를 메운 첫 실런. default_20260825 에서 **매핑만** 바뀐다.",
+  "리플레이 실측(같은 state 로 4d 대 4e): 모델이 보는 도시 차량 **62.5% -> 66.6%** (+109 veh). 미표현이 399 -> 291 로 줄어든 몫이다(경계 큐 배선 21건 + 종단 배정 36건).",
+  "**관측불가 583(22.3%)은 리플레이로 안 줄어든다** — 러너의 스캔 목록(RW_LOCAL_OBSERVABLE_LINKS)이 정하고 기록된 state JSON 에 그 차량이 애초에 없다. 그래서 이 런이 필요하다. VBS config 를 4e 로 바꿔 스캔 링크를 293 -> 626 으로 넓혔다.",
+  "종단 배정 근거: 15개 중 13개가 하류 커넥터 0개인 순수 망 진출점이고, 모델에 SC###_<방위>_out 저류가 46개 있는데 **링크가 하나도 안 붙어 있었다**. 새 개념이 아니라 연결만 한 것이다.",
+  "새 저류 둘: SC107_E_out(19.8 veh, link 20 = 60m x 2차로) · SC109_W_out(16.5 veh, link 22 = 50m x 2차로).",
+  "**movement 는 만들지 않았다**(사용자 판정 ①). 미드블록 분기라 신호 현시가 없고, 임의 현시에 붙이면 이중계상과 현시 오염 위험이 있다. 분율 근거(.inpx 정적 경로결정 0.2825/0.2882/0.2999)는 detector mapping 의 provenance_20260826 에 기록만 했다.",
+  "램프: link 78 · 31 을 R_D_E 0.25 / R_D_W 0.75 **가중**으로. link 31 의 정적 경로결정 1137 이 dest 24(FW_E) 1.0 · dest 31/26(FW_W) 1.0+2.0 이라 25/75 다. 어댑터 사본이 dict 형식을 받게 확장했고 리스트 형식은 비트 동일이다.",
+  "**반증 가능한 예측**: (a) projection_unobservable_vehicle_count_veh 가 583 보다 크게 준다 (b) 모델 몫이 66.6% 보다 오른다 (c) TTT 방향은 미지 — 캘리브레이션이 옛 누수 위에서 적합됐으므로 악화할 수도 있다.",
+  "기준선: 무제어 4808.1 · default_20260825 4723.9 · **tau_20260826 4688.4(현 최선)**",
+  "**τ 위에 올린다(2026-08-26 사용자 지적).** 처음엔 default_20260825 를 extends 했는데, (a) 캘리브레이션 재적합은 최종 plant 위에서 해야 하고 (b) tau_20260826(4688.4)과 짝지으면 τ 가 동일해 **매핑만 다른 순수 대조**가 된다. default 대비 대조보다 이쪽이 깨끗하다.",
+  "따라서 이 런의 짝은 **tau_20260826** 이다. 그 차이가 곧 매핑 효과다.",
+  "2026-08-26 수정. detector_mapping_json 을 백슬래시로 써서 JSON 이 백슬래시-r 을 CR 로 먹었고 경로가 'evaluation<CR>eal_world...' 로 깨졌다. load_optional_json 이 조용히 {} 를 내서 map4etau_20260826 이 관측 없이(local_observation_runtime_guard=0) 완주했다. 슬래시로 고정."
+ ],
+ "detector_mapping_json": "evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4e_20260826.json",
+ "config_overrides": {
+  "network": {
+   "urban_link_storage_veh": {
+    "SC107_E_out": 19.8,
+    "SC109_W_out": 16.5
+   }
+  }
+ }
+}

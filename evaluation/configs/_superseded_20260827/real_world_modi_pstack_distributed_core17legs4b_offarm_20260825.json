@@ -1,0 +1,31 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_default_20260825.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_offarm_20260825",
+  "description": "offset 레버를 실제로 플랜트에 닿게 한다 — 닫혀 있던 관문 둘을 같이 연다. default 위에서 그것만.",
+  "notes": [
+    "2026-08-25. **offset 은 죽어 있지 않았다. 두 번 거부되고 있었다.** 지금까지 '컨트롤러가 561개 전부 0 을 의도한다' 고 알고 있었는데 산출물을 다시 재니 반대였다.",
+    "실측(전 결정): 탐색에서 0 아닌 offset 을 고른 슬롯이 mainline 200/561(35.7%) · allfix 192/561(34.2%) · sc7native 210/561(37.4%) 인데 **최종 유지가 세 런 전부 0** 이다. 결정당 187~197회 평가한다. 커밋된 offsets 의 서로 다른 값은 {0.0} 하나뿐.",
+    "**관문 1 — 유지 마진.** wu_faithful_follower.py:424 의 offset_keep_margin = 0.005 가 하드코딩이고 저장소 전체에서 config·어댑터가 쓰는 곳이 0곳이다(테스트 3곳만 -1.0 으로 우회). 판정은 :4632 의 ttt_off <= ttt_on x 1.005 면 0 으로 되돌림. 실측 모델 안 이득은 평균 0.036% · 최대 0.0966% · 최소 -0.041% 라 최대이득/요구마진 = 0.193, 33/33 전량 기각이다.",
+    "**관문 2 — 승격 잠금.** 실런 37결정 전부 offset_writer=intent_only · offset_promotion_status=NOT_EVALUATED 이고, offset_promotion.py:339 가 production/test_only 가 아니면 무조건 0.0 을 쓴다. 삼중 잠금(d_core · n9_offset_effect · n8_4_runtime)의 증거 산출물 셋은 **하나도 존재하지 않는다**(2026-08-25 확인).",
+    "**관문 하나만 열면 플랜트 TTT 가 비트 동일이다.** 마진만 풀면 offset_intent_suppressed_signals 숫자만 바뀌고 쓰이는 값은 여전히 0.0 이다. 그래서 이 팔은 둘을 같이 연다.",
+    "**계약을 늘리는 부분을 숨기지 않는다.** production writer 는 config 로 선언할 수 없고(offset_promotion.py:278-283 이 명시 거부) 승격도 증거가 없어 안 열린다. 그래서 최적화기 offset 이 플랜트에 닿는 길은 test_only + 강제표뿐인데, 그 모듈은 test_only 를 '최적화기가 고른 offset 이 아니라 harness 가 지정한 값' 이라고 못박아 뒀다. 이 팔은 그 계약을 늘린다. **다만 production 승격 경로는 건드리지 않는다** — 삼중 잠금은 그대로 닫혀 있고 이 스위치로 열리지 않는다.",
+    "**과거 연동 자료가 무효가 된다.** '연동 A/B 를 했는데 차이가 없었다' 는 결론들은 커밋된 offset 이 항상 0 이었으므로 무효 대조군이다. guard_forced_arm 의 docstring 이 정확히 이 위험을 적어 뒀다 — 조용히 0 으로 뭉개면 나중에 'offset 효과 없음' 으로 읽힌다.",
+    "**keep_margin = 0.0 은 실험값이지 제안 default 가 아니다.** 원 가드는 noise-level 개선이 회귀를 부른 실측(sweet_128)에서 나왔다. 0.0 이면 모델이 조금이라도 낫다고 본 offset 을 전부 커밋하므로, 모델 오차를 그대로 플랜트에 싣는 도박이다. 목적은 **offset 이 플랜트에서 실제로 어떤 방향인지 처음으로 재는 것**이다. 결과를 보고 마진을 다시 정한다.",
+    "**반증 가능한 예측**: (a) 커밋된 offsets 에 0 아닌 값이 결정당 3~11개 나타난다 (b) offset_arm_optimized_nonzero > 0 · offset_production_writes 대신 test_only 경로로 실린다 (c) TTT 방향은 미지 — 모델 이득이 0.036% 수준이라 개선이 나와도 작고, 악화가 나오면 모델의 offset 감도가 틀렸다는 뜻이다.",
+    "워커 경계: keep_margin 은 nash_solver 의 **인스턴스 속성**이라 컨트롤러와 함께 피클되어 가격 워커 spawn 을 넘는다. 강제표는 부모 프로세스의 CSV 쓰기 직전에만 실리므로 워커와 무관하다.",
+    "**플랜트 양자화.** 러너가 Vissim SimRes=1 로 돌려 신호 상태를 정수 초에서만 평가한다(run_real_world_stackelberg_controller.vbs:394). offset 후보 격자는 주기/8 = 18.75s 라 정수가 아니고, 실효 offset 은 1초로 양자화된다(오차 <1s, 주기의 0.67%). CDbl 로 읽으므로 거부되지는 않는다. 예측 모델 이득이 0.036% 수준이라 이 양자화가 신호를 삼킬 수 있다는 점을 결과 해석에 반영해라. 반올림은 일부러 안 넣었다 — 플랜트가 어차피 양자화하므로 변환을 하나 더 끼우면 버그 여지만 는다.",
+    "**리플레이 검증(t=3600)**: 스위치 없음 = 레버 91개 비트 동일 PASS. 켜짐 = 탐색 3 · **유지 3** · CSV signal 행 17개 중 offset 0 아닌 행 **3개**(SC107 +131.25 · SC108 +18.75 · SC1005 +18.75). offset_writer=test_only 로 바뀌고 offset_production_writes 는 0 그대로다 — production 은 닫혀 있다.",
+    "기준선: 무제어 4808.1 (시드 13, sigma 50.7) · default_20260825 4723.9 (-84.2, 현 최선) · mainline 4723.9 · allfix 4783.9"
+  ],
+  "urban": {
+    "offset": {
+      "keep_margin": 0.0,
+      "commit_optimized": true
+    }
+  },
+  "actuation": {
+    "real_world_signal_control": {
+      "offset_writer": "test_only"
+    }
+  }
+}

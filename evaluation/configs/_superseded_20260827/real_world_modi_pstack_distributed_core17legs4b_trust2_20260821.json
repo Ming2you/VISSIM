@@ -1,0 +1,11 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_phaseprice_20260820.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_trust2_20260821",
+ "description": "녹색 신뢰영역 6.0 -> 2.0 초. 목적함수·가격 채널은 그대로",
+ "notes": [
+  "2026-08-21 야간. 컨트롤러가 무제어 대비 TTT +12.36%. SG 단위 녹색이 고정신호 대비 중앙 65%(최대 129%) 어긋나는데 총 녹색합 비는 1.000 이라 용량 손실이 아니라 재분배 크기 문제다.",
+  "결정당 ±6초 x 33결정의 누적 드리프트를 줄여 손해가 편차 크기에 비례하는지 본다. 비례하면 방향이 잡히고, 아니면 원인은 다른 데(앵커가 균등분할이라는 것)다.",
+  "가격 채널과 TTT 는 건드리지 않는다(사용자 제약)."
+ ],
+ "signal_price_trust_sec": 2.0
+}

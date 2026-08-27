@@ -1,0 +1,24 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_merge_20260824.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_mgoffset_20260824",
+ "description": "제어 + native offset — 연동을 되찾으면 제어가 이기는가.",
+ "notes": [
+  "**test_only 강제 arm 이다. production 은 안 열었다.** offset_promotion 모듈이 test_only 를 둔 목적이 '강제 offset arm 만 낸다'이고, .sig 의 native offset 을 그대로 재생하는 것이 정확히 그 경우다. 최적화기가 고른 offset 은 여전히 안 나간다.",
+  "기존 강제 키 둘(diagnostic_forced_signal_offset_sec · signal_green_freeze_offset_sec)은 전 신호에 **같은 스칼라** 하나를 쓴다 — 공통 주기 망에서 균일 이동은 상대 위상을 안 바꾸므로 연동 시험이 불가능하고, 게다가 녹색까지 2현시로 얼려 분할을 잃는다. 그래서 신호별 표(FORCED_ARM_TABLE_KEY)를 신설했다.",
+  "격자 정합: native offset 17개가 전부 정수다(SC1 131 · SC5 36 · SC7 1 · SC12 5 · SC16 149 · SC101 125 · SC105 35 · SC107 138 · SC108 112 · SC109 111 · SC11 95 · SC6 137 · SC1001~1005 75). 러너는 정수 초에서만 쓰므로 **오차 0** 으로 들어간다. D-core 의 전이시각 오차는 전적으로 녹색창 경계(실수)에서 오는 것이지 offset 이 아니다.",
+  "발사에 RW_OFFSET_WRITER=test_only 가 필요하다. 러너는 환경변수로 test_only 까지만 올라가고 production 은 절대 안 열린다.",
+  "merge(4838.7)는 offset 0 에서 native 분할(5009.1)보다 170.4 좋다. 즉 최적화 자체는 작동한다. 여기에 연동만 되돌리면 무제어를 넘는지 본다.",
+  "이 팔이 4808 아래로 가면 **제어가 처음으로 무제어를 이긴다**. 그러면 남은 일은 offset 을 최적화 대상에 넣는 것이다(모델의 offset 오라클이 지금 0.001% 로 채점하는 문제를 먼저 고쳐야 한다).",
+  "대조: 무제어 4808.1 · merge 4838.7 · 시드 σ 50.7"
+ ],
+ "urban": {
+  "offset": {
+   "force_native": true
+  }
+ },
+ "actuation": {
+  "real_world_signal_control": {
+   "offset_writer": "test_only"
+  }
+ }
+}

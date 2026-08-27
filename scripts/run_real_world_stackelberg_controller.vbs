@@ -75,7 +75,14 @@ controlInterval = CLng(ArgOrDefault(5, 60))
 randSeed = CLng(ArgOrDefault(6, 13))
 adapterPath = ArgOrDefaultText(7, DefaultAdapterPath())
 calibrationPath = ArgOrDefaultText(8, "evaluation/calibration/real_world_modi_control_v0_20260719.json")
-tuningPath = ArgOrDefaultText(9, "evaluation/configs/real_world_modi_pstack_adapter_v0_20260719.json")
+' 2026-08-27. tuning 기본값을 없앤다. 종전 기본값(2026-07-19 세대)은 정본 통합 때
+' 격리돼 더는 없고, 어댑터는 없는 경로에서 조용히 {} 를 받아 무설정으로 정상 종료한다.
+' 위치인자 9 를 비우면 여기서 멈춘다.
+tuningPath = ArgOrDefaultText(9, "")
+If Trim(tuningPath) = "" Then
+    WScript.Echo "!! tuning(위치인자 9)이 필요하다. 정본: evaluation/configs/canon_*_20260827.json"
+    WScript.Quit 2
+End If
 mappingPath = ArgOrDefaultText(10, "evaluation/real_world_modi_control/control_mapping.json")
 controllerName = LCase(Replace(ArgOrDefaultText(11, "stackelberg"), "_", "-"))
 controlStartSec = CLng(ArgOrDefault(12, -1))

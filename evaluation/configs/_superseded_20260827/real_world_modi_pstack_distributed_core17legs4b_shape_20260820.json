@@ -1,0 +1,17 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_shape_20260820",
+  "description": "현시별 녹색 쌍교환 탐색 A/B arm. 정본을 extends 로 얇게 덮는다.",
+  "notes": [
+    "2026-08-20: 지금 신호당 자유도는 1이다. 커밋되는 control 은 leaderless structured grid 가 만들고 green:{signal} 축이 주 현시만 ±6s 움직이므로 나머지는 distribute_phase_green 이 균등으로 편다. 실측 17 SC 중 12개가 34.5x4.",
+    "쌍교환 이웃('현시 i 에서 d 초 빼서 j 에 준다')은 합이 구조적으로 불변이라 사영이 필요 없다. 시드가 기존 4-stage 최적점이고 개선될 때만 교체하므로 같은 목적함수 아래에서 기존 답보다 나빠지지 않는다.",
+    "steps_sec 는 (6, 2). 2초가 최소 단위이고 6초는 큰 이동을 한 번에 시도해 후보 수를 아낀다. 1초 격자 전수는 35,990점이라 성립하지 않는다.",
+    "signal_top_k 6 · candidate_limit 24 는 하드캡이다. 무제약 쌍교환은 17신호 x 12쌍 x 2 = 408 후보로 결정당 +130% 다."
+  ],
+  "phase_shape": {
+    "search": true,
+    "steps_sec": [6.0, 2.0],
+    "signal_top_k": 6,
+    "candidate_limit": 24
+  }
+}

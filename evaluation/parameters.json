@@ -1,0 +1,101 @@
+{
+  "_schema": "vissim-canonical-parameters/1",
+  "_why": [
+    "2026-08-27. 값을 여러 곳에서 따로 정하다가 실효값이 의도와 달라지는 사고가 반복됐다.",
+    "leader_value_depth 를 3 으로 두면 리더 롤아웃 깊이가 3 이 아니라 3+3=6 이 됐고,",
+    "FD 는 build_config 가 123.825/20.401/4574.818 을 넣은 뒤 calibration 층이",
+    "'키 없으면 상수' 폴백으로 100/33.5/4000 을 덮어써서 재적합값 119.505/16.354/4914 가",
+    "컨트롤러에 도달한 적이 없었다. 실측 밀도 최대가 32.7 이라 rho_crit 33.5 를 한 번도",
+    "못 넘었고, 그래서 VSL 이 켜질 수 없었다.",
+    "여기가 값의 유일한 출처다. 코드는 evaluation/parameters.py 를 통해서만 읽고,",
+    "키가 없으면 조용한 폴백 대신 예외를 낸다."
+  ],
+  "_invariant": "여기 적힌 값은 2026-08-27 정본(canon_plantfix)의 실효값과 동일하다. scripts/verify_parameters.py 가 그것을 검사한다.",
+
+  "network": {
+    "_note": "freeway FD. 아래 fd_candidates 에 재적합값이 있다. 바꾸려면 이 블록만 고친다.",
+    "v_free": 100.0,
+    "rho_crit": 33.5,
+    "freeway_capacity_veh_h": 4000.0,
+    "metanet_a_m": 1.867,
+
+    "_note_urban": "urban 물리. urban_avg_speed_km_h 는 전역 스칼라 하나다 — 속도-밀도 함수가 없다.",
+    "urban_avg_speed_km_h": 50.0,
+    "urban_avg_vehicle_length_m": 6.0,
+    "movement_capacity_veh_h": 1400.0,
+    "boundary_queue_max_veh": 240.0,
+
+    "_note_signal": "신호 박스. num_phases·effective_green_total·default_phase_green 은 여기 없다 — 파생값이라 중복하면 갈린다. effective_green_total = cycle_length - lost_time, default_phase_green = 그것 / num_phases 이고, 실제 현시 수는 신호 계획에서 유도한다(_plant_phase_counts_into). 읽을 때는 parameters.effective_green_total(cfg) 를 써라.",
+    "cycle_length": 150.0,
+    "lost_time": 12.0,
+    "green_min": 20.0,
+    "green_max": 78.0,
+    "green_min_fraction": 0.2,
+    "green_max_fraction": 0.8,
+
+    "_note_capdrop": "용량 강하 3종. 전부 중립값이라 지금은 아무 효과가 없다.",
+    "capacity_drop_discharge_phi": 1.0,
+    "metanet_delta_merge": 0.0,
+
+    "_note_ramp": "램프 물리 용량. 종전 calibration 경로의 폴백은 1500 이었으나 실효는 1800 이었다(뒤에 다른 writer 가 있었다).",
+    "ramp_capacity_veh_h": {
+      "R_D_W": 1800.0,
+      "R_D_E": 1800.0,
+      "R_F_W": 1800.0,
+      "R_F_E": 1800.0
+    }
+  },
+
+  "leader": {
+    "_note": "종전에는 calibration 의 'N_P_crit_veh_initial' 폴백 상수였다. 그 파일에 키가 없어 항상 폴백이 발동했다.",
+    "N_P_crit_veh": 509.448830418254
+  },
+
+  "runtime": {
+    "_note": "dataclass 생성자 필드가 아니라 cfg 구성 뒤 setattr 로 붙는 것들. ExperimentConfig.from_dict 가 strict 라 생성자에 넣으면 TypeError 로 죽는다.",
+    "mpc": {
+      "_note_far": "분산 채점기(distributed_coordinator._evaluate_grid_candidate)가 이걸 봐야 far 를 계산한다. 2026-08-27 이전에는 24단 config 체인 어디에도 없어 far 가 실런에서 한 번도 안 돌았다.",
+      "distributed_rollout_far_enabled": true
+    }
+  },
+
+  "mpc": {
+    "_note_horizon": "리더 실효 롤아웃 깊이 = horizon_steps + max(0, leader_value_depth). 둘 다 여기서만 정한다.",
+    "horizon_steps": 3,
+    "control_horizon_steps": 3,
+    "leader_value_depth": 0,
+
+    "_note_far": "far(MFD tail) terminal cost. urban(N^2/2G, boundary 큐 포함) + freeway(본선 N^2/2G_fw + ramp 큐 bilinear) 를 함께 담는다. leader_mfd_far_at_d0 가 있어야 depth 0 에서도 채점 게이트가 열린다.",
+    "leader_mfd_far_enabled": true,
+    "leader_mfd_far_at_d0": true,
+    "leader_mfd_far_state_aware": true,
+    "leader_mfd_far_real_speed": true,
+    "leader_mfd_far_weight": 1.0,
+
+    "leader_candidate_count": 9,
+    "max_nash_iter": 4,
+    "regret_guard_steps": 3
+  },
+
+  "fd_candidates": {
+    "_note": "고르는 자리가 아니라 기록이다. 쓰려면 network 블록에 옮겨 적고 A/B 를 돌린다.",
+    "current_2026_08_27": {
+      "v_free": 100.0, "rho_crit": 33.5, "freeway_capacity_veh_h": 4000.0, "metanet_a_m": 1.867,
+      "source": "calibration 폴백 상수. 실측 근거 없음.",
+      "evidence": "무제어~수요1.4배 전 구간에서 세그먼트 밀도 최대 32.7 — rho_crit 33.5 초과 0.0%."
+    },
+    "refit_2026_08_02": {
+      "v_free": 119.505, "rho_crit": 16.354, "freeway_capacity_veh_h": 4914.0, "metanet_a_m": 2.154,
+      "source": "evaluation/calibration/real_world_modi_control_v2_fdrefit_20260802.json",
+      "evidence": "같은 실측에서 임계 초과 16.5~18.5%. 오프라인 검사에서 미터링이 반응(R_F_W 중앙 1721->1529, 최소 1062), VSL 은 72/72 전부 120 유지."
+    },
+    "build_config_hardcode_legacy": {
+      "v_free": 123.825, "rho_crit": 20.401, "freeway_capacity_veh_h": 4574.818,
+      "source": "어댑터 build_config 에 박혀 있던 값. calibration 폴백에 덮여 실효된 적이 없다."
+    },
+    "v4_newdemand_2026_08_04": {
+      "v_free": 133.806, "rho_crit": 28.925, "freeway_capacity_veh_h": 6930.9, "metanet_a_m": 1.2443,
+      "source": "evaluation/calibration/real_world_modi_control_v4_newdemand_20260804.json"
+    }
+  }
+}

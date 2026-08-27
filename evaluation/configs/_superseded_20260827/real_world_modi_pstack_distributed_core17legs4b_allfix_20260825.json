@@ -1,0 +1,25 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_sc7native_20260824.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_allfix_20260825",
+  "description": "배선 버그 셋을 한꺼번에 — 가격 국소항(A) + 신호별 녹색상자(B) + 정지대수 큐분할(C1). sc7native 위.",
+  "notes": [
+    "2026-08-25. 큐 관측/투영을 파다가 시작해 30-에이전트 감사로 이어진 결과다. 발견 24건 중 적대적 반증 생존 19건이고, 그 대부분이 **같은 실패 양식** 하나다: 설치자가 신호별/movement별 값을 심는데 소비처 일부만 읽고 나머지는 옛 전역 스칼라에 남아 있다. 예외가 아니라 조용히 틀린 값이라 런이 정상 종료한다.",
+    "**개별 ablation 을 안 한다.** 셋 다 설계 선택지가 아니라 배선 버그이고, 개별 결과가 어떻든 다 적용할 것이라 팔당 82분이 낭비다. 대신 순서를 뒤집는다 — 합본이 이기면 안 쪼개고, **지면 그때 분해한다**. 기대비용도 그쪽이 싸다(1런 + 0.5x3 = 2.5런 대 3런). 다만 이 저장소에 '옳게 고쳤는데 TTT 는 진' 반례가 셋 있다는 것은 기억해 둔다 — nfclean(+78), narrowaxis(+53), 차로수 차원 보정(폐루프 J 악화라 기본 꺼짐).",
+    "A. 가격의 국소항. 규약은 g_i = (전역 방향미분) - (국소 방향미분) 이고 상류 docstring 이 이유를 못박아 뒀다: '국소분을 빼서 팔로워가 이미 보는 몫을 제거한다. 빼지 않으면 팔로워가 자기 비용을 두 번 센다.' 그런데 그 국소분을 재는 phase_shape_local_cost 는 **도착이 한 줄도 없는 순수 배수 모형**이고, 포화유율을 len(선언 movement) x 전역스칼라 1400 으로 잡아 movement 별 맵(중앙 206.5)을 안 읽는다(6.78배 과대). 주기도 전역 150 으로 나눈다(SC7 은 실제 120). 리플레이 실측: 채점 현시 63개 중 **40개(63.5%)** 에서 local - base_local 이 정확히 0 → 가격이 외부효과가 아니라 전역 한계값 전체가 된다. phased 채점기로는 1개(1.6%).",
+    "A 는 **2026-08-22 수정의 나머지 절반**이다. 그때 local_cost_model: phased 로 정련 채점기는 rollout_local_tts_phased 로 갈아탔는데 가격 계산은 빠졌고 스위치가 그 자리에 안 닿는다.",
+    "B. 신호별 녹색 상자. signal_green_max 가 SC107/108/109 = 101, SC7 = 74, SC16 = 67 을 내고 그 docstring 이 '스칼라를 그대로 걸면 컨트롤러가 고정계획을 재현조차 못 한다' 고 적어 뒀다. clamp_primary_green 은 2026-08-22 에 이미 signal 인자를 받도록 고쳤는데 **호출부 둘이 아직 안 넘긴다** — wu_faithful_follower.py:744/751(GNE 후보 생성기)과 priced_wu_link_controller.py:612-614(가격 방향). 실측: SC108_p1 정련전 최대가 **정확히 78.00**(신호 상한 101)이고 정련이 98.00 까지 끌어올린다. 벽은 주현시에만 걸린다 — SC107/109 는 p1 이 죽어 안 걸린다(정련전 100.49 / 96.50).",
+    "B 의 부작용: 가격은 78 에 갇힌 방향으로 측정되는데 정련은 101 까지 움직인다. 가격과 정련이 **서로 다른 상자** 위에 있었다.",
+    "C1. 큐/저류 분할. 고정 상수(내부 0.35 / off-ramp 0.50)라 모델은 항상 관측의 65% 를 큐로 본다. 망 합계로는 맞다(실제 정지 66.0%) — 그래서 총량 점검으로는 안 잡힌다. 그런데 분포가 무너져 있다: SC7 정지 97% 인데 65%(-32pt), SC1004 는 17% 인데 65%(+48pt). 현시 배분이 실제로 뒤집힌다 — SC1005 p3 는 count 로 29.7대인데 정지차는 1.4대(-36.7pt). link_stopped_counts 는 이미 수집돼 있지만 **실런 팔에서 완전히 죽어 있다**(유일 소비처가 RW_RESTORE_RELEASE_BUFFERS 뒤인데 정본 러너가 그 변수를 안 세운다).",
+    "**일부러 안 넣은 것 셋.** (a) rollout_endpoint.py:235-236 box-walk 의 clamp_primary_green(net, ±inf) — evaluate_price_point 안이라 **가격 워커에서도 돈다**. 어댑터 몽키패치는 spawn 을 못 넘어 조용히 갈린다(phasepar 사건과 같은 모양). vendor 수정이 필요하다. (b) stackelberg_wu_metered.py:702-708 _signal_price_p1_bounds — leader offset directive 경로이고 offset 은 따로 파기로 했다. (c) link_queue_tail_pos_m 을 스필백 제약으로 쓰는 것 — 그건 배선이 아니라 **새 모델링 결정**이라 같은 부류가 아니다. 별도 평가가 필요하다.",
+    "발사 전 검증: 스위치를 다 빼면 merge 사본과 **비트 동일**이어야 한다(리플레이로 확인).",
+    "기준선: 무제어 4808.1 (시드 13, sigma 50.7) · sc7native 4829.4 (최선, +21.3) · merge 4838.7 · conv 4866.3"
+  ],
+  "phase_price": {
+    "price_local_model": "phased"
+  },
+  "urban": {
+    "green_box": {
+      "signal_aware": true
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+ "name": "real_world_modi_pstack_distributed_core17legs4b_map4f_20260826",
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_map4e_20260826.json",
+ "detector_mapping_json": "evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4f_20260826.json",
+ "notes": [
+  "2026-08-26. 매핑 4f. map4e 에서 **detector mapping 만** 바뀐다.",
+  "68 -> {R_F_W 0.5, R_F_E 0.5} · 31/78/10703 -> {R_D_W 0.667, R_D_E 0.333} · 109 -> SC2004_N_out.",
+  "핵심은 observable_links 626 -> 670. 4e 는 78/31 을 램프 표에만 넣고 스캔 목록에 안 넣어 그 배선이 죽어 있었다(33.4대 누수). 68/109 는 아티팩트 분류 오류로 사용자 판정을 못 받았다.",
+  "link 69(49.7대)는 CLAUDE.md sc1004-west-split-20260819 대로 무소유 유지.",
+  "경로는 반드시 슬래시로 쓴다 — 백슬래시는 JSON 이 이스케이프로 먹는다(map4etau 무효런)."
+ ]
+}

@@ -1,0 +1,28 @@
+{
+  "extends": "real_world_modi_pstack_flagship_segvsl_20260801.json",
+  "name": "real_world_modi_pstack_zone4_20260801",
+  "description": "flagship-segvsl(세그먼트별 VSL이 액추에이터까지 도달하는 대조군)에 IC x 방향 4-zone freeway follower를 얹은 tuning. mpc.freeway_agent_groups로 세그먼트당 1 에이전트(SEG13 full distribution)를 zone당 1 에이전트로 묶는다. 이 키를 빼면 부모(flagship-segvsl)와 비트 동일이다.",
+  "config_overrides": {
+    "mpc": {
+      "freeway_agent_groups": {
+        "FW_E": [
+          {"id": "fw_yangjae_E", "segments": [0, 1, 2, 3]},
+          {"id": "fw_seocho_E", "segments": [4, 5, 6, 7]}
+        ],
+        "FW_W": [
+          {"id": "fw_seocho_W", "segments": [0, 1, 2, 3]},
+          {"id": "fw_yangjae_W", "segments": [4, 5, 6, 7]}
+        ]
+      }
+    }
+  },
+  "notes": [
+    "4-zone 분할 근거는 outputs/freeway_zone_followers_20260801/plan.md — modi_eval_rw_control.inpx linkPolyPoint y좌표로 R_D_*=서초IC(북), R_F_*=양재IC(남) 확정, 세그먼트 중심에서 최근접 소유 램프의 IC로 배정.",
+    "zone-ramp 대응(어댑터 network cfg 실측, 2026-08-01 체인 격자 기준): FW_E는 R_F_E@seg3(fw_yangjae_E), R_D_E@seg5(fw_seocho_E). FW_W는 R_D_W@seg2(fw_seocho_W), R_F_W@seg4(fw_yangjae_W). zone당 램프가 정확히 1개라 metering 후보 곱집합이 발생하지 않고, 예산 simplex 사영 참가자 집합도 링크 소유 ramp 전체와 일치한다.",
+    "본선 정본이 체인(FW_E link 74+10699+2+10702+24 = 10773.1 m, FW_W link 26 = 10777.7 m)으로 바뀌면서 분할이 4:4로 균형을 되찾았다. 이전 6:2 / 5:3 은 FW_E를 link 2 만으로 8등분하던 구 격자의 산물이다. 경계 재지정 A/B는 이 파일의 segments만 바꾸면 된다.",
+    "zone 내부 VSL은 균일이 아니라 **세그먼트별**이다(2026-08-01 사용자 결정). zone은 에이전트 단위(own-TTS·예산·가격 집계)로만 유지하고, VSL은 소유 세그먼트마다 따로 정한다. 후보 폭발은 좌표하강(mpc.freeway_zone_vsl_max_sweeps, 기본 3 sweep)으로 회피한다. 초기 균일 VSL안은 16개 중 9개 세그먼트를 개별 최적과 반대로 뒤집고 merge 병목 2개를 모두 포함해 기각했다.",
+    "action csv/json 스키마는 불변 — kind=vsl 행 16개, kind=ramp_meter 8행이 그대로 나온다. 다만 부모가 actuation.vsl_segment_override_policy를 keep으로 되돌렸으므로 세그먼트 VSL이 실제로 다른 값을 가질 수 있다(정책 변화와 zone 효과를 분리하려면 부모 tuning을 대조군으로 쓴다).",
+    "SUP_PFO 감독자는 링크 모드 follower(segment_agents=False)라 zone 구조를 쓰지 않는다 — 어댑터가 sup_cfg에서 freeway_agent_groups를 None으로 되돌린다(seg13 박스 키와 동일 규약).",
+    "진단: control_timeseries에 wu_zone_count_{link} / wu_zone_vsl_{link}_{zone_id} / wu_zone_vsl_max_{link}_{zone_id} / wu_zone_cong_{link}_{zone_id} / wu_zone_cd_sweeps_{link}_{zone_id} / wu_zone_cd_converged_{link}_{zone_id}가 zone 모드에서만 추가된다(미설정 런의 헤더 불변)."
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_spec_20260820",
+  "description": "명세 정합 arm — 리더가 GNE 제어를 full rollout 해 TTT+far 로 채점 · 나머지 벌점 0(진단만) · 프리필터 해제 · 폴백 없음",
+  "notes": [
+    "2026-08-20. 세 가지를 명세에 맞춘다. 전부 config 만이고 vendor 를 안 건드린다.",
+    "(1) 리더 full rollout. `_leader_evaluation_base` 는 이미 evaluate_price_point 로 GNE 제어를 450초 coupled 롤아웃 하고 있었는데, 기본 경로가 그 결과를 버리고 follower 응답값(nash.objective_value)을 base 로 썼다(진단 leader_rollout_objective_base_used=0). leader_mfd_far_at_d0=true 면 `return states, point.objective` 경로를 타 base 가 롤아웃 TTT + far 가 된다. 롤아웃은 이미 돌고 있었으므로 추가 계산 비용이 0이다.",
+    "(2) 목적함수를 TTT+far 만으로. 여섯 항 중 넷이 이미 실측 0이었고(target·mfd_storage·boundary_in·density) 램프큐만 18.75 로 살아 있었다. 가중치를 0 으로 내려 전부 끈다. mfd_penalty_mode 를 disabled 가 아니라 combined 로 두는 이유는 disabled 면 벌점만이 아니라 **진단값 계산 자체가 사라지기** 때문이다 — 참고용으로 남기려면 계산은 하고 가중치만 0 이어야 한다.",
+    "그래서 남는 진단: leader_density_excess · leader_ramp_queue_veh · leader_boundary_in_queue_veh · leader_mfd_storage_excess_veh · _movement_excess_veh · _link_excess_veh. target 초과분만 별도 진단이 없어 leader_base_accumulation 과 N_P_crit 으로 복원해야 한다.",
+    "대가: combined 는 매 평가마다 _urban_halfcap_excess 가 movement 474개 x horizon 상태를 훑는다. 진단만을 위해 무는 계산이다.",
+    "(3) 프리필터 해제. _prefilter_leader_candidates 의 프록시가 후보를 전혀 구별하지 못했다 — 실측 proxy_objective_spread 가 정확히 0.0 이고 9개 후보가 소수점 15자리까지 같은 5999.940385192637 을 받았다. 원인은 _proxy_score_candidate 가 (a) 후보마다 previous.copy() 의 녹색을 그대로 쓰고 (b) 예측 상태를 현재 상태 복사로 대신하며 (c) 남은 유일한 변수 ramp_metering 에 TTS 프록시가 반응하지 않기 때문이다. 정렬이 안정 정렬이라 top-3 가 사실상 인덱스 0·1·2 였다.",
+    "top_k<=0 이면 `selected = list(range(len(candidates)))` 로 전수 평가한다. 후보 14개(coarse 9 + refined 5)가 전부 Nash solve + 450초 롤아웃을 받는다. 전수 평가 6 -> 14 이라 결정 시간이 약 2.3배가 된다.",
+    "상류에 action-aware 프록시가 이미 있다(stackelberg_wu_metered.py 가 _proxy_score_candidate 를 오버라이드한다). 분산 팔은 깨진 베이스 판을 물려받고 있었다. 지금은 절단을 없애는 쪽을 택했고, 계산이 문제가 되면 그 오버라이드를 베이스로 이식하는 게 다음 수순이다.",
+    "폴백은 lead_20260820 과 같게 끈 채로 둔다 — 리더가 커밋되지 않으면 plant 가 안 움직여 아무것도 측정되지 않는다(shape_off·boxfix·npbox 세 런의 VISSIM 궤적이 전부 비트 동일했다).",
+    "(4) freeway agent 를 세그먼트 16개에서 링크 2개로 줄인다. plant 모델은 그대로다 — freeway_segments_per_link=8, ramps=4 이 안 바뀌므로 METANET 롤아웃은 여전히 2링크 x 8세그먼트 = 16셀 + 램프 4개를 굴린다. 바뀌는 건 agent 분할뿐이다: agent 가 VSL 1 + 램프 2 = 액션 3개를 정확히 소유하고(이전엔 8 agent 가 VSL 1개를 두고 경합해 vsl_selected 가 100.0/120.0 로 갈렸다), segment_index<0 이라 자기 링크 8셀을 전부 본다(이전엔 자기 1셀만 봐서 agent 별 projected_freeway_tts 합 67.77 대 결합 롤아웃 87.40 으로 22% 적게 봤다).",
+    "링크 단위 agent 는 램프를 둘 소유하므로 merge 세그먼트를 중앙(len//2)으로 떨어뜨리면 ramp_merge_segment_index({R_D_W:2, R_F_W:4, R_F_E:3, R_D_E:5})를 잃는다. _agent_merge_index 헬퍼가 램프별 설정값을 쓰고, 램프 미지정 호출에서는 자기 램프들의 merge 중 가장 혼잡한 쪽을 쓴다."
+  ],
+  "config_overrides": {
+    "mpc": {
+      "stackelberg_enable_fallback": false,
+      "leader_mfd_far_at_d0": true,
+      "stackelberg_prefilter_top_k": 0,
+      "stackelberg_prefilter_local_top_k": 0
+    },
+    "leader": {
+      "mfd_penalty_mode": "combined",
+      "w_P": 0.0,
+      "mfd_storage_weight": 0.0,
+      "w_F": 0.0,
+      "w_ramp_queue": 0.0,
+      "w_boundary_in": 0.0
+    }
+  },
+  "agent_topology": {
+    "freeway_granularity": "link"
+  }
+}

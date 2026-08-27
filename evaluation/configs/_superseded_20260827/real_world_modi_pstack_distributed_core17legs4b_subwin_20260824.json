@@ -1,0 +1,16 @@
+{
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_merge_20260824.json",
+ "name": "real_world_modi_pstack_distributed_core17legs4b_subwin_20260824",
+ "description": "1위 재수정 — 부분창 배달을 모델 서비스에 반영. merge 위에서 그것만.",
+ "notes": [
+  "컨트롤러는 **현시** 녹색을 주문하는데 러너는 그 현시 안에서 SG 의 **부분 창**만 켠다. 모델은 현시 전체가 서비스한다고 채점하므로 과대평가다.",
+  "실측(conv, 1초 되읽기, 12주기) — 산술이 소수점까지 닫힌다: SC5 p1 주문 54.5s x 0.4433 = 24.2s = 실측 24.2 · SC5 p3 주문 22.7s x 0.4653 = 10.6s = 실측 11.0. SC5 동서직진은 native 47 s/cycle 인데 제어 하에서 11.",
+  "**1차 시도(narrowaxis, 4891.7 = +53 회귀)가 왜 틀렸나.** `native_phase_green.share` 로 잡으려 했는데 그건 다른 양이다 — share 는 '축 녹색 중 이 movement 의 몫'이라 SG 를 공유하면 1.0 이 맞다. 실제로 263개 중 **4개만** 깎였고 170개가 1.0 이었다. 그 4개가 +53 을 만들었다.",
+  "share 를 본선 SG(1-8)로 제한해도 안 된다 — 분자·분모가 같은 집합이 되어 scaled 가 4에서 **0으로** 떨어진다(리플레이 확인). 부분창은 share 로 표현할 수 없는 양이다.",
+  "그래서 별개 인자로 만든다: `signal_group_actuation_plan_v3.json` 의 `phase_segments` 에서 **본선 SG 창의 합집합 폭**을 (신호, 현시)별로 내고 녹색 분율에 곱한다. share 와는 곱해지는 독립 인자다.",
+  "미드블록(SG 9+)은 뺀다 — 현시 전체를 덮어(SC5 p3 의 SG10·14 가 1.0) 분율을 뭉개고, 러너가 COM 으로 안 건드리므로 본선 서비스와 무관하다. `RW_MAINLINE_SG_ONLY` 가 러너에만 있고 어댑터엔 없었다.",
+  "표 검증: 현시 63개 중 1.0 미만이 **3개** — SC5_p1 0.4433 · SC5_p3 0.4653 · SC7_p1 0.7363. 손실 집중 지점(SC5 +260.1 · SC7 +35.2)과 정확히 일치한다.",
+  "`RW_SUBWINDOW_SERVICE=1` 로 켠다. 없으면 no-op(비트 동일). 어댑터 사본 `..._subwin_20260824.py`.",
+  "대조: 무제어(시드13) 4808.1 · merge 4838.7 · sc7native 4829.4(현재 최선) · narrowaxis 4891.7(1차 실패) · 시드 σ 50.7"
+ ]
+}

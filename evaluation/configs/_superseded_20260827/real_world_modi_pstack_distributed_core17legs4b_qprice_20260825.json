@@ -1,0 +1,20 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core17legs4b_sc7native_20260824.json",
+  "name": "real_world_modi_pstack_distributed_core17legs4b_qprice_20260825",
+  "description": "현시 가격의 국소항을 정련과 같은 phased 물리(도착 포함)로 채점한다. sc7native 위에서 그것만.",
+  "notes": [
+    "2026-08-25. 큐 관측/투영을 파다가 나온 것이다. 투영 자체는 질량이 맞다 — 이중계상 없고 망 합계 1212 대 진단 1291.7.",
+    "가격 규약은 g_i = (전역 방향미분) - (국소 방향미분) 이고 상류 docstring 이 이유를 못박아 뒀다: '국소분을 빼서 팔로워가 이미 보는 몫을 제거한다. 빼지 않으면 팔로워가 자기 비용을 두 번 센다.'",
+    "그 국소분을 재는 phase_shape_local_cost 가 **도착이 한 줄도 없는 순수 배수 모형**이다(q[pid] -= service 뿐). 게다가 현시 포화유율을 len(movements) x movement_capacity_veh_h 로 잡는데, len 은 선언된 leg 교차곱이고(CLAUDE.md: SC1 선언 56 / 실제 17) 용량은 전역 스칼라 **1400** 이라(1800 은 구세대 캘리브레이션 값이고, 실제 쓰는 core17legs4b_20260820 에는 그 키가 없어 어댑터 기본값 1400 으로 떨어진다) urban.capacity.per_lane 로 심은 movement 별 맵(중앙 206.5, 등가균일 330)을 아예 안 읽는다 — 6.78배 과대. 같은 함수가 주기도 전역 150 으로 나눈다(SC7 은 실제 120).",
+    "실측 두 가지를 구분해라. (a) **리플레이 실측이 정본이다**(sc7native seed13 t=3600, 같은 상태에서 옛/새 채점기를 나란히): 채점된 현시 63개 중 **40개(63.5%)** 에서 local - base_local 이 정확히 0 이었고 phased 로는 1개(1.6%)다. (b) 오프라인 재구성(커밋 녹색과 투영 큐로 현시별 1스텝 소진을 셈)은 94% 를 냈는데 이는 **다른 통계**다 — phase_shape_local_cost 의 비용은 그 신호 전 현시의 큐 합이라 한 현시가 비어도 다른 현시가 남으면 미분이 0 이 아니다. 94% 를 인용하지 마라.",
+    "그래서 63.5% 의 현시에서 local - base_local == 0 이 되고 가격이 g_i = (전역 dTTT)/delta, 즉 **외부효과가 아니라 전역 한계값 전체**가 된다. 규약이 막으려던 이중계상 그 자체다. 부풀려진 선형항이 정련 목적함수 local + w x sum p_i (g_i - ref_i) 를 지배해 해를 상자 꼭짓점으로 민다(메모 vissim-flat-local-cost-vertex 의 증상과 일치).",
+    "**이 수정은 2026-08-22 에 한 번 했던 것의 나머지 절반이다.** 그때 local_cost_model: phased 로 정련의 채점기는 rollout_local_tts_phased 로 갈아탔는데(플래툰 도착, 하류 S_eff, offset, movement 별 용량), 가격 계산은 그 갈아타기에서 빠져 720/737 행이 여전히 배수 모형을 부른다. 스위치가 그 자리에 닿지 않는다.",
+    "구현은 어댑터 사본의 _refresh_phase_prices 재정의다. vendor 는 안 건드린다. 국소항 계산은 전부 부모 프로세스에서 끝나므로 몽키패치가 프로세스 경계를 못 넘는 함정(CLAUDE.md)에 닿지 않는다 — 워커는 전역 롤아웃만 돈다. ctx 는 상류가 _phase_ctx_cache 에 담고 __getstate__ 가 빼고 피클하므로 initargs=(self,...) 도 안전하다.",
+    "절이 없으면 no-op = 비트 동일. 진단 price_local_drain_flat_frac 가 실런에서 옛 모형의 뭉갬 비율을 직접 찍는다.",
+    "발사 전 검증(리플레이 3팔): 스위치 꺼짐 = 녹색 68개 **비트 동일 PASS**. 켜짐 = **34개 변화**(SC1002_p3 +42.0s, SC11_p3 -36.0s). controller_status=ok, wu_price_parallel_serial_rerun_count=0(워커 피클 안전 확인), 비용 +3초/결정. 방향 검증: 녹색을 받은 현시의 신호내 큐 점유가 초가중 평균 37.8% 대 뺏긴 현시 27.7% — 막힌 쪽으로 간다. SC1002_p3 는 그 신호 큐의 66.6%(193.9대)를 담고도 22.67초에 묶여 있던 자리이고, 관측 큐꼬리로도 그 접근로(E_SC101)가 37결정 중 29~31회 상류까지 스필백해 있다.",
+    "기준선: 무제어 4808.1 (시드 13, sigma 50.7) · sc7native 4829.4 (최선, +21.3) · merge 4838.7 · conv 4866.3"
+  ],
+  "phase_price": {
+    "price_local_model": "phased"
+  }
+}

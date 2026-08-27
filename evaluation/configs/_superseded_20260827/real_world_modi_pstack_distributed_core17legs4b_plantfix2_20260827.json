@@ -1,0 +1,15 @@
+{
+ "name": "real_world_modi_pstack_distributed_core17legs4b_plantfix2_20260827",
+ "extends": "real_world_modi_pstack_distributed_core17legs4b_plantfix_20260826.json",
+ "urban": {
+  "boundary": {
+   "inflow_seed": true
+  }
+ },
+ "notes": [
+  "2026-08-27. plantfix + 경계 유입 시딩. in_* 저류는 모델이 읽지도 쓰지도 않는 죽은 통이라",
+  "(urban_queue_model 은 urban_inflow_transit_buffer 와 urban_movement_queue 로만 경계를 돈다)",
+  "6스텝 내내 556 고정이었다. 관측 재고를 실측 정지수로 갈라 정지분은 movement 큐(beta 배분),",
+  "주행분은 전이버퍼(step+1..step+7 균등)로 심고 죽은 저류는 비운다. 질량 보존 확인(1449.3 동일)."
+ ]
+}
