@@ -169,9 +169,30 @@ def mpc_overrides() -> dict[str, Any]:
 
 
 def audit_against(cfg) -> list[str]:
-    """실효 cfg 가 parameters.json 과 어긋나면 목록으로 돌려준다. 빈 목록이면 일치."""
+    """실효 cfg 가 parameters.json 과 어긋나면 목록으로 돌려준다. 빈 목록이면 일치.
+
+    2026-08-27 감사. 종전에는 network·mpc 두 절만 봐서 `leader` 와 `runtime` 이
+    사각지대였다. 그 자리에 실제 이탈이 앉아 있었다 —
+    canon config 의 `calibration_override` 가 `leader.N_P_crit_veh` 를 600.0 으로 만든 뒤
+    parameters.json 의 509.4488 에 덮이는데(−15%), 어떤 진단에도 안 남았다.
+    리더 MFD 페널티의 임계라 값이 바뀌면 후보 랭킹이 바뀐다.
+    """
     bad = []
-    for sec_name, obj in (("network", cfg.network), ("mpc", cfg.mpc)):
+    targets = [("network", cfg.network), ("mpc", cfg.mpc)]
+    if hasattr(cfg, "leader"):
+        targets.append(("leader", cfg.leader))
+    for sec_name, block in runtime_overrides().items():
+        obj = getattr(cfg, sec_name, None)
+        if obj is None:
+            continue
+        for k, want in block.items():
+            got = getattr(obj, k, None)
+            if got is None:
+                bad.append("runtime.%s.%s: parameters=%r 실효=속성없음 "
+                           "(apply_runtime 이 조용히 건너뛰었거나 뒤에서 지워졌다)" % (sec_name, k, want))
+            elif bool(want) != bool(got) if isinstance(want, bool) else want != got:
+                bad.append("runtime.%s.%s: parameters=%r 실효=%r" % (sec_name, k, want, got))
+    for sec_name, obj in targets:
         for k, want in section(sec_name).items():
             if not hasattr(obj, k):
                 continue

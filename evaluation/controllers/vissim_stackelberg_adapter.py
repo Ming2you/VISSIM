@@ -4468,6 +4468,40 @@ def repo_imports(repo_root: Path):
     return StackelbergMPCController, DemandStep, ControlAction, ExperimentConfig, TrafficState, segment_vsl
 
 
+def _fd_conflicts(calibration: Mapping[str, Any]) -> list[str]:
+    """캘리브레이션이 정본 파라미터와 다른 값을 들고 있으면 목록으로 돌려준다.
+
+    2026-08-27. 주석만 있고 함수가 없던 자리다(감사 지적). `calibration_to_config_overrides`
+    가 FD 3종과 N_P_crit 을 더는 읽지 않으므로 그 값들은 **흔적 없이 소멸**한다.
+    실제로 canon 4벌이 `calibration_override.operational.network` 에
+    120.0 / 30.0 / 6900.0 을, `urban_mfd.N_P_crit_veh_initial` 에 600.0 을 들고 있는데
+    전자는 읽히지 않고 후자는 parameters.json 의 509.4488 에 덮인다(-15%).
+    값을 바꾸려고 그 자리를 고친 사람은 아무 일도 안 일어나는 이유를 알 길이 없다.
+    """
+    mod = _canonical_parameters_module()
+    net = _calibration_child(calibration, "operational", "network")
+    mfd = _calibration_child(calibration, "operational", "urban_mfd")
+    pairs = (
+        ("network", "v_free", net.get("v_free_kph")),
+        ("network", "rho_crit", net.get("rho_crit_veh_km_lane")),
+        ("network", "freeway_capacity_veh_h", net.get("freeway_capacity_veh_h")),
+        ("network", "metanet_a_m", net.get("desired_speed_shape_a")),
+        ("leader", "N_P_crit_veh", mfd.get("N_P_crit_veh_initial")),
+    )
+    out: list[str] = []
+    for sec, key, raw in pairs:
+        if raw is None:
+            continue
+        try:
+            want = mod.require(sec, key)
+        except Exception:
+            continue
+        if abs(_as_float(raw) - _as_float(want)) > 1.0e-9:
+            out.append("%s.%s: calibration=%s parameters=%s (calibration 값은 버려진다)"
+                       % (sec, key, raw, want))
+    return out
+
+
 def _relabel(meta: Mapping[str, Any], suffix: str) -> dict[str, Any]:
     """진단 키에 꼬리표를 붙인다. 같은 설치를 두 번 부를 때 앞 결과를 덮지 않게."""
     return {"%s_%s" % (k, suffix): v for k, v in (meta or {}).items()}
@@ -5358,6 +5392,8 @@ def build_config(
     cfg.__dict__["_canonical_parameters"] = {
         "runtime_applied": _params_runtime,
         "overridden_by_tuning": _params_diff,
+        # 캘리브레이션이 정본과 다른 값을 들고 있으면 여기 남는다. 조용히 버려지지 않게.
+        "calibration_conflicts": _fd_conflicts(calibration),
     }
     _plant_phase_counts_into(cfg)
     _plant_phase_shape_into(cfg, tuning)

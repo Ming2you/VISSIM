@@ -41,7 +41,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 NUMSIM = ROOT / "vendor" / "NumSim-mine"
 
-DEFAULT_TUNING = ROOT / "evaluation/configs/real_world_modi_pstack_distributed_core17legs4b_20260819.json"
+# 2026-08-27. 종전 기본값(core17legs4b_20260819)은 정본 통합 때 격리됐다. 없는 경로를
+# 넘기면 load_optional_json 이 조용히 {} 를 돌려주므로, 이 해석기가 config 를 읽은 것처럼
+# 헤더에 파일명을 찍으면서 실제로는 base+flagship 합성망(신호 5개)을 "살아 있는 구성"으로
+# 인쇄했다. 이 도구의 존재 이유가 바로 그런 오독을 막는 것이라 특히 나쁘다.
+DEFAULT_TUNING = ROOT / "evaluation/configs/canon_plantfix_20260827.json"
 DEFAULT_CALIBRATION = ROOT / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json"
 
 # `build_pstack_flagship_controller` 가 코드로 켜는 값(adapter:2601~). config 가 아니라
@@ -132,6 +136,12 @@ def main(argv=None) -> int:
 
     vsa = _load_adapter()
     flagship = args.controller in ("pstack-flagship", "wu-link")
+    if not Path(args.tuning).exists():
+        raise SystemExit(
+            "!! tuning 을 못 읽었다: %s"
+            "  —  빈 dict 로 진행하면 base+flagship 합성망(신호 5개)을 '살아 있는 구성'으로"
+            " 인쇄한다. 정본: evaluation/configs/canon_{tau,bstoA,plantfix,fdfit}_20260827.json"
+            % args.tuning)
     tuning = vsa.load_optional_json(str(args.tuning))
     calibration = vsa.load_optional_json(str(args.calibration))
     cfg = vsa.build_config(

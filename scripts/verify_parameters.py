@@ -45,6 +45,12 @@ def check(tuning_path: Path, state_json: Path | None = None) -> list[tuple[str, 
     if not tun:
         return [("FAIL", "tuning 을 읽지 못했다(빈 dict). 경로 오타면 런이 무설정으로 정상 종료한다: %s" % tuning_path)]
     cal = qb.load_optional_json(str(R / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json"))
+    # 러너 main() 8429-8431 과 같은 순서로 tuning 의 calibration_override 를 얹는다.
+    # 안 얹으면 검사기가 실런과 다른 캘리브레이션을 보게 되고, calibration_conflicts 가
+    # 구조적으로 항상 비어 나온다.
+    co = tun.get("calibration_override")
+    if isinstance(co, dict):
+        cal = qb.deep_update(dict(cal), co)
     qb.install_config_switches(tun)
     cfg = qb.build_config(R / "vendor/NumSim-mine", 150.0, 5400.0, "wu-link", cal, tun,
                           local_observation=True, flagship=True)
@@ -69,6 +75,16 @@ def check(tuning_path: Path, state_json: Path | None = None) -> list[tuple[str, 
             out.append(("FAIL", "선언 없이 어긋남 — %s" % line))
     elif not bad:
         out.append(("OK", "parameters.json 의 모든 키가 실효값과 일치"))
+
+    # --- 2b. 캘리브레이션이 들고 있으나 버려지는 값 ---
+    conflicts = (cfg.__dict__.get("_canonical_parameters") or {}).get("calibration_conflicts") or []
+    if conflicts:
+        for c in conflicts:
+            out.append(("WARN", "calibration 값이 버려진다 — %s" % c))
+        out.append(("WARN", "위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json "
+                            "또는 config_overrides 를 고쳐라."))
+    else:
+        out.append(("OK", "calibration 과 parameters 가 같은 말을 한다"))
 
     # --- 3. 순수 중복 ---
     doc = P.load()
