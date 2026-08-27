@@ -7401,8 +7401,7 @@
   "local_cost_model": "phased",
   "refine_rounds": 12,
   "price_local_model": "phased",
-  "in_gne": true,
-  "in_gne_rounds": 2
+  "in_gne": true
  },
  "price_parallel": {
   "workers": 10
@@ -7493,7 +7492,9 @@
     "guard_use_rollout_ttt=False 는 2026-06-25 에 되돌린 쪽이다. 다만 벌점 다섯 항이 실측 0/37 결정에서 0 이라(mfd 만 31/37, 목적함수의 0.3%) 그때와 조건이 다르다."
    ],
    "control": "canon_plantfix_20260827 = 4823.2 (+3.8) · 무제어 4819.4 · tau 4699.1 · bstoA 4704.1",
-   "note_far_key": "leader_mfd_far_at_d0 는 config 에 안 적는다 — parameters.json 이 이미 true 이고 값이 같아서 순수 중복이 되면 verify_parameters 가 FAIL 을 낸다(tuning 이 parameters 를 이겨 parameters.json 편집이 무시되는 것을 막는 규칙). 대조군 nofar 만 false 로 명시한다."
+   "note_far_key": "leader_mfd_far_at_d0 는 config 에 안 적는다 — parameters.json 이 이미 true 이고 값이 같아서 순수 중복이 되면 verify_parameters 가 FAIL 을 낸다(tuning 이 parameters 를 이겨 parameters.json 편집이 무시되는 것을 막는 규칙). 대조군 nofar 만 false 로 명시한다.",
+   "note_refine": "in_gne 를 켜면 팔로워 solve() 가 apply_phase_price_refinement 를 건너뛴다 — 가격이 GNE 안에 있으면 정련은 같은 목적함수로 같은 탐색을 한 번 더 하는 것이고, 실측에서 해로웠다(정련 신호 10->14 · 라운드 48->94 · 결정간 녹색 L1 368->632.9초 · TTT +121.3). in_gne_rounds 는 적지 않는다 — 어댑터가 refine_rounds(12)를 그대로 물려준다.",
+   "note_trust": "벡터 탐색에도 trust region 을 건다(실런 wu_b2_price_trust_sec = 6.0). 상류 p1 축은 원래 묶여 있었는데 _phase_exchange_candidates 가 green_min/max 만 봐서 벡터로 풀 때 그 제약이 빠졌다. 각 현시가 직전 커밋에서 6초를 넘게 못 벗어난다."
   }
  },
  "rollout_far": {

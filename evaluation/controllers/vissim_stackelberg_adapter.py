@@ -4935,6 +4935,12 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             controller.phase_price_in_gne = _is_enabled_value(section["in_gne"])
         if "in_gne_rounds" in section:
             controller.phase_price_in_gne_rounds = int(_as_float(section["in_gne_rounds"], 2.0))
+        elif _is_enabled_value(section.get("in_gne")):
+            # in_gne 를 켜면 정련이 꺼진다(팔로워 solve 가 막는다). 그러면 정련이 하던
+            # 탐색량을 GNE 안으로 **옮겨야** 한다 — 안 옮기면 탐색이 통째로 얕아진다.
+            # 실측 기준 refine_rounds 12 였고, in_gne_rounds 를 2 로 두면 6배 얕다.
+            controller.phase_price_in_gne_rounds = int(
+                getattr(controller, "phase_price_refine_rounds", 1))
         if "exchange_steps_sec" in section:
             cfg.mpc.phase_price_exchange_steps_sec = tuple(
                 float(x) for x in section["exchange_steps_sec"]

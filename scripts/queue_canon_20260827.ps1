@@ -33,8 +33,8 @@ foreach ($f in @($vbsCfg, $sgplan)) {
 }
 
 $arms = @(
-  @{ name = "canon_gne_far_20260827";   tuning = "evaluation/configs/canon_gne_far_20260827.json";   note = "dead_phase OFF + 현시가격 GNE 안 + 후보채점 far ON" },
-  @{ name = "canon_gne_nofar_20260827"; tuning = "evaluation/configs/canon_gne_nofar_20260827.json"; note = "위와 동일 · 후보채점 far OFF (단일변수 대조)" },
+  @{ name = "canon_gne_far_20260827";   tuning = "evaluation/configs/canon_gne_far_20260827.json";   note = "정련 OFF · 현시가격 GNE 안(벡터) · trust 6초 · far ON" },
+  @{ name = "canon_gne_nofar_20260827"; tuning = "evaluation/configs/canon_gne_nofar_20260827.json"; note = "위와 동일 · far OFF (오프라인에선 제어 동일이었다 — 폐루프 확인용)" },
   @{ name = "canon_fdfit_20260827";     tuning = "evaluation/configs/canon_fdfit_20260827.json";     note = "FD 실측적합 113.0/21.7/2.28/6325.8" }
 )
 

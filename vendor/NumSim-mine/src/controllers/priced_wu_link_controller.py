@@ -554,16 +554,48 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                           for pid in MODEL_PHASES)
                 return local + weight * ext
 
-            # 시드 둘을 다 채점한다 — 직전 커밋 벡터와 상류 p1 해. 둘 중 나은 데서 출발한다.
-            # 상류 해를 버리지 않는 이유는 그것이 국소 TTS 를 이미 한 축에서 최적화한
-            # 결과라, 가격이 약한 신호에서는 좋은 출발점이기 때문이다.
-            seeds = []
+            # 시드 둘 — 직전 커밋 벡터와 상류 p1 해. 나은 데서 출발한다. 상류 해를 버리지
+            # 않는 이유는 그것이 국소 TTS 를 한 축에서 이미 최적화한 결과라, 가격이 약한
+            # 신호에서는 좋은 출발점이기 때문이다.
             prev_vec = {pid: float(previous.green_times.get(phase_key(signal, pid), 0.0))
                         for pid in MODEL_PHASES}
-            if sum(prev_vec.values()) > 1.0e-9:
-                seeds.append(prev_vec)
-            seeds.append(dict(distribute_phase_green(
-                net, float(out[0]), signal_green_reference(previous, net, signal), signal=signal)))
+            up_vec = dict(distribute_phase_green(
+                net, float(out[0]), signal_green_reference(previous, net, signal), signal=signal))
+
+            # trust region. 상류 p1 축은 `|p1 - ref| <= trust` 로 묶여 있고(실측 6.0초,
+            # 493호출 중 459회에 심겨 있다), `_phase_exchange_candidates` 는 green_min/max 만
+            # 보므로 벡터로 풀 때 그 제약이 빠진다. 같은 폭을 벡터에도 건다 — 각 현시가
+            # 기준에서 trust 초를 넘게 벗어나지 못한다. 신호 계획의 시간축 안정성이
+            # 플래툰·연동의 전제인데 모델은 그 비용을 안 본다.
+            # **anchor 는 `committed_prev` 다.** GNE 본 루프는
+            # `_solve_urban_agent_local(..., snapshot, ..., committed_prev=previous)` 로 부르는데
+            # 8번째 위치인자 `previous` 는 **매 sweep 갱신되는 GNE 반복값**(snapshot)이다.
+            # 거기에 trust 를 걸면 기준이 매 sweep 따라 움직여 6초씩 계속 걸어간다 —
+            # 실측으로 sweep 이 누적돼 한 현시가 60.5초까지 이동했다(기준 34.5 대비).
+            # 진짜 직전 커밋은 `committed_prev` 로 따로 온다.
+            trust = getattr(self, "signal_marginal_price_trust_sec", None)
+            committed = kwargs.get("committed_prev")
+            if committed is None and len(args) > 12:
+                committed = args[12]
+            anchor_src = committed if committed is not None else previous
+            anchor = {pid: float(anchor_src.green_times.get(phase_key(signal, pid), 0.0))
+                      for pid in MODEL_PHASES}
+            if sum(anchor.values()) <= 1.0e-9:
+                anchor = dict(up_vec)
+
+            def in_trust(vec):
+                if trust is None:
+                    return True
+                t = float(trust)
+                return all(
+                    abs(float(vec.get(pid, 0.0)) - float(anchor.get(pid, 0.0))) <= t + 1.0e-9
+                    for pid in MODEL_PHASES)
+
+            # 시드도 거른다 — 후보만 걸러도 상류 해가 이미 trust 밖이면 거기서 출발한다.
+            seeds = [s for s in (prev_vec, up_vec)
+                     if sum(s.values()) > 1.0e-9 and in_trust(s)]
+            if not seeds:
+                return out
             best, best_obj = None, float("inf")
             for s in seeds:
                 v = scored(s)
@@ -575,6 +607,8 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 moved = False
                 for step in steps:
                     for cand in self._phase_exchange_candidates(signal, best, float(step)):
+                        if not in_trust(cand):
+                            continue
                         obj = scored(cand)
                         if obj < best_obj - 1.0e-12:
                             best, best_obj = cand, obj
@@ -585,7 +619,17 @@ class LinkAgentWuFollower(WuFaithfulFollower):
             # 반환 p1 도 고른 벡터와 맞춘다 — 패치가 없을 때의 폴백이 엉뚱해지지 않게.
             p1 = float(best.get(PRIMARY_PHASE, out[0]))
             return (p1, float(out[1]), int(out[2]), float(out[3]))
-        except Exception:
+        except Exception as exc:
+            # **조용히 삼키지 않는다.** 2026-08-27 에 이 except 가 NameError 를 먹어
+            # 벡터 탐색이 493호출 내내 한 번도 안 돌았는데 런은 정상으로 보였다
+            # (`_gne_phase_override` 저장 0회). GNE 를 죽이지 않으려고 잡되, 무엇이
+            # 몇 번 터졌는지는 남긴다 — 진단이 0 이 아니면 그 팔은 무효다.
+            store2 = getattr(self, "_gne_phase_errors", None)
+            if store2 is None:
+                store2 = {}
+                setattr(self, "_gne_phase_errors", store2)
+            key = "%s: %s" % (type(exc).__name__, exc)
+            store2[key] = store2.get(key, 0) + 1
             return out
 
     def solve(self, state, leader, demand, previous_control=None, leader_incumbent_obj=None):
@@ -611,8 +655,25 @@ class LinkAgentWuFollower(WuFaithfulFollower):
                 n += 1
             result.control.diagnostics["wu_phase_price_in_gne_signals"] = float(n)
             result.control.diagnostics["wu_phase_price_in_gne_enabled"] = 1.0
+            errs = getattr(self, "_gne_phase_errors", None) or {}
+            result.control.diagnostics["wu_phase_price_in_gne_errors"] = float(sum(errs.values()))
+            if errs:
+                top = max(errs.items(), key=lambda kv: kv[1])
+                result.control.diagnostics["wu_phase_price_in_gne_error_top"] = str(top[0])[:200]
             setattr(self, "_gne_phase_override", {})
-        if self.signal_phase_price:
+            setattr(self, "_gne_phase_errors", {})
+        # 가격이 GNE 안에 있으면 정련은 **구조적으로 불필요**하다 — 같은 목적함수
+        # (local + Σ price·Δg)로 같은 탐색을 한 번 더 하는 것이다. 그리고 해롭다.
+        #
+        # 실측(canon_gne_far, 37결정). 둘을 다 켜니 정련이 만진 신호가 10 -> 14 로 늘고
+        # 라운드가 48 -> 94 로 2배가 됐다. 결정 간 녹색 변동 L1 도 368 -> 632.9초로 1.7배다.
+        # 순서가 나쁘다 — GNE 가 벡터를 정하고, 정련이 또 옮기고, 다음 결정의 GNE 가
+        # **정련이 옮긴 값**을 시드로 다시 푼다. 시드가 매번 남의 손을 탄 값이라 출렁임이
+        # 누적된다. TTT 4940.8(+121.3)로 이 대장 최악이었다.
+        #
+        # config 규율(`refine_rounds: 0` 을 같이 적기)에 맡기지 않고 여기서 막는다 —
+        # "두 곳이 서로 맞아야 한다" 가 이 저장소에서 반복된 실패 유형이다.
+        if self.signal_phase_price and not self.phase_price_in_gne:
             self.apply_phase_price_refinement(result.control, state, demand)
         return result
 
