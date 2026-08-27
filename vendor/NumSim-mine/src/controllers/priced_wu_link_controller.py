@@ -67,11 +67,14 @@ from src.models.demand import DemandStep
 from src.controllers.wu_faithful_follower import WuFaithfulFollower
 from src.models.state import (
     MODEL_PHASES,
+    PRIMARY_PHASE,
     ControlAction,
     ExperimentConfig,
     TrafficState,
     _project_to_budget,
+    distribute_phase_green,
     phase_key,
+    signal_green_reference,
 )
 from src.models.urban_queue_model import _urban_step_index, movement_specs
 
@@ -450,6 +453,141 @@ class LinkAgentWuFollower(WuFaithfulFollower):
         setattr(net, "phase_pressure_by_signal", press)
         return len(press)
 
+    # ============ 현시가격을 GNE 안으로 (2026-08-27, 사용자 지시) ============
+    #
+    # 종전 구조의 문제. `apply_phase_price_refinement` 는 `solve()` 가 GNE 를 **다 끝낸
+    # 뒤에** 돌았다. 그래서 매 결정 이 순서가 반복됐다.
+    #
+    #     1. GNE      신호당 1차원(p1)만 최적화 → 나머지 현시는 직전 비율로 뭉개짐
+    #     2. 정련      현시가격으로 6초씩 교환해 되돌리려 함 (실측 녹색 L1 360~576초)
+    #     3. 다음 결정  GNE 가 1번을 다시 해서 2번 결과를 지움
+    #
+    # 이 파일 492행 주석이 그 증상을 이미 적어 놓았다 — "가격은 옳게 가리키는데 그
+    # 방향으로 갈 대역폭이 없다. 정련의 6초 교환만이 되돌릴 수 있는데 GNE 가 매 결정
+    # 비율을 다시 뭉갠다." Stackelberg 에서 리더 가격은 팔로워의 **최적화 문제 안에**
+    # 들어가야 균형 자체가 옮겨간다. 밖에서 밀면 다음 반복에 복원된다 — 고정점이 아니라
+    # 매 스텝 이탈 후 복원이다. 리더 해와 PFO 해의 realized TTT 차가 0.0001 인 이유다.
+    #
+    # 그래서 국소 최선응답 안에서 p1 축 해를 시드로 삼아 현시 벡터를 좌표하강한다.
+    # 채점은 정련과 **같은 함수**를 쓴다 — local[veh*h] + Σ price·Δg. 같은 목적함수를
+    # 두 곳에서 다르게 쓰던 것을 하나로 합치는 것이다.
+    #
+    # 비용. 상류 주석(이 파일 480행)이 경고한 대로 롤아웃이 는다. 다만 여기서 부르는
+    # 것은 전역 롤아웃이 아니라 국소 채점기(`_phase_local_cost_phased` / drain)라
+    # 신호당 (현시쌍 x step 수) 회의 국소 평가다. GNE 반복마다 돈다.
+    #
+    # 기본 꺼짐 = 비트 동일. `urban.phase_price.in_gne: true` 로 켠다.
+    phase_price_in_gne: bool = False
+    phase_price_in_gne_rounds: int = 2
+
+    def _solve_urban_agent_local(self, signal, state, *args, **kwargs):
+        """국소 최선응답을 **현시 벡터**로 푼다. p1 축을 쓰지 않는다.
+
+        왜 p1 축을 버리는가. 상류는 스칼라 `p1` 후보를 훑고
+        `distribute_phase_green(net, p1, ref)` 이 나머지 현시를 **직전 비율대로** 채운다.
+        총합 고정 단체의 자유도는 (live 현시 −1) 인데 그중 1방향만 탐색하는 것이고,
+        그 방향이 늘 p1 에 고정돼 있다. 한 신호의 현시들은 서로 다른 종류의 movement 를
+        먹이므로(실측 core17legs4b: 17 SC 중 14개가 현시별 movement 종류가 다르고,
+        SC1001·SC1004 는 p3/p4 만 off_ramp 를 갖는다) p1 축 하나로는 정작 중요한 현시를
+        다른 현시와 비율로 섞어 희석한다. 실측으로 SC5 p3 가 가격 1위인 결정 14개
+        **전부**에서 p3 가 하한에 묶였다.
+        가격도 마찬가지다 — 상류 B2 항 `g_ext·(p1 − ref)` 는 교차로당 1차원이라
+        "어느 현시에 줄지"를 표현할 수 없다.
+
+        그래서 여기서는 직전 커밋 벡터를 시드로 현시쌍 교환 좌표하강을 돌린다.
+        채점은 `local[veh·h] + Σ_i price_i·(g_i − ref_i)` — 정련과 **같은 함수**다.
+        총합이 고정이라 `Σ(g_i − ref_i) = 0` 이므로 가격에 상수를 더해도 값이 안 변한다
+        (게이지 자동 고정 — 이 클래스 독스트링 참조).
+
+        상류 계약은 유지한다. 반환은 여전히 `(p1, obj, evals, nin)` 이고, 고른 벡터는
+        `_gne_phase_override[signal]` 에 남겨 패치된 `distribute_phase_green` 이 집어간다.
+        패치가 없거나 실패하면 반환된 p1 으로 종전 비율 전개가 돌아 안전하다.
+        """
+        store = getattr(self, "_gne_phase_override", None)
+        if store is None:
+            store = {}
+            setattr(self, "_gne_phase_override", store)
+        # **상류 탐색 전에 이 신호의 저장분을 비운다.** 안 비우면 패치된
+        # `distribute_phase_green` 이 직전 sweep 의 벡터를 돌려주어, 상류가 p1 을 훑는
+        # 동안 모든 후보가 같은 벡터로 채점된다(= 탐색이 통째로 무의미해진다).
+        store.pop(str(signal), None)
+
+        out = super()._solve_urban_agent_local(signal, state, *args, **kwargs)
+        if not (self.phase_price_in_gne and self.signal_phase_price):
+            return out
+        # `candidates_override` 가 있으면 **단일 후보 채점**이다 — 리더가 가격(g_ext)을
+        # 구하려고 특정 p1 의 국소 비용을 물어보는 경로(`local_green_costs`).
+        # 거기서 벡터를 다시 최적화하면 물어본 점이 아닌 다른 점의 비용을 돌려주게 되어
+        # **가격 자체가 틀어진다.** 그 경로는 상류 답을 그대로 쓴다.
+        # 위치인자 번호는 상류 시그니처에서 뽑았다 —
+        # (self, signal, state, coupling, arr_movement, s_eff_frozen, reservoir_drain,
+        #  freeway_congestion, previous, leader, lambda_p, forecast_arrivals, horizon_h,
+        #  demand, candidates_override, committed_prev)
+        # 여기 *args 는 coupling 부터이므로 previous=args[5], candidates_override=args[11].
+        if kwargs.get("candidates_override") is not None or (
+            len(args) > 11 and args[11] is not None
+        ):
+            return out
+        price = (self.signal_phase_price or {}).get(signal)
+        if not price:
+            return out
+        try:
+            net = self.cfg.network
+            previous = kwargs.get("previous")
+            if previous is None:
+                previous = args[5] if len(args) > 5 else None
+            if previous is None:
+                return out
+            ref = (self.signal_phase_price_ref or {}).get(signal) or {}
+            weight = float(self.signal_phase_price_weight)
+            demand = kwargs.get("demand")
+            ctx = self._phase_refine_context(state, previous, demand)
+            setup = self._phase_refine_signal_setup(signal, state, ctx) if ctx else None
+
+            def scored(vec):
+                if setup is not None:
+                    local = self._phase_local_cost_phased(signal, vec, setup, ctx)
+                else:
+                    local = self.phase_shape_local_cost(signal, vec, state)
+                ext = sum(float(price.get(pid, 0.0))
+                          * (float(vec.get(pid, 0.0)) - float(ref.get(pid, 0.0)))
+                          for pid in MODEL_PHASES)
+                return local + weight * ext
+
+            # 시드 둘을 다 채점한다 — 직전 커밋 벡터와 상류 p1 해. 둘 중 나은 데서 출발한다.
+            # 상류 해를 버리지 않는 이유는 그것이 국소 TTS 를 이미 한 축에서 최적화한
+            # 결과라, 가격이 약한 신호에서는 좋은 출발점이기 때문이다.
+            seeds = []
+            prev_vec = {pid: float(previous.green_times.get(phase_key(signal, pid), 0.0))
+                        for pid in MODEL_PHASES}
+            if sum(prev_vec.values()) > 1.0e-9:
+                seeds.append(prev_vec)
+            seeds.append(dict(distribute_phase_green(
+                net, float(out[0]), signal_green_reference(previous, net, signal), signal=signal)))
+            best, best_obj = None, float("inf")
+            for s in seeds:
+                v = scored(s)
+                if v < best_obj:
+                    best, best_obj = s, v
+
+            steps = tuple(getattr(self.cfg.mpc, "phase_price_exchange_steps_sec", (6.0, 2.0)))
+            for _round in range(max(1, int(self.phase_price_in_gne_rounds))):
+                moved = False
+                for step in steps:
+                    for cand in self._phase_exchange_candidates(signal, best, float(step)):
+                        obj = scored(cand)
+                        if obj < best_obj - 1.0e-12:
+                            best, best_obj = cand, obj
+                            moved = True
+                if not moved:
+                    break
+            store[str(signal)] = {pid: float(v) for pid, v in best.items()}
+            # 반환 p1 도 고른 벡터와 맞춘다 — 패치가 없을 때의 폴백이 엉뚱해지지 않게.
+            p1 = float(best.get(PRIMARY_PHASE, out[0]))
+            return (p1, float(out[1]), int(out[2]), float(out[3]))
+        except Exception:
+            return out
+
     def solve(self, state, leader, demand, previous_control=None, leader_incumbent_obj=None):
         import numpy as _np
 
@@ -461,6 +599,19 @@ class LinkAgentWuFollower(WuFaithfulFollower):
             if leader_incumbent_obj is None
             else super().solve(state, leader, demand, previous_control, leader_incumbent_obj)
         )
+        if self.phase_price_in_gne:
+            # GNE 안에서 고른 현시 벡터를 심는다. 총합은 교환 후보가 보존하므로 주기 불변.
+            store = getattr(self, "_gne_phase_override", None) or {}
+            n = 0
+            for signal, vec in store.items():
+                for pid, value in vec.items():
+                    key = phase_key(signal, pid)
+                    if key in result.control.green_times:
+                        result.control.green_times[key] = float(value)
+                n += 1
+            result.control.diagnostics["wu_phase_price_in_gne_signals"] = float(n)
+            result.control.diagnostics["wu_phase_price_in_gne_enabled"] = 1.0
+            setattr(self, "_gne_phase_override", {})
         if self.signal_phase_price:
             self.apply_phase_price_refinement(result.control, state, demand)
         return result
@@ -754,6 +905,9 @@ class PricedWuLinkStackelbergController(StackelbergWuMeteredController):
         )
         follower.green_reference_mode = str(getattr(self, "green_reference_mode", "previous"))
         follower.phase_price_refine_rounds = int(getattr(self, "phase_price_refine_rounds", 1))
+        # 현시가격을 GNE 안에서 쓸지. 팔로워가 국소 최선응답에서 읽는다(2026-08-27).
+        follower.phase_price_in_gne = bool(getattr(self, "phase_price_in_gne", False))
+        follower.phase_price_in_gne_rounds = int(getattr(self, "phase_price_in_gne_rounds", 2))
         self._phase_price_rollout_count = len(tasks) + 1
         self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
 

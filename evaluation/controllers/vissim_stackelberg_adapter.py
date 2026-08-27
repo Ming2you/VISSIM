@@ -2002,6 +2002,12 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
         )
         follower.green_reference_mode = str(getattr(self, "green_reference_mode", "previous"))
         follower.phase_price_refine_rounds = int(getattr(self, "phase_price_refine_rounds", 1))
+        # 이 패치판이 상류 `_refresh_phase_prices` 를 **통째로 대체**하므로, 상류가 팔로워에
+        # 심는 항목을 여기서 전부 다시 심어야 한다. 하나라도 빠지면 그 기능이 조용히 죽는다
+        # — 2026-08-27 에 phase_price_in_gne 가 정확히 그렇게 빠져 벡터 탐색이 발화조차
+        # 안 했다(녹색 L1 차이 0.0, 진단 키 None). 상류에 항목을 더하면 여기도 더해라.
+        follower.phase_price_in_gne = bool(getattr(self, "phase_price_in_gne", False))
+        follower.phase_price_in_gne_rounds = int(getattr(self, "phase_price_in_gne_rounds", 2))
         self._phase_price_rollout_count = len(tasks) + 1
         self._phase_price_workers = int(getattr(self, "price_parallel_workers", 0) or 0)
         _QPRICE_LAST.clear()
@@ -4468,6 +4474,73 @@ def repo_imports(repo_root: Path):
     return StackelbergMPCController, DemandStep, ControlAction, ExperimentConfig, TrafficState, segment_vsl
 
 
+def install_phase_vector_green_patch(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """GNE 의 `p1 -> 비율 전개` 를 현시 벡터로 대체한다. `phase_price.in_gne` 없으면 no-op.
+
+    왜. 상류 GNE 본 루프(`wu_faithful_follower.py:4292-4299`)는 국소 최선응답에서 스칼라
+    `p1` 을 받아 `distribute_phase_green(net, p1, ref)` 로 나머지 현시를 **직전 비율대로**
+    채운다. 총합 고정 단체의 자유도가 (live 현시 - 1) 인데 탐색은 늘 p1 축 1방향뿐이다.
+    그래서 현시별 가격이 옳게 가리켜도 그 방향으로 갈 대역폭이 없었다 — 실측으로 SC5 p3 가
+    가격 1위인 결정 14개 전부에서 p3 가 하한에 묶였다.
+
+    패치는 얇다. `LinkAgentWuFollower._solve_urban_agent_local` 이 현시 벡터를 풀어
+    `_gne_phase_override[signal]` 에 남기고, 여기 패치된 `distribute_phase_green` 이 그
+    신호에 대해 벡터를 그대로 돌려준다. 오버라이드가 없으면 상류 식 그대로다(비트 동일).
+
+    상류 모듈을 수정하지 않는다 — `wu_faithful_follower` 가 `from ... import
+    distribute_phase_green` 으로 **이름을 가져가므로** 그 모듈의 전역을 갈아끼운다.
+    같은 이유로 `local_signal_plant` 등 다른 소비처도 함께 본다.
+
+    프로세스 경계 주의. 가격 워커는 spawn 이라 이 패치가 안 따라간다.
+    `install_price_worker_runtime_patches` 가 워커에서 다시 심는다.
+    """
+    section = _mapping((tuning or {}).get("phase_price"))
+    if not _is_enabled_value(section.get("in_gne")):
+        return {"phase_vector_green_enabled": 0.0}
+
+    import importlib
+
+    targets = []
+    for name in ("src.models.state",
+                 "src.controllers.wu_faithful_follower",
+                 "src.controllers.priced_wu_link_controller",
+                 "src.controllers.local_signal_plant"):
+        try:
+            mod = importlib.import_module(name)
+        except Exception:
+            continue
+        if hasattr(mod, "distribute_phase_green"):
+            targets.append(mod)
+    if not targets:
+        return {"phase_vector_green_enabled": 0.0, "phase_vector_green_targets": 0.0}
+
+    original = targets[0].distribute_phase_green
+    _stats = {"hits": 0.0, "calls": 0.0}
+
+    # 상류 시그니처를 그대로 따른다(state.py:1501) — `reference` 와 `signal` 이 둘 다
+    # 선택인자다. `_offset_green_fractions` 은 reference 없이 signal 만 넘긴다.
+    def patched(net, primary, reference=None, signal=None, **kw):
+        _stats["calls"] += 1.0
+        if signal is not None:
+            fol = _PHASE_VECTOR_FOLLOWER.get("ref")
+            store = getattr(fol, "_gne_phase_override", None) if fol is not None else None
+            vec = (store or {}).get(str(signal))
+            if vec:
+                _stats["hits"] += 1.0
+                return {pid: float(v) for pid, v in vec.items()}
+        return original(net, primary, reference, signal=signal, **kw)
+
+    for mod in targets:
+        mod.distribute_phase_green = patched
+    _PHASE_VECTOR_FOLLOWER["stats"] = _stats
+    return {"phase_vector_green_enabled": 1.0,
+            "phase_vector_green_targets": float(len(targets))}
+
+
+# 패치된 `distribute_phase_green` 이 팔로워를 찾아가는 통로. 컨트롤러를 만든 뒤 심는다.
+_PHASE_VECTOR_FOLLOWER: dict[str, Any] = {}
+
+
 def _fd_conflicts(calibration: Mapping[str, Any]) -> list[str]:
     """캘리브레이션이 정본 파라미터와 다른 값을 들고 있으면 목록으로 돌려준다.
 
@@ -4848,12 +4921,30 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             # 플래툰 도착·하류 S_eff·offset·per-movement 용량)로 후보를 채점한다.
             # 기본 "drain" 은 기존 큐 배수 모형이라 비트 동일.
             controller.phase_price_local_cost_model = str(section["local_cost_model"])
+        if "in_gne" in section:
+            # 2026-08-27, 사용자 지시. 현시가격을 GNE **안**으로 옮긴다.
+            #
+            # 종전에는 `solve()` 가 GNE 를 끝낸 뒤 `apply_phase_price_refinement` 를 불렀다.
+            # 그래서 매 결정 "GNE 가 p1 축만 최적화 -> 정련이 되돌림 -> 다음 결정 GNE 가
+            # 다시 뭉갬" 이 반복됐다. Stackelberg 에서 리더 가격은 팔로워의 최적화 문제
+            # 안에 있어야 균형이 옮겨간다 — 밖에서 밀면 복원된다. 리더 해와 PFO 해의
+            # realized TTT 차가 0.0001 인 것이 그 증상이다.
+            #
+            # 켜면 국소 최선응답이 p1 축 해를 시드로 현시 벡터를 좌표하강한다.
+            # 채점은 정련과 **같은 함수**다(local + Σ price·Δg).
+            controller.phase_price_in_gne = _is_enabled_value(section["in_gne"])
+        if "in_gne_rounds" in section:
+            controller.phase_price_in_gne_rounds = int(_as_float(section["in_gne_rounds"], 2.0))
         if "exchange_steps_sec" in section:
             cfg.mpc.phase_price_exchange_steps_sec = tuple(
                 float(x) for x in section["exchange_steps_sec"]
             )
         # 가격의 **국소항**을 정련과 같은 phased 물리로 채점한다. 절이 없으면 no-op.
         install_phased_price_local(controller, tuning)
+    # GNE 의 p1 -> 비율 전개를 현시 벡터로 대체한다. `phase_price.in_gne` 없으면 no-op.
+    # 팔로워 참조를 패치가 찾아갈 수 있게 여기서 심는다 — 패치는 모듈 전역이라
+    # 컨트롤러 인스턴스를 직접 못 본다.
+    _PHASE_VECTOR_FOLLOWER["ref"] = getattr(controller, "nash_solver", None)
     # 신호별 녹색 상자를 GNE 후보·가격 방향에 흘려준다. 절이 없으면 no-op.
     install_signal_aware_green_box(controller, tuning)
     # flagship 이 여기서 segment_agents=True 를 켠다. 이 팔은 켜지 않는다 —
@@ -6798,8 +6889,35 @@ def real_world_ramp_meter_actions(
             group_capacity,
         )
         per_meter_rate = group_rate / float(group_count) if distribute else group_rate
-        green = cycle * per_meter_rate / per_meter_capacity
-        green = clamp(round(green), min_green, max_green)
+        # 2026-08-27. 하한·상한을 **녹색이 아니라 rate 에** 건다.
+        #
+        # 왜. 러너 VBS 의 `RampActionValid`(:1276-1277)가
+        #     expectedGreen = Round(RAMP_CYCLE_SEC * rate / capacity)
+        #     |green - expectedGreen| > 0.001 이면 무효
+        # 로 rate 와 green 의 **정확한 비례**를 요구한다. 종전처럼 green 을 낸 뒤
+        # `clamp(green, min_green, max_green)` 을 씌우면 그 비례가 깨진다 — CSV 에 나가는
+        # rate 는 안 바뀌는데 green 만 올라가기 때문이다.
+        #
+        # 실측으로 rate 0 에 green 2.0 이 나가 canon_gne_nofar 의 sim_sec=1 이
+        # ramp=4/8 · invalid=4 로 걸렸고, 37결정을 다 돌고도 RUN_INTEGRITY_FAILURE 로
+        # 끝났다. 계약 재현 검사로 보면 rate 0 뿐 아니라 **0 < rate < 90 구간 전체**가
+        # 같은 이유로 무효였다(예: rate 45 -> round(1.0)=1 인데 min_green 2.0 이 올림).
+        # 종전에 안 드러난 것은 미터링이 늘 용량 근처였기 때문이지 안전해서가 아니다.
+        #
+        # rate 를 먼저 상자에 넣고 green 을 그로부터 유도하면 둘이 항상 정합한다.
+        # rate 0(램프를 닫으라는 명령)은 하한을 적용하지 않는다 — min_green 은 **여는**
+        # 경우의 최소 녹색이지 닫는 경우의 바닥이 아니다.
+        if per_meter_rate <= 1.0e-9:
+            per_meter_rate = 0.0
+            green = 0.0
+        else:
+            lo_rate = min_green * per_meter_capacity / cycle
+            hi_rate = max_green * per_meter_capacity / cycle
+            per_meter_rate = clamp(per_meter_rate, lo_rate, hi_rate)
+            green = round(cycle * per_meter_rate / per_meter_capacity)
+            # 반올림 뒤 rate 를 green 에 되맞춘다 — VBS 는 Round(cycle*rate/cap) 로 검사한다.
+            per_meter_rate = green * per_meter_capacity / cycle
+        group_rate = per_meter_rate * float(group_count) if distribute else per_meter_rate
         out[meter_id] = {
             "sc_no": float(_as_float(meter.get("sc_no"), 0.0)),
             "sg_no": float(_as_float(meter.get("sg_no"), 1.0)),
@@ -8491,6 +8609,10 @@ def main() -> None:
     runtime_patch_metadata.update(_relabel(apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
     detector_mapping, _merge_meta = install_merged_movements(cfg, tuning, detector_mapping)
     runtime_patch_metadata.update(_merge_meta)
+    # GNE 의 현시 벡터 패치. 컨트롤러 생성 **앞**이어야 한다 — 상류 모듈이
+    # `from ... import distribute_phase_green` 으로 이름을 가져가므로, 모듈 전역을
+    # 갈아끼우는 시점이 그 import 보다 뒤이기만 하면 된다(파이썬은 모듈 객체를 공유한다).
+    runtime_patch_metadata.update(install_phase_vector_green_patch(cfg, tuning))
     runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
     # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
     runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))

@@ -1,16 +1,15 @@
 ﻿<#
-2026-08-27. 정본 팔 순차 큐: canon_plantfix -> canon_fdfit.
+2026-08-27. 정본 팔 순차 큐.
 
-**순차인 이유.** VISSIM 인스턴스가 동시에 둘 뜨지 못한다. 오늘 12:29 에 병렬로
-걸었더니 앞 런이 16분 만에 EXIT_NO_DONE 으로 죽고 재시도 2·3차는 20초 만에 죽었다
-(어댑터는 정상 — PYTHON_ADAPTER_IMPORT=OK, 결정 90~97초 exit=0). 2026-08-26 밤에도
-같은 실패가 있었다(fw12 2병렬 둘 다 FAILED, 좀비 VISSIM200 3개).
+  1  canon_gne_far     dead_phase OFF + 현시가격 GNE 안 + 후보채점 far ON
+  2  canon_gne_nofar   위와 동일 · far OFF          <- 1 과 단일변수 대조(far 효과)
+  3  canon_fdfit       FD 실측적합 113.0/21.7/2.28/6325.8
 
-팔 둘의 차이는 freeway FD 넷뿐이다.
-  canon_plantfix  v_free 100.0 · rho_crit 33.5 · a 1.867 · capacity 4000    (FD 정합비 1.96)
-  canon_fdfit     v_free 113.0 · rho_crit 21.7 · a 2.28  · capacity 6325.8  (정합비 1.00)
+**순차인 이유.** VISSIM 인스턴스가 동시에 둘 뜨지 못한다. 2026-08-27 병렬 시도에서
+앞 런이 16분 만에 EXIT_NO_DONE, 재시도 2·3차가 20초 만에 죽었다(어댑터는 정상이었다).
 
-기준선: 무제어 4819.4 · tau 4699.1 · bstoA 4704.1
+대조군: canon_plantfix_20260827 = 4823.2 (+3.8)
+기준선: 무제어 4819.4 · tau 4699.1 · bstoA 4704.1 · plantfix(구,지평6) 4859.3
 #>
 param([int]$Seed = 13)
 
@@ -34,8 +33,9 @@ foreach ($f in @($vbsCfg, $sgplan)) {
 }
 
 $arms = @(
-  @{ name = "canon_plantfix_20260827"; tuning = "evaluation/configs/canon_plantfix_20260827.json"; note = "FD 현행 100/33.5/1.867/4000" },
-  @{ name = "canon_fdfit_20260827";    tuning = "evaluation/configs/canon_fdfit_20260827.json";    note = "FD 실측적합 113.0/21.7/2.28/6325.8" }
+  @{ name = "canon_gne_far_20260827";   tuning = "evaluation/configs/canon_gne_far_20260827.json";   note = "dead_phase OFF + 현시가격 GNE 안 + 후보채점 far ON" },
+  @{ name = "canon_gne_nofar_20260827"; tuning = "evaluation/configs/canon_gne_nofar_20260827.json"; note = "위와 동일 · 후보채점 far OFF (단일변수 대조)" },
+  @{ name = "canon_fdfit_20260827";     tuning = "evaluation/configs/canon_fdfit_20260827.json";     note = "FD 실측적합 113.0/21.7/2.28/6325.8" }
 )
 
 foreach ($arm in $arms) {
