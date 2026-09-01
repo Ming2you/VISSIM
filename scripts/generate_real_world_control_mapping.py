@@ -271,6 +271,19 @@ def round3(value: float) -> float:
     return round(float(value), 3)
 
 
+# 커넥터별 실측 유량 [veh/h] — 램프 대표 세그먼트의 가중치다.
+#
+# .fzp 고유 차량 직접 계수(무제어 런, 창 900~5400s). 점유 스냅샷 추정이 아니라 그 커넥터를
+# 지난 차량을 센 값이고, 수요 x1.0~x2.4 에 걸쳐 안정적이다.
+# 근거: scripts/calibrate_ramp_arrival_20260830.py · outputs/ramp_arrival_calibration_20260830.json
+MEASURED_CONNECTOR_VPH = {
+    "10480": 233.0, "10482": 521.0,     # R_D_W  둘 다 셀 2
+    "10646": 431.0, "10644": 781.0,     # R_F_W  4 대 5 로 갈린다 — 하류가 64%
+    "10639": 157.0, "10681": 402.0,     # R_F_E  둘 다 셀 3
+    "10490": 453.0, "10484": 486.0,     # R_D_E  둘 다 셀 5
+}
+
+
 def representative_segment(
     entries: list[tuple[float, float]],
     bounds: list[float],
@@ -281,6 +294,11 @@ def representative_segment(
     세그먼트가 뽑힐 수 있어 쓰지 않는다. 동률이면 상류(index가 작은 쪽)를
     택한다 - 하류를 고르면 상류 세그먼트에서 유입이 통째로 사라져 밀도가
     과소예측되지만, 상류를 고르면 한 세그먼트 일찍 계상될 뿐이라 보존적이다.
+
+    **동률은 가중치가 틀렸다는 신호다** (2026-08-31). 램프 커넥터가 전부 capacity_vph 900
+    으로 같아 동률이 나던 자리를 실측 유량으로 바꾸니 R_F_W 가 4 -> 5 로 뒤집혔고,
+    그 셀의 밀도 MAPE 가 49.9% -> 16.8% 로 떨어졌다. "보존적" 이라는 위 논거는 소수
+    유입일 때만 성립한다 - R_F_W 는 하류 커넥터가 64% 를 날랐다.
     """
     mass: dict[int, float] = defaultdict(float)
     for chain_pos, weight in entries:
@@ -528,10 +546,20 @@ def build_ramp_meters(
     for key, group in by_key.items():
         model_link = str(group[0]["to_model_link"])
         bounds = geometry[model_link]["segment_bounds_m"]
-        # 가중치는 capacity_vph. 어댑터가 model rate를 미터별로 나눠 주므로
-        # 유입량의 몫이 가장 큰 세그먼트가 물리적으로 가장 옳은 대표다.
+        # 가중치는 **실측 유량**이다(2026-08-31). capacity_vph 는 커넥터 넷이 전부 900 으로
+        # 같아 동률이 되고, 그러면 상류 tie-break 가 이겨 물리적으로 틀린 셀이 뽑힌다.
+        #
+        #   R_F_W  10646 @6072.6m -> 셀 4 · 실측 431 vph
+        #          10644 @6774.3m -> 셀 5 · 실측 781 vph   (하류가 64%)
+        #   용량 가중은 900:900 동률 -> 상류 4. 유량 가중은 431:781 -> 5.
+        #
+        # 오프라인 A/B(무제어 5런 150쌍, 실제 plant freeway_step 으로 150s 전진):
+        # FW_W|4 밀도 MAPE 49.9% -> 16.8% · 한-스텝-앞 예측점수 +5.44%.
+        # 실측이 없는 커넥터는 capacity_vph 로 폴백한다(기존 거동).
         best, spanned = representative_segment(
-            [(float(m["to_chain_pos_m"]), float(m["capacity_vph"])) for m in group],
+            [(float(m["to_chain_pos_m"]),
+              float(MEASURED_CONNECTOR_VPH.get(str(m["connector"]), m["capacity_vph"])))
+             for m in group],
             bounds,
         )
         ramp_merge[key] = best

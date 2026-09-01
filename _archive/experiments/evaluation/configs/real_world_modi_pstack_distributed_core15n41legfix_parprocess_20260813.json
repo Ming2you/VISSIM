@@ -1,0 +1,10 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core15n41legfix_20260812.json",
+  "name": "real_world_modi_pstack_distributed_core15n41legfix_parprocess_20260813",
+  "description": "legfix 위에 격자 병렬 백엔드만 process 로 켠다. 다른 필드는 부모와 같다. thread 와 짝으로 재서 GIL 대 직렬화 비용을 가른다.",
+  "config_overrides": {
+    "mpc": {
+      "grid_parallel_backend": "process"
+    }
+  }
+}

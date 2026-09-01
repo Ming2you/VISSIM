@@ -3766,6 +3766,7 @@ class WuFaithfulFollower:
         snapshot: ControlAction,
         forecast_arrivals: Mapping[str, float],
         horizon_h: float,
+        demand=None,
     ) -> tuple[float, float]:
         # 리더 N_P target을 follower가 만들 수 있는 Σnin 범위로 투영 — 단위 [veh/horizon].
         # solver가 실제로 보는 동일 green 후보집합(_urban_green_candidates)에서 신호별 nin의
@@ -3774,9 +3775,12 @@ class WuFaithfulFollower:
         sigma_max = 0.0
         for signal in self.cfg.network.signals:
             candidates = self._urban_green_candidates(signal, state, coupling, snapshot)
+            arr_i = self._np_feasible_arrivals_veh(
+                signal, state, snapshot, demand, forecast_arrivals, horizon_h
+            )
             nin_vals = [
                 self._predicted_agent_net_inflow_veh(
-                    signal, p1, state, forecast_arrivals, horizon_h
+                    signal, p1, state, arr_i, horizon_h
                 )
                 for p1 in candidates
             ]
@@ -3785,6 +3789,49 @@ class WuFaithfulFollower:
             sigma_min += min(nin_vals)
             sigma_max += max(nin_vals)
         return float(sigma_min), float(sigma_max)
+
+    def _np_feasible_arrivals_veh(
+        self,
+        signal: str,
+        state: TrafficState,
+        snapshot: ControlAction,
+        demand,
+        forecast_arrivals: Mapping[str, float],
+        horizon_h: float,
+    ) -> Mapping[str, float]:
+        """Σnin 추정식이 쓸 movement별 도착[veh]. 기본은 종전 값 그대로(비트 동일).
+
+        `wu_faithful_np_feasible_dynamics_arrivals` 가 켜지면 **동역학이 쓰는 것과 같은**
+        도착을 쓴다. 왜 필요한가 —
+
+        `_movement_forecast_arrivals_veh`(:600)는 kind 가 boundary_in·on_ramp 인 movement
+        에만 도착을 넣는다. 그런데 실제 롤아웃(local_signal_plant.rollout_local_tts_*)이 쓰는
+        `_per_movement_arrivals`(:463)는 kind 와 무관하게 (b) `beta x 상류 신호 leaving` 을
+        모든 movement 에 더한다. 그래서 추정식에서만 boundary_out 의 available 이
+        `큐` 뿐이고, cap_veh 가 그보다 훨씬 커서 **녹색이 절대 구속하지 못한다**.
+
+        실측(canon_farbn_d00_x18_20260901, idx=21): 같은 상태 boundary_out 21개의 도착 합이
+        동역학 1,573.7 veh/h 대 추정식 0.000000. 후보 전체 served 스프레드가 동역학
+        21.8~93.8 인데 추정식은 0.0000~5.4 다. 그 결과 추정식은 유출을 3~6배 과소평가하고
+        유입을 7~12% 과대평가해 Σnin 을 양쪽에서 양수로 민다
+        (idx=21 argmin: 동역학 +586.23 대 추정식 +807.84).
+
+        단위: `_per_movement_arrivals` 는 veh/h 를 내므로 horizon_h 를 곱해 veh 로 맞춘다.
+        **덮어쓰는 것이지 더하는 것이 아니다** — (a) kind-specific 항이 양쪽에 다 있어
+        더하면 boundary_in 도착을 두 번 센다.
+        """
+        if not bool(getattr(self.cfg.mpc, "wu_faithful_np_feasible_dynamics_arrivals", False)):
+            return forecast_arrivals
+        if demand is None:
+            return forecast_arrivals
+        merged = dict(forecast_arrivals)
+        try:
+            per = self._per_movement_arrivals(signal, state, snapshot, demand)
+        except Exception:
+            return forecast_arrivals
+        for movement, flow in per.items():
+            merged[movement] = max(0.0, float(flow)) * float(horizon_h)
+        return merged
 
     def _predicted_agent_net_inflow_veh(
         self,
@@ -3981,6 +4028,7 @@ class WuFaithfulFollower:
         forecast_arrivals = self._movement_forecast_arrivals_veh(fc)
         sigma_min, sigma_max = self._np_feasible_range(
             state, coupling, snapshot, forecast_arrivals, horizon_h,
+            demand=(fc[0] if fc else None),
         )
         mode = str(self.cfg.mpc.wu_faithful_np_predictor_mode)
         diag = {

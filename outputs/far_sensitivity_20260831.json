@@ -1,0 +1,88 @@
+{
+ "schema_version": "far-sensitivity/1",
+ "generated": "2026-08-31",
+ "tuning": "evaluation/configs/canon_wrq0_d173_x18_20260831.json",
+ "run": "canon_wrq0_d173_x18_20260831",
+ "decision_sim_sec": 2700.0,
+ "config": {
+  "leader_mfd_far_enabled": true,
+  "leader_mfd_far_at_d0": true,
+  "leader_value_depth": 0,
+  "w_ramp_queue": 0.0,
+  "follower_terminal_cost_enabled": false,
+  "horizon_sec": 450.0
+ },
+ "rows": [
+  {
+   "add": 0.0,
+   "ramp_queue_sum": 546.0,
+   "far": 724.0067664128551,
+   "meter_sum": 3457.0000000000005,
+   "nuf": 3457.0000000000005,
+   "objective": 1770.9967657742263,
+   "metering": {
+    "R_D_W": 0.0,
+    "R_F_W": 1571.6968353294424,
+    "R_D_E": 1800.0,
+    "R_F_E": 85.30316467055809
+   }
+  },
+  {
+   "add": 150.0,
+   "ramp_queue_sum": 696.0,
+   "far": 747.1986007036743,
+   "meter_sum": 3600.0,
+   "nuf": 3600.0,
+   "objective": 1782.6469405399018,
+   "metering": {
+    "R_D_W": 0.0,
+    "R_F_W": 1800.0,
+    "R_D_E": 1800.0,
+    "R_F_E": 0.0
+   }
+  },
+  {
+   "add": 400.0,
+   "ramp_queue_sum": 946.0,
+   "far": 792.7961022994839,
+   "meter_sum": 3300.0,
+   "nuf": 3300.0,
+   "objective": 1828.0495610140204,
+   "metering": {
+    "R_D_W": 0.0,
+    "R_F_W": 1500.0,
+    "R_D_E": 1800.0,
+    "R_F_E": 0.0
+   }
+  },
+  {
+   "add": 900.0,
+   "ramp_queue_sum": 1446.0,
+   "far": 910.0327721577698,
+   "meter_sum": 1440.0,
+   "nuf": 1440.0,
+   "objective": 1825.268405510203,
+   "metering": {
+    "R_D_W": 0.0,
+    "R_F_W": 654.6842472879366,
+    "R_D_E": 785.3157527120635,
+    "R_F_E": 0.0
+   }
+  },
+  {
+   "add": 1800.0,
+   "ramp_queue_sum": 2346.0,
+   "far": 1208.5587779026848,
+   "meter_sum": 1440.0,
+   "nuf": 1440.0,
+   "objective": 1825.6237016737873,
+   "metering": {
+    "R_D_W": 0.0,
+    "R_F_W": 654.6842472879366,
+    "R_D_E": 785.3157527120635,
+    "R_F_E": 0.0
+   }
+  }
+ ],
+ "verdict": "far 가 실리고 결정도 바뀐다 — 램프큐 1800 veh 증가에 미터링 -2017 veh/h. 근시 병리 가설은 이 축에서는 기각이다."
+}

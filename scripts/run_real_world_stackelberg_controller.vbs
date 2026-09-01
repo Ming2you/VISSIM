@@ -48,6 +48,21 @@ Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, 
 Dim prevVehLink, winDepart
 Set prevVehLink = CreateObject("Scripting.Dictionary")
 Set winDepart = CreateObject("Scripting.Dictionary")
+' far 저수지 방류율 실측(2026-09-01). far 의 배수율 셋(도시 G · 본선 g_fw ·
+' 램프 merge_rate)이 전부 vendor 상수였다. 여기서 VISSIM 실측으로 갈아끼운다.
+'
+' 두 방식을 쓴다. 지점마다 옳은 쪽이 다르다.
+'   커넥터  VISSIM 링크평가의 Volume[veh/h]. 요소가 짧아 모든 차량이 안에서 완주하므로
+'           Volume x interval / 3600 = 통과대수가 정확히 성립한다. 5초 스캔으로는
+'           체류가 5초 미만인 커넥터를 통째로 놓치므로 이쪽이 필요하다.
+'   본선    체인 집합 이탈 계수. 본선은 링크가 여럿이고 하류 끝에서 차량이 **망을 떠나므로**
+'           출구 커넥터가 없다 - 링크평가로 표현이 안 된다. 대신 체인 안 체류가 5초보다
+'           훨씬 길어(10.7 km) 5초 스캔 전이로 정확히 세어진다.
+Dim farMeasLinks, farFwMembers, prevFwMember, farFwExit
+Set farMeasLinks = CreateObject("Scripting.Dictionary")
+Set farFwMembers = CreateObject("Scripting.Dictionary")
+Set prevFwMember = CreateObject("Scripting.Dictionary")
+farFwExit = 0
 Dim winStoppedSum, winStoppedMax, winCountSum, winSamples
 Set winStoppedSum = CreateObject("Scripting.Dictionary")
 Set winStoppedMax = CreateObject("Scripting.Dictionary")
@@ -203,7 +218,7 @@ RW_SIGNAL_SCS = "1"
 RW_EXPECTED_VSL_ACTION_ROWS = 71
 RW_EXPECTED_VSL_DSD_IDS = "36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106"
 RW_EXPECTED_VSL_ACTION_KEYS = ""
-RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,115,120"
+RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,85,90,100,110,120,130,140"
 RW_LOCAL_OBSERVABLE_LINKS = "2,26,10479,10480,10481,10482,10483,10484,10490,10491,10638,10639,10643,10644,10645,10646,10681,10682"
 RW_DETECTOR_MAPPING_PATH = "evaluation/real_world_modi_control/detector_local_mapping.json"
 Dim generatedConfigLoaded
@@ -382,6 +397,7 @@ ElseIf Abs(CDbl(demandScale) - 1.0) > 0.000001 Then
 Else
     WScript.Echo "DEMAND=ORIGINAL_INPX_UNCHANGED"
 End If
+LoadFarMeasurementLinks
 ConfigureEvaluationOutput fso.BuildPath(fso.GetParentFolderName(stateOutPath), "vissim_eval")
 LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, urbanInputGateMapPath
 DemandForecastAtSimSec 0, urbanDemandVph, freewayDemandVph
@@ -2369,9 +2385,11 @@ Sub WriteStateJson(simSec, path)
         ts.WriteLine "    ""link_departures_window"": " & QueueWindowMaxJson(winDepart) & ","
         ts.WriteLine "    ""queue_window_samples"": " & CStr(winSamples) & ","
     End If
-    ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails)
+    ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails) & ","
+    ts.WriteLine "    ""far_measurement"": " & FarMeasurementJson()
     ts.WriteLine "  },"
     If QueueWindowEnabled() Then ResetQueueWindow
+    ResetFarMeasurement
     WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
         captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
         recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
@@ -2549,6 +2567,7 @@ Sub LogStateCsv(simSec)
     If scanOk Then
         AccumulateQueueWindow linkCounts, linkStopped
         AccumulateDepartures recordVehNos, recordLinkNos
+        AccumulateFreewayExits recordVehNos, recordLinkNos
     End If
     If LogBottleneckDetailsEnabled() And scanOk Then
         WriteBottleneckRows simSec, countE, stoppedE, speedE, countW, stoppedW, speedW, linkCounts, linkStopped, linkSpeedSums
@@ -2945,6 +2964,126 @@ Sub AccumulateDepartures(vehNos, linkNos)
         If Not seen.Exists(veh) Then AddDictNumber winDepart, CStr(prevVehLink(veh)), 1.0
     Next
     Set prevVehLink = seen
+End Sub
+
+
+' ---- far 저수지 방류율 실측 (2026-09-01) ----
+
+' 기본 켜짐. 끄려면 RW_FAR_MEASUREMENT=0 - 그러면 링크평가 설정도 안 하고 JSON 키도
+' 안 나가므로 종전과 동일하다.
+Function FarMeasurementEnabled()
+    FarMeasurementEnabled = (Trim(shell.ExpandEnvironmentStrings("%RW_FAR_MEASUREMENT%")) <> "0")
+End Function
+
+Function DefaultFarMeasurementLinksPath()
+    DefaultFarMeasurementLinksPath = fso.BuildPath(fso.GetParentFolderName(WScript.ScriptFullName), _
+        "..\evaluation\real_world_modi_inventory\far_measurement_links_20260901.csv")
+End Function
+
+' 측정 지점 대장을 읽는다. 생성기: scripts/build_far_measurement_links_20260901.py
+' 컬럼: reservoir,role,link,from_link,to_link,length_m,note
+' role=drain_departures 행은 링크평가가 아니라 본선 집합 이탈로 잰다(체인 하류 끝).
+Sub LoadFarMeasurementLinks()
+    Dim path, ts, line, parts, first, i, chain
+    If Not FarMeasurementEnabled() Then Exit Sub
+    ' 본선 체인 구성원. 집합 이탈을 세려면 '안'이 무엇인지 알아야 한다.
+    For Each chain In Array(RW_FW_E_CHAIN_LINKS, RW_FW_W_CHAIN_LINKS)
+        parts = Split(chain, ",")
+        For i = 0 To UBound(parts)
+            If Trim(parts(i)) <> "" Then farFwMembers(CStr(CLng(Trim(parts(i))))) = True
+        Next
+    Next
+    path = DefaultFarMeasurementLinksPath()
+    If Not fso.FileExists(path) Then
+        WScript.Echo "WARN=FAR_MEASUREMENT_LINKS_NOT_FOUND path=" & path
+        Exit Sub
+    End If
+    Set ts = fso.OpenTextFile(path, 1, False)
+    first = True
+    Do Until ts.AtEndOfStream
+        line = Trim(ts.ReadLine)
+        If line <> "" And Left(line, 1) <> "#" Then
+            parts = Split(line, ",")
+            If first Then
+                first = False
+            ElseIf UBound(parts) >= 2 Then
+                ' 링크평가로 재는 것만 담는다. drain_departures 는 본선 집합 이탈이라 뺀다.
+                If Trim(parts(1)) <> "drain_departures" Then
+                    farMeasLinks(CStr(CLng(ToDbl(parts(2))))) = Trim(parts(0))
+                End If
+            End If
+        End If
+    Loop
+    ts.Close
+End Sub
+
+' 본선 체인 집합에서 나간 대수. 5초 스캔의 전이로 센다.
+'
+' 왜 링크평가가 아닌가. 링크평가 Volume 은 요소의 공간평균 유량이라 10.7 km 본선에서
+' 출구 유량이 아니다. 그리고 체인 하류 끝(FW_W=26, FW_E=24)에서는 차량이 망을 떠나므로
+' 잴 커넥터 자체가 없다.
+'
+' winDepart 로는 안 된다 - 그건 링크별이라 74->10699 같은 **체인 내부** 전이까지 센다.
+Sub AccumulateFreewayExits(vehNos, linkNos)
+    Dim i, veh, cur, seen, wasIn, isIn
+    If Not FarMeasurementEnabled() Then Exit Sub
+    If IsEmpty(vehNos) Then Exit Sub
+    Set seen = CreateObject("Scripting.Dictionary")
+    For i = LBound(vehNos) To UBound(vehNos)
+        veh = CStr(vehNos(i))
+        cur = CStr(linkNos(i))
+        isIn = farFwMembers.Exists(cur)
+        seen(veh) = isIn
+        If prevFwMember.Exists(veh) Then
+            wasIn = prevFwMember(veh)
+            If wasIn And (Not isIn) Then farFwExit = farFwExit + 1
+        End If
+    Next
+    ' 스캔에서 사라진 차량 = 망을 떠났다. 체인 안에 있었으면 그것도 이탈이다.
+    For Each veh In prevFwMember.Keys
+        If Not seen.Exists(veh) Then
+            If prevFwMember(veh) Then farFwExit = farFwExit + 1
+        End If
+    Next
+    Set prevFwMember = seen
+End Sub
+
+' 링크평가 Volume 을 읽어 JSON 으로 낸다. 단위는 veh/h 다(대수가 아니다) -
+' 소비하는 쪽에서 x interval/3600 하면 구간 통과대수가 된다.
+'
+' 표기: AVG:LinkEvalSegs\Volume(Current,Last,All)
+'   Vissim.Net 에 LinkEvalSegments 객체가 없다. Visum식 집계 접두어(AVG:/MIN:/MAX:/SUM:)로만
+'   닿는다. 접두어를 빼면 'Relation type and aggregate function do not match' 로 거부된다.
+'   Last = 마지막으로 **완료된** 구간. 인덱스로 직접 읽으면 미완료 구간의 부분값이 나온다.
+'   AVG 인 이유: 커넥터는 중간 유출입이 없어 구간마다 유량이 같다. 그래서 평균 = 통과유량.
+'   읽기 실패는 -1 로 낸다 - 조용한 0 은 '용량 0' 으로 읽혀 far 를 폭발시킨다.
+Function FarMeasurementJson()
+    Dim s2, key, lk, v, okCount
+    If Not FarMeasurementEnabled() Then
+        FarMeasurementJson = "null"
+        Exit Function
+    End If
+    s2 = "{""interval_sec"": " & CStr(CLng(controlInterval))
+    s2 = s2 & ", ""freeway_exit_count"": " & CStr(farFwExit)
+    s2 = s2 & ", ""link_volume_veh_h"": {"
+    okCount = 0
+    For Each key In farMeasLinks.Keys
+        v = -1.0
+        On Error Resume Next
+        Set lk = Vissim.Net.Links.ItemByKey(CLng(key))
+        If Err.Number = 0 Then v = CDbl(lk.AttValue("AVG:LinkEvalSegs\Volume(Current,Last,All)"))
+        If Err.Number <> 0 Then v = -1.0
+        Err.Clear
+        On Error GoTo 0
+        If okCount > 0 Then s2 = s2 & ", "
+        s2 = s2 & """" & JsonEscape(CStr(key)) & """: " & Num(v)
+        okCount = okCount + 1
+    Next
+    FarMeasurementJson = s2 & "}}"
+End Function
+
+Sub ResetFarMeasurement()
+    farFwExit = 0
 End Sub
 
 Sub ResetQueueWindow()
@@ -3921,6 +4060,26 @@ Sub ConfigureEvaluationOutput(path)
         TrySetEvaluationAtt "SigChangesWriteFile", True
         WScript.Echo "NATIVE_EVAL=1 vehRec=1 sigChanges=1 from=0 to=" & CStr(simPeriod) & _
             " filter=ALL resolution=" & CStr(NativeVehRecResolution())
+    End If
+    ' 링크평가(Link Segment Results). 이 망의 .inpx 는 이미 collectData=true 인데
+    ' 구간이 160초 · 시작 600초라 제어구간(150초)과 어긋난다. COM 으로만 맞춘다 -
+    ' .inpx 를 고치면 network sha256 이 바뀌어 기존 런과의 비트 비교가 끊긴다.
+    '
+    ' 이 다섯은 전부 ReadOnlyDuringSim 이라 **첫 스텝 전에** 써야 한다(시뮬 중 쓰기는
+    ' 거부된다). 이 Sub 는 시뮬 시작 전에 불린다.
+    '
+    ' 왜 필요한가. far 배수율을 실측하려면 짧은 커넥터의 구간 통과대수가 필요한데
+    ' 5초 스캔은 체류가 5초 미만인 요소를 놓친다. 링크평가는 VISSIM 이 구간 내내 세므로
+    ' 체류시간과 무관하게 정확하다. 읽기는 결정마다 COM 으로 한다(.att 는 런이 끝나야 나온다).
+    If FarMeasurementEnabled() Then
+        TrySetEvaluationAtt "LinkResCollectData", True
+        TrySetEvaluationAtt "LinkResFromTime", 0
+        TrySetEvaluationAtt "LinkResToTime", CLng(simPeriod)
+        TrySetEvaluationAtt "LinkResInterval", CLng(controlInterval)
+        TrySetEvaluationAtt "LinkResPerLane", False
+        WScript.Echo "FAR_MEASUREMENT=1 linkRes=1 from=0 to=" & CStr(simPeriod) & _
+            " interval=" & CStr(controlInterval) & " points=" & CStr(farMeasLinks.Count) & _
+            " fw_members=" & CStr(farFwMembers.Count)
     End If
     WScript.Echo "EVAL_OUT_DIR=" & path
 End Sub

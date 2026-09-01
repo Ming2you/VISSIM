@@ -1,0 +1,138 @@
+{
+ "schema_version": "ramp-arrival-calibration/1",
+ "generated": "2026-08-30",
+ "why": "local_ramp_arrival_forecast 가 queue_drain_horizon_sec=120 스칼라를 램프 넷에 다 써서 모델 ramp_arrival 이 플랜트의 35% 로 나온다. 어댑터가 이미 읽는 queue_drain_horizon_sec_by_ramp 에 넣을 값을 실측에서 뽑는다.",
+ "method": "q=.fzp 고유차량수/창길이 (직접 계수) · N=상태JSON link_counts 중앙 · T=N*3600/q",
+ "window_sec": [
+  900.0,
+  5400.0
+ ],
+ "per_run": {
+  "nocontrolstep_20260826": {
+   "demand_multiplier": 1.0,
+   "throughput_vph": {
+    "R_D_W": 753.6,
+    "R_F_W": 1190.4,
+    "R_D_E": 903.2,
+    "R_F_E": 531.2
+   },
+   "occupancy_veh": {
+    "R_D_W": 7.0,
+    "R_F_W": 23.0,
+    "R_D_E": 7.0,
+    "R_F_E": 1.0
+   },
+   "drain_sec": {
+    "R_D_W": 33.439490445859875,
+    "R_F_W": 69.55645161290322,
+    "R_D_E": 27.900797165633303,
+    "R_F_E": 6.777108433734939
+   }
+  },
+  "ncsweep_x16_20260828": {
+   "demand_multiplier": 1.6,
+   "throughput_vph": {
+    "R_D_W": 763.2,
+    "R_F_W": 1209.6,
+    "R_D_E": 917.6,
+    "R_F_E": 554.4
+   },
+   "occupancy_veh": {
+    "R_D_W": 7.0,
+    "R_F_W": 26.0,
+    "R_D_E": 7.0,
+    "R_F_E": 1.0
+   },
+   "drain_sec": {
+    "R_D_W": 33.0188679245283,
+    "R_F_W": 77.3809523809524,
+    "R_D_E": 27.462946817785525,
+    "R_F_E": 6.4935064935064934
+   }
+  },
+  "ncsweep_x18_20260828": {
+   "demand_multiplier": 1.8,
+   "throughput_vph": {
+    "R_D_W": 751.2,
+    "R_F_W": 1216.0,
+    "R_D_E": 906.4,
+    "R_F_E": 554.4
+   },
+   "occupancy_veh": {
+    "R_D_W": 7.0,
+    "R_F_W": 32.0,
+    "R_D_E": 9.0,
+    "R_F_E": 1.0
+   },
+   "drain_sec": {
+    "R_D_W": 33.546325878594246,
+    "R_F_W": 94.73684210526316,
+    "R_D_E": 35.745807590467784,
+    "R_F_E": 6.4935064935064934
+   }
+  },
+  "ncsweep_x20_20260828": {
+   "demand_multiplier": 2.0,
+   "throughput_vph": {
+    "R_D_W": 753.6,
+    "R_F_W": 1212.8,
+    "R_D_E": 917.6,
+    "R_F_E": 554.4
+   },
+   "occupancy_veh": {
+    "R_D_W": 7.0,
+    "R_F_W": 27.0,
+    "R_D_E": 9.0,
+    "R_F_E": 1.0
+   },
+   "drain_sec": {
+    "R_D_W": 33.439490445859875,
+    "R_F_W": 80.14511873350924,
+    "R_D_E": 35.30950305143853,
+    "R_F_E": 6.4935064935064934
+   }
+  },
+  "ncsweep_x22_20260828": {
+   "demand_multiplier": 2.2,
+   "throughput_vph": {
+    "R_D_W": 752.0,
+    "R_F_W": 1212.0,
+    "R_D_E": 938.4,
+    "R_F_E": 555.2
+   },
+   "occupancy_veh": {
+    "R_D_W": 7.0,
+    "R_F_W": 24.0,
+    "R_D_E": 8.0,
+    "R_F_E": 1.0
+   },
+   "drain_sec": {
+    "R_D_W": 33.51063829787234,
+    "R_F_W": 71.2871287128713,
+    "R_D_E": 30.69053708439898,
+    "R_F_E": 6.484149855907781
+   }
+  }
+ },
+ "model_valid": true,
+ "worst_cv": 0.11369751287053921,
+ "recommended": {
+  "queue_drain_horizon_sec_by_ramp": {
+   "R_D_W": 33.4,
+   "R_F_W": 77.4,
+   "R_D_E": 30.7,
+   "R_F_E": 6.5
+  },
+  "max_vph_by_ramp": {
+   "R_D_W": 878.0,
+   "R_F_W": 1398.0,
+   "R_D_E": 1079.0,
+   "R_F_E": 638.0
+  },
+  "note": "max_vph_by_ramp 는 실측 최대의 1.15배 — 현행 스칼라 cap 900 은 R_F_W 실측(1212)을 자른다. 여유를 두되 물리 용량 1800 을 넘기지 않는다."
+ },
+ "current_config": {
+  "queue_drain_horizon_sec": 120.0,
+  "max_vph_per_ramp": 900.0
+ }
+}

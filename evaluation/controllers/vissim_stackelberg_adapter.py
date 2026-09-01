@@ -2132,6 +2132,40 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
     setattr(cfg.network, "urban_movements", merged_specs)
     setattr(cfg.network, "movement_merge_rename", dict(rename))
 
+    # 램프 인덱스를 **병합 뒤 이름으로 다시 만든다** (2026-09-01).
+    #
+    # `post_init`(state.py:415-424)이 이 두 인덱스를 병합 **전** 이름으로 만든다.
+    # 병합이 이름을 바꾸면(예: SC1001_offW_to_W -> SC1001_offW_to_W_RAMP) 인덱스가
+    # 죽은 이름을 가리키고, 소비처 urban_queue_model.py:558 이 `if m in specs` 로
+    # **조용히 거른다** — 실패가 아니라 배수 movement 가 사라진다.
+    #
+    # 실측(canon_farbn_d00_x18_20260901): OR_D_W 와 OR_D_E 가 각각 4개 중 1개
+    # (beta 0.1667)를 잃고 있었다. 두 램프의 off-ramp 배수가 그만큼 과소평가된다.
+    #
+    # 유도식은 post_init 과 **같다** — off_ramp 는 spec["off_ramp"], on_ramp 는
+    # spec["ramp"] + kind=="on_ramp". 병합은 그 필드를 보존하므로 재유도가 정본이다.
+    off_idx: dict[str, list[str]] = {r: [] for r in (cfg.network.off_ramps or [])}
+    on_idx: dict[str, list[str]] = {r: [] for r in (cfg.network.ramps or [])}
+    for name, spec in merged_specs.items():
+        off_ramp = str(spec.get("off_ramp", ""))
+        if off_ramp:
+            off_idx.setdefault(off_ramp, []).append(name)
+        ramp = str(spec.get("ramp", ""))
+        if ramp and str(spec.get("kind", "")) == "on_ramp":
+            on_idx.setdefault(ramp, []).append(name)
+    prev_off = dict(getattr(cfg.network, "off_ramp_to_movement", {}) or {})
+    dead = sum(
+        1 for names in prev_off.values() for m in names if m not in merged_specs
+    )
+    setattr(cfg.network, "off_ramp_to_movement", off_idx)
+    setattr(cfg.network, "on_ramp_to_movement", on_idx)
+    ramp_index_meta = {
+        "movement_merge_ramp_index_rebuilt": 1.0,
+        "movement_merge_ramp_index_dead_before": float(dead),
+        "movement_merge_off_ramp_movements": float(sum(len(v) for v in off_idx.values())),
+        "movement_merge_on_ramp_movements": float(sum(len(v) for v in on_idx.values())),
+    }
+
     # movement 별 용량 맵이 이미 심겨 있으면 같이 접는다. 같은 물리 회전이므로
     # **합산이 아니라 최대**다 — 합치면 한 회전의 차로를 두 번 센다.
     caps = getattr(cfg.network, "movement_capacity_by_movement_veh_h", None)
@@ -2209,6 +2243,7 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
         "movement_merge_dropped": float(len(dropped)),
         "movement_merge_groups": float(sum(1 for v in groups.values() if len(v) > 1)),
         "movement_merge_relinked_links": float(relinked),
+        **ramp_index_meta,
     }
 
 
@@ -3033,6 +3068,22 @@ def install_price_worker_runtime_patches(cfg, state_json, detector_mapping):
     """
     out = dict(install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping) or {})
     out.update(install_tau_length_cap_patch(cfg))
+    # far 전용 램프 용량. 값(cfg.network.far_ramp_capacity_veh_h)은 컨트롤러와 함께
+    # 피클돼 오지만 **모듈 패치는 spawn 을 못 넘는다.** far 가 워커에서 도는 경로가 있다 -
+    #   _price_worker_phase -> _global_ttt_with_phases -> _rollout_spec(score_mode="price")
+    #   -> stackelberg_wu_metered.py:388 far_enabled = price_far_enabled
+    #   -> rollout_endpoint.py:408 mfd_far_cost_to_go(...)
+    # 지금은 price_far 가 꺼져 있어 안 돌지만, 켜는 순간 부모는 실측 용량 · 워커 10개는
+    # 1800 으로 가격을 매긴다 - 실패가 아니라 조용히 틀린 값이다(phasepar_20260820 유형).
+    out.update(install_far_ramp_capacity_patch(cfg))
+    # `_price_worker_init` 의 부모/워커 대조는 `_phase_green_fraction` 하나만 본다.
+    # 이 패치는 그 대조에 안 걸리므로 여기서 직접 막는다. raise 는 pool 을 깨고
+    # 직렬 재실행 + price_parallel_serial_rerun_count 로 떨어진다.
+    if getattr(cfg.network, "far_ramp_capacity_veh_h", None):
+        import src.controllers.stackelberg_mpc as _sm_check
+        if not getattr(_sm_check, "_rw_far_ramp_capacity_active", False):
+            raise RuntimeError(
+                "가격 워커에 far 전용 램프 용량 패치가 안 심겼다 - 워커가 1800 으로 far 를 계산하게 된다")
     return out
 
 
@@ -3173,6 +3224,7 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
         ("tau_length_cap", _mapping(urban.get("tau")).get("length_cap")),
         ("boundary_inflow_seed", _mapping(urban.get("boundary")).get("inflow_seed")),
         ("dead_phase_beta_zero", _mapping(urban.get("movements")).get("dead_phase_beta_zero")),
+        ("movement_phase_correction", _mapping(urban.get("movements")).get("phase_correction")),
         ("queue_origin_binding", _mapping(urban.get("queue")).get("origin_binding")),
         ("mainline_plan", _mapping(urban.get("plan")).get("mainline_only")),
         ("mainline_share", _mapping(urban.get("plan")).get("mainline_share")),
@@ -3263,6 +3315,123 @@ def _dead_phase_beta_zero_enabled() -> bool:
         켬    스텝1 38.2%  스텝3 52.3%  스텝6 64.6%  총량6 3098   (실측 2650)
     """
     return _switch("dead_phase_beta_zero", "RW_DEAD_PHASE_BETA_ZERO")
+
+
+MOVEMENT_PHASE_CORRECTION_JSON = (
+    WORKSPACE_ROOT / "outputs/movement_phase_correction_20260828.json"
+)
+
+
+def _movement_phase_correction_enabled() -> bool:
+    """선언 phase 를 근거 phase 로 고칠지. 기본 꺼짐 = 비트 동일."""
+    return _switch("movement_phase_correction", "RW_MOVEMENT_PHASE_CORRECTION")
+
+
+def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None) -> dict:
+    """movement 의 선언 `phase` 를 신호두 근거로 고친다. 꺼져 있으면 no-op(비트 동일).
+
+    `phase` 는 플랜트에서 그 회전이 **어느 현시의 녹색을 받는지** 를 정한다
+    (`_phase_green_fraction` 이 `spec["phase"]` 로 `control.green_times` 를 찾는다).
+    틀리면 그 회전이 5400초 내내 엉뚱한 현시로 서비스된다.
+
+    근거 사슬 (2026-08-28).
+
+      정지선 커넥터  `outputs/movement_connector_map_20260824.json` 이 movement 마다
+                    SG 를 제안한다. 그중 SG 가 **하나로 확정된** 제안만 쓴다.
+      신호두 교차검증 `outputs/movement_sg_canonical_20260827.json` 이 그 제안을 inpx
+                    `<signalHead lane sg>` 537개와 맞대 **충돌 0** 을 확인했다.
+      현시->SG 표    `movement_signal_group_map_v3` 와 `signal_group_actuation_plan_v3`
+                    가 17개 SC **전부 일치**한다(2026-08-28 대조). 분모는 다투지 않는다.
+
+    이 셋이 서로 독립인데 같은 답을 내는 자리에서만 고친다 — 확정 SG 30개 중 19개는
+    선언과 이미 같고, **11개가 어긋난다.** 그 11개가 이 함수가 고치는 전부다.
+
+    왜 중요한가. `SC16_W_SC7_to_N_SC12` 는 beta 0.677 — 그 접근로 흐름의 68% 가 잘못된
+    현시로 간다. 그리고 이것이 `apply_dead_phase_beta_zero` 오판의 원인이기도 하다:
+    선언 p2 를 보고 "그 축은 녹색 0" 이라 판정했는데 실제 현시는 p1 이었고, VISSIM 전수
+    추적에서 그 movement 들에 차가 실제로 지난다(SC108_S_to_W_SC107 16건 등).
+    **그래서 이 보정은 dead_phase 판정보다 먼저 걸려야 한다.**
+
+    선언이 근거 파일이 적은 `declared_phase` 와 다르면 **고치지 않고 흘려보낸다** —
+    config 가 바뀌어 산출물이 낡은 경우이고, 그때 덮으면 근거 없는 값을 심게 된다.
+    """
+    if not _movement_phase_correction_enabled():
+        return {"movement_phase_correction_enabled": 0.0}
+    path = MOVEMENT_PHASE_CORRECTION_JSON
+    if not path.is_file():
+        return {"movement_phase_correction_enabled": 0.0,
+                "movement_phase_correction_source_missing": 1.0}
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    table = _mapping(doc.get("corrections"))
+    movements = cfg.network.urban_movements or {}
+
+    # **병합 그룹 단위로 건다.** `install_merged_movements` 는 같은 물리 회전으로 합쳐질
+    # movement 들의 `phase` 가 갈리면 `ValueError` 로 런을 세운다(fail-closed, 옳은 설계).
+    # 커넥터 근거는 회전 하나를 가리키는데 모델은 그 회전을 출구별로 쪼개 놨으므로,
+    # 하나만 고치면 형제와 갈려 병합이 터진다 — 2026-08-28 에 실제로 5건에서 터졌다.
+    # 물리적으로도 그룹 전체가 같은 정지선·같은 SG 라 phase 가 같아야 맞다.
+    groups: dict[str, list[str]] = {}
+    merge_on = _is_enabled_value(
+        _mapping(_mapping(_mapping(tuning).get("urban")).get("movements")).get("merge_exits")
+    )
+    if merge_on and MOVEMENT_MERGE_PLAN_JSON.is_file():
+        rep = _mapping(
+            json.loads(MOVEMENT_MERGE_PLAN_JSON.read_text(encoding="utf-8")).get("leg_representative")
+        )
+        for nm, sp in movements.items():
+            sig = str(sp.get("signal", ""))
+            app = str(sp.get("approach", ""))
+            raw_exit = str(sp.get("exit", ""))
+            ext = str(rep.get("%s|%s" % (sig, raw_exit), raw_exit))
+            if str(rep.get("%s|%s" % (sig, app), app)) == ext:
+                continue          # 자기참조(u_turn) — 병합에서 빠진다
+            groups.setdefault("%s_%s_to_%s" % (sig, app, ext), []).append(str(nm))
+    member_of = {nm: key for key, members in groups.items() for nm in members}
+
+    applied, stale, missing, split = 0, 0, 0, 0
+    beta_moved = 0.0
+    moved_names: list[str] = []
+    sibling_count = 0
+    for name, spec in sorted(table.items()):
+        target = movements.get(str(name))
+        if not isinstance(target, MutableMapping):
+            missing += 1
+            continue
+        node = str(target.get("intersection") or "")
+        declared = str(target.get("phase") or "")
+        want_from = "%s_%s" % (node, str(_mapping(spec).get("declared_phase") or ""))
+        want_to = "%s_%s" % (node, str(_mapping(spec).get("evidence_phase") or ""))
+        if declared != want_from:
+            # 산출물이 낡았다. 조용히 덮지 않는다.
+            stale += 1
+            continue
+        key = member_of.get(str(name))
+        family = list(groups.get(key, ())) if key else [str(name)]
+        if str(name) not in family:
+            family.append(str(name))
+        # 그룹이 원래부터 갈려 있으면 손대지 않는다 — 일부만 고치면 병합이 터진다.
+        if any(str(_mapping(movements.get(o)).get("phase") or "") != want_from for o in family):
+            split += 1
+            continue
+        for o in family:
+            sib = movements.get(o)
+            if isinstance(sib, MutableMapping):
+                sib["phase"] = want_to
+                beta_moved += _as_float(sib.get("beta"), 0.0)
+        applied += 1
+        sibling_count += len(family) - 1
+        moved_names.append(str(name))
+    out = {
+        "movement_phase_correction_enabled": 1.0,
+        "movement_phase_correction_applied": float(applied),
+        "movement_phase_correction_siblings": float(sibling_count),
+        "movement_phase_correction_stale": float(stale),
+        "movement_phase_correction_group_split": float(split),
+        "movement_phase_correction_missing": float(missing),
+        "movement_phase_correction_beta_moved": float(beta_moved),
+        "movement_phase_correction_movements": ",".join(moved_names),
+    }
+    return out
 
 
 def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None) -> dict:
@@ -4967,6 +5136,29 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     for _seg13_only in ("seg13_meter_box_veh_h", "seg13_vsl_box_kmh", "freeway_agent_groups"):
         if getattr(cfg.mpc, _seg13_only, None) is not None:
             setattr(cfg.mpc, _seg13_only, None)
+
+    # 램프 미터링을 GNE 합의 루프 안으로 (tuning 절 `agent_topology.metering_in_gne`).
+    # 기본 꺼짐 = 비트 동일.
+    #
+    # 상류는 미터링을 합의 루프 **밖에서 1회만** 푼다(wu_faithful_follower.py:4308,
+    # "metering 좌표하강은 비싸므로"). 그래서 되먹임이 한 방향이다 — 도시 agent 가 녹색을
+    # 정할 때 그 결정이 만들 미터링을 못 보고, 미터링이 정해질 때는 녹색이 이미 확정이다.
+    #
+    # 실측(2026-08-29, 수요 sweep): 도시부를 -159~-207 개선하는 만큼 본선이 +165~+267
+    # 나빠져 합이 +7.3~+76.8 로 진다. VSL 을 끄고(x2.2 novsl) 미터링을 무제어와 같은
+    # 7200 으로 열어둬도 freeway 가 +167.3 남는다 — 레버 값이 아니라 구조가 남는 설명이다.
+    #
+    # **반드시 SEG13 키를 비운 뒤에 부른다.** 이 스위치는 상류의 `segment_agents` 분기를
+    # 타고, 그 플래그가 SEG13 전용 키의 가드도 함께 연다. 위 루프보다 먼저 부르면
+    # `seg13_meter_box_veh_h=300`(flagship_config_overrides 가 넣는 값)이 아직 살아 있어
+    # 팔로워 가드가 즉사시킨다 — 2026-08-29 에 실제로 그렇게 걸렸고, 그 순서가 이 주석의 이유다.
+    if _is_enabled_value(_mapping(tuning.get("agent_topology")).get("metering_in_gne")):
+        if not hasattr(controller.nash_solver, "enable_metering_in_gne"):
+            raise ValueError(
+                "agent_topology.metering_in_gne 를 켰는데 팔로워가 그것을 모른다 — "
+                "LinkAgentWuFollower 가 아니면 이 스위치는 아무 일도 안 한다."
+            )
+        controller.nash_solver.enable_metering_in_gne()
     return controller
 
 
@@ -5495,6 +5687,7 @@ def build_config(
     _plant_phase_counts_into(cfg)
     _plant_phase_shape_into(cfg, tuning)
     _plant_rollout_far_into(cfg, tuning)
+    _plant_gate_peeloff_into(cfg, tuning)
     _plant_agent_topology_into(cfg, tuning)
     return cfg
 
@@ -5558,6 +5751,250 @@ def _plant_rollout_far_into(cfg, tuning) -> None:
             setattr(mpc, f"leader_mfd_far_{key}", cast(section[key]))
 
 
+FAR_MEASUREMENT_LINKS_CSV = WORKSPACE_ROOT / "evaluation/real_world_modi_inventory/far_measurement_links_20260901.csv"
+
+# 씨앗. 첫 결정에는 직전 추정치가 없고, 워밍업 구간의 이탈은 용량이 아니라 수요다
+# (실측: t=300 에서 도시 145 veh/T_c, 정상상태 565 의 26%). 씨앗 없이 시작하면 리더가
+# 초반 열 번쯤 도시부를 실제보다 4배 비싸게 본다 — far 가 N^2/(2G) 라 G 가 1/4 이면 far 4배다.
+# .fzp 정답지의 **구간 최대값**을 쓴다(평균이 아니다 — 러닝맥스가 추정하는 것은 용량이다).
+FAR_MEASURED_SEED_JSON = WORKSPACE_ROOT / "outputs/far_rates_fzp_truth_20260901.json"
+
+
+def _far_measured_seed() -> dict[str, float]:
+    """정답지 JSON -> {저수지: 씨앗값}. 없으면 빈 dict(씨앗 없이 0 에서 출발)."""
+    if not FAR_MEASURED_SEED_JSON.is_file():
+        return {}
+    try:
+        doc = json.loads(FAR_MEASURED_SEED_JSON.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    sm = _mapping(doc.get("summary"))
+    out: dict[str, float] = {}
+    for key, src, field in (
+        ("urban", "urban_exit_veh_per_Tc", "max_veh_per_Tc"),
+        ("fw", "fw_exit_veh_per_Tc", "max_veh_per_Tc"),
+    ):
+        v = _as_float(_mapping(sm.get(src)).get(field), 0.0)
+        if v > 0.0:
+            out[key] = v
+    for ramp in ("R_D_W", "R_F_W", "R_D_E", "R_F_E"):
+        # merge_cross = 전이 계수. conn(커넥터 유일차량)은 체류가 구간 경계를 걸쳐
+        # 1.14~1.33배 과대다 — 그쪽을 쓰면 안 된다.
+        v = _as_float(_mapping(sm.get("merge_cross_" + ramp)).get("max_veh_h"), 0.0)
+        if v > 0.0:
+            out["ramp_" + ramp] = v
+    return out
+
+# far 는 자유/혼잡 두 배수율을 쓰고 `n_u < n_crit` 로 가른다. 이 망은 **항상 혼잡 쪽**이다 —
+# 실측 n_u 가 37/37 결정에서 2,974~13,742 인데 n_crit 은 1,700 이다. 그래서
+#   (1) 관측된 방류율은 전부 **혼잡 분기**의 값이다. 실측치는 g_cong 에 넣어야 한다.
+#   (2) g_free 는 이 망에서 한 번도 안 쓰인다. vendor 낙차 비(500/640)로 역산해 채워만 둔다.
+# 처음엔 반대로 넣었다(측정 -> g_free). 그러면 실제 쓰이는 값이 22% 낮아진다.
+FAR_G_CONG_RATIO = 500.0 / 640.0
+
+# 바닥값[veh/T_c]. far 가 N^2/(2G) 라 G 가 작으면 폭발한다(vendor 는 max(G,1) 만 건다).
+# warmup·관측 실패로 0 에 가까운 값이 들어오면 리더가 도시부를 무한대로 비싸게 본다.
+FAR_RATE_FLOOR_VEH_TC = 50.0
+FAR_RAMP_FLOOR_VEH_H = 120.0
+
+
+def _far_measurement_reservoirs() -> dict[str, list[str]]:
+    """측정 지점 대장 -> {저수지: [링크...]}. 생성기 scripts/build_far_measurement_links_20260901.py"""
+    out: dict[str, list[str]] = {}
+    if not FAR_MEASUREMENT_LINKS_CSV.is_file():
+        return out
+    import csv as _csv
+    with FAR_MEASUREMENT_LINKS_CSV.open(encoding="utf-8", newline="") as fh:
+        for row in _csv.DictReader(fh):
+            if str(row.get("role", "")).strip() == "drain_departures":
+                continue  # 본선은 링크평가가 아니라 집합 이탈로 잰다
+            res = str(row.get("reservoir", "")).strip()
+            link = str(row.get("link", "")).strip()
+            if res and link:
+                out.setdefault(res, []).append(link)
+    return out
+
+
+def install_measured_far_reservoir_rates(cfg, tuning, state_json, previous_path) -> dict[str, float]:
+    """far 의 배수율 셋을 **직전 구간 VISSIM 실측**으로 갈아끼운다.
+
+    `rollout_far.measured` 가 없으면 no-op(비트 동일)이다.
+
+    왜. far(stackelberg_mpc.py:88)의 배수율이 전부 vendor 상수였다 —
+    도시 G 640/500 · 본선 g_fw 300 [veh/T_c] · 램프 merge = ramp_capacity(1800) x recv.
+    far 는 N^2/(2G) 형태라 G 가 배수 곱이 아니라 **곡률**을 정한다. 상수면 리더가
+    저수지를 얼마나 빨리 비울 수 있는지를 데이터가 아니라 가정으로 판단한다.
+    실측(.fzp 정답지, outputs/far_rates_fzp_truth_20260901.json): 본선 실측 평균이
+    481.9 인데 상수는 300 이라 방류능력을 1.6~2.0배 과소평가하고 있었다.
+
+    무엇을 읽나. 러너 VBS 가 결정마다 `local_observation.far_measurement` 를 싣는다.
+      link_volume_veh_h  VISSIM 링크평가 Volume[veh/h]. 커넥터는 짧아 모든 차량이
+                         구간 안에서 완주하므로 x interval/3600 이 통과대수와 정확히 같다.
+      freeway_exit_count 본선 체인 집합 이탈 대수[veh/구간]. 본선은 하류 끝에서 차량이
+                         망을 떠나 잴 커넥터가 없으므로 5초 스캔 전이로 센다.
+
+    수요제약을 어떻게 거르나. 한산한 구간의 이탈은 용량이 아니라 수요다.
+    `install_measured_movement_capacity` 와 같은 **감쇠 러닝맥스**를 쓴다 —
+    증거가 나오면 즉시 올라가고 없으면 천천히 잊는다. 어댑터는 결정마다 새 프로세스라
+    직전 추정치를 **직전 action JSON 진단**으로 나른다.
+
+    램프는 왜 따로 도나. far 는 `net.ramp_capacity_veh_h[ramp]` 를 읽는데 그 dict 는
+    far 전용이 아니다 — `_force_open_ramps`(개방=용량) · `_candidate_bounds` 의 N_UF
+    상한 · ramp_arrival 클램프 · wu 팔로워 미터 상한이 같은 것을 읽는다. 거기를 낮추면
+    배수율이 아니라 **레버 자체**가 잘린다(N_UF 상한 5000 이 매 결정 램프 유입을 30.6%
+    차단했던 사고와 같은 자리다). 그래서 값을 `cfg.network.far_ramp_capacity_veh_h` 에
+    따로 얹고, `install_far_ramp_capacity_patch` 가 far 호출 동안만 스왑한다.
+    """
+    section = _mapping(_mapping(tuning).get("rollout_far"))
+    if not _is_enabled_value(section.get("measured")):
+        return {"far_measured_enabled": 0.0}
+    # 감쇠 기본 0.995. `install_measured_movement_capacity` 의 0.98 을 그대로 쓰면 안 된다 —
+    # 그쪽은 movement 별 녹색이 매 결정 바뀌므로 빨리 잊는 게 맞지만, 저수지 방류 **용량**은
+    # 런 안에서 물리적으로 안 변한다. 0.98 은 36결정에 씨앗의 48% 로 내려간다.
+    # 실측(2026-09-01 canon_far_d00): 수요가 꺾이는 후반에 g_cong 이 vendor 상수 500 아래로
+    # 12/37 결정 내려갔다(최저 394) — 고치려던 방향의 반대다. 0.995 면 36결정에 83.5% 다.
+    # (g_fw 는 상수 300 이 워낙 낮아 37/37 에서 위였다.)
+    decay = _as_float(section.get("measured_decay"), 0.995)
+
+    fm = _mapping(_mapping(state_json.get("local_observation")).get("far_measurement"))
+    if not fm:
+        # 러너가 아직 이 채널을 안 싣는다(옛 VBS). 상수 그대로 두고 시끄럽게 남긴다.
+        return {"far_measured_enabled": 1.0, "far_measured_channel_missing": 1.0}
+    interval = _as_float(fm.get("interval_sec"), 0.0)
+    vols = {str(k): _as_float(v, -1.0) for k, v in _mapping(fm.get("link_volume_veh_h")).items()}
+    fw_exit = _as_float(fm.get("freeway_exit_count"), -1.0)
+    if interval <= 0.0:
+        return {"far_measured_enabled": 1.0, "far_measured_bad_interval": 1.0}
+
+    groups = _far_measurement_reservoirs()
+    read_err = sum(1 for v in vols.values() if v < 0.0)
+
+    # 관측 -> 저수지별 이번 구간 값
+    obs: dict[str, float] = {}
+    urban_links = groups.get("urban") or []
+    if urban_links:
+        got = [vols[k] for k in urban_links if vols.get(k, -1.0) >= 0.0]
+        if got:
+            # veh/h 합 -> veh/T_c
+            obs["urban"] = sum(got) * interval / 3600.0
+    if fw_exit >= 0.0:
+        obs["fw"] = fw_exit
+    for res, links in groups.items():
+        if not res.startswith("ramp_"):
+            continue
+        got = [vols[k] for k in links if vols.get(k, -1.0) >= 0.0]
+        if got:
+            obs[res] = sum(got)  # far 는 램프를 veh/h 로 받는다
+
+    # 직전 추정치 (감쇠 러닝맥스 이월)
+    prev_est: dict[str, float] = {}
+    try:
+        prev_doc = json.loads(Path(previous_path).read_text(encoding="utf-8"))
+        for holder in ("metadata", "diagnostics"):
+            for key, value in _mapping(prev_doc.get(holder)).items():
+                if key.startswith("far_rate_est_"):
+                    prev_est[key[len("far_rate_est_"):]] = _as_float(value, 0.0)
+    except (OSError, ValueError):
+        pass
+    seeded = 0.0
+    if not prev_est and _is_enabled_value(section.get("measured_seed", True)):
+        prev_est = _far_measured_seed()
+        seeded = float(len(prev_est))
+
+    est: dict[str, float] = {}
+    for key in set(list(obs) + list(prev_est)):
+        est[key] = max(obs.get(key, 0.0), decay * prev_est.get(key, 0.0))
+
+    out: dict[str, float] = {
+        "far_measured_enabled": 1.0,
+        "far_measured_interval_sec": interval,
+        "far_measured_points": float(len(vols)),
+        "far_measured_read_errors": float(read_err),
+        "far_measured_seeded": seeded,
+    }
+    for key, value in sorted(est.items()):
+        out["far_rate_est_" + key] = float(value)
+    for key, value in sorted(obs.items()):
+        out["far_rate_obs_" + key] = float(value)
+
+    mpc = cfg.mpc
+    # 도시 G. 바닥 미만이면 손대지 않는다 — 0 에 가까운 G 는 far 를 폭발시킨다.
+    g_urban = est.get("urban", 0.0)
+    if g_urban >= FAR_RATE_FLOOR_VEH_TC:
+        # 실측치 -> g_cong (이 망은 항상 n_u >= n_crit 이라 관측이 전부 혼잡 분기다).
+        # g_free 는 안 쓰이지만 두 값의 대소가 뒤집히면 안 되므로 비로 역산해 채운다.
+        setattr(mpc, "leader_mfd_far_g_cong", float(g_urban))
+        setattr(mpc, "leader_mfd_far_g_free", float(g_urban / FAR_G_CONG_RATIO))
+        out["far_measured_g_cong"] = float(g_urban)
+        out["far_measured_g_free"] = float(g_urban / FAR_G_CONG_RATIO)
+    else:
+        out["far_measured_g_urban_below_floor"] = 1.0
+    # 본선 g_fw
+    g_fw = est.get("fw", 0.0)
+    if g_fw >= FAR_RATE_FLOOR_VEH_TC:
+        setattr(mpc, "leader_mfd_far_g_fw", float(g_fw))
+        out["far_measured_g_fw"] = float(g_fw)
+    else:
+        out["far_measured_g_fw_below_floor"] = 1.0
+    # 램프 merge_rate — far 전용 dict 에만 얹는다
+    base = dict(getattr(cfg.network, "ramp_capacity_veh_h", {}) or {})
+    far_caps = dict(base)
+    applied = 0
+    for res, value in est.items():
+        if not res.startswith("ramp_"):
+            continue
+        ramp = res[len("ramp_"):]
+        if ramp not in base:
+            raise SystemExit("FAR_MEASURED_UNKNOWN_RAMP: %s (config ramps=%s)" % (ramp, sorted(base)))
+        if value >= FAR_RAMP_FLOOR_VEH_H:
+            far_caps[ramp] = float(value)
+            applied += 1
+            out["far_measured_merge_%s_veh_h" % ramp] = float(value)
+    if applied:
+        setattr(cfg.network, "far_ramp_capacity_veh_h", far_caps)
+    out["far_measured_ramps_applied"] = float(applied)
+    return out
+
+
+def install_far_ramp_capacity_patch(cfg) -> dict[str, float]:
+    """far 만 다른 램프 용량을 보게 한다. cfg 에 값이 없으면 아무것도 안 한다(비트 동일).
+
+    왜 모듈 패치인가. `mfd_far_cost_to_go` 는 stackelberg_mpc 의 **모듈 전역**이고 살아 있는
+    호출부 둘이 모두 호출 시점에 그 전역을 다시 찾는다 —
+      stackelberg_mpc.py:2463   메서드 본문의 전역 이름 조회
+      rollout_endpoint.py:406   함수 안 `from ... import` (실행 시점 해석)
+    어느 모듈도 import 시점에 이 이름을 자기 전역으로 묶지 않는다. 속성 하나만 갈아끼우면
+    두 곳이 다 덮인다. vendor 는 한 줄도 안 고친다.
+
+    왜 스왑-복원인가. 설치 시점에 cfg.network 를 복사해 두면 뒤에 도는 install_* 들의
+    변경이 far 쪽에 안 따라온다. 살아 있는 객체를 호출 동안만 바꾸고 finally 로 되돌린다.
+    현행 백엔드가 전부 serial 이라 재진입이 없다 — **스레드 백엔드를 켜면 이 스왑이 경합이 된다.**
+    """
+    caps = getattr(cfg.network, "far_ramp_capacity_veh_h", None)
+    if not caps:
+        return {"far_ramp_capacity_override": 0.0}
+    far_caps = {str(k): float(v) for k, v in dict(caps).items()}
+    import src.controllers.stackelberg_mpc as _sm
+    if not hasattr(_sm, "_rw_orig_mfd_far_cost_to_go"):
+        _sm._rw_orig_mfd_far_cost_to_go = _sm.mfd_far_cost_to_go
+    _orig = _sm._rw_orig_mfd_far_cost_to_go
+
+    def _far_with_measured_ramp_capacity(c, state):
+        net = c.network
+        saved = net.ramp_capacity_veh_h
+        net.ramp_capacity_veh_h = far_caps
+        try:
+            return _orig(c, state)
+        finally:
+            net.ramp_capacity_veh_h = saved
+
+    _sm.mfd_far_cost_to_go = _far_with_measured_ramp_capacity
+    _sm._rw_far_ramp_capacity_active = True
+    out: dict[str, float] = {"far_ramp_capacity_override": 1.0}
+    out.update({"far_ramp_capacity_%s_veh_h" % r: v for r, v in sorted(far_caps.items())})
+    return out
+
+
 def _plant_phase_shape_into(cfg, tuning) -> None:
     """tuning 의 `phase_shape` 절을 런타임 속성으로 심는다 (2026-08-20).
 
@@ -5606,6 +6043,67 @@ def _plant_phase_counts_into(cfg) -> None:
         return
     cfg.network.live_phases_by_signal = live
 
+
+# 게이트 상류에서 램프로 빠지는 몫 (2026-09-01).
+#
+# 왜. 게이트 `in_SC1001_W`(vehicleInput no 1102, 링크 32, 피크 1,400 vph)의 주입량 중
+# **70%가 SC1001 정지선에 닿기 전에 본선으로 빠진다.** 램프미터가 정지선보다 상류에 있다 —
+#   링크 32 길이 1,963.4 m · SC1001 신호두 pos ~1955(정지선)
+#   RM_C10482 pos 1028.6 (정지선 926 m 상류) · RM_C10490 pos 1330.6 (624 m 상류)
+# 그 차량은 SC1001 신호를 아예 만나지 않으므로 녹색으로 배분을 바꿀 수 없고,
+# 커넥터 10482·10490 은 권역 정본에서 **freeway 플레이어 소유**다.
+# 그런데 게이트맵은 1,400 전량을 도시부로 귀속시켜, 모델이 도시망에 ~974 vph 를 과다 주입한다.
+#
+# 선례. 같은 상황의 링크 69(vehicleInput no 1101, 1,400 vph, 69%가 RM_C10644 로 이탈)는
+# 이미 `shared_stem_unmapped` 로 게이트를 안 준다 (CLAUDE.md 'SC1004 서측' 절).
+# 링크 32 만 그 처리를 못 받았다. 이 상수는 그 규칙을 일관되게 적용한다.
+#
+# 왜 통째로 빼지 않고 차감인가. 링크 69 는 무소유 줄기지만 링크 32 는 SC1001 정지선이
+# 실제로 있고, 램프로 안 빠진 나머지(~426 vph)는 진짜 SC1001 유입이다.
+#
+# 왜 실측인가. 미터가 조이면 이탈이 줄어 정지선에 더 도착한다 — 정적 상수는 그걸 못 본다.
+# 링크평가 채널(local_observation.far_measurement)이 이 커넥터들을 결정마다 재고 있다.
+GATE_UPSTREAM_RAMP_PEELOFF: dict[str, tuple[str, ...]] = {
+    "in_SC1001_W": ("10482", "10490"),
+}
+
+
+def apply_gate_ramp_peeloff(state_json, cfg, urban_boundary: dict[str, float]) -> dict[str, float]:
+    """게이트 도착에서 **정지선 상류 램프 이탈분**을 뺀다. 꺼져 있으면 no-op(비트 동일)."""
+    if not bool(getattr(cfg.network, "gate_ramp_peeloff", False)):
+        return {"gate_ramp_peeloff_enabled": 0.0}
+    fm = _mapping(_mapping(_mapping(state_json).get("local_observation")).get("far_measurement"))
+    vols = {str(k): _as_float(v, -1.0) for k, v in _mapping(fm.get("link_volume_veh_h")).items()}
+    if not vols:
+        return {"gate_ramp_peeloff_enabled": 1.0, "gate_ramp_peeloff_channel_missing": 1.0}
+    out: dict[str, float] = {"gate_ramp_peeloff_enabled": 1.0}
+    applied = 0
+    for gate, conns in GATE_UPSTREAM_RAMP_PEELOFF.items():
+        if gate not in urban_boundary:
+            # 게이트 이름이 바뀌면 조용히 넘어가지 않는다 — 보정이 통째로 사라지는 사고를 막는다.
+            raise SystemExit("GATE_RAMP_PEELOFF_UNKNOWN_GATE: %s (게이트맵과 어긋난다)" % gate)
+        got = [vols[c] for c in conns if vols.get(c, -1.0) >= 0.0]
+        if not got:
+            out["gate_ramp_peeloff_%s_unread" % gate] = 1.0
+            continue
+        peel = sum(got)
+        before = _as_float(urban_boundary.get(gate), 0.0)
+        urban_boundary[gate] = max(0.0, before - peel)
+        applied += 1
+        out["gate_ramp_peeloff_%s_before_vph" % gate] = float(before)
+        out["gate_ramp_peeloff_%s_peel_vph" % gate] = float(peel)
+        out["gate_ramp_peeloff_%s_after_vph" % gate] = float(urban_boundary[gate])
+    out["gate_ramp_peeloff_gates"] = float(applied)
+    return out
+
+
+def _plant_gate_peeloff_into(cfg, tuning) -> None:
+    """tuning `urban.gate.ramp_peeloff` 를 cfg 로 나른다.
+
+    profiled_demand_rates 가 tuning 을 안 받으므로 cfg 속성으로 넘긴다. 값이라
+    컨트롤러와 함께 피클되어 가격 워커까지 간다(코드가 아니라 spawn 안전)."""
+    section = _mapping(_mapping(_mapping(tuning).get("urban")).get("gate"))
+    setattr(cfg.network, "gate_ramp_peeloff", bool(_is_enabled_value(section.get("ramp_peeloff"))))
 
 def profiled_demand_rates(
     state_json: Mapping[str, Any],
@@ -5844,6 +6342,11 @@ def profiled_demand_rates(
             else:
                 ramp_arrival[ramp] = max(float(ramp_arrival.get(ramp, 0.0)), observed_vph)
 
+    # 게이트 상류 램프 이탈분 차감. `urban.gate.ramp_peeloff` 없으면 no-op.
+    # ramp_arrival 보정보다 **뒤**여야 한다 — 그쪽이 같은 커넥터의 관측을 쓰므로
+    # 여기서 먼저 게이트를 깎으면 순환 참조가 된다.
+    _peel_meta = apply_gate_ramp_peeloff(state_json, cfg, urban_boundary)
+    globals()["_LAST_GATE_PEELOFF_META"] = _peel_meta
     return freeway_mainline, urban_boundary, ramp_arrival, profile
 
 
@@ -8600,6 +9103,10 @@ def main() -> None:
     # (되살아난 beta 합 2.332 — SC16_W_SC7_to_N_SC12 0.675, SC107_N_SC1_to_S 0.68 등).
     # 녹색이 구조적으로 0 인 현시로 수요가 흘러 들어가 정지선에서 영원히 안 빠진다.
     # 그래서 beta 설치가 끝난 **뒤에 한 번 더** 부른다(아래 참조). 순서를 바꾸지 마라.
+    # 선언 phase 를 신호두 근거로 고친다. **dead_phase 판정보다 먼저여야 한다** —
+    # dead_phase 는 선언 phase 의 axis_green 을 보고 죽었는지 정하므로, 선언이 틀린 채로
+    # 판정하면 살아 있는 회전을 죽인다(2026-08-27 에 정확히 그렇게 17개를 죽였다).
+    runtime_patch_metadata.update(apply_movement_phase_correction(cfg, tuning))
     runtime_patch_metadata.update(apply_dead_phase_beta_zero(cfg))
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
@@ -8626,6 +9133,13 @@ def main() -> None:
     # 동시현시 배율은 실측 통과량에 이미 반영돼 있으므로 그 뒤여야 한다.
     runtime_patch_metadata.update(install_measured_movement_capacity(
         cfg, tuning, state_json, args.previous_action_json))
+    # far 배수율(도시 G · 본선 g_fw · 램프 merge_rate)을 직전 구간 VISSIM 실측으로.
+    # `rollout_far.measured` 가 없으면 no-op 이다.
+    runtime_patch_metadata.update(install_measured_far_reservoir_rates(
+        cfg, tuning, state_json, args.previous_action_json))
+    # **반드시 위 호출 뒤다.** 이 패치는 설치 시점에
+    # `cfg.network.far_ramp_capacity_veh_h` 를 읽으므로 값이 먼저 심겨야 한다.
+    runtime_patch_metadata.update(install_far_ramp_capacity_patch(cfg))
     state = traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input,

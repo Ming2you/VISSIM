@@ -667,7 +667,16 @@ class PlanPhaseCountTests(unittest.TestCase):
         from evaluation.controllers import vissim_stackelberg_adapter as adapter
 
         counts = plant_cycle.plan_live_phase_counts(self.plan)
+        # 2026-08-19: 어댑터는 **전역** 계획(`signal_group_actuation_plan_v3.json`)을 읽어
+        # 모델에 심는데, 그것이 17 SC 가 됐다(SC7·SC16 을 player 로 복원). 이 검사가 드는
+        # 계획은 legfix 세대(15 SC)다. 그래서 전역 계획이 이 계획을 **덮는지** 보고,
+        # 대조는 검사 대상 계획의 SC 로 한정한다. 덮지 못하면 그것이 진짜 회귀다.
         self.assertEqual(len(counts), 15, counts)
+        model_live = {key: list(value) for key, value in self.net.live_phases_by_signal.items()}
+        self.assertLessEqual(
+            {f"SC{sc_no}" for sc_no in counts}, set(model_live),
+            "전역 계획이 이 계획의 SC 를 다 덮지 못한다",
+        )
         # 배선을 먼저 든다. 항등식만 보면 예산이 유도값이라 정의상 참이 되어 아무것도
         # 증명하지 못한다 - 실제로 확인해야 할 것은 **어댑터가 계획의 SC별 N 을 모델에
         # 심었는가** 다. 안 심으면 legacy 스칼라로 떨어져 3현시 SC 가 3 s 를 잃는다.
@@ -678,7 +687,7 @@ class PlanPhaseCountTests(unittest.TestCase):
                 f"SC{sc_no}": list(adapter.plan_live_phases(self.plan, sc_no))
                 for sc_no in counts
             },
-            {key: list(value) for key, value in self.net.live_phases_by_signal.items()},
+            {key: model_live[key] for key in (f"SC{sc_no}" for sc_no in counts)},
             "어댑터가 계획의 살아 있는 현시 집합을 모델에 안 심었다",
         )
         gaps = {}

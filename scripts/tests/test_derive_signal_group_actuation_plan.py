@@ -48,6 +48,8 @@ class DeriveTests(unittest.TestCase):
 
     def test_every_controlled_sc_is_planned(self) -> None:
         self.assertEqual(self.table["status"], "PASS")
+        # 2026-08-19: 이 검사는 MAPPING 이 core15n41(15 SC)이라 표도 15 SC 로 나온다.
+        # 정본 계획이 17 SC 인 것과 별개다 - 여기서 드는 것은 "이 입력 조합의 산출" 이다.
         self.assertEqual(len(self.table["controllers"]), 15)
         self.assertEqual(sorted(int(key) for key in self.table["controllers"]), [
             1, 5, 6, 11, 12, 101, 105, 107, 108, 109, 1001, 1002, 1003, 1004, 1005
@@ -129,6 +131,11 @@ class DeriveTests(unittest.TestCase):
         uncovered: list[tuple[int, tuple[str, str]]] = []
         for controller in timing["controllers"]:
             sc_no = int(controller["sc_no"])
+            # 2026-08-19: 타이밍 표가 17 SC 로 늘었는데(SC7·SC16 복원) 이 검사가 드는
+            # MAPPING 은 core15n41(15 SC)이라 표에 없는 SC 가 생긴다. 표가 가진
+            # controller 의 커버리지를 보는 검사이므로 없는 것은 건너뛴다.
+            if str(sc_no) not in self.table["controllers"]:
+                continue
             node = self.table["controllers"][str(sc_no)]
             counts = node["window_counts"]
             pairs = {tuple(sorted(pair, key=int)) for pair in node["conflict_pairs"]}

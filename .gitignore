@@ -51,3 +51,15 @@ outputs/canonical_topology_*.json
 plant/outputs/canonical_topology_*.json
 # topology_approval_v2_1.json 은 무시하지 않는다. v3 초판이 승인 사슬을 뺀 것은 오판이었고
 # N0-3 에서 되살렸다 - validate_state_projection_v2_1.py:22-26 이 그것을 import 한다.
+
+# 격리 보관 폴더. outputs/canonical_topology_*.json 패턴은 * 가 슬래시를 넘지 않아
+# 하위 폴더로 옮기는 순간 무시가 풀린다 (24MB x 5 = 121MB 가 git status 에 뜬다).
+outputs/_superseded_*/**/canonical_topology_*.json
+outputs/_superseded_*/canonical_topology_*.json
+
+# 아카이브 보관 폴더. outputs/canonical_topology_*.json 같은 패턴은 * 가 슬래시를
+# 넘지 않아 하위로 옮기면 무시가 풀린다. 24MB 짜리가 여럿이라 반드시 필요하다.
+_archive/**/canonical_topology_*.json
+_archive/**/lane_route_graph_*.json
+_archive/**/lane_route_proofs_*.json
+_archive/**/physical_stock_topology_*.json

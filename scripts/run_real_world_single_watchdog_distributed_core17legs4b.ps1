@@ -5,6 +5,10 @@ Progress is the newest mtime among the run log, state CSV, action CSV, and
 decision action JSONs. If nothing moves for StallSec seconds, cscript/VISSIM are
 killed and the case is retried up to MaxAttempts.
 #>
+# 위치인자 바인딩을 끈다. 호출자가 실수로 위치인자를 흘리면(예: 문자열 splat —
+# `@("-ForceStepwise")` 가 String 으로 언롤돼 문자 14개로 쪼개진 2026-09-01 사고)
+# 파라미터가 조용히 밀리는 대신 즉시 죽는다. 호출부 42곳 전부가 명명인자라 회귀 위험이 없다.
+[CmdletBinding(PositionalBinding=$false)]
 param(
   [Parameter(Mandatory=$true)][string]$Name,
   # 어댑터 경로. 비우면 정본을 쓴다. 실험용 사본을 돌릴 때만 넘긴다 —

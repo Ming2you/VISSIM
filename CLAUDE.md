@@ -594,3 +594,233 @@ SC1002·SC12·SC5 에서 8초씩 반대. `ramp_metering`·`vsl`·`offsets` 는 �
 - pedovrx / pedfold / jam168 / userfix_20260814e 세대는 **살아 있다**. 승인 사슬의
   `is_production` 판정과 어댑터 `execution_fingerprint_sha256` 이 이 경로들을 문자열로 물고 있다.
   옮기면 승인이 조용히 약한 경로로 떨어지고 비트 재현 기준선이 깨진다.
+
+## vendor 코드를 설명하기 전에 팔부터 가려라 (2026-08-31 신설)
+
+```bash
+python scripts/whose_code.py <심볼> --controller wu-link
+```
+
+`vendor/NumSim-mine/src/controllers/` 에는 팔 셋의 코드가 **구분 없이** 같이 있다. grep 은 팔을
+모르므로 히트를 우리 팔 동작이라고 읽으면 틀린다. 이 도구는 실제로 컨트롤러를 만들어
+leader/follower 의 MRO 를 펴고, ast 로 각 히트의 소속 클래스를 구해 **LIVE / DEAD** 를 붙인다.
+
+**`resolve_live_controller.py` 로는 못 막는다 — 그건 파일 단위다.** `distributed_coordinator.py`
+는 어댑터가 몽키패치하려고 import 하므로 "미도달 7개"에 안 나오는데, 그 안의
+`DistributedCoordinator` 클래스는 wu-link 가 인스턴스화하지 않는다. 파일은 살아 있고 클래스가
+죽어 있다.
+
+실측 사례 (2026-08-31, 같은 세션에서 반복 오독):
+
+```
+blocked_to_urban       LIVE 0 · DEAD 2   distributed_coordinator = stackelberg 팔 전용
+                       wu-link 은 계수 없는 FIFO 이월(blocked_q)이다 — 0.5 계수가 없다
+ramp_metering_weight   LIVE 7            wu_faithful_follower · local_signal_plant
+                       f1_wu_faithful_follower 히트는 dead
+```
+
+지우거나 parameters.json 으로 옮겨서는 안 풀린다. vendor 27개는 앵커
+`anchor_python_file_set` 121핀과 tests 가 물고 있어 못 지우고, `ramp_metering_weight` 는
+vendor 클래스 `__init__` 의 상수이며 `blocked_to_urban` 은 값이 아니라 코드다.
+
+## far 배수율은 이제 VISSIM 실측이다 (2026-09-01)
+
+`mfd_far_cost_to_go`(stackelberg_mpc.py:88)의 배수율 셋이 전부 vendor 상수였다.
+far 는 `N^2/(2G)` 형태라 G 가 배수 곱이 아니라 **곡률**을 정한다.
+
+```
+             상수            실측(정답지 최대)      비고
+도시 G       640 / 500       732 / 572            피크를 12.6% 낮게 봤다
+본선 g_fw    300             612                  **방류능력 2배 과소**
+램프 merge   1800 x 4        1248/1776/1464/888   R_F_E 만 크게 낮다
+```
+
+### 채널
+
+러너 VBS 가 결정마다 `local_observation.far_measurement` 를 싣는다.
+
+```
+link_volume_veh_h   VISSIM 링크평가 Volume[veh/h]. 지점 대장은
+                    evaluation/real_world_modi_inventory/far_measurement_links_20260901.csv
+                    (생성기 scripts/build_far_measurement_links_20260901.py)
+freeway_exit_count  본선 체인 집합 이탈[veh/구간]
+interval_sec        = 제어구간
+```
+
+**지점마다 방식이 다르다. 통일하지 마라.**
+
+- **커넥터는 링크평가**. 짧아서 모든 차량이 구간 안에 완주하므로
+  `Volume x interval / 3600` 이 통과대수와 정확히 같다. 5초 스캔은 체류가 5초 미만인
+  커넥터를 통째로 놓친다(150초 스냅샷 차분은 램프에서 250 vph 로 틀린다 — 실측 886).
+- **본선은 집합 이탈**. 체인이 여러 링크이고 하류 끝(FW_W=26, FW_E=24)에서 차량이
+  **망을 떠나** 잴 커넥터가 없다. 링크평가 Volume 은 요소의 공간평균이라 10.7 km
+  본선에서 출구 유량이 아니다. `winDepart` 로도 안 된다 — 그건 링크별이라
+  `74->10699` 같은 체인 내부 전이까지 센다.
+
+### COM 사실 (라이브 실측 확인)
+
+```
+Evaluation.LinkResCollectData / LinkResFromTime / LinkResToTime / LinkResInterval / LinkResPerLane
+  전부 ReadOnlyDuringSim — 첫 스텝 전에 써야 한다. 'LinkResCollectDataItem' 은 없다.
+읽기  link.AttValue("AVG:LinkEvalSegs\Volume(Current,Last,All)")
+  Vissim.Net 에 LinkEvalSegments 객체가 **없다.** Visum식 집계 접두어로만 닿는다.
+  Last = 마지막으로 **완료된** 구간. 인덱스로 읽으면 미완료 구간의 부분값이 나온다.
+단위  veh/h 다. 대수가 아니다. 대수 = Volume x interval / 3600.
+비용  1219개 전수 훑기 0.76초. 시뮬 정지 없이 중간 읽기가 된다.
+```
+
+이 망의 `.inpx` 는 이미 `linkResults collectData="true"` 인데 구간이 **160초 · 시작 600초**라
+제어구간과 어긋난다. COM 으로만 맞춘다 — `.inpx` 를 고치면 network sha256 이 깨진다.
+
+**함정**: `EvalOutDir` 을 안 고치고 평가를 켜면 Vissim 이 모달 저장창을 띄우고 COM 이
+영원히 멈춘다(망 파일의 evalOutDir 이 남의 PC 경로다). 지금은 `ConfigureEvaluationOutput`
+이 먼저 설정하므로 안전하다.
+
+### 수요제약을 거르는 법
+
+한산한 구간의 이탈은 용량이 아니라 수요다(워밍업 t=300 에서 도시 145 veh/T_c, 정상상태의 26%).
+`install_measured_movement_capacity` 와 같은 **감쇠 러닝맥스**를 쓰고, 첫 결정은
+`outputs/far_rates_fzp_truth_20260901.json` 의 **구간 최대값**으로 씨앗을 준다(평균이 아니다 —
+러닝맥스가 추정하는 것은 용량이다). 이월은 직전 action JSON 진단(`far_rate_est_*`)이다.
+
+### `ramp_capacity_veh_h` 를 낮춰서 merge_rate 를 고치려 하지 마라
+
+far 는 그 dict 를 한 줄에서만 읽지만(190행), 같은 dict 를 `_force_open_ramps`(개방=용량) ·
+`_candidate_bounds` 의 N_UF 상한 · `ramp_arrival` 클램프 · `ControlAction.uncontrolled` ·
+wu 팔로워 미터 상한이 읽는다. 낮추면 배수율이 아니라 **레버가 잘린다** — 1800x4 를
+752/1212/938/555 로 바꾸면 N_UF 상한이 7200 -> 3457 로 52% 절단된다(위 '리더 탐색 박스'의
+30.6% 차단 사고와 같은 자리다).
+
+값은 `cfg.network.far_ramp_capacity_veh_h` 에 따로 얹고
+`install_far_ramp_capacity_patch` 가 far 호출 동안만 스왑한다. vendor 는 무수정이다.
+모듈 속성 패치 하나가 살아 있는 호출부 둘을 다 덮는다(둘 다 호출 시점에 전역을 다시 찾는다).
+
+**그리고 752/1212/938/555 는 애초에 틀린 값이었다** — 그건 수요 평균이지 용량이 아니다.
+러닝맥스가 추정하는 실제 용량은 1248/1776/1464/888 이고, R_F_W 는 1800 과 사실상 같다.
+
+### far 는 채점 호출의 3.2% 에서만 켜진다
+
+```
+evaluate_price_point 156회 : raw 25 · price 126 · leader 5
+far_enabled                : False 151 · True 5
+켜졌을 때                   : far 912 / objective 1596 = 57.2%
+```
+
+실측화는 **리더 후보 랭킹**을 크게 바꾸고 **가격 기구는 그대로**다. 가격 경로에도 far 를
+켜려면 `price_far` 인데, 켜는 순간 몽키패치가 spawn 을 못 넘으므로
+`install_price_worker_runtime_patches` 의 재설치가 필수다(이미 넣어 뒀고 자체 검증도 raise 한다).
+
+## PowerShell 배열 splat 으로 switch 를 넘기지 마라 (2026-09-01 사고)
+
+```powershell
+$stepwise = if ($ctrl -eq "no-control") { @("-ForceStepwise") } else { @() }
+& $runner -Name $n ... @stepwise          # <- 여기서 터진다
+```
+
+`if` 출력의 **1원소 배열은 String 으로 언롤**되고, 문자열 splat 은 그걸 **문자 단위
+위치인자**로 쪼갠다. `"-ForceStepwise"` 가 14개 인자가 되어 러너의 미바인딩 위치
+파라미터에 선언 순서대로 꽂혔다.
+
+```
+'-'(45)->ControlStartSec  'F'->WarmupController  'o'(111)->DemandScale=111
+'r'->DemandProfile  'c'->VehicleInputRoles  'e'(101)->IncidentLink  'S'(83)->IncidentLane
+'s'(115)->DoneRows        그리고 -ForceStepwise 는 끝내 False
+```
+
+`mappedInputs=0` 으로 VBS 가 `WScript.Quit 2` 해서 시뮬이 시작조차 못 했다. 빈 배열 `@()`
+도 `$null` 로 언롤돼 **팬텀 위치인자 1개**를 만든다(ControlStartSec 이 -1 대신 0).
+
+- 옳은 형태는 `$stepwise = ($ctrl -eq "no-control")` + `-ForceStepwise:$stepwise` 다.
+- 해시테이블 splat(`@{}`)은 안전하다 — 언롤 대상이 아니다.
+- 정본 러너에 `[CmdletBinding(PositionalBinding=$false)]` 를 얹었다. 이제 이 부류는
+  조용히 밀리지 않고 `'-' 인수를 허용하는 위치 매개 변수를 찾을 수 없습니다` 로 즉사한다.
+  호출부 42곳이 전부 명명인자라 회귀 위험이 없다.
+
+**`.ps1` 을 BOM 없이 쓰면 PowerShell 5.1 이 한글 경로를 cp949 로 오독한다.** 같은 이유로
+`.vbs` 에는 **BOM 을 붙이면 안 된다** — cscript 가 `(1,1) 유효하지 않은 문자입니다` 로 죽는다.
+
+## 유출 실명 — 도시 축이 죽어 있던 이유 (2026-09-01)
+
+리더는 21~23/37 결정에서 `N_P* = -250`(최대 도시 배수)을 고르는데 실현치가 **37/37 전부 양수**
+(중앙 +959)다. λ_P 는 상한 10.0 에 2 iteration 만에 붙고도 Σnin +764~+1040 을 남긴다.
+far 도시항이 목적함수의 36~38% 인데 후보간 스프레드가 0.044~0.56% 라 **argmin 을 못 바꾼다**
+(통째로 빼도 0/5 변화). 원인은 셋이고 전부 유출 쪽이다.
+
+### 1. 추정식이 boundary_out 에 도착을 안 준다
+
+동역학 `_per_movement_arrivals`(wu_faithful_follower.py:463)는 kind 무관하게
+`beta x 상류 leaving` 을 모든 movement 에 더한다. 그런데 Σnin 추정식이 쓰는
+`_movement_forecast_arrivals_veh`(:600)는 **boundary_in·on_ramp 에만** 준다.
+
+```
+같은 상태 boundary_out 21개 도착 합   동역학 1,573.7 veh/h  ·  추정식 0.000000
+후보 전체 served 스프레드             동역학 21.8~93.8      ·  추정식 0.0000~5.4
+```
+
+`available = 큐 62` 인데 `cap_veh 913~940` 이라 **녹색이 절대 구속 못 한다.**
+
+수선: `wu_faithful_np_feasible_dynamics_arrivals` (기본 False = 비트 동일).
+실측 효과 Σnin 하한 −39~−58 veh. **단 스프레드는 안 늘어난다** — 수준만 내려간다.
+
+### 2. 게이트 상류에서 램프로 빠지는 몫을 도시부로 귀속시킨다
+
+```
+링크 32 길이 1,963.4 m · SC1001 신호두 pos ~1955 (정지선)
+   RM_C10482 pos 1028.6  (정지선 926 m 상류)
+   RM_C10490 pos 1330.6  (624 m 상류)
+```
+
+램프로 가는 차량은 **SC1001 신호를 아예 안 만난다.** 커넥터는 권역 정본에서 freeway 소유다.
+그런데 게이트맵은 `no 1102 in_SC1001_W` 로 1,400 vph 전량을 도시부에 귀속시킨다.
+
+**같은 상황의 링크 69 는 이미 `shared_stem_unmapped`** 다(위 'SC1004 서측' 절, 69%가
+RM_C10644 로 이탈). 링크 32 만 그 처리를 못 받았다. 다만 69 는 무소유 줄기고 32 는 SC1001
+정지선이 실제로 있으므로, 통째 제외가 아니라 **상류 이탈분만 차감**한다.
+
+수선: `urban.gate.ramp_peeloff` (기본 없음 = no-op). 링크평가 실측을 매 결정 차감한다.
+
+```
+idx  게이트 전   램프 이탈   게이트 후   이탈률
+ 6    1333.0     1124.5      208.5     84%
+18    1200.0       53.6     1146.4      4%   <- 미터가 조여 이탈이 막힘
+36     667.0        0.0      667.0      0%   <- 미터 닫힘
+```
+
+**정적 상수로는 못 잡는다** — 이탈률이 0~89% 로 흔들린다. 미터가 닫히면 그 차량이 정지선으로 온다.
+
+### 3. 램프 인덱스가 병합 뒤 죽은 이름을 가리켰다 (수선 완료, 상시)
+
+`post_init`(state.py:415-424)이 `on/off_ramp_to_movement` 를 병합 **전** 이름으로 만든다.
+병합이 `SC1001_offW_to_W` -> `SC1001_offW_to_W_RAMP` 로 개명하면 인덱스가 죽은 이름을
+가리키고 `urban_queue_model.py:558` 이 `if m in specs` 로 **조용히 거른다**.
+
+실측: `OR_D_W`·`OR_D_E` 가 배수 movement 4개 중 1개(beta 0.1667)씩을 잃고 있었다.
+`install_merged_movements` 끝에서 같은 유도식으로 재구축한다(진단
+`movement_merge_ramp_index_dead_before`). **스위치 없이 상시** — 순수 버그 수선이라
+2026-09-01 이전 런과의 비트 비교는 여기서 끊긴다.
+
+### 하지 말아야 할 것 넷 (전부 실측으로 기각됨)
+
+1. **λ_P 상한을 올리지 마라.** 응답이 **0.1 에서 완전히 포화**한다 — 0.1→10(100배)이 비트
+   동일 제어다(두 결정에서 오프라인 스윕 확인). 111결정 전부 λ 가 0.0 아니면 10.0 뿐인
+   bang-bang 이고, 물리적으로 맞는 스케일은 `horizon_h = 0.125 h`(vendor 자신의 죽은 코드
+   `_measure_dual_gain` 의 차원오류 하나를 걷어내면 나온다). 10 은 이미 **80배 위**다.
+2. **`urban_movements` 에 on_ramp movement 를 추가하지 마라.** 18개 중 6개가
+   `kind=boundary_in` 이 되어(grid_topology.py:314-323 kind 우선순위) 본선으로 나가면서
+   유입으로 세고, 접근로 beta 합이 1.125~1.25 로 부풀어 병합 재정규화가 실측 beta 정본을
+   최대 33% 깎는다. 얻는 Σnin −262.8 은 `demand.ramp_arrival`(재고÷drain) 이중계상이다.
+3. **`SC1001_off{W,E}_to_W_RAMP` 의 kind 를 뒤집지 마라.** 이름이 '목적지가 W_RAMP' 라
+   램프미터 커넥터로 오인하기 쉽지만, 커넥터 지도상 `SC1001|W_RAMP` 는 정지선 링크 32 의
+   **진입** 접근로이고 그 movement 들은 off-ramp **유입**이 맞다.
+4. **`w_boundary_in` 을 켜지 마라.** `objective_mode=follower_ttt` 라 리더 base 가 팔로워
+   rollout TTT 이고 `urban_queue_model.py:1215` 의 `urban_ttt` 에 kind 필터가 없다 —
+   게이트 큐가 이미 전량 계상된다(실행 확인: boundary_in 큐 268.81 veh 를 지우면 urban_ttt 가
+   정확히 그만큼 준다). 0 은 사고가 아니라 **이중계상 방지**다.
+
+### A/B 팔
+
+```
+대조  evaluation/configs/canon_farbn_d00_x18_20260901.json   두 스위치 OFF
+실험  evaluation/configs/canon_outflow_d00_x18_20260901.json 두 스위치 ON
+같은 망(rampbn)·같은 시드 13. 램프 인덱스 재구축은 양쪽 다 상시.
+```

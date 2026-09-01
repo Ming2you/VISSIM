@@ -1,0 +1,26 @@
+{
+ "schema_version": "ramp-bottleneck-network/1",
+ "generated": "2026-09-01",
+ "why": "램프 합류가 병목이 되는 조건을 최대로 만든다 — 차로변경 완화와 램프 몫을 동시에.",
+ "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18.inpx",
+ "output": "modi_eval_userfix_20260814e_fwsweep_x18_rampbn.inpx",
+ "changes": {
+  "lnChgDist": "램프 커넥터 8개 1000 -> 200 (VISSIM 기본)",
+  "relFlow": "램프 직결 4결정 + 공급 링크로 보내는 상류 12결정, 총 17경로"
+ },
+ "verified": {
+  "lnChgDist": [
+   true,
+   "바뀐 줄 8 · 예상 밖 0"
+  ],
+  "relFlow": [
+   true,
+   "바뀐 줄 17 · 예상 밖 0"
+  ],
+  "line_kinds": {
+   "link": 8,
+   "route": 17
+  }
+ },
+ "caveat": "도시부 흐름 분포가 바뀐다 — 이 망의 무제어를 새 기준선으로 잡아야 한다."
+}

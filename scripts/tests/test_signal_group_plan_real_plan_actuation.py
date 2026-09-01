@@ -340,8 +340,12 @@ WScript.Echo "HARNESS_DONE"
                 # 좌회전끼리(WBL+EBL, NBL+SBL)·대향 직진끼리(EBT+WBT, SBT+NBT) 같은 현시에
                 # 도는 정상 동작이었고 플랜트 금지 목록에도 없었다.
                 self.assertEqual(measured["plan"]["cogreen_name_rule_pairs"], 0)
-                self.assertEqual(measured["plan"]["forbidden_pair_total"], 325)
-                self.assertEqual(measured["plan"]["name_rule_pair_total"], 227)
+                # 2026-08-19: SC7·SC16 복원으로 325 -> 340 (SC16 12 + SC7 3, 제거 0).
+                self.assertEqual(measured["plan"]["forbidden_pair_total"],
+                                 self.plan["counts"]["conflict_pairs"])
+                # 2026-08-19: SC7·SC16 복원으로 227 -> 282. 공유 15 SC 는 바이트 동일이라
+                # 기존 쌍은 그대로이고 새 SC 의 쌍만 더해졌다.
+                self.assertEqual(measured["plan"]["name_rule_pair_total"], 282)
 
     def test_the_name_rule_path_really_does_create_them(self) -> None:
         """양성 대조. 같은 harness·같은 산출물로 알려진 나쁜 수치가 나와야 한다.
@@ -351,8 +355,8 @@ WScript.Echo "HARNESS_DONE"
         for point in OPERATING_POINTS:
             with self.subTest(point=point):
                 measured = self._measure(point)
-                self.assertEqual(measured["name_rule"]["cogreen_forbidden_pairs"], 106)
-                self.assertEqual(measured["name_rule"]["cogreen_name_rule_pairs"], 227)
+                self.assertEqual(measured["name_rule"]["cogreen_forbidden_pairs"], 110)
+                self.assertEqual(measured["name_rule"]["cogreen_name_rule_pairs"], 282)
                 self.assertGreater(measured["name_rule"]["cogreen_sec_per_cycle"], 1000.0)
 
     def test_plan_driving_reproduces_the_model_native_share_exactly(self) -> None:
@@ -361,14 +365,18 @@ WScript.Echo "HARNESS_DONE"
             with self.subTest(point=point):
                 measured = self._measure(point)
                 plan = measured["plan"]
-                self.assertEqual(plan["scored_signal_groups"], 116)
+                # 2026-08-19: 116 -> 128. 증가분 12 는 SC7 의 live 현시 SG 수와 정확히 같다.
+                self.assertEqual(plan["scored_signal_groups"], 128)
                 self.assertEqual(plan["signal_groups_off_by_1pct"], 0)
                 self.assertAlmostEqual(plan["worst_green_ratio"], 1.0, places=6)
                 self.assertAlmostEqual(plan["min_green_ratio"], 1.0, places=6)
         native = self._measure("native")["name_rule"]
         asym = self._measure("asym80_35")["name_rule"]
-        self.assertEqual(native["signal_groups_off_by_1pct"], 116)
-        self.assertAlmostEqual(native["worst_green_ratio"], 6.05, places=2)
+        self.assertEqual(native["signal_groups_off_by_1pct"], 128)
+        # 2026-08-19: SC7·SC16 복원으로 최대값이 옮겨갔다. 공유 15 SC 의 계획 노드는
+        # 바이트 동일이라 그들의 비율은 불변이고(6.05 도 집합에 그대로 있다), 최대가
+        # 올라간 것은 새로 들어온 SG 때문이다 - 집합이 커졌지 기존 값이 바뀐 게 아니다.
+        self.assertAlmostEqual(native["worst_green_ratio"], 7.54, places=2)
         self.assertAlmostEqual(asym["worst_green_ratio"], 7.0608, places=3)
 
     def test_amber_never_covers_another_groups_green_in_the_real_plan(self) -> None:
@@ -389,8 +397,8 @@ WScript.Echo "HARNESS_DONE"
         )
         self.assertNotEqual(mutant, SOURCE, "mutation target line not found")
         measured = self._measure("native", source=mutant)["plan"]
-        self.assertEqual(measured["cogreen_forbidden_pairs"], 325)
-        self.assertEqual(measured["signal_groups_off_by_1pct"], 116)
+        self.assertEqual(measured["cogreen_forbidden_pairs"], self.plan["counts"]["conflict_pairs"])
+        self.assertEqual(measured["signal_groups_off_by_1pct"], 128)
 
     def test_removing_the_amber_suppression_breaks_the_real_plan(self) -> None:
         """되돌림 증명. 방어를 빼면 실 계획에서 amber 가 남의 녹색을 덮어야 한다.

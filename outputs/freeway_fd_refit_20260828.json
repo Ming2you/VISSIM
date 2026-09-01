@@ -1,0 +1,37 @@
+{
+ "schema_version": "freeway-fd-refit/1",
+ "generated": "2026-08-28",
+ "why": "canon_fdfit_20260827 의 FD 값이 config 주석에만 있고 재현 가능한 산출물이 없었다. 그 값이 지금 신기록 팔의 단일변수라 근거를 복원한다.",
+ "model": "V(rho)=v_free*exp(-(1/a)*(rho/rho_crit)^a); capacity=rho_crit*v_free*exp(-1/a)*lanes",
+ "runs": {
+  "nocontrolstep_20260826": 1.0,
+  "nc_fw12_ramp1_20260827": 1.2,
+  "nc_fw12_ramp2_20260827": 1.2,
+  "nc_fw14_ramp1_20260827": 1.4,
+  "nc_fw14_ramp2_20260827": 1.4
+ },
+ "min_sim_sec": 900.0,
+ "point_count": 2480,
+ "high_density_points": 43,
+ "fit": {
+  "v_free": 113.0,
+  "rho_crit": 21.25,
+  "metanet_a_m": 2.3000000000000007,
+  "freeway_capacity_veh_h": 6218.328790965967,
+  "rmse_kph": 11.644429131175025
+ },
+ "claimed_canon_fdfit": {
+  "v_free": 113.0,
+  "rho_crit": 21.7,
+  "metanet_a_m": 2.28,
+  "freeway_capacity_veh_h": 6325.8,
+  "rmse_kph": 11.595
+ },
+ "rmse_on_this_data": {
+  "refit": 11.644429131175025,
+  "claimed": 11.648420638763817,
+  "current_parameters": 15.333353625539317
+ },
+ "bootstrap_ci_90": {},
+ "caveat": "혼잡부(밀도 25 이상) 표본이 43점(1.7%)뿐이다. 정상상태 FD 만 맞춘 것이고 동역학 예측력은 별개다 — 판정 기준은 폐루프 TTT 다."
+}

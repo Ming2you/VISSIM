@@ -1,0 +1,314 @@
+<title>보호망 경계 회전</title>
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#fff; --ink:#15181e; --dim:#5c6370; --line:#dadee5;
+  --road:#c5cad3; --roadq:#e5e8ed; --acc:#2f6fd0;
+  --in:#2f7fe0; --out:#dc7220; --ext:#bd3a92; --intl:#1c9070; --noc:#8a929f;
+  --zin:#1c9070; --zbd:#d69417; --zout:#7b8391; --znone:#bcc2cb;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1217; --panel:#161a21; --ink:#e7eaee; --dim:#96a0ae; --line:#272d37;
+  --road:#39414d; --roadq:#212730; --acc:#6ea3f5;
+  --in:#5fa2f2; --out:#f0954a; --ext:#e263b6; --intl:#3fbf9c; --noc:#69717f;
+  --zin:#3fbf9c; --zbd:#f0b543; --zout:#69717f; --znone:#39414d;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1217; --panel:#161a21; --ink:#e7eaee; --dim:#96a0ae; --line:#272d37;
+  --road:#39414d; --roadq:#212730; --acc:#6ea3f5;
+  --in:#5fa2f2; --out:#f0954a; --ext:#e263b6; --intl:#3fbf9c; --noc:#69717f;
+  --zin:#3fbf9c; --zbd:#f0b543; --zout:#69717f; --znone:#39414d;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard",system-ui,-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+header{padding:16px 22px 13px;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{margin:0 0 3px;font-size:19px;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--dim);font-size:12.5px}
+.tally{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.chip{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid var(--line);
+  border-radius:6px;background:var(--bg);font-size:12px;cursor:pointer;user-select:none}
+.chip .sw{width:9px;height:9px;border-radius:2px}
+.chip b{font-size:14px;font-weight:650;font-family:ui-monospace,monospace;margin-left:1px}
+.chip.off{opacity:.36}
+.wrap{display:grid;grid-template-columns:214px minmax(0,1fr) 348px;height:calc(100vh - 128px);min-height:520px}
+@media (max-width:1100px){.wrap{grid-template-columns:1fr;height:auto}#map{height:60vh}}
+aside{border-right:1px solid var(--line);background:var(--panel);padding:15px 14px;overflow:auto}
+aside.rt{border-right:0;border-left:1px solid var(--line)}
+h2{margin:0 0 7px;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--dim)}
+h2:not(:first-child){margin-top:19px}
+.opt{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:5px;cursor:pointer;font-size:13px}
+.opt:hover{background:var(--bg)} .opt input{accent-color:var(--acc);margin:0}
+.sw{width:11px;height:11px;border-radius:2px;flex:none}
+.note{font-size:11.5px;color:var(--dim);margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+#map{position:relative;overflow:hidden;background:var(--bg);cursor:grab}
+#map.drag{cursor:grabbing}
+svg{display:block;width:100%;height:100%;touch-action:none}
+path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+#tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;padding:7px 9px;font-size:11.5px;box-shadow:0 4px 14px rgba(0,0,0,.18);
+  max-width:280px;opacity:0;transition:opacity .1s;z-index:5}
+.hint{position:absolute;left:12px;bottom:10px;font-size:11px;color:var(--dim);
+  background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:4px 8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-weight:600;color:var(--dim);font-size:10.5px;letter-spacing:.05em;
+  text-transform:uppercase;padding:4px 5px;border-bottom:1px solid var(--line)}
+td{padding:4px 5px;border-bottom:1px solid var(--line);vertical-align:top}
+.pill{display:inline-block;padding:1px 6px;border-radius:99px;font-size:10.5px;font-weight:600;color:#fff}
+.tr{display:flex;gap:7px;align-items:flex-start;padding:4px 0;border-bottom:1px solid var(--line);font-size:11.5px}
+.tr .d{width:6px;height:6px;border-radius:99px;flex:none;margin-top:5px}
+.tr code{font-family:ui-monospace,monospace;font-size:11px}
+.arrow{color:var(--dim)}
+</style>
+
+<header>
+  <h1>보호망 경계 회전 — leg 구역에서 유도한 유입 · 유출 · 외부통과</h1>
+  <div class="sub" id="hsub">core17legs4b · 통제 SC 17 · leg 121 · 정지선 링크 <span id="ns"></span>개에서 회전 <span id="nt"></span>개 유도 &nbsp;|&nbsp; 각 회전은 <span class="mono">from_link → connector → to_link</span> 로 VISSIM 에서 직접 읽는다</div>
+  <div class="tally" id="tally"></div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <h2>보기</h2>
+    <label class="opt"><input type="radio" name="mode" value="turn" checked> 회전 등급</label>
+    <label class="opt"><input type="radio" name="mode" value="zone"> leg 구역</label>
+
+    <h2>leg 구역</h2>
+    <div id="zl"></div>
+
+    <h2>전이표</h2>
+    <table class="mono" style="font-size:11px">
+      <tr><td>내부 → 내부</td><td style="color:var(--intl)">internal</td></tr>
+      <tr><td>내부 → 외부</td><td style="color:var(--out)">outflow</td></tr>
+      <tr><td>경계면 → 내부</td><td style="color:var(--in)">inflow</td></tr>
+      <tr><td>경계면 → 외부</td><td style="color:var(--ext)">external</td></tr>
+      <tr><td>외부 → 외부</td><td style="color:var(--noc)">no control</td></tr>
+    </table>
+    <div class="note">도착 구역은 회전이 닿는 링크가 <b>내부 leg</b> 소유인지로 본다. 교차로 직후 카리지웨이는 권역이 비어 있는 곳이 많아, 무소유면 하류로 걸어 처음 만나는 소유자를 쓴다.</div>
+    <h2>통제 불가 경계 횡단</h2>
+    <div id="unctrl"></div>
+
+    <h2>통제 불가 내부 유입</h2>
+    <div id="src"></div>
+    <div class="note" id="rec"></div>
+  </aside>
+
+  <div id="map">
+    <svg id="svg"><g id="g"></g></svg>
+    <div id="tip"></div>
+    <div class="hint">휠 확대 · 끌어 이동 · 교차로 클릭</div>
+  </div>
+
+  <aside class="rt" id="panel"></aside>
+</div>
+
+<script id="D" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById("D").textContent);
+const cv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const K = {internal:{t:"내부 이동",v:"--intl"}, inflow:{t:"유입",v:"--in"},
+           outflow:{t:"유출",v:"--out"}, external:{t:"외부통과",v:"--ext"},
+           outside_pn:{t:"무통제",v:"--noc"}};
+const ZC = {"내부":"--zin","경계면":"--zbd","외부":"--zout","freeway":"--znone","무소유":"--znone"};
+const NS = "http://www.w3.org/2000/svg";
+const g = document.getElementById("g"), svg = document.getElementById("svg");
+const on = new Set(Object.keys(K));
+let mode = "turn", sel = null;
+
+document.getElementById("nt").textContent = D.turns.length;
+document.getElementById("ns").textContent = new Set(D.turns.map(t => t.stop)).size;
+const tl = document.getElementById("tally");
+for (const k of ["inflow","outflow","external","internal","outside_pn"]) {
+  const c = document.createElement("div");
+  c.className = "chip";
+  const cs = D.ctrl_counts_surface[k], tot = D.counts[k] || 0;
+  const isX = ["inflow","outflow","external"].includes(k);
+  c.innerHTML = `<span class="sw" style="background:var(${K[k].v})"></span>${K[k].t}<b>${isX ? cs || 0 : tot}</b>`
+    + (isX && tot !== (cs || 0) ? `<span style="color:var(--dim);font-size:10.5px">+${tot-(cs||0)} 불가</span>` : "");
+  c.onclick = () => { on.has(k) ? on.delete(k) : on.add(k); c.classList.toggle("off"); paint(); };
+  tl.appendChild(c);
+}
+document.getElementById("zl").innerHTML = ["내부","경계면","외부"]
+  .map(z => `<div class="opt"><span class="sw" style="background:var(${ZC[z]})"></span>${z} leg<b class="mono" style="margin-left:auto">${D.zone_counts[z]||0}</b></div>`).join("");
+document.getElementById("hsub").insertAdjacentHTML("beforeend",
+  ` &nbsp;|&nbsp; 상수 부하 <b class="mono">${D.load_total.toFixed(0)}</b> veh/h `
+  + `<span style="opacity:.75">(통제 불가 유입 ${D.load_cross_v.toFixed(0)} + 내부 주입 ${D.src_total.toFixed(0)})</span>`);
+document.getElementById("unctrl").innerHTML = D.unctrl.map(t =>
+  `<div class="tr"><span class="d" style="background:var(${K[t.k].v})"></span><div>
+   <code class="mono">${t.conn}</code> <span style="color:var(--dim)">${K[t.k].t}</span>
+   <div style="color:var(--dim);font-size:10.5px">${t.stop} → ${t.to} · ${t.legs[0]}${t.flow ? " · " + t.flow.toFixed(0) + " veh/h" : ""}</div></div></div>`).join("")
+  + `<div class="note">경계는 넘지만 출발 정지선에 신호두가 없어 리더가 조일 수 없다. 지도에서 점선으로 그린다.</div>`;
+document.getElementById("src").innerHTML = D.src.map(r =>
+  `<div class="tr"><span class="d" style="background:var(--ext);border-radius:99px"></span><div>
+   <code class="mono">${r.link}</code> <b class="mono">${r.vol.toFixed(0)}</b> <span style="color:var(--dim)">veh/h</span>
+   <div style="color:var(--dim);font-size:10.5px">${r.name} · ${r.legs[0]}</div></div></div>`).join("")
+  + `<div class="note">합계 <b class="mono">${D.src_total.toFixed(0)}</b> veh/h. 보호망 안쪽 링크에 붙은 vehicleInput 이라 경계면을 넘지 않고 곧장 N<sub>P</sub> 에 더해진다 — 게이트로 조일 수 없는 몫이다. 지도에 점선 원으로 표시.</div>`;
+document.getElementById("rec").innerHTML =
+  `버퍼 안 이동이라 제외한 커넥터 <b>${new Set(D.skipped.map(x=>x.conn)).size}</b>개 (${[...new Set(D.skipped.map(x=>x.conn))].join(", ")}) — 정지선 앞 회랑 안이라 보호망을 넘지 않는다.<br><br>통제 17 SC 기준 config 선언 movement <b>${D.n_decl}</b>개 대 망에서 유도한 회전 <b>${D.n_turn_ctl}</b>개. 선언은 leg 교차곱이라 물리적으로 없는 회전을 포함한다.`;
+
+const d = p => "M" + p.map(q => q.join(" ")).join("L");
+const paths = [];
+const add = (id, r, isC) => {
+  const el = document.createElementNS(NS, "path");
+  el.setAttribute("d", d(r.p)); el.dataset.id = id; el.dataset.c = isC ? "1" : "";
+  g.appendChild(el); paths.push([el, r, isC]);
+};
+for (const [id, r] of Object.entries(D.links)) add(id, r, false);
+for (const [id, r] of Object.entries(D.conns)) add(id, r, true);
+
+const srcG = document.createElementNS(NS, "g");
+g.appendChild(srcG);
+for (const r of D.src) {
+  const l = D.links[r.link]; if (!l) continue;
+  const p = l.p[0];
+  const c = document.createElementNS(NS, "circle");
+  c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]);
+  c.setAttribute("r", Math.max(4, Math.min(11, Math.sqrt(r.vol) / 3)));
+  c.dataset.src = r.link; srcG.appendChild(c);
+}
+
+const nodeG = document.createElementNS(NS, "g");
+g.appendChild(nodeG);
+for (const [sc, n] of Object.entries(D.nodes)) {
+  if (!n.c) continue;
+  const c = document.createElementNS(NS, "circle");
+  c.setAttribute("cx", n.c[0]); c.setAttribute("cy", n.c[1]); c.setAttribute("r", n.ctl ? 9 : 6);
+  c.style.cursor = "pointer"; c.dataset.sc = sc; nodeG.appendChild(c);
+  const t = document.createElementNS(NS, "text");
+  t.setAttribute("x", n.c[0]); t.setAttribute("y", n.c[1] - 13);
+  t.setAttribute("text-anchor", "middle");
+  t.style.cssText = "font-size:12px;font-weight:700;pointer-events:none";
+  t.textContent = sc; nodeG.appendChild(t);
+}
+
+function paint() {
+  for (const [el, r, isC] of paths) {
+    let col, w = isC ? 2.2 : 3.2, op = 1;
+    if (mode === "turn") {
+      if (isC && r.k) {
+        if (on.has(r.k)) { col = cv(K[r.k].v); w = 5.0;
+                           el.style.strokeDasharray = r.ctrl === false ? "7 4" : "none"; }
+        else { col = cv("--roadq"); op = .22; }
+      } else { col = cv(isC ? "--roadq" : "--road"); op = isC ? .5 : .75;
+              if (!isC && r.stop) { col = cv("--road"); w = 4.2; op = 1; } }
+    } else {
+      col = cv(ZC[r.z] || "--znone");
+      op = (r.z === "무소유" || r.z === "freeway") ? .4 : 1;
+    }
+    if (sel) {
+      const mine = (r.o || []).some(s => s.split("·")[0] === sel)
+                || (r.legs || []).some(s => s.split("·")[0] === sel);
+      if (mine) { w += 2.0; op = 1; } else { op *= .28; }
+    }
+    if (!(mode === "turn" && isC && r.k && on.has(r.k))) el.style.strokeDasharray = "none";
+    el.style.stroke = col; el.style.strokeWidth = w; el.style.opacity = op;
+  }
+  for (const c of nodeG.querySelectorAll("circle")) {
+    const n = D.nodes[c.dataset.sc], s = sel === c.dataset.sc;
+    c.style.fill = n.ctl ? (s ? cv("--acc") : cv("--panel")) : cv("--bg");
+    c.style.stroke = n.ctl ? cv("--acc") : cv("--dim");
+    c.style.strokeWidth = s ? 4 : 2;
+  }
+  for (const t of nodeG.querySelectorAll("text")) t.style.fill = cv("--ink");
+  for (const c of srcG.querySelectorAll("circle")) {
+    c.style.fill = "none"; c.style.stroke = cv("--ext");
+    c.style.strokeWidth = 2.2; c.style.strokeDasharray = "3 2.5";
+    c.style.opacity = mode === "zone" ? .35 : .95;
+  }
+}
+document.querySelectorAll("input[name=mode]").forEach(r => r.onchange = () => { mode = r.value; paint(); });
+
+const tip = document.getElementById("tip"), map = document.getElementById("map");
+g.addEventListener("mousemove", e => {
+  const el = e.target;
+  if (el.tagName !== "path") { tip.style.opacity = 0; return; }
+  const isC = el.dataset.c === "1", id = el.dataset.id;
+  const r = isC ? D.conns[id] : D.links[id];
+  let h = `<b class="mono">${isC ? "커넥터" : "링크"} ${id}</b> · 구역 <b>${r.z}</b>`;
+  if (r.o && r.o.length) h += `<br><span style="color:var(--dim)">권역 ${r.o.join(", ")}</span>`;
+  if (!isC && r.stop) h += `<br><b>정지선 링크</b>`;
+  if (!isC && r.src) h += `<br><b style="color:var(--ext)">통제 불가 유입 ${r.src.toFixed(0)} veh/h</b>`
+                        + `<br><span style="color:var(--dim)">${r.srcname}</span>`;
+  if (isC) {
+    h += `<br><span class="mono" style="color:var(--dim)">${r.f} → ${r.t}</span>`;
+    if (r.k) h += `<br>등급 <b style="color:var(${K[r.k].v})">${K[r.k].t}</b> · 진출 ${r.dir || "?"}`
+               + (r.ctrl === false ? `<br><b style="color:var(--out)">통제 불가 — 정지선에 신호두 없음</b>`
+                                     + (r.flow ? `<br><span style="color:var(--dim)">이 회전 분담 ${r.flow.toFixed(0)} veh/h (진입 링크 ${r.vol.toFixed(0)})</span>` : "") : "")
+               + `<br>${r.legs.join(" / ")} <span style="color:var(--dim)">→ ${r.dz}</span>`
+               + (r.sg && r.sg.length ? `<br><span style="color:var(--dim)">신호군 ${r.sg.join(",")}</span>` : "");
+  }
+  tip.innerHTML = h;
+  const b = map.getBoundingClientRect();
+  tip.style.left = Math.min(e.clientX - b.left + 14, b.width - 290) + "px";
+  tip.style.top = (e.clientY - b.top + 14) + "px";
+  tip.style.opacity = 1;
+});
+map.addEventListener("mouseleave", () => tip.style.opacity = 0);
+nodeG.addEventListener("click", e => {
+  if (e.target.dataset.sc) { sel = sel === e.target.dataset.sc ? null : e.target.dataset.sc; show(); paint(); }
+});
+
+const panel = document.getElementById("panel");
+function show() {
+  if (!sel) {
+    panel.innerHTML = `<h2>통제 17 SC — 유입 / 유출 / 외부통과</h2>
+      <table><tr><th>SC</th><th style="text-align:right">유입</th><th style="text-align:right">유출</th>
+      <th style="text-align:right">외부</th><th style="text-align:right">내부</th><th style="text-align:right">선언</th></tr>` +
+      Object.entries(D.nodes).filter(([, n]) => n.ctl).sort((a, b) => +a[0].slice(2) - +b[0].slice(2))
+        .map(([sc, n]) => { const c = n.cnt || {};
+          const pure = !(c.inflow || c.outflow || c.external);
+          return `<tr><td class="mono"><b>${sc}</b>${pure ? '<div style="color:var(--dim);font-size:10px">완전 내부</div>' : ""}</td>
+            <td class="mono" style="text-align:right;color:var(--in)">${c.inflow || 0}</td>
+            <td class="mono" style="text-align:right;color:var(--out)">${c.outflow || 0}</td>
+            <td class="mono" style="text-align:right;color:var(--ext)">${c.external || 0}</td>
+            <td class="mono" style="text-align:right;color:var(--dim)">${c.internal || 0}</td>
+            <td class="mono" style="text-align:right;color:var(--dim)">${n.turns}/${n.decl}</td></tr>`; }).join("") +
+      `</table><div class="note">맨 오른쪽은 <b>망에서 유도한 회전 / config 선언 movement</b>. 교차로를 클릭하면 leg 구역과 회전 주소가 나온다.</div>`;
+    return;
+  }
+  const n = D.nodes[sel], ts = D.turns.filter(t => t.sc === sel);
+  const byk = {};
+  for (const t of ts) (byk[t.k] = byk[t.k] || []).push(t);
+  panel.innerHTML = `<h2>${sel} ${n.ctl ? "· 통제" : "· 비통제"}</h2>
+    <table><tr><th>leg</th><th>구역</th><th style="text-align:right">정지선</th></tr>` +
+    n.legs.map(l => `<tr><td class="mono"><b>${l.k}</b></td>
+      <td><span class="pill" style="background:var(${ZC[l.z] || "--znone"})">${l.z}</span>
+        <div style="color:var(--dim);font-size:10.5px">${l.why}</div></td>
+      <td class="mono" style="text-align:right;font-size:10.5px">${l.stops.join("<br>") || "–"}
+        ${l.sig ? "" : '<div style="color:var(--dim);font-size:9.5px">신호두 없음</div>'}</td></tr>`).join("") +
+    `</table>` +
+    Object.keys(K).filter(k => byk[k]).map(k =>
+      `<h2><span class="sw" style="background:var(${K[k].v});display:inline-block;vertical-align:middle;margin-right:5px"></span>${K[k].t} ${byk[k].length}</h2>` +
+      byk[k].map(t => `<div class="tr"><span class="d" style="background:var(${K[k].v})"></span><div>
+        <code>${t.stop}</code> <span class="arrow">→</span> <code style="color:var(${K[k].v})">${t.conn}</code> <span class="arrow">→</span> <code>${t.to}</code>
+        <div style="color:var(--dim);font-size:10.5px">${t.legs.join(" / ")} · 진출 ${t.dir || "?"} → ${t.dz}${t.sg && t.sg.length ? " · 신호군 " + t.sg.join(",") : ""}</div>
+      </div></div>`).join("")).join("");
+}
+show();
+
+let vb = [0, 0, D.W, D.H];
+const apply = () => svg.setAttribute("viewBox", vb.join(" "));
+apply(); paint();
+map.addEventListener("wheel", e => {
+  e.preventDefault();
+  const b = map.getBoundingClientRect();
+  const mx = vb[0] + (e.clientX - b.left) / b.width * vb[2];
+  const my = vb[1] + (e.clientY - b.top) / b.height * vb[3];
+  const f = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+  if (vb[2] * f > D.W * 3 || vb[2] * f < D.W / 80) return;
+  vb = [mx - (mx - vb[0]) * f, my - (my - vb[1]) * f, vb[2] * f, vb[3] * f];
+  apply();
+}, {passive:false});
+let dr = null;
+map.addEventListener("pointerdown", e => { dr = [e.clientX, e.clientY]; map.classList.add("drag"); });
+addEventListener("pointerup", () => { dr = null; map.classList.remove("drag"); });
+map.addEventListener("pointermove", e => {
+  if (!dr) return;
+  const b = map.getBoundingClientRect();
+  vb[0] -= (e.clientX - dr[0]) / b.width * vb[2];
+  vb[1] -= (e.clientY - dr[1]) / b.height * vb[3];
+  dr = [e.clientX, e.clientY]; apply();
+});
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change", paint);
+</script>

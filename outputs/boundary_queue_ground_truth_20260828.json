@@ -1,0 +1,81 @@
+{
+ "schema_version": "boundary-queue-ground-truth/1",
+ "generated": "2026-08-28",
+ "run": "canon_nolencap_20260828",
+ "fzp": "modi_eval_userfix_20260814e_001.fzp",
+ "why": "리더의 boundary_in 가중치가 0인데 물리량은 670대이고, 우리 TTT 는 boundary_vehicles=0 이라 경계 큐를 안 센다. 실재 여부를 회계로 가른다.",
+ "method": ".fzp 는 망 안 차량만 적는다. .inpx vehicleInput 적분(요구) 대 차량번호 최대값(생성)의 차이가 못 들어간 차 = 밖에 선 차다.",
+ "rows": 3389699,
+ "time_steps": 1080,
+ "generated_veh": 32428,
+ "distinct_veh_seen": 32427,
+ "demanded_veh_inpx": 196497.77999999997,
+ "shortfall_veh": 164069.77999999997,
+ "shortfall_pct": 83.49701457186946,
+ "network_vehicles_median": 3301.0,
+ "network_vehicles_max": 4200,
+ "core_accumulation_median": 2475.5,
+ "core_accumulation_max": 3075,
+ "per_input_top": [
+  {
+   "no": "1098",
+   "link": "74",
+   "demanded_veh": 32010.0
+  },
+  {
+   "no": "1099",
+   "link": "26",
+   "demanded_veh": 32010.0
+  },
+  {
+   "no": "1032",
+   "link": "55",
+   "demanded_veh": 12996.059999999998
+  },
+  {
+   "no": "1101",
+   "link": "69",
+   "demanded_veh": 9702.0
+  },
+  {
+   "no": "1102",
+   "link": "32",
+   "demanded_veh": 9699.0
+  },
+  {
+   "no": "1082",
+   "link": "1220000704",
+   "demanded_veh": 9323.64
+  },
+  {
+   "no": "1065",
+   "link": "1220042300",
+   "demanded_veh": 9253.8
+  },
+  {
+   "no": "1074",
+   "link": "1220044500",
+   "demanded_veh": 6204.120000000001
+  },
+  {
+   "no": "1013",
+   "link": "117",
+   "demanded_veh": 6087.720000000001
+  },
+  {
+   "no": "1100",
+   "link": "66",
+   "demanded_veh": 5884.02
+  },
+  {
+   "no": "1105",
+   "link": "99",
+   "demanded_veh": 5884.02
+  },
+  {
+   "no": "1106",
+   "link": "80",
+   "demanded_veh": 5884.02
+  }
+ ]
+}

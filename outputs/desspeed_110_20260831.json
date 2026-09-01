@@ -1,0 +1,72 @@
+{
+ "schema_version": "desspeed-110/1",
+ "generated": "2026-08-31",
+ "why": "VSL 격자를 10 단위로 넓히려면 110 km/h 분포가 필요한데 망에 없어 VSL_COM_WRITE_READBACK 으로 런이 두 번 죽었다. 실패 런에서 모델이 110 을 26% 골랐다.",
+ "distribution": {
+  "no": 110,
+  "name": "110 km/h",
+  "points": [
+   [
+    0,
+    86.5
+   ],
+   [
+    0.03,
+    100
+   ],
+   [
+    0.1,
+    105
+   ],
+   [
+    0.69,
+    117.5
+   ],
+   [
+    0.91,
+    130
+   ],
+   [
+    1,
+    142.5
+   ]
+  ],
+  "method": "100 분포와 120 분포의 중간 보간"
+ },
+ "inert": "어떤 vehicleInput·route·DSD 도 이 분포를 참조하지 않는다. 컨트롤러가 런타임 COM 으로 지정할 때만 쓰이므로 무제어 기준선은 그대로 유효하다.",
+ "networks": [
+  {
+   "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+   "output": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_dsd110.inpx",
+   "bytes": 3048230,
+   "lines_added": 10,
+   "distributions": [
+    43,
+    44
+   ],
+   "verified": true
+  },
+  {
+   "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18.inpx",
+   "output": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18_dsd110.inpx",
+   "bytes": 3048230,
+   "lines_added": 10,
+   "distributions": [
+    43,
+    44
+   ],
+   "verified": true
+  },
+  {
+   "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x22.inpx",
+   "output": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x22_dsd110.inpx",
+   "bytes": 3048232,
+   "lines_added": 10,
+   "distributions": [
+    43,
+    44
+   ],
+   "verified": true
+  }
+ ]
+}

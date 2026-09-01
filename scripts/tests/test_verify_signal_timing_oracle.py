@@ -38,7 +38,8 @@ class VerifyCliTests(unittest.TestCase):
 
         rows = cli.simulated_action_rows(self.plan, major_green=57.0, minor_green=63.0)
         signal_rows = {int(row["sc_no"]): row for row in rows if row["kind"] == "signal"}
-        self.assertEqual(15, len(signal_rows))
+        # 2026-08-19: 계획이 15 -> 17 SC (SC7·SC16 복원). 계획에서 읽는다.
+        self.assertEqual(len(self.plan["controllers"]), len(signal_rows))
         for sc_no, row in sorted(signal_rows.items()):
             with self.subTest(sc=sc_no):
                 greens = action_csv_schema.phase_greens(row)

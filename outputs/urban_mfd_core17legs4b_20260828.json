@@ -1,0 +1,154 @@
+{
+ "schema_version": "urban-mfd/core17legs4b/1",
+ "generated": "2026-08-28",
+ "why": "리더의 perimeter 항 임계 N_P_crit_veh=509.449 가 적합값이 아니라 폴백 상수이고, 저장소의 urban MFD 산출물은 전부 2026-08-19 토폴로지 재생성 이전 세대다.",
+ "method": {
+  "accumulation": "sum_i count_i over core links",
+  "production": "sum_i count_i * mean_speed_kph_i [veh*km/h]",
+  "core_links": "detector link_to_origins - freeway - ramp",
+  "source": "완주 런의 상태 JSON local_observation (VISSIM 재실행 없음)"
+ },
+ "detector_mapping": "evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4f_20260826.json",
+ "link_counts": {
+  "link_to_origins": 1048,
+  "freeway": 6,
+  "ramp": 12,
+  "boundary": 21,
+  "core": 1048
+ },
+ "runs": {
+  "bstoA_20260827": 37,
+  "canon_dpoff_20260828": 37,
+  "canon_gne_far_20260827": 37,
+  "canon_gne_nofar_20260827": 37,
+  "canon_gne_t15_20260828": 37,
+  "canon_guard_20260828": 37,
+  "canon_ingne_20260828": 37,
+  "canon_nolencap_20260828": 37,
+  "canon_phasefix_20260828": 37,
+  "canon_plantfix_20260827": 37,
+  "map4ftau_20260826": 37,
+  "nocontrolstep_20260826": 37,
+  "plantfix_20260827": 37
+ },
+ "point_count": 481,
+ "accumulation_range_veh": [
+  4.0,
+  3662.0
+ ],
+ "core_over_state_urban_ratio_median": 0.9506891271056661,
+ "peak_bin": {
+  "bin_lo": 3357.1666666666665,
+  "bin_hi": 3662.0,
+  "n_points": 39,
+  "mean_accumulation_veh": 3500.3846153846152,
+  "mean_production_veh_km_h": 47365.90814661538,
+  "mean_speed_kph": 13.531064216627978
+ },
+ "peak_point": {
+  "run": "nocontrolstep_20260826",
+  "sim_sec": 2400.0,
+  "core_accumulation_veh": 2896.0,
+  "core_production_veh_km_h": 63083.57610399999
+ },
+ "turned_over": false,
+ "current_leader_N_P_crit_veh": 509.448830418254,
+ "binned": [
+  {
+   "bin_lo": 4.0,
+   "bin_hi": 308.8333333333333,
+   "n_points": 13,
+   "mean_accumulation_veh": 4.0,
+   "mean_production_veh_km_h": 162.25913699999998,
+   "mean_speed_kph": 40.564784249999995
+  },
+  {
+   "bin_lo": 308.8333333333333,
+   "bin_hi": 613.6666666666666,
+   "n_points": 13,
+   "mean_accumulation_veh": 492.53846153846155,
+   "mean_production_veh_km_h": 11861.530249538455,
+   "mean_speed_kph": 24.101120577480447
+  },
+  {
+   "bin_lo": 613.6666666666666,
+   "bin_hi": 918.5,
+   "n_points": 13,
+   "mean_accumulation_veh": 794.3076923076923,
+   "mean_production_veh_km_h": 20427.843721538462,
+   "mean_speed_kph": 25.73344853469542
+  },
+  {
+   "bin_lo": 918.5,
+   "bin_hi": 1223.3333333333333,
+   "n_points": 14,
+   "mean_accumulation_veh": 1052.2142857142858,
+   "mean_production_veh_km_h": 26314.754708357144,
+   "mean_speed_kph": 25.005696446136067
+  },
+  {
+   "bin_lo": 1223.3333333333333,
+   "bin_hi": 1528.1666666666665,
+   "n_points": 37,
+   "mean_accumulation_veh": 1385.7837837837837,
+   "mean_production_veh_km_h": 31108.473764459453,
+   "mean_speed_kph": 22.42931269533035
+  },
+  {
+   "bin_lo": 1528.1666666666665,
+   "bin_hi": 1833.0,
+   "n_points": 14,
+   "mean_accumulation_veh": 1746.5714285714287,
+   "mean_production_veh_km_h": 39160.02764385714,
+   "mean_speed_kph": 22.427254181801025
+  },
+  {
+   "bin_lo": 1833.0,
+   "bin_hi": 2137.833333333333,
+   "n_points": 37,
+   "mean_accumulation_veh": 2052.891891891892,
+   "mean_production_veh_km_h": 37245.011629270266,
+   "mean_speed_kph": 18.209446133700045
+  },
+  {
+   "bin_lo": 2137.833333333333,
+   "bin_hi": 2442.6666666666665,
+   "n_points": 65,
+   "mean_accumulation_veh": 2285.276923076923,
+   "mean_production_veh_km_h": 37634.73149386154,
+   "mean_speed_kph": 16.45612310758683
+  },
+  {
+   "bin_lo": 2442.6666666666665,
+   "bin_hi": 2747.5,
+   "n_points": 82,
+   "mean_accumulation_veh": 2593.0243902439024,
+   "mean_production_veh_km_h": 39937.95497619513,
+   "mean_speed_kph": 15.408947287426027
+  },
+  {
+   "bin_lo": 2747.5,
+   "bin_hi": 3052.333333333333,
+   "n_points": 94,
+   "mean_accumulation_veh": 2934.053191489362,
+   "mean_production_veh_km_h": 46569.3392048617,
+   "mean_speed_kph": 15.868269060251265
+  },
+  {
+   "bin_lo": 3052.333333333333,
+   "bin_hi": 3357.1666666666665,
+   "n_points": 60,
+   "mean_accumulation_veh": 3131.0333333333333,
+   "mean_production_veh_km_h": 45776.597620316665,
+   "mean_speed_kph": 14.629418330421954
+  },
+  {
+   "bin_lo": 3357.1666666666665,
+   "bin_hi": 3662.0,
+   "n_points": 39,
+   "mean_accumulation_veh": 3500.3846153846152,
+   "mean_production_veh_km_h": 47365.90814661538,
+   "mean_speed_kph": 13.531064216627978
+  }
+ ]
+}

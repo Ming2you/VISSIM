@@ -1,0 +1,25 @@
+# 2026-08-18. boundary_extra_legs_dedup_20260818.csv 를 **4방위**로 통일하고,
+# mid-block 으로 강등된 노드(SC4·9·10·13·14·15·9001·9003)의 게이트를 하류 player 로
+# 재배치한 것. 갈래가 나뉘는 곳은 vehicleRoutingDecisionStatic 의 relFlow 로 나눴다.
+# 방위 변환은 NE->E · NW->N · SW->W · SE->S (신호군 이름과 전수 일치 확인).
+# 정렬표(22개) 쪽 게이트 중 노드가 강등된 SC13_S · SC9001_S 도 여기서 재배치한다.
+model_node,leg,status,veh,inflow_veh_h,source_links,note
+SC1004,S,mapped,1384,849,66,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SE->S
+SC1005,W,mapped,226,1400,69,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SW->W
+SC5,S,mapped,165,168,256,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SE->S
+SC1004,W,mapped,163,1400,69,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SW->W
+SC11,W,mapped,29,168,236 247 242 240,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SW->W
+SC6,S,mapped,19,420,138,SC10_SE 재배치 — 138 -> 1220018302 (SC6)
+SC7,E,mapped,17,84,201 197,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 NE->E
+SC1,E,mapped,16,168,236 249 242 251,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 NE->E
+SC12,W,mapped,14,126,217 225 224,상류 종단에 vehicleInput 있음 — 자동 확정
+SC108,W,mapped,14,404,379,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SW->W
+SC11,E,mapped,12,126,217 225 224,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 NE->E
+SC101,S,mapped,9,200,341,SC15_NE 재배치 — 341 -> 1220008502 (SC101 방면)
+SC1,N,mapped,9,150,343,SC15_SW 재배치 — 343 -> 1220008401 (SC1 방면)
+SC16,S,mapped,7,252,164,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SE->S
+SC16,W,mapped,5,84,201 197,상류 종단에 vehicleInput 있음 — 자동 확정 · 4방위 변환 SW->W
+SC12,E,mapped,,36,1220013100,SC13_S 재배치 — 1220013100 좌 -> 1220013600 (SC12)
+SC106,W,mapped,,61,1220013100,SC13_S 재배치 — 1220013100 우 -> 1220015700 (SC106)
+SC105,E,mapped,,85,364,SC9001_S 재배치 — 364 좌 -> 1220007001 (SC105)
+SC1,W,mapped,,111,364,SC9001_S 재배치 — 364 우 -> 359 -> 353 (SC1)

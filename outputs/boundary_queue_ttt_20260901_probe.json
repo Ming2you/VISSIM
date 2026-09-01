@@ -1,0 +1,32 @@
+{
+ "schema_version": "boundary-queue-ttt/1",
+ "generated": "2026-08-28",
+ "why": "우리 TTT 는 boundary_vehicles=0 이라 밖에 선 차를 안 센다. 그 양을 회계로 적분한다.",
+ "caveat": "vehicleInput 이 STOCHASTIC 이라 shortfall 이 음수로도 간다. 절대값을 큐로 읽지 말고 팔 사이 차이만 읽어라.",
+ "inpx": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18_rampbn.inpx",
+ "total_demand_veh": 41285.63,
+ "baseline": "nc_rampbn_x18_20260901",
+ "runs": {
+  "canon_farbn_d00_x18_20260901": {
+   "generated_veh": 38445,
+   "shortfall_final": 2821.712666666659,
+   "shortfall_min": -41.71860000000015,
+   "shortfall_max": 3088.6059999999925,
+   "missing_ttt_veh_h": 2109.3728391898117
+  },
+  "canon_bn_d00_x18_20260901": {
+   "generated_veh": 38186,
+   "shortfall_final": 3080.712666666659,
+   "shortfall_min": -41.71860000000015,
+   "shortfall_max": 3172.641899999995,
+   "missing_ttt_veh_h": 2153.997144745367
+  },
+  "nc_rampbn_x18_20260901": {
+   "generated_veh": 37518,
+   "shortfall_final": 3748.712666666659,
+   "shortfall_min": -41.71860000000015,
+   "shortfall_max": 3784.045999999995,
+   "missing_ttt_veh_h": 2493.1207558564784
+  }
+ }
+}

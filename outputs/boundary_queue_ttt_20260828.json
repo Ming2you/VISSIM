@@ -1,0 +1,74 @@
+{
+ "schema_version": "boundary-queue-ttt/1",
+ "generated": "2026-08-28",
+ "why": "우리 TTT 는 boundary_vehicles=0 이라 밖에 선 차를 안 센다. 그 양을 회계로 적분한다.",
+ "caveat": "vehicleInput 이 STOCHASTIC 이라 shortfall 이 음수로도 간다. 절대값을 큐로 읽지 말고 팔 사이 차이만 읽어라.",
+ "inpx": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+ "total_demand_veh": 32749.630000000005,
+ "baseline": "nocontrolstep_20260826",
+ "runs": {
+  "nocontrolstep_20260826": {
+   "generated_veh": 32477,
+   "shortfall_final": 257.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 262.6726666666691,
+   "missing_ttt_veh_h": 119.79718486882958
+  },
+  "tau_20260826": {
+   "generated_veh": 32443,
+   "shortfall_final": 291.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 305.69711111111246,
+   "missing_ttt_veh_h": 142.05551820216294
+  },
+  "bstoA_20260827": {
+   "generated_veh": 32456,
+   "shortfall_final": 278.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 287.69711111111246,
+   "missing_ttt_veh_h": 133.46176820216294
+  },
+  "canon_plantfix_20260827": {
+   "generated_veh": 32467,
+   "shortfall_final": 267.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 283.69711111111246,
+   "missing_ttt_veh_h": 131.31940709105183
+  },
+  "canon_dpoff_20260828": {
+   "generated_veh": 32473,
+   "shortfall_final": 261.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 263.10822222222487,
+   "missing_ttt_veh_h": 119.12774042438514
+  },
+  "canon_phasefix_20260828": {
+   "generated_veh": 32460,
+   "shortfall_final": 274.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 288.91488888889216,
+   "missing_ttt_veh_h": 136.5089904243852
+  },
+  "canon_nolencap_20260828": {
+   "generated_veh": 32428,
+   "shortfall_final": 306.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 313.6726666666691,
+   "missing_ttt_veh_h": 149.48815709105185
+  },
+  "canon_gne_far_20260827": {
+   "generated_veh": 32372,
+   "shortfall_final": 362.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 376.69711111111246,
+   "missing_ttt_veh_h": 199.35899042438518
+  },
+  "canon_ingne_20260828": {
+   "generated_veh": 32417,
+   "shortfall_final": 317.62377777777874,
+   "shortfall_min": -34.15411111111098,
+   "shortfall_max": 338.69711111111246,
+   "missing_ttt_veh_h": 172.25829597994073
+  }
+ }
+}

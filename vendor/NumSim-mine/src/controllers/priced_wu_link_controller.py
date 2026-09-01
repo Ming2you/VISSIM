@@ -102,9 +102,72 @@ class LinkAgentWuFollower(WuFaithfulFollower):
     기대면 빌더가 바뀔 때 조용히 뒤집힌다.
     """
 
+    # 램프 미터링을 GNE 합의 루프 **안**으로 넣을지 (2026-08-29).
+    #
+    # 상류 기본은 밖이다. `wu_faithful_follower.py:4308` 주석이 이유를 적는다 —
+    # "metering 좌표하강은 비싸므로 합의 루프 밖에서 1회만 돈다". 그래서 링크 팔에서는
+    #
+    #     Jacobi 루프 안   도시 17개 green + 고속도로 2개 VSL
+    #     루프 밖 1회      램프 미터링
+    #
+    # 이 되고, **되먹임이 한 방향으로만 흐른다.** 도시 agent 가 녹색을 정할 때 그 결정이
+    # 만들 미터링을 못 보고, 미터링이 정해질 때는 도시 녹색이 이미 확정돼 있다.
+    #
+    # 실측이 그 자국을 보여준다(2026-08-29, 수요 x1.6~x2.2 sweep):
+    #
+    #     배율   urban     freeway    합
+    #     x1.8  -158.8    +165.1    +7.3
+    #     x2.0  -206.6    +266.9   +59.8
+    #     x2.2  -159.9    +238.5   +76.8
+    #
+    # 도시부를 개선한 만큼 본선이 나빠지는데, 그 상충이 GNE 안에서 저울질된 적이 없다.
+    # VSL 을 꺼도(x2.2 novsl) freeway 가 +167.3 남고 미터링을 무제어와 같은 7200 으로
+    # 열어둬도 그렇다 — 남는 설명이 이 구조적 비대칭이다.
+    #
+    # **왜 `segment_agents` 를 켜는가.** 상류가 미터링을 루프 안에서 푸는 분기를
+    # `if self.segment_agents and self.metering_enabled` 로만 연다(4313행 · 4565행).
+    # vendor 를 안 고치고 그 분기를 타려면 이 플래그가 필요하다. 대신 아래에서
+    # `_solve_freeway_segment_agents` 를 **링크 단위 metered solve 로 재정의**하므로
+    # 세그먼트 분해는 일어나지 않는다. 즉 이 클래스에서 `segment_agents = True` 는
+    # "고속도로를 세그먼트로 쪼갠다" 가 아니라 **"미터링을 합의 루프 안에서 푼다"** 는 뜻이다.
+    # 그 이름 불일치가 오독을 부르므로 진단 `wu_link_metering_in_gne` 로 따로 찍고,
+    # SEG13 전용 키가 섞여 들어오면 예외를 낸다(그 키들의 가드가 이 플래그로 열리기 때문).
+    metering_in_gne: bool = False
+
     def __init__(self, cfg: ExperimentConfig):
         super().__init__(cfg)
         self.segment_agents = False
+
+    def enable_metering_in_gne(self) -> None:
+        """미터링을 Jacobi 합의 루프 안으로 올린다. 세그먼트 분해는 하지 않는다."""
+        mpc = self.cfg.mpc
+        for key in ("seg13_meter_box_veh_h", "seg13_vsl_box_kmh", "freeway_agent_groups"):
+            if getattr(mpc, key, None) is not None:
+                raise ValueError(
+                    "metering_in_gne 는 segment_agents 플래그로 상류 분기를 타는데, 그 플래그가 "
+                    "SEG13 전용 키의 가드도 함께 연다. %s 가 설정돼 있으면 그 키가 조용히 "
+                    "SEG13 경로로 해석될 수 있다 — 링크 팔에서는 쓰지 마라." % key
+                )
+        self.metering_in_gne = True
+        self.segment_agents = True
+
+    def _solve_freeway_segment_agents(self, link, state, coupling, demand, snapshot,
+                                      leader, previous=None):
+        """**링크 단위** VSL+미터링 결합 탐색. 세그먼트로 쪼개지 않는다.
+
+        상류 동명 메서드는 link 를 segment agent 4개로 분해하지만, 이 클래스는 링크
+        agent 2개가 정본이다(그것이 `wu-link` 팔의 존재 이유 — VSL 이 링크당 1개라
+        세그먼트 8개가 공유하면 합의가 안 된다). 그래서 시그니처와 반환형이 동일한
+        `_solve_freeway_agent_metered` 로 그대로 넘긴다. 상류 루프는 이 메서드를
+        `segment_agents` 분기에서 부르므로, 결과적으로 **미터링만 루프 안으로 들어온다.**
+        """
+        if not self.metering_in_gne:
+            return super()._solve_freeway_segment_agents(
+                link, state, coupling, demand, snapshot, leader, previous
+            )
+        return self._solve_freeway_agent_metered(
+            link, state, coupling, demand, snapshot, leader, previous
+        )
 
 
     # ================= 현시별 가격 (2026-08-20) =================

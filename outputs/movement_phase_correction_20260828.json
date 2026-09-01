@@ -1,0 +1,105 @@
+{
+ "schema_version": "movement-phase-correction/1",
+ "generated": "2026-08-28",
+ "why": "선언 phase 가 정지선 커넥터 SG(신호두 교차검증 충돌 0)와 어긋난다. phase 는 플랜트에서 그 movement 가 받는 현시 녹색을 정하므로, 틀리면 회전이 다른 현시로 서비스된다. dead_phase_beta_zero 가 이 자리들을 '죽은 현시'로 오판한 원인이기도 하다.",
+ "evidence": {
+  "connector_map": "outputs/movement_connector_map_20260824.json",
+  "signalhead_crossvalidation": "outputs/movement_sg_canonical_20260827.json",
+  "phase_signal_groups": "movement_signal_group_map_v3 == signal_group_actuation_plan_v3 (17/17 SC 일치)"
+ },
+ "counts": {
+  "checked": 30,
+  "agree": 19,
+  "corrections": 11
+ },
+ "corrections": {
+  "SC1003_E_SC105_to_N_SC1001": {
+   "intersection": "SC1003",
+   "declared_phase": "p3",
+   "evidence_phase": "p4",
+   "signal_group": "1",
+   "signalhead_confirmed": true,
+   "beta": 0.5
+  },
+  "SC105_E_SC1_to_S_SC1005": {
+   "intersection": "SC105",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "6",
+   "signalhead_confirmed": true,
+   "beta": 0.24732989319572782
+  },
+  "SC105_W_SC1003_to_N_SC1002": {
+   "intersection": "SC105",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "2",
+   "signalhead_confirmed": true,
+   "beta": 0.3313331333133313
+  },
+  "SC108_N_SC7_to_E_SC109": {
+   "intersection": "SC108",
+   "declared_phase": "p2",
+   "evidence_phase": "p1",
+   "signal_group": "4",
+   "signalhead_confirmed": true,
+   "beta": 0.0588
+  },
+  "SC108_S_to_W_SC107": {
+   "intersection": "SC108",
+   "declared_phase": "p2",
+   "evidence_phase": "p1",
+   "signal_group": "8",
+   "signalhead_confirmed": true,
+   "beta": 0.2105
+  },
+  "SC11_S_SC7_to_W_SC1": {
+   "intersection": "SC11",
+   "declared_phase": "p2",
+   "evidence_phase": "p1",
+   "signal_group": "8",
+   "signalhead_confirmed": true,
+   "beta": 0.1257125712571257
+  },
+  "SC11_W_SC1_to_N_SC5": {
+   "intersection": "SC11",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "2",
+   "signalhead_confirmed": true,
+   "beta": 0.29821192847713907
+  },
+  "SC16_E_to_S_SC109": {
+   "intersection": "SC16",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "6",
+   "signalhead_confirmed": true,
+   "beta": 0.3599
+  },
+  "SC16_W_SC7_to_N_SC12": {
+   "intersection": "SC16",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "2",
+   "signalhead_confirmed": true,
+   "beta": 0.6774776583994376
+  },
+  "SC1_E_SC11_to_S_SC107": {
+   "intersection": "SC1",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "6",
+   "signalhead_confirmed": true,
+   "beta": 0.31063215198311295
+  },
+  "SC1_W_SC105_to_N_SC101": {
+   "intersection": "SC1",
+   "declared_phase": "p4",
+   "evidence_phase": "p3",
+   "signal_group": "2",
+   "signalhead_confirmed": true,
+   "beta": 0.2277524719475614
+  }
+ }
+}

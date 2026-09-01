@@ -68,8 +68,11 @@ class BoundaryGatePlanTests(unittest.TestCase):
 
     def test_name_suffix_beats_link_geometry(self) -> None:
         payload = {"vehicle_inputs": [
-            # 진행방향 NB -> 접근 leg 은 S. 기하 추정은 SE 라고 말한다.
-            _vehicle_input("114", "SC9001", "우리은행포이_NB", "SE"),
+            # 진행방향 NB -> 접근 leg 은 S. 기하 추정은 NE 라고 말한다.
+            # 2026-08-19: 4방위 접기(NE->E · NW->N · SW->W · SE->S)가 들어오면서
+            # 기하를 SE 로 두면 접혀서 S 가 되어 이 검사가 무력해진다(이름 규칙이
+            # 깨져도 통과한다). 접힌 뒤에도 답이 다른 NE 를 쓴다.
+            _vehicle_input("114", "SC9001", "우리은행포이_NB", "NE"),
         ]}
         plan, evidence = generator.boundary_gate_plan_from_alignment(payload)
         self.assertEqual({"SC9001": ["S"]}, plan)
@@ -80,7 +83,9 @@ class BoundaryGatePlanTests(unittest.TestCase):
             _vehicle_input("1100", "SC1004", "", "SE", entry_class="unnamed"),
         ]}
         plan, evidence = generator.boundary_gate_plan_from_alignment(payload)
-        self.assertEqual({"SC1004": ["SE"]}, plan)
+        # 2026-08-19: 기하가 SE 라도 4방위로 접혀 S 가 나온다. 이 검사가 드는 것은
+        # "이름에 접미사가 없을 때 기하를 쓴다" 이므로 source 가 핵심이다.
+        self.assertEqual({"SC1004": ["S"]}, plan)
         self.assertEqual("link_geometry", evidence[0]["source"])
 
     def test_every_travel_suffix_maps_to_its_opposite_approach_leg(self) -> None:
@@ -109,13 +114,16 @@ class BoundaryGatePlanTests(unittest.TestCase):
         pairs = {(node, leg) for node, legs in plan.items() for leg in legs}
         self.assertEqual(22, len(evidence))
         self.assertEqual(22, len(pairs))
-        self.assertIn(("SC1004", "SE"), pairs)
-        self.assertIn(("SC1004", "SW"), pairs)
+        # 2026-08-19: 4방위 접기로 SE->S · SW->W 가 됐다. 쌍 개수는 22 그대로다.
+        self.assertIn(("SC1004", "S"), pairs)
+        self.assertIn(("SC1004", "W"), pairs)
         self.assertIn(("SC13", "S"), pairs)
         # SC1 은 '구룡터널_NB(터널직진)' 다. 괄호가 붙어도 접미사가 잡혀야 한다.
         self.assertIn(("SC1", "S"), pairs)
-        self.assertNotIn(("SC1", "SE"), pairs)
-        self.assertNotIn(("SC9001", "SE"), pairs)
+        # 8방위가 하나도 남지 않아야 한다. 개별 NotIn 은 접기 뒤에 공허하게 참이 된다.
+        self.assertEqual(
+            [], sorted(pair for pair in pairs if pair[1] in {"NE", "NW", "SE", "SW"})
+        )
 
 
 class MeasuredAdjacencyBeatsSymmetryTests(_VendorSrcIsolation):
@@ -218,16 +226,28 @@ class BoundaryGateOverrideTests(_VendorSrcIsolation):
         }
         self.assertEqual({"SC1_p3"}, phases)
 
-    def test_gate_on_a_ramp_bearing_fails_closed(self) -> None:
-        # 램프 leg 는 맨 방위 키를 쓴다. 게이트를 그냥 대입하면 램프 결합이 조용히 사라진다.
-        with self.assertRaises(SystemExit):
-            generator.build_network_override(
-                _rows(1001, 2),
-                include_freeway_interface_coupling=True,
-                ramp_interface_sc={"R_D_W": "SC1001", "R_D_E": "SC1001"},
-                adjacency_legs={"1001": {"E_2": 2}, "2": {"W_1001": 1001}},
-                boundary_gates={"SC1001": ["S"]},
-            )
+    def test_a_gate_never_swallows_the_ramp_leg(self) -> None:
+        """지켜야 할 성질은 "램프 결합이 조용히 사라지지 않는다" 이다.
+
+        2026-08-19: 예전에는 램프 leg 가 **맨 방위 키**를 써서 같은 방위 게이트를 대입하면
+        덮어써졌고, 그래서 이 검사가 `SystemExit` 를 들었다. 지금은 램프가 `S_RAMP` 같은
+        복합키를 쓰므로 그 충돌 자체가 성립하지 않는다. 사라진 실패 모드를 계속 드는 대신
+        **램프 leg 가 게이트와 나란히 살아남는지**를 든다 - 지키려던 것은 그것이었다.
+        """
+        for bearing in ("S", "W", "E", "N"):
+            with self.subTest(gate=bearing):
+                override = generator.build_network_override(
+                    _rows(1001, 2),
+                    include_freeway_interface_coupling=True,
+                    ramp_interface_sc={"R_D_W": "SC1001", "R_D_E": "SC1001"},
+                    adjacency_legs={"1001": {"E_2": 2}, "2": {"W_1001": 1001}},
+                    boundary_gates={"SC1001": [bearing]},
+                )
+                legs = override["grid_node_legs"]["SC1001"]
+                ramp = [key for key, spec in legs.items() if spec.get("type") == "ramp"]
+                self.assertEqual(1, len(ramp), legs)
+                self.assertTrue(ramp[0].endswith("_RAMP"), ramp)
+                self.assertIn(bearing, legs)
 
     def test_node_outside_the_model_fails_closed(self) -> None:
         with self.assertRaises(SystemExit):

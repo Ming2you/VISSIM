@@ -5,12 +5,12 @@
   "source": {
     "network": "network\\real_world_gaepo_modi\\modi_eval_userfix_20260814e.inpx",
     "network_sha256": "aff70f096c91a91bc24c0ca1bfe5aeb42864f4281f412b21a9a5b656c9917954",
-    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_pedovrx_20260814.json",
-    "control_mapping_sha256": "a7d95b6ed2ac48356a065a2f45dbc7f854ac3dfcdbcb4d728ebc3d192f42d6b9",
+    "control_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\control_mapping_distributed_core17legs4b_20260819.json",
+    "control_mapping_sha256": "c74257c84ce2926ee889130a99a8dbafb95bc498ae3d434a31072f40b143a48c",
     "movement_signal_group_map": "outputs\\movement_signal_group_map_v3.json",
-    "movement_signal_group_map_sha256": "ce16e9bed0dc37cba5b8856c311d02cd729e2a186d6d6fee1c3549bb46d4fde8",
+    "movement_signal_group_map_sha256": "265a77593c8241ff67ff7799a6d289791d547dadf650793ba7888fd9f1877ce8",
     "program_source": "inpx supplyFile2 (not signal_group_timing_v3.json)",
-    "signal_group_timing_v3_sha256": "204840adc0002b43a071630110ef038e2b8c0acc1245e8ec8b5554f8be63cd51"
+    "signal_group_timing_v3_sha256": "fb1d2e17e91b16d6b5458f2c8fc19aad9b0e5cbbea4c01cb6cc27d51000c837c"
   },
   "controllers": {
     "1": {
@@ -750,6 +750,152 @@
         "8": 43.0
       }
     },
+    "7": {
+      "node_id": "SC7",
+      "native_cycle_sec": 120.0,
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8",
+          "12",
+          "16"
+        ],
+        "p2": [
+          "3",
+          "7",
+          "11",
+          "15"
+        ],
+        "p3": [
+          "2",
+          "6",
+          "10",
+          "14"
+        ],
+        "p4": [
+          "1",
+          "5",
+          "9",
+          "13"
+        ]
+      },
+      "axis_green_sec": {
+        "p1": 91.0,
+        "p2": 90.0,
+        "p3": 0.0,
+        "p4": 24.0
+      },
+      "phase_segments": {
+        "p1": [
+          {
+            "sg_no": "4",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 0.7362637362637363
+          },
+          {
+            "sg_no": "8",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 0.7362637362637363
+          },
+          {
+            "sg_no": "12",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 0.9010989010989011
+          },
+          {
+            "sg_no": "12",
+            "window_index": 1,
+            "start_fraction": 0.9010989010989011,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "16",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 0.9010989010989011
+          },
+          {
+            "sg_no": "16",
+            "window_index": 1,
+            "start_fraction": 0.9010989010989011,
+            "end_fraction": 1.0
+          }
+        ],
+        "p2": [
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [],
+        "p4": [
+          {
+            "sg_no": "1",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ]
+      },
+      "window_counts": {
+        "1": 1,
+        "2": 0,
+        "3": 0,
+        "4": 1,
+        "5": 0,
+        "6": 0,
+        "7": 1,
+        "8": 1,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 2,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 2
+      },
+      "red_only_signal_groups": [],
+      "conflict_pairs": [
+        [
+          "1",
+          "4"
+        ],
+        [
+          "1",
+          "7"
+        ],
+        [
+          "1",
+          "8"
+        ]
+      ],
+      "sc_no": 7,
+      "major_maps_to": "p2",
+      "native_green_sec": {
+        "1": 24.0,
+        "2": 0,
+        "3": 0,
+        "4": 67.0,
+        "5": 0,
+        "6": 0,
+        "7": 90.0,
+        "8": 67.0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 91.0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 91.0
+      }
+    },
     "11": {
       "node_id": "SC11",
       "native_cycle_sec": 150.0,
@@ -1162,6 +1308,152 @@
         "6": 32.0,
         "7": 24.0,
         "8": 50.0
+      }
+    },
+    "16": {
+      "node_id": "SC16",
+      "native_cycle_sec": 150.0,
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "axis_green_sec": {
+        "p1": 63.0,
+        "p2": 17.0,
+        "p3": 27.0,
+        "p4": 0.0
+      },
+      "phase_segments": {
+        "p1": [
+          {
+            "sg_no": "4",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "8",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p2": [
+          {
+            "sg_no": "3",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "7",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p3": [
+          {
+            "sg_no": "2",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
+          {
+            "sg_no": "6",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          }
+        ],
+        "p4": []
+      },
+      "window_counts": {
+        "1": 0,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 0,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "red_only_signal_groups": [],
+      "conflict_pairs": [
+        [
+          "2",
+          "3"
+        ],
+        [
+          "2",
+          "4"
+        ],
+        [
+          "2",
+          "7"
+        ],
+        [
+          "2",
+          "8"
+        ],
+        [
+          "3",
+          "4"
+        ],
+        [
+          "3",
+          "6"
+        ],
+        [
+          "3",
+          "8"
+        ],
+        [
+          "4",
+          "6"
+        ],
+        [
+          "4",
+          "7"
+        ],
+        [
+          "6",
+          "7"
+        ],
+        [
+          "6",
+          "8"
+        ],
+        [
+          "7",
+          "8"
+        ]
+      ],
+      "sc_no": 16,
+      "major_maps_to": "p2",
+      "native_green_sec": {
+        "1": 0,
+        "2": 27.0,
+        "3": 17.0,
+        "4": 63.0,
+        "5": 0,
+        "6": 27.0,
+        "7": 17.0,
+        "8": 63.0
       }
     },
     "101": {
@@ -2395,11 +2687,11 @@
       "native_cycle_sec": 150.0,
       "phase_signal_groups": {
         "p1": [
+          "4",
           "8"
         ],
         "p2": [
           "3",
-          "4",
           "7"
         ],
         "p3": [
@@ -2413,12 +2705,18 @@
       },
       "axis_green_sec": {
         "p1": 46.0,
-        "p2": 69.0,
+        "p2": 23.0,
         "p3": 45.0,
         "p4": 24.0
       },
       "phase_segments": {
         "p1": [
+          {
+            "sg_no": "4",
+            "window_index": 0,
+            "start_fraction": 0.0,
+            "end_fraction": 1.0
+          },
           {
             "sg_no": "8",
             "window_index": 0,
@@ -2430,19 +2728,13 @@
           {
             "sg_no": "3",
             "window_index": 0,
-            "start_fraction": 0.6666666666666666,
-            "end_fraction": 1.0
-          },
-          {
-            "sg_no": "4",
-            "window_index": 0,
             "start_fraction": 0.0,
-            "end_fraction": 0.6666666666666666
+            "end_fraction": 1.0
           },
           {
             "sg_no": "7",
             "window_index": 0,
-            "start_fraction": 0.6666666666666666,
+            "start_fraction": 0.0,
             "end_fraction": 1.0
           }
         ],
@@ -3014,12 +3306,12 @@
   },
   "timing_table_disagreements": [],
   "counts": {
-    "controllers": 15,
-    "signal_groups": 136,
-    "planned_windows": 118,
+    "controllers": 17,
+    "signal_groups": 160,
+    "planned_windows": 132,
     "uncovered_signal_groups": 0,
-    "never_green_signal_groups": 20,
-    "conflict_pairs": 325,
+    "never_green_signal_groups": 32,
+    "conflict_pairs": 340,
     "conflict_violations": 0
   },
   "never_green_signal_groups": [
@@ -3031,6 +3323,8 @@
     "SC109:3",
     "SC109:4",
     "SC109:8",
+    "SC16:1",
+    "SC16:5",
     "SC5:11",
     "SC5:12",
     "SC5:13",
@@ -3042,7 +3336,17 @@
     "SC5:21",
     "SC5:22",
     "SC5:23",
-    "SC5:9"
+    "SC5:9",
+    "SC7:10",
+    "SC7:11",
+    "SC7:13",
+    "SC7:14",
+    "SC7:15",
+    "SC7:2",
+    "SC7:3",
+    "SC7:5",
+    "SC7:6",
+    "SC7:9"
   ],
   "status": "PASS"
 }

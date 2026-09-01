@@ -1,0 +1,78 @@
+{
+ "schema_version": "metanet-dynamics-calibration/1",
+ "generated": "2026-08-30",
+ "merge_fix": {
+  "R_F_W": 5
+ },
+ "why": "FD 재적합은 평형 3항만 맞췄다. tau/nu/kappa 는 vendor 기본값이고 delta_merge 는 0 이다. delta 단독 대수 역산은 실패했으므로(문헌값의 970배) 네 항을 함께 적합한다.",
+ "method": "관측 t -> 실제 plant freeway_step 으로 150s 전진 -> t+150s 관측과 대조. 본선 유입 .inpx 구간유량 · 램프 유입 실측 · 무제어 자료.",
+ "fit_runs": {
+  "nocontrolstep_20260826": 1.0,
+  "ncsweep_x18_20260828": 1.8,
+  "ncsweep_x22_20260828": 2.2
+ },
+ "holdout_runs": {
+  "ncsweep_x16_20260828": 1.6,
+  "ncsweep_x20_20260828": 2.0
+ },
+ "ramp_arrival_vph": {
+  "R_D_W": 752.0,
+  "R_F_W": 1212.0,
+  "R_D_E": 938.0,
+  "R_F_E": 555.0
+ },
+ "current": {
+  "tau_sec": 18.0,
+  "nu": 65.0,
+  "kappa": 40.0,
+  "delta": 0.0
+ },
+ "fitted": {
+  "tau_sec": 7,
+  "nu": 48,
+  "kappa": 25,
+  "delta": 17.3
+ },
+ "current_scores": {
+  "fit": {
+   "rmse_rho": 4.610314546004088,
+   "rmse_speed": 16.023435693648565,
+   "mean_rho": 17.59190736055043,
+   "mean_speed": 87.12670478061501,
+   "score": 0.4459797724849468,
+   "n": 1440
+  },
+  "holdout": {
+   "rmse_rho": 5.021124805664767,
+   "rmse_speed": 16.821231782339456,
+   "mean_rho": 18.965237680804965,
+   "mean_speed": 85.07387726572026,
+   "score": 0.462479112572242,
+   "n": 960
+  }
+ },
+ "fitted_scores": {
+  "fit": {
+   "rmse_rho": 4.01912490458984,
+   "rmse_speed": 12.233462995461654,
+   "mean_rho": 17.59190736055043,
+   "mean_speed": 87.12670478061501,
+   "score": 0.3688744468734788,
+   "n": 1440
+  },
+  "holdout": {
+   "rmse_rho": 4.3843242916099205,
+   "rmse_speed": 13.499997487641686,
+   "mean_rho": 18.965237680804965,
+   "mean_speed": 85.07387726572026,
+   "score": 0.3898624494910232,
+   "n": 960
+  }
+ },
+ "gain_percent": {
+  "fit": 17.288973708795396,
+  "holdout": 15.701609241839144
+ },
+ "evaluations": 1264,
+ "verdict": "홀드아웃에서도 개선 — 채택 가능"
+}

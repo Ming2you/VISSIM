@@ -1,0 +1,441 @@
+{
+ "schema_version": "freeway-demand-sweep/1",
+ "generated": "2026-08-28",
+ "why": "x1.4 에서도 본선이 용량의 78% 라 붕괴가 없다. 붕괴 영역에서 VSL·램프미터링을 검정하고 FD 혼잡부 표본(현재 1.7%)을 채우려면 더 올려야 한다.",
+ "single_variable": "본선 vehicleInput volume 만 곱한다 (link 26, 74). 램프 relFlow 는 원본 그대로.",
+ "source": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx",
+ "fd_reference": {
+  "model": "V=v_free*exp(-(1/a)(rho/rho_crit)^a)",
+  "fit_20260828": {
+   "v_free": 113.0,
+   "rho_crit": 21.25,
+   "a": 2.3,
+   "capacity_veh_h_4lane": 6218.3
+  }
+ },
+ "networks": [
+  {
+   "mult": 1.6,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x16.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 7392.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      4928.0,
+      7040.0,
+      7392.0,
+      6336.0,
+      4928.0,
+      3520.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      4928.0,
+      7040.0,
+      7392.0,
+      6336.0,
+      4928.0,
+      3520.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 1.7,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x17.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 7854.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5236.0,
+      7480.0,
+      7854.0,
+      6732.0,
+      5236.0,
+      3740.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5236.0,
+      7480.0,
+      7854.0,
+      6732.0,
+      5236.0,
+      3740.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 1.8,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 8316.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5544.0,
+      7920.0,
+      8316.0,
+      7128.0,
+      5544.0,
+      3960.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5544.0,
+      7920.0,
+      8316.0,
+      7128.0,
+      5544.0,
+      3960.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 1.9,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x19.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 8778.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5852.0,
+      8360.0,
+      8778.0,
+      7524.0,
+      5852.0,
+      4180.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      5852.0,
+      8360.0,
+      8778.0,
+      7524.0,
+      5852.0,
+      4180.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 2.0,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x20.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 9240.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6160.0,
+      8800.0,
+      9240.0,
+      7920.0,
+      6160.0,
+      4400.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6160.0,
+      8800.0,
+      9240.0,
+      7920.0,
+      6160.0,
+      4400.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 2.1,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x21.inpx",
+   "bytes": 3047783,
+   "verified": true,
+   "peak_volume_veh_h": 9702.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6468.0,
+      9240.0,
+      9702.0,
+      8316.0,
+      6468.0,
+      4620.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6468.0,
+      9240.0,
+      9702.0,
+      8316.0,
+      6468.0,
+      4620.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 2.2,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x22.inpx",
+   "bytes": 3047785,
+   "verified": true,
+   "peak_volume_veh_h": 10164.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6776.0,
+      9680.0,
+      10164.0,
+      8712.0,
+      6776.0,
+      4840.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      6776.0,
+      9680.0,
+      10164.0,
+      8712.0,
+      6776.0,
+      4840.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 2.3,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x23.inpx",
+   "bytes": 3047787,
+   "verified": true,
+   "peak_volume_veh_h": 10626.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      7084.0,
+      10120.0,
+      10626.0,
+      9108.0,
+      7084.0,
+      5060.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      7084.0,
+      10120.0,
+      10626.0,
+      9108.0,
+      7084.0,
+      5060.0
+     ]
+    }
+   ]
+  },
+  {
+   "mult": 2.4,
+   "network": "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x24.inpx",
+   "bytes": 3047787,
+   "verified": true,
+   "peak_volume_veh_h": 11088.0,
+   "changed": [
+    {
+     "link": "74",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      7392.0,
+      10560.0,
+      11088.0,
+      9504.0,
+      7392.0,
+      5280.0
+     ]
+    },
+    {
+     "link": "26",
+     "volumes_before": [
+      3080.0,
+      4400.0,
+      4620.0,
+      3960.0,
+      3080.0,
+      2200.0
+     ],
+     "volumes_after": [
+      7392.0,
+      10560.0,
+      11088.0,
+      9504.0,
+      7392.0,
+      5280.0
+     ]
+    }
+   ]
+  }
+ ]
+}

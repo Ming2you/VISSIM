@@ -55,6 +55,44 @@ from typing import Any, Iterable, Mapping
 ShareKey = tuple[str, str, str, str]
 
 
+# 본선 SG 상한. 이보다 큰 SG 는 미드블록이라 본선 신호가 통제하지 않는다.
+MAINLINE_SG_MAX = 8
+
+
+def _mainline_share_enabled() -> bool:
+    """share 계산에서 미드블록 SG(9+)를 뺄지. 기본 꺼짐 = 비트 동일.
+
+    **왜 필요한가.** `share = union_green(movement SG) / union_green(축 SG)` 인데,
+    미드블록 SG 는 현시 전체를 덮는다. 실측(SC5 액추에이션 계획의 창 분율):
+
+        p3:  SG2 0.4653 · SG6 0.4653 · **SG10 1.0 · SG14 1.0**
+        p1:  SG4 0.4433 · SG8 0.4433 · **SG20 1.0 · SG24 1.0**
+
+    그래서 분모가 현시 전체가 되고, movement 의 SG 집합에 미드블록이 하나라도 들어가면
+    분자도 전체가 되어 **share = 1.0** 으로 뭉개진다. `RW_NARROW_AXIS_SG=1` 로 좁히기를
+    켠 실런(narrowaxis)에서 movement 263개 중 **170개가 share=1.0**, 실제로 깎인 것은
+    **4개**뿐이었다 — 보정이 98% 무력화된 것이다.
+
+    그런데 플랜트는 본선 SG 창만큼만 배달한다. 실측(conv, 1초 되읽기, 12주기):
+
+        SC5 p1  주문 54.5s x 0.4433 = 24.2s  =  **실측 24.2 s/cycle**
+        SC5 p3  주문 22.7s x 0.4653 = 10.6s  =  **실측 11.0 s/cycle**
+
+    미드블록 SG 는 러너가 COM 으로 건드리지 않아 native 프로그램대로 돌고
+    (`RW_MAINLINE_SG_ONLY` 는 러너에만 있고 여기엔 적용되지 않았다), 본선 movement 의
+    서비스와 무관하다. 그것을 분모·분자에 넣는 것 자체가 틀렸다.
+
+    켜면 SG 1-8 만으로 비율을 낸다 — 그러면 SC5 p3 가 0.4653 을 받는다.
+    """
+    return str(os.environ.get("RW_MAINLINE_SHARE_SG", "")).strip().lower() in {"1", "true", "on"}
+
+
+def _mainline_only(group_ids):
+    """SG 1-8 만 남긴다. 남는 게 없으면 원본을 그대로 돌려준다(정보 없음 = 안 건드림)."""
+    kept = tuple(g for g in group_ids if str(g).isdigit() and int(g) <= MAINLINE_SG_MAX)
+    return kept if kept else tuple(group_ids)
+
+
 def _narrow_axis_enabled() -> bool:
     """movement SG 를 자기 현시 SG 로 교집합해 살릴지. 기본 꺼짐.
 
@@ -277,13 +315,15 @@ def build_native_phase_share_table(
         cache_key = (node, axis)
         axis_green = axis_green_cache.get(cache_key)
         if axis_green is None:
-            axis_green = union_green_seconds(schedule.program, axis_group_ids)
+            axis_ids = _mainline_only(axis_group_ids) if _mainline_share_enabled() else axis_group_ids
+            axis_green = union_green_seconds(schedule.program, axis_ids)
             axis_green_cache[cache_key] = axis_green
         if axis_green <= 0.0:
             unresolved[str(name)] = "no_axis_green"
             continue
 
-        share = union_green_seconds(schedule.program, group_ids) / axis_green
+        mv_ids = _mainline_only(group_ids) if _mainline_share_enabled() else group_ids
+        share = union_green_seconds(schedule.program, mv_ids) / axis_green
         if share == 1.0:
             unit_movements.append(str(name))
             continue

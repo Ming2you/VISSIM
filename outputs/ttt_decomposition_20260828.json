@@ -1,0 +1,122 @@
+{
+ "schema_version": "ttt-decomposition/1",
+ "generated": "2026-08-28",
+ "why": "평가 TTT 가 total_vehicles 전량이라 컨트롤러가 못 건드리는 monitor 9개 SC 가 섞인다. 제어 권역 + freeway 만 보는 지표와 대조한다.",
+ "controlled_sc": [
+  "SC1",
+  "SC1001",
+  "SC1002",
+  "SC1003",
+  "SC1004",
+  "SC1005",
+  "SC101",
+  "SC105",
+  "SC107",
+  "SC108",
+  "SC109",
+  "SC11",
+  "SC12",
+  "SC16",
+  "SC5",
+  "SC6",
+  "SC7"
+ ],
+ "link_counts": {
+  "controlled": 713,
+  "monitor": 298,
+  "freeway": 15,
+  "ramp": 12
+ },
+ "runs": {
+  "nocontrolstep_20260826": {
+   "controlled": 2452.333333333333,
+   "monitor": 869.2083333333333,
+   "freeway": 1145.75,
+   "ramp": 75.5,
+   "unclassified": 190.58333333333331,
+   "observed_total": 4733.375,
+   "decisions": 37,
+   "csv_total_ttt": 4819.433333333333
+  },
+  "tau_20260826": {
+   "controlled": 2012.7916666666665,
+   "monitor": 789.75,
+   "freeway": 1115.7083333333333,
+   "ramp": 0.0,
+   "unclassified": 7.833333333333333,
+   "observed_total": 3926.083333333333,
+   "decisions": 37,
+   "csv_total_ttt": 4699.066666666667
+  },
+  "bstoA_20260827": {
+   "controlled": 2362.6666666666665,
+   "monitor": 905.7916666666666,
+   "freeway": 1129.9583333333333,
+   "ramp": 78.58333333333333,
+   "unclassified": 195.33333333333331,
+   "observed_total": 4672.333333333333,
+   "decisions": 37,
+   "csv_total_ttt": 4704.15
+  },
+  "canon_plantfix_20260827": {
+   "controlled": 2475.0,
+   "monitor": 902.2916666666666,
+   "freeway": 1134.5833333333333,
+   "ramp": 82.16666666666666,
+   "unclassified": 195.66666666666666,
+   "observed_total": 4789.708333333333,
+   "decisions": 37,
+   "csv_total_ttt": 4823.216666666666
+  },
+  "canon_dpoff_20260828": {
+   "controlled": 2443.625,
+   "monitor": 900.2916666666666,
+   "freeway": 1123.9583333333333,
+   "ramp": 81.70833333333333,
+   "unclassified": 192.33333333333331,
+   "observed_total": 4741.916666666666,
+   "decisions": 37,
+   "csv_total_ttt": 4775.75
+  },
+  "canon_phasefix_20260828": {
+   "controlled": 2401.708333333333,
+   "monitor": 912.4166666666666,
+   "freeway": 1130.1666666666665,
+   "ramp": 81.29166666666666,
+   "unclassified": 193.16666666666666,
+   "observed_total": 4718.75,
+   "decisions": 37,
+   "csv_total_ttt": 4749.641666666666
+  },
+  "canon_nolencap_20260828": {
+   "controlled": 2383.5416666666665,
+   "monitor": 899.2083333333333,
+   "freeway": 1136.8333333333333,
+   "ramp": 78.375,
+   "unclassified": 196.08333333333331,
+   "observed_total": 4694.041666666666,
+   "decisions": 37,
+   "csv_total_ttt": 4711.658333333334
+  },
+  "canon_gne_far_20260827": {
+   "controlled": 2915.375,
+   "monitor": 895.875,
+   "freeway": 1130.9166666666665,
+   "ramp": 74.29166666666666,
+   "unclassified": 189.08333333333331,
+   "observed_total": 5205.541666666666,
+   "decisions": 37,
+   "csv_total_ttt": 5232.316666666667
+  },
+  "canon_ingne_20260828": {
+   "controlled": 2929.625,
+   "monitor": 896.3333333333333,
+   "freeway": 1135.0,
+   "ramp": 74.29166666666666,
+   "unclassified": 189.5,
+   "observed_total": 5224.75,
+   "decisions": 37,
+   "csv_total_ttt": 5251.558333333333
+  }
+ }
+}

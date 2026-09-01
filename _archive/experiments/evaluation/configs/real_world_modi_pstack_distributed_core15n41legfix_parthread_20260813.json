@@ -1,0 +1,10 @@
+{
+  "extends": "real_world_modi_pstack_distributed_core15n41legfix_20260812.json",
+  "name": "real_world_modi_pstack_distributed_core15n41legfix_parthread_20260813",
+  "description": "legfix 위에 격자 병렬 백엔드만 thread 로 켠다. 다른 필드는 부모와 같다. solve 시간 측정 전용 - 제어 내용은 부모와 동일해야 하고, 목적함수 값이 달라지면 병렬화가 결과를 바꾼 것이므로 결함이다.",
+  "config_overrides": {
+    "mpc": {
+      "grid_parallel_backend": "thread"
+    }
+  }
+}

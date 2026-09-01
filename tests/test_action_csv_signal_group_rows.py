@@ -213,8 +213,12 @@ class SignalGroupRowTests(unittest.TestCase):
             str(sc_no): adapter.plan_live_phases(self.plan, int(sc_no))
             for sc_no in self.plan["controllers"]
         }
-        self.assertEqual(len(live), 15)
-        for sc_no, phases in sorted(live.items(), key=lambda kv: int(kv[0])):
+        # 2026-08-19: 계획이 17 SC 로 늘었다(SC7·SC16 을 player 로 복원). 실측 프로브는
+        # n4dr150 시절 15 SC 만 담고 있으므로, 계획이 프로브를 **덮는지**만 보고
+        # 대조는 실측이 있는 SC 로 한정한다. 없는 것을 지어내 세지 않는다.
+        self.assertLessEqual(set(probe), set(live), "계획이 실측 프로브의 SC 를 다 덮지 못한다")
+        for sc_no in sorted(probe, key=int):
+            phases = live[sc_no]
             with self.subTest(sc=sc_no):
                 measured = int(probe[sc_no]["rewritten"]["green_sets"])
                 # SC5 는 SG 24개짜리 대형 교차로라 실측 동시녹색 집합이 6 이다. 모델의

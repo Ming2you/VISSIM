@@ -731,6 +731,9 @@ class MPCConfig:
     wu_np_storage_guard: bool = False
     wu_np_arrival_mode: str = "horizon"
     wu_np_phase_substep: bool = False
+    # Σnin 실현가능범위 추정을 동역학과 같은 도착으로 계산할지 (2026-09-01).
+    # False = 종전(비트 동일). 상세는 wu_faithful_follower._np_feasible_arrivals_veh.
+    wu_faithful_np_feasible_dynamics_arrivals: bool = False
     wu_faithful_np_predictor_mode: str = "legacy"
     # λ_P windup 수선(2026-07-11, 규칙 2종 — 구조 불변): NP_FIX=0으로 구거동 재현.
     # ① 내부 투영: target을 feasibility 모서리(feas_min) 대신 내부점으로 클립 —

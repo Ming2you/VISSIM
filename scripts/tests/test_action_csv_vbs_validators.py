@@ -52,7 +52,16 @@ VALIDATOR_PROCEDURES = (
     "DictValue",
 )
 
-SIGNAL_SCS = "1,5,6,11,12,101,105,107,108,109,1001,1002,1003,1004,1005"
+# 러너가 보는 통제 SC 목록. 2026-08-19 에 SC7·SC16 을 player 로 복원해 17 개가 됐다.
+# 여기서 검사하는 행이 계획에서 나오므로 목록도 계획에서 읽는다 - 박아 두면 계획이
+# 늘어날 때마다 SC7·SC16 행이 IsCanonicalCsvInt 에서 통째로 거부된다.
+SIGNAL_SCS = ",".join(
+    sorted(
+        (json.loads(PLAN_PATH.read_text(encoding="utf-8"))["controllers"]
+         if PLAN_PATH.is_file() else {}),
+        key=int,
+    )
+)
 
 
 def harness_source(source: str | None = None, body: str = "") -> str:
@@ -169,8 +178,10 @@ class ActionCsvValidatorBehaviorTests(unittest.TestCase):
         cls.header, cls.rows = real_action_csv_rows()
         cls.signal_rows = [row for row in cls.rows if row[0] == "signal"]
         cls.sg_rows = [row for row in cls.rows if row[0] == "signal_sg"]
-        assert len(cls.signal_rows) == 15, len(cls.signal_rows)
-        assert len(cls.sg_rows) == 118, len(cls.sg_rows)
+        # 2026-08-19: SC7·SC16 복원으로 계획이 15 -> 17 SC. 숫자를 다시 박지 않고 계획에서 읽는다.
+        plan = json.loads(PLAN_PATH.read_text(encoding="utf-8"))
+        assert len(cls.signal_rows) == plan["counts"]["controllers"], len(cls.signal_rows)
+        assert len(cls.sg_rows) == plan["counts"]["planned_windows"], len(cls.sg_rows)
 
     def _run(self, body: str, source: str | None = None) -> subprocess.CompletedProcess:
         return run_vbs(harness_source(source, body))

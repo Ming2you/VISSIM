@@ -1,0 +1,143 @@
+{
+ "schema": "actuation_flow_fidelity/v1",
+ "run": "shape_off_20260820",
+ "green": {
+  "available": true,
+  "readback_rows": 96896,
+  "readback_disagreements": 0,
+  "sg_windows_declared": 896,
+  "sg_windows_checked": 768,
+  "sg_windows_skipped_beyond_sim_end": 128,
+  "tolerance_sec": 6.0,
+  "sg_windows_off_tolerance": 0,
+  "worst_abs_delta_sec": 4.0,
+  "verdict": "PASS",
+  "offenders": []
+ },
+ "flow": {
+  "available": true,
+  "vehicle_ledger_closes": true,
+  "intervals": [
+   {
+    "from_sec": 1,
+    "to_sec": 150,
+    "completed": 0,
+    "entered": 780,
+    "stock_end": 786
+   },
+   {
+    "from_sec": 150,
+    "to_sec": 300,
+    "completed": 147,
+    "entered": 725,
+    "stock_end": 1364
+   },
+   {
+    "from_sec": 300,
+    "to_sec": 450,
+    "completed": 393,
+    "entered": 758,
+    "stock_end": 1729
+   },
+   {
+    "from_sec": 450,
+    "to_sec": 600,
+    "completed": 548,
+    "entered": 743,
+    "stock_end": 1924
+   },
+   {
+    "from_sec": 600,
+    "to_sec": 750,
+    "completed": 610,
+    "entered": 812,
+    "stock_end": 2126
+   },
+   {
+    "from_sec": 750,
+    "to_sec": 900,
+    "completed": 693,
+    "entered": 750,
+    "stock_end": 2183
+   },
+   {
+    "from_sec": 900,
+    "to_sec": 1050,
+    "completed": 666,
+    "entered": 1086,
+    "stock_end": 2603
+   },
+   {
+    "from_sec": 1050,
+    "to_sec": 1200,
+    "completed": 750,
+    "entered": 1141,
+    "stock_end": 2994
+   },
+   {
+    "from_sec": 1200,
+    "to_sec": 1350,
+    "completed": 790,
+    "entered": 1098,
+    "stock_end": 3302
+   },
+   {
+    "from_sec": 1350,
+    "to_sec": 1500,
+    "completed": 909,
+    "entered": 1154,
+    "stock_end": 3547
+   },
+   {
+    "from_sec": 1500,
+    "to_sec": 1650,
+    "completed": 934,
+    "entered": 1087,
+    "stock_end": 3700
+   },
+   {
+    "from_sec": 1650,
+    "to_sec": 1800,
+    "completed": 989,
+    "entered": 1082,
+    "stock_end": 3793
+   }
+  ],
+  "comparisons": [
+   {
+    "sim_sec": 900,
+    "horizon_steps": 3,
+    "model_completed_veh": 1769.2,
+    "vissim_completed_veh": 2206,
+    "ratio_model_over_vissim": 0.802,
+    "leader_model_completed_veh": 1520.6
+   },
+   {
+    "sim_sec": 1050,
+    "horizon_steps": 3,
+    "model_completed_veh": 1885.8,
+    "vissim_completed_veh": 2449,
+    "ratio_model_over_vissim": 0.77,
+    "leader_model_completed_veh": 1562.2
+   },
+   {
+    "sim_sec": 1200,
+    "horizon_steps": 3,
+    "model_completed_veh": 1916.3,
+    "vissim_completed_veh": 2633,
+    "ratio_model_over_vissim": 0.728,
+    "leader_model_completed_veh": 1580.5
+   },
+   {
+    "sim_sec": 1350,
+    "horizon_steps": 3,
+    "model_completed_veh": 1914.2,
+    "vissim_completed_veh": 2832,
+    "ratio_model_over_vissim": 0.676,
+    "leader_model_completed_veh": 1583.1
+   }
+  ],
+  "mean_ratio_model_over_vissim": 0.744,
+  "verdict": "FAIL"
+ }
+}

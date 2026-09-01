@@ -1,0 +1,3048 @@
+{
+  "controllers": {
+    "SC1": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC107_to_SC1": {
+          "hops": 2,
+          "links": [
+            "1220006903"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "3",
+            "8"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1220007104"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1220006903"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1210008401"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220008201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1210008401"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220006903"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1_N_out",
+            "SC1_S_out",
+            "SC1_E_out",
+            "SC1_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC101_to_SC1": "origin_link_unknown",
+        "SC105_to_SC1": "origin_link_unknown",
+        "SC11_to_SC1": "no_signal_head_downstream",
+        "in_SC1_E": "synthetic_boundary_leg",
+        "in_SC1_N": "synthetic_boundary_leg",
+        "in_SC1_S": "synthetic_boundary_leg",
+        "in_SC1_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC1001": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "OR_D_E": {
+          "hops": 1,
+          "links": [
+            "32"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "OR_D_W": {
+          "hops": 1,
+          "links": [
+            "32"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "10696"
+          ],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "32"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "40"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "37"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "32"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "29"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "37"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "40"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1001_N_out",
+            "SC1001_S_out",
+            "SC1001_E_out",
+            "SC1001_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1001_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1001_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1002_to_SC1001": "origin_link_unknown",
+        "SC1003_to_SC1001": "origin_link_unknown",
+        "SC2002_to_SC1001": "origin_link_unknown",
+        "in_SC1001_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC1002": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC101_to_SC1002": {
+          "hops": 2,
+          "links": [
+            "329"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        },
+        "SC105_to_SC1002": {
+          "hops": 2,
+          "links": [
+            "427"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "3",
+            "8"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "329"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "30"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "427"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "72"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "30"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "329"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "72"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "427"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1002_N_out",
+            "SC1002_S_out",
+            "SC1002_E_out",
+            "SC1002_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1002_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1002_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1001_to_SC1002": "origin_link_unknown",
+        "SC2004_to_SC1002": "origin_link_unknown"
+      }
+    },
+    "SC1003": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC105_to_SC1003": {
+          "hops": 2,
+          "links": [
+            "425"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "425"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1003_N_out",
+            "SC1003_S_out",
+            "SC1003_E_out",
+            "SC1003_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "39"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1003_N_out",
+            "SC1003_S_out",
+            "SC1003_E_out",
+            "SC1003_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "39"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1003_N_out",
+            "SC1003_S_out",
+            "SC1003_E_out",
+            "SC1003_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "47"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1003_N_out",
+            "SC1003_S_out",
+            "SC1003_E_out",
+            "SC1003_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1003_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1003_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1001_to_SC1003": "origin_link_unknown",
+        "SC1004_to_SC1003": "origin_link_unknown"
+      }
+    },
+    "SC1004": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "OR_F_E": {
+          "hops": 3,
+          "links": [
+            "71"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "OR_F_W": {
+          "hops": 3,
+          "links": [
+            "71"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC1005_to_SC1004": {
+          "hops": 2,
+          "links": [
+            "52"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        },
+        "SC107_to_SC1004": {
+          "hops": 2,
+          "links": [
+            "52"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "52"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "71"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "66"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "46"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "71"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "52"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "46"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "66"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1004_N_out",
+            "SC1004_S_out",
+            "SC1004_E_out",
+            "SC1004_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1004_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1004_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1003_to_SC1004": "origin_link_unknown",
+        "in_SC1004_S": "synthetic_boundary_leg",
+        "in_SC1004_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC1005": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC1004_to_SC1005": {
+          "hops": 2,
+          "links": [
+            "57"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2"
+          ]
+        },
+        "SC105_to_SC1005": {
+          "hops": 2,
+          "links": [
+            "403"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "7"
+          ]
+        },
+        "SC107_to_SC1005": {
+          "hops": 2,
+          "links": [
+            "62"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "6"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "57"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1005_N_out",
+            "SC1005_S_out",
+            "SC1005_E_out",
+            "SC1005_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "62"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1005_N_out",
+            "SC1005_S_out",
+            "SC1005_E_out",
+            "SC1005_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "403"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC1005_N_out",
+            "SC1005_S_out",
+            "SC1005_E_out",
+            "SC1005_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed1005_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed1005_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "in_SC1005_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC101": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC1002_to_SC101": {
+          "hops": 2,
+          "links": [
+            "1220012502"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC2005_to_SC101": {
+          "hops": 2,
+          "links": [
+            "1220016001"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "4",
+            "7"
+          ]
+        },
+        "SC5_to_SC101": {
+          "hops": 2,
+          "links": [
+            "1220014201"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1220014201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1220012502"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1220011503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220016001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "1220012502"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220014201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220016001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220011503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC101_N_out",
+            "SC101_S_out",
+            "SC101_E_out",
+            "SC101_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed101_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed101_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1_to_SC101": "origin_link_unknown",
+        "in_SC101_S": "synthetic_boundary_leg"
+      }
+    },
+    "SC105": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC1002_to_SC105": {
+          "hops": 2,
+          "links": [
+            "1220007200"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "4",
+            "7"
+          ]
+        },
+        "SC1003_to_SC105": {
+          "hops": 2,
+          "links": [
+            "416"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2"
+          ]
+        },
+        "SC1005_to_SC105": {
+          "hops": 2,
+          "links": [
+            "1220006503"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "3",
+            "8"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "416"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1220006503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220007200"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220007001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220007200"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220006503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC105_N_out",
+            "SC105_S_out",
+            "SC105_E_out",
+            "SC105_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed105_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed105_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC1_to_SC105": "origin_link_unknown",
+        "in_SC105_E": "synthetic_boundary_leg"
+      }
+    },
+    "SC107": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC1004_to_SC107": {
+          "hops": 2,
+          "links": [
+            "1220000201"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC1005_to_SC107": {
+          "hops": 2,
+          "links": [
+            "1220000201"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC108_to_SC107": {
+          "hops": 2,
+          "links": [
+            "183"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        },
+        "SC1_to_SC107": {
+          "hops": 2,
+          "links": [
+            "1220043200"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "7"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "183"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1220000201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "382"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "1220000201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "183"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220043200"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC107_N_out",
+            "SC107_S_out",
+            "SC107_E_out",
+            "SC107_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed107_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed107_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "in_SC107_S": "synthetic_boundary_leg"
+      }
+    },
+    "SC108": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC107_to_SC108": {
+          "hops": 2,
+          "links": [
+            "178"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC109_to_SC108": {
+          "hops": 2,
+          "links": [
+            "176"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1",
+            "6"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "176"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "21",
+            "178"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220007401"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "178"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "176"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220044500"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC108_N_out",
+            "SC108_S_out",
+            "SC108_E_out",
+            "SC108_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed108_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed108_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC7_to_SC108": "no_signal_head_downstream",
+        "in_SC108_S": "synthetic_boundary_leg",
+        "in_SC108_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC109": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC108_to_SC109": {
+          "hops": 2,
+          "links": [
+            "173"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC16_to_SC109": {
+          "hops": 2,
+          "links": [
+            "1210009402"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "7"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "173"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC109_N_out",
+            "SC109_S_out",
+            "SC109_E_out",
+            "SC109_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "173"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC109_N_out",
+            "SC109_S_out",
+            "SC109_E_out",
+            "SC109_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220000704"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC109_N_out",
+            "SC109_S_out",
+            "SC109_E_out",
+            "SC109_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1210009402"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC109_N_out",
+            "SC109_S_out",
+            "SC109_E_out",
+            "SC109_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed109_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed109_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "in_SC109_E": "synthetic_boundary_leg"
+      }
+    },
+    "SC11": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC1_to_SC11": {
+          "hops": 2,
+          "links": [
+            "1210008303"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2"
+          ]
+        },
+        "SC5_to_SC11": {
+          "hops": 2,
+          "links": [
+            "1220011001"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "4"
+          ]
+        },
+        "SC7_to_SC11": {
+          "hops": 2,
+          "links": [
+            "1210008703"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "8"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1210012001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC11_N_out",
+            "SC11_S_out",
+            "SC11_E_out",
+            "SC11_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1210008303"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC11_N_out",
+            "SC11_S_out",
+            "SC11_E_out",
+            "SC11_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220011001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC11_N_out",
+            "SC11_S_out",
+            "SC11_E_out",
+            "SC11_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1210012001",
+            "1220012001"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC11_N_out",
+            "SC11_S_out",
+            "SC11_E_out",
+            "SC11_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1210008703"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC11_N_out",
+            "SC11_S_out",
+            "SC11_E_out",
+            "SC11_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed3_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed3_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC12_to_SC11": "no_signal_head_downstream",
+        "in_SC11_E": "synthetic_boundary_leg",
+        "in_SC11_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC12": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC11_to_SC12": {
+          "hops": 2,
+          "links": [
+            "1220012103"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2",
+            "5"
+          ]
+        },
+        "SC16_to_SC12": {
+          "hops": 2,
+          "links": [
+            "1210012700"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "3",
+            "8"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1220013600"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1220012103"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1210012700"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220015000"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "1220012103"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220013600"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220015000"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1210012700"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC12_N_out",
+            "SC12_S_out",
+            "SC12_E_out",
+            "SC12_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed5_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed5_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC106_to_SC12": "origin_link_unknown",
+        "SC6_to_SC12": "origin_link_unknown",
+        "in_SC12_E": "synthetic_boundary_leg",
+        "in_SC12_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC16": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC109_to_SC16": {
+          "hops": 2,
+          "links": [
+            "1210009503"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "3",
+            "8"
+          ]
+        },
+        "SC12_to_SC16": {
+          "hops": 2,
+          "links": [
+            "1210012600"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "4",
+            "7"
+          ]
+        },
+        "SC7_to_SC16": {
+          "hops": 2,
+          "links": [
+            "1210009700"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "2"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1210009700"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1210009503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1210012600"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220011200"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1210012600"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1210009503"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC16_N_out",
+            "SC16_S_out",
+            "SC16_E_out",
+            "SC16_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed18.sig",
+        "timing_sig_file": "개포동 test-bed18.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "in_SC16_E": "synthetic_boundary_leg",
+        "in_SC16_S": "synthetic_boundary_leg",
+        "in_SC16_W": "synthetic_boundary_leg"
+      }
+    },
+    "SC5": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {
+        "SC101_to_SC5": {
+          "hops": 2,
+          "links": [
+            "1210014303"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "10"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8",
+          "12",
+          "16",
+          "20",
+          "24"
+        ],
+        "p2": [
+          "3",
+          "7",
+          "11",
+          "15",
+          "19",
+          "23"
+        ],
+        "p3": [
+          "2",
+          "6",
+          "10",
+          "14",
+          "18",
+          "22"
+        ],
+        "p4": [
+          "1",
+          "5",
+          "9",
+          "13",
+          "17",
+          "21"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1220018401"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p4"
+        },
+        "10": {
+          "links": [
+            "1210014303"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p3"
+        },
+        "11": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "12": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        },
+        "13": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "14": {
+          "links": [
+            "1220014203"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p3"
+        },
+        "15": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "16": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p1"
+        },
+        "17": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "18": {
+          "links": [
+            "257"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p3"
+        },
+        "19": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "2": {
+          "links": [
+            "1220014303"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p3"
+        },
+        "20": {
+          "links": [
+            "259"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p1"
+        },
+        "21": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "22": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "23": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "24": {
+          "links": [
+            "256",
+            "1220011103"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p1"
+        },
+        "3": {
+          "links": [
+            "1220014100"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220019201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "1220014303"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220018401"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220019201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220014100"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC5_N_out",
+            "SC5_S_out",
+            "SC5_E_out",
+            "SC5_W_out"
+          ],
+          "phase": "p1"
+        },
+        "9": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 24,
+        "inpx_supply_file": "개포동 test-bed7_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed7_n4dr150.sig",
+        "timing_signal_groups": 24
+      },
+      "unresolved_origins": {
+        "SC102_to_SC5": "origin_link_unknown",
+        "SC11_to_SC5": "no_signal_head_downstream",
+        "SC6_to_SC5": "origin_link_unknown",
+        "in_SC5_S": "synthetic_boundary_leg"
+      }
+    },
+    "SC6": {
+      "cycle_sec": 150.0,
+      "origin_signal_groups": {},
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8"
+        ],
+        "p2": [
+          "3",
+          "7"
+        ],
+        "p3": [
+          "2",
+          "6"
+        ],
+        "p4": [
+          "1",
+          "5"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1220021201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p4"
+        },
+        "2": {
+          "links": [
+            "1220018504"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [
+            "1210018302"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220021801"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [
+            "1220018504"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [
+            "1220021201"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220021801"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1210018302"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC6_N_out",
+            "SC6_S_out",
+            "SC6_E_out",
+            "SC6_W_out"
+          ],
+          "phase": "p1"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 8,
+        "inpx_supply_file": "개포동 test-bed9_n4dr150.sig",
+        "timing_sig_file": "개포동 test-bed9_n4dr150.sig",
+        "timing_signal_groups": 8
+      },
+      "unresolved_origins": {
+        "SC103_to_SC6": "origin_link_unknown",
+        "SC104_to_SC6": "origin_link_unknown",
+        "SC12_to_SC6": "origin_link_unknown",
+        "SC5_to_SC6": "origin_link_unknown",
+        "in_SC6_S": "synthetic_boundary_leg"
+      }
+    },
+    "SC7": {
+      "cycle_sec": 120.0,
+      "origin_signal_groups": {
+        "SC16_to_SC7": {
+          "hops": 2,
+          "links": [
+            "1210009600"
+          ],
+          "method": "connector_chain",
+          "signal_groups": [
+            "1"
+          ]
+        }
+      },
+      "phase_signal_groups": {
+        "p1": [
+          "4",
+          "8",
+          "12",
+          "16"
+        ],
+        "p2": [
+          "3",
+          "7",
+          "11",
+          "15"
+        ],
+        "p3": [
+          "2",
+          "6",
+          "10",
+          "14"
+        ],
+        "p4": [
+          "1",
+          "5",
+          "9",
+          "13"
+        ]
+      },
+      "signal_group_phase": {
+        "1": {
+          "links": [
+            "1210009600"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p4"
+        },
+        "10": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "11": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "12": {
+          "links": [
+            "1220008602"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p1"
+        },
+        "13": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "14": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "15": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "16": {
+          "links": [
+            "1220008701"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p1"
+        },
+        "2": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "3": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p2"
+        },
+        "4": {
+          "links": [
+            "1220008601"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p1"
+        },
+        "5": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        },
+        "6": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p3"
+        },
+        "7": {
+          "links": [
+            "1220008601"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p2"
+        },
+        "8": {
+          "links": [
+            "1220007502"
+          ],
+          "method": "signal_group_name",
+          "origins": [
+            "SC7_N_out",
+            "SC7_S_out",
+            "SC7_E_out",
+            "SC7_W_out"
+          ],
+          "phase": "p1"
+        },
+        "9": {
+          "links": [],
+          "method": "signal_group_name",
+          "origins": [],
+          "phase": "p4"
+        }
+      },
+      "timing_cross_check": {
+        "agrees": true,
+        "inpx_signal_groups": 16,
+        "inpx_supply_file": "개포동 test-bed14.sig",
+        "timing_sig_file": "개포동 test-bed14.sig",
+        "timing_signal_groups": 16
+      },
+      "unresolved_origins": {
+        "SC108_to_SC7": "no_signal_head_downstream",
+        "SC11_to_SC7": "no_signal_head_downstream",
+        "in_SC7_E": "synthetic_boundary_leg"
+      }
+    }
+  },
+  "counts": {
+    "controllers": 17,
+    "phase_movements": 364,
+    "resolved_by_method": {
+      "connector_chain": 149
+    },
+    "resolved_movements": 149,
+    "signal_group_phase_by_method": {
+      "signal_group_name": 160
+    },
+    "timing_cross_check_disagreements": [],
+    "unresolved_by_reason": {
+      "no_signal_head_downstream": 26,
+      "origin_link_unknown": 79,
+      "synthetic_boundary_leg": 110
+    },
+    "unresolved_movements": 215
+  },
+  "schema_version": "movement-signal-group-map-v3",
+  "source": {
+    "config": "evaluation\\configs\\real_world_modi_pstack_distributed_core17legs4b_20260819.json",
+    "config_sha256": "e000682d2daf6bb06958a8bdecb127a4f8ffe46e2501f7d57aac121e76215956",
+    "detector_mapping": "evaluation\\real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core17legs4b_20260819.json",
+    "detector_mapping_sha256": "cc08c3c14bbf9b4d48ace9198da25031e1b9ba154788976346097b34ead2c23e",
+    "inpx_path": "modi_eval_rw_control_n4dr150_20260812.inpx",
+    "inpx_sha256": "37f1cc1fcafbec5affe3ed1f350b76ae89fb45b686b254b82e97f8db91476bbe",
+    "max_connector_hops": 12,
+    "timing": "outputs\\signal_group_timing_core17legs4b_20260819.json",
+    "timing_sha256": "fb1d2e17e91b16d6b5458f2c8fc19aad9b0e5cbbea4c01cb6cc27d51000c837c",
+    "topology": "C:\\Users\\TRLAB\\Desktop\\찐찐막\\VISSIM\\outputs\\canonical_topology_v3.json",
+    "topology_compiler_version": "vissim-strict-phase0/1.1.1"
+  },
+  "status": "PASS",
+  "unresolved_movements": {
+    "SC1001_E_SC1002_to_N_SC2002": "origin_link_unknown",
+    "SC1001_E_SC1002_to_S_SC1003": "origin_link_unknown",
+    "SC1001_E_SC1002_to_W": "origin_link_unknown",
+    "SC1001_N_SC2002_to_E_SC1002": "origin_link_unknown",
+    "SC1001_N_SC2002_to_S_SC1003": "origin_link_unknown",
+    "SC1001_N_SC2002_to_W": "origin_link_unknown",
+    "SC1001_S_SC1003_to_E_SC1002": "origin_link_unknown",
+    "SC1001_S_SC1003_to_N_SC2002": "origin_link_unknown",
+    "SC1001_S_SC1003_to_W": "origin_link_unknown",
+    "SC1001_W_to_E_SC1002": "synthetic_boundary_leg",
+    "SC1001_W_to_N_SC2002": "synthetic_boundary_leg",
+    "SC1001_W_to_S_SC1003": "synthetic_boundary_leg",
+    "SC1002_N_SC2004_to_E_SC101": "origin_link_unknown",
+    "SC1002_N_SC2004_to_S_SC105": "origin_link_unknown",
+    "SC1002_N_SC2004_to_W_SC1001": "origin_link_unknown",
+    "SC1002_W_SC1001_to_E_SC101": "origin_link_unknown",
+    "SC1002_W_SC1001_to_N_SC2004": "origin_link_unknown",
+    "SC1002_W_SC1001_to_S_SC105": "origin_link_unknown",
+    "SC1003_N_SC1001_to_E_SC105": "origin_link_unknown",
+    "SC1003_N_SC1001_to_S_SC1004": "origin_link_unknown",
+    "SC1003_S_SC1004_to_E_SC105": "origin_link_unknown",
+    "SC1003_S_SC1004_to_N_SC1001": "origin_link_unknown",
+    "SC1004_N_SC1003_to_E_SC1005": "origin_link_unknown",
+    "SC1004_N_SC1003_to_E_SC107": "origin_link_unknown",
+    "SC1004_N_SC1003_to_S": "origin_link_unknown",
+    "SC1004_N_SC1003_to_W": "origin_link_unknown",
+    "SC1004_S_to_E_SC1005": "synthetic_boundary_leg",
+    "SC1004_S_to_E_SC107": "synthetic_boundary_leg",
+    "SC1004_S_to_N_SC1003": "synthetic_boundary_leg",
+    "SC1004_S_to_W": "synthetic_boundary_leg",
+    "SC1004_W_to_E_SC1005": "synthetic_boundary_leg",
+    "SC1004_W_to_E_SC107": "synthetic_boundary_leg",
+    "SC1004_W_to_N_SC1003": "synthetic_boundary_leg",
+    "SC1004_W_to_S": "synthetic_boundary_leg",
+    "SC1005_W_to_E_SC107": "synthetic_boundary_leg",
+    "SC1005_W_to_N_SC105": "synthetic_boundary_leg",
+    "SC1005_W_to_W_SC1004": "synthetic_boundary_leg",
+    "SC101_S_SC1_to_E_SC5": "origin_link_unknown",
+    "SC101_S_SC1_to_N_SC2005": "origin_link_unknown",
+    "SC101_S_SC1_to_S": "origin_link_unknown",
+    "SC101_S_SC1_to_W_SC1002": "origin_link_unknown",
+    "SC101_S_to_E_SC5": "synthetic_boundary_leg",
+    "SC101_S_to_N_SC2005": "synthetic_boundary_leg",
+    "SC101_S_to_S_SC1": "synthetic_boundary_leg",
+    "SC101_S_to_W_SC1002": "synthetic_boundary_leg",
+    "SC105_E_SC1_to_E": "origin_link_unknown",
+    "SC105_E_SC1_to_N_SC1002": "origin_link_unknown",
+    "SC105_E_SC1_to_S_SC1005": "origin_link_unknown",
+    "SC105_E_SC1_to_W_SC1003": "origin_link_unknown",
+    "SC105_E_to_E_SC1": "synthetic_boundary_leg",
+    "SC105_E_to_N_SC1002": "synthetic_boundary_leg",
+    "SC105_E_to_S_SC1005": "synthetic_boundary_leg",
+    "SC105_E_to_W_SC1003": "synthetic_boundary_leg",
+    "SC107_S_to_E_SC108": "synthetic_boundary_leg",
+    "SC107_S_to_N_SC1": "synthetic_boundary_leg",
+    "SC107_S_to_W_SC1004": "synthetic_boundary_leg",
+    "SC107_S_to_W_SC1005": "synthetic_boundary_leg",
+    "SC108_N_SC7_to_E_SC109": "no_signal_head_downstream",
+    "SC108_N_SC7_to_S": "no_signal_head_downstream",
+    "SC108_N_SC7_to_W": "no_signal_head_downstream",
+    "SC108_N_SC7_to_W_SC107": "no_signal_head_downstream",
+    "SC108_S_to_E_SC109": "synthetic_boundary_leg",
+    "SC108_S_to_N_SC7": "synthetic_boundary_leg",
+    "SC108_S_to_W": "synthetic_boundary_leg",
+    "SC108_S_to_W_SC107": "synthetic_boundary_leg",
+    "SC108_W_to_E_SC109": "synthetic_boundary_leg",
+    "SC108_W_to_N_SC7": "synthetic_boundary_leg",
+    "SC108_W_to_S": "synthetic_boundary_leg",
+    "SC108_W_to_W_SC107": "synthetic_boundary_leg",
+    "SC109_E_to_N_SC16": "synthetic_boundary_leg",
+    "SC109_E_to_W_SC108": "synthetic_boundary_leg",
+    "SC11_E_SC12_to_E": "no_signal_head_downstream",
+    "SC11_E_SC12_to_N_SC5": "no_signal_head_downstream",
+    "SC11_E_SC12_to_S_SC7": "no_signal_head_downstream",
+    "SC11_E_SC12_to_W": "no_signal_head_downstream",
+    "SC11_E_SC12_to_W_SC1": "no_signal_head_downstream",
+    "SC11_E_to_E_SC12": "synthetic_boundary_leg",
+    "SC11_E_to_N_SC5": "synthetic_boundary_leg",
+    "SC11_E_to_S_SC7": "synthetic_boundary_leg",
+    "SC11_E_to_W": "synthetic_boundary_leg",
+    "SC11_E_to_W_SC1": "synthetic_boundary_leg",
+    "SC11_W_to_E": "synthetic_boundary_leg",
+    "SC11_W_to_E_SC12": "synthetic_boundary_leg",
+    "SC11_W_to_N_SC5": "synthetic_boundary_leg",
+    "SC11_W_to_S_SC7": "synthetic_boundary_leg",
+    "SC11_W_to_W_SC1": "synthetic_boundary_leg",
+    "SC12_E_SC106_to_E": "origin_link_unknown",
+    "SC12_E_SC106_to_N_SC6": "origin_link_unknown",
+    "SC12_E_SC106_to_S_SC16": "origin_link_unknown",
+    "SC12_E_SC106_to_W": "origin_link_unknown",
+    "SC12_E_SC106_to_W_SC11": "origin_link_unknown",
+    "SC12_E_to_E_SC106": "synthetic_boundary_leg",
+    "SC12_E_to_N_SC6": "synthetic_boundary_leg",
+    "SC12_E_to_S_SC16": "synthetic_boundary_leg",
+    "SC12_E_to_W": "synthetic_boundary_leg",
+    "SC12_E_to_W_SC11": "synthetic_boundary_leg",
+    "SC12_N_SC6_to_E": "origin_link_unknown",
+    "SC12_N_SC6_to_E_SC106": "origin_link_unknown",
+    "SC12_N_SC6_to_S_SC16": "origin_link_unknown",
+    "SC12_N_SC6_to_W": "origin_link_unknown",
+    "SC12_N_SC6_to_W_SC11": "origin_link_unknown",
+    "SC12_W_to_E": "synthetic_boundary_leg",
+    "SC12_W_to_E_SC106": "synthetic_boundary_leg",
+    "SC12_W_to_N_SC6": "synthetic_boundary_leg",
+    "SC12_W_to_S_SC16": "synthetic_boundary_leg",
+    "SC12_W_to_W_SC11": "synthetic_boundary_leg",
+    "SC16_E_to_N_SC12": "synthetic_boundary_leg",
+    "SC16_E_to_S": "synthetic_boundary_leg",
+    "SC16_E_to_S_SC109": "synthetic_boundary_leg",
+    "SC16_E_to_W": "synthetic_boundary_leg",
+    "SC16_E_to_W_SC7": "synthetic_boundary_leg",
+    "SC16_S_to_E": "synthetic_boundary_leg",
+    "SC16_S_to_N_SC12": "synthetic_boundary_leg",
+    "SC16_S_to_S_SC109": "synthetic_boundary_leg",
+    "SC16_S_to_W": "synthetic_boundary_leg",
+    "SC16_S_to_W_SC7": "synthetic_boundary_leg",
+    "SC16_W_to_E": "synthetic_boundary_leg",
+    "SC16_W_to_N_SC12": "synthetic_boundary_leg",
+    "SC16_W_to_S": "synthetic_boundary_leg",
+    "SC16_W_to_S_SC109": "synthetic_boundary_leg",
+    "SC16_W_to_W_SC7": "synthetic_boundary_leg",
+    "SC1_E_SC11_to_E": "no_signal_head_downstream",
+    "SC1_E_SC11_to_N": "no_signal_head_downstream",
+    "SC1_E_SC11_to_N_SC101": "no_signal_head_downstream",
+    "SC1_E_SC11_to_S": "no_signal_head_downstream",
+    "SC1_E_SC11_to_S_SC107": "no_signal_head_downstream",
+    "SC1_E_SC11_to_W": "no_signal_head_downstream",
+    "SC1_E_SC11_to_W_SC105": "no_signal_head_downstream",
+    "SC1_E_to_E_SC11": "synthetic_boundary_leg",
+    "SC1_E_to_N": "synthetic_boundary_leg",
+    "SC1_E_to_N_SC101": "synthetic_boundary_leg",
+    "SC1_E_to_S": "synthetic_boundary_leg",
+    "SC1_E_to_S_SC107": "synthetic_boundary_leg",
+    "SC1_E_to_W": "synthetic_boundary_leg",
+    "SC1_E_to_W_SC105": "synthetic_boundary_leg",
+    "SC1_N_SC101_to_E": "origin_link_unknown",
+    "SC1_N_SC101_to_E_SC11": "origin_link_unknown",
+    "SC1_N_SC101_to_N": "origin_link_unknown",
+    "SC1_N_SC101_to_S": "origin_link_unknown",
+    "SC1_N_SC101_to_S_SC107": "origin_link_unknown",
+    "SC1_N_SC101_to_W": "origin_link_unknown",
+    "SC1_N_SC101_to_W_SC105": "origin_link_unknown",
+    "SC1_N_to_E": "synthetic_boundary_leg",
+    "SC1_N_to_E_SC11": "synthetic_boundary_leg",
+    "SC1_N_to_N_SC101": "synthetic_boundary_leg",
+    "SC1_N_to_S": "synthetic_boundary_leg",
+    "SC1_N_to_S_SC107": "synthetic_boundary_leg",
+    "SC1_N_to_W": "synthetic_boundary_leg",
+    "SC1_N_to_W_SC105": "synthetic_boundary_leg",
+    "SC1_S_to_E": "synthetic_boundary_leg",
+    "SC1_S_to_E_SC11": "synthetic_boundary_leg",
+    "SC1_S_to_N": "synthetic_boundary_leg",
+    "SC1_S_to_N_SC101": "synthetic_boundary_leg",
+    "SC1_S_to_S_SC107": "synthetic_boundary_leg",
+    "SC1_S_to_W": "synthetic_boundary_leg",
+    "SC1_S_to_W_SC105": "synthetic_boundary_leg",
+    "SC1_W_SC105_to_E": "origin_link_unknown",
+    "SC1_W_SC105_to_E_SC11": "origin_link_unknown",
+    "SC1_W_SC105_to_N": "origin_link_unknown",
+    "SC1_W_SC105_to_N_SC101": "origin_link_unknown",
+    "SC1_W_SC105_to_S": "origin_link_unknown",
+    "SC1_W_SC105_to_S_SC107": "origin_link_unknown",
+    "SC1_W_SC105_to_W": "origin_link_unknown",
+    "SC1_W_to_E": "synthetic_boundary_leg",
+    "SC1_W_to_E_SC11": "synthetic_boundary_leg",
+    "SC1_W_to_N": "synthetic_boundary_leg",
+    "SC1_W_to_N_SC101": "synthetic_boundary_leg",
+    "SC1_W_to_S": "synthetic_boundary_leg",
+    "SC1_W_to_S_SC107": "synthetic_boundary_leg",
+    "SC1_W_to_W_SC105": "synthetic_boundary_leg",
+    "SC5_E_SC6_to_N_SC102": "origin_link_unknown",
+    "SC5_E_SC6_to_S": "origin_link_unknown",
+    "SC5_E_SC6_to_S_SC11": "origin_link_unknown",
+    "SC5_E_SC6_to_W_SC101": "origin_link_unknown",
+    "SC5_N_SC102_to_E_SC6": "origin_link_unknown",
+    "SC5_N_SC102_to_S": "origin_link_unknown",
+    "SC5_N_SC102_to_S_SC11": "origin_link_unknown",
+    "SC5_N_SC102_to_W_SC101": "origin_link_unknown",
+    "SC5_S_SC11_to_E_SC6": "no_signal_head_downstream",
+    "SC5_S_SC11_to_N_SC102": "no_signal_head_downstream",
+    "SC5_S_SC11_to_S": "no_signal_head_downstream",
+    "SC5_S_SC11_to_W_SC101": "no_signal_head_downstream",
+    "SC5_S_to_E_SC6": "synthetic_boundary_leg",
+    "SC5_S_to_N_SC102": "synthetic_boundary_leg",
+    "SC5_S_to_S_SC11": "synthetic_boundary_leg",
+    "SC5_S_to_W_SC101": "synthetic_boundary_leg",
+    "SC6_E_SC104_to_N_SC103": "origin_link_unknown",
+    "SC6_E_SC104_to_S": "origin_link_unknown",
+    "SC6_E_SC104_to_S_SC12": "origin_link_unknown",
+    "SC6_E_SC104_to_W_SC5": "origin_link_unknown",
+    "SC6_N_SC103_to_E_SC104": "origin_link_unknown",
+    "SC6_N_SC103_to_S": "origin_link_unknown",
+    "SC6_N_SC103_to_S_SC12": "origin_link_unknown",
+    "SC6_N_SC103_to_W_SC5": "origin_link_unknown",
+    "SC6_S_SC12_to_E_SC104": "origin_link_unknown",
+    "SC6_S_SC12_to_N_SC103": "origin_link_unknown",
+    "SC6_S_SC12_to_S": "origin_link_unknown",
+    "SC6_S_SC12_to_W_SC5": "origin_link_unknown",
+    "SC6_S_to_E_SC104": "synthetic_boundary_leg",
+    "SC6_S_to_N_SC103": "synthetic_boundary_leg",
+    "SC6_S_to_S_SC12": "synthetic_boundary_leg",
+    "SC6_S_to_W_SC5": "synthetic_boundary_leg",
+    "SC6_W_SC5_to_E_SC104": "origin_link_unknown",
+    "SC6_W_SC5_to_N_SC103": "origin_link_unknown",
+    "SC6_W_SC5_to_S": "origin_link_unknown",
+    "SC6_W_SC5_to_S_SC12": "origin_link_unknown",
+    "SC7_E_to_E_SC16": "synthetic_boundary_leg",
+    "SC7_E_to_N_SC11": "synthetic_boundary_leg",
+    "SC7_E_to_S_SC108": "synthetic_boundary_leg",
+    "SC7_N_SC11_to_E": "no_signal_head_downstream",
+    "SC7_N_SC11_to_E_SC16": "no_signal_head_downstream",
+    "SC7_N_SC11_to_S_SC108": "no_signal_head_downstream",
+    "SC7_S_SC108_to_E": "no_signal_head_downstream",
+    "SC7_S_SC108_to_E_SC16": "no_signal_head_downstream",
+    "SC7_S_SC108_to_N_SC11": "no_signal_head_downstream"
+  }
+}

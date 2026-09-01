@@ -1,0 +1,1051 @@
+{
+ "schema_version": "numsim-closed-loop/1",
+ "generated": "2026-08-31",
+ "warning": "TTT 로 팔 순위를 매기지 마라 — 컨트롤러와 플랜트가 같은 METANET 이다. 이 러너는 기전(레버 발동·사슬 연결·목적함수 곡률)을 재는 선별 도구다.",
+ "ramp_arrival_vph": {
+  "R_D_W": 752.0,
+  "R_F_W": 1212.0,
+  "R_D_E": 938.0,
+  "R_F_E": 555.0
+ },
+ "mainline_base_vph": [
+  3080.0,
+  4400.0,
+  4620.0,
+  3960.0,
+  3080.0,
+  2200.0
+ ],
+ "summaries": [
+  {
+   "label": "canon_fdfit3_20260828",
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944,
+   "vsl_values": [
+    120.0
+   ],
+   "vsl_non_free_pct": 0.0,
+   "meter_binding_steps": "6/12",
+   "meter_sum_median": 5340.0,
+   "ramp_arrival_median": 3457.0,
+   "ramp_queue_max": 0.0,
+   "density_stress_median": 0.0,
+   "cand_spread_pct_median": 0.05386385194167322,
+   "refine_pct": 8.333333333333334,
+   "fallback_win_pct": 50.0
+  },
+  {
+   "label": "canon_ramparr_20260831",
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944,
+   "vsl_values": [
+    120.0
+   ],
+   "vsl_non_free_pct": 0.0,
+   "meter_binding_steps": "6/12",
+   "meter_sum_median": 5340.0,
+   "ramp_arrival_median": 3457.0,
+   "ramp_queue_max": 0.0,
+   "density_stress_median": 0.0,
+   "cand_spread_pct_median": 0.05386385194167322,
+   "refine_pct": 8.333333333333334,
+   "fallback_win_pct": 50.0
+  },
+  {
+   "label": "canon_ramparr_gnedyn_20260831",
+   "total_ttt": 1384.0971273030077,
+   "freeway_ttt": 375.8734155287747,
+   "urban_ttt": 1008.223711774233,
+   "vsl_values": [
+    120.0
+   ],
+   "vsl_non_free_pct": 0.0,
+   "meter_binding_steps": "8/12",
+   "meter_sum_median": 4320.0,
+   "ramp_arrival_median": 3457.0,
+   "ramp_queue_max": 0.0,
+   "density_stress_median": 0.0,
+   "cand_spread_pct_median": 0.0778782731240965,
+   "refine_pct": 8.333333333333334,
+   "fallback_win_pct": 33.333333333333336
+  },
+  {
+   "label": "canon_fd3sw18_20260828",
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944,
+   "vsl_values": [
+    120.0
+   ],
+   "vsl_non_free_pct": 0.0,
+   "meter_binding_steps": "6/12",
+   "meter_sum_median": 5340.0,
+   "ramp_arrival_median": 3457.0,
+   "ramp_queue_max": 0.0,
+   "density_stress_median": 0.0,
+   "cand_spread_pct_median": 0.05386385194167322,
+   "refine_pct": 8.333333333333334,
+   "fallback_win_pct": 50.0
+  }
+ ],
+ "runs": [
+  {
+   "label": "canon_fdfit3_20260828",
+   "tuning": "evaluation/configs/canon_fdfit3_20260828.json",
+   "steps": 12,
+   "demand_multiplier": 1.0,
+   "rows": [
+    {
+     "step": 0,
+     "time_sec": 150.0,
+     "freeway_ttt": 55.39062600028505,
+     "urban_ttt": 38.48821415727416,
+     "total_ttt": 93.87884015755921,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.6840188042536397,
+     "cand_best_obj": 379.7880745567404,
+     "refine_active": 1.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 1,
+     "time_sec": 300.0,
+     "freeway_ttt": 39.74996627178393,
+     "urban_ttt": 51.97022872030293,
+     "total_ttt": 91.72019499208686,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 2640.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2274561542576521,
+     "cand_best_obj": 417.7856265750339,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 2,
+     "time_sec": 450.0,
+     "freeway_ttt": 28.37735326216786,
+     "urban_ttt": 61.71304415989401,
+     "total_ttt": 90.09039742206187,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 3840.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.12625123935282545,
+     "cand_best_obj": 440.518280541447,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 3,
+     "time_sec": 600.0,
+     "freeway_ttt": 23.254835676407627,
+     "urban_ttt": 68.98442996048799,
+     "total_ttt": 92.23926563689561,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 4440.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2486780366785979,
+     "cand_best_obj": 466.6992136907902,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 4,
+     "time_sec": 750.0,
+     "freeway_ttt": 21.984281726926,
+     "urban_ttt": 74.77905305760427,
+     "total_ttt": 96.76333478453027,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5040.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.557991295907641,
+     "cand_best_obj": 504.19541594971673,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 5,
+     "time_sec": 900.0,
+     "freeway_ttt": 21.777687606578613,
+     "urban_ttt": 79.6208685341916,
+     "total_ttt": 101.39855614077021,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5640.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.022911290708861998,
+     "cand_best_obj": 543.7056151284764,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 6,
+     "time_sec": 1050.0,
+     "freeway_ttt": 24.199948758823588,
+     "urban_ttt": 85.82989442880597,
+     "total_ttt": 110.02984318762955,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6240.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 2.174211850261031,
+     "cand_best_obj": 684.8734853412661,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 7,
+     "time_sec": 1200.0,
+     "freeway_ttt": 28.34856132437468,
+     "urban_ttt": 95.79401678044624,
+     "total_ttt": 124.14257810482093,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6840.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 1.078999045066439,
+     "cand_best_obj": 759.0624504530551,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 8,
+     "time_sec": 1350.0,
+     "freeway_ttt": 31.540552239175362,
+     "urban_ttt": 103.98766538368004,
+     "total_ttt": 135.5282176228554,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7158.472969086695,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.34894030352006666,
+     "cand_best_obj": 821.6997665713881,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 9,
+     "time_sec": 1500.0,
+     "freeway_ttt": 32.15895224705671,
+     "urban_ttt": 112.06954582631822,
+     "total_ttt": 144.22849807337494,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.19510149329357773,
+     "cand_best_obj": 885.8525026422487,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 10,
+     "time_sec": 1650.0,
+     "freeway_ttt": 32.75817220966441,
+     "urban_ttt": 118.7998514882657,
+     "total_ttt": 151.5580236979301,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.9443091181569798,
+     "cand_best_obj": 938.841352225842,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 11,
+     "time_sec": 1800.0,
+     "freeway_ttt": 32.58626377268605,
+     "urban_ttt": 125.05860303252332,
+     "total_ttt": 157.64486680520938,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.35826244761926773,
+     "cand_best_obj": 997.3797371316343,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    }
+   ],
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944
+  },
+  {
+   "label": "canon_ramparr_20260831",
+   "tuning": "evaluation/configs/canon_ramparr_20260831.json",
+   "steps": 12,
+   "demand_multiplier": 1.0,
+   "rows": [
+    {
+     "step": 0,
+     "time_sec": 150.0,
+     "freeway_ttt": 55.39062600028505,
+     "urban_ttt": 38.48821415727416,
+     "total_ttt": 93.87884015755921,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.6840188042536397,
+     "cand_best_obj": 379.7880745567404,
+     "refine_active": 1.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 1,
+     "time_sec": 300.0,
+     "freeway_ttt": 39.74996627178393,
+     "urban_ttt": 51.97022872030293,
+     "total_ttt": 91.72019499208686,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 2640.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2274561542576521,
+     "cand_best_obj": 417.7856265750339,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 2,
+     "time_sec": 450.0,
+     "freeway_ttt": 28.37735326216786,
+     "urban_ttt": 61.71304415989401,
+     "total_ttt": 90.09039742206187,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 3840.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.12625123935282545,
+     "cand_best_obj": 440.518280541447,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 3,
+     "time_sec": 600.0,
+     "freeway_ttt": 23.254835676407627,
+     "urban_ttt": 68.98442996048799,
+     "total_ttt": 92.23926563689561,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 4440.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2486780366785979,
+     "cand_best_obj": 466.6992136907902,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 4,
+     "time_sec": 750.0,
+     "freeway_ttt": 21.984281726926,
+     "urban_ttt": 74.77905305760427,
+     "total_ttt": 96.76333478453027,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5040.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.557991295907641,
+     "cand_best_obj": 504.19541594971673,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 5,
+     "time_sec": 900.0,
+     "freeway_ttt": 21.777687606578613,
+     "urban_ttt": 79.6208685341916,
+     "total_ttt": 101.39855614077021,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5640.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.022911290708861998,
+     "cand_best_obj": 543.7056151284764,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 6,
+     "time_sec": 1050.0,
+     "freeway_ttt": 24.199948758823588,
+     "urban_ttt": 85.82989442880597,
+     "total_ttt": 110.02984318762955,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6240.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 2.174211850261031,
+     "cand_best_obj": 684.8734853412661,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 7,
+     "time_sec": 1200.0,
+     "freeway_ttt": 28.34856132437468,
+     "urban_ttt": 95.79401678044624,
+     "total_ttt": 124.14257810482093,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6840.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 1.078999045066439,
+     "cand_best_obj": 759.0624504530551,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 8,
+     "time_sec": 1350.0,
+     "freeway_ttt": 31.540552239175362,
+     "urban_ttt": 103.98766538368004,
+     "total_ttt": 135.5282176228554,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7158.472969086695,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.34894030352006666,
+     "cand_best_obj": 821.6997665713881,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 9,
+     "time_sec": 1500.0,
+     "freeway_ttt": 32.15895224705671,
+     "urban_ttt": 112.06954582631822,
+     "total_ttt": 144.22849807337494,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.19510149329357773,
+     "cand_best_obj": 885.8525026422487,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 10,
+     "time_sec": 1650.0,
+     "freeway_ttt": 32.75817220966441,
+     "urban_ttt": 118.7998514882657,
+     "total_ttt": 151.5580236979301,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.9443091181569798,
+     "cand_best_obj": 938.841352225842,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 11,
+     "time_sec": 1800.0,
+     "freeway_ttt": 32.58626377268605,
+     "urban_ttt": 125.05860303252332,
+     "total_ttt": 157.64486680520938,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.35826244761926773,
+     "cand_best_obj": 997.3797371316343,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    }
+   ],
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944
+  },
+  {
+   "label": "canon_ramparr_gnedyn_20260831",
+   "tuning": "evaluation/configs/canon_ramparr_gnedyn_20260831.json",
+   "steps": 12,
+   "demand_multiplier": 1.0,
+   "rows": [
+    {
+     "step": 0,
+     "time_sec": 150.0,
+     "freeway_ttt": 56.2666373281563,
+     "urban_ttt": 37.78287350341909,
+     "total_ttt": 94.04951083157539,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 4.403864191053174,
+     "cand_best_obj": 376.89813655164323,
+     "refine_active": 1.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 1,
+     "time_sec": 300.0,
+     "freeway_ttt": 41.10573608291233,
+     "urban_ttt": 50.710992280490025,
+     "total_ttt": 91.81672836340235,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1439.9999999999998,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.6469516206764183,
+     "cand_best_obj": 382.9190258648753,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 2,
+     "time_sec": 450.0,
+     "freeway_ttt": 28.817291327187682,
+     "urban_ttt": 60.920476144484425,
+     "total_ttt": 89.7377674716721,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 2640.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.005854874666283649,
+     "cand_best_obj": 432.5321731031955,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 3,
+     "time_sec": 600.0,
+     "freeway_ttt": 23.851717164890093,
+     "urban_ttt": 66.9683361442154,
+     "total_ttt": 90.82005330910549,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 3840.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.03926970804042185,
+     "cand_best_obj": 461.128373400842,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 4,
+     "time_sec": 750.0,
+     "freeway_ttt": 21.985704563999935,
+     "urban_ttt": 73.23874407349916,
+     "total_ttt": 95.2244486374991,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 4800.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.8129094045299325,
+     "cand_best_obj": 502.867649631178,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 5,
+     "time_sec": 900.0,
+     "freeway_ttt": 21.84047056755818,
+     "urban_ttt": 78.6114698298963,
+     "total_ttt": 100.45194039745448,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5400.0,
+     "meter_binding_ramps": 1,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.5361558067992291,
+     "cand_best_obj": 544.771274228956,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 6,
+     "time_sec": 1050.0,
+     "freeway_ttt": 24.615451215958153,
+     "urban_ttt": 85.29596016890804,
+     "total_ttt": 109.9114113848662,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6000.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.16383097395203094,
+     "cand_best_obj": 688.9343725616241,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 7,
+     "time_sec": 1200.0,
+     "freeway_ttt": 28.856791149325133,
+     "urban_ttt": 95.44610787186211,
+     "total_ttt": 124.30289902118724,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6600.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.445662921020471,
+     "cand_best_obj": 760.7511536043548,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 8,
+     "time_sec": 1350.0,
+     "freeway_ttt": 31.09019452316187,
+     "urban_ttt": 104.22882953398083,
+     "total_ttt": 135.3190240571427,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7170.211063282625,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.09188775522602555,
+     "cand_best_obj": 827.050684331711,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 9,
+     "time_sec": 1500.0,
+     "freeway_ttt": 32.25887391298513,
+     "urban_ttt": 112.00284243653422,
+     "total_ttt": 144.26171634951936,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.08004171644563485,
+     "cand_best_obj": 880.4316412999641,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 10,
+     "time_sec": 1650.0,
+     "freeway_ttt": 32.56326651754714,
+     "urban_ttt": 118.55421338171774,
+     "total_ttt": 151.11747989926488,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 2640.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.9490352341580319,
+     "cand_best_obj": 930.751060830695,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 11,
+     "time_sec": 1800.0,
+     "freeway_ttt": 32.621281175092676,
+     "urban_ttt": 124.46286640522564,
+     "total_ttt": 157.0841475803183,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 3840.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.9530806282708681,
+     "cand_best_obj": 980.7920415267295,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    }
+   ],
+   "total_ttt": 1384.0971273030077,
+   "freeway_ttt": 375.8734155287747,
+   "urban_ttt": 1008.223711774233
+  },
+  {
+   "label": "canon_fd3sw18_20260828",
+   "tuning": "evaluation/configs/canon_fd3sw18_20260828.json",
+   "steps": 12,
+   "demand_multiplier": 1.0,
+   "rows": [
+    {
+     "step": 0,
+     "time_sec": 150.0,
+     "freeway_ttt": 55.39062600028505,
+     "urban_ttt": 38.48821415727416,
+     "total_ttt": 93.87884015755921,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.6840188042536397,
+     "cand_best_obj": 379.7880745567404,
+     "refine_active": 1.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 1,
+     "time_sec": 300.0,
+     "freeway_ttt": 39.74996627178393,
+     "urban_ttt": 51.97022872030293,
+     "total_ttt": 91.72019499208686,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 2640.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2274561542576521,
+     "cand_best_obj": 417.7856265750339,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 2,
+     "time_sec": 450.0,
+     "freeway_ttt": 28.37735326216786,
+     "urban_ttt": 61.71304415989401,
+     "total_ttt": 90.09039742206187,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 3840.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.12625123935282545,
+     "cand_best_obj": 440.518280541447,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 3,
+     "time_sec": 600.0,
+     "freeway_ttt": 23.254835676407627,
+     "urban_ttt": 68.98442996048799,
+     "total_ttt": 92.23926563689561,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 4440.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.2486780366785979,
+     "cand_best_obj": 466.6992136907902,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 4,
+     "time_sec": 750.0,
+     "freeway_ttt": 21.984281726926,
+     "urban_ttt": 74.77905305760427,
+     "total_ttt": 96.76333478453027,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5040.0,
+     "meter_binding_ramps": 2,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.557991295907641,
+     "cand_best_obj": 504.19541594971673,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 5,
+     "time_sec": 900.0,
+     "freeway_ttt": 21.777687606578613,
+     "urban_ttt": 79.6208685341916,
+     "total_ttt": 101.39855614077021,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 5640.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.022911290708861998,
+     "cand_best_obj": 543.7056151284764,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 6,
+     "time_sec": 1050.0,
+     "freeway_ttt": 24.199948758823588,
+     "urban_ttt": 85.82989442880597,
+     "total_ttt": 110.02984318762955,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6240.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 2.174211850261031,
+     "cand_best_obj": 684.8734853412661,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 7,
+     "time_sec": 1200.0,
+     "freeway_ttt": 28.34856132437468,
+     "urban_ttt": 95.79401678044624,
+     "total_ttt": 124.14257810482093,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 6840.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 1.078999045066439,
+     "cand_best_obj": 759.0624504530551,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 8,
+     "time_sec": 1350.0,
+     "freeway_ttt": 31.540552239175362,
+     "urban_ttt": 103.98766538368004,
+     "total_ttt": 135.5282176228554,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7158.472969086695,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.34894030352006666,
+     "cand_best_obj": 821.6997665713881,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    },
+    {
+     "step": 9,
+     "time_sec": 1500.0,
+     "freeway_ttt": 32.15895224705671,
+     "urban_ttt": 112.06954582631822,
+     "total_ttt": 144.22849807337494,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.19510149329357773,
+     "cand_best_obj": 885.8525026422487,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 10,
+     "time_sec": 1650.0,
+     "freeway_ttt": 32.75817220966441,
+     "urban_ttt": 118.7998514882657,
+     "total_ttt": 151.5580236979301,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 7200.0,
+     "meter_binding_ramps": 0,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.9443091181569798,
+     "cand_best_obj": 938.841352225842,
+     "refine_active": 0.0,
+     "best_is_fallback": 1.0
+    },
+    {
+     "step": 11,
+     "time_sec": 1800.0,
+     "freeway_ttt": 32.58626377268605,
+     "urban_ttt": 125.05860303252332,
+     "total_ttt": 157.64486680520938,
+     "vsl": [
+      120.0
+     ],
+     "meter_sum": 1440.0,
+     "meter_binding_ramps": 3,
+     "ramp_arrival_sum": 3457.0,
+     "ramp_queue_veh": 0.0,
+     "density_stress": 0.0,
+     "cand_spread": 0.35826244761926773,
+     "cand_best_obj": 997.3797371316343,
+     "refine_active": 0.0,
+     "best_is_fallback": 0.0
+    }
+   ],
+   "total_ttt": 1389.2226166257242,
+   "freeway_ttt": 372.1272010959299,
+   "urban_ttt": 1017.0954155297944
+  }
+ ]
+}
