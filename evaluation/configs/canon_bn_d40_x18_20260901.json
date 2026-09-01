@@ -7444,7 +7444,9 @@
   "urban": {
     "capacity": {
       "per_lane": true,
-      "equivalent_uniform_veh_h": 330.0
+      "equivalent_uniform_veh_h": 330.0,
+      "perimeter": "all",
+      "_why_perimeter": "perimeter movement 184개(boundary_in 116 · boundary_out 50 · off_ramp 18)가 스칼라 1400 veh/h 로 떨어지고 있었다 — internal 실측 중앙 206.5 의 6.8배다. all 이면 66개는 물리 회전(pn_boundary_turns)으로 확인하고 118개는 같은 종류 중앙값을 쓴다. 둘 다 vendor 스칼라 1400 보다 근거가 있고 폴백이 0 이 된다."
     },
     "beta": {
       "measured": true,

@@ -950,3 +950,47 @@ SC7_E_to_N_SC11           위와 같음(경계 leg 판)
 **교훈**: 현시 배정을 NEMA 이름으로만 정하면 안 된다. 접근로 방위와 실제 신호군이
 어긋나는 교차로가 있다 — 특히 직진 현시가 아예 없는 곳(SC107)과 직좌 공용(SC16·SC7).
 근거는 `outputs/movement_connector_map_20260824.json` 의 진출별 `sg` 다.
+
+## 남은 스칼라 둘 — 판정 (2026-09-01)
+
+### movement_capacity_veh_h 1400 : 승격했다
+
+perimeter movement 184개(boundary_in 116 · boundary_out 50 · off_ramp 18)가 스칼라
+1400 veh/h 로 떨어지고 있었다 — internal 실측 중앙 **206.5 의 6.8배**다.
+
+`urban.capacity.perimeter` 를 `all` 로 켰다(7개 canon config). 66개는 물리 회전
+(`pn_boundary_turns`)으로 확인하고 118개는 같은 종류 중앙값을 쓴다 — 둘 다 vendor
+스칼라보다 근거가 있고 **폴백이 0** 이 된다.
+
+```
+off       맵 184  · perimeter 184개가 1400 폴백
+resolved  맵 250  · 66개 확인, 118개 여전히 폴백
+all       맵 368  · 폴백 0
+```
+
+### grid_link_storage_veh 220 : 고칠 게 없다
+
+소비처 넷 중 살아있는 경로에서 **의미를 갖는 것이 하나도 없다.**
+
+```
+wu_distributed.py:226  t_link_h    유일한 사용처(262행)가 `elif kind == "_legacy_occupancy_disabled"`
+                                   분기 안이다. 그 문자열은 저장소 어디에도 kind 로 존재하지 않는다
+                                   (실제 kind: internal · boundary_in · boundary_out · off_ramp).
+                                   **죽은 코드다.**
+urban_follower.py:626              DEAD 팔(whose_code 판정)
+analysis/free_flow_reference.py:26 분석 도구, 제어 경로 아님
+state.py:418                       저류 없는 링크에 220 을 채운다 — 실측 결과 그 대상 54개가
+                                   **전부 vendor toy 망 링크**(A_top_out · A_to_B · B_to_C …)다
+```
+
+**다만 toy 링크가 우리 런타임에 살아 있는 것은 사실이다.** `default.yaml` 의
+`urban_link_storage_veh` 25개가 `_deep_update` 의 dict 병합으로 우리 201개 위에 남아
+런타임 226개가 된다. 차량이 없으니 점유는 0 이라 누적에는 안 잡히지만, 링크 수를 세는
+진단은 전부 25 만큼 부풀어 있다.
+
+**차원 오류는 별개로 실재한다.** `t_link_h` 식이 `저류 x 6 m` 를 링크 길이로 쓰는데,
+저류는 전 차로 합계라 길이를 **차로수만큼 과대**한다. 정본에 실제 길이가 있어 확인된다 —
+`SC1001_to_SC1002` 저류 469.0 veh · 실제 0.9965 km 인데 식은 2.814 km(2.82배 = 차로수).
+`outputs/urban_storage_capacity_core17legs4b_20260819.json` 의 **`urban_link_length_km`** 를
+쓰면 추정 없이 정확하다. 지금은 그 식이 죽은 코드라 고칠 필요가 없지만, 되살릴 때는
+반드시 그 필드를 써라(메모리 `vissim-lane-delay-dimension-bug` 와 같은 함정이다).
