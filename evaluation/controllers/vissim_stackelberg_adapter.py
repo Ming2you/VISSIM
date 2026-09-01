@@ -3354,6 +3354,60 @@ def _movement_phase_correction_enabled() -> bool:
     return _switch("movement_phase_correction", "RW_MOVEMENT_PHASE_CORRECTION")
 
 
+
+def apply_nonexistent_movement_beta_zero(cfg) -> dict[str, float]:
+    """물리 회전이 없는 movement 의 beta 를 0 으로 하고 같은 origin 의 형제에게 넘긴다.
+
+    `urban_movements` 는 leg 교차곱 선언이라 물리 회전보다 많다(CLAUDE.md). 그중 일부는
+    커넥터 지도에 **대응 진출이 아예 없다** — 그런데도 beta 를 받아 흐름을 가져가고,
+    하필 죽은 현시에 배정돼 그 몫이 영원히 서비스되지 않는다.
+
+    실측(2026-09-01):
+        SC109_N_SC16_to_W_SC108  N_SC16 진출은 10283 -> 1220000803(망 이탈) 하나뿐
+        SC7_E_SC16_to_N_SC11     E_SC16 진출은 10332 -> S_SC108, 10333 -> SC108_N_SC7 둘뿐
+        SC7_E_to_N_SC11          위와 같음(경계 leg 판)
+    셋 다 origin 형제가 정확히 하나이고 beta 가 0.5/0.5 라, 0 으로 만들고 넘기면
+    그 origin 이 실제 회전 100% 가 된다.
+
+    목록은 `outputs/movement_phase_correction_20260828.json` 의
+    `known_nonexistent_movements` 절이다. 없으면 no-op(비트 동일).
+    """
+    if not MOVEMENT_PHASE_CORRECTION_JSON.is_file():
+        return {"nonexistent_movement_beta_zero": 0.0}
+    try:
+        doc = json.loads(MOVEMENT_PHASE_CORRECTION_JSON.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"nonexistent_movement_beta_zero": 0.0}
+    names = [str(k) for k in _mapping(doc.get("known_nonexistent_movements"))
+             if not str(k).startswith("_")]
+    if not names:
+        return {"nonexistent_movement_beta_zero": 0.0}
+    specs = cfg.network.urban_movements or {}
+    zeroed = 0
+    moved = 0.0
+    for name in names:
+        spec = specs.get(name)
+        if spec is None:
+            continue  # 병합으로 이름이 바뀌었거나 사라졌다
+        origin = str(spec.get("origin", ""))
+        beta = _as_float(spec.get("beta"), 0.0)
+        if beta <= 0.0:
+            continue
+        sibs = [k for k, v in specs.items()
+                if k != name and str(v.get("origin", "")) == origin
+                and k not in names]
+        if not sibs:
+            # 넘길 형제가 없으면 손대지 않는다 — 그 origin 의 수요가 통째로 사라진다.
+            continue
+        share = beta / float(len(sibs))
+        for k in sibs:
+            specs[k]["beta"] = _as_float(specs[k].get("beta"), 0.0) + share
+        specs[name]["beta"] = 0.0
+        zeroed += 1
+        moved += beta
+    return {"nonexistent_movement_beta_zero": 1.0,
+            "nonexistent_movement_zeroed": float(zeroed),
+            "nonexistent_movement_beta_moved": float(moved)}
 def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None) -> dict:
     """movement 의 선언 `phase` 를 신호두 근거로 고친다. 꺼져 있으면 no-op(비트 동일).
 
@@ -9239,6 +9293,8 @@ def main() -> None:
     # dead_phase 는 선언 phase 의 axis_green 을 보고 죽었는지 정하므로, 선언이 틀린 채로
     # 판정하면 살아 있는 회전을 죽인다(2026-08-27 에 정확히 그렇게 17개를 죽였다).
     runtime_patch_metadata.update(apply_movement_phase_correction(cfg, tuning))
+    # 물리 회전이 없는 movement 의 beta 를 형제에게 넘긴다. 대장이 없으면 no-op.
+    runtime_patch_metadata.update(apply_nonexistent_movement_beta_zero(cfg))
     runtime_patch_metadata.update(apply_dead_phase_beta_zero(cfg))
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
