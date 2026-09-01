@@ -405,11 +405,27 @@ def sync_onramp_queues_from_freeway(state: TrafficState, cfg: ExperimentConfig) 
     """2저수지 구조에서는 freeway ramp queue를 urban 접근부 queue로 복사하지 않는다."""
     ensure_urban_state(state, cfg)
     for ramp, movements in cfg.network.on_ramp_to_movement.items():
-        state.ramp_queue[ramp] = float(np.clip(
-            state.ramp_queue.get(ramp, 0.0),
-            0.0,
-            cfg.network.ramp_queue_max_veh,
-        ))
+        # 상한 절단을 뺀다(2026-09-01). 여기 들어오는 값은 **VISSIM 관측**(ramp_counts 투영)이라
+        # 모델 상한으로 자르면 실측 차량이 소멸한다 — 실측: 37결정 중 19결정이 스칼라 180 을
+        # 넘었고 누적 211.3 veh 가 사라졌다. 램프별 상한(111.2~174.5)으로 바꾸면 32결정
+        # 905.6 veh 로 4.3배 악화된다. 즉 접근자 교체만으로는 못 고치는 자리다.
+        #
+        # 관측이 상한을 넘으면 상한이 틀렸거나 관측이 저수지 밖 차량을 포함한 것이다.
+        # 어느 쪽이든 **지우는 것은 답이 아니다.** 값을 그대로 두면 하류가 알아서 처리한다 —
+        # `ramp_space = max(0, cap - q)` 가 0 이 되어 도시->램프 방류가 막히고(차단),
+        # 그 차량이 도시에 잔류해 urban_ttt·far n_u^2 에 실린다. 그게 물리적으로 맞다.
+        q_obs = max(0.0, float(state.ramp_queue.get(ramp, 0.0)))
+        cap_obs = (cfg.network.ramp_queue_cap(ramp)
+                   if hasattr(cfg.network, "ramp_queue_cap")
+                   else float(cfg.network.ramp_queue_max_veh))
+        if q_obs > cap_obs:
+            # 조용히 넘어가지 않는다 — 상한 재검토가 필요하다는 신호다.
+            over = getattr(state, "ramp_queue_over_cap_veh", None)
+            if not isinstance(over, dict):
+                over = {}
+                setattr(state, "ramp_queue_over_cap_veh", over)
+            over[str(ramp)] = q_obs - cap_obs
+        state.ramp_queue[ramp] = q_obs
         for movement in movements:
             state.urban_movement_queue[movement] = max(
                 0.0,
@@ -882,7 +898,11 @@ def estimate_onramp_green_release_flows(
             cap_flow = _movement_capacity_flow(control, cfg, movement, spec)
             green_fraction = _phase_green_fraction(control, cfg, spec)
             requested_total += min(available, horizon_h * green_fraction * cap_flow)
-        ramp_space = max(0.0, net.ramp_queue_max_veh - state.ramp_queue.get(ramp, 0.0))
+        # 램프별 상한. 스칼라 180 은 네 램프 실제값(111.2~174.5) 모두보다 커서
+        # 차단이 늦게 시작되고 도시 역류를 과소평가한다.
+        _cap_sp = (net.ramp_queue_cap(ramp) if hasattr(net, "ramp_queue_cap")
+                   else float(net.ramp_queue_max_veh))
+        ramp_space = max(0.0, _cap_sp - state.ramp_queue.get(ramp, 0.0))
         release[ramp] = min(requested_total, ramp_space) / max(horizon_h, 1.0e-9)
     return release
 
@@ -977,6 +997,8 @@ def urban_substep(
     routing = approach_routing(cfg)
     sink_links = sink_storage_links(cfg)
     boundary_out_sink_veh = 0.0
+    boundary_out_ramp_blocked_veh = 0.0
+    boundary_out_ramp_released_veh = 0.0
     urban_gate_inflow_veh = 0.0
     urban_demand_arrivals_veh = 0.0
 
@@ -1002,6 +1024,28 @@ def urban_substep(
     exit_capacity_veh_h = float(net.boundary_out_capacity_veh_h)
     finite_exit = exit_capacity_veh_h > 0.0
     exit_capacity_veh = exit_capacity_veh_h * sim.T_u_h
+    # 램프행 이탈 분할(2026-09-01). `boundary_out_ramp_split` 이 없으면 종전과 비트 동일.
+    #
+    # 왜. 경계 out 링크 중 일부는 하류가 **on-ramp** 다(SC1001_W_out -> 링크 31 ->
+    # 미터 10480 R_D_W · 10484 R_D_E). 그 몫은 모델 밖 도로가 아니라 램프 저수지와
+    # 미터가 받는데, 지금은 전부 `boundary_out_capacity_veh_h`(일괄 1600 vph)로 자유
+    # 이탈한다 — 램프가 꽉 차도 도시 쪽은 아무 제약을 못 느낀다.
+    #
+    # 그래서 이탈을 목적지별로 쪼개고 램프행에만 동적 용량을 건다:
+    #     ramp_exit_cap = min(ramp_space, metering_release x T_u_h)
+    #     ramp_space    = ramp_queue_cap(r) - w_r      (램프별 상한. 스칼라 180 이 아니다)
+    # 못 나간 차량은 out 링크 storage 에 남아 점유가 누적되고, 그 점유가
+    # `_effective_available_space` -> receiving 게이트로 상류 exit movement 를 막아
+    # backup 이 grid 로 전파된다. 그 잔류는 kind=boundary_out 이므로 protected_kinds 에
+    # 들어가 far 도시항 n_u^2 에도 실린다(램프 큐는 far 램프항에 따로 실린다 — 서로 다른
+    # 차량이라 이중계상이 아니다).
+    #
+    # **램프 저수지에 더하지 않는다.** 본선 램프 유입은 `demand.ramp_arrival`(관측 기반)로
+    # 이미 외생 계상돼 있어 여기서 또 넣으면 이중 주입이다. 여기서는 **제약만** 건다.
+    #
+    # 저류는 쪼개지 않는다(사용자 결정). 링크 31 은 하나의 도로이고 램프는 그 도중에
+    # 갈라지므로, 램프행 잔류가 통과 차량의 가용공간도 같이 줄이는 것이 실제 거동이다.
+    ramp_split = dict(getattr(net, "boundary_out_ramp_split", {}) or {})
     for link in sink_links:
         cap = net.urban_link_storage_veh.get(link, net.boundary_queue_max_veh)
         occupancy = max(0.0, cap - state.urban_link_storage.get(link, cap))
@@ -1016,6 +1060,25 @@ def urban_substep(
         ))
         # 유한용량이면 min(도착분, exit_cap·dt), 0 이하이면 자유 sink(도착분 전량 이탈, 하위호환).
         departed = min(arrived, exit_capacity_veh) if finite_exit else arrived
+        split = ramp_split.get(link)
+        if split and arrived > 0.0:
+            # 목적지별로 쪼개 각자 자기 용량에 건다. free 몫은 종전 exit_capacity 그대로.
+            free_share = max(0.0, float(split.get("free", 0.0)))
+            free_in = arrived * free_share
+            departed = min(free_in, exit_capacity_veh) if finite_exit else free_in
+            for ramp, share in (split.get("ramps") or {}).items():
+                ramp_in = arrived * max(0.0, float(share))
+                if ramp_in <= 0.0:
+                    continue
+                cap_r = (net.ramp_queue_cap(str(ramp))
+                         if hasattr(net, "ramp_queue_cap") else float(net.ramp_queue_max_veh))
+                space = max(0.0, cap_r - max(0.0, state.ramp_queue.get(str(ramp), 0.0)))
+                meter = float((ramp_release_veh_h or {}).get(str(ramp), 0.0)) * sim.T_u_h
+                ramp_exit_cap = min(space, max(0.0, meter))
+                allowed = min(ramp_in, ramp_exit_cap)
+                departed += allowed
+                boundary_out_ramp_blocked_veh += max(0.0, ramp_in - allowed)
+                boundary_out_ramp_released_veh += allowed
         if departed <= 0.0:
             continue
         state.urban_link_storage[link] = min(cap, state.urban_link_storage.get(link, cap) + departed)
@@ -1104,7 +1167,11 @@ def urban_substep(
         )
     for ramp, requests in ramp_requests.items():
         requested_total = sum(requests.values())
-        ramp_space = max(0.0, net.ramp_queue_max_veh - state.ramp_queue.get(ramp, 0.0))
+        # 램프별 상한. 스칼라 180 은 네 램프 실제값(111.2~174.5) 모두보다 커서
+        # 차단이 늦게 시작되고 도시 역류를 과소평가한다.
+        _cap_sp = (net.ramp_queue_cap(ramp) if hasattr(net, "ramp_queue_cap")
+                   else float(net.ramp_queue_max_veh))
+        ramp_space = max(0.0, _cap_sp - state.ramp_queue.get(ramp, 0.0))
         scale = 1.0 if requested_total <= ramp_space else ramp_space / max(requested_total, 1.0e-9)
         released_total = 0.0
         for movement, requested in requests.items():
@@ -1118,8 +1185,12 @@ def urban_substep(
             if str(specs[movement].get("kind", "")) in {"boundary_in", "off_ramp"}:
                 # 게이트에서 곧장 ramp로 가는 movement는 perimeter 유입이기도 하다.
                 inbound_service_veh += actual
+        # 램프별 상한(2026-09-01). 스칼라 180 을 쓰면 METANET 과 어긋나 `min` 이 차량을
+        # 소멸시킨다(실측 192 대 180 = 12대). 두 갱신자가 같은 상한을 봐야 보존이 닫힌다.
+        _cap_r = (net.ramp_queue_cap(ramp) if hasattr(net, "ramp_queue_cap")
+                  else float(net.ramp_queue_max_veh))
         state.ramp_queue[ramp] = min(
-            net.ramp_queue_max_veh,
+            _cap_r,
             max(0.0, state.ramp_queue.get(ramp, 0.0) + released_total),
         )
         onramp_green_release_request_veh += requested_total
@@ -1263,6 +1334,9 @@ def urban_substep(
     diagnostics["urban_gate_inflow_veh"] = float(urban_gate_inflow_veh)
     diagnostics["urban_demand_arrivals_veh"] = float(urban_demand_arrivals_veh)
     diagnostics["boundary_out_sink_veh"] = float(boundary_out_sink_veh)
+    # 램프행 이탈 게이트(2026-09-01). 분할이 없으면 둘 다 0.0 이라 종전과 구분된다.
+    diagnostics["boundary_out_ramp_blocked_veh"] = float(boundary_out_ramp_blocked_veh)
+    diagnostics["boundary_out_ramp_released_veh"] = float(boundary_out_ramp_released_veh)
     diagnostics["urban_total_vehicles_veh"] = float(
         sum(state.urban_movement_queue.values()) + _storage_occupancy(state, cfg)
     )

@@ -824,3 +824,104 @@ idx  게이트 전   램프 이탈   게이트 후   이탈률
 실험  evaluation/configs/canon_outflow_d00_x18_20260901.json 두 스위치 ON
 같은 망(rampbn)·같은 시드 13. 램프 인덱스 재구축은 양쪽 다 상시.
 ```
+
+## 스칼라를 개별값으로 — 정본 승격 (2026-09-01)
+
+vendor 6노드 격자(보호영역 jam 5,340 veh)의 스칼라가 우리 망(도시 저류 64,280 veh, **12배**)
+위에 남아 개별 매핑을 덮고 있었다. 색출 결과 **쌍이 7개**다.
+
+```
+쌍                              스칼라   개별값                   상태
+ramp_queue_max_veh              180     111.2~174.5             **승격 완료** (아래)
+cycle_length                    150     SC7 120                 **150 고정** (아래)
+effective_green_total           138     SC7 114 · SC16 107      **재산정** (아래)
+green_max                        78     SC7 74 · SC16 67        예산에서 파생 → 자동 해결
+movement_capacity_veh_h        1400     internal 중앙 206.5     미해결 — perimeter 184개가 스칼라
+grid_link_storage_veh           220     7.2~1824.1              미해결 — 접근자 자체가 없음
+boundary_out_capacity_veh_h    1600     개별 없음               **스칼라 유지** (사용자 결정)
+```
+
+`boundary_out_capacity_veh_h` 는 그대로 둔다 — 모델 밖으로 차량이 사라지는 도로라
+그 backup 은 목적함수에 영향이 없다.
+
+### ramp_queue_max_veh 180 을 지웠다
+
+`default.yaml` 에서 삭제하고 dataclass 기본값을 **0.0** 으로 내렸다. 매핑을 빠뜨린 자리는
+공간 0 = 즉시 차단이 되어 **즉시 드러난다** — 종전처럼 조용히 180 을 쓰지 않는다.
+
+살아있는 wu-link 경로 12자리를 `net.ramp_queue_cap(ramp)` 로 바꿨다
+(wu_faithful_follower 9 · wu_distributed 1 · coupling 1 · urban_queue_model 3, 접근자 호출은
+종전 leader.py:764 하나뿐이었다). `urban_follower`(DEAD) · `spillback_constraints`(호출부 없음)
+· `local_signal_plant:123`(우리 config 는 on_ramp movement 0개라 미사용)은 두었다.
+
+**절단을 먼저 없애야 했다.** `sync_onramp_queues_from_freeway`(urban_queue_model.py:408)가
+관측 램프큐를 상한으로 **잘라 차량을 지우고** 있었다(37결정 중 19결정, 누적 211.3 veh).
+접근자만 바꾸면 상한이 낮아져 32결정 905.6 veh 로 **4.3배 악화**된다. 그래서 상한 절단을
+빼고 관측값을 그대로 두되, 초과분을 `state.ramp_queue_over_cap_veh` 로 노출했다.
+하류가 알아서 처리한다 — `ramp_space = max(0, cap−q)` 가 0 이 되어 도시->램프 방류가
+막히고(차단) 그 차량이 도시에 잔류해 `urban_ttt`·far `n_u²` 에 실린다.
+
+### 주기는 150 고정, 예산은 살아있는 현시 수에서
+
+`cycle_length_by_signal`·`effective_green_total_by_signal` 은 실측 **native 신호 프로그램**
+값이었다(SC7 주기 120·예산 114, SC16 예산 107). 그런데 제어 런은 그 프로그램을 안 쓴다 —
+러너가 모든 SG 에 `ContrByCOM=True` 를 걸어 inpx 신호 프로그램을 통째로 우회한다.
+그래서 구동 주기(150)와 살아있는 현시 수로 재산정한다.
+
+```
+예산      = 150 − 3 s x 살아있는 현시        (3 s = 정본 lost_time 12 / 4현시)
+green_max = 예산 − (살아있는 현시 − 1) x 20  (state.signal_green_max 가 파생)
+
+4현시 13개  138 / 78   (불변)
+3현시  5개  141 / 101  — SC107·108·109 는 이미 그 값, 바뀌는 것은 SC7(114/74)·SC16(107/67)
+```
+
+SC16 이 3현시인 이유: **동서 방위에서 직진과 좌회전이 한 신호를 받는다.**
+그래서 p4(WBL sg1 · EBL sg5)가 실측 녹색 0 이고 모델이 죽은 현시로 잡는다.
+
+## 커넥터 지도의 dest 라벨은 방위가 아니라 목적지 링크다 (2026-09-01)
+
+`derive_connector_movements.py:197` 이 무소유 목적지를 `OUT_<방위>` 로 라벨했다. 그래서
+**한 라벨이 두 링크를 가리키고 한 링크가 두 라벨로 갈렸다** — SC1004 에서 `OUT_S` 가
+링크 67·68 양쪽이라 `SC1004_S_out` 이 램프 있는 링크와 없는 링크를 섞어 받았다.
+
+`OUT_LINK_<링크>` 로 바꿨다. 전수 결과:
+
+```
+A. 한 링크가 여러 라벨로 갈림     14건 -> 0건
+B. 한 라벨이 여러 링크를 덮음     14건 -> 9건  (남은 9건은 소유 목적지 =
+                                  한 leg 이 물리 링크를 여럿 갖는 구조, 의도된 집계)
+```
+
+## 램프 spillback — 기구는 다 있었고 파라미터가 막고 있었다
+
+`boundary_out` 링크는 sink 이고 release 에서 available 을 복원하지 않으며, 유한 출구용량
+`min(점유, exit_capacity·dt)` 로 이탈이 제한되고, 못 나간 차량이 storage 에 남아
+`_effective_available_space` -> receiving 게이트로 **backup 이 grid 로 전파된다.**
+전부 구현돼 있다. 막힌 것은 이탈이 목적지 구분 없이 일괄 1600 vph 로 빠져나간 것뿐이다.
+
+수선: 이탈을 목적지별로 쪼개고 **램프행에만** `min(ramp_space, 미터방출 x T_u)` 를 건다.
+
+```
+SC1001_W_out  (경로결정 1137 · 링크 31)  자유 0.25 · R_D_E 0.25 · R_D_W 0.50
+SC1004_W_out  (경로결정 1135 · 링크 68)  자유 1/3 · R_F_W 1/3 · R_F_E 1/3
+SC1004_S_out  제외 — 링크 67 만이어야 하는데 모델이 68 을 섞는다
+```
+
+**`relFlow` 빈 값 = 1 규칙이 결정적이다.** 0 으로 읽으면 `linkSeq` 없이 같은 링크에 머무는
+'자유 이탈' 경로가 통째로 사라져 free share = 0 이 된다. 실제로는 링크 31 이 마지막 램프
+분기(pos 735) 뒤로 1,224.5 m, 링크 68 이 (pos 352) 뒤로 1,638.2 m 가 남아 끝까지 가면
+망을 이탈한다.
+
+### 이중계상하지 않는다
+
+램프가 막히면 **서로 다른 두 집단**이 동시에 2차로 벌점을 받는다 — 램프 위 차량은
+far 램프항(`q²`), 막혀서 못 들어간 차량은 far 도시항(`n_u²`). 정확한 회계이고 이미 강하다.
+같은 차를 두 번 세면 램프 spillback 만 과가중되고, 유령 차량이 `ramp_space` 를 조여
+**되먹임 고리**가 되며 리더가 램프를 실제보다 찼다고 믿어 **미터 레버까지 왜곡**된다.
+압력이 부족하면 `boundary_out_ramp_blocked_veh` 진단에 **가중치**를 다는 것이 정직한 도구다.
+
+### 죽은 현시에 붙은 movement 9개 (미해결)
+
+`apply_movement_phase_correction` 이 11개를 옮겨도 **9개가 남아 영원히 녹색을 못 받는다** —
+SC107 5 · SC7 2 · SC109 1 · SC16 1. 별건이지만 그 접근로가 구조적으로 굶는다.

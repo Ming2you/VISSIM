@@ -1,0 +1,250 @@
+{
+  "schema_version": "ramp-feed-map/1",
+  "generated": "2026-09-01",
+  "what": "on-ramp 별 급전 경로와 그 경로가 신호 제어 가능한지",
+  "policy": "권역은 그대로 둔다 — on-ramp 는 freeway 플레이어 소유이고 도시 movement 로 배선하지 않는다(grid_node_legs W_RAMP.on = {}). 이 대장은 관측·기록 전용이다.",
+  "ramps": {
+    "R_D_W": {
+      "meters": [
+        {
+          "connector": "10480",
+          "from_link": "31",
+          "meter_pos_m_on_from_link": 734.931,
+          "from_link_owner": [
+            "무소유"
+          ],
+          "signal_controllable": true,
+          "why": "정지선 하류라 신호가 그 링크로의 방류를 조절한다",
+          "fed_by": [
+            {
+              "signal": "SC1001",
+              "approach": "E_SC1002",
+              "connector": "10119",
+              "from_link": "29",
+              "signal_groups": [
+                1,
+                6
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1001",
+              "approach": "N_SC2002",
+              "connector": "10121",
+              "from_link": "37",
+              "signal_groups": [
+                4,
+                7
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1001",
+              "approach": "S_SC1003",
+              "connector": "10698",
+              "from_link": "40",
+              "signal_groups": [
+                3,
+                8
+              ],
+              "dest": "OUT_W"
+            }
+          ]
+        },
+        {
+          "connector": "10482",
+          "from_link": "32",
+          "meter_pos_m_on_from_link": 1028.621,
+          "from_link_owner": [
+            "SC1001·W_RAMP",
+            "SC1001·W"
+          ],
+          "signal_controllable": false,
+          "why": "그 링크로 방류하는 신호 접근로가 없다 — 상류 이탈 또는 무소유/무신호",
+          "fed_by": []
+        }
+      ]
+    },
+    "R_F_W": {
+      "meters": [
+        {
+          "connector": "10646",
+          "from_link": "68",
+          "meter_pos_m_on_from_link": 352.004,
+          "from_link_owner": [
+            "무소유"
+          ],
+          "signal_controllable": true,
+          "why": "정지선 하류라 신호가 그 링크로의 방류를 조절한다",
+          "fed_by": [
+            {
+              "signal": "SC1004",
+              "approach": "E_SC1005",
+              "connector": "10629",
+              "from_link": "52",
+              "signal_groups": [
+                1,
+                6
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1004",
+              "approach": "N_SC1003",
+              "connector": "10625",
+              "from_link": "46",
+              "signal_groups": [
+                4,
+                7
+              ],
+              "dest": "OUT_S"
+            },
+            {
+              "signal": "SC1004",
+              "approach": "S",
+              "connector": "10633",
+              "from_link": "66",
+              "signal_groups": [
+                3,
+                8
+              ],
+              "dest": "OUT_W"
+            }
+          ]
+        },
+        {
+          "connector": "10644",
+          "from_link": "69",
+          "meter_pos_m_on_from_link": 1740.482,
+          "from_link_owner": [
+            "무소유"
+          ],
+          "signal_controllable": false,
+          "why": "그 링크로 방류하는 신호 접근로가 없다 — 상류 이탈 또는 무소유/무신호",
+          "fed_by": []
+        }
+      ]
+    },
+    "R_F_E": {
+      "meters": [
+        {
+          "connector": "10639",
+          "from_link": "70",
+          "meter_pos_m_on_from_link": 180.143,
+          "from_link_owner": [
+            "SC1004·W_RAMP"
+          ],
+          "signal_controllable": false,
+          "why": "그 링크로 방류하는 신호 접근로가 없다 — 상류 이탈 또는 무소유/무신호",
+          "fed_by": []
+        },
+        {
+          "connector": "10681",
+          "from_link": "68",
+          "meter_pos_m_on_from_link": 76.589,
+          "from_link_owner": [
+            "무소유"
+          ],
+          "signal_controllable": true,
+          "why": "정지선 하류라 신호가 그 링크로의 방류를 조절한다",
+          "fed_by": [
+            {
+              "signal": "SC1004",
+              "approach": "E_SC1005",
+              "connector": "10629",
+              "from_link": "52",
+              "signal_groups": [
+                1,
+                6
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1004",
+              "approach": "N_SC1003",
+              "connector": "10625",
+              "from_link": "46",
+              "signal_groups": [
+                4,
+                7
+              ],
+              "dest": "OUT_S"
+            },
+            {
+              "signal": "SC1004",
+              "approach": "S",
+              "connector": "10633",
+              "from_link": "66",
+              "signal_groups": [
+                3,
+                8
+              ],
+              "dest": "OUT_W"
+            }
+          ]
+        }
+      ]
+    },
+    "R_D_E": {
+      "meters": [
+        {
+          "connector": "10490",
+          "from_link": "32",
+          "meter_pos_m_on_from_link": 1330.644,
+          "from_link_owner": [
+            "SC1001·W_RAMP",
+            "SC1001·W"
+          ],
+          "signal_controllable": false,
+          "why": "그 링크로 방류하는 신호 접근로가 없다 — 상류 이탈 또는 무소유/무신호",
+          "fed_by": []
+        },
+        {
+          "connector": "10484",
+          "from_link": "31",
+          "meter_pos_m_on_from_link": 412.087,
+          "from_link_owner": [
+            "무소유"
+          ],
+          "signal_controllable": true,
+          "why": "정지선 하류라 신호가 그 링크로의 방류를 조절한다",
+          "fed_by": [
+            {
+              "signal": "SC1001",
+              "approach": "E_SC1002",
+              "connector": "10119",
+              "from_link": "29",
+              "signal_groups": [
+                1,
+                6
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1001",
+              "approach": "N_SC2002",
+              "connector": "10121",
+              "from_link": "37",
+              "signal_groups": [
+                4,
+                7
+              ],
+              "dest": "OUT_W"
+            },
+            {
+              "signal": "SC1001",
+              "approach": "S_SC1003",
+              "connector": "10698",
+              "from_link": "40",
+              "signal_groups": [
+                3,
+                8
+              ],
+              "dest": "OUT_W"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

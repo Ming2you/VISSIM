@@ -685,7 +685,7 @@ class WuFaithfulFollower:
                 continue
             ramp_space = max(
                 0.0,
-                float(net.ramp_queue_max_veh) - max(0.0, float(state.ramp_queue.get(ramp, 0.0))),
+                float(net.ramp_queue_cap(ramp)) - max(0.0, float(state.ramp_queue.get(ramp, 0.0))),
             )
             scale = min(1.0, ramp_space / raw_total)
             for movement in net.on_ramp_to_movement.get(ramp, []):
@@ -2308,15 +2308,15 @@ class WuFaithfulFollower:
                             # 먼저(FIFO) 넣고, 남은 공간에 신규 유입을 넣는다. 못 들어간
                             # 차량은 blocked_q에 남아 own-TTS에서 세어진다(무한 큐 가시화).
                             q = max(0.0, ramp_q.get(ramp, 0.0))
-                            space = max(0.0, net.ramp_queue_max_veh - q)
+                            space = max(0.0, net.ramp_queue_cap(ramp) - q)
                             arrival = approach * dt_h
                             adm1 = min(blocked_q[ramp], space)
                             adm2 = min(arrival, space - adm1)
-                            ramp_q[ramp] = min(net.ramp_queue_max_veh, q + adm1 + adm2)
+                            ramp_q[ramp] = min(net.ramp_queue_cap(ramp), q + adm1 + adm2)
                             blocked_q[ramp] = blocked_q[ramp] - adm1 + (arrival - adm2)
                         else:
                             ramp_q[ramp] = min(
-                                net.ramp_queue_max_veh,
+                                net.ramp_queue_cap(ramp),
                                 max(0.0, ramp_q.get(ramp, 0.0)) + approach * dt_h,
                             )
                     # off-ramp cap(국소 storage 가용공간 기반).
@@ -2454,7 +2454,7 @@ class WuFaithfulFollower:
             return 0.0
         net = self.cfg.network
         frac = float(getattr(self.cfg.mpc, "meter_queue_constraint_frac", 0.8))
-        q_thr = frac * float(net.ramp_queue_max_veh)
+        q_thr = frac * float(net.ramp_queue_cap(ramp))
         q_now = max(0.0, float(state.ramp_queue.get(ramp, 0.0)))
         arrival = max(0.0, float(coupling.get(f"u_on_{ramp}", 0.0)))
         tc_h = max(self.cfg.simulation.T_c_h, 1.0e-9)
@@ -2786,17 +2786,17 @@ class WuFaithfulFollower:
                                 0.0, float(coupling.get(f"u_on_{r}", 0.0))
                             )
                             if self.count_blocked_ramp_inflow:
-                                space = max(0.0, net.ramp_queue_max_veh - ramp_q[r])
+                                space = max(0.0, net.ramp_queue_cap(r) - ramp_q[r])
                                 arrival = approach * dt_h
                                 adm1 = min(blocked[r], space)
                                 adm2 = min(arrival, space - adm1)
                                 ramp_q[r] = min(
-                                    net.ramp_queue_max_veh, ramp_q[r] + adm1 + adm2,
+                                    net.ramp_queue_cap(r), ramp_q[r] + adm1 + adm2,
                                 )
                                 blocked[r] = blocked[r] - adm1 + (arrival - adm2)
                             else:
                                 ramp_q[r] = min(
-                                    net.ramp_queue_max_veh,
+                                    net.ramp_queue_cap(r),
                                     ramp_q[r] + approach * dt_h,
                                 )
                             own_release[r] = r_own
@@ -3918,7 +3918,7 @@ class WuFaithfulFollower:
                 continue
             ramp_space = max(
                 0.0,
-                float(net.ramp_queue_max_veh) - max(0.0, float(state.ramp_queue.get(ramp, 0.0))),
+                float(net.ramp_queue_cap(ramp)) - max(0.0, float(state.ramp_queue.get(ramp, 0.0))),
             )
             scale = min(1.0, ramp_space / raw_total)
             for movement in net.on_ramp_to_movement.get(ramp, []):

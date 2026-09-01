@@ -243,7 +243,7 @@ def run_coupled_interval(
         freeway_rows,
         interval_h=sim.T_c_h,
         rows_per_cycle=max(1, int(round(cfg.network.cycle_length / sim.T_f_sec))),
-        queue_cap_veh=cfg.network.ramp_queue_max_veh * max(len(cfg.network.ramps), 1),
+        queue_cap_veh=sum(cfg.network.ramp_queue_cap(r) for r in cfg.network.ramps),
     )
     ur_diag = aggregate_urban_diagnostics(urban_rows, cfg, control, interval_h=sim.T_c_h)
     diagnostics.update(fw_diag)

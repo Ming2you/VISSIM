@@ -237,7 +237,13 @@ class NetworkConfig:
     ramp_merge_segment_index: Dict[str, int] = field(default_factory=lambda: {
         "R_D_W": 2, "R_F_W": 2, "R_D_E": 2, "R_F_E": 2
     })
-    ramp_queue_max_veh: float = 180.0
+    # 램프 대기행렬 상한 스칼라. **정본은 램프별 매핑이다** — 이 값은 매핑이 아예 없는
+    # 옛 toy 시나리오용 폴백이고, 우리 망에서는 쓰이면 안 된다.
+    #
+    # 왜 0.0 인가. 종전 기본값 180.0 은 vendor 6노드 격자의 값인데 우리 네 램프의 실제
+    # 상한(111.2~174.5) 모두보다 커서, 매핑을 빠뜨린 자리에서 **조용히 차단이 늦어지고**
+    # 도시 역류를 과소평가했다. 0.0 이면 그런 자리가 즉시 드러난다(공간 0 = 즉시 차단).
+    ramp_queue_max_veh: float = 0.0
     # 램프별 대기행렬 상한[veh]. 비어 있으면 위 스칼라를 쓴다(기존 동작과 비트 동일).
     #
     # 2026-08-05: 스칼라 180 은 근거 없는 상수였다. 램프미터 커넥터 기하에서 유도하면
@@ -432,7 +438,12 @@ class NetworkConfig:
         return float(sum(self.ramp_capacity_veh_h[r] for r in self.ramps))
 
     def ramp_queue_cap(self, ramp: str) -> float:
-        """램프 하나의 대기행렬 상한[veh]. 매핑이 없으면 스칼라 폴백(기존 거동 비트 동일)."""
+        """램프 하나의 대기행렬 상한[veh]. **정본은 `ramp_queue_max_veh_by_ramp` 다.**
+
+        매핑에 없으면 스칼라로 떨어지는데, 그 스칼라는 이제 0.0 이라 즉시 차단이 된다 —
+        조용히 vendor 격자값(180)을 쓰던 종전 거동을 없앤 것이다(2026-09-01).
+        매핑을 채우는 것은 config 의 책임이다.
+        """
         value = self.ramp_queue_max_veh_by_ramp.get(str(ramp))
         return float(value) if value is not None else float(self.ramp_queue_max_veh)
 

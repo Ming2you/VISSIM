@@ -7481,6 +7481,10 @@
     "gate": {
       "ramp_peeloff": true,
       "_why": "게이트 in_SC1001_W(링크 32) 주입량의 상당분이 SC1001 정지선보다 600~930 m 상류에서 램프미터(10482·10490)로 빠진다. 그 차량은 신호를 만나지 않고 커넥터는 freeway 플레이어 소유다. 링크평가 실측으로 매 결정 차감한다 — 이탈률이 0~89% 로 흔들려 상수로는 못 잡는다. 선례: 같은 상황의 링크 69 는 이미 shared_stem_unmapped 로 게이트를 안 준다(CLAUDE.md SC1004 서측)."
+    },
+    "boundary_out": {
+      "ramp_split": true,
+      "_why": "경계 out 링크의 이탈을 목적지별로 쪼개고 램프행에만 min(ramp_space, 미터방출) 을 건다. 대장 outputs/boundary_out_ramp_split_20260901.json (정본: .inpx 경로결정 1135·1137 relFlow). 못 나간 차량은 out 링크에 잔류해 receiving 게이트로 grid backup 을 만들고 urban_ttt·far n_u^2 에 실린다. 비램프 출구는 종전 1600 그대로 — 모델 밖으로 사라지는 도로라 그 backup 은 목적함수에 영향이 없다."
     }
   },
   "_canonical": {
@@ -7524,7 +7528,7 @@
       "watch": "미터링이 도착을 구속한 결정 수 · leader_ramp_queue_veh · 후보 스프레드 · 셀별 임계 초과율(특히 FW_W|2·5) · 램프 실측 유량",
       "w_ramp_queue": "0.0 — far 램프 항으로 대체한다",
       "far_rates": "measured (링크평가 150초 · 씨앗=정답지 최대 · decay 0.98)",
-      "outflow_fixes": "Σnin 추정식이 동역학 도착 사용 + 게이트 상류 램프 이탈분 차감. 대조군은 canon_farbn_d00_x18_20260901 (같은 망·시드, 두 스위치만 다름)."
+      "outflow_fixes": "Σnin 동역학 도착 + 게이트 상류 램프 이탈분 차감 + 램프행 이탈 게이트(spillback). 대조군 canon_farbn_d00_x18_20260901 (같은 망·시드)."
     },
     "fd_fit_20260828": {
       "values": {

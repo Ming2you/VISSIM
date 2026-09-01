@@ -560,7 +560,7 @@ class WuDistributedController:
                     for ramp in net.ramps:
                         approach_flow = max(0.0, float(coupling.get(f"u_on_{ramp}", 0.0)))
                         probe.ramp_queue[ramp] = min(
-                            net.ramp_queue_max_veh,
+                            net.ramp_queue_cap(ramp),
                             max(0.0, probe.ramp_queue.get(ramp, 0.0)) + approach_flow * dt_h,
                         )
                     ramp_release, ramp_diag = compute_ramp_release_flows(

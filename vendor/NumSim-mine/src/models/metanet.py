@@ -372,15 +372,32 @@ def freeway_substep(
         link: [0.0 for _ in state.freeway_density[link]]
         for link in net.freeway_links
     }
+    ramp_arrival_blocked: Dict[str, float] = {}
     for ramp, release in ramp_release.items():
         link = net.ramp_to_freeway[ramp]
         merge_idx = _ramp_merge_index(cfg, ramp, len(state.freeway_density[link]))
         ramp_in_by_link[link][merge_idx] += max(0.0, release)
         if update_ramp_queues:
             # standalone freeway_step에서는 ramp demand와 release를 여기서 보존식으로 갱신한다.
+            #
+            # 상한(2026-09-01). 종전에는 상한이 없어 램프 큐가 물리 용량을 넘었다
+            # (실측 R_D_W 192.0 대 config 상한 153.2). 그러면 (a) urban_queue_model:1121 의
+            # `min(스칼라 180, q)` 절단과 만나 차량이 소멸하고, (b) 도시 out-link 에서
+            # 램프행이 막혀 도시에 남아 있는 차량과 **같은 차가 램프에도 존재**해
+            # `ramp_space = cap - q` 를 유령으로 조인다(되먹임 + 미터 레버 왜곡).
+            #
+            # 상한을 넘는 유입은 받지 않는다. 못 들어간 몫은 도시 쪽에 남아 있는 그
+            # 차량이므로 여기서 세지 않는 것이 보존을 닫는 것이다.
             arrival = demand.ramp_arrival.get(ramp, 0.0)
-            next_queue = state.ramp_queue.get(ramp, 0.0) + dt_h * (arrival - release)
-            state.ramp_queue[ramp] = max(0.0, next_queue)
+            q0 = max(0.0, state.ramp_queue.get(ramp, 0.0))
+            cap_r = (net.ramp_queue_cap(ramp) if hasattr(net, "ramp_queue_cap")
+                     else float(net.ramp_queue_max_veh))
+            drained = q0 - dt_h * release
+            room = max(0.0, cap_r - max(0.0, drained))
+            accepted = min(max(0.0, arrival) * dt_h, room)
+            ramp_arrival_blocked[ramp] = max(0.0, max(0.0, arrival) * dt_h - accepted)
+            next_queue = drained + accepted
+            state.ramp_queue[ramp] = max(0.0, min(cap_r, next_queue))
 
     lane_now_by_link, lane_diag_start = effective_lane_profile(state, cfg, demand)
     for link in net.freeway_links:
@@ -743,9 +760,15 @@ def freeway_substep(
     diagnostics["nuf_target_flow"] = float(target_flow)
     diagnostics["total_ramp_queue_start_veh"] = float(queue_start_veh)
     diagnostics["total_ramp_queue_end_veh"] = float(queue_end_veh)
+    # 램프가 못 받아 도시에 남은 몫(2026-09-01). 0 이면 상한이 안 걸렸다는 뜻이다.
+    diagnostics["ramp_arrival_blocked_veh"] = float(sum(ramp_arrival_blocked.values()))
+    for _r, _v in ramp_arrival_blocked.items():
+        diagnostics["ramp_arrival_blocked_%s_veh" % _r] = float(_v)
     diagnostics["metering_target_infeasible"] = float(target_flow > avg_no_meter + cfg.freeway_follower.eps_F)
     diagnostics["ramp_queue_overflow_count"] = float(sum(
-        1 for q in state.ramp_queue.values() if q > net.ramp_queue_max_veh
+        1 for _r, q in state.ramp_queue.items()
+        if q > (net.ramp_queue_cap(_r) if hasattr(net, "ramp_queue_cap")
+               else float(net.ramp_queue_max_veh))
     ))
     diagnostics["mean_ramp_receiving_factor"] = ramp_diag["mean_ramp_receiving_factor"]
     diagnostics["mean_segment_flow"] = flow_acc / flow_count if flow_count else 0.0

@@ -194,7 +194,12 @@ def main() -> int:
                 "lanes": lanes_of.get(c, 0),
                 "dest_signal": dest[0] if dest else None,
                 "dest_leg": dest[1] if dest else None,
-                "dest": ("%s_%s" % dest) if dest else ("OUT_" + bearing(fl, tl)),
+                # 무소유 목적지는 **도착 링크**로 라벨한다(2026-09-01). 방위 라벨은 애매하다 —
+                # SC1004 에서 링크 68 로 가는 회전 셋이 bearing 에 따라 OUT_W·OUT_S·OUT_W 로
+                # 갈리고, 동시에 링크 67 로 가는 회전도 OUT_S 를 써서 **한 라벨이 두 링크를**
+                # 가리켰다. 그 탓에 `SC1004_S_out` 이 램프 있는 링크(68)와 없는 링크(67)를
+                # 섞어 받아 목적지별 분할이 불가능했다.
+                "dest": ("%s_%s" % dest) if dest else ("OUT_LINK_" + str(tl)),
                 "bearing": bearing(fl, tl),
                 "sg": sorted(g for s, g in stopline.get(fl, ()) if s == sig),
             })

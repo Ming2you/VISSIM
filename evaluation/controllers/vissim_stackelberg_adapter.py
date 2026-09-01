@@ -2959,6 +2959,33 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     if live_map:
         setattr(net, "live_phases_by_signal", dict(live_map))
 
+    # (3b) **COM 구동 주기로 재산정** (2026-09-01, 사용자 결정).
+    #
+    # 위 (1)(2)가 심은 `cycle_length_by_signal`·`effective_green_total_by_signal` 은
+    # 실측 **native 신호 프로그램**의 값이다(SC7 주기 120·예산 114, SC16 예산 107).
+    # 그런데 제어 런은 그 프로그램을 안 쓴다 — 러너가 모든 SG 에 ContrByCOM=True 를 걸어
+    # inpx 신호 프로그램을 통째로 우회하고(plant_cycle.py), 컨트롤러가 제어구간으로 구동한다.
+    # 그래서 native 주기를 예산 근거로 쓰면 실제로 재생되지 않는 계획에 맞춰 녹색을 배분한다.
+    #
+    # 구동 주기(150)와 **살아있는 현시 수**로 다시 계산한다:
+    #     예산     = 주기 - 현시당 손실시간 x 살아있는 현시
+    #     green_max = 예산 - (살아있는 현시 - 1) x green_min   (state.signal_green_max 가 파생)
+    # 현시당 손실시간은 정본 전역값(lost_time 12 s / 4현시 = 3 s)에서 나온다.
+    #
+    # 결과: 4현시 13개 138/78 (불변) · 3현시 5개(SC7·SC16·SC107·SC108·SC109) 141/101.
+    # SC107/108/109 는 이미 그 값이었고, 바뀌는 것은 SC7(114/74)·SC16(107/67) 뿐이다.
+    drive_cycle = float(net.cycle_length)
+    lost_per_phase = float(net.lost_time) / 4.0
+    new_cycles: dict[str, float] = {}
+    new_budgets: dict[str, float] = {}
+    for signal in _controlled_signal_names(cfg):
+        sid = str(signal)
+        n_live = len(live_map.get(sid, ())) or 4
+        new_cycles[sid] = drive_cycle
+        new_budgets[sid] = drive_cycle - lost_per_phase * float(n_live)
+    setattr(net, "cycle_length_by_signal", new_cycles)
+    setattr(net, "effective_green_total_by_signal", new_budgets)
+
     # 동시 현시 -> 처리량 등가 배율. 순차 배치 모델은 겹침을 담을 수 없으므로
     # 그 신호 movement 들의 용량에 곱한다(배율 = 계획 현시녹색 합 / 실제 녹색초).
     applied_factor = 0
@@ -5815,6 +5842,58 @@ def _far_measurement_reservoirs() -> dict[str, list[str]]:
     return out
 
 
+
+BOUNDARY_OUT_RAMP_SPLIT_JSON = WORKSPACE_ROOT / "outputs/boundary_out_ramp_split_20260901.json"
+
+
+def install_boundary_out_ramp_split(cfg, tuning) -> dict[str, float]:
+    """경계 out 링크의 이탈을 목적지별로 쪼갠다. `urban.boundary_out.ramp_split` 없으면 no-op.
+
+    왜. 경계 out 링크 일부는 하류가 **on-ramp** 다 — `SC1001_W_out` 은 링크 31 로 나가고
+    거기서 미터 10480(R_D_W)·10484(R_D_E)로 갈린다. 그런데 이탈이 전부
+    `boundary_out_capacity_veh_h`(일괄 1600 vph)로 자유롭게 빠져, **램프가 꽉 차도 도시가
+    아무 제약을 못 느낀다.** 소비처는 urban_queue_model 의 유한 출구 블록이고, 거기서
+    램프행만 `min(ramp_space, 미터방출)` 로 막는다. 못 나간 차량이 out 링크에 쌓여
+    receiving 게이트를 통해 grid 로 backup 이 전파된다.
+
+    비램프 출구는 1600 그대로 둔다(사용자 결정 2026-09-01) — 모델 밖으로 사라지는 도로라
+    그 backup 은 목적함수에 영향이 없다.
+
+    SC1004 는 뺀다. leg 이름과 물리 링크가 1:1 이 아니다(`OUT_W` 가 링크 68, `OUT_S` 가
+    68·67 양쪽) — 링크 67·68 의 leg 귀속이 권역 정본에 없어 추론으로 채우면
+    CLAUDE.md 가 경고한 player 권역 사고의 재발이다.
+    """
+    section = _mapping(_mapping(_mapping(tuning).get("urban")).get("boundary_out"))
+    if not _is_enabled_value(section.get("ramp_split")):
+        return {"boundary_out_ramp_split_enabled": 0.0}
+    if not BOUNDARY_OUT_RAMP_SPLIT_JSON.is_file():
+        raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_MISSING: %s" % BOUNDARY_OUT_RAMP_SPLIT_JSON)
+    doc = json.loads(BOUNDARY_OUT_RAMP_SPLIT_JSON.read_text(encoding="utf-8"))
+    split: dict[str, dict[str, object]] = {}
+    ramps = set(cfg.network.ramps or ())
+    storage = set(cfg.network.urban_link_storage_veh or {})
+    for link, spec in _mapping(doc.get("links")).items():
+        link = str(link)
+        if link not in storage:
+            raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_UNKNOWN_LINK: %s" % link)
+        by_ramp = {str(k): float(v) for k, v in _mapping(spec.get("ramps")).items()}
+        unknown = sorted(r for r in by_ramp if r not in ramps)
+        if unknown:
+            raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_UNKNOWN_RAMP: %s" % ", ".join(unknown))
+        free = float(spec.get("free", 0.0))
+        total = free + sum(by_ramp.values())
+        if abs(total - 1.0) > 1.0e-6:
+            # 합이 1 이 아니면 질량이 새거나 늘어난다. 조용히 정규화하지 않는다.
+            raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_NOT_UNITY: %s 합=%.6f" % (link, total))
+        split[link] = {"free": free, "ramps": by_ramp}
+    setattr(cfg.network, "boundary_out_ramp_split", split)
+    out: dict[str, float] = {"boundary_out_ramp_split_enabled": 1.0,
+                             "boundary_out_ramp_split_links": float(len(split))}
+    for link, spec in split.items():
+        out["boundary_out_ramp_split_%s_free" % link] = float(spec["free"])
+        for ramp, share in spec["ramps"].items():
+            out["boundary_out_ramp_split_%s_%s" % (link, ramp)] = float(share)
+    return out
 def install_measured_far_reservoir_rates(cfg, tuning, state_json, previous_path) -> dict[str, float]:
     """far 의 배수율 셋을 **직전 구간 VISSIM 실측**으로 갈아끼운다.
 
@@ -6105,6 +6184,59 @@ def _plant_gate_peeloff_into(cfg, tuning) -> None:
     section = _mapping(_mapping(_mapping(tuning).get("urban")).get("gate"))
     setattr(cfg.network, "gate_ramp_peeloff", bool(_is_enabled_value(section.get("ramp_peeloff"))))
 
+
+RAMP_FEED_MAP_JSON = WORKSPACE_ROOT / "outputs/ramp_feed_map_20260901.json"
+
+
+def emit_ramp_feed_observation(cfg, state, state_json) -> dict[str, float]:
+    """램프 spillback 관측. **제어는 하지 않는다 — 기록 전용이다.**
+
+    왜 필요한가. on-ramp 는 권역 정본에서 freeway 플레이어 소유이고 도시 movement 로
+    배선하지 않는다(`grid_node_legs` 의 `W_RAMP.on = {}`, 2026-09-01 사용자 결정 유지).
+    그래서 도시 컨트롤러는 램프를 직접 제어하지 않는다.
+
+    그런데 **신호는 램프 유입에 실제로 영향을 준다** — 램프미터가 도시 정지선 하류에 있는
+    경로가 램프마다 하나씩 있다(대장 outputs/ramp_feed_map_20260901.json):
+        R_D_W·R_D_E  링크 31 <- SC1001 서향 3개  |  링크 32 는 정지선 상류라 제어 불가
+        R_F_W·R_F_E  링크 68 <- SC1004 서향 3개  |  링크 69 무소유 · 링크 70 무신호
+
+    나중에 "램프가 차면 그 램프를 먹이는 현시를 조인다" 를 하려면 이 관측이 먼저 쌓여야 한다.
+    지금은 값만 남긴다.
+
+    큐 상한은 **램프별**(`ramp_queue_cap`)을 쓴다 — 스칼라 `ramp_queue_max_veh`(180)는
+    네 램프의 실제 상한(111.2~174.5) 모두보다 커서 점유율을 과소평가한다.
+    """
+    if not RAMP_FEED_MAP_JSON.is_file():
+        return {"ramp_feed_observation": 0.0}
+    try:
+        doc = json.loads(RAMP_FEED_MAP_JSON.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {"ramp_feed_observation": 0.0}
+    fm = _mapping(_mapping(_mapping(state_json).get("local_observation")).get("far_measurement"))
+    vols = {str(k): _as_float(v, -1.0) for k, v in _mapping(fm.get("link_volume_veh_h")).items()}
+    out: dict[str, float] = {"ramp_feed_observation": 1.0}
+    net = cfg.network
+    for ramp, spec in _mapping(doc.get("ramps")).items():
+        q = max(0.0, _as_float(getattr(state, "ramp_queue", {}).get(ramp), 0.0))
+        cap = float(net.ramp_queue_cap(ramp)) if hasattr(net, "ramp_queue_cap") else float(
+            getattr(net, "ramp_queue_max_veh", 0.0))
+        out["ramp_obs_%s_queue_veh" % ramp] = q
+        out["ramp_obs_%s_queue_cap_veh" % ramp] = cap
+        out["ramp_obs_%s_occupancy" % ramp] = (q / cap) if cap > 1.0e-9 else 0.0
+        ctl = unc = 0.0
+        for m in spec.get("meters", []) or []:
+            v = vols.get(str(m.get("connector")), -1.0)
+            if v < 0.0:
+                continue
+            if bool(m.get("signal_controllable")):
+                ctl += v
+            else:
+                unc += v
+        out["ramp_obs_%s_merge_controllable_veh_h" % ramp] = ctl
+        out["ramp_obs_%s_merge_uncontrollable_veh_h" % ramp] = unc
+        total = ctl + unc
+        out["ramp_obs_%s_controllable_share" % ramp] = (ctl / total) if total > 1.0e-9 else 0.0
+    return out
 def profiled_demand_rates(
     state_json: Mapping[str, Any],
     cfg,
@@ -9140,6 +9272,8 @@ def main() -> None:
     # **반드시 위 호출 뒤다.** 이 패치는 설치 시점에
     # `cfg.network.far_ramp_capacity_veh_h` 를 읽으므로 값이 먼저 심겨야 한다.
     runtime_patch_metadata.update(install_far_ramp_capacity_patch(cfg))
+    # 경계 out 링크의 램프행 이탈 분할. 대장이 없거나 스위치가 꺼져 있으면 no-op.
+    runtime_patch_metadata.update(install_boundary_out_ramp_split(cfg, tuning))
     state = traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input,
@@ -9276,6 +9410,8 @@ def main() -> None:
         "network_ramp_capacity_R_F_W_veh_h": float(cfg.network.ramp_capacity_veh_h.get("R_F_W", 0.0)),
         "network_ramp_capacity_R_F_E_veh_h": float(cfg.network.ramp_capacity_veh_h.get("R_F_E", 0.0)),
     })
+    # 램프 spillback 관측(기록 전용). 대장이 없으면 no-op.
+    metadata.update(emit_ramp_feed_observation(cfg, state, state_json))
     metadata.update(adapter_runtime_metadata)
     metadata.update(runtime_patch_metadata)
     if hasattr(state, "local_observation_summary"):
