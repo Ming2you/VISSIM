@@ -745,6 +745,16 @@ class MPCConfig:
     # Σnin 실현가능범위 추정을 동역학과 같은 도착으로 계산할지 (2026-09-01).
     # False = 종전(비트 동일). 상세는 wu_faithful_follower._np_feasible_arrivals_veh.
     wu_faithful_np_feasible_dynamics_arrivals: bool = False
+    # 팔로워 램프별 말단비용(2026-09-02). wu_faithful_follower.py:2369 가 이 이름을
+    # getattr 로 읽는데 필드가 없어 2026-07-19 부터 영구 False 였다 — 켤 방법이 없었다.
+    #
+    # 켜면 각 freeway 링크 agent 의 own-TTS 에 **자기 소유 램프의** Q_end^2/(2R) 이
+    # 더해진다. 전역 far 의 램프항과 같은 형태지만 붙는 자리가 다르다:
+    #   전역 far  -> 램프 4개 합을 리더 목적함수에 스칼라로. 모든 후보에 같은 상수가 되어
+    #               argmin 을 못 움직인다(실측: 수준 -70 이동 · 후보 폭 변화 0.000).
+    #   이 항     -> 미터링 배분을 실제로 정하는 agent 의 국소 비용에 자기 램프 몫만.
+    #               후보마다 갈린다.
+    follower_terminal_cost_enabled: bool = False
     wu_faithful_np_predictor_mode: str = "legacy"
     # λ_P windup 수선(2026-07-11, 규칙 2종 — 구조 불변): NP_FIX=0으로 구거동 재현.
     # ① 내부 투영: target을 feasibility 모서리(feas_min) 대신 내부점으로 클립 —

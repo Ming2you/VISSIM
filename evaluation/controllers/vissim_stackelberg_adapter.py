@@ -2157,10 +2157,18 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
     dead = sum(
         1 for names in prev_off.values() for m in names if m not in merged_specs
     )
-    setattr(cfg.network, "off_ramp_to_movement", off_idx)
-    setattr(cfg.network, "on_ramp_to_movement", on_idx)
+    # A/B 분해(2026-09-02). 키가 없으면 재구축 = 현행 비트 동일.
+    _rebuild = _is_enabled_value(
+        _mapping(_mapping(_mapping(tuning).get("urban")).get("movements"))
+        .get("ramp_index_rebuild", True))
+    if _rebuild:
+        setattr(cfg.network, "off_ramp_to_movement", off_idx)
+        setattr(cfg.network, "on_ramp_to_movement", on_idx)
+    else:
+        # 되돌림: 병합 전 인덱스를 그대로 둔다. 죽은 이름 2건이 되살아난다.
+        off_idx = {k: list(v) for k, v in prev_off.items()}
     ramp_index_meta = {
-        "movement_merge_ramp_index_rebuilt": 1.0,
+        "movement_merge_ramp_index_rebuilt": 1.0 if _rebuild else 0.0,
         "movement_merge_ramp_index_dead_before": float(dead),
         "movement_merge_off_ramp_movements": float(sum(len(v) for v in off_idx.values())),
         "movement_merge_on_ramp_movements": float(sum(len(v) for v in on_idx.values())),
@@ -2974,17 +2982,25 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     #
     # 결과: 4현시 13개 138/78 (불변) · 3현시 5개(SC7·SC16·SC107·SC108·SC109) 141/101.
     # SC107/108/109 는 이미 그 값이었고, 바뀌는 것은 SC7(114/74)·SC16(107/67) 뿐이다.
-    drive_cycle = float(net.cycle_length)
-    lost_per_phase = float(net.lost_time) / 4.0
-    new_cycles: dict[str, float] = {}
-    new_budgets: dict[str, float] = {}
-    for signal in _controlled_signal_names(cfg):
-        sid = str(signal)
-        n_live = len(live_map.get(sid, ())) or 4
-        new_cycles[sid] = drive_cycle
-        new_budgets[sid] = drive_cycle - lost_per_phase * float(n_live)
-    setattr(net, "cycle_length_by_signal", new_cycles)
-    setattr(net, "effective_green_total_by_signal", new_budgets)
+    # A/B 계측용 스위치(2026-09-01). 기본은 재산정이다 — 끄면 위 (1)(2) 가 심은 실측
+    # native 값(SC7 120/114 · SC16 ?/107)이 그대로 남는다. 승격 묶음이 폐루프를 +578
+    # 악화시켜 조각별 기여를 가리는 중이라 분해 실험용으로 둔다.
+    #
+    # 조기반환이 아니라 **블록 가드**여야 한다. 아래 동시현시 배율과 meta 조립은 이
+    # 재산정과 무관하게 항상 돌아야 하고, 이 함수의 반환 계약은 dict 하나뿐이다.
+    recompute_drive_cycle = _is_enabled_value(section.get("drive_cycle_recompute", True))
+    if recompute_drive_cycle:
+        drive_cycle = float(net.cycle_length)
+        lost_per_phase = float(net.lost_time) / 4.0
+        new_cycles: dict[str, float] = {}
+        new_budgets: dict[str, float] = {}
+        for signal in _controlled_signal_names(cfg):
+            sid = str(signal)
+            n_live = len(live_map.get(sid, ())) or 4
+            new_cycles[sid] = drive_cycle
+            new_budgets[sid] = drive_cycle - lost_per_phase * float(n_live)
+        setattr(net, "cycle_length_by_signal", new_cycles)
+        setattr(net, "effective_green_total_by_signal", new_budgets)
 
     # 동시 현시 -> 처리량 등가 배율. 순차 배치 모델은 겹침을 담을 수 없으므로
     # 그 신호 movement 들의 용량에 곱한다(배율 = 계획 현시녹색 합 / 실제 녹색초).
@@ -3012,6 +3028,7 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
         "native_signal_concurrency_signals": float(len(factors)),
         "native_signal_concurrency_movements": float(applied_factor),
         "native_signal_dead_phase_signals": float(len(live_map)),
+        "native_signal_drive_cycle_recompute": 1.0 if recompute_drive_cycle else 0.0,
     }
     for sig, live in sorted(live_map.items()):
         meta[f"native_signal_live_phases_{sig}"] = float(len(live))
@@ -3355,7 +3372,7 @@ def _movement_phase_correction_enabled() -> bool:
 
 
 
-def apply_nonexistent_movement_beta_zero(cfg) -> dict[str, float]:
+def apply_nonexistent_movement_beta_zero(cfg, tuning=None) -> dict[str, float]:
     """물리 회전이 없는 movement 의 beta 를 0 으로 하고 같은 origin 의 형제에게 넘긴다.
 
     `urban_movements` 는 leg 교차곱 선언이라 물리 회전보다 많다(CLAUDE.md). 그중 일부는
@@ -3372,6 +3389,10 @@ def apply_nonexistent_movement_beta_zero(cfg) -> dict[str, float]:
     목록은 `outputs/movement_phase_correction_20260828.json` 의
     `known_nonexistent_movements` 절이다. 없으면 no-op(비트 동일).
     """
+    # A/B 분해(2026-09-02). 키가 없으면 켜짐 = 현행 비트 동일.
+    _sec = _mapping(_mapping(_mapping(tuning).get("urban")).get("movements"))
+    if "nonexistent_beta_zero" in _sec and not _is_enabled_value(_sec["nonexistent_beta_zero"]):
+        return {"nonexistent_movement_beta_zero": 0.0, "nonexistent_movement_disabled": 1.0}
     if not MOVEMENT_PHASE_CORRECTION_JSON.is_file():
         return {"nonexistent_movement_beta_zero": 0.0}
     try:
@@ -3473,7 +3494,14 @@ def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None
     beta_moved = 0.0
     moved_names: list[str] = []
     sibling_count = 0
+    # A/B 분해(2026-09-02). `added` 가 이 값인 보정만 건너뛴다. 정본 JSON 은 안 건드린다.
+    skip_added = str(_mapping(_mapping(_mapping(tuning).get("urban"))
+                              .get("movements")).get("phase_correction_skip_added", "") or "")
+    skipped_added = 0
     for name, spec in sorted(table.items()):
+        if skip_added and str(_mapping(spec).get("added") or "") == skip_added:
+            skipped_added += 1
+            continue
         target = movements.get(str(name))
         if not isinstance(target, MutableMapping):
             missing += 1
@@ -3505,6 +3533,7 @@ def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None
     out = {
         "movement_phase_correction_enabled": 1.0,
         "movement_phase_correction_applied": float(applied),
+        "movement_phase_correction_skipped_added": float(skipped_added),
         "movement_phase_correction_siblings": float(sibling_count),
         "movement_phase_correction_stale": float(stale),
         "movement_phase_correction_group_split": float(split),
@@ -5769,6 +5798,7 @@ def build_config(
     _plant_phase_shape_into(cfg, tuning)
     _plant_rollout_far_into(cfg, tuning)
     _plant_gate_peeloff_into(cfg, tuning)
+    _plant_ramp_observation_into(cfg, tuning)
     _plant_agent_topology_into(cfg, tuning)
     return cfg
 
@@ -6228,6 +6258,17 @@ def apply_gate_ramp_peeloff(state_json, cfg, urban_boundary: dict[str, float]) -
         out["gate_ramp_peeloff_%s_after_vph" % gate] = float(urban_boundary[gate])
     out["gate_ramp_peeloff_gates"] = float(applied)
     return out
+
+
+def _plant_ramp_observation_into(cfg, tuning) -> None:
+    """관측 램프큐를 상한으로 자를지. A/B 분해 전용이고 기본은 자르지 않는다.
+
+    `state.py` dataclass 필드를 늘리지 않는다 — setattr 은 컨트롤러와 함께 피클돼
+    가격 워커까지 간다(urban_movements 와 같은 논거).
+    """
+    section = _mapping(_mapping(tuning.get("urban")).get("ramp"))
+    setattr(cfg.network, "ramp_observation_clip_to_cap",
+            bool(_is_enabled_value(section.get("observation_clip_to_cap", False))))
 
 
 def _plant_gate_peeloff_into(cfg, tuning) -> None:
@@ -9294,7 +9335,7 @@ def main() -> None:
     # 판정하면 살아 있는 회전을 죽인다(2026-08-27 에 정확히 그렇게 17개를 죽였다).
     runtime_patch_metadata.update(apply_movement_phase_correction(cfg, tuning))
     # 물리 회전이 없는 movement 의 beta 를 형제에게 넘긴다. 대장이 없으면 no-op.
-    runtime_patch_metadata.update(apply_nonexistent_movement_beta_zero(cfg))
+    runtime_patch_metadata.update(apply_nonexistent_movement_beta_zero(cfg, tuning))
     runtime_patch_metadata.update(apply_dead_phase_beta_zero(cfg))
     runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).

@@ -425,6 +425,11 @@ def sync_onramp_queues_from_freeway(state: TrafficState, cfg: ExperimentConfig) 
                 over = {}
                 setattr(state, "ramp_queue_over_cap_veh", over)
             over[str(ramp)] = q_obs - cap_obs
+            # A/B 분해(2026-09-02). 켜면 승격 전처럼 상한으로 자른다. 기본 꺼짐 = 비트 동일.
+            # 위 주석이 "지우는 것은 답이 아니다" 라고 논증하는 바로 그 거동을
+            # **되돌려 재기 위한** 스위치다. 정본은 자르지 않는 쪽이다.
+            if bool(getattr(cfg.network, "ramp_observation_clip_to_cap", False)):
+                q_obs = cap_obs
         state.ramp_queue[ramp] = q_obs
         for movement in movements:
             state.urban_movement_queue[movement] = max(
