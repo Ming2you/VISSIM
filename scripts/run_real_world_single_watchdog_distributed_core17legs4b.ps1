@@ -62,6 +62,35 @@ if ($OutDir -eq "") {
   $OutDir = Join-Path $repo "evaluation\runs\real_world_modi_watchdog"
 }
 $OutDir = Resolve-RepoPath $OutDir
+# 2026-09-05. RW_MAINLINE_SG_ONLY 를 config(urban.plan.mainline_only) 로 러너가 직접 세운다.
+# 종전엔 launch_*/queue_* 스크립트가 env 로 세우고 러너는 믿기만 했다. 그래서 Bash 로 띄운
+# 체인(2026-09-04 16:31 이후 22런)이 env 없이 돌아 SG 9+ (미드블록 횡단)까지 ContrByCOM 이
+# 걸리고 계획에 없어 영구 적색이 됐다(SC5 SG14 -> 링크 1220014203 막다른 길). 런로그의
+# SIGNAL_MIDBLOCK_COM_SKIPS 가 0 이면 이 결함이다.
+if ($Tuning -ne "") {
+  try {
+    $tunJson = Get-Content -Raw -Encoding UTF8 (Resolve-RepoPath $Tuning) | ConvertFrom-Json
+    $mlOnly = $null
+    if ($tunJson.urban -and $tunJson.urban.plan) { $mlOnly = $tunJson.urban.plan.mainline_only }
+    if ($null -eq $mlOnly) {
+      $env:RW_MAINLINE_SG_ONLY = "1"
+      "RW_MAINLINE_SG_ONLY=1 (config 에 urban.plan.mainline_only 없음 -> 기본 native 미드블록)"
+    } elseif ($mlOnly) {
+      $env:RW_MAINLINE_SG_ONLY = "1"
+      "RW_MAINLINE_SG_ONLY=1 (config urban.plan.mainline_only=true)"
+    } else {
+      $env:RW_MAINLINE_SG_ONLY = "0"
+      "RW_MAINLINE_SG_ONLY=0 (config urban.plan.mainline_only=false)"
+    }
+  } catch {
+    $env:RW_MAINLINE_SG_ONLY = "1"
+    "RW_MAINLINE_SG_ONLY=1 (config 읽기 실패: $($_.Exception.Message))"
+  }
+}
+# 2026-09-05. 기준선 런처(queue_audit2/ctlcanon_20260904)가 세우던 RW_QUEUE_COUNTER=1 도 러너가 세운다.
+# VBS 가 state JSON 에 queue_counters 진단을 싣는 스위치일 뿐 어댑터는 읽지 않는다(제어 무영향).
+if ([string]::IsNullOrWhiteSpace($env:RW_QUEUE_COUNTER)) { $env:RW_QUEUE_COUNTER = "1" }
+"RW_QUEUE_COUNTER=$($env:RW_QUEUE_COUNTER)"
 # 2026-08-27. -Tuning 기본값을 없앤다. 종전 기본값
 # (real_world_modi_pstack_distributed_core17legs4b_20260819.json) 은 정본 통합 때
 # 격리 폴더로 옮겨져 더는 존재하지 않는다. 그런데 어댑터의 load_optional_json 은

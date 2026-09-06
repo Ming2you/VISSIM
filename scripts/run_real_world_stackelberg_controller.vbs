@@ -2308,6 +2308,7 @@ Sub WriteStateJson(simSec, path)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
     Dim localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, perfT0
+    Dim localQBinTotal, localQBinStopped
     Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
     Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw
     Dim fullLinkCounts, fullLinkStoppedCounts
@@ -2327,7 +2328,8 @@ Sub WriteStateJson(simSec, path)
         tempPath = UniqueSiblingPath(finalPath, "state")
     End If
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
-        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, _
+        localQBinTotal, localQBinStopped, scanOk, _
         collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
         recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw, _
         fullLinkCounts, fullLinkStoppedCounts
@@ -2386,6 +2388,9 @@ Sub WriteStateJson(simSec, path)
         ts.WriteLine "    ""queue_window_samples"": " & CStr(winSamples) & ","
     End If
     ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails) & ","
+    ts.WriteLine "    ""queue_bins"": " & QueueBinsJson(localQBinTotal, localQBinStopped) & ","
+    ts.WriteLine "    ""queue_bin_m"": " & CStr(QUEUE_BIN_M) & ","
+    ts.WriteLine "    ""queue_counters"": " & QueueCounterJson() & ","
     ts.WriteLine "    ""far_measurement"": " & FarMeasurementJson()
     ts.WriteLine "  },"
     If QueueWindowEnabled() Then ResetQueueWindow
@@ -2551,12 +2556,14 @@ Sub LogStateCsv(simSec)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
     Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
     Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, perfT0
+    Dim qBinTotal, qBinStopped
     Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
     Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw
     Dim fullLinkCounts, fullLinkStoppedCounts
     perfT0 = PerfNow()
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
-        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, linkCounts, linkStopped, linkSpeedSums, linkQueueTails, _
+        qBinTotal, qBinStopped, scanOk, _
         collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
         recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw, _
         fullLinkCounts, fullLinkStoppedCounts
@@ -2670,7 +2677,8 @@ End Function
 Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, ByRef ramp, ByRef boundary, ByRef other, _
         ByRef meanSpeed, ByRef freewayMeanSpeed, ByRef stopped, _
         ByRef countE, ByRef speedE, ByRef stoppedE, ByRef countW, ByRef speedW, ByRef stoppedW, _
-        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, ByRef scanOk, _
+        ByRef linkCounts, ByRef linkStopped, ByRef linkSpeedSums, ByRef linkQueueTails, _
+        ByRef qBinTotal, ByRef qBinStopped, ByRef scanOk, _
         ByRef collectionCountBefore, ByRef collectionCountAfter, ByRef captureSimSecBefore, ByRef captureSimSecAfter, _
         ByRef recordVehNos, ByRef recordLinkNos, ByRef recordLaneNos, ByRef recordPositions, ByRef recordSpeeds, ByRef recordStopped, _
         ByRef recordLaneRaw, ByRef fullLinkCounts, ByRef fullLinkStoppedCounts)
@@ -2685,6 +2693,8 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
     Set linkStopped = CreateObject("Scripting.Dictionary")
     Set linkSpeedSums = CreateObject("Scripting.Dictionary")
     Set linkQueueTails = CreateObject("Scripting.Dictionary")
+    Set qBinTotal = CreateObject("Scripting.Dictionary")
+    Set qBinStopped = CreateObject("Scripting.Dictionary")
     Set fullLinkCounts = CreateObject("Scripting.Dictionary")
     Set fullLinkStoppedCounts = CreateObject("Scripting.Dictionary")
     Dim i
@@ -2695,6 +2705,7 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
 
     Dim noArray, laneArray, posArray, speedArray, ok, lo, hi, keyCol, valueCol, row, recordIndex
     Dim noKey, laneKey, posKey, speedKey, vehNo, linkNo, laneNo, key, pos, speed
+    Dim qbKey
     Dim speedSum, freewaySpeedSum, seg, chainPos, isStopped, perfT0, snapshotIds
     perfT0 = PerfNow()
     speedSum = 0: freewaySpeedSum = 0
@@ -2810,6 +2821,14 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
                 linkQueueTails(key) = pos
             End If
         End If
+
+        ' 2026-09-04. 정지선 연속 walk 용 (link,lane) 위치 히스토그램.
+        ' 빈 7 m = 차량 1대(실측 잼 간격 6.3 m). 정렬하지 않는다 - 스캔이 이미 런의 33%다.
+        ' Python 이 하류 끝 빈부터 내려가며 total==stopped 가 끊기는 지점까지 합산한다.
+        ' walk 를 끊는 것은 공간 갭이 아니라 '움직이는 차량'이다(갭 20/40/100/inf 전부 동일값).
+        qbKey = CStr(linkNo) & "|" & CStr(laneNo) & "|" & CStr(Int(pos / QUEUE_BIN_M))
+        AddDictNumber qBinTotal, qbKey, 1.0
+        If isStopped Then AddDictNumber qBinStopped, qbKey, 1.0
 
         chainPos = ChainPosCsv(linkNo, pos, RW_FW_E_CHAIN_LINKS, RW_FW_E_CHAIN_OFFSETS_M)
         If chainPos >= 0 Then
@@ -3080,6 +3099,112 @@ Function FarMeasurementJson()
         okCount = okCount + 1
     Next
     FarMeasurementJson = s2 & "}}"
+End Function
+
+' 큐 카운터 읽기(2026-09-03). RW_QUEUE_COUNTER=1 이면 켜진다. 기본 꺼짐 = 비트 동일.
+'
+' 왜 필요한가. 지금 큐 관측은 결정 시점의 **순간 표본**이다. 제어주기가 신호주기와 같아
+' 그 표본이 늘 신호 위상의 같은 지점에 떨어진다 — SG 마다 적색 경과가 고정된다
+' (SC105 실측: SG1 은 항상 적색 30초째, SG3 은 항상 149초째. 최소=최대).
+' 큐는 적색 경과에 비례해 쌓이므로 공정한 기준(주기평균 R/2) 대비 0.51~2.41 배로
+' 어긋나고, 배분은 현시 간 **상대** 큐로 하므로 그 왜곡이 그대로 배분 오류가 된다.
+'
+' VISSIM 큐 카운터는 매 시뮬 스텝으로 재고 구간 집계(QLen 평균 · QLenMax 최대)를 낸다.
+' 정지선에서 상류로 커넥터를 넘어가며 재고 queueMaxLength(500m)까지 따라간다.
+' 표기는 (Current,Last) 다 — 큐 카운터엔 차종 차원이 없어 3개를 주면 거부된다
+' (실측: 'Too many subattributes: CURRENT,LAST,ALL'). Last = 마지막으로
+' **완료된** 구간. 읽기 실패는 -1 로 낸다(조용한 0 은 '큐 없음' 으로 오독된다).
+Const QUEUE_BIN_M = 7.0
+
+' 2026-09-04. 히스토그램은 **항상** 낸다 - env 게이트를 없앴다.
+' 생산자(VBS env)와 소비자(어댑터 config)가 갈라져 있으면 config 만 켜고 러너가 안 실을 때
+' 어댑터가 조용히 stopped 층으로 폴백해 '켰는데 안 돌았다'가 된다. 이 저장소에서 그 패턴으로
+' 죽어 있던 스위치가 다섯 개였다. 비용은 차량당 dict 증분 하나이고 방출은 도시 링크만이다.
+
+Function QueueBinsJson(binTotal, binStopped)
+    ' {"link|lane|bin": [total, stopped]} - 고속 체인/램프 미터 커넥터는 제외한다
+    ' (도시 정지선 큐용이고, 고속을 넣으면 결정당 수만 항목이 된다).
+    Dim keys, i, k, parts, nParts, linkPart, cut, st
+    If binTotal Is Nothing Then
+        QueueBinsJson = "{}"
+        Exit Function
+    End If
+    If binTotal.Count = 0 Then
+        QueueBinsJson = "{}"
+        Exit Function
+    End If
+    keys = binTotal.Keys
+    ReDim parts(UBound(keys))
+    nParts = 0
+    For i = 0 To UBound(keys)
+        k = CStr(keys(i))
+        cut = InStr(k, "|")
+        If cut > 1 Then
+            linkPart = Left(k, cut - 1)
+            If Not InCsvInt(CLng(linkPart), RW_FW_E_CHAIN_LINKS) _
+                    And Not InCsvInt(CLng(linkPart), RW_FW_W_CHAIN_LINKS) _
+                    And Not InCsvInt(CLng(linkPart), RW_RAMP_METER_CONNECTORS) Then
+                st = 0.0
+                If binStopped.Exists(k) Then st = CDbl(binStopped(k))
+                parts(nParts) = Chr(34) & k & Chr(34) & ": [" & CStr(CDbl(binTotal(k))) & "," & CStr(st) & "]"
+                nParts = nParts + 1
+            End If
+        End If
+    Next
+    If nParts = 0 Then
+        QueueBinsJson = "{}"
+    Else
+        ReDim Preserve parts(nParts - 1)
+        QueueBinsJson = "{" & Join(parts, ",") & "}"
+    End If
+End Function
+
+Function QueueCounterEnabled()
+    QueueCounterEnabled = (Trim(shell.ExpandEnvironmentStrings("%RW_QUEUE_COUNTER%")) = "1")
+End Function
+
+Function QueueCounterCount()
+    QueueCounterCount = 0
+    On Error Resume Next
+    QueueCounterCount = Vissim.Net.QueueCounters.Count
+    Err.Clear
+    On Error GoTo 0
+End Function
+
+Function QueueCounterJson()
+    Dim s2, qc, n, v, vmax, okCount
+    If Not QueueCounterEnabled() Then
+        QueueCounterJson = "null"
+        Exit Function
+    End If
+    s2 = "{""interval_sec"": " & CStr(CLng(controlInterval)) & ", ""counters"": {"
+    okCount = 0
+    On Error Resume Next
+    For Each qc In Vissim.Net.QueueCounters
+        n = -1
+        n = CLng(qc.AttValue("No"))
+        If Err.Number <> 0 Then Err.Clear
+        v = -1.0
+        v = CDbl(qc.AttValue("QLen(Current,Last)"))
+        If Err.Number <> 0 Then
+            v = -1.0
+            Err.Clear
+        End If
+        vmax = -1.0
+        vmax = CDbl(qc.AttValue("QLenMax(Current,Last)"))
+        If Err.Number <> 0 Then
+            vmax = -1.0
+            Err.Clear
+        End If
+        If n >= 0 Then
+            If okCount > 0 Then s2 = s2 & ", "
+            s2 = s2 & """" & CStr(n) & """: [" & Num(v) & ", " & Num(vmax) & "]"
+            okCount = okCount + 1
+        End If
+    Next
+    Err.Clear
+    On Error GoTo 0
+    QueueCounterJson = s2 & "}, ""count"": " & CStr(okCount) & "}"
 End Function
 
 Sub ResetFarMeasurement()
@@ -4080,6 +4205,19 @@ Sub ConfigureEvaluationOutput(path)
         WScript.Echo "FAR_MEASUREMENT=1 linkRes=1 from=0 to=" & CStr(simPeriod) & _
             " interval=" & CStr(controlInterval) & " points=" & CStr(farMeasLinks.Count) & _
             " fw_members=" & CStr(farFwMembers.Count)
+    End If
+    ' 큐 카운터(2026-09-03). VISSIM 이 매 시뮬 스텝으로 큐를 재고 구간 집계를 낸다 —
+    ' 우리가 30초 표본 5개로 흉내내던 창 집계를 원생으로 대체한다. 위상잠금(제어주기 150s
+    ' = 신호주기 150s 라 관측이 늘 같은 위상에 떨어지는 것)이 원천에서 사라진다.
+    ' 실측 왜곡: 링크 102개에서 결정시점 대 주기평균 비가 0.36~2.45 (상대 6.8배).
+    ' 이 다섯도 ReadOnlyDuringSim 이라 첫 스텝 전에 써야 한다.
+    If QueueCounterEnabled() Then
+        TrySetEvaluationAtt "QueuesCollectData", True
+        TrySetEvaluationAtt "QueuesFromTime", 0
+        TrySetEvaluationAtt "QueuesToTime", CLng(simPeriod)
+        TrySetEvaluationAtt "QueuesInterval", CLng(controlInterval)
+        WScript.Echo "QUEUE_COUNTER=1 from=0 to=" & CStr(simPeriod) & _
+            " interval=" & CStr(controlInterval) & " counters=" & CStr(QueueCounterCount())
     End If
     WScript.Echo "EVAL_OUT_DIR=" & path
 End Sub
