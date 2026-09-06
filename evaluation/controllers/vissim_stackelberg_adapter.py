@@ -1122,7 +1122,10 @@ def _link_counts_from_local_observation(state_json: Mapping[str, Any]) -> dict[s
     if not isinstance(local, Mapping):
         return {}
     raw = local.get("link_counts", {})
-    mode = str(os.environ.get("RW_QUEUE_WINDOW_STAT", "")).strip().lower()
+    # 2026-09-04. env 전용이던 것을 config 로 — `urban.queue.window_stat` (mean|max).
+    # 기본 빈값 = 순간값(현행). 어느 런에서도 켜진 적이 없어 미검증이고, 카운터별 상관이
+    # 순시 0.674 -> 30초 창평균 0.967 (62/62 승) 이라 다음 검정 후보다.
+    mode = str(_CFG_STRINGS.get("queue_window_stat", "")).strip().lower()  # 2026-09-05 env 폴백 삭제
     if mode in {"mean", "max"}:
         windowed = local.get("link_counts_window_mean")
         samples = _as_float(local.get("queue_window_samples"), 0.0)
@@ -1560,6 +1563,9 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
     """
 
     def patched_phase_green_fraction(control, cfg_arg, spec, urban_step_index=None):
+        if spec.get("unsignalized"):
+            # B5: 정지선 상류 peel-off(램프 연결로) — 신호와 무관, 저수지 공간·연결로 용량으로만 제한
+            return 1.0
         if str(spec.get("phase", "")):
             # **검증 전용 경로.** 제어 SC 도 VISSIM 이 실제로 돌린 고정시간 신호를 쓴다.
             #
@@ -1723,6 +1729,9 @@ MOVEMENT_MERGE_PLAN_JSON = WORKSPACE_ROOT / "outputs/movement_merge_plan_2026082
 
 # 가격 국소항 패치의 마지막 결정 진단. 스위치가 꺼져 있으면 계속 비어 있다.
 _QPRICE_LAST: dict[str, float] = {}
+_RAMPLOCAL_LAST: dict[str, float] = {}
+_LEGSPLIT_LAST: dict[str, float] = {}
+_RAMP_ERR: dict[str, float] = {}
 
 
 
@@ -1864,6 +1873,264 @@ def install_signal_aware_green_box(controller, tuning: Mapping[str, Any]) -> dic
     return dict(_GREENBOX_LAST)
 
 
+
+# ---------------------------------------------------------------------------
+# 관측 역압(backpressure) 현시가격 (2026-09-06). 근거·정의는 scratchpad/apply_bp_price.py 머리말과 메모리
+# `vissim-env-structural-20260906` 참조. 현행 롤아웃 가격은 지평 내 누적TTT 가 내부 이동에 무감각해
+# price ≡ −0.75·ΔL(국소 이득에 대한 세금)이 됐다. 여기서는 관측된 하류 링크의 한계 외부효과(Vickrey)로 잰다.
+# ---------------------------------------------------------------------------
+MODEL_PHASES_ADAPTER = ("p1", "p2", "p3", "p4")
+_BP_CONNECTOR_MAP_CACHE: dict[str, Any] = {}
+_BP_RAMP_OF_EXIT = {("SC1001", "onW"): "R_D_W", ("SC1001", "onE"): "R_D_E", ("SC1004", "onW"): "R_F_W", ("SC1004", "onE"): "R_F_E"}
+_BP_RAMP_FEED_CONNS = {"R_D_W": ("10480", "10482"), "R_D_E": ("10484", "10490"), "R_F_W": ("10646",), "R_F_E": ("10681", "10639")}
+
+
+def _bp_load_connector_map() -> Mapping[str, Any]:
+    if "map" not in _BP_CONNECTOR_MAP_CACHE:
+        path = WORKSPACE_ROOT / "outputs/movement_connector_map_20260824.json"
+        try:
+            _BP_CONNECTOR_MAP_CACHE["map"] = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            _BP_CONNECTOR_MAP_CACHE["map"] = {}
+    return _mapping(_BP_CONNECTOR_MAP_CACHE["map"])
+
+
+def _bp_previous_state_paths(previous_action_path, windows: int) -> list:
+    """직전 액션 경로(decisions_x/action_%06d.json)에서 직전 k 개 state 경로를 만든다. 없으면 빈 리스트."""
+    out = []
+    try:
+        p = Path(str(previous_action_path))
+        m = re.match(r"^action_(\d+)\.json$", p.name)
+        if not m:
+            return out
+        t = int(m.group(1))
+        width = len(m.group(1))
+        for k in range(int(windows) + 1):
+            tk = t - 150 * k
+            if tk < 0:
+                break
+            cand = p.with_name("state_%0*d.json" % (width, tk))
+            if cand.is_file():
+                out.append(cand)
+    except Exception:  # noqa: BLE001
+        return []
+    return out
+
+
+def _bp_link_of_records(doc: Mapping[str, Any]) -> dict[int, str]:
+    recs = _mapping(doc.get("vehicle_records")).get("records") or []
+    out: dict[int, str] = {}
+    for r in recs:
+        if isinstance(r, Mapping) and r.get("veh_no") is not None and r.get("link_no") is not None:
+            out[int(r["veh_no"])] = str(r["link_no"])
+    return out
+
+
+def install_observed_backpressure_price(cfg, tuning: Mapping[str, Any], state_json: Mapping[str, Any], previous_action_path) -> dict[str, float]:
+    """관측 역압 현시가격을 계산해 `cfg.network.observed_backpressure_prices` 에 둔다. 게이트 없으면 no-op."""
+    section = _mapping(_mapping(tuning).get("phase_price"))
+    if str(section.get("mode", "")).strip().lower() != "observed_backpressure":
+        return {"observed_backpressure_enabled": 0.0}
+    bp = _mapping(section.get("backpressure"))
+    weight = _as_float(bp.get("weight"), 1.0)
+    sat_source = str(bp.get("sat_source", "model")).strip().lower()
+    sat_lane = _as_float(bp.get("sat_lane_veh_h"), 1300.0)
+    mu_floor = _as_float(bp.get("mu_floor_veh_h"), 48.0)
+    windows = max(1, int(_as_float(bp.get("windows"), 2.0)))
+    max_price = _as_float(bp.get("max_price"), 1.0)
+    ramp_reservoir = _is_enabled_value(bp.get("ramp_reservoir", True))
+    relief_weight = _as_float(bp.get("relief_weight"), 1.0)
+    min_abs_price = _as_float(bp.get("min_abs_price"), 0.005)  # 불감대: 잡음 수준 가격(|p| 미만)은 0. 국소비용이 평평해 ±0.004 차이로도 정련이 48 s 를 옮겼다(t=1800 SC1001).
+    per_lane_model = _as_float(bp.get("per_lane_veh_h_model"), 206.5)  # s_m = β_m × 접근 차로수 × 차로당 방류 / 3600 (movement 용량 상한 대신)  # 자기 링크 해소 항(e_o) 가중. 0 이면 하류 항만.
+    net = cfg.network
+    horizon_h = _as_float(bp.get("horizon_h"), float(cfg.mpc.horizon_steps) * float(cfg.simulation.T_c_h))
+    window_h = 150.0 / 3600.0
+    # --- plant 링크 통계: 재차(현재) · 이탈/유입(직전 k 창 평균)
+    local = _mapping(state_json.get("local_observation"))
+    counts = {str(k): _as_float(v, 0.0) for k, v in _mapping(local.get("link_counts")).items()}
+    now_recs = _bp_link_of_records(state_json)
+    prev_paths = _bp_previous_state_paths(previous_action_path, windows)
+    dep: dict[str, float] = {}
+    arr: dict[str, float] = {}
+    used_windows = 0
+    later = now_recs
+    for path in prev_paths:
+        try:
+            earlier = _bp_link_of_records(json.loads(Path(path).read_text(encoding="utf-8")))
+        except Exception:  # noqa: BLE001
+            break
+        if not earlier or not later:
+            break
+        for veh, link in earlier.items():
+            if later.get(veh) != link:
+                dep[link] = dep.get(link, 0.0) + 1.0
+        for veh, link in later.items():
+            if earlier.get(veh) != link:
+                arr[link] = arr.get(link, 0.0) + 1.0
+        used_windows += 1
+        later = earlier
+    diag: dict[str, float] = {"observed_backpressure_enabled": 1.0, "observed_backpressure_windows": float(used_windows)}
+    if used_windows == 0:
+        # 첫 결정(직전 state 없음): 방류를 모르면 가격을 매기지 않는다(0 이 아니라 None → 롤아웃 가격 경로로 폴백).
+        net.observed_backpressure_prices = None
+        diag["observed_backpressure_prev_missing"] = 1.0
+        return diag
+    def mu_lam(link: str):
+        mu = dep.get(link, 0.0) / (used_windows * window_h)
+        lam = arr.get(link, 0.0) / (used_windows * window_h)
+        return mu, lam
+    def ext_of(n: float, mu: float, lam: float) -> tuple:
+        if n <= 0.0:
+            return 0.0, 0.0
+        mu_eff = max(mu, mu_floor)
+        t_d = min(n / mu_eff, horizon_h)
+        lam_eff = lam if lam > 0.0 else mu_eff
+        return lam_eff * t_d / mu_eff, t_d
+    # --- 램프 저수지: n = ramp_counts, μ = 직전 미터율, λ = 램프 커넥터 실측 유량
+    ramp_ext: dict[str, float] = {}
+    if ramp_reservoir:
+        ramp_counts = {str(k): _as_float(v, 0.0) for k, v in _mapping(state_json.get("ramp_counts")).items()}
+        prev_meter: dict[str, float] = {}
+        try:
+            prev_doc = json.loads(Path(str(previous_action_path)).read_text(encoding="utf-8"))
+            prev_meter = {str(k): _as_float(v, 0.0) for k, v in _mapping(prev_doc.get("ramp_metering")).items()}
+        except Exception:  # noqa: BLE001
+            prev_meter = {}
+        volumes = {str(k): _as_float(v, 0.0) for k, v in _mapping(_mapping(local.get("far_measurement")).get("link_volume_veh_h")).items()}
+        for ramp, conns in _BP_RAMP_FEED_CONNS.items():
+            n = ramp_counts.get(ramp, 0.0)
+            mu = prev_meter.get(ramp, 0.0)
+            lam = sum(volumes.get(c, 0.0) for c in conns)
+            ramp_ext[ramp] = ext_of(n, mu, lam)[0]
+    # --- movement → 하류 (plant 링크 | 램프 저수지)
+    cm = _mapping(_bp_load_connector_map().get("approaches"))
+    capm = dict(getattr(net, "movement_capacity_by_movement_veh_h", {}) or {})
+    specs = dict(net.urban_movements or {})
+    prices: dict[str, dict[str, float]] = {}
+    mapped = 0
+    unmapped = 0
+    links_priced = 0
+    ext_cache: dict[str, tuple] = {}
+    for m, sp in specs.items():
+        sig = str(sp.get("intersection") or sp.get("signal") or "")
+        phase = str(sp.get("phase", ""))
+        pid = phase.split("_", 1)[1] if "_" in phase else ""
+        if not sig or pid not in MODEL_PHASES_ADAPTER:
+            continue
+        exit_leg = str(sp.get("exit", ""))
+        approach = str(sp.get("approach", ""))
+        targets: list = []  # (ext, share, lanes)
+        approach_turns = list(_mapping(cm.get("%s|%s" % (sig, approach))).get("turns") or [])
+        if not approach_turns:
+            approach_turns = list(_mapping(cm.get("%s|%s_RAMP" % (sig, approach))).get("turns") or [])
+        ramp = _BP_RAMP_OF_EXIT.get((sig, exit_leg))
+        if ramp is not None:
+            targets.append((ramp_ext.get(ramp, 0.0), 1.0, 1))
+        else:
+            dsc = exit_leg.split("_", 1)[1] if "_SC" in exit_leg else ""
+            turns = [t for t in approach_turns if dsc and str(t.get("dest_signal")) == dsc]
+            for t in turns:
+                link = str(t.get("to_link"))
+                if link not in ext_cache:
+                    mu, lam = mu_lam(link)
+                    ext_cache[link] = ext_of(counts.get(link, 0.0), mu, lam)
+                targets.append((ext_cache[link][0], 1.0 / float(len(turns)), int(t.get("lanes") or 1)))
+        if not targets:
+            unmapped += 1
+            continue
+        mapped += 1
+        # 자기 링크(origin) 해소 항: 접근 링크 o 의 e_o. 차량 하나를 o 에서 빼면 o 뒤에 오는 남들(상류·off-ramp)이 그만큼 덜 기다린다.
+        e_o = 0.0
+        origin_links = sorted({str(t.get("from_link")) for t in approach_turns if t.get("from_link") is not None})
+        if origin_links and relief_weight > 0.0:
+            link_o = origin_links[0]
+            if link_o not in ext_cache:
+                mu_o, lam_o = mu_lam(link_o)
+                ext_cache[link_o] = ext_of(counts.get(link_o, 0.0), mu_o, lam_o)
+            e_o = float(ext_cache[link_o][0])
+        # s_m: 녹색 1초당 그 movement 로 나가는 대수 = 회전분율 β_m × 접근 차로수 × 차로당 방류 / 3600.
+        # movement 용량 상한(무신호 게이트 1800 등)을 쓰면 램프행 movement 가 접근 전체를 잠근다(검증 t=3600: SC1001 p3 69→21).
+        lanes_o = float(sum(int(t.get("lanes") or 1) for t in approach_turns)) or 1.0
+        beta_m = max(0.0, _as_float(sp.get("beta"), 0.0))
+        per_lane = sat_lane if sat_source == "observed" else per_lane_model
+        s_m = beta_m * lanes_o * per_lane / 3600.0
+        value = s_m * (sum(float(e) * float(share) for e, share, _ in targets) - relief_weight * e_o)
+        if abs(value) > 0.0:
+            links_priced += 1
+        prices.setdefault(sig, {})
+        prices[sig][pid] = prices[sig].get(pid, 0.0) + value
+    for sig in list(prices):
+        for pid in list(prices[sig]):
+            _v = float(min(max(weight * prices[sig][pid], -max_price), max_price))
+            prices[sig][pid] = _v if abs(_v) >= min_abs_price else 0.0
+    net.observed_backpressure_prices = prices
+    top = max(((v, s, p) for s, d in prices.items() for p, v in d.items()), default=(0.0, "", ""))
+    diag.update({
+        "observed_backpressure_mapped": float(mapped),
+        "observed_backpressure_unmapped": float(unmapped),
+        "observed_backpressure_priced_movements": float(links_priced),
+        "observed_backpressure_signals": float(len(prices)),
+        "observed_backpressure_max_price": float(top[0]),
+        "observed_backpressure_min_price": float(min((v for d in prices.values() for v in d.values()), default=0.0)),
+        "observed_backpressure_relief_weight": float(relief_weight),
+        "observed_backpressure_weight": float(weight),
+        "observed_backpressure_sat_model": 1.0 if sat_source != "observed" else 0.0,
+    })
+    _QPRICE_LAST.update({k: v for k, v in diag.items()})
+    return diag
+
+
+def install_observed_backpressure_controller(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """`_refresh_phase_prices` 를 관측 역압 가격으로 바꾼다. 롤아웃을 돌리지 않는다.
+    `cfg.network.observed_backpressure_prices` 가 None(첫 결정)이면 기존 경로로 폴백한다."""
+    section = _mapping(_mapping(tuning).get("phase_price"))
+    if str(section.get("mode", "")).strip().lower() != "observed_backpressure":
+        return {"observed_backpressure_controller": 0.0}
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _Follower
+    cls = type(controller)
+    original = cls._refresh_phase_prices
+    controller.phase_price_mode = "observed_backpressure"
+    def patched_bp(self, state, forecast, previous) -> None:
+        follower = self.nash_solver
+        prices_all = getattr(self.cfg.network, "observed_backpressure_prices", None)
+        if not isinstance(follower, _Follower) or prices_all is None:
+            _QPRICE_LAST["observed_backpressure_fallback_rollout"] = 1.0
+            return original(self, state, forecast, previous)
+        net = self.cfg.network
+        prices: dict = {}
+        refs: dict = {}
+        for signal in net.signals:
+            base = self._phase_vector(previous, signal)
+            live = [pid for pid in net.signal_live_phases(signal) if base.get(pid, 0.0) > 0.0]
+            if len(live) < 3:
+                continue
+            pr = _mapping(prices_all.get(signal))
+            prices[signal] = {pid: float(pr.get(pid, 0.0)) for pid in live}
+            refs[signal] = base
+        if bool(getattr(self, "phase_price_ramp_signal_off", False)) and prices:
+            _lm = getattr(follower, "_local_models", {}) or {}
+            _zeroed = 0
+            for _s in list(prices):
+                if getattr(_lm.get(_s), "has_ramps", False):
+                    prices[_s] = {pid: 0.0 for pid in prices[_s]}
+                    _zeroed += 1
+            self._ramp_signal_price_zeroed = _zeroed
+        follower.signal_phase_price = prices or None
+        follower.signal_phase_price_ref = {s: refs[s] for s in prices} or None
+        follower.signal_phase_price_weight = float(self.phase_price_weight)
+        follower.phase_price_local_cost_model = str(getattr(self, "phase_price_local_cost_model", "drain"))
+        follower.green_reference_mode = str(getattr(self, "green_reference_mode", "previous"))
+        follower.phase_price_refine_rounds = int(getattr(self, "phase_price_refine_rounds", 1))
+        follower.phase_price_in_gne = bool(getattr(self, "phase_price_in_gne", False))
+        follower.phase_price_in_gne_rounds = int(getattr(self, "phase_price_in_gne_rounds", 2))
+        self._phase_price_rollout_count = 0
+        self._phase_price_workers = 0
+        _QPRICE_LAST["observed_backpressure_controller"] = 1.0
+        _QPRICE_LAST["observed_backpressure_signals_priced"] = float(len(prices))
+    cls._refresh_phase_prices = patched_bp
+    return {"observed_backpressure_controller": 1.0}
+
+
 def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
     """현시 가격의 **국소항**을 정련과 같은 phased 물리로 채점한다.
 
@@ -1994,9 +2261,18 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
 
         if bool(getattr(self, "phase_price_primary_by_price", False)) and prices:
             self._assign_primary_by_price(prices)
+        if bool(getattr(self, "phase_price_ramp_signal_off", False)) and prices:
+            _lm = getattr(follower, "_local_models", {}) or {}
+            _zeroed = 0
+            for _s in list(prices):
+                if getattr(_lm.get(_s), "has_ramps", False):
+                    prices[_s] = {pid: 0.0 for pid in prices[_s]}
+                    _zeroed += 1
+            self._ramp_signal_price_zeroed = _zeroed
         follower.signal_phase_price = prices or None
         follower.signal_phase_price_ref = {s: refs[s] for s in prices} or None
         follower.signal_phase_price_weight = float(self.phase_price_weight)
+        _LEGSPLIT_LAST["phase_price_ramp_signal_zeroed"] = float(getattr(self, "_ramp_signal_price_zeroed", 0))
         follower.phase_price_local_cost_model = str(
             getattr(self, "phase_price_local_cost_model", "drain")
         )
@@ -2024,6 +2300,1046 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
 
     cls._refresh_phase_prices = patched
     return {"price_local_phased_enabled": 1.0}
+
+
+def install_ramp_aware_phase_local(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """has_ramps 신호의 **현시 국소비용**을 GNE 와 같은 ramp-aware 물리로 채점한다.
+
+    `phase_price.ramp_local_model` 이 "ramp_aware" 가 아니면 no-op = 비트 동일.
+
+    ## 왜
+
+    `priced_wu_link_controller.py:299` 가 `model.has_ramps` 면 setup 을 **None** 으로 낸다.
+    그러면 호출부 셋(정련 · in_gne 벡터탐색 · 가격 생성)이 전부
+    `phase_shape_local_cost`(도착 없는 배수 모형)로 폴백하는데, 그 모형은 첫 substep 에
+    큐를 다 비워 **어떤 녹색 벡터에서도 0.000000** 을 돌려준다 (2026-09-04 실측,
+    SC1001·SC1004 의 전 스윕 지점). has_ramps 신호는 이 망에 그 둘뿐이다.
+
+    국소항이 0 이면 현시가격 목적함수가
+
+        obj = local + w * sum_i price_i (g_i - ref_i)  =  0 + 선형항
+
+    이 되어 **순수 선형**이다. 선형함수는 상자 꼭짓점이 항상 최적이라, 두 신호는 매 결정
+    trust 폭(6초)만큼 꼭짓점으로 걸어간다 — 실측 커밋이 매번 22.0/22.7/70.7/22.7 이다.
+    그리고 그 결과가 **제대로 결합된 GNE 해를 덮어쓴다**(상류 주석: "GNE 가 p1 축만
+    최적화 -> 정련이 되돌림"). `phase_price.in_gne` 팔이 진 것(TTT +728, 14.4 sigma)도
+    이 평평한 채점기를 스윕 **안**으로 넣어 매 반복을 오염시켰기 때문이다.
+
+    ## 무엇을 바꾸나 — 물리를 새로 짜지 않는다
+
+    GNE 의 녹색 탐색은 **이미** 램프 신호를 `rollout_local_tts_ramp_aware` 로 채점한다
+    (`wu_faithful_follower.py:938-952`). 램프 저수지 · off-ramp 저류 · freeway 혼잡을
+    전부 받는다. 현시가격 채점만 그 경로를 우회하고 있었다. 여기서 같은 셋업을 만들어
+    같은 함수를 부른다. 셋업 구성은 `wu_faithful_follower.py:1855-1905`(램프 신호
+    offset 국소탐색)의 복제다 — 새 물리가 아니라 이미 검증된 물리의 재사용이다.
+
+    도시->freeway 결합(`u_on_{ramp}`)은 손대지 않는다. 이미 녹색 벡터에서 유도되고
+    Jacobi 스윕마다 재계산된다(2026-09-04 실측: SC1001 p3 22.7/45.0/70.7 ->
+    u_on_R_D_W 168.3/209.3/256.5, 단조 증가). 고칠 것은 채점기뿐이었다.
+
+    ## 주의 — ramp_metering_weight 는 이 팔에서 0.0 이다
+
+    그래서 "막힌 freeway 로 보낸 적재" 벌점(local_signal_plant.py:392,
+    `released_total * freeway_congestion * ramp_metering_weight`)은 꺼져 있다.
+    곡률은 **저수지 포화**(적재가 `ramp_queue_max` 에 붙으면 녹색이 무력해진다)와
+    off-ramp 저류에서 나온다. 그 가중치를 켜는 것은 **별건 A/B** 다 — GNE 자기 채점도
+    같이 바뀌어 귀속이 흐려진다.
+    """
+    section = _mapping((tuning or {}).get("phase_price"))
+    mode = str(section.get("ramp_local_model", "")).strip().lower()
+    if mode != "ramp_aware":
+        return {"phase_local_ramp_aware_enabled": 0.0}
+
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _Follower
+    from src.controllers.local_signal_plant import rollout_local_tts_ramp_aware
+    from src.models.state import MODEL_PHASES, phase_key
+
+    orig_setup = _Follower._phase_refine_signal_setup
+    orig_cost = _Follower._phase_local_cost_phased
+
+    def _bump(key):
+        _RAMPLOCAL_LAST[key] = float(_RAMPLOCAL_LAST.get(key, 0.0)) + 1.0
+
+    def patched_setup(self, signal, state, ctx):
+        setups = ctx.get("setups") if isinstance(ctx, dict) else None
+        if setups is not None and signal in setups:
+            return setups[signal]
+        model = getattr(self, "_local_models", {}).get(signal)
+        if model is None or not getattr(model, "has_ramps", False):
+            return orig_setup(self, signal, state, ctx)
+        try:
+            snapshot = ctx["snapshot"]
+            demand = ctx["demand"]
+            coupling = ctx["coupling"]
+            # 도착: off-ramp 몫을 phase 목표에서 빼고 재정규화 (상류와 같은 순서).
+            arr_movement = self._per_movement_arrivals(signal, state, snapshot, demand)
+            arr_phase = {
+                pid: float(coupling.get("arr_%s" % phase_key(signal, pid), 0.0))
+                for pid in MODEL_PHASES
+            }
+            offramp_inflow = {}
+            offramp_contrib = {pid: 0.0 for pid in MODEL_PHASES}
+            for off_ramp, movements in model.offramp_movements.items():
+                inflow = self._frozen_offramp_inflow(off_ramp, state)
+                offramp_inflow[off_ramp] = inflow
+                for m in movements:
+                    offramp_contrib[model.phase_of[m]] += model.beta_of[m] * inflow
+            arr_mv = {}
+            for pid in MODEL_PHASES:
+                movs = [m for m in model.movements
+                        if model.phase_of[m] == pid and model.kind_of[m] != "off_ramp"]
+                raw = sum(max(0.0, float(arr_movement.get(m, 0.0))) for m in movs)
+                target = max(0.0, arr_phase[pid] - offramp_contrib[pid])
+                scale = (target / raw) if raw > 1.0e-12 else 0.0
+                for m in movs:
+                    arr_mv[m] = max(0.0, float(arr_movement.get(m, 0.0))) * scale
+            q0 = {m: max(0.0, float(state.urban_movement_queue.get(m, 0.0)))
+                  for m in model.movements}
+            s_eff0 = {
+                model.receiving_of[m]: float(ctx["s_eff_frozen"].get(model.receiving_of[m], 0.0))
+                for m in model.movements if model.receiving_of[m]
+            }
+            arr_by = self._platoon_arrival_profiles(
+                signal, state, snapshot, demand, arr_mv, ctx["substeps"], ctx["start_idx"],
+            )
+            # off_ramp movement 는 큐 도착이 아니라 storage 유입이다(상류와 같은 필터).
+            arr_by = {m: prof for m, prof in arr_by.items()
+                      if model.kind_of.get(m) != "off_ramp"}
+            setup = {
+                "model": model, "q0": q0, "arr": arr_by, "s_eff0": s_eff0,
+                # 이 키가 있으면 patched_cost 가 ramp_aware 롤아웃으로 간다.
+                "ramp_aware": True,
+                "arr_mv": arr_mv,
+                "offramp_inflow": offramp_inflow,
+                "offramp_occ0": {r: self._offramp_occupancy(r, state)
+                                 for r in model.offramp_movements},
+                "ramp_queue0": {r: max(0.0, float(state.ramp_queue.get(r, 0.0)))
+                                for r in model.onramp_movements},
+                # frozen = 스텝 내 불변이라 신호당 1회 캐시가 옳다(상류도 그렇게 쓴다).
+                "reservoir_drain": self._frozen_reservoir_drain(state, snapshot, demand),
+                "freeway_congestion": self._frozen_freeway_congestion(state),
+            }
+        except Exception as exc:  # noqa: BLE001
+            # 조용히 삼키지 않는다 — 옛 경로로 가되 몇 번 왜 터졌는지 남긴다.
+            _bump("phase_local_ramp_setup_error")
+            _RAMP_ERR[("%s: %s" % (type(exc).__name__, exc))[:200]] = 1.0
+            return orig_setup(self, signal, state, ctx)
+        if setups is not None:
+            setups[signal] = setup
+        _bump("phase_local_ramp_setup_built")
+        return setup
+
+    def patched_cost(self, signal, phases, setup, ctx):
+        if not (isinstance(setup, dict) and setup.get("ramp_aware")):
+            return orig_cost(self, signal, phases, setup, ctx)
+        offset = float(ctx["snapshot"].offsets.get(signal, 0.0))
+        gf = self._offset_green_fractions_vec(
+            signal, phases, offset, ctx["substeps"], ctx["start_idx"],
+        )
+        _bump("phase_local_ramp_scored")
+        return float(rollout_local_tts_ramp_aware(
+            setup["model"], setup["q0"], setup["arr_mv"], setup["s_eff0"],
+            setup["offramp_inflow"], setup["offramp_occ0"], setup["ramp_queue0"],
+            setup["reservoir_drain"], setup["freeway_congestion"],
+            float(getattr(self, "ramp_metering_weight", 0.0)),
+            {pid: float(phases.get(pid, 0.0)) for pid in MODEL_PHASES},
+            ctx["substeps"], ctx["dt_h"],
+            arr_by_substep=setup["arr"], gf_by_substep=gf,
+        ))
+
+    _Follower._phase_refine_signal_setup = patched_setup
+    _Follower._phase_local_cost_phased = patched_cost
+    _RAMPLOCAL_LAST["phase_local_ramp_aware_enabled"] = 1.0
+    return {"phase_local_ramp_aware_enabled": 1.0}
+
+
+def install_local_ramp_queue_cap(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """국소 신호 모델의 `ramp_queue_max` 를 **램프별 실제 상한**으로 채운다.
+
+    `urban.ramp.local_queue_cap` 이 참이 아니면 no-op = 비트 동일.
+
+    ## 왜 — 2026-09-01 승격의 미완 잔재다
+
+    `local_signal_plant.py:123` 이 `ramp_queue_max=float(net.ramp_queue_max_veh)` 로
+    **전역 스칼라**를 읽는다. 2026-09-01 에 그 스칼라를 벤더 기본 180 에서 **0.0** 으로
+    내렸다 — "매핑을 빠뜨린 자리는 공간 0 = 즉시 차단이 되어 즉시 드러난다" 는 의도였다.
+    그때 살아있는 wu-link 경로 12자리는 `net.ramp_queue_cap(ramp)` 로 바꿨는데,
+    이 자리는 **"우리 config 는 on_ramp movement 0개라 미사용"** 이라 판단해 남겨 두었다.
+
+    그런데 2026-09-03 에 `urban_movements` 에 on_ramp movement 를 넣어 승격했다
+    (램프 저수지 유입 경로 신설, TTT -483.8). 그 순간부터 이 줄이 **살아났고**,
+    국소 램프 모델은 저수지 용량 0 으로 돌고 있었다.
+
+    실측(2026-09-04, ctl_start900 t=900/2700/4500):
+
+        model.ramp_queue_max            0.00        (SC1001 · SC1004 둘 다)
+        net.ramp_queue_cap(ramp)        111.2 ~ 174.5
+        관측 ramp_queue0                4 ~ 44 veh   (상한 0 을 이미 초과)
+
+    `rollout_local_tts_ramp_aware:387` 이 `res[ramp] = min(model.ramp_queue_max, ...)` 라
+    용량 0 이면 적재가 **항상 0 으로 잘린다**. 저수지가 차지 않으니 포화 역압이 없고,
+    도시 agent 는 램프로 방류해도 아무 대가를 안 낸다 — 램프 신호의 국소비용이 녹색에
+    대해 단조 감소하는 직접 원인이다.
+
+    ## 근사 하나 — min 을 쓴다
+
+    `ramp_queue_max` 는 모델당 **스칼라 한 개**인데 SC1001 은 R_D_E(111.2)·R_D_W(153.2),
+    SC1004 는 R_F_E(153.6)·R_F_W(174.5) 둘씩 소유한다. 롤아웃이 램프별로 같은 스칼라를
+    읽으므로 정확히 하려면 롤아웃 자체를 고쳐야 한다. 여기서는 **소유 램프 중 최솟값**을
+    쓴다 — 큰 쪽을 27% 과소 계상하지만 방향은 보수적(역압이 일찍 걸린다)이고,
+    지배적 오차(0 대 111)는 사라진다. 정확한 램프별 상한이 필요해지면 그때
+    `rollout_local_tts_ramp_aware` 를 램프별로 읽게 고쳐라.
+
+    ## 파급
+
+    이 값은 `_phase_local_cost_phased`(램프판)뿐 아니라 **GNE 자기 녹색 탐색**
+    (`wu_faithful_follower.py:941·950`)과 램프 offset 국소탐색(:1934)도 읽는다.
+    즉 이 패치는 팔로워 거동을 바꾼다. 순수 버그 수선이지만 A/B 귀속을 위해 별도 게이트로 둔다.
+    """
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    if not _is_enabled_value(section.get("local_queue_cap")):
+        return {"local_ramp_queue_cap_enabled": 0.0}
+    follower = getattr(controller, "nash_solver", None)
+    models = getattr(follower, "_local_models", None)
+    if not models:
+        return {"local_ramp_queue_cap_enabled": 0.0, "local_ramp_queue_cap_models": 0.0}
+    net = controller.cfg.network
+    fixed = 0
+    zero_before = 0
+    for signal, model in models.items():
+        ramps = list(getattr(model, "onramp_movements", {}) or {})
+        if not ramps:
+            continue
+        caps = []
+        for r in ramps:
+            try:
+                caps.append(float(net.ramp_queue_cap(r)))
+            except Exception:  # noqa: BLE001
+                continue
+        caps = [c for c in caps if c > 0.0]
+        if not caps:
+            continue
+        if float(getattr(model, "ramp_queue_max", 0.0)) <= 0.0:
+            zero_before += 1
+        model.ramp_queue_max = float(min(caps))
+        fixed += 1
+        _RAMPLOCAL_LAST["local_ramp_queue_cap_%s" % signal] = float(min(caps))
+    _RAMPLOCAL_LAST["local_ramp_queue_cap_enabled"] = 1.0
+    _RAMPLOCAL_LAST["local_ramp_queue_cap_models"] = float(fixed)
+    _RAMPLOCAL_LAST["local_ramp_queue_cap_was_zero"] = float(zero_before)
+    return {
+        "local_ramp_queue_cap_enabled": 1.0,
+        "local_ramp_queue_cap_models": float(fixed),
+        "local_ramp_queue_cap_was_zero": float(zero_before),
+    }
+
+
+def install_in_gne_demand_fix(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """in_gne 벡터 탐색이 `demand` 를 받지 못하던 것을 고친다.
+
+    `phase_price.in_gne` 가 꺼져 있으면 no-op = 비트 동일. 켜져 있을 때만 건다.
+
+    ## 결함
+
+    `priced_wu_link_controller.py:606` 이
+
+        demand = kwargs.get("demand")
+        ctx = self._phase_refine_context(state, previous, demand)
+        setup = self._phase_refine_signal_setup(signal, state, ctx) if ctx else None
+
+    인데, 호출부(`wu_faithful_follower.py:4340` 등 5곳)는 **demand 를 위치인자로** 넘긴다.
+
+        self._solve_urban_agent_local(
+            signal, state, coupling, arr_movement, s_eff_frozen,
+            reservoir_drain, freeway_congestion, snapshot, leader,
+            lam_fixed, forecast_arrivals, horizon_h, demand,   # <- 13번째 위치인자
+            committed_prev=previous,
+        )
+
+    그래서 `kwargs.get("demand")` 는 **항상 None** 이고, `_phase_refine_context` 가
+    `if demand is None: return None` 로 즉시 빠진다. 결과적으로 in_gne 의 `setup` 이
+    **17개 신호 전부 None** 이 되어 채점이 `phase_shape_local_cost`(도착 없는 배수 모형,
+    항등 0)로 떨어진다. 목적함수가
+
+        obj = 0 + w * sum_i price_i (g_i - ref_i)
+
+    즉 **순수 선형**이 되고, 선형함수는 상자 꼭짓점이 항상 최적이라 매 결정 전 신호가
+    trust 폭만큼 꼭짓점으로 걸어간다.
+
+    바로 위 `previous` 는 `args[5]` 위치 폴백을 갖고 있다 — 작성자가 위치 전달을 알고
+    있었고 `demand` 만 빠뜨린 것이다.
+
+    ## 실측 (2026-09-04)
+
+    ```
+    arm_ingne900_lcd1000     TTT 8557.4   기준 대비 +728   (in_gne_rounds=2)
+    arm_ramplocal_ingne900   TTT 10579.0  기준 대비 +2750  (rounds 12 = 6배 깊이)
+    ```
+
+    두 팔 다 `wu_phase_price_in_gne_signals = 17` 로 "돌았다"고 보고하는데, 진단
+    `phase_local_ramp_scored = 10` 이 정확히 (SC1001 4현시 + SC1004 4현시 + base 2)
+    = **가격 생성부 몫뿐**이었다. in_gne 에서는 램프 채점이 한 번도 안 돌았다.
+    깊이에 비례해 나빠지는 것이 "꼭짓점으로 걸어간다" 와 정확히 맞는다.
+
+    ## 무엇을 바꾸나
+
+    `_solve_urban_agent_local` 을 감싸서 11번째 이후 위치인자를 이름인자로 정규화한다.
+    앞 10개는 그대로 위치로 둔다 — 상류 override 가 `args[5]`(previous)를 위치로 읽으므로
+    자리를 흔들면 안 된다. 이름이 이미 kwargs 에 있으면 그것을 이긴다(`setdefault`).
+    vendor 는 한 줄도 안 고친다.
+    """
+    section = _mapping((tuning or {}).get("phase_price"))
+    if not _is_enabled_value(section.get("in_gne")):
+        return {"in_gne_demand_fix_enabled": 0.0}
+
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _Follower
+
+    orig = _Follower._solve_urban_agent_local
+    # 상류 시그니처의 11번째 이후 파라미터 이름(wu_faithful_follower.py:758-775).
+    TAIL = ("demand", "candidates_override", "committed_prev")
+
+    def patched(self, signal, state, *args, **kwargs):
+        if len(args) > 10:
+            extra = args[10:]
+            args = args[:10]
+            kw = dict(kwargs)
+            for name, value in zip(TAIL, extra):
+                kw.setdefault(name, value)
+            kwargs = kw
+            _RAMPLOCAL_LAST["in_gne_demand_fix_normalized"] = float(
+                _RAMPLOCAL_LAST.get("in_gne_demand_fix_normalized", 0.0)) + 1.0
+        return orig(self, signal, state, *args, **kwargs)
+
+    _Follower._solve_urban_agent_local = patched
+    _RAMPLOCAL_LAST["in_gne_demand_fix_enabled"] = 1.0
+    return {"in_gne_demand_fix_enabled": 1.0}
+
+
+def _leg_ramp_split_gate(tuning) -> bool:
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    return _is_enabled_value(section.get("leg_split"))
+
+
+# B5 (2026-09-06): 게이트발 on-ramp 접근 movement — 정지선 상류 peel-off 커넥터와 기본 분율(실측 30결정 평균 근사).
+GATE_ONRAMP_QUEUE_MOVEMENTS = {
+    "SC1001_W_to_onW": {"conn": "10482", "default_share": 0.30},
+    "SC1001_W_to_onE": {"conn": "10490", "default_share": 0.15},
+    "SC1004_W_to_onE": {"conn": "10639", "default_share": 0.20},
+}
+
+def install_leg_ramp_split_fold(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """B 팔 1/2: on* movement 를 W_out 수신 movement 로 되접는다. `install_merged_movements` 앞에서."""
+    if not _leg_ramp_split_gate(tuning):
+        return {"leg_ramp_split_enabled": 0.0}
+    net = cfg.network
+    specs = dict(getattr(net, "urban_movements", {}) or {})
+    ramp_specs = {k: v for k, v in specs.items() if isinstance(v, Mapping) and v.get("ramp")}
+    folded_into_w = 0
+    redistributed = 0
+    moved_beta = 0.0
+    by_origin: dict[str, list[str]] = {}
+    for name, spec in specs.items():
+        if name in ramp_specs:
+            continue
+        by_origin.setdefault(str(spec.get("origin", "")), []).append(name)
+    # B5: 게이트발 on-ramp 접근 movement 는 되접지 않고 남긴다(무신호 큐). 등록·β 는 install_gate_onramp_queue 가 한다.
+    _gq_on = _is_enabled_value(_mapping(_mapping((tuning or {}).get("urban")).get("ramp")).get("gate_onramp_queue"))
+    kept_gate_onramp: list[str] = []
+    if _gq_on:
+        for _n in list(ramp_specs):
+            if _n in GATE_ONRAMP_QUEUE_MOVEMENTS and str(ramp_specs[_n].get("origin", "")).startswith("in_"):
+                kept_gate_onramp.append(_n)
+                ramp_specs.pop(_n)
+                _sp = dict(specs[_n]); _sp["unsignalized"] = True; specs[_n] = _sp
+    for name, spec in ramp_specs.items():
+        beta = max(0.0, _as_float(spec.get("beta"), 0.0))
+        origin = str(spec.get("origin", ""))
+        siblings = by_origin.get(origin, [])
+        w_sibs = [m for m in siblings if str(specs[m].get("exit", "")) == "W"]
+        if w_sibs:
+            target = w_sibs[0]
+            specs[target] = dict(specs[target])
+            specs[target]["beta"] = _as_float(specs[target].get("beta"), 0.0) + beta
+            folded_into_w += 1
+        elif siblings:
+            tot = sum(max(0.0, _as_float(specs[m].get("beta"), 0.0)) for m in siblings)
+            for m in siblings:
+                specs[m] = dict(specs[m])
+                share = (max(0.0, _as_float(specs[m].get("beta"), 0.0)) / tot) if tot > 1e-12 else 1.0 / len(siblings)
+                specs[m]["beta"] = _as_float(specs[m].get("beta"), 0.0) + beta * share
+            redistributed += 1
+        moved_beta += beta
+        del specs[name]
+    setattr(net, "urban_movements", specs)
+    setattr(net, "leg_ramp_split_enabled", True)
+    setattr(net, "gate_onramp_queue_kept", list(kept_gate_onramp))
+    _LEGSPLIT_LAST["gate_onramp_queue_kept"] = float(len(kept_gate_onramp))
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    # 속도: config 키가 있으면 그것, 없으면 parameters.json network.wout_travel_speed_km_h (코드 기본값 없음).
+    spd = section.get("leg_split_wout_speed_kmh")
+    if spd is None:
+        spd = getattr(net, "wout_travel_speed_km_h", None)
+    if spd is None:
+        if str(WORKSPACE_ROOT) not in sys.path:
+            sys.path.insert(0, str(WORKSPACE_ROOT))
+        from evaluation import parameters as _params
+        spd = _mapping(_params.require("runtime", "network")).get("wout_travel_speed_km_h")
+    if spd is None:
+        raise RuntimeError("leg_split: wout_travel_speed_km_h 가 config 에도 parameters.json runtime.network 에도 없다")
+    setattr(net, "leg_ramp_split_wout_speed_kmh", float(spd))
+    out = {
+        "leg_ramp_split_enabled": 1.0,
+        "leg_ramp_split_folded_movements": float(len(ramp_specs)),
+        "leg_ramp_split_folded_into_w": float(folded_into_w),
+        "leg_ramp_split_redistributed": float(redistributed),
+        "leg_ramp_split_moved_beta": float(moved_beta),
+    }
+    _LEGSPLIT_LAST.update(out)
+    return out
+
+
+def _legsplit_arrived_at_link(state, net, link: str, step_idx: int) -> float:
+    """vendor 블록(:1053-1064)과 같은 정의: 점유 − 아직 이동 중인 예약. 읽기 전용."""
+    cap = float(net.urban_link_storage_veh.get(link, net.boundary_queue_max_veh))
+    occupancy = max(0.0, cap - float(state.urban_link_storage.get(link, cap)))
+    pending = 0.0
+    buf = (getattr(state, "urban_storage_release_buffer", None) or {}).get(link) or {}
+    for arrival_step, veh in buf.items():
+        if int(arrival_step) > int(step_idx):
+            pending += float(veh)
+    return max(0.0, occupancy - pending)
+
+
+def _legsplit_wout_rate(net, link: str, speed_kmh: float) -> float:
+    """W_out 링크 점유가 링크 끝에 도착하는 최대율[veh/h] = 점유가 τ 안에 다 도착한다고 볼 때의 상한.
+    τ = 길이/속도. 길이는 저류 정본의 urban_link_length_km, 없으면 1.0 km. 반환값은 '재고 1대당' 이 아니라
+    호출부에서 min(arrived, rate_per_veh * arrived * dt) 로 쓰기 위한 1/τ [1/h]."""
+    # B1' (2026-09-05): 길이는 parameters.json network.boundary_out_link_length_km (정본 값의 단일 출처).
+    # 없으면 저류 정본의 urban_link_length_km, 그것도 없으면 1.0 km 로 두고 _LEGSPLIT_LAST 에 표시한다.
+    # parameters.json runtime.network.boundary_out_link_length_km 가 apply_runtime 으로 cfg.network 에 붙는다.
+    length_km = float(_mapping(getattr(net, "boundary_out_link_length_km", None)).get(link, 0.0) or 0.0)
+    if length_km <= 0.0:
+        try:
+            if str(WORKSPACE_ROOT) not in sys.path:
+                sys.path.insert(0, str(WORKSPACE_ROOT))
+            from evaluation import parameters as _params
+            length_km = float(_mapping(_mapping(_params.require("runtime", "network")).get("boundary_out_link_length_km")).get(link, 0.0) or 0.0)
+        except Exception:
+            length_km = 0.0
+    if length_km <= 0.0:
+        lengths = getattr(net, "urban_link_length_km", None) or {}
+        length_km = float(lengths.get(link, 0.0) or 0.0) if isinstance(lengths, Mapping) else 0.0
+    if length_km <= 0.0:
+        length_km = 1.0
+        _LEGSPLIT_LAST["leg_ramp_split_length_fallback"] = _LEGSPLIT_LAST.get("leg_ramp_split_length_fallback", 0.0) + 1.0
+    _LEGSPLIT_LAST["leg_ramp_split_len_%s" % link] = length_km
+    tau_h = max(length_km / max(float(speed_kmh), 5.0), 1.0e-4)
+    return 1.0 / tau_h
+
+
+def _legsplit_wbound_request(state, control, cfg, link: str, horizon_h: float) -> float:
+    """W_out(link)로 가는 movement 들이 horizon 동안 녹색으로 내보낼 수 있는 양[veh]."""
+    from src.models import urban_queue_model as _uqm
+    specs = _uqm.movement_specs(cfg)
+    total = 0.0
+    for movement, spec in specs.items():
+        if str(spec.get("receiving_link", "")) != str(link):
+            continue
+        available = max(0.0, float(state.urban_movement_queue.get(movement, 0.0)))
+        cap_flow = _uqm._movement_capacity_flow(control, cfg, movement, spec)
+        gf = _uqm._phase_green_fraction(control, cfg, spec)
+        total += min(available, horizon_h * float(gf) * float(cap_flow))
+    return total
+
+
+def install_leg_ramp_split_runtime(cfg) -> dict[str, float]:
+    """B 팔 2/2: 모듈 패치. cfg.network.leg_ramp_split_enabled 가 아니면 no-op. 멱등."""
+    net = cfg.network
+    if not bool(getattr(net, "leg_ramp_split_enabled", False)):
+        return {"leg_ramp_split_runtime": 0.0}
+    from src.models import urban_queue_model as _uqm
+    split_table = dict(getattr(net, "boundary_out_ramp_split", {}) or {})
+    if not split_table:
+        raise RuntimeError("leg_split 은 urban.boundary_out.ramp_split 이 켜져 있어야 한다 (분할표 없음)")
+    # B1 (2026-09-05): W_out 재고를 τ 로 편다. 속도는 fold 단계에서 net.leg_ramp_split_wout_speed_kmh 로 심는다.
+    wout_speed = float(getattr(net, "leg_ramp_split_wout_speed_kmh", 40.0) or 40.0)
+
+    if not getattr(_uqm.urban_substep, "_legsplit_wrapped", False):
+        _orig_substep = _uqm.urban_substep
+
+        def patched_substep(state, control, demand, cfg_arg, urban_step_index=None, ramp_release_veh_h=None):
+            net_a = cfg_arg.network
+            table = dict(getattr(net_a, "boundary_out_ramp_split", {}) or {})
+            if not table or not bool(getattr(net_a, "leg_ramp_split_enabled", False)):
+                return _orig_substep(state, control, demand, cfg_arg, urban_step_index=urban_step_index,
+                                     ramp_release_veh_h=ramp_release_veh_h)
+            rel = ramp_release_veh_h
+            if rel is None:
+                rel = dict(getattr(control, "ramp_metering", {}) or {})
+            sim = cfg_arg.simulation
+            # B3 (2026-09-05): 꼬리 sink(<SC>_W_tail)의 통과속도. vendor _link_delay_steps 는 관측속도가 없으면
+            # 전역 urban_avg_speed 로 "가용공간×6 m" 를 통과시켜 빈 꼬리(200대=1.2 km)가 수백 초 이동 중이 된다.
+            # W_out 의 관측 유효속도를 그대로 준다(같은 도로의 하류 구간).
+            spd_map = getattr(state, "urban_link_speed_kph", None)
+            if isinstance(spd_map, dict):
+                for link in table:
+                    tail = str(link).replace("_W_out", "_W_tail")
+                    if tail in net_a.urban_link_storage_veh and spd_map.get(str(link)) and not spd_map.get(tail):
+                        spd_map[tail] = float(spd_map[str(link)])
+            idx = _uqm._urban_step_index(state, cfg_arg) if urban_step_index is None else int(urban_step_index)
+            # ---- B1''' (2026-09-05 19:1x): W_out 인출을 τ 도착량 기준으로 래퍼가 정한다 ----
+            # vendor 블록(:1053-1083)의 두 결함: (1) 램프 진입 상한이 min(공간, 미터방출)인데 미터방출은 저수지
+            # 큐가 있어야 생겨서 빈 저수지엔 못 들어가는 교착, (2) 자유 진출이 share×재고를 매 substep 다시
+            # 계산해 1,600 vph 로 재고 전체(램프행 포함)를 빼간다. 여기서는 이번 substep 에 링크 끝에 닿는
+            # 양(reach)만 목적지별로 나누고 램프는 공간·연결로 용량(ramp_capacity)으로만 막는다. 호출 뒤
+            # vendor 가 뺀 총량과 의도 총량의 차이를 저류로 되돌리고 램프 몫을 저수지에 넣는다.
+            inject: dict[str, float] = {}
+            adjust: dict[str, float] = {}   # link -> (의도 인출 − vendor 인출); 양수면 vendor 가 더 뺀 것 → 되돌림
+            exit_cap_h = float(getattr(net_a, "boundary_out_capacity_veh_h", 0.0) or 0.0)
+            finite_exit = exit_cap_h > 0.0
+            conn_caps = dict(getattr(net_a, "ramp_capacity_veh_h", {}) or {})
+            for link, spec in table.items():
+                arrived = _legsplit_arrived_at_link(state, net_a, str(link), idx)
+                if arrived <= 0.0:
+                    continue
+                spd = float(getattr(net_a, "leg_ramp_split_wout_speed_kmh", 40.0) or 40.0)
+                reach = min(arrived, arrived * _legsplit_wout_rate(net_a, str(link), spd) * float(sim.T_u_h))
+                free_share = max(0.0, float(spec.get("free", 0.0)))
+                exit_cap_veh = exit_cap_h * float(sim.T_u_h)
+                vendor_free = min(arrived * free_share, exit_cap_veh) if finite_exit else arrived * free_share
+                intended_free = min(reach * free_share, exit_cap_veh) if finite_exit else reach * free_share
+                vendor_total = vendor_free
+                intended_total = intended_free
+                for ramp, share in (spec.get("ramps") or {}).items():
+                    sh = max(0.0, float(share))
+                    cap_r = float(net_a.ramp_queue_cap(str(ramp)))
+                    space = max(0.0, cap_r - max(0.0, float(state.ramp_queue.get(str(ramp), 0.0))))
+                    meter = max(0.0, float((rel or {}).get(str(ramp), 0.0))) * float(sim.T_u_h)
+                    vendor_total += min(arrived * sh, min(space, meter))
+                    conn = max(0.0, float(conn_caps.get(str(ramp), 0.0) or 0.0)) * float(sim.T_u_h)
+                    entry_cap = min(space, conn) if conn > 0.0 else space
+                    allowed = min(reach * sh, entry_cap)
+                    if allowed > 0.0:
+                        inject[str(ramp)] = inject.get(str(ramp), 0.0) + allowed
+                        intended_total += allowed
+                adjust[str(link)] = intended_total - vendor_total
+            # B5 v2: 게이트발 on-ramp 큐가 등록된 램프는 도시 착지(ramp_arrival)만 0 — β×게이트 항과 이중계상 방지.
+            #   리더의 N_UF 도착 목표는 원래 demand 를 보므로 건드리지 않는다(v1 은 demand_from_state 에서 0 으로 두어 t=900 미터를 조였다).
+            _gq_ramps = getattr(net_a, "gate_onramp_queue_ramps", None) or ()
+            if _gq_ramps:
+                import copy as _copy
+                demand = _copy.copy(demand)
+                demand.ramp_arrival = {k: (0.0 if str(k) in set(str(x) for x in _gq_ramps) else v) for k, v in dict(getattr(demand, 'ramp_arrival', {}) or {}).items()}
+            out = _orig_substep(state, control, demand, cfg_arg, urban_step_index=urban_step_index,
+                                ramp_release_veh_h=rel)
+            for ramp, veh in inject.items():
+                cap_r = float(net_a.ramp_queue_cap(ramp))
+                state.ramp_queue[ramp] = min(cap_r, max(0.0, float(state.ramp_queue.get(ramp, 0.0))) + veh)
+                _LEGSPLIT_LAST["leg_ramp_split_injected_%s" % ramp] = _LEGSPLIT_LAST.get("leg_ramp_split_injected_%s" % ramp, 0.0) + veh
+            # B3 (2026-09-05): 꼬리 sink 의 추가 배출. vendor 는 전역 1,600 vph 로만 내보내 3,600 vph 유입에 쌓인다.
+            tail_caps = _mapping(getattr(net_a, "wout_tail_exit_capacity_veh_h", None))
+            exit_base_h = float(getattr(net_a, "boundary_out_capacity_veh_h", 0.0) or 0.0)
+            for tail, cap_h in tail_caps.items():
+                if tail not in net_a.urban_link_storage_veh:
+                    continue
+                extra_h = max(0.0, float(cap_h) - exit_base_h)
+                if extra_h <= 0.0:
+                    continue
+                cap_t = float(net_a.urban_link_storage_veh[tail])
+                arrived_t = _legsplit_arrived_at_link(state, net_a, tail, idx)
+                extra = min(arrived_t, extra_h * float(sim.T_u_h))
+                if extra > 0.0:
+                    state.urban_link_storage[tail] = min(cap_t, float(state.urban_link_storage.get(tail, cap_t)) + extra)
+                    _LEGSPLIT_LAST["leg_ramp_split_tail_extra_exit_veh"] = _LEGSPLIT_LAST.get("leg_ramp_split_tail_extra_exit_veh", 0.0) + extra
+            for link, delta in adjust.items():
+                if abs(delta) <= 1.0e-12:
+                    continue
+                cap_l = float(net_a.urban_link_storage_veh.get(link, net_a.boundary_queue_max_veh))
+                # storage = 가용공간. vendor 가 departed 만큼 늘렸으니 (의도 − vendor) 만큼 더 늘리거나 줄인다.
+                state.urban_link_storage[link] = min(cap_l, max(0.0, float(state.urban_link_storage.get(link, cap_l)) + delta))
+                _LEGSPLIT_LAST["leg_ramp_split_storage_adjust_veh"] = (
+                    _LEGSPLIT_LAST.get("leg_ramp_split_storage_adjust_veh", 0.0) + delta)
+            _LEGSPLIT_LAST["leg_ramp_split_injected_veh"] = (
+                _LEGSPLIT_LAST.get("leg_ramp_split_injected_veh", 0.0) + sum(inject.values()))
+            return out
+
+        patched_substep._legsplit_wrapped = True
+        _uqm.urban_substep = patched_substep
+        # coupling.py:15 등은 urban_substep 을 **이름으로** import 해 원본을 물고 있다(2026-09-05 19:1x 실측:
+        # 결합 롤아웃에서 래퍼가 한 번도 안 돌았다). 이미 import 된 모든 모듈의 같은 이름 속성을 바꾼다.
+        rebound = 0
+        for _modname, _mod in list(sys.modules.items()):
+            if _mod is None or _mod is _uqm:
+                continue
+            try:
+                if getattr(_mod, "urban_substep", None) is _orig_substep:
+                    setattr(_mod, "urban_substep", patched_substep)
+                    rebound += 1
+            except Exception:
+                continue
+        _LEGSPLIT_LAST["leg_ramp_split_substep_rebound_modules"] = float(rebound)
+
+    def _flows(state, control, demand, cfg_arg, interval_h=None, capped=False, **_kw):
+        net_a = cfg_arg.network
+        table = dict(getattr(net_a, "boundary_out_ramp_split", {}) or {})
+        horizon_h = float(cfg_arg.simulation.T_f_h if interval_h is None else interval_h)
+        idx = _uqm._urban_step_index(state, cfg_arg)
+        release: dict[str, float] = {}
+        for link, spec in table.items():
+            arrived = _legsplit_arrived_at_link(state, net_a, str(link), idx)
+            req = _legsplit_wbound_request(state, control, cfg_arg, str(link), horizon_h)
+            # B1: 재고항은 horizon 안에 링크 끝에 닿는 양만 = min(재고, 재고/τ · h)
+            spd = float(getattr(net_a, "leg_ramp_split_wout_speed_kmh", 40.0) or 40.0)
+            stock = min(arrived, arrived * _legsplit_wout_rate(net_a, str(link), spd) * horizon_h)
+            # B1'' (2026-09-05): u_on 은 링크 유량(재고/τ)만. req(녹색 방류율)는 정상상태에서 같은 유량의 다른
+            # 추정치라 더하면 이중계상이고, 정본 용량(206.5/차로)에선 plant 의 1/4 이라 섞으면 과소로 끌린다.
+            # 녹색 반응은 plant 롤아웃(래퍼 주입, τ 지연)으로 남는다. req 는 진단에만.
+            total = stock
+            _LEGSPLIT_LAST["leg_ramp_split_req_last_%s" % link] = float(req)
+            for ramp, share in (spec.get("ramps") or {}).items():
+                veh = total * max(0.0, float(share))
+                if capped:
+                    cap_r = float(net_a.ramp_queue_cap(str(ramp)))
+                    space = max(0.0, cap_r - max(0.0, float(state.ramp_queue.get(str(ramp), 0.0))))
+                    veh = min(veh, space)
+                release[str(ramp)] = release.get(str(ramp), 0.0) + veh / max(horizon_h, 1.0e-9)
+        # B5: 게이트발 on-ramp 접근 movement 의 기대 서비스(큐 + β×게이트 도착, 연결로 용량·공간 상한)
+        for _m in (getattr(net_a, "gate_onramp_queue_kept", None) or []):
+            _sp = (getattr(net_a, "urban_movements", {}) or {}).get(_m)
+            if not _sp:
+                continue
+            _r = str(_sp.get("ramp", ""))
+            _q = max(0.0, float(state.urban_movement_queue.get(_m, 0.0)))
+            _gate = max(0.0, float((getattr(demand, "urban_boundary", {}) or {}).get(str(_sp.get("origin", "")), 0.0)))
+            _arr = max(0.0, _as_float(_sp.get("beta"), 0.0)) * _gate * horizon_h
+            _cap = float((getattr(net_a, "movement_capacity_by_movement_veh_h", {}) or {}).get(_m, 1800.0)) * horizon_h
+            _veh = min(_q + _arr, _cap)
+            if capped:
+                _space = max(0.0, float(net_a.ramp_queue_cap(_r)) - max(0.0, float(state.ramp_queue.get(_r, 0.0))))
+                _veh = min(_veh, _space)
+            release[_r] = release.get(_r, 0.0) + _veh / max(horizon_h, 1.0e-9)
+        for ramp in getattr(net_a, "ramps", []) or []:
+            release.setdefault(str(ramp), 0.0)
+        _LEGSPLIT_LAST["leg_ramp_split_u_on_last"] = float(sum(release.values()))
+        return release
+
+    def legsplit_reservoir_inflow(state, control, demand, cfg_arg, interval_h=None, **kw):
+        return _flows(state, control, demand, cfg_arg, interval_h=interval_h, capped=False)
+
+    def legsplit_green_release_flows(state, control, demand, cfg_arg, interval_h=None, **kw):
+        return _flows(state, control, demand, cfg_arg, interval_h=interval_h, capped=True)
+
+    legsplit_reservoir_inflow._legsplit = True
+    legsplit_green_release_flows._legsplit = True
+    patched_modules = 0
+    _uqm.estimate_onramp_reservoir_inflow = legsplit_reservoir_inflow
+    _uqm.estimate_onramp_green_release_flows = legsplit_green_release_flows
+    patched_modules += 1
+    for modname in ("src.controllers.wu_distributed", "src.controllers.leader",
+                    "src.controllers.freeway_follower", "src.controllers.distributed_coordinator"):
+        try:
+            mod = importlib.import_module(modname)
+        except Exception:
+            continue
+        hit = False
+        if hasattr(mod, "estimate_onramp_reservoir_inflow"):
+            mod.estimate_onramp_reservoir_inflow = legsplit_reservoir_inflow
+            hit = True
+        if hasattr(mod, "estimate_onramp_green_release_flows"):
+            mod.estimate_onramp_green_release_flows = legsplit_green_release_flows
+            hit = True
+        patched_modules += 1 if hit else 0
+    out = {"leg_ramp_split_runtime": 1.0, "leg_ramp_split_patched_modules": float(patched_modules),
+           "leg_ramp_split_links": float(len(split_table))}
+    _LEGSPLIT_LAST.update(out)
+    return out
+
+
+def install_offramp_direct_landing(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """B4a (2026-09-05): off-ramp 착지 분할 — 유입 시점에 가른다. `urban.ramp.offramp_direct` 없으면 no-op.
+
+    plant: FW_W 의 D off-ramp 는 10491→링크 32(SC1001 신호 접근)와 10479→링크 31(W_out, 램프 분기 하류 871 m, 무신호)로
+    갈린다. 실측 30결정 직행 분율 D 0.468 · F 0.484 (`urban.ramp.offramp_direct_share`).
+    B3(격리)는 이것을 '무신호 movement 가 저장고 잔여 pool 의 46%' 로 넣었는데 `_drain_offramp_storage` 가 β×잔여점유를
+    매 substep 다시 계산하므로 신호 movement 가 적색이어도 저장고가 통째로 비워졌다 → p3 무가치 → SC1001 p1 꼭짓점
+    → 링크 32 잠김 → off-ramp 본선 역류(g2 본선 +1002 veh·h).
+    B4a: net 에 off-ramp 별 분율·꼬리를 심고 `install_offramp_landing_runtime` 이 `schedule_offramp_arrivals` 를 감싼다.
+    `_to_W_RAMP`(SC1001) · `_to_W`(SC1004) 는 정지선에서 W_out 으로 가는 물리 회전이 없어 β 0, 형제 재정규화(합 1).
+    병합 뒤 이름으로 작업하므로 install_movement_capacity_by_lanes 뒤에 부른다.
+    """
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    if not _is_enabled_value(section.get("offramp_direct")):
+        return {"offramp_direct_enabled": 0.0}
+    net = cfg.network
+    specs = dict(getattr(net, "urban_movements", {}) or {})
+    shares = _mapping(section.get("offramp_direct_share")) or {"SC1001": 0.468, "SC1004": 0.484}
+    tail_cap = _as_float(section.get("offramp_direct_tail_storage_veh"), 200.0)
+    targets = {"SC1001": ("SC1001_offW_to_W_RAMP", "SC1001_offE_to_W_RAMP"),
+               "SC1004": ("SC1004_offW_to_W", "SC1004_offE_to_W")}
+    storage = dict(getattr(net, "urban_link_storage_veh", {}) or {})
+    out_links = list(getattr(net, "boundary_out_links", []) or [])
+    off_idx = {k: list(v) for k, v in dict(getattr(net, "off_ramp_to_movement", {}) or {}).items()}
+    share_by_offramp: dict[str, float] = {}
+    tail_by_offramp: dict[str, str] = {}
+    changed = 0
+    zeroed = 0.0
+    for sc, names in targets.items():
+        share = max(0.0, min(1.0, _as_float(shares.get(sc), 0.0)))
+        tail = "%s_W_tail" % sc
+        tail_out = "%s_W_tail_out" % sc
+        storage.setdefault(tail, float(tail_cap))
+        if tail_out not in out_links:
+            out_links.append(tail_out)
+        for name in names:
+            spec = specs.get(name)
+            if not isinstance(spec, Mapping):
+                continue
+            origin = str(spec.get("origin", ""))
+            sibs = [m for m, sp in specs.items() if m != name and str(sp.get("origin", "")) == origin]
+            old = max(0.0, _as_float(spec.get("beta"), 0.0))
+            sib_tot = sum(max(0.0, _as_float(specs[m].get("beta"), 0.0)) for m in sibs)
+            for m in sibs:
+                sp2 = dict(specs[m])
+                b = max(0.0, _as_float(sp2.get("beta"), 0.0))
+                sp2["beta"] = (b / sib_tot) if sib_tot > 1e-12 else 0.0
+                specs[m] = sp2
+            sp = dict(spec)
+            sp["beta"] = 0.0
+            sp.pop("unsignalized", None)
+            specs[name] = sp
+            zeroed += old
+            changed += 1
+            for off_ramp, mv in off_idx.items():
+                if name in mv:
+                    share_by_offramp[str(off_ramp)] = share
+                    # B4b (2026-09-05 23:0x): FW_E 쪽 off-ramp(OR_*_E)의 직행 착지(10483@614 · 10682@237)는 램프 분기
+                    # 상류라 W행 램프(10480@735 · 10646@352)를 탈 수 있다 → W_out pool. FW_W 쪽(10479@871 · 10645@573)은
+                    # 분기 하류 → 꼬리 sink. (링크 31/68 커넥터 전수 .inpx 위치, far 실측 D 신호유입 534 < 램프행 824)
+                    tail_by_offramp[str(off_ramp)] = tail if str(off_ramp).endswith("_W") else "%s_W_out" % sc
+    setattr(net, "urban_movements", specs)
+    setattr(net, "urban_link_storage_veh", storage)
+    setattr(net, "boundary_out_links", out_links)
+    setattr(net, "offramp_direct_share_by_offramp", share_by_offramp)
+    setattr(net, "offramp_direct_tail_by_offramp", tail_by_offramp)
+    out = {"offramp_direct_enabled": 1.0, "offramp_direct_movements": float(changed),
+           "offramp_direct_beta_zeroed": float(zeroed), "offramp_direct_offramps": float(len(share_by_offramp))}
+    _LEGSPLIT_LAST.update(out)
+    return out
+
+
+def install_offramp_landing_runtime(cfg) -> dict[str, float]:
+    """B4a: `schedule_offramp_arrivals` 를 감싸 직행 분율을 꼬리 sink 로 보낸다. net 에 분율표가 없으면 no-op.
+
+    coupling.py 가 이름으로 import 하므로 sys.modules 전체에서 같은 객체를 재바인딩한다. 워커(spawn)는
+    `install_price_worker_runtime_patches` 가 다시 부른다(분율표는 cfg 와 함께 피클돼 넘어온다).
+    """
+    net = cfg.network
+    share_map = dict(getattr(net, "offramp_direct_share_by_offramp", {}) or {})
+    if not share_map:
+        return {"offramp_landing_runtime": 0.0}
+    from src.models import urban_queue_model as _uqm
+    _orig = getattr(_uqm, "_offramp_landing_orig_schedule", None) or _uqm.schedule_offramp_arrivals
+
+    def patched_schedule_offramp_arrivals(state, cfg_arg, off_ramp, vehicles, urban_step_index):
+        net_a = cfg_arg.network
+        s_ = float((getattr(net_a, "offramp_direct_share_by_offramp", {}) or {}).get(str(off_ramp), 0.0) or 0.0)
+        tail = (getattr(net_a, "offramp_direct_tail_by_offramp", {}) or {}).get(str(off_ramp))
+        veh = max(0.0, float(vehicles))
+        direct_acc = 0.0
+        direct_rej = 0.0
+        if s_ > 0.0 and tail and tail in net_a.urban_link_storage_veh and veh > 0.0:
+            _uqm.ensure_urban_state(state, cfg_arg)
+            direct = veh * min(1.0, s_)
+            cap_t = float(net_a.urban_link_storage_veh[tail])
+            avail = max(0.0, float(state.urban_link_storage.get(tail, cap_t)))
+            direct_acc = min(direct, avail)
+            direct_rej = direct - direct_acc
+            state.urban_link_storage[tail] = max(0.0, avail - direct_acc)
+            _LEGSPLIT_LAST["offramp_direct_veh"] = _LEGSPLIT_LAST.get("offramp_direct_veh", 0.0) + direct_acc
+            veh = max(0.0, veh - direct)
+        accepted, rejected = _orig(state, cfg_arg, off_ramp, veh, urban_step_index)
+        return float(accepted) + direct_acc, float(rejected) + direct_rej
+
+    _uqm._offramp_landing_orig_schedule = _orig
+    _uqm.schedule_offramp_arrivals = patched_schedule_offramp_arrivals
+    rebound = 0
+    for _modname, _mod in list(sys.modules.items()):
+        if _mod is None or _mod is _uqm:
+            continue
+        try:
+            cur = getattr(_mod, "schedule_offramp_arrivals", None)
+        except Exception:
+            continue
+        if cur is None or not callable(cur):
+            continue
+        if cur is _orig or getattr(cur, "__name__", "") == "patched_schedule_offramp_arrivals":
+            setattr(_mod, "schedule_offramp_arrivals", patched_schedule_offramp_arrivals)
+            rebound += 1
+    return {"offramp_landing_runtime": 1.0, "offramp_landing_rebound_modules": float(rebound)}
+
+def install_landing_storage(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """B4c (2026-09-06): off-ramp 착지 접근로 점유를 plant 링크 재차에서 심는다. `urban.ramp.landing_storage` 없으면 no-op.
+
+    사양: {off_ramp: {"links": [링크번호...], "queue_prefix": "SC1001_W_", "cap_veh": 296}}.
+    저장고 cap 을 착지점→정지선 물리 용량으로 바꾸고(D 링크 32: 1270→1961 m·3차로 ≈ 296, F 링크 70(40→338 m·2차로)+71(81 m·5차로)
+    ≈ 143), 매 결정 `traffic_state_from_vissim` 끝에서 점유 = Σ재차 − 귀속 정지 큐 로 심는다(관측 채널 off_ramp_storage_veh 는
+    39/39 표본 0 이라 모형이 접근로를 1/5 로 봤다). λ_eff(용량감소) 는 `install_landing_storage_runtime` 이 (큐+저장고)/cap 으로.
+    """
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    table = _mapping(section.get("landing_storage"))
+    if not table:
+        return {"landing_storage_enabled": 0.0}
+    net = cfg.network
+    storage_map = dict(getattr(net, "off_ramp_storage_link", {}) or {})
+    caps = dict(getattr(net, "urban_link_storage_veh", {}) or {})
+    spec: dict[str, dict[str, Any]] = {}
+    for off_ramp, entry in table.items():
+        e = _mapping(entry)
+        storage = str(storage_map.get(str(off_ramp), ""))
+        if not storage:
+            continue
+        cap = _as_float(e.get("cap_veh"), 0.0)
+        if cap <= 0.0:
+            continue
+        caps[storage] = float(cap)
+        spec[str(off_ramp)] = {
+            "storage": storage,
+            "links": [str(x) for x in (e.get("links") or [])],
+            "queue_prefix": str(e.get("queue_prefix", "")),
+            "cap_veh": float(cap),
+            # landing_storage_v2 (2026-09-06 01:4x): 같은 링크에 착지하는 off-ramp 들이 재차를 나눠 갖는 분율과 λ_eff 그룹
+            "share": max(0.0, _as_float(e.get("share"), 1.0)),
+            "group": str(e.get("group", "") or "|".join(str(x) for x in (e.get("links") or []))),
+        }
+    setattr(net, "urban_link_storage_veh", caps)
+    setattr(net, "landing_storage_spec", spec)
+    out = {"landing_storage_enabled": 1.0 if spec else 0.0, "landing_storage_offramps": float(len(spec))}
+    for off_ramp, sp in spec.items():
+        out["landing_storage_cap_%s" % off_ramp] = float(sp["cap_veh"])
+    _LEGSPLIT_LAST.update(out)
+    return out
+
+
+def _landing_prefix_queue(state, prefix: str) -> float:
+    if not prefix:
+        return 0.0
+    return float(sum(max(0.0, float(v)) for k, v in (getattr(state, "urban_movement_queue", {}) or {}).items() if str(k).startswith(prefix)))
+
+
+def _apply_landing_storage(state, cfg, state_json: Mapping[str, Any]) -> None:
+    """B4c: 저장고 점유 = Σ링크 재차 − 귀속 정지 큐 (cap 으로 절단)."""
+    spec = dict(getattr(cfg.network, "landing_storage_spec", {}) or {})
+    if not spec:
+        return
+    counts = _link_counts_from_local_observation(state_json)
+    for off_ramp, sp in spec.items():
+        storage = str(sp["storage"])
+        cap = float(cfg.network.urban_link_storage_veh.get(storage, sp["cap_veh"]))
+        total = float(sum(float(counts.get(str(link), 0.0)) for link in sp["links"]))
+        q = _landing_prefix_queue(state, str(sp["queue_prefix"]))
+        occ = clamp(float(sp.get("share", 1.0)) * max(0.0, total - q), 0.0, cap)
+        state.urban_link_storage[storage] = float(cap) - occ
+        _LEGSPLIT_LAST["landing_storage_total_%s" % off_ramp] = total
+        _LEGSPLIT_LAST["landing_storage_queue_%s" % off_ramp] = q
+        _LEGSPLIT_LAST["landing_storage_occ_%s" % off_ramp] = occ
+
+
+def install_landing_storage_runtime(cfg) -> dict[str, float]:
+    """B4c: metanet.effective_lane_profile 의 λ_eff 점유비를 (귀속 정지 큐 + 저장고)/cap 으로. net 에 사양 없으면 no-op.
+
+    wu_distributed 가 이름으로 import 하므로 sys.modules 전체 재바인딩. 워커(spawn)는 `install_price_worker_runtime_patches` 가 다시 부른다.
+    """
+    spec = dict(getattr(cfg.network, "landing_storage_spec", {}) or {})
+    if not spec:
+        return {"landing_storage_runtime": 0.0}
+    from src.models import metanet as _mn
+    _orig = getattr(_mn, "_landing_orig_effective_lane_profile", None) or _mn.effective_lane_profile
+
+    def patched_effective_lane_profile(state, cfg_arg, demand=None):
+        sp_all = dict(getattr(cfg_arg.network, "landing_storage_spec", {}) or {})
+        saved: dict[str, float] = {}
+        caps_a = cfg_arg.network.urban_link_storage_veh
+        # 그룹 총점유 = 정지 큐 + 그룹 내 저장고 점유 합 (= 링크 재차). 저장고 i 의 임시 가용 = cap_i − 총점유.
+        group_occ: dict[str, float] = {}
+        for off_ramp, sp in sp_all.items():
+            storage = str(sp["storage"])
+            if storage not in state.urban_link_storage:
+                continue
+            g = str(sp.get("group", storage))
+            cap_i = float(caps_a.get(storage, sp["cap_veh"]))
+            occ_i = max(0.0, cap_i - float(state.urban_link_storage[storage]))
+            if g not in group_occ:
+                group_occ[g] = _landing_prefix_queue(state, str(sp["queue_prefix"]))
+            group_occ[g] += occ_i
+        for off_ramp, sp in sp_all.items():
+            storage = str(sp["storage"])
+            if storage not in state.urban_link_storage:
+                continue
+            g = str(sp.get("group", storage))
+            cap_i = float(caps_a.get(storage, sp["cap_veh"]))
+            saved[storage] = float(state.urban_link_storage[storage])
+            state.urban_link_storage[storage] = max(0.0, cap_i - float(group_occ.get(g, 0.0)))
+        try:
+            return _orig(state, cfg_arg, demand)
+        finally:
+            for storage, avail in saved.items():
+                state.urban_link_storage[storage] = avail
+
+    _mn._landing_orig_effective_lane_profile = _orig
+    _mn.effective_lane_profile = patched_effective_lane_profile
+    rebound = 0
+    for _modname, _mod in list(sys.modules.items()):
+        if _mod is None or _mod is _mn:
+            continue
+        try:
+            cur = getattr(_mod, "effective_lane_profile", None)
+        except Exception:
+            continue
+        if cur is None or not callable(cur):
+            continue
+        if cur is _orig or getattr(cur, "__name__", "") == "patched_effective_lane_profile":
+            setattr(_mod, "effective_lane_profile", patched_effective_lane_profile)
+            rebound += 1
+    return {"landing_storage_runtime": 1.0, "landing_storage_rebound_modules": float(rebound)}
+
+def install_gate_onramp_queue(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """B5: 되접기가 남긴 게이트발 on-ramp movement 를 `on_ramp_to_movement` 에 등록하고 무신호·연결로 용량으로 둔다.
+    게이트 peel-off 실측 차감은 끈다(β 가 대신한다, 결정마다 `_apply_gate_onramp_beta`). 병합·용량 설치 뒤에 부른다."""
+    net = cfg.network
+    kept = list(getattr(net, "gate_onramp_queue_kept", []) or [])
+    if not kept:
+        return {"gate_onramp_queue_enabled": 0.0}
+    specs = dict(getattr(net, "urban_movements", {}) or {})
+    on_idx = {k: list(v) for k, v in dict(getattr(net, "on_ramp_to_movement", {}) or {}).items()}
+    capmap = dict(getattr(net, "movement_capacity_by_movement_veh_h", {}) or {})
+    section = _mapping(_mapping((tuning or {}).get("urban")).get("ramp"))
+    conn_cap = _as_float(section.get("gate_onramp_queue_capacity_veh_h"), 1800.0)
+    ramps: list[str] = []
+    registered = 0
+    for name in kept:
+        sp = specs.get(name)
+        if not isinstance(sp, Mapping):
+            continue
+        ramp = str(sp.get("ramp", ""))
+        if not ramp:
+            continue
+        lst = on_idx.setdefault(ramp, [])
+        if name not in lst:
+            lst.append(name)
+        registered += 1
+        ramps.append(ramp)
+        capmap[name] = float(conn_cap)
+        sp2 = dict(sp); sp2["unsignalized"] = True; specs[name] = sp2
+    setattr(net, "urban_movements", specs)
+    setattr(net, "on_ramp_to_movement", on_idx)
+    setattr(net, "movement_capacity_by_movement_veh_h", capmap)
+    setattr(net, "gate_onramp_queue_ramps", sorted(set(ramps)))
+    setattr(net, "gate_ramp_peeloff", False)   # 실측 차감 대신 β 로 표현
+    out = {"gate_onramp_queue_enabled": 1.0, "gate_onramp_queue_registered": float(registered),
+           "gate_onramp_queue_ramps": float(len(set(ramps))), "gate_ramp_peeloff_enabled": 0.0}
+    _LEGSPLIT_LAST.update(out)
+    return out
+
+
+def _apply_gate_onramp_beta(cfg, state_json: Mapping[str, Any]) -> None:
+    """B5: 결정마다 게이트발 on-ramp movement 의 β = 실측 peel 유량 / 게이트 유입량 (형제는 (1−Σβ) 로 재정규화)."""
+    net = cfg.network
+    kept = list(getattr(net, "gate_onramp_queue_kept", []) or [])
+    if not kept:
+        return
+    specs = dict(getattr(net, "urban_movements", {}) or {})
+    fm = _mapping(_mapping(_mapping(state_json).get("local_observation")).get("far_measurement"))
+    vols = {str(k): _as_float(v, -1.0) for k, v in _mapping(fm.get("link_volume_veh_h")).items()}
+    gates = {str(k): _as_float(v, 0.0) for k, v in _mapping(_mapping(_mapping(state_json).get("demand")).get("urban_volume_vph_by_gate")).items()}
+    by_origin: dict[str, list[str]] = {}
+    for n, sp in specs.items():
+        if isinstance(sp, Mapping):
+            by_origin.setdefault(str(sp.get("origin", "")), []).append(n)
+    shares: dict[str, float] = {}
+    for name in kept:
+        sp = specs.get(name)
+        if not isinstance(sp, Mapping):
+            continue
+        meta = GATE_ONRAMP_QUEUE_MOVEMENTS.get(name, {})
+        origin = str(sp.get("origin", ""))
+        gate_v = gates.get(origin, 0.0)
+        v = vols.get(str(meta.get("conn", "")), -1.0)
+        if gate_v > 1.0 and v >= 0.0:
+            share = clamp(v / gate_v, 0.0, 0.85)
+        else:
+            share = _as_float(sp.get("beta"), _as_float(meta.get("default_share"), 0.0))
+        shares[name] = share
+        _LEGSPLIT_LAST["gate_onramp_beta_%s" % name] = float(share)
+    for origin, names in by_origin.items():
+        kept_here = [n for n in names if n in shares]
+        if not kept_here:
+            continue
+        tot_kept = sum(shares[n] for n in kept_here)
+        others = [n for n in names if n not in shares]
+        tot_other = sum(max(0.0, _as_float(specs[n].get("beta"), 0.0)) for n in others)
+        for n in kept_here:
+            sp2 = dict(specs[n]); sp2["beta"] = float(shares[n]); specs[n] = sp2
+        for n in others:
+            sp2 = dict(specs[n])
+            b = max(0.0, _as_float(sp2.get("beta"), 0.0))
+            sp2["beta"] = (b / tot_other * (1.0 - tot_kept)) if tot_other > 1e-12 else 0.0
+            specs[n] = sp2
+    setattr(net, "urban_movements", specs)
+
+def install_lambda_np_cap_override(controller, tuning: Mapping[str, Any]) -> dict[str, float]:
+    """λ_P 상한을 config 로 노출한다. `dual.lambda_np_cap` 이 없으면 no-op = 비트 동일.
+
+    ## 왜
+
+    λ_P 는 결합제약 `sum_i nin_i = N_P_star` 의 듀얼이고, 팔로워가 후보 녹색 비용에
+    `+ λ_P·nin_i(green)` 을 더한다(`wu_faithful_follower.py:919`). 즉 **17개 신호 전부**의
+    국소 채점에 들어가는 전역 항이다.
+
+    2026-09-04 에 `ramp_queue_max` 를 0 -> 111/153 으로 고쳤더니(팔 C) 두 신호의 국소
+    모형만 바뀌었는데 녹색이 갈린 곳은 SC7·SC6·SC16·SC109 같은 **비램프** 신호였다.
+    전파 경로가 이 듀얼이다 — on_ramp 는 `nin` 의 OUTFLOW 항이므로,
+
+        cap 0  -> on_ramp served == 0  -> 유출항 소멸 -> Sigma nin 과대
+        cap 111 -> on_ramp 방류 시작    -> feasible 범위 반토막 (179.9 -> 95.4)
+        -> 리더 N_P* 164 -> 30 -> lambda_P 가 더 자주·크게 켜짐
+           (평균 2.90 -> 6.13 · 비영 9/31 -> 19/31)
+        -> 전 신호 채점 이동 -> 도시 누적 -> 미터 하한 -> TTT +1432
+
+    그 사슬을 끊어 보려면 λ 를 묶어야 하는데, `lambda_np_cap` 은 팔로워
+    `__init__` 상수(:445, 기본 10.0)라 config 로 못 만졌다. 여기서 연다.
+
+    `0.0` 을 주면 `_lambda_np_update` 의 `clip(..., 0, cap)` 이 λ 를 영구 0 으로 묶어
+    듀얼 항이 사라진다. `use_dual_np` 를 False 로 하는 것과는 다르다 — 그쪽은 레거시
+    고정가중 w_P setpoint 패널티로 **갈아타는** 것이라 깨끗한 제거가 아니다.
+
+    ## 주의
+
+    이건 정본 승격 후보가 아니라 **분해 실험용 손잡이**다. λ 를 끄면 리더의 N_P 축이
+    팔로워에 닿는 통로가 사라지므로, 반드시 cap 켬/끔 2x2 로 재야 한다 —
+    λ 를 끈 것 자체의 효과와 cap 의 효과가 섞이지 않게.
+    """
+    section = _mapping((tuning or {}).get("dual"))
+    if "lambda_np_cap" not in section:
+        return {"lambda_np_cap_override_enabled": 0.0}
+    cap = _as_float(section.get("lambda_np_cap"), -1.0)
+    if cap < 0.0:
+        return {"lambda_np_cap_override_enabled": 0.0}
+    follower = getattr(controller, "nash_solver", None)
+    if follower is None:
+        return {"lambda_np_cap_override_enabled": 0.0}
+    before = float(getattr(follower, "lambda_np_cap", -1.0))
+    follower.lambda_np_cap = float(cap)
+    # warm-start λ 도 상한 안으로 끌어온다 — 안 그러면 첫 결정만 옛 값으로 돈다.
+    if float(getattr(follower, "_lambda_P", 0.0) or 0.0) > cap:
+        follower._lambda_P = float(cap)
+    _RAMPLOCAL_LAST["lambda_np_cap_override_enabled"] = 1.0
+    _RAMPLOCAL_LAST["lambda_np_cap_value"] = float(cap)
+    _RAMPLOCAL_LAST["lambda_np_cap_before"] = before
+    return {
+        "lambda_np_cap_override_enabled": 1.0,
+        "lambda_np_cap_value": float(cap),
+        "lambda_np_cap_before": before,
+    }
 
 
 def install_merged_movements(cfg, tuning: Mapping[str, Any],
@@ -2255,112 +3571,9 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
     }
 
 
-# 리더 되먹임 상태를 결정 사이로 나르는 키. 직전 action JSON 의 metadata 에 실린다.
-LEADER_FEEDBACK_STATE_KEY = "leader_feedback_state_json"
-
-# 나를 상태. 전부 JSON 직렬화 가능하다.
-_LFB_SCALARS = (
-    "_beta_prev_total_veh",
-    "_beta_hat",
-    "_beta_drift_streak",
-    "_regret_pending_inc_pred",
-    "_regret_forced_remaining",
-    "_regret_last_gap",
-    "_recalib_needed",
-)
-
-
-def restore_leader_feedback_state(controller, tuning: Mapping[str, Any],
-                                  previous_path) -> dict[str, float]:
-    """직전 결정의 β̂/regret 상태를 되살린다. `mpc.leader_feedback_carry` 없으면 no-op.
-
-    왜. 러너는 결정마다 python 프로세스를 **새로** 띄우고 `--previous-action-json` 만
-    넘긴다(run_real_world_stackelberg_controller.vbs 의 RunControllerDecision). 그래서
-    `stackelberg_wu_metered` 의 `_beta_prev_total_veh` · `_regret_window` 같은 인스턴스
-    상태가 매 150초 소멸한다. `leader_bias_estimator` 와 `regret_guard_steps=3` 은 상류
-    기본이 켜져 있는데도, `_beta_prev_total_veh` 가 항상 None 이라 `realized` 가 한 번도
-    계산되지 않는다 — 실측: 66결정 전부 `leader_regret_window_len=0`, `leader_beta_hat` 부재.
-
-    무엇을 잃고 있었나. merge/conv 의 실현/예측 비가 평균 1.131/1.168 이고 누적 낙관이
-    **+560~699 veh·h** 다. 감지해야 할 격차(29.4)의 19~24배인데, 그걸 잡으라고 만든
-    regret 창이 길이 0 이라 절대 발화하지 않는다. 상태가 살아 있었다면 트리거는
-    merge 21/31 · conv 27/31 창에서 켜졌을 것이다.
-
-    나르는 방법은 `sat_est_<link>` 와 같다 — 직전 action JSON 의 metadata 에 실어 보낸다.
-    새로 만드는 채널이 아니라 이미 쓰고 있는 채널이다.
-
-    주의: 이것만으로 TTT 가 좋아질 것으로 기대하지 마라. regret 이 발화해도 incumbent(PFO)
-    로 되돌릴 뿐인데 리더-PFO 는 예측 동률(≤0.105 veh·h)이라 되돌릴 곳이 사실상 같다.
-    이 팔의 목적은 **되먹임이 살아났을 때 실제로 무엇이 보이는가**를 재는 것이다 —
-    β̂ 궤적과 regret 발화 횟수가 처음으로 관측된다.
-    """
-    # **config_overrides.mpc 에 두면 안 된다** — 그건 MPCConfig(**raw) 로 splat 되므로
-    # dataclass 에 없는 키는 TypeError 를 낸다(1차 시도가 그렇게 3회 죽었다).
-    section = _mapping(_mapping(tuning.get("urban")).get("leader_feedback"))
-    if not _is_enabled_value(section.get("carry")):
-        return {"leader_feedback_carry_enabled": 0.0}
-    raw = None
-    try:
-        doc = json.loads(Path(previous_path).read_text(encoding="utf-8"))
-        for holder in ("metadata", "diagnostics"):
-            value = _mapping(doc.get(holder)).get(LEADER_FEEDBACK_STATE_KEY)
-            if isinstance(value, str) and value:
-                raw = value
-                break
-    except (OSError, ValueError):
-        pass
-    meta: dict[str, float] = {"leader_feedback_carry_enabled": 1.0}
-    if not raw:
-        meta["leader_feedback_carry_restored"] = 0.0
-        return meta
-    try:
-        blob = json.loads(raw)
-    except ValueError:
-        meta["leader_feedback_carry_restored"] = 0.0
-        return meta
-    import collections as _collections
-
-    for name in _LFB_SCALARS:
-        if name in blob:
-            setattr(controller, name, blob[name])
-    if "_beta_pending" in blob:
-        controller._beta_pending = _collections.deque(
-            dict(item) for item in blob["_beta_pending"] if isinstance(item, Mapping)
-        )
-    if "_regret_window" in blob:
-        controller._regret_window = _collections.deque(
-            (float(a), float(b)) for a, b in blob["_regret_window"]
-        )
-    meta["leader_feedback_carry_restored"] = 1.0
-    meta["leader_feedback_carry_window_len"] = float(len(getattr(controller, "_regret_window", ()) or ()))
-    if blob.get("_beta_hat") is not None:
-        meta["leader_feedback_carry_beta_hat_in"] = float(blob["_beta_hat"])
-    return meta
-
-
-def capture_leader_feedback_state(controller, metadata: MutableMapping[str, Any]) -> None:
-    """이번 결정 뒤의 상태를 metadata 에 실어 다음 결정으로 보낸다."""
-    if not _is_enabled_value(metadata.get("leader_feedback_carry_enabled")):
-        return
-    blob: dict[str, Any] = {}
-    for name in _LFB_SCALARS:
-        if hasattr(controller, name):
-            value = getattr(controller, name)
-            if isinstance(value, (int, float, bool)) or value is None:
-                blob[name] = value
-    pending = getattr(controller, "_beta_pending", None)
-    if pending is not None:
-        blob["_beta_pending"] = [
-            {k: (float(v) if isinstance(v, (int, float)) else v) for k, v in dict(item).items()}
-            for item in pending
-        ]
-    window = getattr(controller, "_regret_window", None)
-    if window is not None:
-        blob["_regret_window"] = [[float(a), float(b)] for a, b in window]
-    metadata[LEADER_FEEDBACK_STATE_KEY] = json.dumps(blob, separators=(",", ":"))
-    metadata["leader_feedback_carry_window_out"] = float(len(window or ()))
-    if blob.get("_beta_hat") is not None:
-        metadata["leader_feedback_carry_beta_hat_out"] = float(blob["_beta_hat"])
+# 2026-09-03 삭제: 리더 되먹임 carry(LEADER_FEEDBACK_STATE_KEY / restore_/capture_).
+# β̂ 와 trailing-regret 의 인스턴스 상태를 150초 결정 사이로 나르는 것이 유일한 목적이었고,
+# 그 둘을 지웠으므로 나를 것이 없다. tuning 의 `urban.leader_feedback` 절도 무효다.
 
 
 def install_movement_capacity_by_lanes(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
@@ -3120,6 +4333,10 @@ def install_price_worker_runtime_patches(cfg, state_json, detector_mapping):
     # 지금은 price_far 가 꺼져 있어 안 돌지만, 켜는 순간 부모는 실측 용량 · 워커 10개는
     # 1800 으로 가격을 매긴다 - 실패가 아니라 조용히 틀린 값이다(phasepar_20260820 유형).
     out.update(install_far_ramp_capacity_patch(cfg))
+    # B 팔 모듈 패치(urban_substep 래퍼·추정기). 안 되살리면 워커는 램프 몫을 저수지에 안 넣는다.
+    out.update(install_leg_ramp_split_runtime(cfg))
+    out.update(install_offramp_landing_runtime(cfg))
+    out.update(install_landing_storage_runtime(cfg))
     # `_price_worker_init` 의 부모/워커 대조는 `_phase_green_fraction` 하나만 본다.
     # 이 패치는 그 대조에 안 걸리므로 여기서 직접 막는다. raise 는 pool 을 깨고
     # 직렬 재실행 + price_parallel_serial_rerun_count 로 떨어진다.
@@ -3250,12 +4467,20 @@ def _link_storage_split_fraction(cfg, origins: list[str], split_parameters: Mapp
 # env 는 **폴백으로 남긴다** — 이미 돌린 팔들의 재현과 임시 A/B 를 위해서다.
 # tuning 키가 있으면 그것이 이긴다.
 _CFG_SWITCHES: dict[str, bool] = {}
+_CFG_MISSING: set = set()  # config 에 없어 False 로 떨어진 스위치 이름
+
+
+_CFG_STRINGS: dict = {}
 
 
 def _switch(name: str, env_name: str) -> bool:
+    """config 전용. 2026-09-05 env 폴백 삭제 — env 게이트는 호출 경로가 바뀌면 조용히 꺼진다
+    (RW_MAINLINE_SG_ONLY 사고: Bash 체인 22런이 미드블록 SG 를 COM 적색으로 돌렸다). 키가 없으면
+    False 이고 `_CFG_MISSING` 에 남겨 install_config_switches 진단으로 드러난다. env_name 은 호환용 인자."""
     if name in _CFG_SWITCHES:
         return bool(_CFG_SWITCHES[name])
-    return str(os.environ.get(env_name, "")).strip().lower() in {"1", "true", "on"}
+    _CFG_MISSING.add(name)
+    return False
 
 
 def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
@@ -3270,9 +4495,17 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
         ("dead_phase_beta_zero", _mapping(urban.get("movements")).get("dead_phase_beta_zero")),
         ("movement_phase_correction", _mapping(urban.get("movements")).get("phase_correction")),
         ("queue_origin_binding", _mapping(urban.get("queue")).get("origin_binding")),
+        ("queue_contiguous", _mapping(urban.get("queue")).get("contiguous")),
+        ("arrival_seed", _mapping(urban.get("arrival")).get("seed_from_residual")),
+        ("storage_lanes_fzp", _mapping(urban.get("tau")).get("storage_lanes_fzp")),
         ("mainline_plan", _mapping(urban.get("plan")).get("mainline_only")),
         ("mainline_share", _mapping(urban.get("plan")).get("mainline_share")),
     )
+    # 문자열 스위치(모드 값). env 전용이던 것을 config 로 올린 자리다.
+    _CFG_STRINGS["release_buffer_restore"] = str(
+        _mapping(urban.get("release_buffer")).get("restore", "") or "").strip().lower()
+    _CFG_STRINGS["queue_window_stat"] = str(
+        _mapping(urban.get("queue")).get("window_stat", "") or "").strip().lower()
     out: dict[str, float] = {}
     for key, raw in pairs:
         if raw is None:
@@ -3298,6 +4531,125 @@ def _stopped_split_enabled() -> bool:
     config `urban.queue.stopped_split`, 폴백 env `RW_STOPPED_SPLIT`.
     """
     return _switch("stopped_split", "RW_STOPPED_SPLIT")
+
+
+_QUEUE_WALK_CACHE: dict = {}
+
+# 2026-09-04. 잔차 도착 τ. 실측 중앙값(.fzp, 37결정 x 196링크): 이동 15 s / 정지-비큐 105 s.
+# 지평 450 s = horizon 3 x 150 s. 이를 넘는 만기는 버린다(지평 끝 몰아넣기 금지).
+STORAGE_LANES_FZP_JSON = WORKSPACE_ROOT / "outputs/storage_effective_lanes_20260904.json"
+LINK_GEOMETRY_FZP_JSON = WORKSPACE_ROOT / "outputs/urban_link_geometry_20260904.json"
+_LINK_GEOM_CACHE: dict | None = None
+
+# 정지선 큐로 인정할 선두 거리[m]. 이보다 상류에서 시작한 정지 무리는 정지선 행렬이 아니다.
+_QUEUE_HEAD_WINDOW_M = 30.0
+
+
+def _link_lengths_m() -> dict[str, float]:
+    """링크별 길이[m] (.fzp max Pos). head window 판정에만 쓴다."""
+    global _LINK_GEOM_CACHE
+    if _LINK_GEOM_CACHE is not None:
+        return _LINK_GEOM_CACHE
+    out: dict[str, float] = {}
+    doc = load_optional_json(str(LINK_GEOMETRY_FZP_JSON))
+    table = doc.get("links") if isinstance(doc, Mapping) else None
+    if isinstance(table, Mapping):
+        for link, spec in table.items():
+            if isinstance(spec, Mapping):
+                length = _as_float(spec.get("length_m"), 0.0)
+                if length > 0.0:
+                    out[str(link)] = length
+    _LINK_GEOM_CACHE = out
+    return out
+
+_ARRIVAL_TAU_MOVING_SEC = 15.0
+_ARRIVAL_TAU_STOPPED_SEC = 105.0
+_ARRIVAL_MAX_HORIZON_SEC = 450.0
+
+
+def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float]:
+    """`queue_bins` 에서 링크별 **정지선 연속 대기행렬**[veh] 을 낸다.
+
+    ## 왜 이 양인가 (2026-09-04)
+
+    현행 `link_stopped_counts` 는 **링크 위 정지차량 전부**다. 그런데 녹색이 방류하는 것은
+    정지선에서 이어진 행렬이지, 중간에 따로 막혀 선 차가 아니다. 실측으로 둘은 도시
+    link-instant 의 90.3% 에서 같지만, 갈리는 9.7% 가 전체 오차의 32.0pt 를 만든다.
+    장링크에서 잔차 평균 대비 MAE:
+
+        링크 32(1,970m)  전체정지 85.6%  ->  연속walk 0.7%
+        링크 66(2,660m)        71.6%  ->          0.0%
+        링크 40(1,258m)        70.5%  ->          0.1%
+        링크 30(  535m)        72.4%  ->         12.1%
+
+    전체정지는 진짜 정지선 큐를 1.44~1.69배 과대하고, 그 과대가 유령 큐로 녹색을 가져갔다
+    (링크 32 -> SC1001_p3: 컨트롤러 355~421대, 진실 11~27대, 후반 내내 녹색 59~75초).
+
+    ## 어떻게 끊는가
+
+    **공간 갭에서 끊지 않는다.** 갭 허용 20/40/100/무한이 전부 같은 값(36,085)을 냈다 —
+    walk 를 끊는 것은 언제나 **움직이는 차량**이다. 그래서 빈 빈은 건너뛰고, `total > stopped`
+    인 빈(= 움직이는 차가 섞인 빈)에서만 멈춘다.
+
+    **차로별로 걷는다.** 차로를 풀링하면 한 차로가 방류하는 순간 링크 전체 큐가 잘린다
+    (실측: 풀링 36.8% 대 차로별 48.2%).
+
+    입력은 러너의 `queue_bins` = {"link|lane|bin": [total, stopped]}, 빈 크기 `queue_bin_m`
+    (기본 7.0m = 실측 잼 간격 6.3m 에 차량 1대). 정렬은 러너가 하지 않는다 — 스캔이 이미
+    런의 33% 라 VBScript 정렬을 붙일 수 없다. 여기서 빈 인덱스로 정렬한다.
+    """
+    local = _mapping(state_json.get("local_observation"))
+    raw = local.get("queue_bins")
+    if not isinstance(raw, Mapping) or not raw:
+        return {}
+    bin_m = _as_float(local.get("queue_bin_m"), 7.0) or 7.0
+    by_lane: dict[tuple[str, str], dict[int, tuple[float, float]]] = {}
+    for key, value in raw.items():
+        parts = str(key).split("|")
+        if len(parts) != 3:
+            continue
+        try:
+            idx = int(parts[2])
+        except (TypeError, ValueError):
+            continue
+        if isinstance(value, (list, tuple)) and len(value) >= 2:
+            total, stopped = _as_float(value[0], 0.0), _as_float(value[1], 0.0)
+        else:
+            total, stopped = _as_float(value, 0.0), 0.0
+        by_lane.setdefault((parts[0], parts[1]), {})[idx] = (total, stopped)
+    lengths = _link_lengths_m()
+    out: dict[str, float] = {}
+    for (link, _lane), bins in by_lane.items():
+        if not bins:
+            continue
+        occupied_idx = [i for i, (t, _s) in bins.items() if t > 0.0]
+        if not occupied_idx:
+            continue
+        # head window: 행렬 선두가 정지선(링크 하류 끝)에서 멀면 정지선 큐가 아니다.
+        # 이 조건이 없으면 링크 중간에 따로 선 정지 무리도 큐로 세어 과대해진다 —
+        # arm_qsplit 실측 walk/정지 0.820 대 .fzp 참조 0.569 의 격차가 이것이었다.
+        # 길이 정보가 없는 링크는 종전처럼 조건 없이 걷는다(폴백).
+        length = lengths.get(str(link), 0.0)
+        if length > 0.0:
+            head_m = (max(occupied_idx) + 1) * bin_m
+            if (length - head_m) > _QUEUE_HEAD_WINDOW_M:
+                continue
+        queued = 0.0
+        for idx in sorted(bins, reverse=True):
+            total, stopped = bins[idx]
+            if total <= 0.0:
+                continue          # 빈 빈은 갭 — 끊지 않는다(감도 0 실측)
+            if total > stopped:
+                break             # 움직이는 차가 섞였다 = 행렬의 끝
+            queued += stopped
+        if queued > 0.0:
+            out[link] = out.get(link, 0.0) + queued
+    return out
+
+
+def _contiguous_queue_enabled() -> bool:
+    """config `urban.queue.contiguous` · env 폴백 `RW_QUEUE_CONTIGUOUS`. 기본 꺼짐=비트 동일."""
+    return _switch("queue_contiguous", "RW_QUEUE_CONTIGUOUS")
 
 
 def _stopped_storage_fraction(link: str, count: float, stopped: Mapping[str, float],
@@ -3843,6 +5195,26 @@ def _storage_effective_lanes() -> dict[str, float]:
             km = _as_float(length_km.get(link, 0.0))
             if km > 0.0:
                 lanes[str(link)] = max(1.0, _as_float(veh) / (km * jam))
+    # 2026-09-04. 증거파일에 길이가 없는 저류 121/226 중 **75개가 실제 개포 링크**이고
+    # 저류 점유의 58.29%(934.82 veh/결정)를 든다. 그 저류들은 차로 보정을 못 받아 tau 가
+    # 차로수배(보정된 저류 중앙 3.00)만큼 과대해진다. `.fzp` 실측으로 결손만 채운다 —
+    # 이미 값이 있는 저류는 손대지 않으므로 그 105개는 비트 동일이다.
+    #
+    # 유도식은 docstring 이 요구하는 그대로다:
+    #     effective_lanes = sum_i(len_i * lanes_i) / sum_i(len_i)   over link_to_origins 구성원
+    # len_i = 링크 max Pos, lanes_i = 링크 max Lane index.
+    # 교차검증(겹치는 66개): |차이| 중앙 0.158 차로, 상대오차 중앙 5.8% / p90 20.7%.
+    if _switch("storage_lanes_fzp", "RW_STORAGE_LANES_FZP"):
+        derived = load_optional_json(str(STORAGE_LANES_FZP_JSON))
+        table = derived.get("storage_effective_lanes") if isinstance(derived, Mapping) else None
+        if isinstance(table, Mapping):
+            for link, value in table.items():
+                key = str(link)
+                if lanes.get(key, 1.0) > 1.0:
+                    continue          # 기존 근거가 이긴다
+                got = _as_float(value, 0.0)
+                if got > 1.0:
+                    lanes[key] = got
     _STORAGE_LANES_CACHE = lanes
     return lanes
 
@@ -3925,7 +5297,8 @@ def _observed_stopped_counts(state_json: Mapping[str, Any]) -> dict[str, float]:
     """
     # 기본은 꺼짐. `link_counts` 쪽과 같은 스위치를 써서 둘이 어긋나지 않게 한다 —
     # 하나만 창값이면 저류/큐 분할 비율이 뒤틀린다.
-    mode = str(os.environ.get("RW_QUEUE_WINDOW_STAT", "")).strip().lower()
+    # 2026-09-05. 1129 행과 같은 config 키를 읽는다 — 종전엔 여기만 env 를 읽어 둘이 어긋날 수 있었다.
+    mode = str(_CFG_STRINGS.get("queue_window_stat", "")).strip().lower()
     if mode in {"mean", "max"}:
         key = f"link_stopped_counts_window_{mode}"
         windowed = _link_metric_from_local_observation(state_json, key)
@@ -4066,6 +5439,11 @@ def build_local_observation_summary(
     }
     ramp_links = {str(link) for link in _mapping(detector_mapping.get("ramp_link_to_queues"))}
     storage_fraction_by_link: dict[str, float] = {}
+    # 3단 폴백 재료 (2026-09-04). 러너가 `queue_bins` 를 안 실으면 contiguous_queue 가
+    # 빈 dict 라 아래 루프가 그대로 stopped 층으로 떨어진다 = 비트 동일.
+    queue_definition_mode = "contiguous" if _contiguous_queue_enabled() else "stopped"
+    contiguous_queue = _contiguous_stopline_queue(state_json) if queue_definition_mode == "contiguous" else {}
+    queue_source_by_link: dict[str, str] = {}
     queue_count_by_link: dict[str, float] = {}
     storage_count_by_link: dict[str, float] = {}
     _origin_bind_links: set = set()
@@ -4096,11 +5474,22 @@ def build_local_observation_summary(
             for value in detector_mapping.get("link_to_origins", {}).get(str(link), [])
         ]
         storage_fraction = _link_storage_split_fraction(cfg, origins, split_parameters)
-        # 실측 정지비율로 갈아탄다. 꺼져 있으면 위 고정값 그대로 = 비트 동일.
-        if _stopped_split_enabled():
+        # 3단 폴백 (2026-09-04): contiguous -> stopped(현행) -> 상수.
+        # 링크별로 어느 층이 발동했는지 진단에 남긴다 — 혼합 추정량은 신호마다 편의가
+        # 달라지므로 사후에 반드시 확인할 수 있어야 한다.
+        _src = "constant"
+        if queue_definition_mode == "contiguous":
+            _q = contiguous_queue.get(str(link))
+            if _q is not None and float(count) > 0.0:
+                storage_fraction = max(0.0, 1.0 - min(float(_q), float(count)) / float(count))
+                _src = "contiguous"
+        if _src == "constant" and _stopped_split_enabled():
             storage_fraction = _stopped_storage_fraction(
                 str(link), float(count), link_stopped_counts, storage_fraction
             )
+            if str(link) in link_stopped_counts:
+                _src = "stopped_instant"
+        queue_source_by_link[str(link)] = _src
         # movement 매핑이 없는 링크는 queue_count 가 갈 데가 없어 그냥 증발한다.
         # 아래 link_to_movements 루프가 그 링크를 아예 안 도는 탓이다.
         # 실측 2026-08-05: 관측된 배정 링크 952개 중 **882개**가 매핑이 없어
@@ -4355,6 +5744,15 @@ def build_local_observation_summary(
         ),
     )
     projection_diagnostics = {
+        # 2026-09-04. 아래 넷은 요약 최상위에도 있지만 결정 JSON 은 이 dict 만 나른다
+        # (adapter:7057). arm_qsplit 런에서 스위치는 켜져 돌았는데 기록으로 확인할 수가
+        # 없어 상태 JSON 으로 역산해야 했다 — "켰다"와 "돌았다"를 디스크가 말해야 한다.
+        "urban_queue_contiguous_links": float(len(contiguous_queue)),
+        "urban_queue_contiguous_veh": float(sum(contiguous_queue.values())),
+        "urban_queue_source_contiguous": float(sum(1 for v in queue_source_by_link.values() if v == "contiguous")),
+        "urban_queue_source_stopped": float(sum(1 for v in queue_source_by_link.values() if v == "stopped_instant")),
+        "urban_queue_source_constant": float(sum(1 for v in queue_source_by_link.values() if v == "constant")),
+        "urban_queue_bins_present": 1.0 if _mapping(_mapping(state_json.get("local_observation")).get("queue_bins")) else 0.0,
         "total_vehicle_count_veh": total_vehicle_count,
         "input_link_vehicle_count_veh": input_vehicle_count,
         "represented_vehicle_count_veh": represented_vehicle_count,
@@ -4423,6 +5821,13 @@ def build_local_observation_summary(
             "midblock_links_forced": float(len(_midblock_stopline_links() & set(link_counts))),
         },
         "urban_link_storage_occupancy": urban_link_storage_occupancy,
+        "urban_queue_source_by_link": dict(queue_source_by_link),
+        "urban_queue_source_level_hist": {
+            level: float(sum(1 for v in queue_source_by_link.values() if v == level))
+            for level in ("contiguous", "stopped_instant", "constant")
+        },
+        "urban_contiguous_queue_links": float(len(contiguous_queue)),
+        "urban_contiguous_queue_veh": float(sum(contiguous_queue.values())),
         "urban_link_storage_stopped": urban_link_storage_stopped,
         "urban_link_speed_kph": urban_link_speed_kph,
         "ramp_queue": ramp_queue,
@@ -5184,6 +6589,11 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             controller.phase_price_delta_sec = _as_float(section["delta_sec"], 6.0)
         if "weight" in section:
             controller.phase_price_weight = _as_float(section["weight"], 1.0)
+        # RS-off (2026-09-06 02:3x): has_ramps 신호(SC1001·SC1004)의 현시가격을 0 으로 두고 RL 국소(ramp-aware) 채점만으로 정련한다.
+        #   근거: t=1500(링크 32 = 186) 에서 국소 압력 −1.31/−1.71 veh·h(정보 유무) 대 가격항 +2.24 → 가격이 이겨 p3 42 유지;
+        #   가격 가중 0 이면 p3 72/75. 가격 +0.054/s 는 팔로워 롤아웃 직접 계산(+0.003/s)의 16배 과대(surrogate 결함의 has_ramps 판).
+        if "ramp_signal_price" in section:
+            controller.phase_price_ramp_signal_off = str(section["ramp_signal_price"]).strip().lower() == "off"
         if "primary_by_price" in section:
             # 주현시를 가격 최고 현시로. `distribute_phase_green` 의 자유도가 1차원이라
             # 그 축이 p1 에 고정돼 있으면 다른 현시를 못 올린다(실측: SC5 p3 가 가격 1위인
@@ -5226,6 +6636,17 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             )
         # 가격의 **국소항**을 정련과 같은 phased 물리로 채점한다. 절이 없으면 no-op.
         install_phased_price_local(controller, tuning)
+        install_observed_backpressure_controller(controller, tuning)
+        # has_ramps 신호의 현시 국소비용을 GNE 와 같은 ramp-aware 물리로. 절 없으면 no-op.
+        install_ramp_aware_phase_local(controller, tuning)
+    # 국소 램프 모델의 저수지 용량이 전역 스칼라 0.0 을 받는 것을 개별 상한으로.
+    # 절 없으면 no-op. **위 if 블록 밖이다** — phase_price 절과 무관하게 걸려야 한다.
+    install_local_ramp_queue_cap(controller, tuning)
+    # in_gne 벡터 탐색이 demand 를 위치인자로 못 받아 채점기가 통째로 drain 으로
+    # 떨어지던 것을 고친다. `phase_price.in_gne` 가 꺼져 있으면 no-op.
+    install_in_gne_demand_fix(controller, tuning)
+    # λ_P 상한을 config 로. `dual.lambda_np_cap` 없으면 no-op. 분해 실험용.
+    install_lambda_np_cap_override(controller, tuning)
     # GNE 의 p1 -> 비율 전개를 현시 벡터로 대체한다. `phase_price.in_gne` 없으면 no-op.
     # 팔로워 참조를 패치가 찾아갈 수 있게 여기서 심는다 — 패치는 모듈 전역이라
     # 컨트롤러 인스턴스를 직접 못 본다.
@@ -5845,7 +7266,6 @@ def _plant_rollout_far_into(cfg, tuning) -> None:
     """
     # 2026-08-27. 기본값은 `evaluation/parameters.json` 의 runtime.mpc 가 갖는다 —
     # 여기에 상수를 박지 않는다. 종전에는 절이 없으면 그대로 돌아가서
-    # `distributed_rollout_far_enabled` 속성이 아예 생기지 않았고, 분산 채점기가 이를
     # False 로 읽어 far 를 계산조차 하지 않았다. 24단 튜닝 체인 어디에도 `rollout_far`
     # 절이 없었으므로 실런에서 far 는 한 번도 돌지 않았다 — plantfix_20260827 의 결정
     # 37개를 훑으면 far 진단 키가 0회다. far 는 urban(N^2/2G, boundary 큐 포함)과
@@ -5854,8 +7274,7 @@ def _plant_rollout_far_into(cfg, tuning) -> None:
     if not isinstance(section, Mapping):
         section = {}
     mpc = cfg.mpc
-    if "enabled" in section:
-        setattr(mpc, "distributed_rollout_far_enabled", bool(section["enabled"]))
+    # 2026-09-03: `enabled` 키는 무시한다 — 팔로워 far 자체를 삭제했다.
     for key, cast in (("ncrit", float), ("g_free", float), ("g_cong", float),
                       ("g_fw", float), ("weight", float)):
         if key in section:
@@ -5950,9 +7369,15 @@ def install_boundary_out_ramp_split(cfg, tuning) -> dict[str, float]:
     section = _mapping(_mapping(_mapping(tuning).get("urban")).get("boundary_out"))
     if not _is_enabled_value(section.get("ramp_split")):
         return {"boundary_out_ramp_split_enabled": 0.0}
-    if not BOUNDARY_OUT_RAMP_SPLIT_JSON.is_file():
-        raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_MISSING: %s" % BOUNDARY_OUT_RAMP_SPLIT_JSON)
-    doc = json.loads(BOUNDARY_OUT_RAMP_SPLIT_JSON.read_text(encoding="utf-8"))
+    # 2026-09-05. 분할표 경로를 config 로 바꿀 수 있다(`urban.boundary_out.ramp_split_json`, 작업공간 상대경로).
+    # 키가 없으면 종전 20260901 표 = 비트 동일. B2(실측 램프 방향 분율)가 이 키 하나로 켜진다.
+    split_path = BOUNDARY_OUT_RAMP_SPLIT_JSON
+    override = str(section.get("ramp_split_json") or "").strip()
+    if override:
+        split_path = Path(override) if Path(override).is_absolute() else (WORKSPACE_ROOT / override)
+    if not split_path.is_file():
+        raise SystemExit("BOUNDARY_OUT_RAMP_SPLIT_MISSING: %s" % split_path)
+    doc = json.loads(split_path.read_text(encoding="utf-8"))
     split: dict[str, dict[str, object]] = {}
     ramps = set(cfg.network.ramps or ())
     storage = set(cfg.network.urban_link_storage_veh or {})
@@ -5973,6 +7398,7 @@ def install_boundary_out_ramp_split(cfg, tuning) -> dict[str, float]:
     setattr(cfg.network, "boundary_out_ramp_split", split)
     out: dict[str, float] = {"boundary_out_ramp_split_enabled": 1.0,
                              "boundary_out_ramp_split_links": float(len(split))}
+    out["boundary_out_ramp_split_json_override"] = 1.0 if override else 0.0
     for link, spec in split.items():
         out["boundary_out_ramp_split_%s_free" % link] = float(spec["free"])
         for ramp, share in spec["ramps"].items():
@@ -6632,6 +8058,14 @@ def warm_start_release_buffers(state, cfg, state_json: Mapping[str, Any], calibr
     stats = {"warmstart_sec": 0.0, "steps": 0.0, "rescaled_links": 0.0}
     try:
         warm_sec = float(str(os.environ.get("RW_WARMSTART_SEC", str(DEFAULT_WARMSTART_SEC))).strip() or 0.0)
+        # 2026-09-04. 잔차 도착 시더와 동시에 켜면 같은 차량이 두 번 예약된다 —
+        # warm_start 는 plant 자기 롤아웃으로 82링크 492.4 veh 를 예약하고 지평 내내
+        # sink 게이트를 억제한다. 시더가 켜져 있으면 warm_start 를 끄고 그 사실을 남긴다.
+        if warm_sec > 0.0 and _switch("arrival_seed", "RW_ARRIVAL_SEED"):
+            warm_sec = 0.0
+            _warmstart_suppressed_by_arrival_seed = True
+        else:
+            _warmstart_suppressed_by_arrival_seed = False
     except ValueError:
         warm_sec = 0.0
     if warm_sec <= 0.0:
@@ -6680,6 +8114,84 @@ def warm_start_release_buffers(state, cfg, state_json: Mapping[str, Any], calibr
     return stats
 
 
+def seed_urban_arrival_buffer(state, cfg, local_summary: Mapping[str, Any]) -> dict[str, float]:
+    """관측 잔차(= 링크 위 비-대기 차량)를 `urban_arrival_buffer` 에 만기 예약한다.
+
+    ## 왜 (2026-09-04, 실행으로 확인한 결함)
+
+    어댑터는 `urban_arrival_buffer` 를 **한 번도 쓰지 않는다**(쓰기 0곳). plant 는 그것과
+    `urban_storage_release_buffer` 를 빈 dict 로 초기화하고, 저류가 movement 큐로 가는
+    유일한 통로가 이 arrival buffer 다. 결과:
+
+        관측 저류를 싣고 수요 0 으로 90 substep(=450 s) 롤 -> movement_queue **정확히 0.00 veh**
+
+    즉 분리가 결정하는 것은 '대기 대 접근'이 아니라 **'서비스 가능 재고 대 지평 내 폐기'**
+    였다. 실제로는 잔차의 75.6% 가 450 s 안에 정지선에 닿는다(중앙 25 s).
+
+    ## 왜 τ 가 둘인가
+
+    잔차는 이봉이다 - 한 상수로는 못 나른다(링크별 상수도 표본외 MAE 약 160 s):
+
+        움직이는 43.2%      관측 도착 중앙  15 s   150 s 내 86.9%
+        정지-비큐 56.8%                  105 s   450 s 내 62.6%   (7.0배 격차)
+
+    `urban_link_storage_stopped` 가 정확히 그 '정지했지만 큐에 없는' 집단이라 분할이 공짜다.
+
+    ## 안전장치
+
+    - 기본 꺼짐. config `urban.arrival.seed_from_residual` (env 폴백 `RW_ARRIVAL_SEED`).
+      꺼져 있으면 아무것도 안 한다 = 비트 동일.
+    - 450 s 를 넘는 만기는 **버린다**(`censor_drop`). 지평 밖 도착을 지평 끝에 몰아넣으면
+      실재하지 않는 재고가 생긴다.
+    - `approach_routing` 에 없는 링크는 건너뛴다 - plant 가 그 키를 소비하지 않는다.
+    - `warm_start_release_buffers` 와 동시에 켜지 마라. 그쪽이 이미 82링크 492.4 veh 를
+      예약해 두고 지평 내내 sink 게이트를 억제한다. 이중계상 미검증.
+    """
+    stats = {"links": 0.0, "moving_veh": 0.0, "stopped_veh": 0.0, "dropped_veh": 0.0}
+    if not _switch("arrival_seed", "RW_ARRIVAL_SEED"):
+        return stats
+    buffer = getattr(state, "urban_arrival_buffer", None)
+    if not isinstance(buffer, dict):
+        return stats
+    try:
+        from src.models.urban_queue_model import _schedule, approach_routing
+    except Exception:  # noqa: BLE001 - 상류 스냅샷에 없으면 조용히 건너뛴다
+        return stats
+
+    occupancy_by_link = _mapping(local_summary.get("urban_link_storage_occupancy"))
+    stopped_by_link = _mapping(local_summary.get("urban_link_storage_stopped"))
+    routing = set(approach_routing(cfg))
+    step_sec = max(float(cfg.simulation.T_u_sec), 1.0e-9)
+    start_step = int(round(float(getattr(state, "time_sec", 0.0)) / step_sec))
+    tau_moving = _ARRIVAL_TAU_MOVING_SEC
+    tau_stopped = _ARRIVAL_TAU_STOPPED_SEC
+    horizon = _ARRIVAL_MAX_HORIZON_SEC
+
+    for link in cfg.network.urban_link_storage_veh:
+        key = str(link)
+        if key not in routing:
+            continue
+        occupied = max(0.0, _as_float(occupancy_by_link.get(link, 0.0)))
+        if occupied <= 0.0:
+            continue
+        stopped = min(occupied, max(0.0, _as_float(stopped_by_link.get(link, 0.0))))
+        moving = max(0.0, occupied - stopped)
+        touched = False
+        for veh, tau in ((moving, tau_moving), (stopped, tau_stopped)):
+            if veh <= 0.0:
+                continue
+            if tau > horizon:
+                stats["dropped_veh"] += veh
+                continue
+            _schedule(buffer, key, start_step + max(1, int(round(tau / step_sec))), veh)
+            touched = True
+        stats["moving_veh"] += moving
+        stats["stopped_veh"] += stopped
+        if touched:
+            stats["links"] += 1.0
+    return stats
+
+
 def restore_urban_release_buffers(state, cfg, local_summary: Mapping[str, Any]) -> dict[str, float]:
     """관측에서 저류의 **이동 중 예약**을 복원한다.
 
@@ -6715,7 +8227,11 @@ def restore_urban_release_buffers(state, cfg, local_summary: Mapping[str, Any]) 
     되돌릴 수 있게 기본은 **꺼짐**이다. `RW_RESTORE_RELEASE_BUFFERS=1` 로 켠다.
     """
     stats = {"links": 0.0, "in_transit_veh": 0.0, "arrived_veh": 0.0}
-    mode = str(os.environ.get("RW_RESTORE_RELEASE_BUFFERS", "")).strip().lower()
+    # 2026-09-04. env 전용이던 게이트를 config 로 올린다 — `urban.release_buffer.restore`.
+    # env 는 폴백으로만 남긴다. 기본은 여전히 off: 이 스위치를 켠 런이 39개 기록 중 0개라
+    # 폐루프 부호가 미검증이고, 2단계(arrival 시더)가 이미 도착 경로를 열었으므로 둘의
+    # 상호작용부터 재야 한다. **게이트를 보이게 만드는 것과 기능을 켜는 것은 다르다.**
+    mode = str(_CFG_STRINGS.get("release_buffer_restore", "")).strip().lower()  # 2026-09-05 env 폴백 삭제
     # off(기본) / sinks(sink 만) / all(전부). 실측상 all 은 더 나쁘다 - 아래 주석 참조.
     if mode in {"", "0", "off", "false"}:
         return stats
@@ -6835,6 +8351,8 @@ def traffic_state_from_vissim(
             local_summary["boundary_inflow_seed"] = seed_boundary_inflow(cfg, state, local_summary)
             # 차로 보정 **뒤에** 잰다 — 실제로 모델이 쓸 τ 가 여기서 확정된다.
             _tau_diagnostics(state, cfg, local_summary)
+        # 잔차를 도착 버퍼에 예약한다. 꺼져 있으면 무동작 = 비트 동일.
+        local_summary["urban_arrival_seed"] = seed_urban_arrival_buffer(state, cfg, local_summary)
         restore_urban_release_buffers(state, cfg, local_summary)
         # 버퍼를 손으로 짓지 않고 plant 가 짓게 하는 경로. 기본 꺼짐(RW_WARMSTART_SEC).
         state.warmstart_diagnostics = warm_start_release_buffers(
@@ -6897,6 +8415,9 @@ def traffic_state_from_vissim(
         # responsible for defining stock-to-dynamics transfer semantics.
         state.physical_projection_input = physical_projection_input
         state.physical_projection_ledger = physical_projection_input["ledger"]
+    # B4c (2026-09-06): 착지 접근로 점유를 plant 링크 재차에서 심는다 (사양 없으면 no-op).
+    _apply_landing_storage(state, cfg, state_json)
+    _apply_gate_onramp_beta(cfg, state_json)
     return state
 
 
@@ -6934,7 +8455,7 @@ def control_to_json_dict(
         "inflow_outflow_allocation": {
             str(k): float(v) for k, v in control.inflow_outflow_allocation.items()
         },
-        "diagnostics": {**dict(control.diagnostics), **_QPRICE_LAST, **_GREENBOX_LAST,
+        "diagnostics": {**dict(control.diagnostics), **_QPRICE_LAST, **_RAMPLOCAL_LAST, **_LEGSPLIT_LAST, **_GREENBOX_LAST,
                         "mainline_plan_enabled": 1.0 if _mainline_plan_enabled() else 0.0,
                         "mainline_share_enabled": 1.0 if str(os.environ.get(
                             "RW_MAINLINE_SHARE_SG", "")).strip().lower() in {"1", "true", "on"} else 0.0},
@@ -9349,6 +10870,8 @@ def main() -> None:
     # 병합 **앞**이어야 한다 — 병합이 beta 를 합산하므로, 0 이어야 할 것이 살아 있으면
     # 합쳐진 movement 로 그 몫이 새어 들어간다.
     runtime_patch_metadata.update(_relabel(apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
+    # B 팔: on* movement 되접기. merge 보다 앞이어야 on_ramp_to_movement 가 빈다.
+    runtime_patch_metadata.update(install_leg_ramp_split_fold(cfg, tuning))
     detector_mapping, _merge_meta = install_merged_movements(cfg, tuning, detector_mapping)
     runtime_patch_metadata.update(_merge_meta)
     # GNE 의 현시 벡터 패치. 컨트롤러 생성 **앞**이어야 한다 — 상류 모듈이
@@ -9356,6 +10879,12 @@ def main() -> None:
     # 갈아끼우는 시점이 그 import 보다 뒤이기만 하면 된다(파이썬은 모듈 객체를 공유한다).
     runtime_patch_metadata.update(install_phase_vector_green_patch(cfg, tuning))
     runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
+    runtime_patch_metadata.update(install_gate_onramp_queue(cfg, tuning))
+    # B3: off-ramp W_out 착지를 무신호 꼬리 sink 로. 병합·용량 뒤에 이름으로 작업한다.
+    runtime_patch_metadata.update(install_offramp_direct_landing(cfg, tuning))
+    runtime_patch_metadata.update(install_offramp_landing_runtime(cfg))
+    runtime_patch_metadata.update(install_landing_storage(cfg, tuning))
+    runtime_patch_metadata.update(install_landing_storage_runtime(cfg))
     # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
     runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))
     # 직전 구간 실측 방류율로 용량을 갱신한다. 가정값(차로수 x 330)을 덮는다 —
@@ -9366,11 +10895,15 @@ def main() -> None:
     # `rollout_far.measured` 가 없으면 no-op 이다.
     runtime_patch_metadata.update(install_measured_far_reservoir_rates(
         cfg, tuning, state_json, args.previous_action_json))
+    runtime_patch_metadata.update(install_observed_backpressure_price(
+        cfg, tuning, state_json, args.previous_action_json))
     # **반드시 위 호출 뒤다.** 이 패치는 설치 시점에
     # `cfg.network.far_ramp_capacity_veh_h` 를 읽으므로 값이 먼저 심겨야 한다.
     runtime_patch_metadata.update(install_far_ramp_capacity_patch(cfg))
     # 경계 out 링크의 램프행 이탈 분할. 대장이 없거나 스위치가 꺼져 있으면 no-op.
     runtime_patch_metadata.update(install_boundary_out_ramp_split(cfg, tuning))
+    # B 팔: W_out 분할의 램프 몫 주입 + 추정기 대체 (분할표가 있어야 한다).
+    runtime_patch_metadata.update(install_leg_ramp_split_runtime(cfg))
     state = traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input,
@@ -9698,11 +11231,6 @@ def main() -> None:
             metadata.update(
                 install_price_worker_bootstrap(controller, state_json, detector_mapping)
             )
-            # 실현 TTT 되먹임을 직전 결정에서 되살린다. solve **앞**이어야 한다 —
-            # `_update_leader_feedback` 가 solve 안에서 돌면서 realized 를 계산한다.
-            metadata.update(
-                restore_leader_feedback_state(controller, tuning, previous_path)
-            )
             if hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)
                 control = result.control
@@ -9715,8 +11243,6 @@ def main() -> None:
                 })
             else:
                 control = controller.decide(state, forecast, previous, cfg)
-            # solve 뒤의 상태를 다음 결정으로 보낸다.
-            capture_leader_feedback_state(controller, metadata)
         elif args.controller == "stackelberg-wu-metered":
             # Same Stackelberg leader path as "stackelberg" but with the follower replaced by
             # WuFaithfulFollower (the new O(n)-local metering-PFO follower). The subclass only

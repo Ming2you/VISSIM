@@ -1011,3 +1011,72 @@ state.py:418                       저류 없는 링크에 220 을 채운다 —
 `outputs/urban_storage_capacity_core17legs4b_20260819.json` 의 **`urban_link_length_km`** 를
 쓰면 추정 없이 정확하다. 지금은 그 식이 죽은 코드라 고칠 필요가 없지만, 되살릴 때는
 반드시 그 필드를 써라(메모리 `vissim-lane-delay-dimension-bug` 와 같은 함정이다).
+
+## 정본 canon_default_20260905 — 되돌리지 마라 (2026-09-05)
+
+`evaluation/configs/canon_default_20260905.json` = canon_default_20260904(ctl_start900 s13 7803.8) + 접근로 귀속 매핑 v2
+(`…core17legs4f_20260903_blindfix20260905b.json`). 그 외 config·옛 매핑·옛 런처는 `_superseded_20260905/` 에 MANIFEST 와
+함께 격리했다. **거기서 꺼내 쓰지 마라.** 팔은 `arm_c0905_*` 처럼 정본 위에 config 키 하나만 얹는다.
+
+### 미드블록 SG 가 COM 적색으로 돌았던 사고
+
+VBS 는 `RW_MAINLINE_SG_ONLY=1` 일 때만 SG 9+ 를 COM 에서 제외한다(`IsControlledSignalGroup = sg<=8`). 그 env 는
+러너가 아니라 `queue_*`/`launch_*` 스크립트가 세우고 있었다. Bash 로 띄운 체인(2026-09-04 16:31 이후 22런)은 env 없이
+돌아 미드블록 횡단(SC5 SG14 = 링크 1220014203 4차로)까지 영구 적색 → 막다른 길 → SC5 회랑 gridlock. `signal_readback.csv`
+의 `900,5,14,RED,RED` 와 런로그 `SIGNAL_MIDBLOCK_COM_SKIPS=0` 이 지문이다.
+
+- 러너가 config `urban.plan.mainline_only` 로 env 를 직접 세운다(키 없으면 1). `RW_QUEUE_COUNTER=1` 도 러너가 세운다.
+- 어댑터 `_switch` 의 env 폴백을 삭제했다 — 스위치는 config 키가 유일한 출처다(없으면 False + `_CFG_MISSING`).
+- **런 시작 후 반드시** 런로그 `SIGNAL_MIDBLOCK_COM_SKIPS>0` 과 readback 에 `(5,14)` 행이 없음을 확인해라.
+- 09-04 16:31 ~ 09-05 17:50 의 런은 전부 이 결함 런이다. 7803 과 비교하지 마라.
+
+## off-ramp 저장고 배수는 잔여-pool 분율이다 (2026-09-05 밤, B3 기각의 원인)
+
+`_drain_offramp_storage`(vendor urban_queue_model.py:542)는 movement 별 방출을 `min(β × 잔여점유, dt·녹색분율·용량)`
+으로 **매 substep 다시** 계산한다. 그래서 한 movement 만 무신호(녹색분율 1)로 두면 신호 movement 가 적색이어도
+저장고 잔여의 β 만큼이 매 substep 빠져나가 저장고가 통째로 비워진다. B3(무신호 `_to_W_RAMP` β 0.46)가 그렇게
+p3 를 무가치하게 만들어 SC1001 이 첫 결정부터 75/21/21/21 → 링크 32 160→735 대 잠김 → off-ramp 10491 본선 역류
+→ TTT 9115.0(기준 7741.5, 본선 +1002). 런은 `evaluation/runs/g2_B3fail_x18_20260905` 에 격리.
+
+**착지 분율은 유입 시점에 갈라라.** `install_offramp_landing_runtime` 이 `schedule_offramp_arrivals` 를 감싸
+직행 몫(D 0.468 · F 0.484, 30결정 실측)을 빼고 나머지만 저장고로 보낸다(`urban.ramp.offramp_direct`).
+
+### 링크 31/68 은 집산로다 — 커넥터 위치(.inpx)를 봐라
+
+```
+31 (SC1001_W_out): 신호유입 10698/10119/10121 @2 · 링크78 유입 10703 @351 · 진출 10704→79 @281
+                    R_D_E 10484 @412 · R_D_W 10480 @735 · FW_E off 10483 @614 (→R_D_W·자유) · FW_W off 10479 @871 (→자유만)
+68 (SC1004_W_out): 신호유입 10629/10625/10633 @2 · R_F_E 10681 @117 · FW_E off 10682 @237 (→R_F_W·자유)
+                    R_F_W 10646 @352 · FW_W off 10645 @573 (→자유만)
+far 실측 평균: 31 신호유입 534 · 직행 1015 · 램프행 824 | 68 신호유입 1378 · 직행 1006 · 램프행 1110
+```
+
+FW_W 쪽 직행 착지는 램프 분기 **하류**라 꼬리 sink, FW_E 쪽은 **상류**라 W_out pool(τ 분할)이다. 10481/10483/10682/10643
+(FW_E 쪽 off-ramp 착지)은 far 대장에 없어 **미측정**이지 0 이 아니다. 링크 78(2차로, 80/76/84 발) 유입도 미측정.
+
+### 오프라인 결정은 실런의 정확한 재현기다 — 팔은 실런 전에 결정 1회로 걸러라
+
+`scripts/offline_harness_20260904.py` 의 `build` + `qb.build_priced_wu_link_controller(cfg, tun)` +
+`controller.decide(state, forecast, previous, cfg)`. g2_RL 의 t=900 실런 결정이 오프라인과 소수점까지 같았다.
+함정 둘: (1) Windows spawn 워커가 `__main__` 을 재실행하므로 스크립트 본문은 `if __name__ == "__main__"` 아래,
+(2) 오프라인엔 가격 워커 부트스트랩이 없어 자가검증이 raise 한다 → `controller.price_parallel_workers = 0`(직렬 ~160 s).
+
+### has_ramps 신호(SC1001·SC1004)의 현시가격 국소항은 정본에서 0 이다
+
+`phase_price.ramp_local_model: "ramp_aware"` 가 없으면 정련이 두 신호를 drain(항등 0)으로 채점해 늘 꼭짓점이다.
+기준의 22/23/71/23 은 plant 에 운 좋게 맞은 p3 꼭짓점이었다(같은 런에서 3번 77/20/21/20 로 뒤집힘). 같은 상태
+t=900 결정: 기준 22/23/71/23 · B4b 21/21/21/75 · 기준+RL 22/23/65/29 · **B4b+RL 21/21/51/45**. 체인 v6 는
+기준 → RL → RL+B4b → uni1800 순이다 (`scripts/chain_gated_20260905.py`, 로그 `evaluation/runs/chain_gated_20260905.log`).
+
+## 램프 신호의 현시가격은 지평 편향이다 — RS (2026-09-06 새벽)
+
+같은 t=1500 상태(g3, 링크 32 = 186)에서 SC1001 의 ramp-aware 국소비용은 p3 42→71 에 −1.31(정보 없음)/−1.71(저장고 심음) veh·h 로
+"서측을 비워라" 고 말하는데, 현시가격 항이 +2.24 로 그것을 덮는다. 가격 가중 0 이면 p3 72/75. 가격 +0.054/s 는 팔로워 롤아웃을
+직접 돌린 값(+0.003/s)의 16배다. 출처는 freeway 가 아니라 **urban** — p3 21→71 의 450 s ΔTTT 가 fw −1.6 / ur +1.8(uni1800 이면 −7.6 / +10.2):
+방류한 차량이 하류 링크·SC1002 큐에 실리고 서측 큐는 도착 seed(314 대)·게이트로 계속 채워져 지평 안에서는 "잡아두기 = 싸다" 로 보인다.
+λ_eff 는 발동하지만(FW_E 4차로, `lane_reduction` 은 default.yaml 1.0, OR_D_E seg5 = 3.0 차로) 임계 위에서 포화라 후보 간 차이가 0 이다.
+in_gne 로 옮겨도 같다(V15: 23/20/42/53). **RS** = `phase_price.ramp_signal_price: "off"` — has_ramps 신호의 prices 를 0 으로 두고
+RL 국소 채점만으로 정련. 세 상태 모두 p3 69~75, t=900 은 기준선 결정과 동일. 어댑터 `_refresh_phase_prices` 대체판, 진단 `phase_price_ramp_signal_zeroed`.
+
+**B4c(착지 접근로 저장고 심기)는 이중계상이다.** 어댑터 도착 seed 가 이동 중 차량을 이미 `in_SC1001_W` 도착버퍼에 넣는다(t=2100 에 314 대).
+"모형이 링크 32 를 1/5 로 본다" 는 정지 큐(49.5)만 본 오독이었다. B 에서 빼라.
