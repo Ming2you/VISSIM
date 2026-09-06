@@ -1657,19 +1657,15 @@ class StackelbergMPCController:
         use_ttt = bool(getattr(self.cfg.mpc, "stackelberg_fallback_guard_use_rollout_ttt", False))
         leader_ttt = self._evaluation_rollout_ttt(leader_best)
         fallback_ttt = self._evaluation_rollout_ttt(fallback_best)
-        # 층2(2026-07-14): β̂ 보정 — leader측 예측 TTT만 낙관편향 배율 β̂로 보정한다.
-        # leader측은 ~50 후보 argmax 선택이라 낙관이 증폭(optimizer's curse)되지만
-        # incumbent(PFO)는 단일 해라 선택편향이 없어 무보정. β̂=None(추정 전)이면 기존 거동.
-        beta_hat: Optional[float] = None
-        if bool(getattr(self.cfg.mpc, "fallback_guard_beta", False)):
-            beta_value = getattr(self, "_beta_hat", None)
-            if beta_value is not None:
-                beta_hat = float(beta_value)
-        leader_ttt_guard = (
-            leader_ttt
-            if (leader_ttt is None or beta_hat is None)
-            else float(leader_ttt) * beta_hat
-        )
+        # 2026-09-03 삭제: β̂ 보정(층2, 2026-07-14). leader측 예측 TTT에만 배율 β̂를 곱해
+        # optimizer's curse 를 보정한다는 것이었는데, 방향이 반대였고(낙관 편향이면 예측
+        # TTT 를 **올려야** 하는데 β̂=0.8724 는 12.8% 내렸다) 크기가 신호의 180배였다.
+        # 실측(qcread_x18_20260903, 37결정): 리더 원시 예측이 인컴번트보다 나쁜 결정이
+        # 26건(70%)인데 β̂ 가 그 26건 **전부**의 부호를 뒤집었고 19건이 채택됐다. 램프
+        # 게이트가 닫힌 결정 1800 이 그중 하나다(리더 764.24 vs 인컴번트 763.34 -> 666.70).
+        # 리더 실제 우위는 26건 합쳐 16.69 veh·h = 목적함수의 0.07% 로 사실상 동률이다.
+        # 되살릴 통로를 남기지 않는다 — 설정 키·진단·추정기까지 같이 지웠다.
+        leader_ttt_guard = leader_ttt
         ttt_available = use_ttt and leader_ttt is not None and fallback_ttt is not None
         if ttt_available:
             # leader가 PFO보다 예측 rollout-TTT 기준 (margin 넘게) 나쁘면 기각, 동률·개선이면 채택.
@@ -1713,12 +1709,6 @@ class StackelbergMPCController:
             "leader_fallback_guard_metric_ttt": float(ttt_available),
             "leader_fallback_guard_leader_rollout_ttt": float(leader_ttt) if leader_ttt is not None else 0.0,
             "leader_fallback_guard_fallback_rollout_ttt": float(fallback_ttt) if fallback_ttt is not None else 0.0,
-            # 층2: β̂ 보정 적용 여부·값·보정된 leader측 비교값(미적용 시 원값 그대로).
-            "leader_fallback_guard_beta_applied": float(beta_hat is not None),
-            "leader_fallback_guard_beta_hat": float(beta_hat) if beta_hat is not None else 0.0,
-            "leader_fallback_guard_leader_rollout_ttt_beta": (
-                float(leader_ttt_guard) if leader_ttt_guard is not None else 0.0
-            ),
             "leader_fallback_guard_ttt_worse": float(ttt_worse),
             "leader_fallback_guard_terminal_worse": float(terminal_worse),
             "leader_fallback_guard_terminal_severe": float(terminal_severe),

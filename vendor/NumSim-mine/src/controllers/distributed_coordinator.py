@@ -717,20 +717,9 @@ class DistributedCoordinator:
         control = self._prepare_grid_control(candidate.control, leader)
         horizon = max(1, min(len(forecast), self.cfg.mpc.horizon_steps))
         horizon_h = self.cfg.simulation.T_c_h * horizon
-        # far(MFD tail) terminal cost 를 이 경로에 흘릴지 (2026-08-20).
-        #
-        # `cfg.mpc.leader_mfd_far_enabled` 는 상류 기본이 True 이고 `mfd_far_cost_to_go` 도
-        # 구현돼 있지만, 이 경로는 `ObjectiveSpec` 을 기본값(`score_mode="raw"`,
-        # `far_enabled=False`)으로 만들어 far 를 **계산조차 하지 않았다** — 실런 진단에
-        # far 키가 0건이다. 가격 팔(`stackelberg_wu_metered.py:2606`)만 쓰고 있었다.
-        #
-        # 새 플래그 기본 False = 비트동일. 켜면 far 가 후보 랭킹 objective 와
-        # guard 비교값에 **양쪽 대칭으로** 들어간다 — 폴백 PFO 도 leader=None 으로
-        # 같은 `_evaluate_grid_candidate` 를 타므로 같은 처리를 받는다.
-        far_enabled = bool(
-            getattr(self.cfg.mpc, "distributed_rollout_far_enabled", False)
-            and getattr(self.cfg.mpc, "leader_mfd_far_enabled", True)
-        )
+        # 2026-09-03 삭제: 팔로워 격자·가드의 far. 2026-08-20 에 기본 꺼짐으로 넣었다가
+        # 2026-08-27 에 parameters.json 전역 기본값으로 켰고, 그 뒤 모든 팔이 설계 결정
+        # 없이 이걸 달고 돌았다. 리더 far(`leader_mfd_far_*`, 상류 설계)는 그대로 둔다.
         point = evaluate_price_point(
             state,
             control,
@@ -741,8 +730,7 @@ class DistributedCoordinator:
                 depth_override=horizon,
                 box_walk=False,
                 split_ttt=True,
-                score_mode="leader" if far_enabled else "raw",
-                far_enabled=far_enabled,
+                score_mode="raw",
                 # abort_above 는 partial_ttt 기준인데 incumbent_obj 에는 far 가 섞인다.
                 # far >= 0 이라 문턱이 느슨해질 뿐이라 조기절단이 덜 걸린다(보수적).
                 abort_above=(
@@ -776,9 +764,7 @@ class DistributedCoordinator:
             * self.cfg.simulation.T_c_h
             * horizon
         )
-        # far 는 spec 이 꺼져 있으면 0.0 이라 기본 경로는 그대로다.
-        far_term = float(getattr(point, "far", 0.0) or 0.0)
-        objective = float(total_ttt + spillback_penalty + far_term)
+        objective = float(total_ttt + spillback_penalty)
         if early_terminated:
             objective = float(max(objective, incumbent_obj + 1.0e-9))
         diag = dict(proxy_diag)
@@ -803,12 +789,8 @@ class DistributedCoordinator:
                 "target_net_inflow" in candidate.label
             ),
             "distributed_response_rollout_active": 1.0,
-            # guard(`stackelberg_mpc._evaluation_rollout_ttt`)가 읽는 값. far 가 꺼져 있으면
-            # far_term=0.0 이라 옛 값과 동일하다. 켜면 leader/fallback 양쪽에 같이 실린다.
-            "distributed_response_rollout_ttt": float(total_ttt + far_term),
-            "distributed_response_rollout_ttt_raw": float(total_ttt),
-            "distributed_response_rollout_far": float(far_term),
-            "distributed_rollout_far_active": float(far_enabled),
+            # guard(`stackelberg_mpc._evaluation_rollout_ttt`)가 읽는 값. 순수 롤아웃 TTT 다.
+            "distributed_response_rollout_ttt": float(total_ttt),
             "distributed_response_rollout_freeway_ttt": float(freeway_ttt),
             "distributed_response_rollout_urban_ttt": float(urban_ttt),
             "distributed_response_terminal_rollout_vehicles": float(
