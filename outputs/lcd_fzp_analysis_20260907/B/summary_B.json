@@ -1,0 +1,74 @@
+{
+ "runs": {
+  "nc": "nc_rampbn_x18_20260901",
+  "g1": "g1_base_x18_20260905",
+  "h11(lcd1000 ref)": "h11_canon0905_lcd1000_x18_20260907"
+ },
+ "ttt_fzp_integral_veh_h": {
+  "nc": 7960.7,
+  "g1": 7748.7,
+  "h11": 8634.6,
+  "g1_minus_nc": -212.0
+ },
+ "delta_by_group_g1_minus_nc": {
+  "freeway 26/2/24": -408.3,
+  "ramp approach 32/31/68/69/70": -71.8,
+  "other connectors": -43.1,
+  "link66": -10.4,
+  "other urban links": 29.6,
+  "corridor SC5-SC101-SC1002-SC105": 32.3,
+  "ramp connectors": 72.8,
+  "link420 (SC105 appr)": 186.9
+ },
+ "link2_delta_by_range": {
+  "0-2100 upstream of R_F_E merges": -132.9,
+  "2100-2900": 2.4,
+  "2900-4100 upstream of off-ramp 10481@4092": -225.3,
+  "4100-4700": 8.0
+ },
+ "top_links_gain": {
+  "2": -347.7,
+  "1220044500 (SC108 NBT approach, input link)": -108.6,
+  "74 (FW_E feeder of link 2)": -105.9,
+  "32": -92.2,
+  "10481 (off-ramp 2@4092->32@1544)": -78.8,
+  "26": -73.0
+ },
+ "top_links_loss": {
+  "420": 186.9,
+  "10482": 52.1,
+  "403": 40.7,
+  "40": 29.6,
+  "30": 28.6,
+  "1220014203": 23.2,
+  "1220008602": 22.3,
+  "24": 12.4
+ },
+ "mechanism_nc_offramp_spillback": {
+  "link32_signal_queue_tail_pos_m_nc": "1270 (pinned at 10491 landing) every bin from 1500 s",
+  "10481_stopped_rows_per_bin_nc": "~3200-3400 (= ~110 veh avg) from 1950 s",
+  "link2_2900-4092_stopped_rows_nc": "478@1950 -> 12697@5250 (=423 stopped veh avg)",
+  "link2_2900-4092_stopped_rows_g1": "0 until 5100; 11@5250",
+  "SC1001_EW_through_green_s": {
+   "native(sg2 EBT)": 48,
+   "g1_p3": "69-75 (21 in 3 bins)"
+  }
+ },
+ "lcd200_ramp_queue_bounds_g1": {
+  "10482_connector_stopped_veh_avg_max": 118,
+  "link32_rampbound_L1_queue_tail_min_pos_m": 896,
+  "L1_queue_len_max_m": 133,
+  "lnChgDist_m": 200,
+  "rampbound_stopped_in_L2L3_zone_1000-1031_vehicles": 71,
+  "rampbound_stopped_L2L3_median_stop_s": 25,
+  "signalbound_trapped_in_L1_780-1030_vehicles": 35,
+  "rc_R_D_W_cap": 140
+ },
+ "lcd1000_ramp_queue_h11": {
+  "link32_rampbound_L1_queue_tail_min_pos_m": 382,
+  "L1_queue_len_max_m": 647,
+  "rampbound_stopped_L2L3_rows_1800-5400": 18662,
+  "link32_count_max": 531,
+  "link32_signal_queue_tail_min_pos_m": 0
+ }
+}

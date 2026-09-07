@@ -85,7 +85,50 @@ FRAG = {
                             ("boundary_out", OD([("ramp_split_json", "outputs/boundary_out_ramp_split_20260905_measured.json")]))]))]),
     "uni1800": OD([("urban", OD([("capacity", load("arm_c0905_uni1800_20260905")["urban"]["capacity"])]))]),
     "cap": OD([("urban", OD([("ramp", OD([("local_queue_cap", True)]))]))]),
+    "PW10": OD([("phase_price", OD([("weight", 0.10)]))]),
+    "PW50": OD([("phase_price", OD([("weight", 0.50)]))]),
+    # LG: 리더 폴백 가드 — 리더 후보가 폴백보다 0.2% 이상 좋아야 채택(잡음성 미터 폐쇄 차단). 09-05 오프라인 검증.
+    "LG": OD([("mpc", OD([("stackelberg_fallback_guard_min_ttt_gain_frac", 0.002)]))]),
+    # MF1 (2026-09-07): METER 할당의 폐쇄 벌점을 커넥터 수요로. 요청<767 이면 2차로 10482(수요 755)를 닫고 1차로에 몰아주던 b1 사고(링크 32 238→496) 수정.
+    "MF1": OD([("actuation", OD([("real_world_ramp_metering", OD([("close_penalty_mode", "demand")]))]))]),
+    # V2 (2026-09-06): 지속 방류 산출물 v2b — 다음 링크가 램프 커넥터/본선이면 방류에서 제외(중간 램프 유출 부풀림 제거: 32 p3 5520→3360, 40 p2 2035→313).
+    "V2": OD([("urban", OD([("capacity", OD([("sustained_json", "outputs/lane_group_sustained_h0_20260906_v2.json")]))]))]),
+    # JOINT (옵션③): 회랑 SC1002+SC105 를 한 단위로 결합 정련(J = L_A + L_B, 묶음 안 가격 가중 0, 후보마다 ctx 재계산으로 B 도착이 A 계획을 따름).
+    "JOINT": OD([("phase_price", OD([("joint_groups", [["SC1002", "SC105"]]), ("joint_price_weight", 0.0), ("joint_rounds", 6)]))]),
+    # OWN (옵션②): 가격의 own 항을 전역 롤아웃 states 의 자기 몫(큐+접근 점유+게이트 큐)으로 → price = ΔG_others. 직렬 롤아웃.
+    "OWN": OD([("phase_price", OD([("own_from_rollout", True)]))]),
+    # TS (옵션①): 2단 정련 — 가중 0 정련으로 국소 균형 plan A → plan A 기준으로 가격 재계산 → plan A 를 ref 로 가격 정련.
+    "TS": OD([("phase_price", OD([("two_stage", True)]))]),
+    # PW25 (옵션④ 진단): 현시가격 가중 0.25 — 물리 수정 위에서 가격 세금을 1/4 로. P0 는 아님.
+    "PW25": OD([("phase_price", OD([("weight", 0.25)]))]),
+    # SAT3 (2026-09-06): 증거(08-22) 밖 차로군도 지속 산출물에서 씨앗(링크 66 p2 등) + 차로군 배분 대상에 boundary_in/out 포함
+    #   (링크 32 SC1001 W = boundary_in, 66 SC1004 N = boundary_out 이 perimeter 라 빠져 5400·2481 이 movement 413·206 에 안 닿았다).
+    "SAT3": OD([("urban", OD([("capacity", OD([("lane_group_kinds", ["internal", "boundary_in", "boundary_out"])]))]))]),
+    # CAP (2026-09-06): 실측 방류 추정치를 링크 기하(차로군 차로×1800 합)로 캡. h4 sat_est_66 1774→4586 폭주(러닝맥스가 스파이크를 받음).
+    "CAP": OD([("urban", OD([("capacity", OD([("est_cap_geometric", True)]))]))]),
+    # IG (진단): 현시가격을 GNE 반복 안에서 재계산(Jacobi, 이웃 동시 이동). 편미분 가격이 SC1002·SC105 조정을 못 푸는지 본다. demand kwarg 수정은 install_in_gne_demand_fix.
+    "IG": OD([("phase_price", OD([("in_gne", True), ("in_gne_rounds", 2), ("in_gne_demand_fix", True)]))]),
+    # H9 (진단): 예측 지평 3→9 스텝. 현시가격의 ΔG 가 지평 안 완료차량만 세어 0 이 되는지(지평이 짧아서인지) 본다.
+    "H9": OD([("mpc", OD([("horizon_steps", 9)]))]),
+    # SAT2 (2026-09-06): SAT 위에 씨앗을 lcd1000 무제어 차량 레코드의 큐 창 지속 방류(차로군별)로, 큐가 서 있으면 관측을 EWMA 로 바로 용량에 반영.
+    #   08-22 증거(상위 N 주기, 다른 망)는 막힌 직진군을 2~5배 과대평가(SC1002 E 직진 1573 vs 640) → 지형 평평 → p3 몰빵. plant 값이면 p4 47 이 0.78 앞선다.
+    "SAT2": OD([("urban", OD([("capacity", OD([("seed", "sustained"), ("sustained_json", "outputs/lane_group_sustained_h0_20260906.json"), ("sustained_stat", "free"), ("sustained_min_windows", 6), ("update", "queued_ewma"), ("ewma_alpha", 0.3), ("queued_stopped_min", 6.0)]))]))]),
+    # PG (2026-09-06): 현시가격 유의성 게이트. |ΔG_i| < max(0.25·|ΔL_i|, 0.02 veh·h) 이면 그 현시 가격 0 — 전역이 못 본 외부효과에 −ΔL 세금을 매기지 않는다.
+    #   ΔG≈0 이면 정련 목적 = L − L_lin(곡률 잔차) 라 한 걸음도 못 가던 것(SC1002 p4 +6: 국소 −0.207 인데 가격항 +0.332)을 푼다. 가격 자체는 켜 둔다.
+    "PG": OD([("phase_price", OD([("significance_rel", 0.25), ("significance_abs_veh_h", 0.02)]))]),
+    # QB (2026-09-06): 정지선 큐의 movement 귀속을 β(목적지 분율)로. detector_mapping weight(차로/균등)는 "어느 차로에 있나" 라 좌회전 대기차가 직진 큐로 읽힌다.
+    "QB": OD([("urban", OD([("queue", OD([("attribution", "beta")]))]))]),
+    # SAT (2026-09-06): 포화 방출률. 씨앗 = clip(native 관측 최대 방류, 0.3~1.0×차로×1800) 차로군별, 배분 = (정지선 링크, 현시) 차로군 단위,
+    #   온라인 갱신 = 이탈 계수(러너가 RW_QUEUE_WINDOW=1 을 config 로 세움) 감쇠 러닝맥스. 종전 206.5/차로(흐름을 용량으로 오인)·uni1800(전역 1800, +1609) 둘 다 아님.
+    "SAT": OD([("urban", OD([("capacity", OD([("measured", True), ("seed", "observed"), ("observed_clip", [0.2, 1.0]), ("seed_missing_frac", 0.5), ("queued_links_json", "outputs/link_queue_class_h0_20260906.json"), ("unqueued_geometric_frac", 1.0), ("distribute", "lane_group"), ("fallback", "geometric"), ("fallback_frac", 1.0), ("decay", 0.98)]))]))]),
     "lam0": OD([("dual", load("arm_c0905_lam0_20260905")["dual"])]),
+    # METER (2026-09-06): 램프 미터 액추에이션 전달함수. 저수지 rate → 커넥터 green 조합(차로수·n(g) 실측)으로 배정,
+    #   실현값을 control.ramp_metering 에 되씀. 이전엔 균등분할 + round(10·rate/900) 라 plant 미터가 {0, ≥600~1000, 열림} 3단계였다.
+    "METER": OD([("actuation", OD([("real_world_ramp_metering", OD([("allocation", "measured_table"), ("write_back_realized", True), ("close_below_frac", 0.5),
+                                                                   ("close_penalty_vph", 100.0), ("demand_decay", 0.9), ("demand_floor_vph", 150.0),
+                                                                   ("demand_prior_vph", OD([("RM_C10480", 300), ("RM_C10482", 800), ("RM_C10646", 800), ("RM_C10644", 840), ("RM_C10639", 200), ("RM_C10681", 300), ("RM_C10490", 360), ("RM_C10484", 550)])),
+                                                                   ("meter_lanes", OD([("RM_C10482", 2), ("RM_C10681", 2)])),
+                                                                   ("per_lane_veh_per_cycle", OD([("2", 0.71), ("3", 0.99), ("4", 1.44), ("5", 1.89), ("6", 2.34), ("7", 2.79), ("8", 3.24), ("9", 3.69), ("10", 4.20)]))]))]))]),
 }
 
 

@@ -91,6 +91,24 @@ if ($Tuning -ne "") {
 # VBS 가 state JSON 에 queue_counters 진단을 싣는 스위치일 뿐 어댑터는 읽지 않는다(제어 무영향).
 if ([string]::IsNullOrWhiteSpace($env:RW_QUEUE_COUNTER)) { $env:RW_QUEUE_COUNTER = "1" }
 "RW_QUEUE_COUNTER=$($env:RW_QUEUE_COUNTER)"
+# 2026-09-06. RW_QUEUE_WINDOW(VBS 가 link_departures_window 를 state 에 싣는 스위치)를 config(urban.capacity.measured)로 러너가 세운다.
+# 실측 방출률 갱신(install_measured_movement_capacity)의 유일한 입력인데 env 뒤에 있어 어떤 런에도 없었다.
+if ($Tuning -ne "") {
+  try {
+    $tunJson2 = Get-Content -Raw -Encoding UTF8 (Resolve-RepoPath $Tuning) | ConvertFrom-Json
+    $measured = $null
+    if ($tunJson2.urban -and $tunJson2.urban.capacity) { $measured = $tunJson2.urban.capacity.measured }
+    if ($measured) {
+      $env:RW_QUEUE_WINDOW = "1"
+      "RW_QUEUE_WINDOW=1 (config urban.capacity.measured=true)"
+    } else {
+      if ([string]::IsNullOrWhiteSpace($env:RW_QUEUE_WINDOW)) { $env:RW_QUEUE_WINDOW = "0" }
+      "RW_QUEUE_WINDOW=$($env:RW_QUEUE_WINDOW) (config urban.capacity.measured 꺼짐/없음)"
+    }
+  } catch {
+    "RW_QUEUE_WINDOW 미설정 (config 읽기 실패: $($_.Exception.Message))"
+  }
+}
 # 2026-08-27. -Tuning 기본값을 없앤다. 종전 기본값
 # (real_world_modi_pstack_distributed_core17legs4b_20260819.json) 은 정본 통합 때
 # 격리 폴더로 옮겨져 더는 존재하지 않는다. 그런데 어댑터의 load_optional_json 은

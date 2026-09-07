@@ -1728,6 +1728,10 @@ MOVEMENT_MERGE_PLAN_JSON = WORKSPACE_ROOT / "outputs/movement_merge_plan_2026082
 
 
 # 가격 국소항 패치의 마지막 결정 진단. 스위치가 꺼져 있으면 계속 비어 있다.
+_SUS_SIGS: dict = {}  # 2026-09-06 SAT v3: 지속 산출물의 정지선 링크 -> 신호 (증거 밖 차로군 배분용)
+_SUS_LANES: dict = {}
+_LG_KINDS: set = set()  # 차로군 배분 대상 movement kind (config urban.capacity.lane_group_kinds)
+_LTO: dict = {}  # detector mapping link_to_origins (정본 접근로 귀속)
 _QPRICE_LAST: dict[str, float] = {}
 _RAMPLOCAL_LAST: dict[str, float] = {}
 _LEGSPLIT_LAST: dict[str, float] = {}
@@ -2191,6 +2195,8 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
 
     def patched(self, state, forecast, previous) -> None:
         follower = self.nash_solver
+        follower._joint_ctx = (self, forecast, previous)
+        follower._two_stage_ctx = (self, forecast, previous)
         if not isinstance(follower, _Follower):
             return original(self, state, forecast, previous)
         # ctx 는 `phase_price_local_cost_model` 이 "phased" 여야 만들어진다. 상류는 그 값을
@@ -2299,6 +2305,124 @@ def install_phased_price_local(controller, tuning: Mapping[str, Any]) -> dict[st
         })
 
     cls._refresh_phase_prices = patched
+
+    # 옵션③ 회랑 결합 정련 — 팔로워 apply_phase_price_refinement 뒤에 묶음 패스 (다른 래퍼 위에 겹쳐도 된다).
+    _fol_cls_j = None
+    try:
+        from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _fol_cls_j
+    except Exception:  # noqa: BLE001
+        _fol_cls_j = None
+    if _fol_cls_j is not None and not getattr(_fol_cls_j, "_joint_wrapped", False):
+        _prev_refine_j = _fol_cls_j.apply_phase_price_refinement
+
+        def _joint_refine(self, control, state, demand=None):
+            n = _prev_refine_j(self, control, state, demand)
+            jctx = getattr(self, "_joint_ctx", None)
+            controller = jctx[0] if jctx else None
+            groups = list(getattr(controller, "phase_price_joint_groups", []) or []) if controller is not None else []
+            if not groups or demand is None:
+                return n
+            from src.models.state import phase_key as _pk
+            MP = ("p1", "p2", "p3", "p4")
+            w_j = float(getattr(controller, "phase_price_joint_price_weight", 0.0) or 0.0)
+            rounds = max(1, int(getattr(controller, "phase_price_joint_rounds", 6) or 6))
+            prices = self.signal_phase_price or {}
+            refs = self.signal_phase_price_ref or {}
+            steps = tuple(getattr(self.cfg.mpc, "phase_price_exchange_steps_sec", (6.0, 2.0)))
+            total_moved = 0.0
+            for group in groups:
+                group = [g for g in group if any(k.startswith(g + "_p") for k in control.green_times)]
+                if len(group) < 2:
+                    continue
+                def _vec(sig):
+                    return {p: float(control.green_times.get(_pk(sig, p), 0.0)) for p in MP}
+                def _set(sig, vec):
+                    for p in MP:
+                        k = _pk(sig, p)
+                        if k in control.green_times:
+                            control.green_times[k] = float(vec[p])
+                def _J():
+                    self._phase_ctx_cache = None
+                    ctx = self._phase_refine_context(state, control, demand)
+                    tot = 0.0
+                    for sig in group:
+                        vec = _vec(sig)
+                        setup = self._phase_refine_signal_setup(sig, state, ctx) if ctx else None
+                        loc = self._phase_local_cost_phased(sig, vec, setup, ctx) if setup is not None else self.phase_shape_local_cost(sig, vec, state)
+                        pr = prices.get(sig) or {}; ref = refs.get(sig) or vec
+                        ext = sum(float(pr.get(p, 0.0)) * (float(vec.get(p, 0.0)) - float(ref.get(p, 0.0))) for p in MP)
+                        tot += loc + w_j * ext
+                    return tot
+                best_J = _J()
+                start = {sig: _vec(sig) for sig in group}
+                for _r in range(rounds):
+                    moved = False
+                    for sig in group:
+                        base = _vec(sig)
+                        for step in steps:
+                            for cand in self._phase_exchange_candidates(sig, base, float(step)):
+                                _set(sig, cand)
+                                val = _J()
+                                if val < best_J - 1.0e-9:
+                                    best_J = val; base = dict(cand); moved = True
+                                else:
+                                    _set(sig, base)
+                    if not moved:
+                        break
+                for sig in group:
+                    fin = _vec(sig)
+                    mv = sum(abs(fin[p] - start[sig][p]) for p in MP)
+                    total_moved += mv
+                    control.diagnostics["wu_joint_moved_sec_%s" % sig] = float(mv)
+                    for p in MP:
+                        control.diagnostics["wu_joint_final_%s_%s" % (sig, p)] = float(fin[p])
+                control.diagnostics["wu_joint_objective"] = float(best_J)
+            control.diagnostics["wu_joint_moved_total_sec"] = float(total_moved)
+            self._phase_ctx_cache = None
+            return n
+
+        _fol_cls_j.apply_phase_price_refinement = _joint_refine
+        _fol_cls_j._joint_wrapped = True
+
+    # 옵션① 2단 정련 — 팔로워 클래스의 apply_phase_price_refinement 를 감싼다.
+    _fol_cls = None
+    try:
+        from src.controllers.priced_wu_link_controller import LinkAgentWuFollower as _fol_cls
+    except Exception:  # noqa: BLE001
+        _fol_cls = None
+    if _fol_cls is not None and not getattr(_fol_cls, "_two_stage_wrapped", False):
+        _orig_refine = _fol_cls.apply_phase_price_refinement
+
+        def _two_stage_refine(self, control, state, demand=None):
+            ctx = getattr(self, "_two_stage_ctx", None)
+            controller = ctx[0] if ctx else None
+            if not ctx or not bool(getattr(controller, "phase_price_two_stage", False)):
+                return _orig_refine(self, control, state, demand)
+            _, forecast, previous = ctx
+            w = float(self.signal_phase_price_weight)
+            # 1단: 가격 0 → plan A
+            self.signal_phase_price_weight = 0.0
+            n_a = _orig_refine(self, control, state, demand)
+            plan_a = dict(control.green_times)
+            for key, val in plan_a.items():
+                control.diagnostics["wu_two_stage_planA_%s" % key] = float(val)
+            # 가격 재계산: 기준 = plan A
+            prev_a = previous.copy()
+            prev_a.green_times = dict(previous.green_times)
+            prev_a.green_times.update(plan_a)
+            controller._refresh_phase_prices(state, forecast, prev_a)
+            self._two_stage_ctx = ctx  # refresh 가 덮어써도 유지
+            self.signal_phase_price_weight = w
+            # 2단: plan A 에서 가격 정련 (ref = plan A)
+            n_b = _orig_refine(self, control, state, demand)
+            moved = sum(abs(float(control.green_times.get(k, 0.0)) - float(v)) for k, v in plan_a.items())
+            control.diagnostics["wu_two_stage_stageA_refined"] = float(n_a)
+            control.diagnostics["wu_two_stage_stageB_refined"] = float(n_b)
+            control.diagnostics["wu_two_stage_moved_from_planA_sec"] = float(moved)
+            return n_b
+
+        _fol_cls.apply_phase_price_refinement = _two_stage_refine
+        _fol_cls._two_stage_wrapped = True
     return {"price_local_phased_enabled": 1.0}
 
 
@@ -3268,6 +3392,8 @@ def _apply_gate_onramp_beta(cfg, state_json: Mapping[str, Any]) -> None:
             share = clamp(v / gate_v, 0.0, 0.85)
         else:
             share = _as_float(sp.get("beta"), _as_float(meta.get("default_share"), 0.0))
+        # 2026-09-07: 관측 폴백(게이트 키 없음 — in_SC1004_W 는 게이트맵이 링크 69 를 미배정으로 둬 항상 폴백) 을 진단에 남긴다.
+        _LEGSPLIT_LAST["gate_onramp_beta_fallback_%s" % name] = 0.0 if (gate_v > 1.0 and v >= 0.0) else 1.0
         shares[name] = share
         _LEGSPLIT_LAST["gate_onramp_beta_%s" % name] = float(share)
     for origin, names in by_origin.items():
@@ -3275,6 +3401,18 @@ def _apply_gate_onramp_beta(cfg, state_json: Mapping[str, Any]) -> None:
         if not kept_here:
             continue
         tot_kept = sum(shares[n] for n in kept_here)
+        # 2026-09-07 수정: origin 합 상한. kept 가 둘(SC1001 onW 10482 + onE 10490)이면 개별 0.85 클램프만으로는 합이 1.7 까지 가고
+        #   형제 β = b/tot_other·(1−tot_kept) 가 음수가 된다(h7 상태 21/37 에서 Σ>1, t=4500 재현 E_SC1002 β −0.22 → vendor 가
+        #   β 를 그대로 곱해 음수 도착). 합을 개별 상한과 같은 0.85 로 비례 축소한다. 진단 gate_onramp_beta_clamped 는 프로세스 누적.
+        cap_total = 0.85
+        if tot_kept > cap_total:
+            scale = cap_total / tot_kept
+            for n in kept_here:
+                shares[n] = shares[n] * scale
+                _LEGSPLIT_LAST["gate_onramp_beta_%s" % n] = float(shares[n])
+            _LEGSPLIT_LAST["gate_onramp_beta_clamped"] = float(_LEGSPLIT_LAST.get("gate_onramp_beta_clamped", 0.0)) + 1.0
+            tot_kept = cap_total
+        _LEGSPLIT_LAST["gate_onramp_beta_total_%s" % origin] = float(tot_kept)
         others = [n for n in names if n not in shares]
         tot_other = sum(max(0.0, _as_float(specs[n].get("beta"), 0.0)) for n in others)
         for n in kept_here:
@@ -3965,7 +4103,118 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
     seed_mode = str(section.get("seed", "plant")).strip().lower()
     base_caps = dict(getattr(cfg.network, "movement_capacity_by_movement_veh_h", {}) or {})
     seed: dict[str, float] = {}
-    if seed_mode == "geometric":
+    # 2026-09-06 차로군(정지선 링크, 현시) 씨앗. observed 모드와 lane_group 배분이 쓴다.
+    seed_lg: dict[tuple[str, str], float] = {}
+    _nema = {"NBT": "p1", "SBT": "p1", "NBL": "p2", "SBL": "p2", "EBT": "p3", "WBT": "p3", "EBL": "p4", "WBL": "p4"}
+    if seed_mode == "observed":
+        clip_lo, clip_hi = 0.2, 1.0
+        _clip = section.get("observed_clip")
+        if isinstance(_clip, (list, tuple)) and len(_clip) == 2:
+            clip_lo, clip_hi = float(_clip[0]), float(_clip[1])
+        missing_frac = clamp(_as_float(section.get("seed_missing_frac"), 0.5), 0.0, 1.0)
+        # 큐가 서는 접근로만 관측 최대를 용량으로 믿는다. 무제어(h0)에서 큐가 안 서던 접근로의 관측 최대는
+        # 수요이지 용량이 아니라(과소 → 유령 큐) 물리값(기하)을 쓴다. 분류표 = outputs/link_queue_class_*.json.
+        queued: set[str] | None = None
+        _qpath = str(section.get("queued_links_json", "") or "")
+        if _qpath:
+            try:
+                _qdoc = json.loads((WORKSPACE_ROOT / _qpath).read_text(encoding="utf-8"))
+                queued = {str(x) for x in (_qdoc.get("queued_links") or [])}
+            except (OSError, ValueError):
+                queued = None
+        unqueued_frac = clamp(_as_float(section.get("unqueued_geometric_frac"), 1.0), 0.0, 1.0)
+        for g in groups:
+            link = str(g.get("stopline_link", ""))
+            pid = _nema.get(str(g.get("sg_name", "")).upper())
+            if not link or pid is None:
+                continue
+            geo = _as_float(g.get("geometric_veh_h"), 0.0)
+            if geo <= 0.0:
+                geo = max(1.0, _as_float(g.get("lanes_from_heads"), 1.0)) * 1800.0
+            obs_top = _as_float(g.get("observed_top_veh_h"), 0.0)
+            if queued is not None and link not in queued:
+                val = geo * unqueued_frac
+            else:
+                val = clamp(obs_top, clip_lo * geo, clip_hi * geo) if obs_top > 0.0 else geo * missing_frac
+            seed[link] = seed.get(link, 0.0) + val
+            seed_lg[(link, pid)] = seed_lg.get((link, pid), 0.0) + val
+    elif seed_mode == "sustained":
+        # 2026-09-06 SAT v2: lcd1000 무제어 차량 레코드의 (정지선 링크, 현시) 지속 방류(큐 창 중앙). 상한 = 기하(차로×1800).
+        # 큐가 안 서던 링크(queued_links_json)는 기하값. 지속 자료가 없는 차로군은 기하 × seed_missing_frac.
+        _spath = str(section.get("sustained_json", "outputs/lane_group_sustained_h0_20260906.json") or "")
+        _stat = str(section.get("sustained_stat", "free") or "free").strip().lower()
+        _min_w = int(_as_float(section.get("sustained_min_windows"), 6.0))
+        missing_frac = clamp(_as_float(section.get("seed_missing_frac"), 0.5), 0.0, 1.0)
+        unqueued_frac = clamp(_as_float(section.get("unqueued_geometric_frac"), 1.0), 0.0, 1.0)
+        queued = None
+        _qpath = str(section.get("queued_links_json", "") or "")
+        if _qpath:
+            try:
+                queued = {str(x) for x in (json.loads((WORKSPACE_ROOT / _qpath).read_text(encoding="utf-8")).get("queued_links") or [])}
+            except (OSError, ValueError):
+                queued = None
+        sus: dict[tuple[str, str], float] = {}
+        _SUS_SIGS.clear(); _SUS_LANES.clear()
+        _LG_KINDS.clear(); _LG_KINDS.update({str(x) for x in (section.get("lane_group_kinds") or ["internal"])})
+        _LTO.clear()
+        try:
+            _dmp = str(tuning.get("detector_mapping_json", "") or "")
+            if _dmp:
+                _LTO.update({str(k): list(v) for k, v in _mapping(json.loads((WORKSPACE_ROOT / _dmp).read_text(encoding="utf-8")).get("link_to_origins")).items()})
+        except (OSError, ValueError, TypeError):
+            pass
+        try:
+            _sdoc = json.loads((WORKSPACE_ROOT / _spath).read_text(encoding="utf-8"))
+            for _lk, _e in _mapping(_sdoc.get("links")).items():
+                _SUS_SIGS[str(_lk)] = str(_mapping(_e).get("signal", ""))
+                for _pid, _g in _mapping(_mapping(_e).get("groups")).items():
+                    _gm = _mapping(_g)
+                    _SUS_LANES[(str(_lk), str(_pid))] = max(1, len(list(_gm.get("lanes") or [])))
+                    # 우선순위: free(큐 있고 하류 자유, 창 >= min) → queued(창 >= min) → all(창 >= min). 하류가 막힌 창은 포화가 아니다.
+                    _v = None
+                    # "all"(전체 창 중앙)은 수요이지 용량이 아니라 씨앗으로 쓰지 않는다 — free/queued 만, 창 수 >= min.
+                    for _key, _wkey in (("free", "windows_free"), ("queued", "windows_queued")):
+                        if _stat == "queued" and _key == "free":
+                            continue
+                        _cand = _gm.get("sustained_%s_veh_h" % _key)
+                        if _cand is not None and _as_float(_cand, 0.0) > 0.0 and int(_as_float(_gm.get(_wkey), 0.0)) >= _min_w:
+                            _v = _as_float(_cand, 0.0)
+                            break
+                    if _v is not None:
+                        sus[(str(_lk), str(_pid))] = _v
+        except (OSError, ValueError):
+            sus = {}
+        for g in groups:
+            link = str(g.get("stopline_link", ""))
+            pid = _nema.get(str(g.get("sg_name", "")).upper())
+            if not link or pid is None:
+                continue
+            geo = _as_float(g.get("geometric_veh_h"), 0.0)
+            if geo <= 0.0:
+                geo = max(1.0, _as_float(g.get("lanes_from_heads"), 1.0)) * 1800.0
+            _floor = clamp(_as_float(section.get("sustained_floor_frac"), 0.15), 0.0, 1.0) * geo
+            if queued is not None and link not in queued:
+                val = geo * unqueued_frac
+            elif (link, pid) in sus:
+                val = clamp(sus[(link, pid)], _floor, geo)
+            else:
+                val = geo * missing_frac
+            seed[link] = seed.get(link, 0.0) + val
+            seed_lg[(link, pid)] = seed_lg.get((link, pid), 0.0) + val
+        # SAT v3: 증거(08-22) 차로군 목록에 없는 (링크, 현시) 도 지속 산출물에서 씨앗을 만든다. config 게이트(`sustained_extra_groups`) — 없으면 비트 동일.
+        _extra_on = _is_enabled_value(section.get("sustained_extra_groups"))
+        for (_lk, _pid), _v in (sus.items() if _extra_on else ()):
+            if (_lk, _pid) in seed_lg:
+                continue
+            _geo = float(_SUS_LANES.get((_lk, _pid), 1)) * 1800.0
+            _fl = clamp(_as_float(section.get("sustained_floor_frac"), 0.15), 0.0, 1.0) * _geo
+            if queued is not None and _lk not in queued:
+                _val = _geo * unqueued_frac
+            else:
+                _val = clamp(_v, _fl, _geo)
+            seed[_lk] = seed.get(_lk, 0.0) + _val
+            seed_lg[(_lk, _pid)] = _val
+    elif seed_mode == "geometric":
         for g in groups:
             link = str(g.get("stopline_link", ""))
             if link:
@@ -3985,6 +4234,19 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
                 seed[link] = total
 
     # 그 링크 차로군의 직전 구간 녹색초. 커밋한 계획을 쓴다(러너가 그대로 적용한다).
+    # 2026-09-06 est 상한 = 링크 기하 용량(차로군 합). 관측 스파이크(h4 sat_est_66 4586)를 물리 위로 못 올린다.
+    _cap_geo: dict[str, float] = {}
+    if _is_enabled_value(section.get("est_cap_geometric")):
+        for g in groups:
+            _lk = str(g.get("stopline_link", ""))
+            _geo = _as_float(g.get("geometric_veh_h"), 0.0)
+            if _geo <= 0.0:
+                _geo = max(1.0, _as_float(g.get("lanes_from_heads"), 1.0)) * 1800.0
+            if _lk:
+                _cap_geo[_lk] = _cap_geo.get(_lk, 0.0) + _geo
+        for (_lk2, _pid2), _n in _SUS_LANES.items():
+            if _lk2 not in _cap_geo:
+                _cap_geo[_lk2] = _cap_geo.get(_lk2, 0.0) + float(_n) * 1800.0
     green_sec = _measured_green_sec_by_link(cfg, groups, previous_path)
     interval = _as_float(state_json.get("control_interval_sec"), 150.0)
     est: dict[str, float] = {}
@@ -3997,17 +4259,81 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
             obs = departures[link] / (g * cycles) * 3600.0
         carried = decay * prev_est.get(link, seed.get(link, 0.0))
         value = max(obs, carried)
+        # 2026-09-06 SAT v2: 큐가 서 있는 창의 관측은 수요가 아니라 용량이다 — 그때는 러닝맥스가 아니라 EWMA 로 곧바로 따라간다.
+        if str(section.get("update", "")).strip().lower() == "queued_ewma" and obs > 0.0:
+            _stopped_now = _as_float(_mapping(local.get("link_stopped_counts")).get(link), 0.0)
+            if _stopped_now >= _as_float(section.get("queued_stopped_min"), 6.0):
+                _alpha = clamp(_as_float(section.get("ewma_alpha"), 0.3), 0.0, 1.0)
+                _prev = prev_est.get(link, seed.get(link, 0.0))
+                value = _alpha * obs + (1.0 - _alpha) * _prev
+                observed_used += 1
+        if _cap_geo.get(link, 0.0) > 0.0:
+            value = min(value, _cap_geo[link])
         if value > 0.0:
             est[link] = value
             if obs >= carried and obs > 0.0:
                 observed_used += 1
 
     caps = dict(getattr(cfg.network, "movement_capacity_by_movement_veh_h", {}) or {})
-    applied = _distribute_group_capacity_to_movements(cfg, groups, est, caps)
+    distribute_mode = str(section.get("distribute", "approach")).strip().lower()
+    if distribute_mode == "lane_group" and seed_lg:
+        # 링크 총량 est 를 차로군엔 씨앗 비율로 나눈다(온라인 갱신은 링크 단위 이탈 계수라 차로군을 못 가른다).
+        est_lg: dict[tuple[str, str], float] = {}
+        for (link, pid), sv in seed_lg.items():
+            tot = sum(v for (lk, _p), v in seed_lg.items() if lk == link)
+            if link in est and tot > 0.0:
+                est_lg[(link, pid)] = float(est[link]) * float(sv) / float(tot)
+        applied = _distribute_lane_group_capacity_to_movements(cfg, groups, est_lg, caps)
+        # 증거(차로군)가 없는 internal movement: 접근로 링크가 무제어에서 큐가 안 서면 물리값(차로×1800), 큐가 서면
+        # 현재값 유지(측정이 없으니 과대 위험 — 온라인 이탈 계수가 올려 준다). origin 링크 매핑이 없는(비핵심 신호) 것은 그대로.
+        fallback_mode = str(section.get("fallback", "")).strip().lower()
+        if fallback_mode == "geometric":
+            fb_frac = clamp(_as_float(section.get("fallback_frac"), 1.0), 0.0, 1.0)
+            lanes_src = WORKSPACE_ROOT / "outputs/movement_lanes_core17legs4b_20260821.json"
+            lanes_map = {}
+            try:
+                lanes_map = _mapping(json.loads(lanes_src.read_text(encoding="utf-8")).get("movement_lanes"))
+            except (OSError, ValueError):
+                lanes_map = {}
+            covered_links = {lk for (lk, _p) in seed_lg}
+            queued_all: set[str] = set()
+            if _qpath:
+                try:
+                    queued_all = {str(x) for x in (json.loads((WORKSPACE_ROOT / _qpath).read_text(encoding="utf-8")).get("queued_links") or [])}
+                except (OSError, ValueError):
+                    queued_all = set()
+            origin_links_all = _origin_links_by_signal()
+            fb_applied = 0
+            for m, spec in (cfg.network.urban_movements or {}).items():
+                if str(spec.get("kind", "")) != "internal":
+                    continue
+                links = origin_links_all.get(str(spec.get("signal", "")), {}).get(str(spec.get("origin", "")), set())
+                if not links or (links & covered_links):
+                    continue
+                if links & queued_all:
+                    continue
+                lanes_m = _as_float(lanes_map.get(m), 0.0)
+                if lanes_m <= 0.0:
+                    lanes_m = 1.0
+                caps[m] = float(lanes_m) * 1800.0 * fb_frac
+                fb_applied += 1
+            applied += fb_applied
+            meta_fb = float(fb_applied)
+        else:
+            meta_fb = 0.0
+    else:
+        applied = _distribute_group_capacity_to_movements(cfg, groups, est, caps)
+        meta_fb = 0.0
     if applied:
         setattr(cfg.network, "movement_capacity_by_movement_veh_h", caps)
     meta = {
         "measured_capacity_enabled": 1.0,
+        "measured_capacity_seed_mode_observed": 1.0 if seed_mode == "observed" else 0.0,
+        "measured_capacity_seed_mode_sustained": 1.0 if seed_mode == "sustained" else 0.0,
+        "measured_capacity_est_cap_geometric": 1.0 if _cap_geo else 0.0,
+        "measured_capacity_update_queued_ewma": 1.0 if str(section.get("update", "")).strip().lower() == "queued_ewma" else 0.0,
+        "measured_capacity_distribute_lane_group": 1.0 if (distribute_mode == "lane_group" and seed_lg) else 0.0,
+        "measured_capacity_fallback_geometric_movements": float(meta_fb),
         "measured_capacity_links": float(len(est)),
         "measured_capacity_observed_links": float(observed_used),
         "measured_capacity_movements": float(applied),
@@ -4016,6 +4342,59 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
     for link, value in sorted(est.items()):
         meta[f"sat_est_{link}"] = float(value)
     return meta
+
+
+def _origin_links_by_signal() -> dict[str, dict[str, set[str]]]:
+    """signal -> origin(접근로 이름) -> 정지선 링크 집합. movement_signal_group_map_v3 의 origin_signal_groups."""
+    payload = load_movement_signal_group_map() or {}
+    out: dict[str, dict[str, set[str]]] = {}
+    for sig, entry in _mapping(payload.get("controllers")).items():
+        sig_key = str(sig) if str(sig).startswith("SC") else "SC" + str(sig)
+        for origin, info in _mapping(_mapping(entry).get("origin_signal_groups")).items():
+            links = {str(x) for x in (_mapping(info).get("links") or [])}
+            if links:
+                out.setdefault(sig_key, {})[str(origin)] = links
+    return out
+
+
+def _distribute_lane_group_capacity_to_movements(cfg, groups, est_lg, caps) -> int:
+    """(정지선 링크, 현시) 차로군 용량을 **그 접근로·그 현시의 movement** 들에 β 비율로 나눈다.
+    접근로 총량을 현시 가로질러 β 로 나누던 종전 방식은 전용 좌회전 차로군과 직진 차로군을 섞었다
+    (SC1002 E: 좌 1차로·직 2차로를 β 0.714 로 나눠 좌회전이 직진 용량을 가져간다). 같은 축 반대 접근로도 섞이지 않는다."""
+    sigs: dict[str, str] = {}
+    for g in groups:
+        link = str(g.get("stopline_link", "")); sig = str(g.get("signal", ""))
+        if link and sig:
+            sigs[link] = sig
+    for _lk, _sg in _SUS_SIGS.items():
+        if _lk not in sigs and _sg:
+            sigs[_lk] = _sg
+    origin_links = _origin_links_by_signal()
+    applied = 0
+    for (link, pid), total in est_lg.items():
+        sig = sigs.get(link)
+        if not sig:
+            continue
+        olinks = origin_links.get(sig, {})
+        _kinds = _LG_KINDS or {"internal"}
+        # 소속 = detector mapping 의 link_to_origins[link] (정본 접근로 귀속: 32→in_SC1001_W, 66→in_SC1004_S, 329→SC101_to_SC1002) ∪ origin map
+        _origins_here = set(_LTO.get(str(link), []) or [])
+        members = [
+            (m, max(0.0, _as_float(spec.get("beta"), 0.0)))
+            for m, spec in (cfg.network.urban_movements or {}).items()
+            if str(spec.get("signal", "")) == sig
+            and str(spec.get("phase", "")).endswith("_" + pid)
+            and (str(spec.get("kind", "")) in _kinds)
+            and (str(spec.get("origin", "")) in _origins_here or link in olinks.get(str(spec.get("origin", "")), set()))
+        ]
+        if not members:
+            continue
+        weight = sum(w for _, w in members) or float(len(members))
+        for m, w in members:
+            share = (w / weight) if weight > 0 else 1.0 / len(members)
+            caps[m] = float(total) * float(share)
+            applied += 1
+    return applied
 
 
 def _approach_topology(groups) -> dict[str, tuple[str, tuple[str, ...]]]:
@@ -4506,6 +4885,9 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
         _mapping(urban.get("release_buffer")).get("restore", "") or "").strip().lower()
     _CFG_STRINGS["queue_window_stat"] = str(
         _mapping(urban.get("queue")).get("window_stat", "") or "").strip().lower()
+    # 2026-09-06 큐 귀속 가중: "" = detector_mapping weight(비트 동일), "beta" = movement β(목적지 분율).
+    _CFG_STRINGS["queue_attribution"] = str(
+        _mapping(urban.get("queue")).get("attribution", "") or "").strip().lower()
     out: dict[str, float] = {}
     for key, raw in pairs:
         if raw is None:
@@ -5597,12 +5979,31 @@ def build_local_observation_summary(
                 # origin 이 하나도 안 맞으면 좁히지 않는다 - 질량을 버리는 것보다 낫다.
                 if scoped:
                     usable = scoped
-        weight_sum = sum(max(0.0, _as_float(item.get("weight", 0.0))) for item in usable)
+        # β 귀속(2026-09-06): 같은 origin(접근로) 안에서는 β 로, origin 이 여럿이면 origin 별 weight 합 × 그 안의 β 분율.
+        _attr_beta = str(_CFG_STRINGS.get("queue_attribution", "")).strip().lower() == "beta"
+        if _attr_beta and usable:
+            _specs_q = cfg.network.urban_movements or {}
+            _w_origin: dict[str, float] = {}
+            _b_origin: dict[str, float] = {}
+            for item in usable:
+                _m = str(item.get("movement", "")); _o = str(_mapping(_specs_q.get(_m)).get("origin", ""))
+                _w_origin[_o] = _w_origin.get(_o, 0.0) + max(0.0, _as_float(item.get("weight", 1.0)))
+                _b_origin[_o] = _b_origin.get(_o, 0.0) + max(0.0, _as_float(_mapping(_specs_q.get(_m)).get("beta"), 0.0))
+            def _weight_of(item) -> float:
+                _m = str(item.get("movement", "")); _o = str(_mapping(_specs_q.get(_m)).get("origin", ""))
+                _b = max(0.0, _as_float(_mapping(_specs_q.get(_m)).get("beta"), 0.0))
+                if _b_origin.get(_o, 0.0) <= 1.0e-9:
+                    return max(0.0, _as_float(item.get("weight", 1.0)))
+                return _w_origin.get(_o, 0.0) * _b / _b_origin[_o]
+        else:
+            def _weight_of(item) -> float:
+                return max(0.0, _as_float(item.get("weight", 1.0)))
+        weight_sum = sum(_weight_of(item) for item in usable)
         if weight_sum <= 1.0e-9:
             weight_sum = float(len(usable)) if usable else 1.0
         for item in usable:
             movement = str(item.get("movement", ""))
-            weight = max(0.0, _as_float(item.get("weight", 1.0)))
+            weight = _weight_of(item)
             assigned = count * weight / weight_sum
             movement_queue[movement] += assigned
             movement_assigned_by_link[str(link)] += assigned
@@ -6610,6 +7011,12 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
             # 플래툰 도착·하류 S_eff·offset·per-movement 용량)로 후보를 채점한다.
             # 기본 "drain" 은 기존 큐 배수 모형이라 비트 동일.
             controller.phase_price_local_cost_model = str(section["local_cost_model"])
+        # 2026-09-06 옵션③: 회랑 결합 정련
+        controller.phase_price_joint_groups = [[str(x) for x in g] for g in (section.get("joint_groups") or []) if isinstance(g, (list, tuple)) and len(g) >= 2]
+        controller.phase_price_joint_price_weight = float(_as_float(section.get("joint_price_weight"), 0.0))
+        controller.phase_price_joint_rounds = int(_as_float(section.get("joint_rounds"), 6.0))
+        # 2026-09-06 옵션①: 2단 정련 (국소 균형에서 흔들어 가격)
+        controller.phase_price_two_stage = _is_enabled_value(section.get("two_stage"))
         if "in_gne" in section:
             # 2026-08-27, 사용자 지시. 현시가격을 GNE **안**으로 옮긴다.
             #
@@ -9095,6 +9502,173 @@ def physical_ramp_actions(control, cfg, actuation: Mapping[str, Any]) -> dict[st
     return out
 
 
+
+# 2026-09-06 미터 액추에이션 전달함수. 차로당 10 s 주기당 방류 대수 n(g) — g=2·3 은 실측 중앙(n=198·110),
+# g>=4 는 시동손실 뒤 포화 차두 ~2.2 s 로 외삽. g=10(열림)은 구속이 아니라 되쓰지 않는다.
+METER_PER_LANE_VEH_PER_CYCLE_DEFAULT = {
+    "2": 0.71, "3": 0.99, "4": 1.44, "5": 1.89, "6": 2.34, "7": 2.79, "8": 3.24, "9": 3.69, "10": 4.20,
+}
+METER_LANES_DEFAULT = {"RM_C10482": 2, "RM_C10681": 2}
+
+
+def _meter_flow_vph(lanes: float, green: int, table: Mapping[str, float], cycle: float) -> float:
+    if green <= 0:
+        return 0.0
+    n = table.get(str(int(green)))
+    if n is None:
+        keys = sorted(int(k) for k in table)
+        if not keys:
+            return 0.0
+        # 표에 없는 green 은 가장 가까운 아래 항목으로
+        below = [k for k in keys if k <= green]
+        n = table[str(below[-1] if below else keys[0])]
+    return float(lanes) * float(n) * 3600.0 / max(cycle, 1.0e-9)
+
+
+def _measured_meter_allocation(control, cfg, settings: Mapping[str, Any], meters, demand: "Mapping[str, float] | None" = None) -> "dict[str, Any] | None":
+    """allocation == "measured_table" 일 때 저수지별 커넥터 green 조합. 아니면 None(= 비트 동일).
+    같은 결정 안에서 두 번 불려도(되쓰기 → CSV) 진단에 남긴 green 을 재사용해 같은 답을 낸다."""
+    if str(settings.get("allocation", "")).strip().lower() != "measured_table":
+        return None
+    cycle = max(1.0e-6, _as_float(settings.get("cycle_sec"), 10.0))
+    min_green = int(round(clamp(_as_float(settings.get("min_green_sec"), 2.0), 0.0, cycle)))
+    max_green = int(round(clamp(_as_float(settings.get("max_green_sec"), cycle), float(min_green), cycle)))
+    table = {str(k): float(v) for k, v in _mapping(settings.get("per_lane_veh_per_cycle") or METER_PER_LANE_VEH_PER_CYCLE_DEFAULT).items()}
+    lanes_by = {str(k): float(v) for k, v in _mapping(settings.get("meter_lanes") or METER_LANES_DEFAULT).items()}
+    close_below = clamp(_as_float(settings.get("close_below_frac"), 0.5), 0.0, 1.0)
+    close_penalty = max(0.0, _as_float(settings.get("close_penalty_vph"), 100.0))
+    diag = getattr(control, "diagnostics", None)
+    if not isinstance(diag, dict):
+        diag = {}
+        try:
+            control.diagnostics = diag
+        except Exception:  # noqa: BLE001
+            pass
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for meter in meters:
+        if not isinstance(meter, Mapping):
+            continue
+        mid = str(meter.get("id", meter.get("control_id", "")))
+        key = str(meter.get("model_ramp_key", ""))
+        if not mid or not key:
+            continue
+        groups.setdefault(key, []).append({"id": mid, "lanes": lanes_by.get(mid, 1.0),
+                                           "demand": (float(demand[mid]) if (demand and mid in demand) else None)})
+    green_out: dict[str, float] = {}
+    realized: dict[str, float] = {}
+    requested: dict[str, float] = {}
+    capacities = getattr(cfg.network, "ramp_capacity_veh_h", {}) or {}
+    greens = [0] + list(range(max(1, min_green), max_green + 1))
+    for key, ms in groups.items():
+        # 재사용: 이미 이 결정에서 배정했으면 그대로
+        if all(("rw_meter_green_%s" % m["id"]) in diag for m in ms) and ("rw_meter_realized_%s" % key) in diag:
+            for m in ms:
+                green_out[m["id"]] = float(diag["rw_meter_green_%s" % m["id"]])
+            realized[key] = float(diag["rw_meter_realized_%s" % key])
+            requested[key] = float(diag.get("rw_meter_requested_%s" % key, realized[key]))
+            continue
+        cap_group = _as_float(capacities.get(key), 0.0)
+        r = _as_float(control.ramp_metering.get(key), cap_group if cap_group > 0 else 1.0e9)
+        r = max(0.0, r)
+        requested[key] = r
+        def _f(m, g):
+            v = _meter_flow_vph(m["lanes"], g, table, cycle)
+            return min(v, m["demand"]) if (m.get("demand") is not None and g > 0) else v
+        open_total = sum(_f(m, max_green) for m in ms)
+        if r >= open_total - 1.0e-9:
+            for m in ms:
+                green_out[m["id"]] = float(max_green)
+            realized[key] = r  # 열림은 구속이 아니다 — 모형 요청값 유지
+            diag["rw_meter_open_%s" % key] = 1.0
+        else:
+            best = None
+            # 가능한 조합 전수 (커넥터 2개면 <= 100)
+            def combos(idx: int, cur: list[int]):
+                if idx == len(ms):
+                    yield list(cur)
+                    return
+                for g in greens:
+                    cur.append(g)
+                    yield from combos(idx + 1, cur)
+                    cur.pop()
+            for gs in combos(0, []):
+                total = sum(_f(m, g) for m, g in zip(ms, gs))
+                err = abs(total - r)
+                zeros = sum(1 for g in gs if g == 0)
+                # 2026-09-07 F1: 커넥터를 닫는 벌점 = 그 커넥터의 수요 힌트(바닥 close_penalty). plant 는 경로결정으로 커넥터가 정해져
+                #   닫힌 커넥터의 차량은 다른 커넥터로 못 옮긴다 — 수요 755 인 2차로 10482 를 닫고 1차로 10480 에 몰아준 b1 사고
+                #   (링크 32 238→496, b1 실런 31결정 중 13결정이 한쪽 닫힘). 균일 100 벌점은 오차 |total−r| 에 묻혔다.
+                #   config `actuation.real_world_ramp_metering.close_penalty_mode: "demand"` 로만 켠다(없으면 비트 동일).
+                if str(settings.get("close_penalty_mode", "")).strip().lower() == "demand":
+                    pen = sum(max(close_penalty, float(m.get("demand") or 0.0)) for m, g in zip(ms, gs) if g == 0)
+                else:
+                    pen = close_penalty * zeros
+                score = (round(err + pen, 6), zeros, -sum(gs))
+                if best is None or score < best[0]:
+                    best = (score, gs, total)
+            gs, total = best[1], best[2]
+            nonzero = [_f(m, min_green) for m in ms]
+            smallest = min(x for x in nonzero if x > 0) if any(x > 0 for x in nonzero) else 0.0
+            if smallest > 0 and r < close_below * smallest:
+                gs, total = [0 for _ in ms], 0.0
+            for m, g in zip(ms, gs):
+                green_out[m["id"]] = float(g)
+            realized[key] = float(total)
+            diag["rw_meter_open_%s" % key] = 0.0
+        diag["rw_meter_requested_%s" % key] = float(requested[key])
+        diag["rw_meter_realized_%s" % key] = float(realized[key])
+        for m in ms:
+            diag["rw_meter_green_%s" % m["id"]] = float(green_out[m["id"]])
+    return {"green": green_out, "realized": realized, "requested": requested}
+
+
+def real_world_ramp_meter_write_back(control, cfg, actuation: Mapping[str, Any], mapping: Mapping[str, Any], metadata=None,
+                                     state_json=None, previous=None) -> dict[str, float]:
+    """액션 JSON 을 쓰기 **전에** 실현 가능한 미터 유량을 control.ramp_metering 에 되쓴다. 게이트 밖이면 no-op."""
+    meters = mapping.get("ramp_meters", []) if isinstance(mapping, Mapping) else []
+    if not isinstance(meters, list) or not meters:
+        return {}
+    settings = _mapping(actuation.get("real_world_ramp_metering"))
+    if str(settings.get("allocation", "")).strip().lower() != "measured_table":
+        return {}
+    # 커넥터별 수요 힌트 = max(직전 구간 실측 유량, decay × 이전 결정의 힌트), 바닥 demand_floor.
+    decay = clamp(_as_float(settings.get("demand_decay"), 0.9), 0.0, 1.0)
+    floor = max(0.0, _as_float(settings.get("demand_floor_vph"), 150.0))
+    measured = {}
+    if isinstance(state_json, Mapping):
+        fm = _mapping(_mapping(state_json.get("local_observation")).get("far_measurement"))
+        measured = {str(k): _as_float(v, 0.0) for k, v in _mapping(fm.get("link_volume_veh_h")).items()}
+    prev_diag = dict(getattr(previous, "diagnostics", {}) or {}) if previous is not None else {}
+    prior = {str(k): _as_float(v, 0.0) for k, v in _mapping(settings.get("demand_prior_vph")).items()}
+    max_green = _as_float(settings.get("max_green_sec"), _as_float(settings.get("cycle_sec"), 10.0))
+    demand: dict[str, float] = {}
+    for meter in meters:
+        if not isinstance(meter, Mapping):
+            continue
+        mid = str(meter.get("id", meter.get("control_id", "")))
+        conn = str(int(_as_float(meter.get("connector"), 0.0)))
+        now = measured.get(conn)
+        prev = _as_float(prev_diag.get("rw_meter_demand_%s" % mid), prior.get(mid, 0.0))
+        # 직전 결정에서 이 커넥터가 구속 중이었으면(green < max) 실측은 수요가 아니다 — 감쇠하지 않는다.
+        prev_green = _as_float(prev_diag.get("rw_meter_green_%s" % mid), max_green)
+        keep = 1.0 if prev_green < max_green - 1.0e-9 else decay
+        est = max(float(now) if now is not None else 0.0, keep * prev, floor)
+        demand[mid] = est
+        control.diagnostics["rw_meter_demand_%s" % mid] = float(est)
+    alloc = _measured_meter_allocation(control, cfg, settings, meters, demand=demand)
+    if alloc is None:
+        return {}
+    out: dict[str, float] = {}
+    if bool(settings.get("write_back_realized", True)):
+        for key, val in alloc["realized"].items():
+            if key in control.ramp_metering:
+                control.ramp_metering[key] = float(val)
+                out[key] = float(val)
+    if isinstance(metadata, dict):
+        metadata["rw_meter_allocation"] = "measured_table"
+        metadata["rw_meter_write_back_count"] = float(len(out))
+    return out
+
 def real_world_ramp_meter_actions(
     control,
     cfg,
@@ -9112,6 +9686,8 @@ def real_world_ramp_meter_actions(
     max_green = clamp(_as_float(settings.get("max_green_sec"), cycle), min_green, cycle)
     default_per_meter_capacity = max(1.0e-6, _as_float(settings.get("per_meter_capacity_vph"), 900.0))
     distribute = bool(settings.get("distribute_model_rate_across_meters", True))
+    # measured_table 이면 커넥터별 green 을 전달함수로 배정한다(진단에 남긴 값 재사용).
+    alloc = _measured_meter_allocation(control, cfg, settings, meters)
 
     group_counts: dict[str, int] = {}
     for meter in meters:
@@ -9146,6 +9722,19 @@ def real_world_ramp_meter_actions(
             group_capacity,
         )
         per_meter_rate = group_rate / float(group_count) if distribute else group_rate
+        if alloc is not None and meter_id in alloc["green"]:
+            # 전달함수 배정: green 이 먼저고 rate 는 VBS 검사(green == round(cycle·rate/cap))에 맞춰 되맞춘다.
+            green = float(alloc["green"][meter_id])
+            per_meter_rate = green * per_meter_capacity / cycle
+            out[meter_id] = {
+                "sc_no": float(_as_float(meter.get("sc_no"), 0.0)),
+                "sg_no": float(_as_float(meter.get("sg_no"), 1.0)),
+                "rate_vph": float(per_meter_rate),
+                "group_rate_vph": float(alloc["realized"].get(key, group_rate)),
+                "green_sec": float(green),
+                "model_ramp_key": key,
+            }
+            continue
         # 2026-08-27. 하한·상한을 **녹색이 아니라 rate 에** 건다.
         #
         # 왜. 러너 VBS 의 `RampActionValid`(:1276-1277)가
@@ -11369,6 +11958,8 @@ def main() -> None:
     offset_verdict = offset_promotion.evaluate()
     offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict)
     metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
+    # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
+    real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(
