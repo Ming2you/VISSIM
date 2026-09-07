@@ -93,6 +93,12 @@ FRAG = {
     "MF1": OD([("actuation", OD([("real_world_ramp_metering", OD([("close_penalty_mode", "demand")]))]))]),
     # SPILL (2026-09-07): 램프 스필백 관측(검지 매핑 ramp_spillback_links 의 정지 차량을 저수지 큐에 합산) + 미터 스필백 가드
     #   (검지 링크 정지 큐 > 8 대면 그 램프 rate 를 1800 으로 강제 개방). Ver2 망 전용(검지 매핑 v2 에 표가 있음). 오프라인 검증 b0 t=3600: R_F_E 0→1800.
+    # SATV2 (2026-09-07): SAT+SAT2 를 Ver2 망용 씨앗으로 — v0(Ver2 무제어) 차량기록에서 뽑은 차로군 지속 방류·큐 링크 분류.
+    "SATV2": OD([("urban", OD([("capacity", OD([("measured", True), ("seed", "sustained"), ("observed_clip", [0.2, 1.0]), ("seed_missing_frac", 0.5),
+                                                ("queued_links_json", "outputs/link_queue_class_v0_ver2_20260907.json"), ("unqueued_geometric_frac", 1.0),
+                                                ("distribute", "lane_group"), ("fallback", "geometric"), ("fallback_frac", 1.0), ("decay", 0.98),
+                                                ("sustained_json", "outputs/lane_group_sustained_v0_ver2_20260907_v2.json"), ("sustained_stat", "free"),
+                                                ("sustained_min_windows", 6), ("update", "queued_ewma"), ("ewma_alpha", 0.3), ("queued_stopped_min", 6.0)]))]))]),
     "SPILL": OD([("urban", OD([("ramp", OD([("spillback_obs", True)]))])),
                  ("actuation", OD([("real_world_ramp_metering", OD([("spillback_guard", OD([("enabled", True), ("spill_threshold_veh", 8.0), ("floor_vph", 1800.0)]))]))]))]),
     # V2 (2026-09-06): 지속 방류 산출물 v2b — 다음 링크가 램프 커넥터/본선이면 방류에서 제외(중간 램프 유출 부풀림 제거: 32 p3 5520→3360, 40 p2 2035→313).

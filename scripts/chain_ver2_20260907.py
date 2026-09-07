@@ -23,7 +23,9 @@ CANON2 = json.load(io.open(CFG / "canon_ver2_20260907.json", encoding="utf-8"), 
 V0 = "v0_nocontrol_ver2_x18_20260907"
 GATE = 50.0
 FULL = 37
-RUNGS = [("a0", []), ("a1", ["SPILL"]), ("a2", ["RL"]), ("a3", ["METER", "MF1"]), ("a4", ["PW25"]), ("a5", ["B5"]), ("a6", ["B0"])]
+RUNGS = [("a0", []), ("a1", ["SPILL"]), ("a2", ["RL"]), ("a3", ["METER", "MF1"]), ("a4", ["PW25"]), ("a5", ["B5"]), ("a6", ["B0"]),
+         # 2026-09-07 사용자: SAT 계열도 이 사다리에 곁들임 — v0(Ver2 무제어) 뒤 씨앗 재생성 후 start=7 로 이어 돈다.
+         ("a7", ["SATV2"]), ("a8", ["SAT3"])]
 
 
 def make_config2(tags):
