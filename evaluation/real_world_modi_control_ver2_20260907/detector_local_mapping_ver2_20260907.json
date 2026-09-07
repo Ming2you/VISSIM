@@ -11618,7 +11618,8 @@
   "what": "Ver2 망(링크 분할) 반영. 관측 목록 = blindfix 670 + 31/68/69/70 + 새 링크 9. 32 의 정지선 movement 14개 → 127. 32/129 는 movement 없음(램프행 줄기; B5 게이트 movement 는 config 로). off_ramp 착지 링크 갱신.",
   "source_mapping": "evaluation/real_world_modi_control_distributed_20260728\\detector_local_mapping_distributed_core17legs4f_20260903_blindfix20260905b.json",
   "network": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
-  "network_sha256": "463cfdc44e3da7c7ec01942726e186356bdb281ecf84195deeea8b793b4fb51b"
+  "network_sha256": "a3aceade227cc998966df929f5555012fe1ca9c4720b35dcd4af92cdaddc1338",
+  "network_edit_20260907_1530": "10613(2→119) lnChgDist 200→1000 (사용자 요청: 3차로 축소부 급차로변경 스필백 방지)"
  },
  "ramp_spillback_links": {
   "_note": "2026-09-07 Ver2. 램프 커넥터별 전용 상류 검지 링크. 램프 큐 = 커넥터 재차 + 검지 링크의 **정지** 차량(우선 lane 1~2). 링크 전체 재차를 램프 큐로 세지 말 것(09-03 rampconn 과대 사고). 소유는 도시/경계 그대로, 관측만 각 방향 freeway player(R_D_W·R_F_W → F_W, R_D_E·R_F_E → F_E)로.",
