@@ -340,6 +340,12 @@ def build_chain_geometry(network: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "chain_lengths_m": member_lengths,
             "length_m": total,
             "lanes": int(links[primary].get("lane_count", 4) or 4),
+            # 2026-09-07: 세그먼트별 차로 = 세그먼트 중점이 속한 체인 멤버 링크의 차로수(Ver2: 26 3차로→120 4차로, 2 4차로→119/24 3차로).
+            "segment_lanes": [
+                int((links.get(int(spec["links"][max(0, max(j for j in range(len(offsets)) if offsets[j] <= (bounds[i] + bounds[i + 1]) / 2.0))]))
+                     or links[primary]).get("lane_count", 4) or 4)
+                for i in range(count)
+            ],
             "segment_bounds_m": bounds,
             "segment_lengths_km": [
                 max(1.0e-6, (bounds[i + 1] - bounds[i]) / 1000.0) for i in range(count)
@@ -452,7 +458,7 @@ def build_segments(
                 "dsd_chain_pos_m": None if dsd_chain_pos is None else round3(dsd_chain_pos),
                 "dsd_snap_offset_m": snap_offset,
                 "length_km": round((end_m - start_m) / 1000.0, 6),
-                "lanes": int(geom["lanes"]),
+                "lanes": int((geom.get("segment_lanes") or [geom["lanes"]] * 8)[model_idx]) if 0 <= int(model_idx) < len(geom.get("segment_lanes") or []) else int(geom["lanes"]),
                 "dsd_by_lane": dsd_by_lane,
                 "extra_dsd_controls": [],
                 "dsds": dsds,
@@ -895,6 +901,7 @@ def build_payloads(
                 "chain_lengths_m": [round3(v) for v in geom["chain_lengths_m"]],
                 "length_m": round3(geom["length_m"]),
                 "lanes": int(geom["lanes"]),
+                "segment_lanes": [int(v) for v in geom.get("segment_lanes", [])],
                 "segment_bounds_m": [round3(v) for v in geom["segment_bounds_m"]],
                 "segment_length_profile_km": [round(v, 6) for v in geom["segment_lengths_km"]],
             }

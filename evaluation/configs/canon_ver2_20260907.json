@@ -7816,5 +7816,9 @@
     "_why": "far 배수율(도시 G · 본선 g_fw · 램프 merge_rate)을 직전 구간 VISSIM 링크평가 실측으로. 상수는 g_free 640 / g_cong 500 / g_fw 300 [veh/T_c] · merge 1800 [veh/h] 이었다. 정답지(outputs/far_rates_fzp_truth_20260901.json) 최대값을 씨앗으로 쓰고 감쇠 러닝맥스로 갱신한다. 공용 ramp_capacity_veh_h 는 1800x4 그대로 둔다 — 그 dict 는 _force_open_ramps 와 N_UF 상한도 읽으므로 낮추면 레버가 잘린다."
   },
   "_canon_note": "2026-09-05 정본. = canon_default_20260904(ctl_start900 s13 7803.8, 미드블록 native) + 접근로 귀속 매핑 v2 (blindfix 8링크 + 사용자 확정: 착지 커넥터의 on*/우회 movement 제거, bare 목적지 정리, 257·off-ramp 4링크 제거, weight=beta 비례). 옛 매핑 evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4f_20260903.json 은 _superseded_20260905 로 격리. 미드블록 SG env 는 러너가 config urban.plan.mainline_only 로 세운다.",
-  "_ver2_note": "2026-09-07: Ver2 망(링크 분할·본선 3차로) 채택 후보. canon_default_20260905 + 매핑 v2(control/detector). 저류·게이트맵·경로 분율은 v1 과 동일(검증). 무제어 기준선 → b3 구성 재런 → 스필백 제약 ablation."
+  "_ver2_note": "2026-09-07: Ver2 망(링크 분할·본선 3차로) 채택 후보. canon_default_20260905 + 매핑 v2(control/detector). 저류·게이트맵·경로 분율은 v1 과 동일(검증). 무제어 기준선 → b3 구성 재런 → 스필백 제약 ablation.",
+  "freeway": {
+    "segment_lanes": "mapping",
+    "_note": "2026-09-07: control_mapping freeway_model_links[*].segment_lanes 를 METANET 세그먼트 차로로(FW_E 4,4,4,4,4,3,3,3 / FW_W 3,3,3,4,4,4,4,4). 어댑터 install_freeway_segment_lanes."
+  }
 }

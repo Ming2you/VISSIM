@@ -101,8 +101,30 @@ def _diag(label, fn):
         return ["  [진단 %s 실패] %r" % (label, e)]
 
 
+def apply_adapter_patches():
+    """런 사이 창(v0 뒤, a0 앞)에서 어댑터에 스필백·세그먼트 차로 패치를 건다. 이미 적용돼 있으면 건너뛴다. VISSIM 이 돌고 있으면 대기."""
+    A = R / "evaluation/controllers/vissim_stackelberg_adapter.py"
+    while subprocess.run(["tasklist"], capture_output=True, text=True).stdout.lower().count("vissim200") > 0:
+        time.sleep(20)
+    src = A.read_text(encoding="utf-8")
+    bak = R / "evaluation/controllers/_backup_adapter_before_ver2_patches.py"
+    if not bak.exists():
+        shutil.copy(A, bak)
+    for script, marker in (("apply_spill_patch_20260907.py", "def apply_ramp_spillback_guard("), ("apply_seglanes_patch_20260907.py", "def install_freeway_segment_lanes(")):
+        if marker in src:
+            log("  어댑터 패치 %s: 이미 적용" % script); continue
+        out = subprocess.run([sys.executable, str(R / "scripts" / script), str(A)], capture_output=True, text=True, encoding="utf-8", errors="replace")
+        ok = subprocess.run([sys.executable, "-m", "py_compile", str(A)], capture_output=True).returncode == 0
+        log("  어댑터 패치 %s: rc=%s compile=%s %s" % (script, out.returncode, ok, (out.stdout or out.stderr).strip()[-120:]))
+        if out.returncode != 0 or not ok:
+            shutil.copy(bak, A); raise RuntimeError("어댑터 패치 실패 → 백업 복원: %s" % script)
+        src = A.read_text(encoding="utf-8")
+    bak.unlink(missing_ok=True) if False else None  # 백업은 남긴다(CLAUDE.md: 사본 금지 — 검증 뒤 지운다 → 사다리 끝에 삭제)
+
+
 def main():
     start = int(sys.argv[1]) if len(sys.argv) > 1 else 0
+    apply_adapter_patches()
     try:
         base = ttt_of(V0)
         log("=== Ver2 ablation 시작 · 기준 v0 무제어(Ver2) = %.1f · GATE %.0f 판정만 ===" % (base, GATE))
@@ -145,6 +167,9 @@ def main():
     log("=== Ver2 ablation 끝 ===")
     for prefix, tg, ttt in results:
         log("   %s %-36s %.1f%s" % (prefix, "+".join(tg) or "canon_ver2", ttt, ("  (v0 대비 %+.1f)" % (ttt - base)) if base is not None else ""))
+    bak = R / "evaluation/controllers/_backup_adapter_before_ver2_patches.py"
+    if bak.exists():
+        bak.unlink(); log("  어댑터 백업 사본 삭제(정본 1벌 규칙)")
     log("VER2_LADDER_DONE")
 
 
