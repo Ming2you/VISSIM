@@ -39,7 +39,8 @@ Codex(다른 머신)가 이어서 작업할 수 있게 09-06~07 이틀의 진행
 | b1(구) | +METER | 8361.6 | 3715/4544/252 | +48: 리더 TTT-악화 폐쇄가 METER 로 실현 + 한쪽 커넥터 폐쇄 |
 | **b1'** | +METER+MF1+LG | **8282.2** | 3984/4329/124 | LG 가 리더 31/31 기각 = 미터링 OFF. 도시 −195·램프 −74·본선 +233 |
 | b2 | +SAT+SAT2 | 8451.5 | | b1' 대비 **+169**. SAT 는 링크 32 를 못 건드리고 회랑(426)만 흔듦 — B 위에서 SAT/SAT2 는 해롭다 |
-| b3~b4 | +PW25 → +B5 | (진행 중 09-07 13:13~) | | 로그 `evaluation/runs/chain_lcd1000_20260906.log` |
+| **b3** | +PW25 | **8007.7** | 3810/4254/97 | **lcd1000 첫 무제어 승(−74.6)**. b2 대비 −444. 단 SC1001·SC1004 31/31 꼭짓점(22/23/71/23)·SC1002 25/21/26/66 고정 = 사실상 정적 계획 + 램프 개방. 링크 32 적분 384→219, 420 은 37→179 재발 |
+| b4 | +B5 | (진행 중 09-07 14:19~) | | 로그 `evaluation/runs/chain_lcd1000_20260906.log` |
 
 lcd200 참고: g1 canon_0905 7741.5(−210) 의 이득은 **고속도로 −408**(SC1001 EW 직진 p3 69~75 → off-ramp 10481 역류 제거 ≈−400, R_F_E 미터링 ≈−240) − 도시 손실 ≈+300(링크 420 +187). 회랑 신호 최적화 이득은 +32 로 없다.
 
@@ -105,3 +106,18 @@ FRAG 정의: `scripts/chain_lcd1000_20260906.py` (`FRAG` dict, `make_config(tags
 - 격리: `evaluation/runs/_killed_b2_rl_b0_meter_sat_sat2_lcd1000_x18_20260907`(23결정 중단), `g2_B3fail_x18_20260905`
 - fzp 진단: `outputs/lcd_fzp_analysis_20260907/` (A 손실 지도·B lcd200 대조·C 무제어/제거·D 플랜트 실명)
 - 씨앗 산출물: `outputs/lane_group_sustained_h0_20260906{,_v2}.json`, `outputs/link_queue_class_h0_20260906.json`
+
+## 8. Ver2 망 채택 (2026-09-07 오후, 진행 중)
+
+사용자가 램프 커넥터별 전용 상류 링크로 망을 쪼갬(`network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx`): 32→32·129·127(127 = SC1001 정지선 접근), 31→31·124·125, 68→68·121·123, 70→70·126, 69 단축(1746 m), 2→2·119(3차로), 26→26(3차로)·120, 24 3차로. 검토 결과 경로·신호두·큐카운터·수요 전부 정합(끊긴 경로 기준과 동일, relFlow 보존). 4차로 DSD 5개(70·74·78·82·86) 는 차로 삭제로 사라짐(의도).
+**동시 실행 실패**: 두 번째 VISSIM 인스턴스는 뷰어 모드(ContrByCOM 되읽기 빈 값·capture mismatch) — 라이선스 1인스턴스. 런은 순차만.
+
+생성물(전부 새 경로, 정본 파일 무수정):
+- `evaluation/real_world_modi_control_ver2_20260907/` — `control_mapping_ver2.json`(체인 74·10699·2·10613·119·10702·24 / 26·10771·120, 미터 from_link 갱신), `real_world_modi_control_config_ver2.vbs`(정본 20260825 config 틀 + 본선/램프/관측 키 교체, 관측 링크 680 = blindfix 670+새 링크, VSL DSD 66) + `_sgplan.vbs`, `detector_local_mapping_ver2_20260907.json`(32 의 movement 14개→127, 새 링크 origin, off-ramp 착지 갱신, **`ramp_spillback_links`** 표), `freeway_mainline_chain_ver2.csv`, `freeway_control_manifest_ver2.csv`
+- `outputs/urban_player_territory_v2_20260907.json`(decision_log `ver2-split-20260907`), `pn_boundary_turns_v2_20260907.json`(306 회전, 10482/10490/10639 는 신호 전 이탈이라 external 비통제), `pn_boundary_map_v2`, `urban_storage_capacity_ver2`(80키 v1 과 동일), `movement_connector_map_ver2`, `far_measurement_links_ver2.csv`, `urban_input_gate_map_ver2.csv`(mapped 21 동일)
+- `evaluation/configs/canon_ver2_20260907.json`(canon_0905 + 매핑 v2) · 러너 `-NoGlobalKill` 스위치 · 생성기 env `RW_FREEWAY_CHAIN_CSV`
+- 한계: 세그먼트 차로가 모형 링크당 단일값(FW_E 4, FW_W 3) — 120(4차로)·119/24(3차로) 혼합을 METANET 이 못 봄. 세그먼트별 차로 배열은 후속.
+
+**스필백 제약(WP6, 오프라인 검증 완료·정본 적용은 런 사이 창에서 자동)**: `scratchpad/apply_spill_patch.py` → `urban.ramp.spillback_obs`(검지 링크 정지 차량을 저수지 큐에 합산, 요약 `ramp_spillback`) + `actuation.real_world_ramp_metering.spillback_guard {enabled, spill_threshold_veh 8, floor_vph 1800}`(문턱 초과 시 rate 강제 개방, write-back 앞). b0 t=3600 검증: R_F_W spill 49·R_F_E 28 → R_F_E 0→1800 강제. FRAG `SPILL`.
+
+**Ver2 ablation(= B 수정 재검토)**: `scripts/chain_ver2_20260907.py` — v0 무제어(Ver2) → a0 canon_ver2 → a1 +SPILL → a2 +RL → a3 +METER+MF1 → a4 +PW25 → a5 +B5 → a6 +B0. LG(리더 OFF)·SAT/SAT2(B 위 해로움)·QB(B5 충돌) 제외. 결과는 `evaluation/runs/chain_lcd1000_20260906.log` 의 `TTT a*(` 줄.

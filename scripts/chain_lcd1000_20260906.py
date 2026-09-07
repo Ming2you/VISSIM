@@ -91,6 +91,10 @@ FRAG = {
     "LG": OD([("mpc", OD([("stackelberg_fallback_guard_min_ttt_gain_frac", 0.002)]))]),
     # MF1 (2026-09-07): METER 할당의 폐쇄 벌점을 커넥터 수요로. 요청<767 이면 2차로 10482(수요 755)를 닫고 1차로에 몰아주던 b1 사고(링크 32 238→496) 수정.
     "MF1": OD([("actuation", OD([("real_world_ramp_metering", OD([("close_penalty_mode", "demand")]))]))]),
+    # SPILL (2026-09-07): 램프 스필백 관측(검지 매핑 ramp_spillback_links 의 정지 차량을 저수지 큐에 합산) + 미터 스필백 가드
+    #   (검지 링크 정지 큐 > 8 대면 그 램프 rate 를 1800 으로 강제 개방). Ver2 망 전용(검지 매핑 v2 에 표가 있음). 오프라인 검증 b0 t=3600: R_F_E 0→1800.
+    "SPILL": OD([("urban", OD([("ramp", OD([("spillback_obs", True)]))])),
+                 ("actuation", OD([("real_world_ramp_metering", OD([("spillback_guard", OD([("enabled", True), ("spill_threshold_veh", 8.0), ("floor_vph", 1800.0)]))]))]))]),
     # V2 (2026-09-06): 지속 방류 산출물 v2b — 다음 링크가 램프 커넥터/본선이면 방류에서 제외(중간 램프 유출 부풀림 제거: 32 p3 5520→3360, 40 p2 2035→313).
     "V2": OD([("urban", OD([("capacity", OD([("sustained_json", "outputs/lane_group_sustained_h0_20260906_v2.json")]))]))]),
     # JOINT (옵션③): 회랑 SC1002+SC105 를 한 단위로 결합 정련(J = L_A + L_B, 묶음 안 가격 가중 0, 후보마다 ctx 재계산으로 B 도착이 A 계획을 따름).

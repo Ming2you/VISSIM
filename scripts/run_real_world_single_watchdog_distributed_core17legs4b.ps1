@@ -24,6 +24,8 @@ param(
   [string]$Calibration = "",
   [string]$Mapping = "",
   [string]$VbsConfig = "",
+  # 2026-09-07: 다른 VISSIM 런과 동시 실행용. 켜면 시작/스톨 시 전역 Kill-Vissim(이미지명 기준)을 건너뛰고 자기 cscript 만 죽인다.
+  [switch]$NoGlobalKill,
   [int]$ControlStartSec = -1,
   [string]$WarmupController = "no-control",
   [int]$StateLogIntervalSec = 30,
@@ -376,7 +378,7 @@ if ($DoneRows -gt 0 -and (Test-Path $stateCsv)) {
 }
 
 for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-  Kill-Vissim
+  if (-not $NoGlobalKill) { Kill-Vissim } else { Log "NoGlobalKill: 전역 VISSIM/cscript kill 생략" }
   Clear-DecisionDir $decisionDir
   $argline = "//nologo " + (Q $runner) + " " + (Q $net) + " " + (Q $stateCsv) + " " + (Q $actionCsv) + " " + (Q $decisionDir) +
     " $SimPeriod $ControlIntervalSec $Seed " + (Q $adapter) + " " + (Q $Calibration) + " " + (Q $Tuning) + " " + (Q $Mapping) +
@@ -450,7 +452,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     if ($idle -gt $StallSec) {
       Log "WATCHDOG_KILL $Name attempt=$attempt idle=${idle}s"
       try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch {}
-      Kill-Vissim
+      if (-not $NoGlobalKill) { Kill-Vissim }
       Archive-AttemptOutputs $attempt
       break
     }

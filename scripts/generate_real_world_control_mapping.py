@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import csv
 import json
 import math
@@ -16,7 +17,8 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 # freeway 본선은 링크 하나가 아니라 링크 체인이다. 어떤 링크가 어떤 순서로 이어지는지는
 # 아래 CSV 한 곳에만 적혀 있고, 길이는 언제나 네트워크(.inpx)에서 읽는다.
 # 설치 스크립트(install_real_world_freeway_controls.vbs)도 같은 CSV를 읽는다.
-FREEWAY_MAINLINE_CHAIN_CSV = WORKSPACE_ROOT / "evaluation/real_world_modi_control/freeway_mainline_chain.csv"
+# 2026-09-07: 망 분할(Ver2) 검토용 — env RW_FREEWAY_CHAIN_CSV 가 있으면 그 체인 CSV 를 쓴다(없으면 정본 경로, 비트 동일).
+FREEWAY_MAINLINE_CHAIN_CSV = Path(os.environ["RW_FREEWAY_CHAIN_CSV"]) if os.environ.get("RW_FREEWAY_CHAIN_CSV") else WORKSPACE_ROOT / "evaluation/real_world_modi_control/freeway_mainline_chain.csv"
 FREEWAY_SEGMENTS_PER_LINK = 8
 
 
