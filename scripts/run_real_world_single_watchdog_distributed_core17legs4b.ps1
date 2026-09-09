@@ -65,6 +65,41 @@ if ($OutDir -eq "") {
   $OutDir = Join-Path $repo "evaluation\runs\real_world_modi_watchdog"
 }
 $OutDir = Resolve-RepoPath $OutDir
+# Strict area accounting must stop when a decision cannot be produced.
+# Follow the existing single-parent tuning chain for this one inherited key.
+function Read-ControlAreaObjectiveEnabled([string]$TuningFile) {
+  $seenStrictTuning = @{}
+  while ($TuningFile -ne "") {
+    $TuningFile = [System.IO.Path]::GetFullPath($TuningFile)
+    if ($seenStrictTuning.ContainsKey($TuningFile)) { throw "Cyclic tuning extends: $TuningFile" }
+    $seenStrictTuning[$TuningFile] = $true
+    $strictTuning = Get-Content -LiteralPath $TuningFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    $areaProperty = $strictTuning.PSObject.Properties['control_area_objective']
+    if ($null -ne $areaProperty) {
+      $strictArea = $areaProperty.Value
+      if ($null -eq $strictArea -or $strictArea -isnot [PSCustomObject]) { return $false }
+      $enabledProperty = $strictArea.PSObject.Properties['enabled']
+      if ($null -ne $enabledProperty) { return [bool]$enabledProperty.Value }
+    }
+    if (-not $strictTuning.extends) { return $false }
+    $parentStrictTuning = [string]$strictTuning.extends
+    if (-not [System.IO.Path]::IsPathRooted($parentStrictTuning)) {
+      $parentStrictTuning = Join-Path (Split-Path -Parent $TuningFile) $parentStrictTuning
+    }
+    $TuningFile = $parentStrictTuning
+  }
+  return $false
+}
+# Always reset inherited process state; only the effective tuning key enables it.
+$env:RW_DECISION_FAIL_FAST = "0"
+if ($Tuning -ne "") {
+  try {
+    if (Read-ControlAreaObjectiveEnabled (Resolve-RepoPath $Tuning)) { $env:RW_DECISION_FAIL_FAST = "1" }
+  } catch {
+    throw "Cannot resolve control_area_objective.enabled: $($_.Exception.Message)"
+  }
+}
+"RW_DECISION_FAIL_FAST=$($env:RW_DECISION_FAIL_FAST) (control_area_objective.enabled)"
 # 2026-09-05. RW_MAINLINE_SG_ONLY 를 config(urban.plan.mainline_only) 로 러너가 직접 세운다.
 # 종전엔 launch_*/queue_* 스크립트가 env 로 세우고 러너는 믿기만 했다. 그래서 Bash 로 띄운
 # 체인(2026-09-04 16:31 이후 22런)이 env 없이 돌아 SG 9+ (미드블록 횡단)까지 ContrByCOM 이

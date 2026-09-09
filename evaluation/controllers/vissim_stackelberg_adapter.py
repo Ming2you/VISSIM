@@ -47,6 +47,7 @@ from evaluation.controllers import offset_promotion
 from evaluation.controllers import observation_projection
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
+from evaluation.controllers import signal_actuation_contract
 from vissim_strict.run_evidence import (
     MAX_APPROVAL_BYTES,
     MAX_RUN_MANIFEST_BYTES,
@@ -776,7 +777,9 @@ def _freeway_vehicle_count_by_link(state, cfg) -> dict[str, list[float]]:
     for link in net.freeway_links:
         key = str(link)
         densities = [float(value) for value in state.freeway_density.get(key, [])]
-        lengths = _freeway_segment_lengths_km(cfg, key, len(densities))
+        # Physical N follows the scalar cell length in the continuity equation.
+        lengths = ([float(net.freeway_segment_length_km)] * len(densities)
+                   if physical_counts else _freeway_segment_lengths_km(cfg, key, len(densities)))
         raw_lanes = lane_profile.get(key, []) if isinstance(lane_profile, Mapping) else []
         lanes = [
             max(lane_floor, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
@@ -1643,7 +1646,7 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
         )
 
     patched_phase_green_fraction._rw_greenfrac_hotpath = True
-    return patched_phase_green_fraction
+    return signal_actuation_contract.wrap_clock(patched_phase_green_fraction)
 
 
 def install_monitor_fixed_signal_runtime_patch(
@@ -6521,7 +6524,9 @@ def install_vissim_calibration_runtime_patches(cfg, calibration: Mapping[str, An
                         for value in raw_lengths
                     ] if isinstance(raw_lengths, list) else []
                     base = max(1.0e-6, float(getattr(net, "freeway_segment_length_km", 0.58)))
-                    if len(lengths) < len(densities):
+                    if physical_counts:
+                        lengths = [float(net.freeway_segment_length_km)] * len(densities)
+                    elif len(lengths) < len(densities):
                         lengths = lengths + [base] * (len(densities) - len(lengths))
                     raw_lanes = lane_profile.get(key, []) if isinstance(lane_profile, Mapping) else []
                     counts = []
@@ -7160,6 +7165,9 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
                 "LinkAgentWuFollower 가 아니면 이 스위치는 아무 일도 안 한다."
             )
         controller.nash_solver.enable_metering_in_gne()
+    signal_actuation_contract.install_controller(controller)
+    from evaluation.controllers import area_follower_objective
+    area_follower_objective.install_controller(controller)
     return controller
 
 
@@ -9452,6 +9460,13 @@ def traffic_state_from_vissim(
     state.time_sec = float(state_json.get("sim_sec", 0.0))
     state.ensure_freeway_lane_profile(cfg.network)
 
+    # Project observed N into the exact density coordinates used by the
+    # continuity equation. Keep physical lengths for travel/speed geometry.
+    continuity_length_km = None
+    if bool(getattr(cfg.network, "physical_vehicle_counts", False)):
+        continuity_length_km = float(cfg.network.freeway_segment_length_km)
+        if not math.isfinite(continuity_length_km) or continuity_length_km <= 0.0:
+            raise ValueError("physical_vehicle_counts requires a positive finite continuity cell length")
     segs = state_json.get("freeway_segments", {})
     for link in cfg.network.freeway_links:
         rows = list(segs.get(link, []))
@@ -9471,7 +9486,8 @@ def traffic_state_from_vissim(
             if isinstance(_seg_lanes, list) and i < len(_seg_lanes) and _as_float(_seg_lanes[i], 0.0) > 0.0:
                 lanes = max(1.0, float(_seg_lanes[i]))
             speed = speed_sum / count if count > 1.0e-9 else float(cfg.network.v_free)
-            density = count / (length_km * lanes)
+            density_length_km = length_km if continuity_length_km is None else continuity_length_km
+            density = count / (density_length_km * lanes)
             densities.append(float(density))
             speeds.append(float(speed))
             flows.append(float(density * speed * lanes))
@@ -9592,9 +9608,9 @@ def traffic_state_from_vissim(
 
 def control_from_json(path: Path, cfg, ControlAction):
     if not path.exists():
-        return ControlAction.fixed(cfg)
+        return signal_actuation_contract.prepare_control(ControlAction.fixed(cfg), cfg)
     raw = json.loads(path.read_text(encoding="utf-8"))
-    return ControlAction(
+    control = ControlAction(
         N_P_star=float(raw.get("N_P_star", 0.0)),
         N_UF_star=float(raw.get("N_UF_star", 0.0)),
         ramp_metering={str(k): float(v) for k, v in raw.get("ramp_metering", {}).items()},
@@ -9606,6 +9622,7 @@ def control_from_json(path: Path, cfg, ControlAction):
         },
         diagnostics=dict(raw.get("diagnostics", {})),
     )
+    return signal_actuation_contract.prepare_control(control, cfg)
 
 
 def control_to_json_dict(
@@ -11458,29 +11475,23 @@ def diagnostic_vsl_rm_control(cfg, ControlAction):
 
 
 def native_fixed_control(cfg, ControlAction):
-    """망의 **실제 고정신호 계획**을 그대로 ControlAction 으로 낸다.
+    """Legacy alias: seed greens from the selected plan axis durations.
 
-    왜. "모델이 고정신호가 더 낫다는 걸 볼 수 있는가" 를 묻기 위해서다. 답에 따라 진단이
-    갈린다 — 모델도 고정신호가 낫다고 하면 리더의 **탐색**이 문제고, 모델이 제어안을 더
-    낫게 채점하면 **모델**이 문제다.
-
-    출처는 `outputs/signal_group_actuation_plan_v3.json` 의 `axis_green_sec` 다. 이미
-    모델 현시(p1..p4) 단위로 정리돼 있고, .sig 에서 SG 별 union green 을 뽑은 값과
-    일치한다(SC1: SG4=54->p1, SG3=21->p2, SG2=32->p3, SG1=31->p4).
-
-    주의: 고정 계획에는 **녹색이 0 인 현시**가 있다(SC7 p3, SC16 p4, SC107 p1, SC108 p2,
-    SC109 p1). 그대로 0 을 넣는다 — 컨트롤러도 그 현시에 0 을 준다(실측 확인).
-    VSL·metering 은 무제어와 같은 자유 방출로 둬 신호만 비교되게 한다.
+    This serializes the selected native-derived axes with zero offset. It does
+    not replay the original .sig overlap/gaps or bypass downstream policy guards.
+    Use no-control/native ownership for a true native-program baseline.
     """
     control = ControlAction.uncontrolled(cfg)
-    src = WORKSPACE_ROOT / "outputs/signal_group_actuation_plan_v3.json"
-    doc = json.loads(src.read_text(encoding="utf-8"))
+    src = signal_group_actuation_plan_path()
+    doc = load_signal_group_actuation_plan()
+    if doc is None:
+        raise ValueError(f"selected signal plan is missing: {src}")
     plan = {str(v.get("node_id")): v for v in (doc.get("controllers") or {}).values()}
     applied = 0
     for signal in _controlled_signal_names(cfg):
         entry = plan.get(str(signal))
         if entry is None:
-            continue
+            raise ValueError(f"selected signal plan has no controlled signal {signal}")
         greens = _mapping(entry.get("axis_green_sec"))
         for pid in ("p1", "p2", "p3", "p4"):
             key = f"{signal}_{pid}"
@@ -11490,6 +11501,8 @@ def native_fixed_control(cfg, ControlAction):
         applied += 1
     control.diagnostics.update({
         "native_fixed_actuation_active": 1.0,
+        "native_fixed_plan_path": str(src),
+        "native_fixed_native_program_replay": 0.0,
         "native_fixed_signals_applied": float(applied),
     })
     return control
@@ -11727,6 +11740,20 @@ def _action_csv_metadata(
     row_metadata: Mapping[str, Any] | None = None,
 ) -> str:
     status = str(metadata.get("controller_status", ""))
+    if metadata.get("offset_writer") == offset_promotion.WRITER_EXPERIMENT:
+        if metadata.get("physical_signal_contract_enabled") != 1.0 or metadata.get("offset_experiment") != 1.0:
+            raise ValueError("experiment CSV requires the validated physical signal contract metadata")
+        import hashlib
+        payload = {"offset_writer": "experiment", "physical_signal_contract": "1", "offset_experiment": "1"}
+        provenance = metadata.get("physical_projection_provenance")
+        if isinstance(provenance, Mapping):
+            serialized = json.dumps(thaw_json(provenance), ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":"))
+            payload["physical_projection_provenance_sha256"] = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        payload.update(row_metadata or {})
+        result = status + ";" + ";".join(f"{key}={value}" for key, value in payload.items())
+        if any(char in result for char in (",", "\n", "\r", '"')):
+            raise ValueError("experiment CSV metadata must be comma-free scalar tokens")
+        return result
     provenance = metadata.get("physical_projection_provenance")
     if not isinstance(provenance, Mapping):
         if not row_metadata:
@@ -11761,6 +11788,7 @@ def write_action_csv(
 ) -> None:
     # N4-7. `offset_writer` 의 기본값이 intent_only 인 것이 fail-closed 의 요점이다.
     # 이 함수를 아무 말 없이 부르면 offset 은 절대 플랜트로 나가지 않는다.
+    signal_actuation_contract.validate_writer(control, cfg, signal_group_plan_table, offset_writer)
     path.parent.mkdir(parents=True, exist_ok=True)
     vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
     if 120.0 not in vsl_set:
@@ -11859,7 +11887,9 @@ def write_action_csv(
                 # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
                 # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
                 # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.
-                offset = offset_promotion.written_offset_sec(signal, control, offset_writer)
+                offset = (signal_actuation_contract.written_offset_sec(control, cfg, signal)
+                          if signal_actuation_contract.enabled(cfg.network)
+                          else offset_promotion.written_offset_sec(signal, control, offset_writer))
                 signal_row_out = {
                     "kind": "signal",
                     "id": signal,
@@ -12646,9 +12676,10 @@ def main() -> None:
             metadata["wu_leader_objective"] = float(getattr(result, "leader_objective", 0.0))
         if controller is not None and hasattr(controller, "close"):
             controller.close()
-    except Exception as exc:  # Keep Vissim running; log and fall back safely.
-        if args.controller in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER):
-            raise  # An invalid causal arm must not silently become fixed control.
+    except Exception as exc:  # Legacy modes retain their fixed-control fallback.
+        if (args.controller in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER)
+                or bool(getattr(cfg.network, "control_area_enabled", False))):
+            raise  # Invalid strict-area or causal-arm evaluations must fail the decision.
         control = ControlAction.fixed(cfg)
         metadata["controller_status"] = "fallback_fixed"
         metadata["controller_error_type"] = type(exc).__name__
@@ -12707,12 +12738,15 @@ def main() -> None:
     # N4-7. offset 승격 판정은 action JSON 을 쓰기 **전에** 나와야 한다. 억눌린 의도가
     # 어디로 갔는지 그 JSON 하나로 설명되어야 하기 때문이다(intent_only 의 "기록").
     offset_verdict = offset_promotion.evaluate()
-    offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict)
+    offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict, physical_signal_contract=signal_actuation_contract.enabled(cfg.network))
     metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
+    if offset_writer == offset_promotion.WRITER_EXPERIMENT:
+        metadata["offset_written_sec"] = {s: signal_actuation_contract.written_offset_sec(control, cfg, s) for s in cfg.network.signals}
     # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
     if args.controller not in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER):
         apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
         real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
+    signal_actuation_contract.validate_writer(control, cfg, load_signal_group_actuation_plan(), offset_writer)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(

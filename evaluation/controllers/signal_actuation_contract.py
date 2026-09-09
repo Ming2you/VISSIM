@@ -1,0 +1,322 @@
+"""Opt-in physical signal contract shared by candidate generation and rollout.
+
+Supports the selected mainline plan, whose active SGs share full phase windows.
+The ordinary native/monitor path remains owned by the existing adapter wrapper.
+"""
+from __future__ import annotations
+
+import copy
+import importlib
+import math
+from functools import lru_cache
+
+from evaluation.controllers import offset_promotion, plant_cycle, signal_group_plan
+
+PHASES = signal_group_plan.MODEL_PHASES
+
+
+def enabled(net):
+    return bool(getattr(net, "signal_actuation_contract", None))
+
+
+def bounds(net, signal):
+    low = max(float(net.green_min), plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC[0])
+    total = float(net.signal_effective_green_total(signal))
+    count = len(net.signal_live_phases(signal))
+    high = min(plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC[1], total - (count - 1) * low)
+    if not count or not all(math.isfinite(v) for v in (low, high, total)):
+        raise ValueError(f"{signal}: invalid signal budget")
+    if not count * low <= total <= count * high:
+        raise ValueError(f"{signal}: green box cannot contain budget {total}")
+    return low, high, total
+
+
+def project_vector(net, signal, values):
+    """Project before scoring, preserving the budget and CSV millisecond grid."""
+    if not enabled(net):
+        return values
+    from src.models.state import _project_to_budget
+    live = tuple(net.signal_live_phases(signal))
+    low, high, total = bounds(net, signal)
+    raw = [float(values.get(p, 0.0)) for p in live]
+    if not all(math.isfinite(v) for v in raw):
+        raise ValueError(f"{signal}: nonfinite candidate green")
+    projected = _project_to_budget(raw, total, low, high)
+    # Round once at candidate creation, then repair only the <=N millisecond
+    # residual. The writer may serialize but must not project this vector again.
+    units = [round(v * 1000) for v in projected]
+    lo, hi, target = math.ceil(low * 1000), math.floor(high * 1000), round(total * 1000)
+    if abs(target / 1000 - total) > 1e-9 or not len(live) * lo <= target <= len(live) * hi:
+        raise ValueError(f"{signal}: budget is infeasible on the CSV millisecond grid")
+    residual = target - sum(units)
+    for i in range(len(units)):
+        delta = min(residual, hi - units[i]) if residual > 0 else max(residual, lo - units[i])
+        units[i] += delta
+        residual -= delta
+    if residual:
+        raise ValueError(f"{signal}: unable to conserve rounded budget")
+    result = {p: 0.0 for p in PHASES}
+    result.update({p: v / 1000 for p, v in zip(live, units)})
+    return result
+
+
+def validate_vector(net, signal, values):
+    if not enabled(net):
+        return
+    live = tuple(net.signal_live_phases(signal))
+    low, high, total = bounds(net, signal)
+    vals = {p: float(values.get(p, 0.0)) for p in PHASES}
+    if any(not math.isfinite(v) or abs(v - round(v, 3)) > 1e-9 for v in vals.values()):
+        raise ValueError(f"{signal}: candidate must already be finite CSV-precision greens")
+    if any(not low - 1e-9 <= vals[p] <= high + 1e-9 for p in live):
+        raise ValueError(f"{signal}: candidate exceeds model/physical green bounds")
+    if any(vals[p] != 0.0 for p in PHASES if p not in live):
+        raise ValueError(f"{signal}: dead phase has nonzero green")
+    if abs(sum(vals.values()) - total) > 1e-8:
+        raise ValueError(f"{signal}: candidate does not conserve cycle budget")
+
+
+def prepare_control(control, cfg):
+    """Explicit migration of a previous action; caller keeps the returned copy."""
+    if not enabled(cfg.network):
+        return control
+    out = control.copy()
+    largest = 0.0
+    for signal in cfg.network.signals:
+        before = {p: float(control.green_times.get(f"{signal}_{p}", 0.0)) for p in PHASES}
+        after = project_vector(cfg.network, signal, before)
+        largest = max(largest, *(abs(before[p] - after[p]) for p in PHASES))
+        out.green_times.update({f"{signal}_{p}": v for p, v in after.items()})
+    out.diagnostics["signal_actuation_seed_projection_max_sec"] = largest
+    return out
+
+
+def validate_control(control, cfg):
+    if enabled(cfg.network):
+        for signal in cfg.network.signals:
+            validate_vector(cfg.network, signal, {p: control.green_times.get(f"{signal}_{p}", 0.0) for p in PHASES})
+
+
+def validate_writer(control, cfg, plan_table, offset_writer):
+    if not enabled(cfg.network):
+        return
+    validate_control(control, cfg)
+    contract = cfg.network.signal_actuation_contract
+    if offset_writer != contract["offset_writer"]:
+        raise ValueError("signal model and writer offset authority differ")
+    if not plan_table:
+        raise ValueError("physical signal contract requires the selected SG plan")
+    for signal, expected in contract["nodes"].items():
+        written_offset_sec(control, cfg, signal)
+        actual = plan_table["controllers"][signal[2:]]
+        if any(actual.get(k) != expected.get(k) for k in ("major_maps_to", "phase_segments", "phase_signal_groups", "axis_green_sec")):
+            raise ValueError(f"{signal}: model and writer selected plans differ")
+
+
+def configure(cfg, tuning, plan_table):
+    flag = (tuning.get("urban") or {}).get("physical_signal_contract", False)
+    if not isinstance(flag, bool):
+        raise ValueError("urban.physical_signal_contract must be boolean")
+    offset_promotion.validate_experiment_declaration(tuning.get("actuation"), flag)
+    if not flag:
+        return {}
+    if ((tuning.get("actuation") or {}).get("signal_green_freeze") or {}).get("enabled"):
+        raise ValueError("legacy two-axis signal_green_freeze is outside the feasible candidate contract")
+    net = cfg.network
+    amber, all_red = plant_cycle.runner_clearance_sec()
+    if (float(plan_table.get("amber_sec", amber)), float(plan_table.get("all_red_sec", all_red))) != (amber, all_red):
+        raise ValueError("selected signal plan clearance differs from the actual writer")
+    nodes = {}
+    for signal in net.signals:
+        raw = plan_table["controllers"][str(int(signal[2:]))]
+        plan = signal_group_plan.node_plan_from_json(raw)
+        live = tuple(p for p in PHASES if plan.phase_signal_groups[p] and plan.axis_green_sec[p] > 0)
+        if live != tuple(net.signal_live_phases(signal)):
+            raise ValueError(f"{signal}: model and selected writer plan disagree on live phases")
+        # The current follower caches green fractions by phase, not movement/SG.
+        # Reject partial SG windows instead of claiming that cache is general.
+        for phase in live:
+            if not plan.phase_segments[phase] or any((row[2], row[3]) != (0.0, 1.0) for row in plan.phase_segments[phase]):
+                raise ValueError(f"{signal}: partial SG windows require a movement-level local cache")
+        _, _, total = bounds(net, signal)
+        cycle = total + len(live) * (amber + all_red)
+        if abs(cycle - net.signal_cycle_length(signal)) > 1e-8 or abs(cycle - round(cycle, 3)) > 1e-8:
+            raise ValueError(f"{signal}: model/writer cycle must match at CSV precision")
+        nodes[signal] = copy.deepcopy(raw)
+        nodes[signal]["_segments"] = tuple((p, plan.phase_segments[p]) for p in PHASES)
+        nodes[signal]["_order"] = signal_group_plan.phase_layout_order(raw.get("major_maps_to", "p2"))
+    net.signal_actuation_contract = {"nodes": nodes, "amber": amber, "all_red": all_red,
+                                    "offset_writer": offset_promotion.resolve_writer(tuning.get("actuation"), physical_signal_contract=flag)}
+    install_candidates(cfg)
+    return {"physical_signal_contract_enabled": 1.0, "physical_signal_contract_nodes": len(nodes)}
+
+
+@lru_cache(maxsize=16384)
+def _phase_windows(segments, order, greens, clearance):
+    """The existing plan writer is the only phase-layout implementation."""
+    # These are the actual selected plan's segments, not another phase clock.
+    plan = signal_group_plan.NodePlan("clock", 0.0, dict(segments), {}, {}, {}, (), ())
+    rows = signal_group_plan.plan_windows(plan, dict(zip(PHASES, greens)), order, clearance, 0.0)
+    by_sg = {row.sg_no: row for row in rows}
+    windows = {}
+    for phase, spans in segments:
+        if spans:
+            row = by_sg.get(spans[0][0])
+            if row is not None:
+                windows[phase] = (round(row.start_sec, 6), round(row.end_sec, 6))
+    return windows
+
+
+def written_offset_sec(control, cfg, signal):
+    """One representation for the integer-event model and both CSV row kinds."""
+    net = cfg.network
+    contract = net.signal_actuation_contract
+    values = {p: float(control.green_times.get(f"{signal}_{p}", 0.0)) for p in PHASES}
+    validate_vector(net, signal, values)
+    cycle = round(sum(values.values()) + len(net.signal_live_phases(signal)) * (contract["amber"] + contract["all_red"]), 6)
+    return round(offset_promotion.written_offset_sec(signal, control, contract["offset_writer"], cycle_sec=cycle), 3)
+
+
+def phase_fraction(control, cfg, spec, urban_step_index=None):
+    """Return None only when the existing native/monitor implementation owns it."""
+    net = cfg.network
+    if not enabled(net) or not spec.get("phase"):
+        return None
+    if spec.get("unsignalized"):
+        return 1.0
+    signal, _, phase = str(spec["phase"]).rpartition("_")
+    contract = net.signal_actuation_contract
+    raw = contract["nodes"].get(signal)
+    if raw is None:
+        return None
+    values = {p: float(control.green_times.get(f"{signal}_{p}", 0.0)) for p in PHASES}
+    validate_vector(net, signal, values)
+    offset = written_offset_sec(control, cfg, signal)
+    # Writer cycle is recomputed from the serialized vector, not separately
+    # rounded to whole seconds. E.g. 150.001 is a legal CSV cycle.
+    cycle = round(sum(values.values()) + len(net.signal_live_phases(signal)) * (contract["amber"] + contract["all_red"]), 6)
+    if not math.isfinite(offset) or not 0.0 <= offset <= cycle:
+        raise ValueError(f"{signal}: written offset outside CSV range")
+    table = _phase_windows(raw["_segments"], raw["_order"],
+                           tuple(values[p] for p in PHASES), contract["amber"] + contract["all_red"])
+    window = table.get(phase)
+    if window is None:
+        return 0.0
+    lo, hi = window
+    if urban_step_index is None:
+        # Mean over the integer event grid's rational superperiod. Finite
+        # rollouts below use actual absolute time, including VBS float FMod.
+        units = round(cycle * 1000)
+        stride = math.gcd(units, 1000)
+        residue = round(offset * 1000) % stride
+        active = math.ceil((round(hi * 1000) - residue) / stride) - math.ceil((round(lo * 1000) - residue) / stride)
+        return active / (units // stride)
+    duration = float(cfg.simulation.T_u_sec)
+    start, end = float(urban_step_index) * duration, (float(urban_step_index) + 1) * duration
+    if duration <= 0 or not math.isfinite(start + end):
+        raise ValueError("invalid urban step interval")
+    total = 0.0
+    for sec in range(math.floor(start), math.ceil(end)):
+        x = sec + offset
+        # Match the actual VBS FMod expression; Python % differs at some
+        # decimal cycle boundaries because it uses a different remainder path.
+        pos = x - math.floor(x / cycle) * cycle
+        if lo <= pos < hi:
+            total += max(0.0, min(end, sec + 1) - max(start, sec))
+    return total / duration
+
+
+def wrap_clock(previous):
+    def wrapped(control, cfg, spec, urban_step_index=None):
+        value = phase_fraction(control, cfg, spec, urban_step_index)
+        return previous(control, cfg, spec, urban_step_index) if value is None else value
+    wrapped._rw_greenfrac_hotpath = getattr(previous, "_rw_greenfrac_hotpath", False)
+    return wrapped
+
+
+def install_candidates(cfg):
+    """Reinstall in spawned workers too; every wrapper dispatches on call cfg."""
+    if not enabled(cfg.network):
+        return {}
+    from src.models import state
+    if not getattr(state.NetworkConfig.signal_green_max, "_physical_signal_contract", False):
+        original_max = state.NetworkConfig.signal_green_max
+        def signal_max(net, signal=None):
+            if signal is not None and enabled(net):
+                return bounds(net, signal)[1]
+            return original_max(net, signal)
+        signal_max._physical_signal_contract = True
+        state.NetworkConfig.signal_green_max = signal_max
+    for name in ("src.models.state", "src.controllers.wu_faithful_follower",
+                 "src.controllers.priced_wu_link_controller", "src.controllers.local_signal_plant"):
+        module = importlib.import_module(name)
+        if not hasattr(module, "distribute_phase_green"):
+            continue
+        current = module.distribute_phase_green
+        if getattr(current, "_physical_signal_contract", False):
+            continue
+        def distribution(net, primary, reference=None, signal=None, _original=current, **kw):
+            out = _original(net, primary, reference, signal=signal, **kw)
+            return project_vector(net, signal, out) if signal is not None else out
+        distribution._physical_signal_contract = True
+        module.distribute_phase_green = distribution
+    from src.controllers import wu_faithful_follower as follower_module
+    cls = follower_module.WuFaithfulFollower
+    original_fractions = cls._offset_green_fractions_vec
+    if not getattr(original_fractions, "_physical_signal_contract", False):
+        def local_fractions(self, signal, greens, offset, substeps, start_idx):
+            if not enabled(self.cfg.network):
+                return original_fractions(self, signal, greens, offset, substeps, start_idx)
+            model = self._local_models[signal]
+            probe = state.ControlAction.uncontrolled(self.cfg)
+            probe.green_times = {f"{signal}_{p}": float(v) for p, v in greens.items()}
+            probe.offsets = {signal: float(offset)}
+            probe.inflow_outflow_allocation = {}
+            cache, out = {}, {}
+            for movement in model.movements:
+                spec = model.specs[movement]
+                # The local cache may share full SG windows within a phase,
+                # but an unsignalized peel-off is a different physical lever.
+                key = (model.phase_of[movement], bool(spec.get("unsignalized")))
+                if key not in cache:
+                    cache[key] = [follower_module._phase_green_fraction(probe, self.cfg, spec, urban_step_index=start_idx + sub)
+                                  for sub in range(substeps)]
+                out[movement] = cache[key]
+            return out
+        local_fractions._physical_signal_contract = True
+        cls._offset_green_fractions_vec = local_fractions
+    return {"physical_signal_candidate_contract_installed": 1.0}
+
+
+def install_controller(controller):
+    """Call last in the canonical builder, after its existing green-box patch."""
+    if not enabled(controller.cfg.network):
+        return
+    cls = type(controller)
+    original = cls._phase_direction
+    if not getattr(original, "_physical_signal_contract", False):
+        def direction(self, signal, base, target, delta):
+            out = original(self, signal, base, target, delta)
+            return project_vector(self.cfg.network, signal, out) if out is not None else None
+        direction._physical_signal_contract = True
+        cls._phase_direction = direction
+    # The ordinary scalar expansion is projected before both local scoring and
+    # commit; pair-exchange starts at that feasible seed and preserves its sum.
+    follower_cls = type(controller.nash_solver)
+    scalar_original = follower_cls._urban_green_candidates
+    if not getattr(scalar_original, "_physical_signal_contract", False):
+        def scalar_candidates(self, signal, state_arg, coupling, snapshot):
+            out = scalar_original(self, signal, state_arg, coupling, snapshot)
+            if not enabled(self.cfg.network):
+                return out
+            from src.models.state import clamp_primary_green
+            return list(dict.fromkeys(round(clamp_primary_green(self.cfg.network, v, signal), 3) for v in out))
+        scalar_candidates._physical_signal_contract = True
+        follower_cls._urban_green_candidates = scalar_candidates
+    current = follower_cls._phase_exchange_candidates
+    if not getattr(current, "_physical_signal_contract", False):
+        def exchange(self, signal, base, step):
+            validate_vector(self.cfg.network, signal, base)
+            return [project_vector(self.cfg.network, signal, v) for v in current(self, signal, base, step)]
+        exchange._physical_signal_contract = True
+        follower_cls._phase_exchange_candidates = exchange

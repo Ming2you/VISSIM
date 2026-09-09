@@ -47,6 +47,13 @@ def configure(cfg, tuning, detectors, raw):
         raise ValueError('Physical support repair network fingerprint mismatch')
     links = {x.get('no'): x for x in ET.parse(network).getroot().findall('./links/link')}
     records = complete_records(raw)
+    coverage = document.get('full_area_coverage_audit', {})
+    if coverage.get('require_positive_unresolved_failure'):
+        unresolved = set(coverage['unresolved_physical_links'])
+        active = Counter(str(row['link_no']) for row in records if str(row['link_no']) in unresolved)
+        if active:
+            raise ValueError('Positive Omega records have unresolved physical stock support: '
+                             + str(dict(sorted(active.items(), key=lambda item: int(item[0])))))
     by_link = defaultdict(list)
     for row in records:
         by_link[str(row['link_no'])].append(row)

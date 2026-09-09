@@ -13,6 +13,13 @@ from evaluation.controllers.control_area_objective import (
     emit_transfer, emit_input, integrate_residence, get_ledger,
 )
 
+def _receive_corridor(state, cfg, movement, vehicles, urban_step_index):
+    if not getattr(cfg.network, 'sc2001_corridor', None):
+        return False
+    from evaluation.controllers.sc2001_corridor import receive_accepted
+    return receive_accepted(state, cfg, movement, vehicles, urban_step_index)
+
+
 def _drain_offramp_storage_accounted(
     state: TrafficState,
     control: ControlAction,
@@ -75,11 +82,12 @@ def _drain_offramp_storage_accounted(
                     0.0,
                     state.urban_link_storage.get(receiving_link, 0.0) - actual,
                 )
-                delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
-                arrival_step = step_idx + delay_steps
-                if receiving_link in routing:
-                    _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
-                _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
+                if not _receive_corridor(state, cfg, movement, actual, step_idx):
+                    delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
+                    arrival_step = step_idx + delay_steps
+                    if receiving_link in routing:
+                        _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
+                    _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
         if released_total > 0.0:
             state.urban_link_storage[storage_link] = min(
                 capacity,
@@ -96,6 +104,7 @@ def urban_substep_accounted(
     cfg: ExperimentConfig,
     urban_step_index: int | None = None,
     ramp_release_veh_h: Mapping[str, float] | None = None,
+    defer_legsplit_sinks: bool = False,
 ) -> Tuple[float, Dict[str, float]]:
     """movement-level horizontal queue를 `T_u` 한 스텝만 전진한다."""
     _uqm.ensure_urban_state(state, cfg)
@@ -133,6 +142,13 @@ def urban_substep_accounted(
     step_idx = _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index
     routing = _uqm.approach_routing(cfg)
     sink_links = _uqm.sink_storage_links(cfg)
+    corridor = getattr(net, 'sc2001_corridor', None)
+    if corridor:
+        from evaluation.controllers.sc2001_corridor import advance
+        corridor_diagnostics = advance(state, control, demand, cfg, step_idx)
+        diagnostics.update({key: value for key, value in corridor_diagnostics.items()
+                            if isinstance(value, (int, float))})
+        sink_links = set(sink_links) - {corridor['storage']}
     boundary_out_sink_veh = 0.0
     boundary_out_ramp_blocked_veh = 0.0
     boundary_out_ramp_released_veh = 0.0
@@ -140,6 +156,8 @@ def urban_substep_accounted(
     urban_demand_arrivals_veh = 0.0
 
     for link in net.urban_link_storage_veh:
+        if corridor and link == corridor['storage']:
+            continue
         released = _uqm._pop_buffer(state.urban_storage_release_buffer, link, step_idx)
         if released > 0.0:
             # sink(boundary_out) 링크는 release pop에서 available을 복원하지 않는다 —
@@ -184,6 +202,8 @@ def urban_substep_accounted(
     # 갈라지므로, 램프행 잔류가 통과 차량의 가용공간도 같이 줄이는 것이 실제 거동이다.
     ramp_split = dict(getattr(net, "boundary_out_ramp_split", {}) or {})
     for link in sink_links:
+        if defer_legsplit_sinks and link in ramp_split:
+            continue  # The wrapper performs one explicit accepted W_out transfer.
         cap = net.urban_link_storage_veh.get(link, net.boundary_queue_max_veh)
         occupancy = max(0.0, cap - state.urban_link_storage.get(link, cap))
         # N3-2: 점유에는 **방금 out 링크에 진입해 아직 링크 끝에 못 간 차량**이 섞여 있다.
@@ -225,6 +245,8 @@ def urban_substep_accounted(
 
     # arrival = "다음 노드 도착 → β분할" (spec §3.3.5). 1:1 next_movement 체인이 아님.
     for source, targets in routing.items():
+        if corridor and source == corridor['storage']:
+            continue
         arrived = _uqm._pop_buffer(state.urban_arrival_buffer, source, step_idx)
         if arrived <= 0.0:
             continue
@@ -395,12 +417,13 @@ def urban_substep_accounted(
                 0.0,
                 state.urban_link_storage.get(receiving_link, 0.0) - actual,
             )
-            delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
-            arrival_step = step_idx + delay_steps
-            # 내부 링크면 다음 교차로 approach buffer로(도착 시 β분할), sink 링크면 release만.
-            if receiving_link in routing:
-                _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
-            _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
+            if not _receive_corridor(state, cfg, movement, actual, step_idx):
+                delay_steps = _uqm._link_delay_steps(state, cfg, receiving_link)
+                arrival_step = step_idx + delay_steps
+                # 내부 링크면 다음 교차로 approach buffer로(도착 시 β분할), sink 링크면 release만.
+                if receiving_link in routing:
+                    _uqm._schedule(state.urban_arrival_buffer, receiving_link, arrival_step, actual)
+                _uqm._schedule(state.urban_storage_release_buffer, receiving_link, arrival_step, actual)
         if spec.get("kind") == "off_ramp":
             off_ramp = str(spec.get("off_ramp", ""))
             off_ramp_departures[off_ramp] = off_ramp_departures.get(off_ramp, 0.0) + actual
@@ -542,11 +565,11 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
     # vendor 블록(:1053-1083)의 두 결함: (1) 램프 진입 상한이 min(공간, 미터방출)인데 미터방출은 저수지
     # 큐가 있어야 생겨서 빈 저수지엔 못 들어가는 교착, (2) 자유 진출이 share×재고를 매 substep 다시
     # 계산해 1,600 vph 로 재고 전체(램프행 포함)를 빼간다. 여기서는 이번 substep 에 링크 끝에 닿는
-    # 양(reach)만 목적지별로 나누고 램프는 공간·연결로 용량(ramp_capacity)으로만 막는다. 호출 뒤
-    # vendor 가 뺀 총량과 의도 총량의 차이를 저류로 되돌리고 램프 몫을 저수지에 넣는다.
+    # 양(reach)만 목적지별로 나눈다. 일반 sink 인출은 이 래퍼에서만 유예하며, 도시 본문 실행 뒤
+    # 실제 수신 여유를 다시 확인한 accepted 양만 원 저장고에서 한 번 빼고 목적지로 옮긴다.
     inject: dict[str, float] = {}
     accepted_transfers = []
-    adjust: dict[str, float] = {}   # link -> (의도 인출 − vendor 인출); 양수면 vendor 가 더 뺀 것 → 되돌림
+    adjust: dict[str, float] = {}   # source link -> accepted departures freeing its storage
     exit_cap_h = float(getattr(net_a, "boundary_out_capacity_veh_h", 0.0) or 0.0)
     finite_exit = exit_cap_h > 0.0
     conn_caps = dict(getattr(net_a, "ramp_capacity_veh_h", {}) or {})
@@ -558,17 +581,13 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         reach = min(arrived, arrived * _adapter._legsplit_wout_rate(net_a, str(link), spd) * float(sim.T_u_h))
         free_share = max(0.0, float(spec.get("free", 0.0)))
         exit_cap_veh = exit_cap_h * float(sim.T_u_h)
-        vendor_free = min(arrived * free_share, exit_cap_veh) if finite_exit else arrived * free_share
         intended_free = min(reach * free_share, exit_cap_veh) if finite_exit else reach * free_share
-        vendor_total = vendor_free
         intended_total = intended_free
         accepted_transfers.append((str(link), None, intended_free))
         for ramp, share in (spec.get("ramps") or {}).items():
             sh = max(0.0, float(share))
             cap_r = float(net_a.ramp_queue_cap(str(ramp)))
             space = max(0.0, cap_r - max(0.0, float(state.ramp_queue.get(str(ramp), 0.0))))
-            meter = max(0.0, float((rel or {}).get(str(ramp), 0.0))) * float(sim.T_u_h)
-            vendor_total += min(arrived * sh, min(space, meter))
             conn = max(0.0, float(conn_caps.get(str(ramp), 0.0) or 0.0)) * float(sim.T_u_h)
             entry_cap = min(space, conn) if conn > 0.0 else space
             allowed = min(reach * sh, entry_cap)
@@ -576,7 +595,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
                 inject[str(ramp)] = inject.get(str(ramp), 0.0) + allowed
                 intended_total += allowed
                 accepted_transfers.append((str(link), str(ramp), allowed))
-        adjust[str(link)] = intended_total - vendor_total
+        adjust[str(link)] = intended_total
     # B5 v2: 게이트발 on-ramp 큐가 등록된 램프는 도시 착지(ramp_arrival)만 0 — β×게이트 항과 이중계상 방지.
     #   리더의 N_UF 도착 목표는 원래 demand 를 보므로 건드리지 않는다(v1 은 demand_from_state 에서 0 으로 두어 t=900 미터를 조였다).
     _gq_ramps = getattr(net_a, "gate_onramp_queue_ramps", None) or ()
@@ -585,10 +604,28 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         demand = _copy.copy(demand)
         demand.ramp_arrival = {k: (0.0 if str(k) in set(str(x) for x in _gq_ramps) else v) for k, v in dict(getattr(demand, 'ramp_arrival', {}) or {}).items()}
     out = urban_substep_accounted(state, control, demand, cfg_arg, urban_step_index=urban_step_index,
-                        ramp_release_veh_h=rel)
+                        ramp_release_veh_h=rel, defer_legsplit_sinks=True)
+    # The body can accept other urban/corridor vehicles into the same
+    # ramp after these requests were prepared. Reconcile requests against the
+    # actual remaining room before withdrawing any of their source stock.
+    receipt_scale: dict[str, float] = {}
+    for ramp, requested in inject.items():
+        room = max(0.0, float(net_a.ramp_queue_cap(ramp)) - float(state.ramp_queue.get(ramp, 0.0)))
+        accepted = min(requested, room)
+        receipt_scale[ramp] = accepted / requested if requested > 0.0 else 0.0
+        inject[ramp] = accepted
+        _adapter._LEGSPLIT_LAST["leg_ramp_split_receiving_rejected_veh"] = (
+            _adapter._LEGSPLIT_LAST.get("leg_ramp_split_receiving_rejected_veh", 0.0) + requested - accepted)
+    reconciled_transfers = []
+    for source_link, ramp, requested in accepted_transfers:
+        accepted = requested if ramp is None else requested * receipt_scale[ramp]
+        # Available storage increases only by accepted departures. A rejected
+        # vehicle stays in its original W_out, retaining its arrival reservation.
+        adjust[source_link] -= requested - accepted
+        reconciled_transfers.append((source_link, ramp, accepted))
+    accepted_transfers = reconciled_transfers
     for ramp, veh in inject.items():
-        cap_r = float(net_a.ramp_queue_cap(ramp))
-        state.ramp_queue[ramp] = min(cap_r, max(0.0, float(state.ramp_queue.get(ramp, 0.0))) + veh)
+        state.ramp_queue[ramp] = max(0.0, float(state.ramp_queue.get(ramp, 0.0))) + veh
         _adapter._LEGSPLIT_LAST["leg_ramp_split_injected_%s" % ramp] = _adapter._LEGSPLIT_LAST.get("leg_ramp_split_injected_%s" % ramp, 0.0) + veh
     # B3 (2026-09-05): 꼬리 sink 의 추가 배출. vendor 는 전역 1,600 vph 로만 내보내 3,600 vph 유입에 쌓인다.
     tail_caps = _adapter._mapping(getattr(net_a, "wout_tail_exit_capacity_veh_h", None))
@@ -610,8 +647,12 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         if abs(delta) <= 1.0e-12:
             continue
         cap_l = float(net_a.urban_link_storage_veh.get(link, net_a.boundary_queue_max_veh))
-        # storage = 가용공간. vendor 가 departed 만큼 늘렸으니 (의도 − vendor) 만큼 더 늘리거나 줄인다.
-        state.urban_link_storage[link] = min(cap_l, max(0.0, float(state.urban_link_storage.get(link, cap_l)) + delta))
+        # The generic sink was deferred, so actual accepted departures
+        # now free their source space exactly once; never infer an undo.
+        available = float(state.urban_link_storage.get(link, cap_l))
+        if delta < -1.0e-9 or available + delta > cap_l + 1.0e-7:
+            raise ValueError("accepted W_out transfer exceeds source stock: " + str(link))
+        state.urban_link_storage[link] = available + delta
         _adapter._LEGSPLIT_LAST["leg_ramp_split_storage_adjust_veh"] = (
             _adapter._LEGSPLIT_LAST.get("leg_ramp_split_storage_adjust_veh", 0.0) + delta)
     _adapter._LEGSPLIT_LAST["leg_ramp_split_injected_veh"] = (
@@ -659,7 +700,7 @@ def schedule_offramp_arrivals_accounted(state, cfg, off_ramp, vehicles, urban_st
 def install(adapter, cfg):
     """Enable explicit events after all original urban/landing runtime hooks."""
     global _adapter, _original_schedule
-    if not getattr(cfg.network, 'control_area_enabled', False):
+    if not getattr(cfg.network, 'control_area_enabled', False) and not getattr(cfg.network, 'sc2001_corridor', None):
         return {'area_urban_accounting_enabled': 0.0}
     _adapter = adapter
     if getattr(_uqm.urban_substep, '_control_area_events', False):
@@ -668,13 +709,15 @@ def install(adapter, cfg):
     _original_schedule = _uqm.schedule_offramp_arrivals
 
     def urban_substep(state, control, demand, cfg, *args, **kwargs):
-        if not getattr(cfg.network, 'control_area_enabled', False):
+        area_enabled = bool(getattr(cfg.network, 'control_area_enabled', False))
+        if not area_enabled and not getattr(cfg.network, 'sc2001_corridor', None):
             return original_urban(state, control, demand, cfg, *args, **kwargs)
-        if get_ledger(state) is None:
+        if area_enabled and get_ledger(state) is None:
             raise ValueError('enabled urban accounting requires candidate-owned ledger')
         result = legsplit_substep_accounted(state, control, demand, cfg, *args, **kwargs)
-        keys = [k for k in get_ledger(state).stocks if k.startswith(('storage:', 'movement:', 'ramp:', 'transit:'))]
-        integrate_residence(state, cfg, keys, cfg.simulation.T_u_h)
+        if area_enabled:
+            keys = [k for k in get_ledger(state).stocks if k.startswith(('storage:', 'movement:', 'ramp:', 'transit:'))]
+            integrate_residence(state, cfg, keys, cfg.simulation.T_u_h)
         return result
 
     def schedule_offramp_arrivals(state, cfg, *args, **kwargs):

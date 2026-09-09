@@ -175,10 +175,14 @@ RW_PYTHON_EXE = ""
 ' test_only 는 그 모듈이 "**강제 offset arm** 만 낸다" 고 못박은 격리 시험용이다.
 ' 최적화기가 고른 offset 은 test_only 에서도 안 나간다 - 어댑터가 강제 표를 실을 때만
 ' 신호별 값이 CSV 에 실린다.
+' experiment is an explicit optimizer trial with config + environment authority,
+' physical signal contract markers and unchanged production evidence locks.
 Dim RW_OFFSET_WRITER
 RW_OFFSET_WRITER = "intent_only"
 If LCase(Trim(shell.ExpandEnvironmentStrings("%RW_OFFSET_WRITER%"))) = "test_only" Then
     RW_OFFSET_WRITER = "test_only"
+ElseIf LCase(Trim(shell.ExpandEnvironmentStrings("%RW_OFFSET_WRITER%"))) = "experiment" Then
+    RW_OFFSET_WRITER = "experiment"
 End If
 ' N4-5. SG 단위 액추에이션 계획의 계약. scripts/derive_signal_group_actuation_plan.py 가
 ' generated config 옆에 <config>_sgplan.vbs 로 내보내고, 여기서 ExecuteGlobal 한다.
@@ -1004,9 +1008,18 @@ Sub RunControllerDecision(simSec)
     ' A diagnostic intervention is fixed at its first decision. Continuing
     ' after a failed decision would run the warmup action until the final
     ' integrity check. Include warmup failures in the selected diagnostic run.
-    If decisionsFailed > 0 And Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Then
-        WScript.Echo "ERROR=DIAGNOSTIC_DECISION_FAILED sim_sec=" & CStr(simSec) & _
-            " controller=" & CStr(effController) & " decisions_failed=" & CStr(decisionsFailed)
+    If decisionsFailed > 0 And (Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Or _
+            EnvText("RW_DECISION_FAIL_FAST") = "1" Or RW_OFFSET_WRITER = "experiment") Then
+        If Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Then
+            WScript.Echo "ERROR=DIAGNOSTIC_DECISION_FAILED sim_sec=" & CStr(simSec) & _
+                " controller=" & CStr(effController) & " decisions_failed=" & CStr(decisionsFailed)
+        ElseIf RW_OFFSET_WRITER = "experiment" Then
+            WScript.Echo "ERROR=EXPERIMENT_DECISION_FAILED sim_sec=" & CStr(simSec) & _
+                " controller=" & CStr(effController) & " decisions_failed=" & CStr(decisionsFailed)
+        Else
+            WScript.Echo "ERROR=STRICT_DECISION_FAILED sim_sec=" & CStr(simSec) & _
+                " controller=" & CStr(effController) & " decisions_failed=" & CStr(decisionsFailed)
+        End If
         On Error Resume Next
         Vissim.Simulation.Stop
         stateFile.Close
@@ -1063,6 +1076,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
             If UBound(parts) <> 14 Then
                 invalidRows = invalidRows + 1
             Else
+                If Not ExperimentMetadataValid(parts(14)) Then invalidRows = invalidRows + 1
                 kind = LCase(Trim(CStr(parts(0))))
                 If kind = "vsl" Then
                     If Not VslActionKeyValid(parts(1), parts(2), parts(4), parts(5)) Or _
@@ -1148,6 +1162,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     ' offset 은 SignalGroupPlanRejectReason 이 이미 signal 행과 같음을 요구하므로
     ' rowSignalOffset 만 보면 sigOffset 으로 갈 수 있는 값이 전부 덮인다.
     If planReason = "" Then planReason = OffsetPromotionRejectReason(rowSignalOffset)
+    If planReason = "" Then planReason = ExperimentSignalOffsetsRejectReason(pendingSgOffset, rowSignalOffset)
     If first Or expectedVslRows <> CLng(RW_EXPECTED_VSL_ACTION_ROWS) Or vslRows <> expectedVslRows Or rampRows <> expectedRampRows Or _
             signalRows <> expectedSignalRows Or sgRows <> expectedSgRows Or invalidRows > 0 Or planReason <> "" Then
         actionFormatFailures = actionFormatFailures + 1
@@ -1359,12 +1374,46 @@ End Function
 ' 이 함수는 삼중 잠금을 **판정하지 않는다**(러너는 증거 산출물을 읽을 수 없다).
 ' 하는 일은 하나다 - RW_OFFSET_WRITER 로 선언하지 않은 런에서 nonzero offset 을 보면
 ' 그 CSV 전체를 거부할 사유를 돌려준다. 부분 적용은 없다.
+' Trial declaration is not a production promotion. Check every row before COM.
+Function ExperimentMetadataValid(metadataText)
+    Dim tokens, required, token, item, count
+    ExperimentMetadataValid = True
+    If RW_OFFSET_WRITER <> "experiment" Then Exit Function
+    tokens = Split(CStr(metadataText), ";")
+    For Each required In Array("offset_writer=experiment", "physical_signal_contract=1", "offset_experiment=1")
+        count = 0
+        For Each token In tokens
+            If CStr(token) = required Then count = count + 1
+        Next
+        If count <> 1 Then
+            ExperimentMetadataValid = False
+            Exit Function
+        End If
+    Next
+End Function
+
+Function ExperimentSignalOffsetsRejectReason(pendingOffsets, signalOffsets)
+    Dim scKey
+    ExperimentSignalOffsetsRejectReason = ""
+    If RW_OFFSET_WRITER <> "experiment" Then Exit Function
+    For Each scKey In signalOffsets.Keys
+        If Not pendingOffsets.Exists(CStr(scKey)) Then
+            ExperimentSignalOffsetsRejectReason = "EXPERIMENT_SG_OFFSET_MISSING sc=" & scKey
+            Exit Function
+        End If
+        If Abs(CDbl(pendingOffsets(scKey)) - CDbl(signalOffsets(scKey))) > 0.000001 Then
+            ExperimentSignalOffsetsRejectReason = "EXPERIMENT_SG_OFFSET_MISMATCH sc=" & scKey
+            Exit Function
+        End If
+    Next
+End Function
+
 Function OffsetPromotionRejectReason(rowSignalOffset)
     Dim writerText, scKey
     OffsetPromotionRejectReason = ""
     writerText = LCase(Trim(CStr(RW_OFFSET_WRITER)))
     If writerText = "" Then writerText = "intent_only"
-    If writerText <> "intent_only" And writerText <> "test_only" And writerText <> "production" Then
+    If writerText <> "intent_only" And writerText <> "test_only" And writerText <> "production" And writerText <> "experiment" Then
         OffsetPromotionRejectReason = "OFFSET_WRITER_UNKNOWN value=" & CStr(RW_OFFSET_WRITER)
         Exit Function
     End If

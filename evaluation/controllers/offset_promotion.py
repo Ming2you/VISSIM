@@ -13,13 +13,15 @@
 **증거 산출물에서만** 나온다. 상수를 고쳐서 여는 길은 없다 - 세 산출물이 모두 있고,
 모두 `status=PASS` 이고, 셋이 **같은** 신호 profile / topology 를 가리켜야 열린다.
 
-## 세 writer 의 뜻
+## 네 writer 의 뜻
 
     intent_only  의도만 기록하고 COM 에 쓰지 않는다. 승격 전 production 경로의 상태다.
                  의도는 action JSON 의 `offsets` 에 그대로 남는다 - 버리는 것이 아니다.
     test_only    격리된 시험 harness 만 선언할 수 있다. **강제 offset arm** 만 낸다.
                  최적화기가 고른 offset 은 여기서도 나가지 않는다(N9 단일레버 대조가
                  흐려지기 때문이다).
+    experiment   config+RW_OFFSET_WRITER 동시 선언 및 physical signal contract 검증을
+                 요구하는 명시적 VISSIM trial. optimizer offsets를 쓰며 production 승격은 아니다.
     production   삼중 잠금이 전부 PASS 일 때만. 설정 파일로는 선언할 수 없다.
 
 ## 잠금은 두 겹이다
@@ -32,6 +34,8 @@
 from __future__ import annotations
 
 import json
+import math
+import os
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -47,6 +51,7 @@ SCHEMA_VERSION = "offset-promotion-v3"
 
 WRITER_INTENT_ONLY = "intent_only"
 WRITER_TEST_ONLY = "test_only"
+WRITER_EXPERIMENT = "experiment"
 WRITER_PRODUCTION = "production"
 
 # 순서가 곧 계획의 곱 순서다. 이름을 바꾸면 증거 산출물 파일명도 함께 바뀌어야 한다.
@@ -79,7 +84,7 @@ _LOCK_NEEDS = {
 _KNOWN_STATUSES = (PASS, FAIL, BLOCKED, NOT_EVALUATED)
 
 # 설정 파일이 선언할 수 있는 값. production 은 여기에 없다 - 증거로만 열린다.
-DECLARABLE_WRITERS = ("", WRITER_INTENT_ONLY, WRITER_TEST_ONLY)
+DECLARABLE_WRITERS = ("", WRITER_INTENT_ONLY, WRITER_TEST_ONLY, WRITER_EXPERIMENT)
 
 # 강제 offset arm 을 싣고 있다고 control 이 스스로 밝히는 키.
 FORCED_ARM_DIAGNOSTIC_KEYS = (
@@ -267,12 +272,28 @@ def _declared_writer(actuation: Mapping[str, Any] | None) -> str:
     return str(settings.get("offset_writer", "")).strip().lower()
 
 
+def validate_experiment_declaration(actuation, physical_signal_contract=False):
+    """Explicit trial authority; never changes a promotion verdict or evidence."""
+    declared = _declared_writer(actuation)
+    runner = os.environ.get("RW_OFFSET_WRITER", "").strip().lower()
+    if declared != WRITER_EXPERIMENT and runner != WRITER_EXPERIMENT:
+        return False
+    if declared != WRITER_EXPERIMENT or runner != WRITER_EXPERIMENT:
+        raise OffsetPromotionError("experiment requires both config offset_writer=experiment and RW_OFFSET_WRITER=experiment")
+    if physical_signal_contract is not True:
+        raise OffsetPromotionError("experiment requires urban.physical_signal_contract=True")
+    return True
+
+
 def resolve_writer(
     actuation: Mapping[str, Any] | None,
     *,
     verdict: Mapping[str, Any] | None = None,
+    physical_signal_contract: bool = False,
 ) -> str:
-    """이 런의 offset writer. 승격이 없으면 선언으로 test_only 까지만 올라간다."""
+    """이 런의 writer. production 승격과 명시적 experiment 권한을 구분한다."""
+    if validate_experiment_declaration(actuation, physical_signal_contract):
+        return WRITER_EXPERIMENT
     declared = _declared_writer(actuation)
     if declared not in DECLARABLE_WRITERS:
         if declared == WRITER_PRODUCTION:
@@ -325,8 +346,18 @@ def guard_forced_arm(control: Any, writer: str) -> None:
         )
 
 
-def written_offset_sec(signal: str, control: Any, writer: str) -> float:
+def written_offset_sec(signal: str, control: Any, writer: str, *, cycle_sec: float | None = None) -> float:
     """이 signal 행의 offset 열에 실제로 실을 값."""
+    if writer == WRITER_EXPERIMENT:
+        value = float((getattr(control, "offsets", None) or {}).get(signal, 0.0))
+        cycle = float(cycle_sec) if cycle_sec is not None else float("nan")
+        if not math.isfinite(value) or not math.isfinite(cycle) or cycle <= 0:
+            raise OffsetPromotionError(f"{signal}: experiment offset/cycle must be finite and cycle positive")
+        if abs(cycle - round(cycle, 3)) > 1e-8:
+            raise OffsetPromotionError(f"{signal}: experiment cycle is not on the CSV precision grid")
+        # Modulo after rounding handles -0.0001 and cycle-0.0001 -> cycle.
+        result = round(value % cycle, 3)
+        return 0.0 if result >= cycle else result
     if writer == WRITER_PRODUCTION:
         return float((getattr(control, "offsets", None) or {}).get(signal, 0.0))
     if writer == WRITER_TEST_ONLY:
@@ -348,10 +379,11 @@ def action_metadata(
         for key, value in (getattr(control, "offsets", None) or {}).items()
     }
     nonzero = [value for value in intents.values() if abs(value) > 1.0e-9]
-    suppressed = 0.0 if writer == WRITER_PRODUCTION else float(len(nonzero))
+    suppressed = 0.0 if writer in (WRITER_PRODUCTION, WRITER_EXPERIMENT) else float(len(nonzero))
     decision = verdict or {}
     return {
         "offset_writer": writer,
+        **({"offset_experiment": 1.0, "offset_experiment_intent_signals": float(len(nonzero))} if writer == WRITER_EXPERIMENT else {}),
         "offset_promotion_status": str(decision.get("status", NOT_EVALUATED)),
         "offset_promotion_reasons": "; ".join(decision.get("reasons", []) or []),
         "offset_production_writes": float(len(nonzero)) if writer == WRITER_PRODUCTION else 0.0,
@@ -385,6 +417,8 @@ __all__ = [
     "WRITER_INTENT_ONLY",
     "WRITER_PRODUCTION",
     "WRITER_TEST_ONLY",
+    "WRITER_EXPERIMENT",
+    "validate_experiment_declaration",
     "FORCED_ARM_TABLE_KEY",
     "forced_arm_offset_table",
     "action_metadata",

@@ -111,6 +111,11 @@ def configure(adapter, cfg, tuning, state, detector_mapping):
     routes = read_required('route_contract_path')
     from evaluation.controllers.area_arrival_routes import extend_gate_routes
     routes, arrival_metadata = extend_gate_routes(cfg, routes, membership, root=root, detector_mapping=detector_mapping)
+    dynamic_path = getattr(cfg.network, 'dynamic_physical_route_topology_path', None)
+    if dynamic_path:
+        from evaluation.controllers.area_dynamic_routes import extend_routes
+        routes, dynamic_metadata = extend_routes(cfg, routes, detector_mapping, membership, dynamic_path)
+        arrival_metadata.update(dynamic_metadata)
     shared = getattr(cfg.network, 'shared_approach', None)
     if shared:
         side = physical[str(shared['physical_link'])]
@@ -148,6 +153,9 @@ def configure(adapter, cfg, tuning, state, detector_mapping):
     cfg.network.control_area_enabled = True
     cfg.network.control_area_beta_seconds = beta
     cfg.network.control_area_routes = routes
+    if getattr(cfg.network, 'sc2001_corridor', None):
+        from evaluation.controllers.sc2001_corridor import extend_area_routes
+        arrival_metadata.update(extend_area_routes(cfg))
     ledger = seed_from_projection(state, cfg, physical)
     metadata = install(adapter, cfg)
     metadata.update(arrival_metadata)
@@ -163,6 +171,8 @@ def install(adapter, cfg):
     from evaluation.controllers import urban_flow_accounting, area_freeway_accounting
     out = urban_flow_accounting.install(adapter, cfg)
     out.update(area_freeway_accounting.install(adapter, cfg))
+    from evaluation.controllers import area_follower_objective
+    out.update(area_follower_objective.install_runtime(cfg))
     from src.controllers import rollout_endpoint as endpoint
     if getattr(endpoint.evaluate_price_point, '_control_area_objective', False):
         return out

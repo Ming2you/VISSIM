@@ -9,6 +9,7 @@ from __future__ import annotations
 from evaluation.controllers import freeway_local_state
 from evaluation.controllers import link_predictor
 from evaluation.controllers import offramp_routing
+from evaluation.controllers import signal_actuation_contract
 from evaluation.controllers import observation_projection
 from evaluation.controllers.freeway_fd import install_freeway_fd_runtime
 
@@ -86,6 +87,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_landing_storage_runtime(cfg))
     # Observed capacity already contains the native simultaneous-green effect.
     metadata.update(a.install_native_signal_structure(cfg, tuning))
+    metadata.update(signal_actuation_contract.configure(cfg, tuning, a.load_signal_group_actuation_plan()))
     metadata.update(a.install_measured_movement_capacity(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(a.install_measured_far_reservoir_rates(
@@ -107,6 +109,11 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         detector_mapping, topology_metadata = physical_movement_routes.configure_topology_repair(
             cfg, detector_mapping, tuning, state_json=state_json)
         metadata.update(topology_metadata)
+    if 'dynamic_physical_route_topology' in (tuning or {}).get('urban', {}).get('movements', {}):
+        from evaluation.controllers import area_dynamic_routes
+        detector_mapping, dynamic_metadata = area_dynamic_routes.configure(
+            cfg, detector_mapping, tuning, state_json=state_json)
+        metadata.update(dynamic_metadata)
     if (tuning or {}).get('urban', {}).get('shared_approach'):
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.configure(cfg, tuning, state_json))
@@ -114,6 +121,12 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers import projection_support
         detector_mapping, state_json, support_metadata = projection_support.configure(cfg, tuning, detector_mapping, state_json)
         metadata.update(support_metadata)
+    if (tuning or {}).get('urban', {}).get('sc2001_corridor'):
+        from evaluation.controllers import sc2001_corridor
+        metadata.update(sc2001_corridor.configure(cfg, tuning, state_json))
+        detector_mapping, state_json, corridor_projection = sc2001_corridor.prepare_projection(
+            cfg, detector_mapping, state_json)
+        metadata.update(corridor_projection)
     state = a.traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input)
@@ -128,6 +141,10 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.initialize(state, cfg, state_json, detector_mapping))
         metadata.update(shared_approach.install(a, cfg))
+    if getattr(cfg.network, 'sc2001_corridor', None):
+        from evaluation.controllers import sc2001_corridor, urban_flow_accounting
+        metadata.update(sc2001_corridor.initialize(state, cfg, state_json, detector_mapping))
+        metadata.update(urban_flow_accounting.install(a, cfg))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))
@@ -137,6 +154,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
 def install_worker_runtime(adapter, cfg, state_json, detector_mapping):
     """Reinstall the existing worker hooks plus the shared freeway hooks."""
     a = adapter
+    signal_actuation_contract.install_candidates(cfg)
     metadata = dict(a.install_monitor_fixed_signal_runtime_patch(
         cfg, state_json, detector_mapping) or {})
     metadata.update(a.install_tau_length_cap_patch(cfg))
@@ -151,6 +169,9 @@ def install_worker_runtime(adapter, cfg, state_json, detector_mapping):
     if getattr(cfg.network, 'shared_approach', None):
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.install(a, cfg))
+    if getattr(cfg.network, 'sc2001_corridor', None):
+        from evaluation.controllers import urban_flow_accounting
+        metadata.update(urban_flow_accounting.install(a, cfg))
     if getattr(cfg.network, 'control_area_enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.install(a, cfg))

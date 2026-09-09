@@ -1,0 +1,123 @@
+{
+  "observation": {
+    "physical_branch_projection": {
+      "enabled": true,
+      "link_to_storage": {
+        "10491": "OR_D_W_storage",
+        "10638": "OR_F_W_storage",
+        "10481": "OR_D_E_storage",
+        "10643": "OR_F_E_storage",
+        "10479": "SC1001_W_tail",
+        "10775": "SC1001_W_tail",
+        "125": "SC1001_W_tail",
+        "10645": "SC1004_W_tail",
+        "10773": "SC1004_W_tail",
+        "123": "SC1004_W_tail"
+      },
+      "storage_capacity_veh": {
+        "SC1004_W_tail": 1150.272483220175,
+        "SC1001_W_tail": 655.1835049307116,
+        "OR_D_E_storage": 151.4720025513158,
+        "OR_D_W_storage": 38.582370152536015,
+        "OR_F_W_storage": 96.05044217060451,
+        "OR_F_E_storage": 106.33277587591745
+      },
+      "capacity_policy": "observed_lower_bound",
+      "source": {
+        "network": {
+          "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+          "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+        },
+        "spacing": "evaluation/parameters.json network.urban_avg_vehicle_length_m",
+        "description": "Existing latent signal/direct branches; observations only, ownership unchanged"
+      },
+      "geometry_evidence": {
+        "123": {
+          "length_m": 1636.810794960974,
+          "lanes": 4,
+          "spacing_m": 6.0,
+          "capacity_veh": 1091.2071966406493,
+          "inside_omega": false
+        },
+        "125": {
+          "length_m": 1223.22736125971,
+          "lanes": 3,
+          "spacing_m": 6.0,
+          "capacity_veh": 611.613680629855,
+          "inside_omega": false
+        },
+        "10479": {
+          "length_m": 258.4144458027135,
+          "lanes": 1,
+          "spacing_m": 6.0,
+          "capacity_veh": 43.06907430045225,
+          "inside_omega": false
+        },
+        "10481": {
+          "length_m": 454.41600765394736,
+          "lanes": 2,
+          "spacing_m": 6.0,
+          "capacity_veh": 151.4720025513158,
+          "inside_omega": true
+        },
+        "10491": {
+          "length_m": 231.4942209152161,
+          "lanes": 1,
+          "spacing_m": 6.0,
+          "capacity_veh": 38.582370152536015,
+          "inside_omega": true
+        },
+        "10638": {
+          "length_m": 288.1513265118135,
+          "lanes": 2,
+          "spacing_m": 6.0,
+          "capacity_veh": 96.05044217060451,
+          "inside_omega": true
+        },
+        "10643": {
+          "length_m": 318.99832762775236,
+          "lanes": 2,
+          "spacing_m": 6.0,
+          "capacity_veh": 106.33277587591745,
+          "inside_omega": true
+        },
+        "10645": {
+          "length_m": 350.3857194776235,
+          "lanes": 1,
+          "spacing_m": 6.0,
+          "capacity_veh": 58.39761991293725,
+          "inside_omega": false
+        },
+        "10773": {
+          "length_m": 1.001499999882639,
+          "lanes": 4,
+          "spacing_m": 6.0,
+          "capacity_veh": 0.667666666588426,
+          "inside_omega": false
+        },
+        "10775": {
+          "length_m": 1.00150000080865,
+          "lanes": 3,
+          "spacing_m": 6.0,
+          "capacity_veh": 0.500750000404325,
+          "inside_omega": false
+        }
+      }
+    },
+    "physical_support_repair": "diagnostics/physical_projection_support_635_proposal.json"
+  },
+  "urban": {
+    "conservative_initial_transit": true,
+    "shared_approach": "diagnostics/shared_approach_ver2.json",
+    "sc2001_corridor": "diagnostics/sc2001_corridor_nc13.json",
+    "movements": {
+      "physical_route_topology": "diagnostics/physical_movement_routes_ver2.json",
+      "dynamic_physical_route_topology": "diagnostics/dynamic_area_routes_ver2.json"
+    }
+  },
+  "freeway": {
+    "local_lane_context": true,
+    "conservative_offramp_drain": true,
+    "local_landing_state": true
+  }
+}
