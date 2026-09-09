@@ -1,0 +1,387 @@
+{
+ "schema": "two_branch_fd/1",
+ "generated": "2026-09-09",
+ "source_run": "n21_x15_nocontrol_ver2_20260907",
+ "source_params": "freeway_segment_params_dlit_20260908.json",
+ "why": "vsl_fd_two_branch 를 켜려면 ρ_jam 과 삼각형 nominal ρ_crit_tb 가 필요하다. 셀별 v_free·q_cap 은 D-lit 이 이미 적합했으므로 자유 파라미터는 ρ_jam 뿐이다.",
+ "wiring_note": "metanet.py:620-621 이 net.rho_max·net.rho_crit_two_branch 를 네트워크 스칼라로 읽는다. 어댑터는 셀별 p['rho_max'] 로 rho_jam 만 덮으므로 ρ_crit_tb 는 셀별로 줄 수 없다.",
+ "method": {
+  "congested_selector": "v < 0.75 x v_free",
+  "min_congested_samples": 6,
+  "jam_lower_bound": "관측 최대 ρ x 1.08"
+ },
+ "scalars": {
+  "rho_max": 171.37,
+  "rho_crit_two_branch": 15.164,
+  "implied_w_at_vfree120": 11.649,
+  "triangular_cap_veh_h_lane_at_120": 1819.6
+ },
+ "per_cell": {
+  "FW_E_S0": {
+   "v_free": 85.97,
+   "q_cap_veh_h_lane": 1303.6,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 21,
+   "rho_max_observed": 121.71,
+   "rho_jam_fit": 468.65,
+   "w_fit": 2.096,
+   "status": "ok"
+  },
+  "FW_E_S1": {
+   "v_free": 117.99,
+   "q_cap_veh_h_lane": 1789.1,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 20,
+   "rho_max_observed": 118.79,
+   "rho_jam_fit": 177.12,
+   "w_fit": 10.11,
+   "status": "ok"
+  },
+  "FW_E_S10": {
+   "v_free": 98.57,
+   "q_cap_veh_h_lane": 1494.6,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 8,
+   "rho_max_observed": 14.6,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_E_S11": {
+   "v_free": 117.72,
+   "q_cap_veh_h_lane": 1785.0,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 12.17,
+   "status": "표본부족"
+  },
+  "FW_E_S12": {
+   "v_free": 119.39,
+   "q_cap_veh_h_lane": 1810.3,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 11,
+   "rho_max_observed": 47.71,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_E_S13": {
+   "v_free": 112.46,
+   "q_cap_veh_h_lane": 1750.4,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 17,
+   "rho_max_observed": 30.18,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_E_S14": {
+   "v_free": 78.1,
+   "q_cap_veh_h_lane": 1215.6,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 11,
+   "rho_max_observed": 17.04,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_E_S15": {
+   "v_free": 75.96,
+   "q_cap_veh_h_lane": 1182.3,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 12,
+   "rho_max_observed": 20.93,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_E_S16": {
+   "v_free": 111.03,
+   "q_cap_veh_h_lane": 1728.1,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 2,
+   "rho_max_observed": 15.09,
+   "status": "표본부족"
+  },
+  "FW_E_S17": {
+   "v_free": 118.85,
+   "q_cap_veh_h_lane": 1849.8,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 0,
+   "rho_max_observed": 10.71,
+   "status": "표본부족"
+  },
+  "FW_E_S18": {
+   "v_free": 119.52,
+   "q_cap_veh_h_lane": 1860.3,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 0,
+   "rho_max_observed": 9.25,
+   "status": "표본부족"
+  },
+  "FW_E_S19": {
+   "v_free": 119.58,
+   "q_cap_veh_h_lane": 1861.2,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 0,
+   "rho_max_observed": 11.68,
+   "status": "표본부족"
+  },
+  "FW_E_S2": {
+   "v_free": 119.68,
+   "q_cap_veh_h_lane": 1814.7,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 25,
+   "rho_max_observed": 120.73,
+   "rho_jam_fit": 195.56,
+   "w_fit": 8.372,
+   "status": "ok"
+  },
+  "FW_E_S20": {
+   "v_free": 119.68,
+   "q_cap_veh_h_lane": 1862.8,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 0,
+   "rho_max_observed": 10.71,
+   "status": "표본부족"
+  },
+  "FW_E_S3": {
+   "v_free": 119.82,
+   "q_cap_veh_h_lane": 1816.9,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 24,
+   "rho_max_observed": 122.19,
+   "rho_jam_fit": 166.8,
+   "w_fit": 11.504,
+   "status": "ok"
+  },
+  "FW_E_S4": {
+   "v_free": 119.95,
+   "q_cap_veh_h_lane": 1818.8,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 24,
+   "rho_max_observed": 123.66,
+   "rho_jam_fit": 159.01,
+   "w_fit": 13.08,
+   "status": "ok"
+  },
+  "FW_E_S5": {
+   "v_free": 119.95,
+   "q_cap_veh_h_lane": 1818.8,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 25,
+   "rho_max_observed": 118.79,
+   "rho_jam_fit": 171.37,
+   "w_fit": 9.953,
+   "status": "ok"
+  },
+  "FW_E_S6": {
+   "v_free": 120.3,
+   "q_cap_veh_h_lane": 1824.1,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 26,
+   "rho_max_observed": 117.81,
+   "rho_jam_fit": 169.55,
+   "w_fit": 10.847,
+   "status": "ok"
+  },
+  "FW_E_S7": {
+   "v_free": 119.91,
+   "q_cap_veh_h_lane": 1818.2,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 27,
+   "rho_max_observed": 114.41,
+   "rho_jam_fit": 146.71,
+   "w_fit": 13.602,
+   "status": "ok"
+  },
+  "FW_E_S8": {
+   "v_free": 118.29,
+   "q_cap_veh_h_lane": 1793.7,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 29,
+   "rho_max_observed": 128.04,
+   "rho_jam_fit": 196.21,
+   "w_fit": 6.873,
+   "status": "ok"
+  },
+  "FW_E_S9": {
+   "v_free": 91.31,
+   "q_cap_veh_h_lane": 1384.6,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 31,
+   "rho_max_observed": 33.1,
+   "rho_jam_fit": 75.95,
+   "w_fit": 12.763,
+   "status": "ok"
+  },
+  "FW_W_S0": {
+   "v_free": 87.64,
+   "q_cap_veh_h_lane": 1364.1,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 30,
+   "rho_max_observed": 62.33,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_W_S1": {
+   "v_free": 117.47,
+   "q_cap_veh_h_lane": 1828.4,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 28,
+   "rho_max_observed": 68.18,
+   "rho_jam_fit": 235.31,
+   "w_fit": 8.515,
+   "status": "ok"
+  },
+  "FW_W_S10": {
+   "v_free": 118.28,
+   "q_cap_veh_h_lane": 1793.5,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 19.48,
+   "status": "표본부족"
+  },
+  "FW_W_S11": {
+   "v_free": 108.15,
+   "q_cap_veh_h_lane": 1639.9,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 3,
+   "rho_max_observed": 22.73,
+   "status": "표본부족"
+  },
+  "FW_W_S12": {
+   "v_free": 106.16,
+   "q_cap_veh_h_lane": 1609.7,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 2,
+   "rho_max_observed": 14.29,
+   "status": "표본부족"
+  },
+  "FW_W_S13": {
+   "v_free": 88.84,
+   "q_cap_veh_h_lane": 1347.1,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 7,
+   "rho_max_observed": 27.27,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_W_S14": {
+   "v_free": 87.78,
+   "q_cap_veh_h_lane": 1331.0,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 14,
+   "rho_max_observed": 31.17,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_W_S15": {
+   "v_free": 90.41,
+   "q_cap_veh_h_lane": 1370.9,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 18,
+   "rho_max_observed": 33.76,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_W_S16": {
+   "v_free": 114.59,
+   "q_cap_veh_h_lane": 1737.6,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 1,
+   "rho_max_observed": 26.62,
+   "status": "표본부족"
+  },
+  "FW_W_S17": {
+   "v_free": 118.48,
+   "q_cap_veh_h_lane": 1796.5,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 24.67,
+   "status": "표본부족"
+  },
+  "FW_W_S18": {
+   "v_free": 119.03,
+   "q_cap_veh_h_lane": 1804.9,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 18.18,
+   "status": "표본부족"
+  },
+  "FW_W_S19": {
+   "v_free": 119.14,
+   "q_cap_veh_h_lane": 1806.6,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 0,
+   "rho_max_observed": 16.88,
+   "status": "표본부족"
+  },
+  "FW_W_S2": {
+   "v_free": 118.45,
+   "q_cap_veh_h_lane": 1843.6,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 28,
+   "rho_max_observed": 55.84,
+   "rho_jam_fit": 116.91,
+   "w_fit": 22.893,
+   "status": "ok"
+  },
+  "FW_W_S20": {
+   "v_free": 119.39,
+   "q_cap_veh_h_lane": 1810.3,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 18.18,
+   "status": "표본부족"
+  },
+  "FW_W_S3": {
+   "v_free": 119.02,
+   "q_cap_veh_h_lane": 1852.5,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 29,
+   "rho_max_observed": 57.14,
+   "rho_jam_fit": 149.6,
+   "w_fit": 15.231,
+   "status": "ok"
+  },
+  "FW_W_S4": {
+   "v_free": 118.83,
+   "q_cap_veh_h_lane": 1849.5,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 31,
+   "rho_max_observed": 57.14,
+   "rho_jam_fit": 179.98,
+   "w_fit": 11.996,
+   "status": "ok"
+  },
+  "FW_W_S5": {
+   "v_free": 118.37,
+   "q_cap_veh_h_lane": 1842.4,
+   "rho_crit_tb_implied": 15.565,
+   "n_congested": 33,
+   "rho_max_observed": 41.56,
+   "rho_jam_fit": 842.57,
+   "w_fit": 1.947,
+   "status": "ok"
+  },
+  "FW_W_S6": {
+   "v_free": 110.99,
+   "q_cap_veh_h_lane": 1727.5,
+   "rho_crit_tb_implied": 15.564,
+   "n_congested": 21,
+   "rho_max_observed": 28.57,
+   "status": "기울기 양수(무효)"
+  },
+  "FW_W_S7": {
+   "v_free": 84.41,
+   "q_cap_veh_h_lane": 1279.9,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 5,
+   "rho_max_observed": 19.48,
+   "status": "표본부족"
+  },
+  "FW_W_S8": {
+   "v_free": 109.34,
+   "q_cap_veh_h_lane": 1658.0,
+   "rho_crit_tb_implied": 15.164,
+   "n_congested": 0,
+   "rho_max_observed": 24.02,
+   "status": "표본부족"
+  },
+  "FW_W_S9": {
+   "v_free": 118.46,
+   "q_cap_veh_h_lane": 1796.2,
+   "rho_crit_tb_implied": 15.163,
+   "n_congested": 0,
+   "rho_max_observed": 22.08,
+   "status": "표본부족"
+  }
+ }
+}

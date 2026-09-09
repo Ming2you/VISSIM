@@ -8611,6 +8611,52 @@ def install_freeway_vsl_sequence_kbest(cfg, tuning=None) -> dict[str, float]:
             "fw_vsl_kbest_max_expand": float(max_expand)}
 
 
+def install_freeway_two_branch_fd(cfg, tuning) -> dict[str, float]:
+    """config `freeway.two_branch` → cfg.network 의 two-branch FD 런타임 속성. 절 없으면 no-op.
+
+    **왜 별도 installer 인가.** vendor 는 `getattr(net, "vsl_fd_two_branch", False)` 와
+    `getattr(net, "rho_crit_two_branch", 0.0)` 로만 읽는데(`metanet.py:65, 621`) 둘 다
+    `NetworkConfig` **필드가 아니다.** 그래서 `config_overrides.network` 에 넣으면
+    `NetworkConfig(**raw)` 언팩에서 `TypeError` 로 죽는다 — 2026-09-09 확인.
+    CLAUDE.md 가 적어 둔 "필드 없는 getattr 게이트 = 죽은 코드" 부류였고, 이 함수가 그 배선이다.
+
+    무엇이 켜지나. `vsl_fd_two_branch=True` 면 `effective_rho_crit(net, vsl)` 이 고정
+    `net.rho_crit` 대신 **ρ_c(VSL) = w·ρ_jam/(vsl+w)** 를 낸다 — VSL 이 임계밀도를 옮기는
+    문헌(METANET-VSL) 기구. `w = v_free·ρ_crit_tb/(ρ_jam − ρ_crit_tb)`.
+
+    **`rho_crit_two_branch` 를 반드시 같이 줘라.** 미설정이면 `two_branch_nominal_rho_crit` 이
+    `net.rho_crit`(지수 FD 용, 27)로 폴백하는데 삼각형 용량은 `v_free × ρ_crit` 이라
+    4차로 12,960 veh/h = 기존 6937 의 **1.87 배**로 뻥튀기된다(vendor docstring 이 경고한 함정).
+    무제어 런 적합값은 15.16 (= q_cap/v_free, 42셀 전부 15.16~15.56).
+
+    spawn 워커에도 간다 — 모듈 패치가 아니라 `cfg.network` 속성이라 컨트롤러와 함께 피클된다
+    (`install_vissim_calibration_runtime_patches` 와 같은 부류).
+    """
+    section = _mapping(_mapping(_mapping(tuning).get("freeway")).get("two_branch"))
+    if not section:
+        return {"two_branch_fd_enabled": 0.0}
+    enabled = bool(section.get("enabled", False))
+    setattr(cfg.network, "vsl_fd_two_branch", enabled)
+    out = {"two_branch_fd_enabled": 1.0 if enabled else 0.0}
+    tb = _as_float(section.get("rho_crit_two_branch"), 0.0)
+    if tb > 0.0:
+        setattr(cfg.network, "rho_crit_two_branch", float(tb))
+        out["two_branch_rho_crit"] = float(tb)
+    rj = _as_float(section.get("rho_max"), 0.0)
+    if rj > 0.0:
+        setattr(cfg.network, "rho_max", float(rj))
+        out["two_branch_rho_max"] = float(rj)
+    if enabled:
+        # 켜졌으면 실효 ρ_c 를 진단으로 남긴다 — "설치됐다"와 "움직인다"를 산출물로 가르기 위해.
+        try:
+            from src.models.metanet import effective_rho_crit as _erc
+            for _v in (120.0, 100.0, 80.0):
+                out["two_branch_rho_c_vsl%d" % int(_v)] = float(_erc(cfg.network, _v))
+        except Exception:
+            pass
+    return out
+
+
 def install_freeway_lane_drop(cfg, tuning) -> dict[str, float]:
     """config `freeway.lane_drop_phi` → cfg.network.freeway_lane_drop_phi. 없거나 0 이면 no-op."""
     section = _mapping(_mapping(tuning).get("freeway"))
@@ -12199,6 +12245,9 @@ def main() -> None:
     # B 팔: on* movement 되접기. merge 보다 앞이어야 on_ramp_to_movement 가 빈다.
     runtime_patch_metadata.update(install_freeway_segment_lanes(cfg, tuning, mapping))
     runtime_patch_metadata.update(install_freeway_lane_drop(cfg, tuning))
+    # two-branch FD 는 세그먼트 런타임(아래)보다 **앞**이어야 한다 — segment_vsl 래퍼가
+    # 셀별 파라미터를 무장할 때 net 의 two-branch 속성이 이미 서 있어야 한다.
+    runtime_patch_metadata.update(install_freeway_two_branch_fd(cfg, tuning))
     runtime_patch_metadata.update(install_freeway_vsl_zones(cfg, tuning))
     runtime_patch_metadata.update(install_freeway_segment_runtime(cfg))
     runtime_patch_metadata.update(install_freeway_vsl_sequence_kbest(cfg, tuning))
