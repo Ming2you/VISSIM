@@ -19,9 +19,13 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(set(coverage['by_physical_link']), set(area['inside_links']))
         self.assertEqual(sum(coverage['counts'].values()), 635)
         review = coverage['receiver_review_20260910']
-        self.assertEqual(len(coverage['proposed_additions']), 170 + review['added'])
-        self.assertEqual(len(coverage['unresolved']), review['still_unresolved'])
+        road = coverage['road_review_20260910_1350']
+        lineage = coverage['source_lineage_review_20260910']
+        self.assertEqual(len(coverage['proposed_additions']), 170 + review['added'] + road['added'] + lineage['added'])
+        self.assertEqual(len(coverage['unresolved']), lineage['still_unresolved'])
         self.assertEqual(review['reviewed'], review['added'] + review['still_unresolved'])
+        self.assertEqual(review['still_unresolved'], road['added'] + road['still_unresolved'])
+        self.assertEqual(road['still_unresolved'], lineage['added'] + lineage['still_unresolved'])
         for link in ['10613', '10771']:
             self.assertEqual(coverage['by_physical_link'][link]['status'], 'supported_separate_freeway_chain')
             self.assertNotIn(link, coverage['proposed_additions'])
@@ -42,6 +46,12 @@ class CoverageTests(unittest.TestCase):
             records.append({'veh_no': largest+index, 'link_no': int(key), 'lane_no': 1,
                 'position_m': 0.1, 'speed_kph': 30., 'stopped': False})
             synthetic['vehicle_records']['full_network_link_counts'][key] = 1
+            #336 already has a local count channel; keep both synthetic
+            #measurements consistent when adding its otherwise-missing stock.
+            if key in synthetic['local_observation'].get('link_counts', {}):
+                synthetic['local_observation']['link_counts'][key] = 1
+                synthetic['local_observation'].setdefault('link_stopped_counts', {})[key] = 0
+                synthetic['local_observation'].setdefault('link_speeds_kph', {})[key] = 30.
         for key in ('collection_count_before', 'collection_count_after', 'record_count'):
             synthetic['vehicle_records'][key] = len(records)
         tuning = {'observation': {'physical_support_repair': proposal_path}}
@@ -66,13 +76,13 @@ class CoverageTests(unittest.TestCase):
     def test_positive_unresolved_support_fails_explicitly_in_production_guard(self):
         cfg, _, _, raw, detectors = fixture(return_detectors=True)
         records = raw['vehicle_records']['records']
-        records.append({'veh_no': max(row['veh_no'] for row in records)+1, 'link_no': 336,
+        records.append({'veh_no': max(row['veh_no'] for row in records)+1, 'link_no': 141,
             'lane_no': 1, 'position_m': 0.1, 'speed_kph': 30., 'stopped': False})
-        raw['vehicle_records']['full_network_link_counts']['336'] = 1
+        raw['vehicle_records']['full_network_link_counts']['141'] = 1
         for key in ('collection_count_before', 'collection_count_after', 'record_count'):
             raw['vehicle_records'][key] = len(records)
         tuning = {'observation': {'physical_support_repair': 'diagnostics/physical_projection_support_635_proposal.json'}}
-        with self.assertRaisesRegex(ValueError, "unresolved physical stock support.*336"):
+        with self.assertRaisesRegex(ValueError, "unresolved physical stock support.*141"):
             projection_support.configure(cfg, tuning, detectors, raw)
 
     def test_existing_data_and_disabled_configuration_remain_exact(self):

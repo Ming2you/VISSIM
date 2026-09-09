@@ -59,6 +59,8 @@ def main():
         paths.append(path)
     configs = build(json.loads(base.read_text(encoding='utf-8')), json.loads(physics.read_text(encoding='utf-8')), clock)
     for cfg in configs.values():
+        if cfg['urban'].get('route_choice_corridor', {}).get('unknown_policy') != 'error':
+            raise ValueError('Live area trial requires complete current-route information; diagnostic holding is not allowed')
         if cfg['urban'].get('physical_signal_contract') is not True:
             raise ValueError('All-lever trial requires urban.physical_signal_contract=true')
         signal = cfg['actuation']['real_world_signal_control']
@@ -73,7 +75,10 @@ def main():
     paths += [support, ROOT / 'evaluation/parameters.json', ROOT / 'evaluation/parameters.py',
               ROOT / 'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json',
               ROOT / 'scripts/run_real_world_stackelberg_controller.vbs',
-              ROOT / 'scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1']
+              ROOT / 'scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1',
+              ROOT / 'diagnostics/run_area_beta_trial.ps1', Path(__file__)]
+    destination = ROOT / 'diagnostics/area_candidate_configs'
+    visited = set()
     def add_data(value):
         if isinstance(value, dict):
             for item in value.values():
@@ -81,21 +86,33 @@ def main():
         elif isinstance(value, list):
             for item in value:
                 add_data(item)
-        elif isinstance(value, str) and value.startswith(('diagnostics/', 'evaluation/', 'outputs/', 'network/')):
-            path = (ROOT / value).resolve()
-            if path.is_relative_to(ROOT.resolve()) and path.is_file():
+        elif isinstance(value, str) and value.replace('\\', '/').startswith(('diagnostics/', 'evaluation/', 'outputs/', 'network/')):
+            # Evidence written on Windows may retain native separators. Those
+            # references are runtime inputs just like forward-slash paths.
+            path = (ROOT / value.replace('\\', '/')).resolve()
+            # Historical evidence may name a generated candidate. Candidates
+            # are pinned below after writing, never as stale input snapshots.
+            if path.is_relative_to(destination.resolve()):
+                return
+            # Run observations and training trajectories are provenance of the
+            # frozen evidence, not files opened by the configured live model.
+            if path.is_relative_to((ROOT / 'evaluation/runs').resolve()):
+                return
+            if path.is_relative_to(ROOT.resolve()) and path.is_file() and path not in visited:
+                visited.add(path)
                 paths.append(path)
+                if path.suffix == '.json':
+                    add_data(json.loads(path.read_text(encoding='utf-8-sig')))
     add_data(configs[0])
     dynamic_path = ROOT / configs[0]['urban']['movements']['dynamic_physical_route_topology']
     dynamic_document = json.loads(dynamic_path.read_text(encoding='utf-8'))
     paths.append(ROOT / dynamic_document['calibration']['path'])
     paths = sorted(set(paths))
-    destination = ROOT / 'diagnostics/area_candidate_configs'
     destination.mkdir(exist_ok=True)
     manifest = {'purpose': 'Review-only flattened MPC candidates; no live config was changed or launched.',
         'beta_units': 'seconds/vehicle; score TTT_veh_h - beta_seconds/3600 * outward_crossings_veh',
         'clock_overlay_supplied': clock is not None,
-        'required_process_environment': {'RW_OFFSET_WRITER': 'experiment'},
+        'required_process_environment': {'RW_OFFSET_WRITER': 'experiment', 'RW_VEHICLE_ROUTES': '1'},
         'remaining_integration': [] if clock is not None else ['Approved clock-contract overlay pending; rerun recipe with its file.'],
         'source_sha256': {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths},
         'outputs': {}}

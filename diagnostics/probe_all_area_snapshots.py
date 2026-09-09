@@ -19,10 +19,11 @@ def fingerprint(value):
 
 
 def one(path, config_path, previous_path, *, depth=3, candidate_names=None, betas=BETAS):
-    from probe_model_area_integration import adapter, build_projected
+    from probe_model_area_integration import adapter, build_projected, replay_provenance, route_information
     from evaluation.controllers import urban_flow_accounting, area_runtime
     cfg, state, detectors, tuning, raw, mapping, metadata = build_projected(
         config_path, path, previous_path, fixture_inputs=False)
+    initial_routes = route_information(state, cfg)
     from src.models.demand import DemandStep
     from src.models.state import ControlAction
     from src.controllers.rollout_endpoint import ObjectiveSpec, LeverMove, evaluate_price_point
@@ -96,7 +97,8 @@ def one(path, config_path, previous_path, *, depth=3, candidate_names=None, beta
                 raise AssertionError('Candidate reused the observation ledger instance')
             rows[str(beta)] = result.objective
         scored[name] = {'ttt_veh_h': physics[0], 'ttd_veh': physics[1], 'objectives_veh_h': rows,
-                        'schedule': [vars(move) for move in schedule], 'event_count': metrics['event_count']}
+                        'schedule': [vars(move) for move in schedule], 'event_count': metrics['event_count'],
+                        'final_route_information': route_information(last, cfg)}
     # Rerun the opening candidate after every other candidate, then mutate only
     # that result ledger to prove independent copy ownership, not just equality.
     opening = next(iter(candidates))
@@ -110,13 +112,17 @@ def one(path, config_path, previous_path, *, depth=3, candidate_names=None, beta
         raise AssertionError('Mutating a returned candidate changed the observation ledger')
     rankings = {str(beta): sorted(scored, key=lambda key: scored[key]['objectives_veh_h'][str(beta)]) for beta in betas}
     return {'snapshot_sec': state.time_sec, 'horizon_sec': depth*float(raw['control_interval_sec']), 'source_snapshot': str(path.relative_to(ROOT)),
-            'physical_route_coverage_validated': True, 'all_stock_closures_pass': True,
+            'physical_stock_coverage_validated': True, 'all_stock_closures_pass': True,
+            'initial_route_information': initial_routes,
+            'limitations': ['Physical stock coverage and conservation do not establish routing or predictive fidelity.'] +
+                (['Unknown already-chosen routes are held for diagnosis; this is not a complete live-route prediction.']
+                 if initial_routes['route_choice_information_complete'] is False else []),
             'candidate_copy_independence': True, 'coefficient_does_not_change_physics': True,
             'actual_price_endpoint_coefficients_verified': True, 'far_and_invalid_pruning_disabled': True,
             'fixed_controls': 'box_walk=False; final physical phase and meter realization still apply',
             'implementation': 'installed configure_runtime and price endpoint',
             'canonical_urban_source_sha256': source_hash,
-            'source_sha256': {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in (config_path, path, previous_path, Path(adapter.__file__))},
+            'source_sha256': replay_provenance(tuning, config_path, path, previous_path, Path(__file__)),
             'previous_action': str(previous_path),
             'initial_urban_physical_coverage': True, 'raw_initial_omega_veh': raw_initial,
             'model_initial_omega_veh': modeled_initial, 'initial_FW_geometry_delta_veh': raw_initial-modeled_initial,

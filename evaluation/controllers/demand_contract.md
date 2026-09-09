@@ -28,6 +28,20 @@
 | `freeway_volume_vph` | 고속부 유입 **지점당 평균** [veh/h] | 본선 링크 **각각의** 유입률 | `freeway_links` (2 vs 2) |
 | `ramp_volume_vph` | 실 러너는 **리터럴 0** | 램프 **각각의** 외생 도착률 | `ramps` (외생 도착 없음) |
 
+2026-09-10 Ver2 검토의 명시적 확장: `prediction.native_input_schedule=true`는
+`urban.native_internal_inputs`의 검증된 원본 INPX·실행 manifest·입력 역할·배율·게이트 대장을
+통해 전체 입력 시간표를 읽는다. 위 raw 필드는 여전히 **현재 시각**의 값이다.
+`native_demand_forecast.forecast_states`는 이 값과 시간표의 현재 집계를 먼저 대조하고,
+각 MPC 구간의 설정 수요를 시간 적분해 평균 유량으로 보낸다. 미래 차량 관측은 읽지 않는다.
+해당 확장이 없으면 기존 현재값 지속 예측을 그대로 유지한다.
+
+외부 예보에는 mapped gate와 대칭 본선 두 입력만 포함한다. 내부·shared 입력의 합계는
+검증용이며 외부 게이트로 복제하지 않는다. 이들의 실제 모델 생성은 각각의 보존 모듈이
+수용 공간과 원본 시간표에 따라 따로 처리한다. 램프 관측 기반 추정은 현재 관측을 유지한다.
+비대칭 본선 수요는 평균 스칼라 계약으로 방향을 복원할 수 없으므로 새 확장은 거부한다.
+강제 검사는 `diagnostics.test_native_demand_forecast`이며, 메타데이터
+`demand_forecast_source_mode`가 시간표 예보와 현재값 지속을 구분한다.
+
 불변식 두 개다.
 
 1. **회계가 닫힌다.** `sum(by_gate) + unmapped + internal == VISSIM 도시부 총량`.

@@ -110,10 +110,25 @@
     "conservative_initial_transit": true,
     "shared_approach": "diagnostics/shared_approach_ver2.json",
     "sc2001_corridor": "diagnostics/sc2001_corridor_nc13.json",
+    "route_choice_corridor": {
+      "evidence_paths": [
+        "diagnostics/route_choice_corridor_ver2.json",
+        "diagnostics/route_choice_corridor_1128_ver2.json",
+        "diagnostics/route_choice_corridor_1099_sc15_calibrated.json",
+        "diagnostics/route_choice_corridor_1100_sc15_calibrated.json"
+      ],
+      "unknown_policy": "error"
+    },
+    "native_internal_inputs": "diagnostics/native_internal_inputs_extended_ver2.json",
     "movements": {
       "physical_route_topology": "diagnostics/physical_movement_routes_ver2.json",
-      "dynamic_physical_route_topology": "diagnostics/dynamic_area_routes_ver2.json"
+      "dynamic_physical_route_topology": "diagnostics/dynamic_area_routes_ver2.json",
+      "physical_phase_authority": "diagnostics/physical_phase_authority_ver2.json",
+      "native_input_signal_authority": "diagnostics/native_input_1083_signal_authority_ver2.json"
     }
+  },
+  "prediction": {
+    "native_input_schedule": true
   },
   "freeway": {
     "local_lane_context": true,

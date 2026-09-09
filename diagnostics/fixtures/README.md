@@ -48,3 +48,27 @@ python -m diagnostics.run_receiver_fixture_tests
 새 위치에 복원한 뒤 원래 run 폴더 접근과 git 호출을 막은 subprocess에서 실제10421 단독 재고·초기 entry0, 수선 제거 시 원래 오류, 나머지29개 미확정 양수 차단을 확인합니다. 세 검사 PASS, 금지 접근0입니다. 전체31개 pure 상태 재고 검사 결과는 `projection_support_receiver_regression.json`에 별도로 남으며 이 작은 ZIP에31개 상태를 포함했다는 뜻은 아닙니다. 원본이 있을 때만 사용하는 archive 생성기는 `python -m diagnostics.build_receiver_fixture_archive`이며 기존 archive를 덮어쓰지 않습니다.
 
 `diagnostic_proposals_20260910.zip`은 테스트 입력이 아닌 진단 source 복구용 archive입니다. 정본 이전 전 존재하던23개 원본을58,847 bytes로 보관하며 SHA256은 `7f640beb262291b8e2c665885d743bf2855c2f46d73e759a4767f07daa710f01`입니다. `index.json`과 companion manifest에 각 `raw/<원본 경로>`의 byte 수·SHA가 있습니다. archive에 포함됐다고 모두 삭제된 것은 아닙니다. 다섯 probe는 정본 코드로 이전했고, 실제 삭제한 옛 관측 지원 생성기1개의 복구 근거는 `retired_projection_builder_audit.json`에 기록했습니다. 운영 코드·runtime JSON을 이 archive에서 자동 설치하거나 덮어쓰는 기능은 없습니다.
+
+`route_input_v1.zip`은 그다음 retry1350/1200 관측, 실제 직전1200/1050 명령, 원래 run manifest, 명시적 feature-OFF baseline 설정2개와10379 관측 레코드 등8개 원본을 별도로 보존합니다. 크기403,552 bytes, SHA256 `0f6529401ca39b1c4dbb7188757290139480b4eb518bcd5efcba9e6fc87be04c`입니다. 기존 두 입력 ZIP은 수정하지 않았습니다.
+
+```powershell
+python -X utf8 -m diagnostics.run_route_input_fixture_tests
+```
+
+이 명령은 route/input archive와 고정 OFF source용 기존 core archive를 각각 새 위치에 복원합니다. Windows 경로 길이 제한에 맞춘 짧은 새 디렉터리를 사용하고, 원래 run 접근·Git subprocess를 금지합니다. 원본 SHA/index 검증과 별도로 checkout의 baseline2개·관측 레코드가 압축 원본과 byte 단위로 같은지 확인합니다. 실제 production imports를 통한46검사 PASS, 금지 접근0입니다. 새 결과는 `route_input_fixture_validation.json`이며 과거 custom 검증 기록을 덮어쓰지 않습니다.
+
+해당 개별 feature tests의 시작 설정은 `area_baseline_before_route_choice_beta0.json`(SHA `a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4`)과beta300(SHA `366b998c98001703eb9a504c4247878b387e8170fd4f0d629f362a09b5534dfa`)입니다. 활성 candidate 설정이 변해도 같은 feature를 두 번 configure하지 않도록 고정한 자료입니다. 필요 feature는 각 시험이 명시적으로 켭니다. 새 기능 전체 ON의450초 worker/Ω OFF 동치 검사는 `native_internal_input_canonical_1350_450.json`에 별도로 보존하며, 과거 route 정보가 없는6대는 명시적 diagnostic holding 범위입니다.
+
+archive 생성기는 원본이 있을 때만 `python -m diagnostics.build_route_input_fixture_archive`로 실행할 수 있고 기존 ZIP/manifest를 덮어쓰지 않습니다. 일반 checkout 검사에는 생성기를 실행하지 않습니다.
+
+`route_input_v2.zip`은 v1의8개 원본을 그대로 유지하고, 새 전체 NC의900초 상태와
+1500/1800/2100/2700/3600/4500/5400초 anchor, 실제 초기 명령, run provenance를 더한
+18개 입력입니다. 크기1,813,930 bytes, SHA256
+`4fbbac639d00b68dfef0e3a8556d793ce4c16908edd38694fec226470ac2a312`입니다.
+원본 vehicle 기록과 경로를 포함하며 FZP 전체 파일은 포함하지 않습니다.
+모든 member의 원본 바이트·SHA와 ZIP CRC를 확인했습니다. 생성 명령은
+`python -X utf8 -m diagnostics.build_route_input_fixture_archive --include-observed`이며,
+기존 archive를 덮어쓰지 않습니다. 추가 native 입력 시험은
+`python -X utf8 -m diagnostics.run_route_input_fixture_tests --extended`로 실행합니다.
+새 복원 위치에서 원래 run 접근과 Git subprocess를 막은116개 검사가 통과했습니다.
+금지 접근0, 실패0이며 결과는 `route_input_fixture_validation_v2.json`에 보존합니다.

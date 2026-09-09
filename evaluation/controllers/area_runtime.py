@@ -156,6 +156,12 @@ def configure(adapter, cfg, tuning, state, detector_mapping):
     if getattr(cfg.network, 'sc2001_corridor', None):
         from evaluation.controllers.sc2001_corridor import extend_area_routes
         arrival_metadata.update(extend_area_routes(cfg))
+    if getattr(cfg.network, 'route_choice_corridor', None):
+        from evaluation.controllers.route_choice_corridor import extend_area_routes
+        arrival_metadata.update(extend_area_routes(cfg))
+    if getattr(cfg.network, 'native_internal_inputs', None):
+        from evaluation.controllers.native_internal_input import extend_area_routes
+        arrival_metadata.update(extend_area_routes(cfg))
     ledger = seed_from_projection(state, cfg, physical)
     metadata = install(adapter, cfg)
     metadata.update(arrival_metadata)

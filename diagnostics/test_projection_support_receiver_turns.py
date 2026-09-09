@@ -23,13 +23,16 @@ from evaluation.controllers.runtime_setup import configure_runtime
 
 SUPPORT = ROOT / 'diagnostics/physical_projection_support_635_proposal.json'
 PROOF = ROOT / 'diagnostics/unresolved_projection_support_review.json'
-CONFIG = ROOT / 'diagnostics/area_candidate_configs/n7_area_beta0.json'
+CONFIG = ROOT / 'diagnostics/fixtures/area_baseline_before_route_choice_beta0.json'
 LIVE = ROOT / 'evaluation/runs/codex_area_beta0_s13_20260910/decisions_codex_area_beta0_s13_20260910'
 PURE = ROOT / 'evaluation/runs/codex_n7_pure_s13_20260910/decisions_codex_n7_pure_s13_20260910'
 FIXTURE_ENV = 'VISSIM_RECEIVER_FIXTURE_ROOT'
 
 
 def fixture_input(path, *, raw=False):
+    # Baseline configuration is a tracked immutable diagnostic fixture.
+    if path == CONFIG:
+        return path
     location = os.environ.get(FIXTURE_ENV)
     if not location:
         return path
@@ -137,7 +140,7 @@ class ReceiverTurnTests(unittest.TestCase):
     def test_all_remaining_unknown_links_still_fail_before_mutation(self):
         cfg, _, detectors, raw, _ = self.actual
         unresolved = self.support['full_area_coverage_audit']['unresolved_physical_links']
-        self.assertEqual(set(unresolved), set(self.proof['remaining_unresolved']))
+        self.assertEqual(set(unresolved), set(self.proof['remaining_unresolved'])-set(self.support['link_to_storage']))
         for key in unresolved:
             with self.subTest(link=key):
                 altered = deepcopy(raw)

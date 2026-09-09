@@ -51,6 +51,32 @@ def _count(value: Any, label: str) -> float:
     return number
 
 
+def validate_record_storage_partition(link, row, count, stopped, speed, origins, capacities):
+    """Consume a previously proven full-link partition without making new IDs."""
+    if not isinstance(row, Mapping) or not row or set(row) != set(origins):
+        raise ProjectionError(f'{link}: physical record partition origins differ')
+    total = total_stopped = moment = 0.0
+    checked = {}
+    for storage, values in row.items():
+        if storage not in capacities or not isinstance(values, Mapping):
+            raise ProjectionError(f'{link}: invalid partition storage {storage}')
+        n = _count(values['count'], 'record count')
+        stopped_n = _count(values['stopped_count'], 'stopped record count')
+        speed_sum = _count(values['speed_sum_kph'], 'record speed sum')
+        if stopped_n > n or (n == 0 and speed_sum != 0):
+            raise ProjectionError(f'{link}: inconsistent physical record moments')
+        total += n; total_stopped += stopped_n; moment += speed_sum
+        checked[storage] = (n, stopped_n, speed_sum)
+    if not math.isclose(total, count, rel_tol=0, abs_tol=1e-8):
+        raise ProjectionError(f'{link}: physical record partition count differs')
+    if not math.isclose(total_stopped, stopped, rel_tol=0, abs_tol=1e-8):
+        raise ProjectionError(f'{link}: physical record partition stopped count differs')
+    # The independent VBS aggregate is rounded, individual records are doubles.
+    if count and not math.isclose(moment, float(speed)*count, rel_tol=0, abs_tol=max(1e-5, count*1e-5)):
+        raise ProjectionError(f'{link}: physical record partition speed moment differs')
+    return checked
+
+
 def install_physical_branch_projection(
     cfg, tuning: Mapping[str, Any], detector_mapping: Mapping[str, Any],
     *, link_counts: Mapping[str, float],

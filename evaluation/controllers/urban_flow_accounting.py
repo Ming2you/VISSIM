@@ -14,10 +14,32 @@ from evaluation.controllers.control_area_objective import (
 )
 
 def _receive_corridor(state, cfg, movement, vehicles, urban_step_index):
-    if not getattr(cfg.network, 'sc2001_corridor', None):
-        return False
-    from evaluation.controllers.sc2001_corridor import receive_accepted
-    return receive_accepted(state, cfg, movement, vehicles, urban_step_index)
+    if getattr(cfg.network, 'native_internal_inputs', None):
+        from evaluation.controllers.native_input_prehead import receive_accepted as notify_prehead
+        notify_prehead(state, cfg, movement, vehicles, urban_step_index)
+        from evaluation.controllers.native_input_routes import receive_accepted
+        if receive_accepted(state, cfg, movement, vehicles, urban_step_index):
+            return True
+    if getattr(cfg.network, 'route_choice_corridor', None):
+        from evaluation.controllers.route_choice_corridor import receive_accepted
+        if receive_accepted(state, cfg, movement, vehicles, urban_step_index):
+            return True
+    if getattr(cfg.network, 'sc2001_corridor', None):
+        from evaluation.controllers.sc2001_corridor import receive_accepted
+        return receive_accepted(state, cfg, movement, vehicles, urban_step_index)
+    return False
+
+
+def _corridor_intended(state, control, cfg, movement, available, urban_step_index, ordinary):
+    if getattr(cfg.network, 'route_choice_corridor', None):
+        from evaluation.controllers.route_choice_corridor import intended_departure
+        value = intended_departure(state, control, cfg, movement, available, urban_step_index)
+        if value is not None:
+            ordinary = value
+    if getattr(cfg.network, 'native_internal_inputs', None):
+        from evaluation.controllers.native_input_prehead import limit_intended
+        ordinary = limit_intended(state, cfg, movement, available, ordinary, urban_step_index)
+    return ordinary
 
 
 def _drain_offramp_storage_accounted(
@@ -66,6 +88,8 @@ def _drain_offramp_storage_accounted(
             green_fraction = _uqm._phase_green_fraction(control, cfg, spec, urban_step_index=step_idx)
             # Wu 식3: green·포화유율·(β 몫의 storage 점유)·하류 수용공간의 min.
             intended = min(beta * occupancy, dt_h * green_fraction * cap_flow)
+            intended = _corridor_intended(state, control, cfg, movement,
+                                         beta * occupancy, step_idx, intended)
             receiving_link = str(spec.get("receiving_link", ""))
             if receiving_link and receiving_link in state.urban_link_storage:
                 # S_eff: 하류 링크 점큐 반영(spec §3.3.2, 397행) → off-ramp spillback(식22).
@@ -108,6 +132,17 @@ def urban_substep_accounted(
 ) -> Tuple[float, Dict[str, float]]:
     """movement-level horizontal queue를 `T_u` 한 스텝만 전진한다."""
     _uqm.ensure_urban_state(state, cfg)
+    if getattr(cfg.network, 'native_internal_inputs', None):
+        from evaluation.controllers.native_input_routes import advance
+        advance(state, cfg, _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index)
+        from evaluation.controllers.native_input_prehead import advance as advance_prehead
+        advance_prehead(state, cfg, _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index)
+    choice_diagnostics = {}
+    choice = getattr(cfg.network, 'route_choice_corridor', None)
+    if choice:
+        from evaluation.controllers.route_choice_corridor import advance
+        choice_diagnostics = advance(state, control, demand, cfg,
+            _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index)
     if getattr(cfg.network, 'shared_approach', None):
         from evaluation.controllers.shared_approach import advance
         advance(state, control, demand, cfg, _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index)
@@ -120,6 +155,8 @@ def urban_substep_accounted(
         "urban_substep_active": 1.0,
         "onramp_two_reservoir_active": 1.0,
     }
+    diagnostics.update({key: value for key, value in choice_diagnostics.items()
+                        if isinstance(value, (int, float))})
     initial_accumulation = state.protected_accumulation_veh(cfg.network)
     interval_net_inflow_target = _uqm._control_net_inflow_target_veh_h(control, cfg)
     initial_accumulation_error = 0.0
@@ -142,6 +179,9 @@ def urban_substep_accounted(
     step_idx = _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index
     routing = _uqm.approach_routing(cfg)
     sink_links = _uqm.sink_storage_links(cfg)
+    choice_storages = set(choice['capacity_veh']) if choice else set()
+    if choice_storages:
+        sink_links = set(sink_links) - choice_storages
     corridor = getattr(net, 'sc2001_corridor', None)
     if corridor:
         from evaluation.controllers.sc2001_corridor import advance
@@ -154,8 +194,16 @@ def urban_substep_accounted(
     boundary_out_ramp_released_veh = 0.0
     urban_gate_inflow_veh = 0.0
     urban_demand_arrivals_veh = 0.0
+    if getattr(net, 'native_internal_inputs', None):
+        from evaluation.controllers.native_internal_input import advance
+        native_rows = advance(state, control, demand, cfg, step_idx)['native_internal_input_step']
+        for input_no, row in native_rows.items():
+            diagnostics.update({f'native_internal_{input_no}_{key}': value for key, value in row.items()})
+            urban_demand_arrivals_veh += row['generated_inside_veh']
 
     for link in net.urban_link_storage_veh:
+        if link in choice_storages:
+            continue
         if corridor and link == corridor['storage']:
             continue
         released = _uqm._pop_buffer(state.urban_storage_release_buffer, link, step_idx)
@@ -245,6 +293,8 @@ def urban_substep_accounted(
 
     # arrival = "다음 노드 도착 → β분할" (spec §3.3.5). 1:1 next_movement 체인이 아님.
     for source, targets in routing.items():
+        if source in choice_storages:
+            continue
         if corridor and source == corridor['storage']:
             continue
         arrived = _uqm._pop_buffer(state.urban_arrival_buffer, source, step_idx)
@@ -385,6 +435,8 @@ def urban_substep_accounted(
         cap_flow = _uqm._movement_capacity_flow(control, cfg, movement, spec)
         green_fraction = _uqm._phase_green_fraction(control, cfg, spec, urban_step_index=step_idx)
         intended = min(available, sim.T_u_h * green_fraction * cap_flow)
+        intended = _corridor_intended(state, control, cfg, movement,
+                                     available, step_idx, intended)
         receiving_link = str(spec.get("receiving_link", ""))
         if receiving_link and receiving_link in state.urban_link_storage:
             intended_by_storage.setdefault(receiving_link, {})[movement] = intended
@@ -393,6 +445,9 @@ def urban_substep_accounted(
 
     actual_departure: Dict[str, float] = dict(no_storage_intended)
     for storage_link, intended in intended_by_storage.items():
+        if choice:
+            from evaluation.controllers.route_choice_corridor import limit_intended_batch
+            intended = limit_intended_batch(state, cfg, intended, step_idx)
         # S_eff: 하류 링크 끝 점큐를 점유로 반영(spec §3.3.2, 397행) → backup 전파.
         available_space = _uqm._effective_available_space(state, cfg, storage_link)
         actual_departure.update(_uqm._allocate_receiving_counts(
@@ -433,6 +488,10 @@ def urban_substep_accounted(
             urban_gate_inflow_veh += actual
         elif spec.get("kind") == "boundary_out":
             outbound_service_veh += actual
+
+    if getattr(net, 'native_internal_inputs', None):
+        from evaluation.controllers.native_input_prehead import finish_step
+        diagnostics.update(finish_step(state, control, cfg, step_idx))
 
     projection_protected_veh = 0.0
     protected_queue_kinds = {"internal", "boundary_out", "off_ramp"}
@@ -700,7 +759,10 @@ def schedule_offramp_arrivals_accounted(state, cfg, off_ramp, vehicles, urban_st
 def install(adapter, cfg):
     """Enable explicit events after all original urban/landing runtime hooks."""
     global _adapter, _original_schedule
-    if not getattr(cfg.network, 'control_area_enabled', False) and not getattr(cfg.network, 'sc2001_corridor', None):
+    if not (getattr(cfg.network, 'control_area_enabled', False)
+            or getattr(cfg.network, 'sc2001_corridor', None)
+            or getattr(cfg.network, 'route_choice_corridor', None)
+            or getattr(cfg.network, 'native_internal_inputs', None)):
         return {'area_urban_accounting_enabled': 0.0}
     _adapter = adapter
     if getattr(_uqm.urban_substep, '_control_area_events', False):
@@ -710,7 +772,9 @@ def install(adapter, cfg):
 
     def urban_substep(state, control, demand, cfg, *args, **kwargs):
         area_enabled = bool(getattr(cfg.network, 'control_area_enabled', False))
-        if not area_enabled and not getattr(cfg.network, 'sc2001_corridor', None):
+        if not (area_enabled or getattr(cfg.network, 'sc2001_corridor', None)
+                or getattr(cfg.network, 'route_choice_corridor', None)
+                or getattr(cfg.network, 'native_internal_inputs', None)):
             return original_urban(state, control, demand, cfg, *args, **kwargs)
         if area_enabled and get_ledger(state) is None:
             raise ValueError('enabled urban accounting requires candidate-owned ledger')

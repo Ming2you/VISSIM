@@ -4,8 +4,8 @@
     {
       "path": "diagnostics/control_area_physics_overlay.json",
       "role": "Explicit opt-in physics overlay, merged into base config",
-      "bytes": 3967,
-      "sha256": "4d215c4d7b75f6dff18c297c42897cdc601a0c7086e4e17f229387610290c0a5",
+      "bytes": 4653,
+      "sha256": "ec6fe3f67c7ffa68b5c3e000d14da58a957e4446c04b740c60e57ee855aac0e1",
       "tracked_at_inventory": true
     },
     {
@@ -59,10 +59,108 @@
     },
     {
       "path": "diagnostics/physical_projection_support_635_proposal.json",
-      "role": "205 physical supports and 45-link positive unknown guard; production input despite historical filename",
-      "bytes": 73601,
-      "sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "role": "Reviewed deterministic physical supports; strict positive unknown guard plus separately validated route/input partitions",
+      "bytes": 95302,
+      "sha256": "384ff968cc7d633ea4cd81cb47b650fcabbb816add469dca331607f2fe05f7ec",
       "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_ver2.json",
+      "role": "Native1129 finite corridor, current-route cohorts and shared69 continuation",
+      "bytes": 2650,
+      "sha256": "3cd24cd81c7335dfe54ba9c9770d407ef04737f9f426b695c485954593147ec9",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_1128_ver2.json",
+      "role": "Native1128 finite corridor and unsignalized local branch",
+      "bytes": 4705,
+      "sha256": "5ce589875e64cd8940d968084ca502aec62fdffb65c2c8ca819ed8cf3b0e5bf4",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_internal_inputs_extended_ver2.json",
+      "role": "All declared internal input sources, native schedules and finite inside generation",
+      "bytes": 14784,
+      "sha256": "94535203188088241b9db9433f1e68bc9700970a5ff40ce1fc4dde8393b2c2e9",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_input_1083_signal_authority_ver2.json",
+      "role": "Lane-position partition and first selected SC108 signal authority for source21",
+      "bytes": 3805,
+      "sha256": "1e532a8df7831231e295fcc16da308e29b2c750d45af3ccbe6918aea5ffdb006",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_input_1096_route_ver2.json",
+      "role": "Native1102 fixed path and successive signal service for input1096",
+      "bytes": 1544,
+      "sha256": "7fc0e89f8a5cebca2bde4b32d9bda8c3da6f34848fd30f9ff9aaf46538611e2f",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_1096_sc8_gate_ver2.json",
+      "role": "Native SC8 intermediate red/green timing; no invented saturation capacity",
+      "bytes": 6557,
+      "sha256": "f8f3e23cb63b9e5833425ae16da2a2610470aba5b7bf4b15708eb44782b7afcd",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_input_1093_prehead_ver2.json",
+      "role": "Native22 routing and shared SC11 p3 before left-turn p4 for input1093",
+      "bytes": 4723,
+      "sha256": "9babfadf0c7725cea937e5eef200b344f619a8186e4b05bde9fdbc93956aa3a4",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_1092_1093_branch_calibration.json",
+      "role": "Explicit frozen seed13 source direction priors; seed14 holdout required",
+      "bytes": 133013,
+      "sha256": "1c942c05d98fee5f9046bb3ba626f299c50c494b4266c20d10bdd548956bc19a",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_1099_ver2.json",
+      "role": "Input1086 native200:150 route choices and fixed SC15 clock",
+      "bytes": 3156,
+      "sha256": "5cca29bf1abc7c5397e637ddfed4be372f0d8089bb945d46f38adc6a604d9eac",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_1100_ver2.json",
+      "role": "Input1087 native200:150 route choices and shared source signal budget",
+      "bytes": 3156,
+      "sha256": "f52d4aaa38784c866c1b26a0bc627d38a18b93681c8eeb6f243979341c15d4a9",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_1099_sc15_calibrated.json",
+      "role": "Input1086 bounded native-SC15 service calibration opt-in",
+      "bytes": 3374,
+      "sha256": "9fbbe2a1b2614fa9603f2976121d2c3044b6449f9f85cc849e2ea67776d6e5b1",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/route_choice_corridor_1100_sc15_calibrated.json",
+      "role": "Input1087 bounded native-SC15 service calibration opt-in",
+      "bytes": 3374,
+      "sha256": "b96fc6525cbdc5b0f1fafd7c6001b7de91f17b9c7cfe5ffa58da56d4b81d6372",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/native_sc15_service_calibration.json",
+      "role": "Queued discharge headways fitted outside two held450s windows; seed14 validation pending",
+      "bytes": 22616,
+      "sha256": "3119a382c0a207bea4bdd37f1a034b7a4d44f7b5eeae51e26510e2ea3898a80a",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/physical_phase_authority_ver2.json",
+      "role": "Three selected signal-group to model-phase repairs",
+      "bytes": 5288,
+      "sha256": "c55f2e8b336510e0dc17a6ab39817fd5bef54d9eae333758a83473587d60279a",
+      "tracked_at_inventory": false
     },
     {
       "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
@@ -97,23 +195,23 @@
     {
       "path": "diagnostics/area_projection_coverage_635.json",
       "role": "Complete635 coverage assertions and synthetic support test",
-      "bytes": 428928,
-      "sha256": "719d28ef9449ec5fcbd84b5a0cdc83fa454c5b3ff4d90a12464b16642bfe8d42",
-      "tracked_at_inventory": false
+      "bytes": 476255,
+      "sha256": "687104973272d2cac47846ca6b423aec814f15380086969bac3c5e4d14cfe4dd",
+      "tracked_at_inventory": true
     },
     {
       "path": "diagnostics/physical_projection_support_ver2.json",
       "role": "Historical35-support configuration for OFF/old-data regression",
       "bytes": 8847,
       "sha256": "9f0861587c2213e7454b1bfaecbc88b9d762a56c61d4ba13cf10f960adbb50fc",
-      "tracked_at_inventory": false
+      "tracked_at_inventory": true
     },
     {
       "path": "diagnostics/observation_projection_config.json",
       "role": "Projection-only test overlay",
       "bytes": 3357,
       "sha256": "dc1d0a81d138b8b16e79da694221eb884aeb570b857f96bcd75f0797773ec110",
-      "tracked_at_inventory": false
+      "tracked_at_inventory": true
     },
     {
       "path": "diagnostics/ramp_profile_config_c10639_g5.json",
@@ -447,7 +545,7 @@
     "Dynamic-route training FZP and recalibration scripts"
   ],
   "clean_checkout_limitations": [
-    "The portable archive supplies all45 listed historical inputs and four fixed git source references; original evaluation/runs files and deep git history are unnecessary for the documented48-test subset.",
+    "The original portable archive supplies its listed historical inputs and fixed source references; its scoped tests are documented in the fixture README.",
     "Bootstrap restores raw bytes and explicitly relocated JSON copies under .review-fixtures without overwrite. Active fixture lookup refuses unlisted historical inputs rather than falling back to originals.",
     "Other historical replay scripts may need additional archives; this bundle is scoped to the tests documented in diagnostics/fixtures/README.md."
   ]

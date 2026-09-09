@@ -1,0 +1,235 @@
+{
+  "schema": "native-internal-inputs/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "membership": {
+    "path": "diagnostics/control_area_membership.json",
+    "sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d"
+  },
+  "gate_map": {
+    "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+    "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+  },
+  "input_roles": {
+    "path": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
+    "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+  },
+  "demand_profile": {
+    "path": "evaluation/configs/demand_profiles/ver2_fdsweep_x15_20260907.csv",
+    "sha256": "3091ebe8164431f2650ade53024241864228da2c75dd9192af2158858588ee64"
+  },
+  "canonical_contract": {
+    "path": "diagnostics/control_area_route_contract_physical_routes.json",
+    "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+  },
+  "inputs": {
+    "1091": {
+      "physical_source": "236",
+      "source_decision": "1105",
+      "downstream_decision": "12",
+      "target_storage": "in_SC1_E",
+      "physical_projection_links": [
+        "236",
+        "10381"
+      ],
+      "approach_path": [
+        "236",
+        "10381",
+        "1210008203",
+        "10385",
+        "1220008202",
+        "10403",
+        "254",
+        "10402",
+        "1210008202",
+        "10396",
+        "1220008201"
+      ],
+      "approach_heads": [
+        "10601",
+        "10602"
+      ],
+      "target_movements": [
+        "SC1_E_to_W_SC105",
+        "SC1_E_to_N_SC101",
+        "SC1_E_to_S_SC107"
+      ],
+      "routing_policy": "Existing canonical approach routing/phase model is retained. This repairs admitted internal generation and transit; it does not calibrate native12 turn shares or intermediate SC2 signal delay.",
+      "initial_events": "Observed source/connector vehicles start inside Omega with no generated/entry/exit event. Only future accepted generation adds stock.",
+      "unadmitted_policy": "Desired native volume accumulates as explicitly unadmitted demand outside model inventory until the finite existing receiver accepts it. It does not contribute TTT before admission."
+    },
+    "1085": {
+      "validation": "common_approach",
+      "physical_source": "138",
+      "target_storage": "SC12_to_SC6",
+      "physical_projection_links": [
+        "138",
+        "10215"
+      ],
+      "approach_path": [
+        "138",
+        "10215",
+        "1220018301",
+        "10216",
+        "1220018302",
+        "10209",
+        "1210018302"
+      ],
+      "approach_paths": [
+        [
+          "138",
+          "10215",
+          "1220018301",
+          "10216",
+          "1220018302",
+          "10209",
+          "1210018302"
+        ],
+        [
+          "138",
+          "10215",
+          "1220018301",
+          "10216",
+          "1220018302",
+          "10210",
+          "1210018302"
+        ]
+      ],
+      "approach_heads": [
+        "90301",
+        "90801",
+        "90802",
+        "90803"
+      ],
+      "selected_plan": {
+        "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+        "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+      },
+      "branch_coverage": {
+        "138": {
+          "basis": "all_forward_connectors"
+        },
+        "1220018301": {
+          "basis": "native_decision",
+          "decision": "1034"
+        },
+        "1220018302": {
+          "basis": "all_forward_connectors"
+        }
+      },
+      "target_movements": [
+        "SC6_S_SC12_to_N_SC103",
+        "SC6_S_SC12_to_E_SC104",
+        "SC6_S_SC12_to_W_SC5"
+      ],
+      "routing_policy": "Existing canonical approach routing and signal service remain. This repairs finite admitted generation before the first selected stopline, not source-specific downstream turn calibration. No already chosen multi-intersection route is reassigned.",
+      "initial_events": "Observed source and first-connector stock starts inside Omega without generated, entry or exit events.",
+      "unadmitted_policy": "Desired demand waits outside model inventory until finite existing approach storage accepts it; no TTT before admission."
+    },
+    "1095": {
+      "validation": "common_approach",
+      "physical_source": "164",
+      "target_storage": "SC109_to_SC16",
+      "physical_projection_links": [
+        "164",
+        "10269"
+      ],
+      "approach_path": [
+        "164",
+        "10269",
+        "1220009503",
+        "10247",
+        "1210009503"
+      ],
+      "approach_paths": [
+        [
+          "164",
+          "10269",
+          "1220009503",
+          "10247",
+          "1210009503"
+        ],
+        [
+          "164",
+          "10269",
+          "1220009503",
+          "10602",
+          "1210009503"
+        ]
+      ],
+      "approach_heads": [
+        "180301",
+        "180801",
+        "180802",
+        "180803"
+      ],
+      "selected_plan": {
+        "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+        "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+      },
+      "branch_coverage": {
+        "164": {
+          "basis": "all_forward_connectors"
+        },
+        "1220009503": {
+          "basis": "all_forward_connectors"
+        }
+      },
+      "target_movements": [
+        "SC16_S_SC109_to_N_SC12",
+        "SC16_S_SC109_to_W_SC7",
+        "SC16_S_SC109_to_E"
+      ],
+      "routing_policy": "Existing canonical approach routing and signal service remain. This repairs finite admitted generation before the first selected stopline, not source-specific downstream turn calibration. No already chosen multi-intersection route is reassigned. Native284 weights25/926/21 differ from current aggregate approach beta; this known turn-model approximation is not calibrated by this source repair.",
+      "initial_events": "Observed source and first-connector stock starts inside Omega without generated, entry or exit events.",
+      "unadmitted_policy": "Desired demand waits outside model inventory until finite existing approach storage accepts it; no TTT before admission."
+    },
+    "1097": {
+      "validation": "common_approach",
+      "physical_source": "256",
+      "target_storage": "SC11_to_SC5",
+      "physical_projection_links": [
+        "256",
+        "10415"
+      ],
+      "approach_path": [
+        "256",
+        "10415",
+        "1220014100"
+      ],
+      "approach_paths": [
+        [
+          "256",
+          "10415",
+          "1220014100"
+        ]
+      ],
+      "approach_heads": [
+        "70301",
+        "70801",
+        "70802"
+      ],
+      "selected_plan": {
+        "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+        "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+      },
+      "branch_coverage": {
+        "256": {
+          "basis": "all_forward_connectors"
+        }
+      },
+      "target_movements": [
+        "SC5_S_SC11_to_N_SC102",
+        "SC5_S_SC11_to_E_SC6",
+        "SC5_S_SC11_to_W_SC101"
+      ],
+      "routing_policy": "Existing canonical approach routing and signal service remain. This repairs finite admitted generation before the first selected stopline, not source-specific downstream turn calibration. No already chosen multi-intersection route is reassigned.",
+      "initial_events": "Observed source and first-connector stock starts inside Omega without generated, entry or exit events.",
+      "unadmitted_policy": "Desired demand waits outside model inventory until finite existing approach storage accepts it; no TTT before admission."
+    }
+  },
+  "demand_transform_contract": "The canonical runner reads each original INPX TimeIntVehVol, applies demand_scale times the input role multiplier, overridden by no:<input> when present, and verifies each interval write by readback. This module uses the same pinned roles/profile and checks the live internal-demand aggregate. For the recorded retry, scale1 and urban_input1 preserve1091 volumes112/160/168/144/112/80; individual1091 readback is not separately logged.",
+  "scope": "Explicit opt-in source-to-existing-origin declaration; no player territory, Ω membership, gate CSV, beta, signal plan or extra storage capacity is changed."
+}

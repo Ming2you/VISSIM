@@ -18,8 +18,6 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT/'vendor/NumSim-mine')]
-os.environ['RW_OFFSET_WRITER'] = 'experiment'
-os.environ['RW_MAINLINE_SG_ONLY'] = '1'
 from diagnostics.probe_model_area_integration import build_projected
 from diagnostics.probe_e8_lane_receiving import IndexedFzp
 from diagnostics.probe_e8_window_passages import frames
@@ -43,7 +41,8 @@ def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 def fingerprints(paths): return {str(p.relative_to(ROOT)):sha(p) for p in sorted(set(paths))}
 
 
-def read_physical_window(path, membership, terminals, raw_start, raw_end, freeway_sets):
+def read_physical_window(path, membership, terminals, raw_start, raw_end, freeway_sets,
+                         *, start=START, end=END, frame_reader=frames):
     """Initialize at the observed nonempty900 frame; never reward that stock.
 
     Terminal inference follows scripts.measure_control_area with the same10m,
@@ -61,9 +60,20 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
     freeway_initial,freeway_final={},{}
     rows, sample_rows = [], 0
     terminal_ids = set()
+    seen_ids, first_seen_links, reappeared_links = set(), Counter(), Counter()
+    def endpoint_counts(values):
+        counts = defaultdict(lambda: {'count_veh': 0, 'stopped_lt5_veh': 0, 'speed_sum_kph': 0.})
+        for link, lane, position, speed in values.values():
+            row = counts[str(link)]
+            row['count_veh'] += 1
+            row['stopped_lt5_veh'] += speed < 5
+            row['speed_sum_kph'] += speed
+        return dict(counts)
     inside = lambda row: membership[str(row[0])]
     def n_inside(values): return sum(inside(r) for r in values.values())
     def compare_com(values, raw):
+        if raw is None:
+            return {'available': False, 'reason': 'No paused COM endpoint was supplied.'}
         com = {int(r['veh_no']):int(r['link_no']) for r in raw['vehicle_records']['records']}
         native = {no:r[0] for no,r in values.items()}
         return {'native_vehicles':len(native),'com_vehicles':len(com),
@@ -73,13 +83,14 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
                 'only_com_ids':sorted(com.keys()-native.keys()),
                 'changed_link_ids':sorted(no for no in native.keys()&com.keys() if native[no]!=com[no])}
     try:
-        for sec, values in frames(reader,START,END,time.monotonic()+60,provenance):
+        for sec, values in frame_reader(reader,start,end,time.monotonic()+60,provenance):
             sample_rows += len(values)
             unknown = {str(r[0]) for r in values.values()} - membership.keys()
             if unknown: raise ValueError(f'Unknown physical membership: {unknown}')
             if prev is None:
-                if sec != START: raise ValueError('Exact native900 initial frame required')
+                if sec != start: raise ValueError(f'Exact native {start} initial frame required')
                 initial = dict(values)
+                seen_ids.update(values)
                 freeway_initial={link:sum(str(r[0]) in keys for r in values.values()) for link,keys in freeway_sets.items()}
                 start_phase = compare_com(values,raw_start)
                 prev, prev_t = values, sec
@@ -115,7 +126,12 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
                             uncertain_by_link[str(old[0])] += 1
             for no in values.keys()-prev.keys():
                 appearance_links[str(values[no][0])] += 1
+                if no in seen_ids:
+                    reappeared_links[str(values[no][0])] += 1
+                else:
+                    first_seen_links[str(values[no][0])] += 1
                 if inside(values[no]): step['appeared_inside_veh'] += 1
+            seen_ids.update(values)
             for link,keys in freeway_sets.items():
                 fw=freeway_events[link]
                 for no,old in prev.items():
@@ -147,7 +163,7 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
                          'closure_residual_veh':closure})
             prev,prev_t = values,sec
     finally: reader.handle.close()
-    if prev_t != END: raise ValueError(f'Native interval ended{prev_t}, expected1050')
+    if prev_t != end: raise ValueError(f'Native interval ended {prev_t}, expected {end}')
     freeway_final={link:sum(str(r[0]) in keys for r in prev.values()) for link,keys in freeway_sets.items()}
     for link,values in freeway_events.items():
         values['initial_veh']=freeway_initial[link]
@@ -156,12 +172,15 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
         if values['closure_residual_veh']: raise AssertionError('FW sampled physical closure failed')
     if abs(sum(v for k,v in link_residence.items() if membership[k])-totals['ttt_trapezoid_veh_h'])>1e-8:
         raise AssertionError('Disaggregated physical residence does not close')
-    physical = {'interval_sec':[START,END],'totals':dict(totals),
+    physical = {'interval_sec':[start,end],'totals':dict(totals),
         'initial_inside_veh':n_inside(initial),'final_inside_veh':n_inside(prev),
         'ttd_observed_plus_terminal_veh':totals['observed_exit_veh']+totals['terminal_inferred_exit_veh'],
         'exit_pairs':dict(exits_by_pair),'unresolved_disappearance_links':dict(uncertain_by_link),
         'freeway_chain_stock_and_flow':{k:dict(v) for k,v in freeway_events.items()},
         'appeared_inside_by_physical_link':{k:v for k,v in appearance_links.items() if membership[k]},
+        'first_seen_in_window_by_physical_link':dict(first_seen_links),
+        'reappeared_in_window_by_physical_link':dict(reappeared_links),
+        'initial_link_counts':endpoint_counts(initial),'final_link_counts':endpoint_counts(prev),
         'max_sampled_stock_closure_error_veh':0,'frame_count':len(rows)+1,'record_rows':sample_rows,
         'native_vs_com_900':start_phase,'native_vs_com_1050':compare_com(prev,raw_end),
         'fzp_source':{'path':str(path.relative_to(ROOT)),'bytes':path.stat().st_size,
@@ -170,7 +189,7 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
             'Same-side excursions entirely between1s snapshots can be missed; this is not an absolute lower/upper confidence interval.',
             'Terminal inference uses10m position margin,3m/s² reach and1s-step overshoot; normal departure and deletion near a terminal are not distinguishable.',
             'Left/right residence rules are time-discretization alternatives, not statistical uncertainty bounds.']}
-    links = {key:{'residence_veh_h':value,'mean_count_veh':value*3600/(END-START),
+    links = {key:{'residence_veh_h':value,'mean_count_veh':value*3600/(end-start),
                   'slow_below5kph_veh_h':link_slow[key],'peak_count_veh':link_peak[key],
                   'observed_entries_veh':entries[key],'observed_departures_veh':departures[key],
                   'observed_entry_source_links':dict(entry_pairs[key]),
@@ -181,6 +200,8 @@ def read_physical_window(path, membership, terminals, raw_start, raw_end, freewa
 
 
 def main():
+    os.environ['RW_OFFSET_WRITER'] = 'experiment'
+    os.environ['RW_MAINLINE_SG_ONLY'] = '1'
     began=time.monotonic()
     live_manifest=load(RUN/'area_candidate_source_manifest.json')
     previous=max((p for p in DEC.glob('action_*.json') if int(p.stem.split('_')[-1])<START),key=lambda p:int(p.stem.split('_')[-1]))

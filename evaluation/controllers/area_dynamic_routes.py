@@ -128,6 +128,12 @@ def extend_routes(cfg, routes, detectors, membership, path):
     physical = physical_membership_from_ledger(membership)
     output, resolved = deepcopy(routes), []
     for name, row in document['by_movement'].items():
+        choice = getattr(cfg.network, 'route_choice_corridor', None)
+        if choice and name in choice['renames']:
+            replacement = choice['renames'][name]
+            if name in cfg.network.urban_movements or replacement not in choice['turns']:
+                raise ValueError(f'{name}: invalid route-choice movement coalescing')
+            continue
         spec = cfg.network.urban_movements[name]
         if any(spec.get(key) != value for key, value in row['expected_spec'].items()):
             raise ValueError(f'{name}: model path identity changed')

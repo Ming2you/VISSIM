@@ -1,10 +1,12 @@
 param(
   [Parameter(Mandatory=$true)][ValidateSet(0,60,150,300)][int]$BetaSeconds,
   [int]$Seed = 13,
+  [ValidateSet('wu-link','no-control')][string]$Controller = 'wu-link',
   [Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Name,
   [string]$Python = 'C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 )
 $ErrorActionPreference = 'Stop'
+if ($Controller -eq 'no-control' -and $BetaSeconds -ne 0) { throw 'Use beta0 for the common no-control observation baseline' }
 $areaRepo = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $areaRepo
 $areaConfig = "diagnostics/area_candidate_configs/n7_area_beta$BetaSeconds.json"
@@ -41,7 +43,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Parameter verification failed' }
 New-Item -ItemType Directory -Path $areaOutput | Out-Null
 [IO.File]::WriteAllBytes((Join-Path $areaRepo "$areaOutput/area_candidate_source_manifest.json"), $areaManifestBytes)
 & scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1 `
-  -Name $Name -Controller wu-link `
+  -Name $Name -Controller $Controller `
   -Network 'network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx' `
   -OutDir $areaOutput -Tuning $areaConfig `
   -Calibration 'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json' `

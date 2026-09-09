@@ -7,9 +7,8 @@
   "counts": {
     "supported_separate_freeway_chain": 10,
     "supported_existing_urban": 402,
-    "proposed_unique_physical_storage": 186,
-    "unresolved_physical_support": 28,
-    "unresolved_observable_without_model_stock": 1,
+    "proposed_unique_physical_storage": 188,
+    "unresolved_physical_support": 27,
     "supported_ramp_queue": 8
   },
   "by_physical_link": {
@@ -1591,8 +1590,30 @@
       "local_mask_enabled": true,
       "existing_origins": [],
       "current_vehicles": 0,
-      "status": "unresolved_observable_without_model_stock",
-      "reason": "No active movement or existing storage target supports this local record."
+      "status": "proposed_unique_physical_storage",
+      "reason": "Road336 has no head/input and a unique canonical transit receiver. Its incoming10528 diverges before the head on the immediate source road; full upstream signal authority is audited separately, and no signal-service assumption is changed.",
+      "target_storage": "SC101_to_SC5",
+      "actual_downstream_origins": [
+        "SC101_to_SC5"
+      ],
+      "downstream_path": {
+        "links": [
+          "336",
+          "10529",
+          "1210014303"
+        ],
+        "movement": "SC101_S_SC1_to_E_SC5",
+        "canonical_contract": {
+          "path": "diagnostics/control_area_route_contract_physical_routes.json",
+          "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+        },
+        "native_route_ids": [
+          "1014:3"
+        ]
+      },
+      "same_link_pre_head_bypass": true,
+      "observed_1350_veh": 1,
+      "initial_stock_only_no_new_entry_events": true
     },
     "337": {
       "physical_link": "337",
@@ -5110,8 +5131,25 @@
         "SC11_to_SC1",
         "in_SC1_E"
       ],
-      "status": "unresolved_physical_support",
-      "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      "status": "proposed_unique_physical_storage",
+      "reason": "Pre-merge connector retains the unique SC11_to_SC1 origin: all actual source incoming connectors have the same reviewed active canonical receiver; no input or head on source. Mixed downstream road is not reassigned.",
+      "target_storage": "SC11_to_SC1",
+      "source_lineage": {
+        "source_link": "1220008203",
+        "upstream_receivers": {
+          "10367": "SC11_E_SC12_to_W_SC1",
+          "10374": "SC11_N_SC5_to_W_SC1",
+          "10378": "SC11_S_SC7_to_W_SC1"
+        },
+        "native_route_ids": [
+          "1104:1"
+        ],
+        "canonical_contract": {
+          "path": "diagnostics/control_area_route_contract_physical_routes.json",
+          "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+        }
+      },
+      "initial_stock_only_no_new_entry_events": true
     },
     "10380": {
       "physical_link": "10380",
@@ -13904,6 +13942,69 @@
         "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
         "zero_vehicle_support_reviewed": true
       }
+    },
+    "336": {
+      "physical_link": "336",
+      "local_mask_enabled": true,
+      "existing_origins": [],
+      "current_vehicles": 0,
+      "status": "proposed_unique_physical_storage",
+      "reason": "Road336 has no head/input and a unique canonical transit receiver. Its incoming10528 diverges before the head on the immediate source road; full upstream signal authority is audited separately, and no signal-service assumption is changed.",
+      "target_storage": "SC101_to_SC5",
+      "actual_downstream_origins": [
+        "SC101_to_SC5"
+      ],
+      "downstream_path": {
+        "links": [
+          "336",
+          "10529",
+          "1210014303"
+        ],
+        "movement": "SC101_S_SC1_to_E_SC5",
+        "canonical_contract": {
+          "path": "diagnostics/control_area_route_contract_physical_routes.json",
+          "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+        },
+        "native_route_ids": [
+          "1014:3"
+        ]
+      },
+      "same_link_pre_head_bypass": true,
+      "observed_1350_veh": 1,
+      "initial_stock_only_no_new_entry_events": true
+    },
+    "10379": {
+      "physical_link": "10379",
+      "local_mask_enabled": false,
+      "existing_origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "current_vehicles": 0,
+      "to_link": "1210008203",
+      "actual_downstream_origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "status": "proposed_unique_physical_storage",
+      "reason": "Pre-merge connector retains the unique SC11_to_SC1 origin: all actual source incoming connectors have the same reviewed active canonical receiver; no input or head on source. Mixed downstream road is not reassigned.",
+      "target_storage": "SC11_to_SC1",
+      "source_lineage": {
+        "source_link": "1220008203",
+        "upstream_receivers": {
+          "10367": "SC11_E_SC12_to_W_SC1",
+          "10374": "SC11_N_SC5_to_W_SC1",
+          "10378": "SC11_S_SC7_to_W_SC1"
+        },
+        "native_route_ids": [
+          "1104:1"
+        ],
+        "canonical_contract": {
+          "path": "diagnostics/control_area_route_contract_physical_routes.json",
+          "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+        }
+      },
+      "initial_stock_only_no_new_entry_events": true
     }
   },
   "unresolved": {
@@ -14103,14 +14204,6 @@
       "status": "unresolved_physical_support",
       "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
     },
-    "336": {
-      "physical_link": "336",
-      "local_mask_enabled": true,
-      "existing_origins": [],
-      "current_vehicles": 0,
-      "status": "unresolved_observable_without_model_stock",
-      "reason": "No active movement or existing storage target supports this local record."
-    },
     "360": {
       "physical_link": "360",
       "local_mask_enabled": false,
@@ -14139,22 +14232,6 @@
       "actual_downstream_origins": [
         "SC5_to_SC6",
         "SC6_to_SC5"
-      ],
-      "status": "unresolved_physical_support",
-      "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
-    },
-    "10379": {
-      "physical_link": "10379",
-      "local_mask_enabled": false,
-      "existing_origins": [
-        "SC11_to_SC1",
-        "in_SC1_E"
-      ],
-      "current_vehicles": 0,
-      "to_link": "1210008203",
-      "actual_downstream_origins": [
-        "SC11_to_SC1",
-        "in_SC1_E"
       ],
       "status": "unresolved_physical_support",
       "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
@@ -14444,6 +14521,31 @@
     "reviewed": 45,
     "added": 16,
     "still_unresolved": 29,
+    "initial_stock_only_no_new_entry_events": true
+  },
+  "road_review_20260910_1350": {
+    "previous_support_sha256": "366e6c4c99e0ed311aef4fb7eb718d6adfb62edad71772d1440f113d9607c174",
+    "previous_coverage_sha256": "bcbc37cc10cd0bdd966689951c1cfc962322124abebd367c64c428353fa4d967",
+    "proof_path": "diagnostics/unresolved_road_support_review_1350.json",
+    "reviewed_roads": 14,
+    "added": 1,
+    "added_links": [
+      "336"
+    ],
+    "remaining_road_cases": 13,
+    "still_unresolved": 28,
+    "initial_stock_only_no_new_entry_events": true,
+    "source_head_bypass_only_no_service_change": true
+  },
+  "source_lineage_review_20260910": {
+    "source_support_sha256": "4d5901d69f386211236a6981695794eee38e9b26762b15e8da48dcfdd22d980e",
+    "source_coverage_sha256": "ea08a2dad5f654aea7cc334eb10a6bdec6aa21a3415e8686a4ccea856e114b59",
+    "added": 1,
+    "added_links": [
+      "10379"
+    ],
+    "still_unresolved": 27,
+    "proof_path": "diagnostics/positive_unresolved_connector_review.json",
     "initial_stock_only_no_new_entry_events": true
   }
 }

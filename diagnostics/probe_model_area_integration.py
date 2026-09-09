@@ -17,6 +17,45 @@ from evaluation.controllers.control_area_objective import (
 )
 
 
+def replay_provenance(tuning, *inputs):
+    """Pin loaded repository Python and transitively referenced config data."""
+    paths = {Path(path).resolve() for path in inputs}
+    paths.add(Path(__file__).resolve())
+    for module in tuple(sys.modules.values()):
+        source = getattr(module, '__file__', None)
+        if source:
+            path = Path(source).resolve()
+            if path.suffix == '.py' and path.is_relative_to(ROOT):
+                paths.add(path)
+    visited = set()
+    def visit(value):
+        if isinstance(value, dict):
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+        elif isinstance(value, str) and value.startswith(('diagnostics/', 'evaluation/', 'outputs/', 'network/')):
+            path = (ROOT/value).resolve()
+            if path.is_relative_to(ROOT) and path.is_file() and path not in visited:
+                visited.add(path)
+                paths.add(path)
+                if path.suffix == '.json':
+                    visit(json.loads(path.read_text(encoding='utf-8-sig')))
+    visit(tuning)
+    return {str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path):
+            hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(paths)}
+
+
+def route_information(state, cfg):
+    """Stock coverage does not establish a vehicle's already chosen route."""
+    from evaluation.controllers.route_choice_corridor import diagnostics
+    observed = diagnostics(state, cfg)
+    return {'route_choice_diagnostics': observed,
+            'route_choice_information_complete': bool(observed['route_choice_prediction_route_complete']) if observed else None,
+            'scope': 'Route-choice cohorts only; this does not validate signal service, travel time, or full-network predictive accuracy.'}
+
+
 def build_projected(config_path: Path, state_path: Path, previous_path: Path, *, fixture_inputs=True):
     """Initialize canonical runtime; explicit probes opt out of fixture aliases."""
     if fixture_inputs:

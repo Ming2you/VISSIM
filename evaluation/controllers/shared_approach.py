@@ -246,12 +246,17 @@ def advance(state, control, demand, cfg, urban_step_index):
                 emit_transfer(state, cfg, 'storage:' + source, 'ramp:' + target, accepted, preserve_area=True)
             else:
                 state.urban_link_storage[target] -= accepted
-                arrival = urban_step_index + uqm._link_delay_steps(state, cfg, target)
-                if target not in routing:
-                    raise ValueError('Shared urban receiver has no downstream movements')
-                uqm._schedule(state.urban_arrival_buffer, target, arrival, accepted)
-                uqm._schedule(state.urban_storage_release_buffer, target, arrival, accepted)
                 emit_transfer(state, cfg, 'storage:' + source, 'storage:' + target, accepted, preserve_area=True)
+                handled = False
+                if getattr(cfg.network, 'route_choice_corridor', None):
+                    from evaluation.controllers.route_choice_corridor import receive_shared_accepted
+                    handled = receive_shared_accepted(state, cfg, source, key, accepted, urban_step_index)
+                if not handled:
+                    arrival = urban_step_index + uqm._link_delay_steps(state, cfg, target)
+                    if target not in routing:
+                        raise ValueError('Shared urban receiver has no downstream movements')
+                    uqm._schedule(state.urban_arrival_buffer, target, arrival, accepted)
+                    uqm._schedule(state.urban_storage_release_buffer, target, arrival, accepted)
         accepted_by_branch[key] = accepted
     desired = demand_amount(spec['schedule'], urban_step_index * dt, (urban_step_index + 1) * dt)
     local['unadmitted_demand_veh'] += desired

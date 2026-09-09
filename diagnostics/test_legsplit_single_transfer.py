@@ -23,7 +23,7 @@ class SingleTransferTests(unittest.TestCase):
         decisions = ROOT/'evaluation/runs/codex_n7_pure_s13_20260910/decisions_codex_n7_pure_s13_20260910'
         raw = json.loads(fixture_path(decisions/'state_003300.json').read_text(encoding='utf-8'))
         previous_path = fixture_path(decisions/'action_003150.json')
-        tuning = json.loads((ROOT/'diagnostics/area_candidate_configs/n7_area_beta300.json').read_text(encoding='utf-8'))
+        tuning = json.loads((ROOT/'diagnostics/fixtures/area_baseline_before_route_choice_beta300.json').read_text(encoding='utf-8'))
         mapping = json.loads((ROOT/tuning['mapping_json']).read_text(encoding='utf-8'))
         calibration = adapter.deep_update(json.loads((ROOT/'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json').read_text(encoding='utf-8')),
                                           tuning.get('calibration_override', {}))

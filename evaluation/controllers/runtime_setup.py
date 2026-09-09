@@ -60,6 +60,11 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     controller. Input paths, calibration fingerprints, and forecast construction
     stay with the caller. The returned detector mapping includes movement merges.
     """
+    timetable = (tuning or {}).get('prediction', {}).get('native_input_schedule', False)
+    if not isinstance(timetable, bool):
+        raise ValueError('prediction.native_input_schedule must be a boolean')
+    if timetable and not (tuning or {}).get('urban', {}).get('native_internal_inputs'):
+        raise ValueError('Native timetable requires the verified native_internal_inputs source contract')
     a = adapter
     local_observation = bool(a._link_counts_from_local_observation(state_json)
                              and (detector_mapping or physical_projection_input is not None))
@@ -77,6 +82,10 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_leg_ramp_split_fold(cfg, tuning))
     detector_mapping, merged = a.install_merged_movements(cfg, tuning, detector_mapping)
     metadata.update(merged)
+    if (tuning or {}).get('urban', {}).get('movements', {}).get('physical_phase_authority'):
+        from evaluation.controllers.physical_movement_routes import configure_phase_authority
+        metadata.update(configure_phase_authority(
+            cfg, tuning, a.load_signal_group_actuation_plan(), state_json=state_json))
     metadata.update(a.install_phase_vector_green_patch(cfg, tuning))
     metadata.update(a.install_movement_capacity_by_lanes(cfg, tuning))
     metadata.update(a.install_gate_onramp_queue(cfg, tuning))
@@ -117,6 +126,26 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if (tuning or {}).get('urban', {}).get('shared_approach'):
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.configure(cfg, tuning, state_json))
+    if (tuning or {}).get('urban', {}).get('route_choice_corridor'):
+        from evaluation.controllers import route_choice_corridor
+        detector_mapping, choice_metadata = route_choice_corridor.configure(
+            cfg, tuning, state_json, detector_mapping,
+            per_lane_capacity_veh_h=metadata.get('movement_capacity_by_lanes_per_lane_veh_h'))
+        metadata.update(choice_metadata)
+        detector_mapping, state_json, choice_projection = route_choice_corridor.prepare_projection(
+            cfg, detector_mapping, state_json)
+        metadata.update(choice_projection)
+    if (tuning or {}).get('urban', {}).get('native_internal_inputs'):
+        if tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority'):
+            from evaluation.controllers.physical_movement_routes import configure_native_input_signal_authority
+            detector_mapping, authority_metadata = configure_native_input_signal_authority(
+                cfg, tuning, detector_mapping, state_json=state_json)
+            metadata.update(authority_metadata)
+        from evaluation.controllers import native_internal_input
+        metadata.update(native_internal_input.configure(cfg, tuning, state_json, detector_mapping))
+        detector_mapping, state_json, native_projection = native_internal_input.prepare_projection(
+            cfg, detector_mapping, state_json)
+        metadata.update(native_projection)
     if (tuning or {}).get('observation', {}).get('physical_support_repair'):
         from evaluation.controllers import projection_support
         detector_mapping, state_json, support_metadata = projection_support.configure(cfg, tuning, detector_mapping, state_json)
@@ -145,6 +174,16 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers import sc2001_corridor, urban_flow_accounting
         metadata.update(sc2001_corridor.initialize(state, cfg, state_json, detector_mapping))
         metadata.update(urban_flow_accounting.install(a, cfg))
+    if getattr(cfg.network, 'route_choice_corridor', None):
+        from evaluation.controllers import route_choice_corridor, urban_flow_accounting
+        metadata.update(route_choice_corridor.initialize(state, cfg, state_json, detector_mapping))
+        metadata.update(urban_flow_accounting.install(a, cfg))
+    if getattr(cfg.network, 'native_internal_inputs', None):
+        from evaluation.controllers import native_internal_input, native_input_routes, native_input_prehead, urban_flow_accounting
+        metadata.update(native_internal_input.initialize(state, cfg, state_json, detector_mapping))
+        metadata.update(native_input_routes.initialize(state, cfg, state_json))
+        metadata.update(native_input_prehead.initialize(state, cfg, state_json))
+        metadata.update(urban_flow_accounting.install(a, cfg))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))
@@ -172,7 +211,9 @@ def install_worker_runtime(adapter, cfg, state_json, detector_mapping):
     if getattr(cfg.network, 'shared_approach', None):
         from evaluation.controllers import shared_approach
         metadata.update(shared_approach.install(a, cfg))
-    if getattr(cfg.network, 'sc2001_corridor', None):
+    if (getattr(cfg.network, 'sc2001_corridor', None)
+            or getattr(cfg.network, 'route_choice_corridor', None)
+            or getattr(cfg.network, 'native_internal_inputs', None)):
         from evaluation.controllers import urban_flow_accounting
         metadata.update(urban_flow_accounting.install(a, cfg))
     if getattr(cfg.network, 'control_area_enabled', False):

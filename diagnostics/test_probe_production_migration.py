@@ -1,4 +1,8 @@
-"""One bounded real endpoint per migrated CLI; no proposal installation."""
+"""One canonical endpoint per migrated CLI using the explicit pre-route fixture.
+
+The old pure1200 observation has no vehicle-route envelope. This tests CLI
+plumbing with route/input features OFF; the separate combo450 integration
+validates the new features with declared historical holding semantics."""
 import hashlib
 import importlib
 import json
@@ -10,7 +14,7 @@ import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT/'diagnostics/area_candidate_configs/n7_area_beta0.json'
+CONFIG = ROOT/'diagnostics/fixtures/area_baseline_before_route_choice_beta0.json'
 RUN = ROOT/'evaluation/runs/codex_n7_pure_s13_20260910'
 DECISIONS = RUN/('decisions_'+RUN.name)
 
@@ -35,7 +39,7 @@ class MigratedProbeTests(unittest.TestCase):
             raise AssertionError('Migration tests changed frozen inputs or historical outputs')
         (ROOT/'diagnostics/probe_production_migration_validation.json').write_text(json.dumps({
             'tests': cls.results, 'frozen_historical_and_input_sha256': after,
-            'scope': 'Five standalone CLI invocations, one1200 snapshot each, 150-second installed endpoint. No fullgrid/search or VISSIM.'}, indent=2)+'\n', encoding='utf-8')
+            'scope': 'Five standalone CLI invocations, one historical pure1200 snapshot each, 150-second installed endpoint; explicit pre-route-choice baseline flags. CLI migration evidence only, not new-feature ON or live current-route validation. No fullgrid/search or VISSIM.'}, indent=2)+'\n', encoding='utf-8')
         cls.temp.cleanup()
 
     def run_probe(self, name, extra):

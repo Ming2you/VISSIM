@@ -11,10 +11,11 @@ sys.path[:0] = [str(ROOT), str(ROOT/'diagnostics'), str(ROOT/'vendor/NumSim-mine
 
 
 def run(config_path, state_path, previous_path, action_path, segment_path, baseline_path=None):
-    from probe_model_area_integration import adapter, build_projected
+    from probe_model_area_integration import adapter, build_projected, replay_provenance, route_information
     from evaluation.controllers import urban_flow_accounting, area_runtime
     cfg, state, detectors, tuning, raw, _, _ = build_projected(
         config_path, state_path, previous_path, fixture_inputs=False)
+    initial_routes = route_information(state, cfg)
     from src.models.demand import DemandStep
     from src.models.state import ControlAction
     from src.controllers.rollout_endpoint import evaluate_price_point, ObjectiveSpec
@@ -57,10 +58,13 @@ def run(config_path, state_path, previous_path, action_path, segment_path, basel
     return {'implementation': 'installed configure_runtime and endpoint',
         'method': 'Explicit initial snapshot, actual previous-action initialization, declared replay action, and same-snapshot demand forecast; no search.',
         'previous_action': str(previous_path), 'replay_action': str(action_path),
-        'source_sha256': {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources},
+        'source_sha256': replay_provenance(tuning, *sources, Path(__file__)),
+        'initial_route_information': initial_routes, 'final_route_information': route_information(final, cfg),
         'limitations': ['Historical comparison rows retain their original model/source meaning.',
             'NC13 route priors are exploratory; holdout evaluation is separate.',
-            'Model predictions are not VISSIM counterfactual control outcomes.'],
+            'Model predictions are not VISSIM counterfactual control outcomes.'] +
+            (['Unknown already-chosen routes are held for diagnosis; this is not a complete live-route prediction.']
+             if initial_routes['route_choice_information_complete'] is False else []),
         'all_stock_closures_pass': True, 'area': result.control_area, 'records': records}
 
 

@@ -127,6 +127,101 @@ def extend_join(join, cfg, detectors, membership, evidence_path):
     return output
 
 
+def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
+    """After movement merging, before capacity estimation and follower creation.
+
+    Correct only explicitly reviewed phase fields. Native routing/receiver/stock
+    and service capacity are not inferred or changed by this correspondence fix.
+    Workers inherit these configured specs; this is not a runtime method patch.
+    """
+    path = tuning.get('urban', {}).get('movements', {}).get('physical_phase_authority')
+    if path is None:
+        return {}
+    if not isinstance(path, str) or not path:
+        raise ValueError('physical_phase_authority must name a pinned evidence document')
+    document, routes, _ = load_evidence(path)
+    if document.get('schema') != 'physical-phase-authority/v1':
+        raise ValueError('Unsupported phase authority evidence schema')
+    if state_json is not None and snapshot_network_sha256(state_json) != document['network']['sha256']:
+        raise ValueError('Snapshot and phase authority network hashes differ')
+    plan_path = ROOT / document['selected_plan']['path']
+    plan_bytes = plan_path.read_bytes()
+    if hashlib.sha256(plan_bytes).hexdigest() != document['selected_plan']['sha256']:
+        raise ValueError('Phase authority selected plan hash mismatch')
+    if selected_plan != json.loads(plan_bytes.decode('utf-8-sig')):
+        raise ValueError('Actual selected plan differs from phase authority evidence')
+    tree = ET.parse(ROOT / document['network']['path']).getroot()
+    links = {x.get('no'): x for x in tree.findall('./links/link')}
+    heads = {x.get('no'): x for x in tree.findall('./signalHeads/signalHead')}
+    specs = dict(cfg.network.urban_movements)
+    changes = {}
+    for name, row in document['by_movement'].items():
+        spec = specs.get(name)
+        if spec is None or any(spec.get(k) != v for k, v in row['expected_spec'].items()):
+            raise ValueError(f'{name}: stale expected movement/phase semantics')
+        if spec.get('unsignalized'):
+            raise ValueError(f'{name}: phase correction cannot change unsignalized authority')
+        source, connector, target = row['path']
+        node, expected = links[connector], row['connector']
+        start, end = node.find('fromLinkEndPt'), node.find('toLinkEndPt')
+        actual_connector = {'id': connector, 'source_lane': int(start.get('lane').split()[1]),
+            'source_pos': float(start.get('pos')), 'target_lane': int(end.get('lane').split()[1]),
+            'target_pos': float(end.get('pos')), 'lanes': len(node.findall('./lanes/lane'))}
+        if actual_connector != expected or start.get('lane').split()[0] != source or end.get('lane').split()[0] != target:
+            raise ValueError(f'{name}: connector lane/position evidence changed')
+        signal = str(spec['signal'])
+        own_heads = [h for h in heads.values() if h.get('lane').split()[0] == source
+                     and h.get('sg').split()[0] == signal.removeprefix('SC')]
+        if {h.get('no') for h in own_heads} != {h['head'] for h in row['source_heads']}:
+            raise ValueError(f'{name}: source head set changed')
+        for evidence in row['source_heads']:
+            head = heads[evidence['head']]
+            actual = {'head': head.get('no'), 'link': head.get('lane').split()[0],
+                'lane': int(head.get('lane').split()[1]), 'pos_m': float(head.get('pos')),
+                'SC': 'SC' + head.get('sg').split()[0], 'SG': head.get('sg').split()[1],
+                'all_vehicle_types': head.get('allVehTypes') == 'true',
+                'compliance': float(head.get('complRate', 1))}
+            if actual != evidence or not actual['all_vehicle_types'] or actual['compliance'] != 1:
+                raise ValueError(f'{name}: source head lane/position/applicability changed')
+        source_heads = row['source_heads']
+        lanes = {h['lane'] for h in source_heads if h['pos_m'] < expected['source_pos']}
+        if lanes != set(range(1, len(links[source].findall('./lanes/lane')) + 1)):
+            raise ValueError(f'{name}: source lanes lack complete pre-branch head coverage')
+        matching = []
+        for route_id, route in routes.items():
+            sequence = route['path']
+            for index in range(len(sequence) - 2):
+                if sequence[index:index + 3] != row['path']:
+                    continue
+                entry = (float(route['decision']['pos']) if index == 0 else
+                         float(links[sequence[index - 1]].find('toLinkEndPt').get('pos')))
+                if entry >= min(h['pos_m'] for h in source_heads):
+                    raise ValueError(f'{name}: native route enters after the controlling head')
+                matching.append(route_id)
+                break
+        if set(matching) != set(row['native_routes']) or not matching:
+            raise ValueError(f'{name}: native route witness set changed')
+        groups = selected_plan['controllers'][signal.removeprefix('SC')]['phase_signal_groups']
+        source_sgs = {h['SG'] for h in source_heads}
+        owners = {phase for phase, sgs in groups.items() if source_sgs & set(map(str, sgs))}
+        new_phase = row['new_phase']
+        if len(owners) != 1 or new_phase != signal + '_' + next(iter(owners)):
+            raise ValueError(f'{name}: source SG has no unique selected target phase')
+        if not source_sgs <= set(map(str, groups[new_phase.rpartition('_')[2]])):
+            raise ValueError(f'{name}: selected target phase omits a source SG')
+        old_sgs = set(map(str, groups[spec['phase'].rpartition('_')[2]]))
+        if source_sgs & old_sgs:
+            raise ValueError(f'{name}: old/new SG authority is not disjoint')
+        changes[name] = {'before': spec['phase'], 'after': new_phase, 'source_SGs': sorted(source_sgs)}
+        specs[name] = dict(spec, phase=new_phase)
+    # All proofs pass before committing any movement; no projected state is used.
+    cfg.network.urban_movements = specs
+    invalidate_topology_cache(cfg.network)
+    return {'physical_phase_authority_corrected_count': len(changes),
+            'physical_phase_authority_changes': changes, 'physical_phase_authority_evidence_path': path,
+            'physical_phase_authority_evidence_sha256': hashlib.sha256((ROOT / path).read_bytes()).hexdigest()}
+
+
 def configure_topology_repair(cfg, detectors, tuning, *, state_json=None):
     """Run after movement merging and before traffic_state_from_vissim.
 
@@ -213,6 +308,137 @@ def configure_topology_repair(cfg, detectors, tuning, *, state_json=None):
         'network': document['network'], 'evidence_path': path,
         'projection_requirement': 'Reproject original physical records; never discard an existing movement queue.',
         'prior_limitations': repair['prior_limitations']}
+
+
+def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_json):
+    """Bind input1083 to its first selected head, before physical projection.
+
+    Call after dynamic origin repairs and capacity estimation. This validates and
+    narrows the existing movement only. Native-input code owns position-based
+    initial cohorts, generation, travel readiness and the area route extension.
+    No storage envelope, service rate, receiving stock or signal clock is fitted.
+    """
+    path = tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority')
+    if path is None:
+        return detectors, {}
+    if not isinstance(path, str) or not path:
+        raise ValueError('native_input_signal_authority must name pinned evidence')
+    if getattr(cfg.network, 'native_input_signal_authority', None) is not None:
+        raise ValueError('Native input signal authority must configure once before projection')
+    source_bytes = (ROOT / path).read_bytes()
+    evidence = json.loads(source_bytes.decode('utf-8-sig'))
+    if evidence.get('schema') != 'native-input-signal-authority/v1' or set(evidence['inputs']) != {'1083'}:
+        raise ValueError('Only the reviewed input1083 signal approach is supported')
+    documents = {}
+    for key in ('network', 'selected_plan', 'membership'):
+        record = evidence[key]
+        content = (ROOT / record['path']).read_bytes()
+        if hashlib.sha256(content).hexdigest() != record['sha256']:
+            raise ValueError('Native input signal authority source hash differs: ' + key)
+        documents[key] = content
+    if snapshot_network_sha256(state_json) != evidence['network']['sha256']:
+        raise ValueError('Native input signal authority snapshot network differs')
+    physical = physical_membership_from_ledger(json.loads(documents['membership'].decode('utf-8-sig')))
+    tree = ET.fromstring(documents['network'])
+    links = {x.get('no'): x for x in tree.findall('./links/link')}
+    row = evidence['inputs']['1083']
+    source, connector, receiver = row['physical_path']
+    if source != row['physical_source'] or connector != row['connector']:
+        raise ValueError('Native input signal approach path differs')
+    inputs = [x for x in tree.findall('./vehicleInputs/vehicleInput') if x.get('link') == source]
+    if len(inputs) != 1 or inputs[0].get('no') != '1083':
+        raise ValueError('Native signal source has additional or missing input')
+    if any(x.find('toLinkEndPt') is not None and x.find('toLinkEndPt').get('lane').split()[0] == source for x in links.values()):
+        raise ValueError('Native signal source also receives an upstream cohort')
+    outgoing = [x for x in links.values() if x.find('fromLinkEndPt') is not None and x.find('fromLinkEndPt').get('lane').split()[0] == source]
+    if len(outgoing) != 1 or outgoing[0].get('no') != connector:
+        raise ValueError('Native signal source is no longer a single physical turn')
+    node = outgoing[0]
+    if (dict(node.find('fromLinkEndPt').attrib) != row['connector_from']
+            or dict(node.find('toLinkEndPt').attrib) != row['connector_to']
+            or node.find('toLinkEndPt').get('lane').split()[0] != receiver
+            or len(node.findall('./lanes/lane')) != row['connector_lanes']
+            or len(links[source].findall('./lanes/lane')) != row['source_lanes']):
+        raise ValueError('Native signal connector lane/position geometry differs')
+    heads = [dict(x.attrib) for x in tree.findall('./signalHeads/signalHead') if x.get('lane').split()[0] == source]
+    if heads != row['source_heads']:
+        raise ValueError('Native signal source head evidence differs')
+    head_positions = {}
+    for h in heads:
+        lane = int(h['lane'].split()[1])
+        if (h['sg'] != '108 2' or h['allVehTypes'] != 'true' or float(h['complRate']) != 1
+                or lane in head_positions or not 0 < float(h['pos']) < float(row['connector_from']['pos'])):
+            raise ValueError('Native signal source head authority is incomplete')
+        head_positions[lane] = float(h['pos'])
+    if set(head_positions) != set(range(1, row['source_lanes'] + 1)):
+        raise ValueError('Native signal source has a lane without its selected head')
+    plan = json.loads(documents['selected_plan'].decode('utf-8-sig'))['controllers']['108']
+    actual = (getattr(cfg.network, 'signal_actuation_contract', None) or {}).get('nodes', {}).get('SC108')
+    if not actual or any(actual.get(k) != v for k, v in plan.items()):
+        raise ValueError('Native signal source needs the actual selected physical signal contract')
+    phases = [p for p, sgs in plan['phase_signal_groups'].items() if '2' in sgs and plan['phase_segments'][p]]
+    if phases != ['p3'] or row['phase'] != 'SC108_p3':
+        raise ValueError('Native signal source SG does not uniquely own p3')
+    decisions = tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic')
+    if any(x.get('link') == source for x in decisions):
+        raise ValueError('Native signal source acquired an unreviewed routing decision')
+    excluded = row['excluded_upstream_decision']
+    decision = next((x for x in decisions if x.get('no') == excluded['no']), None)
+    if (decision is None or decision.get('link') != receiver
+            or float(decision.get('pos')) != excluded['pos']
+            or float(decision.get('pos')) >= float(row['connector_to']['pos'])):
+        raise ValueError('Excluded receiver decision is no longer upstream of the source merge')
+    origin, target, kept = row['pre_head_storage'], row['post_head_storage'], row['kept_movement']
+    if (origin, target, kept) != ('in_SC108_W', 'SC108_to_SC109', 'SC108_W_to_E_SC109'):
+        raise ValueError('Native input1083 names a different modeled approach or receiver')
+    specs = cfg.network.urban_movements
+    siblings = {name for name, spec in specs.items() if spec.get('origin') == origin}
+    if siblings != set(row['expected_movements']):
+        raise ValueError('Native signal origin acquired an unreviewed movement')
+    for name, expected in row['expected_movements'].items():
+        if any(specs[name].get(k) != v for k, v in expected.items()) or specs[name].get('unsignalized'):
+            raise ValueError('Native signal movement semantics changed: ' + name)
+    for link, origins in detectors.get('link_to_origins', {}).items():
+        if origin in origins:
+            raise ValueError('Native signal origin still has another physical observation: ' + str(link))
+    if any(x.get('movement') in siblings and float(x.get('weight', 1)) > 0
+           for rows in detectors.get('link_to_movements', {}).values() for x in rows):
+        raise ValueError('Native signal movement already receives another observed source')
+    if float(state_json['demand'].get('urban_volume_vph_by_gate', {}).get(origin, 0)) != 0:
+        raise ValueError('Native signal origin already has an external gate forecast')
+    for link in row['receiver_support']:
+        if target not in detectors.get('link_to_origins', {}).get(link, []):
+            raise ValueError('Native signal receiver lacks its physical downstream support')
+    if any(not physical.get(link, False) for link in row['physical_path'] + row['receiver_support']):
+        raise ValueError('Native signal path no longer lies entirely inside the declared area')
+    caps = cfg.network.movement_capacity_by_movement_veh_h
+    capacity = float(caps[kept])
+    storage = float(cfg.network.urban_link_storage_veh[origin])
+    if not math.isfinite(capacity + storage) or min(capacity, storage) <= 0:
+        raise ValueError('Native signal origin lacks its existing finite service/storage envelope')
+    removed = siblings - {kept}
+    out = copy.deepcopy(detectors)
+    for agent in out.get('agents', {}).values():
+        if 'visible_movements' in agent:
+            agent['visible_movements'] = [m for m in agent['visible_movements'] if m not in removed]
+    route = path_membership(row['physical_path'], physical)
+    route.update(from_link=source, connector=connector, to_link=receiver)
+    proof = {**copy.deepcopy(row), 'source_contract_validated': True,
+             'head_position_by_lane_m': {str(k): v for k, v in head_positions.items()},
+             'preserved_movement_capacity_veh_h': capacity, 'preserved_storage_capacity_veh': storage,
+             'movement_area_route': {'status': 'unique', 'source_inside': True, 'target_inside': True,
+                 'physical_turns': [route], 'outward_crossings_per_vehicle': 0, 'inward_crossings_per_vehicle': 0}}
+    # Commit only after every native, model, observation and area proof passes.
+    cfg.network.urban_movements = {k: (dict(v, beta=1.0) if k == kept else v) for k, v in specs.items() if k not in removed}
+    cfg.network.movement_capacity_by_movement_veh_h = {k: v for k, v in caps.items() if k not in removed}
+    rename = getattr(cfg.network, 'movement_merge_rename', None)
+    if isinstance(rename, dict):
+        cfg.network.movement_merge_rename = {k: v for k, v in rename.items() if v not in removed}
+    cfg.network.native_input_signal_authority = {'schema': evidence['schema'], 'inputs': {'1083': proof},
+        'source_path': path, 'source_sha256': hashlib.sha256(source_bytes).hexdigest(), 'network_sha256': evidence['network']['sha256']}
+    invalidate_topology_cache(cfg.network)
+    return out, {'native_input_signal_authority': copy.deepcopy(cfg.network.native_input_signal_authority),
+                 'native_input_signal_removed_movements': sorted(removed)}
 
 
 def build_input_contract(cfg, detectors, membership, gate_map_path):

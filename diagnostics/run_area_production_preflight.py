@@ -145,6 +145,10 @@ def main():
     decisions = run_path / ('decisions_' + run)
     state = decisions / f'state_{args.time:06d}.json'
     if not state.is_file():
+        # No-control runs have no repeated decisions. Their explicitly paused
+        # audit anchors use the same complete production state serializer.
+        state = decisions / f'anchor_{args.time:06d}.json'
+    if not state.is_file():
         parser.error('Requested recorded state does not exist: ' + str(state))
     previous = max((p for p in decisions.glob('action_*.json') if int(p.stem.split('_')[-1]) < args.time),
                    key=lambda p: int(p.stem.split('_')[-1]), default=None)
@@ -178,7 +182,8 @@ def main():
             raise ValueError('Candidate input changed since manifest generation: ' + relative)
         inputs.add(path)
     input_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(inputs)}
-    manifest = {'recorded_run': run, 'recorded_sim_sec': args.time, 'input_sha256': input_hashes,
+    manifest = {'recorded_run': run, 'recorded_sim_sec': args.time,
+                'recorded_snapshot': str(state.relative_to(ROOT)), 'input_sha256': input_hashes,
                 'command': command, 'environment': {k: env[k] for k in ('RW_OFFSET_WRITER', 'NUMSIM_REPO_ROOT', 'RW_MAINLINE_SG_ONLY')},
                 'config_sha256': hashlib.sha256(cfg_path.read_bytes()).hexdigest(),
                 'source_sha256': hashes(), 'execute': args.execute}

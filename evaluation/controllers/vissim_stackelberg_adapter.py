@@ -5834,6 +5834,11 @@ def build_local_observation_summary(
     storage_assigned_by_link: dict[str, float] = {}
     dedicated_branch_links = set(_mapping(detector_mapping.get("physical_storage_projection")).get("link_to_storage", {}))
     transit_storage_links = set(_mapping(detector_mapping.get("transit_storage_projection")))
+    record_partitions = _mapping(detector_mapping.get('physical_record_storage_projection'))
+    exact_stock_projection = bool(dedicated_branch_links or record_partitions)
+    if set(record_partitions) & (freeway_links | ramp_links | exit_links | dedicated_branch_links):
+        raise observation_projection.ProjectionError('Physical record partition overlaps a reserved projection')
+    raw_record_speeds = _link_metric_from_local_observation(state_json, 'link_speeds_kph')
     physical_stock_assignment: dict[str, dict[str, float]] = {}
     urban_link_storage_occupancy = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
     # 저류별 **정지 대수**. 투영이 release 버퍼를 복원할 때 "이미 정지선에 도착한 몫" 과
@@ -5860,6 +5865,32 @@ def build_local_observation_summary(
             str(value)
             for value in detector_mapping.get("link_to_origins", {}).get(str(link), [])
         ]
+        if link in record_partitions:
+            if detector_mapping.get('link_to_movements', {}).get(link) or link not in transit_storage_links:
+                raise observation_projection.ProjectionError(f'{link}: record partition must be transit-only')
+            parts = observation_projection.validate_record_storage_partition(link,
+                record_partitions[link], count, link_stopped_counts.get(link, 0.),
+                raw_record_speeds.get(link, 0.), origins, cfg.network.urban_link_storage_veh)
+            storage_fraction_by_link[link] = 1.0
+            storage_count_by_link[link] = float(count)
+            queue_count_by_link[link] = 0.0
+            queue_source_by_link[link] = 'physical_records'
+            storage_links_by_link[link] = list(parts)
+            storage_assigned_by_link[link] = 0.0
+            storage_requested_veh += float(count)
+            for target, (n, stopped_n, moment) in parts.items():
+                free = float(cfg.network.urban_link_storage_veh[target]) - urban_link_storage_occupancy[target]
+                assigned = max(0.0, min(n, free))
+                fraction = assigned / n if n else 0.
+                urban_link_storage_occupancy[target] += assigned
+                urban_link_storage_stopped[target] += stopped_n * fraction
+                speed_weight_by_storage[target] = speed_weight_by_storage.get(target, 0.) + assigned
+                speed_moment_by_storage[target] = speed_moment_by_storage.get(target, 0.) + moment * fraction
+                storage_assigned_by_link[link] += assigned
+                storage_assigned_veh += assigned
+                storage_capacity_clipped_veh += n - assigned
+                observation_projection.record_projection_assignment(physical_stock_assignment, link, 'storage:' + target, assigned)
+            continue
         storage_fraction = _link_storage_split_fraction(cfg, origins, split_parameters)
         # 3단 폴백 (2026-09-04): contiguous -> stopped(현행) -> 상수.
         # 링크별로 어느 층이 발동했는지 진단에 남긴다 — 혼합 추정량은 신호마다 편의가
@@ -5943,7 +5974,7 @@ def build_local_observation_summary(
                 urban_link_storage_occupancy[storage_link] = current + assigned
                 storage_assigned_by_link[str(link)] += assigned
                 storage_assigned_veh += assigned
-                if dedicated_branch_links:
+                if exact_stock_projection:
                     observation_projection.record_projection_assignment(physical_stock_assignment, link, "storage:" + storage_link, assigned)
                 storage_capacity_clipped_veh += max(0.0, share - assigned)
                 # 배정된 몫 중 정지 비율만큼을 정지 대수로 같이 옮긴다.
@@ -6017,7 +6048,7 @@ def build_local_observation_summary(
             assigned = count * weight / weight_sum
             movement_queue[movement] += assigned
             movement_assigned_by_link[str(link)] += assigned
-            if dedicated_branch_links:
+            if exact_stock_projection:
                 observation_projection.record_projection_assignment(physical_stock_assignment, link, "movement:" + movement, assigned)
 
     # link_to_movements 에 없는 링크의 큐 몫을 origin+beta 로 배정한다.
@@ -6049,7 +6080,7 @@ def build_local_observation_summary(
             for movement, beta in pairs:
                 if movement in movement_queue:
                     movement_queue[movement] += qc * beta / wsum
-                    if dedicated_branch_links:
+                    if exact_stock_projection:
                         observation_projection.record_projection_assignment(physical_stock_assignment, link, "movement:" + movement, qc * beta / wsum)
             origin_bound_veh += qc
             origin_bound_links += 1
@@ -6062,7 +6093,7 @@ def build_local_observation_summary(
         for ramp_key, weight in _ramp_queue_shares(ramps):
             if ramp_key in ramp_queue:
                 ramp_queue[ramp_key] += count * weight
-                if dedicated_branch_links:
+                if exact_stock_projection:
                     observation_projection.record_projection_assignment(physical_stock_assignment, link, "ramp:" + ramp_key, count * weight)
 
     # 2026-09-07 램프 스필백 관측: 커넥터 상류 전용 검지 링크(ramp_spillback_links)의 정지 차량을 저수지 큐에 더한다.
@@ -6097,7 +6128,7 @@ def build_local_observation_summary(
             ramp_spillback[_ramp_key] = float(_spill)
             # The approach stock already remains in urban storage/queues.
             # Keep spillback as a guard observation, not a second physical stock.
-            if not dedicated_branch_links:
+            if not exact_stock_projection:
                 ramp_queue[_ramp_key] += float(_spill)
 
     # Legacy boundary_queue is kept for diagnostics/compatibility. The actual
@@ -6256,7 +6287,7 @@ def build_local_observation_summary(
         ),
     }
 
-    if dedicated_branch_links:
+    if exact_stock_projection:
         projection_diagnostics.update(observation_projection.audit_projection_provenance(
             physical_stock_assignment, urban_link_storage_occupancy, movement_queue, ramp_queue))
         projection_diagnostics.update({
@@ -9183,6 +9214,19 @@ def demand_from_state(
     calibration: Mapping[str, Any] | None = None,
     detector_mapping: Mapping[str, Any] | None = None,
 ):
+    if getattr(cfg.network, 'native_input_schedule', None) is not None:
+        from evaluation.controllers.native_demand_forecast import forecast_states
+        forecast = []
+        first_peeloff_metadata = None
+        for observed in forecast_states(state_json, cfg, horizon_steps):
+            freeway, urban, ramps, _ = profiled_demand_rates(
+                observed, cfg, calibration, detector_mapping)
+            if not forecast:
+                first_peeloff_metadata = globals().get('_LAST_GATE_PEELOFF_META')
+            forecast.append(DemandStep(freeway_mainline=freeway, urban_boundary=urban,
+                ramp_arrival=ramps, incident_capacity_factor=1.0, freeway_lane_loss={}))
+        globals()['_LAST_GATE_PEELOFF_META'] = first_peeloff_metadata
+        return forecast
     freeway_mainline, urban_boundary, ramp_arrival, _profile = profiled_demand_rates(
         state_json,
         cfg,
@@ -12354,6 +12398,10 @@ def main() -> None:
         }
         metadata.update({
             "demand_profile_forecast_profile_aware": 1.0,
+            "demand_forecast_source_mode": (
+                "declared_native_timetable_interval_average"
+                if getattr(cfg.network, "native_input_schedule", None) is not None
+                else "current_observed_rate_persistence"),
             "demand_profile": forecast_profile,
             "demand_urban_west_east_ratio": float(_as_float(demand_payload.get("urban_west_east_ratio"), 1.0)),
             "demand_profile_route_bias_forecast_applied": float(route_bias_applied),
