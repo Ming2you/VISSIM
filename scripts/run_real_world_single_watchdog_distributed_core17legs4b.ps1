@@ -254,6 +254,18 @@ function Copy-VissimError([string]$DestinationDir) {
     Copy-Item -LiteralPath $vissimErr -Destination (Join-Path $DestinationDir "vissim_network.err") `
       -Force -ErrorAction SilentlyContinue
   }
+  # Runtime removals/skipped decisions are in <network>_001.err, while the
+  # unnumbered .err contains network-load warnings. Preserve both before the
+  # next run overwrites the numbered simulation log.
+  $networkStem = [System.IO.Path]::GetFileNameWithoutExtension($net)
+  $simulationPattern = "^" + [regex]::Escape($networkStem) + "_(\d+)\.err$"
+  foreach ($simulationErr in Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -File -ErrorAction SilentlyContinue) {
+    if ($simulationErr.Name -match $simulationPattern -and $simulationErr.LastWriteTime -ge $t0) {
+      $simulationNumber = $Matches[1]
+      Copy-Item -LiteralPath $simulationErr.FullName -Destination (Join-Path $DestinationDir "vissim_simulation_$simulationNumber.err") `
+        -Force -ErrorAction Stop
+    }
+  }
 }
 
 $stateCsv = Join-Path $OutDir "state_$Name.csv"

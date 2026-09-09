@@ -11,6 +11,8 @@ import math
 
 
 CONTROLLER = "diagnostic-vsl-profile"
+RAMP_CONTROLLER = "diagnostic-ramp-profile"
+CONTROLLERS = (CONTROLLER, RAMP_CONTROLLER)
 UNCONTROLLED_KPH = 120.0
 
 
@@ -77,10 +79,23 @@ def build_control(cfg, ControlAction, tuning, mapping, allowed_vsl_speeds):
         "diagnostic_ramps_forced_open": 1.0,
         "diagnostic_vsl_zone_profile": zone_values,
     })
+    overrides = tuning.get("diagnostic", {}).get("physical_meter_green_sec")
+    if overrides is not None:
+        rows = _physical_meter_rows(cfg, mapping, overrides)
+        control.ramp_metering = {
+            key: sum(float(row["rate_vph"]) for row in rows.values() if row["model_ramp_key"] == key)
+            for key in cfg.network.ramps
+        }
+        control.diagnostics.update({
+            "diagnostic_physical_meter_green_sec": {key: row["green_sec"] for key, row in rows.items()},
+            "diagnostic_ramps_forced_open": float(all(row["green_sec"] == 10 for row in rows.values())),
+            "diagnostic_meter_rate_semantics": "CSV command encoding: green * physical capacity / 10; not measured throughput",
+        })
     return control
 
 
-def fixed_actuation(actuation):
+
+def fixed_actuation(actuation, tuning=None):
     """Make the existing physical meter writer emit full-cycle green on all meters."""
     result = deepcopy(actuation)
     meters = result.setdefault("real_world_ramp_metering", {})
@@ -91,5 +106,62 @@ def fixed_actuation(actuation):
     # Proportional allocation avoids a measured-table optimizer or cached greens.
     meters.update(allocation="proportional", enabled=True, cycle_sec=cycle,
                   min_green_sec=cycle, max_green_sec=cycle)
+    diagnostic = (tuning or {}).get("diagnostic", {})
+    if "physical_meter_green_sec" in diagnostic:
+        # This is a separate physical-command contract, not an optimizer cache.
+        meters.update(allocation="diagnostic_profile", min_green_sec=0.0,
+                      diagnostic_green_sec=deepcopy(diagnostic["physical_meter_green_sec"]))
     result.setdefault("real_world_signal_control", {})["enabled"] = False
     return result
+
+
+
+def validate_controller(controller, tuning):
+    """A nonconstant meter requires the runner's event mode, not static VSL mode."""
+    overrides = tuning.get("diagnostic", {}).get("physical_meter_green_sec")
+    if controller == RAMP_CONTROLLER and not isinstance(overrides, Mapping):
+        raise ValueError("diagnostic-ramp-profile requires physical_meter_green_sec ({} means all open)")
+    if controller == CONTROLLER and overrides is not None:
+        if not isinstance(overrides, Mapping) or any(value != 10 for value in overrides.values()):
+            raise ValueError("nonconstant physical meters require --controller diagnostic-ramp-profile")
+
+
+def _physical_meter_rows(cfg, mapping, overrides):
+    if not isinstance(overrides, Mapping):
+        raise ValueError("physical_meter_green_sec must map physical meter IDs to integer seconds")
+    meters = mapping.get("ramp_meters", [])
+    if not isinstance(meters, list) or not meters:
+        raise ValueError("physical ramp-meter mapping is required")
+    out, addresses = {}, set()
+    for meter in meters:
+        mid, key = str(meter.get("id", "")), str(meter.get("model_ramp_key", ""))
+        if not mid or mid in out or key not in cfg.network.ramps:
+            raise ValueError("missing, duplicate or unknown physical meter/model ramp identity")
+        sc, sg = int(meter.get("sc_no", 0)), int(meter.get("sg_no", 0))
+        if sc <= 0 or sg <= 0 or (sc, sg) in addresses:
+            raise ValueError(f"invalid or duplicated physical meter SC/SG: {mid}")
+        addresses.add((sc, sg))
+        capacity = float(meter.get("capacity_vph", 0))
+        if not math.isfinite(capacity) or capacity <= 0 or float(meter.get("cycle_sec", 10)) != 10:
+            raise ValueError(f"invalid physical capacity or ramp cycle: {mid}")
+        green = overrides.get(mid, 10.0)
+        if isinstance(green, bool) or not isinstance(green, (int, float)) or not math.isfinite(green) or not 0 <= green <= 10 or green != round(green):
+            raise ValueError(f"physical meter green must be an integer in [0,10]: {mid}")
+        out[mid] = {"sc_no": float(sc), "sg_no": float(sg), "model_ramp_key": key,
+                    "green_sec": float(green), "rate_vph": float(green) * capacity / 10.0}
+    if set(overrides) - set(out):
+        raise ValueError("physical_meter_green_sec references an unknown physical meter")
+    for row in out.values():
+        row["group_rate_vph"] = sum(float(other["rate_vph"]) for other in out.values()
+                                    if other["model_ramp_key"] == row["model_ramp_key"])
+    return out
+
+
+def physical_meter_actions(control, cfg, actuation, mapping):
+    """Return explicit physical commands, or None for the unchanged normal writer."""
+    settings = actuation.get("real_world_ramp_metering", {})
+    if settings.get("allocation") != "diagnostic_profile":
+        return None
+    if float(settings.get("cycle_sec", 0)) != 10:
+        raise ValueError("diagnostic physical meter commands require a 10-second cycle")
+    return _physical_meter_rows(cfg, mapping, settings.get("diagnostic_green_sec"))

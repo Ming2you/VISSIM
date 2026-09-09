@@ -692,6 +692,7 @@ Sub RunEventContinuousMode()
     ApplyRuntimeRampMeters 1
     ApplyIncidentLaneClosure 1
     LogStateCsv 1
+    ValidateDiagnosticProfileNativeSignals 1
     singleDecisionMode = UseSingleDecisionEventMode()
     mainControlApplied = ((Not singleDecisionMode) Or CLng(controlStartSec) <= 1)
 
@@ -734,6 +735,7 @@ Sub RunEventContinuousMode()
             End If
             RunControllerDecision CLng(currentSec)
             mainControlApplied = True
+            ValidateDiagnosticProfileNativeSignals CLng(currentSec)
         ElseIf dueToRepeatedControl Then
             RunControllerDecision CLng(currentSec)
         End If
@@ -744,6 +746,7 @@ Sub RunEventContinuousMode()
             LogStateCsv CLng(currentSec)
         End If
     Loop
+    ValidateDiagnosticProfileNativeSignals CLng(currentSec)
 End Sub
 
 Function MinEventTarget(a, b, c, d)
@@ -1503,6 +1506,7 @@ Function SignalRowsSuppressedForController(value)
         controller = "diagnostic-vsl60-only" Or _
         controller = "diagnostic-vsl80-only" Or _
         controller = "diagnostic-vsl-profile" Or _
+        controller = "diagnostic-ramp-profile" Or _
         controller = "diagnostic-vsl80-original" Or _
         controller = "diagnostic-ramp-all735-original" Or _
         controller = "diagnostic-ramp-all360-original" _
@@ -1511,7 +1515,7 @@ End Function
 
 Sub ValidateDiagnosticProfileNativeSignals(simSec)
     ' Read ownership only: a VSL profile must leave every urban SG native.
-    If LCase(CStr(controllerName)) <> "diagnostic-vsl-profile" Then Exit Sub
+    If LCase(CStr(controllerName)) <> "diagnostic-vsl-profile" And LCase(CStr(controllerName)) <> "diagnostic-ramp-profile" Then Exit Sub
     Dim scs, scKey, sc, sg, groupCount, value, checked, nonNative, missing
     checked = 0
     nonNative = 0

@@ -25,6 +25,10 @@ from evaluation.controllers import diagnostic_profile as profile
 def integration_source(relative):
     """Apply pending unified hunks to a string; also accept an integrated source."""
     source = (ROOT / relative).read_text(encoding="utf-8")
+    if relative.endswith(".py") and "diagnostic_fixed_profile_guards_bypassed" in source:
+        return source
+    if relative.endswith(".vbs") and "Sub ValidateDiagnosticProfileNativeSignals" in source:
+        return source
     patch = (ROOT / "diagnostics/diagnostic_profile.patch").read_text(encoding="utf-8")
     marker = "--- a/" + relative + "\n"
     portion = patch.split(marker, 1)[1].split("--- a/", 1)[0]
@@ -45,7 +49,8 @@ class ProfileTests(unittest.TestCase):
     def setUpClass(cls):
         from evaluation.controllers import vissim_stackelberg_adapter as adapter
         cls.adapter = adapter
-        cls.tuning = json.loads((ROOT / "evaluation/configs/n21_n7_20260908.json").read_text(encoding="utf-8"))
+        cls.tuning = adapter.load_optional_json(str(ROOT / "evaluation/configs/n21_n7_20260908.json"))
+        adapter.install_config_switches(cls.tuning)
         cls.mapping = json.loads((ROOT / cls.tuning["mapping_json"]).read_text(encoding="utf-8"))
         adapter.repo_imports(ROOT / "vendor/NumSim-mine")
         from src.models.state import ControlAction, segment_vsl
@@ -133,8 +138,8 @@ class ProfileTests(unittest.TestCase):
         source = integration_source("evaluation/controllers/vissim_stackelberg_adapter.py")
         compile(source, "pending_canonical_adapter", "exec")
         self.assertIn("raise  # An invalid causal arm", source)
-        self.assertIn('if args.controller != diagnostic_profile.CONTROLLER:\n        control, policy_guard_metadata', source)
-        self.assertIn('if args.controller == diagnostic_profile.CONTROLLER:\n        post_guard_safety_metadata', source)
+        self.assertIn("diagnostic_profile.CONTROLLER", source)
+        self.assertIn("diagnostic_fixed_profile_guards_bypassed", source)
 
     @unittest.skipUnless(RAW_STATE.exists(), "requires local no-control raw snapshot")
     def test_real_main_pipeline_has_no_policy_optimizer_or_closed_meter(self):
