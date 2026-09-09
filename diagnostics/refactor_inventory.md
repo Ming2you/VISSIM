@@ -2,7 +2,7 @@
 
 2026-09-10 정리 완료: 정본 baseline 실런과 통합 main 검증 뒤, 사용자가 요청한 불필요한 어댑터 정리의 첫 단계로 `_superseded_20260827`의 Python 사본18개를 삭제했다. **7,314,989 bytes / 146,966행**을 제거했고 manifest와 git 복구 근거는 남겼다. 아래 초기화 분석·제안(§3 이후)은 주로 `6056c94` 시점의 역사적 검토 기록이다. 그 안의 "미적용/미수정" 문구를 현재 통합 상태로 읽지 않는다.
 
-**삭제18개 완료.** 삭제 직전 현재 tracked/untracked 비무시 실행 소스에서18개 basename과 controller archive 경로를 다시 검색했고 active runtime caller는0이었다. 삭제 뒤 canonical adapter의 fresh import가 통과했다. `global_controller_api.py`는 별도 후보로 유지했다. 이번 정리에서 canonical adapter·VBS·vendor·config는 수정하지 않았다.
+**Archive 사본18개와 Phase-0 placeholder 1개 삭제 완료.** 삭제 직전 현재 tracked/untracked 비무시 실행 소스에서 각각 basename과 controller archive 경로를 다시 검색했고 active runtime caller는0이었다. 삭제 뒤 canonical adapter의 fresh import가 통과했다. 이번 정리에서 canonical adapter·VBS·vendor·config는 수정하지 않았다.
 
 복구 검증은 삭제 전후 모두18/18 PASS다. 고정 커밋 `6056c94770bb45c19e0a32b90416444db2bce2d1`의 git blob을 엄격한 LF 정규화 후 CRLF로 변환하면 각 파일의 원래 raw SHA256과 정확히 같다. 혼합 줄바꿈·복구 불일치는0이었다. PowerShell에서 명시한18개 절대경로 모두의 parent가 정확히 해당 archive이며 worktree 안인지, 일반 파일인지, 검증 후 SHA가 바뀌지 않았는지 확인한 다음 `Remove-Item -LiteralPath`를 파일별로 호출했다. 재귀 삭제는 하지 않았다.
 
@@ -64,7 +64,13 @@ python diagnostics/verify_retired_adapters.py
 - 18개 `.py`를 명시해서 삭제했다. 디렉터리는 유지했고 이 하위 작업에서는 staging/commit을 수행하지 않았다.
 - `MANIFEST_20260827.json`에 `archive_storage: git`, 고정 commit, entry별 `git_blob`, raw SHA와 원래 상대경로, legacy의 중복 관계를 기록했다.
 - Git에서 바이트를 읽고 LF→CRLF 변환하면 원래 raw를 복구한다. 삭제 전후18개 SHA를 모두 검증했다. History rewrite/GC/remote 삭제는 하지 않았다.
-- 과거 run/hash를 새 canonical 파일의 hash로 바꾸지 않았다. §3의 `global_controller_api.py`는 이번 삭제 범위에 포함하지 않았다.
+- 과거 run/hash를 새 canonical 파일의 hash로 바꾸지 않았다. `global_controller_api.py`는 archive18개와 별도의 후속 삭제로 아래에 기록한다.
+
+### 2.1. 후속 삭제: Phase-0 placeholder
+
+`evaluation/controllers/global_controller_api.py`도 2026-09-10에 삭제했다. 실행 소스의 파일명·두 controller class 검색에서 외부 caller는0이며, 현재 adapter의 facade가 아니라 CSV를 JSONL로 바꾸는 초기 noop/fixed-time placeholder였다. 제거한 크기는 **3,779 bytes / 115행**이다. 현재 파일이 `6056c94770bb45c19e0a32b90416444db2bce2d1`의 blob `5680503d4b2624670ad4767852c6d83024e8b9e8`을 LF 정규화 후 CRLF로 변환한 바이트와 정확히 같음을 삭제 직전에 확인했다. 원래 raw SHA256은 `cacd26b1d1354f04e6bcb1a82d90b22e7124db8ac72a497e4a7deb239210bc07`이다.
+
+대상 절대경로가 worktree의 정확한 `evaluation/controllers` 바로 아래 일반 파일인지, SHA가 검증 뒤 바뀌지 않았는지 확인한 후 PowerShell `Remove-Item -LiteralPath`로 이 파일1개만 제거했다. 감사·복구 근거는 `diagnostics/retired_placeholder_audit.json`, 역사 설명은 `evaluation/environment_setup_summary.md`에 남겼다. 기존 run 및 hash manifest는 수정하지 않았다.
 
 ## 3. 나머지 controller 파일의 실제 소비자
 
@@ -79,11 +85,11 @@ python diagnostics/verify_retired_adapters.py
 | signal_timing_oracle.py | offset_promotion·run_readiness·verify_signal_timing_oracle | 유지 |
 | offset_promotion.py | canonical adapter·VBS·readiness·experiment matrix | 유지: 실제 offset writer 경계 |
 | network_pressure.py | `scripts/network_pressure_diag_20260906.py:18`에서 동적 import. h_np config/chain도 존재 | active canonical 미사용이어도 **진단 소비자가 살아 있으므로 단독삭제 금지** |
-| global_controller_api.py | 외부 class/function import·실행 참조0. `evaluation/environment_setup_summary.md:196` 문서1곳 | **별도 삭제 후보**: 0단계 noop/fixed-time placeholder CLI |
+| global_controller_api.py | 외부 class/function import·실행 참조0. `evaluation/environment_setup_summary.md:196` 역사 문서 보존 | **후속 삭제 완료**: 0단계 noop/fixed-time placeholder CLI, §2.1 복구 근거 |
 
-`global_controller_api.py`의 `GlobalNoopController`/`FixedTimePlaceholderController`는 신호두가 없다는 전제를 가진 초기 산출물이다. 현재제어기의 facade가 아니다. 이 파일도 삭제한다면 문서의 단계0 역사 설명은 보존하거나 역사 경로로 표시한다.
+`global_controller_api.py`의 `GlobalNoopController`/`FixedTimePlaceholderController`는 신호두가 없다는 전제를 가진 초기 산출물이었다. 현재제어기의 facade가 아니며, 삭제 후에도 문서의 단계0 설명과 Git 복구 경로를 보존했다.
 
-`evaluation/controllers/README.md`는 아직 "현재 action GLOBAL_NOOP, 망에 signal이 없음"이라고 서술한다(`:7-9`). 실제 current 진입점을 안내하도록 정리가 필요하다. 나머지 contract `.md`는 executable adapter 사본이 아니므로 이 삭제 묶음에 넣지 않는다.
+`evaluation/controllers/README.md`의 과거 "현재 action GLOBAL_NOOP, 망에 signal이 없음" 설명은 커밋 `5248255`에서 실제 정본 진입점과 공유 초기화 안내로 교체했다. 나머지 contract `.md`는 executable adapter 사본이 아니므로 이 삭제 묶음에 넣지 않는다.
 
 신규 `freeway_fd.py`, `freeway_local_state.py`는 canonical adapter의 domain helper이며 adapter 사본이 아니다. 부모·spawn 모두 동일 모듈을 읽는 설치 경로를 만들고 최종 기록에 포함한다.
 

@@ -1,0 +1,65 @@
+{
+  "status": "retired",
+  "retirement_date": "2026-09-10",
+  "authorization": "User requested removal of useless adapters; parent explicitly authorized retirement of this reviewed unused Phase-0 placeholder.",
+  "original_relative_path": "evaluation/controllers/global_controller_api.py",
+  "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\global_controller_api.py",
+  "git_commit": "6056c94770bb45c19e0a32b90416444db2bce2d1",
+  "git_blob": "5680503d4b2624670ad4767852c6d83024e8b9e8",
+  "git_blob_sha256": "92cde1099d50c1e80a151e31274877923f75c2c02f315324b13a46a848e37968",
+  "git_blob_crlf_sha256": "cacd26b1d1354f04e6bcb1a82d90b22e7124db8ac72a497e4a7deb239210bc07",
+  "raw_sha256": "cacd26b1d1354f04e6bcb1a82d90b22e7124db8ac72a497e4a7deb239210bc07",
+  "raw_bytes": 3779,
+  "actual_splitlines": 115,
+  "raw_crlf_count": 115,
+  "raw_lone_lf_count": 0,
+  "byte_exact_recovery_verified_before_delete": true,
+  "recovery_transform": "blob.replace(b'\\r\\n', b'\\n').replace(b'\\n', b'\\r\\n')",
+  "recovery_instruction": "Read pinned Git blob bytes, apply the recorded LF-normalize/CRLF transform, verify raw_sha256, and write only to a separate audit directory using exclusive creation. Do not rewrite historical run hashes or reinstall it on the canonical path.",
+  "reviewed_behavior": "CSV-to-JSONL Phase-0 noop/fixed-time placeholder; no VISSIM actuation or current controller facade.",
+  "active_caller_search": {
+    "command": [
+      "rg",
+      "-n",
+      "--glob",
+      "*.py",
+      "--glob",
+      "*.vbs",
+      "--glob",
+      "*.ps1",
+      "--glob",
+      "*.sh",
+      "--glob",
+      "!global_controller_api.py",
+      "global_controller_api|GlobalNoopController|FixedTimePlaceholderController",
+      "evaluation",
+      "scripts",
+      "diagnostics",
+      "vendor"
+    ],
+    "returncode": 1,
+    "matches": [],
+    "scope": "Current tracked/untracked nonignored executable sources in evaluation, scripts, diagnostics and vendor; excludes the retired file itself."
+  },
+  "historical_mentions_preserved": [
+    "evaluation/environment_setup_summary.md:196",
+    "Existing run and controller-hash inventories remain unchanged."
+  ],
+  "deletion_scope": [
+    "evaluation/controllers/global_controller_api.py"
+  ],
+  "git_deleted_before": [],
+  "byte_exact_recovery_verified_after_delete": true,
+  "source_file_present_after_delete": false,
+  "git_deleted_after": [
+    "evaluation/controllers/global_controller_api.py"
+  ],
+  "new_deleted_paths": [
+    "evaluation/controllers/global_controller_api.py"
+  ],
+  "other_paths_deleted_by_this_cleanup": false,
+  "canonical_fresh_import": "PASS",
+  "scoped_git_diff_check": "PASS",
+  "deletion_method": "PowerShell Remove-Item -LiteralPath, one explicit absolute regular-file target, no recursive flag",
+  "predelete_path_and_unchanged_sha_checks": "PASS"
+}

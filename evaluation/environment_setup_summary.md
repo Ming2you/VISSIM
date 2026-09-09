@@ -191,12 +191,12 @@ Baseline scenario config:
 
 - `evaluation/configs/baseline_scenario_global_v0.json`
 
-Controller connection:
+Historical Phase-0 controller connection:
 
-- `evaluation/controllers/global_controller_api.py`
+- `evaluation/controllers/global_controller_api.py` — retired on 2026-09-10 after confirming there were no active callers. This historical CSV-to-JSONL placeholder did not actuate Vissim. Its source remains recoverable from commit `6056c94770bb45c19e0a32b90416444db2bce2d1` at this path; normalize the Git blob to LF, then convert to CRLF to recover the original bytes. The raw SHA256 and Git blob ID are recorded in `diagnostics/retired_placeholder_audit.json`.
 - `evaluation/controllers/README.md`
 
-Current controller API status:
+Historical Phase-0 controller API status (not the current canonical controller):
 
 - Reads the global-state CSV.
 - Produces JSONL controller actions.
