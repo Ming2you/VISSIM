@@ -1,5 +1,7 @@
 [CmdletBinding()]
-param([Parameter(Mandatory=$true)][string]$OutputDirectory)
+param([Parameter(Mandatory=$true)][string]$OutputDirectory,
+      [string]$ProbeScript = 'diagnostics/probe_vehicle_route_com.vbs',
+      [string[]]$AdditionalSources = @())
 $ErrorActionPreference = 'Stop'
 $probeRepo = Split-Path -Parent $PSScriptRoot
 $probeOutput = [IO.Path]::GetFullPath((Join-Path $probeRepo $OutputDirectory))
@@ -7,7 +9,8 @@ if (-not $probeOutput.StartsWith($probeRepo + [IO.Path]::DirectorySeparatorChar,
 if (Test-Path -LiteralPath $probeOutput) { throw 'Probe output already exists' }
 New-Item -ItemType Directory -Path $probeOutput | Out-Null
 $probeNetwork = Join-Path $probeRepo 'network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx'
-$probeVbs = Join-Path $PSScriptRoot 'probe_vehicle_route_com.vbs'
+$probeVbs = [IO.Path]::GetFullPath((Join-Path $probeRepo $ProbeScript))
+if (-not $probeVbs.StartsWith($PSScriptRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetExtension($probeVbs) -ne '.vbs') { throw 'Probe script must be a VBS file inside worktree diagnostics' }
 $probeLog = Join-Path $probeOutput 'stdout.txt'
 $probeErr = Join-Path $probeOutput 'stderr.txt'
 $probeCsv = Join-Path $probeOutput 'routes.csv'
@@ -22,7 +25,7 @@ foreach ($probeFunction in @('Find-RunVissimIdentity','Stop-RunProcesses')) {
     . ([scriptblock]::Create($probeNode.Extent.Text))
 }
 $probeEvidence = [ordered]@{ scope='Native attribute types and current-route semantics only; no performance comparison'; sources=@{}; startup_timeout_sec=300 }
-foreach ($probePath in @($probeNetwork,$probeVbs,$PSCommandPath,$probeWatchdog) + @(Get-ChildItem -LiteralPath (Split-Path $probeNetwork) -Filter '*.sig' -File | Select-Object -ExpandProperty FullName)) {
+foreach ($probePath in @($probeNetwork,$probeVbs,$PSCommandPath,$probeWatchdog) + @(Get-ChildItem -LiteralPath (Split-Path $probeNetwork) -Filter '*.sig' -File | Select-Object -ExpandProperty FullName) + @($AdditionalSources | ForEach-Object { Join-Path $probeRepo $_ })) {
     $probeEvidence.sources[$probePath] = (Get-FileHash -LiteralPath $probePath -Algorithm SHA256).Hash
 }
 $probeExisting = @(Get-Process -Name VISSIM200 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)

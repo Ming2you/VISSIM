@@ -1,0 +1,103 @@
+{
+  "scope": "Exact production route collector on native COM; independent physical ID/position reads, not full WriteStateJson or controller validation",
+  "passed": true,
+  "captures": [
+    {
+      "sim_sec": 0.0,
+      "physical_and_route_count": 0,
+      "observed_no_current_route": 0,
+      "observed_decision_1128": 0,
+      "observed_decision_1129": 0,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 1.0,
+      "physical_and_route_count": 8,
+      "observed_no_current_route": 8,
+      "observed_decision_1128": 0,
+      "observed_decision_1129": 0,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 150.0,
+      "physical_and_route_count": 989,
+      "observed_no_current_route": 161,
+      "observed_decision_1128": 4,
+      "observed_decision_1129": 0,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 300.0,
+      "physical_and_route_count": 1710,
+      "observed_no_current_route": 377,
+      "observed_decision_1128": 9,
+      "observed_decision_1129": 6,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 450.0,
+      "physical_and_route_count": 2149,
+      "observed_no_current_route": 545,
+      "observed_decision_1128": 14,
+      "observed_decision_1129": 1,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 600.0,
+      "physical_and_route_count": 2448,
+      "observed_no_current_route": 619,
+      "observed_decision_1128": 11,
+      "observed_decision_1129": 7,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 750.0,
+      "physical_and_route_count": 2686,
+      "observed_no_current_route": 688,
+      "observed_decision_1128": 12,
+      "observed_decision_1129": 6,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 900.0,
+      "physical_and_route_count": 2866,
+      "observed_no_current_route": 668,
+      "observed_decision_1128": 14,
+      "observed_decision_1129": 8,
+      "id_time_count_alignment_pass": true
+    },
+    {
+      "sim_sec": 1050.0,
+      "physical_and_route_count": 3339,
+      "observed_no_current_route": 741,
+      "observed_decision_1128": 15,
+      "observed_decision_1129": 14,
+      "id_time_count_alignment_pass": true
+    }
+  ],
+  "matching_vehicle_observations": 16195,
+  "prior_native_trajectory_sample_byte_identical": true,
+  "actual_elapsed_sec": 70.3062816,
+  "startup_timeout_sec": 300,
+  "source_changes_during_actual_run": [],
+  "limitations": [
+    "Native seed13 with original native demand and signals; not an MPC performance arm.",
+    "Actual production route serializer and its helpers ran against COM. Full WriteStateJson and full controller replay are separate validations.",
+    "Physical envelope used by the Python check is assembled from independent measured No/Lane/Pos/Speed rows. No physical values or route identities are synthesized.",
+    "Observation totals repeat vehicles across captures; they are not unique vehicle totals or calibrated route fractions."
+  ],
+  "source_sha256": {
+    "scripts\\run_real_world_stackelberg_controller.vbs": "c93420c54ee28a339814ed7eabe407c21cfdceb80e69e0c7bc5c975f8d0933b9",
+    "diagnostics\\summarize_vehicle_route_collector.py": "05ed63438bc3a97e9681f8cc269f14835ed961603f046e1f63e110d23a2572fb",
+    "evaluation\\controllers\\vehicle_routes.py": "18ef02ca0ef013ea5f4b6b110f69e0f7e47e276107ece7a44a6687cf52ec0dfa",
+    "evaluation\\controllers\\projection_support.py": "6ebde04b694d28c525159e9133d4e8edda0f543cf1269637bf1ee2949d00e1fa",
+    "diagnostics\\vehicle_route_com_probe_20260910_01\\routes.csv": "81e0e93e5adba45b1f3c3c68aa67a2880019a28be1fb2bea45caccb3d488f067",
+    "diagnostics\\vehicle_route_collector_native_probe.manifest.json": "ffe7d6358048f1ebdb07c20d3d53d9ad225c5eba8380a52f141c936da4df95ee",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\manifest.json": "f5b31860f98c2590fe0d39539fe3061bc084d6925d5bf5a12893c60dd5508d9e",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\routes.csv": "81e0e93e5adba45b1f3c3c68aa67a2880019a28be1fb2bea45caccb3d488f067",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\routes.csv.jsonl": "1d06c917053a150405bd28ffb5ec05ce85e8164e14c0e75adcbff02a650581e5",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\routes.csv.physical.csv": "71d7b15a3340ff397af066cce8865fd9248d4ce0e278411402c1b12f69821fc2",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostics\\vehicle_route_collector_native_20260910_01\\stdout.txt": "7f0bad3eb1fc0d07f82cdefddbfc601f041ae71421c8736c568ee9cae9171cea"
+  }
+}
