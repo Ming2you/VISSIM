@@ -34,6 +34,7 @@ $env:RW_QUEUE_WINDOW = '1'
 $env:RW_SIGNAL_READBACK_SEC = '1'
 $env:RW_SIGNAL_WRITE_ON_CHANGE = '0'
 $env:RW_VEHREC_RESOLUTION = '1'
+$env:RW_VEHICLE_ROUTES = '1'
 Remove-Item Env:RW_ADAPTER_MODE -ErrorAction SilentlyContinue
 & $Python -X utf8 scripts/verify_parameters.py $areaConfig
 if ($LASTEXITCODE -ne 0) { throw 'Parameter verification failed' }

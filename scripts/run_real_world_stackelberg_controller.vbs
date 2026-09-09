@@ -2437,7 +2437,7 @@ Sub WriteStateJson(simSec, path, resetWindows)
     Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
     Dim recordVehNos, recordLinkNos, recordLaneNos, recordPositions, recordSpeeds, recordStopped, recordLaneRaw
     Dim fullLinkCounts, fullLinkStoppedCounts
-    Dim finalPath, tempPath, captureStartNs, captureEndNs
+    Dim finalPath, tempPath, captureStartNs, captureEndNs, routeEnvelope
     perfT0 = PerfNow()
     finalPath = path
     tempPath = path
@@ -2460,6 +2460,11 @@ Sub WriteStateJson(simSec, path, resetWindows)
         fullLinkCounts, fullLinkStoppedCounts
     If Not scanOk Then
         AbortVehicleObservation simSec
+    End If
+    routeEnvelope = Empty
+    If EnvText("RW_VEHICLE_ROUTES") = "1" Then
+        routeEnvelope = VehicleRoutesJson(simSec, collectionCountBefore, recordVehNos)
+        If IsEmpty(routeEnvelope) Then AbortVehicleObservation simSec
     End If
     ' 이 스캔 결과를 LogStateCsv 가 재사용한다(RW_STATE_LOG=decision). 호출 순서는
     ' 그대로 두므로 status·decision_wall_sec 열의 의미가 안 바뀐다.
@@ -2525,6 +2530,7 @@ Sub WriteStateJson(simSec, path, resetWindows)
     WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
         captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
         recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
+    If Not IsEmpty(routeEnvelope) Then ts.WriteLine "  ""vehicle_routes"": " & routeEnvelope & ","
     ts.WriteLine "  ""freeway_segments"": {"
     ts.WriteLine "    ""FW_E"": " & SegmentArrayJson(countE, speedE, RW_FW_E_SEG_LENGTHS_KM, RW_FW_E_LANES) & ","
     ts.WriteLine "    ""FW_W"": " & SegmentArrayJson(countW, speedW, RW_FW_W_SEG_LENGTHS_KM, RW_FW_W_LANES)
@@ -2547,6 +2553,131 @@ Sub WriteStateJson(simSec, path, resetWindows)
     End If
     PerfAdd "state.json", perfT0
 End Sub
+
+Function VehicleRoutesJson(expectedSimSec, expectedCount, expectedVehNos)
+    ' Separate optional sibling: the qualified v2.1 physical envelope is unchanged.
+    ' Read-only current route, never a future trajectory or a new route assignment.
+    Dim names, tables(3), bounds(3,3), attr, row, i, beforeCount, afterCount, beforeSec, afterSec
+    Dim lo, hi, keyCol, valueCol, commonKey, currentKey, vehNo, decisionNo, routeNo, routeType
+    Dim expectedIds, outputRows, recordJson, missingDecision, missingRoute, missingType, suffix
+    VehicleRoutesJson = Empty
+    names = Array("No", "RoutDecNo", "RouteNo", "RoutDecType")
+    On Error Resume Next
+    beforeCount = Vissim.Net.Vehicles.Count
+    beforeSec = Vissim.Simulation.AttValue("SimSec")
+    For attr = 0 To UBound(names)
+        tables(attr) = Vissim.Net.Vehicles.GetMultiAttValues(names(attr))
+        If Err.Number <> 0 Then Exit For
+    Next
+    afterCount = Vissim.Net.Vehicles.Count
+    afterSec = Vissim.Simulation.AttValue("SimSec")
+    If Err.Number <> 0 Then
+        RecordVehicleCaptureFailure "route_com_read_failed", "err=" & Err.Description
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    If beforeCount <> expectedCount Or afterCount <> expectedCount _
+            Or beforeSec <> expectedSimSec Or afterSec <> expectedSimSec Then
+        RecordVehicleCaptureFailure "route_capture_changed", "route capture differs from physical snapshot count or time"
+        Exit Function
+    End If
+    Set expectedIds = CreateObject("Scripting.Dictionary")
+    For i = 0 To expectedCount - 1
+        If expectedIds.Exists(CStr(expectedVehNos(i))) Then
+            RecordVehicleCaptureFailure "route_duplicate_expected_id", "physical snapshot repeats an ID"
+            Exit Function
+        End If
+        expectedIds.Add CStr(expectedVehNos(i)), True
+    Next
+    lo = 0: hi = -1
+    For attr = 0 To UBound(names)
+        If expectedCount = 0 Then
+            If Not IsB1aEmptyTableResult(tables(attr)) Then
+                RecordVehicleCaptureFailure "route_table_shape", "nonempty route table with empty physical snapshot"
+                Exit Function
+            End If
+        Else
+            If Not TryExact2DTableBounds(tables(attr), lo, hi, keyCol, valueCol) Then
+                RecordVehicleCaptureFailure "route_table_shape", "field=" & names(attr)
+                Exit Function
+            End If
+            bounds(attr,0) = lo: bounds(attr,1) = hi: bounds(attr,2) = keyCol: bounds(attr,3) = valueCol
+            If hi - lo + 1 <> expectedCount Then
+                RecordVehicleCaptureFailure "route_table_shape", "route table length differs from physical snapshot"
+                Exit Function
+            End If
+            For i = 0 To 3
+                If bounds(attr,i) <> bounds(0,i) Then
+                    RecordVehicleCaptureFailure "route_table_shape", "route table bounds differ"
+                    Exit Function
+                End If
+            Next
+        End If
+    Next
+    outputRows = ""
+    For row = lo To hi
+        If Not TryPositiveLongVariant(tables(0)(row,keyCol), commonKey) _
+                Or Not TryPositiveLongVariant(tables(0)(row,valueCol), vehNo) Then
+            RecordVehicleCaptureFailure "route_invalid_id", "invalid route table No or row index"
+            Exit Function
+        End If
+        For attr = 1 To UBound(names)
+            If Not TryPositiveLongVariant(tables(attr)(row,keyCol), currentKey) Then
+                RecordVehicleCaptureFailure "route_invalid_id", "invalid route table row index"
+                Exit Function
+            End If
+            If currentKey <> commonKey Then
+                RecordVehicleCaptureFailure "route_row_alignment", "route attribute tables are not row-aligned"
+                Exit Function
+            End If
+        Next
+        If Not expectedIds.Exists(CStr(vehNo)) Then
+            RecordVehicleCaptureFailure "route_id_set_mismatch", "unexpected or repeated vehicle No=" & CStr(vehNo)
+            Exit Function
+        End If
+        expectedIds.Remove CStr(vehNo)
+        missingDecision = IsEmpty(tables(1)(row,valueCol)) Or IsNull(tables(1)(row,valueCol))
+        missingRoute = IsEmpty(tables(2)(row,valueCol)) Or IsNull(tables(2)(row,valueCol))
+        missingType = IsEmpty(tables(3)(row,valueCol)) Or IsNull(tables(3)(row,valueCol))
+        recordJson = "{""veh_no"":" & CStr(vehNo)
+        If missingDecision And missingRoute And missingType Then
+            ' VISSIM2020 returned Empty for all three when no current route exists.
+            recordJson = recordJson & ",""route_decision_no"":null,""route_no"":null,""route_decision_type"":null}"
+        Else
+            If missingDecision Or missingRoute Or missingType Then
+                RecordVehicleCaptureFailure "route_partial_identity", "partially missing route identity veh_no=" & CStr(vehNo)
+                Exit Function
+            End If
+            If Not TryPositiveLongVariant(tables(1)(row,valueCol), decisionNo) _
+                    Or Not TryPositiveLongVariant(tables(2)(row,valueCol), routeNo) _
+                    Or VarType(tables(3)(row,valueCol)) <> vbString Then
+                RecordVehicleCaptureFailure "route_invalid_identity", "invalid current-route values veh_no=" & CStr(vehNo)
+                Exit Function
+            End If
+            routeType = CStr(tables(3)(row,valueCol))
+            If Len(Trim(routeType)) = 0 Then
+                RecordVehicleCaptureFailure "route_invalid_identity", "empty route type veh_no=" & CStr(vehNo)
+                Exit Function
+            End If
+            recordJson = recordJson & ",""route_decision_no"":" & CStr(decisionNo) & ",""route_no"":" & CStr(routeNo) & _
+                ",""route_decision_type"":""" & JsonEscape(routeType) & """}"
+        End If
+        suffix = ","
+        If row = hi Then suffix = ""
+        outputRows = outputRows & recordJson & suffix
+    Next
+    If expectedIds.Count <> 0 Then
+        RecordVehicleCaptureFailure "route_id_set_mismatch", "route table is missing physical snapshot IDs"
+        Exit Function
+    End If
+    VehicleRoutesJson = "{""schema_version"":""vissim-vehicle-routes-v1"",""complete"":true," & _
+        """sim_sec_before"":" & JsonDoubleInvariant(beforeSec) & ",""sim_sec_after"":" & JsonDoubleInvariant(afterSec) & _
+        ",""collection_count_before"":" & CStr(beforeCount) & ",""collection_count_after"":" & CStr(afterCount) & _
+        ",""source_attributes"":{ ""veh_no"":""No"",""route_decision_no"":""RoutDecNo"",""route_no"":""RouteNo"",""route_decision_type"":""RoutDecType""}," & _
+        """record_count"":" & CStr(expectedCount) & ",""records"":[" & outputRows & "]}"
+End Function
 
 Function FwSegCount(boundsCsv)
     ' 2026-09-07: 세그먼트 수는 설정의 경계 CSV 가 정본이다. 종전에는 Dim countE(7) 로 8 이 박혀 있어
