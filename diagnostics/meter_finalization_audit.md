@@ -1,0 +1,19 @@
+The meter write-back changes the scored control in some real decisions. In the pure n7 seed13 run, 41 of124 group decisions differ between `rw_meter_requested_*` and `rw_meter_realized_*`;82 follow the open branch, which deliberately preserves the requested rate. The largest change is R_D_W at4950s:131.392470→766.8veh/h, a+635.407530veh/h change. Both physical meters10480 and10482 receive2s green. Demand-based closure penalties and the minimum green explain this discontinuity; it is not a measured throughput difference.
+
+| Actual production preflight | Group | Requested→written veh/h | Physical green seconds |
+|---|---|---|---|
+|900, β0|All four|Unchanged|All eight meters10|
+|1200, β0, historical guard|R_D_W|14.316124→0|10480=0,10482=0|
+|3300, β300, phase trace|R_F_W|1800→1760.029718|10646=10,10644=5|
+
+The other groups in those three preflights are unchanged. Pure n7's large changes also include R_F_E at2850s:395.597830→711.386460veh/h; physical10639=2s and10681=10s. These are model-to-command allocation changes, not measured VISSIM discharges. The action JSON rate agrees with the allocation's `realized` field in all audited rows.
+
+The call order is explicit in `evaluation/controllers/vissim_stackelberg_adapter.py`: main performs prediction and score-based guard evaluation before `apply_ramp_spillback_guard` at12747 and `real_world_ramp_meter_write_back` at12748. Write-back mutates `control.ramp_metering` at10473. Thus the controller's preceding objective does not represent every final written rate. `rw_meter_requested_*` is recorded after the spillback guard, so this audit does not include any separate guard-forced increase. The current contract does not allow the zero-difference900 decision to prove the same property for later congestion.
+
+There is a separate cache invalidation defect: `_measured_meter_allocation` at10343 reuses diagnostic greens and realized rates whenever the keys exist, without comparing current requested rate, physical demand estimates, or table settings. The canonical `ControlAction.copy()` at vendor `src/models/state.py:1669` copies those scalar diagnostics. A bounded actual-function probe allocates a1000veh/h request as1036.8(3s,5s), copies the action, changes its request to1800, and still receives cached1036.8. A clean1800 request gives1767.6(2s,10s). The original action remains untouched; the problem is stale cache validity, not aliasing.
+
+That cache defect is not established as the cause of the audited n7 outputs: the active vendor `WuFaithfulFollower.solve` creates `ControlAction.uncontrolled` at4125 and imports previous greens/VSL only, while `control_from_json` does preserve previous diagnostics at9624. The cache is therefore reachable through general copied controls and repeated allocation, but the normal n7 follower starts without those allocation keys. A candidate finalization hook must nevertheless invalidate/rekey the cache explicitly, otherwise installing allocation earlier in scoring can expose the defect.
+
+The concrete correction path is to finalize the existing spillback guard and measured allocation before all relevant endpoint/selection evaluations, using one frozen observation/previous-action demand context per decision. Score and write the same finalized action, retain requested-versus-command diagnostics, and make repeated writer allocation idempotent for that exact finalized context. Merely rescoring the final winner would repair its displayed cost but leave candidate ordering based on different actions. Existing open semantics and calibrated tables need not be changed to fix ordering. This is a review proposal only; no production file was edited by this audit.
+
+Reproduce with `python -X utf8 diagnostics/audit_meter_finalization.py`. The source,31 pure actions,three preflight actions and all row values are hashed or retained in `diagnostics/meter_finalization_audit.json`. This script runs no solver and accesses no VISSIM instance.

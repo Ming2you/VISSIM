@@ -12,7 +12,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / 'diagnostics'), str(ROOT / 'vendor/NumSim-
 from evaluation.controllers import sc2001_corridor as corridor
 from probe_area_endpoint import fixture as area_fixture
 from test_observation_projection import ActualInstalledProjection as Harness
-from evaluation.controllers import area_runtime, shared_approach, urban_flow_accounting
+from evaluation.controllers import area_runtime, area_meter_finalization, shared_approach, urban_flow_accounting
 from evaluation.controllers.control_area_objective import physical_membership_from_ledger
 
 
@@ -24,7 +24,7 @@ def fixture(state_path=None, *, return_detectors=False, support_path='diagnostic
     # The fixture does not return detectors; repeat only its mapping mutations.
     path = state_path or ROOT / 'evaluation/runs/codex_nc_s13_6056c94_20260909_retry/decisions_codex_nc_s13_6056c94_20260909_retry/state_000900.json'
     prior_path = ROOT / original.control_area_initialization_diagnostics['previous_action_path']
-    _, _, detectors, tuning, _, _, _ = Harness.build_projected(Harness.config_path, path, prior_path)
+    _, _, detectors, tuning, _, mapping, _ = Harness.build_projected(Harness.config_path, path, prior_path)
     from evaluation.controllers import physical_movement_routes, projection_support, observation_projection
     # Apply mappings on separate base cfg to avoid installing topology changes
     # twice on the actual already repaired cfg used by this replay.
@@ -51,6 +51,10 @@ def fixture(state_path=None, *, return_detectors=False, support_path='diagnostic
     physical = physical_membership_from_ledger(json.loads((ROOT / 'diagnostics/control_area_membership.json').read_text(encoding='utf-8')))
     metadata.update(corridor.extend_area_routes(cfg))
     area_runtime.seed_from_projection(state, cfg, physical)
+    # The corridor reprojects the physical state after the base area fixture.
+    # Refresh the real observed spill context from that final state as main does.
+    metadata.update(area_meter_finalization.configure(
+        Harness.adapter, cfg, tuning, mapping, raw, str(prior_path), state, calibration))
     state.control_area_initialization_diagnostics = metadata
     if return_detectors:
         return cfg, state, control, raw, detectors

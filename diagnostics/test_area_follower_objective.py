@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "vendor/NumSim-mine")]
 from evaluation.controllers import area_follower_objective as proposed
 from diagnostics.probe_signal_feasibility import setup
-from evaluation.controllers import vissim_stackelberg_adapter as adapter
+from evaluation.controllers import vissim_stackelberg_adapter as adapter, area_meter_finalization
+from diagnostics.review_fixtures import fixture_path
 from src.controllers import rollout_endpoint
 from src.controllers.wu_faithful_follower import WuFaithfulFollower
 from src.models.state import ControlAction
@@ -26,15 +27,23 @@ guard = next(n for n in ast.walk(source) if isinstance(n, ast.If) and "offset_ke
 GUARD = compile(ast.Module(body=[guard], type_ignores=[]), "actual offset retention guard", "exec")
 
 
+def configure_actual_meter_context(cfg, tuning, state, raw, mapping):
+    calibration = adapter.load_optional_json(str(ROOT / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json"))
+    calibration = adapter.deep_update(dict(calibration), tuning.get("calibration_override", {}))
+    previous = fixture_path(ROOT / "evaluation/runs/codex_nc_s13_6056c94_20260909_retry/decisions_codex_nc_s13_6056c94_20260909_retry/action_000001.json")
+    return area_meter_finalization.configure(adapter, cfg, tuning, mapping, raw, str(previous), state, calibration)
+
+
 class AreaFollowerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cfg, cls.state, _, cls.tuning, _, _, _ = setup()
+        cls.cfg, cls.state, _, cls.tuning, cls.raw, cls.mapping, _ = setup()
 
     def exercise(self, area, on_j=-30., off_j=-10., endpoint_error=False):
         cfg = copy.deepcopy(self.cfg)
         controller = adapter.build_priced_wu_link_controller(cfg, self.tuning)
         cfg.network.control_area_enabled = area
+        configure_actual_meter_context(cfg, self.tuning, self.state, self.raw, self.mapping)
         cfg.network.control_area_beta_seconds = 300.
         follower = controller.nash_solver
         prior_margin = follower.offset_keep_margin
@@ -115,6 +124,7 @@ class AreaFollowerTests(unittest.TestCase):
         cfg = copy.deepcopy(self.cfg)
         controller = adapter.build_priced_wu_link_controller(cfg, self.tuning)
         cfg.network.control_area_enabled = True
+        configure_actual_meter_context(cfg, self.tuning, self.state, self.raw, self.mapping)
         with mock.patch.object(WuFaithfulFollower, "_rollout_horizon_ttt", BASE_ROLLOUT), mock.patch.object(WuFaithfulFollower, "solve", BASE_SOLVE):
             proposed.install_controller(controller)
             def item(score, ttt, terminal=10., completed=100.):

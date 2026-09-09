@@ -23,6 +23,7 @@ processes.
 | `freeway_fd.py`, `freeway_local_state.py`, `link_predictor.py` | Consistent freeway and local prediction physics |
 | `control_area_objective.py`, `area_runtime.py`, `area_freeway_accounting.py`, `urban_flow_accounting.py` | Explicit control-area residence and boundary-flow accounting |
 | `signal_actuation_contract.py` | Feasible candidate greens and the same signal clock used by the writer |
+| `area_follower_objective.py`, `area_meter_finalization.py` | Finalize phase refinement, spillback protection and physical meter allocation before area scoring; assert the writer uses those same commands |
 | `signal_group_plan.py`, `plant_cycle.py`, `action_csv_schema.py` | Selected SG plan, physical cycle, and serialization contracts |
 | `offset_promotion.py` | Declared offset writer modes and existing production evidence gates |
 

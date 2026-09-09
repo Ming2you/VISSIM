@@ -1,0 +1,93 @@
+{
+  "schema": "area-final-production-preflight/v1",
+  "scope": "Offline actual canonical adapter; no VISSIM simulation launched by this preflight",
+  "production_action_alignment_valid": true,
+  "performance_promoted": false,
+  "tests": [
+    "22 actual meter/count/conservation/failfast/preflight tests PASS",
+    "10 actual phase/follower tests PASS",
+    "49 portable fixture/core tests PASS"
+  ],
+  "rows": [
+    {
+      "directory": "diagnostics/area_production_preflight/no-control_t1_beta0_20260909T191528651972Z",
+      "valid": true,
+      "exit_code": 0,
+      "decision_wall_sec": 1.559839,
+      "source_unchanged": true,
+      "observed_worker_processes": 0,
+      "surviving_worker_pids": [],
+      "phase_matches_scored": null,
+      "meter_matches_scored": 1.0,
+      "beta_seconds": 0.0,
+      "omega_ttt_veh_h": null,
+      "omega_outward_crossings_veh": null,
+      "omega_objective_veh_h": null,
+      "final_rates_vph": {
+        "R_D_W": 1800.0,
+        "R_F_W": 1800.0,
+        "R_D_E": 1800.0,
+        "R_F_E": 1800.0
+      },
+      "nonzero_offsets": null,
+      "config_sha256": "a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4",
+      "action_sha256": "b5c91c70584176c5ddd75ed8dbc0ead460cca6c9a529e7919b63ff0142e60a93",
+      "csv_sha256": "76fb1f0a6a47fe87bbeaff0f7082e2433fa357242052ea25e609211f9297871d"
+    },
+    {
+      "directory": "diagnostics/area_production_preflight/wu-link_t900_beta0_20260909T191544832356Z",
+      "valid": true,
+      "exit_code": 0,
+      "decision_wall_sec": 122.709283,
+      "source_unchanged": true,
+      "observed_worker_processes": 31,
+      "surviving_worker_pids": [],
+      "phase_matches_scored": 1.0,
+      "meter_matches_scored": 1.0,
+      "beta_seconds": 0.0,
+      "omega_ttt_veh_h": 297.857340619338,
+      "omega_outward_crossings_veh": 1470.396120917891,
+      "omega_objective_veh_h": 297.857340619338,
+      "final_rates_vph": {
+        "R_D_W": 1800.0,
+        "R_F_W": 1599.7473931336117,
+        "R_D_E": 1800.0,
+        "R_F_E": 1800.0
+      },
+      "nonzero_offsets": 13.0,
+      "config_sha256": "a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4",
+      "action_sha256": "309d9f915c54a150a46c520e8c5552bfed2dd54adb8e2aa3bfdb8e8d5ad09fde",
+      "csv_sha256": "ed2c4736e193e9f2c7eaf118ab9382c267efc4995b987de3d93bee4eb40fa46a"
+    },
+    {
+      "directory": "diagnostics/area_production_preflight/wu-link_t3300_beta300_20260909T191908481800Z",
+      "valid": true,
+      "exit_code": 0,
+      "decision_wall_sec": 115.638442,
+      "source_unchanged": true,
+      "observed_worker_processes": 37,
+      "surviving_worker_pids": [],
+      "phase_matches_scored": 1.0,
+      "meter_matches_scored": 1.0,
+      "beta_seconds": 300.0,
+      "omega_ttt_veh_h": 657.2648611644198,
+      "omega_outward_crossings_veh": 1578.9833777383947,
+      "omega_objective_veh_h": 525.6829130195536,
+      "final_rates_vph": {
+        "R_D_W": 1554.9438684579318,
+        "R_F_W": 1760.0297179999998,
+        "R_D_E": 1800.0,
+        "R_F_E": 915.1065948196201
+      },
+      "nonzero_offsets": 8.0,
+      "config_sha256": "366b998c98001703eb9a504c4247878b387e8170fd4f0d629f362a09b5534dfa",
+      "action_sha256": "4c4672ebb03aee389ff4b5ee548ba08032d1dc45a8a9488473d497814ca9fa7b",
+      "csv_sha256": "3621413bf8d79efe5a7c172264563709a96fbc1ccb5e2b2ae574b0b542a15165"
+    }
+  ],
+  "limitations": [
+    "Local follower still uses a continuous grouped-rate surrogate; global endpoint applies existing physical allocation.",
+    "Predicted route mixing and physical waveform/equivalent group rates remain model approximations.",
+    "This is runtime/scoring/actuation-contract verification, not live performance validation or a selected beta."
+  ]
+}

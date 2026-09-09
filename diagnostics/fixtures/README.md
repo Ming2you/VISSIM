@@ -14,19 +14,19 @@ VBS 검사를 제외하려면 `--include-wsh`를 생략합니다. VBS는 Windows
 
 중앙 `fixture_path`는 활성화된 복원 위치에서만 과거 run 파일을 찾습니다. 요청한 파일이 ZIP에 없으면 원래 로컬 run으로 넘어가지 않고 정확한 누락 파일로 실패합니다. 고정 source reference도 ZIP에서 읽습니다. 검증 subprocess는 원래 checkout의 `evaluation/runs`에 대한 read/listdir와 `git` subprocess 호출을 금지하므로, 우연히 로컬 archive나 git history를 이용하면 검사 자체가 실패합니다.
 
-실제 분리 실행 결과는 **48검사 PASS**입니다.
+미터 finalization 통합 후 실제 분리 실행 결과는 **49검사 PASS**입니다.
 
 | 검사 묶음 | 수 |
 |---|---:|
 | raw SHA, 경로 변경만 존재, run ID, 재복원 거부, fallback 금지, Windows 경로 탈출 거부 | 6 |
 | Ω635 관측 지원 | 5 |
 | 실제 dynamic route와 원점 prior | 7 |
-| SC2001 stock·geometry·accepted flow·Ω OFF·OFF reference | 11 |
+| SC2001 stock·geometry·accepted flow·Ω OFF·OFF reference·실제 미터 endpoint | 12 |
 | 실제 observation projection | 9 |
 | 실제 arrival path | 4 |
 | 실제 watchdog/VBS strict ON·OFF·상속·child output | 6 |
 
-Python42검사와 Windows strict6검사가 통과했습니다. 두 실행 모두 원래 run 접근 시도0, git source 호출 시도0입니다. 결과와 소요시간은 `diagnostics/portable_fixture_validation.json`과 `portable_fixture_validation_strict.json`에 있습니다. 이 검증은 새 fixture 위치에서 production 코드를 실행한 검사이며 완전히 새 운영체제나 다른 Python 버전까지 검증한 것은 아닙니다. 다른 과거 분석 스크립트가 요청하는 run은 이 한정된 bundle에 없을 수 있습니다.
+Python43검사와 Windows strict6검사를 함께 실행하여 37.689초에 통과했습니다. 원래 run 접근 시도0, git source 호출 시도0입니다. 최신 결과는 `diagnostics/portable_fixture_validation.json`, 이전 Windows 단독 검사 기록은 `portable_fixture_validation_strict.json`에 있습니다. 새 미터 검사는 실제 150초 coupled endpoint에서 관측 문맥·입력 명령 불변·최종 차량 재고 closure를 확인합니다. 이 검증은 새 fixture 위치에서 production 코드를 실행한 검사이며 완전히 새 운영체제나 다른 Python 버전까지 검증한 것은 아닙니다. 다른 과거 분석 스크립트가 요청하는 run은 이 한정된 bundle에 없을 수 있습니다.
 
 반복해서 사용할 기본 위치만 만들려면 다음 명령을 한 번 실행합니다.
 

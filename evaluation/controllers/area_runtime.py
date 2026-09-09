@@ -190,7 +190,9 @@ def install(adapter, cfg):
         # Retain its cohorts, but reset this evaluation window's accumulated score.
         candidate._control_area_ledger = ModelAreaLedger(copy.deepcopy(ledger.stocks))
         spec = replace(objective_spec, abort_above=None, far_enabled=False)
-        result = original(candidate, previous, forecast, action_schedule, spec)
+        from evaluation.controllers import area_meter_finalization
+        control = area_meter_finalization.for_endpoint(previous, action_schedule, spec)
+        result = original(candidate, control, forecast, (), spec)
         closing = get_ledger(result.states[-1]) if result.states else get_ledger(candidate)
         if result.states:
             closing.assert_stocks(model_inventory(result.states[-1], cfg))

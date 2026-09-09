@@ -15,7 +15,7 @@ def fixture(state_path=None, *, dynamic_routes=False):
     Harness.setUpClass()
     adapter = Harness.adapter
     from src.models.state import TrafficState, ControlAction
-    from evaluation.controllers import area_runtime, observation_projection, physical_movement_routes, shared_approach, projection_support
+    from evaluation.controllers import area_runtime, area_meter_finalization, observation_projection, physical_movement_routes, shared_approach, projection_support
     nc = ROOT / 'evaluation/runs/codex_nc_s13_6056c94_20260909_retry/decisions_codex_nc_s13_6056c94_20260909_retry'
     path = state_path or nc / 'state_000900.json'
     if not path.is_absolute():
@@ -59,6 +59,8 @@ def fixture(state_path=None, *, dynamic_routes=False):
         state.control_area_initialization_diagnostics.update(dynamic_metadata)
         state.control_area_initialization_diagnostics.update(path_metadata)
     state.control_area_initialization_diagnostics.update(initial_metadata)
+    state.control_area_initialization_diagnostics.update(area_meter_finalization.configure(
+        adapter, cfg, tuning, mapping, raw, str(previous), state, calibration))
     state.control_area_initialization_diagnostics['previous_action_path'] = str(previous.relative_to(ROOT))
     return cfg, state, adapter.control_from_json(previous, cfg, ControlAction), raw
 

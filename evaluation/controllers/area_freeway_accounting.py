@@ -322,6 +322,10 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
 
 def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAction, demand: _cp.DemandStep, cfg: _cp.ExperimentConfig) -> _cp.CoupledStepResult:
     """Spec 3.4.3의 `T_c -> T_f -> T_u` nested order로 한 control interval을 전진한다."""
+    from evaluation.controllers import area_meter_finalization
+    # Box-walk may change rates after the first interval; keep the same
+    # observed decision context while re-finalizing each walked action.
+    area_meter_finalization.finalize(control, cfg)
     sim = cfg.simulation
     _cp.sync_onramp_queues_from_freeway(state, cfg)
     freeway_ttt = 0.0

@@ -86,6 +86,9 @@ def main():
             if path.is_relative_to(ROOT.resolve()) and path.is_file():
                 paths.append(path)
     add_data(configs[0])
+    dynamic_path = ROOT / configs[0]['urban']['movements']['dynamic_physical_route_topology']
+    dynamic_document = json.loads(dynamic_path.read_text(encoding='utf-8'))
+    paths.append(ROOT / dynamic_document['calibration']['path'])
     paths = sorted(set(paths))
     destination = ROOT / 'diagnostics/area_candidate_configs'
     destination.mkdir(exist_ok=True)

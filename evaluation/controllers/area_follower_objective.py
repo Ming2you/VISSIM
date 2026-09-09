@@ -29,6 +29,8 @@ def install_runtime(cfg):
         if not enabled(self.cfg):
             return original_rollout(self, state, control, forecast)
         _finalize_link_phases(self, control, state, forecast)
+        from evaluation.controllers import area_meter_finalization
+        area_meter_finalization.finalize(control, self.cfg)
         from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
         point = evaluate_price_point(state, control, forecast, (), ObjectiveSpec(
             cfg=self.cfg, depth_override=max(1, int(self.cfg.mpc.horizon_steps)),

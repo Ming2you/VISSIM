@@ -9,7 +9,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "vendor/NumSim-mine")]
-from diagnostics.test_area_follower_objective import BASE_ROLLOUT, BASE_SOLVE, GUARD
+from diagnostics.test_area_follower_objective import BASE_ROLLOUT, BASE_SOLVE, GUARD, configure_actual_meter_context
 from diagnostics.probe_signal_feasibility import setup
 from evaluation.controllers import vissim_stackelberg_adapter as adapter, signal_actuation_contract as contract
 from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
@@ -24,7 +24,7 @@ LINK_SOLVE = LinkAgentWuFollower.solve
 class FinalizationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cfg, cls.state, _, cls.tuning, _, _, _ = setup()
+        cls.cfg, cls.state, _, cls.tuning, cls.raw, cls.mapping, _ = setup()
 
     def exercise(self, *, area=True, gne=False, endpoint_error=False, authoritative=False, second_solve=False):
         cfg = copy.deepcopy(self.cfg)
@@ -35,6 +35,7 @@ class FinalizationTests(unittest.TestCase):
         controller = adapter.build_priced_wu_link_controller(cfg, tuning)
         follower = controller.nash_solver
         cfg.network.control_area_enabled = area
+        configure_actual_meter_context(cfg, tuning, self.state, self.raw, self.mapping)
         follower.signal_phase_price = {"SC1004": {"p1": -1., "p2": 0., "p3": 0., "p4": 0.}}
         follower.signal_phase_price_ref = None
         follower.phase_price_in_gne = gne

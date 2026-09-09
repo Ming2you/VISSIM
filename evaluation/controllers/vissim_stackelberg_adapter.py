@@ -12744,8 +12744,13 @@ def main() -> None:
         metadata["offset_written_sec"] = {s: signal_actuation_contract.written_offset_sec(control, cfg, s) for s in cfg.network.signals}
     # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
     if args.controller not in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER):
-        apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
-        real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
+        if bool(getattr(cfg.network, "control_area_enabled", False)):
+            from evaluation.controllers import area_meter_finalization
+            metadata.update(area_meter_finalization.assert_writer(
+                control, cfg, require_scored=(args.controller != "no-control")))
+        else:
+            apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
+            real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
     signal_actuation_contract.validate_writer(control, cfg, load_signal_group_actuation_plan(), offset_writer)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)

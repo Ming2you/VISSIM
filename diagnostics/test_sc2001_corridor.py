@@ -39,6 +39,27 @@ def ready_now(state, index):
 
 
 class CorridorTests(unittest.TestCase):
+    def test_real_area_endpoint_uses_observed_meter_context_and_preserves_input(self):
+        from diagnostics.probe_sc2001_corridor_replay import fixture as full_fixture
+        from diagnostics.probe_area_endpoint import Harness
+        from src.models.demand import DemandStep
+        cfg, state, control, raw = full_fixture()
+        from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
+        context = cfg.network.control_area_meter_context
+        self.assertEqual(context['sim_sec'], raw['sim_sec'])
+        self.assertEqual(context['raw']['local_observation']['far_measurement']['link_volume_veh_h'],
+                         raw['local_observation']['far_measurement']['link_volume_veh_h'])
+        self.assertEqual(context['spillback'], state.local_observation_summary['ramp_spillback'])
+        before = copy.deepcopy(control)
+        forecast = Harness.adapter.demand_from_state(raw, cfg, DemandStep, 1)
+        result = evaluate_price_point(state, control, forecast, (),
+                                      ObjectiveSpec(cfg, depth_override=1, score_mode='raw'))
+        self.assertEqual(vars(control), vars(before))
+        self.assertEqual(result.control.diagnostics['control_area_meter_finalized_before_score'], 1.)
+        self.assertGreater(result.control_area['event_count'], 0)
+        last = result.states[-1]
+        last._control_area_ledger.assert_stocks(area_runtime.model_inventory(last, cfg))
+
     def test_actual_snapshot_reprojection_preserves_stock_and_corrects_loop(self):
         for time in (900, 3300):
             cfg, state, raw, detectors, _, metadata, before = fixture(time)

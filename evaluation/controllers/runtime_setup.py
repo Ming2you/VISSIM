@@ -148,6 +148,9 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))
+        from evaluation.controllers import area_meter_finalization
+        metadata.update(area_meter_finalization.configure(
+            a, cfg, tuning, mapping, state_json, previous_action_path, state, calibration))
     return state, detector_mapping, metadata
 
 

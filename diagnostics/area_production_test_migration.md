@@ -9,7 +9,7 @@
 - `probe_sc2001_corridor_replay.py`: fixture와 CLI replay는 실제 production 모듈을 사용합니다. 다른 역사적 진단이 명시적으로 부르는 `proposal_module()`만 고정3299040에서 옛 제안을 구성하며 현재 파일에는 다시 패치를 적용하지 않습니다.
 - `test_strict_decision_failfast.py`: patch generator 없이 현재 watchdog의 실제 strict gate와 현재 VBS 함수를 직접 추출합니다. 자식 프로세스는 실제 실행하고 VISSIM은 fake 객체만 사용합니다.
 
-검증 명령과 결과:
+최초 production 전환 당시 검증 명령과 결과:
 
 ```text
 python -m unittest diagnostics.test_area_projection_coverage diagnostics.test_dynamic_area_routes diagnostics.test_sc2001_corridor diagnostics.test_observation_projection diagnostics.test_area_arrival_routes -v
@@ -37,5 +37,9 @@ diagnostics/physical_projection_support_635_proposal.json
 `dynamic_area_nc13_calibration.json`은 다른 JSON에서 raw byte hash로 검증하므로 `.gitattributes`의 명시적 **CRLF** checkout 속성을 유지해야 합니다. 검증된 상태는 `i/lf`, `w/crlf`, `eol=crlf`이며 실제 raw hash는 CRLF 바이트 기준입니다. `physical_projection_support_635_proposal.json`은 이름에 proposal이 있지만 통합된 runtime에서 사용하는 고정 입력입니다. 학습용 FZP와 SC2001 audit은 runtime에 필요하지 않습니다. 같은 seed13에서 학습한 prior의 한계와 unknown45개 양수 시 중단은 유지됩니다.
 
 후속 작업에서 **portable fixture 배포도 구현했습니다.** `diagnostics/fixtures/control_area_v1.zip`은 원본45개 JSON/CSV와 OFF용 git blob4개를5.6 MB에 보관합니다. `python -m diagnostics.run_portable_fixture_tests --include-wsh`는 새 `.review-fixtures` 하위 위치에 raw와 경로만 재연결한 사본을 분리 복원하고 실제 테스트를 실행합니다. 원래 `evaluation/runs` 접근과 git subprocess를 금지한 별도 프로세스에서 검사하므로 이전 절대경로나 로컬 history가 우연히 남아 있어도 이에 기대지 못합니다. 원본 run ID·관측수치·source SHA는 그대로이며 모든 파일 위치 변경을 별도 로그로 보관합니다. 이 한정된 회귀 묶음에는 과거 run 폴더나 deep git history가 더는 필요하지 않습니다. 상세 사용법·범위·검증 결과는 `diagnostics/fixtures/README.md`에 있습니다.
+
+미터 finalization 통합 후 `probe_area_endpoint.py`는 실제 tuning·physical mapping·현재 raw snapshot·직전 action 경로·calibration으로 `area_meter_finalization.configure`를 호출합니다. `probe_sc2001_corridor_replay.py`도 corridor 최종 재투영 state의 spillback 문맥으로 이를 갱신합니다. 가짜 marker를 만들거나 finalizer를 우회하지 않습니다. 추가한 실제 150초 endpoint 회귀는 입력 control 불변, 관측 유량·spillback 문맥 일치, 최종 모델 차량 재고와 Ω 장부의 일치를 확인합니다.
+
+`python -m diagnostics.run_portable_fixture_tests --include-wsh` 최신 재실행은 **49 tests PASS, 37.689초**입니다(기존48개와 새 endpoint1개). 새 격리 subprocess의 원래 run 접근 시도와 git 호출 시도는 모두0이며 결과는 `diagnostics/portable_fixture_validation.json`에 있습니다.
 
 Production controller·watchdog·VBS에는 이 마이그레이션으로 추가 변경을 하지 않았습니다.

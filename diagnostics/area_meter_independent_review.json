@@ -1,0 +1,37 @@
+{
+  "review": "Independent read-only review of unapplied meter-finalization patch",
+  "patch_sha256": "6650dce38abb61debd1c90272fc2b132d2ba9e375fa95eb4c681b497d74b05cc",
+  "blocking_findings": [],
+  "independent_tests": {
+    "existing_actual_allocation_and_box_walk_tests": 8,
+    "result": "PASS",
+    "runtime_seconds": 0.361,
+    "fresh_python_pickle_context_idempotence_and_changed_rate": {
+      "context_sec": 900.0,
+      "changed_requested": {
+        "R": 900.0
+      },
+      "written_rates": {
+        "R": 1879.2
+      },
+      "worker_private_context_and_reallocation": "PASS"
+    },
+    "parent_context_and_control_unchanged": true
+  },
+  "verified_paths": [
+    "for_endpoint always copies previous, including empty/base probes; overlay precedes finalization",
+    "canonical box-walk copies rate dict when rates walk; finalizer replaces diagnostics before mutation",
+    "unchanged context/rates/commands reuse exact measured allocation; changed rates/context clear stale rw_meter cache",
+    "shared cfg context is serialized with controller cfg and available to worker installer; fresh process allocation verified independently",
+    "late additional ramp guards fail configuration; late changed/unfinalized scored action fails writer",
+    "Wu PFO fallback invokes the same nash solver before leader score; no-control warmup can finalize unscored baseline"
+  ],
+  "limits": [
+    "Existing box-walk test replaces the coupled function: it verifies actual loop/copy behavior, not full patched physical dynamics.",
+    "Fresh subprocess used serialized cfg and proposed finalizer with the vendor package on sys.path; full actual controller worker bootstrap and integrated six-file main still require post-application preflight.",
+    "Local follower candidates still use continuous grouped-rate surrogate; this patch finalizes final coupled ranking and price endpoint.",
+    "Physical 10-second meter waveforms remain represented by existing calibrated equivalent group rate; no waveform accuracy claim.",
+    "Only no-control is exempted at writer; direct native-fixed or other unsupported area controller families are intentionally rejected."
+  ],
+  "production_modified_by_reviewer": false
+}
