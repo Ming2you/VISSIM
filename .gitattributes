@@ -19,3 +19,14 @@ diagnostics/first_interval_prediction* -text whitespace=cr-at-eol
 diagnostics/plot_first_interval_prediction.py text eol=lf
 # Matplotlib path attributes contain significant, generated whitespace.
 diagnostics/*.svg -whitespace
+# Current-route and matched-cohort audits keep their measured source bytes.
+diagnostics/static_route_matched_cohorts* -text whitespace=cr-at-eol
+diagnostics/probe_static_route_cohorts.py -text whitespace=cr-at-eol
+diagnostics/total_offratio_interval_sensitivity.json -text whitespace=cr-at-eol
+diagnostics/probe_total_offratio_sensitivity.py -text whitespace=cr-at-eol
+diagnostics/live_codex_area_* -text whitespace=cr-at-eol
+diagnostics/vehicle_route_com_probe_20260910_01/* -text whitespace=cr-at-eol
+diagnostics/vehicle_route_com_qualification.json -text whitespace=cr-at-eol
+diagnostics/probe_vehicle_route_com.vbs -text whitespace=cr-at-eol
+diagnostics/run_vehicle_route_com_probe.ps1 -text whitespace=cr-at-eol
+diagnostics/summarize_vehicle_route_com.py -text whitespace=cr-at-eol

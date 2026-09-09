@@ -1,0 +1,1604 @@
+{
+  "run": "codex_area_beta0_retry_s13_20260910",
+  "status_counts": {
+    "pass": 1
+  },
+  "intervals": [
+    {
+      "schema": "area-live-actuation/v1",
+      "run": "codex_area_beta0_retry_s13_20260910",
+      "interval_sec": [
+        1050,
+        1200
+      ],
+      "status": "pass",
+      "failures": [],
+      "sources": {
+        "action_json_sha256": "6c1ed6d7b871a6765e91f5009c68ce3a9c8f6dccaa627520cd19dffc8caa25e8",
+        "action_csv_sha256": "0916c80654a084e6d4c57a4a4a1931fa927a7d8ce88eb2cc13cd0fa8afaf5ab6",
+        "initial_state_sha256": "d6b4447e892bf7580d5bb15f40bbfbc9da3e1bef2d521447a65f90c85ce671b5",
+        "physical_membership_sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d",
+        "signal_trace": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_area_beta0_retry_s13_20260910\\decisions_codex_area_beta0_retry_s13_20260910\\signal_readback.csv",
+          "captured_file_bytes": 3328285,
+          "read_complete_prefix_bytes": 3328285,
+          "read_complete_prefix_sha256": "87c5e143bb29f9d30e6408669bc39eba1eaa45ffa4b632715230d1e24cf28b21"
+        },
+        "action_log": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_area_beta0_retry_s13_20260910\\action_codex_area_beta0_retry_s13_20260910.csv",
+          "captured_file_bytes": 117573,
+          "read_complete_prefix_bytes": 117573,
+          "read_complete_prefix_sha256": "96e6e106f246ad21706c8b31d93ef24d1e712ef958fbccfac17d34c9b2086abc"
+        }
+      },
+      "performance_comparison": false,
+      "decision_validation": {
+        "controller_status": "ok",
+        "physical_signal_contract_enabled": 1.0,
+        "offset_writer": "experiment",
+        "offset_experiment": 1.0,
+        "offset_production_writes": 0.0,
+        "control_area_endpoint_enabled": 1.0,
+        "control_area_near_only": 1.0,
+        "freeway_physical_vehicle_counts": 1.0,
+        "control_area_beta_seconds": 0.0,
+        "control_area_follower_objective_installed": 1.0,
+        "control_area_fallback_uses_objective": 1.0,
+        "control_area_meter_finalization_enabled": 1.0,
+        "control_area_meter_writer_matches_scored": 1.0,
+        "meta_wu_price_parallel_serial_rerun_count": 0.0,
+        "meta_leader_fallback_guard_metric_ttt": 0.0,
+        "decision_wall_sec": 114.796285,
+        "offset_written_sec": {
+          "SC1": 37.5,
+          "SC5": 75.0,
+          "SC6": 0.0,
+          "SC7": 18.75,
+          "SC11": 131.25,
+          "SC12": 56.25,
+          "SC16": 112.5,
+          "SC101": 18.75,
+          "SC105": 0.0,
+          "SC107": 75.0,
+          "SC108": 0.0,
+          "SC109": 112.5,
+          "SC1001": 37.5,
+          "SC1002": 56.25,
+          "SC1003": 18.75,
+          "SC1004": 37.5,
+          "SC1005": 112.5
+        },
+        "follower_score": {
+          "control_area_follower_objective_veh_h": 336.0261199184889,
+          "control_area_follower_ttt_veh_h": 336.0261199184889,
+          "control_area_follower_ttd_veh": 1506.008073481331,
+          "control_area_follower_near_score_veh_h": 336.0261199184889,
+          "control_area_follower_additional_cost_veh_h": 0.0,
+          "control_area_follower_global_freeway_ttt_veh_h": 181.38598042792478,
+          "control_area_follower_global_urban_ttt_veh_h": 299.42613144326833,
+          "wu_faithful_offset_ttt_on": 480.8121118711931,
+          "wu_faithful_offset_ttt_off": 480.90106227894285,
+          "wu_faithful_offsets_off_zero": 14.0,
+          "wu_faithful_offsets_searched_off_zero": 14.0,
+          "control_area_follower_objective_active": 1.0,
+          "control_area_offset_keep_margin": 0.0,
+          "control_area_offset_on_objective_veh_h": 336.0261199184889,
+          "control_area_offset_on_ttt_veh_h": 336.0261199184889,
+          "control_area_offset_on_ttd_veh": 1506.008073481331,
+          "control_area_offset_off_objective_veh_h": 338.7671644569919,
+          "control_area_offset_off_ttt_veh_h": 338.7671644569919,
+          "control_area_offset_off_ttd_veh": 1492.6273953281122,
+          "control_area_offset_guard_evaluated": 1.0
+        }
+      },
+      "scoring_alignment": {
+        "control_area_phase_outer_matches_scored": 1.0,
+        "control_area_meter_finalized_before_score": 1.0,
+        "control_area_meter_writer_matches_scored": 1.0
+      },
+      "commands": {
+        "counts": {
+          "vsl": 66,
+          "signal": 17,
+          "signal_sg": 122,
+          "ramp_meter": 8
+        },
+        "nonzero_offsets": 14,
+        "physical_meter_green_sec": {
+          "9101": 10.0,
+          "9102": 2.0,
+          "9103": 10.0,
+          "9104": 10.0,
+          "9105": 10.0,
+          "9106": 10.0,
+          "9107": 10.0,
+          "9108": 10.0
+        },
+        "group_meter_vph": {
+          "R_D_W": 745.8777729999999,
+          "R_F_W": 1800.0,
+          "R_D_E": 1800.0,
+          "R_F_E": 990.9516230499717
+        }
+      },
+      "reference": {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_production_preflight\\wu-link_t1050_beta0_20260909T194949178671Z\\action.csv",
+        "sha256": "0916c80654a084e6d4c57a4a4a1931fa927a7d8ce88eb2cc13cd0fa8afaf5ab6",
+        "csv_byte_identical": true,
+        "snapshot_sections_equal": {
+          "total_vehicles": true,
+          "urban_vehicles": true,
+          "freeway_vehicles": true,
+          "ramp_vehicles": true,
+          "mean_speed_kph": true,
+          "freeway_mean_speed_kph": true,
+          "stopped_vehicles": true,
+          "demand": true,
+          "ramp_counts": true,
+          "local_observation": true,
+          "vehicle_records": true,
+          "freeway_segments": true
+        }
+      },
+      "initial_area": {
+        "sim_sec": 1050.0,
+        "physical_complete_records": 3030,
+        "omega_vehicles": 2083,
+        "model_omega_vehicles": 2083.0
+      },
+      "actuation_trace": {
+        "latest_complete_trace_sec": 1200.0,
+        "expected_groups": 130,
+        "immediate_rows": {
+          "ramp": 1208,
+          "signal": 18300
+        },
+        "post_step_rows": {
+          "ramp": 1200,
+          "signal": 18300
+        },
+        "command_mismatch_count": 0,
+        "command_mismatch_examples": [],
+        "persistence_mismatch_count": 0,
+        "persistence_mismatch_examples": [],
+        "malformed_count": 0,
+        "incomplete_groups": [],
+        "groups": [
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "4",
+            "aspects_sec": {
+              "GREEN": 63.0,
+              "AMBER": 3.0,
+              "RED": 84.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1",
+            "sg": "8",
+            "aspects_sec": {
+              "GREEN": 63.0,
+              "AMBER": 3.0,
+              "RED": 84.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 126.0,
+              "GREEN": 21.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 70.0,
+              "AMBER": 3.0,
+              "RED": 77.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 123.0,
+              "GREEN": 24.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 126.0,
+              "GREEN": 21.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 70.0,
+              "AMBER": 3.0,
+              "RED": 77.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "5",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 123.0,
+              "GREEN": 24.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "3",
+            "aspects_sec": {
+              "GREEN": 23.0,
+              "AMBER": 3.0,
+              "RED": 124.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 23.0,
+              "AMBER": 3.0,
+              "RED": 124.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "6",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "7",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "7",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 64.0,
+              "GREEN": 83.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "7",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 35.0,
+              "AMBER": 3.0,
+              "RED": 112.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "7",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 64.0,
+              "GREEN": 83.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 22.0,
+              "AMBER": 3.0,
+              "RED": 125.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 77.0,
+              "GREEN": 70.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "5",
+            "aspects_sec": {
+              "GREEN": 22.0,
+              "AMBER": 3.0,
+              "RED": 125.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 77.0,
+              "GREEN": 70.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "11",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 118.0,
+              "GREEN": 29.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 94.0,
+              "GREEN": 53.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "4",
+            "aspects_sec": {
+              "GREEN": 33.0,
+              "AMBER": 3.0,
+              "RED": 114.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 118.0,
+              "GREEN": 29.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 94.0,
+              "GREEN": 53.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "12",
+            "sg": "8",
+            "aspects_sec": {
+              "GREEN": 33.0,
+              "AMBER": 3.0,
+              "RED": 114.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 49.0,
+              "AMBER": 3.0,
+              "RED": 98.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 116.0,
+              "GREEN": 31.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 86.0,
+              "GREEN": 61.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 49.0,
+              "AMBER": 3.0,
+              "RED": 98.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 116.0,
+              "GREEN": 31.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "16",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 86.0,
+              "GREEN": 61.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "3",
+            "aspects_sec": {
+              "GREEN": 34.0,
+              "AMBER": 3.0,
+              "RED": 113.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 89.0,
+              "GREEN": 58.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 34.0,
+              "AMBER": 3.0,
+              "RED": 113.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "101",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 89.0,
+              "GREEN": 58.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 125.0,
+              "GREEN": 22.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "3",
+            "aspects_sec": {
+              "GREEN": 24.0,
+              "AMBER": 3.0,
+              "RED": 123.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 125.0,
+              "GREEN": 22.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 24.0,
+              "AMBER": 3.0,
+              "RED": 123.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "105",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 110.0,
+              "GREEN": 37.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 64.0,
+              "AMBER": 3.0,
+              "RED": 83.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 107.0,
+              "GREEN": 40.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 110.0,
+              "GREEN": 37.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 64.0,
+              "AMBER": 3.0,
+              "RED": 83.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "107",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 107.0,
+              "GREEN": 40.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 84.0,
+              "GREEN": 63.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 113.0,
+              "GREEN": 34.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "4",
+            "aspects_sec": {
+              "GREEN": 44.0,
+              "AMBER": 3.0,
+              "RED": 103.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 84.0,
+              "GREEN": 63.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 113.0,
+              "GREEN": 34.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "108",
+            "sg": "8",
+            "aspects_sec": {
+              "GREEN": 44.0,
+              "AMBER": 3.0,
+              "RED": 103.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "109",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 87.0,
+              "AMBER": 3.0,
+              "RED": 60.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "109",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "109",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 87.0,
+              "AMBER": 3.0,
+              "RED": 60.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "109",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 118.0,
+              "GREEN": 29.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 127.0,
+              "GREEN": 20.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 73.0,
+              "GREEN": 74.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "3",
+            "aspects_sec": {
+              "GREEN": 20.0,
+              "AMBER": 3.0,
+              "RED": 127.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 123.0,
+              "GREEN": 24.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 127.0,
+              "GREEN": 20.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 73.0,
+              "GREEN": 74.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 20.0,
+              "AMBER": 3.0,
+              "RED": 127.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1001",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 123.0,
+              "GREEN": 24.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 101.0,
+              "GREEN": 46.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 47.0,
+              "AMBER": 3.0,
+              "RED": 100.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 125.0,
+              "GREEN": 22.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 101.0,
+              "GREEN": 46.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 47.0,
+              "AMBER": 3.0,
+              "RED": 100.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1002",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 125.0,
+              "GREEN": 22.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "3",
+            "aspects_sec": {
+              "GREEN": 53.0,
+              "AMBER": 3.0,
+              "RED": 94.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 126.0,
+              "GREEN": 21.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 106.0,
+              "GREEN": 41.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "7",
+            "aspects_sec": {
+              "GREEN": 53.0,
+              "AMBER": 3.0,
+              "RED": 94.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1003",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 126.0,
+              "GREEN": 21.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "2",
+            "aspects_sec": {
+              "RED": 79.0,
+              "GREEN": 68.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "4",
+            "aspects_sec": {
+              "GREEN": 20.0,
+              "AMBER": 3.0,
+              "RED": 127.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "6",
+            "aspects_sec": {
+              "RED": 79.0,
+              "GREEN": 68.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 122.0,
+              "GREEN": 25.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1004",
+            "sg": "8",
+            "aspects_sec": {
+              "GREEN": 20.0,
+              "AMBER": 3.0,
+              "RED": 127.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "1",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "2",
+            "aspects_sec": {
+              "GREEN": 35.0,
+              "AMBER": 3.0,
+              "RED": 112.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "3",
+            "aspects_sec": {
+              "RED": 118.0,
+              "GREEN": 29.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "4",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "5",
+            "aspects_sec": {
+              "RED": 124.0,
+              "GREEN": 23.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "6",
+            "aspects_sec": {
+              "GREEN": 35.0,
+              "AMBER": 3.0,
+              "RED": 112.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "7",
+            "aspects_sec": {
+              "RED": 118.0,
+              "GREEN": 29.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "signal",
+            "sc": "1005",
+            "sg": "8",
+            "aspects_sec": {
+              "RED": 96.0,
+              "GREEN": 51.0,
+              "AMBER": 3.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9101",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9102",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 30.0,
+              "AMBER": 15.0,
+              "RED": 105.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9103",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9104",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9105",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9106",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9107",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          },
+          {
+            "kind": "ramp",
+            "sc": "9108",
+            "sg": "1",
+            "aspects_sec": {
+              "GREEN": 150.0
+            },
+            "covered_sec": 150.0
+          }
+        ],
+        "interval_complete": true,
+        "valid": true,
+        "measurement": "1s immediate/post-step endpoint samples; no assertion about unsampled subsecond behavior"
+      },
+      "vsl": {
+        "expected_writes": 66,
+        "actual_writes": 66,
+        "command_rows_match": true,
+        "readback_mismatches": 0,
+        "speed_values_kph": [
+          120.0
+        ],
+        "measurement": "DSD attribute readback, not a hard vehicle-speed guarantee."
+      },
+      "interval_errors": [],
+      "next_decision_errors": []
+    }
+  ],
+  "audit_script_sha256": "560399a74a903789db063d7e791ee7623dec36d46556fc0241a07bddb42dc459",
+  "trace_helper_sha256": "6d0636db88df561cbe7185b604fcafb9f4ea26e1f9489cbdbe211f0a9b61f4ee"
+}

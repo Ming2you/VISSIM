@@ -56,7 +56,7 @@ def expected_ramp(green, sec):
     return 'RED' if green <= 0 else 'GREEN' if pos < green else 'AMBER' if pos < green+1 else 'RED'
 
 
-def trace_audit(rows, controllers, ramps):
+def trace_audit(rows, controllers, ramps, *, start=START, end=END):
     expected = {(str(sc),str(sg)): ('signal',node) for sc,node in controllers.items() for sg in node['windows']}
     expected.update({(sc,'1'): ('ramp',green) for sc,green in ramps.items()})
     last = {}
@@ -73,7 +73,7 @@ def trace_audit(rows, controllers, ramps):
             malformed.append(row)
             continue
         latest = max(latest,sec)
-        if sec > END:
+        if sec > end:
             break
         key = (str(row.get('sc_no')),str(row.get('sg_no')))
         if key not in expected:
@@ -83,23 +83,23 @@ def trace_audit(rows, controllers, ramps):
         requested = str(row.get('requested_state','')).upper()
         readback = str(row.get('readback_state','')).upper()
         if stage == 'immediate':
-            if START <= sec < END:
+            if start <= sec < end:
                 want = expected_signal(definition,key[1],sec) if kind == 'signal' else expected_ramp(definition,sec)
                 immediate_counts[kind] += 1
                 if requested != want or readback != requested or row.get('ok') != '1':
                     mismatch.append({'sim_sec':sec,'sc':key[0],'sg':key[1],'expected':want,
                                      'requested':requested,'readback':readback,'ok':row.get('ok')})
                 last[key] = (sec,requested)
-        elif stage == 'post_step' and START < sec <= END:
+        elif stage == 'post_step' and start < sec <= end:
             post_counts[kind] += 1
-            if sec == END:
+            if sec == end:
                 boundary_complete.add(key)
             prior = last.get(key)
             if readback != requested or row.get('ok') != '1' or prior is None or requested != prior[1]:
                 persistence.append({'sim_sec':sec,'sc':key[0],'sg':key[1], 'requested':requested,
                                     'readback':readback,'last_immediate':prior,'ok':row.get('ok')})
             if prior is not None:
-                begin = max(START,prior[0])
+                begin = max(start,prior[0])
                 # One post-step covers the time since the last sample. Immediate
                 # writes normally follow each second; do not double-count if not.
                 if covered[key]: begin = max(begin,covered[key][-1][1])
@@ -110,7 +110,7 @@ def trace_audit(rows, controllers, ramps):
     group_rows = []
     for key,(kind,definition) in expected.items():
         duration = sum(seconds[key].values())
-        if abs(duration-(END-START)) > 1e-8 or key not in boundary_complete:
+        if abs(duration-(end-start)) > 1e-8 or key not in boundary_complete:
             incomplete.append({'sc':key[0],'sg':key[1],'covered_sec':duration,'end_post_step':key in boundary_complete})
         group_rows.append({'kind':kind,'sc':key[0],'sg':key[1],'aspects_sec':dict(seconds[key]),
                            'covered_sec':duration})
