@@ -12,7 +12,7 @@
 |---|---|---|
 | ① 수요 | plant는6개900초 구간의 지정 배수를 실제 입력에 적용한다. x15의역사적이름과0.8333배를 구분했다. 예측은미래전체프로파일이아니라현재율persistence다. shared69 신규입력과기존독립램프/게이트 입력은31시점에서중복되지않음 | 배수 전달은동작. profile-aware로해석하면오류. 초기arrival예약과source release불일치를수정하고향후예측의근사범위명시 |
 | ② 관측·매핑 | FW count helper의차로속성오류,동일차량의urban/ramp중복,off-ramp투영누락,짧은connector누락을재현. Ω635전체를지원분류하고새170개를실제단일하류근거로추가 | 실재오류. exactN후pure31초기상태Ω합계는관측과정확일치. 미확정45개양수는링크를명시하며거부. 수량보존이routing정확성의증명은아님 |
-| ③ 제어 레버 | VSL80은실제DSD에전달되고개입효과가있음. 고정meter g5도COM으로동작하지만통과량유지·램프대기증가. green/offset은순차격리팔검증. offset모델t−와writer t+ 불일치,SC105현시순서,SC109상한clip,정수event이확인됨 | 명령의물리전달과효과를구분. 동일signal계약을후보채점전에적용하는패치준비. 기존zerooffset은효과가없다는실험이아님 |
+| ③ 제어 레버 | VSL80은 실제 DSD에 전달되고 개입효과가 있음. 고정 meter g5도 COM으로 동작하지만 통과량 유지·램프 대기 증가. green/offset 격리팔 완료. offset 모델 t−와 writer t+ 불일치, SC105 현시순서, SC109 상한 clip, 정수 event를 확인 | 같은 신호 계약을 통합했다. 이후 실제 main에서 평가 후 녹색 정련과 미터 rate 양자화를 추가 발견했다. 녹색 정련은 평가 전에 한 번 수행하도록 수정했고, 미터는 spillback 강제 개방까지 포함해 평가와 실행 값을 맞추는 중이다. 기존 zero offset은 효과가 없다는 실험이 아님 |
 | ④ 리더 목적함수 | far의1700문턱은현장추정근거없고작은state변화에분기가바뀜. Ω목적을endpoint stock차로대체하면누락/내부이동/재진입오류가능 | 명시accepted-flow장부로ΩTTT−βTTD 구현. Ω활성시far와기존양수TTT조기절단OFF. 고정 후보 651회 보존검사 통과. fullMPC에서 발견한 램프 공간 중복예약과 W_out 이중 인출을 수정하고 실제 main 재현 통과 |
 | ⑤ 팔로워 가격 | 실제가격식은0.75(ΔG−ΔL)/δ. ΔG=0만으로전체외부효과가잘못됐다고판정불가. LIVE wu-link는off-ramp를45step내내동결하는경로가아님. 다만후보별lane context/landing stock전파오류를재현 | 프롬프트의동결단정반박. local/global물리상태·제약을같게수정하고반복worker·후보순서독립검증. β가실제endpoint순위를바꾸는기능은확인했으며성능가중치선정은별도 |
 | ⑥ 교통류 동역학 | E8 t1200→1350 속도예측96.41/실제23.27,정체후27구간속도평균오차+20.04km/h. 실제10639합류→136m뒤10682분류를모형이두램프집계로다른순서로처리. direct10682의점유가본선lane feedback에서빠짐 | 실재충실도/공간집계문제. 회계수정만으로예측오차는거의안줄어듦. two-branch의cap/critical경로불일치는수정하되새용량이득을가정하지않음. 분기별state·flow범위와기존λ피드백의표현한계를별도진단 |
@@ -23,6 +23,7 @@
 - [가격·목적함수](../diagnostics/review_objective_price.md), [물리 장부 통합](../diagnostics/model_area_integration.md)
 - [FD와 프롬프트 주장 검토](../diagnostics/review_fd.md), [신호 계약](../diagnostics/signal_actuation_contract_review.md)
 - [실제 n7 예측 오차](../diagnostics/n7_prediction_fidelity.md), [공간 혼잡 비교](../diagnostics/spatial_lever_comparison.md)
+- [속도 오예측의 실제 항 분해](../diagnostics/freeway_speed_terms_review.md): t3300 E8의 첫 10초에서 FD relaxation은 −2.724km/h지만 하류 평균 밀도차에 의한 anticipation이 +16.608km/h다. 단순히 자유속도로 복귀하는 FD나 작은 τ만 원인이라고 설명하면 틀린다. t1200에는 relaxation·상류 convection·하류 밀도차 세 항이 모두 가속한다. 회계 수정 후에도 이 구조가 남으며 새로운 용량·계수는 아직 식별하지 않았다.
 
 ## 완료한 실제 VISSIM 실험
 
@@ -47,7 +48,7 @@ VSL80은첫지속혼잡을늦췄지만입구까지장기전파를막지못했다
 
 ## 최종 정본 전의 필수 검증
 
-1. 통합된 실제 main에서 warmup 및 1200초 결정은 통과했다. Ω 목적값 대신 전역 TTT를 읽던 offset·leader fallback 최종 비교도 같은 목적값으로 수정한 뒤 재검증한다.
+1. Ω 목적값 대신 전역 TTT를 읽던 offset·leader fallback 비교를 수정했다. 실제 main t900 β0은 121.86초, t3300 β300은 추적기를 포함해 445.63초에 정상 종료했다. 그러나 후자는 네 번의 팔로워 반환 모두 평가 후 녹색이 바뀌어 최종 검증으로 인정하지 않는다(첫 반환 33개 값, 최대 42초). 기존 정련을 평가 전에 한 번 수행하는 수정의 실제 함수 회귀 10개는 통과했다. 미터도 평가 후 실현 rate로 바뀌므로 같은 문제를 수정한 뒤 main을 다시 확인한다.
 2. 신호 계약을 실제 정본에 통합했다. 설치된 코드의 신호·offset 회귀 15개와 정수 event 10,395건 비교가 통과했다. 수정 MPC 실런에서 결정별 실제 신호를 다시 확인한다.
 3. green/offset 격리팔은 모두 완료했다. 수정 MPC의 β=0/60/150/300 후보를 실제로 실행하고 같은 1초 측정·공간 분석으로 비교한다.
 4. 한seed로최적화·추정한routing prior와제어선택은독립seed에서추가확인한다. 과거다른실험의σ50.7을현재실험의유의성기준으로그대로사용하지않는다.
