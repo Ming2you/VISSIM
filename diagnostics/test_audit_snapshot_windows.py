@@ -1,4 +1,4 @@
-"""Validate the unapplied VBS patch and execute its real reset block in cscript.
+"""Execute the installed VBS measurement-window reset block in cscript.
 
 The harness replaces COM capture/output with calls to the extracted reset block;
 ResetQueueWindow and ResetFarMeasurement are copied from the actual VBS source.
@@ -12,29 +12,10 @@ import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts/run_real_world_stackelberg_controller.vbs'
-PATCH=ROOT/'diagnostics/audit_snapshot_readonly.patch'
 
 
-def patched_source():
-    original=SOURCE.read_text(encoding='utf-8-sig').splitlines(keepends=True)
-    if 'Sub WriteStateJson(simSec, path, resetWindows)\n' in original:
-        return ''.join(original)
-    patch=PATCH.read_text(encoding='utf-8').splitlines(keepends=True)
-    out=[]; cursor=0; i=0
-    while i<len(patch):
-        match=re.match(r'@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@',patch[i])
-        if not match:i+=1;continue
-        start=int(match[1])-1
-        out.extend(original[cursor:start]);cursor=start;i+=1
-        while i<len(patch) and not patch[i].startswith('@@'):
-            line=patch[i];prefix=line[:1]
-            if prefix in (' ','-'):
-                if original[cursor]!=line[1:]:raise AssertionError('Patch context differs from frozen VBS')
-                cursor+=1
-            if prefix in (' ','+'):out.append(line[1:])
-            i+=1
-    out.extend(original[cursor:])
-    return ''.join(out)
+def installed_source():
+    return SOURCE.read_text(encoding='utf-8-sig')
 
 
 def subroutine(source,name):
@@ -43,7 +24,7 @@ def subroutine(source,name):
 
 class ReadonlySnapshotTests(unittest.TestCase):
     def test_all_writer_calls_declare_consumption(self):
-        source=patched_source()
+        source=installed_source()
         calls=re.findall(r'^\s*WriteStateJson\s+([^\n]+)',source,re.M)
         self.assertEqual(calls,['simSec, stateJsonPath, True','CLng(simSec), anchorPath, False'])
         body=subroutine(source,'WriteStateJson')
@@ -53,7 +34,7 @@ class ReadonlySnapshotTests(unittest.TestCase):
         self.assertLess(body.index('FarMeasurementJson()'),body.index('If resetWindows Then'))
 
     def test_actual_reset_helpers_preserve_audits_and_consume_decisions(self):
-        source=patched_source()
+        source=installed_source()
         body=subroutine(source,'WriteStateJson')
         block=re.search(r'    If resetWindows Then\n.*?    End If',body,re.S).group()
         reset_queue=subroutine(source,'ResetQueueWindow')

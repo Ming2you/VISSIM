@@ -1,12 +1,11 @@
 """Offline profile/CSV tests and a mocked execution of the real VBS scheduler.
 
-Integration source is patched only in memory while a live run owns the adapter.
+The scheduler and main pipeline come from the installed canonical sources.
 No VISSIM instance is created and no existing production file is written.
 """
 from __future__ import annotations
 
 import copy
-import ast
 import csv
 import json
 from pathlib import Path
@@ -23,25 +22,8 @@ from evaluation.controllers import diagnostic_profile as profile
 
 
 def integration_source(relative):
-    """Apply pending unified hunks to a string; also accept an integrated source."""
-    source = (ROOT / relative).read_text(encoding="utf-8")
-    if relative.endswith(".py") and "diagnostic_fixed_profile_guards_bypassed" in source:
-        return source
-    if relative.endswith(".vbs") and "Sub ValidateDiagnosticProfileNativeSignals" in source:
-        return source
-    patch = (ROOT / "diagnostics/diagnostic_profile.patch").read_text(encoding="utf-8")
-    marker = "--- a/" + relative + "\n"
-    portion = patch.split(marker, 1)[1].split("--- a/", 1)[0]
-    for hunk in re.split(r"^@@[^\n]*\n", portion, flags=re.M)[1:]:
-        old = "".join(line[1:] for line in hunk.splitlines(keepends=True)
-                      if line.startswith((" ", "-")))
-        new = "".join(line[1:] for line in hunk.splitlines(keepends=True)
-                      if line.startswith((" ", "+")))
-        if old in source:
-            source = source.replace(old, new, 1)
-        elif new not in source:
-            raise AssertionError(f"pending integration patch drifted: {relative}")
-    return source
+    """Read the source under test without applying a proposal fallback."""
+    return (ROOT / relative).read_text(encoding="utf-8-sig")
 
 
 class ProfileTests(unittest.TestCase):
@@ -134,12 +116,21 @@ class ProfileTests(unittest.TestCase):
             expected = 80 if seg["model_link"] == "FW_E" and seg["model_segment_index"] < 10 else 120
             self.assertEqual(float(row["speed_kph"]), expected)
 
-    def test_pending_adapter_compiles_and_fails_instead_of_fallback(self):
+    def test_installed_adapter_compiles_with_diagnostic_branch(self):
         source = integration_source("evaluation/controllers/vissim_stackelberg_adapter.py")
-        compile(source, "pending_canonical_adapter", "exec")
-        self.assertIn("raise  # An invalid causal arm", source)
-        self.assertIn("diagnostic_profile.CONTROLLER", source)
-        self.assertIn("diagnostic_fixed_profile_guards_bypassed", source)
+        compile(source, "installed_canonical_adapter", "exec")
+        self.assertTrue("diagnostic_profile.CONTROLLERS" in source)
+        self.assertTrue("diagnostic_fixed_profile_guards_bypassed" in source)
+
+    @unittest.skipUnless(RAW_STATE.exists(), "requires local no-control raw snapshot")
+    def test_main_does_not_publish_fixed_control_after_profile_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = subprocess.run([sys.executable, __file__, "--probe-reject", "80", tmp],
+                                    capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("injected diagnostic profile failure", result.stderr)
+            self.assertFalse((Path(tmp)/"action.json").exists())
+            self.assertFalse((Path(tmp)/"action.csv").exists())
 
     @unittest.skipUnless(RAW_STATE.exists(), "requires local no-control raw snapshot")
     def test_real_main_pipeline_has_no_policy_optimizer_or_closed_meter(self):
@@ -294,16 +285,16 @@ If signalFailures <> 1 Then WScript.Quit 3
         self.assertIn("sim_sec=900 checked=2 non_native=1 missing=0", result.stdout)
 
 
-def main_probe(cap, output):
+def main_probe(cap, output, *, reject=False):
     from evaluation.controllers import vissim_stackelberg_adapter as adapter
-    source = integration_source("evaluation/controllers/vissim_stackelberg_adapter.py")
-    main = next(node for node in ast.parse(source).body
-                if isinstance(node, ast.FunctionDef) and node.name == "main")
-    adapter.diagnostic_profile = profile
-    exec(compile(ast.Module(body=[main], type_ignores=[]), adapter.__file__, "exec"), adapter.__dict__)
 
     def forbidden(*args, **kwargs):
         raise AssertionError("fixed profile entered a policy/optimization/write-back path")
+
+    if reject:
+        def invalid_profile(*args, **kwargs):
+            raise ValueError("injected diagnostic profile failure")
+        profile.build_control = invalid_profile
 
     for name in ("apply_vissim_policy_guards", "apply_actuation_guards_to_control",
                  "apply_post_guard_safety_evaluation", "real_world_ramp_meter_write_back",
@@ -323,7 +314,7 @@ def main_probe(cap, output):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "--probe":
-        main_probe(sys.argv[2], sys.argv[3])
+    if len(sys.argv) > 1 and sys.argv[1] in ("--probe", "--probe-reject"):
+        main_probe(sys.argv[2], sys.argv[3], reject=sys.argv[1] == "--probe-reject")
     else:
         unittest.main()
