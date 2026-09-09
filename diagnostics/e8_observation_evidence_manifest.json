@@ -1,0 +1,36 @@
+{
+  "schema": "e8-bounded-observation-bundle/v1",
+  "archive": "e8_observation_evidence.zip",
+  "archive_bytes": 675915,
+  "archive_sha256": "9359221da287d8222f5e6b152118cfd63fdb570495a6daa4d7c3b47d82a3dda8",
+  "members": [
+    {
+      "name": "e8_lane_receiving_evidence.json",
+      "bytes": 1539974,
+      "sha256": "2c179d4ed1eda3dfa889c9d6faf1cc731a5dc89cdc8e255a81b4776fa09bf3a1"
+    },
+    {
+      "name": "e8_window_passages_NC.json",
+      "bytes": 2699021,
+      "sha256": "e2cf8975ed87eb8cef4c44098882250bffe5f2998eba5a25af435ee3484443be"
+    },
+    {
+      "name": "e8_window_passages_n7.json",
+      "bytes": 2803264,
+      "sha256": "24c08c1f97e8ce221c0a05685a9ee621ccfb801963250eb2eacd58cdabee2472"
+    },
+    {
+      "name": "e8_window_passages_zero.json",
+      "bytes": 2610161,
+      "sha256": "739a2672c433cbc45b0ee492b2a337bf4f74ef06fb7f417ab8a5e67e0a5a162c"
+    },
+    {
+      "name": "e8_window_passages_offset10.json",
+      "bytes": 2656818,
+      "sha256": "fac402010dd785d6fb5c2964e3be33450d1294b3bb9dc65afe23492e97429db6"
+    }
+  ],
+  "validation": "All five archived members byte-identical to generated evidence; ZIP CRC passes.",
+  "extract_command": "python -m zipfile -e diagnostics/e8_observation_evidence.zip diagnostics",
+  "scope": "Bounded historical trajectory observations, not live inputs or new model parameters."
+}

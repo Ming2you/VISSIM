@@ -1,0 +1,17 @@
+{
+  "question": "Where are the slow vehicles hidden by the E9 cell-average density?",
+  "takeaway": "At the common 3301-second snapshot, slow vehicles concentrate in lanes 1–3 before the 10682 diverge; lane 4 and road downstream of the diverge differ.",
+  "family": "scatter",
+  "variant": "four aligned vehicle-position panels with categorical lane coordinates",
+  "grain": "one observed vehicle, one exact FZP timestamp, four seed-13 runs",
+  "expected_rows": "approximately 1000 mainline vehicles across E8 and E9; at least eight observations required",
+  "time_sec": 3301,
+  "comparison": "NC versus pure n7 shows whole policies; fixed zero versus relative offset10 is the isolated offset pair",
+  "renderer": "Matplotlib standalone scientific diagnostic figure for export and the repository report",
+  "palette_policy": "hard two-root cap: blue moving, orange slow/stopped, neutral road and node guides",
+  "non_color_encoding": "filled circle >=30km/h; hollow circle 5–30km/h; cross <5km/h; direct lane labels and run facets",
+  "footprint_inches": [14, 10],
+  "outputs": ["e8_diverge_snapshot_3301.png", "e8_diverge_snapshot_3301.svg", "e8_diverge_snapshot_3301.csv", "e8_diverge_snapshot_3301_provenance.json"],
+  "qa": "inspect full exported PNG; verify exact snapshot hashes, row counts, common coordinate range, and nonoverlapping node labels",
+  "limits": "Instantaneous vehicle positions, not occupied road length or a capacity estimate; fixed-green vector came from the audit-affected earlier n7 run."
+}

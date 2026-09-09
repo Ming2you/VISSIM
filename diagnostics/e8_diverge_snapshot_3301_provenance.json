@@ -1,0 +1,76 @@
+{
+  "contract": {
+    "question": "Where are the slow vehicles hidden by the E9 cell-average density?",
+    "takeaway": "At the common 3301-second snapshot, slow vehicles concentrate in lanes 1\u20133 before the 10682 diverge; lane 4 and road downstream of the diverge differ.",
+    "family": "scatter",
+    "variant": "four aligned vehicle-position panels with categorical lane coordinates",
+    "grain": "one observed vehicle, one exact FZP timestamp, four seed-13 runs",
+    "expected_rows": "approximately 1000 mainline vehicles across E8 and E9; at least eight observations required",
+    "time_sec": 3301,
+    "comparison": "NC versus pure n7 shows whole policies; fixed zero versus relative offset10 is the isolated offset pair",
+    "renderer": "Matplotlib standalone scientific diagnostic figure for export and the repository report",
+    "palette_policy": "hard two-root cap: blue moving, orange slow/stopped, neutral road and node guides",
+    "non_color_encoding": "filled circle >=30km/h; hollow circle 5\u201330km/h; cross <5km/h; direct lane labels and run facets",
+    "footprint_inches": [
+      14,
+      10
+    ],
+    "outputs": [
+      "e8_diverge_snapshot_3301.png",
+      "e8_diverge_snapshot_3301.svg",
+      "e8_diverge_snapshot_3301.csv",
+      "e8_diverge_snapshot_3301_provenance.json"
+    ],
+    "qa": "inspect full exported PNG; verify exact snapshot hashes, row counts, common coordinate range, and nonoverlapping node labels",
+    "limits": "Instantaneous vehicle positions, not occupied road length or a capacity estimate; fixed-green vector came from the audit-affected earlier n7 run."
+  },
+  "sources": {
+    "NC": {
+      "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_nc_s13_6056c94_20260909_retry\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+      "file_bytes": 283076172,
+      "bytes_read": 366659,
+      "whole_network_vehicles": 6496,
+      "first_byte_offset": 143111466,
+      "selected_raw_rows_sha256": "6cf17ee8fa718ab0a003061aecf2ce69184b1dd32ec3f5d6820b05ce36141e18"
+    },
+    "n7": {
+      "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_n7_pure_s13_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+      "file_bytes": 276310490,
+      "bytes_read": 342512,
+      "whole_network_vehicles": 6310,
+      "first_byte_offset": 141955019,
+      "selected_raw_rows_sha256": "e792b3c8340f3a50831579fe52fe3ea1f2d9db97a5849780b1cee3be1ec2cf6e"
+    },
+    "zero": {
+      "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_signal_zero_s13_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+      "file_bytes": 1390501548,
+      "bytes_read": 350869,
+      "whole_network_vehicles": 6406,
+      "first_byte_offset": 716051742,
+      "selected_raw_rows_sha256": "e67980122b803b5e67f2b75d68bafb36306006399245373c6cd8be0ec681ab29"
+    },
+    "offset10": {
+      "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_signal_offset10_s13_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+      "file_bytes": 1374990988,
+      "bytes_read": 348755,
+      "whole_network_vehicles": 6326,
+      "first_byte_offset": 712640553,
+      "selected_raw_rows_sha256": "ba3f78678c3936be49fbf10b16a555901d9c71562abd5794f5f0cf2d69b92d19"
+    }
+  },
+  "row_count": 1118,
+  "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+  "mapping_sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+  "plot_script_sha256": "245f95db0ca89b357635dd9498ac6a467c0981b9c24d944926b6db34e4d5726b",
+  "csv_sha256": "4f0a9d44e0401595a126a8d28f5707ffa38b28c748eab21d6edba6a8b9848874",
+  "nodes_chain_m": {
+    "10639": 4610.8185917167775,
+    "10682": 4746.8844645080735,
+    "10681": 4899.955752742947
+  },
+  "cell_bounds_m": [
+    4108.201,
+    4621.726,
+    5135.252
+  ]
+}
