@@ -1,0 +1,13 @@
+{
+  "question": "Can a small total residence error conceal wrong freeway flow and local speed predictions?",
+  "source": "diagnostics/live_beta0_interval_prediction.json",
+  "scope": "Executed beta0 action at900, held unchanged through1050; incomplete run stopped at next decision.",
+  "charts": [
+    {"type": "grouped bars", "x": "freeway, remaining Omega, total Omega", "y": "vehicle-hours", "series": "model / physical1s residence"},
+    {"type": "grouped bars", "x": "mainline entry, ramp merge, off-ramp entry, terminal exit", "y": "vehicles over150s", "series": "model / physical1s events"},
+    {"type": "grouped bars", "x": "FW_E cell8, cell9", "y": "km/h at1050", "series": "model / paused COM"}
+  ],
+  "uncertainty": "No statistical intervals from this single run; recording/COM timing and terminal inference are explicit.",
+  "design": "Shared orange model and blue observation; units and baselines separate for each panel; numeric labels; no capacity claim.",
+  "deliverables": "Standalone PNG, SVG, plotted-values CSV and source/hash provenance; inspect final PNG."
+}

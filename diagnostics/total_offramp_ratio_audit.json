@@ -1,0 +1,885 @@
+{
+  "schema": "total-offramp-ratio-audit/v1",
+  "sources": [
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\network\\real_world_gaepo_modi\\modi_eval_userfix Ver2.inpx",
+      "bytes": 3051264,
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_candidate_configs\\n7_area_beta0.json",
+      "bytes": 270910,
+      "sha256": "a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+      "bytes": 5302,
+      "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\parameters.json",
+      "bytes": 7117,
+      "sha256": "536edbad4023cbbf71382292720b7c05748518fa54747fd95a1a9ab51f3d337f"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\config\\default.yaml",
+      "bytes": 14782,
+      "sha256": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\state.py",
+      "bytes": 97972,
+      "sha256": "bd691f7599abae54a60481fc7e16cb1845a5ae8ff2eb8beaae359fc81df286aa"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+      "bytes": 674065,
+      "sha256": "49b958772d09ddce0d1dc0bc6600f6b19340f8102af0e0d8b4cdf21ba0cf1106"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_freeway_accounting.py",
+      "bytes": 28426,
+      "sha256": "f0e14e44907b27a6efbeb4d03f86d970c61cc10c61e12767db86dade7ee5411e"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\local_freeway_plant.py",
+      "bytes": 15915,
+      "sha256": "9aa90227098fb59860ab083ea7c693df6ea99b7ecf1f246af26201cadb74d10f"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+      "bytes": 61718,
+      "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\freeway_ramp_split_v2_20260907.json",
+      "bytes": 5482,
+      "sha256": "2408b8e13a43da569e59b3d0045901d9e2b364e32a87e7923cda392cb35e58d2"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\live_beta0_interval_prediction.json",
+      "bytes": 707518,
+      "sha256": "933ed9cac5cfd5a86db20c9d3cc2b978516007b84cf20a478031b54dd92009c8"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\live_beta0_interval_prediction_trace.json",
+      "bytes": 326042,
+      "sha256": "bba1deea47bc6c451957882b85e9e67773026967a6bf5c3b4dcd3a5365fff18c"
+    },
+    {
+      "path": "C:\\Program Files\\PTV Vision\\PTV Vissim 2020\\Doc\\Eng\\attribute.xlsx",
+      "bytes": 1596763,
+      "sha256": "139705be4bac9ac41e88c9c201a8704fb37f0631834dd49d546f57aa37e8c57e"
+    }
+  ],
+  "official_default": {
+    "sheet": "Attributes",
+    "row": 1777,
+    "object": "VehicleRouteStatic",
+    "attribute": "RelFlow",
+    "subattribute": "TimeInterval",
+    "default": 1.0,
+    "description": "Relative volume: Share of this vehicle route within the vehicle routing decision. The sum of the relative volumes must not necessarily yield 1.0. \nAs in the route shares, the sum of all relative volumes always forms the basis of 100%; the absolute shares are calculated on this basis."
+  },
+  "effective_cfg_total_ratios": {
+    "OR_D_W": 0.2,
+    "OR_F_W": 0.2,
+    "OR_D_E": 0.2,
+    "OR_F_E": 0.2
+  },
+  "table": [
+    {
+      "group": "OR_F_E",
+      "decision": "1130",
+      "signal_weight": 1.6,
+      "direct_weight": 4.0,
+      "through_weight": 8.0,
+      "total_off_prior": 0.4117647058823529,
+      "current_total_ratio": 0.2,
+      "model_cell": 8,
+      "model_accepted_veh": 38.512834373528996,
+      "model_gross_sending_integral_veh": 192.56417186764494,
+      "observed_branch_entries_veh": 68,
+      "blocked_veh": 0.0,
+      "fixed_q_algebra_native_weights_veh": 79.29112959255967
+    },
+    {
+      "group": "OR_D_E",
+      "decision": "1131",
+      "signal_weight": 4.0,
+      "direct_weight": 3.0,
+      "through_weight": 8.0,
+      "total_off_prior": 0.4666666666666667,
+      "current_total_ratio": 0.2,
+      "model_cell": 13,
+      "model_accepted_veh": 26.888184369458653,
+      "model_gross_sending_integral_veh": 134.44092184729323,
+      "observed_branch_entries_veh": 67,
+      "blocked_veh": 0.0,
+      "fixed_q_algebra_native_weights_veh": 62.73909686207018
+    },
+    {
+      "group": "OR_D_W",
+      "decision": "1132",
+      "signal_weight": 3.0,
+      "direct_weight": 3.0,
+      "through_weight": 10.0,
+      "total_off_prior": 0.375,
+      "current_total_ratio": 0.2,
+      "model_cell": 6,
+      "model_accepted_veh": 42.81232592246575,
+      "model_gross_sending_integral_veh": 214.06162961232874,
+      "observed_branch_entries_veh": 77,
+      "blocked_veh": 0.0,
+      "fixed_q_algebra_native_weights_veh": 80.27311110462328
+    },
+    {
+      "group": "OR_F_W",
+      "decision": "1133",
+      "signal_weight": 1.0,
+      "direct_weight": 3.0,
+      "through_weight": 8.0,
+      "total_off_prior": 0.3333333333333333,
+      "current_total_ratio": 0.2,
+      "model_cell": 11,
+      "model_accepted_veh": 33.14265393692679,
+      "model_gross_sending_integral_veh": 165.71326968463396,
+      "observed_branch_entries_veh": 83,
+      "blocked_veh": 0.0,
+      "fixed_q_algebra_native_weights_veh": 55.23775656154464
+    }
+  ],
+  "native_routes_and_order": {
+    "OR_F_E": {
+      "decision_attributes": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "74",
+        "name": "",
+        "no": "1130",
+        "pos": "35.477974611944681",
+        "routeChoiceMeth": "STATIC"
+      },
+      "decision_chain_pos_m": 35.47797461194468,
+      "routes": [
+        {
+          "route": "1",
+          "kind": "signal",
+          "raw_relFlow": "2 0:1.6",
+          "default_used": false,
+          "weight": 1.6,
+          "full_path": [
+            "74",
+            "10699",
+            "2",
+            "10643"
+          ],
+          "destination_link": "10643",
+          "destination_pos_m": 15.59397086406085
+        },
+        {
+          "route": "2",
+          "kind": "through",
+          "raw_relFlow": "2 0:8",
+          "default_used": false,
+          "weight": 8.0,
+          "full_path": [
+            "74",
+            "10699",
+            "2"
+          ],
+          "destination_link": "2",
+          "destination_pos_m": 2268.325676212646
+        },
+        {
+          "route": "3",
+          "kind": "direct",
+          "raw_relFlow": "2 0:4",
+          "default_used": false,
+          "weight": 4.0,
+          "full_path": [
+            "74",
+            "10699",
+            "2",
+            "10682",
+            "121",
+            "10773",
+            "123"
+          ],
+          "destination_link": "123",
+          "destination_pos_m": 295.92350735286266
+        }
+      ],
+      "physical_branches": [
+        {
+          "connector": "10643",
+          "from_link": "2",
+          "to_link": "126",
+          "direction": "FW_E",
+          "chain_pos_m": 4386.333040435746,
+          "connector_lanes": 2,
+          "to_link_lanes": 2,
+          "legacy_group": "OR_F_E",
+          "name": "OR_F_E1",
+          "segment_index": 8,
+          "segment_length_m": 513.525
+        },
+        {
+          "connector": "10682",
+          "from_link": "2",
+          "to_link": "121",
+          "direction": "FW_E",
+          "chain_pos_m": 4746.8844645080735,
+          "connector_lanes": 1,
+          "to_link_lanes": 4,
+          "legacy_group": "OR_F_E",
+          "name": "OR_F_E2",
+          "segment_index": 9,
+          "segment_length_m": 513.525
+        }
+      ],
+      "merges_after_decision_before_last_branch": [
+        {
+          "connector": "10639",
+          "from_link": "70",
+          "to_link": "2",
+          "direction": "FW_E",
+          "chain_pos_m": 4610.8185917167775,
+          "connector_lanes": 1,
+          "from_link_lanes": 2,
+          "legacy_group": "R_F_E",
+          "name": "R_F_E1",
+          "segment_index": 8,
+          "segment_length_m": 513.525
+        }
+      ],
+      "observed_branch_rows": [
+        {
+          "connector": 10643,
+          "from_link": 2,
+          "from_pos_m": 1652.0,
+          "to_link": 126,
+          "to_pos_m": 331.758,
+          "lanes": 2,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.07222222222222223,
+            "mean_count_veh": 1.7333333333333334,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 6,
+            "observed_entries_veh": 23,
+            "observed_departures_veh": 25,
+            "observed_entry_source_links": {
+              "2": 23
+            },
+            "observed_departure_target_links": {
+              "10641": 23,
+              "126": 2
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 4,
+          "raw_final_count_veh": 2
+        },
+        {
+          "connector": 10682,
+          "from_link": 2,
+          "from_pos_m": 2012.0,
+          "to_link": 121,
+          "to_pos_m": 118.0,
+          "lanes": 1,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.7397222222222221,
+            "mean_count_veh": 17.75333333333333,
+            "slow_below5kph_veh_h": 0.2172222222222223,
+            "peak_count_veh": 22,
+            "observed_entries_veh": 45,
+            "observed_departures_veh": 37,
+            "observed_entry_source_links": {
+              "2": 45
+            },
+            "observed_departure_target_links": {
+              "121": 37
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 9,
+          "raw_final_count_veh": 17
+        }
+      ]
+    },
+    "OR_D_E": {
+      "decision_attributes": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "2",
+        "name": "",
+        "no": "1131",
+        "pos": "2320.5697214347756",
+        "routeChoiceMeth": "STATIC"
+      },
+      "decision_chain_pos_m": 5055.096721434776,
+      "routes": [
+        {
+          "route": "1",
+          "kind": "through",
+          "raw_relFlow": "2 0:8",
+          "default_used": false,
+          "weight": 8.0,
+          "full_path": [
+            "2",
+            "10613",
+            "119",
+            "10702",
+            "24"
+          ],
+          "destination_link": "24",
+          "destination_pos_m": 144.76333542677457
+        },
+        {
+          "route": "2",
+          "kind": "signal",
+          "raw_relFlow": "2 0:4",
+          "default_used": false,
+          "weight": 4.0,
+          "full_path": [
+            "2",
+            "10481",
+            "127"
+          ],
+          "destination_link": "127",
+          "destination_pos_m": 334.36343025078986
+        },
+        {
+          "route": "3",
+          "kind": "direct",
+          "raw_relFlow": "2 0:3",
+          "default_used": false,
+          "weight": 3.0,
+          "full_path": [
+            "2",
+            "10613",
+            "119",
+            "10483",
+            "124",
+            "10775",
+            "125"
+          ],
+          "destination_link": "125",
+          "destination_pos_m": 345.9387801386575
+        }
+      ],
+      "physical_branches": [
+        {
+          "connector": "10481",
+          "from_link": "2",
+          "to_link": "127",
+          "direction": "FW_E",
+          "chain_pos_m": 6826.842552641461,
+          "connector_lanes": 2,
+          "to_link_lanes": 3,
+          "legacy_group": "OR_D_E",
+          "name": "OR_D_E1",
+          "segment_index": 13,
+          "segment_length_m": 513.525
+        },
+        {
+          "connector": "10483",
+          "from_link": "119",
+          "to_link": "124",
+          "direction": "FW_E",
+          "chain_pos_m": 7240.272173232713,
+          "connector_lanes": 1,
+          "to_link_lanes": 3,
+          "legacy_group": "OR_D_E",
+          "name": "OR_D_E2",
+          "segment_index": 14,
+          "segment_length_m": 513.525
+        }
+      ],
+      "merges_after_decision_before_last_branch": [
+        {
+          "connector": "10490",
+          "from_link": "129",
+          "to_link": "119",
+          "direction": "FW_E",
+          "chain_pos_m": 7153.367468199085,
+          "connector_lanes": 1,
+          "from_link_lanes": 3,
+          "legacy_group": "R_D_E",
+          "name": "R_D_E1",
+          "segment_index": 13,
+          "segment_length_m": 513.525
+        }
+      ],
+      "observed_branch_rows": [
+        {
+          "connector": 10481,
+          "from_link": 2,
+          "from_pos_m": 4092.0,
+          "to_link": 127,
+          "to_pos_m": 334.4,
+          "lanes": 2,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.1377777777777773,
+            "mean_count_veh": 3.306666666666655,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 12,
+            "observed_entries_veh": 35,
+            "observed_departures_veh": 39,
+            "observed_entry_source_links": {
+              "2": 35
+            },
+            "observed_departure_target_links": {
+              "127": 39
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 5,
+          "raw_final_count_veh": 1
+        },
+        {
+          "connector": 10483,
+          "from_link": 119,
+          "from_pos_m": 392.0,
+          "to_link": 124,
+          "to_pos_m": 201.0,
+          "lanes": 1,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.16791666666666658,
+            "mean_count_veh": 4.029999999999998,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 12,
+            "observed_entries_veh": 32,
+            "observed_departures_veh": 29,
+            "observed_entry_source_links": {
+              "119": 32
+            },
+            "observed_departure_target_links": {
+              "124": 29
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 3,
+          "raw_final_count_veh": 6
+        }
+      ]
+    },
+    "OR_D_W": {
+      "decision_attributes": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "26",
+        "name": "",
+        "no": "1132",
+        "pos": "75.748552119079477",
+        "routeChoiceMeth": "STATIC"
+      },
+      "decision_chain_pos_m": 75.74855211907948,
+      "routes": [
+        {
+          "route": "1",
+          "kind": "direct",
+          "raw_relFlow": "2 0:3",
+          "default_used": false,
+          "weight": 3.0,
+          "full_path": [
+            "26",
+            "10479",
+            "125"
+          ],
+          "destination_link": "125",
+          "destination_pos_m": 345.9696783569605
+        },
+        {
+          "route": "2",
+          "kind": "signal",
+          "raw_relFlow": "2 0:3",
+          "default_used": false,
+          "weight": 3.0,
+          "full_path": [
+            "26",
+            "10491",
+            "129",
+            "10777",
+            "127"
+          ],
+          "destination_link": "127",
+          "destination_pos_m": 481.2268908561873
+        },
+        {
+          "route": "3",
+          "kind": "through",
+          "raw_relFlow": "2 0:10",
+          "default_used": false,
+          "weight": 10.0,
+          "full_path": [
+            "26",
+            "10771",
+            "120"
+          ],
+          "destination_link": "120",
+          "destination_pos_m": 388.96611975898895
+        }
+      ],
+      "physical_branches": [
+        {
+          "connector": "10479",
+          "from_link": "26",
+          "to_link": "125",
+          "direction": "FW_W",
+          "chain_pos_m": 3425.400538779528,
+          "connector_lanes": 1,
+          "to_link_lanes": 3,
+          "legacy_group": "OR_D_W",
+          "name": "OR_D_W1",
+          "segment_index": 6,
+          "segment_length_m": 513.357
+        },
+        {
+          "connector": "10491",
+          "from_link": "26",
+          "to_link": "129",
+          "direction": "FW_W",
+          "chain_pos_m": 3650.904900904122,
+          "connector_lanes": 1,
+          "to_link_lanes": 3,
+          "legacy_group": "OR_D_W",
+          "name": "OR_D_W2",
+          "segment_index": 7,
+          "segment_length_m": 513.357
+        }
+      ],
+      "merges_after_decision_before_last_branch": [
+        {
+          "connector": "10480",
+          "from_link": "124",
+          "to_link": "26",
+          "direction": "FW_W",
+          "chain_pos_m": 3525.124449495009,
+          "connector_lanes": 1,
+          "from_link_lanes": 3,
+          "legacy_group": "R_D_W",
+          "name": "R_D_W1",
+          "segment_index": 6,
+          "segment_length_m": 513.357
+        }
+      ],
+      "observed_branch_rows": [
+        {
+          "connector": 10479,
+          "from_link": 26,
+          "from_pos_m": 3425.4,
+          "to_link": 125,
+          "to_pos_m": 135.0,
+          "lanes": 1,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.09597222222222224,
+            "mean_count_veh": 2.3033333333333337,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 7,
+            "observed_entries_veh": 32,
+            "observed_departures_veh": 33,
+            "observed_entry_source_links": {
+              "26": 32
+            },
+            "observed_departure_target_links": {
+              "125": 33
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 1,
+          "raw_final_count_veh": 0
+        },
+        {
+          "connector": 10491,
+          "from_link": 26,
+          "from_pos_m": 3651.0,
+          "to_link": 129,
+          "to_pos_m": 302.0,
+          "lanes": 1,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.19958333333333328,
+            "mean_count_veh": 4.789999999999998,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 11,
+            "observed_entries_veh": 45,
+            "observed_departures_veh": 40,
+            "observed_entry_source_links": {
+              "26": 45
+            },
+            "observed_departure_target_links": {
+              "129": 40
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 1,
+          "raw_final_count_veh": 6
+        }
+      ]
+    },
+    "OR_F_W": {
+      "decision_attributes": {
+        "allVehTypes": "true",
+        "anmFlag": "false",
+        "combineStaRoutDec": "true",
+        "link": "120",
+        "name": "",
+        "no": "1133",
+        "pos": "424.22867928401729",
+        "routeChoiceMeth": "STATIC"
+      },
+      "decision_chain_pos_m": 4246.587679284017,
+      "routes": [
+        {
+          "route": "1",
+          "kind": "direct",
+          "raw_relFlow": "2 0:3",
+          "default_used": false,
+          "weight": 3.0,
+          "full_path": [
+            "120",
+            "10645",
+            "123"
+          ],
+          "destination_link": "123",
+          "destination_pos_m": 583.4840070873894
+        },
+        {
+          "route": "2",
+          "kind": "signal",
+          "raw_relFlow": "",
+          "default_used": true,
+          "weight": 1.0,
+          "full_path": [
+            "120",
+            "10638",
+            "70",
+            "10776",
+            "126"
+          ],
+          "destination_link": "126",
+          "destination_pos_m": 151.451
+        },
+        {
+          "route": "3",
+          "kind": "through",
+          "raw_relFlow": "2 0:8",
+          "default_used": false,
+          "weight": 8.0,
+          "full_path": [
+            "120"
+          ],
+          "destination_link": "120",
+          "destination_pos_m": 3054.9022015120368
+        }
+      ],
+      "physical_branches": [
+        {
+          "connector": "10645",
+          "from_link": "120",
+          "to_link": "123",
+          "direction": "FW_W",
+          "chain_pos_m": 5909.740224305974,
+          "connector_lanes": 1,
+          "to_link_lanes": 4,
+          "legacy_group": "OR_F_W",
+          "name": "OR_F_W1",
+          "segment_index": 11,
+          "segment_length_m": 513.357
+        },
+        {
+          "connector": "10638",
+          "from_link": "120",
+          "to_link": "70",
+          "direction": "FW_W",
+          "chain_pos_m": 6224.840000814334,
+          "connector_lanes": 2,
+          "to_link_lanes": 2,
+          "legacy_group": "OR_F_W",
+          "name": "OR_F_W2",
+          "segment_index": 12,
+          "segment_length_m": 513.357
+        }
+      ],
+      "merges_after_decision_before_last_branch": [
+        {
+          "connector": "10646",
+          "from_link": "121",
+          "to_link": "120",
+          "direction": "FW_W",
+          "chain_pos_m": 6075.357292620324,
+          "connector_lanes": 1,
+          "from_link_lanes": 4,
+          "legacy_group": "R_F_W",
+          "name": "R_F_W1",
+          "segment_index": 11,
+          "segment_length_m": 513.357
+        }
+      ],
+      "observed_branch_rows": [
+        {
+          "connector": 10638,
+          "from_link": 120,
+          "from_pos_m": 2402.0,
+          "to_link": 70,
+          "to_pos_m": 40.267,
+          "lanes": 2,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.25805555555555576,
+            "mean_count_veh": 6.193333333333338,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 13,
+            "observed_entries_veh": 42,
+            "observed_departures_veh": 48,
+            "observed_entry_source_links": {
+              "120": 42
+            },
+            "observed_departure_target_links": {
+              "70": 48
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 10,
+          "raw_final_count_veh": 4
+        },
+        {
+          "connector": 10645,
+          "from_link": 120,
+          "from_pos_m": 2087.0,
+          "to_link": 123,
+          "to_pos_m": 220.0,
+          "lanes": 1,
+          "_ver2": "2026-09-07 분할 반영",
+          "measured_connector": {
+            "residence_veh_h": 0.12555555555555525,
+            "mean_count_veh": 3.013333333333326,
+            "slow_below5kph_veh_h": 0.0,
+            "peak_count_veh": 7,
+            "observed_entries_veh": 41,
+            "observed_departures_veh": 41,
+            "observed_entry_source_links": {
+              "120": 41
+            },
+            "observed_departure_target_links": {
+              "123": 41
+            },
+            "appeared_veh": 0,
+            "disappeared_veh": 0
+          },
+          "raw_initial_count_veh": 3,
+          "raw_final_count_veh": 3
+        }
+      ]
+    }
+  },
+  "source_link_observations": {
+    "2": {
+      "residence_veh_h": 6.773750000000003,
+      "mean_count_veh": 162.57000000000008,
+      "slow_below5kph_veh_h": 0.1813888888888886,
+      "peak_count_veh": 199,
+      "observed_entries_veh": 243,
+      "observed_departures_veh": 198,
+      "observed_entry_source_links": {
+        "10699": 226,
+        "10639": 6,
+        "10681": 7,
+        "74": 4
+      },
+      "observed_departure_target_links": {
+        "10613": 19,
+        "10682": 45,
+        "10643": 23,
+        "119": 76,
+        "10481": 35
+      },
+      "appeared_veh": 0,
+      "disappeared_veh": 0
+    },
+    "26": {
+      "residence_veh_h": 10.334305555555558,
+      "mean_count_veh": 248.02333333333337,
+      "slow_below5kph_veh_h": 0.22402777777777783,
+      "peak_count_veh": 266,
+      "observed_entries_veh": 10,
+      "observed_departures_veh": 203,
+      "observed_entry_source_links": {
+        "10480": 10
+      },
+      "observed_departure_target_links": {
+        "120": 107,
+        "10491": 45,
+        "10479": 32,
+        "10771": 19
+      },
+      "appeared_veh": 230,
+      "disappeared_veh": 0
+    },
+    "119": {
+      "residence_veh_h": 0.4993055555555555,
+      "mean_count_veh": 11.983333333333333,
+      "slow_below5kph_veh_h": 0.0,
+      "peak_count_veh": 24,
+      "observed_entries_veh": 105,
+      "observed_departures_veh": 110,
+      "observed_entry_source_links": {
+        "10613": 19,
+        "2": 76,
+        "10490": 10
+      },
+      "observed_departure_target_links": {
+        "24": 65,
+        "10483": 32,
+        "10702": 13
+      },
+      "appeared_veh": 0,
+      "disappeared_veh": 0
+    },
+    "120": {
+      "residence_veh_h": 9.351111111111104,
+      "mean_count_veh": 224.42666666666648,
+      "slow_below5kph_veh_h": 0.0016666666666666668,
+      "peak_count_veh": 242,
+      "observed_entries_veh": 207,
+      "observed_departures_veh": 83,
+      "observed_entry_source_links": {
+        "26": 107,
+        "10482": 29,
+        "10646": 34,
+        "10644": 18,
+        "10771": 19
+      },
+      "observed_departure_target_links": {
+        "10638": 42,
+        "10645": 41
+      },
+      "appeared_veh": 0,
+      "disappeared_veh": 128
+    }
+  },
+  "arithmetic_only_warning": "Fixed-q multiplication is not a rollout, calibration, or causal decomposition: changing split changes downstream states. Native weights condition on decision cohort.",
+  "checks": {
+    "sources_unchanged": true,
+    "all_15_steps_integrated": true,
+    "flow_trace_matches_schedule": true,
+    "no_receiving_rejection": true,
+    "full_paths_include_destination": true
+  }
+}

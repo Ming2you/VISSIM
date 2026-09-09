@@ -12,3 +12,10 @@ diagnostics/probe_e8_lane_receiving.py text eol=lf
 diagnostics/probe_e8_window_passages.py text eol=lf
 diagnostics/summarize_e8_window_passages.py text eol=lf
 diagnostics/plot_e8_diverge_snapshot.py text eol=lf
+diagnostics/live_beta0_interval_prediction* -text whitespace=cr-at-eol
+diagnostics/total_offramp_ratio_* -text whitespace=cr-at-eol
+diagnostics/audit_total_offramp_ratio.py -text whitespace=cr-at-eol
+diagnostics/first_interval_prediction* -text whitespace=cr-at-eol
+diagnostics/plot_first_interval_prediction.py text eol=lf
+# Matplotlib path attributes contain significant, generated whitespace.
+diagnostics/*.svg -whitespace
