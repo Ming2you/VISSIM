@@ -22,7 +22,7 @@ import sys
 import time
 from pathlib import Path
 
-R = Path(r"C:\Users\TRLAB\Desktop\찐찐막\VISSIM")
+R = Path(__file__).resolve().parents[1]
 CFG = R / "evaluation/configs"
 RUNNER = R / "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1"
 NET = R / "network/real_world_gaepo_modi/modi_eval_userfix_20260814e_fwsweep_x18_rampbn_qc_lcd1000.inpx"
