@@ -6,7 +6,7 @@
 - `test_dynamic_area_routes.py`, `probe_area_endpoint.py`: 실제 `evaluation.controllers.area_dynamic_routes`를 사용합니다.
 - `test_sc2001_corridor.py`: 실제 corridor와 urban dispatcher 사용. corridor OFF body/state는 git3299040과 정확히 비교하며 Ω OFF에서도 실제 physics dispatcher가 작동하는지 확인합니다.
 - `test_observation_projection.py`: patch builder 대신 현재 adapter의 observation summary 사용. 원래6056c94의 disabled 비교 함수만 고정 reference로 남습니다.
-- `probe_sc2001_corridor_replay.py`: fixture와 CLI replay는 실제 production 모듈을 사용합니다. 다른 역사적 진단이 명시적으로 부르는 `proposal_module()`만 고정3299040에서 옛 제안을 구성하며 현재 파일에는 다시 패치를 적용하지 않습니다.
+- `probe_sc2001_corridor_replay.py`: fixture와 CLI replay는 실제 production 모듈을 사용합니다. 다섯 진단 소비자를 현재 `build_projected`/`configure_runtime` 및 설치된 endpoint로 이전한 뒤 `proposal_module()`과 그 전용 `types` import를 제거했습니다. 실제 OFF 비교의 고정3299040/6056c94 source reference는 그대로 보존합니다.
 - `test_strict_decision_failfast.py`: patch generator 없이 현재 watchdog의 실제 strict gate와 현재 VBS 함수를 직접 추출합니다. 자식 프로세스는 실제 실행하고 VISSIM은 fake 객체만 사용합니다.
 
 최초 production 전환 당시 검증 명령과 결과:

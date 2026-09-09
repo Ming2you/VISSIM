@@ -1,10 +1,9 @@
-"""Production corridor fixture and replay; archived proposal helper is explicit."""
+"""Production corridor fixture and replay using the installed canonical modules."""
 from pathlib import Path
 import argparse
 import hashlib
 import json
 import sys
-import types
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,19 +58,6 @@ def fixture(state_path=None, *, return_detectors=False, support_path='diagnostic
     if return_detectors:
         return cfg, state, control, raw, detectors
     return cfg, state, control, raw
-
-
-def proposal_module():
-    # Historical diagnostic callers explicitly request the pre-integration
-    # proposal. Never reapply its patch to the now-integrated production body.
-    from fixed_source_reference import source as fixed_source
-    from prepare_sc2001_urban_patch import proposed_source
-    source = fixed_source('evaluation/controllers/urban_flow_accounting.py')
-    module = types.ModuleType('diagnostics.sc2001_isolated_urban')
-    code = proposed_source(source)
-    exec(compile(code, '<isolated unapplied corridor urban body>', 'exec'), module.__dict__)
-    module._adapter = Harness.adapter
-    return module, hashlib.sha256(source.encode()).hexdigest(), hashlib.sha256(code.encode()).hexdigest()
 
 
 def run(time, depth):

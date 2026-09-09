@@ -4,8 +4,10 @@ from __future__ import annotations
 from collections import Counter
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "vendor/NumSim-mine")]
@@ -15,9 +17,21 @@ from evaluation.controllers.control_area_objective import (
 )
 
 
-def build_projected(config_path: Path, state_path: Path, previous_path: Path):
-    from diagnostics.review_fixtures import fixture_path
-    state_path, previous_path = fixture_path(state_path), fixture_path(previous_path)
+def build_projected(config_path: Path, state_path: Path, previous_path: Path, *, fixture_inputs=True):
+    """Initialize canonical runtime; explicit probes opt out of fixture aliases."""
+    if fixture_inputs:
+        from diagnostics.review_fixtures import fixture_path
+        return _build_projected(config_path, fixture_path(state_path), fixture_path(previous_path))
+    for path in (config_path, state_path, previous_path):
+        if not Path(path).is_file():
+            raise FileNotFoundError(f'Explicit production replay input is missing: {path}')
+    tuning = adapter.load_optional_json(str(config_path))
+    writer = tuning.get('actuation', {}).get('real_world_signal_control', {}).get('offset_writer', 'intent_only')
+    with patch.dict(os.environ, {'RW_OFFSET_WRITER': writer}):
+        return _build_projected(config_path, state_path, previous_path)
+
+
+def _build_projected(config_path, state_path, previous_path):
     tuning = adapter.load_optional_json(str(config_path))
     adapter.install_config_switches(tuning)
     calibration = adapter.load_optional_json(str(ROOT / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json"))

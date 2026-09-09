@@ -1,3 +1,5 @@
+후속 정본 이전 완료: 아래 초기52개 분류는 당시 기록이다. 다섯 probe의 현재 정본 이전, proposal helper 제거, 실제 삭제1개와 보존한11개 소비자는 `probe_production_migration.md` 및 JSON의 `completed_production_probe_migration`에 정리했다. 원본23개는 별도 ZIP에 byte 단위로 보존했으며 production·runtime 입력은 변경하지 않았다.
+
 현재 생성물52개를 다시 대조했다. **지금 제거 가능한34개, 소비자 이전이 먼저인11개, 실제 도구라 유지할4개, 미터 production 커밋까지 보류할3개**다. 파일별 정확한 경로와 tracked 여부는 `diagnostic_cleanup_actions.json`에 있다. 이번 작업에서는 삭제·source 수정·manifest 재생성·FZP 처리를 하지 않았다.
 
 34개는 이미 통합된 변경의 patch 사본과 소비자가 없는 생성기 묶음이다. follower/phase 후보와 생성기, signal/offset 후보와 생성기, observation/transit 생성기, 이전 개별 patch들이 포함된다. 그중 tracked 파일은 `diagnostic_lever_profiles.patch` 하나이며 나머지는 로컬 생성물이다. 삭제 목록 내부의 생성기→후보 의존성은 묶어서 제거한다. 보존할 생성기에 남은 출력 patch 이름은 읽기 의존성이 아니다.

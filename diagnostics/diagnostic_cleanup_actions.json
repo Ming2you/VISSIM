@@ -1,5 +1,5 @@
 {
-  "scope": "Read-only concrete cleanup review; no files removed, production/config/run outputs unchanged. 49 earlier candidates plus 3 new meter proposal artifacts reviewed.",
+  "scope": "Initial52-item classification is retained as historical context. See completed_production_probe_migration for the subsequent bounded migration and exact single-file retirement.",
   "checked_head": "0bbdf8aa81098f9dcd48ed2bc5f112463fb3a50f",
   "safely_removable_now_after_existing_production_commits": [
     {
@@ -280,5 +280,41 @@
     "Meter 3 are not in the immediate removal set because its production changes are still uncommitted at checked_head.",
     "The earlier name-based graph can confuse runtime_setup.py or observation_projection.py imports with same-stem .patch files. Exact filename reads were rechecked.",
     "Removal of optional proposal_module also requires updating its explicit legacy-helper description in area_production_test_migration.md; never relabel historical run results as current production."
-  ]
+  ],
+  "completed_production_probe_migration": {
+    "probes": [
+      "diagnostics/probe_all_area_snapshots.py",
+      "diagnostics/probe_corrected_prediction_fidelity.py",
+      "diagnostics/probe_direct_branch_order.py",
+      "diagnostics/probe_offramp_feedback_trace.py",
+      "diagnostics/probe_single_transfer_grid.py"
+    ],
+    "initialization": "Existing build_projected(final config, explicit snapshot, actual previous action, fixture_inputs=False) calls installed configure_runtime; endpoint imported after installation.",
+    "removed_helper": "probe_sc2001_corridor_replay.proposal_module",
+    "helper_active_consumers_after_migration": 0,
+    "retired_files": [
+      "diagnostics/build_area_projection_coverage.py"
+    ],
+    "retirement_audit": "diagnostics/retired_projection_builder_audit.json",
+    "archive": "diagnostics/fixtures/diagnostic_proposals_20260910.zip",
+    "archive_sha256": "7f640beb262291b8e2c665885d743bf2855c2f46d73e759a4767f07daa710f01",
+    "remaining_migration_first": [
+      "diagnostics/audit_snapshot_readonly.patch",
+      "diagnostics/diagnostic_profile.patch",
+      "diagnostics/freeway_count_geometry.patch",
+      "diagnostics/build_area_routes_and_sc2001_patch.py",
+      "diagnostics/prepare_sc2001_urban_patch.py",
+      "diagnostics/proposed_area_dynamic_routes.py",
+      "diagnostics/sc2001_corridor_proposal.py",
+      "diagnostics/prepare_area_failfast_patch.py",
+      "diagnostics/prepare_freeway_initial_count_patch.py",
+      "diagnostics/prepare_legsplit_receiving_patch.py",
+      "diagnostics/prepare_legsplit_single_transfer_patch.py"
+    ],
+    "runtime_inputs_modified": false,
+    "production_modified": false,
+    "validation": "diagnostics/probe_production_migration_validation.json",
+    "portable_default_validation": "diagnostics/probe_production_migration_portable_validation.json",
+    "report": "diagnostics/probe_production_migration.md"
+  }
 }

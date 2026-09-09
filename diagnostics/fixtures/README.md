@@ -46,3 +46,5 @@ python -m diagnostics.run_receiver_fixture_tests
 ```
 
 새 위치에 복원한 뒤 원래 run 폴더 접근과 git 호출을 막은 subprocess에서 실제10421 단독 재고·초기 entry0, 수선 제거 시 원래 오류, 나머지29개 미확정 양수 차단을 확인합니다. 세 검사 PASS, 금지 접근0입니다. 전체31개 pure 상태 재고 검사 결과는 `projection_support_receiver_regression.json`에 별도로 남으며 이 작은 ZIP에31개 상태를 포함했다는 뜻은 아닙니다. 원본이 있을 때만 사용하는 archive 생성기는 `python -m diagnostics.build_receiver_fixture_archive`이며 기존 archive를 덮어쓰지 않습니다.
+
+`diagnostic_proposals_20260910.zip`은 테스트 입력이 아닌 진단 source 복구용 archive입니다. 정본 이전 전 존재하던23개 원본을58,847 bytes로 보관하며 SHA256은 `7f640beb262291b8e2c665885d743bf2855c2f46d73e759a4767f07daa710f01`입니다. `index.json`과 companion manifest에 각 `raw/<원본 경로>`의 byte 수·SHA가 있습니다. archive에 포함됐다고 모두 삭제된 것은 아닙니다. 다섯 probe는 정본 코드로 이전했고, 실제 삭제한 옛 관측 지원 생성기1개의 복구 근거는 `retired_projection_builder_audit.json`에 기록했습니다. 운영 코드·runtime JSON을 이 archive에서 자동 설치하거나 덮어쓰는 기능은 없습니다.
