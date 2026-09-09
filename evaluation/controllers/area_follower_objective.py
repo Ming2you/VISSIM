@@ -28,6 +28,7 @@ def install_runtime(cfg):
     def rollout(self, state, control, forecast):
         if not enabled(self.cfg):
             return original_rollout(self, state, control, forecast)
+        _finalize_link_phases(self, control, state, forecast)
         from src.controllers.rollout_endpoint import ObjectiveSpec, evaluate_price_point
         point = evaluate_price_point(state, control, forecast, (), ObjectiveSpec(
             cfg=self.cfg, depth_override=max(1, int(self.cfg.mpc.horizon_steps)),
@@ -103,4 +104,89 @@ def install_runtime(cfg):
 
 def install_controller(controller):
     """Called by the canonical builder; workers also reinstall from their cfg."""
-    return install_runtime(controller.cfg)
+    metadata = install_runtime(controller.cfg)
+    if enabled(controller.cfg):
+        _install_link_phase_finalization()
+        metadata["control_area_link_phase_finalization_installed"] = 1.0
+    return metadata
+
+
+def _finalize_link_phases(self, control, state, forecast):
+    context = getattr(self, "_control_area_link_phase_context", None)
+    if context is None:
+        return
+    if control.diagnostics.get("_control_area_phase_token") == context["token"]:
+        if dict(control.green_times) != context["greens"]:
+            raise ValueError("Omega scored phase vector changed after finalization")
+        return
+    before = dict(control.green_times)
+    source = "none"
+    if self.phase_price_in_gne:
+        from src.models.state import phase_key
+        for signal, vector in (getattr(self, "_gne_phase_override", None) or {}).items():
+            for phase, value in vector.items():
+                key = phase_key(signal, phase)
+                if key in control.green_times:
+                    control.green_times[key] = float(value)
+        source = "gne_commit"
+    elif self.signal_phase_price:
+        # Calls the currently installed canonical refinement chain once, with
+        # the same demand that the outer Link.solve would pass to it.
+        context["refined_count"] = self.apply_phase_price_refinement(control, state, context["demand"])
+        source = "phase_refinement"
+    from evaluation.controllers import signal_actuation_contract
+    if signal_actuation_contract.enabled(self.cfg.network):
+        signal_actuation_contract.validate_control(control, self.cfg)
+    context["greens"] = dict(control.green_times)
+    control.diagnostics["_control_area_phase_token"] = context["token"]
+    control.diagnostics["control_area_phase_finalized_before_score"] = 1.0
+    control.diagnostics["control_area_phase_finalization_source"] = source
+    control.diagnostics["control_area_phase_finalized_changed_values"] = float(sum(
+        before.get(key) != value for key, value in control.green_times.items()))
+
+
+def _install_link_phase_finalization():
+    from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
+    cls = LinkAgentWuFollower
+    if getattr(cls.solve, "_control_area_link_phase_finalization", False):
+        return
+    original_solve = cls.solve
+    original_refine = cls.apply_phase_price_refinement
+
+    def refine(self, control, state, demand=None):
+        context = getattr(self, "_control_area_link_phase_context", None)
+        if (enabled(self.cfg) and context is not None and
+                control.diagnostics.get("_control_area_phase_token") == context["token"]):
+            if dict(control.green_times) != context["greens"]:
+                raise ValueError("Omega outer phase vector differs from scored vector")
+            return context.get("refined_count", 0)
+        return original_refine(self, control, state, demand)
+
+    def solve(self, state, leader, demand, *args, **kwargs):
+        if not enabled(self.cfg):
+            return original_solve(self, state, leader, demand, *args, **kwargs)
+        absent = object()
+        previous = getattr(self, "_control_area_link_phase_context", absent)
+        context = {"demand": demand}
+        # The diagnostics string survives ControlAction.copy for the zero arm;
+        # the scope exists only for this solve and is restored on every exit.
+        context["token"] = str(id(context))
+        self._control_area_link_phase_context = context
+        try:
+            result = original_solve(self, state, leader, demand, *args, **kwargs)
+            if "greens" not in context or dict(result.control.green_times) != context["greens"]:
+                raise ValueError("Omega Link returned an unscored final phase vector")
+            result.control.diagnostics["control_area_phase_outer_matches_scored"] = 1.0
+            result.control.diagnostics.pop("_control_area_phase_token", None)
+            result.diagnostics.pop("_control_area_phase_token", None)
+            result.diagnostics.update(result.control.diagnostics)
+            return result
+        finally:
+            if previous is absent:
+                del self._control_area_link_phase_context
+            else:
+                self._control_area_link_phase_context = previous
+
+    solve._control_area_link_phase_finalization = True
+    cls.apply_phase_price_refinement = refine
+    cls.solve = solve
