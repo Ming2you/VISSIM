@@ -554,7 +554,7 @@ End Sub
 Function UseContinuousStaticMode()
     Dim c
     c = LCase(CStr(controllerName))
-    UseContinuousStaticMode = (Not ForceStepwiseMode()) And (c = "no-control" Or c = "diagnostic-vsl60-only" Or c = "diagnostic-vsl80-only")
+    UseContinuousStaticMode = (Not ForceStepwiseMode()) And (c = "no-control" Or c = "diagnostic-vsl60-only" Or c = "diagnostic-vsl80-only" Or c = "diagnostic-vsl-profile")
     If UseContinuousStaticMode Then
         WScript.Echo "RUN_MODE=CONTINUOUS_STATIC controller=" & controllerName
     End If
@@ -639,6 +639,7 @@ Sub RunContinuousStaticMode()
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
     InitializeComRampMeterControl
     RunControllerDecision 1
+    ValidateDiagnosticProfileNativeSignals 1
     ApplyIncidentLaneClosure 1
     LogStateCsv 1
 
@@ -668,12 +669,14 @@ Sub RunContinuousStaticMode()
                 nextLogSec = NextLogAfter(CLng(currentSec))
             End If
             RunControllerDecision CLng(currentSec)
+            ValidateDiagnosticProfileNativeSignals CLng(currentSec)
             mainControlApplied = True
         ElseIf dueToLog Then
             LogStateCsv CLng(currentSec)
             nextLogSec = NextLogAfter(CLng(currentSec))
         End If
     Loop
+    ValidateDiagnosticProfileNativeSignals CLng(currentSec)
 End Sub
 
 Sub RunEventContinuousMode()
@@ -958,6 +961,9 @@ Sub RunControllerDecision(simSec)
     If detectorMappingPath <> "" Then cmd = cmd & " --detector-mapping-json " & Q(detectorMappingPath)
     If calibrationPath <> "" Then cmd = cmd & " --calibration-json " & Q(calibrationPath)
     If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
+    If LCase(CStr(effController)) = "diagnostic-vsl-profile" Then
+        cmd = cmd & " --diagnostic-allowed-vsl-speeds " & Q(RW_ALLOWED_VSL_SPEEDS)
+    End If
     If lastActionJson <> "" Then cmd = cmd & " --previous-action-json " & Q(lastActionJson)
     ' 어댑터 --mode 는 리더 탐색 폭을 정한다(vissim_stackelberg_adapter.py:2790).
     '   fast-smoke  + local_observation -> leader_candidate_count = 1
@@ -1496,11 +1502,55 @@ Function SignalRowsSuppressedForController(value)
         controller = "no-control" Or _
         controller = "diagnostic-vsl60-only" Or _
         controller = "diagnostic-vsl80-only" Or _
+        controller = "diagnostic-vsl-profile" Or _
         controller = "diagnostic-vsl80-original" Or _
         controller = "diagnostic-ramp-all735-original" Or _
         controller = "diagnostic-ramp-all360-original" _
     )
 End Function
+
+Sub ValidateDiagnosticProfileNativeSignals(simSec)
+    ' Read ownership only: a VSL profile must leave every urban SG native.
+    If LCase(CStr(controllerName)) <> "diagnostic-vsl-profile" Then Exit Sub
+    Dim scs, scKey, sc, sg, groupCount, value, checked, nonNative, missing
+    checked = 0
+    nonNative = 0
+    missing = 0
+    scs = Split(CStr(RW_SIGNAL_SCS), ",")
+    For Each scKey In scs
+        If Trim(CStr(scKey)) <> "" Then
+            Set sc = CachedSignalController(CLng(scKey))
+            If sc Is Nothing Then
+                missing = missing + 1
+            Else
+                groupCount = CachedSignalGroupCount(CLng(scKey), sc)
+                If groupCount <= 0 Then missing = missing + 1
+                For Each sg In sc.SGs
+                    If sg Is Nothing Then
+                        missing = missing + 1
+                    Else
+                        On Error Resume Next
+                        value = sg.AttValue("ContrByCOM")
+                        If Err.Number <> 0 Then
+                            missing = missing + 1
+                        Else
+                            checked = checked + 1
+                            If ComBoolean(value) Then nonNative = nonNative + 1
+                        End If
+                        Err.Clear
+                        On Error GoTo 0
+                    End If
+                Next
+            End If
+        End If
+    Next
+    WScript.Echo "PROFILE_NATIVE_SIGNAL_READBACK sim_sec=" & CStr(simSec) & _
+        " checked=" & CStr(checked) & " non_native=" & CStr(nonNative) & " missing=" & CStr(missing)
+    If checked = 0 Or nonNative > 0 Or missing > 0 Then
+        signalFailures = signalFailures + 1
+        WScript.Echo "ERROR=PROFILE_URBAN_SIGNAL_NOT_NATIVE sim_sec=" & CStr(simSec)
+    End If
+End Sub
 
 Function CsvNonEmptyCount(csvText)
     Dim parts, i, total

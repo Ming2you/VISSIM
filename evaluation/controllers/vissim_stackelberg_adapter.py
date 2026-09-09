@@ -41,6 +41,7 @@ from vissim_strict.physical_projection import (
 from vissim_strict.physical_projection_reference import MAX_STATE_BYTES
 # N4-5: SG 단위 액추에이션 계획. 순수 함수만 들어 있어 import 부작용이 없다.
 from evaluation.controllers import action_csv_schema
+from evaluation.controllers import diagnostic_profile
 from evaluation.controllers import offset_promotion
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
@@ -11942,6 +11943,7 @@ def main() -> None:
             "diagnostic-ramp-all300",
             "diagnostic-vsl60-only",
             "diagnostic-vsl80-only",
+            diagnostic_profile.CONTROLLER,
             "diagnostic-vsl110",
             "diagnostic-vsl100",
             "diagnostic-vsl90",
@@ -11967,6 +11969,7 @@ def main() -> None:
     )
     parser.add_argument("--calibration-json", default=str(DEFAULT_CALIBRATION))
     parser.add_argument("--tuning-json", default="")
+    parser.add_argument("--diagnostic-allowed-vsl-speeds", default="", help=argparse.SUPPRESS)
     projection_preparse = _preparse_projection_roles(sys.argv[1:], parser)
     try:
         args = parser.parse_args()
@@ -12535,6 +12538,12 @@ def main() -> None:
             control = diagnostic_vsl60_only_control(cfg, ControlAction)
             metadata["diagnostic_vsl60_only_active"] = 1.0
             metadata["suppress_signal_rows"] = 1.0
+        elif args.controller == diagnostic_profile.CONTROLLER:
+            control = diagnostic_profile.build_control(
+                cfg, ControlAction, tuning, mapping, args.diagnostic_allowed_vsl_speeds)
+            actuation = diagnostic_profile.fixed_actuation(actuation)
+            metadata["diagnostic_vsl_profile_active"] = 1.0
+            metadata["suppress_signal_rows"] = 1.0
         elif args.controller == "diagnostic-vsl80-only":
             control = diagnostic_vsl80_only_control(cfg, ControlAction)
             metadata["diagnostic_vsl80_only_active"] = 1.0
@@ -12694,21 +12703,24 @@ def main() -> None:
         if controller is not None and hasattr(controller, "close"):
             controller.close()
     except Exception as exc:  # Keep Vissim running; log and fall back safely.
+        if args.controller == diagnostic_profile.CONTROLLER:
+            raise  # An invalid causal arm must not silently become fixed control.
         control = ControlAction.fixed(cfg)
         metadata["controller_status"] = "fallback_fixed"
         metadata["controller_error_type"] = type(exc).__name__
         metadata["controller_error"] = str(exc)
 
-    control, policy_guard_metadata = apply_vissim_policy_guards(
-        control,
-        cfg,
-        state,
-        state_json,
-        actuation,
-        ControlAction,
-    )
-    metadata.update(policy_guard_metadata)
-    metadata.update(apply_actuation_guards_to_control(control, cfg, actuation))
+    if args.controller != diagnostic_profile.CONTROLLER:
+        control, policy_guard_metadata = apply_vissim_policy_guards(
+            control,
+            cfg,
+            state,
+            state_json,
+            actuation,
+            ControlAction,
+        )
+        metadata.update(policy_guard_metadata)
+        metadata.update(apply_actuation_guards_to_control(control, cfg, actuation))
     prediction = build_one_step_prediction(state, control, forecast, cfg, calibration)
     post_guard_tuning: Mapping[str, Any] = tuning
     if args.controller == "pstack-flagship" and not bool(
@@ -12722,19 +12734,22 @@ def main() -> None:
             {"adapter": {"post_guard_safety": {"pfo_baseline": {"enabled": False}}}},
         )
         metadata["flagship_post_guard_pfo_baseline_forced_off"] = 1.0
-    control, post_guard_safety_metadata, prediction = apply_post_guard_safety_evaluation(
-        control,
-        cfg,
-        state,
-        state_json,
-        forecast,
-        previous,
-        calibration,
-        post_guard_tuning,
-        actuation,
-        ControlAction,
-        prediction,
-    )
+    if args.controller == diagnostic_profile.CONTROLLER:
+        post_guard_safety_metadata = {"diagnostic_fixed_profile_guards_bypassed": 1.0}
+    else:
+        control, post_guard_safety_metadata, prediction = apply_post_guard_safety_evaluation(
+            control,
+            cfg,
+            state,
+            state_json,
+            forecast,
+            previous,
+            calibration,
+            post_guard_tuning,
+            actuation,
+            ControlAction,
+            prediction,
+        )
     metadata.update(post_guard_safety_metadata)
     metadata["prediction_status"] = str(prediction.get("status", ""))
     metadata["prediction_wall_sec"] = float(prediction.get("wall_sec", 0.0))
@@ -12751,8 +12766,9 @@ def main() -> None:
     offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict)
     metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
     # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
-    apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
-    real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
+    if args.controller != diagnostic_profile.CONTROLLER:
+        apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
+        real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(
