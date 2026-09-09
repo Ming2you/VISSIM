@@ -38,3 +38,11 @@ python -m unittest diagnostics.test_area_projection_coverage diagnostics.test_dy
 기본 `.review-fixtures/control-area-v1`이 있으면 중앙 helper가 자동으로 사용합니다. 다른 복원 위치를 쓸 때는 `VISSIM_REVIEW_FIXTURE_ROOT` 환경변수로 해당 위치를 지정합니다. `.review-fixtures`는 재생성 가능한 로컬 자료이며 커밋하지 않습니다.
 
 원본 archive를 재생성하는 명령은 `python -m diagnostics.build_review_fixture_archive`입니다. 이 작업에만 원래45파일과 해당 git history가 필요합니다. 이미 있는 ZIP을 덮어쓰지 않습니다. 배포·일반 테스트에는 archive 생성기를 실행할 필요가 없습니다.
+
+별도 `receiver_turns_v1.zip`은 beta0 첫 실행의1050초 관측 누락 회귀용입니다. 원본 상태·직전900초 명령·기록 manifest와 현재 수선 입력을 사용하는 재현 설정, 총4개 파일을187,207 bytes로 보존합니다. SHA256은 `100c8a7ea99273a8359a485977da0406e59d7e87e56c425bac3af4b40a5e6c89`입니다. 기존 v1 archive와 기록은 교체하지 않습니다.
+
+```powershell
+python -m diagnostics.run_receiver_fixture_tests
+```
+
+새 위치에 복원한 뒤 원래 run 폴더 접근과 git 호출을 막은 subprocess에서 실제10421 단독 재고·초기 entry0, 수선 제거 시 원래 오류, 나머지29개 미확정 양수 차단을 확인합니다. 세 검사 PASS, 금지 접근0입니다. 전체31개 pure 상태 재고 검사 결과는 `projection_support_receiver_regression.json`에 별도로 남으며 이 작은 ZIP에31개 상태를 포함했다는 뜻은 아닙니다. 원본이 있을 때만 사용하는 archive 생성기는 `python -m diagnostics.build_receiver_fixture_archive`이며 기존 archive를 덮어쓰지 않습니다.

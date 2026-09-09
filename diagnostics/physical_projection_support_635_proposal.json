@@ -209,7 +209,23 @@
     "10774": "SC1001_W_out",
     "10776": "in_SC1004_W",
     "10777": "in_SC1001_W",
-    "10778": "in_SC1001_W"
+    "10778": "in_SC1001_W",
+    "10119": "SC1001_W_out",
+    "10366": "SC11_to_SC5",
+    "10367": "SC11_to_SC1",
+    "10372": "SC11_to_SC5",
+    "10374": "SC11_to_SC1",
+    "10376": "SC11_to_SC5",
+    "10378": "SC11_to_SC1",
+    "10419": "SC5_to_SC101",
+    "10421": "SC5_to_SC11",
+    "10426": "SC5_to_SC11",
+    "10532": "SC101_to_SC5",
+    "10537": "SC101_to_SC5",
+    "10561": "SC1_to_SC11",
+    "10568": "SC1_to_SC11",
+    "10570": "SC1005_to_SC107",
+    "10698": "SC1001_W_out"
   },
   "evidence": {
     "10112": {
@@ -2278,6 +2294,441 @@
         "in_SC1001_W"
       ],
       "zero_vehicle_support_reviewed": true
+    },
+    "10119": {
+      "to_link": "31",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC1002_to_SC1001"
+      ],
+      "downstream_origins": [
+        "SC1001_W_out"
+      ],
+      "canonical_movements": [
+        "SC1001_E_SC1002_to_W_RAMP"
+      ],
+      "native_route_ids": [
+        "1118:2"
+      ],
+      "physical_triplet": [
+        "29",
+        "10119",
+        "31"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10366": {
+      "to_link": "1220011101",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock. Connector branches before the source-road signal head, so this is an unsignalled bypass observation; this mapping does not certify the model signal-service approximation.",
+      "existing_origins": [
+        "SC12_to_SC11"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC5"
+      ],
+      "canonical_movements": [
+        "SC11_E_SC12_to_N_SC5"
+      ],
+      "native_route_ids": [
+        "22:3"
+      ],
+      "physical_triplet": [
+        "1210012001",
+        "10366",
+        "1220011101"
+      ],
+      "source_head_precedes_connector": false,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10367": {
+      "to_link": "1220008203",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC11_to_SC1",
+        "SC12_to_SC11",
+        "in_SC1_E"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "canonical_movements": [
+        "SC11_E_SC12_to_W_SC1"
+      ],
+      "native_route_ids": [
+        "22:2"
+      ],
+      "physical_triplet": [
+        "1210012001",
+        "10367",
+        "1220008203"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10372": {
+      "to_link": "1220011101",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC1_to_SC11",
+        "in_SC11_W"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC5"
+      ],
+      "canonical_movements": [
+        "SC11_W_SC1_to_N_SC5",
+        "SC11_W_to_N_SC5"
+      ],
+      "native_route_ids": [
+        "21:1",
+        "1110:1"
+      ],
+      "physical_triplet": [
+        "1210008303",
+        "10372",
+        "1220011101"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10374": {
+      "to_link": "1220008203",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC11_to_SC1",
+        "SC5_to_SC11",
+        "in_SC1_E"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "canonical_movements": [
+        "SC11_N_SC5_to_W_SC1"
+      ],
+      "native_route_ids": [
+        "23:3"
+      ],
+      "physical_triplet": [
+        "1220011001",
+        "10374",
+        "1220008203"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10376": {
+      "to_link": "1220011101",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC7_to_SC11"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC5"
+      ],
+      "canonical_movements": [
+        "SC11_S_SC7_to_N_SC5"
+      ],
+      "native_route_ids": [
+        "24:2"
+      ],
+      "physical_triplet": [
+        "1210008703",
+        "10376",
+        "1220011101"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10378": {
+      "to_link": "1220008203",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC11_to_SC1",
+        "SC7_to_SC11",
+        "in_SC1_E"
+      ],
+      "downstream_origins": [
+        "SC11_to_SC1",
+        "in_SC1_E"
+      ],
+      "canonical_movements": [
+        "SC11_S_SC7_to_W_SC1"
+      ],
+      "native_route_ids": [
+        "24:1"
+      ],
+      "physical_triplet": [
+        "1210008703",
+        "10378",
+        "1220008203"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10419": {
+      "to_link": "1220014203",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC11_to_SC5"
+      ],
+      "downstream_origins": [
+        "SC5_to_SC101"
+      ],
+      "canonical_movements": [
+        "SC5_S_SC11_to_W_SC101"
+      ],
+      "native_route_ids": [
+        "1024:1"
+      ],
+      "physical_triplet": [
+        "1220014100",
+        "10419",
+        "1220014203"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10421": {
+      "to_link": "1220014000",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC102_to_SC5"
+      ],
+      "downstream_origins": [
+        "SC5_to_SC11"
+      ],
+      "canonical_movements": [
+        "SC5_N_SC102_to_S_SC11"
+      ],
+      "native_route_ids": [
+        "1023:2"
+      ],
+      "physical_triplet": [
+        "1220019201",
+        "10421",
+        "1220014000"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10426": {
+      "to_link": "1220014000",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock. Connector branches before the source-road signal head, so this is an unsignalled bypass observation; this mapping does not certify the model signal-service approximation.",
+      "existing_origins": [
+        "SC101_to_SC5"
+      ],
+      "downstream_origins": [
+        "SC5_to_SC11"
+      ],
+      "canonical_movements": [
+        "SC5_W_SC101_to_S_SC11"
+      ],
+      "native_route_ids": [
+        "1021:3"
+      ],
+      "physical_triplet": [
+        "1220014303",
+        "10426",
+        "1220014000"
+      ],
+      "source_head_precedes_connector": false,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10532": {
+      "to_link": "1210014303",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC1002_to_SC101"
+      ],
+      "downstream_origins": [
+        "SC101_to_SC5"
+      ],
+      "canonical_movements": [
+        "SC101_W_SC1002_to_E_SC5"
+      ],
+      "native_route_ids": [
+        "1011:2"
+      ],
+      "physical_triplet": [
+        "1220012502",
+        "10532",
+        "1210014303"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10537": {
+      "to_link": "1210014303",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC2005_to_SC101"
+      ],
+      "downstream_origins": [
+        "SC101_to_SC5"
+      ],
+      "canonical_movements": [
+        "SC101_N_SC2005_to_E_SC5"
+      ],
+      "native_route_ids": [
+        "1013:1"
+      ],
+      "physical_triplet": [
+        "1220016001",
+        "10537",
+        "1210014303"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10561": {
+      "to_link": "1220008301",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC105_to_SC1",
+        "SC1_to_SC11",
+        "in_SC11_W"
+      ],
+      "downstream_origins": [
+        "SC1_to_SC11",
+        "in_SC11_W"
+      ],
+      "canonical_movements": [
+        "SC1_W_SC105_to_E_SC11"
+      ],
+      "native_route_ids": [
+        "11:2",
+        "1110:1"
+      ],
+      "physical_triplet": [
+        "1220007104",
+        "10561",
+        "1220008301"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10568": {
+      "to_link": "1220008301",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC101_to_SC1",
+        "SC1_to_SC11",
+        "in_SC11_W"
+      ],
+      "downstream_origins": [
+        "SC1_to_SC11",
+        "in_SC11_W"
+      ],
+      "canonical_movements": [
+        "SC1_N_SC101_to_E_SC11"
+      ],
+      "native_route_ids": [
+        "13:1"
+      ],
+      "physical_triplet": [
+        "1210008401",
+        "10568",
+        "1220008301"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10570": {
+      "to_link": "61",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC105_to_SC1005"
+      ],
+      "downstream_origins": [
+        "SC1005_to_SC107"
+      ],
+      "canonical_movements": [
+        "SC1005_N_SC105_to_E_SC107"
+      ],
+      "native_route_ids": [
+        "1127:1"
+      ],
+      "physical_triplet": [
+        "403",
+        "10570",
+        "61"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
+    },
+    "10698": {
+      "to_link": "31",
+      "reason": "Exact native route and canonical active movement identify one receiving storage after this physical turn. Existing upstream origin is not the current location; vehicles on the connector are already receiving transit stock.",
+      "existing_origins": [
+        "SC1003_to_SC1001"
+      ],
+      "downstream_origins": [
+        "SC1001_W_out"
+      ],
+      "canonical_movements": [
+        "SC1001_S_SC1003_to_W_RAMP"
+      ],
+      "native_route_ids": [
+        "1119:1"
+      ],
+      "physical_triplet": [
+        "40",
+        "10698",
+        "31"
+      ],
+      "source_head_precedes_connector": true,
+      "review_path": "diagnostics/unresolved_projection_support_review.json",
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "zero_vehicle_support_reviewed": true
     }
   },
   "review_scope": "Eleven initial NC900 gaps plus additional positively occupied non-freeway observation gaps across all saved n7 decisions. Freeway connectors10613/10771 are handled separately by freeway continuity geometry.",
@@ -2287,7 +2738,7 @@
     "prior_support_path": "diagnostics\\physical_projection_support_ver2.json",
     "prior_support_sha256": "9f0861587c2213e7454b1bfaecbc88b9d762a56c61d4ba13cf10f960adbb50fc",
     "all_area_members_reviewed": 635,
-    "additional_unique_supports": 170,
+    "additional_unique_supports": 186,
     "unresolved_physical_links": [
       "141",
       "187",
@@ -2303,13 +2754,6 @@
       "336",
       "360",
       "459",
-      "10119",
-      "10366",
-      "10367",
-      "10372",
-      "10374",
-      "10376",
-      "10378",
       "10379",
       "10381",
       "10382",
@@ -2321,21 +2765,22 @@
       "10398",
       "10404",
       "10407",
-      "10419",
-      "10421",
-      "10426",
-      "10532",
-      "10537",
-      "10561",
-      "10568",
-      "10570",
       "10610",
       "10611",
       "10627",
-      "10634",
-      "10698"
+      "10634"
     ],
     "require_positive_unresolved_failure": true,
-    "policy": "Support is determined from physical topology even when the snapshot count is zero. Unresolved IDs remain explicit and are not mapped to zero/equal shares."
+    "policy": "Support is determined from physical topology even when the snapshot count is zero. Unresolved IDs remain explicit and are not mapped to zero/equal shares.",
+    "receiver_review_20260910": {
+      "original_support_sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "original_coverage_sha256": "719d28ef9449ec5fcbd84b5a0cdc83fa454c5b3ff4d90a12464b16642bfe8d42",
+      "canonical_contract_sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "proof_path": "diagnostics/unresolved_projection_support_review.json",
+      "reviewed": 45,
+      "added": 16,
+      "still_unresolved": 29,
+      "initial_stock_only_no_new_entry_events": true
+    }
   }
 }

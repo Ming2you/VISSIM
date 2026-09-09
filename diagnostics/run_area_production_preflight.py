@@ -125,6 +125,8 @@ def validate_result(payload, beta, controller='wu-link'):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--time', type=int, required=True)
+    parser.add_argument('--run', default='codex_n7_pure_s13_20260910',
+                        help='Recorded run whose actual state and preceding action are replayed.')
     parser.add_argument('--beta', type=int, choices=(0, 60, 150, 300), required=True)
     parser.add_argument('--controller', choices=('wu-link', 'no-control'), default='wu-link')
     parser.add_argument('--phase-trace', action='store_true', help='Read-only profile of base/outer follower phase vectors; diagnostic overhead applies.')
@@ -135,9 +137,15 @@ def main():
         parser.error('--timeout-sec must be finite and positive')
     cfg_path = ROOT / f'diagnostics/area_candidate_configs/n7_area_beta{args.beta}.json'
     cfg = checked_config(cfg_path, args.beta)
-    run = 'codex_n7_pure_s13_20260910'
-    decisions = ROOT / 'evaluation/runs' / run / ('decisions_' + run)
+    run = args.run
+    runs_root = (ROOT / 'evaluation/runs').resolve()
+    run_path = (runs_root / run).resolve()
+    if run_path.parent != runs_root or run_path.name != run or not run_path.is_dir():
+        parser.error('--run must name an existing direct child of evaluation/runs')
+    decisions = run_path / ('decisions_' + run)
     state = decisions / f'state_{args.time:06d}.json'
+    if not state.is_file():
+        parser.error('Requested recorded state does not exist: ' + str(state))
     previous = max((p for p in decisions.glob('action_*.json') if int(p.stem.split('_')[-1]) < args.time),
                    key=lambda p: int(p.stem.split('_')[-1]), default=None)
     tag = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
@@ -159,7 +167,19 @@ def main():
         env['PYTHONPATH'] = os.pathsep.join([str(ROOT), str(ROOT / 'diagnostics/phase_trace_bootstrap'),
                                             *([env['PYTHONPATH']] if env.get('PYTHONPATH') else [])])
         env['RW_PHASE_COMMIT_TRACE_DIR'] = str(out / 'phase_trace')
-    manifest = {'command': command, 'environment': {k: env[k] for k in ('RW_OFFSET_WRITER', 'NUMSIM_REPO_ROOT', 'RW_MAINLINE_SG_ONLY')},
+    candidate_manifest = json.loads((ROOT / 'diagnostics/area_candidate_configs/manifest.json').read_text(encoding='utf-8'))
+    inputs = {state, cfg_path, ROOT / cfg['mapping_json'], ROOT / cfg['detector_mapping_json'],
+              ROOT / 'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json'}
+    if previous is not None:
+        inputs.add(previous)
+    for relative, expected in candidate_manifest['source_sha256'].items():
+        path = ROOT / relative
+        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError('Candidate input changed since manifest generation: ' + relative)
+        inputs.add(path)
+    input_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sorted(inputs)}
+    manifest = {'recorded_run': run, 'recorded_sim_sec': args.time, 'input_sha256': input_hashes,
+                'command': command, 'environment': {k: env[k] for k in ('RW_OFFSET_WRITER', 'NUMSIM_REPO_ROOT', 'RW_MAINLINE_SG_ONLY')},
                 'config_sha256': hashlib.sha256(cfg_path.read_bytes()).hexdigest(),
                 'source_sha256': hashes(), 'execute': args.execute}
     if args.phase_trace:
@@ -197,14 +217,16 @@ def main():
     survivors = [row for pid, row in owned.items() if pid in snapshot and row['created'] == snapshot[pid]['created']]
     manifest.update(exit_code=process.returncode, elapsed_sec=time.monotonic() - started,
                     observed_worker_processes=list(owned.values()), surviving_worker_pids=[p['pid'] for p in survivors],
-                    source_unchanged=hashes() == manifest['source_sha256'])
+                    source_unchanged=hashes() == manifest['source_sha256'],
+                    inputs_unchanged=all(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected
+                                         for relative, expected in input_hashes.items()))
     # Never let a diagnostic timeout leave the process tree it created behind.
     for child in survivors:
         stop_exact_process(child)
     error = None
     try:
-        if process.returncode != 0 or survivors or not manifest['source_unchanged']:
-            raise AssertionError('Failed adapter/process cleanup or runtime source changed; inspect logs')
+        if process.returncode != 0 or survivors or not manifest['source_unchanged'] or not manifest['inputs_unchanged']:
+            raise AssertionError('Failed adapter/process cleanup or runtime source/input changed; inspect logs')
         manifest['validated_metadata'] = validate_result(json.loads((out / 'action.json').read_text(encoding='utf-8')), args.beta, args.controller)
         manifest['valid'] = True
     except Exception as exc:

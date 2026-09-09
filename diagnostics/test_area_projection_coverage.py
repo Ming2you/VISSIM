@@ -18,15 +18,17 @@ class CoverageTests(unittest.TestCase):
         area = json.loads((ROOT/'diagnostics/control_area_membership.json').read_text())
         self.assertEqual(set(coverage['by_physical_link']), set(area['inside_links']))
         self.assertEqual(sum(coverage['counts'].values()), 635)
-        self.assertEqual(len(coverage['proposed_additions']), 170)
-        self.assertEqual(len(coverage['unresolved']), 45)
+        review = coverage['receiver_review_20260910']
+        self.assertEqual(len(coverage['proposed_additions']), 170 + review['added'])
+        self.assertEqual(len(coverage['unresolved']), review['still_unresolved'])
+        self.assertEqual(review['reviewed'], review['added'] + review['still_unresolved'])
         for link in ['10613', '10771']:
             self.assertEqual(coverage['by_physical_link'][link]['status'], 'supported_separate_freeway_chain')
             self.assertNotIn(link, coverage['proposed_additions'])
         self.assertNotIn('10627', coverage['proposed_additions'])
         self.assertIn('known_native_transfer_identity_conflicts', coverage['unresolved']['10627'])
 
-    def test_all170_new_supports_project_one_synthetic_vehicle_once(self):
+    def test_all_reviewed_supports_project_one_synthetic_vehicle_once(self):
         from test_observation_projection import ActualInstalledProjection as Harness
         from src.models.state import TrafficState
         cfg, before, _, raw, detectors = fixture(return_detectors=True)
@@ -50,7 +52,7 @@ class CoverageTests(unittest.TestCase):
         for link, row in coverage['proposed_additions'].items():
             self.assertEqual(assigned[link], {'storage:'+row['target_storage']: 1.})
         self.assertAlmostEqual(sum(area_runtime.model_inventory(state, cfg).values())-
-            sum(area_runtime.model_inventory(before, cfg).values()), 170, places=7)
+            sum(area_runtime.model_inventory(before, cfg).values()), len(coverage['proposed_additions']), places=7)
 
     def test_pure_six_positive_gaps_have_unique_endpoint_support(self):
         coverage = json.loads((ROOT/'diagnostics/area_projection_coverage_635.json').read_text())

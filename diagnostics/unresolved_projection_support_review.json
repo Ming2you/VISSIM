@@ -1,0 +1,5326 @@
+{
+  "source_sha256": {
+    "coverage": "719d28ef9449ec5fcbd84b5a0cdc83fa454c5b3ff4d90a12464b16642bfe8d42",
+    "support": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+    "contract": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+    "config": "a1ba2ebcf3d9a11a65020efb68285775c4a43bd500022381afc1b1df315c94e4",
+    "snapshot": "9bb38d76c06595ce3c89979defaab67b583fa5ace00079bf54b29609ae2ed911",
+    "network": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "snapshot": "evaluation\\runs\\codex_area_beta0_s13_20260910\\decisions_codex_area_beta0_s13_20260910\\state_001050.json",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "reviewed_count": 45,
+  "status_counts": {
+    "unresolved_road_origin_or_route_identity": 14,
+    "proven_post_stopline_receiver": 14,
+    "proven_unsignalled_bypass_receiver": 2,
+    "unresolved_no_unique_accepted_movement_proof": 11,
+    "unresolved_shared_route_cohorts": 4
+  },
+  "proven_additions": {
+    "10119": "SC1001_W_out",
+    "10366": "SC11_to_SC5",
+    "10367": "SC11_to_SC1",
+    "10372": "SC11_to_SC5",
+    "10374": "SC11_to_SC1",
+    "10376": "SC11_to_SC5",
+    "10378": "SC11_to_SC1",
+    "10419": "SC5_to_SC101",
+    "10421": "SC5_to_SC11",
+    "10426": "SC5_to_SC11",
+    "10532": "SC101_to_SC5",
+    "10537": "SC101_to_SC5",
+    "10561": "SC1_to_SC11",
+    "10568": "SC1_to_SC11",
+    "10570": "SC1005_to_SC107",
+    "10698": "SC1001_W_out"
+  },
+  "remaining_unresolved": [
+    "141",
+    "187",
+    "189",
+    "197",
+    "209",
+    "224",
+    "240",
+    "242",
+    "247",
+    "249",
+    "251",
+    "336",
+    "360",
+    "459",
+    "10379",
+    "10381",
+    "10382",
+    "10391",
+    "10392",
+    "10393",
+    "10394",
+    "10397",
+    "10398",
+    "10404",
+    "10407",
+    "10610",
+    "10611",
+    "10627",
+    "10634"
+  ],
+  "links": {
+    "141": {
+      "prior_coverage": {
+        "physical_link": "141",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC12_to_SC6",
+          "SC6_to_SC12"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC12_to_SC6",
+          "SC6_to_SC12"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10220",
+          "from_link": "141",
+          "from_pos_m": 23.18309,
+          "to_link": "1220018302",
+          "to_pos_m": 0.428448
+        },
+        {
+          "connector": "10221",
+          "from_link": "141",
+          "from_pos_m": 20.388838,
+          "to_link": "1220018201",
+          "to_pos_m": 2.858827520698097
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "187": {
+      "prior_coverage": {
+        "physical_link": "187",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC108_to_SC7",
+          "SC7_to_SC108"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC108_to_SC7",
+          "SC7_to_SC108"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1106:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "187",
+            "name": "",
+            "no": "1106",
+            "pos": "84.05338223976085",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220044400",
+            "destPos": "27.03552883549483",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "187",
+            "10308",
+            "1220007401",
+            "10298",
+            "1220044400"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "187 1",
+          "localNo": "0",
+          "name": "",
+          "no": "150501",
+          "pos": "181.080781516446",
+          "sg": "8 5",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10308",
+          "from_link": "187",
+          "from_pos_m": 182.48013132071162,
+          "to_link": "1220007401",
+          "to_pos_m": 0.276349
+        },
+        {
+          "connector": "10309",
+          "from_link": "187",
+          "from_pos_m": 182.90051451644598,
+          "to_link": "1220007502",
+          "to_pos_m": 0.86395
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "189": {
+      "prior_coverage": {
+        "physical_link": "189",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC108_to_SC7",
+          "SC7_to_SC108"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC108_to_SC7",
+          "SC7_to_SC108"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "189 1",
+          "localNo": "0",
+          "name": "",
+          "no": "150101",
+          "pos": "23.159703",
+          "sg": "8 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10310",
+          "from_link": "189",
+          "from_pos_m": 26.481293,
+          "to_link": "1220007401",
+          "to_pos_m": 0.366528
+        },
+        {
+          "connector": "10311",
+          "from_link": "189",
+          "from_pos_m": 24.805214852745085,
+          "to_link": "1220007502",
+          "to_pos_m": 0.766596
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "197": {
+      "prior_coverage": {
+        "physical_link": "197",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC16_to_SC7",
+          "SC7_to_SC16",
+          "in_SC16_W",
+          "in_SC7_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC16_to_SC7",
+          "SC7_to_SC16",
+          "in_SC16_W",
+          "in_SC7_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10324",
+          "from_link": "197",
+          "from_pos_m": 106.2104355368239,
+          "to_link": "1210009600",
+          "to_pos_m": 0.303569
+        },
+        {
+          "connector": "10325",
+          "from_link": "197",
+          "from_pos_m": 106.37180553682389,
+          "to_link": "196",
+          "to_pos_m": 0.380817
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "209": {
+      "prior_coverage": {
+        "physical_link": "209",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC7",
+          "SC7_to_SC11"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC7",
+          "SC7_to_SC11"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1101:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "209",
+            "name": "",
+            "no": "1101",
+            "pos": "61.944172972675531",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220044400",
+            "destPos": "12.360197756559078",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "209",
+            "10340",
+            "1220008602",
+            "10335",
+            "1220008601",
+            "10328",
+            "1220007402",
+            "10304",
+            "1220007401",
+            "10298",
+            "1220044400"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "209 1",
+          "localNo": "0",
+          "name": "",
+          "no": "130101",
+          "pos": "121.35053911057261",
+          "sg": "19 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10339",
+          "from_link": "209",
+          "from_pos_m": 123.16943548359043,
+          "to_link": "1220008703",
+          "to_pos_m": 0.791585365499514
+        },
+        {
+          "connector": "10340",
+          "from_link": "209",
+          "from_pos_m": 124.6543571105726,
+          "to_link": "1220008602",
+          "to_pos_m": 0.282215
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "224": {
+      "prior_coverage": {
+        "physical_link": "224",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC12",
+          "SC12_to_SC11",
+          "in_SC11_E",
+          "in_SC12_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC12",
+          "SC12_to_SC11",
+          "in_SC11_E",
+          "in_SC12_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10355",
+          "from_link": "224",
+          "from_pos_m": 13.485557,
+          "to_link": "223",
+          "to_pos_m": 0.341889
+        },
+        {
+          "connector": "10356",
+          "from_link": "224",
+          "from_pos_m": 13.58358,
+          "to_link": "222",
+          "to_pos_m": 0.590314
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "240": {
+      "prior_coverage": {
+        "physical_link": "240",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "240 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20701",
+          "pos": "56.761865",
+          "sg": "2 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10391",
+          "from_link": "240",
+          "from_pos_m": 60.986833,
+          "to_link": "1220008202",
+          "to_pos_m": 0.27061278615460516
+        },
+        {
+          "connector": "10392",
+          "from_link": "240",
+          "from_pos_m": 61.666112,
+          "to_link": "1220008303",
+          "to_pos_m": 0.178482
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "242": {
+      "prior_coverage": {
+        "physical_link": "242",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "242 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20301",
+          "pos": "28.405389",
+          "sg": "2 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10393",
+          "from_link": "242",
+          "from_pos_m": 31.159781,
+          "to_link": "1220008202",
+          "to_pos_m": 1.3353356476383318
+        },
+        {
+          "connector": "10394",
+          "from_link": "242",
+          "from_pos_m": 31.223265,
+          "to_link": "1220008303",
+          "to_pos_m": 0.428984
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "247": {
+      "prior_coverage": {
+        "physical_link": "247",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10407",
+          "from_link": "247",
+          "from_pos_m": 49.098919,
+          "to_link": "255",
+          "to_pos_m": 0.278025
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "249": {
+      "prior_coverage": {
+        "physical_link": "249",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10404",
+          "from_link": "249",
+          "from_pos_m": 29.953534,
+          "to_link": "254",
+          "to_pos_m": 0.179736
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "251": {
+      "prior_coverage": {
+        "physical_link": "251",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "251 1",
+          "localNo": "0",
+          "name": "",
+          "no": "22701",
+          "pos": "24.047771",
+          "sg": "2 23",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10397",
+          "from_link": "251",
+          "from_pos_m": 23.583562,
+          "to_link": "1220008201",
+          "to_pos_m": 0.181042
+        },
+        {
+          "connector": "10398",
+          "from_link": "251",
+          "from_pos_m": 25.73718,
+          "to_link": "245",
+          "to_pos_m": 0.186007
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "336": {
+      "prior_coverage": {
+        "physical_link": "336",
+        "local_mask_enabled": true,
+        "existing_origins": [],
+        "current_vehicles": 0,
+        "status": "unresolved_observable_without_model_stock",
+        "reason": "No active movement or existing storage target supports this local record."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1014:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220008501",
+            "name": "매봉터널_NB",
+            "no": "1014",
+            "pos": "25.644856590034905",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1210014303",
+            "destPos": "28.793555052271696",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:126"
+          },
+          "path": [
+            "1220008501",
+            "10559",
+            "1210008501",
+            "10550",
+            "1220008502",
+            "10544",
+            "1220011503",
+            "10528",
+            "336",
+            "10529",
+            "1210014303"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [
+        {
+          "connector": "10528",
+          "from_link": "1220011503",
+          "from_pos_m": 193.00471499999998,
+          "to_link": "336",
+          "to_pos_m": 0.651921
+        }
+      ],
+      "outgoing": [
+        {
+          "connector": "10529",
+          "from_link": "336",
+          "from_pos_m": 14.506713,
+          "to_link": "1210014303",
+          "to_pos_m": 22.542975
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "360": {
+      "prior_coverage": {
+        "physical_link": "360",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC105_to_SC1",
+          "SC1_to_SC105"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC105_to_SC1",
+          "SC1_to_SC105"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1094:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "360",
+            "name": "",
+            "no": "1094",
+            "pos": "11.423702839936769",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220007104",
+            "destPos": "5.9801020422866262",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "360",
+            "10583",
+            "353",
+            "10574",
+            "1220007104"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10582",
+          "from_link": "360",
+          "from_pos_m": 21.127112,
+          "to_link": "358",
+          "to_pos_m": 0.38647
+        },
+        {
+          "connector": "10583",
+          "from_link": "360",
+          "from_pos_m": 20.765596,
+          "to_link": "353",
+          "to_pos_m": 0.445659
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "459": {
+      "prior_coverage": {
+        "physical_link": "459",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC5_to_SC6",
+          "SC6_to_SC5"
+        ],
+        "current_vehicles": 0,
+        "to_link": null,
+        "actual_downstream_origins": [
+          "SC5_to_SC6",
+          "SC6_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [
+        {
+          "connector": "10172",
+          "from_link": "459",
+          "from_pos_m": 31.8333818592804,
+          "to_link": "1210018504",
+          "to_pos_m": 0.2930224501433969
+        },
+        {
+          "connector": "10175",
+          "from_link": "459",
+          "from_pos_m": 37.67485268548563,
+          "to_link": "1220018403",
+          "to_pos_m": 0.526719653564633
+        }
+      ],
+      "status": "unresolved_road_origin_or_route_identity"
+    },
+    "10119": {
+      "prior_coverage": {
+        "physical_link": "10119",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1002_to_SC1001"
+        ],
+        "current_vehicles": 0,
+        "to_link": "31",
+        "actual_downstream_origins": [
+          "SC1001_W_out"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1118:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "29",
+            "name": "",
+            "no": "1118",
+            "pos": "10.829723073261189",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "31",
+            "destPos": "21.219509596307709",
+            "formula": "",
+            "name": "",
+            "no": "2",
+            "relFlow": "2 0:10"
+          },
+          "path": [
+            "29",
+            "10119",
+            "31"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1001_E_SC1002_to_W_RAMP",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "29",
+            "connector": "10119",
+            "to_link": "31",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "outflow",
+            "signal": "SC1001",
+            "canonical_source_legs": [
+              "SC1001·E_SC1002"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1001_W_out"
+            ],
+            "destination_support_paths": [
+              [
+                "31"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1001_W_out",
+          "model_spec": {
+            "origin": "SC1002_to_SC1001",
+            "kind": "boundary_out",
+            "signal": "SC1001",
+            "approach": "E_SC1002",
+            "receiving_link": "SC1001_W_out"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "29",
+        "10119",
+        "31"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "29 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030837",
+          "pos": "537.11940774001835",
+          "sg": "1001 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "29 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030838",
+          "pos": "536.92210937830976",
+          "sg": "1001 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "29 4",
+          "localNo": "0",
+          "name": "",
+          "no": "90030839",
+          "pos": "537.14813027514879",
+          "sg": "1001 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "29 2",
+        "pos": "538.43974949198048"
+      },
+      "to_endpoint": {
+        "lane": "31 1",
+        "pos": "2.030656464320884"
+      },
+      "length_m": 130.62692154818407,
+      "candidate_receiver": "SC1001_W_out",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC1001_W_out",
+      "source_head_precedes_connector": true
+    },
+    "10366": {
+      "prior_coverage": {
+        "physical_link": "10366",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC12_to_SC11"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220011101",
+        "actual_downstream_origins": [
+          "SC11_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "22:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220012001",
+            "name": "개포고교_WB",
+            "no": "22",
+            "pos": "18.673777168535626",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220011101",
+            "destPos": "15.854786904605843",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:84"
+          },
+          "path": [
+            "1220012001",
+            "10365",
+            "1210012001",
+            "10366",
+            "1220011101"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_E_SC12_to_N_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210012001",
+            "connector": "10366",
+            "to_link": "1220011101",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·E_SC12"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1220011101"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC5",
+          "model_spec": {
+            "origin": "SC12_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "E_SC12",
+            "receiving_link": "SC11_to_SC5"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210012001",
+        "10366",
+        "1220011101"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210012001 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30601",
+          "pos": "9.751282",
+          "sg": "11 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210012001 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30602",
+          "pos": "9.901426",
+          "sg": "11 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210012001 1",
+        "pos": "1.814227"
+      },
+      "to_endpoint": {
+        "lane": "1220011101 1",
+        "pos": "14.194615441209107"
+      },
+      "length_m": 26.281053844870506,
+      "candidate_receiver": "SC11_to_SC5",
+      "status": "proven_unsignalled_bypass_receiver",
+      "target_storage": "SC11_to_SC5",
+      "source_head_precedes_connector": false
+    },
+    "10367": {
+      "prior_coverage": {
+        "physical_link": "10367",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC12_to_SC11",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008203",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "22:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220012001",
+            "name": "개포고교_WB",
+            "no": "22",
+            "pos": "18.673777168535626",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220008203",
+            "destPos": "3.0035858526589596",
+            "formula": "",
+            "name": "직",
+            "no": "2",
+            "relFlow": "2 0:242"
+          },
+          "path": [
+            "1220012001",
+            "10365",
+            "1210012001",
+            "10367",
+            "1220008203"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_E_SC12_to_W_SC1",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210012001",
+            "connector": "10367",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·E_SC12"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC1",
+          "model_spec": {
+            "origin": "SC12_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "E_SC12",
+            "receiving_link": "SC11_to_SC1"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210012001",
+        "10367",
+        "1220008203"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210012001 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30601",
+          "pos": "9.751282",
+          "sg": "11 6",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210012001 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30602",
+          "pos": "9.901426",
+          "sg": "11 1",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210012001 1",
+        "pos": "12.073363"
+      },
+      "to_endpoint": {
+        "lane": "1220008203 1",
+        "pos": "0.6338296113338614"
+      },
+      "length_m": 33.81467418018133,
+      "candidate_receiver": "SC11_to_SC1",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC11_to_SC1",
+      "source_head_precedes_connector": true
+    },
+    "10372": {
+      "prior_coverage": {
+        "physical_link": "10372",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220011101",
+        "actual_downstream_origins": [
+          "SC11_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "21:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220008301",
+            "name": "개포고교_EB",
+            "no": "21",
+            "pos": "11.416808908805073",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220011101",
+            "destPos": "4.1789365605553943",
+            "formula": "",
+            "name": "좌",
+            "no": "1",
+            "relFlow": "2 0:233"
+          },
+          "path": [
+            "1220008301",
+            "10395",
+            "245",
+            "10401",
+            "255",
+            "10408",
+            "1220008302",
+            "10388",
+            "1220008303",
+            "10380",
+            "1210008303",
+            "10372",
+            "1220011101"
+          ]
+        },
+        {
+          "id": "1110:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "43",
+            "name": "",
+            "no": "1110",
+            "pos": "20.253799644042399",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "92",
+            "destPos": "22.855597386590066",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "43",
+            "10114",
+            "407",
+            "10653",
+            "411",
+            "10656",
+            "413",
+            "10657",
+            "1220006503",
+            "10665",
+            "1220007101",
+            "10588",
+            "359",
+            "10579",
+            "353",
+            "10574",
+            "1220007104",
+            "10561",
+            "1220008301",
+            "10395",
+            "245",
+            "10401",
+            "255",
+            "10408",
+            "1220008302",
+            "10388",
+            "1220008303",
+            "10380",
+            "1210008303",
+            "10372",
+            "1220011101",
+            "10116",
+            "1220011103",
+            "10414",
+            "1220014100",
+            "10420",
+            "1220018501",
+            "10195",
+            "128",
+            "10192",
+            "1220018502",
+            "10186",
+            "1220018503",
+            "10184",
+            "122",
+            "10189",
+            "1210018504",
+            "10181",
+            "1220018504",
+            "10197",
+            "1220021301",
+            "10115",
+            "1220021303",
+            "10138",
+            "92"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_W_SC1_to_N_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210008303",
+            "connector": "10372",
+            "to_link": "1220011101",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·W_SC1",
+              "SC11·W"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": false
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1220011101"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC5",
+          "model_spec": {
+            "origin": "SC1_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "W_SC1",
+            "receiving_link": "SC11_to_SC5"
+          }
+        },
+        {
+          "movement": "SC11_W_to_N_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210008303",
+            "connector": "10372",
+            "to_link": "1220011101",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·W_SC1",
+              "SC11·W"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1220011101"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC5",
+          "model_spec": {
+            "origin": "in_SC11_W",
+            "kind": "boundary_in",
+            "signal": "SC11",
+            "approach": "W",
+            "receiving_link": "SC11_to_SC5"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210008303",
+        "10372",
+        "1220011101"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008303 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30201",
+          "pos": "70.699888999999985",
+          "sg": "11 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008303 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30202",
+          "pos": "70.483294999999984",
+          "sg": "11 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210008303 2",
+        "pos": "72.218222765246182"
+      },
+      "to_endpoint": {
+        "lane": "1220011101 2",
+        "pos": "0.91746064900839153"
+      },
+      "length_m": 30.532145805785806,
+      "candidate_receiver": "SC11_to_SC5",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC11_to_SC5",
+      "source_head_precedes_connector": true
+    },
+    "10374": {
+      "prior_coverage": {
+        "physical_link": "10374",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC5_to_SC11",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008203",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "23:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220014000",
+            "name": "개포고교_SB",
+            "no": "23",
+            "pos": "14.396853558206509",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220008203",
+            "destPos": "3.1518259670693132",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:234"
+          },
+          "path": [
+            "1220014000",
+            "10409",
+            "259",
+            "10411",
+            "1220011003",
+            "10117",
+            "1220011001",
+            "10374",
+            "1220008203"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_N_SC5_to_W_SC1",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220011001",
+            "connector": "10374",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·N_SC5"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC1",
+          "model_spec": {
+            "origin": "SC5_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "N_SC5",
+            "receiving_link": "SC11_to_SC1"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220011001",
+        "10374",
+        "1220008203"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220011001 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30401",
+          "pos": "391.45501542818624",
+          "sg": "11 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220011001 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30402",
+          "pos": "391.37140042818623",
+          "sg": "11 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220011001 1",
+          "localNo": "0",
+          "name": "",
+          "no": "120801",
+          "pos": "170.52466842818617",
+          "sg": "18 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220011001 2",
+          "localNo": "0",
+          "name": "",
+          "no": "120802",
+          "pos": "170.60063642818622",
+          "sg": "18 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220011001 1",
+        "pos": "393.45753756107968"
+      },
+      "to_endpoint": {
+        "lane": "1220008203 1",
+        "pos": "1.4142011098274037"
+      },
+      "length_m": 23.232880395004234,
+      "candidate_receiver": "SC11_to_SC1",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC11_to_SC1",
+      "source_head_precedes_connector": true
+    },
+    "10376": {
+      "prior_coverage": {
+        "physical_link": "10376",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC7_to_SC11"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220011101",
+        "actual_downstream_origins": [
+          "SC11_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "24:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220008701",
+            "name": "개포고교_NB",
+            "no": "24",
+            "pos": "5.1656095162568665",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220011101",
+            "destPos": "4.4790094776688978",
+            "formula": "",
+            "name": "직",
+            "no": "2",
+            "relFlow": "2 0:378"
+          },
+          "path": [
+            "1220008701",
+            "10334",
+            "1220008702",
+            "10337",
+            "1220008703",
+            "10343",
+            "1210008703",
+            "10376",
+            "1220011101"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_S_SC7_to_N_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210008703",
+            "connector": "10376",
+            "to_link": "1220011101",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·S_SC7"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1220011101"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC5",
+          "model_spec": {
+            "origin": "SC7_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "S_SC7",
+            "receiving_link": "SC11_to_SC5"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210008703",
+        "10376",
+        "1220011101"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008703 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30801",
+          "pos": "10.885115157612505",
+          "sg": "11 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008703 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30802",
+          "pos": "15.904384000000004",
+          "sg": "11 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210008703 1",
+        "pos": "18.409282298618898"
+      },
+      "to_endpoint": {
+        "lane": "1220011101 1",
+        "pos": "0.58846718914214724"
+      },
+      "length_m": 23.855870856079058,
+      "candidate_receiver": "SC11_to_SC5",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC11_to_SC5",
+      "source_head_precedes_connector": true
+    },
+    "10378": {
+      "prior_coverage": {
+        "physical_link": "10378",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "SC7_to_SC11",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008203",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "24:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220008701",
+            "name": "개포고교_NB",
+            "no": "24",
+            "pos": "5.1656095162568665",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220008203",
+            "destPos": "3.332001340376614",
+            "formula": "",
+            "name": "좌",
+            "no": "1",
+            "relFlow": "2 0:60"
+          },
+          "path": [
+            "1220008701",
+            "10334",
+            "1220008702",
+            "10337",
+            "1220008703",
+            "10343",
+            "1210008703",
+            "10378",
+            "1220008203"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC11_S_SC7_to_W_SC1",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210008703",
+            "connector": "10378",
+            "to_link": "1220008203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC11",
+            "canonical_source_legs": [
+              "SC11·S_SC7"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC11_to_SC1",
+              "in_SC1_E"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC11_to_SC1",
+          "model_spec": {
+            "origin": "SC7_to_SC11",
+            "kind": "internal",
+            "signal": "SC11",
+            "approach": "S_SC7",
+            "receiving_link": "SC11_to_SC1"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210008703",
+        "10378",
+        "1220008203"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008703 2",
+          "localNo": "0",
+          "name": "",
+          "no": "30801",
+          "pos": "10.885115157612505",
+          "sg": "11 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008703 1",
+          "localNo": "0",
+          "name": "",
+          "no": "30802",
+          "pos": "15.904384000000004",
+          "sg": "11 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210008703 2",
+        "pos": "17.281909095790777"
+      },
+      "to_endpoint": {
+        "lane": "1220008203 2",
+        "pos": "1.6709978882877214"
+      },
+      "length_m": 18.656005128488417,
+      "candidate_receiver": "SC11_to_SC1",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC11_to_SC1",
+      "source_head_precedes_connector": true
+    },
+    "10379": {
+      "prior_coverage": {
+        "physical_link": "10379",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1210008203",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1104:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220008203",
+            "name": "",
+            "no": "1104",
+            "pos": "11.155248073665025",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "10379",
+            "destPos": "16.990593484840353",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "1220008203",
+            "10379"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220008203",
+        "10379",
+        "1210008203"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "1220008203 1",
+        "pos": "73.339518888287728"
+      },
+      "to_endpoint": {
+        "lane": "1210008203 1",
+        "pos": "0.57780800000000709"
+      },
+      "length_m": 19.38371539093273,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10381": {
+      "prior_coverage": {
+        "physical_link": "10381",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1210008203",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1105:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "236",
+            "name": "",
+            "no": "1105",
+            "pos": "11.014692201888527",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "10381",
+            "destPos": "6.7380420896952664",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "236",
+            "10381"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "236",
+        "10381",
+        "1210008203"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "236 1",
+        "pos": "44.572402"
+      },
+      "to_endpoint": {
+        "lane": "1210008203 1",
+        "pos": "0.19434200000000709"
+      },
+      "length_m": 8.01557773833392,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10382": {
+      "prior_coverage": {
+        "physical_link": "10382",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1210008303",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "236",
+        "10382",
+        "1210008303"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "236 1",
+        "pos": "44.42994"
+      },
+      "to_endpoint": {
+        "lane": "1210008303 2",
+        "pos": "0.67755799999998578"
+      },
+      "length_m": 18.73143735746848,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10391": {
+      "prior_coverage": {
+        "physical_link": "10391",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008202",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "240",
+        "10391",
+        "1220008202"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "240 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20701",
+          "pos": "56.761865",
+          "sg": "2 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "240 1",
+        "pos": "60.986833"
+      },
+      "to_endpoint": {
+        "lane": "1220008202 2",
+        "pos": "0.27061278615460516"
+      },
+      "length_m": 17.333895857970084,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10392": {
+      "prior_coverage": {
+        "physical_link": "10392",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008303",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "240",
+        "10392",
+        "1220008303"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "240 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20701",
+          "pos": "56.761865",
+          "sg": "2 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "240 1",
+        "pos": "61.666112"
+      },
+      "to_endpoint": {
+        "lane": "1220008303 1",
+        "pos": "0.178482"
+      },
+      "length_m": 17.813780734924308,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10393": {
+      "prior_coverage": {
+        "physical_link": "10393",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008202",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "242",
+        "10393",
+        "1220008202"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "242 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20301",
+          "pos": "28.405389",
+          "sg": "2 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "242 1",
+        "pos": "31.159781"
+      },
+      "to_endpoint": {
+        "lane": "1220008202 1",
+        "pos": "1.3353356476383318"
+      },
+      "length_m": 19.240027583321414,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10394": {
+      "prior_coverage": {
+        "physical_link": "10394",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008303",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "242",
+        "10394",
+        "1220008303"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "242 1",
+          "localNo": "0",
+          "name": "",
+          "no": "20301",
+          "pos": "28.405389",
+          "sg": "2 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "242 1",
+        "pos": "31.223265"
+      },
+      "to_endpoint": {
+        "lane": "1220008303 2",
+        "pos": "0.428984"
+      },
+      "length_m": 15.812558686609295,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10397": {
+      "prior_coverage": {
+        "physical_link": "10397",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008201",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "251",
+        "10397",
+        "1220008201"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "251 1",
+          "localNo": "0",
+          "name": "",
+          "no": "22701",
+          "pos": "24.047771",
+          "sg": "2 23",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "251 1",
+        "pos": "23.583562"
+      },
+      "to_endpoint": {
+        "lane": "1220008201 1",
+        "pos": "0.181042"
+      },
+      "length_m": 10.121568363911907,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10398": {
+      "prior_coverage": {
+        "physical_link": "10398",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "245",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "251",
+        "10398",
+        "245"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "251 1",
+          "localNo": "0",
+          "name": "",
+          "no": "22701",
+          "pos": "24.047771",
+          "sg": "2 23",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "251 1",
+        "pos": "25.73718"
+      },
+      "to_endpoint": {
+        "lane": "245 2",
+        "pos": "0.186007"
+      },
+      "length_m": 15.231428966805566,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10404": {
+      "prior_coverage": {
+        "physical_link": "10404",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "current_vehicles": 0,
+        "to_link": "254",
+        "actual_downstream_origins": [
+          "SC11_to_SC1",
+          "in_SC1_E"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "249",
+        "10404",
+        "254"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "249 1",
+        "pos": "29.953534"
+      },
+      "to_endpoint": {
+        "lane": "254 1",
+        "pos": "0.179736"
+      },
+      "length_m": 12.74048544769403,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10407": {
+      "prior_coverage": {
+        "physical_link": "10407",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "255",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "247",
+        "10407",
+        "255"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "247 1",
+        "pos": "49.098919"
+      },
+      "to_endpoint": {
+        "lane": "255 1",
+        "pos": "0.278025"
+      },
+      "length_m": 8.120588387285839,
+      "candidate_receiver": null,
+      "status": "unresolved_no_unique_accepted_movement_proof"
+    },
+    "10419": {
+      "prior_coverage": {
+        "physical_link": "10419",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC11_to_SC5"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220014203",
+        "actual_downstream_origins": [
+          "SC5_to_SC101"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1024:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220011101",
+            "name": "도곡역_NB",
+            "no": "1024",
+            "pos": "27.458996443927173",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220014203",
+            "destPos": "7.0546853697010219",
+            "formula": "",
+            "name": "좌",
+            "no": "1",
+            "relFlow": "2 0:206"
+          },
+          "path": [
+            "1220011101",
+            "10116",
+            "1220011103",
+            "10414",
+            "1220014100",
+            "10419",
+            "1220014203"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC5_S_SC11_to_W_SC101",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220014100",
+            "connector": "10419",
+            "to_link": "1220014203",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC5",
+            "canonical_source_legs": [
+              "SC5·S_SC11"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC5_to_SC101"
+            ],
+            "destination_support_paths": [
+              [
+                "1220014203"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC5_to_SC101",
+          "model_spec": {
+            "origin": "SC11_to_SC5",
+            "kind": "internal",
+            "signal": "SC5",
+            "approach": "S_SC11",
+            "receiving_link": "SC5_to_SC101"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220014100",
+        "10419",
+        "1220014203"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014100 3",
+          "localNo": "0",
+          "name": "",
+          "no": "70301",
+          "pos": "113.597463",
+          "sg": "5 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014100 2",
+          "localNo": "0",
+          "name": "",
+          "no": "70801",
+          "pos": "114.481846",
+          "sg": "5 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014100 1",
+          "localNo": "0",
+          "name": "",
+          "no": "70802",
+          "pos": "115.205929",
+          "sg": "5 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220014100 3",
+        "pos": "118.42653487298595"
+      },
+      "to_endpoint": {
+        "lane": "1220014203 4",
+        "pos": "4.477745"
+      },
+      "length_m": 39.52383521132316,
+      "candidate_receiver": "SC5_to_SC101",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC5_to_SC101",
+      "source_head_precedes_connector": true
+    },
+    "10421": {
+      "prior_coverage": {
+        "physical_link": "10421",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC102_to_SC5"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220014000",
+        "actual_downstream_origins": [
+          "SC5_to_SC11"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [
+        {
+          "veh_no": 5600,
+          "link_no": 10421,
+          "lane_no": 1,
+          "position_m": 45.6806206480593,
+          "speed_kph": 43.6754062849673,
+          "stopped": false
+        }
+      ],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1023:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1210019201",
+            "name": "도곡역_SB",
+            "no": "1023",
+            "pos": "7.786495846307095",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220014000",
+            "destPos": "8.2749307406358987",
+            "formula": "",
+            "name": "직",
+            "no": "2",
+            "relFlow": "2 0:368"
+          },
+          "path": [
+            "1210019201",
+            "10436",
+            "270",
+            "10434",
+            "268",
+            "10430",
+            "1220019201",
+            "10421",
+            "1220014000"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC5_N_SC102_to_S_SC11",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220019201",
+            "connector": "10421",
+            "to_link": "1220014000",
+            "source_inside": false,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [
+              {
+                "source": "1220019201",
+                "target": "10421",
+                "from_inside": false,
+                "to_inside": true
+              }
+            ],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 1,
+            "canonical_class": "inflow",
+            "signal": "SC5",
+            "canonical_source_legs": [
+              "SC5·N_SC102"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC5_to_SC11"
+            ],
+            "destination_support_paths": [
+              [
+                "1220014000"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC5_to_SC11",
+          "model_spec": {
+            "origin": "SC102_to_SC5",
+            "kind": "internal",
+            "signal": "SC5",
+            "approach": "N_SC102",
+            "receiving_link": "SC5_to_SC11"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220019201",
+        "10421",
+        "1220014000"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220019201 1",
+          "localNo": "0",
+          "name": "",
+          "no": "70401",
+          "pos": "243.275681",
+          "sg": "5 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220019201 2",
+          "localNo": "0",
+          "name": "",
+          "no": "70402",
+          "pos": "243.166096",
+          "sg": "5 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220019201 3",
+          "localNo": "0",
+          "name": "",
+          "no": "70701",
+          "pos": "243.148519",
+          "sg": "5 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220019201 1",
+        "pos": "248.78621502900086"
+      },
+      "to_endpoint": {
+        "lane": "1220014000 2",
+        "pos": "2.8108112015564588"
+      },
+      "length_m": 57.330189717468066,
+      "candidate_receiver": "SC5_to_SC11",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC5_to_SC11",
+      "source_head_precedes_connector": true
+    },
+    "10426": {
+      "prior_coverage": {
+        "physical_link": "10426",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC101_to_SC5"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220014000",
+        "actual_downstream_origins": [
+          "SC5_to_SC11"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1021:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1210014303",
+            "name": "도곡역_EB",
+            "no": "1021",
+            "pos": "33.793000480266549",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220014000",
+            "destPos": "7.1778596061272921",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:125"
+          },
+          "path": [
+            "1210014303",
+            "10525",
+            "265",
+            "10416",
+            "1220014303",
+            "10426",
+            "1220014000"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC5_W_SC101_to_S_SC11",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220014303",
+            "connector": "10426",
+            "to_link": "1220014000",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC5",
+            "canonical_source_legs": [
+              "SC5·W_SC101"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC5_to_SC11"
+            ],
+            "destination_support_paths": [
+              [
+                "1220014000"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC5_to_SC11",
+          "model_spec": {
+            "origin": "SC101_to_SC5",
+            "kind": "internal",
+            "signal": "SC5",
+            "approach": "W_SC101",
+            "receiving_link": "SC5_to_SC11"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220014303",
+        "10426",
+        "1220014000"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014303 4",
+          "localNo": "0",
+          "name": "",
+          "no": "70201",
+          "pos": "162.63547000000003",
+          "sg": "5 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014303 3",
+          "localNo": "0",
+          "name": "",
+          "no": "70202",
+          "pos": "162.52937200000002",
+          "sg": "5 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014303 2",
+          "localNo": "0",
+          "name": "",
+          "no": "70203",
+          "pos": "162.34466100000003",
+          "sg": "5 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014303 1",
+          "localNo": "0",
+          "name": "",
+          "no": "70204",
+          "pos": "162.35411800000003",
+          "sg": "5 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220014303 5",
+          "localNo": "0",
+          "name": "",
+          "no": "70501",
+          "pos": "162.73684000000003",
+          "sg": "5 5",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220014303 1",
+        "pos": "159.73591703114701"
+      },
+      "to_endpoint": {
+        "lane": "1220014000 1",
+        "pos": "3.4967092015564587"
+      },
+      "length_m": 25.852352191568116,
+      "candidate_receiver": "SC5_to_SC11",
+      "status": "proven_unsignalled_bypass_receiver",
+      "target_storage": "SC5_to_SC11",
+      "source_head_precedes_connector": false
+    },
+    "10532": {
+      "prior_coverage": {
+        "physical_link": "10532",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1002_to_SC101"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1210014303",
+        "actual_downstream_origins": [
+          "SC101_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1011:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "328",
+            "name": "매봉터널_EB",
+            "no": "1011",
+            "pos": "8.5618769847700023",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1210014303",
+            "destPos": "2.4515758231399163",
+            "formula": "",
+            "name": "직",
+            "no": "2",
+            "relFlow": "2 0:1055"
+          },
+          "path": [
+            "328",
+            "10521",
+            "327",
+            "10519",
+            "324",
+            "10515",
+            "1220012502",
+            "10532",
+            "1210014303"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC101_W_SC1002_to_E_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220012502",
+            "connector": "10532",
+            "to_link": "1210014303",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC101",
+            "canonical_source_legs": [
+              "SC101·W_SC1002"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC101_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1210014303"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC101_to_SC5",
+          "model_spec": {
+            "origin": "SC1002_to_SC101",
+            "kind": "internal",
+            "signal": "SC101",
+            "approach": "W_SC1002",
+            "receiving_link": "SC101_to_SC5"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220012502",
+        "10532",
+        "1210014303"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220012502 4",
+          "localNo": "0",
+          "name": "",
+          "no": "1010201",
+          "pos": "226.352319",
+          "sg": "101 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220012502 3",
+          "localNo": "0",
+          "name": "",
+          "no": "1010202",
+          "pos": "225.695447",
+          "sg": "101 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220012502 2",
+          "localNo": "0",
+          "name": "",
+          "no": "1010203",
+          "pos": "225.153932",
+          "sg": "101 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220012502 1",
+          "localNo": "0",
+          "name": "",
+          "no": "1010204",
+          "pos": "224.50241",
+          "sg": "101 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220012502 5",
+          "localNo": "0",
+          "name": "",
+          "no": "1010501",
+          "pos": "227.007311",
+          "sg": "101 5",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220012502 1",
+        "pos": "229.55469196264391"
+      },
+      "to_endpoint": {
+        "lane": "1210014303 1",
+        "pos": "0.439952"
+      },
+      "length_m": 38.47501594417991,
+      "candidate_receiver": "SC101_to_SC5",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC101_to_SC5",
+      "source_head_precedes_connector": true
+    },
+    "10537": {
+      "prior_coverage": {
+        "physical_link": "10537",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC2005_to_SC101"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1210014303",
+        "actual_downstream_origins": [
+          "SC101_to_SC5"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1013:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "308",
+            "name": "매봉터널_SB",
+            "no": "1013",
+            "pos": "12.679610155781713",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1210014303",
+            "destPos": "4.5598352215711175",
+            "formula": "",
+            "name": "좌",
+            "no": "1",
+            "relFlow": "2 0:244"
+          },
+          "path": [
+            "308",
+            "10485",
+            "309",
+            "10507",
+            "314",
+            "10502",
+            "1220016001",
+            "10537",
+            "1210014303"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC101_N_SC2005_to_E_SC5",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220016001",
+            "connector": "10537",
+            "to_link": "1210014303",
+            "source_inside": false,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [
+              {
+                "source": "1220016001",
+                "target": "10537",
+                "from_inside": false,
+                "to_inside": true
+              }
+            ],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 1,
+            "canonical_class": "inflow",
+            "signal": "SC101",
+            "canonical_source_legs": [
+              "SC101·N_SC2005"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC101_to_SC5"
+            ],
+            "destination_support_paths": [
+              [
+                "1210014303"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC101_to_SC5",
+          "model_spec": {
+            "origin": "SC2005_to_SC101",
+            "kind": "internal",
+            "signal": "SC101",
+            "approach": "N_SC2005",
+            "receiving_link": "SC101_to_SC5"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220016001",
+        "10537",
+        "1210014303"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220016001 3",
+          "localNo": "0",
+          "name": "",
+          "no": "1010401",
+          "pos": "5.255113",
+          "sg": "101 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220016001 2",
+          "localNo": "0",
+          "name": "",
+          "no": "1010402",
+          "pos": "5.571092",
+          "sg": "101 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220016001 1",
+          "localNo": "0",
+          "name": "",
+          "no": "1010403",
+          "pos": "5.799195",
+          "sg": "101 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220016001 5",
+          "localNo": "0",
+          "name": "",
+          "no": "1010701",
+          "pos": "4.523128",
+          "sg": "101 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220016001 4",
+          "localNo": "0",
+          "name": "",
+          "no": "1010702",
+          "pos": "4.920438",
+          "sg": "101 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220016001 4",
+        "pos": "7.759458"
+      },
+      "to_endpoint": {
+        "lane": "1210014303 3",
+        "pos": "0.702664"
+      },
+      "length_m": 38.00051234899487,
+      "candidate_receiver": "SC101_to_SC5",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC101_to_SC5",
+      "source_head_precedes_connector": true
+    },
+    "10561": {
+      "prior_coverage": {
+        "physical_link": "10561",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC105_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008301",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "11:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "359",
+            "name": "구룡초교_EB",
+            "no": "11",
+            "pos": "13.352886510228332",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220008301",
+            "destPos": "7.1152287384637276",
+            "formula": "",
+            "name": "직",
+            "no": "2",
+            "relFlow": "2 0:284"
+          },
+          "path": [
+            "359",
+            "10579",
+            "353",
+            "10574",
+            "1220007104",
+            "10561",
+            "1220008301"
+          ]
+        },
+        {
+          "id": "1110:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "43",
+            "name": "",
+            "no": "1110",
+            "pos": "20.253799644042399",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "92",
+            "destPos": "22.855597386590066",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "43",
+            "10114",
+            "407",
+            "10653",
+            "411",
+            "10656",
+            "413",
+            "10657",
+            "1220006503",
+            "10665",
+            "1220007101",
+            "10588",
+            "359",
+            "10579",
+            "353",
+            "10574",
+            "1220007104",
+            "10561",
+            "1220008301",
+            "10395",
+            "245",
+            "10401",
+            "255",
+            "10408",
+            "1220008302",
+            "10388",
+            "1220008303",
+            "10380",
+            "1210008303",
+            "10372",
+            "1220011101",
+            "10116",
+            "1220011103",
+            "10414",
+            "1220014100",
+            "10420",
+            "1220018501",
+            "10195",
+            "128",
+            "10192",
+            "1220018502",
+            "10186",
+            "1220018503",
+            "10184",
+            "122",
+            "10189",
+            "1210018504",
+            "10181",
+            "1220018504",
+            "10197",
+            "1220021301",
+            "10115",
+            "1220021303",
+            "10138",
+            "92"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1_W_SC105_to_E_SC11",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220007104",
+            "connector": "10561",
+            "to_link": "1220008301",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC1",
+            "canonical_source_legs": [
+              "SC1·W_SC105"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1_to_SC11",
+              "in_SC11_W"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008301"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1_to_SC11",
+          "model_spec": {
+            "origin": "SC105_to_SC1",
+            "kind": "internal",
+            "signal": "SC1",
+            "approach": "W_SC105",
+            "receiving_link": "SC1_to_SC11"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220007104",
+        "10561",
+        "1220008301"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220007104 2",
+          "localNo": "0",
+          "name": "",
+          "no": "10201",
+          "pos": "290.05123299999997",
+          "sg": "1 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220007104 1",
+          "localNo": "0",
+          "name": "",
+          "no": "10202",
+          "pos": "289.91944599999994",
+          "sg": "1 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220007104 1",
+        "pos": "291.56734099999994"
+      },
+      "to_endpoint": {
+        "lane": "1220008301 1",
+        "pos": "0.290383"
+      },
+      "length_m": 52.04120582979029,
+      "candidate_receiver": "SC1_to_SC11",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC1_to_SC11",
+      "source_head_precedes_connector": true
+    },
+    "10568": {
+      "prior_coverage": {
+        "physical_link": "10568",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC101_to_SC1",
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "current_vehicles": 0,
+        "to_link": "1220008301",
+        "actual_downstream_origins": [
+          "SC1_to_SC11",
+          "in_SC11_W"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "13:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1210008402",
+            "name": "구룡초교_SB",
+            "no": "13",
+            "pos": "10.353186405032657",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220008301",
+            "destPos": "5.0479826691585057",
+            "formula": "",
+            "name": "좌",
+            "no": "1",
+            "relFlow": "2 0:45"
+          },
+          "path": [
+            "1210008402",
+            "10542",
+            "337",
+            "10540",
+            "1220008402",
+            "10547",
+            "1220008401",
+            "10558",
+            "1210008401",
+            "10568",
+            "1220008301"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1_N_SC101_to_E_SC11",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1210008401",
+            "connector": "10568",
+            "to_link": "1220008301",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC1",
+            "canonical_source_legs": [
+              "SC1·N_SC101"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1_to_SC11",
+              "in_SC11_W"
+            ],
+            "destination_support_paths": [
+              [
+                "1220008301"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1_to_SC11",
+          "model_spec": {
+            "origin": "SC101_to_SC1",
+            "kind": "internal",
+            "signal": "SC1",
+            "approach": "N_SC101",
+            "receiving_link": "SC1_to_SC11"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1210008401",
+        "10568",
+        "1220008301"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008401 4",
+          "localNo": "0",
+          "name": "",
+          "no": "10401",
+          "pos": "135.30357400227982",
+          "sg": "1 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008401 3",
+          "localNo": "0",
+          "name": "",
+          "no": "10402",
+          "pos": "135.42332011899501",
+          "sg": "1 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008401 2",
+          "localNo": "0",
+          "name": "",
+          "no": "10403",
+          "pos": "135.79934381202642",
+          "sg": "1 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008401 1",
+          "localNo": "0",
+          "name": "",
+          "no": "10404",
+          "pos": "135.87789888099104",
+          "sg": "1 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1210008401 5",
+          "localNo": "0",
+          "name": "",
+          "no": "10701",
+          "pos": "134.90280227542357",
+          "sg": "1 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1210008401 5",
+        "pos": "144.4215718865801"
+      },
+      "to_endpoint": {
+        "lane": "1220008301 2",
+        "pos": "0.619178"
+      },
+      "length_m": 33.053633211070114,
+      "candidate_receiver": "SC1_to_SC11",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC1_to_SC11",
+      "source_head_precedes_connector": true
+    },
+    "10570": {
+      "prior_coverage": {
+        "physical_link": "10570",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC105_to_SC1005"
+        ],
+        "current_vehicles": 0,
+        "to_link": "61",
+        "actual_downstream_origins": [
+          "SC1005_to_SC107"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1127:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220006403",
+            "name": "",
+            "no": "1127",
+            "pos": "15.628964277927301",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "61",
+            "destPos": "35.622849982520854",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": ""
+          },
+          "path": [
+            "1220006403",
+            "10655",
+            "412",
+            "10651",
+            "410",
+            "10654",
+            "408",
+            "10647",
+            "409",
+            "10649",
+            "403",
+            "10570",
+            "61"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1005_N_SC105_to_E_SC107",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "403",
+            "connector": "10570",
+            "to_link": "61",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC1005",
+            "canonical_source_legs": [
+              "SC1005·N_SC105"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1005_to_SC107"
+            ],
+            "destination_support_paths": [
+              [
+                "61"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1005_to_SC107",
+          "model_spec": {
+            "origin": "SC105_to_SC1005",
+            "kind": "internal",
+            "signal": "SC1005",
+            "approach": "N_SC105",
+            "receiving_link": "SC1005_to_SC107"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "403",
+        "10570",
+        "61"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "403 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030860",
+          "pos": "271.77366791090532",
+          "sg": "1005 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "403 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030861",
+          "pos": "271.92013522344541",
+          "sg": "1005 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "403 2",
+        "pos": "272.76841726968598"
+      },
+      "to_endpoint": {
+        "lane": "61 1",
+        "pos": "4.8215660122228501"
+      },
+      "length_m": 49.7671772655344,
+      "candidate_receiver": "SC1005_to_SC107",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC1005_to_SC107",
+      "source_head_precedes_connector": true
+    },
+    "10610": {
+      "prior_coverage": {
+        "physical_link": "10610",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1005_to_SC1004",
+          "SC107_to_SC1005",
+          "SC1_to_SC107"
+        ],
+        "current_vehicles": 0,
+        "known_native_transfer_identity_conflicts": [
+          {
+            "movement": "SC107_N_SC1_to_W_SC1004",
+            "path": [
+              "1220043200",
+              "10610",
+              "385",
+              "10611",
+              "1220000102",
+              "10501"
+            ],
+            "receiving_storage": "SC107_to_SC1004"
+          }
+        ],
+        "to_link": "385",
+        "actual_downstream_origins": [
+          "SC1005_to_SC1004",
+          "SC107_to_SC1005"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Downstream physical road has multiple/no model origins; no equal split or arbitrary owner selection."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1063:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220006803",
+            "name": "구룡터널_SB",
+            "no": "1063",
+            "pos": "16.205595008702627",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220000102",
+            "destPos": "17.474026034580394",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:106"
+          },
+          "path": [
+            "1220006803",
+            "10596",
+            "367",
+            "10592",
+            "1220043200",
+            "10610",
+            "385",
+            "10611",
+            "1220000102"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC107_N_SC1_to_W_SC1005",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "1220043200",
+            "connector": "10610",
+            "to_link": "385",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC107",
+            "canonical_source_legs": [
+              "SC107·N_SC1"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": false,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1005_to_SC1004",
+              "SC107_to_SC1005"
+            ],
+            "destination_support_paths": [
+              [
+                "385"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC107_to_SC1005",
+          "model_spec": {
+            "origin": "SC1_to_SC107",
+            "kind": "internal",
+            "signal": "SC107",
+            "approach": "N_SC1",
+            "receiving_link": "SC107_to_SC1005"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "1220043200",
+        "10610",
+        "385"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220043200 3",
+          "localNo": "0",
+          "name": "",
+          "no": "1070701",
+          "pos": "9.507275",
+          "sg": "107 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "1220043200 2",
+          "localNo": "0",
+          "name": "",
+          "no": "1070702",
+          "pos": "9.464082",
+          "sg": "107 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "1220043200 1",
+        "pos": "12.842891411956785"
+      },
+      "to_endpoint": {
+        "lane": "385 1",
+        "pos": "0.591261"
+      },
+      "length_m": 10.470857899677219,
+      "candidate_receiver": "SC107_to_SC1005",
+      "status": "unresolved_shared_route_cohorts"
+    },
+    "10611": {
+      "prior_coverage": {
+        "physical_link": "10611",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1005_to_SC1004",
+          "SC107_to_SC1005"
+        ],
+        "current_vehicles": 0,
+        "known_native_transfer_identity_conflicts": [
+          {
+            "movement": "SC107_N_SC1_to_W_SC1004",
+            "path": [
+              "1220043200",
+              "10610",
+              "385",
+              "10611",
+              "1220000102",
+              "10501"
+            ],
+            "receiving_storage": "SC107_to_SC1004"
+          }
+        ],
+        "to_link": "1220000102",
+        "actual_downstream_origins": [
+          "SC107_to_SC1005"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "A known signal-to-receiver native path contradicts this legacy storage alias. Its shared physical corridor needs cohort/route disambiguation."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1063:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "1220006803",
+            "name": "구룡터널_SB",
+            "no": "1063",
+            "pos": "16.205595008702627",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "1220000102",
+            "destPos": "17.474026034580394",
+            "formula": "",
+            "name": "우",
+            "no": "3",
+            "relFlow": "2 0:106"
+          },
+          "path": [
+            "1220006803",
+            "10596",
+            "367",
+            "10592",
+            "1220043200",
+            "10610",
+            "385",
+            "10611",
+            "1220000102"
+          ]
+        }
+      ],
+      "canonical_matches": [],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "385",
+        "10611",
+        "1220000102"
+      ],
+      "source_heads": [],
+      "from_endpoint": {
+        "lane": "385 1",
+        "pos": "10.829736"
+      },
+      "to_endpoint": {
+        "lane": "1220000102 1",
+        "pos": "14.137201"
+      },
+      "length_m": 12.99991476089378,
+      "candidate_receiver": null,
+      "status": "unresolved_shared_route_cohorts"
+    },
+    "10627": {
+      "prior_coverage": {
+        "physical_link": "10627",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1003_to_SC1004",
+          "SC1004_to_SC1005"
+        ],
+        "current_vehicles": 0,
+        "known_native_transfer_identity_conflicts": [
+          {
+            "movement": "SC1004_N_SC1003_to_E_SC107",
+            "path": [
+              "46",
+              "10627",
+              "56",
+              "10621"
+            ],
+            "receiving_storage": "SC1004_to_SC107"
+          }
+        ],
+        "to_link": "56",
+        "actual_downstream_origins": [
+          "SC1004_to_SC1005"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "A known signal-to-receiver native path contradicts this legacy storage alias. Its shared physical corridor needs cohort/route disambiguation."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1125:3",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "46",
+            "name": "",
+            "no": "1125",
+            "pos": "16.478969939572519",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "56",
+            "destPos": "42.44844676787578",
+            "formula": "",
+            "name": "",
+            "no": "3",
+            "relFlow": ""
+          },
+          "path": [
+            "46",
+            "10627",
+            "56"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1004_N_SC1003_to_E_SC1005",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "46",
+            "connector": "10627",
+            "to_link": "56",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "internal",
+            "signal": "SC1004",
+            "canonical_source_legs": [
+              "SC1004·N_SC1003"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1004_to_SC1005"
+            ],
+            "destination_support_paths": [
+              [
+                "56"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1004_to_SC1005",
+          "model_spec": {
+            "origin": "SC1003_to_SC1004",
+            "kind": "internal",
+            "signal": "SC1004",
+            "approach": "N_SC1003",
+            "receiving_link": "SC1004_to_SC1005"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "46",
+        "10627",
+        "56"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "46 4",
+          "localNo": "0",
+          "name": "",
+          "no": "90030888",
+          "pos": "953.19074628571911",
+          "sg": "1004 7",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "46 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030889",
+          "pos": "953.17696010461748",
+          "sg": "1004 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "46 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030890",
+          "pos": "953.20670933728138",
+          "sg": "1004 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "46 1",
+          "localNo": "0",
+          "name": "",
+          "no": "90030891",
+          "pos": "953.160163847278",
+          "sg": "1004 4",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "46 4",
+        "pos": "957.0688335255104"
+      },
+      "to_endpoint": {
+        "lane": "56 4",
+        "pos": "2.018008540916628"
+      },
+      "length_m": 62.316126195450124,
+      "candidate_receiver": "SC1004_to_SC1005",
+      "status": "unresolved_shared_route_cohorts"
+    },
+    "10634": {
+      "prior_coverage": {
+        "physical_link": "10634",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1004_to_SC1005",
+          "in_SC1004_W"
+        ],
+        "current_vehicles": 0,
+        "known_native_transfer_identity_conflicts": [
+          {
+            "movement": "SC1004_W_to_E_SC107",
+            "path": [
+              "71",
+              "10634",
+              "56",
+              "10621"
+            ],
+            "receiving_storage": "SC1004_to_SC107"
+          }
+        ],
+        "to_link": "56",
+        "actual_downstream_origins": [
+          "SC1004_to_SC1005"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "A known signal-to-receiver native path contradicts this legacy storage alias. Its shared physical corridor needs cohort/route disambiguation."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1126:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "10643",
+            "name": "",
+            "no": "1126",
+            "pos": "23.341404233217531",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "56",
+            "destPos": "43.427423084201187",
+            "formula": "",
+            "name": "",
+            "no": "2",
+            "relFlow": ""
+          },
+          "path": [
+            "10643",
+            "126",
+            "10641",
+            "71",
+            "10634",
+            "56"
+          ]
+        },
+        {
+          "id": "1138:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "10640",
+            "name": "",
+            "no": "1138",
+            "pos": "213.6532606672337",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "56",
+            "destPos": "43.427423084201187",
+            "formula": "",
+            "name": "",
+            "no": "2",
+            "relFlow": ""
+          },
+          "path": [
+            "10640",
+            "71",
+            "10634",
+            "56"
+          ]
+        },
+        {
+          "id": "1140:2",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "70",
+            "name": "",
+            "no": "1140",
+            "pos": "67.915467926212969",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "56",
+            "destPos": "43.427423084201187",
+            "formula": "",
+            "name": "",
+            "no": "2",
+            "relFlow": ""
+          },
+          "path": [
+            "70",
+            "10776",
+            "126",
+            "10641",
+            "71",
+            "10634",
+            "56"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1004_W_to_E_SC1005",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "71",
+            "connector": "10634",
+            "to_link": "56",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "inflow",
+            "signal": "SC1004",
+            "canonical_source_legs": [
+              "SC1004·W"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1004_to_SC1005"
+            ],
+            "destination_support_paths": [
+              [
+                "56"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1004_to_SC1005",
+          "model_spec": {
+            "origin": "in_SC1004_W",
+            "kind": "boundary_in",
+            "signal": "SC1004",
+            "approach": "W",
+            "receiving_link": "SC1004_to_SC1005"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "71",
+        "10634",
+        "56"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "71 5",
+          "localNo": "0",
+          "name": "",
+          "no": "90030879",
+          "pos": "78.929689209497596",
+          "sg": "1004 5",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "71 4",
+          "localNo": "0",
+          "name": "",
+          "no": "90030880",
+          "pos": "78.86932923744655",
+          "sg": "1004 5",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "71 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030881",
+          "pos": "78.911421177806787",
+          "sg": "1004 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "71 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030882",
+          "pos": "78.874357717137869",
+          "sg": "1004 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "71 1",
+          "localNo": "0",
+          "name": "",
+          "no": "90030883",
+          "pos": "78.980074049826882",
+          "sg": "1004 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "71 1",
+        "pos": "81.238115785297666"
+      },
+      "to_endpoint": {
+        "lane": "56 1",
+        "pos": "2.2333645218754969"
+      },
+      "length_m": 64.20413823974091,
+      "candidate_receiver": "SC1004_to_SC1005",
+      "status": "unresolved_shared_route_cohorts"
+    },
+    "10698": {
+      "prior_coverage": {
+        "physical_link": "10698",
+        "local_mask_enabled": false,
+        "existing_origins": [
+          "SC1003_to_SC1001"
+        ],
+        "current_vehicles": 0,
+        "to_link": "31",
+        "actual_downstream_origins": [
+          "SC1001_W_out"
+        ],
+        "status": "unresolved_physical_support",
+        "reason": "Existing connector support contradicts downstream origin; requires native movement-path proof before reassignment."
+      },
+      "physical_records": [],
+      "reference_900_count": 0,
+      "native_routes": [
+        {
+          "id": "1119:1",
+          "decision": {
+            "allVehTypes": "true",
+            "anmFlag": "false",
+            "combineStaRoutDec": "true",
+            "link": "40",
+            "name": "",
+            "no": "1119",
+            "pos": "25.779105041881785",
+            "routeChoiceMeth": "STATIC"
+          },
+          "route": {
+            "destLink": "31",
+            "destPos": "17.252691234579331",
+            "formula": "",
+            "name": "",
+            "no": "1",
+            "relFlow": "2 0:10"
+          },
+          "path": [
+            "40",
+            "10698",
+            "31"
+          ]
+        }
+      ],
+      "canonical_matches": [
+        {
+          "movement": "SC1001_S_SC1003_to_W_RAMP",
+          "contract_status": "unique",
+          "turn": {
+            "from_link": "40",
+            "connector": "10698",
+            "to_link": "31",
+            "source_inside": true,
+            "connector_inside": true,
+            "target_inside": true,
+            "crossing_edges": [],
+            "outward_crossings_per_vehicle": 0,
+            "inward_crossings_per_vehicle": 0,
+            "canonical_class": "outflow",
+            "signal": "SC1001",
+            "canonical_source_legs": [
+              "SC1001·S_SC1003"
+            ],
+            "source_evidence": {
+              "canonical_approach_leg": true,
+              "runtime_detector_stopline": true
+            },
+            "exit_evidence": {
+              "canonical_heading_matches_exit_compass": true,
+              "actual_destination_storage_matches": true
+            },
+            "destination_support_status": "supported",
+            "destination_storage_support": [
+              "SC1001_W_out"
+            ],
+            "destination_support_paths": [
+              [
+                "31"
+              ]
+            ],
+            "weight_source": null,
+            "weight": null,
+            "canonical_declared_flow_veh_h": null
+          },
+          "actual_model_receiving_link": "SC1001_W_out",
+          "model_spec": {
+            "origin": "SC1003_to_SC1001",
+            "kind": "boundary_out",
+            "signal": "SC1001",
+            "approach": "S_SC1003",
+            "receiving_link": "SC1001_W_out"
+          }
+        }
+      ],
+      "heads_on_link": [],
+      "incoming": [],
+      "outgoing": [],
+      "physical_triplet": [
+        "40",
+        "10698",
+        "31"
+      ],
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "40 4",
+          "localNo": "0",
+          "name": "",
+          "no": "90030843",
+          "pos": "1253.7850344683677",
+          "sg": "1001 3",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "40 3",
+          "localNo": "0",
+          "name": "",
+          "no": "90030844",
+          "pos": "1253.7697729932713",
+          "sg": "1001 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "40 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030845",
+          "pos": "1253.5529407899971",
+          "sg": "1001 8",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "from_endpoint": {
+        "lane": "40 4",
+        "pos": "1258.2367413719439"
+      },
+      "to_endpoint": {
+        "lane": "31 3",
+        "pos": "1.927973927034941"
+      },
+      "length_m": 87.33323298227513,
+      "candidate_receiver": "SC1001_W_out",
+      "status": "proven_post_stopline_receiver",
+      "target_storage": "SC1001_W_out",
+      "source_head_precedes_connector": true
+    }
+  },
+  "scope": "Existing accepted-movement receiver only; no new ownership, area membership, probability or initial entry event."
+}
