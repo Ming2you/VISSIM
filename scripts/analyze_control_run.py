@@ -31,7 +31,7 @@ def unique_file(directory, pattern):
     return paths[0]
 
 
-def execution_status(log_text, last_sim_sec, expected_end_sec):
+def execution_status(log_text, last_sim_sec, expected_end_sec, controller_statuses=()):
     """Completion alone does not establish that the requested control ran."""
     errors = [line.strip() for line in log_text.splitlines()
               if line.lstrip().startswith("ERROR=")]
@@ -49,9 +49,14 @@ def execution_status(log_text, last_sim_sec, expected_end_sec):
         reasons.append("runner reported errors, including possible unapplied controls")
     if failed_counters:
         reasons.append("nonzero failure or mismatch counters")
+    fallback_statuses = sorted({str(value) for value in controller_statuses
+                                if "fallback" in str(value).lower()})
+    if fallback_statuses:
+        reasons.append("the requested controller fell back to another policy")
     return {"completed_without_reported_errors": not reasons,
             "reasons": reasons, "runner_error_count": len(errors),
             "runner_errors": errors[:20], "failed_counters": failed_counters,
+            "fallback_statuses": fallback_statuses,
             "scope": "Necessary execution check; command readback and experimental comparability require separate review."}
 
 
@@ -206,7 +211,8 @@ def main():
     log = unique_file(run, "runlog_*.txt").read_text(encoding="utf-8", errors="replace")
     events = persistent_events(segments)
     summary = {"run": run.name, "last_sim_sec": float(state.sim_sec.max()),
-        "execution": execution_status(log, float(state.sim_sec.max()), float(manifest["sim_period_sec"])),
+        "execution": execution_status(log, float(state.sim_sec.max()), float(manifest["sim_period_sec"]),
+                                      state.get("controller_status", [])),
         "metric_scope": "Global TTT is a secondary legacy metric, not the requested control-area objective",
         "global_ttt_veh_h": float(np.trapezoid(state.total_vehicles, state.sim_sec) / 3600),
         "congestion_definition": "speed<30 km/h, >=5 vehicles, after900s, >=90s persistence; 30s samples",

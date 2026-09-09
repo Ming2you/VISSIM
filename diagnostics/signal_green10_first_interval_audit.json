@@ -1,0 +1,5361 @@
+{
+  "scope": "First integer-event150sec [900,1050], with immediate endpoint1050 checked. Read-only recorded files; no VISSIM connection.",
+  "baseline": "Additional audit observations affected the first n7 run; its t2100 green vector is frozen for this diagnostic. It is neither nativeNC nor pure-n7 baseline.",
+  "source": {
+    "config": "diagnostics\\signal_profile_config_sc1004_green10.json",
+    "config_sha256": "322d9408ead9093275bb3902021df241991a97ac0437aa7436d82cb74892b1ee",
+    "run_provenance": "evaluation\\runs\\codex_signal_green10_s13_20260910\\run_provenance_codex_signal_green10_s13_20260910.json",
+    "run_provenance_sha256": "56ef75016ce24f00fe19ea6175b509ede9ef233ea90950849c9945ae8d4940e5",
+    "RW_MAINLINE_SG_ONLY": "1",
+    "local_files_match_recorded_run_hashes": {
+      "main_vbs_runner": true,
+      "adapter": true,
+      "tuning": true,
+      "control_mapping": true,
+      "generated_vbs_config": true
+    },
+    "frozen": "diagnostics\\frozen_n7_2100_green_action.json",
+    "frozen_sha256": "bac9b7094bb1104d1bd97097e373efa354333f24386378ef0e8c13cabdcb0eea",
+    "frozen_hash_matches_config": true,
+    "original_action": "evaluation\\runs\\codex_n7_s13_6056c94_20260909\\decisions_codex_n7_s13_6056c94_20260909\\action_002100.json",
+    "original_action_hash_matches_frozen": true,
+    "frozen_greens_match_source_action": true,
+    "frozen_greens_match_pure_n7": false,
+    "pure_n7_different_phase_count": 40,
+    "action_csv": "evaluation\\runs\\codex_signal_green10_s13_20260910\\decisions_codex_signal_green10_s13_20260910\\action_000900.csv",
+    "action_csv_sha256": "ccc42ebd0f69ad316c514e0af5038bf736f404c5de99998b866574269f1c067f",
+    "written_signal_rows_match_original_t2100_csv": false,
+    "effective_plan": "outputs\\signal_group_actuation_plan_mainline_20260825.json",
+    "effective_plan_content_sha256": "d2bf41f133ab39216dbdc6734187e286cee620f2c5b6e6946258cc14743880d7",
+    "effective_plan_matches_pinned_profile": true,
+    "readback": "evaluation\\runs\\codex_signal_green10_s13_20260910\\decisions_codex_signal_green10_s13_20260910\\signal_readback.csv",
+    "selected_readback_rows": 16576,
+    "selected_rows_canonical_csv_sha256": "c1823b13ca9c9abcbefb9a701295484c56652cae9fd8b8f461ce485a3ccfd074"
+  },
+  "summary": {
+    "controllers": 17,
+    "controlled_signal_groups": 136,
+    "SG_windows": 122,
+    "controlled_readback_rows": 15640,
+    "immediate_checks": 7888,
+    "post_step_checks": 7752,
+    "command_errors": 0,
+    "readback_errors": 0,
+    "persistence_errors": 0,
+    "intended_state_errors": 0,
+    "group_coverage_errors": 0,
+    "integer_grid_errors": 0,
+    "integer_SG_transitions": 366,
+    "missing_transition_events": 0,
+    "all_offsets_zero": true
+  },
+  "runner_clearance_sec": {
+    "amber": 3.0,
+    "all_red": 0.0
+  },
+  "frozen_write_clamps": {
+    "SC109_p3": {
+      "raw_frozen_sec": 96.5,
+      "action_json_sec": 90.0
+    },
+    "SC1004_p1": {
+      "raw_frozen_sec": 20.0,
+      "action_json_sec": 10.0
+    },
+    "SC1004_p3": {
+      "raw_frozen_sec": 68.06376811594205,
+      "action_json_sec": 78.06376811594205
+    }
+  },
+  "configured_green_deltas_sec": {
+    "SC1004_p1": -10.0,
+    "SC1004_p3": 10.0
+  },
+  "configured_relative_offsets_sec": {
+    "SC1001": 0,
+    "SC1004": 0
+  },
+  "controllers": [
+    {
+      "sc": 1,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 64.0,
+        "p2": 24.68,
+        "p3": 25.166,
+        "p4": 24.154
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            122.846,
+            147.0
+          ]
+        ],
+        "2": [
+          [
+            94.68,
+            119.846
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            24.68
+          ]
+        ],
+        "4": [
+          [
+            27.68,
+            91.68
+          ]
+        ],
+        "5": [
+          [
+            122.846,
+            147.0
+          ]
+        ],
+        "6": [
+          [
+            94.68,
+            119.846
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            24.68
+          ]
+        ],
+        "8": [
+          [
+            27.68,
+            91.68
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        925,
+        928,
+        992,
+        995,
+        1020,
+        1023,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 24,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 64,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 24,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 64,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 5,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 28.0,
+        "p2": 22.667,
+        "p3": 64.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            56.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "4": [
+          [
+            25.667,
+            53.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            56.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "8": [
+          [
+            25.667,
+            53.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        923,
+        926,
+        954,
+        957,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 65,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 65,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 6,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 46.0,
+        "p2": 40.667,
+        "p3": 28.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            92.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            40.667
+          ]
+        ],
+        "4": [
+          [
+            43.667,
+            89.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            92.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            40.667
+          ]
+        ],
+        "8": [
+          [
+            43.667,
+            89.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        941,
+        944,
+        990,
+        993,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 46,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 46,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 7,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 23.0,
+        "p2": 37.379,
+        "p3": 0.0,
+        "p4": 80.621
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            66.379,
+            147.0
+          ]
+        ],
+        "4": [
+          [
+            40.379,
+            63.379
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            37.379
+          ]
+        ],
+        "8": [
+          [
+            40.379,
+            63.379
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 4,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        938,
+        941,
+        964,
+        967,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 80,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 38,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 11,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 40.0,
+        "p2": 22.667,
+        "p3": 52.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            68.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "4": [
+          [
+            25.667,
+            65.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            68.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "8": [
+          [
+            25.667,
+            65.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        923,
+        926,
+        966,
+        969,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 53,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 53,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 12,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 70.0,
+        "p2": 22.667,
+        "p3": 22.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            98.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "4": [
+          [
+            25.667,
+            95.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            98.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "8": [
+          [
+            25.667,
+            95.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        923,
+        926,
+        996,
+        999,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 70,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 70,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 16,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 51.0,
+        "p2": 25.05,
+        "p3": 64.95,
+        "p4": 0.0
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "2": [
+          [
+            82.05,
+            147.0
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            25.05
+          ]
+        ],
+        "4": [
+          [
+            28.05,
+            79.05
+          ]
+        ],
+        "6": [
+          [
+            82.05,
+            147.0
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            25.05
+          ]
+        ],
+        "8": [
+          [
+            28.05,
+            79.05
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 6,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        926,
+        929,
+        980,
+        983,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 64,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 26,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 51,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 64,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 26,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 51,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 101,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 34.0,
+        "p2": 28.667,
+        "p3": 28.667,
+        "p4": 46.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            100.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            68.667,
+            97.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            28.667
+          ]
+        ],
+        "4": [
+          [
+            31.667,
+            65.667
+          ]
+        ],
+        "5": [
+          [
+            100.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            68.667,
+            97.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            28.667
+          ]
+        ],
+        "8": [
+          [
+            31.667,
+            65.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        929,
+        932,
+        966,
+        969,
+        998,
+        1001,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 47,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 34,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 47,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 34,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 105,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 58.0,
+        "p2": 22.667,
+        "p3": 34.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            86.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "4": [
+          [
+            25.667,
+            83.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            86.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "8": [
+          [
+            25.667,
+            83.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        923,
+        926,
+        984,
+        987,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 35,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 58,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 35,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 58,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 107,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 0.0,
+        "p2": 52.0,
+        "p3": 60.201,
+        "p4": 28.799
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            118.201,
+            147.0
+          ]
+        ],
+        "2": [
+          [
+            55.0,
+            115.201
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            52.0
+          ]
+        ],
+        "5": [
+          [
+            118.201,
+            147.0
+          ]
+        ],
+        "6": [
+          [
+            55.0,
+            115.201
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            52.0
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 6,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        952,
+        955,
+        1016,
+        1019,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 61,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 52,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 28,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 61,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 52,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 108,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 69.0,
+        "p2": 0.0,
+        "p3": 50.862,
+        "p4": 21.138
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            125.862,
+            147.0
+          ]
+        ],
+        "2": [
+          [
+            72.0,
+            122.862
+          ]
+        ],
+        "4": [
+          [
+            0.0,
+            69.0
+          ]
+        ],
+        "5": [
+          [
+            125.862,
+            147.0
+          ]
+        ],
+        "6": [
+          [
+            72.0,
+            122.862
+          ]
+        ],
+        "8": [
+          [
+            0.0,
+            69.0
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 6,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        969,
+        972,
+        1023,
+        1026,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 21,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 51,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 69,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 21,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 51,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 69,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 109,
+      "axis_cycle_sec": 143.5,
+      "sg_csv_cycle_sec": 143.5,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 0.0,
+        "p2": 20.0,
+        "p3": 90.0,
+        "p4": 24.5
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "2": [
+          [
+            23.0,
+            113.0
+          ]
+        ],
+        "5": [
+          [
+            116.0,
+            140.5
+          ]
+        ],
+        "6": [
+          [
+            23.0,
+            113.0
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            20.0
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 4,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        974,
+        977,
+        1002,
+        1005,
+        1025,
+        1028
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 96,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 96,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 20,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 0,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 1001,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 23.0,
+        "p2": 20.0,
+        "p3": 75.0,
+        "p4": 20.0
+      },
+      "major_maps_to": "p1",
+      "phase_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            127.0,
+            147.0
+          ]
+        ],
+        "2": [
+          [
+            49.0,
+            124.0
+          ]
+        ],
+        "3": [
+          [
+            26.0,
+            46.0
+          ]
+        ],
+        "4": [
+          [
+            0.0,
+            23.0
+          ]
+        ],
+        "5": [
+          [
+            127.0,
+            147.0
+          ]
+        ],
+        "6": [
+          [
+            49.0,
+            124.0
+          ]
+        ],
+        "7": [
+          [
+            26.0,
+            46.0
+          ]
+        ],
+        "8": [
+          [
+            0.0,
+            23.0
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        923,
+        926,
+        946,
+        949,
+        1024,
+        1027,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 20,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 75,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 20,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 20,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 75,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 20,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 1002,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 34.0,
+        "p2": 22.667,
+        "p3": 22.667,
+        "p4": 58.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            88.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            62.667,
+            85.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "4": [
+          [
+            25.667,
+            59.667
+          ]
+        ],
+        "5": [
+          [
+            88.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            62.667,
+            85.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            22.667
+          ]
+        ],
+        "8": [
+          [
+            25.667,
+            59.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        923,
+        926,
+        960,
+        963,
+        986,
+        989,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 59,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 34,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 59,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 22,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 34,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 1003,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 40.0,
+        "p2": 46.667,
+        "p3": 22.667,
+        "p4": 28.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            118.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            92.667,
+            115.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            46.667
+          ]
+        ],
+        "4": [
+          [
+            49.667,
+            89.667
+          ]
+        ],
+        "5": [
+          [
+            118.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            92.667,
+            115.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            46.667
+          ]
+        ],
+        "8": [
+          [
+            49.667,
+            89.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        947,
+        950,
+        990,
+        993,
+        1016,
+        1019,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 46,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 29,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 46,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 1004,
+      "axis_cycle_sec": 150.0,
+      "sg_csv_cycle_sec": 150.0,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 10.0,
+        "p2": 24.968,
+        "p3": 78.064,
+        "p4": 24.968
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            122.032,
+            147.0
+          ]
+        ],
+        "2": [
+          [
+            40.968,
+            119.032
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            24.968
+          ]
+        ],
+        "4": [
+          [
+            27.968,
+            37.968
+          ]
+        ],
+        "5": [
+          [
+            122.032,
+            147.0
+          ]
+        ],
+        "6": [
+          [
+            40.968,
+            119.032
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            24.968
+          ]
+        ],
+        "8": [
+          [
+            27.968,
+            37.968
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        925,
+        928,
+        938,
+        941,
+        1020,
+        1023,
+        1047,
+        1050
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 24,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 79,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 10,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 24,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 79,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 25,
+          "initial_state_at_900": "GREEN",
+          "final_state_at_1050": "GREEN",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 10,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    },
+    {
+      "sc": 1005,
+      "axis_cycle_sec": 150.001,
+      "sg_csv_cycle_sec": 150.001,
+      "offset_sec": 0.0,
+      "greens_sec": {
+        "p1": 52.0,
+        "p2": 40.667,
+        "p3": 22.667,
+        "p4": 22.667
+      },
+      "major_maps_to": "p2",
+      "phase_order": [
+        "p2",
+        "p1",
+        "p3",
+        "p4"
+      ],
+      "windows": {
+        "1": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "2": [
+          [
+            98.667,
+            121.334
+          ]
+        ],
+        "3": [
+          [
+            0.0,
+            40.667
+          ]
+        ],
+        "4": [
+          [
+            43.667,
+            95.667
+          ]
+        ],
+        "5": [
+          [
+            124.334,
+            147.001
+          ]
+        ],
+        "6": [
+          [
+            98.667,
+            121.334
+          ]
+        ],
+        "7": [
+          [
+            0.0,
+            40.667
+          ]
+        ],
+        "8": [
+          [
+            43.667,
+            95.667
+          ]
+        ]
+      },
+      "groups": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "window_count": 8,
+      "immediate_checks": 464,
+      "post_step_checks": 456,
+      "integer_expected_event_times": [
+        901,
+        941,
+        944,
+        996,
+        999,
+        1022,
+        1025,
+        1048
+      ],
+      "missing_integer_event_times": [],
+      "by_sg": {
+        "1": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "2": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "3": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "4": {
+          "green_sec_in_900_1050": 52,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "5": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "AMBER",
+          "final_state_at_1050": "AMBER",
+          "immediate_samples": 58
+        },
+        "6": {
+          "green_sec_in_900_1050": 23,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "7": {
+          "green_sec_in_900_1050": 40,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        },
+        "8": {
+          "green_sec_in_900_1050": 52,
+          "initial_state_at_900": "RED",
+          "final_state_at_1050": "RED",
+          "immediate_samples": 58
+        }
+      }
+    }
+  ],
+  "integer_transitions": [
+    {
+      "sc": "1",
+      "sg": "1",
+      "sec": 1023,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "2",
+      "sec": 995,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "2",
+      "sec": 1020,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "2",
+      "sec": 1023,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "3",
+      "sec": 925,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "3",
+      "sec": 928,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "3",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "4",
+      "sec": 928,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "4",
+      "sec": 992,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "4",
+      "sec": 995,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "5",
+      "sec": 1023,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "5",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "5",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "6",
+      "sec": 995,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "6",
+      "sec": 1020,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "6",
+      "sec": 1023,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "7",
+      "sec": 925,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "7",
+      "sec": 928,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "7",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "8",
+      "sec": 928,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "8",
+      "sec": 992,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1",
+      "sg": "8",
+      "sec": 995,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "2",
+      "sec": 957,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "3",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "3",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "4",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "4",
+      "sec": 954,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "4",
+      "sec": 957,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "6",
+      "sec": 957,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "7",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "7",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "8",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "8",
+      "sec": 954,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "5",
+      "sg": "8",
+      "sec": 957,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "2",
+      "sec": 993,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "3",
+      "sec": 941,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "3",
+      "sec": 944,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "4",
+      "sec": 944,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "4",
+      "sec": 990,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "4",
+      "sec": 993,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "6",
+      "sec": 993,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "7",
+      "sec": 941,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "7",
+      "sec": 944,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "8",
+      "sec": 944,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "8",
+      "sec": 990,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "6",
+      "sg": "8",
+      "sec": 993,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "1",
+      "sec": 967,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "4",
+      "sec": 941,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "4",
+      "sec": 964,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "4",
+      "sec": 967,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "7",
+      "sec": 938,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "7",
+      "sec": 941,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "7",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "8",
+      "sec": 941,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "8",
+      "sec": 964,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "7",
+      "sg": "8",
+      "sec": 967,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "2",
+      "sec": 969,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "3",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "3",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "4",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "4",
+      "sec": 966,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "4",
+      "sec": 969,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "6",
+      "sec": 969,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "7",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "7",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "8",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "8",
+      "sec": 966,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "11",
+      "sg": "8",
+      "sec": 969,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "2",
+      "sec": 999,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "3",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "3",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "4",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "4",
+      "sec": 996,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "4",
+      "sec": 999,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "6",
+      "sec": 999,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "7",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "7",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "8",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "8",
+      "sec": 996,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "12",
+      "sg": "8",
+      "sec": 999,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "2",
+      "sec": 983,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "2",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "2",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "3",
+      "sec": 926,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "3",
+      "sec": 929,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "3",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "4",
+      "sec": 929,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "4",
+      "sec": 980,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "4",
+      "sec": 983,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "6",
+      "sec": 983,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "6",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "6",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "7",
+      "sec": 926,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "7",
+      "sec": 929,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "7",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "8",
+      "sec": 929,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "8",
+      "sec": 980,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "16",
+      "sg": "8",
+      "sec": 983,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "1",
+      "sec": 1001,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "2",
+      "sec": 969,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "2",
+      "sec": 998,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "2",
+      "sec": 1001,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "3",
+      "sec": 929,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "3",
+      "sec": 932,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "4",
+      "sec": 932,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "4",
+      "sec": 966,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "4",
+      "sec": 969,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "5",
+      "sec": 1001,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "6",
+      "sec": 969,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "6",
+      "sec": 998,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "6",
+      "sec": 1001,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "7",
+      "sec": 929,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "7",
+      "sec": 932,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "8",
+      "sec": 932,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "8",
+      "sec": 966,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "101",
+      "sg": "8",
+      "sec": 969,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "2",
+      "sec": 987,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "3",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "3",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "4",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "4",
+      "sec": 984,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "4",
+      "sec": 987,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "6",
+      "sec": 987,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "7",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "7",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "8",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "8",
+      "sec": 984,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "105",
+      "sg": "8",
+      "sec": 987,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "1",
+      "sec": 1019,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "2",
+      "sec": 955,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "2",
+      "sec": 1016,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "2",
+      "sec": 1019,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "3",
+      "sec": 952,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "3",
+      "sec": 955,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "3",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "5",
+      "sec": 1019,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "5",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "5",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "6",
+      "sec": 955,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "6",
+      "sec": 1016,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "6",
+      "sec": 1019,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "7",
+      "sec": 952,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "7",
+      "sec": 955,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "107",
+      "sg": "7",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "1",
+      "sec": 1026,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "2",
+      "sec": 972,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "2",
+      "sec": 1023,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "2",
+      "sec": 1026,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "4",
+      "sec": 969,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "4",
+      "sec": 972,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "4",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "5",
+      "sec": 1026,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "5",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "5",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "6",
+      "sec": 972,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "6",
+      "sec": 1023,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "6",
+      "sec": 1026,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "8",
+      "sec": 969,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "8",
+      "sec": 972,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "108",
+      "sg": "8",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "2",
+      "sec": 974,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "2",
+      "sec": 977,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "2",
+      "sec": 1028,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "5",
+      "sec": 977,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "5",
+      "sec": 1002,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "5",
+      "sec": 1005,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "6",
+      "sec": 974,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "6",
+      "sec": 977,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "6",
+      "sec": 1028,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "7",
+      "sec": 1005,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "7",
+      "sec": 1025,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "109",
+      "sg": "7",
+      "sec": 1028,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "1",
+      "sec": 1027,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "2",
+      "sec": 949,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "2",
+      "sec": 1024,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "2",
+      "sec": 1027,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "3",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "3",
+      "sec": 946,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "3",
+      "sec": 949,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "4",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "4",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "4",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "5",
+      "sec": 1027,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "5",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "5",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "6",
+      "sec": 949,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "6",
+      "sec": 1024,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "6",
+      "sec": 1027,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "7",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "7",
+      "sec": 946,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "7",
+      "sec": 949,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "8",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "8",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1001",
+      "sg": "8",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "1",
+      "sec": 989,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "2",
+      "sec": 963,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "2",
+      "sec": 986,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "2",
+      "sec": 989,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "3",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "3",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "4",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "4",
+      "sec": 960,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "4",
+      "sec": 963,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "5",
+      "sec": 989,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "6",
+      "sec": 963,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "6",
+      "sec": 986,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "6",
+      "sec": 989,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "7",
+      "sec": 923,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "7",
+      "sec": 926,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "8",
+      "sec": 926,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "8",
+      "sec": 960,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1002",
+      "sg": "8",
+      "sec": 963,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "1",
+      "sec": 1019,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "2",
+      "sec": 993,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "2",
+      "sec": 1016,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "2",
+      "sec": 1019,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "3",
+      "sec": 947,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "3",
+      "sec": 950,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "4",
+      "sec": 950,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "4",
+      "sec": 990,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "4",
+      "sec": 993,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "5",
+      "sec": 1019,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "6",
+      "sec": 993,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "6",
+      "sec": 1016,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "6",
+      "sec": 1019,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "7",
+      "sec": 947,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "7",
+      "sec": 950,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "8",
+      "sec": 950,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "8",
+      "sec": 990,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1003",
+      "sg": "8",
+      "sec": 993,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "1",
+      "sec": 1023,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "1",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "1",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "2",
+      "sec": 941,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "2",
+      "sec": 1020,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "2",
+      "sec": 1023,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "3",
+      "sec": 925,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "3",
+      "sec": 928,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "3",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "4",
+      "sec": 928,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "4",
+      "sec": 938,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "4",
+      "sec": 941,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "5",
+      "sec": 1023,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "5",
+      "sec": 1047,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "5",
+      "sec": 1050,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "6",
+      "sec": 941,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "6",
+      "sec": 1020,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "6",
+      "sec": 1023,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "7",
+      "sec": 925,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "7",
+      "sec": 928,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "7",
+      "sec": 1050,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "8",
+      "sec": 928,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "8",
+      "sec": 938,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1004",
+      "sg": "8",
+      "sec": 941,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "1",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "1",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "1",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "2",
+      "sec": 999,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "2",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "2",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "3",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "3",
+      "sec": 941,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "3",
+      "sec": 944,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "4",
+      "sec": 944,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "4",
+      "sec": 996,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "4",
+      "sec": 999,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "5",
+      "sec": 901,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "5",
+      "sec": 1025,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "5",
+      "sec": 1048,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "6",
+      "sec": 999,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "6",
+      "sec": 1022,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "6",
+      "sec": 1025,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "7",
+      "sec": 901,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "7",
+      "sec": 941,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "7",
+      "sec": 944,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "8",
+      "sec": 944,
+      "from": "RED",
+      "to": "GREEN",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "8",
+      "sec": 996,
+      "from": "GREEN",
+      "to": "AMBER",
+      "immediate_at_transition": true
+    },
+    {
+      "sc": "1005",
+      "sg": "8",
+      "sec": 999,
+      "from": "AMBER",
+      "to": "RED",
+      "immediate_at_transition": true
+    }
+  ],
+  "errors": {
+    "command": [],
+    "readback": [],
+    "persistence": [],
+    "intended": [],
+    "coverage": [],
+    "integer_grid": []
+  },
+  "limits": [
+    "Immediate and post_step checks prove recorded event endpoints and persistence to the next event. The event interior is not independently sampled.",
+    "Integer held-state reconstruction verifies the intended event schedule; fractional transition timing is quantized upward to the next integer second.",
+    "150.001-second written cycles retain absolute simulation time, so their nominal900-second wrap occurs at900.006 and is applied at901.",
+    "This verifies actuator delivery for a fixed diagnostic vector, not performance benefit or equivalence to native/pure n7 signals."
+  ]
+}

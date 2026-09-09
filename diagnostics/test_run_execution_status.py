@@ -15,6 +15,12 @@ class ExecutionStatusTests(unittest.TestCase):
         self.assertFalse(execution_status(clean.replace("FAIL=0", "FAIL=1"), 5400, 5400)["completed_without_reported_errors"])
         self.assertFalse(execution_status(clean, 5370, 5400)["completed_without_reported_errors"])
 
+    def test_successful_process_with_fixed_fallback_is_not_mpc_success(self):
+        status = execution_status("STAGE=SIM_DONE\nDECISIONS_FAILED=0\n", 5400, 5400,
+                                  ["ok", "fallback_fixed", "ok"])
+        self.assertFalse(status["completed_without_reported_errors"])
+        self.assertEqual(status["fallback_statuses"], ["fallback_fixed"])
+
 
 if __name__ == "__main__":
     unittest.main()

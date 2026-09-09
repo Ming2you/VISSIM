@@ -1,0 +1,460 @@
+{
+  "scope": "Same seed13 fixed-green vector, t900 intervention; SC1001 +10, SC1004 -10, relative displacement20 seconds.",
+  "same_recorded_source_hashes": {
+    "network": true,
+    "main_vbs_runner": true,
+    "adapter": true,
+    "control_mapping": true,
+    "generated_vbs_config": true,
+    "demand_profile": true,
+    "urban_input_gate_map": true
+  },
+  "same_settings": {
+    "seed": true,
+    "sim_period_sec": true,
+    "control_interval_sec": true,
+    "demand_scale": true,
+    "demand_profile": true,
+    "audit_anchors_sec": true
+  },
+  "warmup_observation_tables": {
+    "state": {
+      "equal": true,
+      "rows_each": 31
+    },
+    "bottleneck_segments": {
+      "equal": true,
+      "rows_each": 1302
+    },
+    "bottleneck_links": {
+      "equal": true,
+      "rows_each": 6979
+    }
+  },
+  "same_actual_green_duration": {
+    "equal": true,
+    "signal_groups": 305,
+    "source": "analysis/signal_seconds_from_readback.csv",
+    "window_sec": [
+      900,
+      5400
+    ]
+  },
+  "command_differences": [
+    {
+      "kind": "signal",
+      "id": "SC1001",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG1_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG2_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG3_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG4_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG5_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG6_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG7_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1001_SG8_W0",
+      "sc": "1001",
+      "changes": {
+        "offset": [
+          "0.0",
+          "10.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal",
+      "id": "SC1004",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG1_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG2_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG3_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG4_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG5_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG6_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG7_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    },
+    {
+      "kind": "signal_sg",
+      "id": "SC1004_SG8_W0",
+      "sc": "1004",
+      "changes": {
+        "offset": [
+          "0.0",
+          "140.0"
+        ]
+      }
+    }
+  ],
+  "metrics": {
+    "ttt_veh_h": {
+      "zero": 5473.888888888896,
+      "offset10": 5399.130972222225,
+      "delta": -74.75791666667101
+    },
+    "ttd_observed_exit_events": {
+      "zero": 18677,
+      "offset10": 18758,
+      "delta": 81
+    },
+    "ttd_terminal_exit_inferred_events": {
+      "zero": 7897,
+      "offset10": 7963,
+      "delta": 66
+    },
+    "ttd_observed_plus_terminal_events": {
+      "zero": 26574,
+      "offset10": 26721,
+      "delta": 147
+    },
+    "ttd_counted_unique_vehicle_ids": {
+      "zero": 25652,
+      "offset10": 25753,
+      "delta": 101
+    },
+    "ttd_repeat_exit_events": {
+      "zero": 922,
+      "offset10": 968,
+      "delta": 46
+    },
+    "unresolved_inside_disappearances": {
+      "zero": 304,
+      "offset10": 326,
+      "delta": 22
+    }
+  },
+  "TTT_percent_delta": -1.3657185628743296,
+  "inside_physical_ttt_delta_sum": -74.7579166666759,
+  "largest_inside_reductions": [
+    {
+      "link": "74",
+      "inside": true,
+      "zero_ttt": 1079.5736111111112,
+      "offset10_ttt": 1040.9486111111116,
+      "delta": -38.624999999999545
+    },
+    {
+      "link": "2",
+      "inside": true,
+      "zero_ttt": 960.5095833333456,
+      "offset10_ttt": 925.8990277777792,
+      "delta": -34.61055555556641
+    },
+    {
+      "link": "10639",
+      "inside": true,
+      "zero_ttt": 18.679305555556038,
+      "offset10_ttt": 8.729166666666146,
+      "delta": -9.950138888889892
+    },
+    {
+      "link": "1220011503",
+      "inside": true,
+      "zero_ttt": 57.98819444444438,
+      "offset10_ttt": 54.33597222222095,
+      "delta": -3.652222222223429
+    },
+    {
+      "link": "127",
+      "inside": true,
+      "zero_ttt": 55.18430555555538,
+      "offset10_ttt": 52.55333333333254,
+      "delta": -2.6309722222228444
+    },
+    {
+      "link": "120",
+      "inside": true,
+      "zero_ttt": 374.3493055555528,
+      "offset10_ttt": 372.5900000000019,
+      "delta": -1.7593055555508954
+    },
+    {
+      "link": "52",
+      "inside": true,
+      "zero_ttt": 30.201666666666814,
+      "offset10_ttt": 28.524444444444132,
+      "delta": -1.6772222222226816
+    },
+    {
+      "link": "1220014201",
+      "inside": true,
+      "zero_ttt": 44.21472222222222,
+      "offset10_ttt": 42.95458333333308,
+      "delta": -1.2601388888891378
+    },
+    {
+      "link": "10335",
+      "inside": true,
+      "zero_ttt": 3.2561111111114545,
+      "offset10_ttt": 2.10708333333353,
+      "delta": -1.1490277777779245
+    },
+    {
+      "link": "10491",
+      "inside": true,
+      "zero_ttt": 9.94763888888874,
+      "offset10_ttt": 9.028194444444155,
+      "delta": -0.9194444444445846
+    }
+  ],
+  "largest_inside_increases": [
+    {
+      "link": "40",
+      "inside": true,
+      "zero_ttt": 116.67194444444227,
+      "offset10_ttt": 121.86152777777417,
+      "delta": 5.189583333331896
+    },
+    {
+      "link": "26",
+      "inside": true,
+      "zero_ttt": 551.0244444444467,
+      "offset10_ttt": 555.1372222222252,
+      "delta": 4.112777777778547
+    },
+    {
+      "link": "420",
+      "inside": true,
+      "zero_ttt": 205.1113888888904,
+      "offset10_ttt": 208.58430555555756,
+      "delta": 3.4729166666671745
+    },
+    {
+      "link": "24",
+      "inside": true,
+      "zero_ttt": 105.94097222222318,
+      "offset10_ttt": 108.36319444444578,
+      "delta": 2.422222222222601
+    },
+    {
+      "link": "1220008602",
+      "inside": true,
+      "zero_ttt": 25.47430555555591,
+      "offset10_ttt": 27.335138888888977,
+      "delta": 1.8608333333330656
+    },
+    {
+      "link": "29",
+      "inside": true,
+      "zero_ttt": 6.185972222221968,
+      "offset10_ttt": 7.189166666666299,
+      "delta": 1.0031944444443308
+    },
+    {
+      "link": "329",
+      "inside": true,
+      "zero_ttt": 66.67333333333352,
+      "offset10_ttt": 67.62263888888971,
+      "delta": 0.9493055555561938
+    },
+    {
+      "link": "1220018504",
+      "inside": true,
+      "zero_ttt": 16.569166666666113,
+      "offset10_ttt": 17.492222222221315,
+      "delta": 0.9230555555552016
+    },
+    {
+      "link": "46",
+      "inside": true,
+      "zero_ttt": 8.478194444444146,
+      "offset10_ttt": 9.336666666666204,
+      "delta": 0.8584722222220584
+    },
+    {
+      "link": "178",
+      "inside": true,
+      "zero_ttt": 13.718888888888587,
+      "offset10_ttt": 14.540555555555281,
+      "delta": 0.8216666666666939
+    }
+  ],
+  "simulation_errors": [
+    {
+      "event_counts": {
+        "skipped_route": 222,
+        "skipped_desired_speed": 156,
+        "lane_change_removal": 359,
+        "other": 742
+      },
+      "inside_removed": 157,
+      "outside_removed": 202
+    },
+    {
+      "event_counts": {
+        "skipped_route": 240,
+        "skipped_desired_speed": 160,
+        "lane_change_removal": 377,
+        "other": 758
+      },
+      "inside_removed": 170,
+      "outside_removed": 207
+    }
+  ],
+  "sources": {
+    "evaluation\\runs\\codex_signal_zero_s13_20260910\\run_provenance_codex_signal_zero_s13_20260910.json": "765e392970d4d0454f360561f30b51186fb0ef1f7b4da41080d106bde59c6cd5",
+    "evaluation\\runs\\codex_signal_zero_s13_20260910\\decisions_codex_signal_zero_s13_20260910\\action_000900.csv": "b3d1357875799e5c00d730b731cbc6ec0570f0924a1041dec79e8d88117e417b",
+    "evaluation\\runs\\codex_signal_zero_s13_20260910\\analysis\\area_metrics.json": "a484ebb403c379681eb1f13eb281286a0cb5346dbf28387f0dee822335b52a27",
+    "evaluation\\runs\\codex_signal_zero_s13_20260910\\analysis\\physical_link_residence.csv": "63d94c711b6b62abc9d9c7697c39124f18b4e5dc00892a7a5fc5e7fd436b2fc6",
+    "evaluation\\runs\\codex_signal_zero_s13_20260910\\analysis\\simulation_errors_summary.json": "2911b24cd96d4d85837a66c11b44704c4821c09c43737984077c89099f3e8996",
+    "evaluation\\runs\\codex_signal_offset10_s13_20260910\\run_provenance_codex_signal_offset10_s13_20260910.json": "a99570838330df31227f2cd109cfc7283cbb043288004759c397d096b4194384",
+    "evaluation\\runs\\codex_signal_offset10_s13_20260910\\decisions_codex_signal_offset10_s13_20260910\\action_000900.csv": "8f0ed370bfe6a1f02ec9e64c5ed9b5d7adfc14aa6574eab32a83c8267a8229a1",
+    "evaluation\\runs\\codex_signal_offset10_s13_20260910\\analysis\\area_metrics.json": "2e2eb9bc125d8b020da5796fd299541a694e6e0d496eae7c1bf76293c3c3c492",
+    "evaluation\\runs\\codex_signal_offset10_s13_20260910\\analysis\\physical_link_residence.csv": "8af7b0bde70c36d4c7bbb8ba9c377adb9f3ee94f06a51ee07ed9c14f3ee8d8a9",
+    "evaluation\\runs\\codex_signal_offset10_s13_20260910\\analysis\\simulation_errors_summary.json": "cd80456f685a3d25c1cbbf37cef8cf5059b9a433fbd1931c38deec2d0f0e522b"
+  }
+}

@@ -110,14 +110,22 @@ def main():
         summary.append(dict(regime=regime, cell=cell, horizon_sec=horizon, samples=len(rows),
             speed_bias_kph=sum(errors)/len(errors), speed_mae_kph=sum(abs(x) for x in errors)/len(errors),
             density_bias=sum(rho_errors)/len(rho_errors), density_mae=sum(abs(x) for x in rho_errors)/len(rho_errors)))
+    runtime_paths = [ROOT / args.config, adapter.signal_group_actuation_plan_path(),
+        ROOT / "evaluation/parameters.json",
+        ROOT / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json",
+        ROOT / tuning["mapping_json"], ROOT / tuning["detector_mapping_json"],
+        *sorted((ROOT / "evaluation/controllers").glob("*.py"))]
+    runtime_hashes = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+                      for path in runtime_paths}
     payload = dict(run=args.run, config=str(args.config), intervals=len(input_hashes)//2,
         method="Observed initial state, actual same-interval action JSON, current-rate demand forecast, production endpoint 150s; read-only substep trace.",
         limitations=["One seed; intervals/cells are correlated, not independent replicates.",
             "Includes known model/writer timing and projection mismatch; this is not pure FD parameter error.",
             "After/before refers to interval start relative to first persistent E8 event at 1290s.",
             "Speed metrics exclude observed cells with fewer than five vehicles; no data are imputed."],
-        source_sha256={**input_hashes, str(segment_path.relative_to(ROOT)): hashlib.sha256(segment_path.read_bytes()).hexdigest(),
-            str(Path(adapter.__file__).relative_to(ROOT)): hashlib.sha256(Path(adapter.__file__).read_bytes()).hexdigest()},
+        resolved_tuning_sha256=hashlib.sha256(json.dumps(tuning, sort_keys=True).encode()).hexdigest(),
+        source_sha256={**input_hashes, **runtime_hashes,
+            str(segment_path.relative_to(ROOT)): hashlib.sha256(segment_path.read_bytes()).hexdigest()},
         rows=summary)
     prefix.with_suffix(".json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
     sys.path.append(str(ROOT / ".review-deps"))
