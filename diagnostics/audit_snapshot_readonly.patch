@@ -1,0 +1,42 @@
+--- a/scripts/run_real_world_stackelberg_controller.vbs
++++ b/scripts/run_real_world_stackelberg_controller.vbs
+@@ -949,7 +949,7 @@
+     stateJsonPath = fso.BuildPath(decisionDir, "state_" & Pad6(simSec) & ".json")
+     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
+     outCsvPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".csv")
+-    WriteStateJson simSec, stateJsonPath
++    WriteStateJson simSec, stateJsonPath, True
+     effController = controllerName
+     If controlStartSec >= 0 And simSec < controlStartSec Then
+         effController = warmupControllerName
+@@ -2354,7 +2354,7 @@
+     WScript.Quit 13
+ End Sub
+ 
+-Sub WriteStateJson(simSec, path)
++Sub WriteStateJson(simSec, path, resetWindows)
+     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
+     Dim countE(), speedE(), stoppedE(), countW(), speedW(), stoppedW()
+     ReDim countE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim speedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim stoppedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1)
+@@ -2445,8 +2445,10 @@
+     ts.WriteLine "    ""queue_counters"": " & QueueCounterJson() & ","
+     ts.WriteLine "    ""far_measurement"": " & FarMeasurementJson()
+     ts.WriteLine "  },"
+-    If QueueWindowEnabled() Then ResetQueueWindow
+-    ResetFarMeasurement
++    If resetWindows Then
++        If QueueWindowEnabled() Then ResetQueueWindow
++        ResetFarMeasurement
++    End If
+     WriteVehicleRecordsEnvelope ts, simSec, collectionCountBefore, collectionCountAfter, _
+         captureSimSecBefore, captureSimSecAfter, recordVehNos, recordLinkNos, recordLaneNos, _
+         recordPositions, recordSpeeds, recordStopped, fullLinkCounts, fullLinkStoppedCounts
+@@ -2654,7 +2656,7 @@
+     If auditAnchorsSec = "" Then Exit Sub
+     If Not InCsvInt(CLng(simSec), auditAnchorsSec) Then Exit Sub
+     anchorPath = fso.BuildPath(decisionDir, "anchor_" & Pad6(CLng(simSec)) & ".json")
+-    WriteStateJson CLng(simSec), anchorPath
++    WriteStateJson CLng(simSec), anchorPath, False
+     WScript.Echo "AUDIT_ANCHOR_STATE sim_sec=" & CStr(simSec) & " path=" & anchorPath
+ End Sub
+ 
