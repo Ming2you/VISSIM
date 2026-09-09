@@ -1,0 +1,41 @@
+{
+ "schema": "offramp_landing_cap/1",
+ "generated": "2026-09-09",
+ "jam_density_veh_km_lane": 168.18,
+ "rule": "용량 = 길이[km] x 차로수 x jam_density (정본 저류 규칙). 점유는 무제어 런 t>=900 링크재차.",
+ "why": "off-ramp spillback lane closure(metanet.effective_lane_profile)의 방아쇠가 OR_*_storage 점유인데 관측 채널이 39/39 표본 0 이라 lambda_eff 가 영원히 nominal 차로를 반환한다. 실제 큐는 착지 커넥터에 있다.",
+ "ramps": {
+  "OR_D_E": {
+   "connector": "10483",
+   "length_m": 302.3,
+   "lanes": 1,
+   "cap_veh": 50.8,
+   "observed_mean": 2.7,
+   "observed_max": 12
+  },
+  "OR_D_W": {
+   "connector": "10479",
+   "length_m": 258.4,
+   "lanes": 1,
+   "cap_veh": 43.5,
+   "observed_mean": 2.2,
+   "observed_max": 5
+  },
+  "OR_F_E": {
+   "connector": "10682",
+   "length_m": 226.5,
+   "lanes": 1,
+   "cap_veh": 38.1,
+   "observed_mean": 18.8,
+   "observed_max": 24
+  },
+  "OR_F_W": {
+   "connector": "10645",
+   "length_m": 350.4,
+   "lanes": 1,
+   "cap_veh": 58.9,
+   "observed_mean": 3.8,
+   "observed_max": 8
+  }
+ }
+}

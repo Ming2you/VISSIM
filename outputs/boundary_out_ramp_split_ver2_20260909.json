@@ -1,0 +1,128 @@
+{
+ "schema_version": "boundary-out-ramp-split/1",
+ "generated": "2026-09-09",
+ "network": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+ "source": "Ver2 .inpx 정적 경로결정 relFlow (linkSeq 전 구간 탐색) + 링크평가 실측 램프 배분 n21_x15_nocontrol_ver2_20260907",
+ "rule": "빈 relFlow = 1. 구간 표기는 마지막 수치. linkSeq 어디에든 램프 커넥터가 있으면 램프행. 옛 생성기는 seq[0] 만 봐서 Ver2 의 중간 커넥터(10772·10774) 뒤에 오는 램프를 놓친다.",
+ "excluded": "SC1004_S_out — 링크 67 만이어야 하는데 모델이 68 을 섞는다",
+ "links": {
+  "SC1001_W_out": {
+   "decision": "1137",
+   "physical_link": "31",
+   "free": 0.166667,
+   "ramps": {
+    "R_D_E": 0.584436,
+    "R_D_W": 0.248897
+   },
+   "routes": [
+    {
+     "no": "1",
+     "relFlow_raw": "2 0:3",
+     "weight": 3.0,
+     "dest_link": "24",
+     "link_seq": [
+      "10484"
+     ],
+     "resolved": "R_D_E",
+     "share": 0.5
+    },
+    {
+     "no": "2",
+     "relFlow_raw": "",
+     "weight": 1.0,
+     "dest_link": "125",
+     "link_seq": [
+      "10774",
+      "124",
+      "10775"
+     ],
+     "resolved": "free",
+     "share": 0.166667
+    },
+    {
+     "no": "3",
+     "relFlow_raw": "2 0:2",
+     "weight": 2.0,
+     "dest_link": "26",
+     "link_seq": [
+      "10774",
+      "124",
+      "10480"
+     ],
+     "resolved": "R_D_W",
+     "share": 0.333333
+    }
+   ],
+   "measured_ramp_share": {
+    "R_D_E": 0.7013,
+    "R_D_W": 0.2987
+   },
+   "measured_samples": {
+    "R_D_E": 37,
+    "R_D_W": 37
+   },
+   "measured_runs": [
+    "n21_x15_nocontrol_ver2_20260907"
+   ]
+  },
+  "SC1004_W_out": {
+   "decision": "1135",
+   "physical_link": "68",
+   "free": 0.2,
+   "ramps": {
+    "R_F_E": 0.195968,
+    "R_F_W": 0.604032
+   },
+   "routes": [
+    {
+     "no": "2",
+     "relFlow_raw": "2 0:3",
+     "weight": 3.0,
+     "dest_link": "120",
+     "link_seq": [
+      "10772",
+      "121",
+      "10646"
+     ],
+     "resolved": "R_F_W",
+     "share": 0.6
+    },
+    {
+     "no": "3",
+     "relFlow_raw": "",
+     "weight": 1.0,
+     "dest_link": "123",
+     "link_seq": [
+      "10772",
+      "121",
+      "10773"
+     ],
+     "resolved": "free",
+     "share": 0.2
+    },
+    {
+     "no": "4",
+     "relFlow_raw": "",
+     "weight": 1.0,
+     "dest_link": "2",
+     "link_seq": [
+      "10681"
+     ],
+     "resolved": "R_F_E",
+     "share": 0.2
+    }
+   ],
+   "measured_ramp_share": {
+    "R_F_W": 0.755,
+    "R_F_E": 0.245
+   },
+   "measured_samples": {
+    "R_F_W": 37,
+    "R_F_E": 37
+   },
+   "measured_runs": [
+    "n21_x15_nocontrol_ver2_20260907"
+   ]
+  }
+ }
+}

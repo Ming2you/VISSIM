@@ -1,0 +1,250 @@
+{
+ "schema": "out_link_storage_ver2/1",
+ "generated": "2026-09-09",
+ "network": "modi_eval_userfix Ver2.inpx",
+ "detector_mapping": "detector_local_mapping_ver2_20260907.json",
+ "jam_density_veh_km_lane": 168.18,
+ "rule": "저류 = Σ(길이[km] × 차로수) × jam_density. 정본 urban_storage_capacity_core17legs4b_20260819.json 과 같은 규칙 (검산: SC1001_to_SC1002 469.0 veh / 0.9965 km = 2.80 차로 × 168.18).",
+ "why": "정본 저류 산출물에 *_out 링크가 하나도 없어 config 에서 33개가 vendor 기본 220.0 으로 떨어져 있었다. Ver2 는 이 회랑들을 쪼갰으므로 조각들의 합이어야 한다.",
+ "placeholder": 220.0,
+ "links": {
+  "SC1001_W_out": {
+   "storage_veh": 1094.1,
+   "length_m": 2553.4,
+   "physical": [
+    "10479:258m×1",
+    "10483:302m×1",
+    "10703:33m×2",
+    "10774:1m×3",
+    "10775:1m×3",
+    "124:322m×3",
+    "125:1223m×3",
+    "31:412m×3"
+   ],
+   "config_value": 220.0
+  },
+  "SC1004_S_out": {
+   "storage_veh": 1790.0,
+   "length_m": 2660.8,
+   "physical": [
+    "67:2661m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC1004_W_out": {
+   "storage_veh": 1435.8,
+   "length_m": 2567.1,
+   "physical": [
+    "10645:350m×1",
+    "10682:227m×1",
+    "10772:1m×4",
+    "10773:1m×4",
+    "121:233m×4",
+    "123:1637m×4",
+    "68:118m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC102_N_out": {
+   "storage_veh": 57.8,
+   "length_m": 114.5,
+   "physical": [
+    "1220023201:115m×3"
+   ],
+   "config_value": 220.0
+  },
+  "SC103_E_out": {
+   "storage_veh": 81.7,
+   "length_m": 121.4,
+   "physical": [
+    "1220024301:121m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC103_N_out": {
+   "storage_veh": 80.3,
+   "length_m": 159.2,
+   "physical": [
+    "1220024901:159m×3"
+   ],
+   "config_value": 220.0
+  },
+  "SC104_E_out": {
+   "storage_veh": 360.5,
+   "length_m": 714.4,
+   "physical": [
+    "1220061100:714m×3"
+   ],
+   "config_value": 220.0
+  },
+  "SC104_N_out": {
+   "storage_veh": 116.7,
+   "length_m": 138.8,
+   "physical": [
+    "1220002302:139m×5"
+   ],
+   "config_value": 220.0
+  },
+  "SC106_E_out": {
+   "storage_veh": 116.2,
+   "length_m": 345.4,
+   "physical": [
+    "10001:17m×2",
+    "1220017300:165m×2",
+    "14:163m×2"
+   ],
+   "config_value": 220.0
+  },
+  "SC106_S_out": {
+   "storage_veh": 118.9,
+   "length_m": 209.0,
+   "physical": [
+    "10044:16m×4",
+    "10062:26m×4",
+    "10068:57m×4",
+    "10070:43m×1",
+    "1220001100:67m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC107_E_out": {
+   "storage_veh": 30.8,
+   "length_m": 91.6,
+   "physical": [
+    "10111:32m×2",
+    "20:60m×2"
+   ],
+   "config_value": 19.8
+  },
+  "SC107_S_out": {
+   "storage_veh": 407.8,
+   "length_m": 1223.1,
+   "physical": [
+    "10594:46m×2",
+    "10597:42m×2",
+    "10607:21m×1",
+    "1220006801:213m×2",
+    "1220042200:901m×2"
+   ],
+   "config_value": 220.0
+  },
+  "SC108_S_out": {
+   "storage_veh": 232.9,
+   "length_m": 692.6,
+   "physical": [
+    "1220044400:693m×2"
+   ],
+   "config_value": 220.0
+  },
+  "SC109_E_out": {
+   "storage_veh": 225.6,
+   "length_m": 335.3,
+   "physical": [
+    "1220000803:335m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC109_W_out": {
+   "storage_veh": 24.3,
+   "length_m": 72.3,
+   "physical": [
+    "10113:23m×2",
+    "22:50m×2"
+   ],
+   "config_value": 16.5
+  },
+  "SC16_E_out": {
+   "storage_veh": 46.2,
+   "length_m": 274.5,
+   "physical": [
+    "1220011300:274m×1"
+   ],
+   "config_value": 220.0
+  },
+  "SC16_S_out": {
+   "storage_veh": 8.1,
+   "length_m": 48.2,
+   "physical": [
+    "10266:24m×1",
+    "10267:25m×1"
+   ],
+   "config_value": 220.0
+  },
+  "SC1_W_out": {
+   "storage_veh": 5.6,
+   "length_m": 33.2,
+   "physical": [
+    "10587:33m×1"
+   ],
+   "config_value": 220.0
+  },
+  "SC2001_N_out": {
+   "storage_veh": 131.2,
+   "length_m": 390.0,
+   "physical": [
+    "81:390m×2"
+   ],
+   "config_value": 129.5
+  },
+  "SC2002_N_out": {
+   "storage_veh": 245.7,
+   "length_m": 365.2,
+   "physical": [
+    "89:365m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC2003_N_out": {
+   "storage_veh": 118.9,
+   "length_m": 353.3,
+   "physical": [
+    "95:353m×2"
+   ],
+   "config_value": 118.2
+  },
+  "SC2004_N_out": {
+   "storage_veh": 247.8,
+   "length_m": 368.4,
+   "physical": [
+    "109:368m×4"
+   ],
+   "config_value": 247.3
+  },
+  "SC2005_N_out": {
+   "storage_veh": 257.3,
+   "length_m": 382.4,
+   "physical": [
+    "115:382m×4"
+   ],
+   "config_value": 220.0
+  },
+  "SC5_S_out": {
+   "storage_veh": 6.9,
+   "length_m": 41.0,
+   "physical": [
+    "10410:10m×1",
+    "260:31m×1"
+   ],
+   "config_value": 10.0
+  }
+ },
+ "missing": [
+  "SC1005_W_out",
+  "SC101_S_out",
+  "SC105_E_out",
+  "SC106_W_out",
+  "SC108_W_out",
+  "SC11_E_out",
+  "SC11_W_out",
+  "SC12_E_out",
+  "SC12_W_out",
+  "SC16_W_out",
+  "SC1_E_out",
+  "SC1_N_out",
+  "SC1_S_out",
+  "SC2001_S_out",
+  "SC2001_W_out",
+  "SC6_S_out",
+  "SC7_E_out"
+ ]
+}

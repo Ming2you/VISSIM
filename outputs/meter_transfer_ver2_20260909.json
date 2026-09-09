@@ -1,0 +1,53 @@
+{
+ "schema": "meter_transfer_v1",
+ "generated": "2026-09-09",
+ "source_runs": [
+  "n21x15_n3_spill_rl_meter_mf1_20260908",
+  "n21x15_n4_spill_rl_meter_mf1_pw25_20260908",
+  "n21x15_n5_spill_rl_meter_mf1_pw25_b5_20260908",
+  "n21x15_n6_spill_rl_meter_mf1_pw25_b5_b0_20260908",
+  "n21x15_n7_spill_rl_meter_mf1_pw25_b5_b0_satv2_20260908"
+ ],
+ "cycle_sec": 10.0,
+ "lanes": {
+  "RM_C10482": 2.0,
+  "RM_C10681": 2.0
+ },
+ "instrument": "local_observation.far_measurement.link_volume_veh_h (VISSIM 링크평가 150 s). fzp 5초 스캔은 커넥터 체류 5초 미만 차량을 놓치므로 쓰지 않는다.",
+ "alignment": "링크평가 Last = 마지막 완료 구간. action(T-interval) <-> volume(T).",
+ "min_samples": 3,
+ "per_lane_veh_per_cycle": {
+  "2": 1.328,
+  "3": 1.328,
+  "4": 2.904,
+  "5": 2.904,
+  "6": 3.002,
+  "7": 3.537,
+  "8": 3.537,
+  "9": 3.537,
+  "10": 3.537
+ },
+ "old_table_lcd1000": {
+  "2": 0.71,
+  "3": 0.99,
+  "4": 1.44,
+  "5": 1.89,
+  "6": 2.34,
+  "7": 2.79,
+  "8": 3.24,
+  "9": 3.69,
+  "10": 4.2
+ },
+ "samples": {
+  "0": 4,
+  "2": 17,
+  "3": 4,
+  "4": 19,
+  "5": 89,
+  "6": 27,
+  "7": 15,
+  "8": 69,
+  "9": 13,
+  "10": 1143
+ }
+}

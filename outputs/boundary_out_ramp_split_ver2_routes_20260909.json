@@ -1,0 +1,79 @@
+{
+  "schema_version": "boundary-out-ramp-split/1",
+  "generated": "2026-09-01",
+  "source": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx 의 vehicleRoutingDecisionStatic relFlow",
+  "rule": "relFlow 빈 값 = 1 (0 아님). linkSeq 없는 route = 자유 이탈.",
+  "excluded": {
+    "SC1004_S_out": "링크 67 만 받아야 하는데 모델이 68 도 섞는다 — 분할 불가"
+  },
+  "links": {
+    "SC1001_W_out": {
+      "decision": "1137",
+      "physical_link": "31",
+      "free": 0.5,
+      "ramps": {
+        "R_D_E": 0.5
+      },
+      "routes": [
+        {
+          "route": "1",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "via": "10484",
+          "ramp": "R_D_E",
+          "share": 0.5
+        },
+        {
+          "route": "2",
+          "relFlow_raw": "",
+          "weight": 1.0,
+          "via": "10774",
+          "ramp": "free",
+          "share": 0.166667
+        },
+        {
+          "route": "3",
+          "relFlow_raw": "2 0:2",
+          "weight": 2.0,
+          "via": "10774",
+          "ramp": "free",
+          "share": 0.333333
+        }
+      ]
+    },
+    "SC1004_W_out": {
+      "decision": "1135",
+      "physical_link": "68",
+      "free": 0.8,
+      "ramps": {
+        "R_F_E": 0.2
+      },
+      "routes": [
+        {
+          "route": "2",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "via": "10772",
+          "ramp": "free",
+          "share": 0.6
+        },
+        {
+          "route": "3",
+          "relFlow_raw": "",
+          "weight": 1.0,
+          "via": "10772",
+          "ramp": "free",
+          "share": 0.2
+        },
+        {
+          "route": "4",
+          "relFlow_raw": "",
+          "weight": 1.0,
+          "via": "10681",
+          "ramp": "R_F_E",
+          "share": 0.2
+        }
+      ]
+    }
+  }
+}

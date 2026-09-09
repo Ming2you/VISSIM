@@ -44,9 +44,15 @@ def ps_count(cmd):
 
 
 def waiting_for(token):
+    # **자기 자신을 세면 안 된다.** 이 스크립트의 명령줄에 token 이 인자로 들어 있어서
+    # 그냥 세면 앞 체인이 끝나도 카운트가 0 이 되지 않는다 — 2026-09-09 에 이 버그로
+    # 큐가 1시간 38분 동안 헛돌았다. 자기 PID 와 이 스크립트 이름을 둘 다 제외한다.
+    me = os.getpid()
     return ps_count(
         "(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
-        "Where-Object { $_.CommandLine -like '*%s*' } | Measure-Object).Count" % token)
+        "Where-Object { $_.ProcessId -ne %d -and $_.CommandLine -like '*%s*' "
+        "-and $_.CommandLine -notlike '*queue_after_ladder*' } | Measure-Object).Count"
+        % (me, token))
 
 
 def vissim_busy():
