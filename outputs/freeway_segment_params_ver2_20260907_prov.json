@@ -1,0 +1,186 @@
+{
+ "schema": "freeway_segment_params_v1",
+ "generated": "2026-09-07",
+ "source_fit": "outputs/fd_ver2_20260907/fd_fit_v0_v2.json",
+ "rmse_max": 8.0,
+ "v_free_plain_measured": 118.5,
+ "class_fit": {
+  "plain4": {
+   "k_crit": 35.781407254342035,
+   "a": 1.3520011414447572,
+   "q_cap": 2023.7287865247274,
+   "rmse": 4.457693105549055,
+   "n": 2700
+  },
+  "plain3": {
+   "k_crit": 30.050047321290005,
+   "a": 1.5482442949854294,
+   "q_cap": 1866.6194531027104,
+   "rmse": 6.349602580545315,
+   "n": 3600
+  }
+ },
+ "definition": "세그먼트별 METANET FD 파라미터. 어댑터가 freeway.segment_params 로 읽어 cfg.network.freeway_segment_params[model_link][segment_index] 로 싣는다. q_cap_veh_h_lane 은 진단용(모형은 v_free·rho_crit·a 만 쓴다).",
+ "segments": {
+  "FW_E_S0": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 118.5,
+   "rho_crit": 36.51,
+   "metanet_a_m": 1.276,
+   "q_cap_veh_h_lane": 1976.5,
+   "origin": "세그먼트 적합 (RMSE 3.26)",
+   "note": ""
+  },
+  "FW_E_S1": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 118.5,
+   "rho_crit": 36.51,
+   "metanet_a_m": 1.492,
+   "q_cap_veh_h_lane": 2213.7,
+   "origin": "세그먼트 적합 (RMSE 5.37)",
+   "note": ""
+  },
+  "FW_E_S2": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 118.5,
+   "rho_crit": 34.82,
+   "metanet_a_m": 1.245,
+   "q_cap_veh_h_lane": 1848.1,
+   "origin": "세그먼트 적합 (RMSE 3.23)",
+   "note": ""
+  },
+  "FW_E_S3": {
+   "class": "weave4",
+   "lanes": 4.0,
+   "v_free": 118.5,
+   "rho_crit": 22.95,
+   "metanet_a_m": 0.927,
+   "q_cap_veh_h_lane": 924.7,
+   "origin": "세그먼트 적합 (RMSE 2.96)",
+   "note": "OFF4386(2ln) ON4611 OFF4747 ON4900"
+  },
+  "FW_E_S4": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 118.5,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 2023.7,
+   "origin": "급 대표값 (RMSE 21.4 로 자체 적합 기각)",
+   "note": ""
+  },
+  "FW_E_S5": {
+   "class": "drop+weave3",
+   "lanes": 3.0,
+   "v_free": 68.29,
+   "rho_crit": 30.05,
+   "metanet_a_m": 1.548,
+   "q_cap_veh_h_lane": 1075.7,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": "OFF6827(2ln) 4->3@6840 ON7153 OFF7240 ON7448"
+  },
+  "FW_E_S6": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 106.39,
+   "rho_crit": 30.05,
+   "metanet_a_m": 1.548,
+   "q_cap_veh_h_lane": 1675.9,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": ""
+  },
+  "FW_E_S7": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 117.16,
+   "rho_crit": 30.05,
+   "metanet_a_m": 1.548,
+   "q_cap_veh_h_lane": 1845.5,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": ""
+  },
+  "FW_W_S0": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 118.5,
+   "rho_crit": 32.76,
+   "metanet_a_m": 1.261,
+   "q_cap_veh_h_lane": 1756.5,
+   "origin": "세그먼트 적합 (RMSE 2.21)",
+   "note": ""
+  },
+  "FW_W_S1": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 118.5,
+   "rho_crit": 32.68,
+   "metanet_a_m": 1.227,
+   "q_cap_veh_h_lane": 1714.1,
+   "origin": "세그먼트 적합 (RMSE 2.01)",
+   "note": ""
+  },
+  "FW_W_S2": {
+   "class": "gain+weave3",
+   "lanes": 3.0,
+   "v_free": 118.5,
+   "rho_crit": 28.37,
+   "metanet_a_m": 1.247,
+   "q_cap_veh_h_lane": 1507.8,
+   "origin": "세그먼트 적합 (RMSE 6.38)",
+   "note": "OFF3425 ON3525 OFF3651 3->4@3817 ON3833"
+  },
+  "FW_W_S3": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 108.05,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 1845.3,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": ""
+  },
+  "FW_W_S4": {
+   "class": "weave4",
+   "lanes": 4.0,
+   "v_free": 105.64,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 1804.2,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": "OFF5910 ON6075 OFF6225(2ln)"
+  },
+  "FW_W_S5": {
+   "class": "merge4",
+   "lanes": 4.0,
+   "v_free": 85.11,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 1453.6,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": "ON6777"
+  },
+  "FW_W_S6": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 109.19,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 1864.8,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": ""
+  },
+  "FW_W_S7": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 116.98,
+   "rho_crit": 35.78,
+   "metanet_a_m": 1.352,
+   "q_cap_veh_h_lane": 1997.8,
+   "origin": "급 형상 + 저밀도 실측 v_free",
+   "note": ""
+  }
+ }
+}

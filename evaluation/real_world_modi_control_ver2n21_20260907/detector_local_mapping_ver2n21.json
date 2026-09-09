@@ -1,0 +1,1121 @@
+{
+  "schema_version": 1,
+  "mapping_version": "real_world_modi_connector_local_v1_20260720",
+  "description": "Real-world Gaepo modi connector-local observation mapping. Off-ramp connector counts feed OR_* storage/movement queues; ramp-meter connector counts feed R_* queues.",
+  "observable_links": [
+    2,
+    24,
+    26,
+    74,
+    119,
+    120,
+    10479,
+    10480,
+    10481,
+    10482,
+    10483,
+    10484,
+    10490,
+    10491,
+    10613,
+    10638,
+    10639,
+    10643,
+    10644,
+    10645,
+    10646,
+    10681,
+    10682,
+    10699,
+    10702,
+    10771
+  ],
+  "link_to_origins": {
+    "10479": [
+      "OR_D_W"
+    ],
+    "10491": [
+      "OR_D_W"
+    ],
+    "10638": [
+      "OR_F_W"
+    ],
+    "10645": [
+      "OR_F_W"
+    ],
+    "10643": [
+      "OR_F_E"
+    ],
+    "10682": [
+      "OR_F_E"
+    ],
+    "10481": [
+      "OR_D_E"
+    ],
+    "10483": [
+      "OR_D_E"
+    ]
+  },
+  "link_to_movements": {
+    "10479": [
+      {
+        "movement": "D_offW_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      }
+    ],
+    "10491": [
+      {
+        "movement": "D_offW_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      },
+      {
+        "movement": "D_offW_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_W"
+      }
+    ],
+    "10638": [
+      {
+        "movement": "F_offW_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      }
+    ],
+    "10645": [
+      {
+        "movement": "F_offW_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      },
+      {
+        "movement": "F_offW_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_W"
+      }
+    ],
+    "10643": [
+      {
+        "movement": "F_offE_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      }
+    ],
+    "10682": [
+      {
+        "movement": "F_offE_to_N",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_E",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      },
+      {
+        "movement": "F_offE_to_W",
+        "weight": 1.0,
+        "signal": "F",
+        "phase": "F_p1",
+        "kind": "off_ramp",
+        "origin": "OR_F_E"
+      }
+    ],
+    "10481": [
+      {
+        "movement": "D_offE_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      }
+    ],
+    "10483": [
+      {
+        "movement": "D_offE_to_N",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_E",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      },
+      {
+        "movement": "D_offE_to_W",
+        "weight": 1.0,
+        "signal": "D",
+        "phase": "D_p1",
+        "kind": "off_ramp",
+        "origin": "OR_D_E"
+      }
+    ]
+  },
+  "ramp_link_to_queues": {
+    "10480": [
+      "R_D_W"
+    ],
+    "10482": [
+      "R_D_W"
+    ],
+    "10646": [
+      "R_F_W"
+    ],
+    "10644": [
+      "R_F_W"
+    ],
+    "10639": [
+      "R_F_E"
+    ],
+    "10681": [
+      "R_F_E"
+    ],
+    "10490": [
+      "R_D_E"
+    ],
+    "10484": [
+      "R_D_E"
+    ]
+  },
+  "boundary_link_to_queue": {},
+  "freeway_link_to_model_link": {
+    "74": "FW_E",
+    "10699": "FW_E",
+    "2": "FW_E",
+    "10613": "FW_E",
+    "119": "FW_E",
+    "10702": "FW_E",
+    "24": "FW_E",
+    "26": "FW_W",
+    "10771": "FW_W",
+    "120": "FW_W"
+  },
+  "off_ramp_connectors": {
+    "OR_D_W": [
+      {
+        "connector": 10479,
+        "from_link": 26,
+        "from_pos_m": 3425.401,
+        "to_link": 125,
+        "to_pos_m": 134.861,
+        "lanes": 1
+      },
+      {
+        "connector": 10491,
+        "from_link": 26,
+        "from_pos_m": 3650.905,
+        "to_link": 129,
+        "to_pos_m": 239.384,
+        "lanes": 1
+      }
+    ],
+    "OR_F_W": [
+      {
+        "connector": 10638,
+        "from_link": 120,
+        "from_pos_m": 2402.481,
+        "to_link": 70,
+        "to_pos_m": 40.267,
+        "lanes": 2
+      },
+      {
+        "connector": 10645,
+        "from_link": 120,
+        "from_pos_m": 2087.381,
+        "to_link": 123,
+        "to_pos_m": 219.84,
+        "lanes": 1
+      }
+    ],
+    "OR_F_E": [
+      {
+        "connector": 10643,
+        "from_link": 2,
+        "from_pos_m": 1651.806,
+        "to_link": 126,
+        "to_pos_m": 150.209,
+        "lanes": 2
+      },
+      {
+        "connector": 10682,
+        "from_link": 2,
+        "from_pos_m": 2012.357,
+        "to_link": 121,
+        "to_pos_m": 118.446,
+        "lanes": 1
+      }
+    ],
+    "OR_D_E": [
+      {
+        "connector": 10481,
+        "from_link": 2,
+        "from_pos_m": 4092.316,
+        "to_link": 127,
+        "to_pos_m": 210.271,
+        "lanes": 2
+      },
+      {
+        "connector": 10483,
+        "from_link": 119,
+        "from_pos_m": 392.291,
+        "to_link": 124,
+        "to_pos_m": 201.15,
+        "lanes": 1
+      }
+    ]
+  },
+  "agents": {
+    "U_A": {
+      "kind": "urban",
+      "signal": "A",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_B": {
+      "kind": "urban",
+      "signal": "B",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_C": {
+      "kind": "urban",
+      "signal": "C",
+      "visible_links": [],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "U_D": {
+      "kind": "urban",
+      "signal": "D",
+      "visible_links": [
+        "10479",
+        "10480",
+        "10481",
+        "10482",
+        "10483",
+        "10484",
+        "10490",
+        "10491"
+      ],
+      "visible_movements": [
+        "D_offE_to_E",
+        "D_offE_to_N",
+        "D_offE_to_W",
+        "D_offW_to_E",
+        "D_offW_to_N",
+        "D_offW_to_W"
+      ],
+      "visible_ramps": [
+        "R_D_E",
+        "R_D_W"
+      ],
+      "visible_off_ramps": [
+        "OR_D_E",
+        "OR_D_W"
+      ]
+    },
+    "U_F": {
+      "kind": "urban",
+      "signal": "F",
+      "visible_links": [
+        "10638",
+        "10639",
+        "10643",
+        "10644",
+        "10645",
+        "10646",
+        "10681",
+        "10682"
+      ],
+      "visible_movements": [
+        "F_offE_to_E",
+        "F_offE_to_N",
+        "F_offE_to_W",
+        "F_offW_to_E",
+        "F_offW_to_N",
+        "F_offW_to_W"
+      ],
+      "visible_ramps": [
+        "R_F_E",
+        "R_F_W"
+      ],
+      "visible_off_ramps": [
+        "OR_F_E",
+        "OR_F_W"
+      ]
+    },
+    "F_E0": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 0,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E1": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 1,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E2": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 2,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E3": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 3,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E4": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 4,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E5": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 5,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E6": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 6,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E7": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 7,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E8": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 8,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": [
+        "OR_F_E"
+      ]
+    },
+    "F_E9": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 9,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_F_E"
+      ],
+      "visible_off_ramps": []
+    },
+    "F_E10": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 10,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E11": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 11,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E12": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 12,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E13": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 13,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": [
+        "OR_D_E"
+      ]
+    },
+    "F_E14": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 14,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_D_E"
+      ],
+      "visible_off_ramps": []
+    },
+    "F_E15": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 15,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E16": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 16,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E17": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 17,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E18": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 18,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E19": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 19,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_E20": {
+      "kind": "freeway",
+      "model_link": "FW_E",
+      "segment_index": 20,
+      "visible_links": [
+        "74",
+        "10699",
+        "2",
+        "10613",
+        "119",
+        "10702",
+        "24"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W0": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 0,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W1": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 1,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W2": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 2,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W3": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 3,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W4": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 4,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W5": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 5,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W6": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 6,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": [
+        "OR_D_W"
+      ]
+    },
+    "F_W7": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 7,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_D_W"
+      ],
+      "visible_off_ramps": []
+    },
+    "F_W8": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 8,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W9": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 9,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W10": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 10,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W11": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 11,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": [
+        "OR_F_W"
+      ]
+    },
+    "F_W12": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 12,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W13": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 13,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [
+        "R_F_W"
+      ],
+      "visible_off_ramps": []
+    },
+    "F_W14": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 14,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W15": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 15,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W16": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 16,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W17": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 17,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W18": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 18,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W19": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 19,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    },
+    "F_W20": {
+      "kind": "freeway",
+      "model_link": "FW_W",
+      "segment_index": 20,
+      "visible_links": [
+        "26",
+        "10771",
+        "120"
+      ],
+      "visible_movements": [],
+      "visible_ramps": [],
+      "visible_off_ramps": []
+    }
+  },
+  "guardrails": {
+    "leader_visibility": "global_state_allowed",
+    "follower_visibility": "real_world_connector_local_links_only",
+    "adapter_global_fallback_allowed_only_when_local_observation_absent": true,
+    "vissim_internal_scan_is_masked_before_controller": true,
+    "urban_signal_actuation": "freeway_interface_sc1_enabled"
+  }
+}

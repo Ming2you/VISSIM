@@ -2306,7 +2306,9 @@ End Sub
 
 Sub WriteStateJson(simSec, path)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, demandUrbanNow, demandFreewayNow
-    Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7)
+    Dim countE(), speedE(), stoppedE(), countW(), speedW(), stoppedW()
+    ReDim countE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim speedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim stoppedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1)
+    ReDim countW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1) : ReDim speedW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1) : ReDim stoppedW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1)
     Dim localCounts, localStopped, localSpeedSums, localQueueTails, scanOk, perfT0
     Dim localQBinTotal, localQBinStopped
     Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
@@ -2421,10 +2423,22 @@ Sub WriteStateJson(simSec, path)
     PerfAdd "state.json", perfT0
 End Sub
 
+Function FwSegCount(boundsCsv)
+    ' 2026-09-07: 세그먼트 수는 설정의 경계 CSV 가 정본이다. 종전에는 Dim countE(7) 로 8 이 박혀 있어
+    '   N 을 바꾸면 'subscript out of range' 로 죽었다(A단계 N=21 에서 실측).
+    Dim parts
+    parts = Split(CStr(boundsCsv), ",")
+    If UBound(parts) < 1 Then
+        FwSegCount = 8
+    Else
+        FwSegCount = UBound(parts)
+    End If
+End Function
+
 Function SegmentArrayJson(counts, speeds, lengthsCsv, lanes)
     Dim i, s, lengthKm
     s = "["
-    For i = 0 To 7
+    For i = 0 To UBound(counts)
         If i > 0 Then s = s & ", "
         lengthKm = CsvNumberAt(lengthsCsv, i, 1.0)
         s = s & "{""count"": " & CStr(counts(i)) & ", ""speed_sum"": " & Num(speeds(i)) & ", ""length_km"": " & Num(lengthKm) & ", ""lanes"": " & CStr(lanes) & "}"
@@ -2554,7 +2568,9 @@ Sub LogStateCsv(simSec)
         Exit Sub
     End If
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
-    Dim countE(7), speedE(7), stoppedE(7), countW(7), speedW(7), stoppedW(7), status, wall
+    Dim countE(), speedE(), stoppedE(), countW(), speedW(), stoppedW(), status, wall
+    ReDim countE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim speedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1) : ReDim stoppedE(FwSegCount(RW_FW_E_SEG_BOUNDS) - 1)
+    ReDim countW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1) : ReDim speedW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1) : ReDim stoppedW(FwSegCount(RW_FW_W_SEG_BOUNDS) - 1)
     Dim linkCounts, linkStopped, linkSpeedSums, linkQueueTails, scanOk, perfT0
     Dim qBinTotal, qBinStopped
     Dim collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter
@@ -2616,7 +2632,7 @@ End Sub
 
 Sub WriteBottleneckSegmentRows(simSec, modelLink, direction, physicalLink, counts, stoppedCounts, speedSums, lengthsCsv, lanes)
     Dim i, count, stopped, meanSpeed, lengthKm, density, segmentId
-    For i = 0 To 7
+    For i = 0 To UBound(counts)
         count = CDbl(counts(i))
         stopped = CDbl(stoppedCounts(i))
         meanSpeed = 0
@@ -2698,8 +2714,10 @@ Sub ScanVehicleState(expectedSimSec, ByRef total, ByRef urban, ByRef freeway, By
     Set fullLinkCounts = CreateObject("Scripting.Dictionary")
     Set fullLinkStoppedCounts = CreateObject("Scripting.Dictionary")
     Dim i
-    For i = 0 To 7
+    For i = 0 To UBound(countE)
         countE(i) = 0: speedE(i) = 0: stoppedE(i) = 0
+    Next
+    For i = 0 To UBound(countW)
         countW(i) = 0: speedW(i) = 0: stoppedW(i) = 0
     Next
 

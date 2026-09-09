@@ -1,0 +1,146 @@
+{
+ "schema": "metanet_calibration_v2n21",
+ "arm_results": {
+  "cell_lit": {
+   "label": "B-lit 셀별 FD (문헌 제약)",
+   "theta": {
+    "p4_vf": 120,
+    "p4_kc": 36.038,
+    "p4_a": 1.4,
+    "p3_vf": 128,
+    "p3_kc": 28,
+    "p3_a": 1.4,
+    "merge_vf_scale": 1.15,
+    "merge_kc_scale": 0.7,
+    "merge_a": 2.0,
+    "tau_sec": 15,
+    "nu": 30,
+    "kappa": 30,
+    "delta": 0.3,
+    "phi": 0.0
+   },
+   "fit_score": 0.6736857671298893,
+   "hold_score": 0.658913752138693
+  },
+  "mid2_lit": {
+   "label": "D-lit 전셀 실측 v_free (문헌 제약)",
+   "theta": {
+    "p4_vf": 123.41749999999999,
+    "p4_kc": 25,
+    "p4_a": 2.0,
+    "p3_vf": 122.0265,
+    "p3_kc": 28,
+    "p3_a": 1.70295,
+    "merge_vf_scale": 1.0,
+    "merge_kc_scale": 1.0,
+    "merge_a": 1.5,
+    "tau_sec": 18,
+    "nu": 30,
+    "kappa": 40,
+    "delta": 0.3,
+    "phi": 3.0
+   },
+   "fit_score": 0.6906654843340498,
+   "hold_score": 0.6832790657377794
+  }
+ },
+ "winner": "cell_lit",
+ "fit_runs": [
+  [
+   "n21_nocontrol_ver2_x18_20260907",
+   1.0
+  ],
+  [
+   "n21_x12_nocontrol_ver2_20260907",
+   0.6667
+  ],
+  [
+   "n21_x04_nocontrol_ver2_20260907",
+   0.2222
+  ]
+ ],
+ "holdout_runs": [
+  [
+   "n21_x15_nocontrol_ver2_20260907",
+   0.8333
+  ],
+  [
+   "n21_x08_nocontrol_ver2_20260907",
+   0.4444
+  ]
+ ],
+ "theta0": {
+  "p4_vf": 123.41749999999999,
+  "p4_kc": 36.038,
+  "p4_a": 1.49775,
+  "p3_vf": 122.0265,
+  "p3_kc": 29.035,
+  "p3_a": 1.70295,
+  "merge_vf_scale": 1.0,
+  "merge_kc_scale": 1.0,
+  "merge_a": 1.5,
+  "tau_sec": 7.0,
+  "nu": 48.0,
+  "kappa": 25.0,
+  "delta": 0.0,
+  "phi": 0.0
+ },
+ "theta": {
+  "p4_vf": 120,
+  "p4_kc": 36.038,
+  "p4_a": 1.4,
+  "p3_vf": 128,
+  "p3_kc": 28,
+  "p3_a": 1.4,
+  "merge_vf_scale": 1.15,
+  "merge_kc_scale": 0.7,
+  "merge_a": 2.0,
+  "tau_sec": 15,
+  "nu": 30,
+  "kappa": 30,
+  "delta": 0.3,
+  "phi": 0.0
+ },
+ "fit_before": {
+  "rmse_rho": 11.765838772210458,
+  "rmse_speed": 35.5776572000122,
+  "mean_rho": 19.32499211647767,
+  "mean_speed": 86.57412730694918,
+  "score": 1.019790773266124,
+  "n": 3769
+ },
+ "fit_after": {
+  "rmse_rho": 8.742914184925487,
+  "rmse_speed": 19.156333075666836,
+  "mean_rho": 19.32499211647767,
+  "mean_speed": 86.57412730694918,
+  "score": 0.6736857671298893,
+  "n": 3769
+ },
+ "holdout_before": {
+  "rmse_rho": 10.547787224504699,
+  "rmse_speed": 29.973507750874923,
+  "mean_rho": 18.883202208941565,
+  "mean_speed": 87.95262880396918,
+  "score": 0.8993719245541998,
+  "n": 2517
+ },
+ "holdout_after": {
+  "rmse_rho": 8.346539652399397,
+  "rmse_speed": 19.077369572846102,
+  "mean_rho": 18.883202208941565,
+  "mean_speed": 87.95262880396918,
+  "score": 0.658913752138693,
+  "n": 2517
+ },
+ "merge_cells": [
+  "FW_E_S8",
+  "FW_E_S9",
+  "FW_E_S13",
+  "FW_E_S14",
+  "FW_W_S6",
+  "FW_W_S7",
+  "FW_W_S11",
+  "FW_W_S13"
+ ]
+}

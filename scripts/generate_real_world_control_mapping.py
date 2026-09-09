@@ -19,7 +19,9 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 # 설치 스크립트(install_real_world_freeway_controls.vbs)도 같은 CSV를 읽는다.
 # 2026-09-07: 망 분할(Ver2) 검토용 — env RW_FREEWAY_CHAIN_CSV 가 있으면 그 체인 CSV 를 쓴다(없으면 정본 경로, 비트 동일).
 FREEWAY_MAINLINE_CHAIN_CSV = Path(os.environ["RW_FREEWAY_CHAIN_CSV"]) if os.environ.get("RW_FREEWAY_CHAIN_CSV") else WORKSPACE_ROOT / "evaluation/real_world_modi_control/freeway_mainline_chain.csv"
-FREEWAY_SEGMENTS_PER_LINK = 8
+# 2026-09-07: 세그먼트 수는 env 로 연다(없으면 8, 비트 동일). N=21 이 "셀당 on<=1 off<=1" 을
+# 만족하는 가장 성긴 균등 분할이다(N=8~20 은 전부 위반, 전수 탐색 2026-09-07).
+FREEWAY_SEGMENTS_PER_LINK = int(os.environ.get("RW_FREEWAY_SEGMENTS_PER_LINK", "8"))
 
 
 def load_freeway_mainline_chain(path: Path = FREEWAY_MAINLINE_CHAIN_CSV) -> dict[str, dict[str, Any]]:
@@ -381,118 +383,113 @@ def build_segments(
     network: dict[str, Any],
     geometry: dict[str, dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    """세그먼트 경계는 체인 기하가 정본이다. 매니페스트는 DSD 번호/차로만 제공한다."""
-    rows = [r for r in manifest_rows if r.get("category") == "segment_start_vsl"]
-    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
-    for row in rows:
-        grouped[str(row.get("segment_id", ""))].append(row)
+    """세그먼트 = 체인 기하가 정본(N 개). DSD 는 **망의 실제 위치**로 붙인다.
 
-    segments: list[dict[str, Any]] = []
+    2026-09-07 재작성. 매니페스트는 이제 '어느 DSD 가 설치본인가'(번호 집합)만 제공한다 — 위치는 망에서
+    읽는다. 종전처럼 매니페스트의 model_segment_index 로 묶으면 세그먼트 수가 매니페스트에 매이고,
+    망 분할로 DSD 가 다른 링크로 옮겨간 뒤에는 낡은 link/pos 가 엉뚱한 셀에 붙는다.
+    DSD 가 하나도 없는 셀이 생기는 것은 정상이다(VSL 은 링크 키로 폴백한다).
+    """
     installed_dsd_nos: set[int] = set()
+    default_speed = 120.0
+    for row in manifest_rows:
+        if row.get("category") != "segment_start_vsl":
+            continue
+        no = int(clean_float(row.get("no"), 0.0))
+        if no:
+            installed_dsd_nos.add(no)
+        default_speed = clean_float(row.get("default_speed_kph"), default_speed)
+
     link_index = chain_link_index(geometry)
-
-    def segment_sort_key(item: tuple[str, list[dict[str, str]]]) -> tuple[str, int]:
-        first = item[1][0]
-        return str(first.get("model_link", "")), int(clean_float(first.get("model_segment_index"), 0.0))
-
-    for segment_id, seg_rows in sorted(grouped.items(), key=segment_sort_key):
-        first = seg_rows[0]
-        model_link = str(first.get("model_link", ""))
-        model_idx = int(clean_float(first.get("model_segment_index"), 0.0))
-        physical_link = int(clean_float(first.get("link"), 0.0))
+    segments: list[dict[str, Any]] = []
+    for model_link in sorted(geometry):
         geom = geometry[model_link]
         bounds = geom["segment_bounds_m"]
-        start_m = float(bounds[model_idx])
-        end_m = float(bounds[model_idx + 1])
-        manifest_start = clean_float(first.get("segment_start_m"))
-        if abs(manifest_start - start_m) > 1.0:
-            print(
-                f"WARN=MANIFEST_SEGMENT_BOUND_DRIFT segment={segment_id} "
-                f"manifest_start_m={manifest_start:.3f} chain_start_m={start_m:.3f} "
-                "(설치 스크립트를 새 체인으로 다시 돌려야 한다)"
+        offsets = list(geom["chain_offsets_m"])
+        members = list(geom["chain_links"])
+        lanes_profile = geom.get("segment_lanes") or []
+        for idx in range(len(bounds) - 1):
+            start_m, end_m = float(bounds[idx]), float(bounds[idx + 1])
+            mid = 0.5 * (start_m + end_m)
+            member_i = max(j for j in range(len(offsets)) if float(offsets[j]) <= mid)
+            segments.append(
+                {
+                    "segment_id": "RW_%s_S%d" % (model_link, idx),
+                    "model_link": model_link,
+                    "model_segment_index": idx,
+                    "link": int(members[member_i]),
+                    "chain_links": [int(v) for v in members],
+                    "direction": str(geom.get("direction", "")),
+                    "segment_start_m": round3(start_m),
+                    "segment_end_m": round3(end_m),
+                    "dsd_chain_pos_m": None,
+                    "dsd_snap_offset_m": None,
+                    "length_km": round((end_m - start_m) / 1000.0, 6),
+                    "lanes": int(lanes_profile[idx]) if idx < len(lanes_profile) else int(geom["lanes"]),
+                    "dsd_by_lane": {},
+                    "extra_dsd_controls": [],
+                    "dsds": [],
+                    "default_speed_kph": default_speed,
+                }
             )
-        if physical_link not in link_index:
-            print(
-                f"WARN=SEGMENT_DSD_OFF_CHAIN segment={segment_id} link={physical_link} "
-                "(체인 밖 링크에 VSL DSD가 설치돼 있다)"
-            )
-        dsd_by_lane: dict[str, dict[str, Any]] = {}
-        dsds: list[dict[str, Any]] = []
-        for row in sorted(seg_rows, key=lambda r: int(clean_float(r.get("lane"), 0.0))):
-            dsd_no = int(clean_float(row.get("no"), 0.0))
-            lane = int(clean_float(row.get("lane"), 0.0))
-            installed_dsd_nos.add(dsd_no)
-            dsd = {
-                "dsd_no": dsd_no,
-                "lane": lane,
-                "pos_m": clean_float(row.get("pos")),
-                "source": "installed_real_world_segment_start",
-                "name": row.get("name", ""),
-            }
-            dsd_by_lane[str(lane)] = dsd
-            dsds.append(dict(dsd))
-        # 설치된 DSD의 실제 체인 좌표. 세그먼트 경계와 어긋날 수 있다 - 링크 경계
-        # 근처에서 통과 판정이 누락되지 않도록 설치 스크립트가 DSD를 다음 체인
-        # 멤버로 스냅하기 때문이다. 측정 격자는 그대로고 물리 위치만 움직인다.
-        dsd_chain_pos: float | None = None
-        if dsds:
-            _, dsd_chain_pos = chain_position(link_index, physical_link, float(dsds[0]["pos_m"]))
-        snap_offset = None if dsd_chain_pos is None else round3(dsd_chain_pos - start_m)
-        if snap_offset is not None and snap_offset > 1.0:
-            print(
-                f"NOTE=SEGMENT_DSD_SNAPPED segment={segment_id} link={physical_link} "
-                f"chain_start_m={start_m:.3f} dsd_chain_pos_m={dsd_chain_pos:.3f} "
-                f"snap_offset_m={snap_offset:.3f} "
-                "(측정 격자는 그대로, 물리 DSD만 이동 - 스냅 구간은 상류 세그먼트의 VSL을 받는다)"
-            )
-        segments.append(
-            {
-                "segment_id": segment_id,
-                "model_link": model_link,
-                "model_segment_index": model_idx,
-                "link": physical_link,
-                "chain_links": list(geom["chain_links"]),
-                "direction": first.get("direction", ""),
-                "segment_start_m": round3(start_m),
-                "segment_end_m": round3(end_m),
-                "dsd_chain_pos_m": None if dsd_chain_pos is None else round3(dsd_chain_pos),
-                "dsd_snap_offset_m": snap_offset,
-                "length_km": round((end_m - start_m) / 1000.0, 6),
-                "lanes": int((geom.get("segment_lanes") or [geom["lanes"]] * 8)[model_idx]) if 0 <= int(model_idx) < len(geom.get("segment_lanes") or []) else int(geom["lanes"]),
-                "dsd_by_lane": dsd_by_lane,
-                "extra_dsd_controls": [],
-                "dsds": dsds,
-                "default_speed_kph": clean_float(first.get("default_speed_kph"), 120.0),
-            }
-        )
 
-    segment_lookup = {(s["model_link"], s["model_segment_index"]): s for s in segments}
+    lookup = {(s["model_link"], s["model_segment_index"]): s for s in segments}
     for dsd in network["dsds"]:
         dsd_no = dsd.get("no")
-        physical_link = dsd.get("link")
-        if not isinstance(dsd_no, int) or dsd_no in installed_dsd_nos:
+        if not isinstance(dsd_no, int):
             continue
+        physical_link = dsd.get("link")
         model_link, chain_pos = chain_position(link_index, physical_link, float(dsd.get("pos_m", 0.0)))
         if model_link is None or chain_pos is None:
             continue
-        idx = segment_index(chain_pos, geometry[model_link]["segment_bounds_m"])
-        segment = segment_lookup.get((model_link, idx))
+        # 설치 스냅 보정. 설치 스크립트가 DSD 를 세그먼트 시작 **직전**(실측 -6.8~+86.7 m)에 놓는 일이
+        # 있어, 위치를 그대로 쓰면 상류 셀로 한 칸 밀린다. 10 m 여유를 두면 N=8 매니페스트 배치를 정확히
+        # 재현한다(2026-09-07 회귀 대조). N 이 커지면 경계가 촘촘해져 이 보정은 사실상 무효가 된다.
+        idx = segment_index(chain_pos + 10.0, geometry[model_link]["segment_bounds_m"])
+        segment = lookup.get((model_link, idx))
         if not segment:
             continue
-        extra = {
-            "dsd_no": dsd_no,
-            "lane": dsd.get("lane"),
-            "link": physical_link,
-            "pos_m": round3(float(dsd.get("pos_m", 0.0))),
-            "chain_pos_m": round3(chain_pos),
-            "source": "existing_freeway_mainline_dsd",
-            "name": dsd.get("name", ""),
-        }
-        segment["extra_dsd_controls"].append(extra)
-        segment["dsds"].append(dict(extra))
+        lane = dsd.get("lane")
+        if dsd_no in installed_dsd_nos:
+            rec = {
+                "dsd_no": dsd_no,
+                "lane": lane,
+                "pos_m": round3(float(dsd.get("pos_m", 0.0))),
+                "source": "installed_real_world_segment_start",
+                "name": dsd.get("name", ""),
+            }
+            if str(lane) in segment["dsd_by_lane"]:
+                print("WARN=SEGMENT_DSD_LANE_COLLISION segment=%s lane=%s keep=%s drop=%s "
+                      "(한 셀에 설치 DSD 두 벌이 들어왔다 — 셀이 너무 굵다)"
+                      % (segment["segment_id"], lane, segment["dsd_by_lane"][str(lane)]["dsd_no"], dsd_no))
+                segment["dsds"].append(dict(rec))
+                continue
+            segment["dsd_by_lane"][str(lane)] = dict(rec)
+            segment["dsds"].append(dict(rec))
+            # 사슬 좌표는 **여기서** 기록한다. 나중에 segment["link"] 로 되계산하면 안 된다 —
+            # 세그먼트의 대표 링크(중점 멤버)와 DSD 가 실제로 놓인 링크가 다를 수 있다(Ver2 E S13: 대표 119, DSD 는 링크 2).
+            if segment["dsd_chain_pos_m"] is None:
+                segment["dsd_chain_pos_m"] = round3(chain_pos)
+                segment["dsd_snap_offset_m"] = round3(chain_pos - float(segment["segment_start_m"]))
+        else:
+            rec = {
+                "dsd_no": dsd_no,
+                "lane": lane,
+                "link": physical_link,
+                "pos_m": round3(float(dsd.get("pos_m", 0.0))),
+                "chain_pos_m": round3(chain_pos),
+                "source": "existing_freeway_mainline_dsd",
+                "name": dsd.get("name", ""),
+            }
+            segment["extra_dsd_controls"].append(dict(rec))
+            segment["dsds"].append(dict(rec))
 
+    n_with = sum(1 for s in segments if s["dsd_by_lane"])
+    print(
+        "NOTE=SEGMENTS_FROM_GEOMETRY count=%d with_installed_dsd=%d without=%d "
+        "(DSD 없는 셀은 VSL 이 링크 키로 폴백한다)" % (len(segments), n_with, len(segments) - n_with)
+    )
     return segments
-
 
 def build_ramp_meters(
     manifest_rows: list[dict[str, str]],

@@ -1,0 +1,202 @@
+{
+ "schema": "freeway_segment_params_v1",
+ "generated": "2026-09-07",
+ "source_fit": "outputs/fd_ver2_20260907/fd_fit_sweep_v3.json",
+ "class_fit": {
+  "plain4": {
+   "v_free": 124.77633078181357,
+   "k_crit": 33.69845051273093,
+   "a": 1.4046086386269645,
+   "q_cap": 2063.2394087818366,
+   "rmse": 5.458960555635281,
+   "n": 9000
+  },
+  "plain3": {
+   "v_free": 121.9443064671441,
+   "k_crit": 28.42593031377807,
+   "a": 1.7437817949901846,
+   "q_cap": 1953.5430621649514,
+   "rmse": 4.535493572436576,
+   "n": 4500
+  }
+ },
+ "definition": "세그먼트별 METANET FD 파라미터. 어댑터가 freeway.segment_params 로 읽어 cfg.network.freeway_segment_params[model_link][segment_index] 로 싣는다. Ver2 무제어 수요 sweep 5수준(x04/x08/x12/x15/x18) 통합 적합. q_cap_veh_h_lane 은 진단용(모형은 v_free·rho_crit·metanet_a_m 만 쓴다).",
+ "segments": {
+  "FW_E_S0": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 103.12,
+   "rho_crit": 24.47,
+   "metanet_a_m": 2.423,
+   "q_cap_veh_h_lane": 1670.1,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": ""
+  },
+  "FW_E_S1": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 124.29,
+   "rho_crit": 34.28,
+   "metanet_a_m": 1.448,
+   "q_cap_veh_h_lane": 2135.6,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": ""
+  },
+  "FW_E_S2": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 125.61,
+   "rho_crit": 33.13,
+   "metanet_a_m": 1.34,
+   "q_cap_veh_h_lane": 1973.3,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": ""
+  },
+  "FW_E_S3": {
+   "class": "weave4",
+   "lanes": 4.0,
+   "v_free": 108.51,
+   "rho_crit": 22.36,
+   "metanet_a_m": 1.084,
+   "q_cap_veh_h_lane": 964.7,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": "OFF4386(2ln) ON4611 OFF4747 ON4900"
+  },
+  "FW_E_S4": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 108.87,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1800.2,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  },
+  "FW_E_S5": {
+   "class": "drop+weave3",
+   "lanes": 3.0,
+   "v_free": 69.85,
+   "rho_crit": 28.43,
+   "metanet_a_m": 1.744,
+   "q_cap_veh_h_lane": 1119.0,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": "OFF6827(2ln) 4->3@6840 ON7153 OFF7240 ON7448"
+  },
+  "FW_E_S6": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 106.1,
+   "rho_crit": 28.43,
+   "metanet_a_m": 1.744,
+   "q_cap_veh_h_lane": 1699.7,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  },
+  "FW_E_S7": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 117.24,
+   "rho_crit": 28.43,
+   "metanet_a_m": 1.744,
+   "q_cap_veh_h_lane": 1878.2,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  },
+  "FW_W_S0": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 106.03,
+   "rho_crit": 31.31,
+   "metanet_a_m": 1.735,
+   "q_cap_veh_h_lane": 1865.6,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": ""
+  },
+  "FW_W_S1": {
+   "class": "plain3",
+   "lanes": 3.0,
+   "v_free": 121.94,
+   "rho_crit": 28.43,
+   "metanet_a_m": 1.744,
+   "q_cap_veh_h_lane": 1953.5,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": ""
+  },
+  "FW_W_S2": {
+   "class": "gain+weave3",
+   "lanes": 3.0,
+   "v_free": 98.2,
+   "rho_crit": 22.56,
+   "metanet_a_m": 2.476,
+   "q_cap_veh_h_lane": 1479.1,
+   "identifiable": true,
+   "origin": "5수준 통합 세그먼트 적합",
+   "note": "OFF3425 ON3525 OFF3651 3->4@3817 ON3833"
+  },
+  "FW_W_S3": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 109.18,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1805.4,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  },
+  "FW_W_S4": {
+   "class": "weave4",
+   "lanes": 4.0,
+   "v_free": 105.75,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1748.6,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": "OFF5910 ON6075 OFF6225(2ln)"
+  },
+  "FW_W_S5": {
+   "class": "merge4",
+   "lanes": 4.0,
+   "v_free": 75.5,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1248.5,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": "ON6777"
+  },
+  "FW_W_S6": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 109.51,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1810.8,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  },
+  "FW_W_S7": {
+   "class": "plain4",
+   "lanes": 4.0,
+   "v_free": 117.57,
+   "rho_crit": 33.7,
+   "metanet_a_m": 1.405,
+   "q_cap_veh_h_lane": 1944.0,
+   "identifiable": false,
+   "origin": "급 형상 + 저밀도 실측 v_free (병목 하류라 용량 미관측)",
+   "note": ""
+  }
+ }
+}

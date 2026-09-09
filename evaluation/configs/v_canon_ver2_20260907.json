@@ -7817,5 +7817,9 @@
   },
   "_canon_note": "2026-09-05 정본. = canon_default_20260904(ctl_start900 s13 7803.8, 미드블록 native) + 접근로 귀속 매핑 v2 (blindfix 8링크 + 사용자 확정: 착지 커넥터의 on*/우회 movement 제거, bare 목적지 정리, 257·off-ramp 4링크 제거, weight=beta 비례). 옛 매핑 evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4f_20260903.json 은 _superseded_20260905 로 격리. 미드블록 SG env 는 러너가 config urban.plan.mainline_only 로 세운다.",
   "_ver2_note": "2026-09-07: Ver2 망(링크 분할·본선 3차로) 채택 후보. canon_default_20260905 + 매핑 v2(control/detector). 저류·게이트맵·경로 분율은 v1 과 동일(검증). 무제어 기준선 → b3 구성 재런 → 스필백 제약 ablation.",
+  "freeway": {
+    "segment_lanes": "mapping",
+    "_note": "2026-09-07: control_mapping freeway_model_links[*].segment_lanes 를 METANET 세그먼트 차로로(FW_E 4,4,4,4,4,3,3,3 / FW_W 3,3,3,4,4,4,4,4). 어댑터 install_freeway_segment_lanes."
+  },
   "_arm_note": "canon_ver2_20260907 (Ver2 ablation 기준)"
 }

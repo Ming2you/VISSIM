@@ -70,6 +70,24 @@ def build(qb, TrafficState, tuning_path, state_path, prev_action_path):
     m.update(qb.install_far_ramp_capacity_patch(cfg))
     m.update(qb.install_boundary_out_ramp_split(cfg, tuning))               # <- 추가
     m.update(qb.install_leg_ramp_split_runtime(cfg))
+    # 본선 세그먼트 배관 (2026-09-08 추가). 없으면 오프라인 결정이 세그먼트별 FD·차로·차로감소항을
+    #   못 본 채 링크 스칼라로 돌아 실런과 갈린다 — 사전 선별의 의미가 없어진다. main() 과 같은 순서.
+    if hasattr(qb, "install_freeway_segment_lanes"):
+        _mapj = tuning.get("mapping_json") if isinstance(tuning, dict) else None
+        if _mapj:
+            _mp = json.loads(Path(R / _mapj).read_text(encoding="utf-8"))
+            m.update(qb.install_freeway_segment_lanes(cfg, tuning, _mp))
+    if hasattr(qb, "install_freeway_lane_drop"):
+        m.update(qb.install_freeway_lane_drop(cfg, tuning))
+    # VSL 구역은 세그먼트 런타임보다 **먼저** — 그쪽이 원본 segment_vsl 을 잡는다.
+    if hasattr(qb, "install_freeway_vsl_zones"):
+        m.update(qb.install_freeway_vsl_zones(cfg, tuning))
+    if hasattr(qb, "install_freeway_segment_runtime"):
+        m.update(qb.install_freeway_segment_runtime(cfg))
+    if hasattr(qb, "install_freeway_vsl_sequence_kbest"):
+        m.update(qb.install_freeway_vsl_sequence_kbest(cfg, tuning))
+    if hasattr(qb, "install_freeway_vsl_price_dedupe"):
+        m.update(qb.install_freeway_vsl_price_dedupe(cfg, tuning))
     state = qb.traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping,
                                          calibration, physical_projection_input=None)
     m.update(qb.install_monitor_fixed_signal_runtime_patch(                 # <- 추가 (핵심)

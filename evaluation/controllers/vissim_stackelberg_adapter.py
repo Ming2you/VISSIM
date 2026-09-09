@@ -1562,6 +1562,20 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
       스케줄이 없으면 항상녹색으로 되돌아가는 대신 예외를 던진다.
     """
 
+    # --- hot path 상수 걷어내기 (2026-09-08) ---------------------------------------
+    # 아래 둘은 결정 중에 바뀌지 않는데 종전에는 **매 호출** 다시 만들었다. 21셀 결정 1회에
+    # 각각 847만 번(누적 57.6 s · 28.6 s = 결정의 7.7%)이다. 값이 같으므로 결과는 불변이다.
+    _validation_fixed = _validation_fixed_signal_enabled()
+    _share_cache: dict = {}          # id(spec) -> (spec 강참조, share)
+
+    def _share_of(spec):
+        hit = _share_cache.get(id(spec))
+        if hit is not None and hit[0] is spec:
+            return hit[1]
+        value = share_table.share_for(spec)
+        _share_cache[id(spec)] = (spec, value)
+        return value
+
     def patched_phase_green_fraction(control, cfg_arg, spec, urban_step_index=None):
         if spec.get("unsignalized"):
             # B5: 정지선 상류 peel-off(램프 연결로) — 신호와 무관, 저수지 공간·연결로 용량으로만 제한
@@ -1581,7 +1595,7 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
             #
             # **생산에서는 켜면 안 된다.** 실제 컨트롤러는 후보의 녹색 배분으로 굴려야 하고
             # 그것이 MPC 다. 이 경로는 동역학 충실도를 재는 동안만 쓴다.
-            if _validation_fixed_signal_enabled():
+            if _validation_fixed:
                 node = str(spec.get("intersection", ""))
                 schedule = schedules.get(node)
                 if schedule is not None:
@@ -1600,7 +1614,7 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
                             1.0,
                         )
                     )
-            share = share_table.share_for(spec)
+            share = _share_of(spec)
             if share is None:
                 return original(control, cfg_arg, spec, urban_step_index)
             return original(control, cfg_arg, spec, urban_step_index) * share
@@ -1623,6 +1637,7 @@ def build_patched_phase_green_fraction(original, schedules, share_table):
             )
         )
 
+    patched_phase_green_fraction._rw_greenfrac_hotpath = True
     return patched_phase_green_fraction
 
 
@@ -4716,6 +4731,12 @@ def install_price_worker_runtime_patches(cfg, state_json, detector_mapping):
     out.update(install_leg_ramp_split_runtime(cfg))
     out.update(install_offramp_landing_runtime(cfg))
     out.update(install_landing_storage_runtime(cfg))
+    # 세그먼트 기하 차로/FD 파라미터 모듈 패치. 값은 cfg.network 로 피클돼 오지만
+    # 모듈 패치는 spawn 을 못 넘는다 — 안 심으면 워커 10개가 링크 스칼라 FD 로 가격을 매긴다.
+    out.update(install_freeway_vsl_zones(cfg, None))
+    out.update(install_freeway_segment_runtime(cfg))
+    out.update(install_freeway_vsl_sequence_kbest(cfg, None))
+    out.update(install_freeway_vsl_price_dedupe(cfg, None))
     # `_price_worker_init` 의 부모/워커 대조는 `_phase_green_fraction` 하나만 본다.
     # 이 패치는 그 대조에 안 걸리므로 여기서 직접 막는다. raise 는 pool 을 깨고
     # 직렬 재실행 + price_parallel_serial_rerun_count 로 떨어진다.
@@ -6047,6 +6068,38 @@ def build_local_observation_summary(
             if ramp_key in ramp_queue:
                 ramp_queue[ramp_key] += count * weight
 
+    # 2026-09-07 램프 스필백 관측: 커넥터 상류 전용 검지 링크(ramp_spillback_links)의 정지 차량을 저수지 큐에 더한다.
+    #   램프행은 lnChgDist 1000 으로 커넥터 1 km 상류부터 L1 에 붙어 서므로 정지·큐 차로(queue_lanes)·conn_pos_m 이하로 판정.
+    #   링크 전체 재차를 넣지 않는다(09-03 rampconn 과대 사고). 스위치 urban.ramp.spillback_obs (없으면 비트 동일).
+    ramp_spillback: dict[str, float] = {}
+    if bool(getattr(cfg.network, "ramp_spillback_obs", False)):
+        _spill_spec = _mapping(detector_mapping.get("ramp_spillback_links"))
+        _recs = _mapping(state_json.get("vehicle_records")).get("records") or []
+        _by_link: dict[str, list] = {}
+        for _r in _recs:
+            if isinstance(_r, Mapping):
+                _by_link.setdefault(str(_r.get("link_no")), []).append(_r)
+        for _ramp_key, _entries in _spill_spec.items():
+            if _ramp_key not in ramp_queue or not isinstance(_entries, list):
+                continue
+            _spill = 0.0
+            for _e in _entries:
+                _e = _mapping(_e)
+                _link = str(_e.get("link", ""))
+                _lanes = {int(x) for x in (_e.get("queue_lanes") or [])}
+                _pos_max = _as_float(_e.get("conn_pos_m"), -1.0)
+                if _recs:
+                    _rows = _by_link.get(_link) or []
+                    _spill += float(sum(1 for _r in _rows if bool(_r.get("stopped"))
+                                        and (not _lanes or int(_as_float(_r.get("lane_no"), 0)) in _lanes)
+                                        and (_pos_max < 0.0 or _as_float(_r.get("position_m"), 0.0) <= _pos_max)))
+                else:
+                    _st = float(link_stopped_counts.get(_link, 0.0))
+                    _nl = max(1, int(_as_float(_e.get("lanes"), 1)))
+                    _spill += _st * ((len(_lanes) / _nl) if _lanes else 1.0)
+            ramp_spillback[_ramp_key] = float(_spill)
+            ramp_queue[_ramp_key] += float(_spill)
+
     # Legacy boundary_queue is kept for diagnostics/compatibility. The actual
     # urban signal queues above are the follower-visible queue state.
     boundary_queue: dict[str, float] = {}
@@ -6232,6 +6285,7 @@ def build_local_observation_summary(
         "urban_link_storage_stopped": urban_link_storage_stopped,
         "urban_link_speed_kph": urban_link_speed_kph,
         "ramp_queue": ramp_queue,
+        "ramp_spillback": ramp_spillback,
         "boundary_queue": boundary_queue,
         "projection_diagnostics": projection_diagnostics,
         "unrepresented_by_link": unrepresented_by_link,
@@ -7627,6 +7681,7 @@ def build_config(
     _plant_rollout_far_into(cfg, tuning)
     _plant_gate_peeloff_into(cfg, tuning)
     _plant_ramp_observation_into(cfg, tuning)
+    _plant_ramp_spillback_into(cfg, tuning)
     _plant_agent_topology_into(cfg, tuning)
     return cfg
 
@@ -8102,6 +8157,653 @@ def _plant_ramp_observation_into(cfg, tuning) -> None:
     section = _mapping(_mapping(tuning.get("urban")).get("ramp"))
     setattr(cfg.network, "ramp_observation_clip_to_cap",
             bool(_is_enabled_value(section.get("observation_clip_to_cap", False))))
+
+
+def _plant_ramp_spillback_into(cfg, tuning) -> None:
+    """tuning `urban.ramp.spillback_obs` 를 cfg 로 나른다 (2026-09-07).
+
+    켜면 build_local_observation_summary 가 검지 매핑 `ramp_spillback_links`(램프 커넥터별 전용 상류 링크)의
+    **정지 차량**(queue_lanes, conn_pos_m 이하)을 램프 저수지 큐에 더한다. 커넥터 위 차량만 세던 저수지(상한 153)가
+    링크 32/69 위 1 km 역류(진짜 큐 262 vs 모형 140, fzp 진단 2026-09-07)를 못 보던 실명 수정. 없으면 비트 동일."""
+    section = _mapping(_mapping(_mapping(tuning).get("urban")).get("ramp"))
+    setattr(cfg.network, "ramp_spillback_obs", bool(_is_enabled_value(section.get("spillback_obs", False))))
+
+
+def install_freeway_segment_lanes(cfg, tuning, mapping) -> dict[str, float]:
+    """config `freeway.segment_lanes: "mapping"` → control_mapping 의 세그먼트별 차로를 cfg.network 에 싣는다 (2026-09-07).
+
+    Ver2 망은 본선이 한 모형 링크 안에서 차로가 바뀐다(FW_W: 26 3차로 → 120 4차로, FW_E: 2 4차로 → 119/24 3차로).
+    종전엔 모형 링크당 단일값(RW_FW_*_LANES)이라 그 세그먼트들의 밀도·용량이 4/3 배 틀렸다. 값이라 컨트롤러와 함께 피클되어
+    가격 워커까지 간다. `segment_params` 가 있으면 함께 실어 둔다(합류 세그먼트별 파라미터 실험용 훅; 지금은 소비처 없음)."""
+    section = _mapping(_mapping(tuning).get("freeway"))
+    mode = str(section.get("segment_lanes", "") or "").strip().lower()
+    if mode != "mapping":
+        return {"freeway_segment_lanes_enabled": 0.0}
+    links = _mapping(_mapping(mapping).get("freeway_model_links"))
+    lanes_by: dict[str, list[float]] = {}
+    params_by: dict[str, Any] = {}
+    for model, spec in links.items():
+        spec = _mapping(spec)
+        arr = [float(v) for v in (spec.get("segment_lanes") or []) if _as_float(v, 0.0) > 0.0]
+        if not arr:
+            segs = [s for s in (_mapping(mapping).get("segments") or []) if isinstance(s, Mapping) and str(s.get("model_link")) == str(model)]
+            segs.sort(key=lambda s: int(_as_float(s.get("model_segment_index"), 0)))
+            arr = [float(_as_float(s.get("lanes"), 0.0)) for s in segs if _as_float(s.get("lanes"), 0.0) > 0.0]
+        if arr:
+            lanes_by[str(model)] = arr
+        if isinstance(spec.get("segment_params"), list):
+            params_by[str(model)] = [dict(r) if isinstance(r, Mapping) else {} for r in spec["segment_params"]]
+        elif isinstance(spec.get("segment_params"), Mapping):
+            params_by[str(model)] = dict(spec.get("segment_params"))
+    # `freeway.segment_params` 가 경로면 보정 산출물에서 세그먼트 배열을 만든다
+    # (schema freeway_segment_params_v1: segments["FW_E_S3"] = {파라미터...}).
+    _pspec = str(section.get("segment_params", "") or "").strip()
+    if _pspec and _pspec.lower() != "mapping":
+        _root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        with open(_pspec if os.path.isabs(_pspec) else os.path.join(_root, _pspec), encoding="utf-8") as _pf:
+            _pj = json.load(_pf)
+        _segs = _mapping(_pj.get("segments"))
+        _keys = ("v_free", "rho_crit", "rho_max", "metanet_a_m", "metanet_tau_h", "metanet_nu_km2_h",
+                 "metanet_nu_cong_km2_h", "metanet_kappa_veh_km_lane", "segment_length_km")
+        for model, arr in lanes_by.items():
+            rows = []
+            for i in range(len(arr)):
+                row = _mapping(_segs.get("%s_S%d" % (model, i)))
+                rows.append({k: float(row[k]) for k in _keys
+                             if isinstance(row.get(k), (int, float)) and not isinstance(row.get(k), bool)})
+            params_by[str(model)] = rows
+    setattr(cfg.network, "freeway_segment_lanes", lanes_by)
+    setattr(cfg.network, "freeway_segment_params", params_by)
+    out = {"freeway_segment_lanes_enabled": 1.0 if lanes_by else 0.0, "freeway_segment_lanes_links": float(len(lanes_by))}
+    for model, arr in lanes_by.items():
+        out["freeway_segment_lanes_min_%s" % model] = float(min(arr))
+        out["freeway_segment_lanes_max_%s" % model] = float(max(arr))
+    return out
+
+
+# ---------------------------------------------------------------------------
+# 세그먼트별 본선 파라미터 (2026-09-07) — 값 적재는 install_freeway_segment_lanes,
+# 모듈 패치는 install_freeway_segment_runtime. 가격 워커(spawn)는 후자를 다시 부른다.
+# ---------------------------------------------------------------------------
+_FW_SEG_CTX: dict[str, Any] = {"p": {}, "armed": False}
+# effective_lane_profile 패치가 현재 state 를 여기 남겨 두면 차로감소항이 유효 차로를 읽을 수 있다.
+_FW_SEG_CTX_STATE: dict[str, Any] = {"profile": None, "lane_drop_fired": 0}
+
+
+def _fw_seg_param_dict(net, link, idx) -> Mapping:
+    """(link, idx) 세그먼트의 파라미터 사전. 없으면 빈 dict → 링크 스칼라 그대로."""
+    tbl = getattr(net, "freeway_segment_params", None) or {}
+    if not isinstance(tbl, Mapping):
+        return {}
+    arr = tbl.get(str(link))
+    if isinstance(arr, (list, tuple)) and 0 <= int(idx) < len(arr):
+        row = arr[int(idx)]
+        if isinstance(row, Mapping):
+            return row
+    return {}
+
+
+def _fw_rebind(name: str, old, new) -> float:
+    """`from ... import name` 으로 이름을 복사해 간 모듈까지 전부 재바인딩(5모듈 패치와 같은 사유)."""
+    import sys as _sys
+    n = 0
+    for mod in list(_sys.modules.values()):
+        if mod is None:
+            continue
+        try:
+            if getattr(mod, name, None) is old:
+                setattr(mod, name, new)
+                n += 1
+        except Exception:
+            continue
+    return float(n)
+
+
+_FW_VSL_DEDUPE_STATE: dict[str, int] = {"tasks": 0, "rollouts": 0}
+
+
+def install_freeway_vsl_price_dedupe(cfg, tuning=None) -> dict[str, float]:
+    """VSL 가격 코너 중 **실효 제어가 같은** 태스크를 하나로 묶어 롤아웃 수를 줄인다.
+
+    구역이 설치돼 있어야 의미가 있다(머리가 아닌 셀의 섭동이 무효가 되는 것이 전제다).
+    반환값은 종전과 같은 (seg_key, 'lo'|'hi') -> 튜플 이고, 값도 같다.
+    """
+    if not (getattr(cfg.network, "freeway_vsl_zone_head_of_cell", None) or {}):
+        return {"fw_vsl_price_dedupe_enabled": 0.0}
+    import src.controllers.stackelberg_wu_metered as _swm
+
+    _cls = _swm.StackelbergWuMeteredController if hasattr(
+        _swm, "StackelbergWuMeteredController") else None
+    if _cls is None:
+        for _name in dir(_swm):
+            _obj = getattr(_swm, _name)
+            if isinstance(_obj, type) and hasattr(_obj, "_vsl_price_rollouts"):
+                _cls = _obj
+                break
+    if _cls is None:
+        return {"fw_vsl_price_dedupe_enabled": 0.0}
+    _orig = _cls._vsl_price_rollouts
+    if getattr(_orig, "_rw_vsl_dedupe", False):
+        return {"fw_vsl_price_dedupe_enabled": 1.0, "fw_vsl_price_dedupe_patched": 0.0}
+    _worker = _swm._price_worker_vsl
+
+    def _patched_vsl_price_rollouts(self, state, previous, forecast, v_corners, vsl_upper):
+        net = self.cfg.network
+        head_tbl = _mapping(getattr(net, "freeway_vsl_zone_head_of_cell", None) or {})
+        if not head_tbl:
+            return _orig(self, state, previous, forecast, v_corners, vsl_upper)
+
+        tasks = []
+        for key, (_x0, v_lo, v_hi, link, _req) in v_corners.items():
+            if float(v_hi) - float(v_lo) <= 1.0e-9:
+                continue
+            tasks.append((key, "hi", link, float(v_hi), vsl_upper))
+            tasks.append((key, "lo", link, float(v_lo), vsl_upper))
+        if not tasks:
+            return {}
+
+        prev_vsl = dict(previous.vsl or {})
+
+        def effective(seg_key, link, value):
+            base = dict(prev_vsl)
+            base[str(seg_key)] = float(value)
+            base[str(link)] = min(float(base.get(str(link), value)), float(value))
+            arr = head_tbl.get(str(link)) or []
+            fallback = float(base.get(str(link), value))
+            vec = []
+            for j in range(len(arr)):
+                vec.append(round(float(base.get("%s__seg%d" % (link, int(arr[j])), fallback)), 9))
+            return (str(link), tuple(vec), round(float(base[str(link)]), 9))
+
+        groups: dict = {}
+        for t in tasks:
+            groups.setdefault(effective(t[0], t[2], t[3]), []).append(t)
+        reps = [g[0] for g in groups.values()]
+
+        def serial():
+            return {
+                (k, w): (self._global_rollout_ttt_with_vsl(
+                    state, previous, forecast, link, k, val, up),)
+                for k, w, link, val, up in reps
+            }
+
+        got = self._price_batch(reps, _worker, serial, state, previous, forecast)
+        out = {}
+        for members in groups.values():
+            rep = members[0]
+            value = got.get((rep[0], rep[1]))
+            for m in members:
+                out[(m[0], m[1])] = value
+        _FW_VSL_DEDUPE_STATE["tasks"] = len(tasks)
+        _FW_VSL_DEDUPE_STATE["rollouts"] = len(reps)
+        return out
+
+    _patched_vsl_price_rollouts._rw_vsl_dedupe = True
+    _cls._vsl_price_rollouts = _patched_vsl_price_rollouts
+    return {"fw_vsl_price_dedupe_enabled": 1.0, "fw_vsl_price_dedupe_patched": 1.0}
+
+
+def install_freeway_vsl_zones(cfg, tuning=None) -> dict[str, float]:
+    """VSL 자유도를 표지판 구역으로 묶는다. 셀은 자기 구역 머리의 값을 쓴다.
+
+    `freeway.vsl_zone_heads` 가 없으면 아무것도 안 한다(비트 동일).
+    """
+    section = _mapping(_mapping(tuning).get("freeway")) if tuning is not None else {}
+    net = cfg.network
+    heads_cfg = _mapping(section.get("vsl_zone_heads"))
+    if not heads_cfg:
+        # 가격 워커(spawn)는 tuning 을 못 받는다. 값은 cfg.network 로 피클돼 오므로 그걸 되읽어
+        # **모듈 패치만** 다시 심는다 - 안 심으면 워커 10개가 셀 단위 VSL 로 가격을 매긴다.
+        heads_cfg = _mapping(getattr(net, "freeway_vsl_zone_heads", None) or {})
+        if not heads_cfg:
+            return {"fw_vsl_zones_enabled": 0.0}
+
+    lanes_tbl = _mapping(getattr(net, "freeway_segment_lanes", None) or {})
+    heads: dict = {}
+    head_of: dict = {}
+    zone_of: dict = {}
+    for link in net.freeway_links:
+        n = len(lanes_tbl.get(str(link)) or []) or int(net.freeway_segments_per_link)
+        hs = sorted({int(x) for x in (heads_cfg.get(str(link)) or [])})
+        if not hs:
+            continue
+        if hs[0] != 0:
+            raise ValueError("VSL 구역 머리는 셀 0 을 포함해야 한다: %s %s" % (link, hs))
+        if hs[-1] >= n:
+            raise ValueError("VSL 구역 머리가 셀 수를 넘는다: %s %s (셀 %d)" % (link, hs, n))
+        hd, zo = [], []
+        for i in range(n):
+            z = 0
+            for j, h in enumerate(hs):
+                if h <= i:
+                    z = j
+            zo.append(z)
+            hd.append(hs[z])
+        heads[str(link)] = hs
+        head_of[str(link)] = hd
+        zone_of[str(link)] = zo
+    if not heads:
+        return {"fw_vsl_zones_enabled": 0.0}
+
+    free_cfg = section.get("vsl_zone_free")
+    if free_cfg is None:
+        free_cfg = getattr(net, "freeway_vsl_zone_free", None)
+    n_zone = max(len(v) for v in heads.values())
+    free = sorted({int(x) for x in free_cfg}) if free_cfg is not None else list(range(n_zone))
+
+    setattr(net, "freeway_vsl_zone_heads", heads)
+    setattr(net, "freeway_vsl_zone_head_of_cell", head_of)
+    setattr(net, "freeway_vsl_zone_of_cell", zone_of)
+    setattr(net, "freeway_vsl_zone_free", free)
+
+    out = {"fw_vsl_zones_enabled": 1.0, "fw_vsl_zone_count": float(n_zone),
+           "fw_vsl_zone_free_count": float(len(free))}
+    for link, hs in heads.items():
+        out["fw_vsl_zone_heads_%s" % link] = float(len(hs))
+
+    # `segment_vsl` 을 구역 인식으로. 롤아웃·가격·플랜트 쓰기가 전부 이 함수를 거치므로
+    # 한 자리에서 셋이 같이 맞는다.
+    import src.models.state as _st
+    _o_sv = _st.segment_vsl
+    if not getattr(_o_sv, "_rw_vsl_zone", False):
+        def _zoned_segment_vsl(control, link, i, cfg_):
+            tbl = getattr(cfg_.network, "freeway_vsl_zone_head_of_cell", None) or {}
+            arr = tbl.get(str(link))
+            if arr:
+                idx = int(i)
+                if 0 <= idx < len(arr):
+                    i = int(arr[idx])
+            return _o_sv(control, link, i, cfg_)
+
+        _zoned_segment_vsl._rw_vsl_zone = True
+        out["fw_vsl_zone_rebind"] = _fw_rebind("segment_vsl", _o_sv, _zoned_segment_vsl)
+        _st.segment_vsl = _zoned_segment_vsl
+
+    # `local_vsl_costs` 는 세그먼트 벡터를 `vsl_override` 로 **직접** 먹여 segment_vsl 을
+    # 우회한다. 구역 밖 셀을 흔든 벡터가 그대로 들어가면 국소 채점만 구역을 안 지킨다 -
+    # 요청 벡터를 구역으로 사영해 맞춘다.
+    from src.controllers import wu_faithful_follower as _wff
+    _cls = _wff.WuFaithfulFollower
+    _o_lvc = getattr(_cls, "local_vsl_costs", None)
+    if _o_lvc is not None and not getattr(_o_lvc, "_rw_vsl_zone", False):
+        def _zoned_local_vsl_costs(self, requests, state, previous, demand, *a, **k):
+            tbl = getattr(self.cfg.network, "freeway_vsl_zone_head_of_cell", None) or {}
+            if tbl and isinstance(requests, Mapping):
+                proj = {}
+                for link, vecs in requests.items():
+                    arr = tbl.get(str(link))
+                    if not arr:
+                        proj[link] = vecs
+                        continue
+                    proj[link] = [[float(v[int(arr[i])]) if int(arr[i]) < len(v) else float(v[i])
+                                   for i in range(len(v))] for v in vecs]
+                requests = proj
+            return _o_lvc(self, requests, state, previous, demand, *a, **k)
+
+        _zoned_local_vsl_costs._rw_vsl_zone = True
+        _cls.local_vsl_costs = _zoned_local_vsl_costs
+        out["fw_vsl_zone_local_costs_patched"] = 1.0
+    return out
+
+
+def install_freeway_vsl_sequence_kbest(cfg, tuning=None) -> dict[str, float]:
+    """`_freeway_vsl_sequence_candidates` 의 곱 전개를 k-best 지연 생성으로 교체한다.
+
+    자유 세그먼트 s 개 · 세그먼트당 옵션 k 개면 원본은 k^s 를 전부 만든다. 21셀 FW_E 는
+    10^8 이라 MemoryError 가 난다(2026-09-08 실측). 정렬 키가 세그먼트별 합의 사전식 비교라
+    단조이므로, 힙으로 상위 limit 개만 뽑아도 순서가 같다.
+    """
+    section = _mapping(_mapping(tuning).get("freeway")) if tuning is not None else {}
+    if "vsl_sequence_kbest" in section and not bool(section.get("vsl_sequence_kbest")):
+        return {"fw_vsl_kbest_enabled": 0.0}
+    max_expand = int(_as_float(section.get("vsl_sequence_max_expand"), 20000.0))
+    import heapq as _heapq
+    from src.controllers import wu_faithful_follower as _wff
+
+    _cls = _wff.WuFaithfulFollower
+    if getattr(_cls._freeway_vsl_sequence_candidates, "_rw_vsl_kbest", False):
+        return {"fw_vsl_kbest_enabled": 1.0, "fw_vsl_kbest_patched": 0.0}
+    _segment_vsl = _wff.segment_vsl
+    _repair = _wff.repair_vsl_value
+
+    def _patched_freeway_vsl_sequence_candidates(self, link, n_seg, previous, base_candidates, horizon):
+        ff = self.cfg.freeway_follower
+        horizon = max(1, int(horizon))
+        sequences = []
+        seen = set()
+
+        def add_sequence(sequence):
+            normalized = [
+                [float(v) for v in vec]
+                for vec in (sequence + [sequence[-1]] * max(0, horizon - len(sequence)))
+            ][:horizon]
+            key = tuple(tuple(round(v, 6) for v in vec) for vec in normalized)
+            if key not in seen:
+                seen.add(key)
+                sequences.append(normalized)
+
+        if not ff.vsl_sequence_search:
+            for vec in base_candidates:
+                add_sequence([[float(v) for v in vec]])
+            return sequences
+
+        vsl_set = sorted(float(v) for v in ff.vsl_set)
+        if not vsl_set:
+            return sequences
+        vsl_max = max(vsl_set)
+        max_step = max(0.0, float(ff.max_vsl_step))
+        sequence_steps = max(1, min(horizon, int(ff.vsl_sequence_horizon_steps)))
+        net = self.cfg.network
+        # VSL 구역이 설치돼 있으면 자유 변수는 **구역 머리 셀**이고 나머지 셀은 자기 구역 머리를
+        # 물려받는다. 플랜트가 실제로 그렇게 동작한다 - VSL 표지판은 정해진 자리에만 있고,
+        # 표지판 사이 구간은 상류 표지판이 지시한 속도를 유지한다(2026-09-08 사용자 지시).
+        # 구역이 없으면 종전 규칙(첫 off-ramp 상류)으로 떨어진다 - 비트 동일.
+        _head_of = (getattr(net, "freeway_vsl_zone_head_of_cell", None) or {}).get(str(link))
+        _zone_of = (getattr(net, "freeway_vsl_zone_of_cell", None) or {}).get(str(link))
+        _free_z = getattr(net, "freeway_vsl_zone_free", None)
+        if _head_of and _zone_of:
+            head_of = [int(x) for x in _head_of]
+            free_zones = set(int(z) for z in (_free_z if _free_z is not None else set(_zone_of)))
+            upstream_control_idx = {i for i in range(n_seg)
+                                    if head_of[i] == i and int(_zone_of[i]) in free_zones}
+        else:
+            head_of = list(range(n_seg))
+            bottleneck_idx = {
+                int(net.off_ramp_segment_index.get(off_ramp, n_seg - 1))
+                for off_ramp in net.off_ramps
+                if net.off_ramp_from_freeway.get(off_ramp) == link
+            } or {n_seg - 1}
+            upstream_control_idx = {i for i in range(max(0, min(bottleneck_idx)))}
+
+        def sanitize_base_vector(vec):
+            sanitized = []
+            for index in range(n_seg):
+                src = head_of[index]          # 구역 머리 값을 물려받는다(구역 없으면 자기 자신)
+                value = float(vec[src]) if src < len(vec) else _segment_vsl(previous, link, src, self.cfg)
+                if src not in upstream_control_idx:
+                    prev = _segment_vsl(previous, link, src, self.cfg)
+                    value = _repair(vsl_max, prev, self.cfg).value
+                sanitized.append(float(value))
+            return sanitized
+
+        for vec in base_candidates:
+            add_sequence([sanitize_base_vector([float(v) for v in vec])])
+        limit = max(len(sequences), int(ff.vsl_sequence_candidate_limit))
+        # base 후보가 이미 limit 을 채웠으면 원본도 첫 반복에서 break 한다 - 곱을 만들 이유가 없다.
+        if len(sequences) >= limit:
+            return sequences
+
+        def segment_sequences(index):
+            prev = _segment_vsl(previous, link, index, self.cfg)
+            if index not in upstream_control_idx:
+                repaired = _repair(vsl_max, prev, self.cfg).value
+                return [[float(repaired)] * sequence_steps]
+            first_values = [
+                value for value in vsl_set
+                if value <= prev + 1.0e-9 and prev - value <= max_step + 1.0e-9
+            ]
+            if not first_values:
+                first_values = [_repair(prev, prev, self.cfg).value]
+            out = []
+
+            def extend(prefix):
+                if len(prefix) >= sequence_steps:
+                    out.append([float(v) for v in prefix])
+                    return
+                current = prefix[-1]
+                next_values = [
+                    value for value in vsl_set
+                    if value <= current + 1.0e-9 and current - value <= max_step + 1.0e-9
+                ]
+                for value in sorted(set(next_values), reverse=True):
+                    extend(prefix + [float(value)])
+
+            for value in sorted(set(first_values), reverse=True):
+                extend([float(value)])
+            return out
+
+        # 세그먼트별 옵션을 자기 키 (합, 마지막, 첫)로 정렬 - 전역 키가 이 셋의 합이라 단조다.
+        # 원본은 곱을 만든 뒤 sorted(안정) 하므로 동률이면 **생성 순서**가 이긴다. 그 순서는
+        # 세그먼트 0 이 바깥인 원래 옵션 인덱스의 사전식이다 - 키 4번째 성분으로 그대로 넣는다.
+        # (세그먼트 안에서 동률인 옵션을 원래 인덱스 오름차순으로 두었으므로 이 성분도 단조다.)
+        per_segment = []
+        for i in range(n_seg):
+            opts = segment_sequences(i)
+            if not opts:
+                opts = [[float(vsl_max)] * sequence_steps]
+            ranked = sorted(range(len(opts)),
+                            key=lambda j: (sum(opts[j]), opts[j][-1], opts[j][0], j))
+            per_segment.append([(opts[j], j) for j in ranked])
+
+        def key_of(vec_idx):
+            s = t = f = 0.0
+            orig = []
+            for i, j in enumerate(vec_idx):
+                o, oj = per_segment[i][j]
+                s += sum(o)
+                t += o[-1]
+                f += o[0]
+                orig.append(oj)
+            return (s, t, f, tuple(orig))
+
+        start = tuple([0] * n_seg)
+        heap = [(key_of(start), start)]
+        visited = {start}
+        pops = 0
+        while heap and len(sequences) < limit and pops < max_expand:
+            _k, vec_idx = _heapq.heappop(heap)
+            pops += 1
+            combo = [per_segment[i][j][0] for i, j in enumerate(vec_idx)]
+            # 셀은 자기 구역 머리의 값을 쓴다(구역 없으면 head_of[seg] == seg 라 종전과 같다).
+            add_sequence([[float(combo[head_of[seg]][step]) for seg in range(n_seg)]
+                          for step in range(sequence_steps)])
+            for i in range(n_seg):
+                if vec_idx[i] + 1 < len(per_segment[i]):
+                    nxt = vec_idx[:i] + (vec_idx[i] + 1,) + vec_idx[i + 1:]
+                    if nxt not in visited:
+                        visited.add(nxt)
+                        _heapq.heappush(heap, (key_of(nxt), nxt))
+        return sequences
+
+    _patched_freeway_vsl_sequence_candidates._rw_vsl_kbest = True
+    _cls._freeway_vsl_sequence_candidates = _patched_freeway_vsl_sequence_candidates
+    return {"fw_vsl_kbest_enabled": 1.0, "fw_vsl_kbest_patched": 1.0,
+            "fw_vsl_kbest_max_expand": float(max_expand)}
+
+
+def install_freeway_lane_drop(cfg, tuning) -> dict[str, float]:
+    """config `freeway.lane_drop_phi` → cfg.network.freeway_lane_drop_phi. 없거나 0 이면 no-op."""
+    section = _mapping(_mapping(tuning).get("freeway"))
+    phi = _as_float(section.get("lane_drop_phi"), 0.0)
+    setattr(cfg.network, "freeway_lane_drop_phi", float(phi))
+    out = {"freeway_lane_drop_phi": float(phi)}
+    if phi > 0.0:
+        geo = _mapping(getattr(cfg.network, "freeway_segment_lanes", None) or {})
+        n = 0
+        for link, arr in geo.items():
+            for i in range(len(arr) - 1):
+                if float(arr[i]) - float(arr[i + 1]) > 1.0e-9:
+                    n += 1
+                    out["lane_drop_cell_%s" % link] = float(i)
+        out["lane_drop_cells"] = float(n)
+    return out
+
+
+def install_freeway_segment_runtime(cfg) -> dict[str, float]:
+    """cfg.network 에 실린 세그먼트 기하/파라미터를 vendor 롤아웃에 실제로 먹인다.
+
+    부모와 가격 워커 양쪽에서 불린다 — 값(cfg.network.*)은 피클로 넘어가지만 **모듈 패치는 spawn 을
+    못 넘기 때문에** 워커에서 다시 심어야 한다(far 램프 용량 패치와 같은 사유)."""
+    import src.models.metanet as _mn
+    import src.models.state as _st
+    geo = getattr(cfg.network, "freeway_segment_lanes", None) or {}
+    par = getattr(cfg.network, "freeway_segment_params", None) or {}
+    if isinstance(par, Mapping):
+        par = {k: v for k, v in par.items() if isinstance(v, (list, tuple)) and any(v)}
+    else:
+        par = {}
+    out: dict[str, float] = {"fw_seg_geo_links": float(len(geo)), "fw_seg_param_links": float(len(par))}
+    if not geo and not par:
+        return out
+
+    # (1) 기하 차로 프로파일 — 원본이 적용한 감소분(off-ramp spillback / incident)은 보존하고 바닥만 교체.
+    if geo and not getattr(_mn.effective_lane_profile, "_rw_fw_seg_patch", False):
+        _orig_elp = _mn.effective_lane_profile
+
+        def _patched_effective_lane_profile(state, cfg_, demand=None):
+            profile, diag = _orig_elp(state, cfg_, demand)
+            g = getattr(cfg_.network, "freeway_segment_lanes", None) or {}
+            if not g:
+                return profile, diag
+            base = float(cfg_.network.freeway_lanes)
+            for link, lanes in profile.items():
+                arr = g.get(str(link))
+                if not arr:
+                    continue
+                for i in range(len(lanes)):
+                    gi = float(arr[i]) if i < len(arr) else base
+                    reduction = max(0.0, base - float(lanes[i]))
+                    lanes[i] = max(1.0e-9, gi - reduction)
+                if lanes:
+                    diag["fw_geo_lanes_%s_min" % link] = float(min(lanes))
+                    diag["fw_geo_lanes_%s_max" % link] = float(max(lanes))
+            # 차로감소항이 읽을 것은 **이 프로파일**이다. state.freeway_effective_lanes 는 substep 시작 시점에
+            # ensure_freeway_lane_profile 이 링크 스칼라([freeway_lanes]*n)로 채워둔 값이라 Δλ 가 0 이 된다
+            # (2026-09-08 실측: φ 를 0~16 으로 흔들어도 속도가 비트 동일했다).
+            _FW_SEG_CTX_STATE["profile"] = profile
+            return profile, diag
+
+        _patched_effective_lane_profile._rw_fw_seg_patch = True
+        out["fw_seg_geo_rebind"] = _fw_rebind("effective_lane_profile", _orig_elp, _patched_effective_lane_profile)
+        _mn.effective_lane_profile = _patched_effective_lane_profile
+
+        try:
+            import src.controllers.local_freeway_plant as _lfp
+        except Exception:
+            _lfp = None
+        if _lfp is not None and not getattr(_lfp._local_lane_profile, "_rw_fw_seg_patch", False):
+            _orig_llp = _lfp._local_lane_profile
+
+            def _patched_local_lane_profile(model, occupancy, demand):
+                lanes = _orig_llp(model, occupancy, demand)
+                net_ = model.cfg.network
+                arr = (getattr(net_, "freeway_segment_lanes", None) or {}).get(str(model.link))
+                if not arr:
+                    return lanes
+                base = float(net_.freeway_lanes)
+                for i in range(len(lanes)):
+                    gi = float(arr[i]) if i < len(arr) else base
+                    lanes[i] = max(1.0e-9, gi - max(0.0, base - float(lanes[i])))
+                return lanes
+
+            _patched_local_lane_profile._rw_fw_seg_patch = True
+            _lfp._local_lane_profile = _patched_local_lane_profile
+            out["fw_seg_geo_local_plant"] = 1.0
+
+    # (2) 세그먼트별 FD/동역학 파라미터 — segment_vsl 이 문맥을 무장하고 뒤 셋이 읽는다.
+    # 2026-09-08 검토: 종전에는 `par` 있을 때만 무장해 `segment_params` 없는 config(N=8 ver2 계열)에서
+    #   차로감소항 φ 가 **조용한 no-op** 이었다. 래퍼는 p 가 비면 링크 스칼라로 안전 퇴화하므로
+    #   geo 나 φ 만 있어도 무장한다.
+    _phi_cfg = _as_float(getattr(cfg.network, "freeway_lane_drop_phi", 0.0), 0.0)
+    if (par or geo or _phi_cfg > 0.0) and not getattr(_st.segment_vsl, "_rw_fw_seg_patch", False):
+        _o_sv = _st.segment_vsl
+        _o_ed = _mn.effective_desired_speed_kmh
+        _o_nu = _mn.select_anticipation_nu
+        _o_up = _mn.metanet_speed_update_kmh
+
+        def _patched_segment_vsl(control, link, index, cfg_):
+            try:
+                _FW_SEG_CTX["p"] = _fw_seg_param_dict(cfg_.network, link, index)
+                _FW_SEG_CTX["armed"] = True
+                # 차로감소항 재료. Δλ = λ_i − λ_{i+1} (감소일 때만 양수) 와 φ 를 여기서 실어 둔다 —
+                # metanet_speed_update_kmh 는 cfg 를 못 본다.
+                _phi = _as_float(getattr(cfg_.network, "freeway_lane_drop_phi", 0.0), 0.0)
+                _dl = 0.0
+                if _phi > 0.0:
+                    # 유효 차로(off-ramp 스필백·incident 감소가 반영된 값)를 쓴다. 정적 기하로 읽으면
+                    # 하필 차로감소 직후 셀에 off-ramp 감소가 걸릴 때 Δλ 가 절반으로 과소평가된다.
+                    _prof = _FW_SEG_CTX_STATE.get("profile")
+                    _arr = _prof.get(str(link)) if isinstance(_prof, Mapping) else None
+                    if not _arr:
+                        _arr = _mapping(getattr(cfg_.network, "freeway_segment_lanes", None) or {}).get(str(link))
+                    if isinstance(_arr, (list, tuple)) and 0 <= int(index) + 1 < len(_arr):
+                        _dl = max(0.0, float(_arr[int(index)]) - float(_arr[int(index) + 1]))
+                _FW_SEG_CTX["phi"] = _phi
+                _FW_SEG_CTX["dlam"] = _dl
+                _FW_SEG_CTX["lanes"] = float(_arr[int(index)]) if (_phi > 0.0 and _dl > 0.0) else 0.0
+                _FW_SEG_CTX["rho_crit_link"] = float(getattr(cfg_.network, "rho_crit", 27.0))
+            except Exception:
+                _FW_SEG_CTX["p"] = {}
+                _FW_SEG_CTX["armed"] = False
+                _FW_SEG_CTX["phi"] = 0.0
+                _FW_SEG_CTX["dlam"] = 0.0
+            return _o_sv(control, link, index, cfg_)
+
+        def _patched_effective_desired_speed_kmh(rho, v_free, rho_crit, vsl, alpha_vsl=0.0,
+                                                 vsl_active=True, a=1.867, two_branch=False,
+                                                 rho_jam=0.0, rho_crit_tb=0.0):
+            p = _FW_SEG_CTX["p"] if _FW_SEG_CTX["armed"] else {}
+            if p:
+                v_free = float(p.get("v_free", v_free))
+                rho_crit = float(p.get("rho_crit", rho_crit))
+                a = float(p.get("metanet_a_m", a))
+                if _as_float(p.get("rho_max"), 0.0) > 0.0:
+                    rho_jam = float(p["rho_max"])
+            return _o_ed(rho, v_free, rho_crit, vsl, alpha_vsl, vsl_active, a, two_branch, rho_jam, rho_crit_tb)
+
+        def _patched_select_anticipation_nu(rho, net, vsl=None):
+            p = _FW_SEG_CTX["p"] if _FW_SEG_CTX["armed"] else {}
+            if not p:
+                return _o_nu(rho, net, vsl)
+            rho_c = float(p.get("rho_crit", getattr(net, "rho_crit", 0.0)))
+            if getattr(net, "capacity_drop_anticipation", False) and rho > rho_c:
+                return float(p.get("metanet_nu_cong_km2_h", net.metanet_nu_cong_km2_h))
+            return float(p.get("metanet_nu_km2_h", net.metanet_nu_km2_h))
+
+        def _patched_metanet_speed_update_kmh(speed, upstream_speed, rho, downstream_rho, v_eff,
+                                              dt_h, length_km, tau_h, nu_km2_h,
+                                              kappa_veh_km_lane, v_min):
+            # 문맥을 **먼저 지역변수로 받고** 나서 해제한다. 2026-09-08: 해제를 위에 두고 차로감소항이
+            # 아래에서 _FW_SEG_CTX 를 다시 읽는 바람에 Δλ 가 항상 0 이 되어 φ 가 한 번도 발화하지 않았다
+            # (φ 0~16 에서 속도 비트 동일). 해제 자체는 필요하다 — segment_vsl 없이 오는 완충 셀 호출이
+            # 직전 셀의 Δλ 를 물려받으면 엉뚱한 셀에 항이 걸린다.
+            _armed = bool(_FW_SEG_CTX["armed"])
+            p = _FW_SEG_CTX["p"] if _armed else {}
+            _phi = (_FW_SEG_CTX.get("phi") or 0.0) if _armed else 0.0
+            _dl = (_FW_SEG_CTX.get("dlam") or 0.0) if _armed else 0.0
+            _lam = max(1.0e-9, float(_FW_SEG_CTX.get("lanes") or 1.0))
+            _rc_link = float(_FW_SEG_CTX.get("rho_crit_link") or 27.0)
+            _FW_SEG_CTX["armed"] = False
+            _FW_SEG_CTX["dlam"] = 0.0
+            _FW_SEG_CTX["lanes"] = 0.0
+            if p:
+                tau_h = float(p.get("metanet_tau_h", tau_h))
+                kappa_veh_km_lane = float(p.get("metanet_kappa_veh_km_lane", kappa_veh_km_lane))
+                length_km = float(p.get("segment_length_km", length_km))
+            v_new = _o_up(speed, upstream_speed, rho, downstream_rho, v_eff, dt_h, length_km,
+                          tau_h, nu_km2_h, kappa_veh_km_lane, v_min)
+            # 차로감소항: Δv = −φ·T·Δλ·ρ·v² / (L·λ·ρ_cr). 차로가 주는 직전 셀에만 걸린다.
+            if _phi > 0.0 and _dl > 0.0:
+                _FW_SEG_CTX_STATE["lane_drop_fired"] = _FW_SEG_CTX_STATE.get("lane_drop_fired", 0) + 1
+                _rc = float(p["rho_crit"]) if (p and "rho_crit" in p) else _rc_link
+                v_new = max(v_min, v_new - _phi * dt_h * _dl * max(rho, 0.0) * (speed ** 2)
+                            / (max(length_km, 1.0e-9) * _lam * max(_rc, 1.0e-9)))
+            return v_new
+
+        for _f in (_patched_segment_vsl, _patched_effective_desired_speed_kmh,
+                   _patched_select_anticipation_nu, _patched_metanet_speed_update_kmh):
+            _f._rw_fw_seg_patch = True
+        out["fw_seg_rebind_vsl"] = _fw_rebind("segment_vsl", _o_sv, _patched_segment_vsl)
+        out["fw_seg_rebind_ved"] = _fw_rebind("effective_desired_speed_kmh", _o_ed, _patched_effective_desired_speed_kmh)
+        out["fw_seg_rebind_nu"] = _fw_rebind("select_anticipation_nu", _o_nu, _patched_select_anticipation_nu)
+        out["fw_seg_rebind_upd"] = _fw_rebind("metanet_speed_update_kmh", _o_up, _patched_metanet_speed_update_kmh)
+        _st.segment_vsl = _patched_segment_vsl
+        _mn.segment_vsl = _patched_segment_vsl
+        _mn.effective_desired_speed_kmh = _patched_effective_desired_speed_kmh
+        _mn.select_anticipation_nu = _patched_select_anticipation_nu
+        _mn.metanet_speed_update_kmh = _patched_metanet_speed_update_kmh
+        out["fw_seg_param_segments"] = float(sum(len(v) for v in par.values()))
+    return out
 
 
 def _plant_gate_peeloff_into(cfg, tuning) -> None:
@@ -8708,6 +9410,11 @@ def traffic_state_from_vissim(
             speed_sum = max(0.0, float(row.get("speed_sum", 0.0)))
             length_km = max(1.0e-6, float(row.get("length_km", cfg.network.freeway_segment_length_km)))
             lanes = max(1.0, float(row.get("lanes", cfg.network.freeway_lanes)))
+            # 2026-09-07 세그먼트별 차로(freeway.segment_lanes=mapping): VBS 의 모형 링크 단일값 대신 매핑의 세그먼트 차로로
+            #   밀도를 count/(length·lanes_i) 로 다시 잰다. state.freeway_effective_lanes 에도 그대로 실린다.
+            _seg_lanes = _mapping(getattr(cfg.network, "freeway_segment_lanes", None) or {}).get(str(link))
+            if isinstance(_seg_lanes, list) and i < len(_seg_lanes) and _as_float(_seg_lanes[i], 0.0) > 0.0:
+                lanes = max(1.0, float(_seg_lanes[i]))
             speed = speed_sum / count if count > 1.0e-9 else float(cfg.network.v_free)
             density = count / (length_km * lanes)
             densities.append(float(density))
@@ -9620,6 +10327,36 @@ def _measured_meter_allocation(control, cfg, settings: Mapping[str, Any], meters
         for m in ms:
             diag["rw_meter_green_%s" % m["id"]] = float(green_out[m["id"]])
     return {"green": green_out, "realized": realized, "requested": requested}
+
+
+def apply_ramp_spillback_guard(control, cfg, state, actuation: Mapping[str, Any], metadata=None) -> dict[str, float]:
+    """램프 스필백 제약 (2026-09-07): 검지 링크 위 정지 큐(ramp_spillback)가 문턱을 넘으면 그 램프의 미터 rate 를 floor 로 강제
+    개방한다 — 커넥터 + 전용 상류 검지 링크 이상으로 스필백을 쌓아두지 않는다(사용자 요구). 되쓰기(write-back) **앞**에 불러
+    강제값이 green 배정으로 실현되게 한다. `actuation.real_world_ramp_metering.spillback_guard` 가 없으면 no-op = 비트 동일."""
+    settings = _mapping(_mapping(actuation.get("real_world_ramp_metering")).get("spillback_guard"))
+    if not _is_enabled_value(settings.get("enabled", False)):
+        return {}
+    thr = max(0.0, _as_float(settings.get("spill_threshold_veh"), 8.0))
+    floor = max(0.0, _as_float(settings.get("floor_vph"), 1800.0))
+    summ = _mapping(getattr(state, "local_observation_summary", None) or {})
+    spill = _mapping(summ.get("ramp_spillback"))
+    out: dict[str, float] = {}
+    for ramp, sv in spill.items():
+        sv = _as_float(sv, 0.0)
+        cur = _as_float(control.ramp_metering.get(ramp), 0.0)
+        forced = bool(sv > thr and cur < floor)
+        if forced:
+            control.ramp_metering[ramp] = float(floor)
+        out[ramp] = 1.0 if forced else 0.0
+        if isinstance(metadata, dict):
+            metadata["rw_spill_%s_veh" % ramp] = float(sv)
+            metadata["rw_spill_guard_%s" % ramp] = 1.0 if forced else 0.0
+            if forced:
+                metadata["rw_spill_guard_%s_from_vph" % ramp] = float(cur)
+    if isinstance(metadata, dict):
+        metadata["rw_spill_guard_threshold_veh"] = thr
+        metadata["rw_spill_guard_forced_count"] = float(sum(out.values()))
+    return out
 
 
 def real_world_ramp_meter_write_back(control, cfg, actuation: Mapping[str, Any], mapping: Mapping[str, Any], metadata=None,
@@ -11460,6 +12197,12 @@ def main() -> None:
     # 합쳐진 movement 로 그 몫이 새어 들어간다.
     runtime_patch_metadata.update(_relabel(apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
     # B 팔: on* movement 되접기. merge 보다 앞이어야 on_ramp_to_movement 가 빈다.
+    runtime_patch_metadata.update(install_freeway_segment_lanes(cfg, tuning, mapping))
+    runtime_patch_metadata.update(install_freeway_lane_drop(cfg, tuning))
+    runtime_patch_metadata.update(install_freeway_vsl_zones(cfg, tuning))
+    runtime_patch_metadata.update(install_freeway_segment_runtime(cfg))
+    runtime_patch_metadata.update(install_freeway_vsl_sequence_kbest(cfg, tuning))
+    runtime_patch_metadata.update(install_freeway_vsl_price_dedupe(cfg, tuning))
     runtime_patch_metadata.update(install_leg_ramp_split_fold(cfg, tuning))
     detector_mapping, _merge_meta = install_merged_movements(cfg, tuning, detector_mapping)
     runtime_patch_metadata.update(_merge_meta)
@@ -11959,6 +12702,7 @@ def main() -> None:
     offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict)
     metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
     # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
+    apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
     real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
