@@ -1,0 +1,284 @@
+{
+  "scope": "Read-only concrete cleanup review; no files removed, production/config/run outputs unchanged. 49 earlier candidates plus 3 new meter proposal artifacts reviewed.",
+  "checked_head": "0bbdf8aa81098f9dcd48ed2bc5f112463fb3a50f",
+  "safely_removable_now_after_existing_production_commits": [
+    {
+      "path": "diagnostics/archive_simulation_errors.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_failfast.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_follower_objective.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_follower_objective_candidate.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_area_follower_objective.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_phase_finalization.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_phase_finalization_candidate.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_phase_finalization.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_routes_and_sc2001.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/build_dynamic_area_runtime_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/build_offset_experiment_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/build_signal_contract_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/build_urban_flow_accounting.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/diagnostic_lever_profiles.patch",
+      "tracked": true
+    },
+    {
+      "path": "diagnostics/diagnostic_signal_profile.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/direct_branch_receiving.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/dynamic_area_runtime.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/freeway_initial_count.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/legsplit_receiving.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/legsplit_single_transfer.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/native_fixed_selector.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/observation_projection.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/offset_experiment.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/physical_stock_provenance.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_observation_projection.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_transit_storage_projection.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_strict_decision_failfast.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/runtime_setup.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/sc2001_urban_flow_accounting.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/signal_actuation_contract.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/signal_actuation_contract_candidate.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/signal_contract_with_offset_experiment.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/strict_decision_failfast.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/transit_storage_projection.patch",
+      "tracked": false
+    }
+  ],
+  "migrate_current_consumers_first": [
+    {
+      "path": "diagnostics/audit_snapshot_readonly.patch",
+      "tracked": true
+    },
+    {
+      "path": "diagnostics/diagnostic_profile.patch",
+      "tracked": true
+    },
+    {
+      "path": "diagnostics/freeway_count_geometry.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/build_area_routes_and_sc2001_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_sc2001_urban_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/proposed_area_dynamic_routes.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/sc2001_corridor_proposal.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_area_failfast_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_freeway_initial_count_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_legsplit_receiving_patch.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_legsplit_single_transfer_patch.py",
+      "tracked": false
+    }
+  ],
+  "retain_actual_diagnostic_tools": [
+    {
+      "path": "diagnostics/prepare_area_candidate_configs.py",
+      "tracked": true
+    },
+    {
+      "path": "diagnostics/prepare_native_offset_network.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/replay_freeway_candidates.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_dynamic_area_routes.py",
+      "tracked": false
+    }
+  ],
+  "hold_until_meter_production_commit_and_full_main_validation": [
+    {
+      "path": "diagnostics/area_meter_finalization.patch",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/area_meter_finalization_candidate.py",
+      "tracked": false
+    },
+    {
+      "path": "diagnostics/prepare_meter_finalization.py",
+      "tracked": false
+    }
+  ],
+  "proposal_module_consumers": [
+    {
+      "path": "diagnostics/probe_all_area_snapshots.py",
+      "tracked": false,
+      "calls_at_lines": [
+        24,
+        30,
+        72,
+        98
+      ]
+    },
+    {
+      "path": "diagnostics/probe_corrected_prediction_fidelity.py",
+      "tracked": false,
+      "calls_at_lines": [
+        28,
+        42,
+        44
+      ]
+    },
+    {
+      "path": "diagnostics/probe_direct_branch_order.py",
+      "tracked": false,
+      "calls_at_lines": [
+        76,
+        106,
+        110
+      ]
+    },
+    {
+      "path": "diagnostics/probe_offramp_feedback_trace.py",
+      "tracked": false,
+      "calls_at_lines": [
+        44,
+        58,
+        127
+      ]
+    },
+    {
+      "path": "diagnostics/probe_single_transfer_grid.py",
+      "tracked": false,
+      "calls_at_lines": [
+        22,
+        29
+      ]
+    }
+  ],
+  "preserve_inputs": [
+    "diagnostics/physical_projection_support_635_proposal.json",
+    "All current runtime JSON inputs and hashes, calibration data, fixture archive, run/actuation evidence, generated candidate configs and manifests"
+  ],
+  "preserve_off_baselines": [
+    "diagnostics/fixed_source_reference.py",
+    "diagnostics/review_fixtures.py",
+    "diagnostics/fixtures/control_area_v1.zip",
+    "6056c94/3299040 fixed-source blobs and current OFF regression tests"
+  ],
+  "notes": [
+    "34 removable artifacts contain no live executable consumer outside that deletion set; references to output patch filenames in retained builders are producers or comments, not readers.",
+    "11 migration-first artifacts include two tracked tests with integrated-source short-circuit fallback; simplify those tests to actual source before deleting their unused patch fallback.",
+    "Meter 3 are not in the immediate removal set because its production changes are still uncommitted at checked_head.",
+    "The earlier name-based graph can confuse runtime_setup.py or observation_projection.py imports with same-stem .patch files. Exact filename reads were rechecked.",
+    "Removal of optional proposal_module also requires updating its explicit legacy-helper description in area_production_test_migration.md; never relabel historical run results as current production."
+  ]
+}

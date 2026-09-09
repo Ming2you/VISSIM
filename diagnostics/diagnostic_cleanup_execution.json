@@ -1,0 +1,2197 @@
+{
+  "schema": "obsolete-diagnostic-cleanup/v1",
+  "checked_head": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+  "reviewed_at_utc": "2026-09-09T19:42:03.364088+00:00",
+  "authorized_scope": "Only34 removable artifacts plus3 integrated meter artifacts from diagnostic_cleanup_actions.json; direct files under this worktree diagnostics",
+  "reference_scan": "1865 current code/config files; exact filenames and Python module stems; no executable readers outside deletion set. Retained code mentions are output producers, audit classifier, historical wording. JSON mentions are only audit manifests. Dynamic manual reuse is not disproved.",
+  "meter_release_evidence": {
+    "commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+    "preflight_summary": "diagnostics/area_final_preflight_results.json",
+    "production_action_alignment_valid": true
+  },
+  "protected_paths": [
+    "diagnostics/audit_snapshot_readonly.patch",
+    "diagnostics/diagnostic_profile.patch",
+    "diagnostics/freeway_count_geometry.patch",
+    "diagnostics/build_area_routes_and_sc2001_patch.py",
+    "diagnostics/prepare_sc2001_urban_patch.py",
+    "diagnostics/proposed_area_dynamic_routes.py",
+    "diagnostics/sc2001_corridor_proposal.py",
+    "diagnostics/prepare_area_failfast_patch.py",
+    "diagnostics/prepare_freeway_initial_count_patch.py",
+    "diagnostics/prepare_legsplit_receiving_patch.py",
+    "diagnostics/prepare_legsplit_single_transfer_patch.py",
+    "diagnostics/prepare_area_candidate_configs.py",
+    "diagnostics/prepare_native_offset_network.py",
+    "diagnostics/replay_freeway_candidates.py",
+    "diagnostics/prepare_dynamic_area_routes.py",
+    "diagnostics/physical_projection_support_635_proposal.json",
+    "diagnostics/fixed_source_reference.py",
+    "diagnostics/review_fixtures.py",
+    "diagnostics/fixtures/control_area_v1.zip"
+  ],
+  "protected_sha256_before": {
+    "diagnostics/audit_snapshot_readonly.patch": "1154ae2672b6a817c8a3c714cc7d8d69496d69506499e6404d67c4e1784215ba",
+    "diagnostics/diagnostic_profile.patch": "1ab71c5d79162baa5c52d5c1e23433a9f93a13f06b5164df64e543b285b119e1",
+    "diagnostics/freeway_count_geometry.patch": "21e16ed5e91b370c991f2ef46c394f69f9aa32c99c7555aaf71b39d4170bb1d8",
+    "diagnostics/build_area_routes_and_sc2001_patch.py": "47ef8856d22974946a9d81b1f94a9945b7e69559df3c6f9f2d0635a02fb9415e",
+    "diagnostics/prepare_sc2001_urban_patch.py": "4818654336713745678eed05b5e03a21ac5c8a5a1b79c17c3a619b6f94bf624e",
+    "diagnostics/proposed_area_dynamic_routes.py": "f23f32df38feb83daf7ec36ee183d316fa5f0ecebd94c85028f1f1b9211d6e63",
+    "diagnostics/sc2001_corridor_proposal.py": "0b2e5715e016777781f25af608786b4a68fcaca13091b4a2a0c9ef064eadff43",
+    "diagnostics/prepare_area_failfast_patch.py": "a1fb538d7a43444f62f08a229798c93a6ebe1548c3164222f5767112afc1ffbb",
+    "diagnostics/prepare_freeway_initial_count_patch.py": "fa0454a4a2fea2d27259944b87a283a3467568a9f8d38c29227d2991ec19cec0",
+    "diagnostics/prepare_legsplit_receiving_patch.py": "410c24a6b35d004b8913702bbe8725b631afccfebd5ba1f3dfab3984b5f10176",
+    "diagnostics/prepare_legsplit_single_transfer_patch.py": "4bd8f960b89465b4696cb1726252076b9ae94097bd705d1840f88f38f0bf6432",
+    "diagnostics/prepare_area_candidate_configs.py": "af07f8fe7672987aa0929dd786c205284375edfd93cff403de692aed3f0ce3ba",
+    "diagnostics/prepare_native_offset_network.py": "218e4fb5c5db848553d4172a9b1713f9d99b80228232dd05ec4720ebd6613f56",
+    "diagnostics/replay_freeway_candidates.py": "cd7d23d8b5995b28018ddef00ddd4fd6784f8f89e82e011a02568025608b5e3d",
+    "diagnostics/prepare_dynamic_area_routes.py": "76b9800a0743173d6bc7ea91e35a8bd732f88fc3cd92d9d1ed9a99a34e792baf",
+    "diagnostics/physical_projection_support_635_proposal.json": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+    "diagnostics/fixed_source_reference.py": "c185a8c074db21c787726b4d42141a5016f52b4ab57b867954b46c4ef9dcf993",
+    "diagnostics/review_fixtures.py": "d2587aa72612e67685d12390bc8e7f8d4ffa10b31a8a10ffabb8d1dc8d818c85",
+    "diagnostics/fixtures/control_area_v1.zip": "26e5379f4ff4af54f11c7e19b236a7ac0dbefd4164660511dc5098a866d242f5"
+  },
+  "files": [
+    {
+      "path": "diagnostics/archive_simulation_errors.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\archive_simulation_errors.patch",
+      "bytes": 1090,
+      "sha256": "8e264f5c9657512427f308ed831371209d7afc231ac0050a604d342ff51823ae",
+      "mtime_ns": 1788970181209249000,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "a93c27bc69307a98dda9ec2bc30319f567742ab116914e41ca0cded68459f092",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 7,
+          "text": "\"path\": \"diagnostics/archive_simulation_errors.patch\",",
+          "context": "  \"files\": [\n    {\n      \"path\": \"diagnostics/archive_simulation_errors.patch\",\n      \"bytes\": 1090,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 6,
+          "text": "\"path\": \"diagnostics/archive_simulation_errors.patch\",",
+          "context": "  \"safely_removable_now_after_existing_production_commits\": [\n    {\n      \"path\": \"diagnostics/archive_simulation_errors.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_failfast.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_failfast.patch",
+      "bytes": 1148,
+      "sha256": "7c3baccf7e21f3a053d76848e877ba151e2cf14c840a44b4f2c6d0af85fc47c1",
+      "mtime_ns": 1788975786957194700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_area_failfast_patch.py",
+          "line": 38,
+          "text": "(ROOT / 'diagnostics/area_failfast.patch').write_text(''.join(difflib.unified_diff(",
+          "context": "    source = PATH.read_text(encoding='utf-8')\n    target = PATH.relative_to(ROOT).as_posix()\n    (ROOT / 'diagnostics/area_failfast.patch').write_text(''.join(difflib.unified_diff(\n        source.splitlines(True), proposed_source(source).splitlines(True), fromfile='a/' + target, tofile='b/' + target)), encoding='utf-8')"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 13,
+          "text": "\"path\": \"diagnostics/area_failfast.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_failfast.patch\",\n      \"bytes\": 1148,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 10,
+          "text": "\"path\": \"diagnostics/area_failfast.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_failfast.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_follower_objective.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_follower_objective.patch",
+      "bytes": 7014,
+      "sha256": "9b5fdd561052d14ab4fb49035b711cd970e9695536ef23bb64d1bb099dd2e525",
+      "mtime_ns": 1788978560453782200,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 26,
+          "text": "\"path\": \"diagnostics/area_follower_objective.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_follower_objective.patch\",\n      \"bytes\": 7014,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 14,
+          "text": "\"path\": \"diagnostics/area_follower_objective.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_follower_objective.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_follower_objective_candidate.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_follower_objective_candidate.py",
+      "bytes": 5790,
+      "sha256": "6aef2cd378a9c61a9ee7d5a88a49acd2ba360926231e256e90b1a4717cbd557c",
+      "mtime_ns": 1788978385463065100,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+        "path": "evaluation/controllers/area_follower_objective.py",
+        "exact_bytes": true,
+        "normalized_text_equal": true,
+        "git_blob_sha256": "6aef2cd378a9c61a9ee7d5a88a49acd2ba360926231e256e90b1a4717cbd557c",
+        "worktree_crlf_count": 0,
+        "worktree_lf_count": 106,
+        "restore_command": "git show 5248255d4b667d9d9f79e8b6f88a161dcaef062d:evaluation/controllers/area_follower_objective.py",
+        "note": "If exact_bytes=false, normalized text is identical and only LF/CRLF differs; original SHA recorded separately."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 39,
+          "text": "\"path\": \"diagnostics/area_follower_objective_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_follower_objective_candidate.py\",\n      \"bytes\": 5790,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 18,
+          "text": "\"path\": \"diagnostics/area_follower_objective_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_follower_objective_candidate.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": true,
+        "member": "diagnostics/area_follower_objective_candidate.py",
+        "source": {
+          "method": "git_raw_blob",
+          "git_blob": "68936196a1e5e9d502c77ec47240f9b270b23384"
+        },
+        "raw_sha256": "6aef2cd378a9c61a9ee7d5a88a49acd2ba360926231e256e90b1a4717cbd557c",
+        "bytes": 5790
+      }
+    },
+    {
+      "path": "diagnostics/prepare_area_follower_objective.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_area_follower_objective.py",
+      "bytes": 2257,
+      "sha256": "652725885280237e7f0b1c1e9a07995ee49707087ace219a3601a53e34930389",
+      "mtime_ns": 1788978387497197000,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 31,
+          "text": "\"source\": \"diagnostics/prepare_area_follower_objective.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_area_follower_objective.py\",\n          \"line\": 40,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 44,
+          "text": "\"source\": \"diagnostics/prepare_area_follower_objective.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_area_follower_objective.py\",\n          \"line\": 18,\n          \"scope\": \"sources\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 382,
+          "text": "\"path\": \"diagnostics/prepare_area_follower_objective.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_area_follower_objective.py\",\n      \"bytes\": 2257,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 22,
+          "text": "\"path\": \"diagnostics/prepare_area_follower_objective.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_area_follower_objective.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_phase_finalization.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_phase_finalization.patch",
+      "bytes": 5276,
+      "sha256": "cc783a3fb2c73e4fe906fc28502b2bd03376ad7a08c79c2d30ea0551afa23d2a",
+      "mtime_ns": 1788979719968048700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 52,
+          "text": "\"path\": \"diagnostics/area_phase_finalization.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_phase_finalization.patch\",\n      \"bytes\": 5276,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 26,
+          "text": "\"path\": \"diagnostics/area_phase_finalization.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_phase_finalization.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_phase_finalization_candidate.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_phase_finalization_candidate.py",
+      "bytes": 10401,
+      "sha256": "81830036f2332fca80ceb342035f0b509b3d11494c36034537b2377c34733b60",
+      "mtime_ns": 1788979719967056700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "commit": "310ca1b60c61699e9dd5e4406d857e7b53cd5794",
+        "path": "evaluation/controllers/area_follower_objective.py",
+        "exact_bytes": false,
+        "normalized_text_equal": true,
+        "git_blob_sha256": "4137721e041edb5ab4b70b7bc580e7aeaa48d92944c09b477de4b3cb9150dca0",
+        "worktree_crlf_count": 192,
+        "worktree_lf_count": 192,
+        "restore_command": "git show 310ca1b60c61699e9dd5e4406d857e7b53cd5794:evaluation/controllers/area_follower_objective.py",
+        "note": "If exact_bytes=false, normalized text is identical and only LF/CRLF differs; original SHA recorded separately."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 65,
+          "text": "\"path\": \"diagnostics/area_phase_finalization_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_phase_finalization_candidate.py\",\n      \"bytes\": 10401,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 30,
+          "text": "\"path\": \"diagnostics/area_phase_finalization_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_phase_finalization_candidate.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": true,
+        "member": "diagnostics/area_phase_finalization_candidate.py",
+        "source": {
+          "method": "git_LF_to_CRLF_with_exact_original_sha256",
+          "git_blob": "d610cd3530ce52d565fefb00b4a122b2644d5669"
+        },
+        "raw_sha256": "81830036f2332fca80ceb342035f0b509b3d11494c36034537b2377c34733b60",
+        "bytes": 10401
+      }
+    },
+    {
+      "path": "diagnostics/prepare_phase_finalization.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_phase_finalization.py",
+      "bytes": 5903,
+      "sha256": "4f30553f2f8cf7a1424443b9399ab19877e41cf4b1897758f6a3b9112d046f00",
+      "mtime_ns": 1788979719094204300,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 57,
+          "text": "\"source\": \"diagnostics/prepare_phase_finalization.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_phase_finalization.py\",\n          \"line\": 112,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 70,
+          "text": "\"source\": \"diagnostics/prepare_phase_finalization.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_phase_finalization.py\",\n          \"line\": 110,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 507,
+          "text": "\"path\": \"diagnostics/prepare_phase_finalization.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_phase_finalization.py\",\n      \"bytes\": 5903,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 34,
+          "text": "\"path\": \"diagnostics/prepare_phase_finalization.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_phase_finalization.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_routes_and_sc2001.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_routes_and_sc2001.patch",
+      "bytes": 41939,
+      "sha256": "1e830bed364030315195d2165ba8a83d8ad8e6f6fc810e4ad1db3cd3fd8efbba",
+      "mtime_ns": 1788973813216114300,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_dynamic_routes.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "97b2f9d18c7a93c666cf0d85e961a27d92a4bdc523210dd3056f879162abdb37",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_dynamic_routes.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/projection_support.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e6113ee572808402c05a8d53a73e9e9c7912b7c0513069b348b6cd2039339aba",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/projection_support.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/sc2001_corridor.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d6e2a343ae44a500f42e6613dfed94a2531603541d165b407b8f797dcf05931",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/sc2001_corridor.py"
+        },
+        {
+          "path": "evaluation/controllers/urban_flow_accounting.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "d99ea31f596f3048cd856c93685a2f9183f060fd234095732702cc9b185704dd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/urban_flow_accounting.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_legsplit_receiving_patch.py",
+          "line": 65,
+          "text": "print('Apply after area_routes_and_sc2001.patch; production unchanged.')",
+          "context": "                                       fromfile='a/' + target, tofile='b/' + target))\n    (ROOT / 'diagnostics/legsplit_receiving.patch').write_text(patch, encoding='utf-8')\n    print('Apply after area_routes_and_sc2001.patch; production unchanged.')\n\n"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 78,
+          "text": "\"path\": \"diagnostics/area_routes_and_sc2001.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_routes_and_sc2001.patch\",\n      \"bytes\": 41939,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 38,
+          "text": "\"path\": \"diagnostics/area_routes_and_sc2001.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_routes_and_sc2001.patch\",\n      \"tracked\": false\n    },"
+        },
+        {
+          "source": "diagnostics/build_area_routes_and_sc2001_patch.py",
+          "line": 95,
+          "text": "(ROOT / 'diagnostics/area_routes_and_sc2001.patch').write_bytes(''.join(parts).encode('utf-8'))",
+          "context": "        manifest[target] = {'before_sha256': hashlib.sha256(before.encode()).hexdigest() if before else None,\n                            'after_sha256': hashlib.sha256(after.encode()).hexdigest()}\n    (ROOT / 'diagnostics/area_routes_and_sc2001.patch').write_bytes(''.join(parts).encode('utf-8'))\n    (ROOT / 'diagnostics/area_routes_and_sc2001_patch_manifest.json').write_text(json.dumps(manifest, indent=2), encoding='utf-8')\n    print('Prepared one combined unapplied package; production files unchanged.')"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/build_dynamic_area_runtime_patch.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\build_dynamic_area_runtime_patch.py",
+      "bytes": 2328,
+      "sha256": "0c1ccad03dc085d2b211c074c85c242072804a078745beaf8e3f4ad0394685be",
+      "mtime_ns": 1788972658651348200,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_dynamic_routes.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "97b2f9d18c7a93c666cf0d85e961a27d92a4bdc523210dd3056f879162abdb37",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_dynamic_routes.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 159,
+          "text": "\"path\": \"diagnostics/build_dynamic_area_runtime_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_dynamic_area_runtime_patch.py\",\n      \"bytes\": 2328,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 239,
+          "text": "\"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",",
+          "context": "        },\n        {\n          \"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",\n          \"line\": 34,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 524,
+          "text": "\"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",",
+          "context": "        },\n        {\n          \"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",\n          \"line\": 4,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 561,
+          "text": "\"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",",
+          "context": "        },\n        {\n          \"source\": \"diagnostics/build_dynamic_area_runtime_patch.py\",\n          \"line\": 11,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 42,
+          "text": "\"path\": \"diagnostics/build_dynamic_area_runtime_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_dynamic_area_runtime_patch.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/build_offset_experiment_patch.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\build_offset_experiment_patch.py",
+      "bytes": 13246,
+      "sha256": "14f2cfbae9e428236884d40cf3ac2c790368c0cbc3f9ccae000774096c77e73c",
+      "mtime_ns": 1788977608636176000,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/offset_promotion.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "61bfcf14e4d765f5aaa20db1228e063b92c12c4c5336cd697e8be1571395a20c",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/offset_promotion.py"
+        },
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 165,
+          "text": "\"path\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_offset_experiment_patch.py\",\n      \"bytes\": 13246,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 176,
+          "text": "\"source\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_offset_experiment_patch.py\",\n          \"line\": 5,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 336,
+          "text": "\"source\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_offset_experiment_patch.py\",\n          \"line\": 171,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 342,
+          "text": "\"source\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "        },\n        {\n          \"source\": \"diagnostics/build_offset_experiment_patch.py\",\n          \"line\": 179,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 644,
+          "text": "\"source\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_offset_experiment_patch.py\",\n          \"line\": 179,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 46,
+          "text": "\"path\": \"diagnostics/build_offset_experiment_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_offset_experiment_patch.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/build_signal_contract_patch.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\build_signal_contract_patch.py",
+      "bytes": 5721,
+      "sha256": "0bd90afdb60e52f61037a1a269e35fb75b60e454a0eef6cee9743e4b83eee294",
+      "mtime_ns": 1788974340483010700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 171,
+          "text": "\"path\": \"diagnostics/build_signal_contract_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_signal_contract_patch.py\",\n      \"bytes\": 5721,\n      \"classification\": \"historical_diagnostic_dependency_group\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 310,
+          "text": "\"source\": \"diagnostics/build_signal_contract_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_signal_contract_patch.py\",\n          \"line\": 74,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 618,
+          "text": "\"source\": \"diagnostics/build_signal_contract_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_signal_contract_patch.py\",\n          \"line\": 73,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 631,
+          "text": "\"source\": \"diagnostics/build_signal_contract_patch.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/build_signal_contract_patch.py\",\n          \"line\": 44,\n          \"scope\": \"proposed_sources\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 50,
+          "text": "\"path\": \"diagnostics/build_signal_contract_patch.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_signal_contract_patch.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/build_urban_flow_accounting.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\build_urban_flow_accounting.py",
+      "bytes": 8801,
+      "sha256": "7610447f6397cc4817f72bc90ec74c512132b44bfb719b860dd3df5adb35be0b",
+      "mtime_ns": 1788970762667537400,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/urban_flow_accounting.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "d99ea31f596f3048cd856c93685a2f9183f060fd234095732702cc9b185704dd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/urban_flow_accounting.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 184,
+          "text": "\"path\": \"diagnostics/build_urban_flow_accounting.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_urban_flow_accounting.py\",\n      \"bytes\": 8801,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/audit_diagnostic_artifact_dependencies.py",
+          "line": 19,
+          "text": "re.search(r'(?:proposal|candidate|proposed|^prepare_|^build_.*patch|^build_urban_flow_accounting)', path.name)}",
+          "context": "    candidates = {path for path in (ROOT/'diagnostics').glob('*.patch')}\n    candidates |= {path for path in diagnostic_files.values() if\n                   re.search(r'(?:proposal|candidate|proposed|^prepare_|^build_.*patch|^build_urban_flow_accounting)', path.name)}\n    incoming = defaultdict(list)\n    sources = list((ROOT/'diagnostics').glob('*.py')) + list((ROOT/'evaluation/controllers').glob('*.py')) + list((ROOT/'scripts').glob('*.py'))"
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 54,
+          "text": "\"path\": \"diagnostics/build_urban_flow_accounting.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/build_urban_flow_accounting.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/diagnostic_lever_profiles.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\diagnostic_lever_profiles.patch",
+      "bytes": 12122,
+      "sha256": "2d96d009accaff5b75e448caef3b7dcc0dd3d7cfdb0e7f53242e917c594a5542",
+      "mtime_ns": 1788969793752776400,
+      "tracked_at_cleanup": true,
+      "git_recovery": {
+        "commit": "da752bc9ab0d50b4fda5e836e7815efe28eefae0",
+        "path": "diagnostics/diagnostic_lever_profiles.patch",
+        "exact_bytes": false,
+        "normalized_text_equal": true,
+        "git_blob_sha256": "7d54c72738edea0736949b831bfa07449d520cd5f685e67171452dfd8c861608",
+        "worktree_crlf_count": 126,
+        "worktree_lf_count": 225,
+        "restore_command": "git restore --source=da752bc9ab0d50b4fda5e836e7815efe28eefae0 -- diagnostics/diagnostic_lever_profiles.patch",
+        "note": "If exact_bytes=false, normalized text is identical and only LF/CRLF differs; original SHA recorded separately."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/diagnostic_profile.py",
+          "latest_path_commit": "da752bc9ab0d50b4fda5e836e7815efe28eefae0",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "371d140e130f5a92bf1c8e99c7f1ae159799d4662d785e06362b7897485799cc",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/diagnostic_profile.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 190,
+          "text": "\"path\": \"diagnostics/diagnostic_lever_profiles.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/diagnostic_lever_profiles.patch\",\n      \"bytes\": 12122,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 58,
+          "text": "\"path\": \"diagnostics/diagnostic_lever_profiles.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/diagnostic_lever_profiles.patch\",\n      \"tracked\": true\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/diagnostic_signal_profile.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\diagnostic_signal_profile.patch",
+      "bytes": 3982,
+      "sha256": "255570f534290811477b79783ed2a4cab26172939fe27a837520c6026eee8452",
+      "mtime_ns": 1788967755456730800,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 209,
+          "text": "\"path\": \"diagnostics/diagnostic_signal_profile.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/diagnostic_signal_profile.patch\",\n      \"bytes\": 3982,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 62,
+          "text": "\"path\": \"diagnostics/diagnostic_signal_profile.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/diagnostic_signal_profile.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/direct_branch_receiving.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\direct_branch_receiving.patch",
+      "bytes": 1345,
+      "sha256": "99a0ade94c59408b71b64513c7a440b561c9b965dd2483e958ae727e3df77f6e",
+      "mtime_ns": 1788967342782954100,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 215,
+          "text": "\"path\": \"diagnostics/direct_branch_receiving.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/direct_branch_receiving.patch\",\n      \"bytes\": 1345,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 66,
+          "text": "\"path\": \"diagnostics/direct_branch_receiving.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/direct_branch_receiving.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/dynamic_area_runtime.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\dynamic_area_runtime.patch",
+      "bytes": 11231,
+      "sha256": "604cdd2de22a8a9729b411720a5c8296672c66dc5181ea9b397e58eb9330ebf1",
+      "mtime_ns": 1788972670678977400,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_dynamic_routes.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "97b2f9d18c7a93c666cf0d85e961a27d92a4bdc523210dd3056f879162abdb37",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_dynamic_routes.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 228,
+          "text": "\"path\": \"diagnostics/dynamic_area_runtime.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/dynamic_area_runtime.patch\",\n      \"bytes\": 11231,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 70,
+          "text": "\"path\": \"diagnostics/dynamic_area_runtime.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/dynamic_area_runtime.patch\",\n      \"tracked\": false\n    },"
+        },
+        {
+          "source": "diagnostics/build_area_routes_and_sc2001_patch.py",
+          "line": 3,
+          "text": "Supersedes dynamic_area_runtime.patch and sc2001_urban_flow_accounting.patch.",
+          "context": "\"\"\"One unapplied package for reviewed dynamic routes and the finite corridor.\n\nSupersedes dynamic_area_runtime.patch and sc2001_urban_flow_accounting.patch.\nExisting adapter observation/provenance/transit fixes are separate prerequisites.\n\"\"\""
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/freeway_initial_count.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\freeway_initial_count.patch",
+      "bytes": 2984,
+      "sha256": "aee19081bb41c2f92e308c5ded9ca987069961a7afeadf3af16a242ca41ecfcc",
+      "mtime_ns": 1788974221893268600,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_freeway_initial_count_patch.py",
+          "line": 105,
+          "text": "destination = ROOT / 'diagnostics/freeway_initial_count.patch'",
+          "context": "    difference = ''.join(difflib.unified_diff(source.splitlines(True), proposal.splitlines(True),\n                                            fromfile='a/' + rel, tofile='b/' + rel))\n    destination = ROOT / 'diagnostics/freeway_initial_count.patch'\n    destination.write_text(difference, encoding='utf-8')\n    print(destination)"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 260,
+          "text": "\"path\": \"diagnostics/freeway_initial_count.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/freeway_initial_count.patch\",\n      \"bytes\": 2984,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 74,
+          "text": "\"path\": \"diagnostics/freeway_initial_count.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/freeway_initial_count.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/legsplit_receiving.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\legsplit_receiving.patch",
+      "bytes": 2382,
+      "sha256": "0ec82c7a86d0f873105cb3e66b3e6c290ddcfaf24ad3816da8bdec37ad93c5a3",
+      "mtime_ns": 1788975659696127500,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/urban_flow_accounting.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "d99ea31f596f3048cd856c93685a2f9183f060fd234095732702cc9b185704dd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/urban_flow_accounting.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_legsplit_single_transfer_patch.py",
+          "line": 69,
+          "text": "print('Supersedes legsplit_receiving.patch; apply after the area route package.')",
+          "context": "    (ROOT / 'diagnostics/legsplit_single_transfer.patch').write_text(''.join(difflib.unified_diff(\n        before.splitlines(True), after.splitlines(True), fromfile='a/' + target, tofile='b/' + target)), encoding='utf-8')\n    print('Supersedes legsplit_receiving.patch; apply after the area route package.')"
+        },
+        {
+          "source": "diagnostics/prepare_legsplit_receiving_patch.py",
+          "line": 64,
+          "text": "(ROOT / 'diagnostics/legsplit_receiving.patch').write_text(patch, encoding='utf-8')",
+          "context": "    patch = ''.join(difflib.unified_diff(before.splitlines(True), after.splitlines(True),\n                                       fromfile='a/' + target, tofile='b/' + target))\n    (ROOT / 'diagnostics/legsplit_receiving.patch').write_text(patch, encoding='utf-8')\n    print('Apply after area_routes_and_sc2001.patch; production unchanged.')\n"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 273,
+          "text": "\"path\": \"diagnostics/legsplit_receiving.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/legsplit_receiving.patch\",\n      \"bytes\": 2382,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 78,
+          "text": "\"path\": \"diagnostics/legsplit_receiving.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/legsplit_receiving.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/legsplit_single_transfer.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\legsplit_single_transfer.patch",
+      "bytes": 7985,
+      "sha256": "c0f02e8fdf5b6490c45fbcfefb16275d0c32777fd6dabb2780ef59af3515806b",
+      "mtime_ns": 1788977141389272300,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/urban_flow_accounting.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "d99ea31f596f3048cd856c93685a2f9183f060fd234095732702cc9b185704dd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/urban_flow_accounting.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_legsplit_single_transfer_patch.py",
+          "line": 67,
+          "text": "(ROOT / 'diagnostics/legsplit_single_transfer.patch').write_text(''.join(difflib.unified_diff(",
+          "context": "    before = sources()[target][1]\n    after = proposed_source(before)\n    (ROOT / 'diagnostics/legsplit_single_transfer.patch').write_text(''.join(difflib.unified_diff(\n        before.splitlines(True), after.splitlines(True), fromfile='a/' + target, tofile='b/' + target)), encoding='utf-8')\n    print('Supersedes legsplit_receiving.patch; apply after the area route package.')"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 292,
+          "text": "\"path\": \"diagnostics/legsplit_single_transfer.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/legsplit_single_transfer.patch\",\n      \"bytes\": 7985,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 82,
+          "text": "\"path\": \"diagnostics/legsplit_single_transfer.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/legsplit_single_transfer.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/native_fixed_selector.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\native_fixed_selector.patch",
+      "bytes": 2621,
+      "sha256": "46c1fc7b415c854f83adade427d1d360bdd8d73f32e6baf1d0de9c8b85399d2f",
+      "mtime_ns": 1788974896543650400,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 305,
+          "text": "\"path\": \"diagnostics/native_fixed_selector.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/native_fixed_selector.patch\",\n      \"bytes\": 2621,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 86,
+          "text": "\"path\": \"diagnostics/native_fixed_selector.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/native_fixed_selector.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/observation_projection.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\observation_projection.patch",
+      "bytes": 4092,
+      "sha256": "80302f695d56fb5bf8e6bb1ffae9ac1d09e247edc66b661253098387e4f2c3b4",
+      "mtime_ns": 1788967342739264600,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 318,
+          "text": "\"path\": \"diagnostics/observation_projection.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/observation_projection.patch\",\n      \"bytes\": 4092,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 90,
+          "text": "\"path\": \"diagnostics/observation_projection.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/observation_projection.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/offset_experiment.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\offset_experiment.patch",
+      "bytes": 17886,
+      "sha256": "d147decdbe3eb6ac881fd14494bad64d6f19913d3abadd73232ac1bf9e73c8da",
+      "mtime_ns": 1788977610946786700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/offset_promotion.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "61bfcf14e4d765f5aaa20db1228e063b92c12c4c5336cd697e8be1571395a20c",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/offset_promotion.py"
+        },
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        },
+        {
+          "path": "scripts/derive_signal_group_actuation_plan.py",
+          "latest_path_commit": "dd5b943c62bfe8b4cafb9873219c3be46c84a360",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "bd0c4feb5440a80cb05b4f0f1960ddd7669ce895550ade32850d3128fc118cbd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/derive_signal_group_actuation_plan.py"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 331,
+          "text": "\"path\": \"diagnostics/offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/offset_experiment.patch\",\n      \"bytes\": 17886,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 639,
+          "text": "\"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",\n      \"bytes\": 35780,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 94,
+          "text": "\"path\": \"diagnostics/offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/offset_experiment.patch\",\n      \"tracked\": false\n    },"
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 130,
+          "text": "\"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/physical_stock_provenance.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\physical_stock_provenance.patch",
+      "bytes": 3530,
+      "sha256": "3a1b8051b003938049a90f683b15b3861da18f5444b613e59b12f1768d0e69e8",
+      "mtime_ns": 1788967342760482200,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 350,
+          "text": "\"path\": \"diagnostics/physical_stock_provenance.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/physical_stock_provenance.patch\",\n      \"bytes\": 3530,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 98,
+          "text": "\"path\": \"diagnostics/physical_stock_provenance.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/physical_stock_provenance.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/prepare_observation_projection.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_observation_projection.py",
+      "bytes": 10719,
+      "sha256": "9f0a762c22a6eff216fed5d64512a6c9e78e7341c522e0b682d4f570b280a4cd",
+      "mtime_ns": 1788970665136072500,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 220,
+          "text": "\"source\": \"diagnostics/prepare_observation_projection.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_observation_projection.py\",\n          \"line\": 123,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 323,
+          "text": "\"source\": \"diagnostics/prepare_observation_projection.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_observation_projection.py\",\n          \"line\": 109,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 355,
+          "text": "\"source\": \"diagnostics/prepare_observation_projection.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_observation_projection.py\",\n          \"line\": 112,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 494,
+          "text": "\"path\": \"diagnostics/prepare_observation_projection.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_observation_projection.py\",\n      \"bytes\": 10719,\n      \"classification\": \"historical_diagnostic_dependency_group\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 102,
+          "text": "\"path\": \"diagnostics/prepare_observation_projection.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_observation_projection.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/prepare_transit_storage_projection.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_transit_storage_projection.py",
+      "bytes": 981,
+      "sha256": "6826233171595318b244a881e31f1e55c8cd599e0a01ccfb9655fa0ba1318bff",
+      "mtime_ns": 1788970669118062800,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 499,
+          "text": "\"source\": \"diagnostics/prepare_transit_storage_projection.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_transit_storage_projection.py\",\n          \"line\": 5,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 544,
+          "text": "\"path\": \"diagnostics/prepare_transit_storage_projection.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_transit_storage_projection.py\",\n      \"bytes\": 981,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 670,
+          "text": "\"source\": \"diagnostics/prepare_transit_storage_projection.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_transit_storage_projection.py\",\n          \"line\": 13,\n          \"scope\": \"<module>\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 106,
+          "text": "\"path\": \"diagnostics/prepare_transit_storage_projection.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_transit_storage_projection.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/prepare_strict_decision_failfast.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_strict_decision_failfast.py",
+      "bytes": 4990,
+      "sha256": "879e68c89566b3dec9c23358175c0ef157b2f2d7b39a2409edf4be5dd6ad28fa",
+      "mtime_ns": 1788976600368535700,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "a93c27bc69307a98dda9ec2bc30319f567742ab116914e41ca0cded68459f092",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 538,
+          "text": "\"path\": \"diagnostics/prepare_strict_decision_failfast.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_strict_decision_failfast.py\",\n      \"bytes\": 4990,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 657,
+          "text": "\"source\": \"diagnostics/prepare_strict_decision_failfast.py\",",
+          "context": "      \"incoming\": [\n        {\n          \"source\": \"diagnostics/prepare_strict_decision_failfast.py\",\n          \"line\": 96,\n          \"scope\": \"main\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 110,
+          "text": "\"path\": \"diagnostics/prepare_strict_decision_failfast.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_strict_decision_failfast.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/runtime_setup.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\runtime_setup.patch",
+      "bytes": 16509,
+      "sha256": "543b4b1733774639336de49ea6d6bfeb762edd53110274b861e02bf7bc3e569c",
+      "mtime_ns": 1788965925359261800,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        },
+        {
+          "path": "scripts/offline_harness_20260904.py",
+          "latest_path_commit": "c5dc618d29957438e33f6454ba868f8d7da6af4f",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "11720894133f6adf2203d672771ccbdbe7476de4c5127765eeca41ead4c6cbce",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/offline_harness_20260904.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 575,
+          "text": "\"path\": \"diagnostics/runtime_setup.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/runtime_setup.patch\",\n      \"bytes\": 16509,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 114,
+          "text": "\"path\": \"diagnostics/runtime_setup.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/runtime_setup.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/sc2001_urban_flow_accounting.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\sc2001_urban_flow_accounting.patch",
+      "bytes": 6595,
+      "sha256": "b95671bfa47be6ff76bb44fca8796e8132971ccaf868080e0c317dd6ea3bd77c",
+      "mtime_ns": 1788972540801044000,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/urban_flow_accounting.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "d99ea31f596f3048cd856c93685a2f9183f060fd234095732702cc9b185704dd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/urban_flow_accounting.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/prepare_sc2001_urban_patch.py",
+          "line": 63,
+          "text": "(ROOT / 'diagnostics/sc2001_urban_flow_accounting.patch').write_text(''.join(",
+          "context": "    after = proposed_source(before)\n    compile(after, '<reviewed corridor urban proposal>', 'exec')\n    (ROOT / 'diagnostics/sc2001_urban_flow_accounting.patch').write_text(''.join(\n        difflib.unified_diff(before.splitlines(keepends=True), after.splitlines(keepends=True),\n                             fromfile='a/' + target, tofile='b/' + target)), encoding='utf-8')"
+        },
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 594,
+          "text": "\"path\": \"diagnostics/sc2001_urban_flow_accounting.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/sc2001_urban_flow_accounting.patch\",\n      \"bytes\": 6595,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 118,
+          "text": "\"path\": \"diagnostics/sc2001_urban_flow_accounting.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/sc2001_urban_flow_accounting.patch\",\n      \"tracked\": false\n    },"
+        },
+        {
+          "source": "diagnostics/build_area_routes_and_sc2001_patch.py",
+          "line": 3,
+          "text": "Supersedes dynamic_area_runtime.patch and sc2001_urban_flow_accounting.patch.",
+          "context": "\"\"\"One unapplied package for reviewed dynamic routes and the finite corridor.\n\nSupersedes dynamic_area_runtime.patch and sc2001_urban_flow_accounting.patch.\nExisting adapter observation/provenance/transit fixes are separate prerequisites.\n\"\"\""
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/signal_actuation_contract.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\signal_actuation_contract.patch",
+      "bytes": 20657,
+      "sha256": "44c95535066918bd1ee0511c357b94e6f5b42468ab7fecd62ec38eb272ee6668",
+      "mtime_ns": 1788974896286978200,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 613,
+          "text": "\"path\": \"diagnostics/signal_actuation_contract.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_actuation_contract.patch\",\n      \"bytes\": 20657,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 122,
+          "text": "\"path\": \"diagnostics/signal_actuation_contract.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_actuation_contract.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/signal_actuation_contract_candidate.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\signal_actuation_contract_candidate.py",
+      "bytes": 16026,
+      "sha256": "dad1405b021e54c0235c333904f6093060a9ddb6008689b1ba53d2feb6b94b10",
+      "mtime_ns": 1788974685385421100,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 626,
+          "text": "\"path\": \"diagnostics/signal_actuation_contract_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_actuation_contract_candidate.py\",\n      \"bytes\": 16026,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 126,
+          "text": "\"path\": \"diagnostics/signal_actuation_contract_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_actuation_contract_candidate.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/signal_contract_with_offset_experiment.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\signal_contract_with_offset_experiment.patch",
+      "bytes": 35780,
+      "sha256": "e4f96a97fd109892ee4be535641d9449f39a950367aa00357a38756b6f65b642",
+      "mtime_ns": 1788977610996031600,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/offset_promotion.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "61bfcf14e4d765f5aaa20db1228e063b92c12c4c5336cd697e8be1571395a20c",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/offset_promotion.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/signal_actuation_contract.py",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "f72139741b290266e6cb210628bce3b59b3c4d6367e5a83861d800502614359b",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/signal_actuation_contract.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        },
+        {
+          "path": "scripts/derive_signal_group_actuation_plan.py",
+          "latest_path_commit": "dd5b943c62bfe8b4cafb9873219c3be46c84a360",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "bd0c4feb5440a80cb05b4f0f1960ddd7669ce895550ade32850d3128fc118cbd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/derive_signal_group_actuation_plan.py"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 639,
+          "text": "\"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",\n      \"bytes\": 35780,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 130,
+          "text": "\"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/signal_contract_with_offset_experiment.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/strict_decision_failfast.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\strict_decision_failfast.patch",
+      "bytes": 3817,
+      "sha256": "f0b7bbf47ac0934930cc856397151d991b64dfb0dae531ae6bc1fcc0ed43d3bd",
+      "mtime_ns": 1788976601392809900,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "a93c27bc69307a98dda9ec2bc30319f567742ab116914e41ca0cded68459f092",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1"
+        },
+        {
+          "path": "scripts/run_real_world_stackelberg_controller.vbs",
+          "latest_path_commit": "5248255d4b667d9d9f79e8b6f88a161dcaef062d",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "407aa47f5ca69b6c52ebb36963eaafd4a68dbf5fdfa63f0a1d39e9cc803d5018",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:scripts/run_real_world_stackelberg_controller.vbs"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 652,
+          "text": "\"path\": \"diagnostics/strict_decision_failfast.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/strict_decision_failfast.patch\",\n      \"bytes\": 3817,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 134,
+          "text": "\"path\": \"diagnostics/strict_decision_failfast.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/strict_decision_failfast.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/transit_storage_projection.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\transit_storage_projection.patch",
+      "bytes": 1750,
+      "sha256": "21c9dcccee28d84419f5d7c5f3cc82ff8a3ab0f26429d9a32dd138b7de7b4555",
+      "mtime_ns": 1788970670146965800,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/obsolete_diagnostic_artifacts.json",
+          "line": 665,
+          "text": "\"path\": \"diagnostics/transit_storage_projection.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/transit_storage_projection.patch\",\n      \"bytes\": 1750,\n      \"classification\": \"patch_evidence_or_unimported_candidate\","
+        },
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 138,
+          "text": "\"path\": \"diagnostics/transit_storage_projection.patch\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/transit_storage_projection.patch\",\n      \"tracked\": false\n    }"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_meter_finalization.patch",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_meter_finalization.patch",
+      "bytes": 11747,
+      "sha256": "6650dce38abb61debd1c90272fc2b132d2ba9e375fa95eb4c681b497d74b05cc",
+      "mtime_ns": 1788980593122507900,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        },
+        {
+          "path": "evaluation/controllers/area_freeway_accounting.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "abbcae1d6ec8b4e295dde6e8e49a203fc6526274d5a083faad244e302abed330",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_freeway_accounting.py"
+        },
+        {
+          "path": "evaluation/controllers/area_meter_finalization.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_meter_finalization.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 208,
+          "text": "\"path\": \"diagnostics/area_meter_finalization.patch\",",
+          "context": "  \"hold_until_meter_production_commit_and_full_main_validation\": [\n    {\n      \"path\": \"diagnostics/area_meter_finalization.patch\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    },
+    {
+      "path": "diagnostics/area_meter_finalization_candidate.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_meter_finalization_candidate.py",
+      "bytes": 7119,
+      "sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+      "mtime_ns": 1788980587200045000,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+        "path": "evaluation/controllers/area_meter_finalization.py",
+        "exact_bytes": true,
+        "normalized_text_equal": true,
+        "git_blob_sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+        "worktree_crlf_count": 0,
+        "worktree_lf_count": 140,
+        "restore_command": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_meter_finalization.py",
+        "note": "If exact_bytes=false, normalized text is identical and only LF/CRLF differs; original SHA recorded separately."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_meter_finalization.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_meter_finalization.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 212,
+          "text": "\"path\": \"diagnostics/area_meter_finalization_candidate.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/area_meter_finalization_candidate.py\",\n      \"tracked\": false\n    },"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": true,
+        "member": "diagnostics/area_meter_finalization_candidate.py",
+        "source": {
+          "method": "git_raw_blob",
+          "git_blob": "61c20257c844e319e5a9e3b027bcbe7fc68ad06c"
+        },
+        "raw_sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+        "bytes": 7119
+      }
+    },
+    {
+      "path": "diagnostics/prepare_meter_finalization.py",
+      "resolved_absolute_path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\prepare_meter_finalization.py",
+      "bytes": 4417,
+      "sha256": "351f996ba83f9f021c1c4a6f6be104e651af15842cc0a349f71896232ffcecb0",
+      "mtime_ns": 1788980516401089300,
+      "tracked_at_cleanup": false,
+      "git_recovery": {
+        "exact_bytes": false,
+        "note": "Untracked obsolete artifact has no original Git blob. Recorded canonical paths/commits recover integrated behavior, not identical proposal/generator bytes."
+      },
+      "canonical_references": [
+        {
+          "path": "evaluation/controllers/area_follower_objective.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "579f2a18c186c114b8f1cfaebf0d22622f90aaa3245d49fb441797fecb7c10fd",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_follower_objective.py"
+        },
+        {
+          "path": "evaluation/controllers/area_freeway_accounting.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "abbcae1d6ec8b4e295dde6e8e49a203fc6526274d5a083faad244e302abed330",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_freeway_accounting.py"
+        },
+        {
+          "path": "evaluation/controllers/area_meter_finalization.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "cb8c24cc9be689a2ebceac7d12693730eb67908b29c3ded9984657854d509162",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_meter_finalization.py"
+        },
+        {
+          "path": "evaluation/controllers/area_runtime.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "8538887517a9037cd458c4141dfb4c26ea15ea56b295fb9abdc060fc332e5c5d",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/area_runtime.py"
+        },
+        {
+          "path": "evaluation/controllers/runtime_setup.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "1d0950c9373c5180530ce0b353df92ebbab85bb6ec8299faa361044eaf158612",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/runtime_setup.py"
+        },
+        {
+          "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+          "latest_path_commit": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "head_revision": "bc9078efbfea5a0ace2354a9bcadb88fd7492221",
+          "git_blob_sha256": "e7f8fe6b7ab32c6477f47023cf51378780faa9da816c44f719e269cdbda1d99e",
+          "restore_canonical_reference": "git show bc9078efbfea5a0ace2354a9bcadb88fd7492221:evaluation/controllers/vissim_stackelberg_adapter.py"
+        }
+      ],
+      "remaining_mentions": [
+        {
+          "source": "diagnostics/diagnostic_cleanup_actions.json",
+          "line": 216,
+          "text": "\"path\": \"diagnostics/prepare_meter_finalization.py\",",
+          "context": "    },\n    {\n      \"path\": \"diagnostics/prepare_meter_finalization.py\",\n      \"tracked\": false\n    }"
+        }
+      ],
+      "remaining_executable_consumers": [],
+      "decision": "delete_obsolete_integrated_artifact",
+      "deleted": true,
+      "archive_recovery": {
+        "available": false,
+        "reason": "No byte-exact original found in bounded Git/object and existing-workspace search; no near-match substituted."
+      }
+    }
+  ],
+  "deleted_count": 37,
+  "held_within_authorized_set": [],
+  "state": "deleted",
+  "protected_paths_still_exist": true,
+  "protected_sha256_after": {
+    "diagnostics/audit_snapshot_readonly.patch": "1154ae2672b6a817c8a3c714cc7d8d69496d69506499e6404d67c4e1784215ba",
+    "diagnostics/diagnostic_profile.patch": "1ab71c5d79162baa5c52d5c1e23433a9f93a13f06b5164df64e543b285b119e1",
+    "diagnostics/freeway_count_geometry.patch": "21e16ed5e91b370c991f2ef46c394f69f9aa32c99c7555aaf71b39d4170bb1d8",
+    "diagnostics/build_area_routes_and_sc2001_patch.py": "47ef8856d22974946a9d81b1f94a9945b7e69559df3c6f9f2d0635a02fb9415e",
+    "diagnostics/prepare_sc2001_urban_patch.py": "4818654336713745678eed05b5e03a21ac5c8a5a1b79c17c3a619b6f94bf624e",
+    "diagnostics/proposed_area_dynamic_routes.py": "f23f32df38feb83daf7ec36ee183d316fa5f0ecebd94c85028f1f1b9211d6e63",
+    "diagnostics/sc2001_corridor_proposal.py": "0b2e5715e016777781f25af608786b4a68fcaca13091b4a2a0c9ef064eadff43",
+    "diagnostics/prepare_area_failfast_patch.py": "a1fb538d7a43444f62f08a229798c93a6ebe1548c3164222f5767112afc1ffbb",
+    "diagnostics/prepare_freeway_initial_count_patch.py": "fa0454a4a2fea2d27259944b87a283a3467568a9f8d38c29227d2991ec19cec0",
+    "diagnostics/prepare_legsplit_receiving_patch.py": "410c24a6b35d004b8913702bbe8725b631afccfebd5ba1f3dfab3984b5f10176",
+    "diagnostics/prepare_legsplit_single_transfer_patch.py": "4bd8f960b89465b4696cb1726252076b9ae94097bd705d1840f88f38f0bf6432",
+    "diagnostics/prepare_area_candidate_configs.py": "af07f8fe7672987aa0929dd786c205284375edfd93cff403de692aed3f0ce3ba",
+    "diagnostics/prepare_native_offset_network.py": "218e4fb5c5db848553d4172a9b1713f9d99b80228232dd05ec4720ebd6613f56",
+    "diagnostics/replay_freeway_candidates.py": "cd7d23d8b5995b28018ddef00ddd4fd6784f8f89e82e011a02568025608b5e3d",
+    "diagnostics/prepare_dynamic_area_routes.py": "76b9800a0743173d6bc7ea91e35a8bd732f88fc3cd92d9d1ed9a99a34e792baf",
+    "diagnostics/physical_projection_support_635_proposal.json": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+    "diagnostics/fixed_source_reference.py": "c185a8c074db21c787726b4d42141a5016f52b4ab57b867954b46c4ef9dcf993",
+    "diagnostics/review_fixtures.py": "d2587aa72612e67685d12390bc8e7f8d4ffa10b31a8a10ffabb8d1dc8d818c85",
+    "diagnostics/fixtures/control_area_v1.zip": "26e5379f4ff4af54f11c7e19b236a7ac0dbefd4164660511dc5098a866d242f5"
+  },
+  "protected_changed_during_cleanup": [],
+  "deleted_at_utc": "2026-09-09T19:42:31.051109+00:00",
+  "archive": {
+    "path": "diagnostics/retired_diagnostic_sources.zip",
+    "sha256": "edadf174768dc3f7745c61457b0549a769812b8f34f98e90864c515a61356c2b",
+    "deterministic_member_metadata": true,
+    "crc_verified": true,
+    "member_raw_sha256_verified": true,
+    "recovered_members": 3,
+    "unavailable_members": 34,
+    "elapsed_sec": 0.7660000000032596,
+    "timing_note": "Archive instruction arrived after authorized unlink; this is a partial exact recovery archive, not a complete37-file backup."
+  },
+  "validation": {
+    "command": "python -m unittest diagnostics.test_area_phase_finalization diagnostics.test_area_follower_objective diagnostics.test_area_meter_finalization -v",
+    "tests": 18,
+    "result": "PASS",
+    "seconds": 0.769,
+    "production_edits_by_this_task": false,
+    "git_staging_or_commit_performed": false
+  }
+}
