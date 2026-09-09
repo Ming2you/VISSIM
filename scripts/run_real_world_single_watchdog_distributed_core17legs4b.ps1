@@ -24,7 +24,7 @@ param(
   [string]$Calibration = "",
   [string]$Mapping = "",
   [string]$VbsConfig = "",
-  # 2026-09-07: 다른 VISSIM 런과 동시 실행용. 켜면 시작/스톨 시 전역 Kill-Vissim(이미지명 기준)을 건너뛰고 자기 cscript 만 죽인다.
+  # Skip global process termination; a stalled run can still stop its identified VISSIM instance.
   [switch]$NoGlobalKill,
   [int]$ControlStartSec = -1,
   [string]$WarmupController = "no-control",
@@ -44,6 +44,7 @@ param(
   # 런을 세운다(vissim_stackelberg_adapter.py:3120). legs4b 대장을 기본값으로 박는다.
   [string]$UrbanInputGateMap = "evaluation\real_world_modi_inventory\urban_input_gate_map_legs4b_20260819.csv",
   [switch]$ForceStepwise,
+  [ValidateRange(1,3600)][int]$StartupStallSec = 300,
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
   [int]$DoneRows = 0,
@@ -248,6 +249,42 @@ function Get-ExactGitCommit([string]$RepositoryPath) {
   return [string](& git -C $RepositoryPath rev-parse HEAD 2>$null)
 }
 
+function Test-SimulationStarted([string]$CsvPath) {
+  if (-not (Test-Path -LiteralPath $CsvPath -PathType Leaf)) { return $false }
+  foreach ($line in (Get-Content -LiteralPath $CsvPath -Tail 4 -ErrorAction SilentlyContinue)) {
+    $sampleTime = 0.0
+    if ([double]::TryParse(($line -split ',',2)[0], [Globalization.NumberStyles]::Float,
+        [Globalization.CultureInfo]::InvariantCulture, [ref]$sampleTime) -and $sampleTime -gt 0) {
+      return $true
+    }
+  }
+  return $false
+}
+
+function Find-RunVissimIdentity([int[]]$ExistingIds, [datetime]$AttemptStart, [string]$NetworkFileName) {
+  $candidates = @(
+    Get-Process -Name VISSIM200 -ErrorAction SilentlyContinue | Where-Object {
+      $_.Id -notin $ExistingIds -and $_.StartTime -ge $AttemptStart -and
+      $_.MainWindowTitle.IndexOf($NetworkFileName, [StringComparison]::OrdinalIgnoreCase) -ge 0
+    }
+  )
+  if ($candidates.Count -eq 1) {
+    return [pscustomobject]@{ Id = $candidates[0].Id; StartTime = $candidates[0].StartTime }
+  }
+  return $null
+}
+
+function Stop-RunProcesses($RunnerProcess, $VissimIdentity) {
+  # Recheck creation times so a recycled PID cannot target another process.
+  foreach ($identity in @($RunnerProcess, $VissimIdentity)) {
+    if ($null -eq $identity) { continue }
+    $current = Get-Process -Id $identity.Id -ErrorAction SilentlyContinue
+    if ($current -and $current.StartTime -eq $identity.StartTime) {
+      Stop-Process -Id $current.Id -Force -ErrorAction SilentlyContinue
+    }
+  }
+}
+
 function Copy-VissimError([string]$DestinationDir) {
   $vissimErr = [System.IO.Path]::ChangeExtension($net, ".err")
   if (Test-Path -LiteralPath $vissimErr -PathType Leaf) {
@@ -373,6 +410,7 @@ $provenance = [ordered]@{
   sim_period_sec = $SimPeriod
   control_interval_sec = $ControlIntervalSec
   state_log_interval_sec = $StateLogIntervalSec
+  startup_stall_sec = $StartupStallSec
   demand_scale = $DemandScale
   demand_profile = $DemandProfile
   controller = $Controller
@@ -425,6 +463,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   $argline = $argline + " " + (Q $UrbanInputGateMap)
 
   $t0 = Get-Date
+  $existingVissimIds = @(Get-Process -Name VISSIM200 -ErrorAction SilentlyContinue | ForEach-Object { $_.Id })
+  $runVissimIdentity = $null
+  $simulationStarted = $false
   Normalize-ProcessPathEnv
   $oldForceStepwise = [Environment]::GetEnvironmentVariable("RW_FORCE_STEPWISE", "Process")
   $oldAuditAnchors = [Environment]::GetEnvironmentVariable("RW_AUDIT_ANCHORS_SEC", "Process")
@@ -469,6 +510,21 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
       break
     }
 
+    if ($null -eq $runVissimIdentity) {
+      $runVissimIdentity = Find-RunVissimIdentity $existingVissimIds $t0 ([IO.Path]::GetFileName($net))
+      if ($runVissimIdentity) { Log "VISSIM_PROCESS $Name pid=$($runVissimIdentity.Id)" }
+    }
+    if (-not $simulationStarted) {
+      $simulationStarted = Test-SimulationStarted $stateCsv
+      if (-not $simulationStarted -and ((Get-Date)-$t0).TotalSeconds -ge $StartupStallSec) {
+        Log "STARTUP_TIMEOUT $Name attempt=$attempt limit=${StartupStallSec}s"
+        Stop-RunProcesses $proc $runVissimIdentity
+        if ($null -eq $runVissimIdentity) { Log "WARNING no unique VISSIM process identified; stopped only this run's cscript" }
+        Archive-AttemptOutputs $attempt
+        break
+      }
+    }
+
     $lastT = $proc.StartTime
     $signals = @()
     $signals += Get-Item $log -ErrorAction SilentlyContinue
@@ -486,8 +542,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $idle = [int]((Get-Date) - $lastT).TotalSeconds
     if ($idle -gt $StallSec) {
       Log "WATCHDOG_KILL $Name attempt=$attempt idle=${idle}s"
-      try { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue } catch {}
-      if (-not $NoGlobalKill) { Kill-Vissim }
+      Stop-RunProcesses $proc $runVissimIdentity
       Archive-AttemptOutputs $attempt
       break
     }
