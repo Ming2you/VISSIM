@@ -16,6 +16,8 @@ from evaluation.controllers.control_area_objective import (
 
 
 def build_projected(config_path: Path, state_path: Path, previous_path: Path):
+    from diagnostics.review_fixtures import fixture_path
+    state_path, previous_path = fixture_path(state_path), fixture_path(previous_path)
     tuning = adapter.load_optional_json(str(config_path))
     adapter.install_config_switches(tuning)
     calibration = adapter.load_optional_json(str(ROOT / "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json"))

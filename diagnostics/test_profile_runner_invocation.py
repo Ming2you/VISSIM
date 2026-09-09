@@ -109,6 +109,7 @@ End Sub
 
 
 def build_harness(tmp, controller, config_name, *, failure=None):
+    from diagnostics.review_fixtures import fixture_path
     source = RUNNER.read_text(encoding="utf-8")
     replacements = {"WriteStateJson", "RunContinuousTo", "LogStateCsv",
                     "ApplyIncidentLaneClosure", "ValidateDiagnosticProfileNativeSignals"}
@@ -143,7 +144,7 @@ def build_harness(tmp, controller, config_name, *, failure=None):
     init = ["Dim fixtureState", 'Set fso = CreateObject("Scripting.FileSystemObject")',
             'Set shell = CreateObject("WScript.Shell")']
     init += [f'Set {name} = CreateObject("Scripting.Dictionary")' for name in dictionaries]
-    values = {"fixtureState": RAW, "decisionDir": tmp, "pythonExe": '"' + sys.executable + '"',
+    values = {"fixtureState": fixture_path(RAW), "decisionDir": tmp, "pythonExe": '"' + sys.executable + '"',
               "adapterPath": adapter, "tuningPath": tuning_path,
               "mappingPath": ROOT / tuning["mapping_json"],
               "detectorMappingPath": ROOT / tuning["detector_mapping_json"],

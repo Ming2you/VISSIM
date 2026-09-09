@@ -1,0 +1,454 @@
+{
+  "scope": "Additional integrated area physics/objective package; existing n7 base config, vendor, calibration and mapping dependencies still required.",
+  "runtime_inputs": [
+    {
+      "path": "diagnostics/control_area_physics_overlay.json",
+      "role": "Explicit opt-in physics overlay, merged into base config",
+      "bytes": 3967,
+      "sha256": "4d215c4d7b75f6dff18c297c42897cdc601a0c7086e4e17f229387610290c0a5",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/control_area_membership.json",
+      "role": "Physical Omega membership; also read by SC2001 configure",
+      "bytes": 127318,
+      "sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/control_area_route_contract_physical_routes.json",
+      "role": "Base Omega movement/arrival contracts when objective enabled",
+      "bytes": 605173,
+      "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/physical_movement_routes_ver2.json",
+      "role": "Initial topology repair and verified physical paths",
+      "bytes": 12580,
+      "sha256": "5498217abb523d35bc629b0cd31191783d0025592357f741615d281b96951e8f",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/dynamic_area_routes_ver2.json",
+      "role": "Additional dynamic route topology and calibration hash",
+      "bytes": 7823,
+      "sha256": "930b08a525492cac4d050b5034b9adb8f81c288a6a5e9620ec919619a9843515",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/dynamic_area_nc13_calibration.json",
+      "role": "Frozen offline origin priors; byte-hashed by dynamic route evidence",
+      "bytes": 890929,
+      "sha256": "726e11f06cbd5f5019753f1bd7f6384d730abebc621de7304db60f1ff06c5878",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/shared_approach_ver2.json",
+      "role": "Physical link69 storage and native input/route evidence",
+      "bytes": 2777,
+      "sha256": "a284c2197dd66d870f1b66e444a9264590d8f9aa4b74cbf99cdccc0802e4c5f4",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/sc2001_corridor_nc13.json",
+      "role": "Physical SC2001 corridor and embedded frozen empirical priors",
+      "bytes": 16596,
+      "sha256": "68a765084c141663ecdd078f10f9ca4a3cdc03fc10eff816b9f4b7f26f5a0a5d",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "diagnostics/physical_projection_support_635_proposal.json",
+      "role": "205 physical supports and 45-link positive unknown guard; production input despite historical filename",
+      "bytes": 73601,
+      "sha256": "46965a1b605b71f707400fe6eb70c06ac17e997c7fa7c0051eb9225492d515f1",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+      "role": "Pinned physical network",
+      "bytes": 3051264,
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+      "role": "Pinned jam-density source",
+      "bytes": 10272,
+      "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+      "role": "Pinned native input ownership evidence",
+      "bytes": 3823,
+      "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af",
+      "tracked_at_inventory": true
+    },
+    {
+      "path": "evaluation/configs/demand_profiles/ver2_fdsweep_x15_20260907.csv",
+      "role": "Pinned experiment demand multiplier profile",
+      "bytes": 123,
+      "sha256": "3091ebe8164431f2650ade53024241864228da2c75dd9192af2158858588ee64",
+      "tracked_at_inventory": true
+    }
+  ],
+  "additional_test_data": [
+    {
+      "path": "diagnostics/area_projection_coverage_635.json",
+      "role": "Complete635 coverage assertions and synthetic support test",
+      "bytes": 428928,
+      "sha256": "719d28ef9449ec5fcbd84b5a0cdc83fa454c5b3ff4d90a12464b16642bfe8d42",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/physical_projection_support_ver2.json",
+      "role": "Historical35-support configuration for OFF/old-data regression",
+      "bytes": 8847,
+      "sha256": "9f0861587c2213e7454b1bfaecbc88b9d762a56c61d4ba13cf10f960adbb50fc",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/observation_projection_config.json",
+      "role": "Projection-only test overlay",
+      "bytes": 3357,
+      "sha256": "dc1d0a81d138b8b16e79da694221eb884aeb570b857f96bcd75f0797773ec110",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "diagnostics/ramp_profile_config_c10639_g5.json",
+      "role": "Fake-COM invocation harness configuration",
+      "bytes": 266750,
+      "sha256": "135c0a2d726ac20599590ae8387711d86a3d68a2a7befd3211185997b3791a5f",
+      "tracked_at_inventory": true
+    }
+  ],
+  "historical_test_inputs": [
+    {
+      "path": "evaluation/runs/codex_nc_s13_6056c94_20260909_retry/decisions_codex_nc_s13_6056c94_20260909_retry/state_000900.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 509631,
+      "sha256": "28ea86a6a71a5117f3ca0480a7effaa65abbbcfc0d48a06ad2ae6c59c7638d65",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_nc_s13_6056c94_20260909_retry/run_provenance_codex_nc_s13_6056c94_20260909_retry.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 27603,
+      "sha256": "c76ce4038b23532549dc0ac912cec693471508481b9207c48671a42717ad6f81",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_nc_s13_6056c94_20260909_retry/decisions_codex_nc_s13_6056c94_20260909_retry/action_000001.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 80228,
+      "sha256": "25c48862a2868d3857343d313ae43fc443e52c571460f7fd6c72fd5dc6ba368a",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000001.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 107937,
+      "sha256": "5b3861cee257d0561f660ab3d9fb923a52ac6a71516703ca821a091f4e159568",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000150.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 246743,
+      "sha256": "0f8a683f8d062f6fd116bc7c3b178fc191cdf3fc6c7353abd7a83af7a9d8b8a4",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000300.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 349777,
+      "sha256": "3cf50f9a56e1983f4905f933b1c0e3751fbd955c7aa333c0cc029aef8f251d03",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000450.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 415229,
+      "sha256": "6758ee3a01238f36382c6541017b217d025474f4b5b25e84acc7c42ba18029da",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000600.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 449446,
+      "sha256": "25e8a178d59dcc1c645790e95900774a4dde004e0840b61b485bbea86bc67a36",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000750.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 486239,
+      "sha256": "23c1caf233961f2e459da677248efbefaca761640b602c55fb4ca052d35a7f33",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_000900.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 509426,
+      "sha256": "4dc72b313fc101b8062227402d499ea5c0fd0460c3f85a2ba6e07f8fc4de27ce",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001050.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 576199,
+      "sha256": "b400136494ac3abf3e1eef457aa5b6c48566934da524b9806a92da0e686fc3d0",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001200.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 641169,
+      "sha256": "2339e5db7a54a540dfa7a93ff381d71de9977fbedcf627a93b551be5baed7a9f",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001350.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 695189,
+      "sha256": "d1e8c4f0db1fdd79738be442716466a9c6c9c5d9d691ae827f0a53cbc77685d6",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001500.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 732719,
+      "sha256": "da9f818bdcb21d6bcb46cbda31e4c93c6e21a18bc62bc501f6abe15f8094452a",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001650.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 773457,
+      "sha256": "31b8f88263a3806cf7f15a1c0162c78904f3697d7f56dee4203875c49e9196c0",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001800.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 809484,
+      "sha256": "b1576490872eb69e592c230d56bc1f46b2e47a8c7118390e0abfe805b29be94c",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_001950.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 852410,
+      "sha256": "0033fd81483eed0b329b719ed7b9d30e4746cdfbba72c36e838a207f35eb3798",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002100.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 892093,
+      "sha256": "82919e3678c004bf549801b19fc5a03a56f626f89fd53268ec78711478c233d1",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002250.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 932997,
+      "sha256": "ee5687daa4820baa233794f3deb1cacf937827ae73cb13550cdbb591b4c4b114",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002400.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 973246,
+      "sha256": "c92677fc8cbb8125e8b415186cd134d1ae82f3126f074f1552dabeca0d5c196b",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002550.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1005815,
+      "sha256": "02d85fc55b8533498658cac2a302f911e367c1189d843a09ee86eba87156edff",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002700.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1034035,
+      "sha256": "41a2bec593bf7684d02185176cfffea0508b665a4e287676f29800b31f1523b7",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_002850.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1047221,
+      "sha256": "c80d3ea442a9ab13697151fc0841f14712b2fa5a0e0a38df9bd79f9e9719d3a0",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003000.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1045254,
+      "sha256": "5f04e87a2cca97ff25083475832feebb681c7aa19bdd250283e895d9e02b1e0c",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003150.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1053413,
+      "sha256": "ceb296481d9f2baa9ae52e06708f7e57e1f862da678af3f218c944f63f9159b2",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003300.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1061220,
+      "sha256": "d4a670bea7624e3c9a6d4168e926ce97d77e46dbe2c9ee25951627c9bd1c9d3c",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003450.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1071141,
+      "sha256": "1626290327858af341c87ce42d7bd64dc8700360858ae6f3d7dc6418f6090e57",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003600.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1091760,
+      "sha256": "f9b3f45a82e85ee1f31f9ff174660dc6232714af4a79815f014fa15fc56e7ef7",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003750.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1070426,
+      "sha256": "b8915b4cde125a5010e0e8b4cfa554cfb7785abb139e76d81256dcc8be47927c",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_003900.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1060783,
+      "sha256": "43bde818f46a3f34b2f73e7a92fe2077989797cf305c33fadb148a83e099c457",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004050.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1040859,
+      "sha256": "ffc6faca9804cd3a06c5781dc3a169c04c1e32c1e2ee29b2e0f2a3bfe2c6e029",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004200.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1032335,
+      "sha256": "1f09a1c855eaedb737da9074e764fa25dcb261fcaaa8605fd27a716fd6640c40",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004350.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1040064,
+      "sha256": "27bc7cfd7512cd7796b50510c724eb15507f8d525bd49b5a22f7d496bd2de5db",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004500.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1040504,
+      "sha256": "b16d0c01f67f14ce87422dbb12bbd5b1a4e6a77f17a5e3fbb47f7d7782a6b59e",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004650.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 1024847,
+      "sha256": "7fedeb368a1c646d40dd6eaeb0f7c7f0409298e89ec6cd167b0d8482ba6b7b98",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004800.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 999208,
+      "sha256": "5b6b50997bd0e2d7a405b063ac0810c68531f6d7ece5995f511dd2051c3446da",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_004950.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 986429,
+      "sha256": "92ab7cc666818fd5579109bab5325e457cdf6b324fefabeca1f63a781b1f49d1",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_005100.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 986650,
+      "sha256": "6451bca429275cbd3bfb08cfe9f0ada321c1b500e8e00763f6eddf16c61d5664",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_005250.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 981610,
+      "sha256": "c5e880937ced85d4904cf7a889c3c28a2045e5fcee86d181a2f385e2c2e4b9a9",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/state_005400.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 975833,
+      "sha256": "e9df20f6cbeb5576b3337da1d7bb1476e9f7e7e18c6df5786ecd5ebedce3ec83",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/run_provenance_codex_n7_s13_6056c94_20260909.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 27632,
+      "sha256": "2f8d87875642d4115170817b942ef83668979e2f03303826d6c02dad5f7b12ee",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/action_000001.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 80180,
+      "sha256": "98ad7d9bd87ae89b2622dc747060e9f603ddc9c51d188f0cc132c3fa760adc51",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_s13_6056c94_20260909/decisions_codex_n7_s13_6056c94_20260909/action_003150.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 142056,
+      "sha256": "97b7c8e65f21b06541badb51d1b39a032ebbb166d9d98a84cbedaf932482715b",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_pure_s13_20260910/decisions_codex_n7_pure_s13_20260910/action_000900.csv",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 12676,
+      "sha256": "3e541d3f77a442c2fdd94ebd8042aad9d5913a2a3e77f01912aaba75401b1221",
+      "tracked_at_inventory": false
+    },
+    {
+      "path": "evaluation/runs/codex_n7_pure_s13_20260910/decisions_codex_n7_pure_s13_20260910/action_000900.json",
+      "role": "Raw historical regression input retained in the portable archive",
+      "bytes": 149259,
+      "sha256": "7aed12da56f9ad5b3f1b41dcd4f3361c7d75e5b748e95db9d66b9ab8a6e1d403",
+      "tracked_at_inventory": false
+    }
+  ],
+  "portable_fixture_archive": "diagnostics/fixtures/control_area_v1.zip",
+  "portable_fixture_bootstrap": "python -m diagnostics.run_portable_fixture_tests --include-wsh",
+  "training_data_not_opened_at_runtime": [
+    "SC2001 training FZP and sc2001_corridor_audit.json",
+    "Dynamic-route training FZP and recalibration scripts"
+  ],
+  "clean_checkout_limitations": [
+    "The portable archive supplies all45 listed historical inputs and four fixed git source references; original evaluation/runs files and deep git history are unnecessary for the documented48-test subset.",
+    "Bootstrap restores raw bytes and explicitly relocated JSON copies under .review-fixtures without overwrite. Active fixture lookup refuses unlisted historical inputs rather than falling back to originals.",
+    "Other historical replay scripts may need additional archives; this bundle is scoped to the tests documented in diagnostics/fixtures/README.md."
+  ]
+}
