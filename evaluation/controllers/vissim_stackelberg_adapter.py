@@ -44,6 +44,7 @@ from evaluation.controllers import action_csv_schema
 from evaluation.controllers import diagnostic_profile
 from evaluation.controllers import diagnostic_signal_profile
 from evaluation.controllers import offset_promotion
+from evaluation.controllers import observation_projection
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
 from vissim_strict.run_evidence import (
@@ -769,16 +770,18 @@ def _freeway_vehicle_count_by_link(state, cfg) -> dict[str, list[float]]:
     net = cfg.network
     state.ensure_freeway_lane_profile(net)
     counts: dict[str, list[float]] = {}
-    lane_profile = getattr(state, "freeway_lanes", {})
+    physical_counts = bool(getattr(net, "physical_vehicle_counts", False))
+    lane_floor = 1.0e-9 if physical_counts else 1.0
+    lane_profile = getattr(state, "freeway_effective_lanes" if physical_counts else "freeway_lanes", {})
     for link in net.freeway_links:
         key = str(link)
         densities = [float(value) for value in state.freeway_density.get(key, [])]
         lengths = _freeway_segment_lengths_km(cfg, key, len(densities))
         raw_lanes = lane_profile.get(key, []) if isinstance(lane_profile, Mapping) else []
         lanes = [
-            max(1.0, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
+            max(lane_floor, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
             if i < len(raw_lanes)
-            else max(1.0, float(getattr(net, "freeway_lanes", 2)))
+            else max(lane_floor, float(getattr(net, "freeway_lanes", 2)))
             for i in range(len(densities))
         ]
         counts[key] = [
@@ -4719,35 +4722,8 @@ def install_price_worker_runtime_patches(cfg, state_json, detector_mapping):
     beta 수정(apply_dead_phase_beta_zero)은 여기 없어도 된다 — cfg.network.urban_movements
     를 바꾸므로 컨트롤러와 함께 피클되어 워커에 그대로 간다.
     """
-    out = dict(install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping) or {})
-    out.update(install_tau_length_cap_patch(cfg))
-    # far 전용 램프 용량. 값(cfg.network.far_ramp_capacity_veh_h)은 컨트롤러와 함께
-    # 피클돼 오지만 **모듈 패치는 spawn 을 못 넘는다.** far 가 워커에서 도는 경로가 있다 -
-    #   _price_worker_phase -> _global_ttt_with_phases -> _rollout_spec(score_mode="price")
-    #   -> stackelberg_wu_metered.py:388 far_enabled = price_far_enabled
-    #   -> rollout_endpoint.py:408 mfd_far_cost_to_go(...)
-    # 지금은 price_far 가 꺼져 있어 안 돌지만, 켜는 순간 부모는 실측 용량 · 워커 10개는
-    # 1800 으로 가격을 매긴다 - 실패가 아니라 조용히 틀린 값이다(phasepar_20260820 유형).
-    out.update(install_far_ramp_capacity_patch(cfg))
-    # B 팔 모듈 패치(urban_substep 래퍼·추정기). 안 되살리면 워커는 램프 몫을 저수지에 안 넣는다.
-    out.update(install_leg_ramp_split_runtime(cfg))
-    out.update(install_offramp_landing_runtime(cfg))
-    out.update(install_landing_storage_runtime(cfg))
-    # 세그먼트 기하 차로/FD 파라미터 모듈 패치. 값은 cfg.network 로 피클돼 오지만
-    # 모듈 패치는 spawn 을 못 넘는다 — 안 심으면 워커 10개가 링크 스칼라 FD 로 가격을 매긴다.
-    out.update(install_freeway_vsl_zones(cfg, None))
-    out.update(install_freeway_segment_runtime(cfg))
-    out.update(install_freeway_vsl_sequence_kbest(cfg, None))
-    out.update(install_freeway_vsl_price_dedupe(cfg, None))
-    # `_price_worker_init` 의 부모/워커 대조는 `_phase_green_fraction` 하나만 본다.
-    # 이 패치는 그 대조에 안 걸리므로 여기서 직접 막는다. raise 는 pool 을 깨고
-    # 직렬 재실행 + price_parallel_serial_rerun_count 로 떨어진다.
-    if getattr(cfg.network, "far_ramp_capacity_veh_h", None):
-        import src.controllers.stackelberg_mpc as _sm_check
-        if not getattr(_sm_check, "_rw_far_ramp_capacity_active", False):
-            raise RuntimeError(
-                "가격 워커에 far 전용 램프 용량 패치가 안 심겼다 - 워커가 1800 으로 far 를 계산하게 된다")
-    return out
+    from evaluation.controllers.runtime_setup import install_worker_runtime
+    return install_worker_runtime(sys.modules[__name__], cfg, state_json, detector_mapping)
 
 
 def install_price_worker_bootstrap(controller, state_json, detector_mapping) -> dict[str, float]:
@@ -5853,6 +5829,9 @@ def build_local_observation_summary(
     storage_count_by_link: dict[str, float] = {}
     _origin_bind_links: set = set()
     storage_assigned_by_link: dict[str, float] = {}
+    dedicated_branch_links = set(_mapping(detector_mapping.get("physical_storage_projection")).get("link_to_storage", {}))
+    transit_storage_links = set(_mapping(detector_mapping.get("transit_storage_projection")))
+    physical_stock_assignment: dict[str, dict[str, float]] = {}
     urban_link_storage_occupancy = {link: 0.0 for link in cfg.network.urban_link_storage_veh}
     # 저류별 **정지 대수**. 투영이 release 버퍼를 복원할 때 "이미 정지선에 도착한 몫" 과
     # "아직 이동 중인 몫" 을 가르는 근거다(traffic_state_from_vissim 의 버퍼 복원 참조).
@@ -5901,7 +5880,10 @@ def build_local_observation_summary(
         # 1,415 대의 queue 분이 사라졌다(도시부 포착률이 50.7% 에서 안 올라간 원인).
         # 그 882개는 신호두 링크가 아니라 링크 본체다 — 정지선 대기행렬이 아니라
         # 링크 저류가 물리적으로 맞으므로 전량 저류로 보낸다.
-        if not (detector_mapping.get("link_to_movements", {}) or {}).get(str(link)):
+        if str(link) in dedicated_branch_links or str(link) in transit_storage_links:
+            storage_fraction = 1.0
+            queue_source_by_link[str(link)] = "physical_branch"
+        elif not (detector_mapping.get("link_to_movements", {}) or {}).get(str(link)):
             # 2026-08-26. 켜면 **어느 정지선에 서 있느냐**로 통을 정한다.
             #   미드블록 신호두 링크 -> 전량 저류 (아직 링크 안이다)
             #   그 외             -> origin+beta 로 큐 배정 (아래 두 번째 루프)
@@ -5958,6 +5940,8 @@ def build_local_observation_summary(
                 urban_link_storage_occupancy[storage_link] = current + assigned
                 storage_assigned_by_link[str(link)] += assigned
                 storage_assigned_veh += assigned
+                if dedicated_branch_links:
+                    observation_projection.record_projection_assignment(physical_stock_assignment, link, "storage:" + storage_link, assigned)
                 storage_capacity_clipped_veh += max(0.0, share - assigned)
                 # 배정된 몫 중 정지 비율만큼을 정지 대수로 같이 옮긴다.
                 if count > 0.0 and assigned > 0.0:
@@ -6030,6 +6014,8 @@ def build_local_observation_summary(
             assigned = count * weight / weight_sum
             movement_queue[movement] += assigned
             movement_assigned_by_link[str(link)] += assigned
+            if dedicated_branch_links:
+                observation_projection.record_projection_assignment(physical_stock_assignment, link, "movement:" + movement, assigned)
 
     # link_to_movements 에 없는 링크의 큐 몫을 origin+beta 로 배정한다.
     # 위 루프는 그 표를 순회하므로 표에 없는 링크는 아예 안 돈다.
@@ -6039,6 +6025,8 @@ def build_local_observation_summary(
     if _queue_origin_binding_enabled():
         _idx = _movements_by_origin(cfg)
         for link in _origin_bind_links:
+            if str(link) in transit_storage_links:
+                continue
             qc = float(queue_count_by_link.get(str(link), 0.0))
             if qc <= 0.0:
                 continue
@@ -6058,6 +6046,8 @@ def build_local_observation_summary(
             for movement, beta in pairs:
                 if movement in movement_queue:
                     movement_queue[movement] += qc * beta / wsum
+                    if dedicated_branch_links:
+                        observation_projection.record_projection_assignment(physical_stock_assignment, link, "movement:" + movement, qc * beta / wsum)
             origin_bound_veh += qc
             origin_bound_links += 1
 
@@ -6069,6 +6059,8 @@ def build_local_observation_summary(
         for ramp_key, weight in _ramp_queue_shares(ramps):
             if ramp_key in ramp_queue:
                 ramp_queue[ramp_key] += count * weight
+                if dedicated_branch_links:
+                    observation_projection.record_projection_assignment(physical_stock_assignment, link, "ramp:" + ramp_key, count * weight)
 
     # 2026-09-07 램프 스필백 관측: 커넥터 상류 전용 검지 링크(ramp_spillback_links)의 정지 차량을 저수지 큐에 더한다.
     #   램프행은 lnChgDist 1000 으로 커넥터 1 km 상류부터 L1 에 붙어 서므로 정지·큐 차로(queue_lanes)·conn_pos_m 이하로 판정.
@@ -6100,7 +6092,10 @@ def build_local_observation_summary(
                     _nl = max(1, int(_as_float(_e.get("lanes"), 1)))
                     _spill += _st * ((len(_lanes) / _nl) if _lanes else 1.0)
             ramp_spillback[_ramp_key] = float(_spill)
-            ramp_queue[_ramp_key] += float(_spill)
+            # The approach stock already remains in urban storage/queues.
+            # Keep spillback as a guard observation, not a second physical stock.
+            if not dedicated_branch_links:
+                ramp_queue[_ramp_key] += float(_spill)
 
     # Legacy boundary_queue is kept for diagnostics/compatibility. The actual
     # urban signal queues above are the follower-visible queue state.
@@ -6257,6 +6252,16 @@ def build_local_observation_summary(
             else 0.0
         ),
     }
+
+    if dedicated_branch_links:
+        projection_diagnostics.update(observation_projection.audit_projection_provenance(
+            physical_stock_assignment, urban_link_storage_occupancy, movement_queue, ramp_queue))
+        projection_diagnostics.update({
+            "ramp_spillback_observed_only": 1.0,
+            "ramp_spillback_duplicate_avoided_veh": float(sum(ramp_spillback.values())),
+        })
+    projection_diagnostics.update(observation_projection.audit_physical_branch_projection(
+        detector_mapping, link_counts, urban_link_storage_occupancy))
 
     return {
         "mode": "detector_local_v2_storage_split",
@@ -6503,7 +6508,9 @@ def install_vissim_calibration_runtime_patches(cfg, calibration: Mapping[str, An
             def calibrated_freeway_vehicle_count_by_link(self, net):
                 self.ensure_freeway_lane_profile(net)
                 out: dict[str, list[float]] = {}
-                lane_profile = getattr(self, "freeway_lanes", {})
+                physical_counts = bool(getattr(net, "physical_vehicle_counts", False))
+                lane_floor = 1.0e-9 if physical_counts else 1.0
+                lane_profile = getattr(self, "freeway_effective_lanes" if physical_counts else "freeway_lanes", {})
                 profile = getattr(net, "freeway_segment_length_profile_km", {})
                 for link in net.freeway_links:
                     key = str(link)
@@ -6520,9 +6527,9 @@ def install_vissim_calibration_runtime_patches(cfg, calibration: Mapping[str, An
                     counts = []
                     for i, rho in enumerate(densities):
                         lanes = (
-                            max(1.0, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
+                            max(lane_floor, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
                             if i < len(raw_lanes)
-                            else max(1.0, float(getattr(net, "freeway_lanes", 2)))
+                            else max(lane_floor, float(getattr(net, "freeway_lanes", 2)))
                         )
                         counts.append(max(0.0, float(rho)) * lengths[i] * lanes)
                     out[key] = counts
@@ -12222,87 +12229,12 @@ def main() -> None:
         len(detector_mapping.get("observable_links") or []))
     adapter_runtime_metadata["detector_mapping_link_to_origins_count"] = float(
         len(_mapping(detector_mapping.get("link_to_origins"))))
-    runtime_patch_metadata = install_vissim_calibration_runtime_patches(cfg, calibration)
-    # tau 물리길이 상한. 꺼져 있으면 아무것도 안 한다(비트 동일).
-    runtime_patch_metadata.update(install_tau_length_cap_patch(cfg))
-    # 구조적으로 죽은 현시의 movement beta 를 0 으로. 꺼져 있으면 비트 동일.
-    #
-    # 2026-08-27. 여기서 부르고 **끝이 아니다.** 아래 `install_measured_turn_beta` 가
-    # 실측 회전분율을 다시 심으면서 여기서 0 으로 만든 17개 중 **10개를 되살린다**
-    # (되살아난 beta 합 2.332 — SC16_W_SC7_to_N_SC12 0.675, SC107_N_SC1_to_S 0.68 등).
-    # 녹색이 구조적으로 0 인 현시로 수요가 흘러 들어가 정지선에서 영원히 안 빠진다.
-    # 그래서 beta 설치가 끝난 **뒤에 한 번 더** 부른다(아래 참조). 순서를 바꾸지 마라.
-    # 선언 phase 를 신호두 근거로 고친다. **dead_phase 판정보다 먼저여야 한다** —
-    # dead_phase 는 선언 phase 의 axis_green 을 보고 죽었는지 정하므로, 선언이 틀린 채로
-    # 판정하면 살아 있는 회전을 죽인다(2026-08-27 에 정확히 그렇게 17개를 죽였다).
-    runtime_patch_metadata.update(apply_movement_phase_correction(cfg, tuning))
-    # 물리 회전이 없는 movement 의 beta 를 형제에게 넘긴다. 대장이 없으면 no-op.
-    runtime_patch_metadata.update(apply_nonexistent_movement_beta_zero(cfg, tuning))
-    runtime_patch_metadata.update(apply_dead_phase_beta_zero(cfg))
-    runtime_patch_metadata.update(install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
-    # 정지선 규모 저류. tuning `urban.stopline.bay_m` 이 없으면 no-op(비트 동일).
-    runtime_patch_metadata.update(install_urban_stopline_storage(cfg, tuning))
-    # 회전분율은 관측 투영과 플랜트 라우팅에 함께 쓰인다 — 용량/구조 설치보다 먼저다.
-    runtime_patch_metadata.update(install_measured_turn_beta(cfg, tuning))
-    # 같은 물리 회전으로 쪼개진 movement 를 합친다. **beta 설치 뒤**여야 한다 —
-    # 실측 beta 가 원래 이름에 붙은 다음 합산되어야 한다. 그리고 용량 설치 **앞**이라
-    # 용량은 처음부터 병합된 이름으로 심긴다.
-    # 실측 beta 가 죽은 현시의 movement 를 되살렸으므로 다시 0 으로 만든다(2026-08-27).
-    # 병합 **앞**이어야 한다 — 병합이 beta 를 합산하므로, 0 이어야 할 것이 살아 있으면
-    # 합쳐진 movement 로 그 몫이 새어 들어간다.
-    runtime_patch_metadata.update(_relabel(apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
-    # B 팔: on* movement 되접기. merge 보다 앞이어야 on_ramp_to_movement 가 빈다.
-    runtime_patch_metadata.update(install_freeway_segment_lanes(cfg, tuning, mapping))
-    runtime_patch_metadata.update(install_freeway_lane_drop(cfg, tuning))
-    # two-branch FD 는 세그먼트 런타임(아래)보다 **앞**이어야 한다 — segment_vsl 래퍼가
-    # 셀별 파라미터를 무장할 때 net 의 two-branch 속성이 이미 서 있어야 한다.
-    runtime_patch_metadata.update(install_freeway_two_branch_fd(cfg, tuning))
-    runtime_patch_metadata.update(install_freeway_vsl_zones(cfg, tuning))
-    runtime_patch_metadata.update(install_freeway_segment_runtime(cfg))
-    runtime_patch_metadata.update(install_freeway_vsl_sequence_kbest(cfg, tuning))
-    runtime_patch_metadata.update(install_freeway_vsl_price_dedupe(cfg, tuning))
-    runtime_patch_metadata.update(install_leg_ramp_split_fold(cfg, tuning))
-    detector_mapping, _merge_meta = install_merged_movements(cfg, tuning, detector_mapping)
-    runtime_patch_metadata.update(_merge_meta)
-    # GNE 의 현시 벡터 패치. 컨트롤러 생성 **앞**이어야 한다 — 상류 모듈이
-    # `from ... import distribute_phase_green` 으로 이름을 가져가므로, 모듈 전역을
-    # 갈아끼우는 시점이 그 import 보다 뒤이기만 하면 된다(파이썬은 모듈 객체를 공유한다).
-    runtime_patch_metadata.update(install_phase_vector_green_patch(cfg, tuning))
-    runtime_patch_metadata.update(install_movement_capacity_by_lanes(cfg, tuning))
-    runtime_patch_metadata.update(install_gate_onramp_queue(cfg, tuning))
-    # B3: off-ramp W_out 착지를 무신호 꼬리 sink 로. 병합·용량 뒤에 이름으로 작업한다.
-    runtime_patch_metadata.update(install_offramp_direct_landing(cfg, tuning))
-    runtime_patch_metadata.update(install_offramp_landing_runtime(cfg))
-    runtime_patch_metadata.update(install_landing_storage(cfg, tuning))
-    runtime_patch_metadata.update(install_landing_storage_runtime(cfg))
-    # 동시 현시 배율이 movement 용량 맵을 쓰므로 반드시 그 뒤다.
-    runtime_patch_metadata.update(install_native_signal_structure(cfg, tuning))
-    # 직전 구간 실측 방류율로 용량을 갱신한다. 가정값(차로수 x 330)을 덮는다 —
-    # 동시현시 배율은 실측 통과량에 이미 반영돼 있으므로 그 뒤여야 한다.
-    runtime_patch_metadata.update(install_measured_movement_capacity(
-        cfg, tuning, state_json, args.previous_action_json))
-    # far 배수율(도시 G · 본선 g_fw · 램프 merge_rate)을 직전 구간 VISSIM 실측으로.
-    # `rollout_far.measured` 가 없으면 no-op 이다.
-    runtime_patch_metadata.update(install_measured_far_reservoir_rates(
-        cfg, tuning, state_json, args.previous_action_json))
-    runtime_patch_metadata.update(install_observed_backpressure_price(
-        cfg, tuning, state_json, args.previous_action_json))
-    # **반드시 위 호출 뒤다.** 이 패치는 설치 시점에
-    # `cfg.network.far_ramp_capacity_veh_h` 를 읽으므로 값이 먼저 심겨야 한다.
-    runtime_patch_metadata.update(install_far_ramp_capacity_patch(cfg))
-    # 경계 out 링크의 램프행 이탈 분할. 대장이 없거나 스위치가 꺼져 있으면 no-op.
-    runtime_patch_metadata.update(install_boundary_out_ramp_split(cfg, tuning))
-    # B 팔: W_out 분할의 램프 몫 주입 + 추정기 대체 (분할표가 있어야 한다).
-    runtime_patch_metadata.update(install_leg_ramp_split_runtime(cfg))
-    state = traffic_state_from_vissim(
-        state_json, cfg, TrafficState, detector_mapping, calibration,
+    from evaluation.controllers.runtime_setup import configure_runtime
+    state, detector_mapping, runtime_patch_metadata = configure_runtime(
+        sys.modules[__name__], cfg, tuning, mapping, state_json,
+        args.previous_action_json, detector_mapping, calibration, TrafficState,
         physical_projection_input=physical_projection_input,
     )
-    runtime_patch_metadata.update(
-        install_monitor_fixed_signal_runtime_patch(cfg, state_json, detector_mapping)
-    )
-    if local_observation:
-        install_local_observation_runtime_guards()
     forecast_horizon_steps = int(cfg.mpc.horizon_steps)
     if args.controller in ("pstack-flagship", "wu-link"):
         # 러너 L1044: 리더 value-depth rollout이 horizon 밖 수요를 소비한다 —

@@ -262,6 +262,21 @@ function Copy-VissimError([string]$DestinationDir) {
   foreach ($simulationErr in Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -File -ErrorAction SilentlyContinue) {
     if ($simulationErr.Name -match $simulationPattern -and $simulationErr.LastWriteTime -ge $t0) {
       $simulationNumber = $Matches[1]
+      # COM server shutdown can outlive cscript by several seconds. Copying
+      # immediately archived a 16-KiB-aligned, truncated warning log in a run.
+      $flushDeadline = (Get-Date).AddSeconds(20)
+      $closed = $false
+      do {
+        try {
+          $probeStream = [System.IO.File]::Open($simulationErr.FullName,
+            [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::None)
+          $probeStream.Dispose()
+          $closed = $true
+        } catch [System.IO.IOException] {
+          if ((Get-Date) -lt $flushDeadline) { Start-Sleep -Milliseconds 250 }
+        }
+      } while (-not $closed -and (Get-Date) -lt $flushDeadline)
+      if (-not $closed) { Log "WARNING runtime error log is still open; archive may be incomplete: $($simulationErr.Name)" }
       Copy-Item -LiteralPath $simulationErr.FullName -Destination (Join-Path $DestinationDir "vissim_simulation_$simulationNumber.err") `
         -Force -ErrorAction Stop
     }
@@ -287,6 +302,8 @@ $provenanceFiles = [ordered]@{
   control_mapping = Get-ArtifactEvidence $Mapping
   generated_vbs_config = Get-ArtifactEvidence $vbsConfig
   vehicle_input_roles = Get-ArtifactEvidence $VehicleInputRoles
+  demand_profile = Get-ArtifactEvidence $DemandProfile
+  urban_input_gate_map = Get-ArtifactEvidence $UrbanInputGateMap
   # 2026-08-19: provenance 가 2026-08-05 세대를 해시하고 있었다. core17legs4b 정본으로 옮긴다.
   # 링크 배정은 권역 정본이 대신한다 - 그것이 이 세대의 배정이다.
   link_assignment = Get-ArtifactEvidence (Join-Path $repo "outputs\urban_player_territory_v1_20260819.json")
@@ -297,6 +314,11 @@ $provenanceFiles = [ordered]@{
 }
 $signalPrograms = @(
   Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -Filter "*.sig" -File -ErrorAction SilentlyContinue |
+    Sort-Object Name |
+    ForEach-Object { Get-ArtifactEvidence $_.FullName }
+)
+$controllerSources = @(
+  Get-ChildItem -LiteralPath (Join-Path $repo "evaluation\controllers") -Filter "*.py" -File |
     Sort-Object Name |
     ForEach-Object { Get-ArtifactEvidence $_.FullName }
 )
@@ -358,6 +380,7 @@ $provenance = [ordered]@{
   env = $rwEnv
   files = $provenanceFiles
   signal_programs = $signalPrograms
+  controller_sources = $controllerSources
 }
 $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
 [System.IO.File]::WriteAllText(

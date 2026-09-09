@@ -964,7 +964,9 @@ Sub RunControllerDecision(simSec)
     If detectorMappingPath <> "" Then cmd = cmd & " --detector-mapping-json " & Q(detectorMappingPath)
     If calibrationPath <> "" Then cmd = cmd & " --calibration-json " & Q(calibrationPath)
     If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
-    If LCase(CStr(effController)) = "diagnostic-vsl-profile" Then
+    If LCase(CStr(effController)) = "diagnostic-vsl-profile" Or _
+            LCase(CStr(effController)) = "diagnostic-ramp-profile" Or _
+            LCase(CStr(effController)) = "diagnostic-signal-profile" Then
         cmd = cmd & " --diagnostic-allowed-vsl-speeds " & Q(RW_ALLOWED_VSL_SPEEDS)
     End If
     If lastActionJson <> "" Then cmd = cmd & " --previous-action-json " & Q(lastActionJson)
@@ -999,6 +1001,24 @@ Sub RunControllerDecision(simSec)
         lastActionJson = outJsonPath
     End If
     PerfAdd "decision.total", perfT0
+    ' A diagnostic intervention is fixed at its first decision. Continuing
+    ' after a failed decision would run the warmup action until the final
+    ' integrity check. Include warmup failures in the selected diagnostic run.
+    If decisionsFailed > 0 And Left(LCase(CStr(controllerName)), 11) = "diagnostic-" Then
+        WScript.Echo "ERROR=DIAGNOSTIC_DECISION_FAILED sim_sec=" & CStr(simSec) & _
+            " controller=" & CStr(effController) & " decisions_failed=" & CStr(decisionsFailed)
+        On Error Resume Next
+        Vissim.Simulation.Stop
+        stateFile.Close
+        actionFile.Close
+        bottleneckLinkFile.Close
+        bottleneckSegmentFile.Close
+        signalTraceFile.Close
+        Vissim.ResumeUpdateGUI True
+        Set Vissim = Nothing
+        On Error GoTo 0
+        WScript.Quit 3
+    End If
 End Sub
 
 Function ApplyActionCsv(simSec, csvPath, effectiveController)

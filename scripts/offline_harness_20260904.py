@@ -1,18 +1,8 @@
 # -*- coding: utf-8 -*-
-"""실런 `main()` 의 설치 순서를 **빠짐없이** 복제하는 오프라인 하네스.
+"""Replay observations through the canonical shared VISSIM runtime setup.
 
-`probe_far_components_20260901.build_cfg_and_state` 는 cfg 레벨 설치 일부만 한다 —
-2026-09-04 에 대조한 결과 롤아웃에 닿는 것 넷이 빠져 있었다.
-
-    apply_nonexistent_movement_beta_zero        beta 재배분
-    install_boundary_out_ramp_split             경계 out 램프행 분할
-    install_monitor_fixed_signal_runtime_patch  **green -> 유량 변환 자체**
-    install_local_observation_runtime_guards    agent 마스킹
-
-특히 셋째는 `_phase_green_fraction` 을 모듈 5개에 갈아끼운다. 그게 없으면 오프라인
-측정이 vendor 원본 green 변환을 쓰게 되어 **실런과 다른 plant** 를 재게 된다.
-
-순서는 어댑터 main() (9490~9560행) 그대로다. 바꾸지 마라 — 주석이 이유를 적어 두었다.
+Input loading and config construction remain here. Ordered model configuration,
+projection, and hook installation are shared with the real adapter and workers.
 """
 import json
 from pathlib import Path
@@ -42,57 +32,18 @@ def build(qb, TrafficState, tuning_path, state_path, prev_action_path):
         qb._link_counts_from_local_observation(state_json) and detector_mapping)
     cfg = qb.build_config(R / "vendor/NumSim-mine", control_interval, sim_period, "fast-smoke",
                           calibration, tuning, local_observation=local_observation, flagship=True)
-    m = {}
-    m.update(qb.install_adapter_calibration_fingerprints(cfg, tuning))
-    m.update(qb.install_vissim_calibration_runtime_patches(cfg, calibration))
-    m.update(qb.install_tau_length_cap_patch(cfg))
-    m.update(qb.apply_movement_phase_correction(cfg, tuning))
-    m.update(qb.apply_nonexistent_movement_beta_zero(cfg, tuning))          # <- 추가
-    m.update(qb.apply_dead_phase_beta_zero(cfg))
-    m.update(qb.install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
-    m.update(qb.install_urban_stopline_storage(cfg, tuning))
-    m.update(qb.install_measured_turn_beta(cfg, tuning))
-    m.update(qb._relabel(qb.apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
-    m.update(qb.install_leg_ramp_split_fold(cfg, tuning))
-    detector_mapping, _mm = qb.install_merged_movements(cfg, tuning, detector_mapping)
-    m.update(_mm)
-    m.update(qb.install_phase_vector_green_patch(cfg, tuning))
-    m.update(qb.install_movement_capacity_by_lanes(cfg, tuning))
-    m.update(qb.install_gate_onramp_queue(cfg, tuning))
-    m.update(qb.install_offramp_direct_landing(cfg, tuning))
-    m.update(qb.install_offramp_landing_runtime(cfg))
-    m.update(qb.install_landing_storage(cfg, tuning))
-    m.update(qb.install_landing_storage_runtime(cfg))
-    m.update(qb.install_native_signal_structure(cfg, tuning))
-    m.update(qb.install_measured_movement_capacity(cfg, tuning, state_json, prev_action_path))
-    m.update(qb.install_measured_far_reservoir_rates(cfg, tuning, state_json, prev_action_path))
-    m.update(qb.install_observed_backpressure_price(cfg, tuning, state_json, prev_action_path))
-    m.update(qb.install_far_ramp_capacity_patch(cfg))
-    m.update(qb.install_boundary_out_ramp_split(cfg, tuning))               # <- 추가
-    m.update(qb.install_leg_ramp_split_runtime(cfg))
-    # 본선 세그먼트 배관 (2026-09-08 추가). 없으면 오프라인 결정이 세그먼트별 FD·차로·차로감소항을
-    #   못 본 채 링크 스칼라로 돌아 실런과 갈린다 — 사전 선별의 의미가 없어진다. main() 과 같은 순서.
-    if hasattr(qb, "install_freeway_segment_lanes"):
-        _mapj = tuning.get("mapping_json") if isinstance(tuning, dict) else None
-        if _mapj:
-            _mp = json.loads(Path(R / _mapj).read_text(encoding="utf-8"))
-            m.update(qb.install_freeway_segment_lanes(cfg, tuning, _mp))
-    if hasattr(qb, "install_freeway_lane_drop"):
-        m.update(qb.install_freeway_lane_drop(cfg, tuning))
-    # VSL 구역은 세그먼트 런타임보다 **먼저** — 그쪽이 원본 segment_vsl 을 잡는다.
-    if hasattr(qb, "install_freeway_vsl_zones"):
-        m.update(qb.install_freeway_vsl_zones(cfg, tuning))
-    if hasattr(qb, "install_freeway_segment_runtime"):
-        m.update(qb.install_freeway_segment_runtime(cfg))
-    if hasattr(qb, "install_freeway_vsl_sequence_kbest"):
-        m.update(qb.install_freeway_vsl_sequence_kbest(cfg, tuning))
-    if hasattr(qb, "install_freeway_vsl_price_dedupe"):
-        m.update(qb.install_freeway_vsl_price_dedupe(cfg, tuning))
-    state = qb.traffic_state_from_vissim(state_json, cfg, TrafficState, detector_mapping,
-                                         calibration, physical_projection_input=None)
-    m.update(qb.install_monitor_fixed_signal_runtime_patch(                 # <- 추가 (핵심)
-        cfg, state_json, detector_mapping) or {})
-    if local_observation:
-        qb.install_local_observation_runtime_guards()                       # <- 추가
+    from evaluation.controllers.runtime_setup import configure_runtime
+    mapping_path = Path(tuning["mapping_json"])
+    if not mapping_path.is_absolute():
+        mapping_path = R / mapping_path
+    mapping = qb.load_optional_json(str(mapping_path))
+    if not mapping:
+        raise ValueError("control mapping unreadable: %s" % mapping_path)
+    m = dict(qb.install_adapter_calibration_fingerprints(cfg, tuning))
+    state, detector_mapping, runtime = configure_runtime(
+        qb, cfg, tuning, mapping, state_json, prev_action_path,
+        detector_mapping, calibration, TrafficState,
+    )
+    m.update(runtime)
     m["_local_observation"] = float(local_observation)
     return cfg, state, state_json, m, detector_mapping, calibration, tuning

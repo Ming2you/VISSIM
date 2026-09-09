@@ -1,4 +1,4 @@
-"""Exercise pending four-lever integration only in memory; no live COM changes."""
+"""Exercise the integrated four-lever path without live COM changes."""
 from __future__ import annotations
 import ast
 import copy
@@ -9,7 +9,6 @@ import re
 import subprocess
 import sys
 import tempfile
-import types
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,22 +18,11 @@ from evaluation.controllers import diagnostic_signal_profile
 
 
 def pending_source(relative):
-    source = (ROOT / relative).read_text(encoding="utf-8")
-    patch = (ROOT / "diagnostics/diagnostic_lever_profiles.patch").read_text(encoding="utf-8")
-    portion = patch.split("--- a/" + relative + "\n", 1)[1].split("--- a/", 1)[0]
-    for hunk in re.split(r"^@@[^\n]*\n", portion, flags=re.M)[1:]:
-        old = "".join(s[1:] for s in hunk.splitlines(True) if s.startswith((" ", "-")))
-        new = "".join(s[1:] for s in hunk.splitlines(True) if s.startswith((" ", "+")))
-        if old in source:
-            source = source.replace(old, new, 1)
-        elif new not in source:
-            raise AssertionError(f"pending lever patch drifted: {relative}")
-    return source
+    return (ROOT / relative).read_text(encoding="utf-8")
 
 
 def pending_profile():
-    module = types.ModuleType("pending_diagnostic_profile")
-    exec(compile(pending_source("evaluation/controllers/diagnostic_profile.py"), "pending_profile", "exec"), module.__dict__)
+    from evaluation.controllers import diagnostic_profile as module
     return module
 
 
