@@ -4,6 +4,7 @@ param(
   [ValidatePattern('^[A-Za-z0-9_-]+$')][string]$ConfigDirectory = 'area_candidate_configs',
   [ValidateRange(1050,5400)][int]$SimPeriod = 5400,
   [ValidateSet('wu-link','no-control')][string]$Controller = 'wu-link',
+  [switch]$ForceStepwise,
   [Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Name,
   [string]$Python = 'C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 )
@@ -58,7 +59,7 @@ New-Item -ItemType Directory -Path $areaOutput | Out-Null
   -DemandProfile 'evaluation/configs/demand_profiles/ver2_fdsweep_x15_20260907.csv' `
   -DemandScale 1 -SimPeriod $SimPeriod -ControlIntervalSec 150 -ControlStartSec 900 `
   -WarmupController no-control -Seed $Seed -StateLogIntervalSec 30 `
-  -StartupStallSec 300 -StallSec 2400 -MaxAttempts 1 -NoGlobalKill `
+  -StartupStallSec 300 -StallSec 2400 -MaxAttempts 1 -NoGlobalKill -ForceStepwise:$ForceStepwise `
   -AuditAnchorsSec '900,1500,1800,2100,2700,3600,4500,5400'
 $areaExitCode = $LASTEXITCODE
 Assert-AreaSources

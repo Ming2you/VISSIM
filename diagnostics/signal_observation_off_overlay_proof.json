@@ -1,0 +1,43 @@
+{
+  "schema": "signal-observation-pair/v1",
+  "status": "PASS",
+  "differences": [
+    {
+      "path": [
+        "urban",
+        "capacity",
+        "head_observation",
+        "enabled"
+      ],
+      "on": true,
+      "off": false
+    }
+  ],
+  "off_materialized_in_memory_only": true,
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\contract_candidate_configs_v2\\n7_area_beta0.json": "e30ad98a2b8ea5e7265840a357a64f153373bdbd35791d4997beba4284499ecf",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\signal_observation_off_overlay.json": "a2a77d60a3462985aa75f0bdc0dfbe8bde3d420cba20c7d01ea3e8dd20df0ad2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\run_area_beta_trial.ps1": "af2ab5b697e5712bd38795b1c426663c50f318bea4ebf54e4681395dfbcd51fb",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1": "15eac24e146a3398c15c2bfe05f75b09aecc1fd10527eace4d35503053b54c37"
+  },
+  "launcher_force_stepwise_passthrough_present": true,
+  "fixed_run_arguments": {
+    "BetaSeconds": 0,
+    "Seed": 13,
+    "SimPeriod": 1050,
+    "Controller": "no-control",
+    "ForceStepwise": true,
+    "ControlIntervalSec": 150,
+    "ControlStartSec": 900,
+    "WarmupController": "no-control",
+    "StateLogIntervalSec": 30,
+    "DemandScale": 1,
+    "RW_VEHREC_RESOLUTION": "1",
+    "RW_VEHICLE_ROUTES": "1"
+  },
+  "scope": "Config proof and source-text argument binding only. No candidate generation, simulator, controller, COM, or launcher execution.",
+  "limits": [
+    "Disabling the head feature also disables its measured-capacity consumer. Under NoControl those model values must not change physical commands; verify all actual command/readback vectors after the run.",
+    "The older ON smoke and a later OFF run may use different model source hashes after the independent phase-price repair. Preserve that limitation and verify physical command equality; do not label the entire software build a one-feature comparison."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "shared-service-main-stack-fix-handoff/v1",
+  "tests_passed": 35,
+  "tests_elapsed_sec": 15.53,
+  "unit_modules": [
+    "diagnostics.test_shared_service_pool",
+    "diagnostics.test_shared_service_main_stack",
+    "diagnostics.test_local_landing_clock",
+    "diagnostics.test_local_landing_clock_receiving"
+  ],
+  "pre_fix_reproducer": "test_actual_main_builder_has_explicit_ready_seed raised identical adapter2587 missing-ready-context error before production repair",
+  "paths": [
+    "evaluation/controllers/local_signal_service.py",
+    "evaluation/controllers/vissim_stackelberg_adapter.py",
+    "diagnostics/test_shared_service_main_stack.py",
+    "diagnostics/probe_shared_service_main_stack.py",
+    "diagnostics/shared_service_main_stack_before.json",
+    "diagnostics/shared_service_actual900_main_stack.json",
+    "diagnostics/shared_service_main_stack_fix.md"
+  ],
+  "sha256": {
+    "evaluation/controllers/local_signal_service.py": "fe41f8ece0391e4f1ee0c50b2221ab331a24c92da765b27317aef151ef79a154",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc",
+    "diagnostics/test_shared_service_main_stack.py": "cf3c5dc39ef993bda0b61df5f04222cd67c0f60e1d61ea28f4a33980225ed15c",
+    "diagnostics/probe_shared_service_main_stack.py": "cd3948ff9daa8b5c894a162602a1d5c8f1110e73d1f26c2783d959e98950c38f",
+    "diagnostics/shared_service_main_stack_before.json": "887cb93d52e3a6cf6650e8002ce226b54a590230a86df464d6d1e0deeaa05468",
+    "diagnostics/shared_service_actual900_main_stack.json": "6da3b22e216484fb81a14800784c23b6e927488bb9a8625fa811e4a6ce67960a",
+    "diagnostics/shared_service_main_stack_fix.md": "8859af894a417ee1fe8543a330bc6c4a05a94a376cff20181da1cd1cd7376f8d"
+  },
+  "newlines": {
+    "evaluation/controllers/local_signal_service.py": {
+      "crlf": 619,
+      "lf": 619
+    },
+    "evaluation/controllers/vissim_stackelberg_adapter.py": {
+      "crlf": 0,
+      "lf": 12851
+    }
+  },
+  "git_mutations": false,
+  "production_edits_complete": true
+}

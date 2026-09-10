@@ -1,0 +1,51 @@
+{
+  "schema": "shared-service-main-stack-peer-review/v1",
+  "reviewer": "flow_feedback",
+  "status": "no_blocker_for_current_single_config_main_and_same_config_worker_scope",
+  "source_sha256_at_report": {
+    "evaluation/controllers/local_signal_service.py": "fe41f8ece0391e4f1ee0c50b2221ab331a24c92da765b27317aef151ef79a154",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc",
+    "evaluation/controllers/runtime_setup.py": "a675209058f0d6ecd1d53529f0d4730fc63468d73f2e3f62f9b66e248c4db584",
+    "diagnostics/test_shared_service_main_stack.py": "cf3c5dc39ef993bda0b61df5f04222cd67c0f60e1d61ea28f4a33980225ed15c",
+    "diagnostics/test_shared_service_pool.py": "1a4abd394736869f8a9ac053204ec3d2db757362fe206c78685d35cb13d26686"
+  },
+  "inspection": {
+    "actual_builder_final_reinstallation": true,
+    "later_main_installers": [
+      "install_vissim_terminal_cost_objective",
+      "install_price_worker_bootstrap"
+    ],
+    "later_main_phase_method_writer_found": false,
+    "sc1001_delegates_to_original_ramp_adapter": true,
+    "worker_restores_via": "PricedWuLinkStackelbergController.__setstate__ -> runtime_setup.install_worker_runtime -> local_signal_service.install -> install_refinement",
+    "cold_off_final_installer_is_noop": true,
+    "same_config_reinstallation_checks_all_three_methods": true,
+    "existing_shared_context_not_wrapped_twice": true
+  },
+  "bounded_probe": {
+    "fixture": "diagnostics.test_shared_service_main_stack.built_inputs",
+    "operation": "construct ON controller; evaluate one actual SC1004 local cost; construct separate OFF cfg/controller; reuse original ON local cost; reinstall ON shared refinement; retry same local cost",
+    "initial_local_score_veh_h": 21.05318282418348,
+    "after_off_builder_exception_type": "ValueError",
+    "after_off_builder_exception": "Shared service caller is missing its own ready context",
+    "after_explicit_on_reinstall_local_score_veh_h": 21.05318282418348,
+    "execution_sec": 2.4324801,
+    "new_endpoint_or_optimizer_calls": 0,
+    "vissim_calls": 0,
+    "production_writes": 0,
+    "test_suite_reexecution": false
+  },
+  "limitation": {
+    "affected_scope": "Retaining and reusing an ON controller after constructing a different OFF controller in the same Python interpreter",
+    "mechanism": "OFF builder late ramp-aware installer replaces class setup/cost, then OFF install_refinement exits. Existing ON instance uses the shared rollout dispatcher without an explicit ready seed.",
+    "current_active_run_applicability": false,
+    "current_run_scope": "One canonical controller/config per main process; worker receives that same cfg.",
+    "resolution": "Document unsupported mixed-config lifecycle now; future owner-aware or instance-scoped restoration must preserve cold OFF behavior. No further production repair proposed for this preflight."
+  },
+  "claims_not_made": [
+    "full MPC success",
+    "full traffic prediction accuracy",
+    "all mixed-config class lifecycles supported",
+    "original 35 tests independently rerun"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema": "observer-off-preparation/v1",
+  "status": "prepared_not_launched",
+  "single_overlay": {
+    "path": "diagnostics/signal_observation_off_overlay.json",
+    "sha256": "a2a77d60a3462985aa75f0bdc0dfbe8bde3d420cba20c7d01ea3e8dd20df0ad2",
+    "only_leaf": "urban.capacity.head_observation.enabled",
+    "value": false
+  },
+  "candidate_generation_performed": false,
+  "production_files_modified_by_this_task": [],
+  "launcher_review": {
+    "owner": "root",
+    "path": "diagnostics/run_area_beta_trial.ps1",
+    "sha256": "af2ab5b697e5712bd38795b1c426663c50f318bea4ebf54e4681395dfbcd51fb",
+    "parameter": "[switch]$ForceStepwise",
+    "watchdog_argument": "-ForceStepwise:$ForceStepwise",
+    "parser_errors": 0,
+    "parser_tokens": 488,
+    "matching_parameter_count": 1
+  },
+  "regression": {
+    "tests": 7,
+    "status": "PASS",
+    "elapsed_sec": 0.028,
+    "scope": "Config one-leaf/type/immutable checks and read-only ordered FZP frame/censoring/ON-OFF no-head mode."
+  },
+  "preferred_run_name": "codex_contract_head_off_nc_s13_1050_20260910",
+  "preferred_off_family": "contract_head_off_candidate_configs",
+  "commands": {
+    "generate_root_only": "python -X utf8 diagnostics/prepare_area_candidate_configs.py --overlay diagnostics/control_area_contract_overlay.json --overlay diagnostics/signal_observation_off_overlay.json --output-dir diagnostics/contract_head_off_candidate_configs",
+    "launch_root_only": "diagnostics/run_area_beta_trial.ps1 -BetaSeconds 0 -Seed 13 -SimPeriod 1050 -Controller no-control -ForceStepwise -ConfigDirectory contract_head_off_candidate_configs -Name codex_contract_head_off_nc_s13_1050_20260910",
+    "compare_after_complete": "python -X utf8 diagnostics/audit_signal_observation_smoke.py --trajectory-only --run codex_contract_head_off_nc_s13_1050_20260910 --reference codex_contract_observed_nc_s13_1050_v2_20260910 --through-sec 1050 --output diagnostics/observer_head_off_vs_v2_prefix1050.json"
+  },
+  "limits": [
+    "Generation command assumes current ON uses only control_area_contract_overlay.json after the default clock overlay; if root adds another ON overlay, use the identical list then append OFF last.",
+    "root must generate after the final model-source fix and verify actual ON/OFF flattened configs with verify_signal_observation_pair.py --off-config.",
+    "The flag disables collector and its capacity consumer together. NoControl fixes physical actions, but actual commands/readbacks must still be compared.",
+    "Compare original v2 software hashes explicitly with the later OFF run. Independent phase-price fixes mean the full model code may differ, even when the relevant VBS/head/INPX sources and all commands match."
+  ]
+}

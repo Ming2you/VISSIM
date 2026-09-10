@@ -7211,6 +7211,10 @@ def build_priced_wu_link_controller(cfg, tuning: Mapping[str, Any]):
     signal_actuation_contract.install_controller(controller)
     from evaluation.controllers import area_follower_objective
     area_follower_objective.install_controller(controller)
+    # These phase adapters are installed after configure_runtime. Shared ramps
+    # must finish with the common setup/cost that carries its explicit ready seed.
+    from evaluation.controllers import local_signal_service
+    local_signal_service.install_refinement(cfg)
     return controller
 
 

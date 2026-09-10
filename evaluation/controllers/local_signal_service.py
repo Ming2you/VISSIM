@@ -571,9 +571,12 @@ def ramp_refinement_cost(agent, signal, phases, setup, ctx):
 
 
 def install_refinement(cfg):
+    if not view(cfg):
+        return
     from src.controllers.priced_wu_link_controller import LinkAgentWuFollower
     cls = LinkAgentWuFollower
-    if getattr(cls._phase_refine_signal_setup, '_shared_local_service_pool', False):
+    if all(getattr(getattr(cls, name), '_shared_local_service_pool', False) for name in (
+            '_phase_refine_context', '_phase_refine_signal_setup', '_phase_local_cost_phased')):
         return
     original_context = cls._phase_refine_context
     original_setup = cls._phase_refine_signal_setup
@@ -606,6 +609,11 @@ def install_refinement(cfg):
             return ramp_refinement_cost(self, signal, phases, setup, ctx)
         return original_cost(self, signal, phases, setup, ctx)
     setup._shared_local_service_pool = True
-    cls._phase_refine_context = context
+    cost._shared_local_service_pool = True
+    context._shared_local_service_pool = True
+    # A late adapter installer replaces setup/cost but leaves context intact.
+    # Restore only the replaced methods; do not stack cache-reset wrappers.
+    if not getattr(original_context, '_shared_local_service_pool', False):
+        cls._phase_refine_context = context
     cls._phase_refine_signal_setup = setup
     cls._phase_local_cost_phased = cost
