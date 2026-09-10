@@ -1,0 +1,97 @@
+{
+  "status": "applied_actual_tests_and_full_syntax_pass",
+  "patch_sha256": "d8303b25eaf36845c52cf630bdb2e1ac7e8eabc6511e465305bd9dc6dceafa1b",
+  "before_sha256": {
+    "scripts/run_real_world_stackelberg_controller.vbs": "c93420c54ee28a339814ed7eabe407c21cfdceb80e69e0c7bc5c975f8d0933b9",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "4bdd1c6fddbe5a73c77b9cc5630dbda454519db1afb371119dd84506a258f285",
+    "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1": "89b5ceb5742fda1f965b87e2aa6315bbebc3f792be1ee50c9ce9b1e9b2c7711e"
+  },
+  "known_base_exception": {
+    "file": "evaluation/controllers/vissim_stackelberg_adapter.py",
+    "reason": "Parent-authorized objective hunk applied first by vsl_authority. Contextual observer patch must preserve it.",
+    "changed_top_level_definitions": [
+      "install_vissim_terminal_cost_objective"
+    ],
+    "expected_sha256": "4bdd1c6fddbe5a73c77b9cc5630dbda454519db1afb371119dd84506a258f285"
+  },
+  "fixed_off_reference_commit": "109afeef5da0fded77b6b68848d271a68743933e",
+  "after_sha256": {
+    "scripts/run_real_world_stackelberg_controller.vbs": "71ec5f8d8a36a93f21f8e66da80730e91dae64de1a3eb2321f0361df636b9a81",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "e6af8fed5f98ef7b20d79d10454f86596d4ccddbd546c328699097de63001836",
+    "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1": "15eac24e146a3398c15c2bfe05f75b09aecc1fd10527eace4d35503053b54c37",
+    "evaluation/controllers/signal_head_observation.py": "20aa4e780dc04a14d3b46d669dc5ede817536de724698765f3e296c13b4e93b1"
+  },
+  "applied_paths": [
+    "scripts/run_real_world_stackelberg_controller.vbs",
+    "evaluation/controllers/vissim_stackelberg_adapter.py",
+    "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+    "evaluation/controllers/signal_head_observation.py"
+  ],
+  "patch_context_check": "PASS",
+  "combined_adapter_changed_definitions": [
+    "install_measured_movement_capacity",
+    "install_vissim_terminal_cost_objective"
+  ],
+  "test_migration": {
+    "path": "diagnostics/test_signal_observation_window_patch.py",
+    "before_sha256": "f30359693657d667d2888b492a3879770d32f1b82f27363557035b64fac5b0f2",
+    "after_sha256": "640e3fd143835dda7bedba868245f6b08ffc255ca4a086d33d371631f9b1f395",
+    "scope": "Normal installed Python import; exact current VBS/PS procedures; Git-pinned OFF reference; no proposal parser"
+  },
+  "full_script_syntax": {
+    "scope": "Installed complete VBS compile-only with first executable WScript.Quit0; complete installed watchdog parsed, never executed. Negative control duplicates a global declaration after the early quit.",
+    "temporary_paths": {
+      "vbs": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\.observer_installed_compile_only.vbs",
+      "negative": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\.observer_installed_compile_negative.vbs",
+      "powershell": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\.observer_installed_watchdog_parse_only.ps1"
+    },
+    "insertion_literal": "WScript.Quit 0\n",
+    "insertion_sha256": "dab5ed0640135cba64ab794b86d3be3b0ecd749b752ca329be5a5f56c006fcdb",
+    "installed_vbs_normalized_sha256": "08d054b8f42015e67981b4c51ea381c320958f56e896d7a0af5ea9c1eb3b5403",
+    "installed_watchdog_normalized_sha256": "569a8fa8db72d3c7dfcf19e2f9ef465b51e457ec698dcc27f7095dc49280e614",
+    "temporary_sha256": {
+      "vbs": "a952a61b32a6c746a1789a8076481a96e8ebd12dad0337797b902706f53afc3d",
+      "negative": "28ca1e7898e4775fd1f67e6947021e4838b8773e205535d7aaa6d07f56ea147c",
+      "powershell": "7bf7c07319d4e4579908403c212ff93c006b5f9139679cfd1c9fc69e635a126b"
+    },
+    "guard_first_executable_statement": true,
+    "removing_guard_restores_installed_source": true,
+    "runtime_com_initialization_reached": false,
+    "vbs": {
+      "exit_code": 0,
+      "stdout": "",
+      "elapsed_sec": 0.07800000000861473
+    },
+    "negative": {
+      "exit_code": 1,
+      "stdout": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\.observer_installed_compile_negative.vbs(6030, 5) Microsoft VBScript \ucef4\ud30c\uc77c \uc624\ub958: \ub2e4\uc2dc \uc815\uc758\ub41c \uc774\ub984\r\n\r\n",
+      "elapsed_sec": 0.07799999999406282
+    },
+    "powershell": {
+      "ast_type": "System.Management.Automation.Language.ScriptBlockAst",
+      "token_count": 4496,
+      "parse_error_count": 0,
+      "errors": []
+    },
+    "production_raw_unchanged_during_validation": true,
+    "status": "PASS",
+    "temporary_files_deleted": true
+  },
+  "regression_tests": {
+    "command": "python -X utf8 -m unittest diagnostics.test_signal_observation_window_patch -v",
+    "test_count": 11,
+    "status": "PASS",
+    "elapsed_sec": 1.338,
+    "execution": "Installed module imports and current procedures, fake COM/config only. Unsandboxed retry required solely for Script Host settings access.",
+    "sandbox_attempt": "8 PASS,3 Script Host Access-denied before fake VBS execution"
+  },
+  "actual_import": {
+    "module": "evaluation.controllers.signal_head_observation",
+    "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_head_observation.py",
+    "sha256": "20aa4e780dc04a14d3b46d669dc5ede817536de724698765f3e296c13b4e93b1"
+  },
+  "git_index_modified_by_task": false,
+  "active_config_modified_by_task": false,
+  "actual_vissim_smoke": "not run; root owns subsequent smoke",
+  "integration_utc": "2026-09-10"
+}

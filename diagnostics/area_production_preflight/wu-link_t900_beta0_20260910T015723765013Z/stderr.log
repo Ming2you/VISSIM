@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\vissim_stackelberg_adapter.py", line 12847, in <module>
+    main()
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\vissim_stackelberg_adapter.py", line 12661, in main
+    result = controller.decide_with_info(state, forecast, previous, cfg)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\vendor\NumSim-mine\src\controllers\stackelberg_wu_metered.py", line 433, in decide_with_info
+    self._maybe_refresh_signal_prices(state, forecast, previous)
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\vendor\NumSim-mine\src\controllers\priced_wu_link_controller.py", line 1075, in _maybe_refresh_signal_prices
+    self._refresh_phase_prices(state, forecast, previous)
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\vissim_stackelberg_adapter.py", line 2258, in patched
+    base_local = local_cost(signal, base, setup)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\vissim_stackelberg_adapter.py", line 2242, in local_cost
+    return float(follower._phase_local_cost_phased(signal, vec, setup, ctx))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\vissim_stackelberg_adapter.py", line 2587, in patched_cost
+    return float(rollout_local_tts_ramp_aware(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\local_signal_service.py", line 286, in rollout
+    raise ValueError('Shared service caller is missing its own ready context')
+ValueError: Shared service caller is missing its own ready context

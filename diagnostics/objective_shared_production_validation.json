@@ -1,0 +1,579 @@
+{
+  "schema": "objective-shared-production-validation/v1",
+  "scope": "actual production imports; bounded consumer/local evaluations; explicit endpoint response fixtures; no endpoint rollout, full MPC or VISSIM",
+  "success": true,
+  "tests_run": 39,
+  "test_module_counts": {
+    "diagnostics.test_area_leader_objective": 14,
+    "diagnostics.test_shared_service_pool": 25
+  },
+  "elapsed_sec": 4.985000000000582,
+  "errors": 0,
+  "failures": 0,
+  "actual_modules": {
+    "evaluation.controllers.area_leader_objective": {
+      "path": "evaluation\\controllers\\area_leader_objective.py",
+      "sha256": "3b217220c24b912bd3f4811968f0775bb60ed41852ee1c626d333b44bd50960d"
+    },
+    "evaluation.controllers.area_runtime": {
+      "path": "evaluation\\controllers\\area_runtime.py",
+      "sha256": "611c9a3f5458d3566772c0b39600e31b91aa55e069c70d4960e509ed7e18d28c"
+    },
+    "evaluation.controllers.local_signal_service": {
+      "path": "evaluation\\controllers\\local_signal_service.py",
+      "sha256": "1edc4a1a940004bfe03ba3da4f10378192ea4a1e0c8b792543caaed5bc276ec7"
+    },
+    "evaluation.controllers.route_choice_corridor": {
+      "path": "evaluation\\controllers\\route_choice_corridor.py",
+      "sha256": "6e616c01ae296d5c49722df37898ff4780d3b9fd999d621808e0007c617e6ae6"
+    },
+    "evaluation.controllers.runtime_setup": {
+      "path": "evaluation\\controllers\\runtime_setup.py",
+      "sha256": "a675209058f0d6ecd1d53529f0d4730fc63468d73f2e3f62f9b66e248c4db584"
+    },
+    "evaluation.controllers.vissim_stackelberg_adapter": {
+      "path": "evaluation\\controllers\\vissim_stackelberg_adapter.py",
+      "sha256": "e6af8fed5f98ef7b20d79d10454f86596d4ccddbd546c328699097de63001836"
+    }
+  },
+  "source_changes": [],
+  "proposal_test_archive": "diagnostics/objective_shared_pre_import_tests.zip",
+  "previous_attempt": {
+    "record": "diagnostics/objective_shared_production_validation_attempt1.json",
+    "cause": "test-only imported module name objective shadowed by a local loop variable; renamed loop variable score; production unchanged"
+  },
+  "proposal_modules_loaded": [],
+  "evidence": {
+    "actual_caller_seeds": [
+      {
+        "start_step": 180,
+        "dt_h": 0.001388888888888889,
+        "fw_steps": 2,
+        "delay_steps": 7,
+        "rows": [
+          [
+            "OR_F_E",
+            "OR_F_E_storage",
+            106.33277587591745,
+            4.0,
+            0.484,
+            []
+          ],
+          [
+            "OR_F_W",
+            "OR_F_W_storage",
+            96.05044217060451,
+            10.0,
+            0.484,
+            [
+              [
+                181,
+                10.0
+              ]
+            ]
+          ]
+        ]
+      },
+      {
+        "start_step": 180,
+        "dt_h": 0.001388888888888889,
+        "fw_steps": 2,
+        "delay_steps": 7,
+        "rows": [
+          [
+            "OR_F_E",
+            "OR_F_E_storage",
+            106.33277587591745,
+            4.0,
+            0.484,
+            []
+          ],
+          [
+            "OR_F_W",
+            "OR_F_W_storage",
+            96.05044217060451,
+            10.0,
+            0.484,
+            [
+              [
+                181,
+                10.0
+              ]
+            ]
+          ]
+        ]
+      },
+      {
+        "start_step": 180,
+        "dt_h": 0.001388888888888889,
+        "fw_steps": 2,
+        "delay_steps": 7,
+        "rows": [
+          [
+            "OR_F_E",
+            "OR_F_E_storage",
+            106.33277587591745,
+            4.0,
+            0.484,
+            []
+          ],
+          [
+            "OR_F_W",
+            "OR_F_W_storage",
+            96.05044217060451,
+            10.0,
+            0.484,
+            [
+              [
+                181,
+                10.0
+              ]
+            ]
+          ]
+        ]
+      }
+    ],
+    "actual_worker_on_off": [
+      {
+        "enabled": true,
+        "context_reset": true,
+        "result": [
+          23.001,
+          3.8058213887035994,
+          1,
+          557.4500695530548
+        ],
+        "seeds": [
+          {
+            "delay_steps": 7,
+            "dt_h": 0.001388888888888889,
+            "fw_steps": 2,
+            "rows": [
+              [
+                "OR_F_E",
+                "OR_F_E_storage",
+                106.33277587591745,
+                4.0,
+                0.484,
+                []
+              ],
+              [
+                "OR_F_W",
+                "OR_F_W_storage",
+                96.05044217060451,
+                10.0,
+                0.484,
+                [
+                  [
+                    181,
+                    10.0
+                  ]
+                ]
+              ]
+            ],
+            "start_step": 180
+          }
+        ]
+      },
+      {
+        "enabled": false,
+        "context_reset": true,
+        "result": [
+          23.001,
+          5.127612997867831,
+          1,
+          557.4500695530548
+        ],
+        "seeds": []
+      }
+    ],
+    "future_block": {
+      "trace": [
+        {
+          "service_step": 180,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 0.0,
+          "stock_after_landing_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {}
+          },
+          "landings": [],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 181,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 0.0,
+          "stock_after_landing_veh": {
+            "OR_F_W": 1.032,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032
+            }
+          },
+          "landings": [
+            {
+              "offramp": "OR_F_W",
+              "admission_step": 182,
+              "due_step": 189,
+              "gross_offered_veh": 2.0,
+              "direct_outside_local_OR_veh": 0.968,
+              "signal_offered_veh": 1.032,
+              "signal_accepted_veh": 1.032,
+              "signal_rejected_veh": 0.0
+            },
+            {
+              "offramp": "OR_F_E",
+              "admission_step": 182,
+              "due_step": 189,
+              "gross_offered_veh": 0.0,
+              "direct_outside_local_OR_veh": 0.0,
+              "signal_offered_veh": 0.0,
+              "signal_accepted_veh": 0.0,
+              "signal_rejected_veh": 0.0
+            }
+          ],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 182,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 1.032,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 1.032,
+          "stock_after_landing_veh": {
+            "OR_F_W": 1.032,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032
+            }
+          },
+          "landings": [],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 183,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 1.032,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 1.032,
+          "stock_after_landing_veh": {
+            "OR_F_W": 2.064,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032
+            }
+          },
+          "landings": [
+            {
+              "offramp": "OR_F_W",
+              "admission_step": 184,
+              "due_step": 191,
+              "gross_offered_veh": 2.0,
+              "direct_outside_local_OR_veh": 0.968,
+              "signal_offered_veh": 1.032,
+              "signal_accepted_veh": 1.032,
+              "signal_rejected_veh": 0.0
+            },
+            {
+              "offramp": "OR_F_E",
+              "admission_step": 184,
+              "due_step": 191,
+              "gross_offered_veh": 0.0,
+              "direct_outside_local_OR_veh": 0.0,
+              "signal_offered_veh": 0.0,
+              "signal_accepted_veh": 0.0,
+              "signal_rejected_veh": 0.0
+            }
+          ],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 184,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 2.064,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 2.064,
+          "stock_after_landing_veh": {
+            "OR_F_W": 2.064,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032
+            }
+          },
+          "landings": [],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 185,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 2.064,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 2.064,
+          "stock_after_landing_veh": {
+            "OR_F_W": 3.096,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032,
+              "193": 1.032
+            }
+          },
+          "landings": [
+            {
+              "offramp": "OR_F_W",
+              "admission_step": 186,
+              "due_step": 193,
+              "gross_offered_veh": 2.0,
+              "direct_outside_local_OR_veh": 0.968,
+              "signal_offered_veh": 1.032,
+              "signal_accepted_veh": 1.032,
+              "signal_rejected_veh": 0.0
+            },
+            {
+              "offramp": "OR_F_E",
+              "admission_step": 186,
+              "due_step": 193,
+              "gross_offered_veh": 0.0,
+              "direct_outside_local_OR_veh": 0.0,
+              "signal_offered_veh": 0.0,
+              "signal_accepted_veh": 0.0,
+              "signal_rejected_veh": 0.0
+            }
+          ],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 186,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 3.096,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 3.096,
+          "stock_after_landing_veh": {
+            "OR_F_W": 3.096,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032,
+              "193": 1.032
+            }
+          },
+          "landings": [],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 187,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 3.096,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 3.096,
+          "stock_after_landing_veh": {
+            "OR_F_W": 4.128,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032,
+              "193": 1.032,
+              "195": 1.032
+            }
+          },
+          "landings": [
+            {
+              "offramp": "OR_F_W",
+              "admission_step": 188,
+              "due_step": 195,
+              "gross_offered_veh": 2.0,
+              "direct_outside_local_OR_veh": 0.968,
+              "signal_offered_veh": 1.032,
+              "signal_accepted_veh": 1.032,
+              "signal_rejected_veh": 0.0
+            },
+            {
+              "offramp": "OR_F_E",
+              "admission_step": 188,
+              "due_step": 195,
+              "gross_offered_veh": 0.0,
+              "direct_outside_local_OR_veh": 0.0,
+              "signal_offered_veh": 0.0,
+              "signal_accepted_veh": 0.0,
+              "signal_rejected_veh": 0.0
+            }
+          ],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 188,
+          "eligible_veh": {
+            "OR_F_W": 0.0,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 4.128,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 4.128,
+          "stock_after_landing_veh": {
+            "OR_F_W": 4.128,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "189": 1.032,
+              "191": 1.032,
+              "193": 1.032,
+              "195": 1.032
+            }
+          },
+          "landings": [],
+          "stock_residual_veh": 0.0
+        },
+        {
+          "service_step": 189,
+          "eligible_veh": {
+            "OR_F_W": 1.032,
+            "OR_F_E": 0.0
+          },
+          "stock_before_veh": {
+            "OR_F_W": 4.128,
+            "OR_F_E": 0.0
+          },
+          "residence_off_stock_veh": 3.096,
+          "stock_after_landing_veh": {
+            "OR_F_W": 4.128,
+            "OR_F_E": 0.0
+          },
+          "pending": {
+            "OR_F_E": {},
+            "OR_F_W": {
+              "191": 1.032,
+              "193": 1.032,
+              "195": 1.032,
+              "197": 1.032
+            }
+          },
+          "landings": [
+            {
+              "offramp": "OR_F_W",
+              "admission_step": 190,
+              "due_step": 197,
+              "gross_offered_veh": 2.0,
+              "direct_outside_local_OR_veh": 0.968,
+              "signal_offered_veh": 1.032,
+              "signal_accepted_veh": 1.032,
+              "signal_rejected_veh": 0.0
+            },
+            {
+              "offramp": "OR_F_E",
+              "admission_step": 190,
+              "due_step": 197,
+              "gross_offered_veh": 0.0,
+              "direct_outside_local_OR_veh": 0.0,
+              "signal_offered_veh": 0.0,
+              "signal_accepted_veh": 0.0,
+              "signal_rejected_veh": 0.0
+            }
+          ],
+          "stock_residual_veh": 0.0
+        }
+      ],
+      "metrics": {
+        "signal_offered_veh": 5.16,
+        "signal_accepted_veh": 5.16,
+        "signal_rejected_veh": 0.0,
+        "overflow_blocks": 0.0,
+        "max_abs_stock_residual_veh": 0.0
+      },
+      "cost_veh_h": 0.02723333333333333
+    },
+    "rejection": {
+      "metrics": {
+        "signal_offered_veh": 1.032,
+        "signal_accepted_veh": 0.0,
+        "signal_rejected_veh": 1.032,
+        "overflow_blocks": 1.0,
+        "max_abs_stock_residual_veh": 0.0
+      },
+      "candidate_summary": {
+        "shared_service_ready_candidate_count": 1.0,
+        "shared_service_ready_overflow_candidate_count": 1.0,
+        "shared_service_ready_candidate_max_signal_offered_veh": 1.032,
+        "shared_service_ready_candidate_max_signal_accepted_veh": 0.0,
+        "shared_service_ready_candidate_max_signal_rejected_veh": 1.032,
+        "shared_service_ready_candidate_max_overflow_blocks": 1.0,
+        "shared_service_ready_candidate_max_max_abs_stock_residual_veh": 0.0
+      }
+    }
+  }
+}

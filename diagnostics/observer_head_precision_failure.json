@@ -1,0 +1,52 @@
+{
+  "before_source_sha256": "20aa4e780dc04a14d3b46d669dc5ede817536de724698765f3e296c13b4e93b1",
+  "before_actual_runtime_error": "Physical head identity/geometry does not match INPX",
+  "elapsed_sec": 0.2960000000020955,
+  "state_path": "evaluation/runs/codex_contract_observed_nc_s13_1050_20260910/decisions_codex_contract_observed_nc_s13_1050_20260910/state_000150.json",
+  "state_sha256": "e830f75f849a934f4044a86a5afdd42383e70bd7293a2dd3414aea5ec8a1421b",
+  "previous_sha256": "0ffe6bac02c50dcdd27844910280673eae32ce1ded19919f587cdefb32bb43f7",
+  "config_sha256": "e30ad98a2b8ea5e7265840a357a64f153373bdbd35791d4997beba4284499ecf",
+  "after_source_sha256": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f",
+  "after_actual_runtime_status": "PASS",
+  "after_elapsed_sec": 1.4680000000080327,
+  "raw_previous_config_bytes_unchanged": true,
+  "head_metadata": {
+    "head_observation_enabled": 1.0,
+    "head_observation_snapshot_sec": 150.0,
+    "head_observation_prior_discarded": 0.0,
+    "head_observation_groups_updated": 0.0,
+    "head_observation_groups_carried": 0.0,
+    "head_observation_missing_window": 0.0,
+    "head_observation_invalid_window": 0.0,
+    "head_observation_short_exposure": 34.0,
+    "head_observation_missing_crossings": 46.0,
+    "head_observation_unknown_link": 1.0,
+    "head_observation_no_model_members": 19.0,
+    "head_observation_waiting_second_window": 5.0
+  },
+  "regression": {
+    "status": "PASS",
+    "tests": 15,
+    "elapsed_sec": 3.633,
+    "command": "python -X utf8 -m unittest diagnostics.test_signal_head_precision diagnostics.test_signal_observation_window_patch -v",
+    "actual_vbs_serializer_all_heads": 235,
+    "actual_raw_rounding_mismatches_before_fix": 116,
+    "max_absolute_position_difference_m": 4.547473508864641e-12,
+    "identity_link_lane_sc_sg_differences": 0,
+    "strict_one_serialized_coordinate_unit_rejected": true,
+    "source_sha256_unchanged_after_tests": true,
+    "runtime_scope": "Canonical initial projection only; VBS tests use extracted serializer/fake COM, no VISSIM or MPC."
+  },
+  "portable_fixture": {
+    "path": "diagnostics/fixtures/observer_precision_failure_v1.zip",
+    "sha256": "4d883a8ab862c6c3e620b05b2abe1090113b95bd02474a5041b6adefb0f87e74",
+    "raw_members": [
+      "state_000150.json",
+      "action_000001.json",
+      "run_provenance.json",
+      "tuning.json"
+    ],
+    "original_bytes_preserved": true,
+    "test_relocation": "Only absolute path aliases in separate temporary copies; archived bytes unchanged."
+  }
+}

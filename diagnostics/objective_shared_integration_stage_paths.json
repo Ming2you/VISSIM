@@ -1,0 +1,26 @@
+{
+  "scope": "Explicit paths for this integration; parent owns staging. The adapter and route file now also include separately owned observer/calibration changes. Historical patch artifacts retain their prior owner stage lists.",
+  "production": [
+    "evaluation/controllers/area_leader_objective.py",
+    "evaluation/controllers/area_runtime.py",
+    "evaluation/controllers/vissim_stackelberg_adapter.py",
+    "evaluation/controllers/local_signal_service.py",
+    "evaluation/controllers/route_choice_corridor.py",
+    "evaluation/controllers/runtime_setup.py"
+  ],
+  "diagnostics": [
+    "diagnostics/test_area_leader_objective.py",
+    "diagnostics/test_shared_service_pool.py",
+    "diagnostics/objective_shared_pre_import_tests.zip",
+    "diagnostics/objective_shared_actual_import_plan.md",
+    "diagnostics/area_leader_objective_patch_handoff.md",
+    "diagnostics/shared_service_ready_handoff.md",
+    "diagnostics/objective_shared_production_validation.md",
+    "diagnostics/objective_shared_production_validation.json",
+    "diagnostics/objective_shared_production_validation.log",
+    "diagnostics/objective_shared_production_validation_attempt1.json",
+    "diagnostics/objective_shared_production_validation_attempt1.log",
+    "diagnostics/shared_service_ready_production_validation.json",
+    "diagnostics/objective_shared_integration_stage_paths.json"
+  ]
+}

@@ -17,6 +17,16 @@ def number(value):
     return value
 
 
+def serialized_head_position(value):
+    """Match VBS JsonDoubleInvariant's CStr(CDbl) 15-digit transport.
+
+    The collector pads trailing zeros; it cannot retain the INPX double's
+    additional binary precision. Canonicalize only the expected coordinate,
+    then compare exactly. This is not a geometric distance tolerance.
+    """
+    return float(format(number(value), ".15g"))
+
+
 def settings(section):
     """Configuration is the only switch; ON has explicit quality thresholds."""
     if not isinstance(section, dict) or type(section.get("enabled")) is not bool:
@@ -173,7 +183,8 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
             if row is None:
                 enough = False
                 break
-            if any(row.get(k) != v for k, v in head.items()):
+            if (any(row.get(k) != v for k, v in head.items() if k != "position_m")
+                    or number(row.get("position_m")) != serialized_head_position(head["position_m"])):
                 raise ValueError("Physical head identity/geometry does not match INPX")
             green = number(row["green_sec"])
             qualified = number(row["qualified_crossings"])
