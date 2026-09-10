@@ -1,0 +1,23 @@
+{
+  "schema": "source-run-comparison/v1",
+  "stock_cadence_sec": 30,
+  "decision_period_sec": 150,
+  "slow_episode": {
+    "minimum_count_veh": 5,
+    "speed_below_kph": 30,
+    "minimum_elapsed_between_samples_sec": 90,
+    "minimum_consecutive_samples": 4
+  },
+  "queue_onset": {
+    "minimum_stopped_count_veh": 10,
+    "minimum_elapsed_between_samples_sec": 300
+  },
+  "road_stock_integration": "Trapezoid over complete 30s observation grid; absent sparse positive rows are zero only at known observed timestamps.",
+  "speed": "Vehicle-weighted mean over positive-count snapshots; empty cells masked, never counted as stopped congestion.",
+  "connector_events": "Existing analyze_ramp_corridor.scan: ID departure from connector to any observed other link; unique direct source→target connector skips reported separately. Interior disappearance is not departure.",
+  "connector_blocks": "Existing 150s destination-observation timestamp bins [start,end); first and final censored blocks excluded. Event intervals touching a decision boundary retain up to one recording-step alignment uncertainty.",
+  "spillback": "Report physical connector stopped stock and simultaneous upstream road/cell queues. This association does not establish a continuous queue tail or causal spillback by itself.",
+  "upstream_propagation": "First sustained slow onset of cell i compared with downstream i+1; positive lag is temporal ordering, not identified causal shockwave speed.",
+  "actuation": "Actual action CSV against existing oracle plus complete one-second SG/ramp cadence; only the documented pair of identical immediate ramp rows at interval start is allowed. VSL requires both finite vehicle-class DSD readbacks and is not vehicle speed compliance.",
+  "omega": "Existing measure_control_area, native FZP-only phase. TTT is union stock residence; observed exits and terminal inference separate; internal disappearance never rewarded."
+}

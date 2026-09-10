@@ -6,7 +6,10 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
 import xml.etree.ElementTree as ET
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / '.review-deps'))
 
 
 def sha(path):

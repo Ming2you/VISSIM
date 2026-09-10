@@ -17,6 +17,8 @@ from diagnostics.audit_area_live_actuation import read_csv_prefix
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('report', type=Path)
+    parser.add_argument('--title', default='Predicted and observed congestion in E8/E9')
+    parser.add_argument('--speed-max', type=float, default=130.0)
     args = parser.parse_args()
     source = args.report.resolve()
     raw = source.read_bytes(); data = json.loads(raw)
@@ -51,9 +53,12 @@ def main():
             ax.grid(True,color='#e3e7eb');ax.spines[['top','right']].set_visible(False)
             ax.set_xticks(list(range(start,end+1,30)))
         axes[0,col].set_title(f'E{cell}  |  '+('4.108–4.622 km' if cell==8 else '4.622–5.135 km'),loc='left',weight='bold',pad=14)
-        axes[0,col].set_ylim(0,130)
+        speed_values = [float(r['speed_kph']) for r in pred] + [float(r['mean_speed_kph']) for r in physical]
+        if not args.speed_max > max(speed_values):
+            raise ValueError('Speed axis must include every plotted speed')
+        axes[0,col].set_ylim(0,args.speed_max)
         axes[1,col].set_xlabel('Simulation time (s)')
-    fig.suptitle("E8's predicted recovery does not occur",x=.08,y=.96,ha='left',fontsize=19,weight='bold')
+    fig.suptitle(args.title,x=.08,y=.96,ha='left',fontsize=19,weight='bold')
     fig.text(.08,.91,f'Actual command at {start} s held in the replay  |  seed 13  |  E9 contains diverge 10682',fontsize=11,color='#46515b')
     fig.legend(*axes[0,0].get_legend_handles_labels(),loc='upper right',bbox_to_anchor=(.96,.89),ncol=2,frameon=False)
     fig.text(.08,.05,'Same physical cell boundaries and paused observations. Model: 10 s; physical: 30 s samples. This is prediction error, not a capacity estimate.',fontsize=9.5)
@@ -64,7 +69,8 @@ def main():
         writer=csv.DictWriter(stream,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
     provenance={'report_sha256':hashlib.sha256(raw).hexdigest(),'cell_trace_sha256':hashlib.sha256(trace.read_bytes()).hexdigest(),
                 'observed_prefix':evidence,'producer_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                'values':len(rows),'qa':'Inspect the exported PNG before delivery.'}
+                'values':len(rows),'title':args.title,'speed_axis_max_kph':args.speed_max,
+                'qa':'Inspect the exported PNG before delivery.'}
     destination.with_name(destination.name+'_provenance.json').write_text(json.dumps(provenance,indent=2)+'\n',encoding='utf-8')
     print(str(destination.with_suffix('.png')))
 

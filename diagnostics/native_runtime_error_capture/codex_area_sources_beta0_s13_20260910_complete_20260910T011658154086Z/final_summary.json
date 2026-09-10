@@ -1,0 +1,148 @@
+{
+  "schema": "native-final-error-summary/v1",
+  "capture_path": "diagnostics/native_runtime_error_capture/codex_area_sources_beta0_s13_20260910_complete_20260910T011658154086Z",
+  "capture_sha256": "887af32d39dc70918aed903cdbb8c5e8b0b4cb54ff7a6748df092650617d6dc6",
+  "run": "codex_area_sources_beta0_s13_20260910",
+  "run_id": "329913b3a1a747948d4b5196242254c5",
+  "complete_runtime_bytes": true,
+  "complete_line_removal_parse_complete": true,
+  "runtime_unparsed_lines": 0,
+  "removal_count": 386,
+  "removal_count_by_membership": {
+    "outside": 205,
+    "inside": 181
+  },
+  "terminal_inside_removal_count": 0,
+  "removal_count_by_wait_sec": {
+    "45.0": 352,
+    "60.0": 34
+  },
+  "unfinished_input_demand": [
+    {
+      "input_no": "1098",
+      "remaining_vehicles": 1932,
+      "physical_source_link": "74",
+      "native_name": "경부_EB",
+      "source_inside_omega": true,
+      "role_record": {
+        "no": "1098",
+        "role": "freeway_feeder_input_candidate",
+        "link": "74",
+        "first_volume_vph": "3080.0",
+        "peak_volume_vph": "4620.0",
+        "time_interval_count": "6",
+        "name": "경부_EB"
+      },
+      "gate_record": {
+        "no": "1098",
+        "gate": "",
+        "status": "freeway_excluded",
+        "leg": "",
+        "leg_source": "",
+        "model_node": "SC1001",
+        "link": "74",
+        "entry_class": "freeway",
+        "role": "freeway_feeder_input_candidate",
+        "first_volume_vph": "3080.0000",
+        "peak_volume_vph": "4620.0000",
+        "name": "경부_EB"
+      },
+      "physical_class": "controlled_freeway",
+      "meaning": "Native end-of-run remaining input demand not inserted; not admitted stock, not vehicle deletion, not TTD. No inferred NC comparison."
+    },
+    {
+      "input_no": "1099",
+      "remaining_vehicles": 574,
+      "physical_source_link": "26",
+      "native_name": "경부_NB",
+      "source_inside_omega": true,
+      "role_record": {
+        "no": "1099",
+        "role": "freeway_mainline_input",
+        "link": "26",
+        "first_volume_vph": "3080.0",
+        "peak_volume_vph": "4620.0",
+        "time_interval_count": "6",
+        "name": "경부_NB"
+      },
+      "gate_record": {
+        "no": "1099",
+        "gate": "",
+        "status": "freeway_excluded",
+        "leg": "",
+        "leg_source": "",
+        "model_node": "SC1001",
+        "link": "26",
+        "entry_class": "freeway",
+        "role": "freeway_mainline_input",
+        "first_volume_vph": "3080.0000",
+        "peak_volume_vph": "4620.0000",
+        "name": "경부_NB"
+      },
+      "physical_class": "controlled_freeway",
+      "meaning": "Native end-of-run remaining input demand not inserted; not admitted stock, not vehicle deletion, not TTD. No inferred NC comparison."
+    },
+    {
+      "input_no": "1105",
+      "remaining_vehicles": 71,
+      "physical_source_link": "99",
+      "native_name": "",
+      "source_inside_omega": false,
+      "role_record": {
+        "no": "1105",
+        "role": "urban_input",
+        "link": "99",
+        "first_volume_vph": "566.16",
+        "peak_volume_vph": "849.24",
+        "time_interval_count": "6",
+        "name": ""
+      },
+      "gate_record": {
+        "no": "1105",
+        "gate": "in_SC2003_N",
+        "status": "mapped",
+        "leg": "N",
+        "leg_source": "link_geometry",
+        "model_node": "SC2003",
+        "link": "99",
+        "entry_class": "unnamed",
+        "role": "urban_input",
+        "first_volume_vph": "566.1600",
+        "peak_volume_vph": "849.2400",
+        "name": ""
+      },
+      "physical_class": "urban_outside_omega",
+      "meaning": "Native end-of-run remaining input demand not inserted; not admitted stock, not vehicle deletion, not TTD. No inferred NC comparison."
+    }
+  ],
+  "input_mapping_sources": {
+    "vehicle_input_roles": {
+      "path": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
+      "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+    },
+    "urban_input_gate_map": {
+      "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+      "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+    }
+  },
+  "dll_no_program_controllers": [
+    9101,
+    9102,
+    9103,
+    9104,
+    9105,
+    9106,
+    9107,
+    9108
+  ],
+  "native_run_association": {
+    "native_file_contains_run_id": false,
+    "runtime_mtime_not_before_run_created": true,
+    "first_warning_sim_sec": 36.0,
+    "last_warning_sim_sec": 5399.0,
+    "warning_time_not_beyond_latest_log": true,
+    "limitation": "Network/run manifest and times support association, but native ERR has no embedded run ID. This is not a cryptographic native-run binding."
+  },
+  "prior_native_nc_error_capture_available_for_comparison": false,
+  "production_measurement_change": false
+}

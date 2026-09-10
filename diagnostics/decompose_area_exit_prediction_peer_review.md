@@ -1,0 +1,26 @@
+# Exit attribution observer — independent read-only review
+
+Scope: code review only. No endpoint, MPC, VISSIM, or FZP execution; no production or running attribution output modified. Reviewed one held 3300→3450 diagnostic endpoint implementation. Its running result has not been independently executed or declared PASS by this review.
+
+No model-semantic mutation was found in the observer. `decompose_area_exit_prediction.py:58–70` reads the current ledger, calls the saved original `transfer` exactly once with unchanged arguments, records scalar differences into a separate defaultdict/Counter, and returns the original result. `Counter[missing_key]` returns zero without inserting a key; the `spatial_remap_exit_veh` reads therefore do not alter ledger flow_counts. A failed original call propagates before attribution. The context manager restores the class method even on failure.
+
+`ModelAreaLedger.transfer` (control_area_objective.py:243–299) returns before incrementing event_count on zero transfer or an identical explicit event retry. Gating attribution on an event_count change correctly excludes both. Native generation has inside source membership and contributes no fictitious boundary entry; remap TD is a component of the transfer's TD delta, and reporting it alongside total TD does not add it again.
+
+The current canonical endpoint creates a fresh zero-metric ledger from observed cohorts (area_runtime.py:194–201), deep-copies it for one rollout, and takes metrics from the closing state. Depth1 and box_walk=False do not invoke a follower search. State copies themselves do not emit transfers. This supports the intended single mutable transfer ledger for the current path. Initialization runs before the class patch. Positive TD/entries emitted by an accidental discarded ledger would normally break the existing nonnegative aggregate closure check.
+
+Three narrow improvements remain advisable before describing this as a general attribution verifier:
+
+1. **Close events and all components, and explicitly require one observed ledger.** Current lines82–84 close only TD and entered. An unexpected secondary ledger could emit only inside→inside transfers (TD=entry=0), polluting accepted_veh/events without failing those two checks. Keep strong references to observed ledgers, assert exactly one for this one-interval mode, assert sum(events)==closing.event_count, and assert sum(remap_exit_veh)==closing.flow_counts.get('spatial_remap_exit_veh',0). Where route names are unique ledger keys, compare each row's accepted_veh with its closing flow_count. Exclude separately named accounting counters such as spatial_remap/unresolved-route annotations from an all-keys comparison. Do not identify the mutable ledger with final state's `id`: the endpoint returns a copied state.
+2. **Bound the exact-identity claim to what is compared.** Lines79–81 compare TTT, TD, entered, event_count, and the entire flow_counts dictionary exactly. This is strong accounting identity, not an exact comparison of every final physical stock, speed, density, reservation, or command at each substep. The Markdown sentence at106 states the checked scope correctly. Either rename `endpoint_exact_audited_result` to `endpoint_accounting_exact_audited_result`, or additionally compare the final `stock_snapshot` with the audit's stored final snapshot and retain the earlier held-command trace contract. This is a reporting/coverage gap; no changed state was observed by reading this read-only wrapper.
+3. **Pin the cached audit and new producer at the start as well as the end.** The payload is read at39, but audit and producer hashes are first emitted at95–96. Neither is necessarily a member of the old audit's source_sha256_start map. If either file changes during the replay, the output can attach final bytes' SHA to earlier loaded payload/executed code. Read the audit bytes once, retain that hash, capture producer SHA before the endpoint, and compare both again before publishing. Existing source/input checks already protect the old audit's pinned model/config/state/action sources.
+
+The rows filter (TD>1e-10) omits numerical dust after the full attribution closure. Recording the filtered-out TD or asserting category-sum closure with a stated tolerance would make the displayed category total explicit. The physical pair table remains cached evidence from the audited interval; it is not passed to the model forecast. The stated limitation that model route categories are not physical exit-pair identities is appropriate.
+
+These recommendations require changes only in the new diagnostic observer. They do not justify changing production ledger semantics or rerunning a full MPC search.
+
+Reviewed source SHA256:
+
+- `diagnostics/decompose_area_exit_prediction.py`: `18256c7bb74f2120fd8839d93863bc7658b4b19d3a332640823c69728f86a341`
+- `evaluation/controllers/control_area_objective.py`: `811215017d6ce349c7ad261918f60067350c8c84338bd6b40a47544f10101f9b`
+- `evaluation/controllers/area_runtime.py`: `cbdbce6858f695f819602eede65588fbe6b5330c6d322346820fe8b0f02d5e81`
+- `vendor/NumSim-mine/src/controllers/rollout_endpoint.py`: `0981c291bf2018d40c97254256a935ec7b60a62059a4620da01cf537757f63bb`
