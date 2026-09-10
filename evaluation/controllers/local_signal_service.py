@@ -68,7 +68,9 @@ def configure(cfg, tuning):
         'group_of': {m: CONNECTOR for m in MEMBERS},
         'groups': {CONNECTOR: {'members': MEMBERS, 'signal': signal,
                               'phase': phase, 'receiver': receiver, 'service_veh_h': rate}}}
-    return {**install(cfg), 'local_shared_service_pool_groups': 1.,
+    from evaluation.controllers.head_service_resources import extend_local_pool
+    extend_local_pool(cfg)
+    return {**install(cfg), 'local_shared_service_pool_groups': float(len(view(cfg)['groups'])),
             'local_shared_service_pool_phase_refinement': 1.}
 
 

@@ -4264,7 +4264,8 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
     # Opt-in physical head/lane evidence. No link-exit or unexecuted-green fallback.
     if isinstance(section.get("head_observation"), Mapping) and section["head_observation"]["enabled"]:
         from evaluation.controllers.signal_head_observation import install
-        return install(cfg, state_json, previous_path, base_caps,
+        from evaluation.controllers.head_service_resources import observe
+        return observe(install, cfg, state_json, previous_path, base_caps,
                        load_signal_group_actuation_plan(),
                        _distribute_lane_group_capacity_to_movements, section["head_observation"])
 

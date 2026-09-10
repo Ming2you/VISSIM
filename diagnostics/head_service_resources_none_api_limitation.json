@@ -1,0 +1,20 @@
+{
+  "scope": "Canonical configure_runtime None API behavior; actual CLI previous default is empty string",
+  "cases": [
+    {
+      "head_on": false,
+      "success": false,
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'",
+      "traceback": "Traceback (most recent call last):\n  File \"<stdin>\", line 10, in <module>\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\test_head_service_resources.py\", line 57, in configured\n    state, detectors, metadata = runtime_setup.configure_runtime(\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\runtime_setup.py\", line 103, in configure_runtime\n    metadata.update(a.install_measured_movement_capacity(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py\", line 4110, in install_measured_movement_capacity\n    prev_doc = json.loads(Path(previous_path).read_text(encoding=\"utf-8\"))\n                          ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py\", line 1162, in __init__\n    super().__init__(*args)\n  File \"C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py\", line 373, in __init__\n    raise TypeError(\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'\n"
+    },
+    {
+      "head_on": true,
+      "success": false,
+      "type": "TypeError",
+      "message": "argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'",
+      "traceback": "Traceback (most recent call last):\n  File \"<stdin>\", line 10, in <module>\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\test_head_service_resources.py\", line 57, in configured\n    state, detectors, metadata = runtime_setup.configure_runtime(\n                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\runtime_setup.py\", line 103, in configure_runtime\n    metadata.update(a.install_measured_movement_capacity(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py\", line 4110, in install_measured_movement_capacity\n    prev_doc = json.loads(Path(previous_path).read_text(encoding=\"utf-8\"))\n                          ^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py\", line 1162, in __init__\n    super().__init__(*args)\n  File \"C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\pathlib.py\", line 373, in __init__\n    raise TypeError(\nTypeError: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'\n"
+    }
+  ],
+  "same_error": true
+}

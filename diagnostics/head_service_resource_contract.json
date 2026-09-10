@@ -1,0 +1,117 @@
+{
+  "schema": "physical-head-resource-join/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "resources": {
+    "10619": {
+      "group": "183|p3",
+      "heads": [
+        {
+          "head_id": "1070601",
+          "link": "183",
+          "lane": 1,
+          "position_m": 63.98146,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070602",
+          "link": "183",
+          "lane": 2,
+          "position_m": 63.942838,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070603",
+          "link": "183",
+          "lane": 3,
+          "position_m": 64.071871,
+          "sc": "107",
+          "sg": "6"
+        },
+        {
+          "head_id": "1070604",
+          "link": "183",
+          "lane": 4,
+          "position_m": 64.137704,
+          "sc": "107",
+          "sg": "6"
+        }
+      ],
+      "mode": "route_turn",
+      "members": {
+        "SC107_E_SC108_to_W_SC1005": {
+          "kind": "internal",
+          "signal": "SC107",
+          "phase": "SC107_p3",
+          "origin": "SC108_to_SC107",
+          "receiving_link": "SC107_W_choice"
+        }
+      },
+      "receiver": "SC107_W_choice",
+      "target_link": "1220000102",
+      "proof": {
+        "path": "diagnostics/route_choice_corridor_1128_ver2.json",
+        "sha256": "5ce589875e64cd8940d968084ca502aec62fdffb65c2c8ca819ed8cf3b0e5bf4"
+      }
+    },
+    "10629": {
+      "group": "52|p3",
+      "heads": [
+        {
+          "head_id": "90030884",
+          "link": "52",
+          "lane": 1,
+          "position_m": 463.38614254772256,
+          "sc": "1004",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030885",
+          "link": "52",
+          "lane": 2,
+          "position_m": 463.3108544496501,
+          "sc": "1004",
+          "sg": "6"
+        },
+        {
+          "head_id": "90030886",
+          "link": "52",
+          "lane": 3,
+          "position_m": 463.43271083205224,
+          "sc": "1004",
+          "sg": "6"
+        }
+      ],
+      "mode": "regular_pool",
+      "members": {
+        "SC1004_E_SC1005_to_W": {
+          "kind": "boundary_out",
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "origin": "SC1005_to_SC1004",
+          "receiving_link": "SC1004_W_out"
+        },
+        "SC1004_E_SC107_to_W": {
+          "kind": "boundary_out",
+          "signal": "SC1004",
+          "phase": "SC1004_p3",
+          "origin": "SC107_to_SC1004",
+          "receiving_link": "SC1004_W_out"
+        }
+      },
+      "receiver": "SC1004_W_out",
+      "target_link": "68",
+      "proof": {
+        "path": "diagnostics/dynamic_area_routes_ver2.json",
+        "sha256": "930b08a525492cac4d050b5034b9adb8f81c288a6a5e9620ec919619a9843515"
+      }
+    }
+  },
+  "scope": "Only exact physical head groups 183/SG6 ->10619 and52/SG6 ->10629; prior metadata seed-max values are never observed support.",
+  "rate_policy": "route_turn:max(existing_single_service, observed_only_support); regular_pool:only activate measured single budget when observed support exceeds the previous independent-member aggregate; otherwise record unapplied support and preserve legacy behavior",
+  "note": "Canonical physical resource join. The regular_pool activation comparison is an old model envelope, not an inferred physical capacity."
+}

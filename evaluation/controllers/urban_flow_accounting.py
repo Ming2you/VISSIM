@@ -177,6 +177,8 @@ def urban_substep_accounted(
     ramp_metering_shortfall_by_ramp: Dict[str, float] = {ramp: 0.0 for ramp in net.ramps}
     off_ramp_departures: Dict[str, float] = {r: 0.0 for r in net.off_ramps}
     step_idx = _uqm._urban_step_index(state, cfg) if urban_step_index is None else urban_step_index
+    from evaluation.controllers import head_service_resources
+    head_resource_context = head_service_resources.regular_context(cfg, control, step_idx)
     routing = _uqm.approach_routing(cfg)
     sink_links = _uqm.sink_storage_links(cfg)
     choice_storages = set(choice['capacity_veh']) if choice else set()
@@ -448,6 +450,7 @@ def urban_substep_accounted(
         if choice:
             from evaluation.controllers.route_choice_corridor import limit_intended_batch
             intended = limit_intended_batch(state, cfg, intended, step_idx)
+        intended = head_service_resources.regular_batch(cfg, intended, head_resource_context)
         # S_eff: 하류 링크 끝 점큐를 점유로 반영(spec §3.3.2, 397행) → backup 전파.
         available_space = _uqm._effective_available_space(state, cfg, storage_link)
         actual_departure.update(_uqm._allocate_receiving_counts(
@@ -462,6 +465,7 @@ def urban_substep_accounted(
         spec = specs[movement]
         before = state.urban_movement_queue.get(movement, 0.0)
         actual = min(before, departed)
+        head_service_resources.regular_accepted(movement, actual, head_resource_context)
         receiving_key = str(spec.get('receiving_link', ''))
         emit_transfer(state, cfg, 'movement:' + movement, 'storage:' + receiving_key if receiving_key in state.urban_link_storage else None, actual, route_key='movement:' + movement)
         total_departures_veh += actual

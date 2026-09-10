@@ -97,6 +97,9 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     # Observed capacity already contains the native simultaneous-green effect.
     metadata.update(a.install_native_signal_structure(cfg, tuning))
     metadata.update(signal_actuation_contract.configure(cfg, tuning, a.load_signal_group_actuation_plan()))
+    from evaluation.controllers import head_service_resources
+    metadata.update(head_service_resources.configure(
+        cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(a.install_measured_movement_capacity(
         cfg, tuning, state_json, previous_action_path))
     metadata.update(a.install_measured_far_reservoir_rates(
@@ -136,6 +139,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
             cfg, detector_mapping, state_json)
         metadata.update(choice_projection)
     from evaluation.controllers import local_signal_service
+    metadata.update(head_service_resources.finalize(cfg))
     metadata.update(local_signal_service.configure(cfg, tuning))
     if (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         if tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority'):
