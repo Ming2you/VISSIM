@@ -1,0 +1,3740 @@
+{
+  "schema": "observed-control-evidence-stage-plan/v1",
+  "base_commit": "e1a8114171308040b72759e2c14b85aa8e78c6f8",
+  "scope": "Read-only diagnostics, plots and review. Excludes pending implementation patches, runtime/config edits and live run files. Raw simulation inputs remain external at paths and hashes recorded in the individual reports.",
+  "stage_paths": [
+    ".gitattributes",
+    "diagnostics/audit_freeway_route_observability.py",
+    "diagnostics/audit_live_prediction_interval.py",
+    "diagnostics/audit_observed_nc_trajectory.py",
+    "diagnostics/audit_source_run_warmup.py",
+    "diagnostics/compare_source_run.py",
+    "diagnostics/freeway_route_interface_review.md",
+    "diagnostics/freeway_route_observability_actual900_final.json",
+    "diagnostics/live_beta0_interval_prediction.py",
+    "diagnostics/live_prediction_interval_handoff.md",
+    "diagnostics/live_prediction_interval_stage_paths.json",
+    "diagnostics/live_prediction_interval_stage_paths_900_1050.json",
+    "diagnostics/local_shared_service_contract_review.json",
+    "diagnostics/local_shared_service_contract_review.md",
+    "diagnostics/local_shared_service_contract_review.py",
+    "diagnostics/probe_total_offratio_sensitivity.py",
+    "diagnostics/render_live_prediction_cells.py",
+    "diagnostics/render_live_prediction_interval.py",
+    "diagnostics/render_source_lever_timeline.py",
+    "diagnostics/render_source_run_comparison.py",
+    "diagnostics/selected_signal_capacity_audit.csv",
+    "diagnostics/selected_signal_capacity_audit.json",
+    "diagnostics/selected_signal_capacity_audit.md",
+    "diagnostics/selected_signal_capacity_audit.py",
+    "diagnostics/selected_signal_sampling_audit.csv",
+    "diagnostics/selected_signal_sampling_audit.json",
+    "diagnostics/selected_signal_sampling_audit.md",
+    "diagnostics/selected_signal_sampling_audit.py",
+    "diagnostics/selected_signal_sampling_audit_heads.csv",
+    "diagnostics/signal_readback_cadence.py",
+    "diagnostics/source_interval_1200_1350.json",
+    "diagnostics/source_interval_1200_1350.md",
+    "diagnostics/source_interval_1200_1350_cell_trace.csv",
+    "diagnostics/source_interval_1200_1350_cells.csv",
+    "diagnostics/source_interval_1200_1350_local_cells.csv",
+    "diagnostics/source_interval_1200_1350_local_cells.png",
+    "diagnostics/source_interval_1200_1350_local_cells.svg",
+    "diagnostics/source_interval_1200_1350_local_cells_provenance.json",
+    "diagnostics/source_interval_1200_1350_local_cells_qa.json",
+    "diagnostics/source_interval_1200_1350_sources.csv",
+    "diagnostics/source_interval_900_1050.json",
+    "diagnostics/source_interval_900_1050.md",
+    "diagnostics/source_interval_900_1050_figure.csv",
+    "diagnostics/source_interval_900_1050_figure.png",
+    "diagnostics/source_interval_900_1050_figure.svg",
+    "diagnostics/source_interval_900_1050_figure_provenance.json",
+    "diagnostics/source_interval_900_1050_figure_qa.json",
+    "diagnostics/source_interval_900_1050_sources.csv",
+    "diagnostics/source_interval_cli_nc_final_validation.json",
+    "diagnostics/source_interval_cli_nc_final_validation.md",
+    "diagnostics/source_interval_cli_nc_final_validation_sources.csv",
+    "diagnostics/source_meter_shutdown_command_audit.json",
+    "diagnostics/source_meter_shutdown_command_audit.py",
+    "diagnostics/source_meter_shutdown_diagnosis.json",
+    "diagnostics/source_meter_shutdown_diagnosis.md",
+    "diagnostics/source_meter_shutdown_diagnosis.py",
+    "diagnostics/source_native_offratio_sensitivity_1200.json",
+    "diagnostics/source_native_offratio_sensitivity_1200.md",
+    "diagnostics/source_run_comparison_1500_fixed/cell_curves.csv",
+    "diagnostics/source_run_comparison_1500_fixed/command_changes.png",
+    "diagnostics/source_run_comparison_1500_fixed/command_changes.svg",
+    "diagnostics/source_run_comparison_1500_fixed/comparison.json",
+    "diagnostics/source_run_comparison_1500_fixed/comparison.md",
+    "diagnostics/source_run_comparison_1500_fixed/freeway_comparison.png",
+    "diagnostics/source_run_comparison_1500_fixed/freeway_comparison.svg",
+    "diagnostics/source_run_comparison_1500_fixed/measurement_contract.json",
+    "diagnostics/source_run_comparison_1500_fixed/plot_provenance.json",
+    "diagnostics/source_run_comparison_1500_fixed/queue_comparison.png",
+    "diagnostics/source_run_comparison_1500_fixed/queue_comparison.svg",
+    "diagnostics/source_run_comparison_1500_fixed/road_curves.csv",
+    "diagnostics/source_run_comparison_2550/cell_curves.csv",
+    "diagnostics/source_run_comparison_2550/command_changes.png",
+    "diagnostics/source_run_comparison_2550/command_changes.svg",
+    "diagnostics/source_run_comparison_2550/comparison.json",
+    "diagnostics/source_run_comparison_2550/comparison.md",
+    "diagnostics/source_run_comparison_2550/findings.md",
+    "diagnostics/source_run_comparison_2550/freeway_comparison.png",
+    "diagnostics/source_run_comparison_2550/freeway_comparison.svg",
+    "diagnostics/source_run_comparison_2550/lever_timeline.csv",
+    "diagnostics/source_run_comparison_2550/lever_timeline.png",
+    "diagnostics/source_run_comparison_2550/lever_timeline.svg",
+    "diagnostics/source_run_comparison_2550/lever_timeline_provenance.json",
+    "diagnostics/source_run_comparison_2550/lever_timeline_qa.json",
+    "diagnostics/source_run_comparison_2550/measurement_contract.json",
+    "diagnostics/source_run_comparison_2550/plot_provenance.json",
+    "diagnostics/source_run_comparison_2550/queue_comparison.png",
+    "diagnostics/source_run_comparison_2550/queue_comparison.svg",
+    "diagnostics/source_run_comparison_2550/road_curves.csv",
+    "diagnostics/source_run_comparison_handoff.md",
+    "diagnostics/source_run_warmup_equivalence.json",
+    "diagnostics/test_live_prediction_interval.py",
+    "diagnostics/test_selected_signal_sampling_audit.py",
+    "diagnostics/test_source_meter_shutdown_evidence.py",
+    "diagnostics/test_source_run_comparison.py",
+    "docs/REVIEW_20260910_control_diagnosis.md"
+  ],
+  "additional_untracked_import_dependencies": [
+    "diagnostics/audit_observed_nc_trajectory.py"
+  ],
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 22723,
+      "sha256": "804bfb17dc8afe03249fcfdd5fde4384482f5aa5009c752e99069cf8cd54bd41",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/audit_freeway_route_observability.py",
+      "bytes": 10593,
+      "sha256": "25359e7b25a6fab79a73bfe0ebbb2c92b625fafd7986beaf8e8b690beb45ca7d",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/audit_live_prediction_interval.py",
+      "bytes": 41261,
+      "sha256": "dc8225ee7f55b489231a77d984c78e5e80d2fcb0a2bdd20a26be0ceefbfc05df",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/audit_observed_nc_trajectory.py",
+      "bytes": 6465,
+      "sha256": "a69707b13cfd4ef38d62c9df20128e09ca4a0280db41e20c3e8bbbe48bf81d11",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/audit_source_run_warmup.py",
+      "bytes": 3735,
+      "sha256": "66547ee62f8cb128420230dd2882f4fd297e979c4dbcc63540b7bba282c5abe6",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/compare_source_run.py",
+      "bytes": 33750,
+      "sha256": "757498101c4a2b9627f85293e7c4545d3a163f75ef3efff7e7baf0a0deb55711",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/freeway_route_interface_review.md",
+      "bytes": 16220,
+      "sha256": "ebe839fee9e6756ee0585c1bfbc37c8924a7e02921190c72e5abd8008238583b",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/freeway_route_observability_actual900_final.json",
+      "bytes": 285951,
+      "sha256": "64c28a4dd4a39c41da674bdede8b7cbcc22538d38525648d46585214150310f9",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/live_beta0_interval_prediction.py",
+      "bytes": 32970,
+      "sha256": "904970539ec4353d9e1a26686fd677fdbe6c600d19d8e85fd4e095e3bfadaf3f",
+      "previous_plan_tracked": true
+    },
+    {
+      "path": "diagnostics/live_prediction_interval_handoff.md",
+      "bytes": 10204,
+      "sha256": "0e304ece73b5409abfb08b9ebf2ab0fdcdb4e0a4c4721d01a4c69d5ad037be51",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/live_prediction_interval_stage_paths.json",
+      "bytes": 347246,
+      "sha256": "00e668de3afda5ee37ea9805e4da8c9fad1feaca72d0547e02baeb415fd8ecda",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/live_prediction_interval_stage_paths_900_1050.json",
+      "bytes": 342966,
+      "sha256": "efe4c3f29d4f6503c42fd98ee1b938bb394bc1fd0dc3f9a307ff0aa4b419d6ac",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/local_shared_service_contract_review.json",
+      "bytes": 29957,
+      "sha256": "7b3e5e93c20c1949f3966983f393c55dde91a0e4d1d6a0f48ae100626ca66912",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/local_shared_service_contract_review.md",
+      "bytes": 11434,
+      "sha256": "93a2c0c575b7c6a9d0231faec568128ba115446d2912f0496b37077528ab98e2",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/local_shared_service_contract_review.py",
+      "bytes": 10352,
+      "sha256": "6fc9007cff25587db9450828c25e43c809f099e968a4db61d253bf16bf91c2bd",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/probe_total_offratio_sensitivity.py",
+      "bytes": 10473,
+      "sha256": "1d55757ca10a0479b511e343462e579e44611394e85ab96e8f970bc9938ba590",
+      "previous_plan_tracked": true
+    },
+    {
+      "path": "diagnostics/render_live_prediction_cells.py",
+      "bytes": 4699,
+      "sha256": "b97116426a0ad9518df87348271bf351d2eb3125e7aba2b8a0cf42310bbc43ec",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/render_live_prediction_interval.py",
+      "bytes": 5995,
+      "sha256": "ef4b59005914d3f36810d4a640f2976c73c38b1e8240cb191972d6add3febef5",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/render_source_lever_timeline.py",
+      "bytes": 6997,
+      "sha256": "fbbc1eb4177158a6b5bf2f2d9b2dd1092a37036f124aa4fd73ebd1838b9e5eea",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/render_source_run_comparison.py",
+      "bytes": 5612,
+      "sha256": "73e190ba6586f7833d232c69f91091d5b4f2184658c44b8da64680a76b869762",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_capacity_audit.csv",
+      "bytes": 43688,
+      "sha256": "5187c1f79bfcab33fedbff364760a56ace2989e94103941008d8eb3a538fa9ee",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_capacity_audit.json",
+      "bytes": 1467416,
+      "sha256": "1627c2f16ade7b122e5ef9d7147eec9eb93178fa9ea01cc6aeeaa578e2b3830c",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_capacity_audit.md",
+      "bytes": 14370,
+      "sha256": "d71a8e5c372e6b590a0a39cbf08cfdf789a223b90cde47e8f1447042f52ffb3e",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_capacity_audit.py",
+      "bytes": 21088,
+      "sha256": "e2bbabed843703de15b1d062d098203ebf582bd33c45bc7d895d650e7aa73c99",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_sampling_audit.csv",
+      "bytes": 5593,
+      "sha256": "e4674fba495b35ba1fe72431f98c3854282bd155343314341384d4e4cb50ffa6",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_sampling_audit.json",
+      "bytes": 430668,
+      "sha256": "54fb4a318000626f9e33fae01fc83499b34eb607408e7fb3e194effe5a3c80ee",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_sampling_audit.md",
+      "bytes": 8060,
+      "sha256": "4b6ca1ca0f9a5be144557576b105ad8177a00988ff71e42cf45a273251c5f5d8",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_sampling_audit.py",
+      "bytes": 26119,
+      "sha256": "732074c41beca933ec251c12efc5c7c12026ecc002c99bab9ff546c441fd9216",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/selected_signal_sampling_audit_heads.csv",
+      "bytes": 3534,
+      "sha256": "0e98e05cc7f93e9daab20407921e7f90db8695a7f60726962d51738e2eb1c091",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/signal_readback_cadence.py",
+      "bytes": 4832,
+      "sha256": "0ac29df03481b25bd36341196821113c8f322597c8f2142d6b3bf10f89dacab5",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350.json",
+      "bytes": 1273518,
+      "sha256": "bf8c5af0301134ca0adba4a588f630f48b9184ce2a7cc88694fc25f767ccf1b1",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350.md",
+      "bytes": 3887,
+      "sha256": "7c417169b8482b42943df45e0a3624775939386437891fb77011a314b9fd7d56",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_cell_trace.csv",
+      "bytes": 53915,
+      "sha256": "8281cf00f92053a8edcc181c4ff7a647bfb1b799cf71663aeda6b64177db439c",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_cells.csv",
+      "bytes": 17592,
+      "sha256": "60b46e977cf4481a0f00af2335d21b3c45282d926a3f1295e27a6e077df707b1",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_local_cells.csv",
+      "bytes": 4151,
+      "sha256": "0bd545169b7bbb79099d1edd3fb2b78320cd1faa1175fbfc1e8213b8e67d310e",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_local_cells.png",
+      "bytes": 183731,
+      "sha256": "4b390b8d90a220d1c41f6fa18df36fb34b92da2cc79f999c6fbd51c94b642db5",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_local_cells.svg",
+      "bytes": 42409,
+      "sha256": "d5f04445aed9cf31cd4e2dc465582c7d6d0c6ffa8508e7c1390ef7bcbf07eba5",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_local_cells_provenance.json",
+      "bytes": 802,
+      "sha256": "fabdc375a48f5f89a162b2d887b68a8122cd1028464a01b5316e4545f0563a22",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_local_cells_qa.json",
+      "bytes": 713,
+      "sha256": "9bc9526fdd981cade7742734474055cd2e457801409e44a30835f4860a0c58fd",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_1200_1350_sources.csv",
+      "bytes": 9580,
+      "sha256": "2e3c8c4246913dbe07e0e7370f8939e83bbae5f1f962d51cbaac95115fbd7e1f",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050.json",
+      "bytes": 1125305,
+      "sha256": "7c06e8f51943458652e2d0036fa6280e09c10ba70462d6bb45a92442ee65c4ed",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050.md",
+      "bytes": 2986,
+      "sha256": "92ae0bbb99def2608d16545c182c5f0af821f6e846dde7a0fcb2b467b85e6f9d",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_figure.csv",
+      "bytes": 1081,
+      "sha256": "50f1a3808389f8e5b117ca92c9158a05cc5d0830c145fae41293698a9540b92d",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_figure.png",
+      "bytes": 187038,
+      "sha256": "3aefb7b5402093e99580524270f710e5cdaecbf7b3111453463fd56645cec59b",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_figure.svg",
+      "bytes": 30573,
+      "sha256": "36dcd43c2a7192ea7834a8416d37b0e61d6df7a8a7e200110db0b2c7a9a96a7b",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_figure_provenance.json",
+      "bytes": 321,
+      "sha256": "0e4079d32e9cfc4b8140768aabf9360e7d34a7a097ae2e5989676daf093d35e5",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_figure_qa.json",
+      "bytes": 612,
+      "sha256": "52db65e4ca7af63a4b66cb803afc1b7903c7ba2c13bd719b8d043edc1fe1a768",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_900_1050_sources.csv",
+      "bytes": 9516,
+      "sha256": "c6d44bf95126b17a4c25d7eeb95cda68f621540da1807c0f41653fdf281e1adc",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_cli_nc_final_validation.json",
+      "bytes": 1080253,
+      "sha256": "012f0489db6f603d35bd905060e93c470db0bebff46e6ef73f036cf531265866",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_cli_nc_final_validation.md",
+      "bytes": 3016,
+      "sha256": "8859e6b2dbfd9dd65cbc3992a8daf49553f37e7839a4b35d25f7403687136096",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_interval_cli_nc_final_validation_sources.csv",
+      "bytes": 9498,
+      "sha256": "5e710009981b5c626f4becee9c81ec8cc87b08852e81565df7d34e9a79d33d06",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_meter_shutdown_command_audit.json",
+      "bytes": 56149,
+      "sha256": "a65dbf965ab596c6247009b51333352ae01cd014b436c8866711cfab375e6534",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_meter_shutdown_command_audit.py",
+      "bytes": 3221,
+      "sha256": "0b32bee9460b7d510feb6712144f346f6e498c28628d4fd0019cf8e54f6e0a92",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_meter_shutdown_diagnosis.json",
+      "bytes": 1970627,
+      "sha256": "1e80c9e698a944255e3e43d64fd06b3ea51a7191d9a72a85f25ac27205ef10c3",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_meter_shutdown_diagnosis.md",
+      "bytes": 17607,
+      "sha256": "32fd80e7621783f83c43712833130b6d67450e2a5a3511ec7304dc266634004e",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "bytes": 11433,
+      "sha256": "f62f5236f662a8c8b6f9476104ad05bbbd8658f23c896b35190e951dbe213c87",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_native_offratio_sensitivity_1200.json",
+      "bytes": 194009,
+      "sha256": "247d4f8430b4de489f7fb2d29bb808eff1ff7a948752ef54b2b64ad1ea65e072",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_native_offratio_sensitivity_1200.md",
+      "bytes": 3084,
+      "sha256": "514c549cf580e57e3381ff204f5dcd1ecc6e1307cf1bb1dd19e63268346974bf",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/cell_curves.csv",
+      "bytes": 76269,
+      "sha256": "e884a36b7e394cf467c9d629a5e72984e6d8dd03125d783c811de0cfc7bbba38",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/command_changes.png",
+      "bytes": 70159,
+      "sha256": "3d8a393e2cfef0f2f50c158f0a021ee16907050c03aaab858705c51261d19882",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/command_changes.svg",
+      "bytes": 60728,
+      "sha256": "763eee97fb20397174aa9423c583d6b70348e415611da02cde4c5404a09856a4",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/comparison.json",
+      "bytes": 561418,
+      "sha256": "82fa5cf368098425bdeece5baa6bff59e8acaa2a6b80bea5c651ef76728be393",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/comparison.md",
+      "bytes": 785,
+      "sha256": "4771614436d5759d476fbf5af8d942197e0be2bbea9cc3e1665f742553217e05",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/freeway_comparison.png",
+      "bytes": 112671,
+      "sha256": "5166071ce9ed970efe029e7609351732edc8ca04ad3dd718e08da9efee16f82c",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/freeway_comparison.svg",
+      "bytes": 104734,
+      "sha256": "a85e78ba32f69cc87beed278a9c40191239ae4af2ba29b727d26430ad55e4808",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/measurement_contract.json",
+      "bytes": 1955,
+      "sha256": "d5d06536edbb736948994694e9131c954168b15807e5219e1e048991691041c2",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/plot_provenance.json",
+      "bytes": 1439,
+      "sha256": "2824a256eaa0ed062cf7df3a17330cbee1219509d810b8c98104bf2118a21b00",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/queue_comparison.png",
+      "bytes": 228756,
+      "sha256": "ccefe36918c57a15354bf15e8e3f2a1d3fbe23a9efe02bb5c33f24d5591b3207",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/queue_comparison.svg",
+      "bytes": 110260,
+      "sha256": "9c1925786d4ff0c9f19317068ebef201af50e4dd3715fa4d559952d405535f11",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_1500_fixed/road_curves.csv",
+      "bytes": 21299,
+      "sha256": "a50971707cbe1dd035311b3d2847f80b439fc40c3aafb01028c50f906ffe3e9c",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/cell_curves.csv",
+      "bytes": 204051,
+      "sha256": "1f7a073cc85ad5e59466dad960053d7168246d9c8264e3ab92ad72e1c0375b6d",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/command_changes.png",
+      "bytes": 66344,
+      "sha256": "97fa0f3c7d430a2a503b759bfe1049246c6fe9d2bb484f2729a9faf8c08cede8",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/command_changes.svg",
+      "bytes": 65106,
+      "sha256": "87e7144f233c31f4a3dea981c05eb35476842d43071e51ff6ef4a7582732b9c9",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/comparison.json",
+      "bytes": 1295242,
+      "sha256": "25e3550f9c43df4bce32742729adc04a458fc8b18b5360cd9f889462ae43fc38",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/comparison.md",
+      "bytes": 785,
+      "sha256": "02e88410412bfc077be16b6167baa41095de5d410ff2bb292b1e4568ca824fa5",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/findings.md",
+      "bytes": 3135,
+      "sha256": "9c81531622e124d8aa2897b35775065ab07af40c23ebd7184a25cb192cb0ad79",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/freeway_comparison.png",
+      "bytes": 128028,
+      "sha256": "764cd0bef6f05c0dd1d7acabd87f63f7baabbce1b32b1021ac6d94cc2d049732",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/freeway_comparison.svg",
+      "bytes": 123828,
+      "sha256": "0c580ad9584a22dd396ed47498a82a864f3ea84bdb5916e26fbc2134524a38d6",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/lever_timeline.csv",
+      "bytes": 25625,
+      "sha256": "7783b59195f2f50d67e1651cc9aef73dd0e21c6db704310fbed3debae4e5ffb7",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/lever_timeline.png",
+      "bytes": 267766,
+      "sha256": "5669116736f3be57dca31441fbaaa3706cd15856789c157699a545871d1a1fd3",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/lever_timeline.svg",
+      "bytes": 136560,
+      "sha256": "d37bb09d75906dea22c1f289ceeab946a4e369342968fce0f594a3b34f3a024e",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/lever_timeline_provenance.json",
+      "bytes": 1185,
+      "sha256": "52bf5585ecccf5c44618d8e677a0902cb07fe1efe2ad70321715949e1d606a07",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/lever_timeline_qa.json",
+      "bytes": 658,
+      "sha256": "9e968eaf2da3ed4da4543cfe44b08d4ab6efaed74fa850623382a559b97e23ba",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/measurement_contract.json",
+      "bytes": 1955,
+      "sha256": "d5d06536edbb736948994694e9131c954168b15807e5219e1e048991691041c2",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/plot_provenance.json",
+      "bytes": 1421,
+      "sha256": "bbc5d6908b61213d197cae9a81d3335f85a1a23ebf906effbf00b3ef85ed5fee",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/queue_comparison.png",
+      "bytes": 261906,
+      "sha256": "8b5d970f6e4751b163fbdb9867926b48f096421bab18aeefaa26b5cc8003ef03",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/queue_comparison.svg",
+      "bytes": 117568,
+      "sha256": "986c641505076cd7dd4f46a91b5b5fdfa7f24af8cd25d1fc67e8aff65d15ff49",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_2550/road_curves.csv",
+      "bytes": 57254,
+      "sha256": "153aec85c2b12b9fbf04a9a2636b7ffd9e6d7fb801461b215195152f90c5f37d",
+      "previous_plan_tracked": null
+    },
+    {
+      "path": "diagnostics/source_run_comparison_handoff.md",
+      "bytes": 8752,
+      "sha256": "96ed0807f2a7c4b68a988dc430cfc9218c18752fc567a38e44af1fd72760e497",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/source_run_warmup_equivalence.json",
+      "bytes": 5174,
+      "sha256": "15296d35940a2c76c96dab668e48bd25fecdbe74ff15fdd723cff501204e394a",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/test_live_prediction_interval.py",
+      "bytes": 10719,
+      "sha256": "14b70e5196d8c732132c8950c049e6f035600bbbf9a074f8c02689924f714ed1",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/test_selected_signal_sampling_audit.py",
+      "bytes": 3807,
+      "sha256": "aebd7916796ee726a89c9fd391ac3c1b2c18cf4e9b84c34c27c220632728d944",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/test_source_meter_shutdown_evidence.py",
+      "bytes": 3165,
+      "sha256": "b9cc3b5c33d75649a6318ffd86d26a10bde5a24f69ed8edbbe7d40be6bd37dcc",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "diagnostics/test_source_run_comparison.py",
+      "bytes": 8715,
+      "sha256": "0be65ffb56eb8f465920cbc95cd6923a1f1b26bdc5b593a9e5a6d820d84a83ba",
+      "previous_plan_tracked": false
+    },
+    {
+      "path": "docs/REVIEW_20260910_control_diagnosis.md",
+      "bytes": 31444,
+      "sha256": "3f64944190c18c3329ffa2caba7c57d0749aeaea2a75625ab96cbc44de6a50c5",
+      "previous_plan_tracked": true
+    }
+  ],
+  "recursive_local_python_files": 100,
+  "import_edges": [
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 19,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 42,
+      "module": "evaluation.controllers.fixed_signal_schedule",
+      "target": "evaluation/controllers/fixed_signal_schedule.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 43,
+      "module": "plant.src.vissim_strict.signal_program",
+      "target": "plant/src/vissim_strict/signal_program.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 139,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 139,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 140,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_capacity_audit.py",
+      "line": 235,
+      "module": "evaluation.controllers.runtime_setup",
+      "target": "evaluation/controllers/runtime_setup.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 9,
+      "module": "evaluation.controllers.freeway_local_state",
+      "target": "evaluation/controllers/freeway_local_state.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 10,
+      "module": "evaluation.controllers.link_predictor",
+      "target": "evaluation/controllers/link_predictor.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 11,
+      "module": "evaluation.controllers.offramp_routing",
+      "target": "evaluation/controllers/offramp_routing.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 12,
+      "module": "evaluation.controllers.signal_actuation_contract",
+      "target": "evaluation/controllers/signal_actuation_contract.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 13,
+      "module": "evaluation.controllers.observation_projection",
+      "target": "evaluation/controllers/observation_projection.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 14,
+      "module": "evaluation.controllers.freeway_fd",
+      "target": "evaluation/controllers/freeway_fd.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 19,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 19,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 24,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 24,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 86,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 117,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 122,
+      "module": "evaluation.controllers.area_dynamic_routes",
+      "target": "evaluation/controllers/area_dynamic_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 127,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 130,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 144,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 150,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 154,
+      "module": "evaluation.controllers.sc2001_corridor",
+      "target": "evaluation/controllers/sc2001_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 167,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 170,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 174,
+      "module": "evaluation.controllers.sc2001_corridor",
+      "target": "evaluation/controllers/sc2001_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 174,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 178,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 178,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 182,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 182,
+      "module": "evaluation.controllers.native_input_routes",
+      "target": "evaluation/controllers/native_input_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 182,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 182,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 188,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 190,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 212,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 217,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 220,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 223,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "evaluation/controllers/runtime_setup.py",
+      "line": 140,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/physical_movement_routes.py",
+      "line": 19,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/physical_movement_routes.py",
+      "line": 20,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/physical_movement_routes.py",
+      "line": 27,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/physical_movement_routes.py",
+      "line": 27,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 13,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 14,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 15,
+      "module": "src.controllers.nash_solver",
+      "target": "vendor/NumSim-mine/src/controllers/nash_solver.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 16,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 17,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 18,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 51,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 100,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py",
+      "line": 63,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py",
+      "line": 20,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py",
+      "line": 21,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py",
+      "line": 175,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py",
+      "line": 318,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py",
+      "line": 406,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/simulation/coupling.py",
+      "line": 6,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/simulation/coupling.py",
+      "line": 7,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/simulation/coupling.py",
+      "line": 8,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/simulation/coupling.py",
+      "line": 9,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/nash_solver.py",
+      "line": 8,
+      "module": "src.controllers.freeway_follower",
+      "target": "vendor/NumSim-mine/src/controllers/freeway_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/nash_solver.py",
+      "line": 9,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/nash_solver.py",
+      "line": 10,
+      "module": "src.controllers.urban_follower",
+      "target": "vendor/NumSim-mine/src/controllers/urban_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/nash_solver.py",
+      "line": 11,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/nash_solver.py",
+      "line": 12,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 8,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 13,
+      "module": "src.controllers.inflow_outflow_allocation",
+      "target": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 19,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 20,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 21,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/urban_follower.py",
+      "line": 34,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/leader.py",
+      "line": 8,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/leader.py",
+      "line": 9,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/leader.py",
+      "line": 10,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/leader.py",
+      "line": 11,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py",
+      "line": 8,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py",
+      "line": 9,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py",
+      "line": 10,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py",
+      "line": 11,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py",
+      "line": 9,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 9,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 10,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 11,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 12,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 13,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/freeway_follower.py",
+      "line": 14,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 17,
+      "module": "src.controllers.freeway_follower",
+      "target": "vendor/NumSim-mine/src/controllers/freeway_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 18,
+      "module": "src.controllers.grid_parallel",
+      "target": "vendor/NumSim-mine/src/controllers/grid_parallel.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 19,
+      "module": "src.controllers.inflow_outflow_allocation",
+      "target": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 27,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 28,
+      "module": "src.controllers.nash_solver",
+      "target": "vendor/NumSim-mine/src/controllers/nash_solver.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 29,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 34,
+      "module": "src.controllers.simplified_inflow_outflow_allocation",
+      "target": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 37,
+      "module": "src.controllers.spillback_constraints",
+      "target": "vendor/NumSim-mine/src/controllers/spillback_constraints.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 42,
+      "module": "src.controllers.structured_grid",
+      "target": "vendor/NumSim-mine/src/controllers/structured_grid.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 48,
+      "module": "src.controllers.urban_follower",
+      "target": "vendor/NumSim-mine/src/controllers/urban_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 49,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 50,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 51,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 63,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py",
+      "line": 715,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/structured_grid.py",
+      "line": 8,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/spillback_constraints.py",
+      "line": 4,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/spillback_constraints.py",
+      "line": 5,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py",
+      "line": 7,
+      "module": "src.controllers.inflow_outflow_allocation",
+      "target": "vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py",
+      "line": 15,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py",
+      "line": 16,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py",
+      "line": 17,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py",
+      "line": 18,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/grid_parallel.py",
+      "line": 9,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 14,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 21,
+      "module": "evaluation.controllers.area_freeway_accounting",
+      "target": "evaluation/controllers/area_freeway_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 54,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 54,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 112,
+      "module": "evaluation.controllers.area_arrival_routes",
+      "target": "evaluation/controllers/area_arrival_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 177,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 177,
+      "module": "evaluation.controllers.area_freeway_accounting",
+      "target": "evaluation/controllers/area_freeway_accounting.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 180,
+      "module": "evaluation.controllers.area_follower_objective",
+      "target": "evaluation/controllers/area_follower_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 182,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 182,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 116,
+      "module": "evaluation.controllers.area_dynamic_routes",
+      "target": "evaluation/controllers/area_dynamic_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 157,
+      "module": "evaluation.controllers.sc2001_corridor",
+      "target": "evaluation/controllers/sc2001_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 160,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 163,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/area_runtime.py",
+      "line": 199,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "evaluation/controllers/area_meter_finalization.py",
+      "line": 96,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "evaluation/controllers/area_meter_finalization.py",
+      "line": 124,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 43,
+      "module": "evaluation.controllers.action_csv_schema",
+      "target": "evaluation/controllers/action_csv_schema.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 44,
+      "module": "evaluation.controllers.diagnostic_profile",
+      "target": "evaluation/controllers/diagnostic_profile.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 45,
+      "module": "evaluation.controllers.diagnostic_signal_profile",
+      "target": "evaluation/controllers/diagnostic_signal_profile.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 46,
+      "module": "evaluation.controllers.offset_promotion",
+      "target": "evaluation/controllers/offset_promotion.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 47,
+      "module": "evaluation.controllers.observation_projection",
+      "target": "evaluation/controllers/observation_projection.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 48,
+      "module": "evaluation.controllers.plant_cycle",
+      "target": "evaluation/controllers/plant_cycle.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 49,
+      "module": "evaluation.controllers.signal_group_plan",
+      "target": "evaluation/controllers/signal_group_plan.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 50,
+      "module": "evaluation.controllers.signal_actuation_contract",
+      "target": "evaluation/controllers/signal_actuation_contract.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 1659,
+      "module": "evaluation.controllers.fixed_signal_schedule",
+      "target": "evaluation/controllers/fixed_signal_schedule.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 1660,
+      "module": "evaluation.controllers.native_phase_green",
+      "target": "evaluation/controllers/native_phase_green.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 1827,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 1828,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 1833,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2116,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2214,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2500,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2501,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2502,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2742,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2889,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2889,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2907,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2907,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 3187,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 3187,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 3302,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 3302,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 4728,
+      "module": "evaluation.controllers.runtime_setup",
+      "target": "evaluation/controllers/runtime_setup.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 5357,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 5454,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 5455,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 5456,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 5630,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6468,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6468,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6599,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6599,
+      "module": "src.controllers.spillback_constraints",
+      "target": "vendor/NumSim-mine/src/controllers/spillback_constraints.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6647,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6648,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6649,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7015,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7200,
+      "module": "evaluation.controllers.area_follower_objective",
+      "target": "evaluation/controllers/area_follower_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7221,
+      "module": "src.controllers.f1_wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7336,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7380,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8076,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8321,
+      "module": "src.controllers.stackelberg_wu_metered",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8454,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8473,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8473,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8509,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8509,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8731,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8732,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 12306,
+      "module": "evaluation.controllers.runtime_setup",
+      "target": "evaluation/controllers/runtime_setup.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 964,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 964,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 965,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 965,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2335,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2413,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2832,
+      "module": "evaluation.parameters",
+      "target": "evaluation/parameters.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 4777,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6618,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7229,
+      "module": "src.controllers.biasedsample_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/biasedsample_mpc.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7364,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 7522,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9218,
+      "module": "evaluation.controllers.native_demand_forecast",
+      "target": "evaluation/controllers/native_demand_forecast.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9294,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9373,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9462,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9970,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 9970,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 10173,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 11155,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2348,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 2872,
+      "module": "evaluation.parameters",
+      "target": "evaluation/parameters.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6532,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 6532,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8700,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 8775,
+      "module": "src.controllers.local_freeway_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 12796,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 12666,
+      "module": "src.controllers.stackelberg_wu_metered",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 12696,
+      "module": "src.controllers.distributed_coordinator",
+      "target": "vendor/NumSim-mine/src/controllers/distributed_coordinator.py"
+    },
+    {
+      "source": "evaluation/controllers/vissim_stackelberg_adapter.py",
+      "line": 12712,
+      "module": "src.controllers.wu_distributed",
+      "target": "vendor/NumSim-mine/src/controllers/wu_distributed.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 10,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 11,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 17,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 18,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 31,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_distributed.py",
+      "line": 838,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 111,
+      "module": "src.controllers.stackelberg_mpc",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_mpc.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 116,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 121,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 122,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 123,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py",
+      "line": 131,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 28,
+      "module": "src.controllers.local_freeway_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 32,
+      "module": "src.controllers.segment_local_plant",
+      "target": "vendor/NumSim-mine/src/controllers/segment_local_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 39,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 45,
+      "module": "src.controllers.nash_solver",
+      "target": "vendor/NumSim-mine/src/controllers/nash_solver.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 46,
+      "module": "src.controllers.relaxed_quantization",
+      "target": "vendor/NumSim-mine/src/controllers/relaxed_quantization.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 51,
+      "module": "src.controllers.wu_distributed",
+      "target": "vendor/NumSim-mine/src/controllers/wu_distributed.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 52,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 53,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 67,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 80,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 558,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 4833,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py",
+      "line": 2229,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/local_signal_plant.py",
+      "line": 18,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/local_signal_plant.py",
+      "line": 19,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/segment_local_plant.py",
+      "line": 29,
+      "module": "src.controllers.local_freeway_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/segment_local_plant.py",
+      "line": 34,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/segment_local_plant.py",
+      "line": 409,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py",
+      "line": 30,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py",
+      "line": 41,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/native_demand_forecast.py",
+      "line": 12,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 18,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 19,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 20,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 21,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 151,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 181,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 213,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 213,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 291,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 291,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/shared_approach.py",
+      "line": 252,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 18,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 19,
+      "module": "evaluation.controllers.vehicle_routes",
+      "target": "evaluation/controllers/vehicle_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 20,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 21,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 22,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 510,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 626,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 626,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 673,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 673,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 743,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 743,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 53,
+      "module": "plant.src.vissim_strict.signal_program",
+      "target": "plant/src/vissim_strict/signal_program.py"
+    },
+    {
+      "source": "evaluation/controllers/route_choice_corridor.py",
+      "line": 784,
+      "module": "evaluation.controllers.fixed_signal_schedule",
+      "target": "evaluation/controllers/fixed_signal_schedule.py"
+    },
+    {
+      "source": "evaluation/controllers/fixed_signal_schedule.py",
+      "line": 11,
+      "module": "plant.src.vissim_strict.signal_program",
+      "target": "plant/src/vissim_strict/signal_program.py"
+    },
+    {
+      "source": "evaluation/controllers/vehicle_routes.py",
+      "line": 4,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/projection_support.py",
+      "line": 11,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/projection_support.py",
+      "line": 249,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/projection_support.py",
+      "line": 270,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 17,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 18,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 19,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 20,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 61,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 567,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 567,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 513,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 513,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 342,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 355,
+      "module": "evaluation.controllers.native_input_routes",
+      "target": "evaluation/controllers/native_input_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 357,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 581,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 586,
+      "module": "evaluation.controllers.native_input_routes",
+      "target": "evaluation/controllers/native_input_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/native_internal_input.py",
+      "line": 591,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 13,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 14,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 20,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 21,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 24,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 117,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 179,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 179,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 237,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_prehead.py",
+      "line": 237,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 12,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 13,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 19,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 20,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 114,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 115,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 175,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 176,
+      "module": "plant.src.vissim_strict.signal_program",
+      "target": "plant/src/vissim_strict/signal_program.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 182,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 183,
+      "module": "evaluation.controllers.fixed_signal_schedule",
+      "target": "evaluation/controllers/fixed_signal_schedule.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 209,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 209,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 296,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 296,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 342,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/native_input_routes.py",
+      "line": 342,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/biasedsample_mpc.py",
+      "line": 18,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 58,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 59,
+      "module": "src.controllers.stackelberg_wu_metered",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 65,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 66,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 67,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 68,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py",
+      "line": 79,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 20,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 21,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 25,
+      "module": "src.controllers.local_freeway_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 26,
+      "module": "src.controllers.stackelberg_wu_metered",
+      "target": "vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 27,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 28,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 29,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py",
+      "line": 30,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 21,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 139,
+      "module": "evaluation.controllers.signal_actuation_contract",
+      "target": "evaluation/controllers/signal_actuation_contract.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 151,
+      "module": "src.controllers.priced_wu_link_controller",
+      "target": "vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 32,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 34,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "evaluation/controllers/area_follower_objective.py",
+      "line": 127,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 13,
+      "module": "evaluation.controllers.offset_promotion",
+      "target": "evaluation/controllers/offset_promotion.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 13,
+      "module": "evaluation.controllers.plant_cycle",
+      "target": "evaluation/controllers/plant_cycle.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 13,
+      "module": "evaluation.controllers.signal_group_plan",
+      "target": "evaluation/controllers/signal_group_plan.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 38,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 241,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 241,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 263,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 263,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_actuation_contract.py",
+      "line": 312,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/plant_cycle.py",
+      "line": 68,
+      "module": "evaluation.controllers.signal_group_plan",
+      "target": "evaluation/controllers/signal_group_plan.py"
+    },
+    {
+      "source": "evaluation/controllers/offset_promotion.py",
+      "line": 42,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "evaluation/controllers/signal_timing_oracle.py",
+      "line": 40,
+      "module": "evaluation.controllers.action_csv_schema",
+      "target": "evaluation/controllers/action_csv_schema.py"
+    },
+    {
+      "source": "evaluation/controllers/action_csv_schema.py",
+      "line": 67,
+      "module": "evaluation.controllers.signal_group_plan",
+      "target": "evaluation/controllers/signal_group_plan.py"
+    },
+    {
+      "source": "evaluation/controllers/observation_projection.py",
+      "line": 207,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/observation_projection.py",
+      "line": 207,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/observation_projection.py",
+      "line": 208,
+      "module": "evaluation.controllers.link_predictor",
+      "target": "evaluation/controllers/link_predictor.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 237,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 266,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 266,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 162,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 180,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/link_predictor.py",
+      "line": 329,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/diagnostic_signal_profile.py",
+      "line": 9,
+      "module": "evaluation.controllers.diagnostic_profile",
+      "target": "evaluation/controllers/diagnostic_profile.py"
+    },
+    {
+      "source": "evaluation/controllers/diagnostic_signal_profile.py",
+      "line": 9,
+      "module": "evaluation.controllers.offset_promotion",
+      "target": "evaluation/controllers/offset_promotion.py"
+    },
+    {
+      "source": "evaluation/controllers/diagnostic_signal_profile.py",
+      "line": 9,
+      "module": "evaluation.controllers.plant_cycle",
+      "target": "evaluation/controllers/plant_cycle.py"
+    },
+    {
+      "source": "evaluation/controllers/diagnostic_signal_profile.py",
+      "line": 9,
+      "module": "evaluation.controllers.signal_group_plan",
+      "target": "evaluation/controllers/signal_group_plan.py"
+    },
+    {
+      "source": "evaluation/controllers/sc2001_corridor.py",
+      "line": 15,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/sc2001_corridor.py",
+      "line": 16,
+      "module": "evaluation.controllers.projection_support",
+      "target": "evaluation/controllers/projection_support.py"
+    },
+    {
+      "source": "evaluation/controllers/sc2001_corridor.py",
+      "line": 17,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/sc2001_corridor.py",
+      "line": 18,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/sc2001_corridor.py",
+      "line": 203,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/area_dynamic_routes.py",
+      "line": 11,
+      "module": "evaluation.controllers.physical_movement_routes",
+      "target": "evaluation/controllers/physical_movement_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/area_dynamic_routes.py",
+      "line": 13,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/area_dynamic_routes.py",
+      "line": 14,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 14,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 14,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 15,
+      "module": "src.simulation",
+      "target": "vendor/NumSim-mine/src/simulation/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 15,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 16,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/area_freeway_accounting.py",
+      "line": 325,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 9,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 9,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 10,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 11,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 12,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 18,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 20,
+      "module": "evaluation.controllers.native_input_routes",
+      "target": "evaluation/controllers/native_input_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 24,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 28,
+      "module": "evaluation.controllers.sc2001_corridor",
+      "target": "evaluation/controllers/sc2001_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 35,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 40,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 136,
+      "module": "evaluation.controllers.native_input_routes",
+      "target": "evaluation/controllers/native_input_routes.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 138,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 143,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 147,
+      "module": "evaluation.controllers.shared_approach",
+      "target": "evaluation/controllers/shared_approach.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 187,
+      "module": "evaluation.controllers.sc2001_corridor",
+      "target": "evaluation/controllers/sc2001_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 198,
+      "module": "evaluation.controllers.native_internal_input",
+      "target": "evaluation/controllers/native_internal_input.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 493,
+      "module": "evaluation.controllers.native_input_prehead",
+      "target": "evaluation/controllers/native_input_prehead.py"
+    },
+    {
+      "source": "evaluation/controllers/urban_flow_accounting.py",
+      "line": 449,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "evaluation/controllers/area_arrival_routes.py",
+      "line": 15,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "evaluation/controllers/freeway_fd.py",
+      "line": 105,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "evaluation/controllers/freeway_fd.py",
+      "line": 105,
+      "module": "src.models.metanet",
+      "target": "vendor/NumSim-mine/src/models/metanet.py"
+    },
+    {
+      "source": "evaluation/controllers/freeway_fd.py",
+      "line": 105,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "evaluation/controllers/offramp_routing.py",
+      "line": 16,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "evaluation/controllers/freeway_local_state.py",
+      "line": 26,
+      "module": "src.controllers.local_freeway_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_freeway_plant.py"
+    },
+    {
+      "source": "evaluation/controllers/freeway_local_state.py",
+      "line": 27,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 14,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 15,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 52,
+      "module": "evaluation.controllers.route_choice_corridor",
+      "target": "evaluation/controllers/route_choice_corridor.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 90,
+      "module": "evaluation.controllers.runtime_setup",
+      "target": "evaluation/controllers/runtime_setup.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 166,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "diagnostics/probe_model_area_integration.py",
+      "line": 62,
+      "module": "diagnostics.review_fixtures",
+      "target": "diagnostics/review_fixtures.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_sampling_audit.py",
+      "line": 18,
+      "module": "diagnostics.probe_e8_lane_receiving",
+      "target": "diagnostics/probe_e8_lane_receiving.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_sampling_audit.py",
+      "line": 19,
+      "module": "diagnostics.probe_e8_window_passages",
+      "target": "diagnostics/probe_e8_window_passages.py"
+    },
+    {
+      "source": "diagnostics/selected_signal_sampling_audit.py",
+      "line": 20,
+      "module": "diagnostics.audit_sc15_source_discharge",
+      "target": "diagnostics/audit_sc15_source_discharge.py"
+    },
+    {
+      "source": "diagnostics/audit_sc15_source_discharge.py",
+      "line": 10,
+      "module": "plant.src.vissim_strict.signal_program",
+      "target": "plant/src/vissim_strict/signal_program.py"
+    },
+    {
+      "source": "diagnostics/audit_sc15_source_discharge.py",
+      "line": 11,
+      "module": "evaluation.controllers.fixed_signal_schedule",
+      "target": "evaluation/controllers/fixed_signal_schedule.py"
+    },
+    {
+      "source": "diagnostics/probe_e8_window_passages.py",
+      "line": 15,
+      "module": "diagnostics.probe_e8_lane_receiving",
+      "target": "diagnostics/probe_e8_lane_receiving.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 12,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 13,
+      "module": "src.models",
+      "target": "vendor/NumSim-mine/src/models/__init__.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 13,
+      "module": "src.models.urban_queue_model",
+      "target": "vendor/NumSim-mine/src/models/urban_queue_model.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 14,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 14,
+      "module": "src.controllers.local_signal_plant",
+      "target": "vendor/NumSim-mine/src/controllers/local_signal_plant.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 15,
+      "module": "src.controllers.wu_faithful_follower",
+      "target": "vendor/NumSim-mine/src/controllers/wu_faithful_follower.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 16,
+      "module": "evaluation.controllers.urban_flow_accounting",
+      "target": "evaluation/controllers/urban_flow_accounting.py"
+    },
+    {
+      "source": "diagnostics/local_shared_service_contract_review.py",
+      "line": 17,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 18,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 19,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 19,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 20,
+      "module": "evaluation.controllers.area_freeway_accounting",
+      "target": "evaluation/controllers/area_freeway_accounting.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 21,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 22,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 23,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 24,
+      "module": "src.simulation",
+      "target": "vendor/NumSim-mine/src/simulation/__init__.py"
+    },
+    {
+      "source": "diagnostics/probe_total_offratio_sensitivity.py",
+      "line": 24,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "diagnostics/signal_readback_cadence.py",
+      "line": 5,
+      "module": "diagnostics.live_beta0_first_interval_audit",
+      "target": "diagnostics/live_beta0_first_interval_audit.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_first_interval_audit.py",
+      "line": 14,
+      "module": "diagnostics.run_area_production_preflight",
+      "target": "diagnostics/run_area_production_preflight.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_first_interval_audit.py",
+      "line": 15,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 10,
+      "module": "diagnostics.audit_live_prediction_interval",
+      "target": "diagnostics/audit_live_prediction_interval.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 11,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 12,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 12,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 12,
+      "module": "evaluation.controllers.area_meter_finalization",
+      "target": "evaluation/controllers/area_meter_finalization.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 13,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 13,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 14,
+      "module": "src.controllers.leader",
+      "target": "vendor/NumSim-mine/src/controllers/leader.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 15,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 16,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 17,
+      "module": "src.simulation",
+      "target": "vendor/NumSim-mine/src/simulation/__init__.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_diagnosis.py",
+      "line": 17,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 25,
+      "module": "diagnostics.live_beta0_interval_prediction",
+      "target": "diagnostics/live_beta0_interval_prediction.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 26,
+      "module": "diagnostics.live_beta0_first_interval_audit",
+      "target": "diagnostics/live_beta0_first_interval_audit.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 27,
+      "module": "diagnostics.signal_readback_cadence",
+      "target": "diagnostics/signal_readback_cadence.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 28,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 29,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 29,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 30,
+      "module": "evaluation.controllers.area_freeway_accounting",
+      "target": "evaluation/controllers/area_freeway_accounting.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 31,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 32,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 33,
+      "module": "scripts.measure_control_area",
+      "target": "scripts/measure_control_area.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 34,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 34,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 35,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 36,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 37,
+      "module": "src.simulation",
+      "target": "vendor/NumSim-mine/src/simulation/__init__.py"
+    },
+    {
+      "source": "diagnostics/audit_live_prediction_interval.py",
+      "line": 37,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "scripts/measure_control_area.py",
+      "line": 23,
+      "module": "evaluation.controllers.control_area_objective",
+      "target": "evaluation/controllers/control_area_objective.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 21,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 22,
+      "module": "diagnostics.probe_e8_lane_receiving",
+      "target": "diagnostics/probe_e8_lane_receiving.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 23,
+      "module": "diagnostics.probe_e8_window_passages",
+      "target": "diagnostics/probe_e8_window_passages.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 24,
+      "module": "scripts.measure_control_area",
+      "target": "scripts/measure_control_area.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 25,
+      "module": "evaluation.controllers.vissim_stackelberg_adapter",
+      "target": "evaluation/controllers/vissim_stackelberg_adapter.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 25,
+      "module": "evaluation.controllers.area_runtime",
+      "target": "evaluation/controllers/area_runtime.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 26,
+      "module": "evaluation.controllers.area_freeway_accounting",
+      "target": "evaluation/controllers/area_freeway_accounting.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 27,
+      "module": "src.models.demand",
+      "target": "vendor/NumSim-mine/src/models/demand.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 28,
+      "module": "src.models.state",
+      "target": "vendor/NumSim-mine/src/models/state.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 29,
+      "module": "src.controllers",
+      "target": "vendor/NumSim-mine/src/controllers/__init__.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 29,
+      "module": "src.controllers.rollout_endpoint",
+      "target": "vendor/NumSim-mine/src/controllers/rollout_endpoint.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 30,
+      "module": "src.simulation",
+      "target": "vendor/NumSim-mine/src/simulation/__init__.py"
+    },
+    {
+      "source": "diagnostics/live_beta0_interval_prediction.py",
+      "line": 30,
+      "module": "src.simulation.coupling",
+      "target": "vendor/NumSim-mine/src/simulation/coupling.py"
+    },
+    {
+      "source": "diagnostics/test_source_run_comparison.py",
+      "line": 4,
+      "module": "diagnostics.live_beta0_first_interval_audit",
+      "target": "diagnostics/live_beta0_first_interval_audit.py"
+    },
+    {
+      "source": "diagnostics/test_source_run_comparison.py",
+      "line": 5,
+      "module": "diagnostics.compare_source_run",
+      "target": "diagnostics/compare_source_run.py"
+    },
+    {
+      "source": "diagnostics/test_source_run_comparison.py",
+      "line": 9,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 13,
+      "module": "diagnostics.audit_observed_nc_trajectory",
+      "target": "diagnostics/audit_observed_nc_trajectory.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 14,
+      "module": "diagnostics.compare_spatial_levers",
+      "target": "diagnostics/compare_spatial_levers.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 15,
+      "module": "diagnostics.audit_area_live_actuation",
+      "target": "diagnostics/audit_area_live_actuation.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 16,
+      "module": "diagnostics.signal_readback_cadence",
+      "target": "diagnostics/signal_readback_cadence.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 17,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 138,
+      "module": "scripts.analyze_control_run",
+      "target": "scripts/analyze_control_run.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 241,
+      "module": "scripts.measure_control_area",
+      "target": "scripts/measure_control_area.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 243,
+      "module": "scripts.analyze_ramp_corridor",
+      "target": "scripts/analyze_ramp_corridor.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 303,
+      "module": "diagnostics.probe_e8_lane_receiving",
+      "target": "diagnostics/probe_e8_lane_receiving.py"
+    },
+    {
+      "source": "diagnostics/compare_source_run.py",
+      "line": 304,
+      "module": "diagnostics.probe_e8_window_passages",
+      "target": "diagnostics/probe_e8_window_passages.py"
+    },
+    {
+      "source": "diagnostics/audit_area_live_actuation.py",
+      "line": 20,
+      "module": "diagnostics.live_beta0_first_interval_audit",
+      "target": "diagnostics/live_beta0_first_interval_audit.py"
+    },
+    {
+      "source": "diagnostics/audit_area_live_actuation.py",
+      "line": 21,
+      "module": "diagnostics.run_area_production_preflight",
+      "target": "diagnostics/run_area_production_preflight.py"
+    },
+    {
+      "source": "diagnostics/audit_area_live_actuation.py",
+      "line": 22,
+      "module": "evaluation.controllers.signal_timing_oracle",
+      "target": "evaluation/controllers/signal_timing_oracle.py"
+    },
+    {
+      "source": "diagnostics/render_live_prediction_cells.py",
+      "line": 14,
+      "module": "diagnostics.audit_area_live_actuation",
+      "target": "diagnostics/audit_area_live_actuation.py"
+    },
+    {
+      "source": "diagnostics/audit_freeway_route_observability.py",
+      "line": 7,
+      "module": "evaluation.controllers.vehicle_routes",
+      "target": "evaluation/controllers/vehicle_routes.py"
+    },
+    {
+      "source": "diagnostics/audit_freeway_route_observability.py",
+      "line": 8,
+      "module": "evaluation.controllers.network_provenance",
+      "target": "evaluation/controllers/network_provenance.py"
+    },
+    {
+      "source": "diagnostics/test_live_prediction_interval.py",
+      "line": 8,
+      "module": "diagnostics.audit_live_prediction_interval",
+      "target": "diagnostics/audit_live_prediction_interval.py"
+    },
+    {
+      "source": "diagnostics/test_live_prediction_interval.py",
+      "line": 13,
+      "module": "diagnostics.signal_readback_cadence",
+      "target": "diagnostics/signal_readback_cadence.py"
+    },
+    {
+      "source": "diagnostics/test_selected_signal_sampling_audit.py",
+      "line": 4,
+      "module": "diagnostics.selected_signal_sampling_audit",
+      "target": "diagnostics/selected_signal_sampling_audit.py"
+    },
+    {
+      "source": "diagnostics/audit_source_run_warmup.py",
+      "line": 8,
+      "module": "diagnostics.audit_area_live_actuation",
+      "target": "diagnostics/audit_area_live_actuation.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_command_audit.py",
+      "line": 3,
+      "module": "diagnostics.source_meter_shutdown_diagnosis",
+      "target": "diagnostics/source_meter_shutdown_diagnosis.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_command_audit.py",
+      "line": 4,
+      "module": "diagnostics.audit_live_prediction_interval",
+      "target": "diagnostics/audit_live_prediction_interval.py"
+    },
+    {
+      "source": "diagnostics/source_meter_shutdown_command_audit.py",
+      "line": 5,
+      "module": "diagnostics.probe_model_area_integration",
+      "target": "diagnostics/probe_model_area_integration.py"
+    }
+  ],
+  "limits": "AST import closure does not identify arbitrary computed imports or dynamic data dependencies. Individual run source manifests and provenance retain those inputs.",
+  "focused_validation": {
+    "command": "python -X utf8 -m unittest diagnostics.test_live_prediction_interval diagnostics.test_selected_signal_sampling_audit diagnostics.test_source_meter_shutdown_evidence diagnostics.test_source_run_comparison -q",
+    "tests": 40,
+    "result": "PASS",
+    "wall_sec": 0.074
+  },
+  "additional_scope": "Adds completed900–2550 spatial prefix, six-panel actual-lever timeline, numeric companions and visual QA; exact-byte attributes only, no runtime/config/input mutation.",
+  "running_source_manifest_check": {
+    "source_count": 126,
+    "changed": {}
+  }
+}
