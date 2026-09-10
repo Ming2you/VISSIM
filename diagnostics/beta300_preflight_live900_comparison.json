@@ -1,0 +1,1645 @@
+{
+  "schema": "preflight-live-action-comparison/v1",
+  "status": "complete",
+  "live_run": "codex_contract_beta300_s13_1050_v3_20260910",
+  "sim_sec": 900,
+  "preflight_directory": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_production_preflight\\wu-link_t900_beta300_20260910T021854343272Z",
+  "raw_contexts": [
+    {
+      "identity": {
+        "run_id": "787fedf55fc1494b820d8e2665c2c925",
+        "config_chain_sha256": [
+          "e30ad98a2b8ea5e7265840a357a64f153373bdbd35791d4997beba4284499ecf"
+        ],
+        "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+        "quality": {
+          "enabled": true,
+          "min_green_sec": 30.0,
+          "min_crossings": 5.0
+        }
+      },
+      "context_sha256": "3a714b0956eff2194dacc0a73115a950fdec8119ed015e8fdfcdd1637fe19836",
+      "raw_run_provenance": {
+        "run_id": "787fedf55fc1494b820d8e2665c2c925",
+        "manifest_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\run_provenance_codex_contract_observed_nc_s13_1050_v2_20260910.json"
+      },
+      "action_run_provenance": {
+        "schema_version": 2,
+        "run_id": "787fedf55fc1494b820d8e2665c2c925",
+        "workspace_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review",
+        "workspace_git_commit": "fb0f2c3e102fbb3c6d9cba8b02e92ac78904131f",
+        "numsim_repo_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+        "numsim_git_commit": "",
+        "numsim_snapshot_commit": "e77b7d656a9cb6deca6cc7d8bc89dee50038f043",
+        "numsim_src_sha256": "05a58a339438e4673d51f7fd829140e0cd7a72232062927831d6742c0a8ceed5",
+        "imported_modules": {
+          "src": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\__init__.py",
+            "sha256": "fa22c43e12e23a64639ae6adf7b60ee948dcce7862b50d649c1cf69af1a760be"
+          },
+          "src.controllers": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\__init__.py",
+            "sha256": "f99c5697dadb917a2e7394d5f7d611f70d2f1d129ede87b7b731f0bfc84c062e"
+          },
+          "src.controllers.distributed_coordinator": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\distributed_coordinator.py",
+            "sha256": "d8a4302addf35389466399802a20c9c93aaabaca815724ac5bdf8ef87f6cb248"
+          },
+          "src.controllers.freeway_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\freeway_follower.py",
+            "sha256": "7f57db7aa9867b13dba9fa605d55ea4851efbf08cef0cdb92908059b39a4f596"
+          },
+          "src.controllers.grid_parallel": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\grid_parallel.py",
+            "sha256": "886f81eb5a6f1a5ef2e445e087744962e0d34809f4a091cc759a65a2d283c5d7"
+          },
+          "src.controllers.inflow_outflow_allocation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\inflow_outflow_allocation.py",
+            "sha256": "7f475b7d98e85905ae3b534972eeeb096909d7b19b83295d920fc0fd60303861"
+          },
+          "src.controllers.leader": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\leader.py",
+            "sha256": "8268310b76bad70a386eefe76d9c5ad35c7502a8b55f718e348eb49cc4aa02c3"
+          },
+          "src.controllers.local_freeway_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\local_freeway_plant.py",
+            "sha256": "9aa90227098fb59860ab083ea7c693df6ea99b7ecf1f246af26201cadb74d10f"
+          },
+          "src.controllers.local_signal_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\local_signal_plant.py",
+            "sha256": "e8f1155d42a61dc27fb32785b521b545339f96082f9e458f09c9a6d3ef86dde7"
+          },
+          "src.controllers.nash_solver": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\nash_solver.py",
+            "sha256": "0e391195d26145a0a690525abca868145ba882645e97448b06aab837970ef987"
+          },
+          "src.controllers.priced_wu_link_controller": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\priced_wu_link_controller.py",
+            "sha256": "82611170ca3a069d905cdac4f49e9b31d6683f6ba47695552456e1a8b8db82b5"
+          },
+          "src.controllers.relaxed_quantization": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\relaxed_quantization.py",
+            "sha256": "c0e21c1e8854c4e6523690e7b256a1020f1a2cb7818020f577d1321ef10d52a3"
+          },
+          "src.controllers.rollout_endpoint": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\rollout_endpoint.py",
+            "sha256": "0981c291bf2018d40c97254256a935ec7b60a62059a4620da01cf537757f63bb"
+          },
+          "src.controllers.segment_local_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\segment_local_plant.py",
+            "sha256": "fe9b7a43af7d000a3abe0bc4609beb1c4a4e877c2748114fa33252772850808e"
+          },
+          "src.controllers.simplified_inflow_outflow_allocation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\simplified_inflow_outflow_allocation.py",
+            "sha256": "bd498f6dffea62c8b2b5e06e21fa3bbf412b8db3a21066f404c8d56785cde242"
+          },
+          "src.controllers.spillback_constraints": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\spillback_constraints.py",
+            "sha256": "516889ac87d92047a0b72e3d087cf0d4c9c2ee46732f249ae9008e7b6eb39af8"
+          },
+          "src.controllers.stackelberg_mpc": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\stackelberg_mpc.py",
+            "sha256": "aa1c8523d1270f2e3a8b805770edcb094b4a6d170b08a6e24ce6a65c76c114d9"
+          },
+          "src.controllers.stackelberg_wu_metered": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\stackelberg_wu_metered.py",
+            "sha256": "f04b2467b44ed55b33cc6f2b9f0146e36e41e9b8a58b1c0305b01a8383b5bedb"
+          },
+          "src.controllers.structured_grid": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\structured_grid.py",
+            "sha256": "2cabaade8e694e9d4aec7e9164084cbe00fb974082ec7b13852d1fd566e658d7"
+          },
+          "src.controllers.urban_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\urban_follower.py",
+            "sha256": "60bd3c9633976cfbdbe54d8ae6228b20c62fc00e75856d96a092bab07ab34731"
+          },
+          "src.controllers.wu_distributed": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\wu_distributed.py",
+            "sha256": "fa12072e05a7dbf0a629e745dcfcbbd92c14069569d2fc7ce82f6337bf277bf6"
+          },
+          "src.controllers.wu_faithful_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\wu_faithful_follower.py",
+            "sha256": "901236fe0f414ea55db96d1d749cc3c9dcf6ea7c85541d2cfabcf4d66495de85"
+          },
+          "src.models": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\__init__.py",
+            "sha256": "33186104f905ae4eb4e59813f55175ae14b01240bb16cd14536217905f2e73df"
+          },
+          "src.models.demand": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\demand.py",
+            "sha256": "e6e9220031bd61eab846388843ca27d7643cc5e0efc343f236a98c35c34c7264"
+          },
+          "src.models.grid_topology": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\grid_topology.py",
+            "sha256": "100b7bd53074fb5957e45b7c518e02649ac1a32c9ee46556d5cb14ae90782b5f"
+          },
+          "src.models.metanet": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\metanet.py",
+            "sha256": "fdc4b88157ae147ef650cf87c316ec75974036eabc5248b37a4ebb735d7857b5"
+          },
+          "src.models.state": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\state.py",
+            "sha256": "bd691f7599abae54a60481fc7e16cb1845a5ae8ff2eb8beaae359fc81df286aa"
+          },
+          "src.models.urban_queue_model": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\urban_queue_model.py",
+            "sha256": "3c5c109933d122e69ef2605aef88105b35bba0446c83caec04539a8d56c07757"
+          },
+          "src.simulation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\simulation\\__init__.py",
+            "sha256": "17568856275626ae15136b8df5ccfc3c37419e418130a568ebe91e7a8fad19c1"
+          },
+          "src.simulation.coupling": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\simulation\\coupling.py",
+            "sha256": "42b83482cfb08609c4da4e47151925ad0b0f8a1342d51ddb1d8c6cb584dcd44d"
+          }
+        },
+        "signal_program_sha256": {
+          "개포동 test-bed1.sig": "52d980be92ac6e82fff31407fca9a1ef3b5dbd4c0f42c5750f3bcf03395739d6",
+          "개포동 test-bed10.sig": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714",
+          "개포동 test-bed1001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1001_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1001_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1002.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1002_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1002_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1003.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1003_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1003_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1004.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1004_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1004_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1005.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1005_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1005_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed101.sig": "6e9e3f46e01de3856995c664d0caf42f6eb873333bf3373461c586c850501f0e",
+          "개포동 test-bed101_n4dr150.sig": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35",
+          "개포동 test-bed101_n4dr150_off0.sig": "f88ce3e8fd0e5355950b10a768e64e5d3884ba2aab7b9616bf94a6f26b3c0f70",
+          "개포동 test-bed102.sig": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0",
+          "개포동 test-bed103.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed104.sig": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382",
+          "개포동 test-bed105.sig": "d6945142840dc48475f355e26d2809ed1428f31e3ade90fa95dce447091e586e",
+          "개포동 test-bed105_n4dr150.sig": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6",
+          "개포동 test-bed105_n4dr150_off0.sig": "40ef3448268e1b977c8d664f2eed20c9796f976139582a0208f3b156bb099e63",
+          "개포동 test-bed106.sig": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e",
+          "개포동 test-bed107.sig": "7cfe0a4349fa1d02a7aa10c557555d0fbc7345fd7cc3a36816ef00c5b7fcf3d2",
+          "개포동 test-bed107_n4dr150.sig": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20",
+          "개포동 test-bed107_n4dr150_off0.sig": "0abfd14c6e9f5c9d2ac77499ddf3472e809ae07445375b3b5ae518044a649c09",
+          "개포동 test-bed108.sig": "46adf3c9612990c019e697f97d694473715efc2699fcf08c026cb3d5a8be0afe",
+          "개포동 test-bed108_n4dr150.sig": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb",
+          "개포동 test-bed108_n4dr150_off0.sig": "8d04404a1ad911f4069770e577a526e59ed8d4bbbe4d8fb0637dab4ccb6903b2",
+          "개포동 test-bed109.sig": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d",
+          "개포동 test-bed109_n4dr150.sig": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010",
+          "개포동 test-bed109_n4dr150_off0.sig": "036c04a3dadac6bb4920109dff88ceff80d5acf30680192477361d8f859fb8ca",
+          "개포동 test-bed11.sig": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae",
+          "개포동 test-bed12.sig": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804",
+          "개포동 test-bed13.sig": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23",
+          "개포동 test-bed14.sig": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d",
+          "개포동 test-bed14_off0.sig": "c0c07ba91306dfbaaafe29b598b18e585fa0dcd82de0ec482c1ab60fe0e3b015",
+          "개포동 test-bed15.sig": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0",
+          "개포동 test-bed16.sig": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a",
+          "개포동 test-bed17.sig": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625",
+          "개포동 test-bed18.sig": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5",
+          "개포동 test-bed18_off0.sig": "46cc0a39041d6d20e49d4103818e852e6208d02bae5ff45822b30147233169fb",
+          "개포동 test-bed19.sig": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74",
+          "개포동 test-bed1_n4dr150.sig": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57",
+          "개포동 test-bed1_n4dr150_off0.sig": "84c376ed4ec7226106f2f1131b6d054bb59c67aba9622ead4be2cd040064d047",
+          "개포동 test-bed2.sig": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c",
+          "개포동 test-bed2001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2002.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2003.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2004.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2005.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed3.sig": "8d455a5935623d77185d017af1a4d0751ecec9156ed7a0a2de4e15832730475c",
+          "개포동 test-bed3_n4dr150.sig": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588",
+          "개포동 test-bed3_n4dr150_off0.sig": "7ca7e9cb97b687a6278c00bd09a2843cbd416a5aa3440697b763b1720e1962bd",
+          "개포동 test-bed4.sig": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c",
+          "개포동 test-bed5.sig": "7986c75571e5641f4492969754a2f143f4f7eb2f4d5982fb2f67469abaaa456a",
+          "개포동 test-bed5_n4dr150.sig": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de",
+          "개포동 test-bed5_n4dr150_off0.sig": "bcc01c4d61fe948f71560b61b2a035ab59f33f0f59adf41ace5d2997fdc36939",
+          "개포동 test-bed6.sig": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641",
+          "개포동 test-bed7.sig": "46bc879ec36d239cfa7b701a5a21ad9f503d90ca00a6afa0d9aaeae85e4d040f",
+          "개포동 test-bed7_n4dr150.sig": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297",
+          "개포동 test-bed7_n4dr150_off0.sig": "569edea99b554e8ec799ab5a020c44a3378b6832494a22be3a87be332f515090",
+          "개포동 test-bed8.sig": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da",
+          "개포동 test-bed9.sig": "ae919f5881a925931dd81526fad4132de14407befeb5c851d03d02fc6c820853",
+          "개포동 test-bed9001.sig": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde",
+          "개포동 test-bed9002.sig": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f",
+          "개포동 test-bed9003.sig": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1",
+          "개포동 test-bed9_n4dr150.sig": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd",
+          "개포동 test-bed9_n4dr150_off0.sig": "c409c438503b5f451855d783ca61f000f352e9f277e84d0f3e2dca560b6fc547"
+        },
+        "inputs": {
+          "state_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\decisions_codex_contract_observed_nc_s13_1050_v2_20260910\\state_000900.json",
+            "sha256": "9f11bb06708d3006bf9e560af70f0e9036eca034cd3c7380abd4f9756342a17e",
+            "exists": true
+          },
+          "control_mapping_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+            "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+            "exists": true
+          },
+          "detector_mapping_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2_20260907\\detector_local_mapping_ver2_20260907.json",
+            "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e",
+            "exists": true
+          },
+          "calibration_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+            "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea",
+            "exists": true
+          },
+          "tuning_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\contract_candidate_configs_v3\\n7_area_beta300.json",
+            "sha256": "35f124ef388fe18dc60dbac3599f2e28175ab71e21b4fd2a6a38d59aa0ad6141",
+            "exists": true
+          },
+          "parameters_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\parameters.json",
+            "sha256": "536edbad4023cbbf71382292720b7c05748518fa54747fd95a1a9ab51f3d337f",
+            "exists": true
+          },
+          "parameters_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\parameters.py",
+            "sha256": "40a0301022ab141cc790a15e80cffb8fc3d608ccd5343046f2f762d912dc10c1",
+            "exists": true
+          },
+          "adapter_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+            "sha256": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc",
+            "exists": true
+          },
+          "fixed_signal_schedule_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\fixed_signal_schedule.py",
+            "sha256": "533702804f243ea147baf6d91ee397ecc32d6900f7d5f55530ae19b0d220ae79",
+            "exists": true
+          },
+          "strict_signal_program_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\plant\\src\\vissim_strict\\signal_program.py",
+            "sha256": "274504c8ebc48c3e05213acde2bc641ea31994b802e2a9dac7d316a10552a2dc",
+            "exists": true
+          },
+          "network_inpx": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\network\\real_world_gaepo_modi\\modi_eval_userfix Ver2.inpx",
+            "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+            "exists": true
+          },
+          "main_vbs_runner": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_stackelberg_controller.vbs",
+            "sha256": "71ec5f8d8a36a93f21f8e66da80730e91dae64de1a3eb2321f0361df636b9a81",
+            "exists": true
+          },
+          "watchdog_wrapper": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_single_watchdog_distributed_pedovrx.ps1",
+            "sha256": "97d6e67daf72da4b113e0b9bb66d2bbe508294d68191a4bc36e21686d732f00c",
+            "exists": true
+          },
+          "numsim_default_yaml": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\config\\default.yaml",
+            "sha256": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d",
+            "exists": true
+          },
+          "link_assignment_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\link_player_assignment_pedfold_20260814.json",
+            "sha256": "c2a03de32ab29eef2a0a20eb2ddbad32a44ecf91a963ab0f58554b79363b5bff",
+            "exists": true
+          },
+          "intersection_adjacency_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\intersection_adjacency_pedfold_20260814.json",
+            "sha256": "b200ebe9a40b7943b883c4b6f5a47b5ff9937d03f89842a17550ce03c4c55d2d",
+            "exists": true
+          },
+          "storage_capacity_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_storage_capacity_jam168_20260815.json",
+            "sha256": "55767ac7cd4665016f752a5d0f821c543bd82c77f74d670932fb392827fa29fb",
+            "exists": true
+          },
+          "run_manifest_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\run_provenance_codex_contract_observed_nc_s13_1050_v2_20260910.json",
+            "sha256": "1ac5955ef5c33e73ca6057418b6db7c824ba47a5510a2b7b257177c583707e3c",
+            "exists": true
+          }
+        },
+        "execution_fingerprint_sha256": "dffbf3aea34c46e9070a50383f02873b08286ed5c8ed91ea745239c63f274a49"
+      }
+    },
+    {
+      "identity": {
+        "run_id": "61b50c6f7a8642109b8d31ec18e20ff8",
+        "config_chain_sha256": [
+          "35f124ef388fe18dc60dbac3599f2e28175ab71e21b4fd2a6a38d59aa0ad6141"
+        ],
+        "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+        "quality": {
+          "enabled": true,
+          "min_green_sec": 30.0,
+          "min_crossings": 5.0
+        }
+      },
+      "context_sha256": "cd767038de587042c3928d953c06ae84cb5fe9c4f3146d3c887766397688a447",
+      "raw_run_provenance": {
+        "run_id": "61b50c6f7a8642109b8d31ec18e20ff8",
+        "manifest_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\run_provenance_codex_contract_beta300_s13_1050_v3_20260910.json"
+      },
+      "action_run_provenance": {
+        "schema_version": 2,
+        "run_id": "61b50c6f7a8642109b8d31ec18e20ff8",
+        "workspace_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review",
+        "workspace_git_commit": "6b83beeab1ed8cb26afb882f615fa634deab2153",
+        "numsim_repo_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+        "numsim_git_commit": "",
+        "numsim_snapshot_commit": "e77b7d656a9cb6deca6cc7d8bc89dee50038f043",
+        "numsim_src_sha256": "05a58a339438e4673d51f7fd829140e0cd7a72232062927831d6742c0a8ceed5",
+        "imported_modules": {
+          "src": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\__init__.py",
+            "sha256": "fa22c43e12e23a64639ae6adf7b60ee948dcce7862b50d649c1cf69af1a760be"
+          },
+          "src.controllers": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\__init__.py",
+            "sha256": "f99c5697dadb917a2e7394d5f7d611f70d2f1d129ede87b7b731f0bfc84c062e"
+          },
+          "src.controllers.distributed_coordinator": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\distributed_coordinator.py",
+            "sha256": "d8a4302addf35389466399802a20c9c93aaabaca815724ac5bdf8ef87f6cb248"
+          },
+          "src.controllers.freeway_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\freeway_follower.py",
+            "sha256": "7f57db7aa9867b13dba9fa605d55ea4851efbf08cef0cdb92908059b39a4f596"
+          },
+          "src.controllers.grid_parallel": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\grid_parallel.py",
+            "sha256": "886f81eb5a6f1a5ef2e445e087744962e0d34809f4a091cc759a65a2d283c5d7"
+          },
+          "src.controllers.inflow_outflow_allocation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\inflow_outflow_allocation.py",
+            "sha256": "7f475b7d98e85905ae3b534972eeeb096909d7b19b83295d920fc0fd60303861"
+          },
+          "src.controllers.leader": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\leader.py",
+            "sha256": "8268310b76bad70a386eefe76d9c5ad35c7502a8b55f718e348eb49cc4aa02c3"
+          },
+          "src.controllers.local_freeway_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\local_freeway_plant.py",
+            "sha256": "9aa90227098fb59860ab083ea7c693df6ea99b7ecf1f246af26201cadb74d10f"
+          },
+          "src.controllers.local_signal_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\local_signal_plant.py",
+            "sha256": "e8f1155d42a61dc27fb32785b521b545339f96082f9e458f09c9a6d3ef86dde7"
+          },
+          "src.controllers.nash_solver": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\nash_solver.py",
+            "sha256": "0e391195d26145a0a690525abca868145ba882645e97448b06aab837970ef987"
+          },
+          "src.controllers.priced_wu_link_controller": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\priced_wu_link_controller.py",
+            "sha256": "82611170ca3a069d905cdac4f49e9b31d6683f6ba47695552456e1a8b8db82b5"
+          },
+          "src.controllers.relaxed_quantization": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\relaxed_quantization.py",
+            "sha256": "c0e21c1e8854c4e6523690e7b256a1020f1a2cb7818020f577d1321ef10d52a3"
+          },
+          "src.controllers.rollout_endpoint": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\rollout_endpoint.py",
+            "sha256": "0981c291bf2018d40c97254256a935ec7b60a62059a4620da01cf537757f63bb"
+          },
+          "src.controllers.segment_local_plant": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\segment_local_plant.py",
+            "sha256": "fe9b7a43af7d000a3abe0bc4609beb1c4a4e877c2748114fa33252772850808e"
+          },
+          "src.controllers.simplified_inflow_outflow_allocation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\simplified_inflow_outflow_allocation.py",
+            "sha256": "bd498f6dffea62c8b2b5e06e21fa3bbf412b8db3a21066f404c8d56785cde242"
+          },
+          "src.controllers.spillback_constraints": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\spillback_constraints.py",
+            "sha256": "516889ac87d92047a0b72e3d087cf0d4c9c2ee46732f249ae9008e7b6eb39af8"
+          },
+          "src.controllers.stackelberg_mpc": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\stackelberg_mpc.py",
+            "sha256": "aa1c8523d1270f2e3a8b805770edcb094b4a6d170b08a6e24ce6a65c76c114d9"
+          },
+          "src.controllers.stackelberg_wu_metered": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\stackelberg_wu_metered.py",
+            "sha256": "f04b2467b44ed55b33cc6f2b9f0146e36e41e9b8a58b1c0305b01a8383b5bedb"
+          },
+          "src.controllers.structured_grid": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\structured_grid.py",
+            "sha256": "2cabaade8e694e9d4aec7e9164084cbe00fb974082ec7b13852d1fd566e658d7"
+          },
+          "src.controllers.urban_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\urban_follower.py",
+            "sha256": "60bd3c9633976cfbdbe54d8ae6228b20c62fc00e75856d96a092bab07ab34731"
+          },
+          "src.controllers.wu_distributed": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\wu_distributed.py",
+            "sha256": "fa12072e05a7dbf0a629e745dcfcbbd92c14069569d2fc7ce82f6337bf277bf6"
+          },
+          "src.controllers.wu_faithful_follower": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\controllers\\wu_faithful_follower.py",
+            "sha256": "901236fe0f414ea55db96d1d749cc3c9dcf6ea7c85541d2cfabcf4d66495de85"
+          },
+          "src.models": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\__init__.py",
+            "sha256": "33186104f905ae4eb4e59813f55175ae14b01240bb16cd14536217905f2e73df"
+          },
+          "src.models.demand": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\demand.py",
+            "sha256": "e6e9220031bd61eab846388843ca27d7643cc5e0efc343f236a98c35c34c7264"
+          },
+          "src.models.grid_topology": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\grid_topology.py",
+            "sha256": "100b7bd53074fb5957e45b7c518e02649ac1a32c9ee46556d5cb14ae90782b5f"
+          },
+          "src.models.metanet": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\metanet.py",
+            "sha256": "fdc4b88157ae147ef650cf87c316ec75974036eabc5248b37a4ebb735d7857b5"
+          },
+          "src.models.state": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\state.py",
+            "sha256": "bd691f7599abae54a60481fc7e16cb1845a5ae8ff2eb8beaae359fc81df286aa"
+          },
+          "src.models.urban_queue_model": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\models\\urban_queue_model.py",
+            "sha256": "3c5c109933d122e69ef2605aef88105b35bba0446c83caec04539a8d56c07757"
+          },
+          "src.simulation": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\simulation\\__init__.py",
+            "sha256": "17568856275626ae15136b8df5ccfc3c37419e418130a568ebe91e7a8fad19c1"
+          },
+          "src.simulation.coupling": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\simulation\\coupling.py",
+            "sha256": "42b83482cfb08609c4da4e47151925ad0b0f8a1342d51ddb1d8c6cb584dcd44d"
+          }
+        },
+        "signal_program_sha256": {
+          "개포동 test-bed1.sig": "52d980be92ac6e82fff31407fca9a1ef3b5dbd4c0f42c5750f3bcf03395739d6",
+          "개포동 test-bed10.sig": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714",
+          "개포동 test-bed1001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1001_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1001_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1002.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1002_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1002_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1003.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1003_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1003_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1004.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1004_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1004_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed1005.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed1005_n4dr150.sig": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1",
+          "개포동 test-bed1005_n4dr150_off0.sig": "25e52cdddc355be34e3e2f94f7eb6eaac3ca1badc3736d37d7432b0c9bd0fab3",
+          "개포동 test-bed101.sig": "6e9e3f46e01de3856995c664d0caf42f6eb873333bf3373461c586c850501f0e",
+          "개포동 test-bed101_n4dr150.sig": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35",
+          "개포동 test-bed101_n4dr150_off0.sig": "f88ce3e8fd0e5355950b10a768e64e5d3884ba2aab7b9616bf94a6f26b3c0f70",
+          "개포동 test-bed102.sig": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0",
+          "개포동 test-bed103.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed104.sig": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382",
+          "개포동 test-bed105.sig": "d6945142840dc48475f355e26d2809ed1428f31e3ade90fa95dce447091e586e",
+          "개포동 test-bed105_n4dr150.sig": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6",
+          "개포동 test-bed105_n4dr150_off0.sig": "40ef3448268e1b977c8d664f2eed20c9796f976139582a0208f3b156bb099e63",
+          "개포동 test-bed106.sig": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e",
+          "개포동 test-bed107.sig": "7cfe0a4349fa1d02a7aa10c557555d0fbc7345fd7cc3a36816ef00c5b7fcf3d2",
+          "개포동 test-bed107_n4dr150.sig": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20",
+          "개포동 test-bed107_n4dr150_off0.sig": "0abfd14c6e9f5c9d2ac77499ddf3472e809ae07445375b3b5ae518044a649c09",
+          "개포동 test-bed108.sig": "46adf3c9612990c019e697f97d694473715efc2699fcf08c026cb3d5a8be0afe",
+          "개포동 test-bed108_n4dr150.sig": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb",
+          "개포동 test-bed108_n4dr150_off0.sig": "8d04404a1ad911f4069770e577a526e59ed8d4bbbe4d8fb0637dab4ccb6903b2",
+          "개포동 test-bed109.sig": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d",
+          "개포동 test-bed109_n4dr150.sig": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010",
+          "개포동 test-bed109_n4dr150_off0.sig": "036c04a3dadac6bb4920109dff88ceff80d5acf30680192477361d8f859fb8ca",
+          "개포동 test-bed11.sig": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae",
+          "개포동 test-bed12.sig": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804",
+          "개포동 test-bed13.sig": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23",
+          "개포동 test-bed14.sig": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d",
+          "개포동 test-bed14_off0.sig": "c0c07ba91306dfbaaafe29b598b18e585fa0dcd82de0ec482c1ab60fe0e3b015",
+          "개포동 test-bed15.sig": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0",
+          "개포동 test-bed16.sig": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a",
+          "개포동 test-bed17.sig": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625",
+          "개포동 test-bed18.sig": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5",
+          "개포동 test-bed18_off0.sig": "46cc0a39041d6d20e49d4103818e852e6208d02bae5ff45822b30147233169fb",
+          "개포동 test-bed19.sig": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74",
+          "개포동 test-bed1_n4dr150.sig": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57",
+          "개포동 test-bed1_n4dr150_off0.sig": "84c376ed4ec7226106f2f1131b6d054bb59c67aba9622ead4be2cd040064d047",
+          "개포동 test-bed2.sig": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c",
+          "개포동 test-bed2001.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2002.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2003.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2004.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed2005.sig": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87",
+          "개포동 test-bed3.sig": "8d455a5935623d77185d017af1a4d0751ecec9156ed7a0a2de4e15832730475c",
+          "개포동 test-bed3_n4dr150.sig": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588",
+          "개포동 test-bed3_n4dr150_off0.sig": "7ca7e9cb97b687a6278c00bd09a2843cbd416a5aa3440697b763b1720e1962bd",
+          "개포동 test-bed4.sig": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c",
+          "개포동 test-bed5.sig": "7986c75571e5641f4492969754a2f143f4f7eb2f4d5982fb2f67469abaaa456a",
+          "개포동 test-bed5_n4dr150.sig": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de",
+          "개포동 test-bed5_n4dr150_off0.sig": "bcc01c4d61fe948f71560b61b2a035ab59f33f0f59adf41ace5d2997fdc36939",
+          "개포동 test-bed6.sig": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641",
+          "개포동 test-bed7.sig": "46bc879ec36d239cfa7b701a5a21ad9f503d90ca00a6afa0d9aaeae85e4d040f",
+          "개포동 test-bed7_n4dr150.sig": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297",
+          "개포동 test-bed7_n4dr150_off0.sig": "569edea99b554e8ec799ab5a020c44a3378b6832494a22be3a87be332f515090",
+          "개포동 test-bed8.sig": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da",
+          "개포동 test-bed9.sig": "ae919f5881a925931dd81526fad4132de14407befeb5c851d03d02fc6c820853",
+          "개포동 test-bed9001.sig": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde",
+          "개포동 test-bed9002.sig": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f",
+          "개포동 test-bed9003.sig": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1",
+          "개포동 test-bed9_n4dr150.sig": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd",
+          "개포동 test-bed9_n4dr150_off0.sig": "c409c438503b5f451855d783ca61f000f352e9f277e84d0f3e2dca560b6fc547"
+        },
+        "inputs": {
+          "state_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\decisions_codex_contract_beta300_s13_1050_v3_20260910\\state_000900.json",
+            "sha256": "c892f2c6b50bd7d5d2e48368b5cb224073f59e7da7381ee821fc94677d2ddc78",
+            "exists": true
+          },
+          "control_mapping_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+            "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+            "exists": true
+          },
+          "detector_mapping_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2_20260907\\detector_local_mapping_ver2_20260907.json",
+            "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e",
+            "exists": true
+          },
+          "calibration_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+            "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea",
+            "exists": true
+          },
+          "tuning_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\contract_candidate_configs_v3\\n7_area_beta300.json",
+            "sha256": "35f124ef388fe18dc60dbac3599f2e28175ab71e21b4fd2a6a38d59aa0ad6141",
+            "exists": true
+          },
+          "parameters_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\parameters.json",
+            "sha256": "536edbad4023cbbf71382292720b7c05748518fa54747fd95a1a9ab51f3d337f",
+            "exists": true
+          },
+          "parameters_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\parameters.py",
+            "sha256": "40a0301022ab141cc790a15e80cffb8fc3d608ccd5343046f2f762d912dc10c1",
+            "exists": true
+          },
+          "adapter_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+            "sha256": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc",
+            "exists": true
+          },
+          "fixed_signal_schedule_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\fixed_signal_schedule.py",
+            "sha256": "533702804f243ea147baf6d91ee397ecc32d6900f7d5f55530ae19b0d220ae79",
+            "exists": true
+          },
+          "strict_signal_program_py": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\plant\\src\\vissim_strict\\signal_program.py",
+            "sha256": "274504c8ebc48c3e05213acde2bc641ea31994b802e2a9dac7d316a10552a2dc",
+            "exists": true
+          },
+          "network_inpx": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\network\\real_world_gaepo_modi\\modi_eval_userfix Ver2.inpx",
+            "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+            "exists": true
+          },
+          "main_vbs_runner": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_stackelberg_controller.vbs",
+            "sha256": "71ec5f8d8a36a93f21f8e66da80730e91dae64de1a3eb2321f0361df636b9a81",
+            "exists": true
+          },
+          "watchdog_wrapper": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_single_watchdog_distributed_pedovrx.ps1",
+            "sha256": "97d6e67daf72da4b113e0b9bb66d2bbe508294d68191a4bc36e21686d732f00c",
+            "exists": true
+          },
+          "numsim_default_yaml": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\config\\default.yaml",
+            "sha256": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d",
+            "exists": true
+          },
+          "link_assignment_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\link_player_assignment_pedfold_20260814.json",
+            "sha256": "c2a03de32ab29eef2a0a20eb2ddbad32a44ecf91a963ab0f58554b79363b5bff",
+            "exists": true
+          },
+          "intersection_adjacency_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\intersection_adjacency_pedfold_20260814.json",
+            "sha256": "b200ebe9a40b7943b883c4b6f5a47b5ff9937d03f89842a17550ce03c4c55d2d",
+            "exists": true
+          },
+          "storage_capacity_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_storage_capacity_jam168_20260815.json",
+            "sha256": "55767ac7cd4665016f752a5d0f821c543bd82c77f74d670932fb392827fa29fb",
+            "exists": true
+          },
+          "run_manifest_json": {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\run_provenance_codex_contract_beta300_s13_1050_v3_20260910.json",
+            "sha256": "6d710d7bfafb2554891b8892feff0a933164366283ee79386ee344493e820640",
+            "exists": true
+          }
+        },
+        "execution_fingerprint_sha256": "71f4baaa38b53ca5a9f26f77f292874e9af09d47e57036392ee59027966d4e36"
+      }
+    }
+  ],
+  "optimization_config_sha256": "35f124ef388fe18dc60dbac3599f2e28175ab71e21b4fd2a6a38d59aa0ad6141",
+  "recorded_common_source_count": 71,
+  "recorded_source_mismatches": {},
+  "snapshot_top_level_differences": [],
+  "snapshot_legacy_local_differences": [],
+  "head_window_differences_except_config_identity": [],
+  "head_counts": [
+    235,
+    235
+  ],
+  "head_window_bounds": [
+    [
+      750,
+      900
+    ],
+    [
+      750,
+      900
+    ]
+  ],
+  "head_metadata": {
+    "previous": {
+      "counts": [
+        78,
+        78
+      ],
+      "physical_value_differences": {},
+      "original_identity_keys": [
+        {
+          "head_discharge_floor_1210008401_p1": "head_discharge_floor_1210008401_p1_2734c9c449f73674",
+          "head_candidate_rate_1210008703_p1": "head_candidate_rate_1210008703_p1_50ccd041512ec33e",
+          "head_candidate_end_1210008703_p1": "head_candidate_end_1210008703_p1_50ccd041512ec33e",
+          "head_discharge_floor_1210009503_p1": "head_discharge_floor_1210009503_p1_706e9791fb4ede61",
+          "head_candidate_rate_1210009503_p1": "head_candidate_rate_1210009503_p1_706e9791fb4ede61",
+          "head_candidate_end_1210009503_p1": "head_candidate_end_1210009503_p1_706e9791fb4ede61",
+          "head_discharge_floor_1210012600_p1": "head_discharge_floor_1210012600_p1_e4a6bc3f645dbd80",
+          "head_candidate_rate_1210012600_p1": "head_candidate_rate_1210012600_p1_e4a6bc3f645dbd80",
+          "head_candidate_end_1210012600_p1": "head_candidate_end_1210012600_p1_e4a6bc3f645dbd80",
+          "head_discharge_floor_1210012700_p1": "head_discharge_floor_1210012700_p1_7827878e67ffdf68",
+          "head_candidate_rate_1210012700_p1": "head_candidate_rate_1210012700_p1_7827878e67ffdf68",
+          "head_candidate_end_1210012700_p1": "head_candidate_end_1210012700_p1_7827878e67ffdf68",
+          "head_discharge_floor_1210018302_p1": "head_discharge_floor_1210018302_p1_dc0e30ac10f94f03",
+          "head_candidate_rate_1210018302_p1": "head_candidate_rate_1210018302_p1_dc0e30ac10f94f03",
+          "head_candidate_end_1210018302_p1": "head_candidate_end_1210018302_p1_dc0e30ac10f94f03",
+          "head_discharge_floor_1220007001_p3": "head_discharge_floor_1220007001_p3_39e3495240990867",
+          "head_candidate_rate_1220007001_p3": "head_candidate_rate_1220007001_p3_39e3495240990867",
+          "head_candidate_end_1220007001_p3": "head_candidate_end_1220007001_p3_39e3495240990867",
+          "head_discharge_floor_1220007104_p3": "head_discharge_floor_1220007104_p3_603d0ab49578cf27",
+          "head_candidate_rate_1220007104_p3": "head_candidate_rate_1220007104_p3_603d0ab49578cf27",
+          "head_candidate_end_1220007104_p3": "head_candidate_end_1220007104_p3_603d0ab49578cf27",
+          "head_discharge_floor_1220007200_p1": "head_discharge_floor_1220007200_p1_736185af8fc38c56",
+          "head_candidate_rate_1220007401_p1": "head_candidate_rate_1220007401_p1_2255844de04f82a0",
+          "head_candidate_end_1220007401_p1": "head_candidate_end_1220007401_p1_2255844de04f82a0",
+          "head_discharge_floor_1220007502_p1": "head_discharge_floor_1220007502_p1_dc1ae97240d3a472",
+          "head_discharge_floor_1220008201_p3": "head_discharge_floor_1220008201_p3_e98e6acdb2353da5",
+          "head_candidate_rate_1220008201_p3": "head_candidate_rate_1220008201_p3_e98e6acdb2353da5",
+          "head_candidate_end_1220008201_p3": "head_candidate_end_1220008201_p3_e98e6acdb2353da5",
+          "head_discharge_floor_1220011503_p1": "head_discharge_floor_1220011503_p1_aa1b4814e388e266",
+          "head_candidate_rate_1220012001_p3": "head_candidate_rate_1220012001_p3_113bb9e298f3adde",
+          "head_candidate_end_1220012001_p3": "head_candidate_end_1220012001_p3_113bb9e298f3adde",
+          "head_discharge_floor_1220012001_p3": "head_discharge_floor_1220012001_p3_113bb9e298f3adde",
+          "head_discharge_floor_1220014100_p1": "head_discharge_floor_1220014100_p1_e10de2b6508fe7fb",
+          "head_candidate_rate_1220014100_p1": "head_candidate_rate_1220014100_p1_e10de2b6508fe7fb",
+          "head_candidate_end_1220014100_p1": "head_candidate_end_1220014100_p1_e10de2b6508fe7fb",
+          "head_candidate_rate_1220014201_p3": "head_candidate_rate_1220014201_p3_0d67b3e6bee45ccf",
+          "head_candidate_end_1220014201_p3": "head_candidate_end_1220014201_p3_0d67b3e6bee45ccf",
+          "head_discharge_floor_1220014303_p3": "head_discharge_floor_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_rate_1220014303_p3": "head_candidate_rate_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_end_1220014303_p3": "head_candidate_end_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_rate_1220015000_p1": "head_candidate_rate_1220015000_p1_f6378f113ce71a1f",
+          "head_candidate_end_1220015000_p1": "head_candidate_end_1220015000_p1_f6378f113ce71a1f",
+          "head_discharge_floor_1220018401_p3": "head_discharge_floor_1220018401_p3_a4f287d70cfafc11",
+          "head_candidate_rate_1220018401_p3": "head_candidate_rate_1220018401_p3_a4f287d70cfafc11",
+          "head_candidate_end_1220018401_p3": "head_candidate_end_1220018401_p3_a4f287d70cfafc11",
+          "head_discharge_floor_1220018504_p3": "head_discharge_floor_1220018504_p3_815bfaecda8e5d83",
+          "head_candidate_rate_1220019201_p1": "head_candidate_rate_1220019201_p1_b8804b7d7e55d9e1",
+          "head_candidate_end_1220019201_p1": "head_candidate_end_1220019201_p1_b8804b7d7e55d9e1",
+          "head_discharge_floor_1220019201_p1": "head_discharge_floor_1220019201_p1_b8804b7d7e55d9e1",
+          "head_candidate_rate_1220021801_p1": "head_candidate_rate_1220021801_p1_07aa995c18caf595",
+          "head_candidate_end_1220021801_p1": "head_candidate_end_1220021801_p1_07aa995c18caf595",
+          "head_discharge_floor_1220021801_p1": "head_discharge_floor_1220021801_p1_07aa995c18caf595",
+          "head_candidate_rate_173_p4": "head_candidate_rate_173_p4_f30e6624cdec8226",
+          "head_candidate_end_173_p4": "head_candidate_end_173_p4_f30e6624cdec8226",
+          "head_discharge_floor_176_p3": "head_discharge_floor_176_p3_f341cf2c6773f1f7",
+          "head_candidate_rate_176_p3": "head_candidate_rate_176_p3_f341cf2c6773f1f7",
+          "head_candidate_end_176_p3": "head_candidate_end_176_p3_f341cf2c6773f1f7",
+          "head_discharge_floor_178_p3": "head_discharge_floor_178_p3_f971bce9ab100990",
+          "head_candidate_rate_178_p3": "head_candidate_rate_178_p3_f971bce9ab100990",
+          "head_candidate_end_178_p3": "head_candidate_end_178_p3_f971bce9ab100990",
+          "head_discharge_floor_183_p3": "head_discharge_floor_183_p3_8bc85abba58b6fe0",
+          "head_candidate_rate_29_p3": "head_candidate_rate_29_p3_ce6535add07bb3b9",
+          "head_candidate_end_29_p3": "head_candidate_end_29_p3_ce6535add07bb3b9",
+          "head_candidate_rate_37_p1": "head_candidate_rate_37_p1_ea4d73e28555c1c0",
+          "head_candidate_end_37_p1": "head_candidate_end_37_p1_ea4d73e28555c1c0",
+          "head_candidate_rate_416_p3": "head_candidate_rate_416_p3_87a384a61a52f5f4",
+          "head_candidate_end_416_p3": "head_candidate_end_416_p3_87a384a61a52f5f4",
+          "head_discharge_floor_416_p3": "head_discharge_floor_416_p3_87a384a61a52f5f4",
+          "head_candidate_rate_427_p1": "head_candidate_rate_427_p1_de2d485dcb602f55",
+          "head_candidate_end_427_p1": "head_candidate_end_427_p1_de2d485dcb602f55",
+          "head_candidate_rate_47_p1": "head_candidate_rate_47_p1_9febb7465ae28fe7",
+          "head_candidate_end_47_p1": "head_candidate_end_47_p1_9febb7465ae28fe7",
+          "head_discharge_floor_47_p1": "head_discharge_floor_47_p1_9febb7465ae28fe7",
+          "head_discharge_floor_52_p3": "head_discharge_floor_52_p3_b9a84d4b5414529c",
+          "head_candidate_rate_52_p3": "head_candidate_rate_52_p3_b9a84d4b5414529c",
+          "head_candidate_end_52_p3": "head_candidate_end_52_p3_b9a84d4b5414529c",
+          "head_candidate_rate_57_p3": "head_candidate_rate_57_p3_0d1108e7cf8cc72b",
+          "head_candidate_end_57_p3": "head_candidate_end_57_p3_0d1108e7cf8cc72b"
+        },
+        {
+          "head_discharge_floor_1210008401_p1": "head_discharge_floor_1210008401_p1_a30e7e7f4291c6a8",
+          "head_candidate_rate_1210008703_p1": "head_candidate_rate_1210008703_p1_c16a24d94aea5ce7",
+          "head_candidate_end_1210008703_p1": "head_candidate_end_1210008703_p1_c16a24d94aea5ce7",
+          "head_discharge_floor_1210009503_p1": "head_discharge_floor_1210009503_p1_1eb50d92adb10cfd",
+          "head_candidate_rate_1210009503_p1": "head_candidate_rate_1210009503_p1_1eb50d92adb10cfd",
+          "head_candidate_end_1210009503_p1": "head_candidate_end_1210009503_p1_1eb50d92adb10cfd",
+          "head_discharge_floor_1210012600_p1": "head_discharge_floor_1210012600_p1_03c2e89d37bb2c18",
+          "head_candidate_rate_1210012600_p1": "head_candidate_rate_1210012600_p1_03c2e89d37bb2c18",
+          "head_candidate_end_1210012600_p1": "head_candidate_end_1210012600_p1_03c2e89d37bb2c18",
+          "head_discharge_floor_1210012700_p1": "head_discharge_floor_1210012700_p1_fec8c3519a9bdbac",
+          "head_candidate_rate_1210012700_p1": "head_candidate_rate_1210012700_p1_fec8c3519a9bdbac",
+          "head_candidate_end_1210012700_p1": "head_candidate_end_1210012700_p1_fec8c3519a9bdbac",
+          "head_discharge_floor_1210018302_p1": "head_discharge_floor_1210018302_p1_375b7cd6a373bd54",
+          "head_candidate_rate_1210018302_p1": "head_candidate_rate_1210018302_p1_375b7cd6a373bd54",
+          "head_candidate_end_1210018302_p1": "head_candidate_end_1210018302_p1_375b7cd6a373bd54",
+          "head_discharge_floor_1220007001_p3": "head_discharge_floor_1220007001_p3_f5c0fef24488c587",
+          "head_candidate_rate_1220007001_p3": "head_candidate_rate_1220007001_p3_f5c0fef24488c587",
+          "head_candidate_end_1220007001_p3": "head_candidate_end_1220007001_p3_f5c0fef24488c587",
+          "head_discharge_floor_1220007104_p3": "head_discharge_floor_1220007104_p3_2522040968e22de5",
+          "head_candidate_rate_1220007104_p3": "head_candidate_rate_1220007104_p3_2522040968e22de5",
+          "head_candidate_end_1220007104_p3": "head_candidate_end_1220007104_p3_2522040968e22de5",
+          "head_discharge_floor_1220007200_p1": "head_discharge_floor_1220007200_p1_78a8889a424b31f6",
+          "head_candidate_rate_1220007401_p1": "head_candidate_rate_1220007401_p1_f53545aabee7f3b5",
+          "head_candidate_end_1220007401_p1": "head_candidate_end_1220007401_p1_f53545aabee7f3b5",
+          "head_discharge_floor_1220007502_p1": "head_discharge_floor_1220007502_p1_b269caf5f41a06bb",
+          "head_discharge_floor_1220008201_p3": "head_discharge_floor_1220008201_p3_632e34ef31c6e809",
+          "head_candidate_rate_1220008201_p3": "head_candidate_rate_1220008201_p3_632e34ef31c6e809",
+          "head_candidate_end_1220008201_p3": "head_candidate_end_1220008201_p3_632e34ef31c6e809",
+          "head_discharge_floor_1220011503_p1": "head_discharge_floor_1220011503_p1_6418fed656d717c7",
+          "head_candidate_rate_1220012001_p3": "head_candidate_rate_1220012001_p3_4d28fd89eaf17f30",
+          "head_candidate_end_1220012001_p3": "head_candidate_end_1220012001_p3_4d28fd89eaf17f30",
+          "head_discharge_floor_1220012001_p3": "head_discharge_floor_1220012001_p3_4d28fd89eaf17f30",
+          "head_discharge_floor_1220014100_p1": "head_discharge_floor_1220014100_p1_175dc13c94c79f23",
+          "head_candidate_rate_1220014100_p1": "head_candidate_rate_1220014100_p1_175dc13c94c79f23",
+          "head_candidate_end_1220014100_p1": "head_candidate_end_1220014100_p1_175dc13c94c79f23",
+          "head_candidate_rate_1220014201_p3": "head_candidate_rate_1220014201_p3_79e387ce80f1d370",
+          "head_candidate_end_1220014201_p3": "head_candidate_end_1220014201_p3_79e387ce80f1d370",
+          "head_discharge_floor_1220014303_p3": "head_discharge_floor_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_rate_1220014303_p3": "head_candidate_rate_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_end_1220014303_p3": "head_candidate_end_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_rate_1220015000_p1": "head_candidate_rate_1220015000_p1_e3cac294456a0d75",
+          "head_candidate_end_1220015000_p1": "head_candidate_end_1220015000_p1_e3cac294456a0d75",
+          "head_discharge_floor_1220018401_p3": "head_discharge_floor_1220018401_p3_411e7183c8c70aa2",
+          "head_candidate_rate_1220018401_p3": "head_candidate_rate_1220018401_p3_411e7183c8c70aa2",
+          "head_candidate_end_1220018401_p3": "head_candidate_end_1220018401_p3_411e7183c8c70aa2",
+          "head_discharge_floor_1220018504_p3": "head_discharge_floor_1220018504_p3_761f770ce1c29de5",
+          "head_candidate_rate_1220019201_p1": "head_candidate_rate_1220019201_p1_835d0e04a1fb0ed3",
+          "head_candidate_end_1220019201_p1": "head_candidate_end_1220019201_p1_835d0e04a1fb0ed3",
+          "head_discharge_floor_1220019201_p1": "head_discharge_floor_1220019201_p1_835d0e04a1fb0ed3",
+          "head_candidate_rate_1220021801_p1": "head_candidate_rate_1220021801_p1_cadac4e9ef186d15",
+          "head_candidate_end_1220021801_p1": "head_candidate_end_1220021801_p1_cadac4e9ef186d15",
+          "head_discharge_floor_1220021801_p1": "head_discharge_floor_1220021801_p1_cadac4e9ef186d15",
+          "head_candidate_rate_173_p4": "head_candidate_rate_173_p4_04a083fac468af8e",
+          "head_candidate_end_173_p4": "head_candidate_end_173_p4_04a083fac468af8e",
+          "head_discharge_floor_176_p3": "head_discharge_floor_176_p3_0ad12b1626b0bf37",
+          "head_candidate_rate_176_p3": "head_candidate_rate_176_p3_0ad12b1626b0bf37",
+          "head_candidate_end_176_p3": "head_candidate_end_176_p3_0ad12b1626b0bf37",
+          "head_discharge_floor_178_p3": "head_discharge_floor_178_p3_d1126e71a56b6927",
+          "head_candidate_rate_178_p3": "head_candidate_rate_178_p3_d1126e71a56b6927",
+          "head_candidate_end_178_p3": "head_candidate_end_178_p3_d1126e71a56b6927",
+          "head_discharge_floor_183_p3": "head_discharge_floor_183_p3_c67dd075ae7c4d13",
+          "head_candidate_rate_29_p3": "head_candidate_rate_29_p3_618bce2911addb53",
+          "head_candidate_end_29_p3": "head_candidate_end_29_p3_618bce2911addb53",
+          "head_candidate_rate_37_p1": "head_candidate_rate_37_p1_8e57ad51ab89c4b6",
+          "head_candidate_end_37_p1": "head_candidate_end_37_p1_8e57ad51ab89c4b6",
+          "head_candidate_rate_416_p3": "head_candidate_rate_416_p3_1379b71a1f9c71fa",
+          "head_candidate_end_416_p3": "head_candidate_end_416_p3_1379b71a1f9c71fa",
+          "head_discharge_floor_416_p3": "head_discharge_floor_416_p3_1379b71a1f9c71fa",
+          "head_candidate_rate_427_p1": "head_candidate_rate_427_p1_c5358bbf13d34494",
+          "head_candidate_end_427_p1": "head_candidate_end_427_p1_c5358bbf13d34494",
+          "head_candidate_rate_47_p1": "head_candidate_rate_47_p1_a572cc198c1f8d87",
+          "head_candidate_end_47_p1": "head_candidate_end_47_p1_a572cc198c1f8d87",
+          "head_discharge_floor_47_p1": "head_discharge_floor_47_p1_a572cc198c1f8d87",
+          "head_discharge_floor_52_p3": "head_discharge_floor_52_p3_2ba994c2dd87ad48",
+          "head_candidate_rate_52_p3": "head_candidate_rate_52_p3_2ba994c2dd87ad48",
+          "head_candidate_end_52_p3": "head_candidate_end_52_p3_2ba994c2dd87ad48",
+          "head_candidate_rate_57_p3": "head_candidate_rate_57_p3_16d16ac4a0027edd",
+          "head_candidate_end_57_p3": "head_candidate_end_57_p3_16d16ac4a0027edd"
+        }
+      ],
+      "values_by_physical_group": {
+        "head_discharge_floor_1210008401_p1": 1032.6530612244896,
+        "head_candidate_rate_1210008703_p1": 600.0,
+        "head_candidate_end_1210008703_p1": 750.0,
+        "head_discharge_floor_1210009503_p1": 914.2857142857142,
+        "head_candidate_rate_1210009503_p1": 971.4285714285714,
+        "head_candidate_end_1210009503_p1": 750.0,
+        "head_discharge_floor_1210012600_p1": 826.1224489795918,
+        "head_candidate_rate_1210012600_p1": 571.4285714285714,
+        "head_candidate_end_1210012600_p1": 750.0,
+        "head_discharge_floor_1210012700_p1": 864.0,
+        "head_candidate_rate_1210012700_p1": 1008.0,
+        "head_candidate_end_1210012700_p1": 750.0,
+        "head_discharge_floor_1210018302_p1": 1255.8139534883721,
+        "head_candidate_rate_1210018302_p1": 1925.581395348837,
+        "head_candidate_end_1210018302_p1": 750.0,
+        "head_discharge_floor_1220007001_p3": 826.1224489795918,
+        "head_candidate_rate_1220007001_p3": 720.0,
+        "head_candidate_end_1220007001_p3": 750.0,
+        "head_discharge_floor_1220007104_p3": 1012.5,
+        "head_candidate_rate_1220007104_p3": 1912.5,
+        "head_candidate_end_1220007104_p3": 750.0,
+        "head_discharge_floor_1220007200_p1": 1650.0,
+        "head_candidate_rate_1220007401_p1": 696.7741935483871,
+        "head_candidate_end_1220007401_p1": 750.0,
+        "head_discharge_floor_1220007502_p1": 983.7379162191191,
+        "head_discharge_floor_1220008201_p3": 1237.5,
+        "head_candidate_rate_1220008201_p3": 1575.0,
+        "head_candidate_end_1220008201_p3": 750.0,
+        "head_discharge_floor_1220011503_p1": 1425.0,
+        "head_candidate_rate_1220012001_p3": 529.4117647058823,
+        "head_candidate_end_1220012001_p3": 750.0,
+        "head_discharge_floor_1220012001_p3": 619.5918367346939,
+        "head_discharge_floor_1220014100_p1": 837.2093023255813,
+        "head_candidate_rate_1220014100_p1": 753.4883720930233,
+        "head_candidate_end_1220014100_p1": 750.0,
+        "head_candidate_rate_1220014201_p3": 1661.5384615384614,
+        "head_candidate_end_1220014201_p3": 750.0,
+        "head_discharge_floor_1220014303_p3": 1032.6530612244896,
+        "head_candidate_rate_1220014303_p3": 995.7446808510639,
+        "head_candidate_end_1220014303_p3": 750.0,
+        "head_candidate_rate_1220015000_p1": 432.0,
+        "head_candidate_end_1220015000_p1": 750.0,
+        "head_discharge_floor_1220018401_p3": 1455.3191489361702,
+        "head_candidate_rate_1220018401_p3": 1455.3191489361702,
+        "head_candidate_end_1220018401_p3": 750.0,
+        "head_discharge_floor_1220018504_p3": 1032.6530612244896,
+        "head_candidate_rate_1220019201_p1": 837.2093023255813,
+        "head_candidate_end_1220019201_p1": 750.0,
+        "head_discharge_floor_1220019201_p1": 619.5918367346939,
+        "head_candidate_rate_1220021801_p1": 837.2093023255813,
+        "head_candidate_end_1220021801_p1": 750.0,
+        "head_discharge_floor_1220021801_p1": 826.1224489795918,
+        "head_candidate_rate_173_p4": 696.7741935483871,
+        "head_candidate_end_173_p4": 750.0,
+        "head_discharge_floor_176_p3": 1032.6530612244896,
+        "head_candidate_rate_176_p3": 818.1818181818182,
+        "head_candidate_end_176_p3": 750.0,
+        "head_discharge_floor_178_p3": 826.1224489795918,
+        "head_candidate_rate_178_p3": 777.2727272727273,
+        "head_candidate_end_178_p3": 750.0,
+        "head_discharge_floor_183_p3": 1445.7142857142858,
+        "head_candidate_rate_29_p3": 400.0,
+        "head_candidate_end_29_p3": 750.0,
+        "head_candidate_rate_37_p1": 782.608695652174,
+        "head_candidate_end_37_p1": 750.0,
+        "head_candidate_rate_416_p3": 925.7142857142858,
+        "head_candidate_end_416_p3": 750.0,
+        "head_discharge_floor_416_p3": 925.7142857142858,
+        "head_candidate_rate_427_p1": 1095.6521739130435,
+        "head_candidate_end_427_p1": 750.0,
+        "head_candidate_rate_47_p1": 469.5652173913044,
+        "head_candidate_end_47_p1": 750.0,
+        "head_discharge_floor_47_p1": 826.1224489795918,
+        "head_discharge_floor_52_p3": 1040.0,
+        "head_candidate_rate_52_p3": 1520.0,
+        "head_candidate_end_52_p3": 750.0,
+        "head_candidate_rate_57_p3": 400.0,
+        "head_candidate_end_57_p3": 750.0
+      },
+      "provenance_markers": [
+        {
+          "head_provenance_3a714b0956eff2194dacc0a73115a950fdec8119ed015e8fdfcdd1637fe19836": 1.0
+        },
+        {
+          "head_provenance_cd767038de587042c3928d953c06ae84cb5fe9c4f3146d3c887766397688a447": 1.0
+        }
+      ],
+      "observation_status": [
+        {
+          "head_observation_enabled": 1.0,
+          "head_observation_snapshot_sec": 750.0,
+          "head_observation_prior_discarded": 0.0,
+          "head_observation_groups_updated": 18.0,
+          "head_observation_groups_carried": 19.0,
+          "head_observation_missing_window": 0.0,
+          "head_observation_invalid_window": 0.0,
+          "head_observation_short_exposure": 22.0,
+          "head_observation_missing_crossings": 8.0,
+          "head_observation_unknown_link": 29.0,
+          "head_observation_no_model_members": 19.0,
+          "head_observation_waiting_second_window": 9.0
+        },
+        {
+          "head_observation_enabled": 1.0,
+          "head_observation_snapshot_sec": 750.0,
+          "head_observation_prior_discarded": 0.0,
+          "head_observation_groups_updated": 18.0,
+          "head_observation_groups_carried": 19.0,
+          "head_observation_missing_window": 0.0,
+          "head_observation_invalid_window": 0.0,
+          "head_observation_short_exposure": 22.0,
+          "head_observation_missing_crossings": 8.0,
+          "head_observation_unknown_link": 29.0,
+          "head_observation_no_model_members": 19.0,
+          "head_observation_waiting_second_window": 9.0
+        }
+      ]
+    },
+    "decision": {
+      "counts": [
+        82,
+        82
+      ],
+      "physical_value_differences": {},
+      "original_identity_keys": [
+        {
+          "head_discharge_floor_1210008401_p1": "head_discharge_floor_1210008401_p1_2734c9c449f73674",
+          "head_candidate_rate_1210008401_p1": "head_candidate_rate_1210008401_p1_2734c9c449f73674",
+          "head_candidate_end_1210008401_p1": "head_candidate_end_1210008401_p1_2734c9c449f73674",
+          "head_discharge_floor_1210009503_p1": "head_discharge_floor_1210009503_p1_706e9791fb4ede61",
+          "head_candidate_rate_1210009503_p1": "head_candidate_rate_1210009503_p1_706e9791fb4ede61",
+          "head_candidate_end_1210009503_p1": "head_candidate_end_1210009503_p1_706e9791fb4ede61",
+          "head_discharge_floor_1210012600_p1": "head_discharge_floor_1210012600_p1_e4a6bc3f645dbd80",
+          "head_discharge_floor_1210012700_p1": "head_discharge_floor_1210012700_p1_7827878e67ffdf68",
+          "head_discharge_floor_1210018302_p1": "head_discharge_floor_1210018302_p1_dc0e30ac10f94f03",
+          "head_candidate_rate_1210018302_p1": "head_candidate_rate_1210018302_p1_dc0e30ac10f94f03",
+          "head_candidate_end_1210018302_p1": "head_candidate_end_1210018302_p1_dc0e30ac10f94f03",
+          "head_candidate_rate_1220006503_p1": "head_candidate_rate_1220006503_p1_0f38366eb46bfa21",
+          "head_candidate_end_1220006503_p1": "head_candidate_end_1220006503_p1_0f38366eb46bfa21",
+          "head_discharge_floor_1220007001_p3": "head_discharge_floor_1220007001_p3_39e3495240990867",
+          "head_candidate_rate_1220007001_p3": "head_candidate_rate_1220007001_p3_39e3495240990867",
+          "head_candidate_end_1220007001_p3": "head_candidate_end_1220007001_p3_39e3495240990867",
+          "head_discharge_floor_1220007104_p3": "head_discharge_floor_1220007104_p3_603d0ab49578cf27",
+          "head_candidate_rate_1220007104_p3": "head_candidate_rate_1220007104_p3_603d0ab49578cf27",
+          "head_candidate_end_1220007104_p3": "head_candidate_end_1220007104_p3_603d0ab49578cf27",
+          "head_discharge_floor_1220007200_p1": "head_discharge_floor_1220007200_p1_736185af8fc38c56",
+          "head_candidate_rate_1220007401_p1": "head_candidate_rate_1220007401_p1_2255844de04f82a0",
+          "head_candidate_end_1220007401_p1": "head_candidate_end_1220007401_p1_2255844de04f82a0",
+          "head_discharge_floor_1220007401_p1": "head_discharge_floor_1220007401_p1_2255844de04f82a0",
+          "head_discharge_floor_1220007502_p1": "head_discharge_floor_1220007502_p1_dc1ae97240d3a472",
+          "head_candidate_rate_1220007502_p1": "head_candidate_rate_1220007502_p1_dc1ae97240d3a472",
+          "head_candidate_end_1220007502_p1": "head_candidate_end_1220007502_p1_dc1ae97240d3a472",
+          "head_discharge_floor_1220008201_p3": "head_discharge_floor_1220008201_p3_e98e6acdb2353da5",
+          "head_candidate_rate_1220008201_p3": "head_candidate_rate_1220008201_p3_e98e6acdb2353da5",
+          "head_candidate_end_1220008201_p3": "head_candidate_end_1220008201_p3_e98e6acdb2353da5",
+          "head_candidate_rate_1220008601_p1": "head_candidate_rate_1220008601_p1_32cbe7edd41c76ce",
+          "head_candidate_end_1220008601_p1": "head_candidate_end_1220008601_p1_32cbe7edd41c76ce",
+          "head_discharge_floor_1220011503_p1": "head_discharge_floor_1220011503_p1_aa1b4814e388e266",
+          "head_candidate_rate_1220011503_p1": "head_candidate_rate_1220011503_p1_aa1b4814e388e266",
+          "head_candidate_end_1220011503_p1": "head_candidate_end_1220011503_p1_aa1b4814e388e266",
+          "head_discharge_floor_1220012001_p3": "head_discharge_floor_1220012001_p3_113bb9e298f3adde",
+          "head_candidate_rate_1220012103_p3": "head_candidate_rate_1220012103_p3_2d2aa532df607833",
+          "head_candidate_end_1220012103_p3": "head_candidate_end_1220012103_p3_2d2aa532df607833",
+          "head_candidate_rate_1220012502_p3": "head_candidate_rate_1220012502_p3_762c56c10e066d03",
+          "head_candidate_end_1220012502_p3": "head_candidate_end_1220012502_p3_762c56c10e066d03",
+          "head_discharge_floor_1220014100_p1": "head_discharge_floor_1220014100_p1_e10de2b6508fe7fb",
+          "head_candidate_rate_1220014100_p1": "head_candidate_rate_1220014100_p1_e10de2b6508fe7fb",
+          "head_candidate_end_1220014100_p1": "head_candidate_end_1220014100_p1_e10de2b6508fe7fb",
+          "head_discharge_floor_1220014303_p3": "head_discharge_floor_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_rate_1220014303_p3": "head_candidate_rate_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_end_1220014303_p3": "head_candidate_end_1220014303_p3_0a9139dc0df57972",
+          "head_candidate_rate_1220015000_p1": "head_candidate_rate_1220015000_p1_f6378f113ce71a1f",
+          "head_candidate_end_1220015000_p1": "head_candidate_end_1220015000_p1_f6378f113ce71a1f",
+          "head_discharge_floor_1220015000_p1": "head_discharge_floor_1220015000_p1_f6378f113ce71a1f",
+          "head_discharge_floor_1220018401_p3": "head_discharge_floor_1220018401_p3_a4f287d70cfafc11",
+          "head_candidate_rate_1220018401_p3": "head_candidate_rate_1220018401_p3_a4f287d70cfafc11",
+          "head_candidate_end_1220018401_p3": "head_candidate_end_1220018401_p3_a4f287d70cfafc11",
+          "head_discharge_floor_1220018504_p3": "head_discharge_floor_1220018504_p3_815bfaecda8e5d83",
+          "head_candidate_rate_1220018504_p3": "head_candidate_rate_1220018504_p3_815bfaecda8e5d83",
+          "head_candidate_end_1220018504_p3": "head_candidate_end_1220018504_p3_815bfaecda8e5d83",
+          "head_discharge_floor_1220019201_p1": "head_discharge_floor_1220019201_p1_b8804b7d7e55d9e1",
+          "head_candidate_rate_1220019201_p1": "head_candidate_rate_1220019201_p1_b8804b7d7e55d9e1",
+          "head_candidate_end_1220019201_p1": "head_candidate_end_1220019201_p1_b8804b7d7e55d9e1",
+          "head_discharge_floor_1220021801_p1": "head_discharge_floor_1220021801_p1_07aa995c18caf595",
+          "head_candidate_rate_1220021801_p1": "head_candidate_rate_1220021801_p1_07aa995c18caf595",
+          "head_candidate_end_1220021801_p1": "head_candidate_end_1220021801_p1_07aa995c18caf595",
+          "head_discharge_floor_176_p3": "head_discharge_floor_176_p3_f341cf2c6773f1f7",
+          "head_candidate_rate_176_p3": "head_candidate_rate_176_p3_f341cf2c6773f1f7",
+          "head_candidate_end_176_p3": "head_candidate_end_176_p3_f341cf2c6773f1f7",
+          "head_discharge_floor_178_p3": "head_discharge_floor_178_p3_f971bce9ab100990",
+          "head_candidate_rate_178_p3": "head_candidate_rate_178_p3_f971bce9ab100990",
+          "head_candidate_end_178_p3": "head_candidate_end_178_p3_f971bce9ab100990",
+          "head_discharge_floor_183_p3": "head_discharge_floor_183_p3_8bc85abba58b6fe0",
+          "head_candidate_rate_30_p3": "head_candidate_rate_30_p3_abf12c7f646887ab",
+          "head_candidate_end_30_p3": "head_candidate_end_30_p3_abf12c7f646887ab",
+          "head_candidate_rate_37_p1": "head_candidate_rate_37_p1_ea4d73e28555c1c0",
+          "head_candidate_end_37_p1": "head_candidate_end_37_p1_ea4d73e28555c1c0",
+          "head_discharge_floor_37_p1": "head_discharge_floor_37_p1_ea4d73e28555c1c0",
+          "head_candidate_rate_39_p1": "head_candidate_rate_39_p1_abad871f099f9e35",
+          "head_candidate_end_39_p1": "head_candidate_end_39_p1_abad871f099f9e35",
+          "head_discharge_floor_416_p3": "head_discharge_floor_416_p3_87a384a61a52f5f4",
+          "head_candidate_rate_416_p3": "head_candidate_rate_416_p3_87a384a61a52f5f4",
+          "head_candidate_end_416_p3": "head_candidate_end_416_p3_87a384a61a52f5f4",
+          "head_discharge_floor_47_p1": "head_discharge_floor_47_p1_9febb7465ae28fe7",
+          "head_discharge_floor_52_p3": "head_discharge_floor_52_p3_b9a84d4b5414529c",
+          "head_candidate_rate_57_p3": "head_candidate_rate_57_p3_0d1108e7cf8cc72b",
+          "head_candidate_end_57_p3": "head_candidate_end_57_p3_0d1108e7cf8cc72b",
+          "head_discharge_floor_57_p3": "head_discharge_floor_57_p3_0d1108e7cf8cc72b"
+        },
+        {
+          "head_discharge_floor_1210008401_p1": "head_discharge_floor_1210008401_p1_a30e7e7f4291c6a8",
+          "head_candidate_rate_1210008401_p1": "head_candidate_rate_1210008401_p1_a30e7e7f4291c6a8",
+          "head_candidate_end_1210008401_p1": "head_candidate_end_1210008401_p1_a30e7e7f4291c6a8",
+          "head_discharge_floor_1210009503_p1": "head_discharge_floor_1210009503_p1_1eb50d92adb10cfd",
+          "head_candidate_rate_1210009503_p1": "head_candidate_rate_1210009503_p1_1eb50d92adb10cfd",
+          "head_candidate_end_1210009503_p1": "head_candidate_end_1210009503_p1_1eb50d92adb10cfd",
+          "head_discharge_floor_1210012600_p1": "head_discharge_floor_1210012600_p1_03c2e89d37bb2c18",
+          "head_discharge_floor_1210012700_p1": "head_discharge_floor_1210012700_p1_fec8c3519a9bdbac",
+          "head_discharge_floor_1210018302_p1": "head_discharge_floor_1210018302_p1_375b7cd6a373bd54",
+          "head_candidate_rate_1210018302_p1": "head_candidate_rate_1210018302_p1_375b7cd6a373bd54",
+          "head_candidate_end_1210018302_p1": "head_candidate_end_1210018302_p1_375b7cd6a373bd54",
+          "head_candidate_rate_1220006503_p1": "head_candidate_rate_1220006503_p1_911cad9c461b557b",
+          "head_candidate_end_1220006503_p1": "head_candidate_end_1220006503_p1_911cad9c461b557b",
+          "head_discharge_floor_1220007001_p3": "head_discharge_floor_1220007001_p3_f5c0fef24488c587",
+          "head_candidate_rate_1220007001_p3": "head_candidate_rate_1220007001_p3_f5c0fef24488c587",
+          "head_candidate_end_1220007001_p3": "head_candidate_end_1220007001_p3_f5c0fef24488c587",
+          "head_discharge_floor_1220007104_p3": "head_discharge_floor_1220007104_p3_2522040968e22de5",
+          "head_candidate_rate_1220007104_p3": "head_candidate_rate_1220007104_p3_2522040968e22de5",
+          "head_candidate_end_1220007104_p3": "head_candidate_end_1220007104_p3_2522040968e22de5",
+          "head_discharge_floor_1220007200_p1": "head_discharge_floor_1220007200_p1_78a8889a424b31f6",
+          "head_candidate_rate_1220007401_p1": "head_candidate_rate_1220007401_p1_f53545aabee7f3b5",
+          "head_candidate_end_1220007401_p1": "head_candidate_end_1220007401_p1_f53545aabee7f3b5",
+          "head_discharge_floor_1220007401_p1": "head_discharge_floor_1220007401_p1_f53545aabee7f3b5",
+          "head_discharge_floor_1220007502_p1": "head_discharge_floor_1220007502_p1_b269caf5f41a06bb",
+          "head_candidate_rate_1220007502_p1": "head_candidate_rate_1220007502_p1_b269caf5f41a06bb",
+          "head_candidate_end_1220007502_p1": "head_candidate_end_1220007502_p1_b269caf5f41a06bb",
+          "head_discharge_floor_1220008201_p3": "head_discharge_floor_1220008201_p3_632e34ef31c6e809",
+          "head_candidate_rate_1220008201_p3": "head_candidate_rate_1220008201_p3_632e34ef31c6e809",
+          "head_candidate_end_1220008201_p3": "head_candidate_end_1220008201_p3_632e34ef31c6e809",
+          "head_candidate_rate_1220008601_p1": "head_candidate_rate_1220008601_p1_d0152fe347c08714",
+          "head_candidate_end_1220008601_p1": "head_candidate_end_1220008601_p1_d0152fe347c08714",
+          "head_discharge_floor_1220011503_p1": "head_discharge_floor_1220011503_p1_6418fed656d717c7",
+          "head_candidate_rate_1220011503_p1": "head_candidate_rate_1220011503_p1_6418fed656d717c7",
+          "head_candidate_end_1220011503_p1": "head_candidate_end_1220011503_p1_6418fed656d717c7",
+          "head_discharge_floor_1220012001_p3": "head_discharge_floor_1220012001_p3_4d28fd89eaf17f30",
+          "head_candidate_rate_1220012103_p3": "head_candidate_rate_1220012103_p3_1ff53ee395e6494d",
+          "head_candidate_end_1220012103_p3": "head_candidate_end_1220012103_p3_1ff53ee395e6494d",
+          "head_candidate_rate_1220012502_p3": "head_candidate_rate_1220012502_p3_f37c68dea4c873db",
+          "head_candidate_end_1220012502_p3": "head_candidate_end_1220012502_p3_f37c68dea4c873db",
+          "head_discharge_floor_1220014100_p1": "head_discharge_floor_1220014100_p1_175dc13c94c79f23",
+          "head_candidate_rate_1220014100_p1": "head_candidate_rate_1220014100_p1_175dc13c94c79f23",
+          "head_candidate_end_1220014100_p1": "head_candidate_end_1220014100_p1_175dc13c94c79f23",
+          "head_discharge_floor_1220014303_p3": "head_discharge_floor_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_rate_1220014303_p3": "head_candidate_rate_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_end_1220014303_p3": "head_candidate_end_1220014303_p3_eeba2b46a0c99c79",
+          "head_candidate_rate_1220015000_p1": "head_candidate_rate_1220015000_p1_e3cac294456a0d75",
+          "head_candidate_end_1220015000_p1": "head_candidate_end_1220015000_p1_e3cac294456a0d75",
+          "head_discharge_floor_1220015000_p1": "head_discharge_floor_1220015000_p1_e3cac294456a0d75",
+          "head_discharge_floor_1220018401_p3": "head_discharge_floor_1220018401_p3_411e7183c8c70aa2",
+          "head_candidate_rate_1220018401_p3": "head_candidate_rate_1220018401_p3_411e7183c8c70aa2",
+          "head_candidate_end_1220018401_p3": "head_candidate_end_1220018401_p3_411e7183c8c70aa2",
+          "head_discharge_floor_1220018504_p3": "head_discharge_floor_1220018504_p3_761f770ce1c29de5",
+          "head_candidate_rate_1220018504_p3": "head_candidate_rate_1220018504_p3_761f770ce1c29de5",
+          "head_candidate_end_1220018504_p3": "head_candidate_end_1220018504_p3_761f770ce1c29de5",
+          "head_discharge_floor_1220019201_p1": "head_discharge_floor_1220019201_p1_835d0e04a1fb0ed3",
+          "head_candidate_rate_1220019201_p1": "head_candidate_rate_1220019201_p1_835d0e04a1fb0ed3",
+          "head_candidate_end_1220019201_p1": "head_candidate_end_1220019201_p1_835d0e04a1fb0ed3",
+          "head_discharge_floor_1220021801_p1": "head_discharge_floor_1220021801_p1_cadac4e9ef186d15",
+          "head_candidate_rate_1220021801_p1": "head_candidate_rate_1220021801_p1_cadac4e9ef186d15",
+          "head_candidate_end_1220021801_p1": "head_candidate_end_1220021801_p1_cadac4e9ef186d15",
+          "head_discharge_floor_176_p3": "head_discharge_floor_176_p3_0ad12b1626b0bf37",
+          "head_candidate_rate_176_p3": "head_candidate_rate_176_p3_0ad12b1626b0bf37",
+          "head_candidate_end_176_p3": "head_candidate_end_176_p3_0ad12b1626b0bf37",
+          "head_discharge_floor_178_p3": "head_discharge_floor_178_p3_d1126e71a56b6927",
+          "head_candidate_rate_178_p3": "head_candidate_rate_178_p3_d1126e71a56b6927",
+          "head_candidate_end_178_p3": "head_candidate_end_178_p3_d1126e71a56b6927",
+          "head_discharge_floor_183_p3": "head_discharge_floor_183_p3_c67dd075ae7c4d13",
+          "head_candidate_rate_30_p3": "head_candidate_rate_30_p3_b7764364532013b0",
+          "head_candidate_end_30_p3": "head_candidate_end_30_p3_b7764364532013b0",
+          "head_candidate_rate_37_p1": "head_candidate_rate_37_p1_8e57ad51ab89c4b6",
+          "head_candidate_end_37_p1": "head_candidate_end_37_p1_8e57ad51ab89c4b6",
+          "head_discharge_floor_37_p1": "head_discharge_floor_37_p1_8e57ad51ab89c4b6",
+          "head_candidate_rate_39_p1": "head_candidate_rate_39_p1_768be6d1ef0b2ccd",
+          "head_candidate_end_39_p1": "head_candidate_end_39_p1_768be6d1ef0b2ccd",
+          "head_discharge_floor_416_p3": "head_discharge_floor_416_p3_1379b71a1f9c71fa",
+          "head_candidate_rate_416_p3": "head_candidate_rate_416_p3_1379b71a1f9c71fa",
+          "head_candidate_end_416_p3": "head_candidate_end_416_p3_1379b71a1f9c71fa",
+          "head_discharge_floor_47_p1": "head_discharge_floor_47_p1_a572cc198c1f8d87",
+          "head_discharge_floor_52_p3": "head_discharge_floor_52_p3_2ba994c2dd87ad48",
+          "head_candidate_rate_57_p3": "head_candidate_rate_57_p3_16d16ac4a0027edd",
+          "head_candidate_end_57_p3": "head_candidate_end_57_p3_16d16ac4a0027edd",
+          "head_discharge_floor_57_p3": "head_discharge_floor_57_p3_16d16ac4a0027edd"
+        }
+      ],
+      "values_by_physical_group": {
+        "head_discharge_floor_1210008401_p1": 1032.6530612244896,
+        "head_candidate_rate_1210008401_p1": 1600.0,
+        "head_candidate_end_1210008401_p1": 900.0,
+        "head_discharge_floor_1210009503_p1": 914.2857142857142,
+        "head_candidate_rate_1210009503_p1": 628.5714285714286,
+        "head_candidate_end_1210009503_p1": 900.0,
+        "head_discharge_floor_1210012600_p1": 826.1224489795918,
+        "head_discharge_floor_1210012700_p1": 864.0,
+        "head_discharge_floor_1210018302_p1": 1925.581395348837,
+        "head_candidate_rate_1210018302_p1": 2260.4651162790697,
+        "head_candidate_end_1210018302_p1": 900.0,
+        "head_candidate_rate_1220006503_p1": 1050.0,
+        "head_candidate_end_1220006503_p1": 900.0,
+        "head_discharge_floor_1220007001_p3": 826.1224489795918,
+        "head_candidate_rate_1220007001_p3": 720.0,
+        "head_candidate_end_1220007001_p3": 900.0,
+        "head_discharge_floor_1220007104_p3": 1237.5,
+        "head_candidate_rate_1220007104_p3": 1237.5,
+        "head_candidate_end_1220007104_p3": 900.0,
+        "head_discharge_floor_1220007200_p1": 1650.0,
+        "head_candidate_rate_1220007401_p1": 580.6451612903226,
+        "head_candidate_end_1220007401_p1": 900.0,
+        "head_discharge_floor_1220007401_p1": 580.6451612903226,
+        "head_discharge_floor_1220007502_p1": 983.7379162191191,
+        "head_candidate_rate_1220007502_p1": 816.4948453608247,
+        "head_candidate_end_1220007502_p1": 900.0,
+        "head_discharge_floor_1220008201_p3": 1462.5,
+        "head_candidate_rate_1220008201_p3": 1462.5,
+        "head_candidate_end_1220008201_p3": 900.0,
+        "head_candidate_rate_1220008601_p1": 259.7938144329897,
+        "head_candidate_end_1220008601_p1": 900.0,
+        "head_discharge_floor_1220011503_p1": 1425.0,
+        "head_candidate_rate_1220011503_p1": 2775.0,
+        "head_candidate_end_1220011503_p1": 900.0,
+        "head_discharge_floor_1220012001_p3": 619.5918367346939,
+        "head_candidate_rate_1220012103_p3": 562.5,
+        "head_candidate_end_1220012103_p3": 900.0,
+        "head_candidate_rate_1220012502_p3": 738.4615384615385,
+        "head_candidate_end_1220012502_p3": 900.0,
+        "head_discharge_floor_1220014100_p1": 837.2093023255813,
+        "head_candidate_rate_1220014100_p1": 1423.2558139534883,
+        "head_candidate_end_1220014100_p1": 900.0,
+        "head_discharge_floor_1220014303_p3": 1032.6530612244896,
+        "head_candidate_rate_1220014303_p3": 765.9574468085107,
+        "head_candidate_end_1220014303_p3": 900.0,
+        "head_candidate_rate_1220015000_p1": 648.0,
+        "head_candidate_end_1220015000_p1": 900.0,
+        "head_discharge_floor_1220015000_p1": 826.1224489795918,
+        "head_discharge_floor_1220018401_p3": 1455.3191489361702,
+        "head_candidate_rate_1220018401_p3": 995.7446808510639,
+        "head_candidate_end_1220018401_p3": 900.0,
+        "head_discharge_floor_1220018504_p3": 1032.6530612244896,
+        "head_candidate_rate_1220018504_p3": 1384.6153846153845,
+        "head_candidate_end_1220018504_p3": 900.0,
+        "head_discharge_floor_1220019201_p1": 753.4883720930234,
+        "head_candidate_rate_1220019201_p1": 753.4883720930234,
+        "head_candidate_end_1220019201_p1": 900.0,
+        "head_discharge_floor_1220021801_p1": 837.2093023255813,
+        "head_candidate_rate_1220021801_p1": 1172.093023255814,
+        "head_candidate_end_1220021801_p1": 900.0,
+        "head_discharge_floor_176_p3": 1032.6530612244896,
+        "head_candidate_rate_176_p3": 1063.6363636363637,
+        "head_candidate_end_176_p3": 900.0,
+        "head_discharge_floor_178_p3": 826.1224489795918,
+        "head_candidate_rate_178_p3": 818.1818181818181,
+        "head_candidate_end_178_p3": 900.0,
+        "head_discharge_floor_183_p3": 1445.7142857142858,
+        "head_candidate_rate_30_p3": 720.0,
+        "head_candidate_end_30_p3": 900.0,
+        "head_candidate_rate_37_p1": 391.304347826087,
+        "head_candidate_end_37_p1": 900.0,
+        "head_discharge_floor_37_p1": 413.0612244897959,
+        "head_candidate_rate_39_p1": 704.3478260869565,
+        "head_candidate_end_39_p1": 900.0,
+        "head_discharge_floor_416_p3": 925.7142857142858,
+        "head_candidate_rate_416_p3": 720.0,
+        "head_candidate_end_416_p3": 900.0,
+        "head_discharge_floor_47_p1": 826.1224489795918,
+        "head_discharge_floor_52_p3": 1040.0,
+        "head_candidate_rate_57_p3": 400.0,
+        "head_candidate_end_57_p3": 900.0,
+        "head_discharge_floor_57_p3": 413.0612244897959
+      },
+      "provenance_markers": [
+        {
+          "head_provenance_3a714b0956eff2194dacc0a73115a950fdec8119ed015e8fdfcdd1637fe19836": 1.0
+        },
+        {
+          "head_provenance_cd767038de587042c3928d953c06ae84cb5fe9c4f3146d3c887766397688a447": 1.0
+        }
+      ],
+      "observation_status": [
+        {
+          "head_observation_enabled": 1.0,
+          "head_observation_snapshot_sec": 900.0,
+          "head_observation_prior_discarded": 0.0,
+          "head_observation_groups_updated": 17.0,
+          "head_observation_groups_carried": 24.0,
+          "head_observation_missing_window": 0.0,
+          "head_observation_invalid_window": 0.0,
+          "head_observation_short_exposure": 25.0,
+          "head_observation_missing_crossings": 8.0,
+          "head_observation_unknown_link": 26.0,
+          "head_observation_no_model_members": 19.0,
+          "head_observation_waiting_second_window": 10.0
+        },
+        {
+          "head_observation_enabled": 1.0,
+          "head_observation_snapshot_sec": 900.0,
+          "head_observation_prior_discarded": 0.0,
+          "head_observation_groups_updated": 17.0,
+          "head_observation_groups_carried": 24.0,
+          "head_observation_missing_window": 0.0,
+          "head_observation_invalid_window": 0.0,
+          "head_observation_short_exposure": 25.0,
+          "head_observation_missing_crossings": 8.0,
+          "head_observation_unknown_link": 26.0,
+          "head_observation_no_model_members": 19.0,
+          "head_observation_waiting_second_window": 10.0
+        }
+      ]
+    }
+  },
+  "four_lever_vectors": {
+    "vsl": {
+      "equal": true,
+      "entries": [
+        44,
+        44
+      ],
+      "offline": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "live": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      }
+    },
+    "ramp_metering": {
+      "equal": true,
+      "entries": [
+        4,
+        4
+      ],
+      "offline": {
+        "R_D_W": 1800.0,
+        "R_F_W": 1800.0,
+        "R_D_E": 1800.0,
+        "R_F_E": 1800.0
+      },
+      "live": {
+        "R_D_W": 1800.0,
+        "R_F_W": 1800.0,
+        "R_D_E": 1800.0,
+        "R_F_E": 1800.0
+      }
+    },
+    "green_times": {
+      "equal": true,
+      "entries": [
+        68,
+        68
+      ],
+      "offline": {
+        "SC1_p1": 69.999,
+        "SC1_p2": 22.667,
+        "SC1_p3": 22.667,
+        "SC1_p4": 22.667,
+        "SC5_p1": 63.0,
+        "SC5_p2": 21.0,
+        "SC5_p3": 33.0,
+        "SC5_p4": 21.0,
+        "SC6_p1": 63.0,
+        "SC6_p2": 21.0,
+        "SC6_p3": 33.0,
+        "SC6_p4": 21.0,
+        "SC7_p1": 65.0,
+        "SC7_p2": 23.0,
+        "SC7_p3": 0.0,
+        "SC7_p4": 53.0,
+        "SC11_p1": 39.999,
+        "SC11_p2": 22.667,
+        "SC11_p3": 52.667,
+        "SC11_p4": 22.667,
+        "SC12_p1": 39.999,
+        "SC12_p2": 22.667,
+        "SC12_p3": 52.667,
+        "SC12_p4": 22.667,
+        "SC16_p1": 83.0,
+        "SC16_p2": 23.0,
+        "SC16_p3": 35.0,
+        "SC16_p4": 0.0,
+        "SC101_p1": 63.0,
+        "SC101_p2": 21.0,
+        "SC101_p3": 33.0,
+        "SC101_p4": 21.0,
+        "SC105_p1": 21.999,
+        "SC105_p2": 34.667,
+        "SC105_p3": 58.667,
+        "SC105_p4": 22.667,
+        "SC107_p1": 0.0,
+        "SC107_p2": 56.0,
+        "SC107_p3": 60.5,
+        "SC107_p4": 24.5,
+        "SC108_p1": 65.0,
+        "SC108_p2": 0.0,
+        "SC108_p3": 53.0,
+        "SC108_p4": 23.0,
+        "SC109_p1": 0.0,
+        "SC109_p2": 32.0,
+        "SC109_p3": 84.5,
+        "SC109_p4": 24.5,
+        "SC1001_p1": 23.001,
+        "SC1001_p2": 24.333,
+        "SC1001_p3": 66.333,
+        "SC1001_p4": 24.333,
+        "SC1002_p1": 27.999,
+        "SC1002_p2": 22.667,
+        "SC1002_p3": 64.667,
+        "SC1002_p4": 22.667,
+        "SC1003_p1": 45.999,
+        "SC1003_p2": 46.667,
+        "SC1003_p3": 22.667,
+        "SC1003_p4": 22.667,
+        "SC1004_p1": 21.999,
+        "SC1004_p2": 22.667,
+        "SC1004_p3": 70.667,
+        "SC1004_p4": 22.667,
+        "SC1005_p1": 63.999,
+        "SC1005_p2": 28.667,
+        "SC1005_p3": 22.667,
+        "SC1005_p4": 22.667
+      },
+      "live": {
+        "SC1_p1": 69.999,
+        "SC1_p2": 22.667,
+        "SC1_p3": 22.667,
+        "SC1_p4": 22.667,
+        "SC5_p1": 63.0,
+        "SC5_p2": 21.0,
+        "SC5_p3": 33.0,
+        "SC5_p4": 21.0,
+        "SC6_p1": 63.0,
+        "SC6_p2": 21.0,
+        "SC6_p3": 33.0,
+        "SC6_p4": 21.0,
+        "SC7_p1": 65.0,
+        "SC7_p2": 23.0,
+        "SC7_p3": 0.0,
+        "SC7_p4": 53.0,
+        "SC11_p1": 39.999,
+        "SC11_p2": 22.667,
+        "SC11_p3": 52.667,
+        "SC11_p4": 22.667,
+        "SC12_p1": 39.999,
+        "SC12_p2": 22.667,
+        "SC12_p3": 52.667,
+        "SC12_p4": 22.667,
+        "SC16_p1": 83.0,
+        "SC16_p2": 23.0,
+        "SC16_p3": 35.0,
+        "SC16_p4": 0.0,
+        "SC101_p1": 63.0,
+        "SC101_p2": 21.0,
+        "SC101_p3": 33.0,
+        "SC101_p4": 21.0,
+        "SC105_p1": 21.999,
+        "SC105_p2": 34.667,
+        "SC105_p3": 58.667,
+        "SC105_p4": 22.667,
+        "SC107_p1": 0.0,
+        "SC107_p2": 56.0,
+        "SC107_p3": 60.5,
+        "SC107_p4": 24.5,
+        "SC108_p1": 65.0,
+        "SC108_p2": 0.0,
+        "SC108_p3": 53.0,
+        "SC108_p4": 23.0,
+        "SC109_p1": 0.0,
+        "SC109_p2": 32.0,
+        "SC109_p3": 84.5,
+        "SC109_p4": 24.5,
+        "SC1001_p1": 23.001,
+        "SC1001_p2": 24.333,
+        "SC1001_p3": 66.333,
+        "SC1001_p4": 24.333,
+        "SC1002_p1": 27.999,
+        "SC1002_p2": 22.667,
+        "SC1002_p3": 64.667,
+        "SC1002_p4": 22.667,
+        "SC1003_p1": 45.999,
+        "SC1003_p2": 46.667,
+        "SC1003_p3": 22.667,
+        "SC1003_p4": 22.667,
+        "SC1004_p1": 21.999,
+        "SC1004_p2": 22.667,
+        "SC1004_p3": 70.667,
+        "SC1004_p4": 22.667,
+        "SC1005_p1": 63.999,
+        "SC1005_p2": 28.667,
+        "SC1005_p3": 22.667,
+        "SC1005_p4": 22.667
+      }
+    },
+    "offsets": {
+      "equal": true,
+      "entries": [
+        17,
+        17
+      ],
+      "offline": {
+        "SC1": 0.0,
+        "SC5": 18.75,
+        "SC6": 93.75,
+        "SC7": 0.0,
+        "SC11": 37.5,
+        "SC12": 37.5,
+        "SC16": 112.5,
+        "SC101": 18.75,
+        "SC105": 0.0,
+        "SC107": 0.0,
+        "SC108": 0.0,
+        "SC109": 131.25,
+        "SC1001": 75.0,
+        "SC1002": 56.25,
+        "SC1003": 18.75,
+        "SC1004": 56.25,
+        "SC1005": 0.0
+      },
+      "live": {
+        "SC1": 0.0,
+        "SC5": 18.75,
+        "SC6": 93.75,
+        "SC7": 0.0,
+        "SC11": 37.5,
+        "SC12": 37.5,
+        "SC16": 112.5,
+        "SC101": 18.75,
+        "SC105": 0.0,
+        "SC107": 0.0,
+        "SC108": 0.0,
+        "SC109": 131.25,
+        "SC1001": 75.0,
+        "SC1002": 56.25,
+        "SC1003": 18.75,
+        "SC1004": 56.25,
+        "SC1005": 0.0
+      }
+    }
+  },
+  "leader_targets_equal": true,
+  "decision_csv_raw_exact": true,
+  "decision_csv_parsed_exact": true,
+  "decision_csv_rows": [
+    213,
+    213
+  ],
+  "source_files": [
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_production_preflight\\wu-link_t900_beta300_20260910T021854343272Z\\manifest.json",
+      "sha256": "1ac8ed2d09d15e74bcba4b6d5f9f454779c1c1b125fddede30bbddefa6322f27",
+      "bytes": 33016
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\decisions_codex_contract_observed_nc_s13_1050_v2_20260910\\state_000900.json",
+      "sha256": "9f11bb06708d3006bf9e560af70f0e9036eca034cd3c7380abd4f9756342a17e",
+      "bytes": 788703
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\decisions_codex_contract_beta300_s13_1050_v3_20260910\\state_000900.json",
+      "sha256": "c892f2c6b50bd7d5d2e48368b5cb224073f59e7da7381ee821fc94677d2ddc78",
+      "bytes": 788695
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_production_preflight\\wu-link_t900_beta300_20260910T021854343272Z\\action.json",
+      "sha256": "dd674fe9941b3221afd0b9fd1e0dc6bd32646be98c9f70a18b258c1f230c9531",
+      "bytes": 370848
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\decisions_codex_contract_beta300_s13_1050_v3_20260910\\action_000900.json",
+      "sha256": "48d68ceddc7c4fd4431457b5dcf1ba01ce19e946a696c0360faf8942c3cbd34d",
+      "bytes": 370806
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\run_provenance_codex_contract_observed_nc_s13_1050_v2_20260910.json",
+      "sha256": "1ac5955ef5c33e73ca6057418b6db7c824ba47a5510a2b7b257177c583707e3c",
+      "bytes": 40718
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\run_provenance_codex_contract_beta300_s13_1050_v3_20260910.json",
+      "sha256": "6d710d7bfafb2554891b8892feff0a933164366283ee79386ee344493e820640",
+      "bytes": 40715
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\contract_candidate_configs_v3\\n7_area_beta300.json",
+      "sha256": "35f124ef388fe18dc60dbac3599f2e28175ab71e21b4fd2a6a38d59aa0ad6141",
+      "bytes": 271793
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\decisions_codex_contract_observed_nc_s13_1050_v2_20260910\\action_000750.json",
+      "sha256": "017618692a4ec61c4e1e8d2f1c7c5855d9305c215583cedf08ca8f2a23f67ab5",
+      "bytes": 311804
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\decisions_codex_contract_beta300_s13_1050_v3_20260910\\action_000750.json",
+      "sha256": "ad5d93ce6dd3b51fa6e13dec9012cdc8dbcf659f7b10ae1e8088de6f4f3a0f99",
+      "bytes": 311772
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\area_production_preflight\\wu-link_t900_beta300_20260910T021854343272Z\\action.csv",
+      "sha256": "becee44cef1cfd96fc0dc7be4be70b3a424210a362f52d87aa9ee70388e9940a",
+      "bytes": 27923
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_beta300_s13_1050_v3_20260910\\decisions_codex_contract_beta300_s13_1050_v3_20260910\\action_000900.csv",
+      "sha256": "becee44cef1cfd96fc0dc7be4be70b3a424210a362f52d87aa9ee70388e9940a",
+      "bytes": 27923
+    }
+  ],
+  "producer_sha256": "3c37ca6a411fd873a704325aa9ec6dabbba0607f9b991465b938ddc5e33ccbfb",
+  "limits": [
+    "No model, optimizer, simulator, FZP or COM is executed/read by this comparison.",
+    "Raw run/config identities are deliberately retained; head hash suffixes are only normalized for physical-group value comparison, never for reuse by a controller.",
+    "Offline raw observation belongs to the recorded NC config, while its optimization uses the current beta300 config. This is distinct from rewriting the raw observation provenance.",
+    "Decision CSV identity proves identical emitted commands. Actual COM service over the following interval requires the separate signal/readback audit."
+  ],
+  "matching_inputs_and_outputs": true,
+  "input_changes": []
+}

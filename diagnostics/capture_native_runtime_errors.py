@@ -322,7 +322,7 @@ def main():
                 "A locked empty DLL log is reported as unreadable, not asserted to be a captured empty file.",
                 "Explicit lane-change removal is not an outward crossing. Interior loss already excluded from TD can reduce TTT and truncate congestion.",
                 "No vehicle-ID blacklist is created. Earlier observed outward crossings by a later-removed vehicle remain valid TD; only the deletion disappearance is classified here.",
-                "No terminal24/120 native removal in this captured prefix means no demonstrated contamination of that terminal inference by these warnings; it does not prove future warnings absent.",
+                "Terminal-road membership alone does not establish a counted terminal exit. Compare each removal's last position and next-frame absence with the measurement's endpoint reach criterion; the removal count above reports road membership only.",
                 "No measurement or production code was changed; duplicate travel-time-section warnings are separate records, not vehicle removals."]}
     (directory/"capture.json").write_text(json.dumps(capture,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     with (directory/"removals.csv").open("w",encoding="utf-8",newline="") as stream:

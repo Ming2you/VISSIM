@@ -1,0 +1,31 @@
+{
+  "schema": "source-run-comparison-plot/v1",
+  "window_sec": [
+    900,
+    1050.0
+  ],
+  "queue_links": [
+    "127",
+    "71",
+    "420",
+    "10682",
+    "10639",
+    "40"
+  ],
+  "queue_smoothing_samples": 1,
+  "source_sha256": {
+    "diagnostics\\render_source_run_comparison.py": "736e5fd05494fb0844642d345da9b20de6707e70a9fc47f7733cefb2c1d73abe",
+    "diagnostics\\contract_beta300_v3_smoke_comparison_1050\\comparison.json": "9f5ee5a2ba8bd82919d1d3f1a2bd8c1f5b0d5bea508627b90cecf529f4b447e5",
+    "diagnostics\\contract_beta300_v3_smoke_comparison_1050\\road_curves.csv": "dd171f43b6d00ea4499859f6fafda181e889b92f3e6c4a7ad2045664f9f308a9",
+    "diagnostics\\contract_beta300_v3_smoke_comparison_1050\\cell_curves.csv": "d206b660067b4b04a3b52925c2420049192c6ad84ae7a43265264bc8816da5b8"
+  },
+  "artifacts": {
+    "freeway_comparison.png": "c8c393ccd60e4b185eaab6dc4145a85f3e909d5ec71fd186ba5d65129bdcfc7f",
+    "freeway_comparison.svg": "049f7248e62a4d9ba77029b3eaf00ba636e7c6af19ebf8a8d6d1975c6d12d9a4",
+    "queue_comparison.png": "2b0356afe609366d497fa8164fca05951a601ea1a82b33c79160a2ee66c11348",
+    "queue_comparison.svg": "a891a5a1a9e8b3b3625548f7f3e5313637de4da3861ae858541f0b43c6420822",
+    "command_changes.png": "488d12000c5f7e3a50006ce2008823faa60611aab74b3515634b37ae24031dc0",
+    "command_changes.svg": "2547f31adf7c48c3602a5907ff6c42413b9ae368afc7d298e628bc283aa0de96"
+  },
+  "interpretation": "Observed spatial association, not an isolated causal effect. Command changes count actual CSV fields; readback validation is in comparison.json."
+}

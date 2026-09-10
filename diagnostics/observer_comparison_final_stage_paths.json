@@ -1,0 +1,129 @@
+{
+  "schema": "diagnostic-stage-inventory/v1",
+  "created_utc": "2026-09-10T02:51:28.839866+00:00",
+  "explicit_paths": [
+    {
+      "path": "diagnostics/audit_observer_control_pair.py",
+      "sha256": "5286455b55e1ee75ae37391f8d56276d20257f897a85d4dc1f7c700a0339b9c5",
+      "bytes": 8786,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/summarize_observer_mode_comparison.py",
+      "sha256": "5a9d9f576d376f3c53cd3c5865f2300a0a059ea5860a24e6758dffc7209362c6",
+      "bytes": 6504,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_on_v2_off_v3_control_pair.json",
+      "sha256": "72d13e4f4f941620b9c161ffd197181d3d0ae5fe3981b4dd2d6f03afb3576013",
+      "bytes": 12241,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_head_off_v3_vs_on_v2_prefix1050.json",
+      "sha256": "5b17f6dec9cee44d561f32b409dc4125f17f8fd01dff31b1ecd3399ec61659c3",
+      "bytes": 3429,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_on_v2_off_v3_build_provenance.json",
+      "sha256": "121a232837fff1fe56df25d5f54bc5e863a0cb0c0ccb16c73381a1ccfae1a5dd",
+      "bytes": 1608,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_continuous_v3_vs_stepwise_v3_prefix1050.json",
+      "sha256": "9f907bb7513971d56d2c727a6e5e9444220703c1a9820724ab71110524a5775a",
+      "bytes": 3469,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_four_condition_comparison.json",
+      "sha256": "cc4e835dc26779f95ccac6d9ba28e9f5b4b4b40fd18492e8b7980d0a23085586",
+      "bytes": 15784,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_four_condition_comparison.md",
+      "sha256": "7d27eb8ae725615236ba60e2d5b3c1a67d8cec6218530a5e53f7c1b8a473492c",
+      "bytes": 6304,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/compare_preflight_live_action.py",
+      "sha256": "3c37ca6a411fd873a704325aa9ec6dabbba0607f9b991465b938ddc5e33ccbfb",
+      "bytes": 9764,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/audit_controlled_head_window.py",
+      "sha256": "74e937e460b123898007c2491a9a0edc7133ee0f80d3d68c5da369cad4296f29",
+      "bytes": 9319,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/test_preflight_live_audits.py",
+      "sha256": "941ced26cae59f0a82ece011285c6403f1ea546bca1b5bb7f627a64312a3c324",
+      "bytes": 2343,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/beta300_preflight_live900_comparison.json",
+      "sha256": "01142a2a3a42c40243660226b611269b4bd71ce2ac26019eec889af00adc312a",
+      "bytes": 110254,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/beta300_controlled_head_window900_1050.json",
+      "sha256": "4cf8b4f88e5488b248673213bd22e00cfc27a405e13ca5bc914776370180e568",
+      "bytes": 136534,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/observer_raw900_terminal_frame_audit.json",
+      "sha256": "7741062d8984a1091a08ccd3820bf7450a277a41f5be3e5331f264387ca4faa3",
+      "bytes": 3239,
+      "already_tracked": false
+    },
+    {
+      "path": "diagnostics/beta300_offline_live_observation_handoff.md",
+      "sha256": "991fffc18926fd6ef65da462c0ace2676c040ca4e7dbab92a68d903ce7cdab9e",
+      "bytes": 4444,
+      "already_tracked": false
+    }
+  ],
+  "local_direct_import_dependencies_already_tracked": [
+    {
+      "path": "diagnostics/verify_signal_observation_pair.py",
+      "tracked": true,
+      "sha256": "f204df87977a1054e600d7a99ff932b7066b04c828ec23b5d803d3dd7c361c61"
+    },
+    {
+      "path": "diagnostics/audit_signal_observation_smoke.py",
+      "tracked": true,
+      "sha256": "dfb7bba0cc815100a5109588a2b84ce9c0ad478ceeca4c74f6bac4b10f0ccb92"
+    },
+    {
+      "path": "evaluation/controllers/signal_head_observation.py",
+      "tracked": true,
+      "sha256": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f"
+    },
+    {
+      "path": "plant/src/vissim_strict/signal_program.py",
+      "tracked": true,
+      "sha256": "274504c8ebc48c3e05213acde2bc641ea31994b802e2a9dac7d316a10552a2dc"
+    }
+  ],
+  "prior_inventories_preserved": [
+    "diagnostics/observer_smoke_v2_stage_paths.json",
+    "diagnostics/observer_off_preparation_stage_paths.json"
+  ],
+  "tests": {
+    "command": "python -X utf8 -m unittest diagnostics.test_preflight_live_audits diagnostics.test_signal_observation_smoke_audit diagnostics.test_signal_observation_pair -v",
+    "count": 11,
+    "result": "PASS",
+    "elapsed_sec": 0.049
+  },
+  "scope": "Only these new diagnostic files need staging for the final comparison and beta300 handoff. Existing producer/test files from earlier inventories are unchanged. Root owns native C/D/controlled ERR captures and all production/config/Git mutations. No large FZP scan was run for the final summary or offline/live comparison."
+}

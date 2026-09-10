@@ -1,0 +1,75 @@
+{
+  "schema": "current-nc-length-control/v1",
+  "long_run": "codex_contract_nc_headoff_continuous_s13_5400_v3_20260910",
+  "short_run": "codex_contract_nc_headoff_continuous_s13_1050_v3_20260910",
+  "candidate_manifests_exact": true,
+  "source_count": 135,
+  "provenance_file_hash_differences": {},
+  "env_exact": true,
+  "seed": 13,
+  "lengths_sec": [
+    5400,
+    1050
+  ],
+  "long_vs_original_full_payload_exact": true,
+  "rows": 26693633,
+  "payload_sha256": "2a0747f1c8f363214273780782d97e5b7b5ca8b5024af8b745e26f5cbdabaa79",
+  "native_lane_change_removals": 486,
+  "terminal_road_interior_removal": [
+    {
+      "line_number": 1088,
+      "byte_offset": 223434,
+      "raw_line_sha256": "89b7b46817f49223cd67e0c1c5b8c2a17c36063d479cf3dc52e588a60d37f12b",
+      "message": "Warning\tSimulation second 4107.0: After 60.0 seconds of waiting for lane change the vehicle 27349 (on Static Vehicle Route 1133 - 1) was removed from link 120 at position 2082.4.\tNetwork object type: Vehicle\tNetwork object keys: 27349",
+      "kind": "lane_change_removal",
+      "time_sec": 4107.0,
+      "wait_sec": 60.0,
+      "vehicle_id": 27349,
+      "route_decision": 1133,
+      "route_index": 1,
+      "link": "120",
+      "position_m": 2082.4
+    }
+  ],
+  "unfinished_inputs": [
+    {
+      "line_number": 1531,
+      "byte_offset": 316367,
+      "raw_line_sha256": "94500dc0d6e0067f478f82840ca2ec5f674c0659286c5d23f7ce632e5193b2aa",
+      "message": "Warning\tVehicle input 1098: 경부_EB could not be finished completely (remain: 1182 vehicles).\tNetwork object type: Vehicle Input\tNetwork object keys: 1098",
+      "kind": "unfinished_vehicle_input",
+      "input_no": 1098,
+      "remaining_vehicles": 1182,
+      "explicitly_says_removed": false
+    },
+    {
+      "line_number": 1532,
+      "byte_offset": 316541,
+      "raw_line_sha256": "0d8124edf77afd47dd42d2e99c8a040ff895809f57dc94effacfddd8d20150ae",
+      "message": "Warning\tVehicle input 1099: 경부_NB could not be finished completely (remain: 572 vehicles).\tNetwork object type: Vehicle Input\tNetwork object keys: 1099",
+      "kind": "unfinished_vehicle_input",
+      "input_no": 1099,
+      "remaining_vehicles": 572,
+      "explicitly_says_removed": false
+    },
+    {
+      "line_number": 1533,
+      "byte_offset": 316714,
+      "raw_line_sha256": "3f273559578dfda2fa67be87b384a78360603d63b98a02ddb08259aa4476f11b",
+      "message": "Warning\tVehicle input 1105 could not be finished completely (remain: 91 vehicles).\tNetwork object type: Vehicle Input\tNetwork object keys: 1105",
+      "kind": "unfinished_vehicle_input",
+      "input_no": 1105,
+      "remaining_vehicles": 91,
+      "explicitly_says_removed": false
+    }
+  ],
+  "inputs": {
+    "evaluation\\runs\\codex_contract_nc_headoff_continuous_s13_5400_v3_20260910\\run_provenance_codex_contract_nc_headoff_continuous_s13_5400_v3_20260910.json": "65312d19a5e69ad51dbe619e6085ca8eac30acd7c88e81d41c7b6845ac597760",
+    "evaluation\\runs\\codex_contract_nc_headoff_continuous_s13_1050_v3_20260910\\run_provenance_codex_contract_nc_headoff_continuous_s13_1050_v3_20260910.json": "848d85238cb87aee7572a1e4c61334213b111d8afb58c07ae7433186908e17b0",
+    "evaluation\\runs\\codex_contract_nc_headoff_continuous_s13_5400_v3_20260910\\area_candidate_source_manifest.json": "af4c500a51aa18f4810629628e9853d7b827dafa467f6e67fdadf42a2ab7f8f4",
+    "evaluation\\runs\\codex_contract_nc_headoff_continuous_s13_1050_v3_20260910\\area_candidate_source_manifest.json": "af4c500a51aa18f4810629628e9853d7b827dafa467f6e67fdadf42a2ab7f8f4",
+    "diagnostics\\current_nc_v3_vs_original_full5400_trajectory.json": "4aa81ac080c2e8c9b2b76b4c9145714d3b27b1673e6399fe87a58542f3599c4c",
+    "diagnostics\\native_runtime_error_capture\\codex_contract_nc_headoff_continuous_s13_5400_v3_20260910_complete_20260910T025715952453Z\\capture.json": "6f7654ae3c440445cba1bc9b42202509660b2a4caf30d1e46207b98bb4334685"
+  },
+  "scope": "Same current OFF continuous build and inputs at two lengths; full long payload equals original long payload. Matching short vs long divergence is restricted to observed seed/network. No claim of arbitrary VISSIM horizon equivalence."
+}

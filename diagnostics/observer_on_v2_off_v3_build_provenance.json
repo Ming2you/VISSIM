@@ -1,0 +1,34 @@
+{
+  "schema": "observer-pair-build-provenance/v1",
+  "copied_source_manifests": [
+    {
+      "path": "evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\area_candidate_source_manifest.json",
+      "sha256": "d1ed708621e01a7dd4f964225697011e80f188e8d69c01031b217b1ae66e8065",
+      "source_count": 134
+    },
+    {
+      "path": "evaluation\\runs\\codex_contract_nc_headoff_stepwise_s13_1050_v3_20260910\\area_candidate_source_manifest.json",
+      "sha256": "af4c500a51aa18f4810629628e9853d7b827dafa467f6e67fdadf42a2ab7f8f4",
+      "source_count": 135
+    }
+  ],
+  "changed_common_source_files": {
+    "diagnostics/run_area_beta_trial.ps1": {
+      "on": "535c75ca295d6169b0f79dd1ef72046ceedc9d535fbc338315f0135a96a6b353",
+      "off": "af2ab5b697e5712bd38795b1c426663c50f318bea4ebf54e4681395dfbcd51fb"
+    },
+    "evaluation/controllers/vissim_stackelberg_adapter.py": {
+      "on": "e6af8fed5f98ef7b20d79d10454f86596d4ccddbd546c328699097de63001836",
+      "off": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc"
+    },
+    "evaluation/controllers/local_signal_service.py": {
+      "on": "1edc4a1a940004bfe03ba3da4f10378192ea4a1e0c8b792543caaed5bc276ec7",
+      "off": "fe41f8ece0391e4f1ee0c50b2221ab331a24c92da765b27317aef151ef79a154"
+    }
+  },
+  "on_only_sources": [],
+  "off_only_sources": [
+    "diagnostics/signal_observation_off_overlay.json"
+  ],
+  "scope": "Copied complete build manifests, including generator/launcher and input artifacts. Actual output config semantic equality and physical commands are audited separately."
+}

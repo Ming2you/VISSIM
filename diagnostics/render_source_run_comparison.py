@@ -11,7 +11,11 @@ import matplotlib.pyplot as plt
 def read_csv(path):
     with path.open(encoding='utf-8') as stream:return list(csv.DictReader(stream))
 def main(argv=None):
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('directory',type=Path);args=ap.parse_args(argv);directory=(ROOT/args.directory).resolve()
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('directory',type=Path)
+    ap.add_argument('--queue-links',nargs=6,default=('10639','10682','40','420','70','71'))
+    ap.add_argument('--queue-smoothing-samples',type=int,default=5)
+    args=ap.parse_args(argv);directory=(ROOT/args.directory).resolve()
+    if args.queue_smoothing_samples<1:ap.error('Queue smoothing must use at least one sample')
     if (ROOT/'diagnostics').resolve() not in directory.parents:ap.error('Render input/output must stay under diagnostics')
     path=directory/'comparison.json';report=json.loads(path.read_text(encoding='utf-8'));created=[]
     if not report.get('common_window_comparison_ready'):
@@ -33,15 +37,19 @@ def main(argv=None):
         destination=directory/f'freeway_comparison.{suffix}';fig.savefig(destination,dpi=150);created.append(destination)
     plt.close(fig)
     fig,axes=plt.subplots(3,2,figsize=(13,9),sharex=True,constrained_layout=True)
-    for axis,link in zip(axes.flat,('10639','10682','40','420','70','71')):
+    for axis,link in zip(axes.flat,args.queue_links):
         for label,color in [('reference','#646a73'),('target','#247a83')]:
             series=sorted([r for r in roads if r['run']==label and r['link']==link and start<=float(r['sim_sec'])<=end],key=lambda r:float(r['sim_sec']))
-            values=[float(r['stopped_count']) for r in series];smoothed=[sum(values[max(0,i-4):i+1])/min(i+1,5) for i in range(len(values))]
+            if not series:raise ValueError('Requested queue link has no observed data: '+link)
+            values=[float(r['stopped_count']) for r in series];n=args.queue_smoothing_samples
+            smoothed=[sum(values[max(0,i-n+1):i+1])/min(i+1,n) for i in range(len(values))]
             axis.plot([float(r['sim_sec'])/60 for r in series],smoothed,label=label,color=color,lw=1.5)
         axis.set(title=f'Physical link {link}',ylabel='Stopped vehicles',xlabel='Simulation minute',xlim=(start/60,end/60));axis.grid(alpha=.2)
         peak=max((max(line.get_ydata(),default=0) for line in axis.lines),default=0)
         axis.set_ylim(0,max(1,peak*1.05))
-    axes[0,0].legend(frameon=False);fig.suptitle('Observed stopped stock: trailing five 30-second samples')
+    title=('Observed stopped stock: individual 30-second samples' if args.queue_smoothing_samples==1 else
+           f'Observed stopped stock: trailing {args.queue_smoothing_samples} 30-second samples')
+    axes[0,0].legend(frameon=False);fig.suptitle(title)
     for suffix in ('png','svg'):
         destination=directory/f'queue_comparison.{suffix}';fig.savefig(destination,dpi=150);created.append(destination)
     plt.close(fig)
@@ -59,6 +67,7 @@ def main(argv=None):
         plt.close(fig)
     sources=[Path(__file__),path,directory/'road_curves.csv',directory/'cell_curves.csv']
     proof={'schema':'source-run-comparison-plot/v1','window_sec':[start,end],
+        'queue_links':args.queue_links,'queue_smoothing_samples':args.queue_smoothing_samples,
         'source_sha256':{str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
         'artifacts':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in created},
         'interpretation':'Observed spatial association, not an isolated causal effect. Command changes count actual CSV fields; readback validation is in comparison.json.'}

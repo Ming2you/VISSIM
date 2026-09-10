@@ -1,0 +1,74 @@
+{
+  "schema": "raw-terminal-phase-audit/v1",
+  "run": "codex_contract_observed_nc_s13_1050_v2_20260910",
+  "raw_sha256": "9f11bb06708d3006bf9e560af70f0e9036eca034cd3c7380abd4f9756342a17e",
+  "network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+  "root_comparison_sha256": "306414096e908710fb2fdbb19906760d6a83055ee61d8ad5be3e50f86b4c14d8",
+  "fzp_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+  "fzp_size": 101092898,
+  "fzp_mtime_ns": 1789005283668454500,
+  "bytes_read": 294837,
+  "frames": {
+    "900": {
+      "whole_network_vehicles": 2599,
+      "first_byte_offset": 79221139,
+      "selected_raw_rows_sha256": "f2e26179fa9bfc76fa77efc9cbaa2734d70f9db750fc435c6f56e47804e15d64"
+    },
+    "901": {
+      "whole_network_vehicles": 2599,
+      "first_byte_offset": 79354539,
+      "selected_raw_rows_sha256": "0d5df474d4b65aeedb2b72f653857e2e66132ed4b0502e38fec37e32661de53a"
+    }
+  },
+  "vehicles": [
+    {
+      "vehicle": 3177,
+      "at_900": [
+        120,
+        3,
+        6984.5,
+        126.07
+      ],
+      "at_901": null,
+      "terminal_link": "120",
+      "polyline_length_m": 6958.141078598819,
+      "last_position_minus_length_m": 26.35892140118085,
+      "speed_m_per_sec": 35.01944444444444,
+      "outgoing_connectors": [
+        "10638",
+        "10645"
+      ],
+      "interpretation": "Absent from COM raw900, present in FZP900 at/beyond natural terminal, absent in the next complete FZP901 frame. This supports a terminal disappearance within different observation phases, not a missing projected model stock or an exact subsecond crossing time.",
+      "outgoing_connector_positions_m": {
+        "10638": 2402.4810008143345,
+        "10645": 2087.3812243059742
+      },
+      "outgoing_at_terminal_position": false
+    },
+    {
+      "vehicle": 3211,
+      "at_900": [
+        24,
+        2,
+        3357.32,
+        109.85
+      ],
+      "at_901": null,
+      "terminal_link": "24",
+      "polyline_length_m": 3345.9814304443594,
+      "last_position_minus_length_m": 11.338569555640788,
+      "speed_m_per_sec": 30.513888888888886,
+      "outgoing_connectors": [],
+      "interpretation": "Absent from COM raw900, present in FZP900 at/beyond natural terminal, absent in the next complete FZP901 frame. This supports a terminal disappearance within different observation phases, not a missing projected model stock or an exact subsecond crossing time.",
+      "outgoing_connector_positions_m": {},
+      "outgoing_at_terminal_position": false
+    }
+  ],
+  "raw_record_count": 2591,
+  "fzp_record_count": 2599,
+  "limits": [
+    "No whole-file FZP scan or source mutation. Same displayed second does not imply the same internal simulator/COM observation phase.",
+    "These two records belong to the historical NC v2 input snapshot used by both preflight and live900 comparison; this does not change their exact raw-state equality.",
+    "No blacklist of vehicle IDs and no alteration of their earlier valid boundary exits."
+  ]
+}

@@ -1,0 +1,345 @@
+{
+  "schema": "observer-control-pair/v1",
+  "status": "complete",
+  "on_run": "codex_contract_observed_nc_s13_1050_v2_20260910",
+  "off_run": "codex_contract_nc_headoff_stepwise_s13_1050_v3_20260910",
+  "run_ids": [
+    "787fedf55fc1494b820d8e2665c2c925",
+    "b3ef37048a204fa0901d56547ec4d1ff"
+  ],
+  "config_differences": [
+    {
+      "path": [
+        "urban",
+        "capacity",
+        "head_observation",
+        "enabled"
+      ],
+      "on": true,
+      "off": false
+    }
+  ],
+  "force_stepwise_basis": {
+    "actual_run_mode": "STEPWISE controller=no-control",
+    "env_value_in_manifest": null,
+    "limit": "The wrapper manifest omits this transport key; actual run-mode log and the pinned launcher/watchdog branch provide execution evidence."
+  },
+  "physical_source_equality": true,
+  "common_source_hash_differences": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\local_signal_service.py": {
+      "on": "1edc4a1a940004bfe03ba3da4f10378192ea4a1e0c8b792543caaed5bc276ec7",
+      "off": "fe41f8ece0391e4f1ee0c50b2221ab331a24c92da765b27317aef151ef79a154"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py": {
+      "on": "e6af8fed5f98ef7b20d79d10454f86596d4ccddbd546c328699097de63001836",
+      "off": "bbcc0fbdcc347f283444c1d27163d735d98e99208f00c6c1b0464aa5922695cc"
+    }
+  },
+  "snapshot_comparisons": [
+    {
+      "sim_sec": 1,
+      "source_sha256": [
+        "816b06e678752432e0fcfbe7157f6c3fcd2bead77f80f075d2a0c3972c2bcfc8",
+        "6de0f89a215667bdae19574601746e8c26db7c1e077a71702a9dacbdc02a4335"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [],
+      "on_window": [
+        1,
+        1
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        0,
+        0
+      ],
+      "vehicle_record_canonical_sha256": [
+        "8786bf797675d2713b63eee186fba9a9a235bd48bc4ed5c4812e652a38fe03bc",
+        "8786bf797675d2713b63eee186fba9a9a235bd48bc4ed5c4812e652a38fe03bc"
+      ],
+      "route_record_canonical_sha256": [
+        "ab0cc2426ebc76fed3b2dcabb15596d7f03d9993e8da3396ceefa6ee1e74516b",
+        "ab0cc2426ebc76fed3b2dcabb15596d7f03d9993e8da3396ceefa6ee1e74516b"
+      ]
+    },
+    {
+      "sim_sec": 150,
+      "source_sha256": [
+        "101c43a39bf4901db403076c051df53ba552b9203c25f531d4d8d807033f5379",
+        "77be756666603fe6ca295baf932ab68eee36004e752a58e0c419422282beff40"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        1,
+        150
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        149,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "74a30823b1f379ac8e803fa8573fee4dd141d13bf2f7a167dd63446b1b2d1904",
+        "74a30823b1f379ac8e803fa8573fee4dd141d13bf2f7a167dd63446b1b2d1904"
+      ],
+      "route_record_canonical_sha256": [
+        "f85f440b4b07b651e35081469b4a9447e4002746ddc6c844f66b7b2cf948be0d",
+        "f85f440b4b07b651e35081469b4a9447e4002746ddc6c844f66b7b2cf948be0d"
+      ]
+    },
+    {
+      "sim_sec": 300,
+      "source_sha256": [
+        "68ecd986639b6444a328bdffa295c6a45421c1de1b2f02ab8e749bdaf881344f",
+        "dad396a4cb8848e6bfda6edc933af3ed9473692ad58abc6da77fdb92fa21ee33"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        150,
+        300
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "ba951d9ed46ee75727b411d48ab477bec69104df6785ff7466605babbde7bf87",
+        "ba951d9ed46ee75727b411d48ab477bec69104df6785ff7466605babbde7bf87"
+      ],
+      "route_record_canonical_sha256": [
+        "08a8adf5461a4be16510570de582082c038dfbb5ba14d89a192c90514b0a2d11",
+        "08a8adf5461a4be16510570de582082c038dfbb5ba14d89a192c90514b0a2d11"
+      ]
+    },
+    {
+      "sim_sec": 450,
+      "source_sha256": [
+        "76e0dcc0cacb45cc5dcf51622a12100e7b9ae4eea8c5d40995f153c214b41a79",
+        "f039f6aec718a8eeb07fe72bbe0526f3c5181551779002f3ad32567d96fca1ac"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        300,
+        450
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "577342f8204eeab412fb959eaf084f7d9e1895e4add28f42efd043c091c825e7",
+        "577342f8204eeab412fb959eaf084f7d9e1895e4add28f42efd043c091c825e7"
+      ],
+      "route_record_canonical_sha256": [
+        "64ea1e132f171e96a4304d01c7d4b7bcd8000e861cb595a7c3dd5eb4c04217dd",
+        "64ea1e132f171e96a4304d01c7d4b7bcd8000e861cb595a7c3dd5eb4c04217dd"
+      ]
+    },
+    {
+      "sim_sec": 600,
+      "source_sha256": [
+        "d4b8a27fa5c60403dcdfffb3a413433c6b0466acb5d0cde68e1d9fc878d8242a",
+        "acefed03ea7b626dd41e206ef9128b57ac0b9abb573e93fbbae44c06966f07e3"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        450,
+        600
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "aa7a76f7e8f02c7c8c03e5b62373b59abbba0981b09af7023a7cdca1853e5ca5",
+        "aa7a76f7e8f02c7c8c03e5b62373b59abbba0981b09af7023a7cdca1853e5ca5"
+      ],
+      "route_record_canonical_sha256": [
+        "bf8e84fdc4e1ab43b504d0b7d4cf5ccd1d5c86768755a567350d0d59e2306eb2",
+        "bf8e84fdc4e1ab43b504d0b7d4cf5ccd1d5c86768755a567350d0d59e2306eb2"
+      ]
+    },
+    {
+      "sim_sec": 750,
+      "source_sha256": [
+        "4e4968cd9f0ea3ff4f629aa8ec7d2865f7a01ac6442c8149df58043b7356e6d6",
+        "ddd341a9a3243f2266a0e1be57f857ff698ae383d01fc06973e63868bb18320a"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        600,
+        750
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "616611b91875d4a07ea8a4ec6132945438c4faf9c2503fcfaedbf154504b5533",
+        "616611b91875d4a07ea8a4ec6132945438c4faf9c2503fcfaedbf154504b5533"
+      ],
+      "route_record_canonical_sha256": [
+        "85f02479356fd106c1a08a4c5df0fb9c1873b0d4fda42c1cd22ea0580f1163d0",
+        "85f02479356fd106c1a08a4c5df0fb9c1873b0d4fda42c1cd22ea0580f1163d0"
+      ]
+    },
+    {
+      "sim_sec": 900,
+      "source_sha256": [
+        "9f11bb06708d3006bf9e560af70f0e9036eca034cd3c7380abd4f9756342a17e",
+        "3058554e6b098ebd9ea48d3d30a45bfdf60ab6797843f86a44e89e192bab8c4e"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        750,
+        900
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "0fb2fc9110b559957df63342c022ed3d192d9b6015476ba3e1ab83e1ee09d5c8",
+        "0fb2fc9110b559957df63342c022ed3d192d9b6015476ba3e1ab83e1ee09d5c8"
+      ],
+      "route_record_canonical_sha256": [
+        "1842068a756571e733dd4777810af2177b1150d5c428c48026748590d43f9f41",
+        "1842068a756571e733dd4777810af2177b1150d5c428c48026748590d43f9f41"
+      ]
+    },
+    {
+      "sim_sec": 1050,
+      "source_sha256": [
+        "405d0fb4793c5cc0dc2b51b48284892b5cf7d92fbd4cc29d945dc0b79bd2f261",
+        "7b4dc8abf4025a7553e7a4ccc14ced9f624ca13d6e07e761dd5898ae8210d02c"
+      ],
+      "top_level_changed_fields": [],
+      "legacy_local_changed_fields": [
+        "far_measurement",
+        "link_counts_window_mean",
+        "link_departures_window",
+        "link_stopped_counts_window_max",
+        "link_stopped_counts_window_mean",
+        "queue_window_samples"
+      ],
+      "on_window": [
+        900,
+        1050
+      ],
+      "off_has_head_window": false,
+      "queue_window_samples": [
+        150,
+        5
+      ],
+      "vehicle_record_canonical_sha256": [
+        "1519079d6714943388749fd9cabb6f006fce140ad663957085b229fd90da2f76",
+        "1519079d6714943388749fd9cabb6f006fce140ad663957085b229fd90da2f76"
+      ],
+      "route_record_canonical_sha256": [
+        "9c08fe26c92ef4d1eccf02e11323f1b180c87f1894107ee0959880f5e49bcf97",
+        "9c08fe26c92ef4d1eccf02e11323f1b180c87f1894107ee0959880f5e49bcf97"
+      ]
+    }
+  ],
+  "applied_command_different_times": [],
+  "applied_command_rows_per_time": [
+    {
+      "1.0": 74,
+      "150.0": 74,
+      "300.0": 74,
+      "450.0": 74,
+      "600.0": 74,
+      "750.0": 74,
+      "900.0": 74,
+      "1050.0": 74
+    },
+    {
+      "1.0": 74,
+      "150.0": 74,
+      "300.0": 74,
+      "450.0": 74,
+      "600.0": 74,
+      "750.0": 74,
+      "900.0": 74,
+      "1050.0": 74
+    }
+  ],
+  "native_signal_different_groups": [],
+  "native_signal_prefix": [
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_observed_nc_s13_1050_v2_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.lsa",
+      "bytes_read": 519907,
+      "raw_event_rows": 6051,
+      "raw_event_sha256": "eefd581aef8b39f4a851599574cdb438d8c269ca19c13121de2531446013d1f2"
+    },
+    {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_contract_nc_headoff_stepwise_s13_1050_v3_20260910\\vissim_eval\\modi_eval_userfix Ver2_001.lsa",
+      "bytes_read": 519907,
+      "raw_event_rows": 6051,
+      "raw_event_sha256": "eefd581aef8b39f4a851599574cdb438d8c269ca19c13121de2531446013d1f2"
+    }
+  ],
+  "run_log_sha256": [
+    "53c9eb46f09a7e003bfad5da666abf36474c651314ce536f2e16bce221f98416",
+    "18c5bfaa3a3eabb763c3f30e9ad428d6e5f68fc70b3cfdaa404635f399cdbe23"
+  ],
+  "producer_sha256": "5286455b55e1ee75ae37391f8d56276d20257f897a85d4dc1f7c700a0339b9c5",
+  "limits": [
+    "No FZP is read by this audit. Use --trajectory-only in audit_signal_observation_smoke.py separately.",
+    "Same physical sources/config leaves do not erase recorded model source changes. Physical commands, snapshots and native signal events are compared explicitly.",
+    "Whole raw JSON bytes differ by run provenance. Physical and legacy observation fields are compared exactly; only run provenance and intentional head-window presence are excluded."
+  ]
+}
