@@ -16,11 +16,13 @@ def deep_merge(base, update):
     return result
 
 
-def build(base, physics, clock=None):
+def build(base, physics, clock=None, overlays=()):
     merged = deep_merge(base, physics)
     merged = deep_merge(merged, {'freeway': {'physical_vehicle_counts': True}})
     if clock is not None:
         merged = deep_merge(merged, clock)
+    for overlay in overlays:
+        merged = deep_merge(merged, overlay)
     required = [(['freeway', key], True) for key in ('physical_vehicle_counts', 'local_lane_context',
                 'conservative_offramp_drain', 'local_landing_state')]
     required += [(['urban', 'conservative_initial_transit'], True),
@@ -48,7 +50,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--clock-overlay', type=Path, default=Path('diagnostics/control_area_all_lever_overlay.json'),
                         help='Explicit physical signal and optimizer-offset experiment contract.')
+    parser.add_argument("--overlay", action="append", type=Path, default=[])
+    parser.add_argument("--output-dir", type=Path, default=Path("diagnostics/area_candidate_configs"))
     args = parser.parse_args()
+    destination = (ROOT / args.output_dir).resolve()
+    if destination.parent != (ROOT / "diagnostics").resolve():
+        parser.error("Candidate family must be a direct child of diagnostics")
+    if args.overlay and destination.name == "area_candidate_configs":
+        parser.error("Extra overlays require a new candidate family; preserve the historical baseline")
     base = ROOT / 'evaluation/configs/n21_n7_20260908.json'
     physics = ROOT / 'diagnostics/control_area_physics_overlay.json'
     paths = [base, physics]
@@ -57,7 +66,12 @@ def main():
         path = args.clock_overlay if args.clock_overlay.is_absolute() else ROOT / args.clock_overlay
         clock = json.loads(path.read_text(encoding='utf-8'))
         paths.append(path)
-    configs = build(json.loads(base.read_text(encoding='utf-8')), json.loads(physics.read_text(encoding='utf-8')), clock)
+    overlays = []
+    for supplied in args.overlay:
+        path = (ROOT / supplied).resolve()
+        overlays.append(json.loads(path.read_text(encoding='utf-8')))
+        paths.append(path)
+    configs = build(json.loads(base.read_text(encoding='utf-8')), json.loads(physics.read_text(encoding='utf-8')), clock, overlays)
     for cfg in configs.values():
         if cfg['urban'].get('route_choice_corridor', {}).get('unknown_policy') != 'error':
             raise ValueError('Live area trial requires complete current-route information; diagnostic holding is not allowed')
@@ -77,7 +91,6 @@ def main():
               ROOT / 'scripts/run_real_world_stackelberg_controller.vbs',
               ROOT / 'scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1',
               ROOT / 'diagnostics/run_area_beta_trial.ps1', Path(__file__)]
-    destination = ROOT / 'diagnostics/area_candidate_configs'
     visited = set()
     def add_data(value):
         if isinstance(value, dict):
@@ -112,6 +125,7 @@ def main():
     manifest = {'purpose': 'Review-only flattened MPC candidates; no live config was changed or launched.',
         'beta_units': 'seconds/vehicle; score TTT_veh_h - beta_seconds/3600 * outward_crossings_veh',
         'clock_overlay_supplied': clock is not None,
+        'additional_overlays': [str((ROOT / p).resolve().relative_to(ROOT)) for p in args.overlay],
         'required_process_environment': {'RW_OFFSET_WRITER': 'experiment', 'RW_VEHICLE_ROUTES': '1'},
         'remaining_integration': [] if clock is not None else ['Approved clock-contract overlay pending; rerun recipe with its file.'],
         'source_sha256': {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths},

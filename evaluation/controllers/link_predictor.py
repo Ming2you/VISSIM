@@ -183,7 +183,7 @@ class LocalLandingState:
         if count < 1 or abs(count * tu - dt_h) > 1e-12:
             raise ValueError("Local landing requires integral T_f/T_u")
         for _ in range(count):
-            self.step += 1
+            # Service uses the current boundary; FW landings follow all urban steps.
             # Frozen external receiving boundaries; own ramps are explicit state.
             for target in sorted(set(self.stock) - set(self.signal.values())):
                 arrived = self.arrived(target)
@@ -231,6 +231,7 @@ class LocalLandingState:
                     self._schedule(receiving, value, _link_delay_steps(view, self.cfg, receiving))
                 self.ledger['departures_veh'] += removed - landed
             self._record_closure()
+            self.step += 1
 
 
 def install(cfg):

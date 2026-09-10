@@ -135,6 +135,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         detector_mapping, state_json, choice_projection = route_choice_corridor.prepare_projection(
             cfg, detector_mapping, state_json)
         metadata.update(choice_projection)
+    from evaluation.controllers import local_signal_service
+    metadata.update(local_signal_service.configure(cfg, tuning))
     if (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         if tuning.get('urban', {}).get('movements', {}).get('native_input_signal_authority'):
             from evaluation.controllers.physical_movement_routes import configure_native_input_signal_authority
@@ -197,8 +199,11 @@ def install_worker_runtime(adapter, cfg, state_json, detector_mapping):
     """Reinstall the existing worker hooks plus the shared freeway hooks."""
     a = adapter
     signal_actuation_contract.install_candidates(cfg)
+    from evaluation.controllers import local_signal_service
+    pool_metadata = local_signal_service.install(cfg)
     metadata = dict(a.install_monitor_fixed_signal_runtime_patch(
         cfg, state_json, detector_mapping) or {})
+    metadata.update(pool_metadata)
     metadata.update(a.install_tau_length_cap_patch(cfg))
     metadata.update(a.install_far_ramp_capacity_patch(cfg))
     metadata.update(a.install_leg_ramp_split_runtime(cfg))

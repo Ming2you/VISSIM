@@ -226,6 +226,67 @@ def _native_generation_contract(document,tree,heads,links,cfg):
     return result
 
 
+def _calibrated_turn_services(document, tree, links, heads, specs, per_lane):
+    """One observed aggregate resource prior; no FZP or future truth at runtime."""
+    pin=document.get('service_resource_calibration')
+    if pin is None:return {}
+    calibration=json.loads(_read_pinned(pin).read_text(encoding='utf-8'))
+    if (calibration.get('schema')!='physical-shared-service-calibration/v1'
+            or calibration.get('classification')!='offline_achieved_green_discharge_lower_bound'
+            or calibration.get('selected_estimator')!='verified_crossing_count / full_train_native_green_seconds * 3600'
+            or calibration.get('network')!=document['network'] or calibration.get('seed')!=13):
+        raise ValueError('Shared service prior identity or estimator changed')
+    row=calibration['resource']; connector=row['connector']; node=links[connector]
+    source,target=node.find('fromLinkEndPt'),node.find('toLinkEndPt')
+    lanes=len(node.findall('./lanes/lane')); first=int(source.get('lane').split()[1])
+    if (source.get('lane').split()[0]!=row['source_link'] or target.get('lane').split()[0]!=row['target_link']
+            or row['lanes']!=lanes or abs(_positive(row['inherited_service_veh_h'],'Inherited resource service')-lanes*per_lane)>EPS):
+        raise ValueError('Shared service prior physical resource or inherited scale changed')
+    upstream={str(lane):[h for h in heads.values() if h.get('lane')==row['source_link']+' '+str(lane)
+                        and float(h.get('pos'))<float(source.get('pos'))] for lane in range(first,first+lanes)}
+    if (set(upstream)!=set(row['head_by_lane']) or any(len(v)!=1 or v[0].get('no')!=row['head_by_lane'][k]
+            or v[0].get('sg')!=row['controller']+' '+row['signal_group'] for k,v in upstream.items())):
+        raise ValueError('Shared service prior does not cover the exact upstream heads')
+    members=[r for r in document['incoming_turns'].values() if r['connector']==connector]
+    if (len(row['members'])!=len(set(row['members'])) or set(r['keep'] for r in members)!=set(row['members'])
+            or any(r['source_link']!=row['source_link'] or r['signal_controlled'] is not True
+                or specs[r['keep']]['signal']!=row['signal'] or specs[r['keep']]['phase']!=row['phase'] for r in members)):
+        raise ValueError('Shared service prior must cover every alias of one signal resource')
+    clock=calibration['native_clock']; sc=next(s for s in tree.findall('./signalControllers/signalController') if s.get('no')==row['controller'])
+    sig=(_read_pinned(document['network']).parent/sc.get('supplyFile2').removeprefix('#data#')).resolve()
+    if (sc.get('type')!='FIXEDTIME' or sc.get('active')!='true' or int(sc.get('progNo'))!=clock['program_no']
+            or float(sc.get('offset'))!=clock['controller_offset_sec'] or sig!=_read_pinned(clock['sig_file']).resolve()
+            or clock['lsa_state_mismatch_seconds']):
+        raise ValueError('Shared service prior native clock changed')
+    program=_native_program(clock)
+    if program.program_offset_sec!=clock['program_offset_sec'] or program.cycle_length_sec!=clock['cycle_sec']:
+        raise ValueError('Shared service prior program timeline changed')
+    from evaluation.controllers.fixed_signal_schedule import _union_green_overlap
+    train=calibration['train']; windows=train['windows_sec']; holdouts=calibration['time_holdouts_excluded_from_fit_sec']
+    if windows!=[[0,900],[1350,2700],[3150,5400]] or holdouts!=[[900,1350],[2700,3150]]:
+        raise ValueError('Shared service prior must preserve the reviewed time holdouts')
+    exposure=sum(_union_green_overlap(program,(row['signal_group'],),a,b,clock['controller_offset_sec']) for a,b in windows)
+    events=train['events']; seen=set()
+    for event in events:
+        lo,hi=event['lower_sec'],event['upper_sec']; no=event['vehicle_id']; lane=str(event['lane'])
+        key=(no,event['head'],lo,hi)
+        if (not isinstance(no,int) or isinstance(no,bool) or no<=0 or not all(math.isfinite(x) for x in (lo,hi))
+                or not 0<hi-lo<=1 or not any(a<lo<hi<b for a,b in windows)
+                or lane not in row['head_by_lane'] or event['head']!=row['head_by_lane'][lane]
+                or event['observed_subsequent_connector']!=connector or key in seen
+                or lo<clock['lsa_first_observed_sec']
+                or abs(_union_green_overlap(program,(row['signal_group'],),lo,hi,clock['controller_offset_sec'])-(hi-lo))>EPS):
+            raise ValueError('Shared service prior event duplicates, leaks holdout, or loses physical/GREEN proof')
+        seen.add(key)
+    selected=_positive(row['selected_service_veh_h'],'Shared service prior')
+    if (not events or train['crossing_events']!=len(events) or train['unique_vehicle_ids']!=len({e['vehicle_id'] for e in events})
+            or abs(_positive(train['native_green_exposure_sec'],'Train exposure')-exposure)>EPS or abs(selected-3600*len(events)/exposure)>EPS
+            or abs(_positive(train['achieved_green_discharge_lower_bound_veh_h'],'Train lower bound')-selected)>EPS):
+        raise ValueError('Shared service prior is not the train-only aggregate lower bound')
+    return {connector:{'service_veh_h':selected,'calibration':pin,'members':tuple(row['members']),
+                       'classification':calibration['classification']}}
+
+
 def _configure_one(cfg, raw, detectors, option, per_lane_capacity_veh_h):
     evidence_bytes = (ROOT / option['evidence_path']).read_bytes()
     document = json.loads(evidence_bytes.decode('utf-8-sig'))
@@ -338,6 +399,7 @@ def _configure_one(cfg, raw, detectors, option, per_lane_capacity_veh_h):
     specs, copied = deepcopy(cfg.network.urban_movements), deepcopy(detectors)
     capmap = dict(getattr(cfg.network, 'movement_capacity_by_movement_veh_h', {}))
     renames, turns, merge_audit = {}, {}, []
+    calibrated_services=_calibrated_turn_services(document,tree,links,heads,specs,per_lane)
     for _, row in document['incoming_turns'].items():
         keep, removed = row['keep'], row['remove']
         a, b = specs[keep], specs[removed]
@@ -360,13 +422,14 @@ def _configure_one(cfg, raw, detectors, option, per_lane_capacity_veh_h):
             and float(h.get('pos'))<=float(source.get('pos'))]
         if bool(upstream_heads)!=row['signal_controlled']:
             raise ValueError('Physical incoming service disagrees with upstream signal-head authority')
+        service=calibrated_services.get(row['connector'],{}).get('service_veh_h',lanes*per_lane)
         total_beta = _positive(a['beta'], 'first beta', zero=True)+_positive(b['beta'], 'second beta', zero=True)
         merge_audit.append({'keep': keep, 'removed': removed, 'total_beta': total_beta,
-                           'old_capacities_veh_h': [capmap[keep], capmap[removed]], 'single_capacity_veh_h': lanes*per_lane})
+                           'old_capacities_veh_h': [capmap[keep], capmap[removed]], 'single_capacity_veh_h': service})
         a.update(beta=total_beta, destination=document['prefix_storage'], receiving_link=document['prefix_storage'])
         specs.pop(removed); renames[removed] = keep
-        capmap[keep] = lanes*per_lane; capmap.pop(removed)
-        turns[keep] = {**row, 'entry_position_m': entry, 'lanes': lanes, 'service_veh_h': lanes*per_lane,
+        capmap[keep] = service; capmap.pop(removed)
+        turns[keep] = {**row, 'entry_position_m': entry, 'lanes': lanes, 'service_veh_h': service,
                        'path': path}
     # Merge raw per-link weights before any physical state is created.
     for key, rows in copied.get('link_to_movements', {}).items():
@@ -456,6 +519,7 @@ def _configure_one(cfg, raw, detectors, option, per_lane_capacity_veh_h):
             'renames': renames, 'source_path': option['evidence_path'],
             'physical_stock_validation': {'network_sha256':document['network']['sha256'],
                 'evidence_sha256':hashlib.sha256(evidence_bytes).hexdigest(),'paths_validated':True}}
+    if calibrated_services:spec['calibrated_service_resources']=calibrated_services
     if native_service is not None:spec['native_fixed_service']=native_service
     cfg.network.urban_movements = specs
     cfg.network.movement_capacity_by_movement_veh_h = capmap
@@ -625,6 +689,10 @@ def intended_departure(state,control,cfg,movement,available,urban_step_index):
     if local['last_step']!=urban_step_index: raise ValueError('Route-choice admission needs current advance')
     from src.models import urban_queue_model as uqm
     fraction=uqm._phase_green_fraction(control,cfg,cfg.network.urban_movements[movement],urban_step_index=urban_step_index) if turn['signal_controlled'] else 1.
+    from evaluation.controllers import local_signal_service as pool
+    if pool.view(cfg) and movement in pool.view(cfg)['group_of']:
+        pool.register_limit(local['service_limit_veh'], turn['connector'], turn['service_veh_h'], cfg.simulation.T_u_h, fraction)
+        return pool.limit_one(available, turn['connector'], local['service_limit_veh'], local['service_used_veh'])
     budget=turn['service_veh_h']*cfg.simulation.T_u_h*float(fraction)
     prior=local['service_limit_veh'].get(turn['connector'])
     if prior is not None and not math.isclose(prior,budget,abs_tol=EPS):
@@ -643,9 +711,15 @@ def receive_accepted(state,cfg,movement,vehicles,urban_step_index):
     storage=spec['prefix_storage']
     if not math.isclose(spec['capacity_veh'][storage]-state.urban_link_storage[storage],_tracked(local,storage)+n,abs_tol=EPS):
         raise ValueError('Accepted source transfer must have occurred exactly once before receipt')
-    group=turn['connector']; used=local['service_used_veh'].get(group,0.)+n
-    limit=local['service_limit_veh'].get(group)
-    if limit is None or used>limit+EPS: raise ValueError('Shared physical-turn service was not limited before acceptance')
+    group=turn['connector']
+    from evaluation.controllers import local_signal_service as pool
+    if pool.view(cfg) and movement in pool.view(cfg)['group_of']:
+        pool.accepted(n, group, local['service_limit_veh'], local['service_used_veh'])
+        used=local['service_used_veh'][group]
+    else:
+        used=local['service_used_veh'].get(group,0.)+n
+        limit=local['service_limit_veh'].get(group)
+        if limit is None or used>limit+EPS: raise ValueError('Shared physical-turn service was not limited before acceptance')
     speed=_speed(state,cfg,state.urban_link_speed_kph.get(storage))
     distance=_prefix_distance(spec,group,0.)
     local['cohorts'].append(_cohort(storage,'prechoice',None,n,_due(cfg,urban_step_index,distance,speed),source=movement,speed=speed))
@@ -674,8 +748,12 @@ def limit_intended_batch(state,cfg,intended,urban_step_index):
     result=dict(intended)
     for group,requests in groups.items():
         if group not in local['service_limit_veh']: raise ValueError('Batch lacks its physical intended-departure query')
-        remaining=max(0.,local['service_limit_veh'][group]-local['service_used_veh'].get(group,0.))
-        result.update(uqm._allocate_receiving_counts(cfg.urban_follower.receiving_space_rule,requests,remaining))
+        from evaluation.controllers import local_signal_service as pool
+        if pool.view(cfg) and group in pool.view(cfg)['groups']:
+            result.update(pool.limit_batch(requests, pool.view(cfg)['group_of'], local['service_limit_veh'], local['service_used_veh'], cfg.urban_follower.receiving_space_rule))
+        else:
+            remaining=max(0.,local['service_limit_veh'][group]-local['service_used_veh'].get(group,0.))
+            result.update(uqm._allocate_receiving_counts(cfg.urban_follower.receiving_space_rule,requests,remaining))
     return result
 
 

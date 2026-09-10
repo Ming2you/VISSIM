@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -84,6 +85,7 @@ def validate_result(payload, beta, controller='wu-link'):
                 'control_area_meter_finalization_enabled': 1.,
                 'control_area_meter_writer_matches_scored': 1.}
     if controller == 'wu-link':
+        required['control_area_leader_objective_only_installed'] = 1.
         required['meta_wu_price_parallel_serial_rerun_count'] = 0.
         required['meta_leader_fallback_guard_metric_ttt'] = 0.
     for key, value in required.items():
@@ -94,6 +96,15 @@ def validate_result(payload, beta, controller='wu-link'):
     follower = {}
     if controller == 'wu-link':
         diagnostics = payload['diagnostics']
+        from evaluation.controllers.area_leader_objective import APPLIED_LEGACY_COSTS
+        if diagnostics.get('leader_control_area_objective_only') != 1.:
+            raise AssertionError('Leader did not select the pure area endpoint objective')
+        for key in APPLIED_LEGACY_COSTS:
+            if diagnostics.get(key, 0.) != 0.:
+                raise AssertionError('Applied cost outside the area objective: ' + key)
+        for key in ('leader_objective_base', 'leader_total_objective'):
+            if not math.isclose(diagnostics[key], metadata['leader_objective'], rel_tol=1e-10, abs_tol=1e-8):
+                raise AssertionError('Selected leader score differs from endpoint base: ' + key)
         if diagnostics.get('control_area_phase_outer_matches_scored') != 1.:
             raise AssertionError('Outer follower phases did not match the scored phase vector')
         if diagnostics.get('control_area_meter_finalized_before_score') != 1.:
@@ -110,6 +121,8 @@ def validate_result(payload, beta, controller='wu-link'):
                         'wu_faithful_offsets_searched_off_zero', 'wu_faithful_offset_ttt_on', 'wu_faithful_offset_ttt_off')}
         if follower.get('control_area_follower_objective_active') != 1.:
             raise AssertionError('Selected follower did not use the area objective')
+        if follower['control_area_follower_additional_cost_veh_h'] != 0.:
+            raise AssertionError('Selected follower retained an extra cost outside the area objective')
         actual_j = follower['control_area_follower_objective_veh_h']
         expected_j = (follower['control_area_follower_ttt_veh_h'] - beta / 3600. * follower['control_area_follower_ttd_veh']
                       + follower['control_area_follower_additional_cost_veh_h'])
@@ -129,13 +142,17 @@ def main():
                         help='Recorded run whose actual state and preceding action are replayed.')
     parser.add_argument('--beta', type=int, choices=(0, 60, 150, 300), required=True)
     parser.add_argument('--controller', choices=('wu-link', 'no-control'), default='wu-link')
+    parser.add_argument('--config-directory', default='area_candidate_configs')
     parser.add_argument('--phase-trace', action='store_true', help='Read-only profile of base/outer follower phase vectors; diagnostic overhead applies.')
     parser.add_argument('--execute', action='store_true')
     parser.add_argument('--timeout-sec', type=float, default=600.)
     args = parser.parse_args()
     if not math.isfinite(args.timeout_sec) or args.timeout_sec <= 0:
         parser.error('--timeout-sec must be finite and positive')
-    cfg_path = ROOT / f'diagnostics/area_candidate_configs/n7_area_beta{args.beta}.json'
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', args.config_directory):
+        parser.error('--config-directory must name a direct diagnostics child')
+    cfg_dir = ROOT / 'diagnostics' / args.config_directory
+    cfg_path = cfg_dir / f'n7_area_beta{args.beta}.json'
     cfg = checked_config(cfg_path, args.beta)
     run = args.run
     runs_root = (ROOT / 'evaluation/runs').resolve()
@@ -171,7 +188,10 @@ def main():
         env['PYTHONPATH'] = os.pathsep.join([str(ROOT), str(ROOT / 'diagnostics/phase_trace_bootstrap'),
                                             *([env['PYTHONPATH']] if env.get('PYTHONPATH') else [])])
         env['RW_PHASE_COMMIT_TRACE_DIR'] = str(out / 'phase_trace')
-    candidate_manifest = json.loads((ROOT / 'diagnostics/area_candidate_configs/manifest.json').read_text(encoding='utf-8'))
+    candidate_manifest = json.loads((cfg_dir / 'manifest.json').read_text(encoding='utf-8'))
+    selected = candidate_manifest['outputs'][str(args.beta)]
+    if (ROOT / selected['path']).resolve() != cfg_path.resolve() or hashlib.sha256(cfg_path.read_bytes()).hexdigest() != selected['sha256']:
+        raise ValueError('Selected config differs from its manifest')
     inputs = {state, cfg_path, ROOT / cfg['mapping_json'], ROOT / cfg['detector_mapping_json'],
               ROOT / 'evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json'}
     if previous is not None:

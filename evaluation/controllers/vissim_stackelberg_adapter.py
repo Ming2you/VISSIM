@@ -4094,6 +4094,11 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
     모델 자신의 회전 분율 `beta` 로 나눈다 — 총량이 보존된다.
     """
     section = _mapping(_mapping(tuning.get("urban")).get("capacity"))
+    if "head_observation" in section:
+        from evaluation.controllers.signal_head_observation import settings
+        head_options = settings(section["head_observation"])
+        if head_options["enabled"] and section.get("measured") is not True:
+            raise ValueError("Head observation requires urban.capacity.measured=true")
     if not _is_enabled_value(section.get("measured")):
         return {"measured_capacity_enabled": 0.0}
     decay = _as_float(section.get("decay"), 0.98)
@@ -4255,6 +4260,13 @@ def install_measured_movement_capacity(cfg, tuning, state_json, previous_path) -
             )
             if total > 0.0:
                 seed[link] = total
+
+    # Opt-in physical head/lane evidence. No link-exit or unexecuted-green fallback.
+    if isinstance(section.get("head_observation"), Mapping) and section["head_observation"]["enabled"]:
+        from evaluation.controllers.signal_head_observation import install
+        return install(cfg, state_json, previous_path, base_caps,
+                       load_signal_group_actuation_plan(),
+                       _distribute_lane_group_capacity_to_movements, section["head_observation"])
 
     # 그 링크 차로군의 직전 구간 녹색초. 커밋한 계획을 쓴다(러너가 그대로 적용한다).
     # 2026-09-06 est 상한 = 링크 기하 용량(차로군 합). 관측 스파이크(h4 sat_est_66 4586)를 물리 위로 못 올린다.
@@ -10116,6 +10128,7 @@ def install_vissim_terminal_cost_objective(controller, cfg, tuning: Mapping[str,
     if not used and abs(intercept) <= 1.0e-12:
         return {"adapter_vissim_terminal_cost_empty": 1.0}
 
+    from evaluation.controllers.area_leader_objective import canonicalize_terms, enabled as area_objective_enabled
     original_objective_terms = controller.leader.objective_terms
 
     def objective_terms_with_vissim_terminal(
@@ -10138,7 +10151,7 @@ def install_vissim_terminal_cost_objective(controller, cfg, tuning: Mapping[str,
             nash_residual_control,
         )
         if not states:
-            return terms
+            return canonicalize_terms(cfg, terms, follower_objective)
         vector = vissim_terminal_feature_vector(states[-1], cfg)
         raw = float(intercept)
         for feature, coef in used.items():
@@ -10155,11 +10168,12 @@ def install_vissim_terminal_cost_objective(controller, cfg, tuning: Mapping[str,
         terms["leader_vissim_terminal_cost_penalty"] = float(penalty)
         terms["leader_vissim_terminal_cost_feature_count"] = float(len(used))
         terms["leader_total_objective"] = float(terms.get("leader_total_objective", 0.0)) + penalty
-        return terms
+        return canonicalize_terms(cfg, terms, follower_objective)
 
     controller.leader.objective_terms = objective_terms_with_vissim_terminal
     return {
-        "adapter_vissim_terminal_cost_active": 1.0,
+        "adapter_vissim_terminal_cost_active": 0.0 if area_objective_enabled(cfg) else 1.0,
+        **({"adapter_vissim_terminal_cost_excluded_by_area": 1.0} if area_objective_enabled(cfg) else {}),
         "adapter_vissim_terminal_cost_weight": float(weight),
         "adapter_vissim_terminal_cost_feature_count": float(len(used)),
         "adapter_vissim_terminal_cost_horizon_sec": _as_float(fit.get("horizon_sec"), 0.0),

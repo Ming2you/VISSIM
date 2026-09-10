@@ -35,6 +35,18 @@ monotonicClockHelperPath = fso.BuildPath(workspaceRoot, "scripts\read_monotonic_
 runManifestRelPath = ""
 vissimVersionRaw = ""
 
+
+' Opt-in sampled physical-head observation. OFF preserves the legacy collector.
+Dim obsConfigSha256, obsEnabled, obsHeads, obsHeadLanes, obsHeadRoads, obsConnectors
+Dim obsActual, obsHeld, obsPrevious, obsCross, obsQualified, obsGreen, obsUnknown, obsBypass
+Dim obsSeenVehicleHead, obsNativeSec, obsControlledSec, obsUnverifiedSec, obsClockComplete
+Dim obsFrameSec, obsSignalSec, obsHeldSec, obsWindowStart, obsTransitions
+Dim obsTableValid, obsTableSec, obsTables, obsTableMeta, obsBulkReads, obsCacheHits
+obsEnabled = (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_OBSERVATION%")) = "1")
+obsConfigSha256 = LCase(Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_OBSERVATION_CONFIG_SHA256%")))
+obsTableValid = False : obsFrameSec = -1 : obsSignalSec = -1 : obsHeldSec = -1
+obsWindowStart = 1 : obsTransitions = 0 : obsBulkReads = 0 : obsCacheHits = 0
+
 ' Signal COM handle caches - see CachedSignalController.
 Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, signalTraceStage
 ' 큐 관측 창 집계(2026-08-22). 결정 순간 1회 표본은 **신호 주기에 위상 잠금**된다 —
@@ -426,7 +438,11 @@ TrySetAtt Vissim.Simulation, "UseMaxSimSpeed", True
 ' minimum value of attribute Simulation speed (Min: 0)").
 TrySetUnreachableAtt Vissim.Simulation, "SimSpeed", 0, "UseMaxSimSpeed=True already guarantees max speed"
 
-If UseContinuousStaticMode() Then
+If obsEnabled Then
+    InitializeHeadObservation
+    WScript.Echo "RUN_MODE=STEPWISE_PHYSICAL_HEAD_OBSERVATION"
+    RunStepwiseMode
+ElseIf UseContinuousStaticMode() Then
     RunContinuousStaticMode
 ElseIf UseEventContinuousMode() Then
     RunEventContinuousMode
@@ -453,6 +469,10 @@ PerfReport
 WScript.Echo "DECISIONS_OK=" & CStr(decisionsOk)
 WScript.Echo "DECISIONS_FAILED=" & CStr(decisionsFailed)
 WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
+If obsEnabled Then
+    WScript.Echo "HEAD_OBSERVATION_BULK_READS=" & CStr(obsBulkReads)
+    WScript.Echo "HEAD_OBSERVATION_CACHE_HITS=" & CStr(obsCacheHits)
+End If
 WScript.Echo "SIGNAL_FAILURES=" & CStr(signalFailures)
 WScript.Echo "SIGNAL_WRITE_ATTEMPTS=" & CStr(signalWriteAttempts)
 WScript.Echo "SIGNAL_WRITE_SKIPPED_UNCHANGED=" & CStr(signalWriteSkips)
@@ -608,10 +628,12 @@ Sub RunStepwiseMode()
     Vissim.Simulation.RunSingleStep
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
     InitializeComRampMeterControl
+    CollectHeadObservation 1
     RunControllerDecision 1
     ApplyRuntimeSignals 1
     ApplyRuntimeRampMeters 1
     ApplyIncidentLaneClosure 1
+    SealHeadSignalStates 1
     LogStateCsv 1
 
     Dim stepNo, stepT0
@@ -620,12 +642,14 @@ Sub RunStepwiseMode()
         Vissim.Simulation.RunSingleStep
         PerfAdd "sim.step", stepT0
         ValidateRuntimeSignalPersistence stepNo
+        CollectHeadObservation stepNo
         If stepNo Mod CLng(controlInterval) = 0 Then
             RunControllerDecision stepNo
         End If
         ApplyRuntimeSignals stepNo
         ApplyRuntimeRampMeters stepNo
         ApplyIncidentLaneClosure stepNo
+        SealHeadSignalStates stepNo
         If stepNo Mod 30 = 0 Or stepNo = CLng(simPeriod) Then
             WScript.Echo "RUN_SINGLE_STEP sim_sec=" & CStr(stepNo)
         End If
@@ -2423,6 +2447,10 @@ Sub AbortVehicleObservation(simSec)
     observationFailures = observationFailures + 1
     WScript.Echo "ERROR=VEHICLE_OBSERVATION_SCAN_FAILED sim_sec=" & CStr(simSec)
     WScript.Echo "OBSERVATION_FAILURES=" & CStr(observationFailures)
+If obsEnabled Then
+    WScript.Echo "HEAD_OBSERVATION_BULK_READS=" & CStr(obsBulkReads)
+    WScript.Echo "HEAD_OBSERVATION_CACHE_HITS=" & CStr(obsCacheHits)
+End If
     WScript.Echo "COM_FAILURES=" & CStr(comFailures)
     WScript.Quit 13
 End Sub
@@ -2452,6 +2480,7 @@ Sub WriteStateJson(simSec, path, resetWindows)
         captureStartNs = ReadRequiredMonotonicClock()
         tempPath = UniqueSiblingPath(finalPath, "state")
     End If
+    CollectHeadObservation simSec
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
         countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, _
         localQBinTotal, localQBinStopped, scanOk, _
@@ -2517,13 +2546,14 @@ Sub WriteStateJson(simSec, path, resetWindows)
         ts.WriteLine "    ""link_departures_window"": " & QueueWindowMaxJson(winDepart) & ","
         ts.WriteLine "    ""queue_window_samples"": " & CStr(winSamples) & ","
     End If
+    If obsEnabled Then ts.WriteLine "    ""signal_observation_window"": " & HeadObservationJson(simSec) & ","
     ts.WriteLine "    ""link_queue_tail_pos_m"": " & LocalObservationLinkMetricJson(localQueueTails) & ","
     ts.WriteLine "    ""queue_bins"": " & QueueBinsJson(localQBinTotal, localQBinStopped) & ","
     ts.WriteLine "    ""queue_bin_m"": " & CStr(QUEUE_BIN_M) & ","
     ts.WriteLine "    ""queue_counters"": " & QueueCounterJson() & ","
     ts.WriteLine "    ""far_measurement"": " & FarMeasurementJson()
     ts.WriteLine "  },"
-    If resetWindows Then
+    If resetWindows And Not obsEnabled Then
         If QueueWindowEnabled() Then ResetQueueWindow
         ResetFarMeasurement
     End If
@@ -2550,6 +2580,11 @@ Sub WriteStateJson(simSec, path, resetWindows)
         PublishB1aVehicleCaptureEvidence simSec, finalPath, captureStartNs, captureEndNs, _
             collectionCountBefore, collectionCountAfter, recordVehNos, recordLinkNos, recordLaneNos, _
             recordPositions, recordSpeeds, recordLaneRaw
+    End If
+    If obsEnabled And resetWindows Then
+        ResetQueueWindow
+        ResetFarMeasurement
+        ResetHeadObservation simSec
     End If
     PerfAdd "state.json", perfT0
 End Sub
@@ -2843,7 +2878,7 @@ Sub LogStateCsv(simSec)
         AbortVehicleObservation simSec
     End If
     WriteStateCsvRow simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
-    If scanOk Then
+    If scanOk And Not obsEnabled Then
         AccumulateQueueWindow linkCounts, linkStopped
         AccumulateDepartures recordVehNos, recordLinkNos
         AccumulateFreewayExits recordVehNos, recordLinkNos
@@ -3633,6 +3668,7 @@ Sub ValidateRuntimeSignalPersistence(simSec)
 End Sub
 
 Sub RecordSignalReadback(scNo, sgNo, requestedState, readbackState, ok)
+    ObservationSignalReadback scNo, sgNo, readbackState, ok
     If signalTraceStage = "post_step" Then
         signalPersistenceChecks = signalPersistenceChecks + 1
         If CBool(ok) Then signalPersistenceOk = signalPersistenceOk + 1
@@ -5037,6 +5073,24 @@ Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArra
     Dim laneRowLower, laneRowUpper, laneColLower, laneColUpper
     Dim posRowLower, posRowUpper, posColLower, posColUpper
     Dim speedRowLower, speedRowUpper, speedColLower, speedColUpper
+    If obsEnabled And obsTableValid Then
+        If CDbl(expectedSimSec) = CDbl(obsTableSec) Then
+            If CDbl(Vissim.Simulation.AttValue("SimSec")) <> CDbl(obsTableSec) _
+                    Or CLng(Vissim.Net.Vehicles.Count) <> CLng(obsTableMeta(0)) Then
+                Err.Raise 513, , "Cached observation frame binding changed"
+            End If
+            noArray = obsTables(0): laneArray = obsTables(1)
+            posArray = obsTables(2): speedArray = obsTables(3)
+            collectionCountBefore = obsTableMeta(0): collectionCountAfter = obsTableMeta(1)
+            captureSimSecBefore = obsTableMeta(2): captureSimSecAfter = obsTableMeta(3)
+            rowLower = obsTableMeta(4): rowUpper = obsTableMeta(5)
+            keyColumn = obsTableMeta(6): valueColumn = obsTableMeta(7)
+            obsCacheHits = obsCacheHits + 1
+            ReadVerifiedVehicleTables = True
+            Exit Function
+        End If
+    End If
+    If obsEnabled Then obsBulkReads = obsBulkReads + 1
     ReadVerifiedVehicleTables = False
     rowLower = 0: rowUpper = -1: keyColumn = 0: valueColumn = 1
     On Error Resume Next
@@ -5125,6 +5179,12 @@ Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArra
             RecordVehicleCaptureFailure "invalid_table_shape", "detail=nonempty_table_for_zero_collection"
             Exit Function
         End If
+        If obsEnabled Then
+            obsTables = Array(noArray, laneArray, posArray, speedArray)
+            obsTableMeta = Array(collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
+                rowLower, rowUpper, keyColumn, valueColumn)
+            obsTableSec = CDbl(expectedSimSec): obsTableValid = True
+        End If
         ReadVerifiedVehicleTables = True
         Exit Function
     End If
@@ -5153,7 +5213,13 @@ Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArra
     rowUpper = noRowUpper
     keyColumn = noColLower
     valueColumn = noColUpper
-    ReadVerifiedVehicleTables = True
+    If obsEnabled Then
+            obsTables = Array(noArray, laneArray, posArray, speedArray)
+            obsTableMeta = Array(collectionCountBefore, collectionCountAfter, captureSimSecBefore, captureSimSecAfter, _
+                rowLower, rowUpper, keyColumn, valueColumn)
+            obsTableSec = CDbl(expectedSimSec): obsTableValid = True
+        End If
+        ReadVerifiedVehicleTables = True
 End Function
 
 Function TryExact2DTableBounds(arr, ByRef rowLower, ByRef rowUpper, ByRef colLower, ByRef colUpper)
@@ -5646,3 +5712,316 @@ Sub EnsureFolder(path)
         If Not fso.FolderExists(path) Then fso.CreateFolder path
     End If
 End Sub
+
+
+' BEGIN PHYSICAL_HEAD_OBSERVATION_V1
+Function HeadObservationTime(expectedSec)
+    Dim actualSec, resolution, expected
+    If Not TryFiniteNonnegativeDouble(Vissim.Simulation.AttValue("SimSec"), actualSec) _
+            Or Not TryFiniteNonnegativeDouble(Vissim.Simulation.AttValue("SimRes"), resolution) _
+            Or Not TryFiniteNonnegativeDouble(expectedSec, expected) Then
+        Err.Raise 513, , "Invalid actual observation clock"
+    End If
+    If resolution <> 1 Then Err.Raise 513, , "Physical head observer requires actual SimRes=1"
+    If actualSec <> Fix(actualSec) Or actualSec <> expected Then
+        Err.Raise 513, , "Fractional or mislabeled observation frame"
+    End If
+    HeadObservationTime = CLng(actualSec)
+End Function
+
+Sub InitializeHeadObservation()
+    Dim xml, node, ends, a, b, lane, sg, key, h
+    If Not obsEnabled Then Exit Sub
+    If Len(obsConfigSha256) <> 64 Then Err.Raise 513, , "Missing config-derived head observer provenance"
+    If Not QueueWindowEnabled() Then Err.Raise 513, , "RW_SIGNAL_OBSERVATION requires RW_QUEUE_WINDOW=1"
+    Set obsHeads = CreateObject("Scripting.Dictionary")
+    Set obsHeadLanes = CreateObject("Scripting.Dictionary")
+    Set obsHeadRoads = CreateObject("Scripting.Dictionary")
+    Set obsConnectors = CreateObject("Scripting.Dictionary")
+    Set obsActual = CreateObject("Scripting.Dictionary")
+    Set obsHeld = CreateObject("Scripting.Dictionary")
+    Set obsPrevious = CreateObject("Scripting.Dictionary")
+    Set xml = CreateObject("Msxml2.DOMDocument.6.0")
+    xml.async = False
+    If Not xml.Load(netPath) Then Err.Raise 513, , "Head observation INPX parse failed"
+    For Each node In xml.selectNodes("/network/signalHeads/signalHead")
+        lane = Split(CStr(node.getAttribute("lane")), " ")
+        sg = Split(CStr(node.getAttribute("sg")), " ")
+        If InCsvInt(CLng(sg(0)), RW_SIGNAL_SCS) Then
+            h = Array(CStr(lane(0)), CLng(lane(1)), CDbl(node.getAttribute("pos")), CStr(sg(0)), CStr(sg(1)))
+            key = CStr(node.getAttribute("no"))
+            obsHeads.Add key, h
+            obsHeadRoads(CStr(lane(0))) = True
+            key = CStr(lane(0)) & "|" & CStr(lane(1))
+            If obsHeadLanes.Exists(key) Then
+                obsHeadLanes(key) = "" ' Multiple heads on one lane are not independent capacity evidence.
+            Else
+                obsHeadLanes.Add key, CStr(node.getAttribute("no"))
+            End If
+        End If
+    Next
+    If obsHeads.Count = 0 Then Err.Raise 513, , "No physical heads found"
+    For Each node In xml.selectNodes("/network/links/link[fromLinkEndPt and toLinkEndPt]")
+        Set a = node.selectSingleNode("fromLinkEndPt")
+        Set b = node.selectSingleNode("toLinkEndPt")
+        lane = Split(CStr(a.getAttribute("lane")), " ")
+        If obsHeadRoads.Exists(CStr(lane(0))) Then
+            ends = Split(CStr(b.getAttribute("lane")), " ")
+            obsConnectors.Add CStr(node.getAttribute("no")), Array(CStr(lane(0)), CLng(lane(1)), _
+                CDbl(a.getAttribute("pos")), CStr(ends(0)), node.selectNodes("lanes/lane").length)
+        End If
+    Next
+    ResetHeadObservation 1
+End Sub
+
+Sub ResetHeadObservation(simSec)
+    Set obsCross = CreateObject("Scripting.Dictionary")
+    Set obsQualified = CreateObject("Scripting.Dictionary")
+    Set obsGreen = CreateObject("Scripting.Dictionary")
+    Set obsUnknown = CreateObject("Scripting.Dictionary")
+    Set obsBypass = CreateObject("Scripting.Dictionary")
+    Set obsSeenVehicleHead = CreateObject("Scripting.Dictionary")
+    Set obsNativeSec = CreateObject("Scripting.Dictionary")
+    Set obsControlledSec = CreateObject("Scripting.Dictionary")
+    Set obsUnverifiedSec = CreateObject("Scripting.Dictionary")
+    obsClockComplete = True
+    obsWindowStart = CLng(simSec)
+    obsTransitions = 0
+    ' Keep previous frame/held signal state: the endpoint belongs to the next transition.
+End Sub
+
+Sub ObservationSignalReadback(scNo, sgNo, actualState, ok)
+    Dim key, sg, owner, valid
+    If Not obsEnabled Then Exit Sub
+    If Not InCsvInt(CLng(scNo), RW_SIGNAL_SCS) Then Exit Sub
+    If CLng(obsSignalSec) <> CLng(signalTraceSimSec) Then
+        obsActual.RemoveAll
+        obsSignalSec = CLng(signalTraceSimSec)
+    End If
+    key = CStr(scNo) & "-" & CStr(sgNo)
+    Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNo))
+    owner = LCase(Trim(CStr(SafeAtt(sg, "ContrByCOM"))))
+    valid = (owner = "true" Or owner = "false" Or owner = "1" Or owner = "0") And CBool(ok)
+    Select Case UCase(Trim(CStr(actualState)))
+        Case "GREEN", "RED", "AMBER", "REDAMBER", "OFF"
+        Case Else
+            valid = False
+    End Select
+    If Not valid Then obsClockComplete = False
+    obsActual(key) = Array(UCase(Trim(CStr(actualState))), owner = "true" Or owner = "1", valid)
+End Sub
+
+Sub CaptureHeadSignalStates(simSec)
+    Dim key, h, sg, value
+    If CLng(obsSignalSec) <> CLng(simSec) Then
+        obsActual.RemoveAll
+        obsSignalSec = CLng(simSec)
+    End If
+    For Each key In obsHeads.Keys
+        h = obsHeads(key)
+        key = CStr(h(3)) & "-" & CStr(h(4))
+        If Not obsActual.Exists(key) Then
+            Set sg = CachedSignalGroup(CLng(h(3)), CLng(h(4)))
+            signalTraceSimSec = CLng(simSec)
+            ObservationSignalReadback h(3), h(4), SafeAtt(sg, "SigState"), True
+        End If
+        value = obsActual(key)
+        If Not CBool(value(2)) Then obsClockComplete = False
+    Next
+End Sub
+
+Sub SealHeadSignalStates(simSec)
+    Dim key, actualSec
+    If Not obsEnabled Then Exit Sub
+    actualSec = HeadObservationTime(simSec)
+    CaptureHeadSignalStates actualSec
+    obsHeld.RemoveAll
+    For Each key In obsActual.Keys
+        obsHeld.Add key, obsActual(key)
+    Next
+    obsHeldSec = CLng(simSec)
+End Sub
+
+Function HeadForLane(link, lane)
+    Dim key
+    HeadForLane = ""
+    key = CStr(link) & "|" & CStr(lane)
+    If obsHeadLanes.Exists(key) Then HeadForLane = CStr(obsHeadLanes(key))
+End Function
+
+Sub CountHeadCrossing(vehicle, headId)
+    Dim h, key, before, after, identity
+    h = obsHeads(headId)
+    identity = CStr(vehicle) & "|" & CStr(h(0))
+    If obsSeenVehicleHead.Exists(identity) Then
+        AddDictNumber obsUnknown, h(0), 1
+        Exit Sub
+    End If
+    obsSeenVehicleHead.Add identity, True
+    AddDictNumber obsCross, headId, 1
+    key = CStr(h(3)) & "-" & CStr(h(4))
+    before = obsHeld(key) : after = obsActual(key)
+    ' Exclude clock-boundary brackets; interpolation cannot prove green crossing there.
+    If CBool(before(2)) And CBool(after(2)) And CStr(before(0)) = "GREEN" And CStr(after(0)) = "GREEN" Then
+        AddDictNumber obsQualified, headId, 1
+    End If
+End Sub
+
+Sub ObserveHeadTransition(vehicle, oldRow, current, present)
+    Dim link, headId, h, conn, newHead, crossed
+    link = CStr(oldRow(0))
+    If Not obsHeadRoads.Exists(link) Then Exit Sub
+    headId = HeadForLane(link, oldRow(1))
+    If Not CBool(present) Then
+        AddDictNumber obsUnknown, link, 1
+        Exit Sub
+    End If
+    If CStr(current(0)) = link Then
+        If CLng(oldRow(1)) <> CLng(current(1)) Then
+            crossed = False
+            If headId <> "" Then
+                h = obsHeads(headId)
+                crossed = CDbl(oldRow(2)) < CDbl(h(2)) And CDbl(current(2)) >= CDbl(h(2))
+            End If
+            newHead = HeadForLane(link, current(1))
+            If newHead <> "" Then
+                h = obsHeads(newHead)
+                crossed = crossed Or (CDbl(oldRow(2)) < CDbl(h(2)) And CDbl(current(2)) >= CDbl(h(2)))
+            End If
+            If crossed Then AddDictNumber obsUnknown, link, 1
+            Exit Sub
+        End If
+        If headId <> "" Then
+            h = obsHeads(headId)
+            If CDbl(oldRow(2)) < CDbl(h(2)) And CDbl(current(2)) >= CDbl(h(2)) Then CountHeadCrossing vehicle, headId
+        End If
+        Exit Sub
+    End If
+    If Not obsConnectors.Exists(CStr(current(0))) Then
+        AddDictNumber obsUnknown, link, 1 ' Skipped connectors are not silently inferred online.
+        Exit Sub
+    End If
+    conn = obsConnectors(CStr(current(0)))
+    If CStr(conn(0)) <> link Or CLng(current(1)) < 1 Or CLng(current(1)) > CLng(conn(4)) _
+            Or CLng(oldRow(1)) <> CLng(conn(1)) + CLng(current(1)) - 1 Then
+        AddDictNumber obsUnknown, link, 1
+        Exit Sub
+    End If
+    If headId = "" Then
+        AddDictNumber obsBypass, link, 1
+        Exit Sub
+    End If
+    h = obsHeads(headId)
+    If CDbl(conn(2)) < CDbl(h(2)) Then
+        AddDictNumber obsBypass, link, 1
+    ElseIf CDbl(oldRow(2)) < CDbl(h(2)) Then
+        CountHeadCrossing vehicle, headId
+    End If
+End Sub
+
+Sub CollectHeadObservation(simSec)
+    Dim actualSec
+    If Not obsEnabled Then Exit Sub
+    actualSec = HeadObservationTime(simSec)
+    Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
+    Dim countE(), speedE(), stoppedE(), countW(), speedW(), stoppedW()
+    ReDim countE(FwSegCount(RW_FW_E_SEG_BOUNDS)-1): ReDim speedE(UBound(countE)): ReDim stoppedE(UBound(countE))
+    ReDim countW(FwSegCount(RW_FW_W_SEG_BOUNDS)-1): ReDim speedW(UBound(countW)): ReDim stoppedW(UBound(countW))
+    Dim counts, stops, speeds, tails, qTotal, qStopped, scanOk, countBefore, countAfter, timeBefore, timeAfter
+    Dim vehs, links, lanes, positions, vehSpeeds, stoppedRows, laneRaw, fullCounts, fullStops
+    Dim frame, i, key, oldRow, current, h, value, headId, present
+    If actualSec = CLng(obsFrameSec) Then Exit Sub
+    If obsFrameSec >= 0 And CLng(simSec) <> CLng(obsFrameSec) + 1 Then Err.Raise 513, , "Head observation cadence gap"
+    ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
+        countE, speedE, stoppedE, countW, speedW, stoppedW, counts, stops, speeds, tails, qTotal, qStopped, scanOk, _
+        countBefore, countAfter, timeBefore, timeAfter, vehs, links, lanes, positions, vehSpeeds, stoppedRows, laneRaw, fullCounts, fullStops
+    If Not scanOk Then AbortVehicleObservation simSec
+    CaptureHeadSignalStates simSec
+    Set frame = CreateObject("Scripting.Dictionary")
+    If Not IsEmpty(vehs) Then
+        For i = LBound(vehs) To UBound(vehs)
+            frame.Add CStr(vehs(i)), Array(CStr(links(i)), CLng(lanes(i)), CDbl(positions(i)))
+        Next
+    End If
+    If obsFrameSec >= 0 Then
+        If CLng(obsHeldSec) <> CLng(obsFrameSec) Then Err.Raise 513, , "Previous actual signal state was not sealed"
+        For Each key In obsHeads.Keys
+            h = obsHeads(key)
+            value = obsHeld(CStr(h(3)) & "-" & CStr(h(4)))
+            If Not CBool(value(2)) Then
+                obsClockComplete = False
+                AddDictNumber obsUnverifiedSec, key, 1
+            Else
+                If CStr(value(0)) = "GREEN" Then AddDictNumber obsGreen, key, 1
+                If CBool(value(1)) Then
+                    AddDictNumber obsControlledSec, key, 1
+                Else
+                    AddDictNumber obsNativeSec, key, 1
+                End If
+            End If
+        Next
+        For Each key In obsPrevious.Keys
+            oldRow = obsPrevious(key)
+            present = frame.Exists(key)
+            current = Empty
+            If present Then current = frame(key)
+            If Not present Then
+                AddDictNumber winDepart, oldRow(0), 1
+            ElseIf CStr(oldRow(0)) <> CStr(current(0)) Then
+                AddDictNumber winDepart, oldRow(0), 1
+            End If
+            ObserveHeadTransition key, oldRow, current, present
+        Next
+        For Each key In frame.Keys
+            current = frame(key)
+            present = False
+            If obsPrevious.Exists(key) Then
+                oldRow = obsPrevious(key)
+                present = CStr(oldRow(0)) = CStr(current(0))
+            End If
+            If Not present Then
+                headId = HeadForLane(current(0), current(1))
+                If headId <> "" Then
+                    h = obsHeads(headId)
+                    If CDbl(current(2)) >= CDbl(h(2)) Then AddDictNumber obsUnknown, current(0), 1
+                End If
+            End If
+        Next
+        AccumulateQueueWindow counts, stops
+        obsTransitions = obsTransitions + 1
+    End If
+    AccumulateFreewayExits vehs, links
+    Set obsPrevious = frame
+    obsFrameSec = CLng(simSec)
+End Sub
+
+Function ObservationNumbersJson(values)
+    Dim key, result
+    result = "{"
+    For Each key In values.Keys
+        If Len(result) > 1 Then result = result & ","
+        result = result & """" & JsonEscape(CStr(key)) & """:" & Num(values(key))
+    Next
+    ObservationNumbersJson = result & "}"
+End Function
+
+Function HeadObservationJson(simSec)
+    Dim result, key, h, comma
+    If CLng(obsFrameSec) <> CLng(simSec) Then Err.Raise 513, , "State serialized before observation frame"
+    result = "{""schema"":""physical-head-window/v1"",""config_sha256"":""" & JsonEscape(obsConfigSha256) & """,""start_sec"":" & CStr(obsWindowStart) & _
+        ",""end_sec"":" & CStr(obsFrameSec) & ",""transition_count"":" & CStr(obsTransitions) & _
+        ",""cadence_sec"":1,""exposure_method"":""actual_left_step_hold"",""clock_complete"":" & LCase(CStr(obsClockComplete)) & _
+        ",""unknown_links"":" & ObservationNumbersJson(obsUnknown) & ",""bypass_link_exits"":" & ObservationNumbersJson(obsBypass) & ",""heads"":["
+    comma = ""
+    For Each key In obsHeads.Keys
+        h = obsHeads(key)
+        result = result & comma & "{""head_id"":""" & key & """,""link"":""" & h(0) & """,""lane"":" & CStr(h(1)) & _
+            ",""position_m"":" & JsonDoubleInvariant(h(2)) & ",""sc"":""" & h(3) & """,""sg"":""" & h(4) & _
+            """,""crossings"":" & Num(DictNumber(obsCross,key)) & ",""qualified_crossings"":" & Num(DictNumber(obsQualified,key)) & _
+            ",""green_sec"":" & Num(DictNumber(obsGreen,key)) & ",""native_sec"":" & Num(DictNumber(obsNativeSec,key)) & _
+            ",""controlled_sec"":" & Num(DictNumber(obsControlledSec,key)) & ",""unverified_sec"":" & Num(DictNumber(obsUnverifiedSec,key)) & "}"
+        comma = ","
+    Next
+    HeadObservationJson = result & "]}"
+End Function
+' END PHYSICAL_HEAD_OBSERVATION_V1

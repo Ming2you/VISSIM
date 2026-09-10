@@ -174,8 +174,10 @@ def configure(adapter, cfg, tuning, state, detector_mapping):
 def install(adapter, cfg):
     if not getattr(cfg.network, 'control_area_enabled', False):
         return {}
+    from evaluation.controllers import area_leader_objective
+    out = area_leader_objective.install_runtime(cfg)
     from evaluation.controllers import urban_flow_accounting, area_freeway_accounting
-    out = urban_flow_accounting.install(adapter, cfg)
+    out.update(urban_flow_accounting.install(adapter, cfg))
     out.update(area_freeway_accounting.install(adapter, cfg))
     from evaluation.controllers import area_follower_objective
     out.update(area_follower_objective.install_runtime(cfg))
@@ -195,7 +197,8 @@ def install(adapter, cfg):
         # A copied rollout endpoint can be called on an already predicted state.
         # Retain its cohorts, but reset this evaluation window's accumulated score.
         candidate._control_area_ledger = ModelAreaLedger(copy.deepcopy(ledger.stocks))
-        spec = replace(objective_spec, abort_above=None, far_enabled=False)
+        spec = replace(objective_spec, abort_above=None, far_enabled=False,
+                       price_hinge=False, leader_hinge=False, protected_queue=False)
         from evaluation.controllers import area_meter_finalization
         control = area_meter_finalization.for_endpoint(previous, action_schedule, spec)
         result = original(candidate, control, forecast, (), spec)
@@ -204,17 +207,17 @@ def install(adapter, cfg):
             closing.assert_stocks(model_inventory(result.states[-1], cfg))
         metrics = closing.metrics
         weight = ControlAreaObjective(float(cfg.network.control_area_beta_seconds) / 3600.0)
-        # Existing feasibility/hinge penalties are preserved; the global near TTT
-        # is replaced once. Far is explicitly disabled until it has Omega scope.
-        other = result.objective - result.ttt
-        result.objective = weight.score(metrics) + other
+        # The physical rollout and inventory checks above are unchanged.
+        # Ranking is exactly Omega TTT-beta*TD; unrecognized soft extras fail.
+        area_leader_objective.require_pure_endpoint_base(result.objective, result.ttt)
+        result.objective = weight.score(metrics)
         result.ttt = result.partial_ttt = metrics.ttt_veh_h
         result.far = 0.0
         result.control_area = {
             'ttt_veh_h': metrics.ttt_veh_h, 'ttd_veh': metrics.ttd_veh,
             'entered_veh': metrics.entered_veh, 'beta_seconds': weight.beta_hours * 3600,
-            'near_score_veh_h': weight.score(metrics), 'additional_cost_veh_h': other,
-            'candidate_scores': {str(beta): ControlAreaObjective(beta / 3600).score(metrics) + other
+            'near_score_veh_h': weight.score(metrics), 'additional_cost_veh_h': 0.0,
+            'candidate_scores': {str(beta): ControlAreaObjective(beta / 3600).score(metrics)
                                  for beta in (0, 60, 150, 300)},
             'event_count': closing.event_count, 'flow_counts': dict(closing.flow_counts),
             'prediction_approximation': 'proportional mixing; canonical stopline/physical path crossing timing',

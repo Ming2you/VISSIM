@@ -1,0 +1,21 @@
+{
+  "urban": {
+    "shared_local_service_pool": true,
+    "capacity": {
+      "measured": true,
+      "head_observation": {
+        "enabled": true,
+        "min_green_sec": 30,
+        "min_crossings": 5
+      }
+    },
+    "route_choice_corridor": {
+      "evidence_paths": [
+        "diagnostics/route_choice_corridor_sc1004_calibrated.json",
+        "diagnostics/route_choice_corridor_1128_ver2.json",
+        "diagnostics/route_choice_corridor_1099_sc15_calibrated.json",
+        "diagnostics/route_choice_corridor_1100_sc15_calibrated.json"
+      ]
+    }
+  }
+}

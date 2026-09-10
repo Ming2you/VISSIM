@@ -67,6 +67,64 @@ if ($OutDir -eq "") {
 $OutDir = Resolve-RepoPath $OutDir
 # Strict area accounting must stop when a decision cannot be produced.
 # Follow the existing single-parent tuning chain for this one inherited key.
+function Read-HeadObservationSettings([string]$TuningFile) {
+  $seen = @{}; $chain = @(); $documents = @()
+  while ($TuningFile -ne "") {
+    $TuningFile = [IO.Path]::GetFullPath($TuningFile)
+    if ($seen.ContainsKey($TuningFile)) { throw "Cyclic head observation tuning" }
+    $seen[$TuningFile] = $true
+    $doc = Get-Content -LiteralPath $TuningFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    $chain += [ordered]@{path=$TuningFile; sha256=(Get-FileHash -LiteralPath $TuningFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    $documents += $doc
+    if (-not $doc.extends) { break }
+    $next = [string]$doc.extends
+    if (-not [IO.Path]::IsPathRooted($next)) { $next = Join-Path (Split-Path -Parent $TuningFile) $next }
+    $TuningFile = $next
+  }
+  $options = [ordered]@{}; $measured = $false; $declared = $false
+  for ($i=$documents.Count-1; $i -ge 0; $i--) {
+    $capacity = $documents[$i].urban.capacity
+    if ($null -eq $capacity) { continue }
+    if ($capacity.PSObject.Properties['measured']) { $measured = $capacity.measured }
+    if ($capacity.PSObject.Properties['head_observation']) {
+      $declared = $true
+      $value = $capacity.head_observation
+      if ($value -isnot [PSCustomObject]) { throw "head_observation requires an object" }
+      foreach ($property in $value.PSObject.Properties) {
+        if ($property.Name -notin @('enabled','min_green_sec','min_crossings')) { throw "Unknown head observation option" }
+        $options[$property.Name] = $property.Value
+      }
+    }
+  }
+  if ($options.Count -eq 0) {
+    if ($declared) { throw "Declared head_observation requires boolean enabled" }
+    $options.enabled = $false
+  }
+  if ($options.enabled -isnot [bool]) { throw "head_observation.enabled must be boolean" }
+  if ($options.enabled) {
+    if ($measured -isnot [bool] -or -not $measured) { throw "head observation requires urban.capacity.measured=true" }
+    foreach ($key in @('min_green_sec','min_crossings')) {
+      $value = $options[$key]
+      if ($null -eq $value -or $value -is [bool] -or $value -is [string]) { throw "Explicit numeric head observation quality threshold required: $key" }
+      $number = [double]$value
+      if ([double]::IsNaN($number) -or [double]::IsInfinity($number) -or $number -le 0 -or $number -ne [Math]::Floor($number)) { throw "Positive integer head observation threshold required: $key" }
+      $options[$key] = $number
+    }
+  } else { $options = [ordered]@{enabled=$false} }
+  return [ordered]@{config_key='urban.capacity.head_observation'; options=$options; config_chain=$chain}
+}
+
+function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
+  $current = Read-HeadObservationSettings $TuningFile
+  if (($current | ConvertTo-Json -Depth 8 -Compress) -cne ($Expected | ConvertTo-Json -Depth 8 -Compress)) {
+    throw "Head observation tuning changed after provenance capture"
+  }
+  # Transport only: inherited RW_* values can never activate this feature.
+  $env:RW_SIGNAL_OBSERVATION = $(if ($current.options.enabled) { '1' } else { '0' })
+  $env:RW_SIGNAL_OBSERVATION_CONFIG_SHA256 = $(if ($current.options.enabled) { $current.config_chain[0].sha256 } else { '' })
+  if ($current.options.enabled) { $env:RW_QUEUE_WINDOW = '1' }
+}
+
 function Read-ControlAreaObjectiveEnabled([string]$TuningFile) {
   $seenStrictTuning = @{}
   while ($TuningFile -ne "") {
@@ -421,6 +479,8 @@ if (Test-Path -LiteralPath $numsimSnapshotPath -PathType Leaf) {
 # 사후에 알 방법이 없다 - 논문 재현성에 직접 걸린다.
 #
 # 순수 추가다. 값을 바꾸지 않고 적기만 한다.
+$headObservation = Read-HeadObservationSettings $Tuning
+Set-HeadObservationTransport $Tuning $headObservation
 $rwEnv = [ordered]@{}
 foreach ($e in (Get-ChildItem Env: | Where-Object { $_.Name -like "RW_*" } | Sort-Object Name)) {
   $rwEnv[$e.Name] = [string]$e.Value
@@ -455,6 +515,7 @@ $provenance = [ordered]@{
   signal_programs = $signalPrograms
   controller_sources = $controllerSources
 }
+if ($headObservation.options.enabled) { $provenance.signal_observation = $headObservation }
 $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
 [System.IO.File]::WriteAllText(
   $provenancePath,
@@ -518,6 +579,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   }
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $runId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $provenancePath, "Process")
+  Set-HeadObservationTransport $Tuning $headObservation
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
