@@ -1,0 +1,1887 @@
+{
+  "schema": "interrupted-run-native-signal-prefix/v1",
+  "run": "codex_fid_cl9000_s13_v3",
+  "audit_finished": true,
+  "native_signal_prefix_passed": false,
+  "prefix_execution_evidence_passed": false,
+  "full_run_completed": false,
+  "full_native_execution_certified": false,
+  "process_exit_verified": false,
+  "completion_receipt_verified": false,
+  "window": {
+    "first_sec": 1,
+    "last_sec": 8741,
+    "last_command_sec": 8700
+  },
+  "requested_prefix_end_sec": 8850,
+  "candidate_common_complete_end_sec": 8741,
+  "verified_through_sec": null,
+  "requested_tail_beyond_candidate_window_sec": 109,
+  "checks": {
+    "sources": {
+      "passed": true,
+      "urban_controllers": 17,
+      "meter_controllers": 8,
+      "recorded_groups": 144,
+      "ramp_meter_timing": {
+        "amber_sec": 0,
+        "declared": true,
+        "config_key": "actuation.real_world_ramp_metering.amber_sec",
+        "config_chain": [
+          {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_fid_cl9000_s13_v3\\config.json",
+            "sha256": "3038df6dc067a8c38ebcf191328e08d54c6858d211a336961ac9898c08c7c870"
+          }
+        ],
+        "transport": "0",
+        "authority": "pinned_config_chain_environment_and_native_runtime_hook"
+      },
+      "excluded_midblock_groups": [
+        "5:9",
+        "5:10",
+        "5:11",
+        "5:12",
+        "5:13",
+        "5:14",
+        "5:15",
+        "5:16",
+        "5:17",
+        "5:18",
+        "5:19",
+        "5:20",
+        "5:21",
+        "5:22",
+        "5:23",
+        "5:24",
+        "7:9",
+        "7:10",
+        "7:11",
+        "7:12",
+        "7:13",
+        "7:14",
+        "7:15",
+        "7:16"
+      ],
+      "original_manifest_unchanged": true
+    },
+    "commands": {
+      "passed": true,
+      "command_count": 59,
+      "first_command_sec": 1,
+      "last_command_sec": 8700,
+      "first_control_sec_by_group": {
+        "9101:1": 1,
+        "9102:1": 1,
+        "9103:1": 1,
+        "9104:1": 1,
+        "9105:1": 1,
+        "9106:1": 1,
+        "9107:1": 1,
+        "9108:1": 1,
+        "1:1": 900,
+        "1:2": 900,
+        "1:3": 900,
+        "1:4": 900,
+        "1:5": 900,
+        "1:6": 900,
+        "1:7": 900,
+        "1:8": 900,
+        "5:1": 900,
+        "5:2": 900,
+        "5:3": 900,
+        "5:4": 900,
+        "5:5": 900,
+        "5:6": 900,
+        "5:7": 900,
+        "5:8": 900,
+        "6:1": 900,
+        "6:2": 900,
+        "6:3": 900,
+        "6:4": 900,
+        "6:5": 900,
+        "6:6": 900,
+        "6:7": 900,
+        "6:8": 900,
+        "7:1": 900,
+        "7:2": 900,
+        "7:3": 900,
+        "7:4": 900,
+        "7:5": 900,
+        "7:6": 900,
+        "7:7": 900,
+        "7:8": 900,
+        "11:1": 900,
+        "11:2": 900,
+        "11:3": 900,
+        "11:4": 900,
+        "11:5": 900,
+        "11:6": 900,
+        "11:7": 900,
+        "11:8": 900,
+        "12:1": 900,
+        "12:2": 900,
+        "12:3": 900,
+        "12:4": 900,
+        "12:5": 900,
+        "12:6": 900,
+        "12:7": 900,
+        "12:8": 900,
+        "16:1": 900,
+        "16:2": 900,
+        "16:3": 900,
+        "16:4": 900,
+        "16:5": 900,
+        "16:6": 900,
+        "16:7": 900,
+        "16:8": 900,
+        "101:1": 900,
+        "101:2": 900,
+        "101:3": 900,
+        "101:4": 900,
+        "101:5": 900,
+        "101:6": 900,
+        "101:7": 900,
+        "101:8": 900,
+        "105:1": 900,
+        "105:2": 900,
+        "105:3": 900,
+        "105:4": 900,
+        "105:5": 900,
+        "105:6": 900,
+        "105:7": 900,
+        "105:8": 900,
+        "107:1": 900,
+        "107:2": 900,
+        "107:3": 900,
+        "107:4": 900,
+        "107:5": 900,
+        "107:6": 900,
+        "107:7": 900,
+        "107:8": 900,
+        "108:1": 900,
+        "108:2": 900,
+        "108:3": 900,
+        "108:4": 900,
+        "108:5": 900,
+        "108:6": 900,
+        "108:7": 900,
+        "108:8": 900,
+        "109:1": 900,
+        "109:2": 900,
+        "109:3": 900,
+        "109:4": 900,
+        "109:5": 900,
+        "109:6": 900,
+        "109:7": 900,
+        "109:8": 900,
+        "1001:1": 900,
+        "1001:2": 900,
+        "1001:3": 900,
+        "1001:4": 900,
+        "1001:5": 900,
+        "1001:6": 900,
+        "1001:7": 900,
+        "1001:8": 900,
+        "1002:1": 900,
+        "1002:2": 900,
+        "1002:3": 900,
+        "1002:4": 900,
+        "1002:5": 900,
+        "1002:6": 900,
+        "1002:7": 900,
+        "1002:8": 900,
+        "1003:1": 900,
+        "1003:2": 900,
+        "1003:3": 900,
+        "1003:4": 900,
+        "1003:5": 900,
+        "1003:6": 900,
+        "1003:7": 900,
+        "1003:8": 900,
+        "1004:1": 900,
+        "1004:2": 900,
+        "1004:3": 900,
+        "1004:4": 900,
+        "1004:5": 900,
+        "1004:6": 900,
+        "1004:7": 900,
+        "1004:8": 900,
+        "1005:1": 900,
+        "1005:2": 900,
+        "1005:3": 900,
+        "1005:4": 900,
+        "1005:5": 900,
+        "1005:6": 900,
+        "1005:7": 900,
+        "1005:8": 900
+      },
+      "vsl_class_addresses": 264,
+      "commands": [
+        {
+          "sim_sec": 1,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 150,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 300,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 450,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 600,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 750,
+          "rows": 74,
+          "kinds": {
+            "vsl": 66,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 900,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1050,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1200,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1350,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1500,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1650,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1800,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 1950,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2100,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2250,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2400,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2550,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2700,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 2850,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3000,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3150,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3300,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3450,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3600,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3750,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 3900,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4050,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4200,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4350,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4500,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4650,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4800,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 4950,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5100,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5250,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5400,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5550,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5700,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 5850,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6000,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6150,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6300,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6450,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6600,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6750,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 6900,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7050,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7200,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7350,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7500,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7650,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7800,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 7950,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 8100,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 8250,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 8400,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 8550,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        },
+        {
+          "sim_sec": 8700,
+          "rows": 213,
+          "kinds": {
+            "vsl": 66,
+            "signal": 17,
+            "signal_sg": 122,
+            "ramp_meter": 8
+          }
+        }
+      ],
+      "terminal_command_invented": false
+    },
+    "native_ldp_prefix": {
+      "passed": false,
+      "exception_type": "ValueError",
+      "message": "Wrong LDP fixed-width row",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\performance_diagnosis_20260913\\audit_native_signal_prefix.py\", line 212, in main\n    record = read_ldp_frames(files_by_sc, expected, first_sec, last_sec)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 261, in read_ldp_frames\n    parsed = parse_ldp_columns(raw, sc, groups[sc], start, end)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 217, in parse_ldp_columns\n    require(len(line) == width, \"Wrong LDP fixed-width row\")\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 29, in require\n    raise ValueError(message)\nValueError: Wrong LDP fixed-width row\n"
+    },
+    "vsl_apply_readbacks": {
+      "passed": true,
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\vsl_readback.csv",
+      "sha256": "28f91a01564d79690b4ece82154c56eae474bcf0e521579b050ddfad2db4bcb8",
+      "rows": 15576,
+      "unchanged_observation_rows": 15312,
+      "stage_counts": {
+        "39:10/immediate": 59,
+        "39:20/immediate": 59,
+        "39:30/immediate": 59,
+        "39:70/immediate": 59,
+        "43:10/immediate": 59,
+        "43:20/immediate": 59,
+        "43:30/immediate": 59,
+        "43:70/immediate": 59,
+        "38:10/immediate": 59,
+        "38:20/immediate": 59,
+        "38:30/immediate": 59,
+        "38:70/immediate": 59,
+        "44:10/immediate": 59,
+        "44:20/immediate": 59,
+        "44:30/immediate": 59,
+        "44:70/immediate": 59,
+        "37:10/immediate": 59,
+        "37:20/immediate": 59,
+        "37:30/immediate": 59,
+        "37:70/immediate": 59,
+        "45:10/immediate": 59,
+        "45:20/immediate": 59,
+        "45:30/immediate": 59,
+        "45:70/immediate": 59,
+        "36:10/immediate": 59,
+        "36:20/immediate": 59,
+        "36:30/immediate": 59,
+        "36:70/immediate": 59,
+        "46:10/immediate": 59,
+        "46:20/immediate": 59,
+        "46:30/immediate": 59,
+        "46:70/immediate": 59,
+        "47:10/immediate": 59,
+        "47:20/immediate": 59,
+        "47:30/immediate": 59,
+        "47:70/immediate": 59,
+        "48:10/immediate": 59,
+        "48:20/immediate": 59,
+        "48:30/immediate": 59,
+        "48:70/immediate": 59,
+        "49:10/immediate": 59,
+        "49:20/immediate": 59,
+        "49:30/immediate": 59,
+        "49:70/immediate": 59,
+        "50:10/immediate": 59,
+        "50:20/immediate": 59,
+        "50:30/immediate": 59,
+        "50:70/immediate": 59,
+        "51:10/immediate": 59,
+        "51:20/immediate": 59,
+        "51:30/immediate": 59,
+        "51:70/immediate": 59,
+        "52:10/immediate": 59,
+        "52:20/immediate": 59,
+        "52:30/immediate": 59,
+        "52:70/immediate": 59,
+        "53:10/immediate": 59,
+        "53:20/immediate": 59,
+        "53:30/immediate": 59,
+        "53:70/immediate": 59,
+        "54:10/immediate": 59,
+        "54:20/immediate": 59,
+        "54:30/immediate": 59,
+        "54:70/immediate": 59,
+        "55:10/immediate": 59,
+        "55:20/immediate": 59,
+        "55:30/immediate": 59,
+        "55:70/immediate": 59,
+        "56:10/immediate": 59,
+        "56:20/immediate": 59,
+        "56:30/immediate": 59,
+        "56:70/immediate": 59,
+        "57:10/immediate": 59,
+        "57:20/immediate": 59,
+        "57:30/immediate": 59,
+        "57:70/immediate": 59,
+        "58:10/immediate": 59,
+        "58:20/immediate": 59,
+        "58:30/immediate": 59,
+        "58:70/immediate": 59,
+        "59:10/immediate": 59,
+        "59:20/immediate": 59,
+        "59:30/immediate": 59,
+        "59:70/immediate": 59,
+        "60:10/immediate": 59,
+        "60:20/immediate": 59,
+        "60:30/immediate": 59,
+        "60:70/immediate": 59,
+        "61:10/immediate": 59,
+        "61:20/immediate": 59,
+        "61:30/immediate": 59,
+        "61:70/immediate": 59,
+        "62:10/immediate": 59,
+        "62:20/immediate": 59,
+        "62:30/immediate": 59,
+        "62:70/immediate": 59,
+        "63:10/immediate": 59,
+        "63:20/immediate": 59,
+        "63:30/immediate": 59,
+        "63:70/immediate": 59,
+        "64:10/immediate": 59,
+        "64:20/immediate": 59,
+        "64:30/immediate": 59,
+        "64:70/immediate": 59,
+        "65:10/immediate": 59,
+        "65:20/immediate": 59,
+        "65:30/immediate": 59,
+        "65:70/immediate": 59,
+        "66:10/immediate": 59,
+        "66:20/immediate": 59,
+        "66:30/immediate": 59,
+        "66:70/immediate": 59,
+        "67:10/immediate": 59,
+        "67:20/immediate": 59,
+        "67:30/immediate": 59,
+        "67:70/immediate": 59,
+        "68:10/immediate": 59,
+        "68:20/immediate": 59,
+        "68:30/immediate": 59,
+        "68:70/immediate": 59,
+        "69:10/immediate": 59,
+        "69:20/immediate": 59,
+        "69:30/immediate": 59,
+        "69:70/immediate": 59,
+        "71:10/immediate": 59,
+        "71:20/immediate": 59,
+        "71:30/immediate": 59,
+        "71:70/immediate": 59,
+        "72:10/immediate": 59,
+        "72:20/immediate": 59,
+        "72:30/immediate": 59,
+        "72:70/immediate": 59,
+        "73:10/immediate": 59,
+        "73:20/immediate": 59,
+        "73:30/immediate": 59,
+        "73:70/immediate": 59,
+        "40:10/immediate": 59,
+        "40:20/immediate": 59,
+        "40:30/immediate": 59,
+        "40:70/immediate": 59,
+        "75:10/immediate": 59,
+        "75:20/immediate": 59,
+        "75:30/immediate": 59,
+        "75:70/immediate": 59,
+        "41:10/immediate": 59,
+        "41:20/immediate": 59,
+        "41:30/immediate": 59,
+        "41:70/immediate": 59,
+        "76:10/immediate": 59,
+        "76:20/immediate": 59,
+        "76:30/immediate": 59,
+        "76:70/immediate": 59,
+        "42:10/immediate": 59,
+        "42:20/immediate": 59,
+        "42:30/immediate": 59,
+        "42:70/immediate": 59,
+        "77:10/immediate": 59,
+        "77:20/immediate": 59,
+        "77:30/immediate": 59,
+        "77:70/immediate": 59,
+        "79:10/immediate": 59,
+        "79:20/immediate": 59,
+        "79:30/immediate": 59,
+        "79:70/immediate": 59,
+        "80:10/immediate": 59,
+        "80:20/immediate": 59,
+        "80:30/immediate": 59,
+        "80:70/immediate": 59,
+        "81:10/immediate": 59,
+        "81:20/immediate": 59,
+        "81:30/immediate": 59,
+        "81:70/immediate": 59,
+        "83:10/immediate": 59,
+        "83:20/immediate": 59,
+        "83:30/immediate": 59,
+        "83:70/immediate": 59,
+        "84:10/immediate": 59,
+        "84:20/immediate": 59,
+        "84:30/immediate": 59,
+        "84:70/immediate": 59,
+        "85:10/immediate": 59,
+        "85:20/immediate": 59,
+        "85:30/immediate": 59,
+        "85:70/immediate": 59,
+        "87:10/immediate": 59,
+        "87:20/immediate": 59,
+        "87:30/immediate": 59,
+        "87:70/immediate": 59,
+        "88:10/immediate": 59,
+        "88:20/immediate": 59,
+        "88:30/immediate": 59,
+        "88:70/immediate": 59,
+        "89:10/immediate": 59,
+        "89:20/immediate": 59,
+        "89:30/immediate": 59,
+        "89:70/immediate": 59,
+        "90:10/immediate": 59,
+        "90:20/immediate": 59,
+        "90:30/immediate": 59,
+        "90:70/immediate": 59,
+        "91:10/immediate": 59,
+        "91:20/immediate": 59,
+        "91:30/immediate": 59,
+        "91:70/immediate": 59,
+        "92:10/immediate": 59,
+        "92:20/immediate": 59,
+        "92:30/immediate": 59,
+        "92:70/immediate": 59,
+        "93:10/immediate": 59,
+        "93:20/immediate": 59,
+        "93:30/immediate": 59,
+        "93:70/immediate": 59,
+        "94:10/immediate": 59,
+        "94:20/immediate": 59,
+        "94:30/immediate": 59,
+        "94:70/immediate": 59,
+        "95:10/immediate": 59,
+        "95:20/immediate": 59,
+        "95:30/immediate": 59,
+        "95:70/immediate": 59,
+        "96:10/immediate": 59,
+        "96:20/immediate": 59,
+        "96:30/immediate": 59,
+        "96:70/immediate": 59,
+        "97:10/immediate": 59,
+        "97:20/immediate": 59,
+        "97:30/immediate": 59,
+        "97:70/immediate": 59,
+        "98:10/immediate": 59,
+        "98:20/immediate": 59,
+        "98:30/immediate": 59,
+        "98:70/immediate": 59,
+        "99:10/immediate": 59,
+        "99:20/immediate": 59,
+        "99:30/immediate": 59,
+        "99:70/immediate": 59,
+        "100:10/immediate": 59,
+        "100:20/immediate": 59,
+        "100:30/immediate": 59,
+        "100:70/immediate": 59,
+        "101:10/immediate": 59,
+        "101:20/immediate": 59,
+        "101:30/immediate": 59,
+        "101:70/immediate": 59,
+        "102:10/immediate": 59,
+        "102:20/immediate": 59,
+        "102:30/immediate": 59,
+        "102:70/immediate": 59,
+        "103:10/immediate": 59,
+        "103:20/immediate": 59,
+        "103:30/immediate": 59,
+        "103:70/immediate": 59,
+        "104:10/immediate": 59,
+        "104:20/immediate": 59,
+        "104:30/immediate": 59,
+        "104:70/immediate": 59,
+        "105:10/immediate": 59,
+        "105:20/immediate": 59,
+        "105:30/immediate": 59,
+        "105:70/immediate": 59,
+        "106:10/immediate": 59,
+        "106:20/immediate": 59,
+        "106:30/immediate": 59,
+        "106:70/immediate": 59
+      },
+      "dense_reference_grid_required": false,
+      "minimum_next_step_and_control_boundary_posts_required": false,
+      "independent_command_clock_rows_checked": 15576,
+      "continuous_hold_coverage_certified": false,
+      "vsl_scope": "DesSpeedDistr class reference ID, not observed vehicle speed; sequential per-class reads, not atomic four-class snapshot.",
+      "expected_setter_rows": 15576,
+      "each_second_readbacks_requested": false,
+      "classes": [
+        10,
+        20,
+        30,
+        70
+      ],
+      "command_count": 59,
+      "reused_from": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\performance_diagnosis_20260913\\native_signal_prefix_v2.json",
+      "reused_without_repeating_readback_validation": true
+    }
+  },
+  "source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\run_provenance_codex_fid_cl9000_s13_v3.json": {
+      "bytes": 64905,
+      "sha256": "68c2291e878a1c46e648721b24f048e73625353fdd604b731632126dd17481a2",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_fid_cl9000_s13_v3\\native_recording\\baseline.inpx": {
+      "bytes": 3075873,
+      "sha256": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2",
+      "expected_sha256": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_stackelberg_controller.vbs": {
+      "bytes": 279794,
+      "sha256": "ce0541673888e00f0160c01aca882e131606a95a6bd9fac639897bf643dcab4e",
+      "expected_sha256": "ce0541673888e00f0160c01aca882e131606a95a6bd9fac639897bf643dcab4e"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\native_clock_replay_v1\\native_clock.vbs": {
+      "bytes": 8881,
+      "sha256": "ce0219b2c9ecf60aed23757447b546a39e96d0f29c73204de7a7bb12f2e48825",
+      "expected_sha256": "ce0219b2c9ecf60aed23757447b546a39e96d0f29c73204de7a7bb12f2e48825"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\native_clock_replay_v1\\native_clock_sgplan.vbs": {
+      "bytes": 4850,
+      "sha256": "4974ffc0ea15a575d99d2226da6723825f84e3ced46b804f117ff78938aa0670",
+      "expected_sha256": "4974ffc0ea15a575d99d2226da6723825f84e3ced46b804f117ff78938aa0670"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json": {
+      "bytes": 61718,
+      "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+      "expected_sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_fid_cl9000_s13_v3\\config.json": {
+      "bytes": 268461,
+      "sha256": "3038df6dc067a8c38ebcf191328e08d54c6858d211a336961ac9898c08c7c870",
+      "expected_sha256": "3038df6dc067a8c38ebcf191328e08d54c6858d211a336961ac9898c08c7c870"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_fid_cl9000_s13_v3\\network_recording.json": {
+      "bytes": 2440,
+      "sha256": "cf0e2e0de0a83c180a638baa40f6b4d3812183c95fc076b945087723b8a88997",
+      "expected_sha256": "cf0e2e0de0a83c180a638baa40f6b4d3812183c95fc076b945087723b8a88997"
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000001.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000150.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000300.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000450.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000600.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000750.csv": {
+      "bytes": 8972,
+      "sha256": "b9c91f7c1e1945db3e6dcfe6a23005a5abc1962162651328a3fb8f7556b91391",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_000900.csv": {
+      "bytes": 27650,
+      "sha256": "1ef2aba7b5d8950676b6f9d8fa6a51b9a4d9e79730bde1e1de47a03e28c1895f",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001050.csv": {
+      "bytes": 27641,
+      "sha256": "39a0a4bf1d198d84e8084fc0634d93bd57a26ecdbaccbfaa52230917eeeb10c8",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001200.csv": {
+      "bytes": 27623,
+      "sha256": "e03fc906c601045711ea0c26583dd6107b466ca02dad98da36c276b1fe32c680",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001350.csv": {
+      "bytes": 27616,
+      "sha256": "1b110b268300586b2a56fe4ecd03af984c934ff0681c544c26d2aafa09c8ee59",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001500.csv": {
+      "bytes": 27616,
+      "sha256": "98dd3c81cb59207f9f9a5b3b3b15959fe9f547a36508f17f76c54dcaf506d8d7",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001650.csv": {
+      "bytes": 27607,
+      "sha256": "e7090c34fc1f5b8b33fbe3d4d140e19ab415158c3656b483e68417962422116a",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001800.csv": {
+      "bytes": 27598,
+      "sha256": "3b0b6422240c41cc1347fe67be8589a3109961b3c0fa866ddbaa632905bda865",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_001950.csv": {
+      "bytes": 27589,
+      "sha256": "11de71412277c83d979076503c99accfaea2d1b1983fc5f5b8e4a589ed3ad199",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002100.csv": {
+      "bytes": 27589,
+      "sha256": "46860bb898a2a1ab07e17f8ac02cd418d9367f8bc14d7037cc040b09d674cf5d",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002250.csv": {
+      "bytes": 27589,
+      "sha256": "a9eefb31d4809c848dd9414dee5812c61372fc0f83782fb042aac6675a555f6c",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002400.csv": {
+      "bytes": 27607,
+      "sha256": "4e25e3ef7f80e88fdb44eb0aa9f3c3c589e71fa45d1bec25aef11d533c5e32b1",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002550.csv": {
+      "bytes": 27605,
+      "sha256": "6834a06e5b81239c64df205ab761c9990d5db4bc0c733c9b54fea6deac56bed1",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002700.csv": {
+      "bytes": 27605,
+      "sha256": "b2524d6ba1bc8d872670ce57cedb566eb51b4a47390113d53d79321a9bf4ca02",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002850.csv": {
+      "bytes": 27587,
+      "sha256": "5ea04d8ed4a1bc516edeb7357831f761fa06678faaa871c67ee2eaf227c91144",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003000.csv": {
+      "bytes": 27587,
+      "sha256": "77fd5c5877a6303bb76f3b2e7edf09d7ab2a7724a692cbec007728c0744811a6",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003150.csv": {
+      "bytes": 27587,
+      "sha256": "feb889bbc4889024b58cc3b8216700dcf8fe028ebf89b235931631302e922324",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003300.csv": {
+      "bytes": 27578,
+      "sha256": "5d219bee94ba6eb7865ae94e8fac4884de2d62f2b82dcbbc513cf3cff89bc212",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003450.csv": {
+      "bytes": 27596,
+      "sha256": "e786edf83c50fb5984818f4936c375701e00901823f2bd602319db8aa170d57e",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003600.csv": {
+      "bytes": 27587,
+      "sha256": "0021234636854cef98b001a03cf80d32c82ab0d556f37f27db2c46694ed85a62",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003750.csv": {
+      "bytes": 27585,
+      "sha256": "33684f055c9eabd3f16c8be2205f08b85bb4082a4cf1cbde53eddb15b1285e28",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003900.csv": {
+      "bytes": 27576,
+      "sha256": "4fd11397d4b2045cbd048caa3762974b9b67bea10ed618ad53459d6db0c4a0e3",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004050.csv": {
+      "bytes": 27576,
+      "sha256": "6b74b2af320bb0af14d582fa2b8fddf8d817cb225f78069e3b2d84b86498f85b",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004200.csv": {
+      "bytes": 27594,
+      "sha256": "8060efc6a400bb540352b24c8cc933715799498cfa112f401e13aea0d5442888",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004350.csv": {
+      "bytes": 27589,
+      "sha256": "149fbc098c80932e7cc0c48b6e90cfa0a272d11ad16ac3dafb1d5f992c45cf70",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004500.csv": {
+      "bytes": 27599,
+      "sha256": "21f44ceacab9b9ef7a16bcdc2fe3dfd738947d18a10bf23359c38f967236dee3",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004650.csv": {
+      "bytes": 27589,
+      "sha256": "149fbc098c80932e7cc0c48b6e90cfa0a272d11ad16ac3dafb1d5f992c45cf70",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004800.csv": {
+      "bytes": 27599,
+      "sha256": "cf4461399a967f7cb2f01f4407e3e24c0945aa1b4b9f794a843c72adbc2d2ca1",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004950.csv": {
+      "bytes": 27599,
+      "sha256": "21f44ceacab9b9ef7a16bcdc2fe3dfd738947d18a10bf23359c38f967236dee3",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005100.csv": {
+      "bytes": 27597,
+      "sha256": "36bfbcb9a6bbcfaa5798000a3a7a9abf06d5462ffd4960924c402b6b627f2421",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005250.csv": {
+      "bytes": 27615,
+      "sha256": "f09b830442e209bb3cd7be8666e2d89bcd26afce398133ccb7c5f67706353b1f",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005400.csv": {
+      "bytes": 27615,
+      "sha256": "8111683093791eaaee3de235de52d3b127edfd58f19b9e2de3c738ab15c2d7e6",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005550.csv": {
+      "bytes": 27615,
+      "sha256": "ef911fb7529db05aa2c1406105479ca45a8e87c3e8a621183d1a88416d14e2b0",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005700.csv": {
+      "bytes": 27605,
+      "sha256": "5f641c396aec7fecf3acd71443d7aa4bc19502c6e8c3b936ed3b8ddd1a190cea",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_005850.csv": {
+      "bytes": 27615,
+      "sha256": "ef911fb7529db05aa2c1406105479ca45a8e87c3e8a621183d1a88416d14e2b0",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006000.csv": {
+      "bytes": 27613,
+      "sha256": "121adde113b689eaa9fd1a037a825a8a110f919fb6b2dac9853524e998b21af4",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006150.csv": {
+      "bytes": 27595,
+      "sha256": "da49b06a3fca5bd5f368817bd3740bb730db05ea220c1efaef1f227df8c57e5a",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006300.csv": {
+      "bytes": 27586,
+      "sha256": "545972dcd83b142aa6da93d2127684daaf2cdd4bbc99707319a9968eea41fe4b",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006450.csv": {
+      "bytes": 27576,
+      "sha256": "44b6f9b1276633a45f3d0fad2129bc604a2faf7f2b3147631356c96315b6e543",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006600.csv": {
+      "bytes": 27586,
+      "sha256": "545972dcd83b142aa6da93d2127684daaf2cdd4bbc99707319a9968eea41fe4b",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006750.csv": {
+      "bytes": 27588,
+      "sha256": "215e64dce767ce04158e224bad3182a8c9e513af4e2d4bf2fece82dd14d1d642",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_006900.csv": {
+      "bytes": 27606,
+      "sha256": "608d380cf7fd40ff12e7f2bdaf6ea073413ece40585c8341c6bc011e4efd381e",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007050.csv": {
+      "bytes": 27596,
+      "sha256": "2b32379b2412065b58d3787b64ca9441f76affbdbeca8d981183abefc6b88fbb",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007200.csv": {
+      "bytes": 27606,
+      "sha256": "6eb05b2caca064c0b098fea7b31827fafffe2b7d315d8a6d50165212c86dfe22",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007350.csv": {
+      "bytes": 27606,
+      "sha256": "608d380cf7fd40ff12e7f2bdaf6ea073413ece40585c8341c6bc011e4efd381e",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007500.csv": {
+      "bytes": 27624,
+      "sha256": "5b1c961a02a504251f25d9b0d1f4b7dbb1b26d30f63c302b3f9431ba17c49ce7",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007650.csv": {
+      "bytes": 27614,
+      "sha256": "89f52f9359889ad11b33dc942873747ecbb6ccbdafe0bc22292c7410ea83504c",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007800.csv": {
+      "bytes": 27624,
+      "sha256": "5b1c961a02a504251f25d9b0d1f4b7dbb1b26d30f63c302b3f9431ba17c49ce7",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_007950.csv": {
+      "bytes": 27624,
+      "sha256": "f7831671bcf8cfb583267a2d755d6e683843f7b2b4b1ef0339b355c97d51404d",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_008100.csv": {
+      "bytes": 27606,
+      "sha256": "acfa3f99f6a8eabfc52670a18691a8df534aef1956c521232e7325d7310644cc",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_008250.csv": {
+      "bytes": 27615,
+      "sha256": "69bd5af2bb1261769c1cbdd6fa7829aeb0d87ab099478cd37c88a6e2b81477ec",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_008400.csv": {
+      "bytes": 27597,
+      "sha256": "e1e8ae0b914602fa4d0c86f12db7c9746d841b3fe384f471d4acc5d5c33dc1e2",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_008550.csv": {
+      "bytes": 27587,
+      "sha256": "afe69959c8c6014799475a249c0ea194d6bbbe01ec3b90d6c5e3c4c128ff5405",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_008700.csv": {
+      "bytes": 27605,
+      "sha256": "4100ba226dc70a9b8401f06996d8d4e862b2b05077f00507a1db59173320ee2f",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1_001.ldp": {
+      "bytes": 193086,
+      "sha256": "df383bbe1e077af285c7c2a5f70fbf8e120bd886d397c49b9c79ad0fa82705cb",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_5_001.ldp": {
+      "bytes": 193086,
+      "sha256": "967f32103c150d48add7dc6fa5e70a37d00b09be7bed2b86ca31846fc0650679",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_6_001.ldp": {
+      "bytes": 193086,
+      "sha256": "1a5445d751f010084c6d925fc7f591518b60bcecfcd2f98690c231a7efc1f21d",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_7_001.ldp": {
+      "bytes": 193086,
+      "sha256": "f239dfa9dd8f7b91210329cb666145239da2c118623f8ec8473d3744aba14484",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_11_001.ldp": {
+      "bytes": 193086,
+      "sha256": "d4c80b7f9c3a1da50b76c57bf03e4e34103839b575beee5ef7f5a485233f6931",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_12_001.ldp": {
+      "bytes": 193086,
+      "sha256": "7c176ce0fd080975d01b88e7fe716e781d439a9b4623ba110e0a90fd228f7c40",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_16_001.ldp": {
+      "bytes": 193086,
+      "sha256": "1d3c8935ae5c55a88deed406d6ae6e0c14f896ef0ffa04f4f85deedb4ec12f15",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_101_001.ldp": {
+      "bytes": 193085,
+      "sha256": "ba447fa5d0d278c07952648df96c8b2c9aef789d4c132ed4e9c42f75ff6ae93b",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_105_001.ldp": {
+      "bytes": 193085,
+      "sha256": "3e955fa1e2aef33db22f5d929e8ecbf196e95d0bdd225c0b027c75cd7d779454",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_107_001.ldp": {
+      "bytes": 193085,
+      "sha256": "97a782c3898e35ef40ea5ccda7a469d79dfa6b412b259f6f71cf1f790a039830",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_108_001.ldp": {
+      "bytes": 193085,
+      "sha256": "f92a5a376418e39aea5301dc08e9fbd0e00177a0b2a9b10c665facc01a2ce627",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_109_001.ldp": {
+      "bytes": 193085,
+      "sha256": "116c0756e5d27e1322df22f2230af41a9b38600754dae299285621a173b40a20",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1001_001.ldp": {
+      "bytes": 193085,
+      "sha256": "c2a51884a03e269aca9efba61893a6f6f3ac65e7fde8b2f833f211f68a5bfed3",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1002_001.ldp": {
+      "bytes": 193085,
+      "sha256": "0e0a360948cda7fef3a9c416c55fae5913177de8040f63e1a4ccfc2b342d8918",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1003_001.ldp": {
+      "bytes": 193085,
+      "sha256": "013d0a28e2fc9ca8e38b3b3ac1ef52c54ffd14b3ac1a33ec9e9fb5eff6c757b2",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1004_001.ldp": {
+      "bytes": 193085,
+      "sha256": "78a02a122197df3c5092023609a53a5e1539a3658dbba133e63067099f417f5c",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1005_001.ldp": {
+      "bytes": 193085,
+      "sha256": "052711b92f65147a29a89b4a1c694daaf67243b71f5b954f54a757dfcf35f6ab",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9101_001.ldp": {
+      "bytes": 131646,
+      "sha256": "70b484fb8bfdc42118421dc7a74bd8e8753c60351448d6da08b8e3e4dbcb580b",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9102_001.ldp": {
+      "bytes": 131646,
+      "sha256": "0edc63e0af733a5abe9cc3a3f5ecce6865c935809b8cf17a69ec56769dfe5e7e",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9103_001.ldp": {
+      "bytes": 131646,
+      "sha256": "87e774fa7f90a8d536fe1b8dda8e46130c4eb5f41c9c674451da6e90b7d08da4",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9104_001.ldp": {
+      "bytes": 131646,
+      "sha256": "421617e1b899bc7161f1d822809eca6765a2aa4164a3b801b2fd301bf69a5a2c",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9105_001.ldp": {
+      "bytes": 131646,
+      "sha256": "472343b5db76c12fdcd2e2d8dd6cabe3994e5dc7b2e9c0c2baf727082c71a8a4",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9106_001.ldp": {
+      "bytes": 131646,
+      "sha256": "fb3a8ea514a69d3d93e10d77efc2510c1ca14375412e4e6517dbb0f998d44604",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9107_001.ldp": {
+      "bytes": 131646,
+      "sha256": "59dc1b79d8630baf08dceddcdca26e4f3df653acef9c640663ce18770d08fbe9",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9108_001.ldp": {
+      "bytes": 131646,
+      "sha256": "d04855d977c6ec8932077172631689d3ff926cc9ea24f51bdb60b8dce304dac1",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\performance_diagnosis_20260913\\native_signal_prefix_v2.json": {
+      "bytes": 77126,
+      "sha256": "2567fe39fc42d30f9f1902f46580aae30d913ae7c858cbb5db171fc4bc80173e",
+      "expected_sha256": null
+    },
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\vsl_readback.csv": {
+      "bytes": 715849,
+      "sha256": "28f91a01564d79690b4ece82154c56eae474bcf0e521579b050ddfad2db4bcb8",
+      "expected_sha256": "28f91a01564d79690b4ece82154c56eae474bcf0e521579b050ddfad2db4bcb8"
+    }
+  },
+  "native_lsa_com_coverage": {
+    "passed": null,
+    "status": "not_assessed_not_certified",
+    "scope": "LSA COM-transition coverage remains separate; an LDP pass does not repair missing LSA coverage",
+    "files_observed_without_assessing_coverage": [
+      {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_001.lsa",
+        "bytes": 2529972
+      }
+    ]
+  },
+  "limitations": [
+    "Interrupted 1..8850 prefix only; original requested SimPeriod=9000 is not changed.",
+    "LDP t uses the existing post-step command clock at t-1; no action_008850 is invented.",
+    "Before each first controlled application, LDP is native evidence without a fabricated control expectation.",
+    "Signal first/changed immediate setter readbacks are not audited here; LDP is actual sampled state evidence.",
+    "VSL checks setter-time class distribution IDs only, not observed vehicle speed or every-second reads.",
+    "No FZP, physical model, live native run, state reconstruction, or causal performance claim."
+  ],
+  "run_id": "e697eb0c2acc40e8ad060dcb9f47651f",
+  "original_requested_sim_period_sec": 9000,
+  "completion_receipt_present": false,
+  "ldp_file_inventory": {
+    "1": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 0,
+      "last_numeric_line_hex": "20383734322e302036312e302e2e2e492e2e2e49",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "5": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_5_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 0,
+      "last_numeric_line_hex": "20383734322e302020362e302e492e2e2e492e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "6": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_6_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 0,
+      "last_numeric_line_hex": "20383734322e302035352e30492e2e2e492e2e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "7": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_7_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734332e3031",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "11": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_11_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 0,
+      "last_numeric_line_hex": "20383734322e302039372e30492e2e2e492e2e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "12": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_12_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 0,
+      "last_numeric_line_hex": "20383734322e302033372e30492e2e2e492e2e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "16": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_16_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734332e30",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "101": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_101_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e302036372e30492e2e2e492e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "105": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_105_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e302020372e30492e2e2e492e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "107": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_107_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e302035342e302e492e2e2e49",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "108": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_108_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e302038302e302e492e2e2e49",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "109": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_109_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e302038312e302e492e2e2e49",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "1001": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1001_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e303131372e30492e2e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "1002": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1002_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e303131372e302e492e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "1003": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1003_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e303131372e302e2e2e49",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "1004": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1004_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e303131372e302e492e2e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "1005": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_1005_001.ldp",
+      "expected_row_width": 20,
+      "complete_width_numeric_rows": 8741,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8741,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "20383734322e303131372e302e2e492e",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9101": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9101_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9102": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9102_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9103": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9103_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9104": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9104_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9105": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9105_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9106": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9106_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9107": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9107_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    },
+    "9108": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v3\\vissim_eval\\baseline_9108_001.ldp",
+      "expected_row_width": 13,
+      "complete_width_numeric_rows": 8742,
+      "first_complete_width_second": 1,
+      "last_complete_width_second": 8742,
+      "incomplete_width_numeric_rows": 1,
+      "last_numeric_line_hex": "2038",
+      "missing_requested_seconds_from_complete_width_rows": 0,
+      "scope": "Byte-width/time inventory only; no independent SG-state certification"
+    }
+  },
+  "failure_stage": "native_ldp_prefix",
+  "prior_requested_8850_verdict": {
+    "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\performance_diagnosis_20260913\\native_signal_prefix_v2.json",
+    "requested_end_sec": 8850,
+    "native_signal_prefix_passed": false,
+    "failure": {
+      "passed": false,
+      "exception_type": "ValueError",
+      "message": "Missing LDP frame in requested window",
+      "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\performance_diagnosis_20260913\\audit_native_signal_prefix.py\", line 204, in main\n    record = read_ldp_frames(files_by_sc, expected, first_sec, last_sec)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 261, in read_ldp_frames\n    parsed = parse_ldp_columns(raw, sc, groups[sc], start, end)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 230, in parse_ldp_columns\n    require(columns is not None and set(frames) == set(range(start, end + 1)),\n  File \"C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py\", line 29, in require\n    raise ValueError(message)\nValueError: Missing LDP frame in requested window\n"
+    }
+  },
+  "audit_wall_sec": 0.6858211000007941,
+  "script_sha256": "e0e30ba32b3c5c16b60813d5bde002dce2e50318b166027dad2ac895dd6a65ca",
+  "verifier_source_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\com_execution_equivalence\\verify_pair.py": "c2da47a14275abf70ee12ee833c50438617ac260e61f43a942100a324af0e30d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\com_execution_equivalence\\command_clock.py": "030a1bcae6263eb494723487fd44d8c91fb099ddbd2641b521cfd70240ec132d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py": "4a647072d82afdb20cbf0c933b9d947a6a95450b3b84eac41ccff31220f501d3"
+  }
+}

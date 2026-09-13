@@ -1,0 +1,447 @@
+{
+  "schema": "same-state2400-meter-raw-response-audit/v1",
+  "completed": true,
+  "new_endpoint_calls": 0,
+  "captured_endpoint_calls": 3,
+  "source_sha256": {
+    "meter_trace10490_attempt01\\result.json": "3d92d29066d0c4fc882d65a748b3b800dec0bc723593e4fec37d9e756d3309f7",
+    "meter_trace10639_attempt01\\result.json": "603772e9ee66ae700140a14a6c7dbd5bbb3b1995460e77eed69f61fd86f77ae9",
+    "meter_trace10490_attempt01\\hold_captured_response.pickle": "f8f44bd75acb8377e3a8dfc4cecbf92f94f78e2a234412b5203acf5408653a47",
+    "meter_trace10490_attempt01\\g8_captured_response.pickle": "2fea3984a6c8ff8fd333aff2368980ffa68cf7fe59eb8b8c2bc1978151ff8630",
+    "meter_trace10639_attempt01\\g8_captured_response.pickle": "93151d1215f3d26446e176d2907c67bf34457c23191b0f2064270bd3afc09fd9"
+  },
+  "accounting_identity": "N_end = N_initial + generated_inside_Omega + boundary_entered - boundary_exited",
+  "correction": "The earlier result.json closure_veh used an incomplete identity omitting inside generation. It is preserved as the diagnostic intermediate and does not establish a model accounting bug.",
+  "TTT_definition": "Sum of captured inside_veh times existing stock-specific residence dt_h. Both urban and on-ramp residence are included.",
+  "arms": {
+    "hold": {
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "TTT_by_stock_group_veh_h": {
+        "urban_and_other": 153.02363246369902,
+        "onramp_connector": 1.0862510751676542,
+        "mainline": 171.97749102852686
+      },
+      "TTT_by_ramp_connector_veh_h": {
+        "ramp:RM_C10482": 0.23879735067813576,
+        "ramp:RM_C10646": 0.15448206365101416,
+        "ramp:RM_C10644": 0.26868471035137703,
+        "ramp:RM_C10639": 0.03461983618233618,
+        "ramp:RM_C10681": 0.041268457092266314,
+        "ramp:RM_C10490": 0.13798702528287804,
+        "ramp:RM_C10484": 0.158871018219187,
+        "ramp:RM_C10480": 0.05154061371045944
+      },
+      "all_ramp_residence_duration_sec": {
+        "ramp:RM_C10482": 450.0,
+        "ramp:RM_C10646": 450.0,
+        "ramp:RM_C10644": 450.0,
+        "ramp:RM_C10639": 450.0,
+        "ramp:RM_C10681": 450.0,
+        "ramp:RM_C10490": 450.0,
+        "ramp:RM_C10484": 450.0,
+        "ramp:RM_C10480": 450.0
+      },
+      "windows": [
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2550.0,
+          "TTT_veh_h": 100.26865331409263,
+          "TD_veh": 476.0076071916614,
+          "entered_veh": 604.247965244231,
+          "end_omega_stock_veh": 2521.378691385903,
+          "incomplete_formula_residual_veh": 108.13833333333378,
+          "inside_generation_veh": 108.13833333333334,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 29.166666666666668,
+            "input:internal:1091": 3.5,
+            "input:internal:1085": 8.75,
+            "input:internal:1095": 5.25,
+            "input:internal:1097": 3.5,
+            "input:internal:1083": 8.75,
+            "input:internal:1092": 1.3125,
+            "input:internal:1086": 6.125,
+            "input:internal:1087": 6.125,
+            "input:internal:1093": 1.3125,
+            "input:internal:1096": 1.75,
+            "input:gate:in_SC1_W": 3.4299999999999997,
+            "input:gate:in_SC1001_W": 29.166666666666668
+          },
+          "outside_generation_veh": 290.2025,
+          "corrected_closure_veh": 4.405364961712621e-13
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2700.0,
+          "TTT_veh_h": 209.1431018560947,
+          "TD_veh": 980.1344037148225,
+          "entered_veh": 1210.3666491805939,
+          "end_omega_stock_veh": 2731.5089121324363,
+          "incomplete_formula_residual_veh": 216.27666666666482,
+          "inside_generation_veh": 216.27666666666667,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 58.333333333333336,
+            "input:internal:1091": 7.0,
+            "input:internal:1085": 17.5,
+            "input:internal:1095": 10.5,
+            "input:internal:1097": 7.0,
+            "input:internal:1083": 17.5,
+            "input:internal:1092": 2.625,
+            "input:internal:1086": 12.25,
+            "input:internal:1087": 12.25,
+            "input:internal:1093": 2.625,
+            "input:internal:1096": 3.5,
+            "input:gate:in_SC1_W": 6.859999999999999,
+            "input:gate:in_SC1001_W": 58.333333333333336
+          },
+          "outside_generation_veh": 580.405,
+          "corrected_closure_veh": -1.8474111129762605e-12
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2850.0,
+          "TTT_veh_h": 326.0873745673934,
+          "TD_veh": 1451.9774690522,
+          "entered_veh": 1751.7825992446976,
+          "end_omega_stock_veh": 2893.771796859156,
+          "incomplete_formula_residual_veh": 308.96666666665806,
+          "inside_generation_veh": 308.96666666666664,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 83.33333333333333,
+            "input:internal:1091": 10.0,
+            "input:internal:1085": 25.0,
+            "input:internal:1095": 15.0,
+            "input:internal:1097": 10.0,
+            "input:internal:1083": 25.0,
+            "input:internal:1092": 3.75,
+            "input:internal:1086": 17.5,
+            "input:internal:1087": 17.5,
+            "input:internal:1093": 3.75,
+            "input:internal:1096": 5.0,
+            "input:gate:in_SC1_W": 9.8,
+            "input:gate:in_SC1001_W": 83.33333333333333
+          },
+          "outside_generation_veh": 829.15,
+          "corrected_closure_veh": -8.58335624798201e-12
+        }
+      ],
+      "binding_min_counts": {
+        "available": 41,
+        "capacity": 4,
+        "request": 4
+      },
+      "strict_meter_limit_times": []
+    },
+    "RM_C10490_g8": {
+      "TTT_veh_h": 326.1104357193934,
+      "TD_veh": 1451.9350653445379,
+      "TTT_by_stock_group_veh_h": {
+        "urban_and_other": 153.02350171331705,
+        "onramp_connector": 1.1090731105215286,
+        "mainline": 171.97786089555507
+      },
+      "TTT_by_ramp_connector_veh_h": {
+        "ramp:RM_C10482": 0.23879735067813576,
+        "ramp:RM_C10646": 0.1544820636510142,
+        "ramp:RM_C10644": 0.26868471035137703,
+        "ramp:RM_C10639": 0.03461983618233618,
+        "ramp:RM_C10681": 0.04126845709226632,
+        "ramp:RM_C10490": 0.16081396978834697,
+        "ramp:RM_C10484": 0.15886774545145738,
+        "ramp:RM_C10480": 0.05153897732659466
+      },
+      "all_ramp_residence_duration_sec": {
+        "ramp:RM_C10482": 450.0,
+        "ramp:RM_C10646": 450.0,
+        "ramp:RM_C10644": 450.0,
+        "ramp:RM_C10639": 450.0,
+        "ramp:RM_C10681": 450.0,
+        "ramp:RM_C10490": 450.0,
+        "ramp:RM_C10484": 450.0,
+        "ramp:RM_C10480": 450.0
+      },
+      "windows": [
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2550.0,
+          "TTT_veh_h": 100.26756436720095,
+          "TD_veh": 475.8794144520847,
+          "entered_veh": 604.247965244231,
+          "end_omega_stock_veh": 2521.50688412548,
+          "incomplete_formula_residual_veh": 108.13833333333423,
+          "inside_generation_veh": 108.13833333333334,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 29.166666666666668,
+            "input:internal:1091": 3.5,
+            "input:internal:1085": 8.75,
+            "input:internal:1095": 5.25,
+            "input:internal:1097": 3.5,
+            "input:internal:1083": 8.75,
+            "input:internal:1092": 1.3125,
+            "input:internal:1086": 6.125,
+            "input:internal:1087": 6.125,
+            "input:internal:1093": 1.3125,
+            "input:internal:1096": 1.75,
+            "input:gate:in_SC1_W": 3.4299999999999997,
+            "input:gate:in_SC1001_W": 29.166666666666668
+          },
+          "outside_generation_veh": 290.2025,
+          "corrected_closure_veh": 8.952838470577262e-13
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2700.0,
+          "TTT_veh_h": 209.15785676515202,
+          "TD_veh": 979.640980720301,
+          "entered_veh": 1210.3666491805939,
+          "end_omega_stock_veh": 2732.002335126959,
+          "incomplete_formula_residual_veh": 216.2766666666662,
+          "inside_generation_veh": 216.27666666666667,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 58.333333333333336,
+            "input:internal:1091": 7.0,
+            "input:internal:1085": 17.5,
+            "input:internal:1095": 10.5,
+            "input:internal:1097": 7.0,
+            "input:internal:1083": 17.5,
+            "input:internal:1092": 2.625,
+            "input:internal:1086": 12.25,
+            "input:internal:1087": 12.25,
+            "input:internal:1093": 2.625,
+            "input:internal:1096": 3.5,
+            "input:gate:in_SC1_W": 6.859999999999999,
+            "input:gate:in_SC1001_W": 58.333333333333336
+          },
+          "outside_generation_veh": 580.405,
+          "corrected_closure_veh": -4.831690603168681e-13
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2850.0,
+          "TTT_veh_h": 326.1104357193935,
+          "TD_veh": 1451.9350653445379,
+          "entered_veh": 1751.7825992446976,
+          "end_omega_stock_veh": 2893.8142005668155,
+          "incomplete_formula_residual_veh": 308.9666666666558,
+          "inside_generation_veh": 308.96666666666664,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 83.33333333333333,
+            "input:internal:1091": 10.0,
+            "input:internal:1085": 25.0,
+            "input:internal:1095": 15.0,
+            "input:internal:1097": 10.0,
+            "input:internal:1083": 25.0,
+            "input:internal:1092": 3.75,
+            "input:internal:1086": 17.5,
+            "input:internal:1087": 17.5,
+            "input:internal:1093": 3.75,
+            "input:internal:1096": 5.0,
+            "input:gate:in_SC1_W": 9.8,
+            "input:gate:in_SC1001_W": 83.33333333333333
+          },
+          "outside_generation_veh": 829.15,
+          "corrected_closure_veh": -1.0857093002414331e-11
+        }
+      ],
+      "binding_min_counts": {
+        "available": 40,
+        "request": 5
+      },
+      "strict_meter_limit_times": [
+        2430.0,
+        2440.0,
+        2520.0,
+        2530.0,
+        2540.0
+      ]
+    },
+    "RM_C10639_g8": {
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "TTT_by_stock_group_veh_h": {
+        "urban_and_other": 153.02363246369902,
+        "onramp_connector": 1.0862510751676542,
+        "mainline": 171.97749102852686
+      },
+      "TTT_by_ramp_connector_veh_h": {
+        "ramp:RM_C10482": 0.23879735067813576,
+        "ramp:RM_C10646": 0.15448206365101416,
+        "ramp:RM_C10644": 0.26868471035137703,
+        "ramp:RM_C10639": 0.03461983618233618,
+        "ramp:RM_C10681": 0.041268457092266314,
+        "ramp:RM_C10490": 0.13798702528287804,
+        "ramp:RM_C10484": 0.158871018219187,
+        "ramp:RM_C10480": 0.05154061371045944
+      },
+      "all_ramp_residence_duration_sec": {
+        "ramp:RM_C10482": 450.0,
+        "ramp:RM_C10646": 450.0,
+        "ramp:RM_C10644": 450.0,
+        "ramp:RM_C10639": 450.0,
+        "ramp:RM_C10681": 450.0,
+        "ramp:RM_C10490": 450.0,
+        "ramp:RM_C10484": 450.0,
+        "ramp:RM_C10480": 450.0
+      },
+      "windows": [
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2550.0,
+          "TTT_veh_h": 100.26865331409263,
+          "TD_veh": 476.0076071916614,
+          "entered_veh": 604.247965244231,
+          "end_omega_stock_veh": 2521.378691385903,
+          "incomplete_formula_residual_veh": 108.13833333333378,
+          "inside_generation_veh": 108.13833333333334,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 29.166666666666668,
+            "input:internal:1091": 3.5,
+            "input:internal:1085": 8.75,
+            "input:internal:1095": 5.25,
+            "input:internal:1097": 3.5,
+            "input:internal:1083": 8.75,
+            "input:internal:1092": 1.3125,
+            "input:internal:1086": 6.125,
+            "input:internal:1087": 6.125,
+            "input:internal:1093": 1.3125,
+            "input:internal:1096": 1.75,
+            "input:gate:in_SC1_W": 3.4299999999999997,
+            "input:gate:in_SC1001_W": 29.166666666666668
+          },
+          "outside_generation_veh": 290.2025,
+          "corrected_closure_veh": 4.405364961712621e-13
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2700.0,
+          "TTT_veh_h": 209.1431018560947,
+          "TD_veh": 980.1344037148225,
+          "entered_veh": 1210.3666491805939,
+          "end_omega_stock_veh": 2731.5089121324363,
+          "incomplete_formula_residual_veh": 216.27666666666482,
+          "inside_generation_veh": 216.27666666666667,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 58.333333333333336,
+            "input:internal:1091": 7.0,
+            "input:internal:1085": 17.5,
+            "input:internal:1095": 10.5,
+            "input:internal:1097": 7.0,
+            "input:internal:1083": 17.5,
+            "input:internal:1092": 2.625,
+            "input:internal:1086": 12.25,
+            "input:internal:1087": 12.25,
+            "input:internal:1093": 2.625,
+            "input:internal:1096": 3.5,
+            "input:gate:in_SC1_W": 6.859999999999999,
+            "input:gate:in_SC1001_W": 58.333333333333336
+          },
+          "outside_generation_veh": 580.405,
+          "corrected_closure_veh": -1.8474111129762605e-12
+        },
+        {
+          "start_sec": 2400.0,
+          "end_sec": 2850.0,
+          "TTT_veh_h": 326.0873745673934,
+          "TD_veh": 1451.9774690522,
+          "entered_veh": 1751.7825992446976,
+          "end_omega_stock_veh": 2893.771796859156,
+          "incomplete_formula_residual_veh": 308.96666666665806,
+          "inside_generation_veh": 308.96666666666664,
+          "inside_generation_by_route": {
+            "input:shared:shared_69": 83.33333333333333,
+            "input:internal:1091": 10.0,
+            "input:internal:1085": 25.0,
+            "input:internal:1095": 15.0,
+            "input:internal:1097": 10.0,
+            "input:internal:1083": 25.0,
+            "input:internal:1092": 3.75,
+            "input:internal:1086": 17.5,
+            "input:internal:1087": 17.5,
+            "input:internal:1093": 3.75,
+            "input:internal:1096": 5.0,
+            "input:gate:in_SC1_W": 9.8,
+            "input:gate:in_SC1001_W": 83.33333333333333
+          },
+          "outside_generation_veh": 829.15,
+          "corrected_closure_veh": -8.58335624798201e-12
+        }
+      ],
+      "binding_min_counts": {
+        "available": 45
+      },
+      "strict_meter_limit_times": []
+    }
+  },
+  "RM_C10639": {
+    "merge_cell": 8,
+    "same_traffic_captured": {
+      "transfers_exact": true,
+      "residence_exact": true,
+      "all8_accepted_merge_time_series_exact": true,
+      "all_freeway_density_time_series_exact": true,
+      "all_model_stock_time_series_exact": true,
+      "aggregate_control_area_exact": true
+    },
+    "query_count": 45,
+    "available_stock_max_veh_per_T_f": 2.0,
+    "g8_request_veh_per_T_f": 3.24,
+    "effective_limiter": "available connector inventory in all45queries; g8 request never limits",
+    "scope": "This is modeled arrival/availability at meter connector. Congested upstream or off-ramp vehicles are not all immediately dischargeable at this meter."
+  },
+  "RM_C10490": {
+    "hold_query_binding_counts": {
+      "available": 41,
+      "capacity": 4,
+      "request": 4
+    },
+    "g8_query_binding_counts": {
+      "available": 40,
+      "request": 5
+    },
+    "g8_strict_request_times": [
+      2430.0,
+      2440.0,
+      2520.0,
+      2530.0,
+      2540.0
+    ],
+    "hold_request_veh_per_T_f": 4.2,
+    "g8_request_veh_per_T_f": 3.24,
+    "example2430_hold": {
+      "start_sec": 2430.0,
+      "end_sec": 2440.0,
+      "available_veh_per_T_f": 5.0,
+      "accepted_query_veh_per_T_f": 4.2,
+      "capacity_veh_per_T_f": 4.2,
+      "density_receiving_veh_per_T_f": 19.269444444444446,
+      "request_veh_per_T_f": 4.2,
+      "binding_min_terms": [
+        "capacity",
+        "request"
+      ],
+      "request_strictly_limits": false
+    },
+    "example2430_g8": {
+      "start_sec": 2430.0,
+      "end_sec": 2440.0,
+      "available_veh_per_T_f": 5.0,
+      "accepted_query_veh_per_T_f": 3.24,
+      "capacity_veh_per_T_f": 4.2,
+      "density_receiving_veh_per_T_f": 19.269444444444446,
+      "request_veh_per_T_f": 3.24,
+      "binding_min_terms": [
+        "request"
+      ],
+      "request_strictly_limits": true
+    },
+    "delta_ramp_TTT_veh_h": 0.022822035353874393,
+    "delta_total_TTT_veh_h": 0.023061151999911544
+  },
+  "scope": [
+    "No native run or new physical calibration was performed. The average service cap is not the native10s RED/GREEN pulse.",
+    "The model does respond to g8 and counts additional ramp residence when the cap limits. Exact E8g8 flatness is due to modeled availability below the service ceiling in this state.",
+    "Inside generation closes the stock identity; TTT residence decomposition agrees with the endpoint. This rejects the specific omitted-ramp-TTT/simple-stock-closure hypotheses for the tested captures, not all model fidelity issues.",
+    "The model already has a merge speed-effect term; capacity benefit or its accuracy must not be inferred merely from metering local sensitivity.",
+    "Urban approach residence is part of urban_and_other; that group also contains other urban/off-ramp stocks. It is not a mutually exclusive on-ramp control-region inventory."
+  ]
+}

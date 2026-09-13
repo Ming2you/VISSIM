@@ -1,0 +1,40 @@
+{
+  "schema": "performance-native-prefix/v1",
+  "run": "codex_fid_cl9000_s13_v3",
+  "prefix_end_sec": 8850,
+  "native_run_completed": false,
+  "full_execution_certified_here": false,
+  "seed": 13,
+  "fzp": {
+    "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+    "file_sha256": "8231f7431a23fa9692aa0efb551054e1d83198aeb650700cbf31665806ea50de",
+    "payload_sha256": "4c8ef548c47da1217489352552923e6f9b79bc56faf39e4cf9956b84b57da2a7",
+    "rows": 18551214
+  },
+  "frames": 8850,
+  "elapsed_sec": 111.82795129999977,
+  "ttt_veh_h": 4131.6825,
+  "prior_prefix_ttt_matches": true,
+  "native_error_files": [
+    {
+      "path": "evaluation/runs/codex_fid_cl9000_s13_v3/runlog_codex_fid_cl9000_s13_v3.txt.err",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {},
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    }
+  ],
+  "prefix_removal_warnings": null,
+  "terminal_removal_collisions": [],
+  "limits": [
+    "Full NC file hashed; only0–8850s measured. CL ends8850 and has no completion receipt.",
+    "NC-vs-CL intervals compare evolved policy trajectories, not same-state command counterfactuals.",
+    "Observed link-pair events may skip intermediate links between1s frames; not desired demand.",
+    "Absence is never a normal road discharge; final vehicles stay censored. ERR completeness not certified."
+  ],
+  "native_simulation_error_files": [],
+  "native_simulation_error_log_complete": false,
+  "native_removal_count_interpretation": "Available warning count only; CL interrupted error log does not establish zero removals."
+}

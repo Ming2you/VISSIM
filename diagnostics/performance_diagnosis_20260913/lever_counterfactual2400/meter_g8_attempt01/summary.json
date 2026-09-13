@@ -1,0 +1,450 @@
+{
+  "schema": "physical-meter-g8-single-change-summary/v1",
+  "completed": true,
+  "source_result_sha256": "62a552b860660ba8c78a8008fd1bd2492e87e8a1aae3428c62b11374a67b4a39",
+  "new_endpoint_calls": 0,
+  "replay_endpoint_calls": 9,
+  "replay_checks": {
+    "hold_TTT_matches_prior_replay": true,
+    "hold_NP_matches_native_decision": true,
+    "hold_NUF_matches_native_decision": true,
+    "hold_FW_E_cost_matches_native_decision": true,
+    "hold_FW_W_cost_matches_native_decision": true,
+    "same_model_input_token": true,
+    "source_model_operands_preserved": true
+  },
+  "window_sec": [
+    2400,
+    2850
+  ],
+  "native_execution": false,
+  "TTT_unit": "veh*h",
+  "NUF_unit": "veh/h",
+  "NP_cap_veh": 2400.0,
+  "NUF_target_veh_h": 2996.9313872526645,
+  "NUF_tolerance_veh_h": 40.0,
+  "rows": [
+    {
+      "ramp": "RM_C10480",
+      "owner": "FW_W",
+      "candidate_index": 6,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 0.0,
+      "observed_region": {
+        "physical_links": [
+          "10480",
+          "124"
+        ],
+        "approach_veh": 3,
+        "connector_veh": 0,
+        "this_ramp_veh": 1,
+        "other_ramp_veh": {},
+        "current_route_without_ramp_veh": 0,
+        "unresolved_veh": 2,
+        "region_veh": 3
+      },
+      "upstream_movement_queue_veh": {},
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 18.071647104536076,
+      "predicted_accepted_merge450_g8_veh": 18.071647104536076,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10480",
+        "sc_no": 9101,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10480;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10480",
+        "sc_no": 9101,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10480;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    },
+    {
+      "ramp": "RM_C10482",
+      "owner": "FW_W",
+      "candidate_index": 12,
+      "lane_count": 2,
+      "initial_connector_queue_veh": 1.0,
+      "observed_region": {
+        "physical_links": [
+          "10482",
+          "32"
+        ],
+        "approach_veh": 24,
+        "connector_veh": 1,
+        "this_ramp_veh": 16,
+        "other_ramp_veh": {
+          "RM_C10490": 5
+        },
+        "current_route_without_ramp_veh": 3,
+        "unresolved_veh": 1,
+        "region_veh": 25
+      },
+      "upstream_movement_queue_veh": {
+        "SC1001_W_to_onW": 0.0
+      },
+      "service_hold_veh_h": 3024.0,
+      "service_g8_veh_h": 2332.8,
+      "predicted_accepted_merge450_hold_veh": 86.56007959332936,
+      "predicted_accepted_merge450_g8_veh": 86.56007959332936,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10482",
+        "sc_no": 9102,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10482;group_rate_vph=3024.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10482",
+        "sc_no": 9102,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10482;group_rate_vph=2332.8"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    },
+    {
+      "ramp": "RM_C10646",
+      "owner": "FW_W",
+      "candidate_index": 18,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 3.0,
+      "observed_region": {
+        "physical_links": [
+          "10646",
+          "121"
+        ],
+        "approach_veh": 17,
+        "connector_veh": 3,
+        "this_ramp_veh": 16,
+        "other_ramp_veh": {},
+        "current_route_without_ramp_veh": 4,
+        "unresolved_veh": 0,
+        "region_veh": 20
+      },
+      "upstream_movement_queue_veh": {},
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 57.21110659797074,
+      "predicted_accepted_merge450_g8_veh": 57.21110659797074,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10646",
+        "sc_no": 9103,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10646;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10646",
+        "sc_no": 9103,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10646;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    },
+    {
+      "ramp": "RM_C10644",
+      "owner": "FW_W",
+      "candidate_index": 22,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 14.0,
+      "observed_region": {
+        "physical_links": [
+          "10644",
+          "69"
+        ],
+        "approach_veh": 29,
+        "connector_veh": 14,
+        "this_ramp_veh": 40,
+        "other_ramp_veh": {
+          "RM_C10639": 2
+        },
+        "current_route_without_ramp_veh": 1,
+        "unresolved_veh": 0,
+        "region_veh": 43
+      },
+      "upstream_movement_queue_veh": {},
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 78.05128205128204,
+      "predicted_accepted_merge450_g8_veh": 78.05128205128204,
+      "delta_TTT_veh_h": 0.04190936098223119,
+      "delta_TD_veh": -0.003692719103582931,
+      "delta_NUF_veh_h": 0.00040738912912274827,
+      "delta_own_cost": 0.04193762019612279,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": false,
+      "all_owner_costs_equal_hold": false,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10644",
+        "sc_no": 9104,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10644;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10644",
+        "sc_no": 9104,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10644;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {
+        "RM_C10480": 1.6974547037307275e-05,
+        "RM_C10484": 3.394909407461455e-05
+      }
+    },
+    {
+      "ramp": "RM_C10639",
+      "owner": "FW_E",
+      "candidate_index": 6,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 2.0,
+      "observed_region": {
+        "physical_links": [
+          "10639",
+          "70"
+        ],
+        "approach_veh": 0,
+        "connector_veh": 2,
+        "this_ramp_veh": 2,
+        "other_ramp_veh": {},
+        "current_route_without_ramp_veh": 0,
+        "unresolved_veh": 0,
+        "region_veh": 2
+      },
+      "upstream_movement_queue_veh": {
+        "SC1004_W_to_onE": 0.0
+      },
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 14.173076923076922,
+      "predicted_accepted_merge450_g8_veh": 14.173076923076922,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10639",
+        "sc_no": 9105,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10639;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10639",
+        "sc_no": 9105,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10639;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    },
+    {
+      "ramp": "RM_C10681",
+      "owner": "FW_E",
+      "candidate_index": 12,
+      "lane_count": 2,
+      "initial_connector_queue_veh": 2.0,
+      "observed_region": {
+        "physical_links": [
+          "10681",
+          "68"
+        ],
+        "approach_veh": 5,
+        "connector_veh": 2,
+        "this_ramp_veh": 3,
+        "other_ramp_veh": {
+          "RM_C10646": 2
+        },
+        "current_route_without_ramp_veh": 2,
+        "unresolved_veh": 0,
+        "region_veh": 7
+      },
+      "upstream_movement_queue_veh": {},
+      "service_hold_veh_h": 3024.0,
+      "service_g8_veh_h": 2332.8,
+      "predicted_accepted_merge450_hold_veh": 16.165761110237643,
+      "predicted_accepted_merge450_g8_veh": 16.165761110237643,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10681",
+        "sc_no": 9106,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10681;group_rate_vph=3024.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10681",
+        "sc_no": 9106,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10681;group_rate_vph=2332.8"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    },
+    {
+      "ramp": "RM_C10490",
+      "owner": "FW_E",
+      "candidate_index": 18,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 1.0,
+      "observed_region": {
+        "physical_links": [
+          "10490",
+          "129"
+        ],
+        "approach_veh": 4,
+        "connector_veh": 1,
+        "this_ramp_veh": 4,
+        "other_ramp_veh": {},
+        "current_route_without_ramp_veh": 1,
+        "unresolved_veh": 0,
+        "region_veh": 5
+      },
+      "upstream_movement_queue_veh": {
+        "SC1001_W_to_onE": 0.0
+      },
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 47.04825374000395,
+      "predicted_accepted_merge450_g8_veh": 47.04825374000395,
+      "delta_TTT_veh_h": 0.023061151999911544,
+      "delta_TD_veh": -0.0424037076620607,
+      "delta_NUF_veh_h": -0.014824258696535253,
+      "delta_own_cost": 0.0230661448689915,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": false,
+      "all_owner_costs_equal_hold": false,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10490",
+        "sc_no": 9107,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10490;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10490",
+        "sc_no": 9107,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10490;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {
+        "RM_C10480": -0.0006176774456925216,
+        "RM_C10681": 3.552713678800501e-15,
+        "RM_C10484": -0.0012353548913850432
+      }
+    },
+    {
+      "ramp": "RM_C10484",
+      "owner": "FW_E",
+      "candidate_index": 22,
+      "lane_count": 1,
+      "initial_connector_queue_veh": 2.0,
+      "observed_region": {
+        "physical_links": [
+          "10484",
+          "31"
+        ],
+        "approach_veh": 8,
+        "connector_veh": 2,
+        "this_ramp_veh": 5,
+        "other_ramp_veh": {
+          "RM_C10480": 2
+        },
+        "current_route_without_ramp_veh": 3,
+        "unresolved_veh": 0,
+        "region_veh": 10
+      },
+      "upstream_movement_queue_veh": {},
+      "service_hold_veh_h": 1512.0,
+      "service_g8_veh_h": 1166.4,
+      "predicted_accepted_merge450_hold_veh": 57.335216286146334,
+      "predicted_accepted_merge450_g8_veh": 57.335216286146334,
+      "delta_TTT_veh_h": 0.0,
+      "delta_TD_veh": 0.0,
+      "delta_NUF_veh_h": 0.0,
+      "delta_own_cost": 0.0,
+      "feasible": true,
+      "all_aggregate_control_area_equal_hold": true,
+      "all_owner_costs_equal_hold": true,
+      "physical_command_before": {
+        "kind": "ramp_meter",
+        "id": "RM_C10484",
+        "sc_no": 9108,
+        "rate_vph": 900.0,
+        "green_sec": 10.0,
+        "metadata": ";model_ramp_key=RM_C10484;group_rate_vph=1512.0"
+      },
+      "physical_command_after": {
+        "kind": "ramp_meter",
+        "id": "RM_C10484",
+        "sc_no": 9108,
+        "rate_vph": 720.0,
+        "green_sec": 8.0,
+        "metadata": ";model_ramp_key=RM_C10484;group_rate_vph=1166.4"
+      },
+      "accepted_merge450_changes_by_ramp": {}
+    }
+  ],
+  "scope": "Each ramp changes g10->g8 alone; original actual-command box and other7meters/VSL/green/offset unchanged. Model prediction for one recorded state only.",
+  "findings": [
+    "All8 pure g8 commands exist in the canonical63-candidate owner neighborhoods at interleaved indexes6/12/18/22, outside the first3 inspected neighbors.",
+    "Six commands give exactly equal retained control_area aggregates and all19owner costs. RM_C10644 andRM_C10490 increase modeled TTT and own cost slightly. None improves TTT.",
+    "All8 candidates satisfy the unchanged NP/NUF constraints, model witness, and213-row physical command checks. NUF rejection is not the reason these tested single-meter moves lack benefit.",
+    "Each treated ramp450s accepted merge total is unchanged. Two candidates still alter TTT and downstream quantities, so unchanged aggregate throughput does not imply identical timing/traffic.",
+    "Service table capacity is not desired demand or actual observed native output.1lane1512->1166.4veh/h and2lane3024->2332.8veh/h are model ceilings; effective release also depends on stock/arrivals/receiving/travel.",
+    "This one-state result does not establish multi-meter joint moves, stronger future steps, other states, or native g8 response."
+  ]
+}

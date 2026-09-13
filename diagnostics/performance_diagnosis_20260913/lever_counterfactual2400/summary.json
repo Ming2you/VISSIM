@@ -1,0 +1,1444 @@
+{
+  "schema": "same-state2400-lever-counterfactual-summary/v1",
+  "completed": true,
+  "new_endpoint_calls": 0,
+  "source_result_sha256": "faca296a959a3e3a82a061240e7599f6e14516e75d1542a024a1a57fd01f3780",
+  "source_result": "attempt02/result.json",
+  "recorded_replay_checks": {
+    "same_inputs_after_queries": true,
+    "hold_nuf_matches_recorded": true,
+    "hold_np_matches_recorded": true,
+    "selected_objective_matches_recorded": true,
+    "hold_FW_W_own_cost_matches_recorded": true,
+    "hold_FW_E_own_cost_matches_recorded": true
+  },
+  "endpoint_calls_in_replay": 8,
+  "replay_wall_sec": 35.93183380000028,
+  "window_sec": [
+    2400,
+    2850
+  ],
+  "beta_seconds": 0,
+  "rows": [
+    {
+      "name": "hold",
+      "owner": null,
+      "family": null,
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "delta_TTT_veh_h": 0.0,
+      "TTT_reduction_pct": -0.0,
+      "delta_owner_cost": 0,
+      "NP_veh": 316.1265184070456,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {},
+      "physical_changes": [],
+      "aggregate_control_area_exact_to_hold": true,
+      "all_owner_costs_exact_to_hold": true
+    },
+    {
+      "name": "selected",
+      "owner": "SC6",
+      "family": null,
+      "TTT_veh_h": 325.82973831746375,
+      "TD_veh": 1451.4697648216256,
+      "delta_TTT_veh_h": -0.2576362499297602,
+      "TTT_reduction_pct": 0.07900834868922951,
+      "delta_owner_cost": -0.24860831261574567,
+      "NP_veh": 316.1474616670009,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {
+        "green_times": {
+          "SC6_p1": {
+            "before": 37.0,
+            "after": 31.0
+          },
+          "SC6_p2": {
+            "before": 27.0,
+            "after": 33.0
+          }
+        },
+        "offsets": {
+          "SC6": {
+            "before": 0.0,
+            "after": 18.75
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "signal",
+            "id": "SC6",
+            "sc_no": 6,
+            "offset": 0.0,
+            "p1_green": 37.0,
+            "p2_green": 27.0,
+            "p3_green": 52.0,
+            "p4_green": 22.0
+          },
+          "after": {
+            "kind": "signal",
+            "id": "SC6",
+            "sc_no": 6,
+            "offset": 18.75,
+            "p1_green": 31.0,
+            "p2_green": 33.0,
+            "p3_green": 52.0,
+            "p4_green": 22.0
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG1_W0",
+            "dsd_no": "1",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 55.0,
+            "p2_green": 77.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG1_W0",
+            "dsd_no": "1",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 55.0,
+            "p2_green": 77.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG2_W0",
+            "dsd_no": "2",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 0.0,
+            "p2_green": 52.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG2_W0",
+            "dsd_no": "2",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 0.0,
+            "p2_green": 52.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG3_W0",
+            "dsd_no": "3",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 120.0,
+            "p2_green": 147.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG3_W0",
+            "dsd_no": "3",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 114.0,
+            "p2_green": 147.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG4_W0",
+            "dsd_no": "4",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 80.0,
+            "p2_green": 117.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG4_W0",
+            "dsd_no": "4",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 80.0,
+            "p2_green": 111.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG5_W0",
+            "dsd_no": "5",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 55.0,
+            "p2_green": 77.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG5_W0",
+            "dsd_no": "5",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 55.0,
+            "p2_green": 77.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG6_W0",
+            "dsd_no": "6",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 0.0,
+            "p2_green": 52.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG6_W0",
+            "dsd_no": "6",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 0.0,
+            "p2_green": 52.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG7_W0",
+            "dsd_no": "7",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 120.0,
+            "p2_green": 147.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG7_W0",
+            "dsd_no": "7",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 114.0,
+            "p2_green": 147.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        },
+        {
+          "before": {
+            "kind": "signal_sg",
+            "id": "SC6_SG8_W0",
+            "dsd_no": "8",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 80.0,
+            "p2_green": 117.0,
+            "offset": 0.0,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          },
+          "after": {
+            "kind": "signal_sg",
+            "id": "SC6_SG8_W0",
+            "dsd_no": "8",
+            "sc_no": 6,
+            "link": 0,
+            "lane": 0,
+            "speed_kph": 0,
+            "p1_green": 80.0,
+            "p2_green": 111.0,
+            "offset": 18.75,
+            "rate_vph": 0,
+            "green_sec": 150.0,
+            "p3_green": "",
+            "p4_green": ""
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": false,
+      "all_owner_costs_exact_to_hold": false
+    },
+    {
+      "name": "FW_W_neighbor1",
+      "owner": "FW_W",
+      "family": "ramp_metering+vsl",
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "delta_TTT_veh_h": 0.0,
+      "TTT_reduction_pct": -0.0,
+      "delta_owner_cost": 0.0,
+      "NP_veh": 316.1265184070456,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {
+        "ramp_metering": {
+          "RM_C10480": {
+            "before": 1512.0,
+            "after": 1328.4
+          }
+        },
+        "vsl": {
+          "FW_W": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg0": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg1": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg2": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg3": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg4": {
+            "before": 120.0,
+            "after": 100.0
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 40,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 40,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 75,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 75,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 41,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 41,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 76,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 76,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 42,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 42,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 77,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 77,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 79,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 79,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 80,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 80,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 81,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 81,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "ramp_meter",
+            "id": "RM_C10480",
+            "sc_no": 9101,
+            "rate_vph": 900.0,
+            "green_sec": 10.0
+          },
+          "after": {
+            "kind": "ramp_meter",
+            "id": "RM_C10480",
+            "sc_no": 9101,
+            "rate_vph": 810.0,
+            "green_sec": 9.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": true,
+      "all_owner_costs_exact_to_hold": true
+    },
+    {
+      "name": "FW_W_neighbor2",
+      "owner": "FW_W",
+      "family": "vsl",
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "delta_TTT_veh_h": 0.0,
+      "TTT_reduction_pct": -0.0,
+      "delta_owner_cost": 0.0,
+      "NP_veh": 316.1265184070456,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {
+        "vsl": {
+          "FW_W": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg0": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg1": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg2": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg3": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_W__seg4": {
+            "before": 120.0,
+            "after": 100.0
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 40,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 40,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 75,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 75,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 41,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 41,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 76,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 76,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 42,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 42,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 77,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S0",
+            "dsd_no": 77,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 79,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 79,
+            "link": 26,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 80,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 80,
+            "link": 26,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 81,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_W_S2",
+            "dsd_no": 81,
+            "link": 26,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": true,
+      "all_owner_costs_exact_to_hold": true
+    },
+    {
+      "name": "FW_W_neighbor3",
+      "owner": "FW_W",
+      "family": "ramp_metering",
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "delta_TTT_veh_h": 0.0,
+      "TTT_reduction_pct": -0.0,
+      "delta_owner_cost": 0.0,
+      "NP_veh": 316.1265184070456,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {
+        "ramp_metering": {
+          "RM_C10480": {
+            "before": 1512.0,
+            "after": 1328.4
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "ramp_meter",
+            "id": "RM_C10480",
+            "sc_no": 9101,
+            "rate_vph": 900.0,
+            "green_sec": 10.0
+          },
+          "after": {
+            "kind": "ramp_meter",
+            "id": "RM_C10480",
+            "sc_no": 9101,
+            "rate_vph": 810.0,
+            "green_sec": 9.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": true,
+      "all_owner_costs_exact_to_hold": true
+    },
+    {
+      "name": "FW_E_neighbor1",
+      "owner": "FW_E",
+      "family": "ramp_metering+vsl",
+      "TTT_veh_h": 326.0864409613021,
+      "TD_veh": 1451.950696612206,
+      "delta_TTT_veh_h": -0.0009336060913938127,
+      "TTT_reduction_pct": 0.000286305500981873,
+      "delta_owner_cost": -0.0009336060913938127,
+      "NP_veh": 316.12650820145313,
+      "NUF_veh_h": 2996.9469658030202,
+      "feasible": true,
+      "seven_field_changes": {
+        "ramp_metering": {
+          "RM_C10639": {
+            "before": 1512.0,
+            "after": 1328.4
+          }
+        },
+        "vsl": {
+          "FW_E": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg0": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg1": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg2": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg3": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg4": {
+            "before": 120.0,
+            "after": 100.0
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 39,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 39,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 43,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 43,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 38,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 38,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 44,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 44,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 37,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 37,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 45,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 45,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 36,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 36,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 46,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 46,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 47,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 47,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 48,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 48,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 49,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 49,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 50,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 50,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "ramp_meter",
+            "id": "RM_C10639",
+            "sc_no": 9105,
+            "rate_vph": 900.0,
+            "green_sec": 10.0
+          },
+          "after": {
+            "kind": "ramp_meter",
+            "id": "RM_C10639",
+            "sc_no": 9105,
+            "rate_vph": 810.0,
+            "green_sec": 9.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": false,
+      "all_owner_costs_exact_to_hold": false
+    },
+    {
+      "name": "FW_E_neighbor2",
+      "owner": "FW_E",
+      "family": "vsl",
+      "TTT_veh_h": 326.0864409613021,
+      "TD_veh": 1451.950696612206,
+      "delta_TTT_veh_h": -0.0009336060913938127,
+      "TTT_reduction_pct": 0.000286305500981873,
+      "delta_owner_cost": -0.0009336060913938127,
+      "NP_veh": 316.12650820145313,
+      "NUF_veh_h": 2996.9469658030202,
+      "feasible": true,
+      "seven_field_changes": {
+        "vsl": {
+          "FW_E": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg0": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg1": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg2": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg3": {
+            "before": 120.0,
+            "after": 100.0
+          },
+          "FW_E__seg4": {
+            "before": 120.0,
+            "after": 100.0
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 39,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 39,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 43,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 43,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 38,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 38,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 44,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 44,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 37,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 37,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 45,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 45,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 36,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 36,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 46,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S0",
+            "dsd_no": 46,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 47,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 47,
+            "link": 74,
+            "lane": 1,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 48,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 48,
+            "link": 74,
+            "lane": 2,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 49,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 49,
+            "link": 74,
+            "lane": 3,
+            "speed_kph": 100.0
+          }
+        },
+        {
+          "before": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 50,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 120.0
+          },
+          "after": {
+            "kind": "vsl",
+            "id": "RW_FW_E_S2",
+            "dsd_no": 50,
+            "link": 74,
+            "lane": 4,
+            "speed_kph": 100.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": false,
+      "all_owner_costs_exact_to_hold": false
+    },
+    {
+      "name": "FW_E_neighbor3",
+      "owner": "FW_E",
+      "family": "ramp_metering",
+      "TTT_veh_h": 326.0873745673935,
+      "TD_veh": 1451.9774690522,
+      "delta_TTT_veh_h": 0.0,
+      "TTT_reduction_pct": -0.0,
+      "delta_owner_cost": 0.0,
+      "NP_veh": 316.1265184070456,
+      "NUF_veh_h": 2996.9313872526645,
+      "feasible": true,
+      "seven_field_changes": {
+        "ramp_metering": {
+          "RM_C10639": {
+            "before": 1512.0,
+            "after": 1328.4
+          }
+        }
+      },
+      "physical_changes": [
+        {
+          "before": {
+            "kind": "ramp_meter",
+            "id": "RM_C10639",
+            "sc_no": 9105,
+            "rate_vph": 900.0,
+            "green_sec": 10.0
+          },
+          "after": {
+            "kind": "ramp_meter",
+            "id": "RM_C10639",
+            "sc_no": 9105,
+            "rate_vph": 810.0,
+            "green_sec": 9.0
+          }
+        }
+      ],
+      "aggregate_control_area_exact_to_hold": true,
+      "all_owner_costs_exact_to_hold": true
+    }
+  ],
+  "first150_metrics_available": false,
+  "first150_reason": "Canonical public shared-owner batch retains450s aggregate control_area and releases its captured trajectory. Do not compare450s held prediction to450s closed-loop native as if commands match.",
+  "native_claim": false,
+  "whole63_candidate_domain_certified": false,
+  "findings": [
+    "At this state, the selected SC6 update predicts only0.2576362499veh*h improvement over held actual control (0.079008%).",
+    "The first pure meter neighbor is green9, not green8. It changes physical output but all retained450s control_area aggregates and all owner costs equal hold for both W RM_C10480 and E RM_C10639.",
+    "The first W VSL head0 move and its meter9 combination are aggregate ties. The first E VSL head0 move and its meter9 combination have the same tiny0.0009336061veh*h gain.",
+    "All eight tested actions satisfy the original NP and NUF constraints and full implemented-model witness. These first-neighbor ties were not caused by an infeasibility filter.",
+    "The selected urban own-cost gain0.2486083126 exceeds E own-cost gain0.0009336061, matching the recorded greatest-own-payoff partial-sweep commit policy.",
+    "This does not establish whether g8, other ramps/VSL zones, combinations, or later states have material benefit."
+  ]
+}

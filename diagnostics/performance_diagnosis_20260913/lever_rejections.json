@@ -1,0 +1,1555 @@
+{
+  "schema": "recorded-lever-selection-diagnosis/v1",
+  "completed": true,
+  "native_runs": 0,
+  "model_queries": 0,
+  "detail_times_sec": [
+    2400,
+    3150,
+    4500
+  ],
+  "scope": "Three existing completed V3 decisions; search history and final-gap audit separated. Own-payoff is not global Omega TTT.",
+  "source_sha256": {
+    "evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_002400.joint.json": "53af8ce8a9d4af84f6223e1d2762e8aaf5e3bde8426f7fd49f6b81232691a7dd",
+    "evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_003150.joint.json": "31e1590cdf54e9cfbcc9c2f6e7309f79a48cfe0f49824bbe2629be2a83c67273",
+    "evaluation\\runs\\codex_fid_cl9000_s13_v3\\decisions_codex_fid_cl9000_s13_v3\\action_004500.joint.json": "06af2aad26beb8100f50858123f2305d77394d6adbde5308778ac1d1b7032563"
+  },
+  "decisions": [
+    {
+      "sim_sec": 2400,
+      "selected_index": 1,
+      "leader_domain_count": 405,
+      "attempted_indices": [
+        1,
+        200,
+        100
+      ],
+      "status_counts": {
+        "unvisited": 402,
+        "feasible_final_response": 1,
+        "restoration_budget_stop": 2
+      },
+      "hold_NP_cap_meter_seeds_unvisited": 80,
+      "attempted_candidates": [
+        {
+          "index": 1,
+          "target_np_veh": 2400.0,
+          "target_nuf_veh_h": 2996.9313872526645,
+          "meter_bank_index": 0,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "feasible_final_response",
+          "objective_veh_h": 325.82973831746375,
+          "elapsed_sec": 120.26893689998542,
+          "game_error": {
+            "kind": "time_budget",
+            "phase": "final_check",
+            "message": "Deadline reached; remaining gap checks are incomplete"
+          },
+          "evaluations": 91
+        },
+        {
+          "index": 100,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 2996.9313872526645,
+          "meter_bank_index": 20,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1166.4,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1166.4,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 40.048758600023575,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 291.6890174938441,
+                "target": -250.0,
+                "residual": 541.6890174938442,
+                "violation": 541.6890174938442,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 2965.987322197665,
+                "target": 2996.9313872526645,
+                "residual": -30.944065054999555,
+                "violation": 30.944065054999555,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 51.13222222222222,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 2.5,
+                "SC12": 3.443500000000001,
+                "SC16": 2.571206543526434,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -26.565673132301715,
+                "SC108": 15.581044406486207,
+                "SC109": 6.494202246303466,
+                "SC1001": 178.31482742887778,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 58.217687778729726,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1067.6568398741908,
+                "FW_W": 1898.3304823234744
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 2400.0,
+                "end_sec": 2850.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 17.833180844310125,
+                  "RM_C10482": 86.56007959332936,
+                  "RM_C10646": 54.84676780151276,
+                  "RM_C10644": 78.05128205128204,
+                  "RM_C10639": 14.173076923076922,
+                  "RM_C10681": 15.377490555498555,
+                  "RM_C10490": 47.04825374000395,
+                  "RM_C10484": 56.85828376569443
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 142.665446754481,
+                  "RM_C10482": 692.4806367466349,
+                  "RM_C10646": 438.7741424121021,
+                  "RM_C10644": 624.4102564102564,
+                  "RM_C10639": 113.38461538461537,
+                  "RM_C10681": 123.01992444398843,
+                  "RM_C10490": 376.3860299200316,
+                  "RM_C10484": 454.86627012555545
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1067.6568398741908,
+                  "FW_W": 1898.3304823234744
+                },
+                "total_rate_veh_h": 2965.987322197665,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 2400.0,
+                "end_sec": 2850.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 0.0,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 2.166756069575377
+          }
+        },
+        {
+          "index": 200,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 2996.9313872526645,
+          "meter_bank_index": 40,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 2332.8,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 2332.8,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 37.96885070001008,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 291.6890174938441,
+                "target": -250.0,
+                "residual": 541.6890174938442,
+                "violation": 541.6890174938442,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 2965.987322197665,
+                "target": 2996.9313872526645,
+                "residual": -30.944065054999555,
+                "violation": 30.944065054999555,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 51.13222222222222,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 2.5,
+                "SC12": 3.443500000000001,
+                "SC16": 2.571206543526434,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -26.565673132301715,
+                "SC108": 15.581044406486207,
+                "SC109": 6.494202246303466,
+                "SC1001": 178.31482742887778,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 58.217687778729726,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1067.6568398741908,
+                "FW_W": 1898.3304823234744
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 2400.0,
+                "end_sec": 2850.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 17.833180844310125,
+                  "RM_C10482": 86.56007959332936,
+                  "RM_C10646": 54.84676780151276,
+                  "RM_C10644": 78.05128205128204,
+                  "RM_C10639": 14.173076923076922,
+                  "RM_C10681": 15.377490555498555,
+                  "RM_C10490": 47.04825374000395,
+                  "RM_C10484": 56.85828376569443
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 142.665446754481,
+                  "RM_C10482": 692.4806367466349,
+                  "RM_C10646": 438.7741424121021,
+                  "RM_C10644": 624.4102564102564,
+                  "RM_C10639": 113.38461538461537,
+                  "RM_C10681": 123.01992444398843,
+                  "RM_C10490": 376.3860299200316,
+                  "RM_C10484": 454.86627012555545
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1067.6568398741908,
+                  "FW_W": 1898.3304823234744
+                },
+                "total_rate_veh_h": 2965.987322197665,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 2400.0,
+                "end_sec": 2850.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 0.0,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 2.166756069575377
+          }
+        }
+      ],
+      "search_status": "interrupted_search_time_budget",
+      "sweeps_started": 1,
+      "sweeps_completed": 0,
+      "freeway_search": [
+        {
+          "sweep": 1,
+          "freeway": {
+            "FW_W": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 4,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 3,
+              "feasible_neighbors": 3,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 0.0,
+              "observed_gap_lower_bound": 0.0,
+              "incumbent_cost": 124.8934140223018,
+              "incumbent_shared_violation": 0.0,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            },
+            "FW_E": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 4,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 3,
+              "feasible_neighbors": 3,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 0.0,
+              "observed_gap_lower_bound": 0.0009336060913938127,
+              "incumbent_cost": 120.83859787978206,
+              "incumbent_shared_violation": 0.0,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            }
+          }
+        }
+      ],
+      "accepted_updates": [
+        {
+          "sweep": 1,
+          "owner": "SC6",
+          "from_cost": 4.174801053078271,
+          "to_cost": 3.9261927404625254,
+          "gap": 0.24860831261574567,
+          "partial_sweep": true,
+          "selection_policy": "Largest completely checked own-payoff improvement at the fixed sweep incumbent"
+        }
+      ],
+      "final_audit_freeway": {
+        "FW_W": {
+          "complete": false,
+          "gap": null,
+          "status": "time_budget",
+          "evaluations": 22,
+          "duplicate_count": 1,
+          "announced_candidates": 63,
+          "unique_neighbors": 21,
+          "feasible_neighbors": 21,
+          "infeasible_neighbors": 0,
+          "rejected": [],
+          "max_shared_violation_seen": 0.0,
+          "observed_gap_lower_bound": 0.0,
+          "incumbent_cost": 124.8934140223018,
+          "incumbent_shared_violation": 0.0,
+          "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+        },
+        "FW_E": {
+          "complete": false,
+          "gap": null,
+          "status": "unvisited",
+          "evaluations": 0
+        }
+      },
+      "final_check_complete": false,
+      "maximum_finite_candidate_gap": null,
+      "selected_quantities": {
+        "schema": "shared-quantity-constraints/v1",
+        "np": {
+          "mode": "cap",
+          "unit": "veh",
+          "actual": 316.1474616670009,
+          "target": 2400.0,
+          "residual": -2083.852538332999,
+          "violation": 0.0,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "nuf": {
+          "mode": "equality",
+          "unit": "veh/h",
+          "actual": 2996.9313872526645,
+          "target": 2996.9313872526645,
+          "residual": 0.0,
+          "violation": 0.0,
+          "tolerance": 40.0,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "feasible": true,
+        "net_inflow_veh_by_owner": {
+          "SC1": 55.02639002267573,
+          "SC5": 0.0,
+          "SC6": 0.0,
+          "SC7": 0.0,
+          "SC11": 2.5,
+          "SC12": 3.5114000000000014,
+          "SC16": 2.7686961141174864,
+          "SC101": 0.0,
+          "SC105": 0.0,
+          "SC107": -22.737810163901553,
+          "SC108": 18.12240393710289,
+          "SC109": 8.339483251127042,
+          "SC1001": 188.06766189599793,
+          "SC1002": 0.0,
+          "SC1003": 0.0,
+          "SC1004": 60.54923660988139,
+          "SC1005": 0.0
+        },
+        "meter_rate_veh_h_by_owner": {
+          "FW_E": 1077.7784644757187,
+          "FW_W": 1919.1529227769458
+        },
+        "nuf_definition": "predicted_accepted_mainline_merge",
+        "physical_ramp_merge": {
+          "schema": "predicted-physical-ramp-merge/v1",
+          "start_sec": 2400.0,
+          "end_sec": 2850.0,
+          "accepted_vehicles_by_ramp": {
+            "RM_C10480": 18.071647104536076,
+            "RM_C10482": 86.56007959332936,
+            "RM_C10646": 57.21110659797074,
+            "RM_C10644": 78.05128205128204,
+            "RM_C10639": 14.173076923076922,
+            "RM_C10681": 16.165761110237643,
+            "RM_C10490": 47.04825374000395,
+            "RM_C10484": 57.335216286146334
+          },
+          "rate_veh_h_by_ramp": {
+            "RM_C10480": 144.5731768362886,
+            "RM_C10482": 692.4806367466349,
+            "RM_C10646": 457.688852783766,
+            "RM_C10644": 624.4102564102564,
+            "RM_C10639": 113.38461538461537,
+            "RM_C10681": 129.32608888190114,
+            "RM_C10490": 376.3860299200316,
+            "RM_C10484": 458.6817302891707
+          },
+          "rate_veh_h_by_owner": {
+            "FW_E": 1077.7784644757187,
+            "FW_W": 1919.1529227769458
+          },
+          "total_rate_veh_h": 2996.9313872526645,
+          "boundary": "ramp_to_mainline",
+          "omega_ttd": false,
+          "leader_target_inherited": false
+        },
+        "window": {
+          "start_sec": 2400.0,
+          "end_sec": 2850.0,
+          "horizon_steps": 3,
+          "urban_samples": 90
+        },
+        "nonowner_service_included_in_np": false,
+        "individual_np_quotas_created": false,
+        "directional_nuf_constraints_checked": false,
+        "quantity_constraints_only": true,
+        "physical_feasibility_certified": false,
+        "leader_target_changed": false
+      },
+      "selected_initializer_seed_checks": [
+        {
+          "seed_index": 0,
+          "action_token": "da865874ef2a580ac7cc113e822dcb74db6c14cd451992d762d7b5b5dc3ac314",
+          "evaluated": true,
+          "np_veh": 316.1265184070456,
+          "nuf_veh_h": 2996.9313872526645,
+          "nuf_satisfied": true,
+          "target_cap_satisfied": true,
+          "model_and_writer_validated": true,
+          "accepted_as_initializer": true
+        },
+        {
+          "seed_index": 1,
+          "action_token": "e650a212ed1b2c9bad667c90e007f6f68845c4c9a7a6e4416e31891f128dc8e0",
+          "evaluated": false
+        },
+        {
+          "seed_index": 2,
+          "action_token": "7b6a4f5ddef3d9c8a78b57ab8b135882173cfb88fe3f86fde475f1d290210ace",
+          "evaluated": false
+        }
+      ]
+    },
+    {
+      "sim_sec": 3150,
+      "selected_index": 1,
+      "leader_domain_count": 648,
+      "attempted_indices": [
+        1,
+        320,
+        160
+      ],
+      "status_counts": {
+        "unvisited": 645,
+        "feasible_final_response": 1,
+        "restoration_budget_stop": 2
+      },
+      "hold_NP_cap_meter_seeds_unvisited": 80,
+      "attempted_candidates": [
+        {
+          "index": 1,
+          "target_np_veh": 2400.0,
+          "target_nuf_veh_h": 2587.36416096753,
+          "meter_bank_index": 0,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "feasible_final_response",
+          "objective_veh_h": 367.4492776866925,
+          "elapsed_sec": 121.86032740000519,
+          "game_error": {
+            "kind": "time_budget",
+            "phase": "final_check",
+            "message": "Deadline reached; remaining gap checks are incomplete"
+          },
+          "evaluations": 88
+        },
+        {
+          "index": 160,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 2587.36416096753,
+          "meter_bank_index": 20,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1166.4,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1166.4,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 31.783636499982094,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 272.02759524084394,
+                "target": -250.0,
+                "residual": 522.027595240844,
+                "violation": 522.027595240844,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 2582.1696577374205,
+                "target": 2587.36416096753,
+                "residual": -5.1945032301096035,
+                "violation": 5.1945032301096035,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 42.05222222222221,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 2.0,
+                "SC12": 2.9585,
+                "SC16": 1.9178440617926267,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -32.80283583509889,
+                "SC108": 10.436688979411034,
+                "SC109": 3.540327827470243,
+                "SC1001": 165.95805418159196,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 75.96679380345475,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1061.7061183486978,
+                "FW_W": 1520.463539388723
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 3150.0,
+                "end_sec": 3600.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 18.577624979376253,
+                  "RM_C10482": 78.68814475859377,
+                  "RM_C10646": 39.71524960869726,
+                  "RM_C10644": 53.07692307692307,
+                  "RM_C10639": 15.583333333333332,
+                  "RM_C10681": 9.620050985902223,
+                  "RM_C10490": 49.18685524140625,
+                  "RM_C10484": 58.32302523294541
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 148.62099983501002,
+                  "RM_C10482": 629.5051580687501,
+                  "RM_C10646": 317.7219968695781,
+                  "RM_C10644": 424.6153846153846,
+                  "RM_C10639": 124.66666666666666,
+                  "RM_C10681": 76.96040788721778,
+                  "RM_C10490": 393.49484193125005,
+                  "RM_C10484": 466.5842018635633
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1061.7061183486978,
+                  "FW_W": 1520.463539388723
+                },
+                "total_rate_veh_h": 2582.1696577374205,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 3150.0,
+                "end_sec": 3600.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 4.440892098500626e-16,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 2.0881103805633763
+          }
+        },
+        {
+          "index": 320,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 2587.36416096753,
+          "meter_bank_index": 40,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 2332.8,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 2332.8,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 32.901650499989046,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 272.0281893327218,
+                "target": -250.0,
+                "residual": 522.0281893327218,
+                "violation": 522.0281893327218,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 2582.169922490106,
+                "target": 2587.36416096753,
+                "residual": -5.194238477424278,
+                "violation": 5.194238477424278,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 42.05222222222221,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 2.0,
+                "SC12": 2.9585,
+                "SC16": 1.9178440617926267,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -32.80283583509889,
+                "SC108": 10.436688979411034,
+                "SC109": 3.540327827470243,
+                "SC1001": 165.95805418159196,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 75.96738789533259,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1061.706294850488,
+                "FW_W": 1520.463627639618
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 3150.0,
+                "end_sec": 3600.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 18.577636010738136,
+                  "RM_C10482": 78.68814475859377,
+                  "RM_C10646": 39.715249608697256,
+                  "RM_C10644": 53.07692307692307,
+                  "RM_C10639": 15.583333333333332,
+                  "RM_C10681": 9.620050985902223,
+                  "RM_C10490": 49.18685524140625,
+                  "RM_C10484": 58.323047295669184
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 148.6210880859051,
+                  "RM_C10482": 629.5051580687501,
+                  "RM_C10646": 317.7219968695781,
+                  "RM_C10644": 424.6153846153846,
+                  "RM_C10639": 124.66666666666666,
+                  "RM_C10681": 76.96040788721778,
+                  "RM_C10490": 393.49484193125005,
+                  "RM_C10484": 466.5843783653535
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1061.706294850488,
+                  "FW_W": 1520.463627639618
+                },
+                "total_rate_veh_h": 2582.169922490106,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 3150.0,
+                "end_sec": 3600.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 4.440892098500626e-16,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 2.0881127569308875
+          }
+        }
+      ],
+      "search_status": "interrupted_search_time_budget",
+      "sweeps_started": 1,
+      "sweeps_completed": 0,
+      "freeway_search": [
+        {
+          "sweep": 1,
+          "freeway": {
+            "FW_W": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 4,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 3,
+              "feasible_neighbors": 3,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 4.440892098500626e-16,
+              "observed_gap_lower_bound": 0.0,
+              "incumbent_cost": 119.44384507005768,
+              "incumbent_shared_violation": 4.440892098500626e-16,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            },
+            "FW_E": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 4,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 3,
+              "feasible_neighbors": 3,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 4.440892098500626e-16,
+              "observed_gap_lower_bound": 0.00030834664295298353,
+              "incumbent_cost": 167.48548069421767,
+              "incumbent_shared_violation": 4.440892098500626e-16,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            }
+          }
+        }
+      ],
+      "accepted_updates": [
+        {
+          "sweep": 1,
+          "owner": "SC1002",
+          "from_cost": 22.866873956032403,
+          "to_cost": 22.77321989610908,
+          "gap": 0.09365405992332398,
+          "partial_sweep": true,
+          "selection_policy": "Largest completely checked own-payoff improvement at the fixed sweep incumbent"
+        }
+      ],
+      "final_audit_freeway": {
+        "FW_W": {
+          "complete": false,
+          "gap": null,
+          "status": "time_budget",
+          "evaluations": 16,
+          "duplicate_count": 1,
+          "announced_candidates": 63,
+          "unique_neighbors": 16,
+          "feasible_neighbors": 15,
+          "infeasible_neighbors": 0,
+          "rejected": [],
+          "max_shared_violation_seen": 4.440892098500626e-16,
+          "observed_gap_lower_bound": 0.0,
+          "incumbent_cost": 119.44384507005768,
+          "incumbent_shared_violation": 4.440892098500626e-16,
+          "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+        },
+        "FW_E": {
+          "complete": false,
+          "gap": null,
+          "status": "unvisited",
+          "evaluations": 0
+        }
+      },
+      "final_check_complete": false,
+      "maximum_finite_candidate_gap": null,
+      "selected_quantities": {
+        "schema": "shared-quantity-constraints/v1",
+        "np": {
+          "mode": "cap",
+          "unit": "veh",
+          "actual": 302.0554697638074,
+          "target": 2400.0,
+          "residual": -2097.944530236193,
+          "violation": 0.0,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "nuf": {
+          "mode": "equality",
+          "unit": "veh/h",
+          "actual": 2587.36416096753,
+          "target": 2587.36416096753,
+          "residual": 0.0,
+          "violation": 0.0,
+          "tolerance": 40.0,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "feasible": true,
+        "net_inflow_veh_by_owner": {
+          "SC1": 45.963056689342395,
+          "SC5": 0.0,
+          "SC6": 0.0,
+          "SC7": 0.0,
+          "SC11": 2.0,
+          "SC12": 3.0264,
+          "SC16": 2.0976174153248524,
+          "SC101": 0.0,
+          "SC105": 0.0,
+          "SC107": -28.18830352064224,
+          "SC108": 12.365173400834227,
+          "SC109": 6.256125935374158,
+          "SC1001": 175.92710110099105,
+          "SC1002": 0.0,
+          "SC1003": 0.0,
+          "SC1004": 82.60829874258297,
+          "SC1005": 0.0
+        },
+        "meter_rate_veh_h_by_owner": {
+          "FW_E": 1066.1728733458124,
+          "FW_W": 1521.1912876217177
+        },
+        "nuf_definition": "predicted_accepted_mainline_merge",
+        "physical_ramp_merge": {
+          "schema": "predicted-physical-ramp-merge/v1",
+          "start_sec": 3150.0,
+          "end_sec": 3600.0,
+          "accepted_vehicles_by_ramp": {
+            "RM_C10480": 18.894446932471926,
+            "RM_C10482": 78.68814475859377,
+            "RM_C10646": 39.48939618472596,
+            "RM_C10644": 53.07692307692307,
+            "RM_C10639": 15.583333333333332,
+            "RM_C10681": 9.544751454350191,
+            "RM_C10490": 49.18685524140625,
+            "RM_C10484": 58.956669139136764
+          },
+          "rate_veh_h_by_ramp": {
+            "RM_C10480": 151.1555754597754,
+            "RM_C10482": 629.5051580687501,
+            "RM_C10646": 315.9151694778077,
+            "RM_C10644": 424.6153846153846,
+            "RM_C10639": 124.66666666666666,
+            "RM_C10681": 76.35801163480153,
+            "RM_C10490": 393.49484193125005,
+            "RM_C10484": 471.6533531130941
+          },
+          "rate_veh_h_by_owner": {
+            "FW_E": 1066.1728733458124,
+            "FW_W": 1521.1912876217177
+          },
+          "total_rate_veh_h": 2587.36416096753,
+          "boundary": "ramp_to_mainline",
+          "omega_ttd": false,
+          "leader_target_inherited": false
+        },
+        "window": {
+          "start_sec": 3150.0,
+          "end_sec": 3600.0,
+          "horizon_steps": 3,
+          "urban_samples": 90
+        },
+        "nonowner_service_included_in_np": false,
+        "individual_np_quotas_created": false,
+        "directional_nuf_constraints_checked": false,
+        "quantity_constraints_only": true,
+        "physical_feasibility_certified": false,
+        "leader_target_changed": false
+      },
+      "selected_initializer_seed_checks": [
+        {
+          "seed_index": 0,
+          "action_token": "eb063ebf4a89e6ef5c7a19b64c5c994580884a8cc94bb4f472626122dfc37869",
+          "evaluated": true,
+          "np_veh": 302.0554697638074,
+          "nuf_veh_h": 2587.36416096753,
+          "nuf_satisfied": true,
+          "target_cap_satisfied": true,
+          "model_and_writer_validated": true,
+          "accepted_as_initializer": true
+        },
+        {
+          "seed_index": 1,
+          "action_token": "f9159d995c106531e2e30d7817539834eb386c89dd57a9dc79ef211ca2476ac2",
+          "evaluated": false
+        },
+        {
+          "seed_index": 2,
+          "action_token": "bf0a222de8277365c0ba9c305e0ea890e4d9fe20c956554021c79943ab46a4bf",
+          "evaluated": false
+        }
+      ]
+    },
+    {
+      "sim_sec": 4500,
+      "selected_index": 1,
+      "leader_domain_count": 486,
+      "attempted_indices": [
+        1,
+        240,
+        120
+      ],
+      "status_counts": {
+        "unvisited": 483,
+        "feasible_final_response": 1,
+        "restoration_budget_stop": 2
+      },
+      "hold_NP_cap_meter_seeds_unvisited": 80,
+      "attempted_candidates": [
+        {
+          "index": 1,
+          "target_np_veh": 2400.0,
+          "target_nuf_veh_h": 1977.5893495357031,
+          "meter_bank_index": 0,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "feasible_final_response",
+          "objective_veh_h": 300.1651671952564,
+          "elapsed_sec": 124.14569470001152,
+          "game_error": {
+            "kind": "time_budget",
+            "phase": "final_check",
+            "message": "Deadline reached; remaining gap checks are incomplete"
+          },
+          "evaluations": 103
+        },
+        {
+          "index": 120,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 1977.5893495357031,
+          "meter_bank_index": 20,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1166.4,
+            "RM_C10482": 3024.0,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1166.4,
+            "RM_C10681": 3024.0,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 34.05440239998279,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 198.93280553530013,
+                "target": -250.0,
+                "residual": 448.93280553530013,
+                "violation": 448.93280553530013,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 1966.7223218343895,
+                "target": 1977.5893495357031,
+                "residual": -10.867027701313646,
+                "violation": 10.867027701313646,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 31.59531368102796,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 7.0,
+                "SC12": 1.643611111111111,
+                "SC16": 1.877257925626886,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -21.77704752210364,
+                "SC108": 5.937476013117141,
+                "SC109": -7.3908462453652035,
+                "SC1001": 115.7094132948278,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 64.33762727705808,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1020.3372287911144,
+                "FW_W": 946.385093043275
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 4500.0,
+                "end_sec": 4950.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 22.353388043313174,
+                  "RM_C10482": 27.293674746306323,
+                  "RM_C10646": 39.07363794335399,
+                  "RM_C10644": 29.577435897435894,
+                  "RM_C10639": 11.381282051282053,
+                  "RM_C10681": 12.732006528949682,
+                  "RM_C10490": 43.29726275369367,
+                  "RM_C10484": 60.131602264963895
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 178.8271043465054,
+                  "RM_C10482": 218.34939797045058,
+                  "RM_C10646": 312.5891035468319,
+                  "RM_C10644": 236.61948717948715,
+                  "RM_C10639": 91.05025641025642,
+                  "RM_C10681": 101.85605223159746,
+                  "RM_C10490": 346.3781020295494,
+                  "RM_C10484": 481.05281811971116
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1020.3372287911144,
+                  "FW_W": 946.385093043275
+                },
+                "total_rate_veh_h": 1966.7223218343895,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 4500.0,
+                "end_sec": 4950.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 4.440892098500626e-16,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 1.7957312217412005
+          }
+        },
+        {
+          "index": 240,
+          "target_np_veh": -250.0,
+          "target_nuf_veh_h": 1977.5893495357031,
+          "meter_bank_index": 40,
+          "grouped_meter_rates_veh_h": {
+            "RM_C10480": 1512.0,
+            "RM_C10482": 2332.8,
+            "RM_C10646": 1512.0,
+            "RM_C10644": 1512.0,
+            "RM_C10639": 1512.0,
+            "RM_C10681": 2332.8,
+            "RM_C10490": 1512.0,
+            "RM_C10484": 1512.0
+          },
+          "status": "restoration_budget_stop",
+          "objective_veh_h": null,
+          "elapsed_sec": 32.09259019998717,
+          "game_error": {
+            "kind": "evaluation_budget",
+            "phase": "search",
+            "message": "Evaluation cap reached; remaining gap checks are incomplete"
+          },
+          "evaluations": null,
+          "initializer_evidence": {
+            "quantity_constraints": {
+              "schema": "shared-quantity-constraints/v1",
+              "np": {
+                "mode": "cap",
+                "unit": "veh",
+                "actual": 198.93280553530013,
+                "target": -250.0,
+                "residual": 448.93280553530013,
+                "violation": 448.93280553530013,
+                "tolerance": 1e-07,
+                "constraint_checked": true,
+                "satisfied": false
+              },
+              "nuf": {
+                "mode": "equality",
+                "unit": "veh/h",
+                "actual": 1966.7223218343895,
+                "target": 1977.5893495357031,
+                "residual": -10.867027701313646,
+                "violation": 10.867027701313646,
+                "tolerance": 40.0,
+                "constraint_checked": true,
+                "satisfied": true
+              },
+              "feasible": false,
+              "net_inflow_veh_by_owner": {
+                "SC1": 31.59531368102796,
+                "SC5": 0.0,
+                "SC6": 0.0,
+                "SC7": 0.0,
+                "SC11": 7.0,
+                "SC12": 1.643611111111111,
+                "SC16": 1.877257925626886,
+                "SC101": 0.0,
+                "SC105": 0.0,
+                "SC107": -21.77704752210364,
+                "SC108": 5.937476013117141,
+                "SC109": -7.3908462453652035,
+                "SC1001": 115.7094132948278,
+                "SC1002": 0.0,
+                "SC1003": 0.0,
+                "SC1004": 64.33762727705808,
+                "SC1005": 0.0
+              },
+              "meter_rate_veh_h_by_owner": {
+                "FW_E": 1020.3372287911144,
+                "FW_W": 946.385093043275
+              },
+              "nuf_definition": "predicted_accepted_mainline_merge",
+              "physical_ramp_merge": {
+                "schema": "predicted-physical-ramp-merge/v1",
+                "start_sec": 4500.0,
+                "end_sec": 4950.0,
+                "accepted_vehicles_by_ramp": {
+                  "RM_C10480": 22.353388043313174,
+                  "RM_C10482": 27.293674746306323,
+                  "RM_C10646": 39.07363794335399,
+                  "RM_C10644": 29.577435897435894,
+                  "RM_C10639": 11.381282051282053,
+                  "RM_C10681": 12.732006528949682,
+                  "RM_C10490": 43.29726275369367,
+                  "RM_C10484": 60.131602264963895
+                },
+                "rate_veh_h_by_ramp": {
+                  "RM_C10480": 178.8271043465054,
+                  "RM_C10482": 218.34939797045058,
+                  "RM_C10646": 312.5891035468319,
+                  "RM_C10644": 236.61948717948715,
+                  "RM_C10639": 91.05025641025642,
+                  "RM_C10681": 101.85605223159746,
+                  "RM_C10490": 346.3781020295494,
+                  "RM_C10484": 481.05281811971116
+                },
+                "rate_veh_h_by_owner": {
+                  "FW_E": 1020.3372287911144,
+                  "FW_W": 946.385093043275
+                },
+                "total_rate_veh_h": 1966.7223218343895,
+                "boundary": "ramp_to_mainline",
+                "omega_ttd": false,
+                "leader_target_inherited": false
+              },
+              "window": {
+                "start_sec": 4500.0,
+                "end_sec": 4950.0,
+                "horizon_steps": 3,
+                "urban_samples": 90
+              },
+              "nonowner_service_included_in_np": false,
+              "individual_np_quotas_created": false,
+              "directional_nuf_constraints_checked": false,
+              "quantity_constraints_only": true,
+              "physical_feasibility_certified": false,
+              "leader_target_changed": false
+            },
+            "resource_max_exceedance_veh": 4.440892098500626e-16,
+            "leader_domain_infeasible": false,
+            "initializer_feasible": false,
+            "candidate_feasibility_known": false,
+            "restoration_status": "evaluation_budget",
+            "restoration_final_violation": 1.7957312217412005
+          }
+        }
+      ],
+      "search_status": "interrupted_search_time_budget",
+      "sweeps_started": 1,
+      "sweeps_completed": 0,
+      "freeway_search": [
+        {
+          "sweep": 1,
+          "freeway": {
+            "FW_W": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 5,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 4,
+              "feasible_neighbors": 4,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 4.440892098500626e-16,
+              "observed_gap_lower_bound": 0.0,
+              "incumbent_cost": 61.41158795889627,
+              "incumbent_shared_violation": 4.440892098500626e-16,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            },
+            "FW_E": {
+              "complete": false,
+              "gap": null,
+              "status": "evaluating",
+              "evaluations": 5,
+              "duplicate_count": 1,
+              "announced_candidates": 63,
+              "unique_neighbors": 4,
+              "feasible_neighbors": 3,
+              "infeasible_neighbors": 0,
+              "rejected": [],
+              "max_shared_violation_seen": 4.440892098500626e-16,
+              "observed_gap_lower_bound": 0.00011407153010623006,
+              "incumbent_cost": 171.30015039856505,
+              "incumbent_shared_violation": 4.440892098500626e-16,
+              "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+            }
+          }
+        }
+      ],
+      "accepted_updates": [
+        {
+          "sweep": 1,
+          "owner": "SC109",
+          "from_cost": 1.528117823065059,
+          "to_cost": 1.343725238932705,
+          "gap": 0.18439258413235393,
+          "partial_sweep": true,
+          "selection_policy": "Largest completely checked own-payoff improvement at the fixed sweep incumbent"
+        }
+      ],
+      "final_audit_freeway": {
+        "FW_W": {
+          "complete": false,
+          "gap": null,
+          "status": "time_budget",
+          "evaluations": 24,
+          "duplicate_count": 1,
+          "announced_candidates": 63,
+          "unique_neighbors": 24,
+          "feasible_neighbors": 23,
+          "infeasible_neighbors": 0,
+          "rejected": [],
+          "max_shared_violation_seen": 4.440892098500626e-16,
+          "observed_gap_lower_bound": 0.0,
+          "incumbent_cost": 61.41158795889627,
+          "incumbent_shared_violation": 4.440892098500626e-16,
+          "domain_label": "canonical-current-19owner-held-finite/v1;search_order=coupled-family-interleave/v1"
+        },
+        "FW_E": {
+          "complete": false,
+          "gap": null,
+          "status": "unvisited",
+          "evaluations": 0
+        }
+      },
+      "final_check_complete": false,
+      "maximum_finite_candidate_gap": null,
+      "selected_quantities": {
+        "schema": "shared-quantity-constraints/v1",
+        "np": {
+          "mode": "cap",
+          "unit": "veh",
+          "actual": 223.75573496670788,
+          "target": 2400.0,
+          "residual": -2176.2442650332923,
+          "violation": 0.0,
+          "tolerance": 1e-07,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "nuf": {
+          "mode": "equality",
+          "unit": "veh/h",
+          "actual": 1977.5893495357031,
+          "target": 1977.5893495357031,
+          "residual": 0.0,
+          "violation": 0.0,
+          "tolerance": 40.0,
+          "constraint_checked": true,
+          "satisfied": true
+        },
+        "feasible": true,
+        "net_inflow_veh_by_owner": {
+          "SC1": 34.90801713277903,
+          "SC5": 0.0,
+          "SC6": 0.0,
+          "SC7": 0.0,
+          "SC11": 7.0,
+          "SC12": 1.6813333333333333,
+          "SC16": 1.9220996529483618,
+          "SC101": 0.0,
+          "SC105": 0.0,
+          "SC107": -20.84590123966207,
+          "SC108": 7.9215626803039,
+          "SC109": -5.6212627853405195,
+          "SC1001": 125.75646357432522,
+          "SC1002": 0.0,
+          "SC1003": 0.0,
+          "SC1004": 71.03342261802062,
+          "SC1005": 0.0
+        },
+        "meter_rate_veh_h_by_owner": {
+          "FW_E": 1028.6801796221796,
+          "FW_W": 948.9091699135236
+        },
+        "nuf_definition": "predicted_accepted_mainline_merge",
+        "physical_ramp_merge": {
+          "schema": "predicted-physical-ramp-merge/v1",
+          "start_sec": 4500.0,
+          "end_sec": 4950.0,
+          "accepted_vehicles_by_ramp": {
+            "RM_C10480": 22.916017318673514,
+            "RM_C10482": 27.293674746306323,
+            "RM_C10646": 38.826518276774706,
+            "RM_C10644": 29.577435897435894,
+            "RM_C10639": 11.381282051282053,
+            "RM_C10681": 12.64961683211215,
+            "RM_C10490": 43.29726275369367,
+            "RM_C10484": 61.256860815684576
+          },
+          "rate_veh_h_by_ramp": {
+            "RM_C10480": 183.32813854938811,
+            "RM_C10482": 218.34939797045058,
+            "RM_C10646": 310.61214621419765,
+            "RM_C10644": 236.61948717948715,
+            "RM_C10639": 91.05025641025642,
+            "RM_C10681": 101.1969346568972,
+            "RM_C10490": 346.3781020295494,
+            "RM_C10484": 490.0548865254766
+          },
+          "rate_veh_h_by_owner": {
+            "FW_E": 1028.6801796221796,
+            "FW_W": 948.9091699135236
+          },
+          "total_rate_veh_h": 1977.5893495357031,
+          "boundary": "ramp_to_mainline",
+          "omega_ttd": false,
+          "leader_target_inherited": false
+        },
+        "window": {
+          "start_sec": 4500.0,
+          "end_sec": 4950.0,
+          "horizon_steps": 3,
+          "urban_samples": 90
+        },
+        "nonowner_service_included_in_np": false,
+        "individual_np_quotas_created": false,
+        "directional_nuf_constraints_checked": false,
+        "quantity_constraints_only": true,
+        "physical_feasibility_certified": false,
+        "leader_target_changed": false
+      },
+      "selected_initializer_seed_checks": [
+        {
+          "seed_index": 0,
+          "action_token": "c8d93bfda716bec05ff08791a40b0608c6bc2acfdc6bb597c567ca780ac537b7",
+          "evaluated": true,
+          "np_veh": 223.53275706651405,
+          "nuf_veh_h": 1977.5893495357031,
+          "nuf_satisfied": true,
+          "target_cap_satisfied": true,
+          "model_and_writer_validated": true,
+          "accepted_as_initializer": true
+        },
+        {
+          "seed_index": 1,
+          "action_token": "70ac237c65c0becf72ca5e32f732894094dae14e6925f56d12900d29523af1f6",
+          "evaluated": false
+        },
+        {
+          "seed_index": 2,
+          "action_token": "6ed51583903818d5ec3acd5096b257bfae8c4c92593b62d1b13a667675c37441",
+          "evaluated": false
+        }
+      ]
+    }
+  ],
+  "code_findings": [
+    {
+      "path": "evaluation/controllers/joint_owner_game.py",
+      "line": 785,
+      "finding": "Strict lower own cost; ties retain incumbent."
+    },
+    {
+      "path": "evaluation/controllers/joint_owner_game.py",
+      "line": 808,
+      "finding": "Round-robin commit applies one greatest observed own-payoff improvement across all owners, including partial sweep stop."
+    },
+    {
+      "path": "evaluation/controllers/joint_owner_game.py",
+      "line": 821,
+      "finding": "Final audit visits owners sequentially and never commits improvements."
+    },
+    {
+      "path": "evaluation/controllers/joint_owner_neighbors.py",
+      "line": 108,
+      "finding": "Candidate family order is coupled, pure VSL, pure meter for freeway; first three distinct neighbors cover these families when all are present."
+    },
+    {
+      "path": "evaluation/controllers/joint_owner_neighbors.py",
+      "line": 1030,
+      "finding": "Each physical ramp has actual green +/-2s lattice. Service ceiling coordinates, not accepted throughput. g10 allows g9/g8, not g6 in same decision."
+    },
+    {
+      "path": "evaluation/controllers/area_follower_objective.py",
+      "line": 1301,
+      "finding": "NUF target is initialized from actual-hold accepted mainline merge forecast and fixed for every seed/candidate."
+    }
+  ],
+  "conclusions": [
+    "All three recorded selected searches stop before one whole sweep. FW_E has a small positive feasible own-payoff improvement, but one larger urban improvement is committed.",
+    "The inspected selected-game freeway neighbors have zero recorded constraint rejections. Their unchanged final commands cannot be attributed to NP/NUF infeasibility from these logs.",
+    "Both alternative leader attempts use NP cap -250 and stop restoration with NP violation; NUF satisfies +/-40 in their saved initializer evidence. Other feasible-cap meter seeds remain unvisited.",
+    "A target frozen at actual OPEN accepted flow mathematically disallows an aggregate450s merge decrease exceeding5vehicles unless compensated at another ramp; no positive lower target is explored here. This is a domain limitation, not proof that it rejected the inspected candidates.",
+    "Per-candidate feasible payoff values/actions are absent in these receipts. West no-positive gap cannot distinguish exact ties from losses. Counterfactual rerun must preserve prices/state/forecast/command box."
+  ]
+}

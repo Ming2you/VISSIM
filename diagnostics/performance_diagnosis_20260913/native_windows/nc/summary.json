@@ -1,0 +1,99 @@
+{
+  "schema": "performance-native-prefix/v1",
+  "run": "codex_phys8_fidelity_fw080_u050_nc9000_s13_v1",
+  "prefix_end_sec": 8850,
+  "native_run_completed": true,
+  "full_execution_certified_here": false,
+  "seed": 13,
+  "fzp": {
+    "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+    "file_sha256": "8aba3deb662e21b9c124826d78615ea961563a73a4d49a101b187b83ec63fc31",
+    "payload_sha256": "91713923035829973b6569c18ebac9241929fd6f92d7abf851aa8e7994f1613b",
+    "rows": 18764678
+  },
+  "frames": 8850,
+  "elapsed_sec": 111.63831780000055,
+  "ttt_veh_h": 4155.38375,
+  "prior_prefix_ttt_matches": true,
+  "native_error_files": [
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/runlog_codex_phys8_fidelity_fw080_u050_nc9000_s13_v1.txt.err",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {},
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    },
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/vissim_network.err",
+      "bytes": 2862,
+      "sha256": "2f5bcd5fdd852c18eb0eb7369fb7408031453310e98e0955b3f73695f3aeec14",
+      "counts": {
+        "setup_desired_speed_near_connector": 1,
+        "setup_routing_near_connector": 13
+      },
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    },
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/vissim_simulation_001.err",
+      "bytes": 278168,
+      "sha256": "db1a41afe4d56edcb91b15ea8caf270d119af6de90139ebfbf8a8faad7925b9b",
+      "counts": {
+        "ignored_static_routing": 181,
+        "ignored_desired_speed": 141,
+        "duplicate_travel_time_section_start": 902,
+        "lane_change_removal": 194,
+        "route_next_link_not_found": 8,
+        "simulation_stop_prompt_answer": 1,
+        "signal_controller_dll_error_notice": 1
+      },
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    }
+  ],
+  "prefix_removal_warnings": 191,
+  "terminal_removal_collisions": [],
+  "limits": [
+    "Full NC file hashed; only0–8850s measured. CL ends8850 and has no completion receipt.",
+    "NC-vs-CL intervals compare evolved policy trajectories, not same-state command counterfactuals.",
+    "Observed link-pair events may skip intermediate links between1s frames; not desired demand.",
+    "Absence is never a normal road discharge; final vehicles stay censored. ERR completeness not certified."
+  ],
+  "native_simulation_error_files": [
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/vissim_network.err",
+      "bytes": 2862,
+      "sha256": "2f5bcd5fdd852c18eb0eb7369fb7408031453310e98e0955b3f73695f3aeec14",
+      "counts": {
+        "setup_desired_speed_near_connector": 1,
+        "setup_routing_near_connector": 13
+      },
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    },
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/vissim_simulation_001.err",
+      "bytes": 278168,
+      "sha256": "db1a41afe4d56edcb91b15ea8caf270d119af6de90139ebfbf8a8faad7925b9b",
+      "counts": {
+        "ignored_static_routing": 181,
+        "ignored_desired_speed": 141,
+        "duplicate_travel_time_section_start": 902,
+        "lane_change_removal": 194,
+        "route_next_link_not_found": 8,
+        "simulation_stop_prompt_answer": 1,
+        "signal_controller_dll_error_notice": 1
+      },
+      "partial_tail_bytes": 0,
+      "unparsed_removal_lines": [],
+      "completed_run_error_certificate": false
+    }
+  ],
+  "native_simulation_error_log_complete": true,
+  "native_removal_count_interpretation": "Available warning count only; CL interrupted error log does not establish zero removals."
+}
