@@ -8,6 +8,8 @@ import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
+ROOT = Path(__file__).resolve().parents[2]
+
 def number(value):
     if isinstance(value, bool):
         raise ValueError("Boolean is not a measured number")
@@ -220,4 +222,180 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
         changed = dict(caps)
         distribute(cfg, groups, estimates, changed)
         cfg.network.movement_capacity_by_movement_veh_h = changed
+    if getattr(cfg.network, "head_free_service", None) is not None:
+        metadata.update(_install_head_free_service(cfg, state_json, previous_path, options, context))
     return metadata
+
+
+def configure_head_free_service(cfg, tuning, raw):
+    """Opt in to a uniquely attributable subset of the existing bypass counter.
+
+    The sibling option leaves the head collector's options/provenance unchanged.
+    No observed rate is stored in the physical contract.
+    """
+    section = (tuning or {}).get("urban", {}).get("capacity", {})
+    path = section.get("head_free_service")
+    if path is None:
+        if hasattr(cfg.network, "head_free_service"):
+            delattr(cfg.network, "head_free_service")
+        return {}
+    if not isinstance(path, str) or not path or section.get("head_observation", {}).get("enabled") is not True:
+        raise ValueError("Head-free service requires a contract path and enabled head observation")
+    data = (ROOT / path).read_bytes()
+    document = json.loads(data)
+    if document.get("schema") != "head-free-connector-service/v1" or not document.get("resources"):
+        raise ValueError("Unsupported head-free service contract")
+
+    def pinned(pin):
+        content = (ROOT / pin["path"]).read_bytes()
+        if hashlib.sha256(content).hexdigest() != pin["sha256"]:
+            raise ValueError("Head-free service pinned evidence changed")
+        return content
+
+    network = pinned(document["network"])
+    if tuning.get("execution", {}).get("native_signal_record") is True:
+        from evaluation.controllers.network_provenance import snapshot_physical_file_sha256
+        physical_sha = snapshot_physical_file_sha256(raw)
+    else:
+        physical_sha = hashlib.sha256(Path(raw["network_path"]).read_bytes()).hexdigest()
+    if physical_sha != document["network"]["sha256"]:
+        raise ValueError("Head-free service and snapshot physical networks differ")
+    join = json.loads(pinned(document["movement_join"]))["by_movement"]
+    tree = ET.fromstring(network)
+    links = {n.get("no"): n for n in tree.findall("./links/link")}
+    heads = defaultdict(list)
+    for head in tree.findall("./signalHeads/signalHead"):
+        link, lane = head.get("lane").split()
+        heads[link, int(lane)].append(head)
+    owned_movements, owned_sources = set(), set()
+    for connector, row in document["resources"].items():
+        source, movement = row["source_link"], row["movement"]
+        if source in owned_sources or movement in owned_movements:
+            raise ValueError("Head-free counters or movements cannot be allocated twice")
+        owned_sources.add(source); owned_movements.add(movement)
+        node = links[connector]; start = node.find("fromLinkEndPt"); end = node.find("toLinkEndPt")
+        first = int(start.get("lane").split()[1])
+        lanes = list(range(first, first + len(node.findall("./lanes/lane"))))
+        if (start.get("lane").split()[0] != source or end.get("lane").split()[0] != row["target_link"]
+                or lanes != row["source_lanes"] or float(start.get("pos")) != row["source_position_m"]):
+            raise ValueError("Head-free connector geometry changed")
+        # Reproduce the collector's bypass predicate for EVERY exit, including
+        # pre-head branches. Aggregated counters cannot split two free exits.
+        free_exits = set()
+        for other in links.values():
+            edge = other.find("fromLinkEndPt")
+            if edge is None or edge.get("lane").split()[0] != source:
+                continue
+            lo = int(edge.get("lane").split()[1])
+            for lane in range(lo, lo + len(other.findall("./lanes/lane"))):
+                lane_heads = heads[source, lane]
+                if len(lane_heads) > 1 or any(h.get("allVehTypes") != "true" for h in lane_heads):
+                    raise ValueError("Ambiguous head-free source-lane authority")
+                if not lane_heads or float(edge.get("pos")) < float(lane_heads[0].get("pos")):
+                    free_exits.add(other.get("no"))
+        if free_exits != {connector} or any(heads[source, lane] for lane in lanes):
+            raise ValueError("Source bypass counter lacks exactly one genuinely head-free exit")
+        source_heads = [h for (link, _), values in heads.items() if link == source for h in values]
+        if not source_heads:
+            raise ValueError("Head-free source is outside the existing head-road collector")
+        evidence = join[movement]
+        turns = evidence["physical_turns"]
+        if (evidence["status"] != "unique" or len(turns) != 1
+                or any(turns[0].get(k) != v for k, v in {"from_link": source, "connector": connector,
+                                                         "to_link": row["target_link"]}.items())
+                or sorted(evidence["merged_from"]) != sorted(row["merged_from"])):
+            raise ValueError("Head-free movement is not the unique merged physical turn")
+        actual = cfg.network.urban_movements.get(movement, {})
+        if (any(actual.get(k) != v for k, v in row["expected_movement"].items())
+                or actual.get("unsignalized") is not True
+                or sorted(actual.get("merged_from", [])) != sorted(row["merged_from"])
+                or any(alias != movement and alias in cfg.network.urban_movements for alias in row["merged_from"])):
+            raise ValueError("Head-free service requires its one unsignalized merged movement")
+        if actual.get("receiving_link") not in cfg.network.urban_link_storage_veh:
+            raise ValueError("Head-free service requires finite receiving storage")
+        proof = row["native_route"]
+        decision = next(n for n in tree.findall("./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic")
+                        if n.get("no") == proof["decision"])
+        route = next(n for n in decision.findall("./vehRoutSta/vehicleRouteStatic") if n.get("no") == proof["route"])
+        physical_path = [decision.get("link"), *[n.get("key") for n in route.findall("./linkSeq/intObjectRef")], route.get("destLink")]
+        if physical_path != proof["path"] or [source, connector, row["target_link"]] != physical_path[-3:]:
+            raise ValueError("Head-free native route changed")
+        row["collector_heads"] = [{"head_id": h.get("no"), "link": source,
+            "lane": int(h.get("lane").split()[1]), "position_m": serialized_head_position(h.get("pos")),
+            "sc": h.get("sg").split()[0], "sg": h.get("sg").split()[1]} for h in source_heads]
+    cfg.network.head_free_service = {**document, "contract_sha256": hashlib.sha256(data).hexdigest(), "observations": {}}
+    return {"head_free_service_enabled": 1.0}
+
+
+def _install_head_free_service(cfg, raw, previous_path, options, context):
+    """Two adjacent achieved-flow lower bounds; unknown events are never assigned.
+
+    Confirmed source→connector transitions are a safe subset even when OTHER
+    events on that road are unknown. Full elapsed time is the denominator;
+    road-wide queues cannot establish saturation of the head-free lane.
+    """
+    contract = cfg.network.head_free_service
+    now = number(raw["sim_sec"])
+    window = raw.get("local_observation", {}).get("signal_observation_window")
+    start = number(window["start_sec"]) if window is not None else now
+    end = number(window["end_sec"]) if window is not None else now
+    # install() has already validated schema, config/network provenance, actual
+    # cadence, exposure method and window endpoint before this consumer runs.
+    valid = (window is not None and window.get("clock_complete") is True and end > start
+             and raw["local_observation"].get("scan_ok") is True)
+    try:
+        previous = json.loads(Path(previous_path).read_text(encoding="utf-8-sig"))
+        prior = {**previous.get("diagnostics", {}), **previous.get("metadata", {})}
+        previous_time = number(previous["metadata"]["sim_sec"])
+        prior_ok = (previous["run_provenance"]["run_id"] == raw["run_provenance"]["run_id"]
+            and prior.get("head_provenance_" + context) == 1.0
+            and number(prior["head_observation_snapshot_sec"]) == previous_time < now
+            and previous_time <= start
+            and all(number(v) == previous_time for k, v in prior.items() if k.startswith("head_free_candidate_end_")))
+    except (OSError, KeyError, TypeError, ValueError):
+        prior, prior_ok = {}, False
+    result = {"head_free_service_enabled": 1.0}
+    caps = dict(cfg.network.movement_capacity_by_movement_veh_h)
+    for connector, row in contract["resources"].items():
+        identity = hashlib.sha256((context + contract["contract_sha256"] + connector).encode()).hexdigest()[:16]
+        suffix = connector + "_" + identity
+        floor_key = "head_free_observed_floor_" + suffix
+        candidate_key = "head_free_candidate_rate_" + suffix
+        end_key = "head_free_candidate_end_" + suffix
+        carried = number(prior.get(floor_key, 0.0)) if prior_ok else 0.0
+        support, candidate, unknown = 0.0, 0.0, 0.0
+        if valid:
+            source = row["source_link"]
+            observed_heads = {str(h["head_id"]): h for h in window["heads"]}
+            for expected in row["collector_heads"]:
+                observed = observed_heads.get(expected["head_id"], {})
+                if any(observed.get(k) != v for k, v in expected.items()):
+                    raise ValueError("Head-free source-road collector coverage changed")
+            count = number(window.get("bypass_link_exits", {}).get(source, 0.0))
+            unknown = number(window.get("unknown_links", {}).get(source, 0.0))
+            departures = number(raw["local_observation"]["link_departures_window"].get(source, 0.0))
+            if any(v != int(v) for v in (count, unknown, departures)) or count > departures:
+                raise ValueError("Impossible head-free confirmed crossing count")
+            result["head_free_confirmed_crossings_" + connector] = count
+            result["head_free_exposure_sec_" + connector] = end - start
+            if end - start >= options["min_green_sec"] and count >= options["min_crossings"]:
+                candidate = 3600.0 * count / (end - start)
+                result[candidate_key], result[end_key] = candidate, end
+                if prior_ok and prior.get(end_key) == start and candidate_key in prior:
+                    support = min(candidate, number(prior[candidate_key]))
+        observed = max(carried, support)
+        movement = row["movement"]
+        base = number(caps[movement])
+        selected = max(base, observed)
+        caps[movement] = selected
+        result.update({floor_key: observed, "head_free_final_rate_" + connector: selected,
+            "head_free_unknown_source_events_" + connector: unknown,
+            "head_free_saturation_unidentified_" + connector: 1.0,
+            "head_free_waiting_second_window_" + connector: float(candidate > 0 and support == 0),
+            "head_free_prior_discarded_" + connector: float(bool(prior) and not prior_ok)})
+        contract["observations"][connector] = {"observed_only_floor_veh_h": observed,
+            "current_pair_support_veh_h": support, "carried_observed_support_veh_h": carried,
+            "current_candidate_veh_h": candidate, "unknown_source_events": unknown,
+            "saturation_identified": False, "snapshot_sec": now}
+    cfg.network.movement_capacity_by_movement_veh_h = caps
+    return result

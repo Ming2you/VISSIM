@@ -1,0 +1,1112 @@
+{
+  "schema": "startup-queue-length-review/v1",
+  "completed": true,
+  "source": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\startup_lane_headways_v1.json",
+  "source_sha256": "274357a70a5b9f23c55db62e8829badf2768b44acf1481e636f0192ca098fbb6",
+  "scope": "Existing SC1004 native lane/rank evidence, 900..1350, seed13, two completed runs; zero additional FZP/COM/model reads or executions.",
+  "summary": {
+    "SC1004:SG6:52:L1": {
+      "complete_episodes_n": 6,
+      "initial_queue_n_range": [
+        4,
+        11
+      ],
+      "tail_distance_m_range": [
+        18.086,
+        64.886
+      ],
+      "first_cross_endpoint_age_sec_range": [
+        1,
+        1
+      ],
+      "last_cohort_cross_endpoint_age_sec_range": [
+        8,
+        22
+      ],
+      "rank8_probes_n": 2
+    },
+    "SC1004:SG3:66:L4": {
+      "complete_episodes_n": 6,
+      "initial_queue_n_range": [
+        7,
+        15
+      ],
+      "tail_distance_m_range": [
+        43.577,
+        85.697
+      ],
+      "first_cross_endpoint_age_sec_range": [
+        1,
+        1
+      ],
+      "last_cohort_cross_endpoint_age_sec_range": [
+        15,
+        28
+      ],
+      "rank8_probes_n": 4
+    }
+  },
+  "lane_series": {
+    "SC1004:SG6:52:L1": [
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 975,
+        "initial_standing_contiguous_queue_n": 7,
+        "tail_front_position_distance_to_stopbar_m": 36.096,
+        "first_to_last_front_position_span_m": 35.3,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.796,
+        "retained_ordered_prefix_n": 7,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          5,
+          8,
+          10,
+          12,
+          14
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          1,
+          3,
+          2,
+          2,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 14,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          13,
+          15
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 1125,
+        "initial_standing_contiguous_queue_n": 4,
+        "tail_front_position_distance_to_stopbar_m": 25.396,
+        "first_to_last_front_position_span_m": 24.34,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.056,
+        "retained_ordered_prefix_n": 4,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          6,
+          9
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          2,
+          3
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 9,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          8,
+          10
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 1275,
+        "initial_standing_contiguous_queue_n": 8,
+        "tail_front_position_distance_to_stopbar_m": 41.516,
+        "first_to_last_front_position_span_m": 40.57,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.946,
+        "retained_ordered_prefix_n": 8,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          6,
+          8,
+          11,
+          12,
+          14,
+          16
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          2,
+          2,
+          3,
+          1,
+          2,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 16,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          15,
+          17
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            1282,
+            1283
+          ],
+          "rank8_cross_interval_sec": [
+            1290,
+            1291
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            3,
+            1,
+            2,
+            2
+          ],
+          "later_headway_endpoint_mean_sec": 2.0,
+          "later_headway_sampling_bounds_sec": [
+            1.75,
+            2.25
+          ],
+          "startup_excess_midpoint_sec": 0.0,
+          "startup_excess_sampling_bounds_sec": [
+            -2.0,
+            2.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 0,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 901,
+        "initial_standing_contiguous_queue_n": 4,
+        "tail_front_position_distance_to_stopbar_m": 18.086,
+        "first_to_last_front_position_span_m": 17.29,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.796,
+        "retained_ordered_prefix_n": 4,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          5,
+          8
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          1,
+          3
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 8,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          7,
+          9
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1050,
+        "initial_standing_contiguous_queue_n": 5,
+        "tail_front_position_distance_to_stopbar_m": 23.366,
+        "first_to_last_front_position_span_m": 22.5,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.866,
+        "retained_ordered_prefix_n": 5,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          6,
+          8,
+          10
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          2,
+          2,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 10,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          9,
+          11
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1200,
+        "initial_standing_contiguous_queue_n": 11,
+        "tail_front_position_distance_to_stopbar_m": 64.886,
+        "first_to_last_front_position_span_m": 63.91,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.976,
+        "retained_ordered_prefix_n": 11,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          7,
+          8,
+          11,
+          13,
+          14,
+          16,
+          19,
+          21,
+          22
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          3,
+          1,
+          3,
+          2,
+          1,
+          2,
+          3,
+          2,
+          1
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 22,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          21,
+          23
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            1207,
+            1208
+          ],
+          "rank8_cross_interval_sec": [
+            1215,
+            1216
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            3,
+            2,
+            1,
+            2
+          ],
+          "later_headway_endpoint_mean_sec": 2.0,
+          "later_headway_sampling_bounds_sec": [
+            1.75,
+            2.25
+          ],
+          "startup_excess_midpoint_sec": 0.0,
+          "startup_excess_sampling_bounds_sec": [
+            -2.0,
+            2.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 3,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1350,
+        "initial_standing_contiguous_queue_n": 16,
+        "tail_front_position_distance_to_stopbar_m": 91.636,
+        "first_to_last_front_position_span_m": 90.39,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.246,
+        "retained_ordered_prefix_n": 0,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": false,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": null,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": null,
+        "rank_crossing_endpoint_ages_sec": [],
+        "intervehicle_headway_endpoint_differences_sec": [],
+        "last_initial_cohort_crossing_endpoint_age_sec": null,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": null,
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_unambiguous_ranked_queued_departures",
+          "terminal_censored_green"
+        ]
+      }
+    ],
+    "SC1004:SG3:66:L4": [
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 949,
+        "initial_standing_contiguous_queue_n": 10,
+        "tail_front_position_distance_to_stopbar_m": 55.997,
+        "first_to_last_front_position_span_m": 54.68,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.317,
+        "retained_ordered_prefix_n": 10,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          7,
+          9,
+          11,
+          13,
+          15,
+          17,
+          18,
+          20
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 20,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          19,
+          21
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            957,
+            958
+          ],
+          "rank8_cross_interval_sec": [
+            965,
+            966
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "later_headway_endpoint_mean_sec": 2.0,
+          "later_headway_sampling_bounds_sec": [
+            1.75,
+            2.25
+          ],
+          "startup_excess_midpoint_sec": 1.0,
+          "startup_excess_sampling_bounds_sec": [
+            -1.0,
+            3.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 2,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      },
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 1099,
+        "initial_standing_contiguous_queue_n": 7,
+        "tail_front_position_distance_to_stopbar_m": 43.577,
+        "first_to_last_front_position_span_m": 42.58,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.997,
+        "retained_ordered_prefix_n": 7,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          6,
+          9,
+          11,
+          13,
+          15
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          2,
+          3,
+          2,
+          2,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 15,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          14,
+          16
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "baseline",
+        "first_native_green_frame_sec": 1249,
+        "initial_standing_contiguous_queue_n": 9,
+        "tail_front_position_distance_to_stopbar_m": 59.677,
+        "first_to_last_front_position_span_m": 58.49,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.187,
+        "retained_ordered_prefix_n": 9,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          5,
+          8,
+          10,
+          12,
+          14,
+          16,
+          17,
+          19
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          4,
+          3,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 19,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          18,
+          20
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            1258,
+            1259
+          ],
+          "rank8_cross_interval_sec": [
+            1265,
+            1266
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            2,
+            2,
+            2,
+            1
+          ],
+          "later_headway_endpoint_mean_sec": 1.75,
+          "later_headway_sampling_bounds_sec": [
+            1.5,
+            2.0
+          ],
+          "startup_excess_midpoint_sec": 3.0,
+          "startup_excess_sampling_bounds_sec": [
+            1.0,
+            5.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 1,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1018,
+        "initial_standing_contiguous_queue_n": 14,
+        "tail_front_position_distance_to_stopbar_m": 81.027,
+        "first_to_last_front_position_span_m": 79.71,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.317,
+        "retained_ordered_prefix_n": 14,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          7,
+          9,
+          11,
+          13,
+          15,
+          17,
+          18,
+          20,
+          22,
+          24,
+          26,
+          27
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 27,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          26,
+          28
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            1026,
+            1027
+          ],
+          "rank8_cross_interval_sec": [
+            1034,
+            1035
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "later_headway_endpoint_mean_sec": 2.0,
+          "later_headway_sampling_bounds_sec": [
+            1.75,
+            2.25
+          ],
+          "startup_excess_midpoint_sec": 1.0,
+          "startup_excess_sampling_bounds_sec": [
+            -1.0,
+            3.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 6,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1168,
+        "initial_standing_contiguous_queue_n": 7,
+        "tail_front_position_distance_to_stopbar_m": 43.957,
+        "first_to_last_front_position_span_m": 42.84,
+        "head_vehicle_initial_distance_to_stopbar_m": 1.117,
+        "retained_ordered_prefix_n": 7,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          5,
+          7,
+          9,
+          11,
+          13,
+          16
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          4,
+          2,
+          2,
+          2,
+          2,
+          3
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 16,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          15,
+          17
+        ],
+        "rank8_startup_excess_probe": null,
+        "original_startup_screen_rejections": [
+          "fewer_than_8_initial_standing_contiguous_vehicles",
+          "fewer_than_8_unambiguous_ranked_queued_departures"
+        ]
+      },
+      {
+        "arm": "selected",
+        "first_native_green_frame_sec": 1318,
+        "initial_standing_contiguous_queue_n": 15,
+        "tail_front_position_distance_to_stopbar_m": 85.697,
+        "first_to_last_front_position_span_m": 84.7,
+        "head_vehicle_initial_distance_to_stopbar_m": 0.997,
+        "retained_ordered_prefix_n": 15,
+        "all_initial_cohort_departures_observed_without_lane_or_order_ambiguity": true,
+        "first_cohort_crossing_endpoint_age_from_first_native_green_frame_sec": 1,
+        "first_cohort_crossing_elapsed_sampling_bounds_sec": [
+          0,
+          2
+        ],
+        "rank_crossing_endpoint_ages_sec": [
+          1,
+          4,
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          19,
+          21,
+          23,
+          24,
+          26,
+          28
+        ],
+        "intervehicle_headway_endpoint_differences_sec": [
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          1,
+          2,
+          2
+        ],
+        "last_initial_cohort_crossing_endpoint_age_sec": 28,
+        "last_initial_cohort_crossing_elapsed_sampling_bounds_sec": [
+          27,
+          29
+        ],
+        "rank8_startup_excess_probe": {
+          "rank4_cross_interval_sec": [
+            1325,
+            1326
+          ],
+          "rank8_cross_interval_sec": [
+            1333,
+            1334
+          ],
+          "later_rank5to8_headway_samples_sec": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "later_headway_endpoint_mean_sec": 2.0,
+          "later_headway_sampling_bounds_sec": [
+            1.75,
+            2.25
+          ],
+          "startup_excess_midpoint_sec": 0.0,
+          "startup_excess_sampling_bounds_sec": [
+            -2.0,
+            2.0
+          ],
+          "retained_unpassed_cohort_after_rank8": 7,
+          "descriptive_only": true,
+          "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+        },
+        "original_startup_screen_rejections": []
+      }
+    ]
+  },
+  "rank8_startup_probes_sg3_sg6": [
+    {
+      "lane_key": "SC1004:SG6:52:L1",
+      "arm": "baseline",
+      "first_native_green_frame_sec": 1275,
+      "initial_standing_contiguous_queue_n": 8,
+      "tail_front_position_distance_to_stopbar_m": 41.516,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          1282,
+          1283
+        ],
+        "rank8_cross_interval_sec": [
+          1290,
+          1291
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          3,
+          1,
+          2,
+          2
+        ],
+        "later_headway_endpoint_mean_sec": 2.0,
+        "later_headway_sampling_bounds_sec": [
+          1.75,
+          2.25
+        ],
+        "startup_excess_midpoint_sec": 0.0,
+        "startup_excess_sampling_bounds_sec": [
+          -2.0,
+          2.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 0,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    },
+    {
+      "lane_key": "SC1004:SG3:66:L4",
+      "arm": "baseline",
+      "first_native_green_frame_sec": 949,
+      "initial_standing_contiguous_queue_n": 10,
+      "tail_front_position_distance_to_stopbar_m": 55.997,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          957,
+          958
+        ],
+        "rank8_cross_interval_sec": [
+          965,
+          966
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "later_headway_endpoint_mean_sec": 2.0,
+        "later_headway_sampling_bounds_sec": [
+          1.75,
+          2.25
+        ],
+        "startup_excess_midpoint_sec": 1.0,
+        "startup_excess_sampling_bounds_sec": [
+          -1.0,
+          3.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 2,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    },
+    {
+      "lane_key": "SC1004:SG3:66:L4",
+      "arm": "baseline",
+      "first_native_green_frame_sec": 1249,
+      "initial_standing_contiguous_queue_n": 9,
+      "tail_front_position_distance_to_stopbar_m": 59.677,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          1258,
+          1259
+        ],
+        "rank8_cross_interval_sec": [
+          1265,
+          1266
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          2,
+          2,
+          2,
+          1
+        ],
+        "later_headway_endpoint_mean_sec": 1.75,
+        "later_headway_sampling_bounds_sec": [
+          1.5,
+          2.0
+        ],
+        "startup_excess_midpoint_sec": 3.0,
+        "startup_excess_sampling_bounds_sec": [
+          1.0,
+          5.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 1,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    },
+    {
+      "lane_key": "SC1004:SG6:52:L1",
+      "arm": "selected",
+      "first_native_green_frame_sec": 1200,
+      "initial_standing_contiguous_queue_n": 11,
+      "tail_front_position_distance_to_stopbar_m": 64.886,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          1207,
+          1208
+        ],
+        "rank8_cross_interval_sec": [
+          1215,
+          1216
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          3,
+          2,
+          1,
+          2
+        ],
+        "later_headway_endpoint_mean_sec": 2.0,
+        "later_headway_sampling_bounds_sec": [
+          1.75,
+          2.25
+        ],
+        "startup_excess_midpoint_sec": 0.0,
+        "startup_excess_sampling_bounds_sec": [
+          -2.0,
+          2.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 3,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    },
+    {
+      "lane_key": "SC1004:SG3:66:L4",
+      "arm": "selected",
+      "first_native_green_frame_sec": 1018,
+      "initial_standing_contiguous_queue_n": 14,
+      "tail_front_position_distance_to_stopbar_m": 81.027,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          1026,
+          1027
+        ],
+        "rank8_cross_interval_sec": [
+          1034,
+          1035
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "later_headway_endpoint_mean_sec": 2.0,
+        "later_headway_sampling_bounds_sec": [
+          1.75,
+          2.25
+        ],
+        "startup_excess_midpoint_sec": 1.0,
+        "startup_excess_sampling_bounds_sec": [
+          -1.0,
+          3.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 6,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    },
+    {
+      "lane_key": "SC1004:SG3:66:L4",
+      "arm": "selected",
+      "first_native_green_frame_sec": 1318,
+      "initial_standing_contiguous_queue_n": 15,
+      "tail_front_position_distance_to_stopbar_m": 85.697,
+      "rank8_startup_excess_probe": {
+        "rank4_cross_interval_sec": [
+          1325,
+          1326
+        ],
+        "rank8_cross_interval_sec": [
+          1333,
+          1334
+        ],
+        "later_rank5to8_headway_samples_sec": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "later_headway_endpoint_mean_sec": 2.0,
+        "later_headway_sampling_bounds_sec": [
+          1.75,
+          2.25
+        ],
+        "startup_excess_midpoint_sec": 0.0,
+        "startup_excess_sampling_bounds_sec": [
+          -2.0,
+          2.0
+        ],
+        "retained_unpassed_cohort_after_rank8": 7,
+        "descriptive_only": true,
+        "caveat": "Four later headways do not prove stationary saturation or exclude downstream obstruction; bounds are sample-resolution bounds, not confidence intervals."
+      }
+    }
+  ],
+  "sg6_tracking_exclusions": [
+    {
+      "arm": "baseline",
+      "lane_key": "SC1004:SG6:52:L2",
+      "green_frame_sec": 1125,
+      "issues": [
+        {
+          "rank": 3,
+          "vehicle": 177,
+          "issues": [
+            {
+              "sec": 1129,
+              "reason": "lane_or_link_change_before_crossing",
+              "observed": [
+                52,
+                3,
+                455.94,
+                17.68
+              ]
+            },
+            {
+              "reason": "no_unambiguous_crossing_before_end_of_green"
+            }
+          ]
+        }
+      ],
+      "affected_rank_count": 1
+    },
+    {
+      "arm": "selected",
+      "lane_key": "SC1004:SG6:52:L1",
+      "green_frame_sec": 1350,
+      "issues": [
+        {
+          "reason": "terminal_censored_green_no_observable_cohort_departures"
+        }
+      ],
+      "affected_rank_count": 16
+    },
+    {
+      "arm": "selected",
+      "lane_key": "SC1004:SG6:52:L2",
+      "green_frame_sec": 1200,
+      "issues": [
+        {
+          "rank": 5,
+          "vehicle": 2594,
+          "issues": [
+            {
+              "sec": 1205,
+              "reason": "lane_or_link_change_before_crossing",
+              "observed": [
+                52,
+                3,
+                434.04,
+                12.6
+              ]
+            },
+            {
+              "reason": "no_unambiguous_crossing_before_end_of_green"
+            }
+          ]
+        }
+      ],
+      "affected_rank_count": 1
+    },
+    {
+      "arm": "selected",
+      "lane_key": "SC1004:SG6:52:L2",
+      "green_frame_sec": 1350,
+      "issues": [
+        {
+          "reason": "terminal_censored_green_no_observable_cohort_departures"
+        }
+      ],
+      "affected_rank_count": 9
+    },
+    {
+      "arm": "selected",
+      "lane_key": "SC1004:SG6:52:L3",
+      "green_frame_sec": 1350,
+      "issues": [
+        {
+          "reason": "terminal_censored_green_no_observable_cohort_departures"
+        }
+      ],
+      "affected_rank_count": 3
+    }
+  ],
+  "findings": [
+    "SG6 L1: all six fully retained cohorts, with4..11 initially queued vehicles, have first-cross endpoint age1 s; full-cohort clearance endpoint ages8..22 s.",
+    "SG3 L4: all six fully retained cohorts, with7..15 initially queued vehicles, also have first-cross endpoint age1 s; full-cohort clearance endpoint ages15..28 s.",
+    "The larger queue needs more vehicle departures. These data describe longer whole-cohort clearance; they do not establish that front reaction or saturation startup lost time grows proportionally with queue count or physical length.",
+    "SG6 L1 rank8 probes at n8 and n11 both have startup-excess midpoint0 s with sample-resolution bounds[-2,2] s. SG3 L4 n9/n10/n14/n15 startup midpoints are3/1/1/0 s, respectively; no proportional relation is supported.",
+    "Queue count and physical extent are different: baseline SG3 n9 tail distance59.677 m exceeds n10 distance55.997 m, reflecting observed spacing/composition variation. No vehicle-length-based queue occupancy is inferred.",
+    "Selected SG6 at1350 is terminal-censored and cannot support tail-clearance or startup-delay inference."
+  ],
+  "definitions": {
+    "front_reaction": "Delay from actual green onset to first sustained movement of the first queued vehicle. Not measured by this cached crossing-only evidence.",
+    "queue_release_propagation": "Time at which each initially queued vehicle begins sustained movement versus initial rank and distance. Cannot be reconstructed from stopbar crossing times alone; continuous speed histories are required.",
+    "startup_lost_time": "Excess time consumed by initial queued departures relative to subsequent saturated queued headways; the present descriptive rank8 expression is C4-G-4*((C8-C4)/4). It is separate from first-cross lag and whole-queue clearance.",
+    "whole_initial_queue_clearance": "Green onset to stopbar passage of the last vehicle already in the retained initial standing cohort. Later arrivals are excluded; this is not time until the approach is empty.",
+    "physical_extent": "Distance of last initial queued vehicle front position from head, plus separate first-to-last front-position span; vehicle body lengths are unavailable.",
+    "sampling_bounds": "Elapsed-time bounds account only for one-second native green-onset and crossing intervals. They are not confidence intervals, identification bounds, calibration proof, or protection against unobserved subsecond changes."
+  },
+  "confounders_and_limits": [
+    "Single seed and only six complete episodes per selected lane; observations are temporally related and are not randomized queue-length interventions.",
+    "Baseline and selected use different phase timing and green start times; red duration, residual queues, arrival platoons and traffic histories differ.",
+    "Keep lane and geometry fixed when comparing: SG6 link52 lane1 and SG3 link66 lane4 are separate lane series with different movements and downstream conditions.",
+    "Vehicle type/length, stopped gaps, head distance and acceleration are not controlled; queue count does not uniquely determine physical extent.",
+    "Native1 s sampling can hide reaction differences, tied events and subsecond lane changes; observed continuous lane identity is not perfect subsecond proof.",
+    "Lane changes, incomplete ordered prefixes, green already active at900 and end1350 censoring remain excluded or explicitly flagged.",
+    "Later headways can reflect downstream receiving constraints and turning behavior; four headways after rank4 do not prove stationary saturation.",
+    "No regression, correlation-based causal claim, proportionality assumption, blanket delay, or capacity adjustment is made."
+  ],
+  "recommendation": {
+    "queue_length_proportional_startup_delay_supported": false,
+    "controller_parameter_change_supported": false,
+    "current_action": "Keep queue clearance, movement-release propagation and startup lost time separate. Do not calibrate an added queue-proportional delay from these data.",
+    "next_completed_initial_native_postanalysis_fields": [
+      "Actual phase write/application time and native transition interval, with green/amber boundaries and censor flags.",
+      "At the last pre-green frame: vehicleID, lane, rank, position, speed, physical gap; retain vehicle type/length only if already recorded.",
+      "Per initial vehicle: first sustained movement interval from native speed histories, threshold and persistence rule with sensitivity checks; track continuous lane identity until crossing.",
+      "Per rank: onset lag from green, movement onset relative to predecessor, stopbar crossing interval and interval headway; mark arrivals, interleaving and missing data separately.",
+      "Per lane: initial count, physical extent, first-vehicle reaction, release-propagation versus rank/distance, rank4 crossing, sustained later-headway window with residual initial queue, and last initial-cohort clearance.",
+      "Flag receiving blockage/downstream stops, observed lane changes, queue exhaustion and terminal censoring; compare repeated episodes within the same lane before considering a parameter."
+    ],
+    "read_timing": "Defer any additional bounded speed-history FZP read until the parent initial native run completes; this review only reused the existing JSON."
+  },
+  "method_reference": "https://ops.fhwa.dot.gov/publications/fhwahop08024/chapter3.htm"
+}

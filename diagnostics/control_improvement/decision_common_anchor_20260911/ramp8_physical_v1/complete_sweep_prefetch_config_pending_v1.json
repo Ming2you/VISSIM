@@ -1,0 +1,15 @@
+{
+  "schema": "pending-source-edit/v1",
+  "applied": false,
+  "path": "evaluation\\controllers\\area_runtime.py",
+  "source_file_sha256": "44a493dc17a3207c566b43055b78348d8f03b184d9db9b1e634c24d466ee8de0",
+  "old_text_sha256": "44a493dc17a3207c566b43055b78348d8f03b184d9db9b1e634c24d466ee8de0",
+  "new_text_sha256": "4fd80602b16e4c3ce200f9575efea30e55a469d74aeb94d08735c2e142a282be",
+  "edits": [
+    {
+      "before": "    cfg.network.control_area_beta_seconds = beta\n",
+      "after": "    full_prefetch = section.get('prefetch_complete_sweep_responses', False)\n    if type(full_prefetch) is not bool:\n        raise ValueError('control_area_objective.prefetch_complete_sweep_responses must be boolean')\n    if full_prefetch:\n        cfg.network.control_area_prefetch_complete_sweep_responses = True\n    elif hasattr(cfg.network, 'control_area_prefetch_complete_sweep_responses'):\n        del cfg.network.control_area_prefetch_complete_sweep_responses\n    cfg.network.control_area_beta_seconds = beta\n"
+    }
+  ],
+  "scope": "Opt-in whole-frozen-sweep response prefetch through the existing parallel cache only with unlimited time and enough declared evaluations. Same candidate domains, game score/adoption order, final audit. Not applied to running sources."
+}

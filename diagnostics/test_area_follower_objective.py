@@ -34,6 +34,61 @@ def configure_actual_meter_context(cfg, tuning, state, raw, mapping):
     return area_meter_finalization.configure(adapter, cfg, tuning, mapping, raw, str(previous), state, calibration)
 
 
+class SharedUrbanPointTests(unittest.TestCase):
+    def fixture(self):
+        cfg = SimpleNamespace(network=SimpleNamespace(control_area_enabled=True,
+            signals=('A', 'B'), off_ramp_storage_link={'OR': 'off'}),
+            simulation=SimpleNamespace(T_u_sec=2., T_u_h=2/3600, K_cu=2),
+            mpc=SimpleNamespace())
+        ramp = SimpleNamespace(cfg=cfg, movements=['in', 'off_m'], has_ramps=True,
+            onramp_movements={'R': ['in']}, offramp_movements={'OR': ['off_m']},
+            kind_of={'in': 'on_ramp', 'off_m': 'off_ramp'})
+        plain = SimpleNamespace(cfg=cfg, movements=['plain'], has_ramps=False,
+            onramp_movements={}, offramp_movements={}, kind_of={'plain': 'internal'})
+        follower = SimpleNamespace(cfg=cfg, _local_models={'A': ramp, 'B': plain},
+            _frozen_freeway_congestion=lambda state: {'R': .4}, ramp_metering_weight=.1)
+        response = {'schema': 'control-area-fixed-response/v1', 'residence': [], 'transfers': []}
+        for i in range(2):
+            response['residence'].append({'stage': 'urban', 'start_sec': 900.+2*i,
+                'end_sec': 902.+2*i, 'dt_h': 2/3600,
+                'inside_veh': {'movement:in': 0},  # local physical count is different
+                'model_stock_veh': {'movement:in': 3.-i, 'movement:plain': 10.,
+                                    'ramp:R': 4.+2*i, 'storage:off': 5.-i}})
+            response['transfers'].append({'stage': 'urban', 'start_sec': 900.+2*i,
+                'end_sec': 902.+2*i, 'source': 'movement:in', 'target': 'ramp:R',
+                'route_key': 'movement:in', 'vehicles': 1.+i})
+        return follower, SimpleNamespace(control_area_response=response), SimpleNamespace(time_sec=900.)
+
+    def test_existing_local_functional_consumes_joint_stock_and_accepted_flow(self):
+        follower, point, state = self.fixture()
+        original = copy.deepcopy(point.control_area_response)
+        costs = proposed.score_shared_urban_point(follower, point, state, horizon_steps=1)
+        self.assertAlmostEqual(costs['A']['cost'], 24 * 2/3600 + 3*.4*.1)
+        self.assertAlmostEqual(costs['B']['cost'], 20 * 2/3600)
+        self.assertEqual(point.control_area_response, original)
+        self.assertFalse(costs['A']['price_or_quantity_terms_included'])
+        self.assertFalse(costs['A']['shared_flow_consistency_certified'])
+
+    def test_missing_physical_stock_clock_or_wrong_ramp_destination_rejected(self):
+        for failure in ('missing_stock', 'reordered', 'other_ramp', 'legacy_trace'):
+            follower, point, state = self.fixture()
+            trace = point.control_area_response
+            if failure == 'missing_stock': del trace['residence'][0]['model_stock_veh']['ramp:R']
+            elif failure == 'reordered': trace['residence'].reverse()
+            elif failure == 'other_ramp': trace['transfers'][0]['target'] = 'ramp:other'
+            else: del trace['residence'][0]['model_stock_veh']
+            with self.subTest(failure=failure), self.assertRaises((ValueError, KeyError)):
+                proposed.score_shared_urban_point(follower, point, state, horizon_steps=1)
+
+    def test_other_owner_response_changes_local_cost_without_local_dynamics(self):
+        follower, point, state = self.fixture()
+        first = proposed.score_shared_urban_point(follower, point, state, horizon_steps=1)
+        point.control_area_response['residence'][1]['model_stock_veh']['movement:plain'] += 3
+        changed = proposed.score_shared_urban_point(follower, point, state, horizon_steps=1)
+        self.assertEqual(first['A'], changed['A'])
+        self.assertAlmostEqual(changed['B']['cost'] - first['B']['cost'], 3 * 2/3600)
+
+
 class AreaFollowerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

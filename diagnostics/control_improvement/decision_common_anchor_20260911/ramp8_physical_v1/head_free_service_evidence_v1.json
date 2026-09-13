@@ -1,0 +1,142 @@
+{
+  "schema": "completed-online-head-free-consumer-evidence/v1",
+  "completed": true,
+  "native_run": false,
+  "model_rollouts": 0,
+  "fzp_reads": 0,
+  "run": "codex_physical8_fw080_u050_fastnp_closedloop1350_v3",
+  "scope": "Consumer-only replay of immutable completed online counters. Temporary metadata envelopes are not executed actions and are deleted. No historical state/action is changed.",
+  "method": "Validated unique403L1->10565->58 and merged W aliases; direct-confirmed subset / complete elapsed window. Existing min exposure/count thresholds; min two contiguous windows, carry only same run/source/contract. Unknown transitions stay unassigned; source-wide stock is not saturation evidence.",
+  "chronological_counter_replay": [
+    {
+      "snapshot_sec": 750.0,
+      "window_sec": [
+        600,
+        750
+      ],
+      "confirmed_count": 13.0,
+      "unknown_source_events": 1.0,
+      "inherited_service_veh_h": 206.53061224489795,
+      "selected_service_veh_h": 206.53061224489795,
+      "observed_only_floor_veh_h": 0.0,
+      "current_pair_support_veh_h": 0.0,
+      "carried_observed_support_veh_h": 0.0,
+      "current_candidate_veh_h": 312.0,
+      "saturation_identified": false
+    },
+    {
+      "snapshot_sec": 900.0,
+      "window_sec": [
+        750,
+        900
+      ],
+      "confirmed_count": 17.0,
+      "unknown_source_events": 3.0,
+      "inherited_service_veh_h": 206.53061224489795,
+      "selected_service_veh_h": 312.0,
+      "observed_only_floor_veh_h": 312.0,
+      "current_pair_support_veh_h": 312.0,
+      "carried_observed_support_veh_h": 0.0,
+      "current_candidate_veh_h": 408.0,
+      "saturation_identified": false
+    },
+    {
+      "snapshot_sec": 1050.0,
+      "window_sec": [
+        900,
+        1050
+      ],
+      "confirmed_count": 13.0,
+      "unknown_source_events": 2.0,
+      "inherited_service_veh_h": 206.53061224489795,
+      "selected_service_veh_h": 312.0,
+      "observed_only_floor_veh_h": 312.0,
+      "current_pair_support_veh_h": 312.0,
+      "carried_observed_support_veh_h": 312.0,
+      "current_candidate_veh_h": 312.0,
+      "saturation_identified": false
+    },
+    {
+      "snapshot_sec": 1200.0,
+      "window_sec": [
+        1050,
+        1200
+      ],
+      "confirmed_count": 16.0,
+      "unknown_source_events": 1.0,
+      "inherited_service_veh_h": 206.53061224489795,
+      "selected_service_veh_h": 312.0,
+      "observed_only_floor_veh_h": 312.0,
+      "current_pair_support_veh_h": 312.0,
+      "carried_observed_support_veh_h": 312.0,
+      "current_candidate_veh_h": 384.0,
+      "saturation_identified": false
+    },
+    {
+      "snapshot_sec": 1350.0,
+      "window_sec": [
+        1200,
+        1350
+      ],
+      "confirmed_count": 26.0,
+      "unknown_source_events": 0.0,
+      "inherited_service_veh_h": 206.53061224489795,
+      "selected_service_veh_h": 384.0,
+      "observed_only_floor_veh_h": 384.0,
+      "current_pair_support_veh_h": 384.0,
+      "carried_observed_support_veh_h": 312.0,
+      "current_candidate_veh_h": 624.0,
+      "saturation_identified": false
+    }
+  ],
+  "first_activation_recorded900_with_actual_legacy_action750": {
+    "snapshot_sec": 900.0,
+    "window_sec": [
+      750,
+      900
+    ],
+    "confirmed_count": 17.0,
+    "unknown_source_events": 3.0,
+    "inherited_service_veh_h": 206.53061224489795,
+    "selected_service_veh_h": 206.53061224489795,
+    "observed_only_floor_veh_h": 0.0,
+    "current_pair_support_veh_h": 0.0,
+    "carried_observed_support_veh_h": 0.0,
+    "current_candidate_veh_h": 408.0,
+    "saturation_identified": false
+  },
+  "conditional_recorded1050_after_new_consumer_metadata900": {
+    "snapshot_sec": 1050.0,
+    "window_sec": [
+      900,
+      1050
+    ],
+    "confirmed_count": 13.0,
+    "unknown_source_events": 2.0,
+    "inherited_service_veh_h": 206.53061224489795,
+    "selected_service_veh_h": 312.0,
+    "observed_only_floor_veh_h": 312.0,
+    "current_pair_support_veh_h": 312.0,
+    "carried_observed_support_veh_h": 0.0,
+    "current_candidate_veh_h": 312.0,
+    "saturation_identified": false
+  },
+  "initial_native_requirement": "A new run must collect and preserve two valid adjacent pre-control windows; historical action750 has no new consumer candidate so first activation at900 alone must not install312.",
+  "source_sha256": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\head_free_service_evidence_v1.py": "80067e78458bab192dd76a4f1620599b3fdd15d59982ed593a771e23db5117b9",
+    "evaluation\\controllers\\signal_head_observation.py": "f0fd1e2e9fd7435a42cd6a3d5b50cf1e4dbe2d9fe9499985664aeeb0a802ec10",
+    "diagnostics\\test_head_free_service.py": "a1a6e7ddaa47fcef31c167341d8c6367094ad2e06ab022bddff502099446fd13",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\head_free_service_10565_v1.json": "034e72ed23b94f35f6b3778e7169fa30ed408afd43914a8d4a491f642514a677",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_service_capacity_origin_v1.json": "0a7263212df62fd60e3f941ebac204695b64d793d7f876fdc96923db8b027aef",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\action_000750.json": "4288cf9d2425aec1a915ad097e0ad71de6313321dba4d3f30b656345b4f4d944",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\state_000750.json": "cc93c2247ff5cbc763431e0c20b353dfd0fec473edeb865fbf71d80549d7a9bb",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\state_000900.json": "3fdf386148ac1832850e534c7a0b576a15492de23414e8e77179406788c596f9",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\state_001050.json": "5c59e294f7d8b91844f03ca0cac5296902449813d2f4a33201e50468bb8a2696",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\state_001200.json": "c09859fa9d2946158593d8eb3121b15dd571355198e2d7e2d2368d3c8de952b5",
+    "evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v3\\state_001350.json": "6b0f0dd8ec6336808c386580b9a2257c77e143139ec9da67f49087cb69927a5e",
+    "network\\real_world_gaepo_modi\\modi_eval_userfix Ver2.inpx": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+    "diagnostics\\control_area_movement_join_physical_routes.json": "ec494715a1c5e9a0bee70e09c1909eb9c54484bcccfc0caf0d35d6d70cd0e563"
+  },
+  "source_changes": [],
+  "elapsed_sec": 1.1208654999936698
+}

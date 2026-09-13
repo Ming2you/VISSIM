@@ -1,0 +1,31 @@
+{
+  "schema": "pending-source-edit/v1",
+  "applied": false,
+  "path": "evaluation\\controllers\\area_follower_objective.py",
+  "source_file_sha256": "015565836876a0ec4017e993c22de38e68841d55a72360570ca871a10351ba16",
+  "old_text_sha256": "a29774cfe6fca0d0384c026e838e2abc4249daf5c70a4a4fac6369e4f17f567e",
+  "new_text_sha256": "f0ac63e4a1730f2994815f8d9c5303f98699d5fc19bda0c730ec30167f6c7457",
+  "edits": [
+    {
+      "before": "            restore_initializer=True, **work_options)",
+      "after": "            restore_initializer=True,\n            progress=progress if budget and budget.unlimited_time else None, **work_options)"
+    },
+    {
+      "before": "                            response_query=None, deadline_check=None, restore_initializer=False):",
+      "after": "                            response_query=None, deadline_check=None, restore_initializer=False,\n                            progress=None):"
+    },
+    {
+      "before": "    required = {'ownership', 'neighbors', 'physical_fingerprint', 'physical_rows', 'command_evidence'}",
+      "after": "    if progress is not None and not callable(progress):\n        raise ValueError('Fixed game progress must be callable')\n    required = {'ownership', 'neighbors', 'physical_fingerprint', 'physical_rows', 'command_evidence'}"
+    },
+    {
+      "before": "        return game.Evaluation(feasible=feasible,\n            cost=item['owner_costs'][owner], shared_violation=violation,\n            witness_complete=witnessed, reason=reason)",
+      "after": "        result = game.Evaluation(feasible=feasible,\n            cost=item['owner_costs'][owner], shared_violation=violation,\n            witness_complete=witnessed, reason=reason)\n        if progress is not None:\n            progress({'stage': 'joint_candidate_evaluated', 'owner': owner,\n                'requests': stats['requests'], 'endpoint_calls': stats['endpoint_calls'],\n                'cache_hits': stats['cache_hits'], 'feasible': feasible,\n                'witness_complete': witnessed})\n        return result"
+    },
+    {
+      "before": "        'time_budget_scope': 'Single preparation/price/search/finalization deadline; cooperative callback overrun is reported',",
+      "after": "        'time_budget_scope': ('Computation wall limits disabled; evaluation/sweep/candidate bounds remain active'\n            if budget.unlimited_time else\n            'Single preparation/price/search/finalization deadline; cooperative callback overrun is reported'),"
+    }
+  ],
+  "scope": "Prepared source edit only, opt-in completed candidate progress for post-start watchdog; no active source change."
+}

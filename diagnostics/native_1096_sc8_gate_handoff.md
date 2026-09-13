@@ -1,0 +1,26 @@
+# Native1096 intermediate SC8 gate
+
+Implemented the missing native SC8/4 timing constraint in the existing tagged route helper. SC7 acceptance still has the sole queue debit, physical receiver and area event. The tag then travels inside existing `SC7_to_SC108` storage, waits for actual native GREEN, passes once, and completes the remaining transit before joining the existing SC108 movement queue. No stock, area entry, service capacity, fitted coefficient or production signal override was added.
+
+The full native path is `201→10319→199→10314→194→10322→1210009600→10333→1220007402→10304→1220007401→10298→1220044400` (decision1102:1). The selected SC7/1 head precedes10333; unselected native SC8/4 heads lie on1220007402 before10304; selected SC108/4 heads precede10298. Missing selected **or native** heads now fail configuration. Explicit pins validate controller binding, native file/program, head authority, selected plan, physical receipt contract and existing area membership.
+
+| SC8 head | Lane | Position on1220007402 (m) | Existing stage receipt to gate (m) | Gate to SC108 queue convention (m) |
+|---|---:|---:|---:|---:|
+|150401|2|200.803081|223.6511816733|172.5791970383|
+|150402|1|200.859711|223.7078116733|172.5225670383|
+
+Both splits preserve the existing396.2303787116m stage distance. Tags do not carry a lane, so the implementation uses the earliest head; the0.05663m spread is explicit. Existing upstream service places receipts at connector10333 and omits the SC7 head-to-connector5.67006m gap; this repair preserves that convention. The existing SC108 min-head convention has a0.034925m lane spread. These are spatial approximations, not newly inferred physical boundaries.
+
+INPX controller8 is active FIXEDTIME, program1, controller offset0, bound to `개포동 test-bed15.sig`. The SIG internal controller identifier is15; it does **not** mean INPX SC15. Canonical `parse_sig` gives cycle120s/program offset1s: native phaseGREEN[0,71), AMBER[71,74), RED[74,120), or absolute phase `(t−1)%120`. The complete NC `.lsa` has135 SC8/4 events. Event states, native phase values, dense1–5399s states and canonical one-second GREEN overlap all match, with zero differences. No observed state assertion is made at0s. This LSA evidence applies to unactuated SC8 only.
+
+The timing-only gate releases a ready aggregate cohort at the first actual GREEN instant in a5s model interval; all such cohorts remain part of the same stock. For example[120,125) passes at121, never120. Post-gate travel uses the existing conservative integer-step delay and rounds the gate instant up to the model grid. There is no claim of calibrated finite SC8 discharge, lane FIFO or competition with untagged shared-road traffic. Initial tags remain restricted to source201/connector10319; existing downstream observed cars retain the old aggregate route approximation. Parent explicitly selected this narrow repair rather than assigning the tagged subset exclusive two-lane capacity.
+
+Validation:9 route tests PASS6.247s; after portable fixture migration, those9 plus6 source1083 tests PASS8.339s. Tests include actual NC900→450s coupled physics with Ω ON/OFF equality, repeated/fresh-worker equality, raw and candidate-copy isolation, native red hold, single GREEN passage, remaining travel, existing finite queue partial admission,2×0.6e−8 positive tags, wrong head/offset and omitted native-head rejection. They do not execute an optimizer or VISSIM. The standalone producer performed the full LSA audit; portable tests consume its recorded result and actual clock without reading original run files.
+
+Files: `evaluation/controllers/native_input_routes.py`, `diagnostics/test_native_input_routes.py`, `diagnostics/native_input_1096_route_ver2.json`, `diagnostics/audit_native_sc8_gate.py`, `diagnostics/native_1096_sc8_gate_ver2.json`. The only additional edit is `fixture_path` migration in `diagnostics/test_native1083_signal_authority.py`. No adapter/runtime hook/native input owner was edited here. Hubble received the final route pin for outer evidence refresh.
+
+Final route SHA256: `7fc0e89f8a5cebca2bde4b32d9bda8c3da6f34848fd30f9ff9aaf46538611e2f`. Gate evidence SHA256: `f8f3e23cb63b9e5833425ae16da2a2610470aba5b7bf4b15708eb44782b7afcd`. Helper SHA256 at handoff: `ce5521dbfc4386dc0df4905302f5fd27ffd6e57a7377ec19762691beffec33a3`.
+
+Reproduce the source audit with a new output: `python -X utf8 -m diagnostics.audit_native_sc8_gate --output diagnostics/<new-name>.json`. Tests: `python -X utf8 -m unittest diagnostics.test_native_input_routes diagnostics.test_native1083_signal_authority -v`.
+
+For1093, the same principle is ordered service stages in one existing stock, not another beta draw or another physical receipt. Hubble's declared narrow scope keeps W/N existing p3 queues, retains the left subset until upstream SC11/6 p3 has served it, then permits downstream SC11/1 p4 only after a positive travel delay. W also has a later p3 head: collapsing its two p3 stoplines remains an explicit pre-existing approximation. The source225 branch to10360 is outside this SC11-left repair. Shared p3 budget must subtract **actual** W/N service once, preserve partially served tagged remainders, and never let the upstream gate emit a second area/receiver transfer. A separate read-only review of those hooks is underway.

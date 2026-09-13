@@ -73,6 +73,42 @@ def checked_config(path, beta):
     return cfg
 
 
+def diagnostic_environment(environment, out, *, phase_trace=False, process_profile=False, evaluation_trace=False, resource_counters=False):
+    """One explicit diagnostic mode; inherited diagnostic bootstraps cannot leak."""
+    if sum((phase_trace, process_profile, evaluation_trace, resource_counters)) > 1:
+        raise ValueError('Phase trace, cProfile, evaluation trace and normal resource counters are mutually exclusive')
+    env = dict(environment)
+    for key in ('RW_DECISION_PROFILE_DIR', 'RW_PHASE_COMMIT_TRACE_DIR', 'RW_PHASE_TRACE_DIR',
+                'RW_EVALUATION_TRACE_DIR', 'RW_EVALUATION_TRACE_INPUTS_JSON', 'RW_EVALUATION_TRACE_MANIFEST',
+                'RW_DECISION_RESOURCE_DIR', 'RW_EVALUATION_TRACE_BACKEND', 'RW_EVALUATION_TRACE_LOCALS'):
+        env.pop(key, None)
+    bootstraps = {str((ROOT/'diagnostics'/name).resolve()).casefold() for name in
+                  ('phase_trace_bootstrap', 'decision_profile_bootstrap', 'evaluation_trace_bootstrap', 'decision_resource_bootstrap')}
+    paths = [p for p in env.get('PYTHONPATH', '').split(os.pathsep) if p and
+             str(Path(p).resolve()).casefold() not in bootstraps]
+    selection = None
+    if phase_trace:
+        selection = ('phase_trace_bootstrap', 'RW_PHASE_COMMIT_TRACE_DIR', 'phase_trace')
+    elif process_profile:
+        selection = ('decision_profile_bootstrap', 'RW_DECISION_PROFILE_DIR', 'profile')
+    elif evaluation_trace:
+        selection = ('evaluation_trace_bootstrap', 'RW_EVALUATION_TRACE_DIR', 'evaluation_trace')
+        env['RW_EVALUATION_TRACE_MANIFEST'] = str(out/'manifest.json')
+        env['RW_EVALUATION_TRACE_BACKEND'] = 'monitor'
+        env['RW_EVALUATION_TRACE_LOCALS'] = '1'
+    elif resource_counters:
+        selection = ('decision_resource_bootstrap', 'RW_DECISION_RESOURCE_DIR', 'resources')
+    if selection:
+        bootstrap, variable, directory = selection
+        paths = [str(ROOT), str(ROOT/'diagnostics'/bootstrap), *paths]
+        env[variable] = str(out/directory)
+    if paths:
+        env['PYTHONPATH'] = os.pathsep.join(paths)
+    else:
+        env.pop('PYTHONPATH', None)
+    return env
+
+
 def validate_result(payload, beta, controller='wu-link'):
     metadata = payload['metadata']
     required = {'controller_status': 'ok', 'physical_signal_contract_enabled': 1.,
@@ -143,10 +179,21 @@ def main():
     parser.add_argument('--beta', type=int, choices=(0, 60, 150, 300), required=True)
     parser.add_argument('--controller', choices=('wu-link', 'no-control'), default='wu-link')
     parser.add_argument('--config-directory', default='area_candidate_configs')
-    parser.add_argument('--phase-trace', action='store_true', help='Read-only profile of base/outer follower phase vectors; diagnostic overhead applies.')
+    trace_options = parser.add_mutually_exclusive_group()
+    trace_options.add_argument('--phase-trace', action='store_true', help='Read-only profile of base/outer follower phase vectors; diagnostic overhead applies.')
+    trace_options.add_argument('--profile-all-processes', action='store_true',
+                        help='cProfile adapter and spawned Python workers; never use these timings as unprofiled benchmark results.')
+    trace_options.add_argument('--evaluation-trace', action='store_true',
+                        help='Record candidate/price/endpoint controls and scores in parent and workers; separate from timing benchmarks.')
+    trace_options.add_argument('--resource-counters', action='store_true',
+                        help='Normal benchmark with exit-only CPU/memory/cache counters; no call or line profiling.')
     parser.add_argument('--execute', action='store_true')
+    parser.add_argument('--python-hash-seed', type=int, default=None,
+                        help='Explicit reproducible adapter/worker hash seed; recorded separately from inherited defaults.')
     parser.add_argument('--timeout-sec', type=float, default=600.)
     args = parser.parse_args()
+    if args.python_hash_seed is not None and not 0 <= args.python_hash_seed <= 4294967295:
+        parser.error('--python-hash-seed must be in [0, 4294967295]')
     if not math.isfinite(args.timeout_sec) or args.timeout_sec <= 0:
         parser.error('--timeout-sec must be finite and positive')
     if not re.fullmatch(r'[A-Za-z0-9_-]+', args.config_directory):
@@ -184,10 +231,11 @@ def main():
                NUMSIM_REPO_ROOT=str(ROOT / 'vendor/NumSim-mine'),
                RW_MAINLINE_SG_ONLY='1' if cfg['urban']['plan']['mainline_only'] else '0')
     env.pop('RW_ADAPTER_MODE', None)  # Match VBS's unset/default fast-smoke mode.
-    if args.phase_trace:
-        env['PYTHONPATH'] = os.pathsep.join([str(ROOT), str(ROOT / 'diagnostics/phase_trace_bootstrap'),
-                                            *([env['PYTHONPATH']] if env.get('PYTHONPATH') else [])])
-        env['RW_PHASE_COMMIT_TRACE_DIR'] = str(out / 'phase_trace')
+    if args.python_hash_seed is not None:
+        env['PYTHONHASHSEED'] = str(args.python_hash_seed)
+    env = diagnostic_environment(env, out, phase_trace=args.phase_trace,
+                                process_profile=args.profile_all_processes, evaluation_trace=args.evaluation_trace,
+                                resource_counters=args.resource_counters)
     candidate_manifest = json.loads((cfg_dir / 'manifest.json').read_text(encoding='utf-8'))
     selected = candidate_manifest['outputs'][str(args.beta)]
     if (ROOT / selected['path']).resolve() != cfg_path.resolve() or hashlib.sha256(cfg_path.read_bytes()).hexdigest() != selected['sha256']:
@@ -207,10 +255,33 @@ def main():
                 'command': command, 'environment': {k: env[k] for k in ('RW_OFFSET_WRITER', 'NUMSIM_REPO_ROOT', 'RW_MAINLINE_SG_ONLY')},
                 'config_sha256': hashlib.sha256(cfg_path.read_bytes()).hexdigest(),
                 'source_sha256': hashes(), 'execute': args.execute}
+    manifest['python_hash_seed'] = {'adapter_and_workers': env.get('PYTHONHASHSEED'),
+                                    'explicit_cli': args.python_hash_seed is not None}
     if args.phase_trace:
         manifest['read_only_phase_trace'] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in (ROOT / 'diagnostics/phase_commit_trace.py', ROOT / 'diagnostics/phase_trace_bootstrap/sitecustomize.py')}
         manifest['environment'].update({k: env[k] for k in ('PYTHONPATH', 'RW_PHASE_COMMIT_TRACE_DIR')})
+    if args.profile_all_processes:
+        manifest['read_only_process_profile'] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (ROOT / 'diagnostics/decision_profile.py', ROOT / 'diagnostics/decision_profile_bootstrap/sitecustomize.py')}
+        manifest['environment'].update({k: env[k] for k in ('PYTHONPATH', 'RW_DECISION_PROFILE_DIR')})
+    if args.evaluation_trace:
+        manifest['read_only_evaluation_trace'] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (ROOT/'diagnostics/evaluation_trace.py', ROOT/'diagnostics/evaluation_trace_bootstrap/sitecustomize.py',
+                      ROOT/'diagnostics/evaluation_trace_local.py', ROOT/'diagnostics/evaluation_trace_monitor.py',
+                      ROOT/'diagnostics/evaluation_trace_finalize.py', ROOT/'diagnostics/evaluation_trace_state.py',
+                      ROOT/'diagnostics/evaluation_trace_storage.py',
+                      ROOT/'diagnostics/decision_profile.py',
+                      Path(__file__).resolve())}
+        manifest['environment'].update({k: env[k] for k in
+                                       ('PYTHONPATH', 'RW_EVALUATION_TRACE_DIR', 'RW_EVALUATION_TRACE_MANIFEST',
+                                        'RW_EVALUATION_TRACE_BACKEND', 'RW_EVALUATION_TRACE_LOCALS')})
+        manifest['evaluation_trace_scope'] = 'Selected main-thread call/return evidence in each process; trace-overhead-inclusive timing; no normal benchmark claim.'
+    if args.resource_counters:
+        manifest['normal_process_counters'] = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (ROOT/'diagnostics/decision_resource_counters.py', ROOT/'diagnostics/decision_resource_bootstrap/sitecustomize.py',
+                      ROOT/'diagnostics/decision_profile.py', Path(__file__).resolve())}
+        manifest['environment'].update({k: env[k] for k in ('PYTHONPATH', 'RW_DECISION_RESOURCE_DIR')})
     if not args.execute:
         print(json.dumps(manifest, indent=2))
         return
@@ -240,7 +311,7 @@ def main():
             time.sleep(.2)
     snapshot = process_snapshot()
     survivors = [row for pid, row in owned.items() if pid in snapshot and row['created'] == snapshot[pid]['created']]
-    manifest.update(exit_code=process.returncode, elapsed_sec=time.monotonic() - started,
+    manifest.update(adapter_pid=process.pid, exit_code=process.returncode, elapsed_sec=time.monotonic() - started,
                     observed_worker_processes=list(owned.values()), surviving_worker_pids=[p['pid'] for p in survivors],
                     source_unchanged=hashes() == manifest['source_sha256'],
                     inputs_unchanged=all(hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected
@@ -250,8 +321,49 @@ def main():
         stop_exact_process(child)
     error = None
     try:
+        if args.evaluation_trace:
+            from diagnostics.evaluation_trace_local import collection
+            trace_result = collection(out/'evaluation_trace', root_pid=process.pid, expected_child_pids=owned)
+            manifest['evaluation_trace_validation'] = {k: v for k, v in trace_result.items() if k != 'comparison'}
+            trace_sources_unchanged = all(hashlib.sha256((ROOT/p).read_bytes()).hexdigest()==h
+                for p,h in manifest['read_only_evaluation_trace'].items())
+            manifest['evaluation_trace_validation']['trace_sources_unchanged'] = trace_sources_unchanged
+            if not trace_result['valid'] or not trace_sources_unchanged:
+                raise AssertionError('Evaluation trace incomplete, invalid or changed; inspect per-process evidence')
         if process.returncode != 0 or survivors or not manifest['source_unchanged'] or not manifest['inputs_unchanged']:
             raise AssertionError('Failed adapter/process cleanup or runtime source/input changed; inspect logs')
+        if args.profile_all_processes:
+            reports = []
+            for marker in sorted((out/'profile').glob('*.started.json')):
+                report_path = marker.with_name(marker.name.replace('.started', ''))
+                if not report_path.is_file():
+                    raise AssertionError('A profiled process did not flush: ' + marker.name)
+                report = json.loads(report_path.read_text(encoding='utf-8'))
+                if not report.get('completed') or not (ROOT/report['pstats']).is_file():
+                    raise AssertionError('Incomplete child profile: ' + marker.name)
+                reports.append(report)
+            if process.pid not in {row['pid'] for row in reports}:
+                raise AssertionError('Adapter cProfile hook was not installed')
+            manifest['process_profile_validation'] = {'complete': True, 'processes': len(reports),
+                'adapter_pid': process.pid, 'scope': 'Every started profile flushed; function times overlap across processes and nested calls.'}
+        if args.resource_counters:
+            reports = []
+            for marker in sorted((out/'resources').glob('*.started.json')):
+                report_path = marker.with_name(marker.name.replace('.started', ''))
+                if not report_path.is_file():
+                    raise AssertionError('Process resource counter did not flush: ' + marker.name)
+                report = json.loads(report_path.read_text(encoding='utf-8'))
+                if report.get('completed') is not True or report.get('function_instrumentation') is not False:
+                    raise AssertionError('Invalid normal resource counter: ' + marker.name)
+                reports.append(report)
+            seen = {r['pid'] for r in reports}
+            if process.pid not in seen or set(owned) - seen:
+                raise AssertionError('Normal resource counters missed adapter/observed workers')
+            if any(hashlib.sha256((ROOT/p).read_bytes()).hexdigest() != h for p,h in manifest['normal_process_counters'].items()):
+                raise AssertionError('Normal resource counter source changed')
+            manifest['normal_resource_validation'] = {'complete': True, 'processes': len(reports),
+                'adapter_pid': process.pid, 'observed_process_cpu_sec': sum(r['observed_process_cpu_sec'] for r in reports),
+                'scope': 'Exit-only counters; no function profiling; overlapping wall/peak measurements are not summed.'}
         manifest['validated_metadata'] = validate_result(json.loads((out / 'action.json').read_text(encoding='utf-8')), args.beta, args.controller)
         manifest['valid'] = True
     except Exception as exc:

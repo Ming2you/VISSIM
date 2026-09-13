@@ -1,0 +1,116 @@
+{
+  "schema_version": "boundary-out-ramp-split/1",
+  "source": {
+    "path": "diagnostics/fixed_beta300v3_network_arms_flat_v1/baseline.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "rule": "Exact installed static route weights; blank relFlow=1. Model prior correction only; no VISSIM input/route or observed destination change.",
+  "links": {
+    "SC1001_W_out": {
+      "decision": "1137",
+      "physical_link": "31",
+      "free": 0.16666666666666666,
+      "ramps": {
+        "R_D_E": 0.5,
+        "R_D_W": 0.3333333333333333
+      }
+    },
+    "SC1004_W_out": {
+      "decision": "1135",
+      "physical_link": "68",
+      "free": 0.2,
+      "ramps": {
+        "R_F_W": 0.6,
+        "R_F_E": 0.2
+      }
+    }
+  },
+  "native_route_audit": [
+    {
+      "storage": "SC1001_W_out",
+      "decision": "1137",
+      "route": "1",
+      "relFlow": "2 0:3",
+      "path": [
+        "31",
+        "10484",
+        "24"
+      ],
+      "target": "R_D_E",
+      "share": 0.5
+    },
+    {
+      "storage": "SC1001_W_out",
+      "decision": "1137",
+      "route": "2",
+      "relFlow": "",
+      "path": [
+        "31",
+        "10774",
+        "124",
+        "10775",
+        "125"
+      ],
+      "target": "free",
+      "share": 0.16666666666666666
+    },
+    {
+      "storage": "SC1001_W_out",
+      "decision": "1137",
+      "route": "3",
+      "relFlow": "2 0:2",
+      "path": [
+        "31",
+        "10774",
+        "124",
+        "10480",
+        "26"
+      ],
+      "target": "R_D_W",
+      "share": 0.3333333333333333
+    },
+    {
+      "storage": "SC1004_W_out",
+      "decision": "1135",
+      "route": "2",
+      "relFlow": "2 0:3",
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10646",
+        "120"
+      ],
+      "target": "R_F_W",
+      "share": 0.6
+    },
+    {
+      "storage": "SC1004_W_out",
+      "decision": "1135",
+      "route": "3",
+      "relFlow": "",
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10773",
+        "123"
+      ],
+      "target": "free",
+      "share": 0.2
+    },
+    {
+      "storage": "SC1004_W_out",
+      "decision": "1135",
+      "route": "4",
+      "relFlow": "",
+      "path": [
+        "68",
+        "10681",
+        "2"
+      ],
+      "target": "R_F_E",
+      "share": 0.2
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "completed": true,
+  "diagnostic_not_gne_selected": true,
+  "window_sec": [
+    900,
+    1350
+  ],
+  "warmup_all_fzp_rows_exact_through900": true,
+  "first_native_difference": {
+    "ordered_row_one_based": 1012769,
+    "left": "950.00;977;403;2;272.52;0.50;12.60;698.00;345.04",
+    "right": "950.00;977;403;2;270.77;0.50;0.00;698.00;345.18",
+    "left_sec": "950.00",
+    "right_sec": "950.00"
+  },
+  "native_omega": {
+    "TTT_veh_h": {
+      "baseline": 166.56527777777788,
+      "shift": 166.60583333333335,
+      "delta": 0.0405555555554713
+    },
+    "TD": {
+      "baseline": 1558,
+      "shift": 1561,
+      "delta": 3
+    },
+    "observed_exit_events": {
+      "baseline": 1066,
+      "shift": 1069,
+      "delta": 3
+    },
+    "terminal_exit_inferred_events": {
+      "baseline": 492,
+      "shift": 492,
+      "delta": 0
+    },
+    "entry_total": {
+      "baseline": 2166,
+      "shift": 2166,
+      "delta": 0
+    },
+    "N_start": {
+      "baseline": 1034,
+      "shift": 1034,
+      "delta": 0
+    },
+    "N_end": {
+      "baseline": 1630,
+      "shift": 1630,
+      "delta": 0
+    },
+    "unresolved_inside_disappearances": {
+      "baseline": 12,
+      "shift": 9,
+      "delta": -3
+    }
+  },
+  "model": {
+    "before": {
+      "ttt_veh_h": {
+        "baseline": 191.0985947878681,
+        "shift": 191.11046665882247,
+        "delta": 0.011871870954365704
+      },
+      "ttd_veh": {
+        "baseline": 1138.3740476100631,
+        "shift": 1138.2028813162588,
+        "delta": -0.17116629380439008
+      },
+      "entered_veh": {
+        "baseline": 1710.7368987306272,
+        "shift": 1710.7370081754239,
+        "delta": 0.00010944479663521633
+      },
+      "merged_vehicles_delta": 0.1701005582008861
+    },
+    "after": {
+      "ttt_veh_h": {
+        "baseline": 191.0110347620554,
+        "shift": 191.02979580894947,
+        "delta": 0.018761046894070432
+      },
+      "ttd_veh": {
+        "baseline": 1141.2293880604823,
+        "shift": 1140.8841774085386,
+        "delta": -0.3452106519437166
+      },
+      "entered_veh": {
+        "baseline": 1710.7370446570228,
+        "shift": 1710.7370446570228,
+        "delta": 0.0
+      },
+      "merged_vehicles_delta": 0.0
+    }
+  },
+  "source_pins": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_area450_v1\\boundary_metrics.json": "2c0e7cb2ae9833c06908f09697ade9ab26f745b3e97e76db6208ffac971f0356",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_shift1350_area450_v1\\boundary_metrics.json": "a5dfe607e5ae26679411a01b049a32b339d15a9a8e37fb75654397b0e4d0c41a",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_shift1350_native450_v1.json": "5351c42dee2c5ca07ee574b7455f80acd304c3ee54d230fb1073c056e77685ba",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_shift_model450_before_v2.json": "d108a4d352ae8d5b229b623981632e987cba35c3f289559ab04abe4868df23e7",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_shift_model450_after_v2.json": "256edef20fcf56f1c1d93a1dfb206476d91b3e3bad54729705409b024010587b",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_sc1005_departures_v1.json": "bde2ff0b4ebf70bed9af8ddbbd01a4ddb0dc94318842950b53cb63efab5db95a",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_sc1004_corridor_v1.json": "420248c82e8315de9db053d137f79be12a08ea8cd95650921b8bce2b0c8cb20c",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_ramp450_v1.json": "d3f90c1e384943b8e291f742e0dee99cbdce0b05b5e262e67bb27dc1ee347b3a"
+  },
+  "interpretation": "Specific authority diagnostic, not controller improvement. TTD +3 coincides with three fewer unresolved disappearances; unresolved records remain excluded. No throughput-gain claim. Same native ramp counts do not prove model capacity fidelity.",
+  "corridor_equal_links": {
+    "52": {
+      "aggregate_stats_exact": true,
+      "entries_by_previous_link_exact": true,
+      "exits_by_next_link_exact": true
+    },
+    "58": {
+      "aggregate_stats_exact": true,
+      "entries_by_previous_link_exact": true,
+      "exits_by_next_link_exact": true
+    },
+    "68": {
+      "aggregate_stats_exact": true,
+      "entries_by_previous_link_exact": true,
+      "exits_by_next_link_exact": true
+    },
+    "121": {
+      "aggregate_stats_exact": true,
+      "entries_by_previous_link_exact": true,
+      "exits_by_next_link_exact": true
+    }
+  },
+  "sc1005": {
+    "baseline": {
+      "initial_n": 8,
+      "stopped_vehicle_seconds_lt5": 1665,
+      "end_n": 15,
+      "max_n": 29,
+      "observed_exits": 107,
+      "observed_entries": 114,
+      "lane_changes": 10
+    },
+    "shift": {
+      "initial_n": 8,
+      "stopped_vehicle_seconds_lt5": 1854,
+      "end_n": 16,
+      "max_n": 29,
+      "observed_exits": 106,
+      "observed_entries": 114,
+      "lane_changes": 7
+    },
+    "baseline_departures": {
+      "58": 4,
+      "10565": 53,
+      "10570": 50
+    },
+    "shift_departures": {
+      "58": 4,
+      "10565": 53,
+      "10570": 49
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "completed": true,
+  "new_tests": 7,
+  "python_regressions_ran": 20,
+  "python_regressions_passed": true,
+  "prior_full_attempt": {
+    "tests": 23,
+    "passed": 20,
+    "failed_before_VBS_fixture_execution": [
+      "test_actual_collector_native_to_controlled_and_reset_no_duplicate_step",
+      "test_actual_vbs_head_functions_bypass_boundary_duplicate_and_reset",
+      "test_actual_vbs_verified_table_cache_one_bulk_capture_per_timestamp"
+    ],
+    "error": "CScript Error: Loading your settings failed. (Access is denied.)"
+  },
+  "native_run": false,
+  "model_rollouts": 0,
+  "fzp_reads": 0,
+  "output": "test_adapter_off_is_original_ast_and_scheduler_closes_before_decision (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_adapter_off_is_original_ast_and_scheduler_closes_before_decision) ... ok\ntest_config_provenance_source_changes_and_quality_validation (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_config_provenance_source_changes_and_quality_validation) ... ok\ntest_no_model_members_is_zero_installation_not_claimed_success (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_no_model_members_is_zero_installation_not_claimed_success) ... ok\ntest_prior_foreign_run_future_overlap_and_changed_source_are_discarded (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_prior_foreign_run_future_overlap_and_changed_source_are_discarded) ... ok\ntest_short_spike_zero_nonfinite_and_ambiguous_data_not_updates (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_short_spike_zero_nonfinite_and_ambiguous_data_not_updates) ... ok\ntest_two_nonoverlapping_windows_required_and_prior_carried_without_data (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_two_nonoverlapping_windows_required_and_prior_carried_without_data) ... ok\ntest_unknown_geometry_duplicate_or_stale_window_cannot_be_evidence (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_unknown_geometry_duplicate_or_stale_window_cannot_be_evidence) ... ok\ntest_watchdog_config_only_transport_inheritance_and_launch_revalidation (diagnostics.test_signal_observation_window_patch.InstalledConsumerTests.test_watchdog_config_only_transport_inheritance_and_launch_revalidation) ... ok\ntest_final_frame_requires_complete_eof_or_later_complete_row (diagnostics.test_signal_observation_smoke_audit.SmokeAuditTests.test_final_frame_requires_complete_eof_or_later_complete_row) ... ok\ntest_gap_noninteger_nonfinite_and_time_reversal_reject (diagnostics.test_signal_observation_smoke_audit.SmokeAuditTests.test_gap_noninteger_nonfinite_and_time_reversal_reject) ... ok\ntest_recorded_floor_needs_adjacent_candidates_then_monotone_carry (diagnostics.test_signal_observation_smoke_audit.SmokeAuditTests.test_recorded_floor_needs_adjacent_candidates_then_monotone_carry) ... ok\ntest_same_ordered_prefix_ignores_later_frames (diagnostics.test_signal_observation_smoke_audit.SmokeAuditTests.test_same_ordered_prefix_ignores_later_frames) ... ok\ntest_trajectory_only_accepts_off_run_without_head_snapshots (diagnostics.test_signal_observation_smoke_audit.SmokeAuditTests.test_trajectory_only_accepts_off_run_without_head_snapshots) ... ok\ntest_ambiguous_exit_controlled_member_or_unmerged_alias_fail (diagnostics.test_head_free_service.HeadFreeTests.test_ambiguous_exit_controlled_member_or_unmerged_alias_fail) ... ok\ntest_carry_is_observed_only_and_never_reduces_inherited_service (diagnostics.test_head_free_service.HeadFreeTests.test_carry_is_observed_only_and_never_reduces_inherited_service) ... ok\ntest_incomplete_clock_and_insufficient_counts_cannot_create_candidate (diagnostics.test_head_free_service.HeadFreeTests.test_incomplete_clock_and_insufficient_counts_cannot_create_candidate) ... ok\ntest_malformed_window_counts_and_collector_coverage_fail (diagnostics.test_head_free_service.HeadFreeTests.test_malformed_window_counts_and_collector_coverage_fail) ... ok\ntest_noncontiguous_candidate_wrong_run_and_changed_contract_do_not_pair (diagnostics.test_head_free_service.HeadFreeTests.test_noncontiguous_candidate_wrong_run_and_changed_contract_do_not_pair) ... ok\ntest_opt_out_is_exact_and_removes_stale_owned_configuration (diagnostics.test_head_free_service.HeadFreeTests.test_opt_out_is_exact_and_removes_stale_owned_configuration) ... ok\ntest_two_windows_use_data_derived_minimum_not_unknown_or_road_queue (diagnostics.test_head_free_service.HeadFreeTests.test_two_windows_use_data_derived_minimum_not_unknown_or_road_queue) ... ok\n\n----------------------------------------------------------------------\nRan 20 tests in 1.215s\n\nOK\n",
+  "source_sha256": {
+    "evaluation\\controllers\\signal_head_observation.py": "f0fd1e2e9fd7435a42cd6a3d5b50cf1e4dbe2d9fe9499985664aeeb0a802ec10",
+    "diagnostics\\test_head_free_service.py": "a1a6e7ddaa47fcef31c167341d8c6367094ad2e06ab022bddff502099446fd13",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\head_free_service_10565_v1.json": "034e72ed23b94f35f6b3778e7169fa30ed408afd43914a8d4a491f642514a677",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\head_free_service_evidence_v1.py": "80067e78458bab192dd76a4f1620599b3fdd15d59982ed593a771e23db5117b9",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\head_free_service_evidence_v1.json": "ab49f6f59a00a11d71b97db1e5b20eec8ce4162e5449706e071f3fe477019286"
+  },
+  "fixture_retry": {
+    "reported_by": "parent /root",
+    "execution_scope": "elevated fake-object VBS fixtures only; no VISSIM/model execution",
+    "tests": [
+      "test_actual_collector_native_to_controlled_and_reset_no_duplicate_step",
+      "test_actual_vbs_head_functions_bypass_boundary_duplicate_and_reset",
+      "test_actual_vbs_verified_table_cache_one_bulk_capture_per_timestamp"
+    ],
+    "passed": true,
+    "tests_run": 3,
+    "elapsed_sec": 0.371,
+    "exit_code": 0,
+    "original_sandbox_failure_retained": true
+  }
+}

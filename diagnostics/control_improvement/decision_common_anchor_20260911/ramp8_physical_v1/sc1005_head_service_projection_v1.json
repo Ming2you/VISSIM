@@ -1,0 +1,305 @@
+{
+  "completed": true,
+  "head_options": {
+    "enabled": true,
+    "min_green_sec": 30,
+    "min_crossings": 5
+  },
+  "movements": {
+    "SC1004_E_SC1005_to_W": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC1005",
+        "exit": "W",
+        "beta": 0.8399532710280374,
+        "signal": "SC1004",
+        "turn": "through",
+        "phase": "SC1004_p3",
+        "origin": "SC1005_to_SC1004",
+        "destination": "out_SC1004_W",
+        "receiving_link": "SC1004_W_out",
+        "kind": "boundary_out"
+      },
+      "capacity_veh_h": 960.0
+    },
+    "SC1004_E_SC1005_to_N_SC1003": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC1005",
+        "exit": "N_SC1003",
+        "beta": 0.09345794392523364,
+        "signal": "SC1004",
+        "turn": "right",
+        "phase": "SC1004_p3",
+        "origin": "SC1005_to_SC1004",
+        "destination": "SC1004_to_SC1003",
+        "receiving_link": "SC1004_to_SC1003",
+        "kind": "internal"
+      },
+      "capacity_veh_h": 413.0612244897959
+    },
+    "SC1004_E_SC1005_to_S": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC1005",
+        "exit": "S",
+        "beta": 0.06658878504672897,
+        "signal": "SC1004",
+        "turn": "left",
+        "phase": "SC1004_p4",
+        "origin": "SC1005_to_SC1004",
+        "destination": "out_SC1004_S",
+        "receiving_link": "SC1004_S_out",
+        "kind": "boundary_out"
+      },
+      "capacity_veh_h": 206.53061224489795
+    },
+    "SC1004_E_SC107_to_W": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC107",
+        "exit": "W",
+        "beta": 0.841296928327645,
+        "signal": "SC1004",
+        "turn": "through",
+        "phase": "SC1004_p3",
+        "origin": "SC107_to_SC1004",
+        "destination": "out_SC1004_W",
+        "receiving_link": "SC1004_W_out",
+        "kind": "boundary_out"
+      },
+      "capacity_veh_h": 960.0
+    },
+    "SC1004_E_SC107_to_N_SC1003": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC107",
+        "exit": "N_SC1003",
+        "beta": 0.06655290102389079,
+        "signal": "SC1004",
+        "turn": "right",
+        "phase": "SC1004_p3",
+        "origin": "SC107_to_SC1004",
+        "destination": "SC1004_to_SC1003",
+        "receiving_link": "SC1004_to_SC1003",
+        "kind": "internal"
+      },
+      "capacity_veh_h": 206.53061224489795
+    },
+    "SC1004_E_SC107_to_S": {
+      "spec": {
+        "intersection": "SC1004",
+        "approach": "E_SC107",
+        "exit": "S",
+        "beta": 0.09215017064846416,
+        "signal": "SC1004",
+        "turn": "left",
+        "phase": "SC1004_p4",
+        "origin": "SC107_to_SC1004",
+        "destination": "out_SC1004_S",
+        "receiving_link": "SC1004_S_out",
+        "kind": "boundary_out"
+      },
+      "capacity_veh_h": 206.53061224489795
+    },
+    "SC1005_N_SC105_to_E_SC107": {
+      "spec": {
+        "intersection": "SC1005",
+        "approach": "N_SC105",
+        "exit": "E_SC107",
+        "beta": 0.3333333333333333,
+        "signal": "SC1005",
+        "turn": "left",
+        "phase": "SC1005_p2",
+        "origin": "SC105_to_SC1005",
+        "destination": "SC1005_to_SC107",
+        "receiving_link": "SC1005_to_SC107",
+        "kind": "internal"
+      },
+      "capacity_veh_h": 413.0612244897959
+    },
+    "SC1005_N_SC105_to_W_SC1004": {
+      "spec": {
+        "intersection": "SC1005",
+        "approach": "N_SC105",
+        "exit": "W_SC1004",
+        "beta": 0.6666666666666666,
+        "signal": "SC1005",
+        "turn": "right",
+        "phase": "SC1005_p1",
+        "origin": "SC105_to_SC1005",
+        "destination": "SC1005_to_SC1004",
+        "receiving_link": "SC1005_to_SC1004",
+        "kind": "internal",
+        "merged_from": [
+          "SC1005_N_SC105_to_W",
+          "SC1005_N_SC105_to_W_SC1004"
+        ]
+      },
+      "capacity_veh_h": 206.53061224489795
+    }
+  },
+  "metadata": {
+    "head_observation_enabled": 1.0,
+    "head_observation_snapshot_sec": 900.0,
+    "head_observation_prior_discarded": 0.0,
+    "head_observation_groups_updated": 15.0,
+    "head_observation_groups_carried": 15.0,
+    "head_observation_missing_window": 0.0,
+    "head_observation_invalid_window": 0.0,
+    "head_observation_short_exposure": 25.0,
+    "head_observation_missing_crossings": 17.0,
+    "head_observation_unknown_link": 24.0,
+    "head_observation_no_model_members": 19.0,
+    "head_observation_waiting_second_window": 5.0,
+    "head_candidate_rate_52_p3_b178f668c2e1b192": 1520.0,
+    "head_candidate_end_52_p3_b178f668c2e1b192": 900.0
+  },
+  "resource": {
+    "schema": "physical-head-resource-join/v1",
+    "network": {
+      "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+    },
+    "resources": {
+      "10619": {
+        "group": "183|p3",
+        "heads": [
+          {
+            "head_id": "1070601",
+            "link": "183",
+            "lane": 1,
+            "position_m": 63.98146,
+            "sc": "107",
+            "sg": "6"
+          },
+          {
+            "head_id": "1070602",
+            "link": "183",
+            "lane": 2,
+            "position_m": 63.942838,
+            "sc": "107",
+            "sg": "6"
+          },
+          {
+            "head_id": "1070603",
+            "link": "183",
+            "lane": 3,
+            "position_m": 64.071871,
+            "sc": "107",
+            "sg": "6"
+          },
+          {
+            "head_id": "1070604",
+            "link": "183",
+            "lane": 4,
+            "position_m": 64.137704,
+            "sc": "107",
+            "sg": "6"
+          }
+        ],
+        "mode": "route_turn",
+        "members": {
+          "SC107_E_SC108_to_W_SC1005": {
+            "kind": "internal",
+            "signal": "SC107",
+            "phase": "SC107_p3",
+            "origin": "SC108_to_SC107",
+            "receiving_link": "SC107_W_choice"
+          }
+        },
+        "receiver": "SC107_W_choice",
+        "target_link": "1220000102",
+        "proof": {
+          "path": "diagnostics/route_choice_corridor_1128_ver2.json",
+          "sha256": "5ce589875e64cd8940d968084ca502aec62fdffb65c2c8ca819ed8cf3b0e5bf4"
+        }
+      },
+      "10629": {
+        "group": "52|p3",
+        "heads": [
+          {
+            "head_id": "90030884",
+            "link": "52",
+            "lane": 1,
+            "position_m": 463.38614254772256,
+            "sc": "1004",
+            "sg": "6"
+          },
+          {
+            "head_id": "90030885",
+            "link": "52",
+            "lane": 2,
+            "position_m": 463.3108544496501,
+            "sc": "1004",
+            "sg": "6"
+          },
+          {
+            "head_id": "90030886",
+            "link": "52",
+            "lane": 3,
+            "position_m": 463.43271083205224,
+            "sc": "1004",
+            "sg": "6"
+          }
+        ],
+        "mode": "regular_pool",
+        "members": {
+          "SC1004_E_SC1005_to_W": {
+            "kind": "boundary_out",
+            "signal": "SC1004",
+            "phase": "SC1004_p3",
+            "origin": "SC1005_to_SC1004",
+            "receiving_link": "SC1004_W_out"
+          },
+          "SC1004_E_SC107_to_W": {
+            "kind": "boundary_out",
+            "signal": "SC1004",
+            "phase": "SC1004_p3",
+            "origin": "SC107_to_SC1004",
+            "receiving_link": "SC1004_W_out"
+          }
+        },
+        "receiver": "SC1004_W_out",
+        "target_link": "68",
+        "proof": {
+          "path": "diagnostics/dynamic_area_routes_ver2.json",
+          "sha256": "930b08a525492cac4d050b5034b9adb8f81c288a6a5e9620ec919619a9843515"
+        }
+      }
+    },
+    "scope": "Only exact physical head groups 183/SG6 ->10619 and52/SG6 ->10629; prior metadata seed-max values are never observed support.",
+    "rate_policy": "route_turn:max(existing_single_service, observed_only_support); regular_pool:only activate measured single budget when observed support exceeds the previous independent-member aggregate; otherwise record unapplied support and preserve legacy behavior",
+    "note": "Canonical physical resource join. The regular_pool activation comparison is an old model envelope, not an inferred physical capacity.",
+    "contract_sha256": "d275ce27e0b11e5ab53f157dc6ec3c15365a07e3138361238caf2dfd02121ad9",
+    "observations": {
+      "10619": {
+        "observed_only_floor_veh_h": 276.9230769230769,
+        "current_pair_support_veh_h": 0.0,
+        "carried_observed_support_veh_h": 276.9230769230769,
+        "metadata_key": "head_resource_observed_floor_10619_ca63d1d20cca3d89",
+        "snapshot_sec": 900.0
+      },
+      "10629": {
+        "observed_only_floor_veh_h": 960.0,
+        "current_pair_support_veh_h": 0.0,
+        "carried_observed_support_veh_h": 960.0,
+        "metadata_key": "head_resource_observed_floor_10629_c7e35642f850b406",
+        "snapshot_sec": 900.0
+      }
+    },
+    "extra_pool_groups": {
+      "10629": {
+        "members": [
+          "SC1004_E_SC1005_to_W",
+          "SC1004_E_SC107_to_W"
+        ],
+        "signal": "SC1004",
+        "phase": "SC1004_p3",
+        "receiver": "SC1004_W_out",
+        "service_veh_h": 960.0
+      }
+    }
+  },
+  "wall_sec": 3.581548300004215
+}

@@ -1,0 +1,16 @@
+E
+======================================================================
+ERROR: test_physical_infeasible_budget_uses_merges_and_keeps_feasibility_unknown (diagnostics.test_physical_ramp_branches.PhysicalRampTests.test_physical_infeasible_budget_uses_merges_and_keeps_feasibility_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_physical_ramp_branches.py", line 216, in test_physical_infeasible_budget_uses_merges_and_keeps_feasibility_unknown
+    status,validated,evidence=objective._runtime_joint_candidate_validation(value,
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\evaluation\controllers\area_follower_objective.py", line 1736, in _runtime_joint_candidate_validation
+    raise ValueError('Cached infeasible witness needs complete finite action-bound quantity owners')
+ValueError: Cached infeasible witness needs complete finite action-bound quantity owners
+
+----------------------------------------------------------------------
+Ran 1 test in 6.022s
+
+FAILED (errors=1)

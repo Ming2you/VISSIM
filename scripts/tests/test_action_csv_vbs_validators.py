@@ -42,6 +42,7 @@ VALIDATOR_PROCEDURES = (
     "PhaseGreenSum",
     "LivePhaseCount",
     "SignalCycleFromPhases",
+    "SignalCycleForController",
     "SignalActionValuesValid",
     "SignalSgRowValid",
     "RampActionValid",
@@ -73,12 +74,13 @@ Const AMBER_SEC = {AMBER_SEC:g}
 Const ALL_RED_SEC = {ALL_RED_SEC:g}
 Const RAMP_CYCLE_SEC = 10
 Dim RW_SIGNAL_SCS, RW_RAMP_METER_IDS, RW_RAMP_METER_SCS, RW_RAMP_METER_CAPACITIES_VPH
-Dim sgPlanExpected, failures
+Dim sgPlanExpected, failures, nativeClockPlans
 RW_SIGNAL_SCS = "{SIGNAL_SCS}"
 RW_RAMP_METER_IDS = "D,F"
 RW_RAMP_METER_SCS = "6,7"
 RW_RAMP_METER_CAPACITIES_VPH = "1800,1800"
 Set sgPlanExpected = CreateObject("Scripting.Dictionary")
+Set nativeClockPlans = CreateObject("Scripting.Dictionary")
 failures = 0
 
 {helpers}

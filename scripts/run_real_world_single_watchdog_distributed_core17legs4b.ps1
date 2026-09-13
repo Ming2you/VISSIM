@@ -15,6 +15,7 @@ param(
   # 기본값이 정본이라 안 넘기면 기존 호출과 완전히 같다.
   [string]$Adapter = "",
   [string]$Network = "",
+  [string]$NetworkRecordingProof = "",
   [string]$OutDir = "",
   [int]$SimPeriod = 1800,
   [int]$ControlIntervalSec = 60,
@@ -52,6 +53,10 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
+# A Windows PowerShell child may inherit another edition's PSModulePath.
+# Load hashing/JSON support from this host before capturing any provenance.
+# Missing hashes must stop before launching VISSIM, not become empty evidence.
+Import-Module (Join-Path $PSHOME 'Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1') -ErrorAction Stop
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 function Resolve-RepoPath([string]$PathValue) {
   if ($PathValue -eq "") { return "" }
@@ -123,6 +128,39 @@ function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
   $env:RW_SIGNAL_OBSERVATION = $(if ($current.options.enabled) { '1' } else { '0' })
   $env:RW_SIGNAL_OBSERVATION_CONFIG_SHA256 = $(if ($current.options.enabled) { $current.config_chain[0].sha256 } else { '' })
   if ($current.options.enabled) { $env:RW_QUEUE_WINDOW = '1' }
+}
+
+function Read-RampMeterTimingSettings([string]$TuningFile) {
+  $seen = @{}; $chain = @(); $amber = 1; $declared = $false
+  while ($TuningFile -ne '') {
+    $TuningFile = [IO.Path]::GetFullPath($TuningFile)
+    if ($seen.ContainsKey($TuningFile)) { throw 'Cyclic ramp meter timing tuning' }
+    $seen[$TuningFile] = $true
+    $doc = Get-Content -LiteralPath $TuningFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    $chain += [ordered]@{path=$TuningFile; sha256=(Get-FileHash -LiteralPath $TuningFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    $meter = $doc.actuation.real_world_ramp_metering
+    if (-not $declared -and $null -ne $meter -and $meter.PSObject.Properties['amber_sec']) {
+      $value = $meter.amber_sec
+      if (($value -isnot [int] -and $value -isnot [long] -and $value -isnot [double] -and $value -isnot [decimal]) -or
+          ($value -ne 0 -and $value -ne 1)) { throw 'actuation.real_world_ramp_metering.amber_sec must be numeric0 or1' }
+      $amber = [int]$value; $declared = $true
+    }
+    if (-not $doc.extends) { break }
+    if ($doc.extends -isnot [string]) { throw 'Ramp meter timing requires a single string extends path' }
+    $next = $doc.extends
+    if (-not [IO.Path]::IsPathRooted($next)) { $next = Join-Path (Split-Path -Parent $TuningFile) $next }
+    $TuningFile = $next
+  }
+  return [ordered]@{config_key='actuation.real_world_ramp_metering.amber_sec'; amber_sec=$amber; declared=$declared; config_chain=$chain}
+}
+
+function Set-RampMeterTimingTransport([string]$TuningFile, $Expected) {
+  $current = Read-RampMeterTimingSettings $TuningFile
+  if (($current | ConvertTo-Json -Depth 8 -Compress) -cne ($Expected | ConvertTo-Json -Depth 8 -Compress)) {
+    throw 'Ramp meter timing tuning changed after provenance capture'
+  }
+  # Environment is transport only: set both0 and legacy1 explicitly on every launch.
+  $env:RW_RAMP_AMBER_SEC = [string]$current.amber_sec
 }
 
 function Read-ControlAreaObjectiveEnabled([string]$TuningFile) {
@@ -334,22 +372,54 @@ function Get-ExactGitCommit([string]$RepositoryPath) {
   if ([string]::IsNullOrWhiteSpace($RepositoryPath) -or -not (Test-Path -LiteralPath $RepositoryPath -PathType Container)) {
     return ""
   }
-  $topLevel = (& git -C $RepositoryPath rev-parse --show-toplevel 2>$null)
-  if ([string]::IsNullOrWhiteSpace($topLevel)) { return "" }
-  $expected = [System.IO.Path]::GetFullPath($RepositoryPath).TrimEnd('\')
-  $actual = [System.IO.Path]::GetFullPath(([string]$topLevel).Trim()).TrimEnd('\')
-  if (-not $expected.Equals($actual, [System.StringComparison]::OrdinalIgnoreCase)) { return "" }
-  return [string](& git -C $RepositoryPath rev-parse HEAD 2>$null)
+  # Git emits UTF-8 paths, but Windows PowerShell 5.1 may decode native output
+  # with a legacy code page. Root checks below return ASCII and avoid that path.
+  try {
+    $inside = @(& git -C $RepositoryPath rev-parse --is-inside-work-tree 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $inside.Count -ne 1 -or $inside[0] -cne 'true') { return "" }
+    $up = @(& git -C $RepositoryPath rev-parse --show-cdup 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $up.Count -gt 1 -or ($up.Count -eq 1 -and $up[0] -cne '')) { return "" }
+    $head = @(& git -C $RepositoryPath rev-parse --verify 'HEAD^{commit}' 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $head.Count -ne 1 -or $head[0] -cnotmatch '\A(?:[0-9a-f]{40}|[0-9a-f]{64})\z') { return "" }
+    return [string]$head[0]
+  } catch {
+    return ""
+  }
 }
 
-function Test-SimulationStarted([string]$CsvPath) {
+function Test-SimulationStarted([string]$CsvPath, [string]$LogPath = '') {
+  # Only exact ASCII actual-time markers count; stream until a marker or EOF.
+  # Startup demand/ordinary log writes do not reset the 300-second deadline.
+  # Starting from the beginning retains the marker during a long first decision.
+  if ($LogPath -and (Test-Path -LiteralPath $LogPath -PathType Leaf)) {
+    $stream = $null; $reader = $null
+    try {
+      $stream = [IO.File]::Open($LogPath, [IO.FileMode]::Open, [IO.FileAccess]::Read,
+        [IO.FileShare]::ReadWrite)
+      $reader = [IO.StreamReader]::new($stream, [Text.Encoding]::ASCII, $false)
+      while ($null -ne ($line = $reader.ReadLine())) {
+        if ($line -cnotmatch '^NATIVE_SIM_PROGRESS sim_sec=([0-9]+(?:\.[0-9]+)?)$') { continue }
+        $sampleTime = 0.0
+        if ([double]::TryParse($Matches[1], [Globalization.NumberStyles]::Float,
+            [Globalization.CultureInfo]::InvariantCulture, [ref]$sampleTime) -and
+            -not [double]::IsNaN($sampleTime) -and -not [double]::IsInfinity($sampleTime) -and
+            $sampleTime -gt 0) { return $true }
+      }
+    } catch [IO.IOException] {
+      # A concurrent open/append can be retried on the next existing poll.
+    } finally {
+      if ($null -ne $reader) { $reader.Dispose() }
+      elseif ($null -ne $stream) { $stream.Dispose() }
+    }
+  }
+  # Preserve the actual state-clock fallback, excluding nonfinite numbers.
   if (-not (Test-Path -LiteralPath $CsvPath -PathType Leaf)) { return $false }
   foreach ($line in (Get-Content -LiteralPath $CsvPath -Tail 4 -ErrorAction SilentlyContinue)) {
     $sampleTime = 0.0
     if ([double]::TryParse(($line -split ',',2)[0], [Globalization.NumberStyles]::Float,
-        [Globalization.CultureInfo]::InvariantCulture, [ref]$sampleTime) -and $sampleTime -gt 0) {
-      return $true
-    }
+        [Globalization.CultureInfo]::InvariantCulture, [ref]$sampleTime) -and
+        -not [double]::IsNaN($sampleTime) -and -not [double]::IsInfinity($sampleTime) -and
+        $sampleTime -gt 0) { return $true }
   }
   return $false
 }
@@ -421,6 +491,27 @@ $decisionDir = Join-Path $OutDir "decisions_$Name"
 $log = Join-Path $OutDir "runlog_$Name.txt"
 New-Item -ItemType Directory -Force -Path $decisionDir | Out-Null
 $runId = [guid]::NewGuid().ToString("N")
+$wallPolicyDoc = Get-Content -LiteralPath $Tuning -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+$unlimitedDecision = $wallPolicyDoc.adapter.joint_owner_game.ignore_wall_time_limits -eq $true
+
+$recordingDoc = $null
+if ($NetworkRecordingProof -ne "") {
+  $NetworkRecordingProof = Resolve-RepoPath $NetworkRecordingProof
+  $recordingTuning = Get-Content -LiteralPath $Tuning -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+  if ($recordingTuning.execution.native_signal_record -isnot [bool] -or -not $recordingTuning.execution.native_signal_record) {
+    throw 'Recording copy requires execution.native_signal_record=true'
+  }
+  $recordingDoc = Get-Content -LiteralPath $NetworkRecordingProof -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+  $recordingPython = [Environment]::GetEnvironmentVariable('RW_PYTHON', 'Process')
+  if ([string]::IsNullOrWhiteSpace($recordingPython)) { throw 'Recording proof requires explicit RW_PYTHON' }
+  $recordingCheck = 'import json,sys; from pathlib import Path; sys.path.insert(0,sys.argv[2]); from evaluation.controllers.network_provenance import validate_recording_proof; p=json.loads(Path(sys.argv[1]).read_text(encoding="utf-8-sig")); assert Path(p["recorded_network"]["path"]).resolve()==Path(sys.argv[3]).resolve(), "Loaded network differs from recording proof"; print(validate_recording_proof(p))'
+  $recordingEncoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($recordingCheck))
+  $recordingBootstrap = "exec(__import__('base64').b64decode('" + $recordingEncoded + "'))"
+  $recordingPhysicalSha = & $recordingPython -B -X utf8 -c $recordingBootstrap $NetworkRecordingProof $repo $net
+  if ($LASTEXITCODE -ne 0 -or $recordingPhysicalSha -cne $recordingDoc.source_network.sha256) {
+    throw 'Recording-only network proof failed before native launch'
+  }
+}
 
 $provenanceFiles = [ordered]@{
   network = Get-ArtifactEvidence $net
@@ -442,6 +533,9 @@ $provenanceFiles = [ordered]@{
   pn_boundary_turns = Get-ArtifactEvidence (Join-Path $repo "outputs\pn_boundary_turns_v1_20260819.json")
   numsim_snapshot = Get-ArtifactEvidence (Join-Path $repo "vendor\NumSim-mine\SNAPSHOT.md")
 }
+$signalPlan = Join-Path ([IO.Path]::GetDirectoryName($vbsConfig)) ([IO.Path]::GetFileNameWithoutExtension($vbsConfig) + '_sgplan.vbs')
+if (Test-Path -LiteralPath $signalPlan -PathType Leaf) { $provenanceFiles.signal_group_plan = Get-ArtifactEvidence $signalPlan }
+if ($null -ne $recordingDoc) { $provenanceFiles.network_recording_proof = Get-ArtifactEvidence $NetworkRecordingProof }
 $signalPrograms = @(
   Get-ChildItem -LiteralPath ([System.IO.Path]::GetDirectoryName($net)) -Filter "*.sig" -File -ErrorAction SilentlyContinue |
     Sort-Object Name |
@@ -481,6 +575,8 @@ if (Test-Path -LiteralPath $numsimSnapshotPath -PathType Leaf) {
 # 순수 추가다. 값을 바꾸지 않고 적기만 한다.
 $headObservation = Read-HeadObservationSettings $Tuning
 Set-HeadObservationTransport $Tuning $headObservation
+$rampMeterTiming = Read-RampMeterTimingSettings $Tuning
+Set-RampMeterTimingTransport $Tuning $rampMeterTiming
 $rwEnv = [ordered]@{}
 foreach ($e in (Get-ChildItem Env: | Where-Object { $_.Name -like "RW_*" } | Sort-Object Name)) {
   $rwEnv[$e.Name] = [string]$e.Value
@@ -516,6 +612,8 @@ $provenance = [ordered]@{
   controller_sources = $controllerSources
 }
 if ($headObservation.options.enabled) { $provenance.signal_observation = $headObservation }
+$provenance.ramp_meter_timing = $rampMeterTiming
+if ($null -ne $recordingDoc) { $provenance.network_recording = $recordingDoc }
 $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
 [System.IO.File]::WriteAllText(
   $provenancePath,
@@ -524,7 +622,14 @@ $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
 )
 
 function Archive-AttemptOutputs([int]$Attempt) {
-  $archive = Join-Path $OutDir ("attempt_{0:00}_{1}" -f $Attempt, $Name)
+  # Shorten run-specific paths without merging failures in a shared OutDir.
+  $archiveParentLeaf = [IO.Path]::GetFileName([IO.Path]::GetFullPath($OutDir).TrimEnd(
+    [IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar))
+  if ($archiveParentLeaf.Equals($Name, [StringComparison]::OrdinalIgnoreCase)) {
+    $archive = Join-Path $OutDir ("attempt_{0:00}" -f $Attempt)
+  } else {
+    $archive = Join-Path $OutDir ("attempt_{0:00}_{1}" -f $Attempt, $Name)
+  }
   New-Item -ItemType Directory -Force -Path $archive | Out-Null
   foreach ($path in @($stateCsv, $actionCsv, $bottleneckLinkCsv, $bottleneckSegmentCsv, $log, "$log.err")) {
     if (Test-Path $path) {
@@ -532,7 +637,7 @@ function Archive-AttemptOutputs([int]$Attempt) {
     }
   }
   if (Test-Path $decisionDir) {
-    $decisionArchive = Join-Path $archive ([System.IO.Path]::GetFileName($decisionDir))
+    $decisionArchive = Join-Path $archive 'decisions'
     Copy-Item -LiteralPath $decisionDir -Destination $decisionArchive -Recurse -Force -ErrorAction SilentlyContinue
   }
   Copy-VissimError $archive
@@ -580,6 +685,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   [Environment]::SetEnvironmentVariable("RW_RUN_ID", $runId, "Process")
   [Environment]::SetEnvironmentVariable("RW_RUN_MANIFEST_PATH", $provenancePath, "Process")
   Set-HeadObservationTransport $Tuning $headObservation
+  Set-RampMeterTimingTransport $Tuning $rampMeterTiming
   $cscriptExe = Join-Path $env:SystemRoot "System32\cscript.exe"
   if (-not (Test-Path $cscriptExe)) { $cscriptExe = "cscript.exe" }
   $proc = Start-Process -FilePath $cscriptExe -ArgumentList $argline -RedirectStandardOutput $log `
@@ -612,7 +718,7 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
       if ($runVissimIdentity) { Log "VISSIM_PROCESS $Name pid=$($runVissimIdentity.Id)" }
     }
     if (-not $simulationStarted) {
-      $simulationStarted = Test-SimulationStarted $stateCsv
+      $simulationStarted = Test-SimulationStarted $stateCsv $log
       if (-not $simulationStarted -and ((Get-Date)-$t0).TotalSeconds -ge $StartupStallSec) {
         Log "STARTUP_TIMEOUT $Name attempt=$attempt limit=${StartupStallSec}s"
         Stop-RunProcesses $proc $runVissimIdentity
@@ -631,6 +737,13 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $signals += Get-Item $bottleneckSegmentCsv -ErrorAction SilentlyContinue
     $signals += Get-ChildItem (Join-Path $decisionDir "action_*.json") -ErrorAction SilentlyContinue |
       Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    if ($unlimitedDecision) {
+      # Real model progress is not a native simulation step. It may nevertheless
+      # keep an intentionally long decision alive after the first native step.
+      # Startup's actual-progress300s watchdog above remains independent.
+      $signals += Get-ChildItem (Join-Path $decisionDir "action_*.joint.progress.jsonl") -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending | Select-Object -First 1
+    }
     foreach ($signal in $signals) {
       if ($signal -and $signal.LastWriteTime -gt $lastT) {
         $lastT = $signal.LastWriteTime

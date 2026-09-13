@@ -1,0 +1,87 @@
+{
+  "schema": "known-wout-routes/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "storage": "SC1004_W_out",
+  "choice_position_m": 7.491513071180599,
+  "native_routes": {
+    "1123:2": {
+      "path": [
+        "52",
+        "10629",
+        "68"
+      ],
+      "dest_pos": 4.9506564983648245
+    },
+    "1125:1": {
+      "path": [
+        "46",
+        "10625",
+        "68"
+      ],
+      "dest_pos": 6.322767103712503
+    },
+    "1130:3": {
+      "path": [
+        "74",
+        "10699",
+        "2",
+        "10682",
+        "121",
+        "10773",
+        "123"
+      ],
+      "dest_pos": 295.92350735286266,
+      "target": "free"
+    },
+    "1135:2": {
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10646",
+        "120"
+      ],
+      "dest_pos": 2272.2977955121637,
+      "target": "R_F_W"
+    },
+    "1135:3": {
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10773",
+        "123"
+      ],
+      "dest_pos": 179.06973212909716,
+      "target": "free"
+    },
+    "1135:4": {
+      "path": [
+        "68",
+        "10681",
+        "2"
+      ],
+      "dest_pos": 2289.198499870484,
+      "target": "R_F_E"
+    }
+  },
+  "prechoice_connectors": [
+    "10625",
+    "10629",
+    "10633"
+  ],
+  "incoming_movements": {
+    "SC1004_E_SC1005_to_W": "10629",
+    "SC1004_E_SC107_to_W": "10629",
+    "SC1004_N_SC1003_to_W": "10625",
+    "SC1004_S_to_W": "10633"
+  },
+  "limitations": [
+    "Keeps existing coarse sink travel, capacity and accepted-flow owner.",
+    "Existing priors apply once only to future eligible1135 choices; not fitted here.",
+    "Unknown after choice is held, never resampled; no new lane exchange or FW gate."
+  ]
+}

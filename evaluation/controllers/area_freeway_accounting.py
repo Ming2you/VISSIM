@@ -11,12 +11,66 @@ schedule hook; this module never counts them a second time. Freeway residence
 uses end-of-substep stocks after that schedule, matching METANET quadrature.
 """
 from __future__ import annotations
+import ast
+from functools import lru_cache
+import hashlib
+import inspect
+import textwrap
 from src.models import metanet as _mn
 from src.simulation import coupling as _cp
 from evaluation.controllers import control_area_objective as _area
+from evaluation.controllers import offramp_routing as _routing
 
 VENDOR_FREEWAY_METHOD_SHA256 = "eb19ad40207a07bac75db9b67c03280be8558a310123e9eddacf655ac49e8762"
 VENDOR_COUPLING_METHOD_SHA256 = "ced88a0a6fef090f3eb78a43af4538f73c8b7d11de07c5633142fa9867ba59c0"
+VENDOR_RELEASE_AST_SHA256 = '72007e17567097fb8ad82bde9a67f9e04fed1f223172403bb81d280766344896'
+
+
+@lru_cache(maxsize=4)
+def _verify_release_function(function, code):
+    """Pin the observed query, never replace its calculation or vendor body."""
+    expected = ('state', 'control', 'demand', 'cfg', 'include_current_arrivals')
+    try:
+        tree = ast.parse(textwrap.dedent(inspect.getsource(function)))
+    except (OSError, TypeError, SyntaxError) as exc:
+        raise ValueError('Captured ramp release query source is unavailable') from exc
+    if (function.__code__ is not code or tuple(inspect.signature(function).parameters) != expected or
+            hashlib.sha256(ast.dump(tree.body[0], include_attributes=False).encode()).hexdigest() != VENDOR_RELEASE_AST_SHA256):
+        raise ValueError('Captured ramp release verification requires the pinned canonical query')
+
+
+def _record_ramp_release_query(state, control, demand, cfg, release, function):
+    """Check the existing min operands at the same pre-T_u state, in vehicles.
+
+    These are per-ramp query limits, not a joint merge-cell storage budget.
+    Pure verification values never feed dynamics, prices or returned flows.
+    """
+    ledger = _area.get_ledger(state)
+    if ledger is None or not ledger.captures_response:
+        return
+    _verify_release_function(function, function.__code__)
+    net, dt_h = cfg.network, cfg.simulation.T_f_h
+    if set(release) != set(net.ramps):
+        raise ValueError('Captured ramp release query requires all configured ramps exactly')
+    q_cap = net.freeway_capacity_veh_h * getattr(demand, 'incident_capacity_factor', 1.0)
+    for ramp in net.ramps:
+        link = net.ramp_to_freeway[ramp]
+        merge_idx = _mn._ramp_merge_index(cfg, ramp, len(state.freeway_density[link]))
+        rho = state.freeway_density[link][merge_idx]
+        rho_c = _mn.effective_rho_crit(net, _mn.segment_vsl(control, link, merge_idx, cfg))
+        factor = _mn._clip((net.rho_max-rho)/max(net.rho_max-rho_c, 1.0e-9), 0.0, 1.0)
+        cap = net.ramp_capacity_veh_h[ramp]
+        requested = _mn._clip(control.ramp_metering.get(ramp, cap), 0.0, cap)
+        available = max(0.0, state.ramp_queue.get(ramp, 0.0)/max(dt_h, 1.0e-9))
+        receiving = q_cap*factor
+        expected = min(min(available, cap, receiving), requested)
+        if release[ramp] != expected:
+            raise ValueError('Observed ramp release differs from pinned min operands: ' + ramp)
+        sources = {'ramp:' + ramp: release[ramp]*dt_h}
+        for kind, limit in (('available', available), ('capacity', cap),
+                            ('density_receiving', receiving), ('request', requested)):
+            ledger.record_resource_allocation('ramp_release_query_' + kind, ramp, limit*dt_h, sources)
+    ledger.complete_constraint_coverage('ramp_release_query')
 
 
 def continuity_vehicle_counts(state, cfg):
@@ -40,6 +94,14 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
     net = cfg.network
     sim = cfg.simulation
     dt_h = sim.T_f_h
+    routed = _routing.inventory_enabled(cfg)
+    route_runtime = net.offramp_route_inventory if routed else None
+    if routed:
+        _routing.assert_inventory(state, cfg, continuity_vehicle_counts(state, cfg))
+        if offramp_capacity_veh_h is None:
+            raise ValueError('Route inventory requires explicit branch receiving capacities')
+    ledger = _area.get_ledger(state)
+    capture = ledger is not None and ledger.captures_response
     if update_ramp_queues:
         raise ValueError("area accounting requires coupled ramp releases, not standalone exogenous ramp arrivals")
     if int(getattr(net, "freeway_buffer_segments", 0)):
@@ -91,7 +153,12 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         previous_lanes = list(state.freeway_effective_lanes.get(link, []))
         lanes_now = lane_now_by_link[link]
         offramps_by_segment: _mn.Dict[int, list[str]] = {}
-        for off_ramp in net.off_ramps:
+        for off_ramp in (route_runtime['branches'] if routed else net.off_ramps):
+            if routed:
+                branch = route_runtime['branches'][off_ramp]
+                if branch['freeway'] == link:
+                    offramps_by_segment.setdefault(branch['source_cell'], []).append(off_ramp)
+                continue
             if net.off_ramp_from_freeway.get(off_ramp) != link:
                 continue
             segment_idx = _mn._configured_segment_index(getattr(net, 'off_ramp_segment_index', {}), off_ramp, len(rhos) - 1, len(rhos))
@@ -123,7 +190,17 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         receiving_for_mainline = [max(0.0, receiving[i] - max(0.0, ramp_in_by_link[link][i])) for i in range(len(rho_for_flow))]
         off_ratio_by_segment = [_mn._clip(sum((net.off_ramp_split_ratio.get(off_ramp, 0.0) for off_ramp in offramps_by_segment.get(i, []))), 0.0, 1.0) for i in range(len(rho_for_flow))]
         mainline_sending = [(1.0 - off_ratio_by_segment[i]) * q_values[i] for i in range(len(rho_for_flow))]
+        if routed:
+            mainline_sending, route_requests = _routing.sending_requests(state, cfg, link, q_values, dt_h)
+            accepted_branches = {}
         q_inter = [min(mainline_sending[i], receiving_for_mainline[i + 1]) for i in range(len(rho_for_flow) - 1)]
+        if capture:
+            for i, amount in enumerate(q_inter):
+                sources = {f'{link}:cell:{i}': amount*dt_h}
+                ledger.record_resource_allocation('freeway_mainline_sending', f'{link}:cell:{i}',
+                    mainline_sending[i]*dt_h, sources)
+                ledger.record_resource_allocation('freeway_mainline_receiving_after_ramps', f'{link}:cell:{i+1}',
+                    receiving_for_mainline[i+1]*dt_h, sources)
         if state.mainline_origin_queue.get(link) is None:
             state.mainline_origin_queue[link] = 0.0
         mainline_demand = max(0.0, demand.freeway_mainline.get(link, 0.0))
@@ -141,6 +218,11 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         else:
             entry_realized = min(entry_request, q_cap, receiving_for_mainline[0])
             core_in0 = entry_realized
+        if capture:
+            for kind, limit in (('request', entry_request), ('capacity', q_cap),
+                                ('receiving_after_ramps', receiving_for_mainline[0])):
+                ledger.record_resource_allocation('freeway_entry_' + kind, link, limit*dt_h,
+                                                 {'origin:' + link: entry_realized*dt_h})
         state.mainline_origin_queue[link] = max(0.0, state.mainline_origin_queue[link] + dt_h * (mainline_demand - entry_realized))
         _area.emit_transfer(state, cfg, f"origin:{link}", f"freeway:{link}",
                             entry_realized * dt_h, target_inside=True)
@@ -162,6 +244,11 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                     terminal_cap = q_cap * max(lanes_now[i], 1e-09) / max(float(net.freeway_lanes), 1e-09)
                     terminal_out = min(mainline_sending[i], terminal_cap)
                 q_out = terminal_out
+                if capture:
+                    sources = {f'{link}:cell:{i}': terminal_out*dt_h}
+                    ledger.record_resource_allocation('freeway_terminal_sending', link, mainline_sending[i]*dt_h, sources)
+                    if not getattr(net, 'terminal_zero_gradient', False):
+                        ledger.record_resource_allocation('freeway_terminal_capacity', link, terminal_cap*dt_h, sources)
             else:
                 q_out = q_inter[i]
             boundary_speed_cap = None
@@ -169,16 +256,29 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             normal_off_total = 0.0
             for off_ramp in offramps_by_segment.get(i, []):
                 ratio = _mn._clip(net.off_ramp_split_ratio.get(off_ramp, 0.0), 0.0, 1.0)
-                normal_off = ratio * q_values[i]
+                normal_off = route_requests[off_ramp] if routed else ratio * q_values[i]
                 if offramp_capacity_veh_h is None:
                     cap = None
                 else:
                     cap = offramp_capacity_veh_h.get(off_ramp, offramp_capacity_veh_h.get(link))
                 effective_off = normal_off if cap is None else min(normal_off, max(0.0, cap))
+                if routed:
+                    if cap is None:
+                        raise ValueError('Missing physical off-ramp branch receiving capacity')
+                    accepted_branches[off_ramp] = effective_off
+                if capture:
+                    sources = {f'{link}:cell:{i}': effective_off*dt_h}
+                    ledger.record_resource_allocation('freeway_offramp_sending', off_ramp, normal_off*dt_h, sources)
+                    if cap is not None:
+                        ledger.record_resource_allocation('freeway_offramp_receiving', off_ramp, max(0.0, cap)*dt_h, sources)
                 effective_off_total += effective_off
                 normal_off_total += normal_off
                 offramp_flow_acc[off_ramp] = offramp_flow_acc.get(off_ramp, 0.0) + effective_off
                 offramp_blocked_acc[off_ramp] = offramp_blocked_acc.get(off_ramp, 0.0) + max(0.0, normal_off - effective_off)
+                if routed:
+                    group = route_runtime['branches'][off_ramp]['group']
+                    offramp_flow_acc[group] = offramp_flow_acc.get(group, 0.) + effective_off
+                    offramp_blocked_acc[group] = offramp_blocked_acc.get(group, 0.) + max(0., normal_off-effective_off)
             if normal_off_total > 0.0:
                 q_out += effective_off_total
                 offramp_flow_acc[link] += effective_off_total
@@ -227,6 +327,10 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         state.freeway_speed[link] = next_speeds
         state.freeway_flow[link] = next_flows
         state.freeway_effective_lanes[link] = next_lanes
+        if routed:
+            _routing.advance_inventory(state, cfg, link, mainline=q_inter, terminal=terminal_out,
+                offramps=accepted_branches, entry=entry_realized, generated=mainline_demand,
+                merges=ramp_release, duration_h=dt_h)
         freeway_ttt += sum(next_vehicle_count) * dt_h
         if buf_n > 0:
 
@@ -280,6 +384,12 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         freeway_ttt += sum(state.ramp_queue.values()) * dt_h
         freeway_ttt += sum((max(0.0, q) for q in state.mainline_origin_queue.values())) * dt_h
     diagnostics: _mn.Dict[str, float] = {}
+    if routed:
+        _routing.assert_inventory(state, cfg, continuity_vehicle_counts(state, cfg))
+        diagnostics['offramp_route_inventory_enabled'] = 1.
+        for connector in route_runtime['branches']:
+            diagnostics['offramp_flow_branch_' + connector] = offramp_flow_acc.get(connector, 0.)
+            diagnostics['offramp_blocked_flow_branch_' + connector] = offramp_blocked_acc.get(connector, 0.)
     diagnostics.update(_buffer_diag)
     avg_metering = float(sum(ramp_release.values()))
     avg_no_meter = ramp_diag['total_no_meter_flow']
@@ -318,11 +428,14 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
     diagnostics['speed_projection_count'] = float(speed_projection_count)
     diagnostics['mainline_origin_queue_total_veh'] = float(sum((max(0.0, q) for q in state.mainline_origin_queue.values())))
     diagnostics['density_exceedance_count'] = float(sum((1 for values in state.freeway_density.values() for rho in values if rho > net.rho_crit)))
+    if capture:
+        ledger.complete_constraint_coverage('freeway_allocator')
     return (float(freeway_ttt), diagnostics)
 
 def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAction, demand: _cp.DemandStep, cfg: _cp.ExperimentConfig) -> _cp.CoupledStepResult:
     """Spec 3.4.3의 `T_c -> T_f -> T_u` nested order로 한 control interval을 전진한다."""
     from evaluation.controllers import area_meter_finalization
+    _routing.validate_origin_demand(state, cfg, demand)
     # Box-walk may change rates after the first interval; keep the same
     # observed decision context while re-finalizing each walked action.
     area_meter_finalization.finalize(control, cfg)
@@ -336,12 +449,31 @@ def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAc
     accepted_offramp = 0.0
     rejected_offramp = 0.0
     start_urban_step = int(round(state.time_sec / max(sim.T_u_sec, 1e-09)))
+    ledger = _area.get_ledger(state)
+    urban_scopes = ['urban_allocator']
+    if ledger.captures_response:
+        urban_scopes.extend(scope for scope in ('shared_approach', 'sc2001_corridor') if getattr(cfg.network, scope, None))
+        if getattr(cfg.network, 'leg_ramp_split_enabled', False) and getattr(cfg.network, 'boundary_out_ramp_split', None):
+            urban_scopes.append('legsplit_allocator')
+        if getattr(cfg.network, 'route_choice_corridor', None):
+            urban_scopes.append('route_choice_allocator')
+        if getattr(cfg.network, 'native_internal_inputs', None):
+            urban_scopes.extend(('native_route_queue', 'native_prehead_queue', 'native_input_generation', 'native_prehead_residual'))
+        ledger.plan_constraint_interval(start_urban_step*sim.T_u_sec, sim.T_u_sec, sim.T_f_sec,
+                                        sim.K_fu, sim.K_cf, urban_scopes, off_ramps=cfg.network.off_ramps)
     for freeway_substep_index in range(sim.K_cf):
         _cp.sync_onramp_queues_to_freeway(state, cfg)
         ramp_release, ramp_diag = _cp.compute_ramp_release_flows(state, control, demand, cfg, include_current_arrivals=False)
+        ledger = _area.get_ledger(state)
+        fw_start = (start_urban_step + freeway_substep_index * sim.K_fu) * sim.T_u_sec
+        if ledger.captures_response:
+            ledger.begin_response_step('freeway', fw_start, fw_start + sim.T_f_sec)
+            _record_ramp_release_query(state, control, demand, cfg, ramp_release, _cp.compute_ramp_release_flows)
         urban_rows_in_freeway_step: list[_cp.Dict[str, float]] = []
         for urban_offset in range(sim.K_fu):
             step_idx = start_urban_step + freeway_substep_index * sim.K_fu + urban_offset
+            _area.get_ledger(state).begin_response_step('urban', step_idx * sim.T_u_sec,
+                                                       (step_idx + 1) * sim.T_u_sec)
             ur_ttt, ur_diag = _cp.urban_substep(state, control, demand, cfg, urban_step_index=step_idx, ramp_release_veh_h=ramp_release)
             urban_ttt += ur_ttt
             moved = float(ur_diag.get('offramp_storage_ttt', 0.0))
@@ -352,27 +484,50 @@ def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAc
         _cp.sync_onramp_queues_to_freeway(state, cfg)
         actual_ramp_release = _cp._actual_ramp_release_flows(urban_rows_in_freeway_step, cfg)
         actual_ramp_diag = _cp._with_actual_ramp_diagnostics(ramp_diag, actual_ramp_release)
-        offramp_capacity = _cp.off_ramp_capacity_by_freeway_link(state, cfg, interval_h=sim.T_f_h)
+        routed = _routing.inventory_enabled(cfg)
+        offramp_capacity = (_routing.branch_capacities(state, cfg, sim.T_f_h) if routed else
+                            _cp.off_ramp_capacity_by_freeway_link(state, cfg, interval_h=sim.T_f_h))
+        fw_start = (start_urban_step + freeway_substep_index * sim.K_fu) * sim.T_u_sec
+        _area.get_ledger(state).begin_response_step('freeway', fw_start, fw_start + sim.T_f_sec)
         fw_ttt, fw_diag = _cp.freeway_substep(state, control, demand, cfg, offramp_capacity_veh_h=offramp_capacity, ramp_release_veh_h=actual_ramp_release, ramp_release_diagnostics=actual_ramp_diag, update_ramp_queues=False, include_ramp_queue_ttt=True)
         freeway_ttt += fw_ttt
         freeway_rows.append(fw_diag)
         next_urban_step = start_urban_step + (freeway_substep_index + 1) * sim.K_fu
+        _area.get_ledger(state).begin_response_step('landing', fw_start, fw_start + sim.T_f_sec)
         for off_ramp in cfg.network.off_ramps:
             flow = _cp._offramp_flow_from_diagnostics(fw_diag, cfg, off_ramp)
             vehicles = flow * sim.T_f_h
-            accepted, rejected = _cp.schedule_offramp_arrivals(state, cfg, off_ramp, vehicles, next_urban_step)
+            if routed:
+                from evaluation.controllers.urban_flow_accounting import schedule_offramp_arrivals_accounted
+                branches = {row['branch']: fw_diag['offramp_flow_branch_' + connector] * sim.T_f_h
+                    for connector,row in cfg.network.offramp_route_inventory['branches'].items()
+                    if row['group'] == off_ramp}
+                accepted, rejected = schedule_offramp_arrivals_accounted(
+                    state, cfg, off_ramp, vehicles, next_urban_step, branch_vehicles=branches)
+            else:
+                accepted, rejected = _cp.schedule_offramp_arrivals(state, cfg, off_ramp, vehicles, next_urban_step)
             accepted_offramp += accepted
             rejected_offramp += rejected
+        ledger.complete_constraint_coverage('offramp_landing')
         # Scheduling owns FW -> off-ramp/direct transfers. Account FW residence
         # only after those transfers, using the same endpoint quadrature as METANET.
         _area.integrate_residence(state, cfg,
             [f"freeway:{link}" for link in cfg.network.freeway_links] +
             [f"origin:{link}" for link in cfg.network.freeway_links], sim.T_f_h)
+        ledger = _area.get_ledger(state)
+        if ledger.captures_response:
+            from evaluation.controllers.area_runtime import model_inventory
+            ledger.assert_stocks(model_inventory(state, cfg))
+        ledger.record_freeway_operands(state, control, actual_ramp_release)
     diagnostics: _cp.Dict[str, _cp.Any] = {'coupling_nested_order_active': 1.0, 'coupling_freeway_substeps': float(cfg.simulation.K_cf), 'coupling_urban_substeps': float(cfg.simulation.K_cu), 'coupling_onramp_sync_active': 1.0, 'coupling_onramp_two_reservoir_active': 1.0, 'coupling_offramp_storage_active': 1.0, 'coupling_aggregate_urban_model': 0.0, 'coupling_movement_urban_model': 1.0, 'coupling_offramp_arrivals_accepted_veh': float(accepted_offramp), 'coupling_offramp_arrivals_rejected_veh': float(rejected_offramp), 'coupling_offramp_storage_ttt_moved_to_freeway': float(offramp_storage_ttt_moved)}
     fw_diag = _cp._aggregate_freeway_diagnostics(freeway_rows, interval_h=sim.T_c_h, rows_per_cycle=max(1, int(round(cfg.network.cycle_length / sim.T_f_sec))), queue_cap_veh=sum((cfg.network.ramp_queue_cap(r) for r in cfg.network.ramps)))
     ur_diag = _cp.aggregate_urban_diagnostics(urban_rows, cfg, control, interval_h=sim.T_c_h)
     diagnostics.update(fw_diag)
+    if _routing.inventory_enabled(cfg):
+        diagnostics['offramp_route_inventory_enabled'] = 1.
     diagnostics.update(ur_diag)
+    if getattr(cfg.network, 'control_area_pack_completed_response_records', False):
+        _area.get_ledger(state).pack_completed_response_records()
     return _cp.CoupledStepResult(freeway_ttt=float(freeway_ttt), urban_ttt=float(urban_ttt), diagnostics=diagnostics)
 
 def install(adapter, cfg):

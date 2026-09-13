@@ -1,0 +1,201 @@
+{
+  "schema_version": "com-execution-equivalence-fixtures/v1",
+  "execution_performed": false,
+  "runtime_import_performed": false,
+  "runtime_writer_preflight": "pending",
+  "runner": "scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+  "runner_inputs": {
+    "Network": "diagnostics/fixed_beta300v3_network_arms_flat_v1/baseline.inpx",
+    "DemandProfile": "diagnostics/selected_control_demand/codex_selected_fw070_u040_beta0_r02/profile.csv",
+    "Calibration": "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json",
+    "Mapping": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
+    "VbsConfig": "evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21.vbs",
+    "VehicleInputRoles": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
+    "UrbanInputGateMap": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv"
+  },
+  "fixed_parameters": {
+    "SimPeriod": 1200,
+    "ControlIntervalSec": 150,
+    "ControlStartSec": 900,
+    "WarmupController": "no-control",
+    "Seed": 13,
+    "DemandScale": 1,
+    "StateLogIntervalSec": 30,
+    "StartupStallSec": 300,
+    "StallSec": 300,
+    "MaxAttempts": 1,
+    "NoGlobalKill": true
+  },
+  "input_pins": [
+    {
+      "path": "diagnostics/com_execution_equivalence/ramp_profile.json",
+      "sha256": "9df919fbaa6f8d3380ea0e2e55dbc654f0d7e376e9af1515efd005d294f4d082",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/com_execution_equivalence/ramp_profile_event.json",
+      "sha256": "144470a397e048e5138acfb576b63b255ddefa86dc5588226276bc8329548f6d",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/com_execution_equivalence/signal_profile.json",
+      "sha256": "076ce717bcd4a1e1782316d996661532571aef5a22041809e40b6162da6dfd9c",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/com_execution_equivalence/signal_profile_event.json",
+      "sha256": "fce51a722fe6b97ba72d1efb3b6be03c909a5e065b1462042b14e499863d9d5f",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/demand_sweep/fw070_urban040/prepared/demand.csv",
+      "sha256": "1287ad62a9c79198ab220e612da23999194c0521714c24db7ee6ce9ae72cb0a4",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/fixed_beta300v3_900_signal_profile/config.json",
+      "sha256": "304bba9e24d936e76b9c2a1c49ae977f49aeb60e408c4f27581fc9a774812970",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/fixed_beta300v3_900_signal_profile/frozen_greens.json",
+      "sha256": "d74ea088d132a96af0c9f54a60efd7309d601a0977dd747db4cd036c6e055614",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000001.csv",
+      "sha256": "110d30d03413f134c013335407359d58c9eae0334456d228f76b5e1c726417ae",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000900.csv",
+      "sha256": "b8602b070e05108616bea05b5075335b7cbedf47a2168aed11b2c50f46ed6b5c",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/selected_control_demand/codex_selected_fw070_u040_beta0_r02/checks.json",
+      "sha256": "40bdaf5c4f46761aec2ec7cbb53b427509d0fe71a66c50c1d72b32291a599f4d",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/selected_control_demand/codex_selected_fw070_u040_beta0_r02/comparison.csv",
+      "sha256": "b2cb24adbb71db45047288d83ce1c5a40e82b29b74ea91d0f85ea5ef00b41453",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/selected_control_demand/codex_selected_fw070_u040_beta0_r02/config.json",
+      "sha256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/selected_control_demand/codex_selected_fw070_u040_beta0_r02/profile.csv",
+      "sha256": "b98365968ce711377c2a012dabac43131c35f34e5f720539d2703b843ed6458a",
+      "verified_now": true
+    },
+    {
+      "path": "evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json",
+      "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea",
+      "verified_now": true
+    },
+    {
+      "path": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
+      "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+      "verified_now": true
+    },
+    {
+      "path": "evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21.vbs",
+      "sha256": "ce0219b2c9ecf60aed23757447b546a39e96d0f29c73204de7a7bb12f2e48825",
+      "verified_now": true
+    },
+    {
+      "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+      "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af",
+      "verified_now": true
+    },
+    {
+      "path": "evaluation/real_world_modi_inventory/vehicle_input_roles.csv",
+      "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7",
+      "verified_now": true
+    },
+    {
+      "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+      "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e",
+      "verified_now": true
+    },
+    {
+      "path": "diagnostics/fixed_beta300v3_network_arms_flat_v1/baseline.inpx",
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+      "verified_now": false,
+      "source": "Existing r02 checks.json; current large INPX deliberately not rehashed during preparation. Launcher preflight must hash it."
+    },
+    {
+      "path": "evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21_sgplan.vbs",
+      "sha256": "eca795f88eae4ba00a71723379247ea9ab369ba23c25714b30c7198310ee3503",
+      "verified_now": true,
+      "role": "Actual sibling loaded by VBS LoadSignalGroupPlanConfig; declared SGs include RED-only groups absent from CSV window rows."
+    }
+  ],
+  "golden_signal_csv": {
+    "1": {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000001.csv",
+      "sha256": "110d30d03413f134c013335407359d58c9eae0334456d228f76b5e1c726417ae",
+      "rows": 74
+    },
+    "900": {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000900.csv",
+      "sha256": "b8602b070e05108616bea05b5075335b7cbedf47a2168aed11b2c50f46ed6b5c",
+      "rows": 213
+    }
+  },
+  "head_options": {
+    "enabled": true,
+    "min_green_sec": 30,
+    "min_crossings": 5
+  },
+  "event_overlay_only_change": "urban.capacity.head_observation.enabled=false",
+  "primary_pair_invariant": "Same frozen root-merged COM/VSL-sidecar source, same fixture/config/input/seed/arguments and common RW_PERF=1. Only RW_SIGNAL_READBACK_SEC (old1/new0) and RW_SIGNAL_WRITE_ON_CHANGE (old0/new1) differ, apart from run identity/output paths.",
+  "scope": "Fixed physical commands; historical diagnostic model parent kept unchanged except observer enable. No r02 model/prediction-equivalence claim.",
+  "primary_environment": {
+    "common": {
+      "RW_PERF": "1"
+    },
+    "old": {
+      "RW_SIGNAL_READBACK_SEC": "1",
+      "RW_SIGNAL_WRITE_ON_CHANGE": "0"
+    },
+    "new": {
+      "RW_SIGNAL_READBACK_SEC": "0",
+      "RW_SIGNAL_WRITE_ON_CHANGE": "1"
+    }
+  },
+  "event_environment_both": {
+    "RW_PERF": "1",
+    "RW_SIGNAL_READBACK_SEC": "0",
+    "RW_SIGNAL_WRITE_ON_CHANGE": "1"
+  },
+  "source_requirement": "Root installs merged readback=0 support before either arm; all runtime source SHAs must match across arms. No source-version change between arms.",
+  "measurement_scope": "SG-loop settings only. Logger caches and removal of two VSL summary reads are common to both arms; their earlier cost is not included in the measured improvement.",
+  "signal_group_plan_vbs": {
+    "path": "evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21_sgplan.vbs",
+    "sha256": "eca795f88eae4ba00a71723379247ea9ab369ba23c25714b30c7198310ee3503",
+    "controlled_sgs": 136,
+    "csv_window_sgs": 122,
+    "red_only_sgs": [
+      "7:2",
+      "7:3",
+      "7:5",
+      "7:6",
+      "16:1",
+      "16:5",
+      "107:4",
+      "107:8",
+      "108:3",
+      "108:7",
+      "109:1",
+      "109:3",
+      "109:4",
+      "109:8"
+    ],
+    "address_rule": "Same pinned sibling as runner: VbsConfig basename + _sgplan.vbs; RW_MAINLINE_SG_ONLY=1 limits to SG<=8."
+  }
+}

@@ -356,6 +356,20 @@ def render_vbs(table: Mapping[str, Any], plan_sha256: str = "") -> str:
     ]
     lines.extend(_long_string_assignment("RW_SIGNAL_SG_EXPECTED", ",".join(expected_token_list(table))))
     lines.extend(_long_string_assignment("RW_SIGNAL_SG_CONFLICTS", ";".join(conflict_token_list(table))))
+    native = []
+    nodes = table['controllers']
+    if any(node.get('native_clock_basis') for node in nodes.values()):
+        for sc, raw in nodes.items():
+            node = signal_group_plan.node_plan_from_json(raw)
+            if node.native_clock_basis is None:
+                raise ValueError('Native clock writer needs every owned controller source basis')
+            cycle = signal_group_plan.node_cycle_sec(node, node.axis_green_sec, AMBER_SEC, ALL_RED_SEC)
+            basis = node.native_clock_basis
+            idle = sum(basis.get('idle_after_phase_sec', {}).values())
+            mask = ''.join('1' if node.axis_green_sec.get(p, 0.) > 0 else '0'
+                           for p in signal_group_plan.MODEL_PHASES)
+            native.append(f"{int(sc)}:{basis['kind']}:{cycle:.6f}:{idle:.6f}:{mask}")
+        lines.extend(_long_string_assignment('RW_SIGNAL_NATIVE_CLOCKS', ';'.join(native)))
     return "\n".join(lines) + "\n"
 
 

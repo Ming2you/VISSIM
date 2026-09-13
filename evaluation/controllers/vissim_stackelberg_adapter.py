@@ -11,6 +11,8 @@ import re
 import subprocess
 import sys
 import time
+_DECISION_ENTRY_WALL = time.perf_counter()
+_DECISION_ENTRY_CPU = time.process_time()
 from pathlib import Path
 from typing import Any, Mapping, MutableMapping, Sequence
 
@@ -1385,6 +1387,10 @@ def _mainline_plan_enabled() -> bool:
 def signal_group_actuation_plan_path() -> Path:
     """읽을 액추에이션 계획. 상수가 아니라 함수인 이유는 import 시점에 굳으면
     `main()` 이 tuning 을 열기 **전**이라 config 스위치를 못 보기 때문이다."""
+    explicit = _CFG_STRINGS.get('signal_actuation_plan_json', '')
+    if explicit:
+        candidate = Path(explicit)
+        return (candidate if candidate.is_absolute() else WORKSPACE_ROOT / candidate).resolve(strict=True)
     name = (
         "signal_group_actuation_plan_mainline_20260825.json"
         if _mainline_plan_enabled()
@@ -1474,7 +1480,7 @@ def signal_group_action_rows(
     amber, all_red = RUNNER_CLEARANCE_SEC
     amber = float(plan_table.get("amber_sec", amber))
     all_red = float(plan_table.get("all_red_sec", all_red))
-    cycle = signal_group_plan.plan_cycle_sec(phase_greens, amber, all_red)
+    cycle = signal_group_plan.node_cycle_sec(plan, phase_greens, amber, all_red)
     windows = signal_group_plan.plan_windows(
         plan,
         phase_greens=phase_greens,
@@ -4544,6 +4550,36 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     _on = bool(_flag) if isinstance(_flag, (bool, int, float)) else         str(_flag).strip().lower() in {"1", "true", "yes", "on"}
     if not _on:
         return {"native_signal_structure_enabled": 0.0}
+    selected_plan = load_signal_group_actuation_plan() if _CFG_STRINGS.get('signal_actuation_plan_json') else None
+    native_nodes = {signal: (selected_plan.get('controllers') or {}).get(str(int(signal[2:])), {})
+                    for signal in _controlled_signal_names(cfg)} if selected_plan else {}
+    if any(node.get('native_clock_basis') for node in native_nodes.values()):
+        # Explicit source-clock activation is a physical/algorithm correction.
+        # It retains the actual cycle, idle gaps and concurrent phase windows;
+        # applying the legacy concurrency capacity multiplier as well would
+        # count that source overlap twice.
+        if (not _mapping(tuning.get('urban')).get('physical_signal_contract', False)
+                or section.get('minimum_policy') != 'include_source_reference'
+                or not all(node.get('native_clock_basis') for node in native_nodes.values())):
+            raise ValueError('Native clock activation requires every owned source plan, physical contract and explicit source minimum policy')
+        net = cfg.network
+        cycles, budgets, live_map = {}, {}, {}
+        amber, all_red = RUNNER_CLEARANCE_SEC
+        for signal, raw in native_nodes.items():
+            node = signal_group_plan.node_plan_from_json(raw)
+            greens = dict(node.axis_green_sec)
+            cycles[signal] = signal_group_plan.node_cycle_sec(node, greens, amber, all_red)
+            live_map[signal] = tuple(p for p in signal_group_plan.MODEL_PHASES if greens.get(p, 0.) > 0.)
+            budgets[signal] = (greens['p2'] + greens['p4']
+                if node.native_clock_basis['kind'] == 'concurrent_p1_p2' else math.fsum(greens.values()))
+        net.cycle_length_by_signal = cycles
+        net.effective_green_total_by_signal = budgets
+        net.live_phases_by_signal = live_map
+        net.native_signal_minimum_policy = 'include_source_reference'
+        return {'native_signal_structure_enabled': 1., 'native_signal_clock_basis_enabled': 1.,
+                'native_signal_cycle_count': float(len(cycles)), 'native_signal_budget_count': float(len(budgets)),
+                'native_signal_drive_cycle_recompute': 0., 'native_signal_concurrency_movements': 0.,
+                'native_signal_source_minimum_policy_enabled': 1.}
     # **측정값**을 쓴다. 유도(C - N x clearance)는 손실시간을 3초 x live현시수 로 고정하는데
     # 실측은 신호마다 전혀 다르다 — SC5 는 0초(항상 어딘가 녹색, 최대 6 SG 동시), SC16 은
     # 43초다. 유도를 쓰면 SC5 예산이 138(참값 150)이 되고 동시현시 배율의 분모까지 틀린다.
@@ -4664,6 +4700,39 @@ def install_native_signal_structure(cfg, tuning: Mapping[str, Any]) -> dict[str,
     for sig, f in sorted(factors.items()):
         meta[f"native_signal_concurrency_factor_{sig}"] = float(f)
     return meta
+
+
+def validate_native_signal_runtime_source(cfg, state_json):
+    """Bind an opt-in source clock to the network actually loaded by this run."""
+    nodes = (getattr(cfg.network, 'signal_actuation_contract', None) or {}).get('nodes', {})
+    if not any(raw.get('native_clock_basis') for raw in nodes.values()):
+        return {}
+    import xml.etree.ElementTree as ET
+    from evaluation.controllers.fixed_signal_schedule import _signal_program_path
+    network_path = Path(state_json['network_path']).resolve(strict=True)
+    network_sha = _file_sha256(network_path)
+    tree = ET.parse(network_path)
+    controllers = {node.get('no'): node for node in tree.findall('./signalControllers/signalController')}
+    proof = {}
+    for signal, raw in nodes.items():
+        basis = raw['native_clock_basis']
+        current = controllers.get(str(int(signal[2:])))
+        if current is None or current.get('active') != 'true' or current.get('type') != 'FIXEDTIME':
+            raise ValueError(signal + ': loaded network does not use the declared active fixed-time source')
+        program = _signal_program_path(network_path, current.get('supplyFile2', ''))
+        source_sha = _file_sha256(Path(basis['source_path']))
+        if (_file_sha256(program) != source_sha
+                or int(current.get('progNo', '1')) != int(basis['active_prog_no'])
+                or float(current.get('offset', '0') or 0.) != float(basis['controller_offset_sec'])):
+            raise ValueError(signal + ': loaded native program, active number or offset differs from the fixed reference')
+        proof[signal] = {'program_path': str(program), 'program_sha256': source_sha,
+                         'active_prog_no': int(basis['active_prog_no']),
+                         'controller_offset_sec': float(basis['controller_offset_sec'])}
+    if _file_sha256(network_path) != network_sha:
+        raise ValueError('Loaded network changed during native reference source verification')
+    cfg.network.native_signal_runtime_source_binding = {'network_path': str(network_path),
+        'network_sha256': network_sha, 'controllers': proof}
+    return {'native_signal_runtime_sources_verified': float(len(proof))}
 
 
 def install_urban_stopline_storage(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
@@ -4903,6 +4972,8 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
     # 2026-09-06 큐 귀속 가중: "" = detector_mapping weight(비트 동일), "beta" = movement β(목적지 분율).
     _CFG_STRINGS["queue_attribution"] = str(
         _mapping(urban.get("queue")).get("attribution", "") or "").strip().lower()
+    _CFG_STRINGS['signal_actuation_plan_json'] = str(
+        _mapping(urban.get('plan')).get('actuation_plan_json', '') or '').strip()
     out: dict[str, float] = {}
     for key, raw in pairs:
         if raw is None:
@@ -8701,6 +8772,25 @@ def install_freeway_two_branch_fd(cfg, tuning) -> dict[str, float]:
     if not section:
         return {"two_branch_fd_enabled": 0.0}
     enabled = bool(section.get("enabled", False))
+    directional = None
+    if enabled and "rho_crit_two_branch_by_direction" in section:
+        raw_directional = section["rho_crit_two_branch_by_direction"]
+        if not isinstance(raw_directional, Mapping) or set(raw_directional) != {"FW_E", "FW_W"}:
+            raise ValueError("directional two-branch critical density requires exactly FW_E and FW_W")
+        from evaluation.controllers.freeway_fd import FDParameters
+        directional = {}
+        global_jam = _as_float(section.get("rho_max"), 0.0)
+        global_jam = global_jam if global_jam > 0.0 else cfg.network.rho_max
+        cells = getattr(cfg.network, "freeway_segment_params", {}) or {}
+        for direction, raw_value in raw_directional.items():
+            if not isinstance(raw_value, (int, float)) or isinstance(raw_value, bool):
+                raise ValueError("directional two-branch critical density must be numeric")
+            value = float(raw_value)
+            FDParameters(float(cfg.network.v_free), value, float(global_jam)).validate()
+            for cell in cells.get(direction, ()):
+                FDParameters(float(cell.get("v_free", cfg.network.v_free)), value,
+                             float(cell.get("rho_max", global_jam))).validate()
+            directional[direction] = value
     setattr(cfg.network, "vsl_fd_two_branch", enabled)
     out = {"two_branch_fd_enabled": 1.0 if enabled else 0.0}
     tb = _as_float(section.get("rho_crit_two_branch"), 0.0)
@@ -8711,6 +8801,12 @@ def install_freeway_two_branch_fd(cfg, tuning) -> dict[str, float]:
     if rj > 0.0:
         setattr(cfg.network, "rho_max", float(rj))
         out["two_branch_rho_max"] = float(rj)
+    if enabled:
+        if directional is not None:
+            setattr(cfg.network, "rho_crit_two_branch_by_direction", directional)
+            out.update({"two_branch_rho_crit_" + key: value for key, value in directional.items()})
+        elif hasattr(cfg.network, "rho_crit_two_branch_by_direction"):
+            delattr(cfg.network, "rho_crit_two_branch_by_direction")
     if enabled:
         # 켜졌으면 실효 ρ_c 를 진단으로 남긴다 — "설치됐다"와 "움직인다"를 산출물로 가르기 위해.
         try:
@@ -9683,7 +9779,8 @@ def control_from_json(path: Path, cfg, ControlAction):
         },
         diagnostics=dict(raw.get("diagnostics", {})),
     )
-    return signal_actuation_contract.prepare_control(control, cfg)
+    from evaluation.controllers import physical_ramp_branches
+    return physical_ramp_branches.read_recorded_control(signal_actuation_contract.prepare_control(control, cfg), cfg, path)
 
 
 def control_to_json_dict(
@@ -9708,6 +9805,13 @@ def control_to_json_dict(
                             "RW_MAINLINE_SHARE_SG", "")).strip().lower() in {"1", "true", "on"} else 0.0},
         "metadata": metadata,
     }
+    # Diagnostics are inherited with candidate controls. The authoritative
+    # writer variant determines whether this output still describes native
+    # no-control ownership; never mutate the already scored control itself.
+    variant = metadata.get("controller_variant")
+    if isinstance(variant, str) and variant and variant != "no-control":
+        payload["diagnostics"].pop("no_control_active", None)
+        payload["diagnostics"].pop("no_control_native_signal_reference", None)
     run_provenance = metadata.get("run_provenance")
     if isinstance(run_provenance, Mapping):
         payload["run_provenance"] = dict(run_provenance)
@@ -10497,6 +10601,12 @@ def apply_ramp_spillback_guard(control, cfg, state, actuation: Mapping[str, Any]
 def real_world_ramp_meter_write_back(control, cfg, actuation: Mapping[str, Any], mapping: Mapping[str, Any], metadata=None,
                                      state_json=None, previous=None) -> dict[str, float]:
     """액션 JSON 을 쓰기 **전에** 실현 가능한 미터 유량을 control.ramp_metering 에 되쓴다. 게이트 밖이면 no-op."""
+    from evaluation.controllers import physical_ramp_branches
+    if physical_ramp_branches.enabled(cfg):
+        physical_ramp_branches.physical_commands(control, cfg, actuation=actuation, mapping=mapping)
+        if isinstance(metadata, dict):
+            metadata['rw_meter_allocation'] = 'explicit_physical_branch_service'
+        return dict(control.ramp_metering)
     meters = mapping.get("ramp_meters", []) if isinstance(mapping, Mapping) else []
     if not isinstance(meters, list) or not meters:
         return {}
@@ -10548,6 +10658,10 @@ def real_world_ramp_meter_actions(
     mapping: Mapping[str, Any],
 ) -> dict[str, dict[str, float | str]]:
     """Map model ramp releases to physical real-world ramp-meter controllers."""
+    from evaluation.controllers import physical_ramp_branches
+    physical = physical_ramp_branches.physical_commands(control, cfg, actuation=actuation, mapping=mapping)
+    if physical is not None:
+        return physical
     diagnostic_rows = diagnostic_profile.physical_meter_actions(control, cfg, actuation, mapping)
     if diagnostic_rows is not None:
         return diagnostic_rows
@@ -10867,8 +10981,49 @@ def _release_floor_ratio(
 
 def _make_no_control(ControlAction, cfg):
     if hasattr(ControlAction, "uncontrolled"):
-        return ControlAction.uncontrolled(cfg)
-    return ControlAction.fixed(cfg)
+        control = ControlAction.uncontrolled(cfg)
+    else:
+        control = ControlAction.fixed(cfg)
+    from evaluation.controllers import physical_ramp_branches
+    if physical_ramp_branches.enabled(cfg):
+        # Explicit native all-GREEN command, not an inferred demand allocation.
+        for mid,row in cfg.network.physical_ramp_branches['ramps'].items():
+            green = row['cycle_sec']
+            control.diagnostics['rw_meter_green_'+mid] = float(green)
+            control.ramp_metering[mid] = row['service_by_green_veh_h'][str(int(green))]
+        physical_ramp_branches.prepare_control(control, cfg)
+    return represent_native_no_control_signals(control, cfg)
+
+
+def represent_native_no_control_signals(control, cfg):
+    """Describe the already-owned native program; do not claim a new COM write.
+
+    Only the explicit, source-validated native clock contract changes this
+    representation. The no-control writer still suppresses urban signal rows.
+    This keeps the first controlled decision's previous action honest instead
+    of using a nominal equal-green serial plan as its actual-action anchor.
+    """
+    contract = getattr(cfg.network, 'signal_actuation_contract', None) or {}
+    nodes = contract.get('nodes', {})
+    if not any(raw.get('native_clock_basis') for raw in nodes.values()):
+        return control
+    reference = {}
+    for signal, raw in nodes.items():
+        basis = raw.get('native_clock_basis')
+        if not basis:
+            raise ValueError('Incomplete native no-control reference')
+        greens = dict(basis['native_green_sec'])
+        control.green_times.update({f'{signal}_{phase}': float(greens[phase])
+                                   for phase in signal_group_plan.MODEL_PHASES})
+        control.offsets[signal] = float(basis['reference_offset_sec'])
+        reference[signal] = {'native_clock_basis': basis, 'greens': greens,
+                             'offset_sec': control.offsets[signal]}
+    signal_actuation_contract.validate_control(control, cfg)
+    control.diagnostics['no_control_native_signal_reference'] = {
+        'schema': 'source-native-no-control-reference/v1', 'new_com_command': False,
+        'source_plan_sha256': _file_sha256(signal_group_actuation_plan_path()),
+        'nodes': reference}
+    return control
 
 
 def apply_vissim_policy_guards(
@@ -11838,6 +11993,183 @@ def _action_csv_metadata(
     )
 
 
+def iter_action_csv_rows(
+    control,
+    cfg,
+    mapping: dict[str, Any],
+    segment_vsl_values: Sequence[float],
+    ramp_actions: Mapping[str, Mapping[str, Any]],
+    metadata: dict[str, Any],
+    actuation: Mapping[str, Any],
+    signal_group_plan_table: Mapping[str, Any] | None = None,
+    offset_writer: str = offset_promotion.WRITER_INTENT_ONLY,
+):
+    """Yield canonical rows from resolved physical values, without allocation/IO.
+
+    segment_vsl_values follows mapping['segments'] exactly. ramp_actions is the
+    result of the existing real-world (or legacy) meter conversion on the same
+    finalized action/context. Callers own that preparation and its side effects.
+    Every column except metadata is physical CSV content; metadata retains the
+    existing provenance serialization and is not a physical-command identity.
+    Inputs must remain fixed for the lifetime of this synchronous iterator.
+    """
+    signal_actuation_contract.validate_writer(control, cfg, signal_group_plan_table, offset_writer)
+    if len(segment_vsl_values) != len(mapping["segments"]):
+        raise ValueError("Resolved VSL values must cover the ordered segment mapping")
+    if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
+        expected_ramps = tuple(dict.fromkeys(
+            str(meter.get("id", meter.get("control_id", "")))
+            for meter in mapping["ramp_meters"] if isinstance(meter, Mapping)
+            and str(meter.get("id", meter.get("control_id", "")))
+        ))
+    else:
+        expected_ramps = ("D", "F")
+    if tuple(ramp_actions) != expected_ramps:
+        raise ValueError("Resolved meters must cover the ordered physical meter mapping")
+    vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
+    if 120.0 not in vsl_set:
+        vsl_set = sorted(set(vsl_set + [120.0]))
+    csv_metadata = _action_csv_metadata(metadata)
+    for segment_index, seg in enumerate(mapping["segments"]):
+        segment_id = seg["segment_id"]
+        value = nearest(segment_vsl_values[segment_index], vsl_set)
+        for dsd in _segment_dsd_controls(seg):
+            lane = dsd.get("lane", "")
+            yield ({
+                "kind": "vsl",
+                "id": segment_id,
+                "dsd_no": dsd["dsd_no"],
+                "link": seg["link"],
+                "lane": lane,
+                "speed_kph": value,
+                "metadata": csv_metadata,
+            })
+    signal_settings = _mapping(actuation.get("real_world_signal_control"))
+    write_signal_rows = bool(signal_settings.get("enabled", True))
+    if str(metadata.get("controller_variant", "")) == "no-control" and not bool(
+        signal_settings.get("apply_to_no_control", False)
+    ):
+        write_signal_rows = False
+    if bool(metadata.get("suppress_signal_rows", False)):
+        write_signal_rows = False
+    if write_signal_rows:
+        offset_promotion.guard_forced_arm(control, offset_writer)
+        for signal_row in _signal_rows_for_mapping(mapping):
+            signal = str(signal_row["id"])
+            sc_no = int(signal_row["sc_no"])
+            # Phase-axis fix (2026-06-30): VISSIM SG1(MAJOR) controls the E-W/arterial approaches,
+            # which the model serves in phase p2; SG2(MINOR) controls the N-S/cross approaches = model
+            # phase p1. Verified against evaluation/signal_install/signal_manifest.csv (20/20 approach
+            # links). The previous mapping (major<-p1, minor<-p2) axis-swapped every signal's green
+            # allocation in VISSIM, so the controller's green was applied to the wrong axis.
+            # 진단(fixed-action) 컨트롤러는 모델 신호명(cfg.network.signals)으로 green_times 를
+            # 채우는데, 매핑의 signal id 는 별개 이름공간이다. 기본 control_mapping.json 은
+            # id 가 "D" 라 모델 신호명과 우연히 일치했지만 distributed 매핑은 "SC1"/"SC5"/... 라
+            # 전부 기본값으로 떨어져 **앵커와 green 후보의 액션이 완전히 같아졌다**
+            # (2026-08-04 실측: 바뀐 셀 0 개, 관측 응답 0.000 km/h).
+            # 강제값이 diagnostics 에 있으면 그것을 기본값으로 쓴다.
+            _dg = getattr(control, "diagnostics", {}) or {}
+            _maj_default = float(_dg.get("diagnostic_forced_signal_major_green_sec", 40.0))
+            _min_default = float(_dg.get("diagnostic_forced_signal_minor_green_sec", 40.0))
+            # 컨트롤러별 축 대응 (2026-08-04). VISSIM MAJOR(SG1) 가 모델의 어느 phase 인지는
+            # 교차로마다 다르다. 일반 간선 교차로는 MAJOR=EW 간선=모델 p2 이지만,
+            # freeway 인터페이스 교차로(SC 1001)는 MAJOR 접근이 **off-ramp 유출**이고
+            # 모델은 램프 leg 를 NS 축으로 보아 p1 에 둔다.
+            #   확인 근거 - SC1001 정지선 신호두는 link 32 위이고, link 32 유입 커넥터는
+            #   conn 10481(본선 2에서) / conn 10491(본선 26에서) **뿐**이다.
+            #   NumSim grid_topology._token_leg_dir 은 off*/on* 토큰을 "S" 로 보아 p1 에 배정한다.
+            # 이전에는 major<-p2 로 일괄 매핑해 인터페이스 교차로에서 부호가 뒤집혔고,
+            # G6 에서 major green 증가를 모델은 J 악화(+2084), 플랜트는 개선(-263)으로 냈다.
+            #
+            # N4-0 이후 이 축 대응은 **여기서 값을 고르는 데 쓰이지 않는다.** 열이 현시
+            # 이름이라 어느 열에 무엇이 실리는지가 축 대응과 무관해졌고, 창 배치 순서만
+            # 계획 산출물의 `major_maps_to`(같은 매핑 JSON 에서 나온 값)가 정한다.
+            # 즉 매핑과 계획이 어긋나도 값이 뒤바뀌는 경로는 사라졌다.
+            # 기본값은 **라벨이 아니라 phase 를 따라가야 한다.**
+            # _diagnostic_fixed_control 은 모델 신호명 기준으로 p1<-minor, p2<-major 를 넣는데
+            # 그 키는 매핑 signal id 와 이름공간이 달라 조회가 항상 빗나간다. 그래서 기본값이
+            # 실제로 쓰이는데, 여기서 major<-강제major 로 두면 축을 바꿔도 결과가 같아진다.
+            # phase 별 기본값을 모델이 그 phase 에 넣었을 값과 맞춰야 인터페이스 교차로에서
+            # freeway 접속 이동류가 모델·플랜트 양쪽에서 같은 녹색을 받는다.
+            # N4-0 4현시. 축(major/minor)은 더 이상 CSV 열이 아니다. 축 대응은
+            # 여기서 **기본값을 고를 때만** 살아 있고, 실려 나가는 것은 현시 이름이다.
+            # 남는 현시(p3/p4)의 기본값이 0.0 인 것은 조용한 폴백이 아니다 - 계획이
+            # 그 현시에 SG 를 붙여 두었으면 `signal_group_action_rows` 가 현시 집합
+            # 불일치로 죽는다(부분 적용 없음).
+            _phase_default = {"p1": _min_default, "p2": _maj_default}
+            # 클램프는 plant_cycle 이 단일 출처다. 여기 리터럴로 두면 모델 주기와
+            # 플랜트 주기가 같은지 재는 쪽(tests/test_model_plant_cycle_identity)이
+            # 실제로 실리는 값이 아니라 사본을 재게 된다.
+            phase_green: dict[str, float] = {}
+            for _phase in signal_group_plan.MODEL_PHASES:
+                _raw = control.green_times.get(
+                    f"{signal}_{_phase}", _phase_default.get(_phase, 0.0)
+                )
+                _value = float(_raw)
+                # 녹색 0 = 그 현시를 쓰지 않는다는 뜻이라 클램프 하한을 물리면 안 된다.
+                phase_green[_phase] = (
+                    plant_cycle.written_axis_green_sec(_value) if _value > 0.0 else 0.0
+                )
+            # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
+            # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
+            # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.
+            offset = (signal_actuation_contract.written_offset_sec(control, cfg, signal)
+                      if signal_actuation_contract.enabled(cfg.network)
+                      else offset_promotion.written_offset_sec(signal, control, offset_writer))
+            signal_row_out = {
+                "kind": "signal",
+                "id": signal,
+                "sc_no": sc_no,
+                "offset": round(offset, 3),
+                "metadata": csv_metadata,
+            }
+            for _phase, _field in zip(
+                signal_group_plan.MODEL_PHASES, action_csv_schema.PHASE_GREEN_FIELDS
+            ):
+                signal_row_out[_field] = round(phase_green[_phase], 3)
+            yield (signal_row_out)
+            # N4-5. 현시 녹색을 SG 단위로 쪼갠 행(파생). 계획이 없으면 행도 없고,
+            # 그 조합은 러너의 RW_SIGNAL_SG_PLAN_SCHEMA 게이트가 fail-closed 로 막는다.
+            if signal_group_plan_table is not None:
+                for sg_row in signal_group_action_rows(
+                    signal_group_plan_table,
+                    sc_no=sc_no,
+                    phase_greens={
+                        _phase: round(phase_green[_phase], 3)
+                        for _phase in signal_group_plan.MODEL_PHASES
+                    },
+                    offset=round(offset, 3),
+                    metadata=csv_metadata,
+                ):
+                    yield (sg_row)
+    if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
+        for ramp, spec in ramp_actions.items():
+            yield ({
+                "kind": "ramp_meter",
+                "id": ramp,
+                "sc_no": int(_as_float(spec.get("sc_no"), 0.0)),
+                "rate_vph": round(_as_float(spec.get("rate_vph"), 0.0), 3),
+                "green_sec": round(_as_float(spec.get("green_sec"), 10.0), 3),
+                "metadata": _action_csv_metadata(metadata, {
+                    "model_ramp_key": spec.get("model_ramp_key", ""),
+                    "group_rate_vph": round(
+                        _as_float(spec.get("group_rate_vph"), 0.0), 3
+                    ),
+                }),
+            })
+    else:
+        ramp_to_sc = {"D": 6, "F": 7}
+        for ramp, spec in ramp_actions.items():
+            yield ({
+                "kind": "ramp_meter",
+                "id": ramp,
+                "sc_no": ramp_to_sc[ramp],
+                "rate_vph": round(spec["rate_vph"], 3),
+                "green_sec": round(spec["green_sec"], 3),
+                "metadata": csv_metadata,
+            })
+
+
 def write_action_csv(
     path: Path,
     control,
@@ -11848,166 +12180,296 @@ def write_action_csv(
     actuation: Mapping[str, Any],
     signal_group_plan_table: Mapping[str, Any] | None = None,
     offset_writer: str = offset_promotion.WRITER_INTENT_ONLY,
-) -> None:
-    # N4-7. `offset_writer` 의 기본값이 intent_only 인 것이 fail-closed 의 요점이다.
-    # 이 함수를 아무 말 없이 부르면 offset 은 절대 플랜트로 나가지 않는다.
+    *,
+    joint_response=None,
+    joint_json_path: Path | None = None,
+):
+    # Keep runtime callback effects at the existing writer boundary. The row
+    # iterator itself never invokes the global VSL hook or meter allocator.
     signal_actuation_contract.validate_writer(control, cfg, signal_group_plan_table, offset_writer)
     path.parent.mkdir(parents=True, exist_ok=True)
-    vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
-    if 120.0 not in vsl_set:
-        # Allow no-control-ish 120 km/h on Vissim when previous/control provides it.
-        vsl_set = sorted(set(vsl_set + [120.0]))
-    # Action CSV fields are ASCII-compatible. Omitting a BOM lets the VBS
-    # consumer validate the complete header token-for-token.
     with path.open("w", newline="", encoding="utf-8") as f:
-        csv_metadata = _action_csv_metadata(metadata)
-        # 열 목록은 `action_csv_schema` 가 정본이다. 여기에 리터럴로 두면 러너 헤더와
-        # 조용히 갈라진다(러너는 헤더를 토큰 단위로 대조해 전량 거부한다).
+        _action_csv_metadata(metadata)  # Preserve metadata rejection before callbacks.
         fields = list(action_csv_schema.ACTION_CSV_FIELDS)
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
+        segment_vsl_values = []
         for seg in mapping["segments"]:
-            segment_id = seg["segment_id"]
-            model_link, idx = _segment_model_coordinates(str(segment_id), seg)
-            value = nearest(segment_vsl_func(control, model_link, idx, cfg), vsl_set)
-            for dsd in _segment_dsd_controls(seg):
-                lane = dsd.get("lane", "")
-                writer.writerow({
-                    "kind": "vsl",
-                    "id": segment_id,
-                    "dsd_no": dsd["dsd_no"],
-                    "link": seg["link"],
-                    "lane": lane,
-                    "speed_kph": value,
-                    "metadata": csv_metadata,
-                })
-        signal_settings = _mapping(actuation.get("real_world_signal_control"))
-        write_signal_rows = bool(signal_settings.get("enabled", True))
-        if str(metadata.get("controller_variant", "")) == "no-control" and not bool(
-            signal_settings.get("apply_to_no_control", False)
-        ):
-            write_signal_rows = False
-        if bool(metadata.get("suppress_signal_rows", False)):
-            write_signal_rows = False
-        if write_signal_rows:
-            offset_promotion.guard_forced_arm(control, offset_writer)
-            for signal_row in _signal_rows_for_mapping(mapping):
-                signal = str(signal_row["id"])
-                sc_no = int(signal_row["sc_no"])
-                # Phase-axis fix (2026-06-30): VISSIM SG1(MAJOR) controls the E-W/arterial approaches,
-                # which the model serves in phase p2; SG2(MINOR) controls the N-S/cross approaches = model
-                # phase p1. Verified against evaluation/signal_install/signal_manifest.csv (20/20 approach
-                # links). The previous mapping (major<-p1, minor<-p2) axis-swapped every signal's green
-                # allocation in VISSIM, so the controller's green was applied to the wrong axis.
-                # 진단(fixed-action) 컨트롤러는 모델 신호명(cfg.network.signals)으로 green_times 를
-                # 채우는데, 매핑의 signal id 는 별개 이름공간이다. 기본 control_mapping.json 은
-                # id 가 "D" 라 모델 신호명과 우연히 일치했지만 distributed 매핑은 "SC1"/"SC5"/... 라
-                # 전부 기본값으로 떨어져 **앵커와 green 후보의 액션이 완전히 같아졌다**
-                # (2026-08-04 실측: 바뀐 셀 0 개, 관측 응답 0.000 km/h).
-                # 강제값이 diagnostics 에 있으면 그것을 기본값으로 쓴다.
-                _dg = getattr(control, "diagnostics", {}) or {}
-                _maj_default = float(_dg.get("diagnostic_forced_signal_major_green_sec", 40.0))
-                _min_default = float(_dg.get("diagnostic_forced_signal_minor_green_sec", 40.0))
-                # 컨트롤러별 축 대응 (2026-08-04). VISSIM MAJOR(SG1) 가 모델의 어느 phase 인지는
-                # 교차로마다 다르다. 일반 간선 교차로는 MAJOR=EW 간선=모델 p2 이지만,
-                # freeway 인터페이스 교차로(SC 1001)는 MAJOR 접근이 **off-ramp 유출**이고
-                # 모델은 램프 leg 를 NS 축으로 보아 p1 에 둔다.
-                #   확인 근거 - SC1001 정지선 신호두는 link 32 위이고, link 32 유입 커넥터는
-                #   conn 10481(본선 2에서) / conn 10491(본선 26에서) **뿐**이다.
-                #   NumSim grid_topology._token_leg_dir 은 off*/on* 토큰을 "S" 로 보아 p1 에 배정한다.
-                # 이전에는 major<-p2 로 일괄 매핑해 인터페이스 교차로에서 부호가 뒤집혔고,
-                # G6 에서 major green 증가를 모델은 J 악화(+2084), 플랜트는 개선(-263)으로 냈다.
-                #
-                # N4-0 이후 이 축 대응은 **여기서 값을 고르는 데 쓰이지 않는다.** 열이 현시
-                # 이름이라 어느 열에 무엇이 실리는지가 축 대응과 무관해졌고, 창 배치 순서만
-                # 계획 산출물의 `major_maps_to`(같은 매핑 JSON 에서 나온 값)가 정한다.
-                # 즉 매핑과 계획이 어긋나도 값이 뒤바뀌는 경로는 사라졌다.
-                # 기본값은 **라벨이 아니라 phase 를 따라가야 한다.**
-                # _diagnostic_fixed_control 은 모델 신호명 기준으로 p1<-minor, p2<-major 를 넣는데
-                # 그 키는 매핑 signal id 와 이름공간이 달라 조회가 항상 빗나간다. 그래서 기본값이
-                # 실제로 쓰이는데, 여기서 major<-강제major 로 두면 축을 바꿔도 결과가 같아진다.
-                # phase 별 기본값을 모델이 그 phase 에 넣었을 값과 맞춰야 인터페이스 교차로에서
-                # freeway 접속 이동류가 모델·플랜트 양쪽에서 같은 녹색을 받는다.
-                # N4-0 4현시. 축(major/minor)은 더 이상 CSV 열이 아니다. 축 대응은
-                # 여기서 **기본값을 고를 때만** 살아 있고, 실려 나가는 것은 현시 이름이다.
-                # 남는 현시(p3/p4)의 기본값이 0.0 인 것은 조용한 폴백이 아니다 - 계획이
-                # 그 현시에 SG 를 붙여 두었으면 `signal_group_action_rows` 가 현시 집합
-                # 불일치로 죽는다(부분 적용 없음).
-                _phase_default = {"p1": _min_default, "p2": _maj_default}
-                # 클램프는 plant_cycle 이 단일 출처다. 여기 리터럴로 두면 모델 주기와
-                # 플랜트 주기가 같은지 재는 쪽(tests/test_model_plant_cycle_identity)이
-                # 실제로 실리는 값이 아니라 사본을 재게 된다.
-                phase_green: dict[str, float] = {}
-                for _phase in signal_group_plan.MODEL_PHASES:
-                    _raw = control.green_times.get(
-                        f"{signal}_{_phase}", _phase_default.get(_phase, 0.0)
-                    )
-                    _value = float(_raw)
-                    # 녹색 0 = 그 현시를 쓰지 않는다는 뜻이라 클램프 하한을 물리면 안 된다.
-                    phase_green[_phase] = (
-                        plant_cycle.written_axis_green_sec(_value) if _value > 0.0 else 0.0
-                    )
-                # N4-7 offset 승격 잠금. 최적화기가 고른 offset(control.offsets)은
-                # 삼중 잠금이 열리기 전에는 이 열에 실리지 않는다. 의도는 버려지지 않고
-                # action JSON 의 `offsets` 에 그대로 남는다 - 그것이 intent_only 다.
-                offset = (signal_actuation_contract.written_offset_sec(control, cfg, signal)
-                          if signal_actuation_contract.enabled(cfg.network)
-                          else offset_promotion.written_offset_sec(signal, control, offset_writer))
-                signal_row_out = {
-                    "kind": "signal",
-                    "id": signal,
-                    "sc_no": sc_no,
-                    "offset": round(offset, 3),
-                    "metadata": csv_metadata,
-                }
-                for _phase, _field in zip(
-                    signal_group_plan.MODEL_PHASES, action_csv_schema.PHASE_GREEN_FIELDS
-                ):
-                    signal_row_out[_field] = round(phase_green[_phase], 3)
-                writer.writerow(signal_row_out)
-                # N4-5. 현시 녹색을 SG 단위로 쪼갠 행(파생). 계획이 없으면 행도 없고,
-                # 그 조합은 러너의 RW_SIGNAL_SG_PLAN_SCHEMA 게이트가 fail-closed 로 막는다.
-                if signal_group_plan_table is not None:
-                    for sg_row in signal_group_action_rows(
-                        signal_group_plan_table,
-                        sc_no=sc_no,
-                        phase_greens={
-                            _phase: round(phase_green[_phase], 3)
-                            for _phase in signal_group_plan.MODEL_PHASES
-                        },
-                        offset=round(offset, 3),
-                        metadata=csv_metadata,
-                    ):
-                        writer.writerow(sg_row)
+            model_link, idx = _segment_model_coordinates(str(seg["segment_id"]), seg)
+            segment_vsl_values.append(segment_vsl_func(control, model_link, idx, cfg))
         if isinstance(mapping.get("ramp_meters"), list) and mapping.get("ramp_meters"):
-            for ramp, spec in real_world_ramp_meter_actions(control, cfg, actuation, mapping).items():
-                writer.writerow({
-                    "kind": "ramp_meter",
-                    "id": ramp,
-                    "sc_no": int(_as_float(spec.get("sc_no"), 0.0)),
-                    "rate_vph": round(_as_float(spec.get("rate_vph"), 0.0), 3),
-                    "green_sec": round(_as_float(spec.get("green_sec"), 10.0), 3),
-                    "metadata": _action_csv_metadata(metadata, {
-                        "model_ramp_key": spec.get("model_ramp_key", ""),
-                        "group_rate_vph": round(
-                            _as_float(spec.get("group_rate_vph"), 0.0), 3
-                        ),
-                    }),
-                })
+            ramp_actions = real_world_ramp_meter_actions(control, cfg, actuation, mapping)
         else:
-            ramp_to_sc = {"D": 6, "F": 7}
-            for ramp, spec in physical_ramp_actions(control, cfg, actuation).items():
-                writer.writerow({
-                    "kind": "ramp_meter",
-                    "id": ramp,
-                    "sc_no": ramp_to_sc[ramp],
-                    "rate_vph": round(spec["rate_vph"], 3),
-                    "green_sec": round(spec["green_sec"], 3),
-                    "metadata": csv_metadata,
-                })
+            ramp_actions = physical_ramp_actions(control, cfg, actuation)
+        if joint_response is not None:
+            from evaluation.controllers.area_leader_objective import verify_joint_written_action
+            verify_joint_written_action(
+                joint_response, control, cfg, mapping, segment_vsl_values, ramp_actions,
+                metadata, actuation, signal_group_plan_table=signal_group_plan_table,
+                offset_writer=offset_writer)
+        for row in iter_action_csv_rows(
+            control, cfg, mapping, segment_vsl_values, ramp_actions, metadata,
+            actuation, signal_group_plan_table, offset_writer,
+        ):
+            writer.writerow(row)
+    if joint_response is not None:
+        return verify_joint_written_action(
+            joint_response, control, cfg, mapping, segment_vsl_values, ramp_actions,
+            metadata, actuation, signal_group_plan_table=signal_group_plan_table,
+            offset_writer=offset_writer, action_json_path=joint_json_path,
+            action_csv_path=path)
+
+
+def bind_joint_cli_module(tuning):
+    """Keep CLI runtime hooks and canonical imports on one module in this variant."""
+    if _mapping(tuning.get('adapter')).get('joint_owner_game') is None:
+        return
+    current = sys.modules[__name__]
+    canonical = 'evaluation.controllers.vissim_stackelberg_adapter'
+    package = sys.modules['evaluation.controllers']
+    for existing in (sys.modules.get(canonical), getattr(package, 'vissim_stackelberg_adapter', None)):
+        if existing is not None and existing is not current:
+            raise ValueError('Joint CLI found another initialized adapter module; use a fresh process')
+    sys.modules[canonical] = current
+    package.vissim_stackelberg_adapter = current
+
+
+def joint_owner_game_settings(tuning, cfg, controller_variant):
+    """One explicit solver variant; absence leaves the installed path alone."""
+    section = _mapping(tuning.get('adapter')).get('joint_owner_game')
+    if section is None:
+        return None
+    required = {'max_evaluations', 'time_budget_sec', 'improvement_tolerance',
+        'shared_tolerance', 'np_tolerance_veh', 'nuf_tolerance_veh_h', 'traversal',
+        'max_leader_candidates', 'leader_time_budget_sec', 'leader_candidate_order'}
+    optional = {'decision_time_budget_sec', 'finalization_reserve_sec', 'response_cache_enabled',
+                'response_parallel_workers', 'ignore_wall_time_limits'}
+    if not isinstance(section, dict) or not required <= set(section) or set(section) - required - optional:
+        raise ValueError('adapter.joint_owner_game requires all explicit work limits and tolerances')
+    if controller_variant not in ('wu-link', 'no-control'):
+        raise ValueError('Joint owner game supports wu-link with no-control warmup')
+    if (not cfg.network.control_area_enabled or cfg.mpc.leader_budget_off
+            or cfg.mpc.wu_faithful_np_coordination_mode != 'cap'
+            or cfg.mpc.wu_faithful_nuf_coordination_mode != 'equality'):
+        raise ValueError('Joint owner game requires Omega, NP cap and NUF equality')
+    if cfg.mpc.stackelberg_enable_fallback or cfg.mpc.stackelberg_enable_pfo_incumbent:
+        raise ValueError('Joint variant requires explicit disabling of the legacy PFO/fallback path')
+    if _post_guard_safety_settings(tuning).get('enabled', False):
+        raise ValueError('Joint variant cannot replace a scored response through legacy post-guard selection')
+    for key in ('max_evaluations', 'max_leader_candidates'):
+        if type(section[key]) is not int or section[key] < 1:
+            raise ValueError('Positive integer joint work limit required: ' + key)
+    for key in ('time_budget_sec', 'leader_time_budget_sec', 'improvement_tolerance',
+                'shared_tolerance', 'np_tolerance_veh', 'nuf_tolerance_veh_h'):
+        value = section[key]
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError('Finite nonnegative joint work limit/tolerance required: ' + key)
+    if section['time_budget_sec'] == 0 or section['leader_time_budget_sec'] == 0:
+        raise ValueError('Joint execution needs positive explicit time budgets')
+    if section['traversal'] not in ('sequential', 'round_robin', 'round_robin_balanced') or section['leader_candidate_order'] != 'diverse':
+        raise ValueError('Unsupported explicit joint traversal or leader candidate order')
+    result = dict(section)
+    if type(result.get('ignore_wall_time_limits', False)) is not bool:
+        raise ValueError('ignore_wall_time_limits must be boolean')
+    result.setdefault('decision_time_budget_sec', min(120., float(cfg.simulation.T_c_sec)-20.))
+    result.setdefault('finalization_reserve_sec', 10.)
+    result.setdefault('response_cache_enabled', True)
+    result.setdefault('response_parallel_workers', 0)
+    if type(result['response_parallel_workers']) is not int or result['response_parallel_workers'] not in (0, 1, 4, 8):
+        raise ValueError('Response workers must be explicitly 0, 1, 4 or 8; default remains serial')
+    if (type(result['response_cache_enabled']) is not bool
+            or not 0 <= result['finalization_reserve_sec'] < result['decision_time_budget_sec']
+            or not 0 < result['decision_time_budget_sec'] < cfg.simulation.T_c_sec):
+        raise ValueError('Decision budget must leave observation/application time inside the control interval')
+    return result
+
+
+def load_joint_historical_reference(previous_path, previous, cfg, *, expected_run_id, expected_previous_sim_sec):
+    """Read the real previous command pair and its saved allocation context."""
+    from evaluation.controllers import area_meter_finalization as meters, physical_ramp_branches
+    previous_path = Path(previous_path).resolve(strict=True)
+    csv_path = previous_path.with_suffix('.csv').resolve(strict=True)
+    pins = {str(path): _file_sha256(path) for path in (previous_path, csv_path)}
+    raw = json.loads(previous_path.read_text(encoding='utf-8'))
+    if (not isinstance(expected_run_id, str) or not expected_run_id
+            or raw.get('run_provenance', {}).get('run_id') != expected_run_id
+            or raw.get('metadata', {}).get('run_provenance', {}).get('run_id') != expected_run_id
+            or raw.get('metadata', {}).get('sim_sec') != expected_previous_sim_sec):
+        raise ValueError('Previous command must be the immediately preceding action in this run')
+    for key in ('N_P_star', 'N_UF_star', 'green_times', 'offsets', 'vsl',
+                'ramp_metering', 'inflow_outflow_allocation'):
+        parsed = getattr(previous, key)
+        if key == 'ramp_metering' and physical_ramp_branches.enabled(cfg) and set(raw[key]) != set(cfg.network.ramps):
+            parsed = previous.diagnostics.get('physical_ramp_historical_group_rates')
+        if raw[key] != parsed:
+            raise ValueError('Previous command parser changed physical field ' + key)
+    native_nodes = (getattr(cfg.network, 'signal_actuation_contract', None) or {}).get('nodes', {})
+    if (raw.get('diagnostics', {}).get('no_control_active')
+            and any(node.get('native_clock_basis') for node in native_nodes.values())):
+        proof = raw['diagnostics'].get('no_control_native_signal_reference')
+        expected = represent_native_no_control_signals(previous.copy(), cfg)
+        if (proof != expected.diagnostics.get('no_control_native_signal_reference')
+                or previous.green_times != expected.green_times or previous.offsets != expected.offsets):
+            raise ValueError('First native anchor lacks its actual source-clock representation; nominal archived warmup cannot be substituted')
+    with csv_path.open(encoding='utf-8-sig', newline='') as stream:
+        reader = csv.DictReader(stream)
+        if reader.fieldnames != list(action_csv_schema.ACTION_CSV_FIELDS):
+            raise ValueError('Previous joint command CSV has an unexpected schema')
+        rows = [row for row in reader if row['kind'] == 'ramp_meter']
+    if physical_ramp_branches.enabled(cfg):
+        result = {'previous':physical_ramp_branches.held_actual_reference(previous, cfg),
+                  'meter_anchor':dict(previous.diagnostics['physical_ramp_recorded_csv'])}
+    else:
+        result = meters.prepare_recorded_historical_meter_reference(previous, cfg,
+            previous_sim_sec=raw['metadata']['sim_sec'], written_meter_rows=rows,
+            source_provenance={
+                'action_json': {'path': str(previous_path), 'sha256': pins[str(previous_path)]},
+                'action_csv': {'path': str(csv_path), 'sha256': pins[str(csv_path)]}})
+    if any(_file_sha256(Path(path)) != value for path, value in pins.items()):
+        raise ValueError('Previous command pair changed during historical reference preparation')
+    return result, pins
+
+
+def joint_runtime_source_pins(tuning, provenance, previous_pins):
+    """Pin sources once per outer decision, never once per candidate query."""
+    paths = {Path(path).resolve(strict=True) for path in previous_pins}
+    for group in ('inputs', 'imported_modules'):
+        for item in provenance[group].values():
+            if item.get('sha256'):
+                path = Path(item['path']).resolve(strict=True)
+                if _file_sha256(path) != item['sha256']:
+                    raise ValueError('Runtime input changed since provenance capture: ' + str(path))
+                paths.add(path)
+    # Include lazily imported implementations before they are first evaluated.
+    for folder in (WORKSPACE_ROOT / 'evaluation/controllers',
+                   Path(provenance['numsim_repo_root']) / 'src', PLANT_PACKAGE_ROOT):
+        paths.update(path.resolve() for path in folder.rglob('*.py'))
+    visited = set()
+    def visit(value):
+        if isinstance(value, dict):
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+        elif isinstance(value, str) and value.lower().endswith(('.json', '.csv', '.sig', '.inpx', '.vbs')):
+            path = Path(value)
+            path = (path if path.is_absolute() else WORKSPACE_ROOT / path).resolve()
+            if path.is_file() and path not in visited:
+                visited.add(path)
+                paths.add(path)
+                if path.suffix.lower() == '.json':
+                    visit(json.loads(path.read_text(encoding='utf-8-sig')))
+    paths.add(signal_group_actuation_plan_path().resolve(strict=True))
+    visit(tuning)
+    visit(provenance)
+    pins = {str(path): _file_sha256(path) for path in sorted(paths)}
+    if any(pins[path] != value for path, value in previous_pins.items()):
+        raise ValueError('Historical command sources changed before joint selection')
+    return pins
+
+
+def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping,
+                             tuning, provenance, previous_path, options, report_path, *, segment_vsl_func, budget=None,
+                             worker_state_json=None, worker_detector_mapping=None):
+    """Select final shared follower responses and preserve a bounded decision receipt."""
+    from evaluation.controllers import area_follower_objective as joint
+    from src.controllers.nash_solver import NashResult
+    from src.controllers.stackelberg_mpc import DecisionResult
+    if budget is None:
+        budget = joint.DecisionBudget(options.get('decision_time_budget_sec', 120.),
+            reserve_sec=options.get('finalization_reserve_sec', 10.),
+            unlimited_time=options.get('ignore_wall_time_limits', False))
+    budget.check('historical_action_and_source_provenance')
+    historical, history_pins = load_joint_historical_reference(previous_path, previous, cfg,
+        expected_run_id=provenance['run_id'],
+        expected_previous_sim_sec=float(state.time_sec) - float(cfg.simulation.T_c_sec))
+    sources = joint_runtime_source_pins(tuning, provenance, history_pins)
+    bootstrap = None
+    if options.get('response_parallel_workers', 0):
+        if not isinstance(worker_state_json, dict) or not isinstance(worker_detector_mapping, dict):
+            raise ValueError('Parallel joint decision requires its actual network and detector bootstrap')
+        bootstrap = {'state_json': {'network_path': str(Path(worker_state_json['network_path']).resolve(strict=True))},
+                     'detector_mapping': worker_detector_mapping, 'runtime_sources': sources}
+    report = {'schema': 'joint-runtime-decision/v1', 'completed': False,
+              'source_sha256': sources, 'options': dict(options), 'sim_sec': float(state.time_sec)}
+    report_path = Path(report_path)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    started = time.perf_counter()
+    def progress(row):
+        # Small stage messages only; no state/trajectory dumps during selection.
+        event = {'elapsed_sec': time.perf_counter() - started, **row}
+        with report_path.with_suffix('.progress.jsonl').open('a', encoding='utf-8') as stream:
+            stream.write(json.dumps(event, ensure_ascii=False) + '\n')
+    try:
+        historical['previous'], report['previous_vsl_expansion'] = joint.expand_shared_vsl_action(
+            historical['previous'], cfg, segment_vsl_func=segment_vsl_func)
+        selection = joint.solve_runtime_joint_leader(controller, state, forecast,
+            historical['previous'], mapping, runtime_sources=sources, options=options, progress=progress, budget=budget,
+            worker_bootstrap=bootstrap)
+        report['selection'] = selection['metadata']
+        selected = selection['selected']
+        held = selection.get('held_response')
+        if selected is None and held is not None:
+            # No Nash object or convergence claim is manufactured for a hold.
+            import copy
+            report['validated_actual_hold'] = {k: v for k, v in held.items()
+                if k not in ('control', 'final_score', 'command_evidence')}
+            report['leader_objective'] = held['final_score']['objective_veh_h']
+            report['completed'] = True
+            result = DecisionResult(control=copy.deepcopy(held['control']), leader_objective=report['leader_objective'],
+                nash=None, metadata={'joint_validated_actual_hold': 1.})
+            return result, held, report
+        if selected is None:
+            raise ValueError('Joint leader selection produced no usable final response: '
+                             + str(selection['metadata']['selection_status']))
+        nash = NashResult(**selected['validated_nash'])
+        report['selected_price_installation'] = selected['price_installation']
+        report['selected_price_field'] = selected['price_field']
+        report['selected_diagnostics'] = nash.diagnostics
+        report['leader_objective'] = nash.objective_value
+        report['completed'] = True
+        result = DecisionResult(control=nash.control, leader_objective=nash.objective_value,
+            nash=nash, metadata={'joint_owner_game_active': 1.})
+    except Exception as exc:
+        report['error'] = {'type': type(exc).__name__, 'message': str(exc)}
+        if isinstance(exc, joint.FrozenJointContextError):
+            try:
+                report['frozen_context_evidence'] = exc.write_evidence(report_path)
+            except Exception as evidence_exc:
+                report['frozen_context_evidence_error'] = {
+                    'type': type(evidence_exc).__name__, 'message': str(evidence_exc)}
+        raise
+    finally:
+        query = getattr(budget, 'response_query', None)
+        cleanup_error = None
+        if query is not None:
+            # The canonical CLI owns the decision and every optional worker.
+            # Cleanup is bounded and restricted to this query's process handles.
+            try:
+                query.close()
+            except Exception as exc:
+                cleanup_error = exc
+                report['completed'] = False
+                report['worker_cleanup_error'] = {'type': type(exc).__name__, 'message': str(exc)}
+            finally:
+                report['physical_response_cache'] = query.stats()
+        changes = [path for path, value in sources.items() if _file_sha256(Path(path)) != value]
+        report['source_changes'] = changes
+        report['elapsed_sec'] = time.perf_counter() - started
+        report['decision_budget'] = budget.report()
+        if changes:
+            report['completed'] = False
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+        if changes:
+            raise ValueError('Joint runtime source/input changed during selection: ' + ', '.join(changes))
+        if cleanup_error is not None:
+            raise cleanup_error
+    return result, selected['response'], report
 
 
 def main() -> None:
+    decision_budget = None
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument("--state-json", default="")
     parser.add_argument("--previous-action-json", default="")
@@ -12249,6 +12711,7 @@ def main() -> None:
     mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
     calibration = load_optional_json(args.calibration_json)
     tuning = load_optional_json(args.tuning_json)
+    bind_joint_cli_module(tuning)
     # 런타임 스위치를 config 에서 심는다. 키가 없으면 env 폴백이라 비트 동일이다.
     install_config_switches(tuning)
     # **검지 매핑은 tuning 이 이긴다** (2026-08-22).
@@ -12328,6 +12791,18 @@ def main() -> None:
         args.previous_action_json, detector_mapping, calibration, TrafficState,
         physical_projection_input=physical_projection_input,
     )
+    joint_options = joint_owner_game_settings(tuning, cfg, args.controller)
+    if joint_options is not None:
+        from evaluation.controllers.area_follower_objective import DecisionBudget
+        decision_budget = DecisionBudget(joint_options['decision_time_budget_sec'],
+            reserve_sec=joint_options['finalization_reserve_sec'],
+            started=_DECISION_ENTRY_WALL, cpu_started=_DECISION_ENTRY_CPU,
+            unlimited_time=joint_options.get('ignore_wall_time_limits', False))
+        decision_budget.scopes['load_and_model_prepare'] = {'calls': 1,
+            'wall_sec': time.perf_counter()-_DECISION_ENTRY_WALL,
+            'cpu_sec': time.process_time()-_DECISION_ENTRY_CPU}
+        decision_budget.check('forecast_preparation')
+    joint_response = None
     forecast_horizon_steps = int(cfg.mpc.horizon_steps)
     if args.controller in ("pstack-flagship", "wu-link"):
         # 러너 L1044: 리더 value-depth rollout이 horizon 밖 수요를 소비한다 —
@@ -12540,7 +13015,7 @@ def main() -> None:
     try:
         controller = None
         if args.controller == "no-control":
-            control = ControlAction.uncontrolled(cfg)
+            control = _make_no_control(ControlAction, cfg)
             control.diagnostics["no_control_active"] = 1.0
         elif args.controller == "diagnostic-vsl-rm":
             control = diagnostic_vsl_rm_control(cfg, ControlAction)
@@ -12576,7 +13051,7 @@ def main() -> None:
         elif args.controller == diagnostic_signal_profile.CONTROLLER:
             control = diagnostic_signal_profile.build_control(
                 cfg, ControlAction, tuning, load_signal_group_actuation_plan(), WORKSPACE_ROOT)
-            actuation = diagnostic_signal_profile.fixed_actuation(actuation)
+            actuation = diagnostic_signal_profile.fixed_actuation(actuation, tuning)
             metadata["diagnostic_signal_profile_active"] = 1.0
         elif args.controller in diagnostic_profile.CONTROLLERS:
             diagnostic_profile.validate_controller(args.controller, tuning)
@@ -12662,7 +13137,24 @@ def main() -> None:
             metadata.update(
                 install_price_worker_bootstrap(controller, state_json, detector_mapping)
             )
-            if hasattr(controller, "decide_with_info"):
+            if joint_options is not None:
+                result, joint_response, joint_report = run_joint_owner_decision(
+                    controller, state, forecast, previous, cfg, mapping, tuning,
+                    metadata['run_provenance'], previous_path, joint_options,
+                    out_json.with_suffix('.joint.json'), segment_vsl_func=segment_vsl_func, budget=decision_budget,
+                    worker_state_json=state_json, worker_detector_mapping=detector_mapping)
+                control = result.control
+                metadata['leader_objective'] = result.leader_objective
+                metadata['joint_owner_game_active'] = 1.
+                metadata['joint_leader_selection'] = joint_report['selection']
+                if result.nash is None:
+                    metadata['joint_validated_actual_hold'] = joint_report['validated_actual_hold']
+                    metadata['joint_hold_constraints'] = joint_report['selection']['actual_hold_validation']
+                    metadata['nash_objective'] = None
+                else:
+                    metadata['nash_objective'] = result.nash.objective_value
+                    metadata['joint_shared_response'] = result.nash.diagnostics['joint_shared_response']
+            elif hasattr(controller, "decide_with_info"):
                 result = controller.decide_with_info(state, forecast, previous, cfg)
                 control = result.control
                 metadata["leader_objective"] = float(getattr(result, "leader_objective", 0.0))
@@ -12802,44 +13294,63 @@ def main() -> None:
             for key, value in audit_calibration.items()
             if isinstance(value, (int, float, bool))
         })
-    # N4-7. offset 승격 판정은 action JSON 을 쓰기 **전에** 나와야 한다. 억눌린 의도가
-    # 어디로 갔는지 그 JSON 하나로 설명되어야 하기 때문이다(intent_only 의 "기록").
-    offset_verdict = offset_promotion.evaluate()
-    offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict, physical_signal_contract=signal_actuation_contract.enabled(cfg.network))
-    metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
-    if offset_writer == offset_promotion.WRITER_EXPERIMENT:
-        metadata["offset_written_sec"] = {s: signal_actuation_contract.written_offset_sec(control, cfg, s) for s in cfg.network.signals}
-    # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
-    if args.controller not in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER):
-        if bool(getattr(cfg.network, "control_area_enabled", False)):
-            from evaluation.controllers import area_meter_finalization
-            metadata.update(area_meter_finalization.assert_writer(
-                control, cfg, require_scored=(args.controller != "no-control")))
-        else:
-            apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
-            real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
-    signal_actuation_contract.validate_writer(control, cfg, load_signal_group_actuation_plan(), offset_writer)
     metadata["decision_wall_sec"] = round(time.perf_counter() - started, 6)
     out_json.parent.mkdir(parents=True, exist_ok=True)
-    out_json.write_text(
-        json.dumps(
-            control_to_json_dict(control, metadata, prediction=prediction, prediction_error=prediction_error),
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    write_action_csv(
-        out_csv,
-        control,
-        cfg,
-        mapping,
-        segment_vsl_func,
-        metadata,
-        actuation,
-        signal_group_plan_table=load_signal_group_actuation_plan(),
-        offset_writer=offset_writer,
-    )
+    from contextlib import nullcontext
+    output_error = None
+    try:
+        with decision_budget.scope('final_action_validation_and_output') if decision_budget else nullcontext():
+            if decision_budget:
+                decision_budget.check('final_action_validation', final=True)
+            # N4-7. offset 승격 판정은 action JSON 을 쓰기 **전에** 나와야 한다. 억눌린 의도가
+            # 어디로 갔는지 그 JSON 하나로 설명되어야 하기 때문이다(intent_only 의 "기록").
+            offset_verdict = offset_promotion.evaluate()
+            offset_writer = offset_promotion.resolve_writer(actuation, verdict=offset_verdict, physical_signal_contract=signal_actuation_contract.enabled(cfg.network))
+            metadata.update(offset_promotion.action_metadata(control, offset_writer, offset_verdict))
+            if offset_writer == offset_promotion.WRITER_EXPERIMENT:
+                metadata["offset_written_sec"] = {s: signal_actuation_contract.written_offset_sec(control, cfg, s) for s in cfg.network.signals}
+            # 2026-09-06 미터 전달함수: 실현 가능한 유량을 JSON 을 쓰기 전에 되쓴다(게이트 밖이면 no-op).
+            if args.controller not in (*diagnostic_profile.CONTROLLERS, diagnostic_signal_profile.CONTROLLER):
+                if bool(getattr(cfg.network, "control_area_enabled", False)):
+                    from evaluation.controllers import area_meter_finalization
+                    metadata.update(area_meter_finalization.assert_writer(
+                        control, cfg, require_scored=(args.controller != "no-control")))
+                else:
+                    apply_ramp_spillback_guard(control, cfg, state, actuation, metadata)
+                    real_world_ramp_meter_write_back(control, cfg, actuation, mapping, metadata, state_json=state_json, previous=previous)
+            signal_actuation_contract.validate_writer(control, cfg, load_signal_group_actuation_plan(), offset_writer)
+            if joint_options is not None:
+                import copy
+                from evaluation.controllers import area_meter_finalization
+                control.diagnostics = copy.deepcopy(control.diagnostics)
+                control.diagnostics[area_meter_finalization.WRITTEN_CONTEXT] = copy.deepcopy(
+                    cfg.network.control_area_meter_context)
+            if decision_budget:
+                decision_budget.check('action_json_output', final=True)
+            out_json.write_text(
+                json.dumps(control_to_json_dict(control, metadata, prediction=prediction, prediction_error=prediction_error),
+                           ensure_ascii=False, indent=2), encoding='utf-8')
+            if decision_budget:
+                decision_budget.check('action_csv_validation_and_output', final=True)
+            written_joint_receipt = write_action_csv(
+                out_csv, control, cfg, mapping, segment_vsl_func, metadata, actuation,
+                signal_group_plan_table=load_signal_group_actuation_plan(), offset_writer=offset_writer,
+                joint_response=joint_response,
+                joint_json_path=out_json if joint_response is not None else None)
+            if written_joint_receipt is not None:
+                out_json.with_suffix('.joint_written.json').write_text(
+                    json.dumps(written_joint_receipt, ensure_ascii=False, indent=2), encoding='utf-8')
+            if decision_budget:
+                decision_budget.check('completed_action_output', final=True)
+    except Exception as exc:
+        output_error = {'type': type(exc).__name__, 'message': str(exc)}
+        raise
+    finally:
+        if decision_budget is not None:
+            out_json.with_suffix('.decision_budget.json').write_text(json.dumps(
+                {**decision_budget.report(), 'output_completed': output_error is None, 'output_error': output_error,
+                 'application_requires_successful_process_exit': True},
+                ensure_ascii=False, indent=2), encoding='utf-8')
     print(json.dumps({
         "status": metadata["controller_status"],
         "out_action_json": str(out_json),

@@ -79,6 +79,25 @@ def cohort(route,amount=2.,passed=False,due=0):
     row['native_service_passed']=passed;return row
 
 class NativeRouteChoice(unittest.TestCase):
+    def test_capture_native_head_shared_budget_red_and_passed_scope(self):
+        from diagnostics.test_route_choice_corridor import resource_capture_pair,assert_resource_capture_exact
+        for index,passed in ((5,False),(20,False),(20,True)):
+            with self.subTest(index=index,passed=passed):
+                cfg,seed,action,_,_=fixture([cohort('1',passed=passed),cohort('2')],index)
+                left,right=resource_capture_pair(seed,cfg,index)
+                a=rc.advance(left,action,None,cfg,index);b=rc.advance(right,action,None,cfg,index)
+                self.assertEqual(a,b);assert_resource_capture_exact(self,left,right)
+                rows=right._control_area_ledger.response()['resource_allocations']
+                heads=[r for r in rows if r['kind']=='native_fixed_head_service']
+                self.assertEqual(len(heads),1 if passed else 2)
+                self.assertEqual({r['resource'] for r in heads},{'SC15:SG5'})
+                total=sum(r['accepted_total_veh'] for r in heads)
+                if index==20:self.assertEqual(total,0.)
+                else:
+                    self.assertGreater(total,0.)
+                    self.assertAlmostEqual(heads[1]['available_veh'],heads[0]['available_veh']-heads[0]['accepted_total_veh'])
+                right._control_area_ledger.assert_stocks(area_runtime.model_inventory(right,cfg))
+
     def test_native_source_authority_is_explicit_not_a_blanket_head_exception(self):
         cfg,_,_,_,_=fixture();doc=json.loads((ROOT/'diagnostics/route_choice_corridor_1099_ver2.json').read_text())
         tree=ET.parse(ROOT/doc['network']['path']).getroot()

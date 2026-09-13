@@ -1,0 +1,31 @@
+# Unit 1a: owner addresses, unapplied proposal
+
+`joint_owner_addresses.patch` adds only `evaluation/controllers/joint_owner_addresses.py`. There is no adapter, production flag, runtime dispatch, candidate generator, solver or allocator change. The inspectable source is `joint_owner_addresses_candidate.py`. Source and ten written integration tests passed AST parsing; the full test suite and model imports remain unexecuted. A separately authorized stdlib-only address fixture passed as described below. Exact proposal and source-reference hashes are in `joint_owner_addresses_validation.json`.
+
+| API | Input and checked boundary | Does not do |
+|---|---|---|
+| `build_ownership(cfg, mapping, selected_plan, segment_dsd_controls=...)` | Configured 17 urban controllers plus FW_E/FW_W; selected-plan live phase and configured plan identity; 42 explicit cells and six free zone heads; four model rates/eight physical meters; disjoint native DSD and SC/SG addresses. Pass the actual adapter writer's `_segment_dsd_controls`. | Does not duplicate writer mapping logic, read COM/INPX, or certify native object geometry/service authority. |
+| `validate_action_addresses(catalog, control)` | All 68 green keys, 17 offsets, four meter keys and 44 explicit VSL entries; no missing/unknown key, bool or nonfinite value; dead phases remain zero. Supports actual `ControlAction` or equivalent mappings. | Does not expand a sparse previous/no-control action, project a green budget, normalize an offset or finalize meters. |
+| `assert_owner_transition(catalog, owner, before, after)` | Same explicit key set; non-owner numeric values and their types preserved; dead phases and every recovery-zone cell remain fixed even for their owner. Returns owned changed lever addresses. | Does not certify alias-value consistency, final CSV equality, frozen diagnostics/leader/context, capacity, score or GNE convergence. |
+
+Each urban owner owns its whole four-phase vector and offset. All plan-active headless phases are retained; physical head count is never used to delete them. FW_E/FW_W each own heads 0/5/10 and their two mapped model meters. Non-head cell and direction-fallback keys are classified as derived, while head15 and cells15–20 are fixed recovery coordinates. Owned derived values may change; verifying that they equal canonical zone expansion remains the later realization step's duty.
+
+Unknown or duplicate **mapped ownership** fails closed: unmapped model links/cells, a free head with no native DSD write, duplicate DSD IDs even within an owner, inconsistent meter-to-FW assignment, urban/meter controller overlap and duplicate meter connectors/SG addresses are rejected. Physical meters require SG1 and a unique SC because the native writer always addresses SG1 and keys meter state by SC. The supplied mapping/plan must already have passed the normal manifest/native-binding validation. An arbitrary ID inserted into an otherwise self-consistent replacement mapping is not proved to exist in VISSIM by this address-only API. The previously audited four DSD link-label mismatches are therefore not silently reinterpreted as corrected geometry.
+
+Derived urban write addresses come from live `phase_segments`, matching `plan_windows`, with each segment SG required to belong to that phase's declared group. Broad `phase_signal_groups` can include an SG with no actual window (SC7 is an example); `red_only_signal_groups` is metadata, not an extra CSV row. These exclusions never remove a model green strategy or an active headless phase.
+
+The immutable result stores tuples of frozen address records and does not retain cfg/mapping objects. Rebuild it at each future decision's validated configuration boundary; it does not cache by mutable identity. An existing catalog is a snapshot, not a promise that subsequently mutated cfg remains valid.
+
+The test file is explicitly a proposal test. It uses the installed `ControlAction` and actual writer DSD callback when later run, with a small address-only cfg fixture derived from the pinned mapping/selected plan. It covers 19-owner/address counts, active-headless green+offset changes, joint FW VSL+meter addresses, non-owner/missing/type rejection, recovery/dead immutability, duplicate/no-site DSDs, meter overlap/unknown owner/SG1/unique SC, plan/zone tampering and nonfinite input. No actual rollout or runtime-built cfg equivalence is claimed.
+
+`probe_owner_meter_address_guard.py` ran only the pure candidate, the actual writer's two mapping functions extracted from AST, and the written address-fixture setup; it did not import a controller/model. `owner_meter_address_guard_validation.json` records the resulting 19 owners and all 213 native addresses matching the recorded profile action CSV exactly, with the original mapping/plan unmodified. SG2-only, duplicate SC/SG2 and duplicate SC/SG1 tampering all reject. To isolate the peer's meter counterexample from the first draft's separate red-only metadata bug, old/new counterexample fixtures omit that unused metadata; the actual CSV comparison uses the complete original plan. The original unapplied patch remains byte-exact in `joint_owner_addresses_before_meter_guard.patch`. It rejected the original SC5 metadata, so no false claim of an unchanged successful old actual catalog is made.
+
+After the parent releases the test/import freeze:
+
+```powershell
+& 'C:\Users\alsrj\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -X utf8 -m unittest diagnostics.test_joint_owner_addresses -v
+```
+
+After review and application, change the single test import from `diagnostics.joint_owner_addresses_candidate` to the installed `evaluation.controllers.joint_owner_addresses`; do not preserve an automatic fallback that could hide an unapplied patch. Add a real runtime-built cfg/action address gate at that integration stage. Neither application nor import migration has been performed here.
+
+Before any future game integration, canonical phase projection, written offsets, zoned `segment_vsl`, meter finalization, and final CSV assertions must execute at their existing boundaries. Their evidence plus frozen non-lever operational context is required in addition to this narrow address check. No successful address check is named a physical feasibility or equilibrium certificate.

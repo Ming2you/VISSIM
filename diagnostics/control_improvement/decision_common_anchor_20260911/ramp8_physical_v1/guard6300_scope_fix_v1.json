@@ -1,0 +1,61 @@
+{
+  "schema": "guard6300-runtime-scope-fix/v1",
+  "status": "implemented_unit_and_snapshot_qualified_sources_frozen",
+  "edit_scope": [
+    "evaluation/controllers/area_follower_objective.py::shared_query_runtime_scope",
+    "diagnostics/test_shared_query_runtime_scope.py (new)"
+  ],
+  "canonical_source_sha256": "b0e427d9553404627af853696132ad1c933ba530fc81eece2054129deac36ddf",
+  "scope_before_sha256": "499b5955ab1279d711624fadb8c5f21c04625742b4409ebc7eb8221538714cfd",
+  "scope_after_sha256": "1ad2c39615ce25019481af76e8c1dc5fdd8c3ffb35362613b2914edc69b494f6",
+  "test_sha256": "08b3c6e42e3319a5479f31fccb4057ce04c8c16b6f488a6eea3850e12645095e",
+  "outside_scope_bytes_unchanged_at_surgical_edit": true,
+  "scope_crlf_preserved": true,
+  "source_existing_other_line_endings_untouched": true,
+  "tests": [
+    {
+      "command": "python -B -X utf8 -m unittest diagnostics.test_shared_query_runtime_scope",
+      "phase": "before_fix",
+      "tests": 10,
+      "failures": 5,
+      "errors": 0,
+      "elapsed_sec": 0.004
+    },
+    {
+      "command": "python -B -X utf8 -m unittest diagnostics.test_shared_query_runtime_scope diagnostics.test_shared_owner_batch",
+      "phase": "after_fix",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_sec": 1.234
+    },
+    {
+      "command": "python -B -X utf8 -m unittest diagnostics.test_shared_owner_batch diagnostics.test_joint_neighbor_callbacks diagnostics.test_joint_block_spsa diagnostics.test_shared_query_runtime_scope",
+      "phase": "parent_integration_after_fix",
+      "reported_by": "/root",
+      "tests": 63,
+      "failures": 0,
+      "errors": 0,
+      "elapsed_sec": 14.921
+    }
+  ],
+  "snapshot_recheck": {
+    "path": "C:\\Users\\alsrj\\Desktop\\\ud559\uc220\\\ucc10\ucc10\ub9c9\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\guard6300_scope_regression_fixed_v1\\result.json",
+    "sha256": "da1aea519e0cc2e23d455d70786b61f8d98d4fde280ce8fa74e2e156ab18f2dc",
+    "cases": 4,
+    "all_full_pickle_unchanged": true,
+    "three_synthetic_counterexamples_fixed": true
+  },
+  "contracts": [
+    "Dict/list root identity and original entry order retained.",
+    "Unchanged immediate child original refs retained, including nested set allocation order and borrowed cfg row aliases.",
+    "Changed immediate children are replaced from saved deep snapshot without mutating the entry child in place; external physical mutation remains visible to the full guard.",
+    "Installed bound follower is retained by the existing deepcopy memo and skipped for child pickle; exact scalar immutable children are not pickled.",
+    "Top-level set behavior unchanged; full frozen-context raw pickle SHA and physical guard coverage unchanged."
+  ],
+  "limitations": [
+    "This is not a complete arbitrary graph rollback. Mutated children shared by multiple runtime globals retain the prior per-root snapshot limitation for cross-global aliases.",
+    "Native 6300 root cause is not confirmed: original captured snapshot passed unchanged; the three synthetic counterexamples establish independent restoration defects.",
+    "No endpoint, native, controller main, FZP analysis or additional hash-seed scan was executed for this implementation. Actual recorded-state validation is owned by root."
+  ]
+}

@@ -16,7 +16,7 @@ import xml.etree.ElementTree as ET
 
 from evaluation.controllers.network_provenance import snapshot_network_sha256
 from evaluation.controllers.projection_support import complete_records
-from evaluation.controllers.control_area_objective import emit_input, physical_membership_from_ledger
+from evaluation.controllers.control_area_objective import emit_input, physical_membership_from_ledger, get_ledger
 from evaluation.controllers.shared_approach import demand_amount
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -566,13 +566,19 @@ def advance(state,control,demand,cfg,urban_step_index):
         raise ValueError('Native internal input requires initialized sequential candidate state')
     from src.models import urban_queue_model as uqm
     dt=cfg.simulation.T_u_sec; output={}
+    ledger=get_ledger(state)
+    capture=ledger is not None and ledger.captures_response
     for no,row in spec['inputs'].items():
         target=row['target_storage'];stats=local['inputs'][no]
         if float(demand.urban_boundary.get(target,0))!=0:
             raise ValueError('Native internal input would duplicate an external forecast')
         desired=demand_amount(row['schedule'],urban_step_index*dt,(urban_step_index+1)*dt)
         stats['desired_veh']+=desired;stats['unadmitted_demand_veh']+=desired
-        admitted=min(stats['unadmitted_demand_veh'],uqm._effective_available_space(state,cfg,target))
+        available=uqm._effective_available_space(state,cfg,target)
+        admitted=min(stats['unadmitted_demand_veh'],available)
+        if capture:
+            ledger.record_resource_allocation('native_generation_receiving', 'storage:'+target,
+                available, {'input:internal:'+no:admitted})
         if admitted:
             state.urban_link_storage[target]-=admitted
             emit_input(state,cfg,'storage:'+target,admitted,route_key='input:internal:'+no)

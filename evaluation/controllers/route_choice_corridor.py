@@ -19,7 +19,7 @@ from evaluation.controllers.projection_support import complete_records
 from evaluation.controllers.vehicle_routes import complete_vehicle_routes
 from evaluation.controllers.network_provenance import snapshot_network_sha256
 from evaluation.controllers.physical_movement_routes import invalidate_topology_cache, path_membership
-from evaluation.controllers.control_area_objective import emit_transfer, physical_membership_from_ledger
+from evaluation.controllers.control_area_objective import emit_transfer, physical_membership_from_ledger, get_ledger
 
 ROOT = Path(__file__).resolve().parents[2]
 EPS = 1e-8
@@ -675,8 +675,9 @@ def diagnostics(state,cfg):
     spec=getattr(cfg.network,'route_choice_corridor',None)
     if spec is None: return {}
     local=state.route_choice_corridor_state
-    unknown=sum(c['vehicles'] for c in local['cohorts'] if c['stage']=='unknown')
-    return {'route_choice_held_unknown_route_veh':unknown,'route_choice_prediction_route_complete':float(unknown<=EPS),
+    known=known_legsplit_diagnostics(state,cfg)
+    unknown=sum(c['vehicles'] for c in local['cohorts'] if c['stage']=='unknown') + known.get('known_wout_held_unknown_route_veh',0.)
+    return {**known, 'route_choice_held_unknown_route_veh':unknown,'route_choice_prediction_route_complete':float(unknown<=EPS),
             'route_choice_unknown_policy':spec['unknown_policy'],
             'route_choice_stock_veh':{k:_tracked(local,k) for k in spec['capacity_veh']}}
 
@@ -712,6 +713,10 @@ def receive_accepted(state,cfg,movement,vehicles,urban_step_index):
     if not math.isclose(spec['capacity_veh'][storage]-state.urban_link_storage[storage],_tracked(local,storage)+n,abs_tol=EPS):
         raise ValueError('Accepted source transfer must have occurred exactly once before receipt')
     group=turn['connector']
+    ledger=get_ledger(state)
+    capture=ledger is not None and ledger.captures_response
+    if capture:
+        service_before=local['service_used_veh'].get(group,0.)
     from evaluation.controllers import local_signal_service as pool
     if pool.view(cfg) and movement in pool.view(cfg)['group_of']:
         pool.accepted(n, group, local['service_limit_veh'], local['service_used_veh'])
@@ -720,6 +725,11 @@ def receive_accepted(state,cfg,movement,vehicles,urban_step_index):
         used=local['service_used_veh'].get(group,0.)+n
         limit=local['service_limit_veh'].get(group)
         if limit is None or used>limit+EPS: raise ValueError('Shared physical-turn service was not limited before acceptance')
+    if capture:
+        # Sequential actual receipts share the existing one-turn budget. The
+        # caller has already accounted for receiver stock; do not charge it twice.
+        ledger.record_resource_allocation('route_choice_incoming_service', str(group),
+            max(0.,local['service_limit_veh'][group]-service_before), {'movement:'+movement:n})
     speed=_speed(state,cfg,state.urban_link_speed_kph.get(storage))
     distance=_prefix_distance(spec,group,0.)
     local['cohorts'].append(_cohort(storage,'prechoice',None,n,_due(cfg,urban_step_index,distance,speed),source=movement,speed=speed))
@@ -820,6 +830,8 @@ def advance(state,control,demand,cfg,urban_step_index):
 def _advance_one(state,control,cfg,urban_step_index,spec):
     from src.models import urban_queue_model as uqm
     local=state.route_choice_corridor_state
+    ledger=get_ledger(state)
+    capture=ledger is not None and ledger.captures_response
     # Only *eligible* undecided mass gets the native choice; tags do not move stock.
     updated=[]
     for cohort in local['cohorts']:
@@ -856,7 +868,8 @@ def _advance_one(state,control,cfg,urban_step_index,spec):
             # The source head and its immediately serial branch share this one
             # physical service. Leaving a second inherited cap would negate it.
             service=native['calibrated_service_veh_h']*cfg.simulation.T_u_h
-        accepted=min(amount,available,max(0.,service-transferred[service_key]))
+        service_available=max(0.,service-transferred[service_key])
+        accepted=min(amount,available,service_available)
         crosses_native_head=native is not None and not cohort.get('native_service_passed',False)
         if crosses_native_head:
             from evaluation.controllers.fixed_signal_schedule import _union_green_overlap
@@ -864,7 +877,17 @@ def _advance_one(state,control,cfg,urban_step_index,spec):
             green_sec=_union_green_overlap(_native_program(native),(native['signal_group'],),start,start+cfg.simulation.T_u_sec,native['controller_offset_sec'])
             native_rate=native.get('calibrated_service_veh_h',spec['per_lane_capacity_veh_h']*native['lanes'])
             green_service=native_rate*green_sec/3600.
-            accepted=min(accepted,max(0.,green_service-native_used))
+            native_available=max(0.,green_service-native_used)
+            accepted=min(accepted,native_available)
+        if capture:
+            source_key='route_choice:'+str(spec['decision'])+':'+cohort['stage']+':'+str(route)+':'+str(cohort['source'])
+            sources={source_key:accepted}
+            ledger.record_resource_allocation('route_choice_receiving', 'storage:'+target, available, sources)
+            ledger.record_resource_allocation('route_choice_branch_service',
+                str(spec['decision'])+':'+service_key, service_available, sources)
+            if crosses_native_head:
+                ledger.record_resource_allocation('native_fixed_head_service',
+                    'SC'+str(native['controller'])+':SG'+str(native['signal_group']), native_available, sources)
         if accepted<=0: continue
         cohort['vehicles']-=accepted; state.urban_link_storage[source]+=accepted
         state.urban_link_storage[target]-=accepted
@@ -898,3 +921,251 @@ def extend_area_routes(cfg):
                                      'status':'verified_stopline_to_route_choice_prefix'}
     cfg.network.control_area_routes=routes
     return {'route_choice_area_entry_routes':len(spec['turns'])}
+
+
+# Preserve chosen destinations inside the existing legsplit stock.
+def configure_known_legsplit(cfg, tuning, state, raw):
+    enabled = tuning.get('urban', {}).get('preserve_known_wout_routes', False)
+    if type(enabled) is not bool:
+        raise ValueError('preserve_known_wout_routes must be boolean')
+    if not enabled:
+        if hasattr(cfg.network, 'known_legsplit_routes'):
+            delattr(cfg.network, 'known_legsplit_routes')
+        return {}
+    if not getattr(cfg.network, 'route_choice_corridor', None) or not cfg.network.leg_ramp_split_enabled:
+        raise ValueError('Known W_out routes require canonical corridor and legsplit runtime')
+    if getattr(cfg.network, 'control_area_enabled', False) is not True:
+        raise ValueError('Known W_out routes require the accounted area scheduler')
+    reference = tuning['urban']['known_wout_route_evidence']
+    path = ROOT / reference['path']
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != reference['sha256']:
+        raise ValueError('Known W_out route evidence changed')
+    proof = json.loads(data)
+    if proof['schema'] != 'known-wout-routes/v1':
+        raise ValueError('Unsupported known W_out route schema')
+    network = ROOT / proof['network']['path']
+    if hashlib.sha256(network.read_bytes()).hexdigest() != proof['network']['sha256']:
+        raise ValueError('Known W_out network changed')
+    from evaluation.controllers.network_provenance import snapshot_network_sha256
+    if snapshot_network_sha256(raw) != proof['network']['sha256']:
+        raise ValueError('Known W_out snapshot network differs')
+    tree = ET.parse(network).getroot()
+    for key, detail in proof['native_routes'].items():
+        decision_no, route_no = key.split(':')
+        decision = tree.find(f"./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic[@no='{decision_no}']")
+        route = decision.find(f"./vehRoutSta/vehicleRouteStatic[@no='{route_no}']")
+        actual = [decision.get('link')] + [r.get('key') for r in route.findall('./linkSeq/intObjectRef')] + [route.get('destLink')]
+        if actual != detail['path'] or float(route.get('destPos')) != detail['dest_pos']:
+            raise ValueError('Known native W_out destination changed: ' + key)
+    choice = tree.find("./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic[@no='1135']")
+    if choice.get('link') != '68' or float(choice.get('pos')) != proof['choice_position_m']:
+        raise ValueError('Native1135 choice plane changed')
+    # Future scalar OR_F_E direct receipts have no observed vehicle IDs.
+    # Their destination is a native path prior, separately from initial tags.
+    direct_routes=set()
+    for decision in tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic'):
+        for route in decision.findall('./vehRoutSta/vehicleRouteStatic'):
+            path=[decision.get('link')]+[r.get('key') for r in route.findall('./linkSeq/intObjectRef')]+[route.get('destLink')]
+            if '10682' in path:
+                direct_routes.add(decision.get('no')+':'+route.get('no'))
+    if direct_routes!={'1130:3'}:
+        raise ValueError('Future direct branch no longer has its unique pinned static path')
+    storage = proof['storage']
+    net = cfg.network
+    if storage != 'SC1004_W_out' or net.offramp_direct_tail_by_offramp.get('OR_F_E') != storage:
+        raise ValueError('Known W_out source ownership changed')
+    prior = net.boundary_out_ramp_split.get(storage, {})
+    weights = {'free':prior.get('free'), **prior.get('ramps', {})}
+    destination_names = {'R_F_W':'R_F_W', 'R_F_E':'R_F_E'}
+    if getattr(net, 'physical_ramp_branches', None):
+        destination_names = {'R_F_W':'RM_C10646', 'R_F_E':'RM_C10681'}
+        if not set(destination_names.values()) <= set(net.ramps):
+            raise ValueError('Known W_out physical ramp destinations are missing')
+    if (set(weights) != {'free', *destination_names.values()}
+            or any(not isinstance(v,(int,float)) or isinstance(v,bool) or not math.isfinite(v) or v<0 for v in weights.values())
+            or abs(sum(weights.values())-1.)>1e-9):
+        raise ValueError('Known W_out needs the existing finite normalized destination prior')
+    expected_targets={'1130:3':'free','1135:2':'R_F_W','1135:3':'free','1135:4':'R_F_E'}
+    if {k:v['target'] for k,v in proof['native_routes'].items() if 'target' in v} != expected_targets:
+        raise ValueError('Known W_out route-to-destination contract changed')
+    receivers = {m:s for m,s in net.urban_movements.items() if s.get('receiving_link') == storage and s.get('beta',0)>0}
+    if set(receivers) != set(proof['incoming_movements']):
+        raise ValueError('Known W_out positive incoming movements changed')
+    links = {r.get('no'):r for r in tree.findall('./links/link')}
+    for movement, connector in proof['incoming_movements'].items():
+        turn = links[connector]
+        endpoint = turn.find('toLinkEndPt')
+        routes = net.control_area_routes['movement:'+movement]['physical_turns']
+        if (endpoint.get('lane').split()[0] != '68' or float(endpoint.get('pos')) >= proof['choice_position_m']
+                or not any(str(r['connector']) == connector for r in routes)):
+            raise ValueError('Known future W_out entry is not before1135: ' + movement)
+    spec = {'storage':storage, 'routes':proof['native_routes'], 'choice_position_m':proof['choice_position_m'],
+        'prechoice_connectors':proof['prechoice_connectors'], 'incoming_movements':proof['incoming_movements'],
+        'source':dict(reference)}
+    spec['routes'] = {key:{**detail, **({'target':destination_names.get(detail['target'],detail['target'])}
+        if 'target' in detail else {})} for key,detail in spec['routes'].items()}
+    net.known_legsplit_routes = spec
+    initialize_known_legsplit(state, cfg, raw)
+    return {'known_wout_routes_enabled':1., 'known_wout_initial_veh':_known_total(state),
+            'known_wout_future_direct_native_path_prior':1., **diagnostics(state,cfg)}
+
+
+def known_legsplit_diagnostics(state,cfg):
+    if not getattr(cfg.network,'known_legsplit_routes',None):
+        return {}
+    local=state.known_legsplit_route_state
+    unknown=sum(c['vehicles'] for c in local['cohorts'] if c['target']=='unknown')
+    return {'known_wout_held_unknown_route_veh':unknown,
+            'known_wout_prediction_route_complete':float(unknown<=1e-8),
+            'known_wout_stock_veh':_known_total(state)}
+
+
+def _known_total(state):
+    return sum(c['vehicles'] for c in state.known_legsplit_route_state['cohorts'])
+
+
+def _known_check(state, cfg):
+    spec = getattr(cfg.network, 'known_legsplit_routes', None)
+    if spec is None:
+        return
+    storage = spec['storage']
+    n = cfg.network.urban_link_storage_veh[storage]-state.urban_link_storage[storage]
+    if not math.isclose(_known_total(state), n, rel_tol=0., abs_tol=1e-7):
+        raise ValueError('Known W_out aliases differ from the sole physical stock')
+
+
+def _known_classify(record, route, spec):
+    link = str(record['link_no']); pos = record['position_m']
+    identity = (str(route['route_decision_no'])+':'+str(route['route_no'])
+                if route['route_decision_type']=='STATIC' else None)
+    detail = spec['routes'].get(identity)
+    if detail is not None and link not in detail['path']:
+        raise ValueError('Current W_out route contradicts its physical link')
+    if detail is not None and 'target' in detail:
+        return detail['target']
+    before = link in spec['prechoice_connectors'] or (link=='68' and pos < spec['choice_position_m'])
+    if before:
+        return 'prechoice'
+    # A missing/expired tag after the decision never becomes a new prior draw.
+    return 'unknown'
+
+
+def initialize_known_legsplit(state, cfg, raw):
+    if hasattr(state, 'known_legsplit_route_state'):
+        raise ValueError('Known W_out tags must initialize once')
+    spec = cfg.network.known_legsplit_routes; storage = spec['storage']; key = 'storage:'+storage
+    assignment = state.local_observation_summary['projection_diagnostics']['physical_stock_assignment_by_link']
+    supports = {p:a for p,a in assignment.items() if a.get(key,0)>0}
+    if any(set(a)!={key} for a in supports.values()):
+        raise ValueError('Known W_out records have another physical owner')
+    routes = complete_vehicle_routes(raw, required=True)
+    start = round(state.time_sec/cfg.simulation.T_u_sec)
+    records = [r for r in complete_records(raw) if str(r['link_no']) in supports]
+    n = cfg.network.urban_link_storage_veh[storage]-state.urban_link_storage[storage]
+    if abs(n-len(records))>1e-7:
+        raise ValueError('Known W_out records do not cover the existing stock')
+    pending = {int(d):v for d,v in state.urban_storage_release_buffer.get(storage,{}).items() if int(d)>start}
+    if sum(pending.values())>n+1e-7:
+        raise ValueError('Known W_out reservations exceed physical stock')
+    buckets = {start:max(0.,n-sum(pending.values())), **pending}
+    cohorts=[]
+    for r in records:
+        target = _known_classify(r,routes[r['veh_no']],spec)
+        # Keep the old aggregate timing; its correlation with IDs is unknown.
+        # These initial fixtures have no pending stock. This is not a new travel fit.
+        for due, amount in buckets.items():
+            if amount>0:
+                cohorts.append({'target':target,'vehicles':amount/n,'due':due,'source':'initial_current_route'})
+    state.known_legsplit_route_state={'cohorts':cohorts,'plan':None,'received':0.,'departed':0.}
+    _known_check(state,cfg)
+
+
+def known_legsplit_receive(state,cfg,vehicles,due,*,movement=None,off_ramp=None):
+    spec=getattr(cfg.network,'known_legsplit_routes',None)
+    if spec is None or vehicles<=0:
+        return
+    if movement is not None:
+        if cfg.network.urban_movements[movement].get('receiving_link')!=spec['storage']:
+            return
+        if movement not in spec['incoming_movements']:
+            raise ValueError('Unproved positive W_out movement receipt')
+        target='prechoice'
+    elif off_ramp=='OR_F_E':
+        # Native1130:3 is the unique pinned static path through10682. This is
+        # not a recovered route ID for the aggregate freeway predictor's flow.
+        target='free'
+    else:
+        return
+    local=state.known_legsplit_route_state
+    local['cohorts'].append({'target':target,'vehicles':float(vehicles),'due':int(due),
+                            'source':movement or 'offramp_direct:'+off_ramp})
+    local['received']+=vehicles
+    _known_check(state,cfg)
+
+
+def known_legsplit_requests(state,cfg,storage,reach,arrived,step):
+    spec=getattr(cfg.network,'known_legsplit_routes',None)
+    if spec is None or storage!=spec['storage']:
+        return None
+    if not all(math.isfinite(v) and v>=0 for v in (reach,arrived)) or reach>arrived+1e-7:
+        raise ValueError('Known W_out request exceeds ready source stock')
+    _known_check(state,cfg)
+    local=state.known_legsplit_route_state
+    if local['plan'] is not None:
+        raise ValueError('Known W_out plan not committed before next request')
+    # Existing prior values are used only for physically eligible future choices,
+    # exactly once. Already chosen destinations and post-choice unknowns persist.
+    prior=cfg.network.boundary_out_ramp_split[storage]
+    weights={'free':prior['free'],**prior['ramps']}
+    cohorts=[]
+    for c in local['cohorts']:
+        if c['target']=='prechoice' and c['due']<=step:
+            cohorts.extend({**c,'target':target,'vehicles':c['vehicles']*weight}
+                           for target,weight in weights.items() if weight>0)
+        else:
+            cohorts.append(c)
+    local['cohorts']=cohorts
+    eligible=sum(c['vehicles'] for c in cohorts if c['due']<=step)
+    if abs(eligible-arrived)>1e-7:
+        raise ValueError('Known W_out ready aliases differ from original release timing')
+    factor=reach/arrived if arrived>0 else 0.
+    requests=defaultdict(float); plan=[]
+    for c in cohorts:
+        if c['due']<=step and c['target']!='unknown':
+            amount=c['vehicles']*factor
+            requests[c['target']]+=amount
+            plan.append((c,amount))
+    local['plan']={'step':step,'rows':plan,'requests':dict(requests)}
+    return dict(requests)
+
+
+def known_legsplit_commit(state,cfg,receipts,step):
+    spec=getattr(cfg.network,'known_legsplit_routes',None)
+    if spec is None:
+        return
+    local=state.known_legsplit_route_state; plan=local['plan']
+    actual=defaultdict(float)
+    for source,ramp,vehicles in receipts:
+        if source==spec['storage']:
+            actual[ramp or 'free']+=vehicles
+    if plan is None:
+        if sum(actual.values())>1e-9:
+            raise ValueError('Known W_out receipt without its current plan')
+        _known_check(state,cfg)
+        return
+    if plan['step']!=step:
+        raise ValueError('Known W_out receipt uses a stale plan')
+    for target,amount in actual.items():
+        if not math.isfinite(amount) or amount<0 or amount>plan['requests'].get(target,0.)+1e-7:
+            raise ValueError('Known W_out accepted more than its requested destination')
+    n=cfg.network.urban_link_storage_veh[spec['storage']]-state.urban_link_storage[spec['storage']]
+    if not math.isclose(_known_total(state)-sum(actual.values()),n,rel_tol=0.,abs_tol=1e-7):
+        raise ValueError('Known W_out source owner did not commit exactly these receipts')
+    for c,requested in plan['rows']:
+        total=plan['requests'][c['target']]
+        debit=requested*actual[c['target']]/total if total else 0.
+        c['vehicles']-=debit
+    local['cohorts']=[c for c in local['cohorts'] if c['vehicles']>0]
+    local['departed']+=sum(actual.values()); local['plan']=None
+    _known_check(state,cfg)

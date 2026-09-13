@@ -1,0 +1,81 @@
+{
+  "schema": "fast-nc-canonical-trajectory-gate/v1",
+  "status": "failed",
+  "passed": false,
+  "canonical": {
+    "run": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_phys8_fidelity_fw080_u050_nc9000_s13_v1",
+    "completion_receipt": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_phys8_fidelity_fw080_u050_nc9000_s13_v1\\completion_receipt.json",
+      "sha256": "d2220ff9759217a2df7344471db8499e36b955d822aea45dabcd8079bf412081"
+    },
+    "physical_network_sha": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+    "demand_profile_sha": "abce396d983399937ad485491e42f1ef95d8d011e04fcc8cf25da807db9955ad",
+    "provenance_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_phys8_fidelity_fw080_u050_nc9000_s13_v1\\run_provenance_codex_phys8_fidelity_fw080_u050_nc9000_s13_v1.json",
+    "provenance_sha256": "53e649d78aefcbe31587d9009638a72716a7e2a8ea1d2df59861ceaec4983913"
+  },
+  "fast": {
+    "run": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\fast_nc_fw080_urban050_s13_9000_v1",
+    "run_json": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\fast_nc_fw080_urban050_s13_9000_v1\\run.json",
+      "sha256": "84226f9b1a14d73a60dbe8c2ebe1eeb5994f50ef109226cb4ac967564f2cbe18"
+    },
+    "physical_network_sha": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+    "prepared_demand_sha": "61e3e9501e3d24bd360646cca2dacd13f39e74021cfa9d75b9bf15fa2a80343b"
+  },
+  "wall_sec": 5.072140500007663,
+  "retry_of": {
+    "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fast_nc9000_canonical_gate_v1.json",
+    "sha256": "25e128ab785bf9f6297f4780ba7613fe692fa899326cc462cb90b5301272d1dc",
+    "reason": "Correct the fast FZP subdirectory; previous attempt did not read trajectory data"
+  },
+  "payloads": [
+    {
+      "path": "evaluation\\runs\\codex_phys8_fidelity_fw080_u050_nc9000_s13_v1\\vissim_eval\\baseline_001.fzp",
+      "file_bytes": 987530119,
+      "file_sha256": "8aba3deb662e21b9c124826d78615ea961563a73a4d49a101b187b83ec63fc31",
+      "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+      "payload_sha256": "91713923035829973b6569c18ebac9241929fd6f92d7abf851aa8e7994f1613b",
+      "payload_bytes": 987528323,
+      "rows": 18764678,
+      "first_sec": 1.0,
+      "last_sec": 9000.0,
+      "payload_offset": 1796
+    },
+    {
+      "path": "evaluation\\runs\\fast_nc_fw080_urban050_s13_9000_v1\\vissim_eval\\baseline_001.fzp",
+      "file_bytes": 993322758,
+      "file_sha256": "d06dd075c81ba0653bcdc01712fbf281d2fd6297f7741500a7250131943033ee",
+      "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+      "payload_sha256": "49c1f5195f30b85bb5a6af4b74c22f368a40a02d3c88f2b5de5e31fbbcbe7a5f",
+      "payload_bytes": 993321011,
+      "rows": 18881579,
+      "first_sec": 1.0,
+      "last_sec": 9000.0,
+      "payload_offset": 1747
+    }
+  ],
+  "comparison_fields": [
+    "header",
+    "payload_sha256",
+    "payload_bytes",
+    "rows",
+    "first_sec",
+    "last_sec"
+  ],
+  "field_equalities": {
+    "header": true,
+    "payload_sha256": false,
+    "payload_bytes": false,
+    "rows": false,
+    "first_sec": true,
+    "last_sec": true
+  },
+  "exact": false,
+  "start": 1,
+  "end": 9000,
+  "limits": [
+    "Excludes FZP pre-data metadata only",
+    "Same-seed physical trajectory proof; fast baseline has no canonical head/LDP evidence",
+    "Historical fast runner and SIG pins are not reconstructed"
+  ]
+}

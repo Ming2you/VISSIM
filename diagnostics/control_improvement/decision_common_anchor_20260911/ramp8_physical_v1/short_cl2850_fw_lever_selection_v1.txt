@@ -1,0 +1,26 @@
+Short CL2850: why VSL 120 and meter green 10 remain selected
+
+Read-only completed decisions 2400/2550/2700. No model/native/COM/FZP jobs. Input artifact SHA256 values and original recorded source-pin map digests are in the companion JSON; original source_changes=[] at all three decisions.
+
+sec | accepted owner | accepted improvement | FW_W / FW_E observed improvement | FW_W final evaluations / feasible neighbors
+2400 | SC1004 | 0.805460090 | 0.000000000 / 0.006213777 | 24 / 23
+2550 | SC1001 | 1.189395081 | 0.000000000 / 0.001318922 | 16 / 15
+2700 | SC108 | 0.448972429 | 0.000000000 / 0.000657247 | 24 / 23
+
+Every FW owner: 4 search evaluations = incumbent + 3 feasible neighbors; zero recorded infeasible neighbors and empty rejected list. Each announces 63 candidates. Thus these visited FW alternatives were not blocked by NUF. FW_W had no observed improvement in its checked subset; FW_E had a smaller improvement than the chosen urban signal. The partial round-robin sweep commits one largest checked own-payoff improvement. The 2700 winner is SC108.
+
+Each action writes all 66 VSL rows at 120 km/h and all 8 meters at g10 with CSV rate 900 veh/h. Final audit completes 0/19 owner gaps; FW_E final evaluations are zero throughout. These results do not show a FW optimum or all 8 meter alternatives fully exercised. Price measurement does independently cover all 8 meter dimensions: both FW bases have rank 7/7 (3 VSL + 4 meters).
+
+Actual g10 -> hypothetical g8: CSV writer rate 900 -> 720 veh/h; physical empirical service 1512 -> 1166.4 veh/h (one lane), 3024 -> 2332.8 (two lanes: RM_C10482 and RM_C10681). g8 was not executed. The saved entry predicted accepted-merge averages, grouped across the three decisions, range as follows:
+RM_C10480: 125.177, 143.917, 157.517 veh/h; g8 model capacity 1166.4.
+RM_C10482: 1168.996, 1009.717, 608.048 veh/h; g8 model capacity 2332.8.
+RM_C10646: 347.303, 349.665, 380.180 veh/h; g8 model capacity 1166.4.
+RM_C10644: 624.410, 545.231, 502.769 veh/h; g8 model capacity 1166.4.
+RM_C10639: 113.051, 135.590, 129.641 veh/h; g8 model capacity 1166.4.
+RM_C10681: 71.067, 90.463, 98.030 veh/h; g8 model capacity 2332.8.
+RM_C10490: 531.070, 558.616, 363.752 veh/h; g8 model capacity 1166.4.
+RM_C10484: 430.729, 438.288, 507.682 veh/h; g8 model capacity 1166.4.
+
+All saved accepted-flow averages are below g8 service capacity. This is only consistent with unused service capacity; it does not prove unconstrained demand or identical g8/g10 physical response. Per-trial flow/value traces and action-specific rejection counts are not stored in this summary. Empty/zero external meter price secants alone cannot prove a physical demand plateau. NP=-250 restorations separately stop at finite work budgets and remain unknown.
+
+Exposed decisions only; 2850 terminal action has no follow-on exposure.

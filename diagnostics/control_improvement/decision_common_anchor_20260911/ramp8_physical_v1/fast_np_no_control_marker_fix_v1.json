@@ -1,0 +1,88 @@
+{
+  "schema": "native-anchor-marker-fix-validation/v1",
+  "completed": true,
+  "scope": "Preservation of previously completed tool/test results; no tests, model, FZP, or native execution repeated while v3 runs.",
+  "change": {
+    "path": "evaluation/controllers/vissim_stackelberg_adapter.py",
+    "function": "control_to_json_dict",
+    "condition": "Authoritative metadata.controller_variant is a nonempty string other than no-control",
+    "removed_from_serialized_diagnostics_only": [
+      "no_control_active",
+      "no_control_native_signal_reference"
+    ],
+    "scored_control_object_mutated": false,
+    "seven_physical_fields_unchanged": true,
+    "native_warmup_or_missing_variant_proof_preserved": true,
+    "historical_native_proof_guard_changed": false,
+    "adapter_sha256_after_fix": "809e2e547165870daf4875dcbb42b8c99397288b2ce222506d4fe7dd23071f12"
+  },
+  "focused_tests": {
+    "command_powershell": "& 'C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -m unittest diagnostics.test_native_runtime_reference diagnostics.test_native_signal_contract diagnostics.test_joint_final_output_budget diagnostics.test_joint_written_action -v",
+    "working_directory": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review",
+    "modules": [
+      "diagnostics.test_native_runtime_reference",
+      "diagnostics.test_native_signal_contract",
+      "diagnostics.test_joint_final_output_budget",
+      "diagnostics.test_joint_written_action"
+    ],
+    "tests_run": 34,
+    "failures": 0,
+    "errors": 0,
+    "unittest_elapsed_sec": 4.524,
+    "process_exit_code": 0,
+    "result": "OK",
+    "new_tests": [
+      "test_controlled_serialization_roundtrip_keeps_written_clock_not_inherited_native_claim",
+      "test_native_or_unspecified_serialization_preserves_strict_native_proof"
+    ],
+    "test_file_sha256_after_fix": "cca97788effcdc9337ddebfed7864f4118cc2a99e0c4d2d1ac3c43c318a430dd"
+  },
+  "red_before_fix": {
+    "tests_run": 2,
+    "failures": 1,
+    "errors": 0,
+    "unittest_elapsed_sec": 0.13,
+    "process_exit_code": 1,
+    "failing_test": "test_controlled_serialization_roundtrip_keeps_written_clock_not_inherited_native_claim",
+    "failure": "no_control_active unexpectedly present in serialized controlled-action diagnostics",
+    "passing_test": "test_native_or_unspecified_serialization_preserves_strict_native_proof"
+  },
+  "controlled_roundtrip_regression": {
+    "stages": [
+      "control_to_json_dict",
+      "control_from_json",
+      "load_joint_historical_reference"
+    ],
+    "scope": "Source-backed native signal fixture; meter historical helper stubbed; no model or native calls",
+    "native_reference_reconstruction_for_controlled_history_forbidden": true,
+    "seven_physical_fields_unchanged": true,
+    "original_control_diagnostics_unchanged": true,
+    "sc1004_written_clock_retained": {
+      "p1_green_sec": 40.0,
+      "p2_green_sec": 29.0,
+      "offset_sec": 0.0
+    }
+  },
+  "actual_failed900_artifact_check": {
+    "label": "native_anchor_serializer_failed900_diagnostic_v1",
+    "action_json": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v2\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v2\\action_000900.json",
+    "written_binding_json": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_physical8_fw080_u050_fastnp_closedloop1350_v2\\decisions_codex_physical8_fw080_u050_fastnp_closedloop1350_v2\\action_000900.joint_written.json",
+    "operation": "Read-only in-memory serialization of the failed run action, using its authoritative wu-link metadata; old files not rewritten",
+    "only_two_obsolete_diagnostics_removed": true,
+    "seven_physical_fields_preserved": true,
+    "matches_original_writer_seven_field_hash": true,
+    "seven_action_fields_sha256": "8d5ed087a72ed92c16c7bae7e960986a0723c0257c366316cf7445e5dbb81d57",
+    "scored_source_object_pickle_unchanged": true,
+    "old_action_file_bytes_unchanged": true,
+    "old_action_sha256": "b34706c5edcac32a90bfc4501c268f69a30961cd90dec34aba824137ba977796",
+    "sc1004_written_clock_retained": {
+      "p1_green_sec": 40.0,
+      "p2_green_sec": 29.0,
+      "offset_sec": 0.0
+    }
+  },
+  "limitations": [
+    "Unit and serialization evidence does not establish successful v3 native completion.",
+    "The failed v2 native run and its recorded results remain failed and unchanged."
+  ]
+}

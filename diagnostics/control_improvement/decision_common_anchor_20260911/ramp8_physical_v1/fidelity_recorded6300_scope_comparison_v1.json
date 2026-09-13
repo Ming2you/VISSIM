@@ -1,0 +1,338 @@
+{
+  "schema": "recorded6300-scope-fix-comparison/v1",
+  "scope": "Two completed recorded-state artifacts only; no model, FZP, native or source changes during this comparison. Exact selected results do not establish exact search or native completion.",
+  "artifact_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1",
+  "source_artifact_pins": {
+    "fidelity_recorded6300_context_v1/receipt.json": {
+      "sha256": "9bf8a87174fea852bdeb1bfcb53f77b6629f269135c30bdf537219330b01892d",
+      "bytes": 8107
+    },
+    "fidelity_recorded6300_context_v1/action_006300.json": {
+      "sha256": "18708d1b62a2f0602ee1ee55d77c85094a5b6f06e03738a42b3d7367eacb122d",
+      "bytes": 978055
+    },
+    "fidelity_recorded6300_context_v1/action_006300.joint.json": {
+      "sha256": "a8590c07c6f75c0a36ff26d297f18845a2ef8024a5c88c639caade80466a784e",
+      "bytes": 1106196
+    },
+    "fidelity_recorded6300_context_v1/action_006300.joint_written.json": {
+      "sha256": "66c9f7f971de0116a16003eb65a71b66eb9df5c23e9b186fd21e02e9598cfd97",
+      "bytes": 1754
+    },
+    "fidelity_recorded6300_context_v1/action_006300.csv": {
+      "sha256": "dcacd8b773b453799d64ff06b163cb1c722b560690f45cb10e95284677b4d93c",
+      "bytes": 27567
+    },
+    "fidelity_recorded6300_scope_fix_v1/receipt.json": {
+      "sha256": "83c87249427e2aeb2b61b8e87bcaac6859bd354ea94ce151f304be3720ff97d6",
+      "bytes": 8111
+    },
+    "fidelity_recorded6300_scope_fix_v1/action_006300.json": {
+      "sha256": "2d57a9cf51ac50a52b2d40c7f1b1dd103aaffd9c17b3838a9df813aae53f5fd2",
+      "bytes": 978006
+    },
+    "fidelity_recorded6300_scope_fix_v1/action_006300.joint.json": {
+      "sha256": "ae479707d58f297f03ce8820e571bb5ad7b5ca968c2418a258c528b9084ac697",
+      "bytes": 1106125
+    },
+    "fidelity_recorded6300_scope_fix_v1/action_006300.joint_written.json": {
+      "sha256": "c723b0efa6dbbeb5144b3dbf4a1a8f08fec0260775f9e23f9d33df2679311949",
+      "bytes": 1758
+    },
+    "fidelity_recorded6300_scope_fix_v1/action_006300.csv": {
+      "sha256": "dcacd8b773b453799d64ff06b163cb1c722b560690f45cb10e95284677b4d93c",
+      "bytes": 27567
+    }
+  },
+  "runs": [
+    "fidelity_recorded6300_context_v1",
+    "fidelity_recorded6300_scope_fix_v1"
+  ],
+  "completion": [
+    {
+      "completed": true,
+      "exit_code": 0,
+      "elapsed_sec": 245.04285369999707,
+      "source_changes": [],
+      "native_run": false
+    },
+    {
+      "completed": true,
+      "exit_code": 0,
+      "elapsed_sec": 252.92088390000572,
+      "source_changes": [],
+      "native_run": false
+    }
+  ],
+  "physical_commands": {
+    "seven_fields": [
+      "N_P_star",
+      "N_UF_star",
+      "ramp_metering",
+      "vsl",
+      "green_times",
+      "offsets",
+      "inflow_outflow_allocation"
+    ],
+    "field_exact": {
+      "N_P_star": true,
+      "N_UF_star": true,
+      "ramp_metering": true,
+      "vsl": true,
+      "green_times": true,
+      "offsets": true,
+      "inflow_outflow_allocation": true
+    },
+    "seven_fields_sha256": [
+      "403bfdd4263f316a0722b4d108b3abc4bdc766968799465fab0ed74a2ca71b45",
+      "403bfdd4263f316a0722b4d108b3abc4bdc766968799465fab0ed74a2ca71b45"
+    ],
+    "ordered_rows": [
+      213,
+      213
+    ],
+    "ordered_physical_rows_sha256": [
+      "f305068dfa6a78a34360a156084973ac88de36b93cb3e28b8b64b0f6920936cd",
+      "f305068dfa6a78a34360a156084973ac88de36b93cb3e28b8b64b0f6920936cd"
+    ],
+    "written_binding_passed": [
+      true,
+      true
+    ],
+    "csv_bytes_exact": true,
+    "csv_receipt_sha_verified": [
+      true,
+      true
+    ],
+    "native_execution_status": [
+      "pending",
+      "pending"
+    ]
+  },
+  "selected_response": {
+    "field_exact": {
+      "objective_veh_h": true,
+      "quantity_constraints": true,
+      "model_constraint_coverage": true,
+      "conditional_model_feasibility_witness": true,
+      "resource_max_exceedance_veh": true,
+      "native_prehead_reference_overdraw_veh": true,
+      "finite_neighborhood_certified": true,
+      "final_check_complete": true,
+      "maximum_finite_candidate_gap": true
+    },
+    "leader_objective_veh_h": [
+      171.61282229893962,
+      171.61282229893962
+    ],
+    "np": {
+      "mode": "cap",
+      "unit": "veh",
+      "actual": 217.42990163976677,
+      "target": 2400.0,
+      "residual": -2182.5700983602333,
+      "violation": 0.0,
+      "tolerance": 1e-07,
+      "constraint_checked": true,
+      "satisfied": true
+    },
+    "nuf": {
+      "mode": "equality",
+      "unit": "veh/h",
+      "actual": 1683.9317048547193,
+      "target": 1683.9317048547193,
+      "residual": 0.0,
+      "violation": 0.0,
+      "tolerance": 40.0,
+      "constraint_checked": true,
+      "satisfied": true
+    },
+    "quantity_window": {
+      "start_sec": 6300.0,
+      "end_sec": 6750.0,
+      "horizon_steps": 3,
+      "urban_samples": 90
+    },
+    "model_constraint_coverage": {
+      "schema": "implemented-model-constraint-coverage/v1",
+      "claim_scope": "implemented traffic-transition allocation and post-projection limits; control-domain feasibility is a caller obligation",
+      "expected_visits": 1125,
+      "completed_visits": 1125,
+      "schedule_complete": true,
+      "complete": true,
+      "allocator_visits_complete": true,
+      "captured_frames_complete": true,
+      "missing_constraints": [],
+      "checked_allocation_count": 108493,
+      "checked_state_bound_count": 32040,
+      "conditional_model_feasibility_witness": true
+    }
+  },
+  "prediction": {
+    "from_sim_sec": 6300.0,
+    "target_sim_sec": 6450.0,
+    "group_exact": {
+      "state_summary": true,
+      "terminal_features": true,
+      "calibrated_state_summary": true,
+      "audit_calibration": true
+    },
+    "equal_numeric_scalars": {
+      "state_summary": {
+        "time_sec": 6450.0,
+        "total_model_vehicles": 1649.3028913823257,
+        "urban_total_veh": 1054.300483471946,
+        "protected_accumulation_veh": 918.1727412343142,
+        "urban_queue_plus_link_occupancy_total_veh": 1165.9743044259008,
+        "urban_movement_queue_total_veh": 630.3856368187102,
+        "urban_link_occupancy_total_veh": 535.5886676071907,
+        "boundary_queue_total_veh": 238.58061128396415,
+        "freeway_total_veh": 483.3285869564255,
+        "freeway_segment_total_veh": 483.3285869564255,
+        "off_ramp_storage_veh": 111.67382095395428,
+        "ramp_queue_total_veh": 4.09386337300681,
+        "mainline_origin_queue_total_veh": 0.0,
+        "freeway_mean_density_veh_km_lane": 6.376517083341115,
+        "freeway_mean_speed_kph": 103.83998526240991
+      },
+      "terminal_features": {
+        "total_vehicles": 1653.3967547553327,
+        "urban_vehicles": 918.1727412343145,
+        "freeway_vehicles": 483.3285869564255,
+        "ramp_vehicles": 115.76768432696109,
+        "boundary_vehicles": 136.12774223763168,
+        "stopped_vehicles": 499.024373855132,
+        "mean_speed_kph": 59.583172702454576,
+        "freeway_mean_speed_kph": 103.83998526240991
+      },
+      "calibrated_state_summary": {
+        "time_sec": 6450.0,
+        "total_model_vehicles": 1759.1510146310845,
+        "urban_total_veh": 1164.1486067207047,
+        "protected_accumulation_veh": 918.1727412343142,
+        "urban_queue_plus_link_occupancy_total_veh": 1275.8224276746591,
+        "urban_movement_queue_total_veh": 945.5784552280652,
+        "urban_link_occupancy_total_veh": 330.24397244659383,
+        "boundary_queue_total_veh": 238.58061128396415,
+        "freeway_total_veh": 483.3285869564255,
+        "freeway_segment_total_veh": 483.3285869564255,
+        "off_ramp_storage_veh": 111.67382095395428,
+        "ramp_queue_total_veh": 4.09386337300681,
+        "mainline_origin_queue_total_veh": 0.0,
+        "freeway_mean_density_veh_km_lane": 6.376517083341115,
+        "freeway_mean_speed_kph": 94.65014656668663
+      }
+    },
+    "wall_sec": [
+      0.541103,
+      0.604813
+    ]
+  },
+  "search": {
+    "selected_index": [
+      1,
+      1
+    ],
+    "attempted_indices": [
+      [
+        1,
+        240,
+        120
+      ],
+      [
+        1,
+        240,
+        120
+      ]
+    ],
+    "domain_count": [
+      486,
+      486
+    ],
+    "leader_stop_reason": [
+      "leader_candidate_budget",
+      "leader_candidate_budget"
+    ],
+    "search_status": [
+      "interrupted_search_time_budget",
+      "interrupted_search_time_budget"
+    ],
+    "evaluations": [
+      101,
+      96
+    ],
+    "per_owner_exact": false,
+    "search_history_exact": false,
+    "finite_neighborhood_certified": [
+      false,
+      false
+    ],
+    "final_check_complete": [
+      false,
+      false
+    ],
+    "maximum_finite_candidate_gap": [
+      null,
+      null
+    ],
+    "cache": [
+      {
+        "requests": 290,
+        "endpoint_attempts": 187,
+        "endpoint_calls": 187,
+        "cache_hits": 103,
+        "failures": 0
+      },
+      {
+        "requests": 277,
+        "endpoint_attempts": 179,
+        "endpoint_calls": 179,
+        "cache_hits": 98,
+        "failures": 0
+      }
+    ]
+  },
+  "expected_provenance_changes": {
+    "source_pin_changes": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_follower_objective.py": [
+        "b0ab5c1196a4dfd3820fc44ab3bd69fa4b280d3258e9bef0d66fd56fbcd24ffe",
+        "b0e427d9553404627af853696132ad1c933ba530fc81eece2054129deac36ddf"
+      ],
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py": [
+        "809e2e547165870daf4875dcbb42b8c99397288b2ce222506d4fe7dd23071f12",
+        "05274e956239d8f999a68998feb86c0cb9e6e27f7ba77e7ad54b9610a05319e3"
+      ]
+    },
+    "tokens": {
+      "final_action_token": [
+        "df7d7dc417613f406e49c453c0cc0afe971f73915f6d884bf9946ff6b45a1b95",
+        "df7d7dc417613f406e49c453c0cc0afe971f73915f6d884bf9946ff6b45a1b95"
+      ],
+      "response_token": [
+        "9288d617de90e73588ac24d2afe103c0d0aec40a242f95c6853285934f20ce4c",
+        "9288d617de90e73588ac24d2afe103c0d0aec40a242f95c6853285934f20ce4c"
+      ],
+      "fixed_inputs_token": [
+        "39ad4c9f4f87425d436f30de95262b9305a1bfe5c29e8bf086339a4a0d43f988",
+        "a5a0967a8b54e26046486ee041838d2c2b8f3499dcc5855be13bfe7485d2d75f"
+      ],
+      "frozen_context_token": [
+        "fefc121eea71dd7a0a728d684d611a977b8a3272010674d2a169a3d697e661d1",
+        "53c0065a5001fdc9f9630daa9190a3e7b270b1ba41bc35c567e2e9613a009283"
+      ]
+    }
+  },
+  "matched_input_pins": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_fid_cl9000_s13_v2\\config.json": "9115dbe10ba273cc8c37183c22454b92d49496a9e78c56b791610254fa578813",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v2\\decisions_codex_fid_cl9000_s13_v2\\action_006150.csv": "8d70151c20ae866a6f40308b00b6098b55b18e1ca52e1029e039b6891148286c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v2\\decisions_codex_fid_cl9000_s13_v2\\action_006150.json": "f15b3f74ded4bd99e06ceb564f32a1242ec3d2bb5ee02285f5eec04d0594a949",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_fid_cl9000_s13_v2\\decisions_codex_fid_cl9000_s13_v2\\state_006300.json": "1d176447e72bfd48e61bfbd637d0ff0174c37d70ada310f86098263033cdeb29"
+  },
+  "limitations": [
+    "The original live 6300 failure cause remains unconfirmed; both recorded replays passed.",
+    "Source and frozen-context token changes are expected provenance differences, not changed physical values.",
+    "Search counts, history and elapsed times differ; this is not complete numerical-equivalence or speed certification.",
+    "No native application, complete finite-gap/GNE, realtime or full 9000-second outcome is certified here.",
+    "450-second selected-response quantities and 150-second one-step prediction have different windows and must not be mixed."
+  ]
+}

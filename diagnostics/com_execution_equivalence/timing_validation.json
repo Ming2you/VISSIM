@@ -1,0 +1,19 @@
+{
+  "schema": "completed-com-timing-tests/v1",
+  "tests": 8,
+  "failures": 0,
+  "errors": 0,
+  "loaded_pure_schema_modules": [
+    "evaluation.controllers",
+    "evaluation.controllers.signal_group_plan",
+    "evaluation.controllers.action_csv_schema",
+    "evaluation.controllers.signal_timing_oracle"
+  ],
+  "forbidden_runtime_modules_loaded": [],
+  "raw_native_access": false,
+  "source_sha256": {
+    "diagnostics\\com_execution_equivalence\\compare_timing.py": "75ac83ae42637a36dd81a4ea18800ded17e02d044c2b17368ccc995a293ffae8",
+    "diagnostics\\com_execution_equivalence\\test_compare_timing.py": "1b9d2fd514007a80e9c9d2aa959e5b0499e16f8d9a150fca96855e22365a791c"
+  },
+  "harness_note": "Initial eight tests passed; an overly broad evaluation.controllers prefix check also flagged the existing verifier pure schema/oracle imports. Source import review confirmed no rollout or COM module; the exact pure-module allowlist is recorded here."
+}

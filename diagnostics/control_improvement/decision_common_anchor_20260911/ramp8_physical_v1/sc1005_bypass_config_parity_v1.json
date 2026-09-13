@@ -1,0 +1,37 @@
+{
+  "completed": true,
+  "checks": {
+    "model_completed": true,
+    "source_unchanged": true,
+    "initial_inventory_exact": true,
+    "initial_ramp_stock_exact": true,
+    "forecast_exact": true,
+    "physical_meter_commands_exact": true,
+    "full_response_matches_isolated_unsignalized_case": true
+  },
+  "configuration_changes": [
+    {
+      "path": "config_overrides.network.urban_movements.SC1005_N_SC105_to_W.unsignalized",
+      "before": null,
+      "after": true
+    },
+    {
+      "path": "config_overrides.network.urban_movements.SC1005_N_SC105_to_W_SC1004.unsignalized",
+      "before": null,
+      "after": true
+    },
+    {
+      "path": "name",
+      "before": "joint_config_band5_packed",
+      "after": "diagnostic_sc1005_lane_bypass_authority"
+    }
+  ],
+  "input_action_json": "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.json",
+  "source_pins": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_unlimited_v1.json": "9351d042887b6d5c6d8213be2e47b2cccbcddde6a65357abd5c45ae9fa00b21f",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_sc1005_bypass_probe_v1.json": "91ba0560b6440d18aaba275dfa51d91ad26be748a5d0553886d957ad01f8757e",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_bypass_config_model450_v1.json": "afed45f5ced3de10fe850e687686c1e018a39c148186fe84b8f06a194173c836",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_bypass_physical_evidence_v1.json": "2533649222a0d9760ea283f51cb3fbea28a747778fab81da369d6220639fdb90"
+  },
+  "scope": "Same canonical implementation; config overrides set both pre-merge aliases unsignalized, yielding one corrected final movement. No service-capacity/beta/native network/demand change. Active long game remains the previous configuration."
+}

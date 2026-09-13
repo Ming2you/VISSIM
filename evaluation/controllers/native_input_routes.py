@@ -9,7 +9,7 @@ from copy import deepcopy
 import math
 from functools import lru_cache
 
-from evaluation.controllers.control_area_objective import emit_transfer
+from evaluation.controllers.control_area_objective import emit_transfer, get_ledger
 from evaluation.controllers.projection_support import complete_records
 
 EPS = 1e-8
@@ -295,6 +295,8 @@ def advance(state, cfg, step):
     if not inputs: return {}
     from src.models import urban_queue_model as uqm
     local = state.native_input_route_state
+    ledger = get_ledger(state)
+    capture = ledger is not None and ledger.captures_response
     if step != local['last_step']+1: raise ValueError('Native route tags require sequential private steps')
     additions = []
     for cohort in local['cohorts']:
@@ -304,6 +306,13 @@ def advance(state, cfg, step):
         if gate and not cohort.get('native_gate_passed', False):
             start_sec = step*cfg.simulation.T_u_sec
             green_at = _first_native_green(gate, start_sec, start_sec+cfg.simulation.T_u_sec)
+            if capture:
+                # This existing gate is timing-only. Its eligible tag quantity
+                # is not a saturation capacity or a physical stock transfer.
+                eligible = cohort['vehicles'] if green_at is not None else 0.
+                ledger.record_resource_allocation('native_timing_eligibility',
+                    'SC'+str(gate['controller'])+':SG'+str(gate['signal_group']), eligible,
+                    {'input:'+cohort['input']+':stage:'+str(cohort['stage']):eligible})
             if green_at is None: continue
             # Gate crossing only changes a tag's transit phase. The existing
             # storage remains the sole stock owner; no area event is emitted.
@@ -316,6 +325,9 @@ def advance(state, cfg, step):
         queue = state.urban_movement_queue.get(movement, 0.)
         available = max(0., uqm._queue_max(cfg,movement,cfg.network.urban_movements[movement])-queue)
         n = min(cohort['vehicles'], available)
+        if capture:
+            ledger.record_resource_allocation('native_route_queue_receiving', 'movement:'+movement,
+                available, {'input:'+cohort['input']+':stage:'+str(cohort['stage']):n})
         if n <= 0: continue
         state.urban_link_storage[origin] += n
         state.urban_movement_queue[movement] = queue+n

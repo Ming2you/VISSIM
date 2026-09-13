@@ -1,0 +1,11 @@
+Native anchor marker serialization fix — preserved validation evidence
+
+Focused tests: 34 PASS, unittest elapsed 4.524 s, process exit 0.
+Command: & 'C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe' -m unittest diagnostics.test_native_runtime_reference diagnostics.test_native_signal_contract diagnostics.test_joint_final_output_budget diagnostics.test_joint_written_action -v
+Before fix: new controlled-roundtrip test failed; native/missing-variant preservation test passed (2 tests, 1 failure, 0.130 s).
+After fix: controlled serializer -> parser -> historical loader keeps the written SC1004 clock (40/29 s, offset 0). Native reference reconstruction is forbidden in that regression.
+Payload cleanup removes only no_control_active and no_control_native_signal_reference. Scored control and seven physical fields remain unchanged; no-control/missing variant retains strict proof.
+Actual failed900 artifact: in-memory cleanup matches its original writer seven-field SHA-256 8d5ed087a72ed92c16c7bae7e960986a0723c0257c366316cf7445e5dbb81d57.
+Old action bytes unchanged: b34706c5edcac32a90bfc4501c268f69a30961cd90dec34aba824137ba977796.
+Adapter after-fix SHA-256: 809e2e547165870daf4875dcbb42b8c99397288b2ce222506d4fe7dd23071f12.
+This records already performed checks. No tests/model/FZP/native execution repeated, no canonical edits during v3. Failed v2 remains failed.

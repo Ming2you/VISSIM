@@ -1,0 +1,36 @@
+{
+  "schema": "physical-ramp-configuration/v1",
+  "network": {
+    "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+    "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+  },
+  "mapping": {
+    "path": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
+    "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+  },
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "movement_receivers": {
+    "SC1001_W_to_onW": "RM_C10482",
+    "SC1001_W_to_onE": "RM_C10490",
+    "SC1004_W_to_onE": "RM_C10639"
+  },
+  "out_link_receivers": {
+    "SC1001_W_out": {
+      "R_D_W": "RM_C10480",
+      "R_D_E": "RM_C10484"
+    },
+    "SC1004_W_out": {
+      "R_F_W": "RM_C10646",
+      "R_F_E": "RM_C10681"
+    }
+  },
+  "unresolved": [
+    "SC1004_W_to_onE still has generic in_SC1004_W source reallocation after shared69 route1134:4; receiver10639 is correct for onE, but source cohort fidelity requires separate correction.",
+    "Connector travel and native head passage timing are not yet independently represented; existing grouped point-reservoir equations are now per physical connector.",
+    "Existing out-link conditional destination shares and prior calibration are preserved, not recalibrated by this migration."
+  ],
+  "max_green_change_sec": 2
+}

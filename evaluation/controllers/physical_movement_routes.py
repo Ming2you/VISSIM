@@ -130,8 +130,8 @@ def extend_join(join, cfg, detectors, membership, evidence_path):
 def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
     """After movement merging, before capacity estimation and follower creation.
 
-    Correct only explicitly reviewed phase fields. Native routing/receiver/stock
-    and service capacity are not inferred or changed by this correspondence fix.
+    Correct only explicitly reviewed phase fields or a proven pre-head peel-off.
+    Native routing/receiver/stock and service capacity are not inferred or changed.
     Workers inherit these configured specs; this is not a runtime method patch.
     """
     path = tuning.get('urban', {}).get('movements', {}).get('physical_phase_authority')
@@ -139,7 +139,7 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
         return {}
     if not isinstance(path, str) or not path:
         raise ValueError('physical_phase_authority must name a pinned evidence document')
-    document, routes, _ = load_evidence(path)
+    document, routes, edges = load_evidence(path)
     if document.get('schema') != 'physical-phase-authority/v1':
         raise ValueError('Unsupported phase authority evidence schema')
     if state_json is not None and snapshot_network_sha256(state_json) != document['network']['sha256']:
@@ -214,12 +214,140 @@ def configure_phase_authority(cfg, tuning, selected_plan, *, state_json=None):
             raise ValueError(f'{name}: old/new SG authority is not disjoint')
         changes[name] = {'before': spec['phase'], 'after': new_phase, 'source_SGs': sorted(source_sgs)}
         specs[name] = dict(spec, phase=new_phase)
+    unsignalized_changes = {}
+    if 'unsignalized_movements' in document:
+        peeloffs = document['unsignalized_movements']
+        supported = {'SC1004_W_to_S', 'SC1004_offW_to_S', 'SC1004_offE_to_S'}
+        if not isinstance(peeloffs, dict) or set(peeloffs) != supported:
+            raise ValueError('Unsignalized authority requires exactly the three reviewed SC1004 aliases')
+        for name, row in peeloffs.items():
+            spec = specs.get(name)
+            expected_spec = row['expected_spec']
+            if (not {'phase', 'kind', 'origin', 'receiving_link'} <= expected_spec.keys()
+                    or spec is None or spec.get('signal') != 'SC1004'
+                    or any(spec.get(k) != v for k, v in expected_spec.items())
+                    or spec.get('unsignalized')):
+                raise ValueError(f'{name}: stale expected unsignalized movement semantics')
+            if row['path'] != ['71', '10642', '67']:
+                raise ValueError(f'{name}: unsupported unsignalized physical path')
+            source, connector, target = row['path']
+            if any(edge not in edges for edge in zip(row['path'], row['path'][1:])):
+                raise ValueError(f'{name}: disconnected unsignalized physical path')
+            node, expected = links[connector], row['connector']
+            start, end = node.find('fromLinkEndPt'), node.find('toLinkEndPt')
+            actual_connector = {'id': connector, 'source_lane': int(start.get('lane').split()[1]),
+                'source_pos': float(start.get('pos')), 'target_lane': int(end.get('lane').split()[1]),
+                'target_pos': float(end.get('pos')), 'lanes': len(node.findall('./lanes/lane'))}
+            if (actual_connector != expected or start.get('lane').split()[0] != source
+                    or end.get('lane').split()[0] != target):
+                raise ValueError(f'{name}: unsignalized connector lane/position evidence changed')
+            # Every controller head on the source must be downstream, not just
+            # heads of the old phase. A later connector/target head is unsupported.
+            source_heads = [h for h in heads.values() if h.get('lane').split()[0] == source]
+            cited = row['source_heads']
+            if (not source_heads or len(cited) != len(source_heads)
+                    or {h.get('no') for h in source_heads} != {h['head'] for h in cited}):
+                raise ValueError(f'{name}: unsignalized source head set changed')
+            groups = selected_plan['controllers']['1004']['phase_signal_groups']
+            known_sgs = {str(sg) for group in groups.values() for sg in group}
+            if spec['phase'] not in {'SC1004_' + phase for phase in groups}:
+                raise ValueError(f'{name}: unknown preserved selected phase')
+            for evidence in cited:
+                head = heads[evidence['head']]
+                actual = {'head': head.get('no'), 'link': head.get('lane').split()[0],
+                    'lane': int(head.get('lane').split()[1]), 'pos_m': float(head.get('pos')),
+                    'SC': 'SC' + head.get('sg').split()[0], 'SG': head.get('sg').split()[1],
+                    'all_vehicle_types': head.get('allVehTypes') == 'true',
+                    'compliance': float(head.get('complRate', 1))}
+                if (actual != evidence or actual['SC'] != spec['signal'] or actual['SG'] not in known_sgs
+                        or not actual['all_vehicle_types'] or actual['compliance'] != 1
+                        or not math.isfinite(actual['pos_m'])
+                        or not actual['pos_m'] > actual_connector['source_pos']):
+                    raise ValueError(f'{name}: source head is not a proven downstream head')
+            if any(h.get('lane').split()[0] in {connector, target} for h in heads.values()):
+                raise ValueError(f'{name}: connector/landing link has an unsupported signal head')
+            matching = []
+            for route_id, route in routes.items():
+                sequence = route['path']
+                for index in range(len(sequence) - 2):
+                    if sequence[index:index + 3] != row['path']:
+                        continue
+                    if (route['decision'].get('allVehTypes') != 'true'
+                            or route['decision'].get('routeChoiceMeth') != 'STATIC'):
+                        raise ValueError(f'{name}: unsupported unsignalized route applicability')
+                    entry = (float(route['decision']['pos']) if index == 0 else
+                             float(links[sequence[index - 1]].find('toLinkEndPt').get('pos')))
+                    if not math.isfinite(entry) or not 0 <= entry <= actual_connector['source_pos']:
+                        raise ValueError(f'{name}: native route enters after the peel-off')
+                    matching.append(route_id)
+                    break
+            if (not matching or len(row['native_routes']) != len(matching)
+                    or set(matching) != set(row['native_routes'])):
+                raise ValueError(f'{name}: unsignalized native route witness set changed')
+            unsignalized_changes[name] = {'before': spec.get('unsignalized', False), 'after': True,
+                                         'preserved_phase': spec['phase'], 'path': list(row['path'])}
+            specs[name] = dict(spec, unsignalized=True)
+    if 'head_free_movements' in document:
+        tunnels = document['head_free_movements']
+        name = 'SC107_N_SC1_to_S'
+        if not isinstance(tunnels, dict) or set(tunnels) != {name}:
+            raise ValueError('Head-free authority requires the single reviewed SC107 tunnel')
+        row, spec = tunnels[name], specs.get(name)
+        required = {'signal', 'phase', 'kind', 'origin', 'receiving_link', 'approach', 'turn'}
+        expected_spec = row['expected_spec']
+        if (not required <= expected_spec.keys() or spec is None
+                or spec.get('signal') != 'SC107' or spec.get('phase') != 'SC107_p2'
+                or any(spec.get(k) != v for k, v in expected_spec.items())
+                or spec.get('unsignalized')):
+            raise ValueError(f'{name}: stale expected head-free movement semantics')
+        tunnel_path = ['1220006803', '10597', '1220006801', '10594', '1220042200']
+        if row['path'] != tunnel_path or any(edge not in edges for edge in zip(tunnel_path, tunnel_path[1:])):
+            raise ValueError(f'{name}: disconnected or unsupported head-free path')
+        if any(h.get('lane').split()[0] in tunnel_path for h in heads.values()):
+            raise ValueError(f'{name}: head-free path contains a signal head')
+        connectors = {}
+        for index in (1, 3):
+            node = links[tunnel_path[index]]
+            start, end = node.find('fromLinkEndPt'), node.find('toLinkEndPt')
+            if (start.get('lane').split()[0] != tunnel_path[index - 1]
+                    or end.get('lane').split()[0] != tunnel_path[index + 1]):
+                raise ValueError(f'{name}: head-free connector endpoints changed')
+            connectors[tunnel_path[index]] = {
+                'source_lane': int(start.get('lane').split()[1]), 'source_pos': float(start.get('pos')),
+                'target_lane': int(end.get('lane').split()[1]), 'target_pos': float(end.get('pos')),
+                'lanes': len(node.findall('./lanes/lane'))}
+        if connectors != row['connectors']:
+            raise ValueError(f'{name}: head-free connector lane/position evidence changed')
+        matching = {key: route for key, route in routes.items() if '10597' in route['path']}
+        if row['native_routes'] != ['1063:2'] or set(matching) != {'1063:2'}:
+            raise ValueError(f'{name}: head-free native route witness set changed')
+        route = matching['1063:2']
+        decision = route['decision']
+        actual_decision = {'no': decision['no'], 'link': decision['link'],
+                           'pos': float(decision['pos']), 'allVehTypes': decision['allVehTypes'],
+                           'routeChoiceMeth': decision['routeChoiceMeth']}
+        if (route['path'] != tunnel_path or actual_decision != row['decision']
+                or decision['allVehTypes'] != 'true' or decision['routeChoiceMeth'] != 'STATIC'
+                or not 0 <= actual_decision['pos'] < connectors['10597']['source_pos']):
+            raise ValueError(f'{name}: head-free native route identity changed')
+        conflicts = {x.get('no'): {k: x.get(k) for k in ('link1', 'link2', 'status')}
+                     for x in tree.findall('./conflictAreas/conflictArea')
+                     if x.get('link1') in tunnel_path or x.get('link2') in tunnel_path}
+        if conflicts != row['conflicts'] or any(x['status'] != 'PASSIVE' for x in conflicts.values()):
+            raise ValueError(f'{name}: head-free conflict authority changed')
+        unsignalized_changes[name] = {'before': spec.get('unsignalized', False), 'after': True,
+                                     'preserved_phase': spec['phase'], 'path': tunnel_path}
+        specs[name] = dict(spec, unsignalized=True)
     # All proofs pass before committing any movement; no projected state is used.
     cfg.network.urban_movements = specs
     invalidate_topology_cache(cfg.network)
-    return {'physical_phase_authority_corrected_count': len(changes),
+    result = {'physical_phase_authority_corrected_count': len(changes),
             'physical_phase_authority_changes': changes, 'physical_phase_authority_evidence_path': path,
             'physical_phase_authority_evidence_sha256': hashlib.sha256((ROOT / path).read_bytes()).hexdigest()}
+    if 'unsignalized_movements' in document or 'head_free_movements' in document:
+        result.update(physical_unsignalized_authority_corrected_count=len(unsignalized_changes),
+                      physical_unsignalized_authority_changes=unsignalized_changes)
+    return result
 
 
 def configure_topology_repair(cfg, detectors, tuning, *, state_json=None):

@@ -1,0 +1,2155 @@
+{
+  "schema": "completed-com-timing/v1",
+  "old": {
+    "run_mode": "STEPWISE_PHYSICAL_HEAD_OBSERVATION",
+    "perf": {
+      "startup.load_net": {
+        "sec": 9.84375,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.input_volume.read": {
+        "sec": 0.0,
+        "n": 408,
+        "kind": "count_only"
+      },
+      "startup.demand.volume_before_read": {
+        "sec": 0.078125,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.input_volume.setter": {
+        "sec": 0.0,
+        "n": 204,
+        "kind": "count_only"
+      },
+      "startup.demand.volume_set": {
+        "sec": 0.867188,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.demand.volume_after_read": {
+        "sec": 0.9375,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.demand": {
+        "sec": 2.203125,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.control_setup": {
+        "sec": 0.1875,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.head_init": {
+        "sec": 0.078125,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "sim.first_step": {
+        "sec": 1.039063,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vehicle.physical_bulk_returned": {
+        "sec": 0.0,
+        "n": 4200,
+        "kind": "count_only"
+      },
+      "scan.vehicles": {
+        "sec": 62.304688,
+        "n": 1058,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.sg.head_owner_read": {
+        "sec": 0.0,
+        "n": 144586,
+        "kind": "count_only"
+      },
+      "com.sg.head_read": {
+        "sec": 0.0,
+        "n": 103650,
+        "kind": "count_only"
+      },
+      "head.signal_capture": {
+        "sec": 83.273438,
+        "n": 2100,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.capture": {
+        "sec": 144.40625,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.history": {
+        "sec": 20.554688,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vehicle.route_bulk_returned": {
+        "sec": 0.0,
+        "n": 32,
+        "kind": "count_only"
+      },
+      "state.json": {
+        "sec": 3.46875,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "decision.python": {
+        "sec": 275.828125,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vsl.setter": {
+        "sec": 0.0,
+        "n": 2112,
+        "kind": "count_only"
+      },
+      "com.vsl.checked_read": {
+        "sec": 0.0,
+        "n": 2112,
+        "kind": "count_only"
+      },
+      "com.sg.setter": {
+        "sec": 0.0,
+        "n": 29000,
+        "kind": "count_only"
+      },
+      "com.sg.apply_read": {
+        "sec": 0.0,
+        "n": 29000,
+        "kind": "count_only"
+      },
+      "action.apply": {
+        "sec": 3.125,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "decision.total": {
+        "sec": 282.492188,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "signals.runtime": {
+        "sec": 27.460938,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "rampmeters.runtime": {
+        "sec": 8.539063,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.seal": {
+        "sec": 2.976563,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "sim.step": {
+        "sec": 18.757813,
+        "n": 1049,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.sg.persistence_read": {
+        "sec": 0.0,
+        "n": 28792,
+        "kind": "count_only"
+      },
+      "signals.readback": {
+        "sec": 20.453125,
+        "n": 1049,
+        "kind": "inclusive_wall_timer"
+      }
+    },
+    "demand_marker_rows": 408,
+    "completed_interval_setters": 204,
+    "marker_setter_total_sec_rounded": 0.93,
+    "largest_between_setter_gaps": [
+      {
+        "after_input": "1105",
+        "after_interval": "1-6",
+        "done_log_line": 411,
+        "done_timer_sec": 82719.85,
+        "next_input": "1106",
+        "next_interval": "1-1",
+        "begin_log_line": 412,
+        "begin_timer_sec": 82719.87,
+        "gap_sec": 0.02
+      },
+      {
+        "after_input": "114",
+        "after_interval": "1-1",
+        "done_log_line": 27,
+        "done_timer_sec": 82717.82,
+        "next_input": "114",
+        "next_interval": "1-2",
+        "begin_log_line": 28,
+        "begin_timer_sec": 82717.83,
+        "gap_sec": 0.01
+      },
+      {
+        "after_input": "114",
+        "after_interval": "1-3",
+        "done_log_line": 31,
+        "done_timer_sec": 82717.84,
+        "next_input": "114",
+        "next_interval": "1-4",
+        "begin_log_line": 32,
+        "begin_timer_sec": 82717.85,
+        "gap_sec": 0.01
+      },
+      {
+        "after_input": "194",
+        "after_interval": "1-1",
+        "done_log_line": 39,
+        "done_timer_sec": 82717.89,
+        "next_input": "194",
+        "next_interval": "1-2",
+        "begin_log_line": 40,
+        "begin_timer_sec": 82717.9,
+        "gap_sec": 0.01
+      },
+      {
+        "after_input": "194",
+        "after_interval": "1-2",
+        "done_log_line": 41,
+        "done_timer_sec": 82717.9,
+        "next_input": "194",
+        "next_interval": "1-3",
+        "begin_log_line": 42,
+        "begin_timer_sec": 82717.91,
+        "gap_sec": 0.01
+      }
+    ],
+    "simulation_call_total_sec": 19.796875999999997,
+    "postprocessing_sec": null,
+    "name": "codex_com_closed_loop_head_old_s13_1050_r01",
+    "run_id": "69d3492bb0f64e478b13bd33fe43bc0a",
+    "terminal_sec": 1050,
+    "wrapper_wall_sec": 563.374051,
+    "wrapper_observation": {
+      "watchdog_exit_code": 0,
+      "watchdog_pid": 39364,
+      "watchdog_start": "2026-09-10T13:58:14.3512486Z",
+      "owned_native": {
+        "pid": 38444,
+        "started": "2026-09-10T13:58:16.4259438Z"
+      },
+      "owned_native_alive": false,
+      "ownership_ambiguous": false,
+      "started": "2026-09-10T13:58:14.3420645Z",
+      "finished": "2026-09-10T14:07:37.7161153Z"
+    },
+    "receipt_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_old_s13_1050_r01\\completion_receipt.json",
+    "provenance": {
+      "schema_version": 1,
+      "run_id": "69d3492bb0f64e478b13bd33fe43bc0a",
+      "name": "codex_com_closed_loop_head_old_s13_1050_r01",
+      "created_at": "2026-09-10T22:58:15.4820364+09:00",
+      "workspace_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review",
+      "workspace_git_commit": "",
+      "numsim_repo_root_env": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+      "numsim_repo_root_effective": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+      "numsim_git_commit": "",
+      "numsim_snapshot_commit": "e77b7d656a9cb6deca6cc7d8bc89dee50038f043",
+      "seed": 13,
+      "sim_period_sec": 1050,
+      "control_interval_sec": 150,
+      "state_log_interval_sec": 150,
+      "startup_stall_sec": 300,
+      "demand_scale": 1,
+      "demand_profile": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\profile.csv",
+      "controller": "wu-link",
+      "audit_anchors_sec": "",
+      "env": {
+        "RW_DECISION_FAIL_FAST": "1",
+        "RW_MAINLINE_SG_ONLY": "1",
+        "RW_NATIVE_EVAL": "1",
+        "RW_OFFSET_WRITER": "experiment",
+        "RW_PERF": "1",
+        "RW_PYTHON": "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "RW_QUEUE_COUNTER": "1",
+        "RW_QUEUE_WINDOW": "1",
+        "RW_SIGNAL_OBSERVATION": "1",
+        "RW_SIGNAL_OBSERVATION_CONFIG_SHA256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87",
+        "RW_SIGNAL_READBACK_SEC": "1",
+        "RW_SIGNAL_WRITE_ON_CHANGE": "0",
+        "RW_STATE_LOG": "decision",
+        "RW_VEHICLE_ROUTES": "1",
+        "RW_VEHREC_RESOLUTION": "1"
+      },
+      "files": {
+        "network": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\baseline.inpx",
+          "exists": true,
+          "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+        },
+        "main_vbs_runner": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_stackelberg_controller.vbs",
+          "exists": true,
+          "sha256": "961d61d06479d9872ba2bb8594e6495ab9ca7cfdf23d58c710cce8834125eee6"
+        },
+        "watchdog_wrapper": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+          "exists": true,
+          "sha256": "619066dfa4191e1482cb54d0bc8beee5aa74760c8418ce6b16e9de79e9804774"
+        },
+        "adapter": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+          "exists": true,
+          "sha256": "3d0d0a521d3ef6e3264e2b8225e4cf005163ca7832f9509ff79d42a3a4e8b9f3"
+        },
+        "calibration": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+          "exists": true,
+          "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea"
+        },
+        "tuning": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\config.json",
+          "exists": true,
+          "sha256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87"
+        },
+        "control_mapping": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+          "exists": true,
+          "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+        },
+        "generated_vbs_config": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\real_world_modi_control_config_ver2n21.vbs",
+          "exists": true,
+          "sha256": "ce0219b2c9ecf60aed23757447b546a39e96d0f29c73204de7a7bb12f2e48825"
+        },
+        "vehicle_input_roles": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv",
+          "exists": true,
+          "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+        },
+        "demand_profile": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\profile.csv",
+          "exists": true,
+          "sha256": "b98365968ce711377c2a012dabac43131c35f34e5f720539d2703b843ed6458a"
+        },
+        "urban_input_gate_map": {
+          "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+          "exists": true,
+          "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+        },
+        "link_assignment": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_player_territory_v1_20260819.json",
+          "exists": true,
+          "sha256": "b6745279f84dafb726345893f508e93adc1a82fcc317190810992556f0b01d82"
+        },
+        "intersection_adjacency": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\intersection_adjacency_core17legs4b_20260819.json",
+          "exists": true,
+          "sha256": "f8b6494138041f1d0750e6407f9682dc8efddde67641fd0027fbd27125e25c54"
+        },
+        "storage_capacity": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_storage_capacity_core17legs4b_20260819.json",
+          "exists": true,
+          "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+        },
+        "pn_boundary_turns": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\pn_boundary_turns_v1_20260819.json",
+          "exists": true,
+          "sha256": "665f430655d4f3e60376a69917335813a21c2e1e75312ace2ca4982953e91f4c"
+        },
+        "numsim_snapshot": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\SNAPSHOT.md",
+          "exists": true,
+          "sha256": "eaec5f5f3e7a89611183f31edd6db6e6d53559581ad4157fd5cbf2b6e2c43c2a"
+        },
+        "numsim_default_yaml": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\config\\default.yaml",
+          "exists": true,
+          "sha256": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d"
+        }
+      },
+      "signal_programs": [
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1_n4dr150.sig",
+          "exists": true,
+          "sha256": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed10.sig",
+          "exists": true,
+          "sha256": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1001_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1002_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1003_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1004_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1005_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed101_n4dr150.sig",
+          "exists": true,
+          "sha256": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed102.sig",
+          "exists": true,
+          "sha256": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed103.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed104.sig",
+          "exists": true,
+          "sha256": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed105_n4dr150.sig",
+          "exists": true,
+          "sha256": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed106.sig",
+          "exists": true,
+          "sha256": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed107_n4dr150.sig",
+          "exists": true,
+          "sha256": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed108_n4dr150.sig",
+          "exists": true,
+          "sha256": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109.sig",
+          "exists": true,
+          "sha256": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109_n4dr150.sig",
+          "exists": true,
+          "sha256": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed11.sig",
+          "exists": true,
+          "sha256": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed12.sig",
+          "exists": true,
+          "sha256": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed13.sig",
+          "exists": true,
+          "sha256": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed14.sig",
+          "exists": true,
+          "sha256": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed15.sig",
+          "exists": true,
+          "sha256": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed16.sig",
+          "exists": true,
+          "sha256": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed17.sig",
+          "exists": true,
+          "sha256": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed18.sig",
+          "exists": true,
+          "sha256": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed19.sig",
+          "exists": true,
+          "sha256": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2.sig",
+          "exists": true,
+          "sha256": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2001.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2002.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2003.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2004.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2005.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed3_n4dr150.sig",
+          "exists": true,
+          "sha256": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed4.sig",
+          "exists": true,
+          "sha256": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed5_n4dr150.sig",
+          "exists": true,
+          "sha256": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed6.sig",
+          "exists": true,
+          "sha256": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed7_n4dr150.sig",
+          "exists": true,
+          "sha256": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed8.sig",
+          "exists": true,
+          "sha256": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9_n4dr150.sig",
+          "exists": true,
+          "sha256": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9001.sig",
+          "exists": true,
+          "sha256": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9002.sig",
+          "exists": true,
+          "sha256": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9003.sig",
+          "exists": true,
+          "sha256": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1"
+        }
+      ],
+      "controller_sources": [
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\action_csv_schema.py",
+          "exists": true,
+          "sha256": "e8c0f55f208da0a0b30c541caf77f0d8e7a6945a2afb8644572bee32eb36fc00"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_arrival_routes.py",
+          "exists": true,
+          "sha256": "ef9ea7c42c171823e68bb67e3a0f7c0f50e6230cfe110ac9791e1bfe582d1465"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_dynamic_routes.py",
+          "exists": true,
+          "sha256": "aa5b09df275e510184e752a3e3004aa28c87b5e045c1fc0aca9eb1759d025b65"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_follower_objective.py",
+          "exists": true,
+          "sha256": "4630ebf4048699a51b004b21671a2753319bf4175c0d8b3a44deec3fe11d87de"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_freeway_accounting.py",
+          "exists": true,
+          "sha256": "f0e14e44907b27a6efbeb4d03f86d970c61cc10c61e12767db86dade7ee5411e"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_leader_objective.py",
+          "exists": true,
+          "sha256": "3b217220c24b912bd3f4811968f0775bb60ed41852ee1c626d333b44bd50960d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_meter_finalization.py",
+          "exists": true,
+          "sha256": "a34e91b0a38d888adb9e2f8f57cc1ec5e33536ad2545ed627d8f3d131530ab16"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_runtime.py",
+          "exists": true,
+          "sha256": "611c9a3f5458d3566772c0b39600e31b91aa55e069c70d4960e509ed7e18d28c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\control_area_join.py",
+          "exists": true,
+          "sha256": "78ae838f9f2b662d14cc79c559ecb7d37df7646e52771947c9bc25a08c4a6eef"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\control_area_objective.py",
+          "exists": true,
+          "sha256": "811215017d6ce349c7ad261918f60067350c8c84338bd6b40a47544f10101f9b"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\diagnostic_profile.py",
+          "exists": true,
+          "sha256": "57177f6eab4ccea46bf73c5190dfab57ef75dd55ff4ed86e5818b143248d15a3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\diagnostic_signal_profile.py",
+          "exists": true,
+          "sha256": "ad982910a2e5f19d3638381150c289d0cedaad14ec813a8b1931c967c1bfa09a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\fixed_signal_schedule.py",
+          "exists": true,
+          "sha256": "533702804f243ea147baf6d91ee397ecc32d6900f7d5f55530ae19b0d220ae79"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\freeway_fd.py",
+          "exists": true,
+          "sha256": "21ce3324764a11d55efcec1f748c58a5aa001414a756e1e5995536f040e6205a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\freeway_local_state.py",
+          "exists": true,
+          "sha256": "0987339971659150b4a341d4b3e39b32530637e87c776cf79dcceaec2f0a48db"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\head_service_resources.py",
+          "exists": true,
+          "sha256": "5843cb62c36d50602feafbc650e8e2999a8f751039f15e7009bb329c59b5fdc5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\link_predictor.py",
+          "exists": true,
+          "sha256": "1053a4769f85c7c444281c0b53dc4eb941c57a30df7c20e4a6eb5dd336ac2c14"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\local_signal_service.py",
+          "exists": true,
+          "sha256": "3e1db452f2d6ee929a766a82e0c8459eca4f4e5027c3c8ba7ebc7d2384efdfa5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_demand_forecast.py",
+          "exists": true,
+          "sha256": "3e61141e628d889213d94515ade0e521f0879cfd937860f08859db622991fdbd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_input_prehead.py",
+          "exists": true,
+          "sha256": "d915c0e52fa69f5b8a89dcf3614d0132c5c5ea3a03f1e8650164ce911612acef"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_input_routes.py",
+          "exists": true,
+          "sha256": "ce5521dbfc4386dc0df4905302f5fd27ffd6e57a7377ec19762691beffec33a3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_internal_input.py",
+          "exists": true,
+          "sha256": "f513f2bd7b6777f8c143710f990ea886dbdb9074575d99bfc88ba08ce7035a98"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_phase_green.py",
+          "exists": true,
+          "sha256": "bb9d6c612809128ff51ca864ee1c8461414009254455016dd473625a619a8bc3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\network_pressure.py",
+          "exists": true,
+          "sha256": "3e7e2ae03638b85434b803125db78c60ee487bb4400c1179cd82ecd17d835209"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\network_provenance.py",
+          "exists": true,
+          "sha256": "eb410eb5b13b2bc8cc0f3f867458ca6988af250127364a076ce6a05f70cfa1dd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\observation_projection.py",
+          "exists": true,
+          "sha256": "fdd1b47ed9ded7c705ab72b4926008c6d7257a8afb5f00d55cf3a2801f023253"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\offramp_routing.py",
+          "exists": true,
+          "sha256": "aace07598799c09891c4ca67394f2329f75fbc08139e523867d4c11095c3bd78"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\offset_promotion.py",
+          "exists": true,
+          "sha256": "99b78412b3e3147b07b3a18a26f472aaf3210f64b8db8065514b3f021810274d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\physical_movement_routes.py",
+          "exists": true,
+          "sha256": "8f398d6e2731abb857a93c3e5d4587d7a2c8e70fde73dc59684c5f142f14313c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\plant_cycle.py",
+          "exists": true,
+          "sha256": "60cc7e56932726da83c0694b993ce2cd5be140bdc8d0b9260d53c50509910799"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\projection_support.py",
+          "exists": true,
+          "sha256": "683faa89a8b11fc189cea803ec432ff060a5144b20a4bee10997dd709a1b7ad7"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\route_choice_corridor.py",
+          "exists": true,
+          "sha256": "6e616c01ae296d5c49722df37898ff4780d3b9fd999d621808e0007c617e6ae6"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\runtime_setup.py",
+          "exists": true,
+          "sha256": "f71560b0b31b196fcb40bbc1b2eab66210634c4d3376a21716babcec5b9839fc"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\sc2001_corridor.py",
+          "exists": true,
+          "sha256": "1d6e2a343ae44a500f42e6613dfed94a2531603541d165b407b8f797dcf05931"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\shared_approach.py",
+          "exists": true,
+          "sha256": "10ef0c37574a918135d8f13b24867bbbb59d70882a60b72475aa955fc484c82a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_actuation_contract.py",
+          "exists": true,
+          "sha256": "9581813d96fb27a7275ba41766763bd0bf123a200fb15b8cec8bf42e484227b5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_group_plan.py",
+          "exists": true,
+          "sha256": "11540b712624a1b6164e0176322fd95eb6c3c8f92858e8872553794cf72ba995"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_head_observation.py",
+          "exists": true,
+          "sha256": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_timing_oracle.py",
+          "exists": true,
+          "sha256": "8241e996bf60db9446c5ddefce40eab9ab71350e84978201ff451e32c59e449b"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\urban_flow_accounting.py",
+          "exists": true,
+          "sha256": "7b0e9388fbc6a9a8c7f7bff3665b0406d0b642dc3647037b6e48fd3bfad4c36f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vehicle_routes.py",
+          "exists": true,
+          "sha256": "18ef02ca0ef013ea5f4b6b110f69e0f7e47e276107ece7a44a6687cf52ec0dfa"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+          "exists": true,
+          "sha256": "3d0d0a521d3ef6e3264e2b8225e4cf005163ca7832f9509ff79d42a3a4e8b9f3"
+        }
+      ],
+      "signal_observation": {
+        "config_key": "urban.capacity.head_observation",
+        "options": {
+          "enabled": true,
+          "min_green_sec": 30,
+          "min_crossings": 5
+        },
+        "config_chain": [
+          {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\config.json",
+            "sha256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87"
+          }
+        ]
+      }
+    },
+    "source_sha256": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_old_s13_1050_r01\\completion_receipt.json": "58ef07726d1919f6dddffe648045b28fe48e82ea44cc25ac48105e9799ac0d81",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_old_s13_1050_r01\\wrapper_exit_observation.json": "063ad51037dd78ce49d017939778b1eb4071ddf8cc969c283c8c658d7ed9920e",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_old_s13_1050_r01\\run_provenance_codex_com_closed_loop_head_old_s13_1050_r01.json": "0884c2d33a90954f519f394b1463c16d3c9c971c179bc917bc413104235d763e",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_old_s13_1050_r01\\runlog_codex_com_closed_loop_head_old_s13_1050_r01.txt": "2a73d199fa0b94d56e3bb66e6ef91cd9665e077469eab0500e750ed6e85af109"
+    }
+  },
+  "new": {
+    "run_mode": "STEPWISE_PHYSICAL_HEAD_OBSERVATION",
+    "perf": {
+      "startup.load_net": {
+        "sec": 9.664063,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.input_volume.read": {
+        "sec": 0.0,
+        "n": 408,
+        "kind": "count_only"
+      },
+      "startup.demand.volume_before_read": {
+        "sec": 0.101563,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.input_volume.setter": {
+        "sec": 0.0,
+        "n": 204,
+        "kind": "count_only"
+      },
+      "startup.demand.volume_set": {
+        "sec": 0.828125,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.demand.volume_after_read": {
+        "sec": 0.976563,
+        "n": 204,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.demand": {
+        "sec": 2.25,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.control_setup": {
+        "sec": 0.15625,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "startup.head_init": {
+        "sec": 0.078125,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "sim.first_step": {
+        "sec": 0.914063,
+        "n": 1,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vehicle.physical_bulk_returned": {
+        "sec": 0.0,
+        "n": 4200,
+        "kind": "count_only"
+      },
+      "scan.vehicles": {
+        "sec": 62.4375,
+        "n": 1058,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.sg.head_owner_read": {
+        "sec": 0.0,
+        "n": 120341,
+        "kind": "count_only"
+      },
+      "com.sg.head_read": {
+        "sec": 0.0,
+        "n": 119169,
+        "kind": "count_only"
+      },
+      "head.signal_capture": {
+        "sec": 92.1875,
+        "n": 2100,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.capture": {
+        "sec": 153.640625,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.history": {
+        "sec": 21.335938,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vehicle.route_bulk_returned": {
+        "sec": 0.0,
+        "n": 32,
+        "kind": "count_only"
+      },
+      "state.json": {
+        "sec": 3.320313,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "decision.python": {
+        "sec": 274.242188,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.vsl.setter": {
+        "sec": 0.0,
+        "n": 2112,
+        "kind": "count_only"
+      },
+      "com.vsl.checked_read": {
+        "sec": 0.0,
+        "n": 2112,
+        "kind": "count_only"
+      },
+      "com.sg.setter": {
+        "sec": 0.0,
+        "n": 550,
+        "kind": "count_only"
+      },
+      "com.sg.apply_read": {
+        "sec": 0.0,
+        "n": 550,
+        "kind": "count_only"
+      },
+      "action.apply": {
+        "sec": 3.046875,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "decision.total": {
+        "sec": 280.6875,
+        "n": 8,
+        "kind": "inclusive_wall_timer"
+      },
+      "signals.runtime": {
+        "sec": 2.867188,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "rampmeters.runtime": {
+        "sec": 0.085938,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "head.seal": {
+        "sec": 3.398438,
+        "n": 1050,
+        "kind": "inclusive_wall_timer"
+      },
+      "sim.step": {
+        "sec": 18.421875,
+        "n": 1049,
+        "kind": "inclusive_wall_timer"
+      },
+      "com.sg.persistence_read": {
+        "sec": 0.0,
+        "n": 694,
+        "kind": "count_only"
+      },
+      "signals.readback": {
+        "sec": 0.59375,
+        "n": 70,
+        "kind": "inclusive_wall_timer"
+      }
+    },
+    "demand_marker_rows": 408,
+    "completed_interval_setters": 204,
+    "marker_setter_total_sec_rounded": 0.9400000000000001,
+    "largest_between_setter_gaps": [
+      {
+        "after_input": "1096",
+        "after_interval": "1-6",
+        "done_log_line": 301,
+        "done_timer_sec": 83298.64,
+        "next_input": "1097",
+        "next_interval": "1-1",
+        "begin_log_line": 302,
+        "begin_timer_sec": 83298.66,
+        "gap_sec": 0.02
+      },
+      {
+        "after_input": "1098",
+        "after_interval": "1-6",
+        "done_log_line": 325,
+        "done_timer_sec": 83298.77,
+        "next_input": "1099",
+        "next_interval": "1-1",
+        "begin_log_line": 327,
+        "begin_timer_sec": 83298.79,
+        "gap_sec": 0.02
+      },
+      {
+        "after_input": "114",
+        "after_interval": "1-2",
+        "done_log_line": 29,
+        "done_timer_sec": 83297.14,
+        "next_input": "114",
+        "next_interval": "1-3",
+        "begin_log_line": 30,
+        "begin_timer_sec": 83297.15,
+        "gap_sec": 0.01
+      },
+      {
+        "after_input": "114",
+        "after_interval": "1-3",
+        "done_log_line": 31,
+        "done_timer_sec": 83297.15,
+        "next_input": "114",
+        "next_interval": "1-4",
+        "begin_log_line": 32,
+        "begin_timer_sec": 83297.16,
+        "gap_sec": 0.01
+      },
+      {
+        "after_input": "114",
+        "after_interval": "1-4",
+        "done_log_line": 33,
+        "done_timer_sec": 83297.16,
+        "next_input": "114",
+        "next_interval": "1-5",
+        "begin_log_line": 34,
+        "begin_timer_sec": 83297.17,
+        "gap_sec": 0.01
+      }
+    ],
+    "simulation_call_total_sec": 19.335938,
+    "postprocessing_sec": null,
+    "name": "codex_com_closed_loop_head_new_s13_1050_r01",
+    "run_id": "c223069f310b43ba8c2b461bdf4c28d5",
+    "terminal_sec": 1050,
+    "wrapper_wall_sec": 522.399851,
+    "wrapper_observation": {
+      "watchdog_exit_code": 0,
+      "watchdog_pid": 49912,
+      "watchdog_start": "2026-09-10T14:07:53.7181935Z",
+      "owned_native": {
+        "pid": 1412,
+        "started": "2026-09-10T14:07:55.8303037Z"
+      },
+      "owned_native_alive": false,
+      "ownership_ambiguous": false,
+      "started": "2026-09-10T14:07:53.7028130Z",
+      "finished": "2026-09-10T14:16:36.1026649Z"
+    },
+    "receipt_path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_new_s13_1050_r01\\completion_receipt.json",
+    "provenance": {
+      "schema_version": 1,
+      "run_id": "c223069f310b43ba8c2b461bdf4c28d5",
+      "name": "codex_com_closed_loop_head_new_s13_1050_r01",
+      "created_at": "2026-09-10T23:07:54.8856363+09:00",
+      "workspace_root": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review",
+      "workspace_git_commit": "",
+      "numsim_repo_root_env": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+      "numsim_repo_root_effective": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine",
+      "numsim_git_commit": "",
+      "numsim_snapshot_commit": "e77b7d656a9cb6deca6cc7d8bc89dee50038f043",
+      "seed": 13,
+      "sim_period_sec": 1050,
+      "control_interval_sec": 150,
+      "state_log_interval_sec": 150,
+      "startup_stall_sec": 300,
+      "demand_scale": 1,
+      "demand_profile": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\profile.csv",
+      "controller": "wu-link",
+      "audit_anchors_sec": "",
+      "env": {
+        "RW_DECISION_FAIL_FAST": "1",
+        "RW_MAINLINE_SG_ONLY": "1",
+        "RW_NATIVE_EVAL": "1",
+        "RW_OFFSET_WRITER": "experiment",
+        "RW_PERF": "1",
+        "RW_PYTHON": "C:\\Users\\alsrj\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "RW_QUEUE_COUNTER": "1",
+        "RW_QUEUE_WINDOW": "1",
+        "RW_SIGNAL_OBSERVATION": "1",
+        "RW_SIGNAL_OBSERVATION_CONFIG_SHA256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87",
+        "RW_SIGNAL_READBACK_SEC": "0",
+        "RW_SIGNAL_WRITE_ON_CHANGE": "1",
+        "RW_STATE_LOG": "decision",
+        "RW_VEHICLE_ROUTES": "1",
+        "RW_VEHREC_RESOLUTION": "1"
+      },
+      "files": {
+        "network": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\baseline.inpx",
+          "exists": true,
+          "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+        },
+        "main_vbs_runner": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_stackelberg_controller.vbs",
+          "exists": true,
+          "sha256": "961d61d06479d9872ba2bb8594e6495ab9ca7cfdf23d58c710cce8834125eee6"
+        },
+        "watchdog_wrapper": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\scripts\\run_real_world_single_watchdog_distributed_core17legs4b.ps1",
+          "exists": true,
+          "sha256": "619066dfa4191e1482cb54d0bc8beee5aa74760c8418ce6b16e9de79e9804774"
+        },
+        "adapter": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+          "exists": true,
+          "sha256": "3d0d0a521d3ef6e3264e2b8225e4cf005163ca7832f9509ff79d42a3a4e8b9f3"
+        },
+        "calibration": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\calibration\\real_world_prediction_calibration_core17legs4b_20260820.json",
+          "exists": true,
+          "sha256": "04612ec759c2407ee77ba5897b1c1843dcade92ea03bc62356e652d2f68b45ea"
+        },
+        "tuning": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\config.json",
+          "exists": true,
+          "sha256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87"
+        },
+        "control_mapping": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+          "exists": true,
+          "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+        },
+        "generated_vbs_config": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\real_world_modi_control_config_ver2n21.vbs",
+          "exists": true,
+          "sha256": "ce0219b2c9ecf60aed23757447b546a39e96d0f29c73204de7a7bb12f2e48825"
+        },
+        "vehicle_input_roles": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_inventory\\vehicle_input_roles.csv",
+          "exists": true,
+          "sha256": "4778901c1a5f63c0ec50258490b44dd665422e11d9a011675cbb9c3451bd1db7"
+        },
+        "demand_profile": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\profile.csv",
+          "exists": true,
+          "sha256": "b98365968ce711377c2a012dabac43131c35f34e5f720539d2703b843ed6458a"
+        },
+        "urban_input_gate_map": {
+          "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
+          "exists": true,
+          "sha256": "d357767819530d9ca59fc5f1272f266c98bd1d0fdf03bb75a2d8006c2faf34af"
+        },
+        "link_assignment": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_player_territory_v1_20260819.json",
+          "exists": true,
+          "sha256": "b6745279f84dafb726345893f508e93adc1a82fcc317190810992556f0b01d82"
+        },
+        "intersection_adjacency": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\intersection_adjacency_core17legs4b_20260819.json",
+          "exists": true,
+          "sha256": "f8b6494138041f1d0750e6407f9682dc8efddde67641fd0027fbd27125e25c54"
+        },
+        "storage_capacity": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\urban_storage_capacity_core17legs4b_20260819.json",
+          "exists": true,
+          "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+        },
+        "pn_boundary_turns": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\pn_boundary_turns_v1_20260819.json",
+          "exists": true,
+          "sha256": "665f430655d4f3e60376a69917335813a21c2e1e75312ace2ca4982953e91f4c"
+        },
+        "numsim_snapshot": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\SNAPSHOT.md",
+          "exists": true,
+          "sha256": "eaec5f5f3e7a89611183f31edd6db6e6d53559581ad4157fd5cbf2b6e2c43c2a"
+        },
+        "numsim_default_yaml": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\vendor\\NumSim-mine\\src\\config\\default.yaml",
+          "exists": true,
+          "sha256": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d"
+        }
+      },
+      "signal_programs": [
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1_n4dr150.sig",
+          "exists": true,
+          "sha256": "ed5d12575bf2e4f96dc5856f1347417fb101302a0da1aebd061dcc71d28b4d57"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed10.sig",
+          "exists": true,
+          "sha256": "87035a45dd35d87c49be0a7db06242ea5ccf438720ff9f112bb1a5a6e4c30714"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1001_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1002_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1003_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1004_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed1005_n4dr150.sig",
+          "exists": true,
+          "sha256": "014d6a384b3d4c2034904f3686e9d0331327c9de1d61d8e2e325d26820c6eec1"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed101_n4dr150.sig",
+          "exists": true,
+          "sha256": "7bdca789b2749823f06cc271e70ab3a5b2def1b9174f3072427bf0aaf57aaf35"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed102.sig",
+          "exists": true,
+          "sha256": "90ed7edfdb3d9355f49e0b3a3660efb1b8cf71e00df61bee095d73f98b4f89c0"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed103.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed104.sig",
+          "exists": true,
+          "sha256": "f9c65a1d2b3aa46b8d1929cb406124cbe2465edfba46a2a473921c737c528382"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed105_n4dr150.sig",
+          "exists": true,
+          "sha256": "f56a4b415ef20908aaf33b22c6d6336ae4940b1749141147a716982465e9a2e6"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed106.sig",
+          "exists": true,
+          "sha256": "38f7853b93084e0be1fa7dd93fc759a156314e1e22f90593d5957c384fcaca4e"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed107_n4dr150.sig",
+          "exists": true,
+          "sha256": "1407ecfb547117ab3ec6e9657d3e65afaa09419ca22c9ce5ccaf271a7a245e20"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed108_n4dr150.sig",
+          "exists": true,
+          "sha256": "bc33304cf6913a96b5d417658a99c7050d1cf860b9ccd4b26d9bc4700e72afcb"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109.sig",
+          "exists": true,
+          "sha256": "76496662027f99c0de4eac499c86a603300ac83a1235a24ed1436537f8932a8d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed109_n4dr150.sig",
+          "exists": true,
+          "sha256": "1b63cc3309c8e7f9f1be6585a6ca88d01ec9966ae1e25abad9080200d9825010"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed11.sig",
+          "exists": true,
+          "sha256": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed12.sig",
+          "exists": true,
+          "sha256": "59d6fc4914bb5b5408ee529137389419317575969b9e0755637e9b0a6e910804"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed13.sig",
+          "exists": true,
+          "sha256": "d7936528c7658388d701ab87083a91f89bb4e037c777181acfc6118f1f162e23"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed14.sig",
+          "exists": true,
+          "sha256": "3202fb02156a92f31d8fbb821bb1d669561f319d99fb677008b8ce8b531ce02d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed15.sig",
+          "exists": true,
+          "sha256": "ec1186eab22c3540581aab0181477ec4281b5c9646b2914576a48034ea7514b0"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed16.sig",
+          "exists": true,
+          "sha256": "856fc001e2bf188d1979e446bff8f6b54d58a5a5d25ef518ba5da7f1c491569a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed17.sig",
+          "exists": true,
+          "sha256": "42905f5b22d3a99446d92bc9b40b9cc4886608976a54b2bfbdc579e4d6f4f625"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed18.sig",
+          "exists": true,
+          "sha256": "bb6e2d7d55ee7fc0b19b49591234f5a047e9b8ccee603a9bc3c25a71fdc70ad5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed19.sig",
+          "exists": true,
+          "sha256": "eb1b5f1b90a7040b70427f109a545099cd8408f577f79893799175e8e9e69d74"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2.sig",
+          "exists": true,
+          "sha256": "29d00b55ed6eb4d41b9a6414a76baed5b337d18050b02890add263995d58a12c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2001.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2002.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2003.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2004.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed2005.sig",
+          "exists": true,
+          "sha256": "850c8bd3ec04f336e2b7e8b17adf02275615054848e63458c564c396222e0d87"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed3_n4dr150.sig",
+          "exists": true,
+          "sha256": "de309a138507870d0b0a7f8a5c01f655cab3fc412302dba80447c340a40a2588"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed4.sig",
+          "exists": true,
+          "sha256": "a8ede77f498bc624c99d5e89aed088f705044d34f11f870405b0f5e1726eb59c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed5_n4dr150.sig",
+          "exists": true,
+          "sha256": "21c3954438eeaaa5155aa511b6a8921bbb3db51f640e40ca7d8a7084b8b206de"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed6.sig",
+          "exists": true,
+          "sha256": "68b7f1a9acf9ce407f54247757f6711dc88b842626b112a400692dcccbe6c641"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed7_n4dr150.sig",
+          "exists": true,
+          "sha256": "754c6b95c2bfd1e498936a244134f87a00e38ddeea90578b39358c24d298a297"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed8.sig",
+          "exists": true,
+          "sha256": "64baf5e325e156874b8e1d8e7cdce7d86c5d7a7648c64fadc90eb7f0b66db1da"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9_n4dr150.sig",
+          "exists": true,
+          "sha256": "daa795be3c99fcaf97eda4d0a81ef959e8d3a94d7db26240c66e4880fd8df7bd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9001.sig",
+          "exists": true,
+          "sha256": "696f69d509efefb94dfdb5cbb80232ab170a2625fe18f54ccd71b83ac83accde"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9002.sig",
+          "exists": true,
+          "sha256": "2f605d05e684807d7a0e00eb3ba1e84ca0418c950d53d682e3f537256857d51f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fixed_beta300v3_network_arms_flat_v1\\개포동 test-bed9003.sig",
+          "exists": true,
+          "sha256": "b5bbe4c78d37a50e95f8fb9dae83e70728d580169c624a91157a530ee4c3dca1"
+        }
+      ],
+      "controller_sources": [
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\action_csv_schema.py",
+          "exists": true,
+          "sha256": "e8c0f55f208da0a0b30c541caf77f0d8e7a6945a2afb8644572bee32eb36fc00"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_arrival_routes.py",
+          "exists": true,
+          "sha256": "ef9ea7c42c171823e68bb67e3a0f7c0f50e6230cfe110ac9791e1bfe582d1465"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_dynamic_routes.py",
+          "exists": true,
+          "sha256": "aa5b09df275e510184e752a3e3004aa28c87b5e045c1fc0aca9eb1759d025b65"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_follower_objective.py",
+          "exists": true,
+          "sha256": "4630ebf4048699a51b004b21671a2753319bf4175c0d8b3a44deec3fe11d87de"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_freeway_accounting.py",
+          "exists": true,
+          "sha256": "f0e14e44907b27a6efbeb4d03f86d970c61cc10c61e12767db86dade7ee5411e"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_leader_objective.py",
+          "exists": true,
+          "sha256": "3b217220c24b912bd3f4811968f0775bb60ed41852ee1c626d333b44bd50960d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_meter_finalization.py",
+          "exists": true,
+          "sha256": "a34e91b0a38d888adb9e2f8f57cc1ec5e33536ad2545ed627d8f3d131530ab16"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\area_runtime.py",
+          "exists": true,
+          "sha256": "611c9a3f5458d3566772c0b39600e31b91aa55e069c70d4960e509ed7e18d28c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\control_area_join.py",
+          "exists": true,
+          "sha256": "78ae838f9f2b662d14cc79c559ecb7d37df7646e52771947c9bc25a08c4a6eef"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\control_area_objective.py",
+          "exists": true,
+          "sha256": "811215017d6ce349c7ad261918f60067350c8c84338bd6b40a47544f10101f9b"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\diagnostic_profile.py",
+          "exists": true,
+          "sha256": "57177f6eab4ccea46bf73c5190dfab57ef75dd55ff4ed86e5818b143248d15a3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\diagnostic_signal_profile.py",
+          "exists": true,
+          "sha256": "ad982910a2e5f19d3638381150c289d0cedaad14ec813a8b1931c967c1bfa09a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\fixed_signal_schedule.py",
+          "exists": true,
+          "sha256": "533702804f243ea147baf6d91ee397ecc32d6900f7d5f55530ae19b0d220ae79"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\freeway_fd.py",
+          "exists": true,
+          "sha256": "21ce3324764a11d55efcec1f748c58a5aa001414a756e1e5995536f040e6205a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\freeway_local_state.py",
+          "exists": true,
+          "sha256": "0987339971659150b4a341d4b3e39b32530637e87c776cf79dcceaec2f0a48db"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\head_service_resources.py",
+          "exists": true,
+          "sha256": "5843cb62c36d50602feafbc650e8e2999a8f751039f15e7009bb329c59b5fdc5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\link_predictor.py",
+          "exists": true,
+          "sha256": "1053a4769f85c7c444281c0b53dc4eb941c57a30df7c20e4a6eb5dd336ac2c14"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\local_signal_service.py",
+          "exists": true,
+          "sha256": "3e1db452f2d6ee929a766a82e0c8459eca4f4e5027c3c8ba7ebc7d2384efdfa5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_demand_forecast.py",
+          "exists": true,
+          "sha256": "3e61141e628d889213d94515ade0e521f0879cfd937860f08859db622991fdbd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_input_prehead.py",
+          "exists": true,
+          "sha256": "d915c0e52fa69f5b8a89dcf3614d0132c5c5ea3a03f1e8650164ce911612acef"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_input_routes.py",
+          "exists": true,
+          "sha256": "ce5521dbfc4386dc0df4905302f5fd27ffd6e57a7377ec19762691beffec33a3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_internal_input.py",
+          "exists": true,
+          "sha256": "f513f2bd7b6777f8c143710f990ea886dbdb9074575d99bfc88ba08ce7035a98"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\native_phase_green.py",
+          "exists": true,
+          "sha256": "bb9d6c612809128ff51ca864ee1c8461414009254455016dd473625a619a8bc3"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\network_pressure.py",
+          "exists": true,
+          "sha256": "3e7e2ae03638b85434b803125db78c60ee487bb4400c1179cd82ecd17d835209"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\network_provenance.py",
+          "exists": true,
+          "sha256": "eb410eb5b13b2bc8cc0f3f867458ca6988af250127364a076ce6a05f70cfa1dd"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\observation_projection.py",
+          "exists": true,
+          "sha256": "fdd1b47ed9ded7c705ab72b4926008c6d7257a8afb5f00d55cf3a2801f023253"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\offramp_routing.py",
+          "exists": true,
+          "sha256": "aace07598799c09891c4ca67394f2329f75fbc08139e523867d4c11095c3bd78"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\offset_promotion.py",
+          "exists": true,
+          "sha256": "99b78412b3e3147b07b3a18a26f472aaf3210f64b8db8065514b3f021810274d"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\physical_movement_routes.py",
+          "exists": true,
+          "sha256": "8f398d6e2731abb857a93c3e5d4587d7a2c8e70fde73dc59684c5f142f14313c"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\plant_cycle.py",
+          "exists": true,
+          "sha256": "60cc7e56932726da83c0694b993ce2cd5be140bdc8d0b9260d53c50509910799"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\projection_support.py",
+          "exists": true,
+          "sha256": "683faa89a8b11fc189cea803ec432ff060a5144b20a4bee10997dd709a1b7ad7"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\route_choice_corridor.py",
+          "exists": true,
+          "sha256": "6e616c01ae296d5c49722df37898ff4780d3b9fd999d621808e0007c617e6ae6"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\runtime_setup.py",
+          "exists": true,
+          "sha256": "f71560b0b31b196fcb40bbc1b2eab66210634c4d3376a21716babcec5b9839fc"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\sc2001_corridor.py",
+          "exists": true,
+          "sha256": "1d6e2a343ae44a500f42e6613dfed94a2531603541d165b407b8f797dcf05931"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\shared_approach.py",
+          "exists": true,
+          "sha256": "10ef0c37574a918135d8f13b24867bbbb59d70882a60b72475aa955fc484c82a"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_actuation_contract.py",
+          "exists": true,
+          "sha256": "9581813d96fb27a7275ba41766763bd0bf123a200fb15b8cec8bf42e484227b5"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_group_plan.py",
+          "exists": true,
+          "sha256": "11540b712624a1b6164e0176322fd95eb6c3c8f92858e8872553794cf72ba995"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_head_observation.py",
+          "exists": true,
+          "sha256": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\signal_timing_oracle.py",
+          "exists": true,
+          "sha256": "8241e996bf60db9446c5ddefce40eab9ab71350e84978201ff451e32c59e449b"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\urban_flow_accounting.py",
+          "exists": true,
+          "sha256": "7b0e9388fbc6a9a8c7f7bff3665b0406d0b642dc3647037b6e48fd3bfad4c36f"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vehicle_routes.py",
+          "exists": true,
+          "sha256": "18ef02ca0ef013ea5f4b6b110f69e0f7e47e276107ece7a44a6687cf52ec0dfa"
+        },
+        {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+          "exists": true,
+          "sha256": "3d0d0a521d3ef6e3264e2b8225e4cf005163ca7832f9509ff79d42a3a4e8b9f3"
+        }
+      ],
+      "signal_observation": {
+        "config_key": "urban.capacity.head_observation",
+        "options": {
+          "enabled": true,
+          "min_green_sec": 30,
+          "min_crossings": 5
+        },
+        "config_chain": [
+          {
+            "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_selected_fw070_u040_beta0_r02\\config.json",
+            "sha256": "5b1e2b454cb7f81683d9cff89fabf6ed8fdec0bc0353db032a744087679bdb87"
+          }
+        ]
+      }
+    },
+    "source_sha256": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_new_s13_1050_r01\\completion_receipt.json": "2cfbd9833dfae65f4e5c0fd0fd6293575059ca1c873b959227628d8a4bff8be3",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_new_s13_1050_r01\\wrapper_exit_observation.json": "6ea264f9e1125dfebc80ce553ac1d5237e818f930c97144c3dc54bc3b7fbab86",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_new_s13_1050_r01\\run_provenance_codex_com_closed_loop_head_new_s13_1050_r01.json": "71105fd8ffb0313bbb7dba703d648402dbf98fcdcff3ebbf38ab83a93d86e07a",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_closed_loop_head_new_s13_1050_r01\\runlog_codex_com_closed_loop_head_new_s13_1050_r01.txt": "0402db1ba6a2bd9ed1cca01b4d2189ced56866ebf7bfa4a449411a1b07298ad5"
+    }
+  },
+  "comparison": {
+    "recorded_provenance": {
+      "passed": true,
+      "recorded_fields_checked": 124,
+      "exact_exceptions": [
+        {
+          "key": "env.RW_SIGNAL_READBACK_SEC",
+          "left": "1",
+          "right": "0",
+          "reason": "Old repeated write/full audit versus changed-write/sparse audit"
+        },
+        {
+          "key": "env.RW_SIGNAL_WRITE_ON_CHANGE",
+          "left": "0",
+          "right": "1",
+          "reason": "Old repeated write/full audit versus changed-write/sparse audit"
+        }
+      ],
+      "optional_missing_files": [],
+      "scope": "Pinned per-run provenance; no current checkout source inventory rehash.",
+      "identity_exclusions": [
+        "name",
+        "run_id",
+        "created_at",
+        "workspace/git metadata",
+        "per-run generated file path when content SHA is identical"
+      ]
+    },
+    "buckets": {
+      "action.apply": {
+        "old": {
+          "sec": 3.125,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 3.046875,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.078125,
+        "delta_count": 0
+      },
+      "com.input_volume.read": {
+        "old": {
+          "sec": 0.0,
+          "n": 408,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 408,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "com.input_volume.setter": {
+        "old": {
+          "sec": 0.0,
+          "n": 204,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 204,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "com.sg.apply_read": {
+        "old": {
+          "sec": 0.0,
+          "n": 29000,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 550,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": -28450
+      },
+      "com.sg.head_owner_read": {
+        "old": {
+          "sec": 0.0,
+          "n": 144586,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 120341,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": -24245
+      },
+      "com.sg.head_read": {
+        "old": {
+          "sec": 0.0,
+          "n": 103650,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 119169,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 15519
+      },
+      "com.sg.persistence_read": {
+        "old": {
+          "sec": 0.0,
+          "n": 28792,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 694,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": -28098
+      },
+      "com.sg.setter": {
+        "old": {
+          "sec": 0.0,
+          "n": 29000,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 550,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": -28450
+      },
+      "com.vehicle.physical_bulk_returned": {
+        "old": {
+          "sec": 0.0,
+          "n": 4200,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 4200,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "com.vehicle.route_bulk_returned": {
+        "old": {
+          "sec": 0.0,
+          "n": 32,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 32,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "com.vsl.checked_read": {
+        "old": {
+          "sec": 0.0,
+          "n": 2112,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 2112,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "com.vsl.setter": {
+        "old": {
+          "sec": 0.0,
+          "n": 2112,
+          "kind": "count_only"
+        },
+        "new": {
+          "sec": 0.0,
+          "n": 2112,
+          "kind": "count_only"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "decision.python": {
+        "old": {
+          "sec": 275.828125,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 274.242188,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -1.5859370000000013,
+        "delta_count": 0
+      },
+      "decision.total": {
+        "old": {
+          "sec": 282.492188,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 280.6875,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -1.8046879999999987,
+        "delta_count": 0
+      },
+      "head.capture": {
+        "old": {
+          "sec": 144.40625,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 153.640625,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 9.234375,
+        "delta_count": 0
+      },
+      "head.history": {
+        "old": {
+          "sec": 20.554688,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 21.335938,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.78125,
+        "delta_count": 0
+      },
+      "head.seal": {
+        "old": {
+          "sec": 2.976563,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 3.398438,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.421875,
+        "delta_count": 0
+      },
+      "head.signal_capture": {
+        "old": {
+          "sec": 83.273438,
+          "n": 2100,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 92.1875,
+          "n": 2100,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 8.914062000000001,
+        "delta_count": 0
+      },
+      "rampmeters.runtime": {
+        "old": {
+          "sec": 8.539063,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.085938,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -8.453125,
+        "delta_count": 0
+      },
+      "scan.vehicles": {
+        "old": {
+          "sec": 62.304688,
+          "n": 1058,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 62.4375,
+          "n": 1058,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.13281200000000126,
+        "delta_count": 0
+      },
+      "signals.readback": {
+        "old": {
+          "sec": 20.453125,
+          "n": 1049,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.59375,
+          "n": 70,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -19.859375,
+        "delta_count": -979
+      },
+      "signals.runtime": {
+        "old": {
+          "sec": 27.460938,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 2.867188,
+          "n": 1050,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -24.59375,
+        "delta_count": 0
+      },
+      "sim.first_step": {
+        "old": {
+          "sec": 1.039063,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.914063,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.1250000000000001,
+        "delta_count": 0
+      },
+      "sim.step": {
+        "old": {
+          "sec": 18.757813,
+          "n": 1049,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 18.421875,
+          "n": 1049,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.33593799999999874,
+        "delta_count": 0
+      },
+      "startup.control_setup": {
+        "old": {
+          "sec": 0.1875,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.15625,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.03125,
+        "delta_count": 0
+      },
+      "startup.demand": {
+        "old": {
+          "sec": 2.203125,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 2.25,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.046875,
+        "delta_count": 0
+      },
+      "startup.demand.volume_after_read": {
+        "old": {
+          "sec": 0.9375,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.976563,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.03906299999999996,
+        "delta_count": 0
+      },
+      "startup.demand.volume_before_read": {
+        "old": {
+          "sec": 0.078125,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.101563,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.023438,
+        "delta_count": 0
+      },
+      "startup.demand.volume_set": {
+        "old": {
+          "sec": 0.867188,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.828125,
+          "n": 204,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.03906299999999996,
+        "delta_count": 0
+      },
+      "startup.head_init": {
+        "old": {
+          "sec": 0.078125,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 0.078125,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": 0.0,
+        "delta_count": 0
+      },
+      "startup.load_net": {
+        "old": {
+          "sec": 9.84375,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 9.664063,
+          "n": 1,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.17968699999999949,
+        "delta_count": 0
+      },
+      "state.json": {
+        "old": {
+          "sec": 3.46875,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "new": {
+          "sec": 3.320313,
+          "n": 8,
+          "kind": "inclusive_wall_timer"
+        },
+        "delta_sec": -0.14843699999999993,
+        "delta_count": 0
+      }
+    },
+    "wall_delta_sec": -40.974199999999996,
+    "startup_confound_sensitivity": {
+      "excluding_demand_after_read": {
+        "subtracted_buckets": [
+          "startup.demand.volume_after_read"
+        ],
+        "old_sec": 562.436551,
+        "new_sec": 521.423288,
+        "delta_sec": -41.01326300000005,
+        "interpretation": "Derived wall remainder only; still includes startup/setup/cleanup and other work. Not a pure SG-loop or simulation speedup."
+      },
+      "excluding_whole_demand": {
+        "subtracted_buckets": [
+          "startup.demand"
+        ],
+        "old_sec": 561.170926,
+        "new_sec": 520.149851,
+        "delta_sec": -41.021074999999996,
+        "interpretation": "Derived wall remainder only; still includes startup/setup/cleanup and other work. Not a pure SG-loop or simulation speedup."
+      },
+      "excluding_load_and_whole_demand": {
+        "subtracted_buckets": [
+          "startup.load_net",
+          "startup.demand"
+        ],
+        "old_sec": 551.327176,
+        "new_sec": 510.485788,
+        "delta_sec": -40.841387999999995,
+        "interpretation": "Derived wall remainder only; still includes startup/setup/cleanup and other work. Not a pure SG-loop or simulation speedup."
+      }
+    },
+    "physical_equivalence_verdict": "not_evaluated_by_timing_helper"
+  },
+  "limits": [
+    "Wall is wrapper started->finished: startup, run, watchdog polling, exit observation and cleanup are included. It is not simulation-only or CPU time.",
+    "PERF uses VBScript Timer wall seconds with midnight rollover; rounding/resolution limits small buckets. com.* sec=0 is an untimed count, not zero COM latency.",
+    "Nested buckets must not be summed as exclusive wall time. startup.demand contains before/set/after; decision.total contains state.json/python/action.apply; head.capture contains scan.vehicles and signal capture; head.seal also contains signal capture. Vehicle scan is also called by state/log writers.",
+    "Counted COM scope is only named instrumentation sites. It excludes enumeration/GetAll, object resolution, uninstrumented ownership/count/time getters, error-path attempts and other COM calls. Returned bulk counters are not vehicle counts.",
+    "DONE->next BEGIN demand gaps include prior after-read, bookkeeping and next before-read. They localize a wait interval, not a single getter duration. Only the aggregate after-read PERF bucket identifies its total measured time.",
+    "No independently timed postprocessing bucket exists here. Report it as unavailable; do not recover it by summing nested buckets or subtracting their sum from wall.",
+    "Both arms use the same source/VSL sidecar and RW_PERF=1. Allowed switch differences are SG readback cadence and write-on-change only. Savings are conservative for the SG loop and do not separately estimate removed legacy VSL summary reads.",
+    "Timing and source/config provenance do not certify identical physical commands, observations or trajectories. Use the separate completed pair verifier; no FZP/LSA/ERR/state payload is consumed here.",
+    "One old/new pair is a descriptive observation, not a stable speedup benchmark. A startup readback wait can dominate wall independently of the SG-loop change."
+  ],
+  "physical_equivalence_evaluated": false,
+  "helper_sha256": "75ac83ae42637a36dd81a4ea18800ded17e02d044c2b17368ccc995a293ffae8"
+}

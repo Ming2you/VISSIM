@@ -1,0 +1,80 @@
+{
+  "completed": true,
+  "native_run": false,
+  "model_rollouts": 0,
+  "movement": "SC1005_N_SC105_to_W_SC1004",
+  "observed_effective_movement": {
+    "spec": {
+      "intersection": "SC1005",
+      "approach": "N_SC105",
+      "exit": "W_SC1004",
+      "beta": 0.6666666666666666,
+      "signal": "SC1005",
+      "turn": "right",
+      "phase": "SC1005_p1",
+      "origin": "SC105_to_SC1005",
+      "destination": "SC1005_to_SC1004",
+      "receiving_link": "SC1005_to_SC1004",
+      "kind": "internal",
+      "merged_from": [
+        "SC1005_N_SC105_to_W",
+        "SC1005_N_SC105_to_W_SC1004"
+      ]
+    },
+    "capacity_veh_h": 206.53061224489795
+  },
+  "recorded_capacity_metadata": {
+    "movement_capacity_by_lanes_enabled": 1.0,
+    "movement_capacity_by_lanes_count": 371.0,
+    "movement_capacity_by_lanes_internal_count": 184.0,
+    "movement_capacity_by_lanes_per_lane_veh_h": 206.53061224489795,
+    "movement_capacity_by_lanes_equivalent_uniform": 330.0,
+    "movement_capacity_by_lanes_min_veh_h": 206.53061224489795,
+    "movement_capacity_by_lanes_median_veh_h": 206.53061224489795,
+    "movement_capacity_by_lanes_max_veh_h": 826.1224489795918
+  },
+  "capacity_config": {
+    "per_lane": true,
+    "equivalent_uniform_veh_h": 330.0,
+    "perimeter": "all",
+    "_why_perimeter": "perimeter movement 184개(boundary_in 116 · boundary_out 50 · off_ramp 18)가 스칼라 1400 veh/h 로 떨어지고 있었다 — internal 실측 중앙 206.5 의 6.8배다. all 이면 66개는 물리 회전(pn_boundary_turns)으로 확인하고 118개는 같은 종류 중앙값을 쓴다. 둘 다 vendor 스칼라 1400 보다 근거가 있고 폴백이 0 이 된다.",
+    "measured": true,
+    "seed": "sustained",
+    "observed_clip": [
+      0.2,
+      1.0
+    ],
+    "seed_missing_frac": 0.5,
+    "queued_links_json": "outputs/link_queue_class_v0_ver2_20260907.json",
+    "unqueued_geometric_frac": 1.0,
+    "distribute": "lane_group",
+    "fallback": "geometric",
+    "fallback_frac": 1.0,
+    "decay": 0.98,
+    "sustained_json": "outputs/lane_group_sustained_v0_ver2_20260907_v2.json",
+    "sustained_stat": "free",
+    "sustained_min_windows": 6,
+    "update": "queued_ewma",
+    "ewma_alpha": 0.3,
+    "queued_stopped_min": 6.0,
+    "head_observation": {
+      "enabled": true,
+      "min_green_sec": 30,
+      "min_crossings": 5
+    },
+    "head_resource_contract": "diagnostics/head_service_resource_contract.json"
+  },
+  "capacity_origin": "Global internal-movement equivalent-uniform normalization, then lane weighting. It is not a measured capacity of connector10565 or a borrowed SG7 discharge rate.",
+  "formula": "per_lane = equivalent_uniform_veh_h * number_of_internal_movements / total_effective_lane_weights; movement_capacity = per_lane * effective_lane_weight; merged aliases use max, not sum.",
+  "effective_lane_weight": 1.0,
+  "head_branch_behavior": "When head_observation.enabled is true, install_measured_movement_capacity returns observe(install,...base_caps...). Legacy sustained/geometric seed estimates are not installed by the subsequent legacy branch. signal_head_observation installs achieved lower bounds for eligible physical head groups only; absence of a physical head is not evidence of zero service.",
+  "scope": "Read-only source and existing captured-state provenance. No new saturation estimate or capacity override is adopted. The previously tested312veh/h was a two-window observed lower-bound diagnostic, not identified saturation.",
+  "source_pins": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\sc1005_head_service_projection_v1.json": "0cbffeb50b2594fa2f9d8dc29edff197f251868a5226cf2377296767dfef4bb3",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.json": "c13d05158341a6925c5aa339201568dbd378729057bc942fb1f2bb5fea76e280",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_unlimited_v1.json": "9351d042887b6d5c6d8213be2e47b2cccbcddde6a65357abd5c45ae9fa00b21f",
+    "evaluation\\controllers\\vissim_stackelberg_adapter.py": "5b15a883034e530eccfc4db9e01cd4843ef3def65951f72fb996f09835e00826",
+    "evaluation\\controllers\\signal_head_observation.py": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f",
+    "outputs\\movement_lanes_core17legs4b_20260821.json": "cc3d9a9c4f6b3ccee0d3ea0a4ba4c943deaed27442ac9f1e445e028108f9926a"
+  }
+}

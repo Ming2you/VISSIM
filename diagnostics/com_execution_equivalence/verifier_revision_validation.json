@@ -1,0 +1,52 @@
+{
+  "schema": "com-execution-verifier-revision/v1",
+  "synthetic_tests": 26,
+  "passed": true,
+  "test_elapsed_sec": 5.489,
+  "historical_preparation_report": "diagnostics/com_execution_equivalence/verifier_validation.json",
+  "source_sha256": {
+    "diagnostics\\com_execution_equivalence\\verify_pair.py": "6eb77ebcaec7561416a39072c51729450b1fa919c8a5df549e4c66ae9b8157ee",
+    "diagnostics\\com_execution_equivalence\\test_verify_pair.py": "aee783d7b8f84d8c3ce0b580071c3c3947ddc898aaab910d0273f8077f97ade3",
+    "diagnostics\\com_execution_equivalence\\VERIFIER.md": "4ad93606c19bdd0be065d7b3bab5c6b557902227f91424f41dcf65a79d462254"
+  },
+  "sg_plan_read_only_check": {
+    "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\real_world_modi_control_config_ver2n21_sgplan.vbs",
+    "sha256": "eca795f88eae4ba00a71723379247ea9ab369ba23c25714b30c7198310ee3503",
+    "command_sc_count": 17,
+    "owned_groups": 136,
+    "nonzero_window_groups": 122,
+    "zero_window_red_only_groups": [
+      "7:2",
+      "7:3",
+      "7:5",
+      "7:6",
+      "16:1",
+      "16:5",
+      "107:4",
+      "107:8",
+      "108:3",
+      "108:7",
+      "109:1",
+      "109:3",
+      "109:4",
+      "109:8"
+    ],
+    "pinned_in_both_current_preparation_checks": true
+  },
+  "actual_provenance_file_check": {
+    "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_selected_fw070_u040_beta0_r02\\run_provenance_codex_selected_fw070_u040_beta0_r02.json",
+    "sha256": "815c572fd1fabe273d771062a67aaaeda82429a6eb37c67b337805f21010ec5c",
+    "file_entries": 17,
+    "missing_entries": []
+  },
+  "source_review_inputs": [
+    "actual r02 provenance and action900 small CSV",
+    "4KB sibling SG plan",
+    "two small preparation check JSONs"
+  ],
+  "minimum_posts": "Initial/changed callback final immediate value requires matching t+1 post; every owned control boundary post required. Terminal writes have no subsequent-step obligation.",
+  "production_edits": false,
+  "actual_FZP_reads": 0,
+  "actual_COM_or_model_runs": 0,
+  "actual_pair_analysis": false
+}

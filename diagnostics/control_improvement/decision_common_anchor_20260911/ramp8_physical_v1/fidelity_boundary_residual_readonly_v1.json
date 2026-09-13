@@ -1,0 +1,134 @@
+{
+  "schema": "existing-json-boundary-residual-review/v1",
+  "complete": true,
+  "window_sec": [
+    900,
+    1350
+  ],
+  "new_model_queries": 0,
+  "new_native_runs": 0,
+  "new_fzp_reads": 0,
+  "source_edits": 0,
+  "scope": "Bounded read-only arithmetic and source-contract inspection; no exact route-cohort reconstruction or calibration. Diagnostic artifacts only.",
+  "entry_rows": [
+    {
+      "quantity": "reported entry (different definitions)",
+      "native": 2166,
+      "model": 1710.7792250521763,
+      "bias": -455.22077494782366
+    },
+    {
+      "quantity": "inside appearance vs modeled inside urban generation + FW admission",
+      "native": 1622,
+      "model": 1628.8722000000002,
+      "bias": 6.872200000000248
+    },
+    {
+      "quantity": "live inward boundary crossings (model aggregate residual)",
+      "native": 544,
+      "model": 390.8320250521763,
+      "bias": -153.16797494782372
+    },
+    {
+      "quantity": "entry with inside urban generation included",
+      "native": 2166,
+      "model": 2019.7042250521765,
+      "bias": -146.29577494782347
+    }
+  ],
+  "inside_urban_generation_components_veh": {
+    "internal_native_inputs": 132.5,
+    "inside_gate_inputs": 93.11250000000008,
+    "shared69_inside_input": 83.31250000000009,
+    "total": 308.9250000000002
+  },
+  "source_semantics": {
+    "model": "emit_input passes source_inside=target_inside=True for inside creation; ModelAreaLedger.transfer adds stock but enter_in=0. Mainline origin outside->freeway inside is counted in entered_veh. Thus urban inside generation must be added for the comparison definition, not injected into dynamics.",
+    "native": "entry_total=observed_entry_events544+appeared_inside_events1622+reappeared_inside_events0. First appearances are not an input-ID-matched birth audit.",
+    "model_boundary_residual": "area.entered_veh minus the two origin->freeway accepted flows; no stored entered-by-route or native entry-edge table is available in these receipts."
+  },
+  "live_exit_rows": [
+    {
+      "quantity": "SC1004 collector to123",
+      "native_edges": [
+        "121->123",
+        "121->10773"
+      ],
+      "model_routes": [
+        "legsplit:SC1004_W_out"
+      ],
+      "native": 157,
+      "model": 124.15289391115417,
+      "bias": -32.847106088845834
+    },
+    {
+      "quantity": "SC1001/sc2001 collector to125",
+      "native_edges": [
+        "124->125",
+        "124->10775"
+      ],
+      "model_routes": [
+        "legsplit:SC1001_W_out",
+        "sc2001:outside_125"
+      ],
+      "native": 101,
+      "model": 28.550266900575977,
+      "bias": -72.44973309942402
+    },
+    {
+      "quantity": "two westbound direct offramps",
+      "native_edges": [
+        "120->10645",
+        "26->10479"
+      ],
+      "model_routes": [
+        "offramp_direct:OR_D_W",
+        "offramp_direct:OR_F_W"
+      ],
+      "native": 189,
+      "model": 147.43882778906192,
+      "bias": -41.56117221093808
+    },
+    {
+      "quantity": "other live exits, aggregate residual; no exact edge allocation",
+      "native": 619,
+      "model": 306.6015550943532,
+      "bias": -312.3984449056468
+    }
+  ],
+  "exit_row_limit": "Collector rows align physical destinations by existing route contracts, but coalesced model event timing is not a vehicle-matched edge observation; the aggregate other row is not claimed missing topology.",
+  "coalesced_path_review": {
+    "counter_supports_internal_excursions": true,
+    "source_reference": "control_area_objective.ModelAreaLedger.transfer counts count*outward_crossings and count*inward_crossings, including spatial remaps; not solely endpoint accounting.",
+    "static_contract_rows_with_both_outward_and_inward_positive": 0,
+    "model_spatial_remap_entry_veh": 3.333325369198059e-15,
+    "model_spatial_remap_exit_veh": 0.0,
+    "conclusion": "The counters can represent intermediate exit/reentry, but existing receipts do not identify whether any positive native boundary path is absent or coalesced in the effective model. No numeric missed-excursion correction is justified."
+  },
+  "native_limits": {
+    "TD_requires_review": true,
+    "unresolved_inside_disappearances_excluded": 12,
+    "closure": {
+      "max_abs_residual_veh": 0,
+      "window_residual_veh": 0
+    }
+  },
+  "superseded_preliminary_inference": {
+    "boundary_model81_907_and_bias_minus462_093": "Retracted: it subtracted urban inside generation even though that generation was never in model entered_veh."
+  },
+  "decision": "Keep network demand and native TTT/TD counters fixed. The gross entry gap partly reflects accounting grain; remaining crossing/throughput residual requires same-edge entrant/source cohort evidence after the planned native run, not a scalar demand multiplier.",
+  "source_sha256": {
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_recorded900_v1.json": "a303fb7650d82f39efcc922ff4696fd4b4dbef9eff6a645bf1dc27ac3b4c654a",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_comparison_v1.json": "e800a80db553b1ba61a2d79451eb11049aaef9afd2a119e5767de9afd1412219",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_area450_v1/boundary_metrics.json": "2c0e7cb2ae9833c06908f09697ade9ab26f745b3e97e76db6208ffac971f0356",
+    "diagnostics/control_area_route_contract_physical_routes.json": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9",
+    "diagnostics/control_area_membership.json": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d",
+    "diagnostics/sc2001_corridor_nc13.json": "68a765084c141663ecdd078f10f9ca4a3cdc03fc10eff816b9f4b7f26f5a0a5d",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_boundary_split_v1.json": "7aebbe26063f513da49cc3ca3fa531ef22fe24b85f17e4f899cd9d9444ff2d65",
+    "evaluation/controllers/control_area_objective.py": "1061b725b8bc1e11890b4b81e25efedeea0e10d76ac16ac405f858b86fcf5abd",
+    "evaluation/controllers/area_runtime.py": "3b210e65c33affb7538cdf418935935c7a0161f45bed1f370f0d8daa55482da6",
+    "evaluation/controllers/native_internal_input.py": "d6feb374114c73d71876c9dd999cf43bf51c7803c24732569e24609a8291fa3d",
+    "evaluation/controllers/area_freeway_accounting.py": "23344d4ca63b99d2997ac05b6b7fa11d7f037c38696a638f01b75a94436d8ec0"
+  },
+  "source_changes": []
+}

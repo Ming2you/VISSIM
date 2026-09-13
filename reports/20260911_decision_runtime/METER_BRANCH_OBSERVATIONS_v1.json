@@ -1,0 +1,1698 @@
+{
+  "schema": "saved-snapshot-physical-meter-branches/v1",
+  "source_sha256": {
+    "reports\\20260911_decision_runtime\\audit_meter_branch_snapshots.py": "c49abbe1e97f704e0254d7364139700452a961b601c51c338b95c80d7e94a5b2",
+    "evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64",
+    "diagnostics\\demand_sweep\\global050\\desired_destinations.csv": "168cd4f21c57b2c2d4bc88a42e7045545af818d74963d67f3a2674206fa0c1f3",
+    "diagnostics\\demand_sweep\\global050\\checks.json": "62111336cf4612a015770f9a4d42c540e912c1eef8bb37c403098ee155628347",
+    "diagnostics\\selected_control_demand\\codex_native_clock_fw080_u050_open_v2\\native_recording\\baseline.inpx": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\state_000900.json": "e46239a5a5ee7ef80008e982852eb19e27a8c1a6e711f2553c2c9c4bc335c1be",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\state_001050.json": "81a04686515a2ff1558f5303f75f7c063da28750b128ba10b42f23a4380ede35"
+  },
+  "network": "diagnostics\\selected_control_demand\\codex_native_clock_fw080_u050_open_v2\\native_recording\\baseline.inpx",
+  "run": "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2",
+  "method": {
+    "stopped_threshold_kph": 1.0,
+    "stock_is_not_stopped_queue": true,
+    "approach_scope": "Union of pinned static-route prefixes containing a physical meter, its immediate feeder link, and existing partial1100/1101 source paths. A scoped inspection region, not all upstream OD paths.",
+    "known_upstream": "Same vehicle ID joins location and current STATIC route. Current link occurs once, path is physically continuous, position fits current segment, exactly one future meter is explicit.",
+    "unknown": "No route, unavailable or stale route, no explicit future meter, or ambiguous location. No static probability multiplies observed vehicle counts. Unknown lists per meter can overlap and must not be summed.",
+    "connector_stock": "Physical current link membership, independent of route classification; before/after head and stopped subsets shown separately.",
+    "classification_scope": "Current active static route only. Combined/look-ahead route chains and future unselected decisions are not inferred. Known counts are conservative lower bounds, not complete ramp OD or arrival-rate estimates.",
+    "source_generation_demand": "Existing72-row desired table covers only origins1098/1100/1101; selected80/50 reuses only urban1100/1101 rows unchanged. No complete8branch or4group desired lambda certificate."
+  },
+  "ownership": {
+    "10480": {
+      "meter_id": "RM_C10480",
+      "model_group": "R_D_W",
+      "freeway_owner": "FW_W",
+      "sg": "9101 1",
+      "head_pos_m_by_lane": {
+        "1": 145.641195575947
+      },
+      "physical_endpoints": {
+        "from_link": 124,
+        "from_pos_m": 321.6131908048111,
+        "to_link": 26,
+        "to_pos_m": 3525.124449495009
+      },
+      "approach_scope_links": [
+        31,
+        124,
+        10774
+      ]
+    },
+    "10482": {
+      "meter_id": "RM_C10482",
+      "model_group": "R_D_W",
+      "freeway_owner": "FW_W",
+      "sg": "9102 1",
+      "head_pos_m_by_lane": {
+        "2": 374.2173333514973,
+        "1": 374.11967822309003
+      },
+      "physical_endpoints": {
+        "from_link": 32,
+        "from_pos_m": 1028.6207529816324,
+        "to_link": 120,
+        "to_pos_m": 10.227348372713095
+      },
+      "approach_scope_links": [
+        32
+      ]
+    },
+    "10646": {
+      "meter_id": "RM_C10646",
+      "model_group": "R_F_W",
+      "freeway_owner": "FW_W",
+      "sg": "9103 1",
+      "head_pos_m_by_lane": {
+        "1": 302.8105127917601
+      },
+      "physical_endpoints": {
+        "from_link": 121,
+        "from_pos_m": 233.01998411246473,
+        "to_link": 120,
+        "to_pos_m": 2252.9982926203243
+      },
+      "approach_scope_links": [
+        66,
+        68,
+        121,
+        10633,
+        10772
+      ]
+    },
+    "10644": {
+      "meter_id": "RM_C10644",
+      "model_group": "R_F_W",
+      "freeway_owner": "FW_W",
+      "sg": "9104 1",
+      "head_pos_m_by_lane": {
+        "1": 724.5605214129818
+      },
+      "physical_endpoints": {
+        "from_link": 69,
+        "from_pos_m": 1740.4823273551347,
+        "to_link": 120,
+        "to_pos_m": 2954.755850369194
+      },
+      "approach_scope_links": [
+        69
+      ]
+    },
+    "10639": {
+      "meter_id": "RM_C10639",
+      "model_group": "R_F_E",
+      "freeway_owner": "FW_E",
+      "sg": "9105 1",
+      "head_pos_m_by_lane": {
+        "1": 314.83469380887993
+      },
+      "physical_endpoints": {
+        "from_link": 70,
+        "from_pos_m": 180.14322835147638,
+        "to_link": 2,
+        "to_pos_m": 1876.2915917167772
+      },
+      "approach_scope_links": [
+        69,
+        70,
+        10637
+      ]
+    },
+    "10681": {
+      "meter_id": "RM_C10681",
+      "model_group": "R_F_E",
+      "freeway_owner": "FW_E",
+      "sg": "9106 1",
+      "head_pos_m_by_lane": {
+        "1": 290.72003141146473,
+        "2": 290.72003141146473
+      },
+      "physical_endpoints": {
+        "from_link": 68,
+        "from_pos_m": 117.41878136863699,
+        "to_link": 2,
+        "to_pos_m": 2165.428752742947
+      },
+      "approach_scope_links": [
+        66,
+        68,
+        10633
+      ]
+    },
+    "10490": {
+      "meter_id": "RM_C10490",
+      "model_group": "R_D_E",
+      "freeway_owner": "FW_E",
+      "sg": "9107 1",
+      "head_pos_m_by_lane": {
+        "1": 272.6035592816065
+      },
+      "physical_endpoints": {
+        "from_link": 129,
+        "from_pos_m": 299.9855236542128,
+        "to_link": 119,
+        "to_pos_m": 305.38646819908536
+      },
+      "approach_scope_links": [
+        32,
+        129,
+        10778
+      ]
+    },
+    "10484": {
+      "meter_id": "RM_C10484",
+      "model_group": "R_D_E",
+      "freeway_owner": "FW_E",
+      "sg": "9108 1",
+      "head_pos_m_by_lane": {
+        "1": 377.1107628548054
+      },
+      "physical_endpoints": {
+        "from_link": 31,
+        "from_pos_m": 412.08696861958236,
+        "to_link": 24,
+        "to_pos_m": 10.318793452441241
+      },
+      "approach_scope_links": [
+        31
+      ]
+    }
+  },
+  "static_routes_with_meter": {
+    "1134:1": {
+      "decision_no": 1134,
+      "route_no": 1,
+      "path": [
+        69,
+        10644,
+        120
+      ],
+      "start_pos_m": 48.85709342855405,
+      "end_pos_m": 3172.586166339181,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1134:3": {
+      "decision_no": 1134,
+      "route_no": 3,
+      "path": [
+        69,
+        10637,
+        70,
+        10639,
+        2
+      ],
+      "start_pos_m": 48.85709342855405,
+      "end_pos_m": 2306.235002215379,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1135:2": {
+      "decision_no": 1135,
+      "route_no": 2,
+      "path": [
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "start_pos_m": 7.491513071180599,
+      "end_pos_m": 2272.2977955121637,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1135:4": {
+      "decision_no": 1135,
+      "route_no": 4,
+      "path": [
+        68,
+        10681,
+        2
+      ],
+      "start_pos_m": 7.491513071180599,
+      "end_pos_m": 2289.198499870484,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1136:1": {
+      "decision_no": 1136,
+      "route_no": 1,
+      "path": [
+        32,
+        10482,
+        120
+      ],
+      "start_pos_m": 17.980985262919493,
+      "end_pos_m": 218.84969142645423,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1136:3": {
+      "decision_no": 1136,
+      "route_no": 3,
+      "path": [
+        32,
+        10778,
+        129,
+        10490,
+        119
+      ],
+      "start_pos_m": 17.980985262919493,
+      "end_pos_m": 568.5259965529576,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1137:1": {
+      "decision_no": 1137,
+      "route_no": 1,
+      "path": [
+        31,
+        10484,
+        24
+      ],
+      "start_pos_m": 28.547361281307357,
+      "end_pos_m": 51.15928919679027,
+      "all_links_exist": true,
+      "continuous": true
+    },
+    "1137:3": {
+      "decision_no": 1137,
+      "route_no": 3,
+      "path": [
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "start_pos_m": 28.547361281307357,
+      "end_pos_m": 3591.078161043894,
+      "all_links_exist": true,
+      "continuous": true
+    }
+  },
+  "snapshots": {
+    "900": {
+      "vehicle_count": 1443,
+      "ramp_counts_model_groups": {
+        "R_D_W": 3,
+        "R_D_E": 6,
+        "R_F_W": 13,
+        "R_F_E": 0,
+        "D": 9,
+        "F": 13
+      },
+      "all_vehicle_route_classification_counts": {
+        "no_explicit_future_meter_in_current_route": 1033,
+        "missing_or_nonstatic_route": 377,
+        "explicit_unique_future_meter": 33
+      },
+      "branches": {
+        "10480": {
+          "physical_inventory": 1,
+          "physical_stopped": 0,
+          "inventory_before_head": 1,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            211
+          ],
+          "known_upstream_inventory": 3,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "124": 3
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 246,
+              "link_no": 124,
+              "lane_no": 1,
+              "position_m": 246.035778461663,
+              "speed_kph": 40.2951600681923,
+              "stopped": false,
+              "route": "1137:3"
+            },
+            {
+              "veh_no": 522,
+              "link_no": 124,
+              "lane_no": 1,
+              "position_m": 301.608437528571,
+              "speed_kph": 30.0962389816284,
+              "stopped": false,
+              "route": "1137:3"
+            },
+            {
+              "veh_no": 2848,
+              "link_no": 124,
+              "lane_no": 1,
+              "position_m": 275.768331431806,
+              "speed_kph": 31.0926328548421,
+              "stopped": false,
+              "route": "1137:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 2,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "no_explicit_future_meter_in_current_route": {
+              "count": 2,
+              "stopped": 0,
+              "vehicle_ids": [
+                2381,
+                2564
+              ]
+            }
+          }
+        },
+        "10482": {
+          "physical_inventory": 2,
+          "physical_stopped": 0,
+          "inventory_before_head": 2,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            3004,
+            3020
+          ],
+          "known_upstream_inventory": 6,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "32": 6
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 2970,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 978.724156763816,
+              "speed_kph": 30.4453020008386,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3098,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 923.357268774041,
+              "speed_kph": 37.781611785786,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3116,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 960.795498768988,
+              "speed_kph": 43.420386996705,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3213,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 605.153832513385,
+              "speed_kph": 42.4846433457157,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3233,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 551.236068229712,
+              "speed_kph": 41.6653219428065,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3282,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 421.707704810969,
+              "speed_kph": 42.6265791875006,
+              "stopped": false,
+              "route": "1136:1"
+            }
+          ],
+          "scoped_known_other_meter_count": 2,
+          "scoped_unknown_count": 1,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "no_explicit_future_meter_in_current_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                3346
+              ]
+            }
+          }
+        },
+        "10646": {
+          "physical_inventory": 5,
+          "physical_stopped": 0,
+          "inventory_before_head": 5,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            1503,
+            1653,
+            1813,
+            2311,
+            2459
+          ],
+          "known_upstream_inventory": 0,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {},
+          "known_upstream_vehicles": [],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 27,
+          "scoped_unknown_stopped": 8,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 10,
+              "stopped": 0,
+              "vehicle_ids": [
+                2870,
+                3019,
+                3173,
+                3175,
+                3260,
+                3300,
+                3316,
+                3319,
+                3359,
+                3427
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 17,
+              "stopped": 8,
+              "vehicle_ids": [
+                2201,
+                2372,
+                2408,
+                2433,
+                2449,
+                2475,
+                2494,
+                2532,
+                2602,
+                2687,
+                2700,
+                2726,
+                2753,
+                2758,
+                2810,
+                2898,
+                2912
+              ]
+            }
+          }
+        },
+        "10644": {
+          "physical_inventory": 8,
+          "physical_stopped": 0,
+          "inventory_before_head": 8,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            2526,
+            2640,
+            2641,
+            2707,
+            2719,
+            2729,
+            2739,
+            2759
+          ],
+          "known_upstream_inventory": 20,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "69": 20
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 2675,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1728.41985175284,
+              "speed_kph": 30.1905600330403,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2778,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1707.34809614401,
+              "speed_kph": 32.915068304686,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2824,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1688.26807291046,
+              "speed_kph": 35.4379287432701,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2847,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1670.68488589744,
+              "speed_kph": 28.5352380827699,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2873,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1630.15878203325,
+              "speed_kph": 36.4854276389554,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2882,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1599.2470471136,
+              "speed_kph": 38.2292692559221,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2889,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1564.0899387462,
+              "speed_kph": 38.2166402556764,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2895,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1583.32413726086,
+              "speed_kph": 37.9508899699595,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2918,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1463.25515941874,
+              "speed_kph": 40.1692817674878,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 2940,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1441.38283180907,
+              "speed_kph": 40.1095659697771,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3067,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1019.95026885214,
+              "speed_kph": 38.0875329802598,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3142,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 903.583296842383,
+              "speed_kph": 44.0011588903826,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3176,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 713.773076534662,
+              "speed_kph": 43.4345761364278,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3212,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 636.242970361068,
+              "speed_kph": 45.4848482984731,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3218,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 591.96375679737,
+              "speed_kph": 44.2179522014448,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3228,
+              "link_no": 69,
+              "lane_no": 4,
+              "position_m": 578.582717943627,
+              "speed_kph": 43.8852613801794,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3291,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 364.438993015386,
+              "speed_kph": 37.8051458355719,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3354,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 215.380075067804,
+              "speed_kph": 46.1328303418266,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3381,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 129.965043854991,
+              "speed_kph": 43.1185851379974,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3403,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 67.5763517837694,
+              "speed_kph": 42.9858704654936,
+              "stopped": false,
+              "route": "1134:1"
+            }
+          ],
+          "scoped_known_other_meter_count": 1,
+          "scoped_unknown_count": 2,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                3420
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                2992
+              ]
+            }
+          }
+        },
+        "10639": {
+          "physical_inventory": 0,
+          "physical_stopped": 0,
+          "inventory_before_head": 0,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [],
+          "known_upstream_inventory": 1,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "69": 1
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3109,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 965.974940848414,
+              "speed_kph": 43.7762865723987,
+              "stopped": false,
+              "route": "1134:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 20,
+          "scoped_unknown_count": 2,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                3420
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                2992
+              ]
+            }
+          }
+        },
+        "10681": {
+          "physical_inventory": 0,
+          "physical_stopped": 0,
+          "inventory_before_head": 0,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [],
+          "known_upstream_inventory": 0,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {},
+          "known_upstream_vehicles": [],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 25,
+          "scoped_unknown_stopped": 8,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 10,
+              "stopped": 0,
+              "vehicle_ids": [
+                2870,
+                3019,
+                3173,
+                3175,
+                3260,
+                3300,
+                3316,
+                3319,
+                3359,
+                3427
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 15,
+              "stopped": 8,
+              "vehicle_ids": [
+                2201,
+                2372,
+                2408,
+                2433,
+                2449,
+                2475,
+                2494,
+                2532,
+                2602,
+                2687,
+                2700,
+                2726,
+                2753,
+                2758,
+                2912
+              ]
+            }
+          }
+        },
+        "10490": {
+          "physical_inventory": 1,
+          "physical_stopped": 0,
+          "inventory_before_head": 1,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            462
+          ],
+          "known_upstream_inventory": 3,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "129": 1,
+            "32": 2
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 2987,
+              "link_no": 129,
+              "lane_no": 1,
+              "position_m": 277.65124129251,
+              "speed_kph": 42.1809412497517,
+              "stopped": false,
+              "route": "1136:3"
+            },
+            {
+              "veh_no": 3174,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 728.741839806159,
+              "speed_kph": 41.2392734622674,
+              "stopped": false,
+              "route": "1136:3"
+            },
+            {
+              "veh_no": 3320,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 316.972597013755,
+              "speed_kph": 46.174462342872,
+              "stopped": false,
+              "route": "1136:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 6,
+          "scoped_unknown_count": 5,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "no_explicit_future_meter_in_current_route": {
+              "count": 5,
+              "stopped": 0,
+              "vehicle_ids": [
+                2808,
+                2917,
+                3009,
+                3058,
+                3346
+              ]
+            }
+          }
+        },
+        "10484": {
+          "physical_inventory": 5,
+          "physical_stopped": 0,
+          "inventory_before_head": 5,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            713,
+            1007,
+            2815,
+            3053,
+            3127
+          ],
+          "known_upstream_inventory": 0,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {},
+          "known_upstream_vehicles": [],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 0,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {}
+        }
+      }
+    },
+    "1050": {
+      "vehicle_count": 1723,
+      "ramp_counts_model_groups": {
+        "R_D_W": 4,
+        "R_D_E": 4,
+        "R_F_W": 15,
+        "R_F_E": 0,
+        "D": 8,
+        "F": 15
+      },
+      "all_vehicle_route_classification_counts": {
+        "missing_or_nonstatic_route": 466,
+        "no_explicit_future_meter_in_current_route": 1210,
+        "explicit_unique_future_meter": 47
+      },
+      "branches": {
+        "10480": {
+          "physical_inventory": 0,
+          "physical_stopped": 0,
+          "inventory_before_head": 0,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [],
+          "known_upstream_inventory": 1,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "124": 1
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 1405,
+              "link_no": 124,
+              "lane_no": 1,
+              "position_m": 274.948413929649,
+              "speed_kph": 22.0434648445877,
+              "stopped": false,
+              "route": "1137:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 1,
+          "scoped_unknown_count": 2,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 2,
+              "stopped": 0,
+              "vehicle_ids": [
+                211,
+                522
+              ]
+            }
+          }
+        },
+        "10482": {
+          "physical_inventory": 4,
+          "physical_stopped": 0,
+          "inventory_before_head": 4,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            3577,
+            3677,
+            3687,
+            3704
+          ],
+          "known_upstream_inventory": 14,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "32": 14
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3746,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 903.25161199107,
+              "speed_kph": 33.9738139787162,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3798,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 978.035479286806,
+              "speed_kph": 41.3615139816354,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3898,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 753.440415673927,
+              "speed_kph": 43.9687252714919,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3922,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 684.783351873059,
+              "speed_kph": 41.4725549446012,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3954,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 603.417004981144,
+              "speed_kph": 40.5130231602846,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3964,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 618.798323101847,
+              "speed_kph": 43.4932355398396,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 3977,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 570.193609649367,
+              "speed_kph": 39.9332996990193,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4050,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 409.141453151633,
+              "speed_kph": 43.8175281248522,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4081,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 344.761838679089,
+              "speed_kph": 44.2601724629587,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4093,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 318.263354679838,
+              "speed_kph": 45.7030601286389,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4123,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 234.144889044676,
+              "speed_kph": 42.777207625978,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4135,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 220.13215336649,
+              "speed_kph": 41.4479414435477,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4145,
+              "link_no": 32,
+              "lane_no": 1,
+              "position_m": 184.447477439091,
+              "speed_kph": 45.2875120694567,
+              "stopped": false,
+              "route": "1136:1"
+            },
+            {
+              "veh_no": 4158,
+              "link_no": 32,
+              "lane_no": 2,
+              "position_m": 168.247394132592,
+              "speed_kph": 45.1683853027464,
+              "stopped": false,
+              "route": "1136:1"
+            }
+          ],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 1,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "no_explicit_future_meter_in_current_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                3732
+              ]
+            }
+          }
+        },
+        "10646": {
+          "physical_inventory": 6,
+          "physical_stopped": 0,
+          "inventory_before_head": 6,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            74,
+            238,
+            1694,
+            1746,
+            2143,
+            2616
+          ],
+          "known_upstream_inventory": 2,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "121": 2
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 2317,
+              "link_no": 121,
+              "lane_no": 1,
+              "position_m": 189.707257532278,
+              "speed_kph": 63.7511919642284,
+              "stopped": false,
+              "route": "1135:2"
+            },
+            {
+              "veh_no": 3172,
+              "link_no": 121,
+              "lane_no": 1,
+              "position_m": 161.333488729554,
+              "speed_kph": 61.5401497107049,
+              "stopped": false,
+              "route": "1135:2"
+            }
+          ],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 28,
+          "scoped_unknown_stopped": 3,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 14,
+              "stopped": 0,
+              "vehicle_ids": [
+                3625,
+                3644,
+                3672,
+                3906,
+                3935,
+                3989,
+                4003,
+                4023,
+                4046,
+                4106,
+                4133,
+                4134,
+                4186,
+                4211
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 14,
+              "stopped": 3,
+              "vehicle_ids": [
+                2753,
+                2870,
+                2912,
+                3019,
+                3173,
+                3175,
+                3260,
+                3300,
+                3312,
+                3316,
+                3319,
+                3359,
+                3427,
+                3562
+              ]
+            }
+          }
+        },
+        "10644": {
+          "physical_inventory": 9,
+          "physical_stopped": 0,
+          "inventory_before_head": 9,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            3176,
+            3212,
+            3218,
+            3228,
+            3291,
+            3354,
+            3381,
+            3403,
+            3420
+          ],
+          "known_upstream_inventory": 21,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "69": 21
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3446,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1728.56576698592,
+              "speed_kph": 41.0603249846644,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3475,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1687.03943558661,
+              "speed_kph": 43.0926050898638,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3476,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1614.92709876585,
+              "speed_kph": 40.5340796201244,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3546,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1241.53866976642,
+              "speed_kph": 36.2009385710903,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3563,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1511.3722096108,
+              "speed_kph": 45.9360707015591,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3586,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1413.69414867518,
+              "speed_kph": 42.4678321537917,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3610,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1212.31782806871,
+              "speed_kph": 34.0864244743293,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3668,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1196.87101895972,
+              "speed_kph": 31.5527318966307,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3731,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1127.62455975258,
+              "speed_kph": 39.825372339241,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3788,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1069.2957702762,
+              "speed_kph": 46.0999361711573,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3794,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1014.42337422901,
+              "speed_kph": 42.4354442168186,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3796,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 955.700146242346,
+              "speed_kph": 41.1529280317838,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3797,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 703.828113043001,
+              "speed_kph": 33.5581431736781,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3897,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 787.467201117098,
+              "speed_kph": 44.5011204209445,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3911,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 692.609533871393,
+              "speed_kph": 44.3306391693033,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 3928,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 645.936716704904,
+              "speed_kph": 40.1081459277268,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 4024,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 457.807346206045,
+              "speed_kph": 41.0057021912666,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 4030,
+              "link_no": 69,
+              "lane_no": 4,
+              "position_m": 485.745054012869,
+              "speed_kph": 43.26759986038,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 4114,
+              "link_no": 69,
+              "lane_no": 4,
+              "position_m": 234.041952634519,
+              "speed_kph": 40.8979894297836,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 4117,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 247.284920571079,
+              "speed_kph": 41.5459654095924,
+              "stopped": false,
+              "route": "1134:1"
+            },
+            {
+              "veh_no": 4187,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 67.0193131763225,
+              "speed_kph": 33.2542509700449,
+              "stopped": false,
+              "route": "1134:1"
+            }
+          ],
+          "scoped_known_other_meter_count": 7,
+          "scoped_unknown_count": 4,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                4205
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 3,
+              "stopped": 0,
+              "vehicle_ids": [
+                3597,
+                3626,
+                4031
+              ]
+            }
+          }
+        },
+        "10639": {
+          "physical_inventory": 0,
+          "physical_stopped": 0,
+          "inventory_before_head": 0,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [],
+          "known_upstream_inventory": 7,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "69": 7
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3637,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 1363.73083103791,
+              "speed_kph": 34.1515786491896,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 3673,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 1233.3130684761,
+              "speed_kph": 39.6519161402444,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 3847,
+              "link_no": 69,
+              "lane_no": 1,
+              "position_m": 686.494699777924,
+              "speed_kph": 34.6010280761893,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 3875,
+              "link_no": 69,
+              "lane_no": 2,
+              "position_m": 774.385144282084,
+              "speed_kph": 40.6533198260403,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 3889,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 801.628654222118,
+              "speed_kph": 42.2420239554239,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 3998,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 525.157154562832,
+              "speed_kph": 40.5063915764361,
+              "stopped": false,
+              "route": "1134:3"
+            },
+            {
+              "veh_no": 4107,
+              "link_no": 69,
+              "lane_no": 3,
+              "position_m": 221.396443034153,
+              "speed_kph": 33.457801650152,
+              "stopped": false,
+              "route": "1134:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 21,
+          "scoped_unknown_count": 4,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 1,
+              "stopped": 0,
+              "vehicle_ids": [
+                4205
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 3,
+              "stopped": 0,
+              "vehicle_ids": [
+                3597,
+                3626,
+                4031
+              ]
+            }
+          }
+        },
+        "10681": {
+          "physical_inventory": 0,
+          "physical_stopped": 0,
+          "inventory_before_head": 0,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [],
+          "known_upstream_inventory": 0,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {},
+          "known_upstream_vehicles": [],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 27,
+          "scoped_unknown_stopped": 3,
+          "scoped_unknown_by_reason": {
+            "missing_or_nonstatic_route": {
+              "count": 14,
+              "stopped": 0,
+              "vehicle_ids": [
+                3625,
+                3644,
+                3672,
+                3906,
+                3935,
+                3989,
+                4003,
+                4023,
+                4046,
+                4106,
+                4133,
+                4134,
+                4186,
+                4211
+              ]
+            },
+            "no_explicit_future_meter_in_current_route": {
+              "count": 13,
+              "stopped": 3,
+              "vehicle_ids": [
+                2753,
+                2870,
+                2912,
+                3019,
+                3173,
+                3175,
+                3260,
+                3300,
+                3316,
+                3319,
+                3359,
+                3427,
+                3562
+              ]
+            }
+          }
+        },
+        "10490": {
+          "physical_inventory": 1,
+          "physical_stopped": 0,
+          "inventory_before_head": 1,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            3654
+          ],
+          "known_upstream_inventory": 1,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "129": 1
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3664,
+              "link_no": 129,
+              "lane_no": 1,
+              "position_m": 295.104031121717,
+              "speed_kph": 44.1641910146866,
+              "stopped": false,
+              "route": "1136:3"
+            }
+          ],
+          "scoped_known_other_meter_count": 14,
+          "scoped_unknown_count": 4,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {
+            "no_explicit_future_meter_in_current_route": {
+              "count": 4,
+              "stopped": 0,
+              "vehicle_ids": [
+                3520,
+                3703,
+                3732,
+                3733
+              ]
+            }
+          }
+        },
+        "10484": {
+          "physical_inventory": 3,
+          "physical_stopped": 0,
+          "inventory_before_head": 3,
+          "stopped_before_head": 0,
+          "inventory_after_head": 0,
+          "physical_vehicle_ids": [
+            1332,
+            3771,
+            3818
+          ],
+          "known_upstream_inventory": 1,
+          "known_upstream_stopped": 0,
+          "known_upstream_by_link": {
+            "31": 1
+          },
+          "known_upstream_vehicles": [
+            {
+              "veh_no": 3360,
+              "link_no": 31,
+              "lane_no": 1,
+              "position_m": 189.148629492294,
+              "speed_kph": 42.9757439333145,
+              "stopped": false,
+              "route": "1137:1"
+            }
+          ],
+          "scoped_known_other_meter_count": 0,
+          "scoped_unknown_count": 0,
+          "scoped_unknown_stopped": 0,
+          "scoped_unknown_by_reason": {}
+        }
+      }
+    }
+  },
+  "full_origin_helper_inventory": {
+    "found": "diagnostics/demand_sweep_origin_routes.py",
+    "scope": "Isolated input1098/1130 intervention producer, not a general full-origin routing-graph solver. It was read but not executed.",
+    "full_origin_graph_computed": false
+  },
+  "execution": {
+    "COM": 0,
+    "model": 0,
+    "VISSIM": 0,
+    "FZP_reads": 0,
+    "source_config_writes": 0
+  },
+  "source_changes": []
+}

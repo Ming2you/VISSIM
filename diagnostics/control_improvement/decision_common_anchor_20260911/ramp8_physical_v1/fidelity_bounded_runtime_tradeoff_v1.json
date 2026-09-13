@@ -1,0 +1,137 @@
+{
+  "scope": "Read-only completed recorded900 audit and runtime-policy comparison. No model, native, or FZP execution. No realtime or GNE claim.",
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\receipt.json": "c82d594d02490198856918f2ebf67befcdf94367037f39015f2caa862a413be4",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\action_000900.joint.json": "2d11b0a8b8415b9da18d2e407484a2fd6e8a7f8ea1e1744a8e2f6e37c42122b5",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\action_000900.decision_budget.json": "42917c0d0c085c41bc7749bd5dcc72d86e18aad283614fea7489de13bd92c561",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\action_000900.csv": "ee906d10de0aa340664b0977a16c1cd318ddcf837e67df06c26442b7a3df7ab2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\action_000900.json": "98051fe33dc6a0514a106f0db93f61c7275811376a48706750fc8dc957a4b38c",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\fidelity_bounded_recorded900_v2\\action_000900.joint_written.json": "797fb9491061e7d616663bcd0a6af984118caa5d59e83825090ff66266216697",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.csv": "e04292c4f6a4d19c7657a97ff2cb1a2dc43f50b10acb0cc6c5268ac6b29cda04",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_fidelity_v3.json": "06abcda991e59648b0384f36ce729334815178b04e911816be20a4da91491f1d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_fidelity_v4.json": "137879d302dac23d60583208eead49446cd4830024909d565dae1b86cbeeb371"
+  },
+  "receipt": {
+    "completed": true,
+    "elapsed_sec": 111.46612159999495,
+    "source_changes": [],
+    "exit_code": 0
+  },
+  "physical_hold": {
+    "ordered_rows_exact_to_actual900_reference": true,
+    "ordered_row_count": 213,
+    "counts_by_kind": {
+      "vsl": 66,
+      "signal": 17,
+      "signal_sg": 122,
+      "ramp_meter": 8
+    },
+    "physical_rows_sha256": "28f38e3920455c5eeaa383f5a72d673c3ac4a31fbc9adcdeaa48baaf1b7b360c",
+    "selection_status": "selected_best_observed",
+    "target_relabel_is_not_actuator_change": true
+  },
+  "observed": {
+    "common_price_wall_sec": 61.026744399991,
+    "model_setup_wall_sec": 2.6038942000013776,
+    "actual_hold_prediction_and_validation_wall_sec_included_in_common": 6.2692072999925585,
+    "candidate_wall_sec": 42.8654561000003,
+    "reserve": {
+      "seconds": 30.0,
+      "search_time_budget_sec": 9.54508939999505,
+      "search_stop": {
+        "kind": "search_time_budget",
+        "phase": "search",
+        "message": "Search reserve boundary reached; final audit remains"
+      },
+      "same_total_time_budget": true,
+      "decision_time_remaining_sec": 39.54508939999505,
+      "effective_time_budget_sec": 39.54508939999505
+    },
+    "search_logical_evaluations": 0,
+    "accepted_updates": [],
+    "final_logical_evaluations": 24,
+    "final_complete_owners": 0,
+    "final_first_owner": "FW_W",
+    "final_first_owner_domain_count": 63,
+    "gap": null,
+    "error": {
+      "kind": "decision_deadline",
+      "phase": "final_check",
+      "message": "Whole decision deadline: parallel_response_wait"
+    },
+    "schedule": {
+      "lookahead": 8,
+      "scopes": 2,
+      "batches": 4,
+      "requested_responses": 32,
+      "endpoint_calls": 26,
+      "prepared_reads": 24,
+      "physical_checks": 42,
+      "wall_sec": 18.636501000000862,
+      "phases": {
+        "search": {
+          "batches": 1,
+          "requested_responses": 8,
+          "endpoint_calls": 4,
+          "wall_sec": 3.6898381000064546
+        },
+        "final_check": {
+          "batches": 3,
+          "requested_responses": 24,
+          "endpoint_calls": 22,
+          "wall_sec": 14.946662899994408
+        }
+      },
+      "completed_batches_past_work_limit": 1,
+      "selection_or_domain_changed": false,
+      "logical_reads": 24,
+      "prefetched_distinct_actions": 27,
+      "consumed_prefetched_actions": 24,
+      "unconsumed_prefetched_actions": 3,
+      "queued_logical_reads": 8,
+      "full_domain_precomputed": false
+    },
+    "query_counters": {
+      "requests": 144,
+      "endpoint_calls": 106,
+      "cache_hits": 30,
+      "parallel_submitted": 114,
+      "parallel_completed": 106,
+      "query_wall_sec": 73.97164230000635,
+      "worker_task_wall_sec_sum": 468.9112869999808,
+      "owned_workers_alive": []
+    }
+  },
+  "policy": {
+    "chosen": "joint_config_fidelity_v3.json: whole wall disabled; candidate120/restoration45,max8; lookahead8/reserve30",
+    "reason": "Preserve about90s search plus30s final audit inside each120s candidate after common-price work; first congested short closed loop is a physical-effect experiment.",
+    "rejected_for_this_native_run": "No additional reserve10 recorded/model repeat. Keep v4 whole120 results separately.",
+    "finite_reserve10_counterfactual_search_sec": 29.54508939999505,
+    "counterfactual_scope": "Arithmetic at the same game-entry time only, not a measured run or guaranteed action change.",
+    "existing_v1_action_correction": "fidelity_bounded_recorded900_v1 changed SC5, not SC108; 9 signal/SG rows differ from actual900 reference.",
+    "limitations": "Configured150s control interval is retained in simulation; whole-wall-disabled decisions do not establish realtime execution. Full19 gaps can remain null."
+  },
+  "common_price_reuse_review": [
+    {
+      "status": "already_present",
+      "opportunity": "One common field reused across all leader candidates; same exact reference action in the78-action price batch is a cache hit; fast NP seeds reuse captured price responses with zero new endpoint calls."
+    },
+    {
+      "status": "already_present",
+      "opportunity": "Price command evidence cache:213 requests,134 hits,79 writer checks. The77 selected probes plus reference span the declared full-rank tangent basis; fewer probes would change the estimator unless a separate exact proof permits it."
+    },
+    {
+      "status": "not_safe_without_new_equivalence_proof",
+      "opportunity": "Current-state physical response reused after NP/NUF target-only retargeting is the smallest possible additional endpoint reuse: reference→refreshed NUF→candidate cap have same written commands but different full-action tokens. Current full-action cache correctly treats them separately. Any future reuse must prove all physical operands are target-independent, regenerate full action-bound response/evidence, and retain exact raw response/value comparisons."
+    },
+    {
+      "status": "not_exact_across_decisions",
+      "opportunity": "Reusing the fitted common price field at the next150s decision is invalid under current contracts: actual state, clock, forecast, NUF initialization, and held anchor can change. Identical written commands alone are insufficient."
+    },
+    {
+      "status": "bounded_expected_gain",
+      "opportunity": "Commonprice progress:78 action rows at14.579637s; price cache completion61.450052s. Most of this46.870415s interval is the existing parallel response/validation batch. Removing one or two target-only repeat endpoints cannot eliminate this full-rank cost; no such speedup is claimed here."
+    }
+  ],
+  "source_changes": []
+}

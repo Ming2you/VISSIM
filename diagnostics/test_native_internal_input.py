@@ -52,6 +52,27 @@ class NativeInputTests(unittest.TestCase):
         self.assertAlmostEqual(spec['inputs']['1091']['minimum_approach_distance_m'],459.796362289654)
         self.assertEqual((state._control_area_ledger.entered_veh,state._control_area_ledger.ttd_veh,state._control_area_ledger.event_count),(0,0,0))
 
+    def test_capture_actual_generation_limit_backlog_and_off_exact(self):
+        from diagnostics.test_route_choice_corridor import resource_capture_pair,assert_resource_capture_exact
+        from unittest.mock import patch
+        from src.models import urban_queue_model as uqm
+        cfg,seed,_,_=self.fixture();target='in_SC1_E'
+        index=seed.native_internal_input_state['last_step']+1
+        left,right=resource_capture_pair(seed,cfg,index)
+        before=pickle.dumps(seed)
+        with patch.object(uqm,'_effective_available_space',return_value=.1):
+            a=native.advance(left,None,DemandStep({}, {}, {}),cfg,index)
+            b=native.advance(right,None,DemandStep({}, {}, {}),cfg,index)
+        self.assertEqual(a,b);assert_resource_capture_exact(self,left,right)
+        row=next(r for r in right._control_area_ledger.response()['resource_allocations']
+                 if 'input:internal:1091' in r['accepted_by_source_veh'])
+        self.assertEqual(row['kind'],'native_generation_receiving')
+        self.assertEqual(row['resource'],'storage:'+target)
+        self.assertEqual((row['available_veh'],row['accepted_by_source_veh']),(.1,{'input:internal:1091':.1}))
+        self.assertGreater(b['native_internal_input_step']['1091']['unadmitted_demand_veh'],0.)
+        self.assertEqual(pickle.dumps(seed),before)
+        right._control_area_ledger.assert_stocks(area_runtime.model_inventory(right,cfg))
+
     def test_accepted_generation_adds_inventory_without_boundary_entry_and_pairs_buffers(self):
         cfg,state,_,_=self.fixture()
         target='in_SC1_E';ledger=state._control_area_ledger

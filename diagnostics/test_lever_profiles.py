@@ -162,6 +162,8 @@ class LeverProfileTests(unittest.TestCase):
         mock = '''
 Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
+Dim runtimeRampAmberSec
+runtimeRampAmberSec = RAMP_AMBER_SEC
 Dim controllerName, controlStartSec, simPeriod, stateLogIntervalSec, controlInterval
 Dim Vissim, rampGreen, held, RW_RAMP_METER_SCS, signalTraceSimSec, sigPhaseGreen
 controllerName = "diagnostic-ramp-profile"
@@ -212,6 +214,8 @@ Function NextIncidentTransitionAfter(sec)
 End Function
 Sub RunContinuousTo(sec)
 End Sub
+Sub RecordStartupSimulationProgress()
+End Sub
 Function DictValue(d, key, fallback)
     If d.Exists(key) Then
         DictValue = d(key)
@@ -246,8 +250,10 @@ RunEventContinuousMode
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "ramp_event_mock.vbs"
             path.write_text("\n".join(extracted) + "\n" + mock, encoding="utf-16")
-            result = subprocess.run(["cscript.exe", "//nologo", str(path)], capture_output=True, text=True)
+            result = subprocess.run(["cscript.exe", "//nologo", str(path)], capture_output=True, text=True,
+                                    encoding='mbcs', errors='replace')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stderr, '')
         lines = result.stdout.splitlines()
         self.assertEqual([line for line in lines if line.startswith("DECISION=")], ["DECISION=1", "DECISION=900"])
         self.assertEqual([line for line in lines if line.startswith("NATIVE=")], ["NATIVE=1", "NATIVE=900", "NATIVE=920"])

@@ -10,7 +10,7 @@ from copy import deepcopy
 import json
 import math
 
-from evaluation.controllers.control_area_objective import emit_transfer
+from evaluation.controllers.control_area_objective import emit_transfer, get_ledger
 from evaluation.controllers.projection_support import complete_records
 
 EPS=1e-8
@@ -178,6 +178,8 @@ def advance(state,cfg,step):
     if not inputs:return {}
     from src.models import urban_queue_model as uqm
     local=state.native_input_prehead_state
+    ledger=get_ledger(state)
+    capture=ledger is not None and ledger.captures_response
     if step!=local['last_step']+1 or local['finished_step']!=local['last_step']:
         raise ValueError('Native pre-head requires sequential completed candidate steps')
     local['last_step']=step;local['wn_actual']={};additions=[]
@@ -190,7 +192,11 @@ def advance(state,cfg,step):
                     due=_due(state,cfg,spec['origin'],step,spec['decision_to_head_m'])))
             cohort['vehicles']=0.;continue
         movement=spec['branches'][cohort['route']]['movement'];queue=state.urban_movement_queue.get(movement,0.)
-        n=min(cohort['vehicles'],max(0.,uqm._queue_max(cfg,movement,cfg.network.urban_movements[movement])-queue))
+        available=max(0.,uqm._queue_max(cfg,movement,cfg.network.urban_movements[movement])-queue)
+        n=min(cohort['vehicles'],available)
+        if capture:
+            ledger.record_resource_allocation('native_prehead_queue_receiving', 'movement:'+movement,
+                available, {'input:'+cohort['input']+':route:'+str(cohort['route']):n})
         if not n:continue
         state.urban_link_storage[spec['origin']]+=n;state.urban_movement_queue[movement]=queue+n
         emit_transfer(state,cfg,'storage:'+spec['origin'],'movement:'+movement,n,preserve_area=True)
@@ -236,6 +242,8 @@ def finish_step(state,control,cfg,step):
     if not inputs:return {}
     from src.models import urban_queue_model as uqm
     local=state.native_input_prehead_state;additions=[];served=overdraw=0.
+    ledger=get_ledger(state)
+    capture=ledger is not None and ledger.captures_response
     if local['last_step']!=step or local['finished_step']!=step-1:
         raise ValueError('Native first-head service requires one finish per step')
     for no,row in inputs.items():
@@ -246,12 +254,23 @@ def finish_step(state,control,cfg,step):
         remaining=max(0.,budget-consumed);overdraw+=max(0.,consumed-budget)
         blocked=[c for c in local['cohorts'] if c['input']==no and c['stage']=='queue' and not c['passed_first']]
         total=sum(c['vehicles'] for c in blocked);accepted=min(total,remaining)
+        accepted_sources = {} if capture else None
         for cohort in blocked:
             n=accepted*cohort['vehicles']/total if total else 0.
+            if capture:
+                key='input:'+no+':movement:'+spec['left_movement']
+                accepted_sources[key]=accepted_sources.get(key,0.)+n
             if not n:continue
             cohort['vehicles']-=n;additions.append(dict(cohort,vehicles=n,passed_first=True,
                 ready=_due(state,cfg,spec['origin'],step,spec['interhead_distance_m'])))
         served+=accepted
+        if capture:
+            # Only the left subset is constrained by this residual allocator.
+            # W/N service was accepted elsewhere; its excess over the inherited
+            # reference remains existing_wn_budget_overdraw_veh, not a certified
+            # shared-head constraint (post-head stock/timing remain unresolved).
+            ledger.record_resource_allocation('residual_tag_service',
+                spec['origin']+':'+spec['first_phase'], remaining, accepted_sources)
     local['cohorts']=[c for c in local['cohorts'] if c['vehicles']>0.]+additions
     local['first_head_service_veh']+=served;local['existing_wn_budget_overdraw_veh']+=overdraw
     local['finished_step']=step

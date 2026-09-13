@@ -180,16 +180,22 @@ class SignalGroupRowTests(unittest.TestCase):
         """계획이 SG 를 붙여 두지 않은 현시에 녹색을 주면 죽어야 한다.
 
         조용히 넘어가면 러너는 주기가 맞는 CSV 를 받고, 녹색을 받기로 한 이동류는 창
-        하나 없이 통째로 적색이 된다. 실 계획 15 SC 가 지금 두 현시뿐이므로, p3 에
-        녹색을 주는 것은 그 상황을 정확히 재현한다.
+        하나 없이 통째로 적색이 된다. 현재 계획의 실제 live set에서 벗어나는 명령을
+        만든다. SC16은 p1/p2/p3이 실제 live여서 고정된 세 현시 명령은 반례가 아니다.
         """
         for sc_no in sorted(self.plan["controllers"], key=int):
+            greens = plan_greens(self.plan, int(sc_no))
+            dead = [phase for phase, green in greens.items() if green == 0.0]
+            if dead:
+                greens[dead[0]] = 1.0
+            else:
+                greens[next(iter(greens))] = 0.0
             with self.subTest(sc=sc_no):
                 with self.assertRaises(signal_group_plan.SignalGroupPlanError):
                     adapter.signal_group_action_rows(
                         self.plan,
                         sc_no=int(sc_no),
-                        phase_greens={"p1": 40.0, "p2": 40.0, "p3": 30.0, "p4": 0.0},
+                        phase_greens=greens,
                         offset=0.0,
                         metadata="ok",
                     )

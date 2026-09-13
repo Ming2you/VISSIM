@@ -1,0 +1,15 @@
+{
+  "schema": "pending-source-edit/v2",
+  "applied": false,
+  "path": "evaluation\\controllers\\joint_owner_neighbors.py",
+  "source_file_sha256": "08a9681697e604322a606612c69407ccc55f36f7323be16da7f7497a51df4b76",
+  "old_text_sha256": "08a9681697e604322a606612c69407ccc55f36f7323be16da7f7497a51df4b76",
+  "new_text_sha256": "ca680eaa44c1b530ecc0f4a5738025c7f7218bb7fc2a1f5ba4a721e0cb46644e",
+  "replacements": [
+    {
+      "before": "        if context_fingerprint(query_context) != token or context_fingerprint(context) != token:\n",
+      "after": "        if (context_fingerprint(query_context) != token\n                or (query_context is not context and context_fingerprint(context) != token)):\n"
+    }
+  ],
+  "scope": "Pure repeated context hashing reduction; all before/after live-value validation remains. No model/domain/score changes. Not installed while live game is active."
+}

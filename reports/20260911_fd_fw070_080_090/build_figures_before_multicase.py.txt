@@ -1,0 +1,258 @@
+"""Offline FD/MFD for the completed NC fw070/urban050 run; no simulation imports."""
+from pathlib import Path
+import hashlib
+import json
+import os
+import re
+import sys
+import time
+import xml.etree.ElementTree as ET
+
+ROOT = Path(__file__).resolve().parents[2]
+OUT = Path(__file__).resolve().parent
+import numpy as np
+import pandas as pd
+sys.path.append(str(ROOT / '.review-deps'))
+os.environ['MPLCONFIGDIR'] = str(OUT / '.mplconfig')
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+
+RUN = ROOT / 'evaluation/runs/fast_nc_fw070_urban050_s13_v1'
+RESULT = ROOT / 'diagnostics/demand_sweep/fw070_urban050/results'
+NETWORK = ROOT / 'diagnostics/fixed_beta300v3_network_arms_flat_v1/baseline.inpx'
+MEMBERSHIP = ROOT / 'diagnostics/control_area_membership.json'
+PN = ROOT / 'outputs/pn_boundary_turns_v2_20260907.json'
+GEO = ROOT / 'evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21.vbs'
+FZP = RUN / 'vissim_eval/baseline_001.fzp'
+
+def load(p):
+    return json.loads(p.read_text(encoding='utf-8-sig'))
+
+def sha(p):
+    with p.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+def save(p, obj):
+    p.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+def mean_windows(a, width):
+    # 1-second trapezoids, including the empty t=0 initial state.
+    integrals = (a[:-1] + a[1:]) * .5
+    return integrals.reshape(5400 // width, width, *a.shape[1:]).mean(axis=1)
+
+def main():
+    started = time.perf_counter()
+    manifest, old, ledger = load(RUN / 'run.json'), load(RESULT / 'summary.json'), load(MEMBERSHIP)
+    assert manifest['completed'] and manifest['exit_code'] == 0 and manifest['terminal_sec'] == 5400
+    assert manifest['seed'] == 13 and not manifest['owned_native_alive']
+    assert sha(NETWORK) == ledger['network']['sha256']
+    assert sha(FZP) == old['fzp']['file_sha256']
+    xml = ET.parse(NETWORK)
+    elements = {int(x.get('no')): x for x in xml.findall('.//links/link')}
+    lengths, lanes = {}, {}
+    for no, x in elements.items():
+        pts = np.array([[float(p.get(k, 0)) for k in ('x', 'y', 'zOffset')]
+                        for p in x.findall('./geometry/linkPolyPts/linkPolyPoint')])
+        lengths[no] = np.linalg.norm(np.diff(pts, axis=0), axis=1).sum()
+        lanes[no] = len(x.findall('./lanes/lane'))
+        assert lengths[no] > 0 and lanes[no] > 0
+    text = GEO.read_text(encoding='utf-8-sig')
+    address, bounds, geometry = {}, {}, []
+    for di, direction in enumerate(('E', 'W')):
+        def constant(name):
+            return np.array([float(x) for x in re.search(r'RW_FW_' + direction + '_' + name + r' = "([^"]+)"', text)[1].split(',')])
+        links = constant('CHAIN_LINKS').astype(int)
+        offsets = constant('CHAIN_OFFSETS_M')
+        bounds[direction] = constant('SEG_BOUNDS')
+        for no, offset in zip(links, offsets):
+            address[int(no)] = (di, float(offset))
+        for cell, (lo, hi) in enumerate(zip(bounds[direction][:-1], bounds[direction][1:])):
+            pieces = [(int(no), max(0, min(hi, off + lengths[no]) - max(lo, off))) for no, off in zip(links, offsets)]
+            lane_km = sum(length * lanes[no] for no, length in pieces) / 1000
+            geometry.append(dict(direction=direction, cell=cell, start_m=lo, end_m=hi,
+                                 lane_km=lane_km, effective_lanes=lane_km / ((hi-lo)/1000)))
+    freeway = set(address)
+    inside = {int(x) for x in ledger['inside_links']}
+    ramps = {int(x['connector']) for x in ledger['ramp_checks']}
+    core = {int(x) for x in ledger['pn_internal_links']}
+    for turn in load(PN)['turns']:
+        no = int(turn['connector'])
+        if turn['class'] in ('internal', 'inflow'):
+            core.add(no)
+        else:
+            core.discard(no)
+    core = (core & inside) - freeway - ramps
+    urban = inside - freeway - ramps
+    assert core <= urban and freeway <= inside and len(inside) == 635
+    sets = {'pn_core': core, 'omega_urban': urban, 'ramp_inside': ramps & inside,
+            'freeway': freeway, 'omega': inside}
+    scope = {name: dict(links=sorted(ids), link_count=len(ids),
+                        centerline_km=sum(lengths[x] for x in ids)/1000,
+                        lane_km=sum(lengths[x]*lanes[x] for x in ids)/1000) for name, ids in sets.items()}
+    save(OUT / 'geometry_and_scope.json', dict(scopes=scope, freeway_cells=geometry))
+    pd.DataFrame(geometry).to_csv(OUT / 'freeway_geometry.csv', index=False)
+    n = np.zeros((5401, 42)); speed = n.copy()
+    reference_n = n.copy(); reference_speed = n.copy()
+    outside_domain = np.zeros((5401,2))
+    stock = np.zeros((5401, len(sets))); production = stock.copy()
+    seen = np.zeros(5401, dtype=bool)
+    rows = 0
+    last_sec, last_ids = 0, set()
+    with FZP.open('rb') as stream:
+        for skip, line in enumerate(stream):
+            if line.startswith(b'$VEHICLE:'):
+                break
+    print('Reading completed FZP once for every 1-second frame.', flush=True)
+    dtype = {'sec': 'float64', 'no': 'int64', 'link': 'int64', 'lane': 'int16', 'pos': 'float64', 'speed': 'float64'}
+    for frame in pd.read_csv(FZP, sep=';', skiprows=skip+1, header=None, encoding='cp949',
+                             usecols=[0,1,2,3,4,6], names=['sec','no','link','lane','pos','poslat','speed','tm','delay'],
+                             dtype=dtype, chunksize=500000):
+        t = frame.sec.to_numpy().astype(int)
+        assert (frame.sec.to_numpy() == t).all() and t.min() >= 1 and t.max() <= 5400
+        assert (np.diff(t) >= 0).all() and t[0] >= last_sec
+        assert not frame.duplicated(['sec','no']).any()
+        if t[0] == last_sec:
+            assert not last_ids.intersection(frame.no.to_numpy()[t == last_sec])
+        tail_ids = set(frame.no.to_numpy()[t == t[-1]])
+        last_ids = last_ids | tail_ids if t[-1] == last_sec else tail_ids
+        last_sec = int(t[-1])
+        assert np.isfinite(frame.speed).all() and (frame.speed >= 0).all()
+        assert (frame.lane <= frame.link.map(lanes)).all()
+        seen[t] = True
+        rows += len(frame)
+        for j, ids in enumerate(sets.values()):
+            chosen = frame.link.isin(ids).to_numpy()
+            stock[:,j] += np.bincount(t[chosen], minlength=5401)
+            production[:,j] += np.bincount(t[chosen], weights=frame.speed.to_numpy()[chosen], minlength=5401)
+        for no, (di, offset) in address.items():
+            chosen = frame.link.to_numpy() == no
+            pos = frame.pos.to_numpy()[chosen] + offset
+            c = np.clip(np.searchsorted(bounds['EW'[di]], pos, side='right')-1, 0, 20) + 21*di
+            index = t[chosen]*42 + c
+            values = frame.speed.to_numpy()[chosen]
+            nonnegative = pos >= 0
+            reference_n += np.bincount(index[nonnegative], minlength=n.size).reshape(n.shape)
+            reference_speed += np.bincount(index[nonnegative], weights=values[nonnegative], minlength=n.size).reshape(n.shape)
+            valid = nonnegative & (pos <= bounds['EW'[di]][-1])
+            n += np.bincount(index[valid], minlength=n.size).reshape(n.shape)
+            speed += np.bincount(index[valid], weights=values[valid], minlength=n.size).reshape(n.shape)
+            outside_domain[:,0] += np.bincount(t[chosen][~nonnegative], minlength=5401)
+            outside_domain[:,1] += np.bincount(t[chosen][pos > bounds['EW'[di]][-1]], minlength=5401)
+    assert rows == old['fzp']['rows'] and seen[1:].all()
+    previous = pd.read_csv(RESULT / 'area_timeseries.csv')
+    assert np.array_equal(stock[1:,4], previous.inside_vehicles)
+    assert np.array_equal(stock[:,1]+stock[:,2]+stock[:,3], stock[:,4])
+    assert np.array_equal(n.sum(axis=1)+outside_domain.sum(axis=1), stock[:,3])
+    ttt = ((stock[:-1,4]+stock[1:,4])*.5).sum()/3600
+    assert abs(ttt-old['ttt_veh_h']) < 1e-8
+    snapshots = pd.read_csv(RESULT / 'fw_cells_30s.csv')
+    for r in snapshots.itertuples():
+        col = (0 if r.direction == 'E' else 21) + r.cell
+        assert reference_n[r.sec,col] == r.n
+        if r.n:
+            assert abs(reference_speed[r.sec,col]/r.n-r.mean_speed_kph) < 1e-8
+    np.savez_compressed(OUT/'aggregates_1s.npz', freeway_count=n, freeway_speed_sum=speed,
+                        scope_count=stock, scope_speed_sum=production, scope_names=np.array(list(sets)))
+    fdrows = []
+    lane_km = np.array([g['lane_km'] for g in geometry])
+    for width in (30,60,150):
+        nn, vv = mean_windows(n,width), mean_windows(speed,width)
+        for b in range(len(nn)):
+            for i,g in enumerate(geometry):
+                fdrows.append(dict(window_sec=width,start_sec=b*width,end_sec=(b+1)*width,
+                                   minute=(b+.5)*width/60,direction=g['direction'],cell=g['cell'],
+                                   n_veh=nn[b,i],k_veh_km_lane=nn[b,i]/lane_km[i],
+                                   q_veh_h_lane=vv[b,i]/lane_km[i],
+                                   speed_kph=vv[b,i]/nn[b,i] if nn[b,i] else np.nan))
+    fd = pd.DataFrame(fdrows)
+    fd.to_csv(OUT/'freeway_fd_points.csv',index=False)
+    mfrows = []
+    for width in (30,150):
+        nn,vv = mean_windows(stock,width),mean_windows(production,width)
+        for b in range(len(nn)):
+            for j,name in enumerate(sets):
+                mfrows.append(dict(scope=name,window_sec=width,start_sec=b*width,end_sec=(b+1)*width,
+                                   minute=(b+.5)*width/60,n_veh=nn[b,j],production_veh_km_h=vv[b,j],
+                                   k_veh_km_lane=nn[b,j]/scope[name]['lane_km'],
+                                   q_veh_h_lane=vv[b,j]/scope[name]['lane_km'],
+                                   speed_kph=vv[b,j]/nn[b,j] if nn[b,j] else np.nan))
+    mfd = pd.DataFrame(mfrows)
+    mfd.to_csv(OUT/'urban_mfd_points.csv',index=False)
+    stats = {}
+    for name in ('pn_core','omega_urban'):
+        a = mfd[(mfd.scope == name)&(mfd.window_sec == 150)]
+        peak = a.loc[a.production_veh_km_h.idxmax()]
+        maxn = a.loc[a.n_veh.idxmax()]
+        stats[name] = dict(peak_observed_production=peak.to_dict(),maximum_accumulation=maxn.to_dict(),last_window=a.iloc[-1].to_dict())
+    save(OUT/'validation.json',dict(status='data_verified_figures_pending_visual_review',run=str(RUN),seed=13,
+         source_sha256={str(p.relative_to(ROOT)):sha(p) for p in (Path(__file__),FZP,NETWORK,MEMBERSHIP,PN,GEO,RUN/'run.json',RESULT/'summary.json')},
+         fzp_rows=rows,all_5400_frames=True,omega_stock_exact_all_seconds=True,old_30s_fw_snapshots_exact=True,
+         unique_vehicle_ids_per_frame_including_chunk_boundaries=True,
+         geometry_length_basis='XML 3D centerline polyline; freeway 3D=2D. Exact per-cell physical-link overlap times XML lane count.',
+         fd_spatial_domain='Canonical chain bounds; records below0 or beyond final bound excluded, not clipped into density cells. Urban MFD retains whole-link scope.',
+         fd_excluded_vehicle_seconds_below0=float(outside_domain[:,0].sum()),
+         fd_excluded_vehicle_seconds_beyond_end=float(outside_domain[:,1].sum()),
+         omega_ttt_veh_h=ttt,urban_stats=stats,elapsed_sec=time.perf_counter()-started,
+         native_removals=old['native_removals'],unknown_inside_disappearances=old['unknown_inside_disappearances'],
+         no_simulation_or_controller_changes=True))
+    render(fd,mfd)
+    print(json.dumps(dict(status='rendered',rows=rows,scope_counts={k:v['link_count'] for k,v in scope.items()},
+                         stats=stats,elapsed_sec=time.perf_counter()-started),ensure_ascii=False),flush=True)
+
+def render(fd,mfd):
+    plt.rcParams.update({'font.family':'Malgun Gothic','font.size':11,'axes.unicode_minus':False,
+                         'axes.spines.top':False,'axes.spines.right':False,'axes.titleweight':'bold',
+                         'axes.labelcolor':'#27313b','text.color':'#27313b','axes.edgecolor':'#aab2b8',
+                         'grid.color':'#e3e7ea','grid.linewidth':.7})
+    norm=Normalize(0,90)
+    cmap=plt.get_cmap('viridis')
+    def finish(fig,name):
+        fig.savefig(OUT/f'{name}.png',dpi=190,bbox_inches='tight',facecolor='white')
+        fig.savefig(OUT/f'{name}.svg',bbox_inches='tight',facecolor='white')
+        fig.savefig(OUT/f'{name}.pdf',bbox_inches='tight',facecolor='white')
+        plt.close(fig)
+    fig,axes=plt.subplots(1,2,figsize=(13.4,5.6),sharex=True,sharey=True,layout='constrained')
+    data=fd[fd.window_sec == 60]
+    for ax,direction,title in zip(axes,('E','W'),('동행 FW_E','서행 FW_W')):
+        a=data[data.direction == direction]
+        ax.scatter(a.k_veh_km_lane,a.q_veh_h_lane,c=a.minute,cmap=cmap,norm=norm,s=13,alpha=.62,linewidths=0,rasterized=True)
+        ax.set(title=title,xlabel='밀도 k [veh/km/lane]',xlim=(0,data.k_veh_km_lane.max()*1.06),
+               ylim=(0,data.q_veh_h_lane.max()*1.07))
+        ax.grid(True);ax.set_axisbelow(True)
+    axes[0].set_ylabel('공간 평균 유량 q [veh/h/lane]')
+    fig.colorbar(plt.cm.ScalarMappable(norm=norm,cmap=cmap),ax=axes,shrink=.8,label='시뮬레이션 시간 [min]')
+    fig.suptitle('고속도로 70% · 도시 50% — 관측 고속도로 FD\n무제어 · seed 13 · 0–5400초 | 점 하나 = 약 513m 구간 × 60초 평균',fontsize=14)
+    finish(fig,'freeway_fd')
+    fig,axes=plt.subplots(1,2,figsize=(13.4,5.8),layout='constrained')
+    for ax,name,title in zip(axes,('pn_core','omega_urban'),('정지선 경계 protected network','Ω 도시부: IC 접근·연결도로 포함')):
+        cloud=mfd[(mfd.scope == name)&(mfd.window_sec == 30)]
+        a=mfd[(mfd.scope == name)&(mfd.window_sec == 150)]
+        ax.scatter(cloud.n_veh,cloud.production_veh_km_h/1000,c='#9aa5b1',s=16,alpha=.32,label='30초 평균')
+        ax.plot(a.n_veh,a.production_veh_km_h/1000,color='#78838c',lw=.85,alpha=.5)
+        ax.scatter(a.n_veh,a.production_veh_km_h/1000,c=a.minute,cmap=cmap,norm=norm,s=46,edgecolor='white',linewidths=.6,label='150초 평균')
+        for row,label,offset in ((a.iloc[0],'시작',(8,9)),(a.iloc[-1],'종료',(10,8))):
+            ax.annotate(label,(row.n_veh,row.production_veh_km_h/1000),xytext=offset,textcoords='offset points',fontsize=10)
+        ax.set(title=title,xlabel='평균 차량 수 n [veh]',ylabel='주행 생산량 P [1,000 veh·km/h]',xlim=(0,None),ylim=(0,None))
+        ax.grid(True);ax.set_axisbelow(True);ax.legend(loc='lower right',frameon=False,fontsize=9)
+    fig.colorbar(plt.cm.ScalarMappable(norm=norm,cmap=cmap),ax=axes,shrink=.8,label='시뮬레이션 시간 [min]')
+    fig.suptitle('고속도로 70% · 도시 50% — 관측 도시부 MFD\n무제어 · seed 13 · 0–5400초 | 본선·진입/진출 램프 제외 · 두 패널의 축 범위는 독립',fontsize=14)
+    finish(fig,'urban_mfd')
+    # Show where the pooled freeway diagram's congested branch originates.
+    fig,axes=plt.subplots(1,2,figsize=(13.4,5.5),sharex=True,sharey=True,layout='constrained')
+    for ax,direction in zip(axes,('E','W')):
+        a=data[data.direction == direction]
+        v=a.pivot(index='cell',columns='minute',values='speed_kph').to_numpy()
+        image=ax.imshow(v,origin='lower',aspect='auto',extent=(0,90,-.5,20.5),cmap='viridis',vmin=0,vmax=120,interpolation='nearest')
+        ax.set(title=f'FW_{direction}',xlabel='시뮬레이션 시간 [min]',yticks=np.arange(0,21,2))
+    axes[0].set_ylabel('구간 번호: 0 상류 → 20 하류')
+    fig.colorbar(image,ax=axes,shrink=.8,label='구간 평균 속도 [km/h]')
+    fig.suptitle('FD 집계점의 공간·시간 위치\n같은 60초·구간 집계 | 차량이 없는 구간은 속도 미정',fontsize=14)
+    finish(fig,'freeway_speed_time')
+
+if __name__ == '__main__':
+    if '--render-only' in sys.argv:
+        render(pd.read_csv(OUT/'freeway_fd_points.csv'),pd.read_csv(OUT/'urban_mfd_points.csv'))
+    else:
+        main()

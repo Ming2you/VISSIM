@@ -180,6 +180,42 @@ class NativeRouteTests(unittest.TestCase):
         self.assertEqual(cohort['native_gate_passage_sec'],121.)
         self.assertNotEqual(initial,pickle.dumps(state))
 
+    def test_capture_native_timing_is_not_capacity_and_queue_admission_is_finite(self):
+        from evaluation.controllers.control_area_objective import ModelAreaLedger
+        from src.models import urban_queue_model as uqm
+        cfg,seed,stage=self._waiting_state()
+        origin,movement=stage['origin'],stage['movement']
+        states=[deepcopy(seed),deepcopy(seed)]
+        for state,capture in zip(states,(False,True)):
+            state._control_area_ledger=ModelAreaLedger({'storage:'+origin:{'inside':3.},'movement:'+movement:{}},capture_response=capture)
+        for step in range(15,25):
+            for state in states:
+                state._control_area_ledger.begin_response_step('urban',step*cfg.simulation.T_u_sec,(step+1)*cfg.simulation.T_u_sec)
+                routes.advance(state,cfg,step)
+        left,right=states
+        rows=right._control_area_ledger.response()['resource_allocations']
+        self.assertEqual(len(rows),10)
+        self.assertTrue(all(r['kind']=='native_timing_eligibility' for r in rows))
+        self.assertTrue(all(r['accepted_total_veh']==0. for r in rows[:-1]))
+        self.assertEqual((rows[-1]['resource'],rows[-1]['accepted_total_veh']),('SC8:SG4',3.))
+        self.assertEqual(right._control_area_ledger.event_count,0)
+        due=right.native_input_route_state['cohorts'][0]['due']
+        for state in states:
+            state.urban_movement_queue[movement]=uqm._queue_max(cfg,movement,cfg.network.urban_movements[movement])-.5
+            state._control_area_ledger.stocks['movement:'+movement]={'inside':state.urban_movement_queue[movement],'outside':0.}
+        with patch.object(routes,'_first_native_green',side_effect=AssertionError('already passed')):
+            for step in range(25,due+1):
+                for state in states:
+                    state._control_area_ledger.begin_response_step('urban',step*cfg.simulation.T_u_sec,(step+1)*cfg.simulation.T_u_sec)
+                    routes.advance(state,cfg,step)
+        self.assertEqual({k:v for k,v in vars(left).items() if k!='_control_area_ledger'},
+                         {k:v for k,v in vars(right).items() if k!='_control_area_ledger'})
+        self.assertEqual(left._control_area_ledger.stocks,right._control_area_ledger.stocks)
+        row=right._control_area_ledger.response()['resource_allocations'][-1]
+        self.assertEqual(row['kind'],'native_route_queue_receiving')
+        self.assertEqual((row['available_veh'],row['accepted_total_veh']),(.5,.5))
+        self.assertFalse(right._control_area_ledger.response()['shared_capacity_certificate'])
+
     def test_finite_existing_queue_admits_partial_and_tiny_tags_survive_gate(self):
         from src.models import urban_queue_model as uqm
         cfg,state,stage = self._waiting_state()

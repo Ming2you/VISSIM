@@ -121,7 +121,7 @@ diagnostics/summarize_vehicle_route_collector.py -text whitespace=cr-at-eol
 "evaluation/controllers/runtime_setup.py" text eol=lf whitespace=cr-at-eol
 "evaluation/controllers/sc2001_corridor.py" text eol=lf whitespace=cr-at-eol
 "evaluation/controllers/shared_approach.py" text eol=lf whitespace=cr-at-eol
-"evaluation/controllers/signal_actuation_contract.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/signal_actuation_contract.py" text eol=lf whitespace=cr-at-eol
 "evaluation/controllers/signal_group_plan.py" text eol=crlf whitespace=cr-at-eol
 "evaluation/controllers/signal_timing_oracle.py" text eol=crlf whitespace=cr-at-eol
 "evaluation/controllers/urban_flow_accounting.py" text eol=lf whitespace=cr-at-eol
@@ -602,3 +602,1550 @@ diagnostics/test_source_run_comparison.py -text whitespace=cr-at-eol
 "diagnostics/head_resources_canonical_stage_paths.json" -text whitespace=cr-at-eol
 "diagnostics/contract_v4_checkout_validation.json" -text whitespace=cr-at-eol
 "diagnostics/performance_baseline_v4.md" -text whitespace=cr-at-eol
+
+# 2026-09-13 handoff byte-preserved sources and evidence
+".gitattributes" text eol=crlf whitespace=cr-at-eol
+".gitignore" -text whitespace=cr-at-eol
+"AGENTS.md" -text whitespace=cr-at-eol
+"diagnostics/CONTROLLER_IMPROVEMENT_20260910.md" -text whitespace=cr-at-eol
+"diagnostics/STATUS_20260910_live_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/analyze_fixed_route_arm_windows.py" -text whitespace=cr-at-eol
+"diagnostics/analyze_no_control_baseline_5400.py" -text whitespace=cr-at-eol
+"diagnostics/analyze_no_control_corridors.py" -text whitespace=cr-at-eol
+"diagnostics/area_candidate_configs/n7_area_beta0.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/area_checkout_bytes_verification.md" -text whitespace=cr-at-eol
+"diagnostics/area_follower_objective_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_freeway_accounting_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_leader_objective_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/area_meter_finalization_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_phase_finalization_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_production_run_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_production_test_migration.md" -text whitespace=cr-at-eol
+"diagnostics/area_projection_coverage_635.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/area_projection_coverage_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/area_score_consumer_audit.md" -text whitespace=cr-at-eol
+"diagnostics/assemble_startup_route_comparison.py" -text whitespace=cr-at-eol
+"diagnostics/audit_area_initial_projection.py" -text whitespace=cr-at-eol
+"diagnostics/audit_area_live_actuation.py" -text whitespace=cr-at-eol
+"diagnostics/audit_controlled_head_window.py" -text whitespace=cr-at-eol
+"diagnostics/audit_controlled_lsa_coverage.py" -text whitespace=cr-at-eol
+"diagnostics/audit_corrected_area_support.py" -text whitespace=cr-at-eol
+"diagnostics/audit_diagnostic_artifact_dependencies.py" -text whitespace=cr-at-eol
+"diagnostics/audit_dynamic_area_routes.py" -text whitespace=cr-at-eol
+"diagnostics/audit_f_merge_share.py" -text whitespace=cr-at-eol
+"diagnostics/audit_freeway_route_observability.py" -text whitespace=cr-at-eol
+"diagnostics/audit_head_capacity_installation_order.py" -text whitespace=cr-at-eol
+"diagnostics/audit_lever_utilization.py" -text whitespace=cr-at-eol
+"diagnostics/audit_live_prediction_interval.py" -text whitespace=cr-at-eol
+"diagnostics/audit_meter_budget_2550.py" -text whitespace=cr-at-eol
+"diagnostics/audit_meter_finalization.py" -text whitespace=cr-at-eol
+"diagnostics/audit_movement_signal_authority.py" -text whitespace=cr-at-eol
+"diagnostics/audit_native_internal_inputs.py" -text whitespace=cr-at-eol
+"diagnostics/audit_native_sc15_clock.py" -text whitespace=cr-at-eol
+"diagnostics/audit_native_sc8_gate.py" -text whitespace=cr-at-eol
+"diagnostics/audit_native_signal_replay.py" -text whitespace=cr-at-eol
+"diagnostics/audit_nc5400_native_signals.py" -text whitespace=cr-at-eol
+"diagnostics/audit_nc5400_route_anchors.py" -text whitespace=cr-at-eol
+"diagnostics/audit_no_control_build_config.py" -text whitespace=cr-at-eol
+"diagnostics/audit_observed_nc_snapshots.py" -text whitespace=cr-at-eol
+"diagnostics/audit_observed_nc_trajectory.py" -text whitespace=cr-at-eol
+"diagnostics/audit_observer_control_pair.py" -text whitespace=cr-at-eol
+"diagnostics/audit_optimizer_consumer_alignment.py" -text whitespace=cr-at-eol
+"diagnostics/audit_prehead_profile_hotpath.py" -text whitespace=cr-at-eol
+"diagnostics/audit_sc15_source_discharge.py" -text whitespace=cr-at-eol
+"diagnostics/audit_signal_observation_smoke.py" -text whitespace=cr-at-eol
+"diagnostics/audit_signal_zero_first_interval.py" -text whitespace=cr-at-eol
+"diagnostics/audit_source_run_warmup.py" -text whitespace=cr-at-eol
+"diagnostics/audit_total_offramp_ratio.py" -text whitespace=cr-at-eol
+"diagnostics/audit_unresolved_occurrences.py" -text whitespace=cr-at-eol
+"diagnostics/audit_upstream_route_activation.py" -text whitespace=cr-at-eol
+"diagnostics/baseline_ramp_evidence_fast_nc_plan_v1.md" -text whitespace=cr-at-eol
+"diagnostics/benchmark_signal_clock_cache.py" -text whitespace=cr-at-eol
+"diagnostics/beta300_offline_live_observation_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/boundary_leg_diagnostic_readback_review.md" -text whitespace=cr-at-eol
+"diagnostics/build_control_area_membership.py" -text whitespace=cr-at-eol
+"diagnostics/build_known_wout_fixture_archive.py" -text whitespace=cr-at-eol
+"diagnostics/build_receiver_fixture_archive.py" -text whitespace=cr-at-eol
+"diagnostics/build_review_fixture_archive.py" -text whitespace=cr-at-eol
+"diagnostics/build_route_input_fixture_archive.py" -text whitespace=cr-at-eol
+"diagnostics/build_sc2001_corridor_calibration.py" -text whitespace=cr-at-eol
+"diagnostics/build_shared_service_fixture_archive.py" -text whitespace=cr-at-eol
+"diagnostics/byte_pin_checkout_dependency_audit.md" -text whitespace=cr-at-eol
+"diagnostics/calibrate_dynamic_area_routes.py" -text whitespace=cr-at-eol
+"diagnostics/calibrate_native_1092_1093.py" -text whitespace=cr-at-eol
+"diagnostics/capture_native_runtime_errors.py" -text whitespace=cr-at-eol
+"diagnostics/catalog_performance_equivalence_states.py" -text whitespace=cr-at-eol
+"diagnostics/check_fixed_candidate_response.py" -text whitespace=cr-at-eol
+"diagnostics/check_selected_open_meter_alias.py" -text whitespace=cr-at-eol
+"diagnostics/check_signal_observation_no_history.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/README.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/RESULTS.md" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/STATUS.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/VERIFIER.md" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/canonical_edit_receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/checks_closed_loop.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/checks_ramp.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/checks_signal.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/closed_loop_head_pair_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/closed_loop_head_timing_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/closed_loop_head_timing_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/command_clock.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/command_clock_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/command_clock_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/compare_timing.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/draft_writer_test.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/draft_writer_test_cscript.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/manifest.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/post_analysis_timing.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/r02_existing_startup_timing.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/ramp_head_pair_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/ramp_head_timing_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/ramp_head_timing_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/ramp_profile.json" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/ramp_profile_event.json" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/recorded_native_lsa_pair_equality.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_head_inputs_schema_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_head_pair_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_head_pair_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_head_timing_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_head_timing_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_profile.json" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/signal_profile_event.json" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/static_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_command_clock.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_compare_timing.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_native_300.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_ramp_timing_authority.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_verify_native_execution.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/test_verify_pair.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/timing_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/timing_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/verifier_command_clock_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/verifier_revision_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/verifier_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/com_execution_equivalence/verify_pair.py" -text whitespace=cr-at-eol
+"diagnostics/com_execution_startup_handoff_v1.md" -text whitespace=cr-at-eol
+"diagnostics/combined_physical_contract_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/compare_decision_preservation.py" -text whitespace=cr-at-eol
+"diagnostics/compare_joint_block_spsa.py" -text whitespace=cr-at-eol
+"diagnostics/compare_preflight_live_action.py" -text whitespace=cr-at-eol
+"diagnostics/compare_source_run.py" -text whitespace=cr-at-eol
+"diagnostics/compare_spatial_levers.py" -text whitespace=cr-at-eol
+"diagnostics/contract_v3_validation.md" -text whitespace=cr-at-eol
+"diagnostics/control_area_membership.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_area_movement_join_physical_routes.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_area_movement_join_review.md" -text whitespace=cr-at-eol
+"diagnostics/control_area_route_contract_physical_routes.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/meter_open_service_bound_review_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/meter_plateau_scope_review_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/native_clock_replay_v1/native_clock.vbs" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/native_clock_replay_v1/native_clock_sgplan.vbs" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/native_clock_replay_v1/physical_phase_authority_native.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/native_clock_replay_v1/preflight_native_open_v2.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/native_clock_replay_v1/source_native_action.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/all_pending_integration_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/all_pending_integration_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/band5_replay_command_proof.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/band5_replay_config.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/bounded_game32_abba_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/build_fidelity_comparison_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/checkpoint_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/city_routes_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_before_test_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_config_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_config_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_config_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_pending_tests_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_pending_tests_v2.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/complete_sweep_prefetch_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/completed_evaluation_progress_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/completed_evaluation_progress_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/completed_evaluation_progress_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/config.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/config_routes_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/config_routes_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/context_alias_before_test_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/context_alias_guard_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/context_alias_recorded_benchmark_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/context_hash_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/context_hash_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/deferred_domain_parity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/domain_config.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/domain_invoke.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/domain_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/domain_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/domain_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/export_fast_np_replay.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/failure6300_archive_review_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_baseline_qualifier_proposal_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_canonical_gate_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_canonical_gate_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_first_difference_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_mismatch_scope_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_seed17_eligibility_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_seed17_eligibility_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_actual_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_actual_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_closedloop_native_plan_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_closedloop_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_finite_hold_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_finite_hold_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_follower_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_follower_pending_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_full_targets_preflight_validation_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_full_targets_replay_config_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_model_platoon450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_native_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_native_startup450_v1.failed.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_native_startup450_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_no_control_marker_fix_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_no_control_marker_fix_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_patches_applied_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v2.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_pending_tests_v3.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v3_replay1350_config.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v3_replay_export.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v3_selected_action.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_recorded900_v3_selected_action.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_restoration_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_restoration_pending_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_runtime_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_runtime_pending_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_sc1004_arrivals450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_selected_preflight_validation_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_selected_v2_replay1350_config.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_selected_v2_replay_export.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_selected_v2_selected_action.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_np_selected_v2_selected_action.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_boundary_residual_readonly_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_boundary_residual_readonly_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/action_000900.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/action_000900.decision_budget.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/action_000900.joint.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/action_000900.joint_written.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/action_000900.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/stderr.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v1/stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/action_000900.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/action_000900.decision_budget.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/action_000900.joint.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/action_000900.joint_written.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/action_000900.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/stderr.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_recorded900_v2/stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_runtime_tradeoff_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_bounded_runtime_tradeoff_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/action2400_urban_written.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/action2400_vsl_meter_comparison.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/boundary_metrics.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/native_2250_2400_observed_sg.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/outside123_context.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/summary.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl2400_2850_v1/timeseries.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl9000_failure3150_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_cl9000_failure6300_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_readonly_note_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/action2400_urban_written.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/action2400_vsl_meter_comparison.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/boundary_metrics.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/native_2250_2400_observed_sg.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/outside123_context.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/summary.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc2400_2850_v1/timeseries.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/area_metrics.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/area_timeseries.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/fw_cells_30s.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/road_recovery.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/road_windows_900s.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/roads_30s.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/source_inputs_900s.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/summary.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_readonly_note_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/action_003150.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/action_003150.decision_budget.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/action_003150.joint.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/action_003150.joint_written.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/action_003150.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/stderr.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded3150_missed_target_v1/stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/action_006300.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/action_006300.decision_budget.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/action_006300.joint.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/action_006300.joint_written.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/action_006300.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/stderr.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_context_v1/stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_comparison_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/action_006300.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/action_006300.decision_budget.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/action_006300.joint.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/action_006300.joint_written.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/action_006300.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/receipt.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/stderr.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_recorded6300_scope_fix_v1/stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_comparison_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_recorded900_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/final_two_seed_review_checklist_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fixed_context_token_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/four_stage_runner_plan_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/full_pair_report_contract_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_readonly_review_v1.md" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_scope_fix_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_scope_fix_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_scope_regression_fixed_v1/result.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_scope_regression_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_scope_regression_v1/result.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_snapshot_set_types_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_trace_summary_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_trace_summary_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/guard6300_trace_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/head_free_service_10565_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/head_free_service_evidence_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/head_free_service_evidence_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/head_free_service_validation_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_diagnostic_manifest_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_diagnostic_v1.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_diagnostic_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_model450_parity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_model450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_model450_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/held_targets_model450_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/initial_stock_com_native_clock_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/installed_integration_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/installed_integration_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/invoke.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band10.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band10_balanced.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band10_packed.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band5.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band5_balanced.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band5_packed.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_band5_refresh_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fast_np_closedloop_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fast_np_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fast_np_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fidelity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fidelity_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fidelity_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fidelity_v3_portable.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_fidelity_v4.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_native_split_probe_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_sc1005_bypass_probe_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_unlimited_prefetch_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_unlimited_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/joint_config_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/known_routes_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/lane_end_disappearance_routing_audit_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_band5_area_residence_deltas.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_band5_replay_audit_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_band5_replay_execution_summary.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_band5_sg1_vehicle_examples.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_boundary_split_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_head_bulk_read_feasibility_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_joint_v2_audit.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_joint_v2_dll_warning.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_model_branch_comparison.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_refresh_audit_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_refresh_command_audit_v1_failed.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_refresh_execution_summary_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_split_late31_cohort_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_split_model450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_split_route_assignment_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/native_split_route_eligibility_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/nuf_band_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_effective_and_native_weights_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_eight_branches_450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_model450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_model_native_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_native_prefix_v1_failed.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_native_prefix_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_prefix_difference_detail_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_preflight_command_equality_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_ramp450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_replay_config_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_same_length_reproducibility_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_same_length_reproducibility_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_sc1004_corridor_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_sc1004_signal_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_sc1005_departures_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_ttd_windows_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/other_project_cpu_context_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/owner_response_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/packed_parallel_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/packed_parallel_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/packed_parity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/pending_patches_applied_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/physical_infeasible_budget_before_test_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/physical_infeasible_budget_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/physical_infeasible_budget_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/physical_infeasible_budget_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/prepare_fast_np_patch.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/profile_current_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/profile_unlimited_current_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/profile_unlimited_current_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_context_hash.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np_closedloop.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np_native.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np_platoon.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np_recorded.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_fast_np_startup.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/qualify_response_scheduling.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/ramp_merge_three_windows_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_period_held450_parity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_targets_before_test_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_targets_replay_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_targets_replay_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_targets_replay_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_before_test.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v2.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_tests_v3.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/recorded_vsl_replay_pending_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/refresh_1050_recorded_state_audit_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/response_scheduling_17_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/response_scheduling_17_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/responses_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/responses_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/route3150_initialization_after_fix_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/route3150_initialization_after_fix_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/route3150_missed_target_fix_v1.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/route3150_prepatch_initialization_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/runtime_invoke.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/runtime_unlimited_prefetch_900_v1_launch.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/runtime_unlimited_prefetch_900_v1_launcher_stderr.txt" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/runtime_unlimited_prefetch_900_v1_launcher_stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_config_model450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_config_parity_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_model_probe_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_physical_evidence_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_vs_native_phase_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_head_service_projection_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_service_capacity_origin_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_native450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_native_launch_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_preflight_commands_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_replay_config_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift1350_replay_config_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift_model450_after_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift_model450_after_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift_model450_before_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_shift_model450_before_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc107_held450_residual_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/selected_band5_forecast_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/selected_band5_forecast_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/selected_band5_forecast_v3.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/short_cl2850_fw_lever_selection_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/short_cl2850_fw_lever_selection_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_lane_headways_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_lane_headways_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_queue_length_review_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_queue_motion_closedloop_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_queue_motion_closedloop_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_queue_motion_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/startup_queue_motion_v1.py" -text whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/terminal_live_ttd_decomposition_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/terminal_live_ttd_windows_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/topology.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/topology_routes_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/ttd_windows_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/unlimited_900_baseline_prefix_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/unlimited_900_baseline_prefix_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/unlimited_first_leader_progress_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/urban_amber_native_confirmation_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_area450_v1_stdout.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_city_corridor_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_city_route_cases_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_comparison_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_diagnostic_action_v1.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_diagnostic_action_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_model450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_native_launch_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_native_qualification_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_native_timing_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_preflight_command_equality_v2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_preflight_raw_csv_mismatch_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_ramp450_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_replay1350_config_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl100_e0_replay1350_preparation_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/vsl_changed_write_proposal_v1.txt" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/held_boundary_u030_t900_native_south_origins_v1.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/held_boundary_u030_t900_peeloff_v4.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/r03_u030_first_window/boundary_metrics.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/control_improvement/r03_u030_first_window/extract.py" -text whitespace=cr-at-eol
+"diagnostics/controlled_native_lsa_coverage.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/controlled_native_lsa_setting_followup.md" -text whitespace=cr-at-eol
+"diagnostics/current_nc_v3_reproduction.md" -text whitespace=cr-at-eol
+"diagnostics/decision_profile.py" -text whitespace=cr-at-eol
+"diagnostics/decision_profile_boundary_inventory.md" -text whitespace=cr-at-eol
+"diagnostics/decision_profile_v4_assessment.md" -text whitespace=cr-at-eol
+"diagnostics/decision_resource_counters.py" -text whitespace=cr-at-eol
+"diagnostics/decompose_area_exit_prediction.py" -text whitespace=cr-at-eol
+"diagnostics/decompose_area_exit_prediction_peer_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban030/input_override.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban030/prepared/demand.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban030/prepared/prepared.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban040/input_override.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban040/prepared/demand.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw070_urban040/prepared/prepared.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw080_urban050/input_override.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw080_urban050/prepared/controls.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw080_urban050/prepared/demand.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw080_urban050/prepared/prepared.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep/fw080_urban050/prepared/route_checks.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/demand_sweep_origin_routes.md" -text whitespace=cr-at-eol
+"diagnostics/demand_sweep_origin_routes.py" -text whitespace=cr-at-eol
+"diagnostics/demand_sweep_priority_20260910.md" -text whitespace=cr-at-eol
+"diagnostics/diagnose_e8_receipt_contract.py" -text whitespace=cr-at-eol
+"diagnostics/diagnose_sc1004_first_control_window.py" -text whitespace=cr-at-eol
+"diagnostics/diagnostic_cleanup_actions.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/diagnostic_cleanup_execution.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/diagnostic_fallback_retirement.md" -text whitespace=cr-at-eol
+"diagnostics/direct_branch_feedback_and_order_design.md" -text whitespace=cr-at-eol
+"diagnostics/dynamic_area_nc13_calibration.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/dynamic_area_routes_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/e8_lane_receiving_review.md" -text whitespace=cr-at-eol
+"diagnostics/e8_minimal_repair_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/e8_ordered_gate_observability.md" -text whitespace=cr-at-eol
+"diagnostics/e8_window_passages_review.md" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_actual_local_result.md" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_finalize.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_local.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_local_synthetic.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_monitor.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_peer_read.md" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_state.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_storage.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_synthetic.py" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_v2_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/evaluation_trace_v3_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_exitcode_probe.ps1" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_exitcode_probe.vbs" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_prepare.py" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_run.ps1" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_runner.vbs" -text whitespace=cr-at-eol
+"diagnostics/fast_nc_test.py" -text whitespace=cr-at-eol
+"diagnostics/final_signal_integration_review.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_experiment_driver_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/baseline.inpx" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/manifest.json" -text whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 Test-bed.jpg" -text whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed10.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1001_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1002_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1003_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1004_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1005_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed101_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed102.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed103.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed104.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed105_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed106.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed107_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed108_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed109.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed109_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed11.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed12.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed13.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed14.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed15.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed16.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed17.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed18.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed19.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed1_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2001.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2002.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2003.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2004.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed2005.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed3_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed4.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed5_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed6.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed7_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed8.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed9001.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed9002.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed9003.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_flat_v1/개포동 test-bed9_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_network_arms_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_beta300v3_route_experiment_design.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_driver_natural_exit_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_route_arm_spatial_analysis_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/fixed_source_reference.py" -text whitespace=cr-at-eol
+"diagnostics/fixtures/signal_clock_dd13e08.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/follower_game_structure_review.md" -text whitespace=cr-at-eol
+"diagnostics/freeway_initial_count_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/freeway_route_interface_review.md" -text whitespace=cr-at-eol
+"diagnostics/freeway_speed_terms_review.md" -text whitespace=cr-at-eol
+"diagnostics/handoff_20260913/compare_ttt_prefix.py" -text whitespace=cr-at-eol
+"diagnostics/handoff_20260913/handoff_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/portable_config_proof.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/prepare_git_handoff.py" -text whitespace=cr-at-eol
+"diagnostics/handoff_20260913/required_runtime_paths.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/transfer_manifest.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/ttt_prefix8850/area_metrics.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/ttt_prefix8850/area_timeseries.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/handoff_20260913/ttt_prefix8850/comparison.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/head_capacity_installation_order_review.md" -text whitespace=cr-at-eol
+"diagnostics/head_service_resource_contract.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/head_service_resource_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/head_service_resources_canonical_handoff.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/head_service_resources_canonical_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/head_service_resources_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/inspect_area_routes.py" -text whitespace=cr-at-eol
+"diagnostics/inspect_native_area_choices.py" -text whitespace=cr-at-eol
+"diagnostics/inspect_route_choice_config.py" -text whitespace=cr-at-eol
+"diagnostics/inventory_area_production_dependencies.py" -text whitespace=cr-at-eol
+"diagnostics/joint_freeway_neighbors_candidate.py" -text whitespace=cr-at-eol
+"diagnostics/joint_freeway_neighbors_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/joint_offratio_sensitivity.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/joint_owner_addresses_candidate.py" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_addresses_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_game_candidate.py" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_ledger_payoff_review.md" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_neighbor_interface_draft.md" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_oracle_integration_plan.md" -text whitespace=cr-at-eol
+"diagnostics/joint_owner_shared_feasibility_design.md" -text whitespace=cr-at-eol
+"diagnostics/joint_spsa_comparison_20260911.md" -text whitespace=cr-at-eol
+"diagnostics/joint_urban_neighbors_candidate.py" -text whitespace=cr-at-eol
+"diagnostics/joint_urban_neighbors_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/known_wout_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/known_wout_local_parity_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/known_wout_routes_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/known_wout_routes_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/known_wout_routes_ver2_proposal.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/lane_change_10635_distance_audit.md" -text whitespace=cr-at-eol
+"diagnostics/lane_change_10635_distance_audit.py" -text whitespace=cr-at-eol
+"diagnostics/lever_authority_utilization.md" -text whitespace=cr-at-eol
+"diagnostics/lever_profile_experiment_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/live_beta0_first_interval_audit.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/live_beta0_first_interval_audit.py" -text whitespace=cr-at-eol
+"diagnostics/live_beta0_interval_prediction.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/live_beta0_interval_prediction.py" -text whitespace=cr-at-eol
+"diagnostics/live_codex_area_beta0_retry_s13_20260910_actuation_1050_1200.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/live_prediction_interval_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/local_shared_service_contract_review.md" -text whitespace=cr-at-eol
+"diagnostics/local_shared_service_contract_review.py" -text whitespace=cr-at-eol
+"diagnostics/measure_no_control_5400_three_arm_area.py" -text whitespace=cr-at-eol
+"diagnostics/measure_prediction_fidelity.py" -text whitespace=cr-at-eol
+"diagnostics/measure_startup_gui_three_arm_area.py" -text whitespace=cr-at-eol
+"diagnostics/meter10639_result.md" -text whitespace=cr-at-eol
+"diagnostics/meter_finalization_audit.md" -text whitespace=cr-at-eol
+"diagnostics/model_area_integration.md" -text whitespace=cr-at-eol
+"diagnostics/model_constraint_coverage_v1.md" -text whitespace=cr-at-eol
+"diagnostics/movement_signal_authority_audit.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/movement_signal_authority_review.md" -text whitespace=cr-at-eol
+"diagnostics/n7_prediction_fidelity.md" -text whitespace=cr-at-eol
+"diagnostics/native1083_signal_authority_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/native_1092_1093_branch_calibration.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_1092_1093_branch_calibration.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_1096_sc8_gate_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/native_1096_sc8_gate_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_demand_forecast_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/native_gate_exit_capture_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/native_input_1083_signal_authority_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_input_1093_prehead_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_input_1096_route_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_input_prehead_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/native_input_source_lineage_handoff.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_internal_inputs_audit.md" -text whitespace=cr-at-eol
+"diagnostics/native_internal_inputs_extended_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_route_choice_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/native_runtime_error_capture_handoff.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_sc15_service_calibration.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/native_sc15_service_review.md" -text whitespace=cr-at-eol
+"diagnostics/native_settings_validation.md" -text whitespace=cr-at-eol
+"diagnostics/nc_r01_e8_onset.md" -text whitespace=cr-at-eol
+"diagnostics/no_control_5400_three_arm_area_handoff_v1.md" -text whitespace=cr-at-eol
+"diagnostics/no_control_5400_three_arm_area_plan_v1.md" -text whitespace=cr-at-eol
+"diagnostics/no_control_native_signal_prediction_review.md" -text whitespace=cr-at-eol
+"diagnostics/objective_shared_actual_import_plan.md" -text whitespace=cr-at-eol
+"diagnostics/objective_shared_production_validation.md" -text whitespace=cr-at-eol
+"diagnostics/observed_nc_full_audit.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/observed_nc_snapshot_audit_2700.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/observed_nc_snapshot_audit_5400.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/observer_four_condition_comparison.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/observer_head_precision_failure.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/observer_smoke_v2_complete.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/offramp_ready_contract_review.md" -text whitespace=cr-at-eol
+"diagnostics/offramp_ready_contract_review.py" -text whitespace=cr-at-eol
+"diagnostics/offramp_share_review.md" -text whitespace=cr-at-eol
+"diagnostics/offset_experiment_review.md" -text whitespace=cr-at-eol
+"diagnostics/offset_green_experiment_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/onramp_early_route_tree_audit.md" -text whitespace=cr-at-eol
+"diagnostics/onramp_early_route_tree_audit.py" -text whitespace=cr-at-eol
+"diagnostics/onramp_early_route_tree_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/optimizer900_actuation_alignment.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/owner_addresses_solver_invariants.md" -text whitespace=cr-at-eol
+"diagnostics/performance_baseline_v4.md" -text whitespace=cr-at-eol
+"diagnostics/performance_equivalence_state_catalog_20260910.md" -text whitespace=cr-at-eol
+"diagnostics/performance_replay_four_states_20260910.md" -text whitespace=cr-at-eol
+"diagnostics/phase_commit_trace.py" -text whitespace=cr-at-eol
+"diagnostics/physical_actuator_ownership_audit.md" -text whitespace=cr-at-eol
+"diagnostics/physical_movement_routes_review.md" -text whitespace=cr-at-eol
+"diagnostics/physical_movement_routes_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/physical_phase_authority_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/physical_phase_authority_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/physical_projection_support_635_proposal.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/physical_projection_support_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/plot_e8_diverge_snapshot.py" -text whitespace=cr-at-eol
+"diagnostics/plot_first_interval_prediction.py" -text whitespace=cr-at-eol
+"diagnostics/plot_three_arm_cell_episodes.py" -text whitespace=cr-at-eol
+"diagnostics/portable_fixture_validation.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/positive_unresolved_connector_review.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/prehead_call_local_reuse_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/prehead_dispatch_independent_review.md" -text whitespace=cr-at-eol
+"diagnostics/prehead_dispatch_optimization_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/prepare_action_row_iterator_patch.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_com_execution_startup_v1.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_dynamic_area_routes.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_exit_demand_case.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_fixed_beta300v3_network_arms.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_fixed_beta300v3_signal_profile.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_fixed_freeway_query_patch_v2.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_head_service_resource_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_joint_freeway_neighbors.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_known_wout_local_landing.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_known_wout_routes.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/prepare_native_nc5400_config.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_native_offset_network.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_native_route_corridor_evidence.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_network_arms_flat_assets.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_prehead_call_local_reuse.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_prehead_dispatch_optimization.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_sc1004_resource_service.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_sc15_service_calibration.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_selected_control_demand.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_signal_clock_cache_patch.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_signal_clock_cache_test_migration.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_trace_root_compression_patch.py" -text whitespace=cr-at-eol
+"diagnostics/prepare_vehicle_route_collector_probe.py" -text whitespace=cr-at-eol
+"diagnostics/price_pool_reuse_review.md" -text whitespace=cr-at-eol
+"diagnostics/price_worker_lifecycle_audit.md" -text whitespace=cr-at-eol
+"diagnostics/probe_10634_projection.py" -text whitespace=cr-at-eol
+"diagnostics/probe_4725_lane_opportunity.py" -text whitespace=cr-at-eol
+"diagnostics/probe_actual_optimizer_vbs.py" -text whitespace=cr-at-eol
+"diagnostics/probe_all_area_initial.py" -text whitespace=cr-at-eol
+"diagnostics/probe_all_area_snapshots.py" -text whitespace=cr-at-eol
+"diagnostics/probe_area_endpoint.py" -text whitespace=cr-at-eol
+"diagnostics/probe_area_full_decide.py" -text whitespace=cr-at-eol
+"diagnostics/probe_area_package_runtime.py" -text whitespace=cr-at-eol
+"diagnostics/probe_area_rank.py" -text whitespace=cr-at-eol
+"diagnostics/probe_control_area_movement_join.py" -text whitespace=cr-at-eol
+"diagnostics/probe_corrected_prediction_fidelity.py" -text whitespace=cr-at-eol
+"diagnostics/probe_cprofile_thread_attribution.py" -text whitespace=cr-at-eol
+"diagnostics/probe_demand_observation.py" -text whitespace=cr-at-eol
+"diagnostics/probe_direct_branch_order.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/probe_e8_anticipation_ablation.py" -text whitespace=cr-at-eol
+"diagnostics/probe_e8_lane_receiving.py" -text whitespace=cr-at-eol
+"diagnostics/probe_e8_ordered_gate_observability.py" -text whitespace=cr-at-eol
+"diagnostics/probe_e8_route_flow_assignment.py" -text whitespace=cr-at-eol
+"diagnostics/probe_e8_window_passages.py" -text whitespace=cr-at-eol
+"diagnostics/probe_evaluation_trace_actual_local.py" -text whitespace=cr-at-eol
+"diagnostics/probe_flat_network_native_settings.vbs" -text whitespace=cr-at-eol
+"diagnostics/probe_freeway_area_geometry.py" -text whitespace=cr-at-eol
+"diagnostics/probe_freeway_speed_terms.py" -text whitespace=cr-at-eol
+"diagnostics/probe_fw_incumbent_guard.py" -text whitespace=cr-at-eol
+"diagnostics/probe_joint_offratio_sensitivity.py" -text whitespace=cr-at-eol
+"diagnostics/probe_known_wout_initial.py" -text whitespace=cr-at-eol
+"diagnostics/probe_known_wout_local_parity.py" -text whitespace=cr-at-eol
+"diagnostics/probe_known_wout_replay.py" -text whitespace=cr-at-eol
+"diagnostics/probe_model_area_integration.py" -text whitespace=cr-at-eol
+"diagnostics/probe_native_demand_forecast.py" -text whitespace=cr-at-eol
+"diagnostics/probe_native_gate_process_exit.ps1" -text whitespace=cr-at-eol
+"diagnostics/probe_native_internal_input_integration.py" -text whitespace=cr-at-eol
+"diagnostics/probe_native_route_choice.py" -text whitespace=cr-at-eol
+"diagnostics/probe_native_signal_record.vbs" -text whitespace=cr-at-eol
+"diagnostics/probe_nc_r01_e8_onset.py" -text whitespace=cr-at-eol
+"diagnostics/probe_offramp_feedback_trace.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/probe_offramp_shares.py" -text whitespace=cr-at-eol
+"diagnostics/probe_offset_objective_veto.py" -text whitespace=cr-at-eol
+"diagnostics/probe_owner_meter_address_guard.py" -text whitespace=cr-at-eol
+"diagnostics/probe_phase_authority_passages.py" -text whitespace=cr-at-eol
+"diagnostics/probe_physical_movement_routes.py" -text whitespace=cr-at-eol
+"diagnostics/probe_production_migration.md" -text whitespace=cr-at-eol
+"diagnostics/probe_route_choice_1128_integration.py" -text whitespace=cr-at-eol
+"diagnostics/probe_route_choice_integration.py" -text whitespace=cr-at-eol
+"diagnostics/probe_routing_lookahead_settings.vbs" -text whitespace=cr-at-eol
+"diagnostics/probe_sc1004_physical_holdout.py" -text whitespace=cr-at-eol
+"diagnostics/probe_sc1004_resource_service_holdout.py" -text whitespace=cr-at-eol
+"diagnostics/probe_sc15_calibrated_service.py" -text whitespace=cr-at-eol
+"diagnostics/probe_sc2001_corridor.py" -text whitespace=cr-at-eol
+"diagnostics/probe_sc2001_corridor_replay.py" -text whitespace=cr-at-eol
+"diagnostics/probe_shared_service_main_stack.py" -text whitespace=cr-at-eol
+"diagnostics/probe_signal_feasibility.py" -text whitespace=cr-at-eol
+"diagnostics/probe_single_transfer_grid.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/probe_static_route_cohorts.py" -text whitespace=cr-at-eol
+"diagnostics/probe_total_offratio_sensitivity.py" -text whitespace=cr-at-eol
+"diagnostics/probe_trace_root_compression.py" -text whitespace=cr-at-eol
+"diagnostics/probe_trace_storage_reencode.py" -text whitespace=cr-at-eol
+"diagnostics/probe_trace_storage_repeat.py" -text whitespace=cr-at-eol
+"diagnostics/probe_vehicle_route_com.vbs" -text whitespace=cr-at-eol
+"diagnostics/profile_runner_invocation_fix.md" -text whitespace=cr-at-eol
+"diagnostics/projection_10634_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/projection_support_receiver_repair.md" -text whitespace=cr-at-eol
+"diagnostics/refactor_inventory.md" -text whitespace=cr-at-eol
+"diagnostics/render_joint_offratio_sensitivity.py" -text whitespace=cr-at-eol
+"diagnostics/render_live_prediction_cells.py" -text whitespace=cr-at-eol
+"diagnostics/render_live_prediction_interval.py" -text whitespace=cr-at-eol
+"diagnostics/render_no_control_baseline_cells_reviewed.py" -text whitespace=cr-at-eol
+"diagnostics/render_observed_nc_audit.py" -text whitespace=cr-at-eol
+"diagnostics/render_sc1004_first_control_window.py" -text whitespace=cr-at-eol
+"diagnostics/render_sc15_service_review.py" -text whitespace=cr-at-eol
+"diagnostics/render_source_lever_timeline.py" -text whitespace=cr-at-eol
+"diagnostics/render_source_run_comparison.py" -text whitespace=cr-at-eol
+"diagnostics/review_boundary_leg_diagnostic.py" -text whitespace=cr-at-eol
+"diagnostics/review_demand_observation.md" -text whitespace=cr-at-eol
+"diagnostics/review_fd.md" -text whitespace=cr-at-eol
+"diagnostics/review_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/review_follower_game_structure.py" -text whitespace=cr-at-eol
+"diagnostics/review_nc5400_baseline.py" -text whitespace=cr-at-eol
+"diagnostics/review_objective_price.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/review_onramp_early_route_tree.py" -text whitespace=cr-at-eol
+"diagnostics/review_positive_unresolved_connectors.py" -text whitespace=cr-at-eol
+"diagnostics/review_prehead_dispatch_index.py" -text whitespace=cr-at-eol
+"diagnostics/review_price_pool_reuse.py" -text whitespace=cr-at-eol
+"diagnostics/review_shared_service_pool_edges.py" -text whitespace=cr-at-eol
+"diagnostics/review_signal_clock_cache_findings.py" -text whitespace=cr-at-eol
+"diagnostics/review_signal_clock_tuple_guard.py" -text whitespace=cr-at-eol
+"diagnostics/review_unresolved_projection_support.py" -text whitespace=cr-at-eol
+"diagnostics/review_unresolved_road_support.py" -text whitespace=cr-at-eol
+"diagnostics/road_support_336_review.md" -text whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_1099_sc15_calibrated.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_1100_sc15_calibrated.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_1128_ver2.json" -text whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_integration.md" -text whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_sc1004_calibrated.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/route_choice_corridor_ver2.json" -text whitespace=cr-at-eol
+"diagnostics/route_choice_projection_claim_review.md" -text whitespace=cr-at-eol
+"diagnostics/route_choice_two_corridors_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/route_input_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/run_area_beta_trial.ps1" -text whitespace=cr-at-eol
+"diagnostics/run_area_production_preflight.py" -text whitespace=cr-at-eol
+"diagnostics/run_fixed_beta300v3_route_experiment.py" -text whitespace=cr-at-eol
+"diagnostics/run_flat_network_native_gate.ps1" -text whitespace=cr-at-eol
+"diagnostics/run_known_wout_fixture_tests.py" -text whitespace=cr-at-eol
+"diagnostics/run_native_signal_record.ps1" -text whitespace=cr-at-eol
+"diagnostics/run_no_control_baseline_predictions.py" -text whitespace=cr-at-eol
+"diagnostics/run_no_control_network_arms.py" -text whitespace=cr-at-eol
+"diagnostics/run_portable_fixture_tests.py" -text whitespace=cr-at-eol
+"diagnostics/run_receiver_fixture_tests.py" -text whitespace=cr-at-eol
+"diagnostics/run_route_input_fixture_tests.py" -text whitespace=cr-at-eol
+"diagnostics/run_selected_control_trial.ps1" -text whitespace=cr-at-eol
+"diagnostics/run_shared_service_fixture_tests.py" -text whitespace=cr-at-eol
+"diagnostics/run_signal_clock_replay_pair.py" -text whitespace=cr-at-eol
+"diagnostics/run_startup_gui_validation.py" -text whitespace=cr-at-eol
+"diagnostics/run_vehicle_route_com_probe.ps1" -text whitespace=cr-at-eol
+"diagnostics/sc1004_counterfactual_preparation_paused_20260910.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/sc1004_head_service_identifiability.checks.py" -text whitespace=cr-at-eol
+"diagnostics/sc1004_head_service_identifiability.md" -text whitespace=cr-at-eol
+"diagnostics/sc1004_head_service_identifiability.py" -text whitespace=cr-at-eol
+"diagnostics/sc1004_resource_service_calibration.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/sc1004_resource_service_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/sc1004_resource_service_peer_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/sc1004_shared_turn_capacity_review.md" -text whitespace=cr-at-eol
+"diagnostics/sc2001_corridor_audit.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/sc2001_corridor_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/sc2001_corridor_nc13.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/selected_control_completion.py" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_native_clock_fw080_u050_open_v2/comparison.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_native_clock_fw080_u050_open_v2/native_internal_inputs.json" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_native_clock_fw080_u050_open_v2/profile.csv" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_native_clock_fw080_u050_open_v2/shared_approach.json" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/comparison.csv" text eol=crlf whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/config.json" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/native_internal_inputs.json" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/profile.csv" -text whitespace=cr-at-eol
+"diagnostics/selected_control_demand/codex_selected_fw070_u030_beta0_joint_r03/shared_approach.json" -text whitespace=cr-at-eol
+"diagnostics/selected_control_r02_t900_meter_open_review.md" -text whitespace=cr-at-eol
+"diagnostics/selected_control_trial_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/selected_signal_capacity_audit.md" -text whitespace=cr-at-eol
+"diagnostics/selected_signal_capacity_audit.py" -text whitespace=cr-at-eol
+"diagnostics/selected_signal_sampling_audit.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/selected_signal_sampling_audit.py" -text whitespace=cr-at-eol
+"diagnostics/shared_approach_ver2.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/shared_owner_copy_optimization_v1/baseline_functions.zip" -text whitespace=cr-at-eol
+"diagnostics/shared_service_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/shared_service_main_stack_fix.md" -text whitespace=cr-at-eol
+"diagnostics/shared_service_main_stack_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/shared_service_pool_independent_review.md" -text whitespace=cr-at-eol
+"diagnostics/shared_service_ready_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/signal_actuation_contract_review.md" -text whitespace=cr-at-eol
+"diagnostics/signal_clock_cache_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/signal_clock_cache_peer_review.md" -text whitespace=cr-at-eol
+"diagnostics/signal_clock_cache_proposal.py" -text whitespace=cr-at-eol
+"diagnostics/signal_clock_hotpath_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/signal_clock_trace_pair_validation.py" -text whitespace=cr-at-eol
+"diagnostics/signal_clock_trace_pair_validation_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/signal_green10_result.md" -text whitespace=cr-at-eol
+"diagnostics/signal_observation_no_history_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/signal_observation_off_preparation.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/signal_observation_production_migration_plan.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/signal_observation_window_handoff.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/signal_offset10_result.md" -text whitespace=cr-at-eol
+"diagnostics/signal_readback_cadence.py" -text whitespace=cr-at-eol
+"diagnostics/signal_scope_table.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/signal_zero_first_interval_audit.md" -text whitespace=cr-at-eol
+"diagnostics/signal_zero_result.md" -text whitespace=cr-at-eol
+"diagnostics/source_exit_attribution_3300_3450.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_exit_attribution_3300_3450_verified.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_1200_1350.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_3300_3450.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_900_1050.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_cli_nc_command_validation.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_cli_nc_final_validation.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_interval_cli_nc_validation.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/source_meter_shutdown_command_audit.py" -text whitespace=cr-at-eol
+"diagnostics/source_meter_shutdown_diagnosis.md" -text whitespace=cr-at-eol
+"diagnostics/source_meter_shutdown_diagnosis.py" -text whitespace=cr-at-eol
+"diagnostics/source_native_offratio_sensitivity_1200.md" -text whitespace=cr-at-eol
+"diagnostics/source_run_comparison_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/source_run_comparison_peer_review.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/spatial_lever_comparison.md" -text whitespace=cr-at-eol
+"diagnostics/startup_and_network_arm_review_20260910.md" -text whitespace=cr-at-eol
+"diagnostics/startup_demand_gui_review.md" -text whitespace=cr-at-eol
+"diagnostics/static_route_matched_cohorts.md" -text whitespace=cr-at-eol
+"diagnostics/strict_decision_failfast_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/summarize_area_weight_preflights.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_decision_profile.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_e8_anticipation_ablation.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_e8_window_passages.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_fast_nc.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_known_wout_routes.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_no_control_baseline_predictions.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_observer_mode_comparison.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_sc1004_first_control_window.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_signal_clock_performance.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_signal_clock_state_pairs.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_v1_trace_hierarchy.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_vehicle_route_collector.py" -text whitespace=cr-at-eol
+"diagnostics/summarize_vehicle_route_com.py" -text whitespace=cr-at-eol
+"diagnostics/test_action_row_iterator.py" -text whitespace=cr-at-eol
+"diagnostics/test_actuation_readback.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_arrival_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_failfast.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_follower_objective.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_freeway_accounting.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_leader_objective.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_live_actuation.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_meter_finalization.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_phase_finalization.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_production_preflight.py" -text whitespace=cr-at-eol
+"diagnostics/test_area_projection_coverage.py" -text whitespace=cr-at-eol
+"diagnostics/test_audit_snapshot_windows.py" -text whitespace=cr-at-eol
+"diagnostics/test_bounded_response_scheduling.py" -text whitespace=cr-at-eol
+"diagnostics/test_capture_native_runtime_errors.py" -text whitespace=cr-at-eol
+"diagnostics/test_com_execution_startup_v1.ps1" -text whitespace=cr-at-eol
+"diagnostics/test_com_execution_writer.py" -text whitespace=cr-at-eol
+"diagnostics/test_control_area_join.py" -text whitespace=cr-at-eol
+"diagnostics/test_control_area_objective.py" -text whitespace=cr-at-eol
+"diagnostics/test_decision_budget.py" -text whitespace=cr-at-eol
+"diagnostics/test_decision_profile.py" -text whitespace=cr-at-eol
+"diagnostics/test_decision_resource_counters.py" -text whitespace=cr-at-eol
+"diagnostics/test_decision_shared_response_cache.py" -text whitespace=cr-at-eol
+"diagnostics/test_diagnostic_profile.py" -text whitespace=cr-at-eol
+"diagnostics/test_direct_branch_receiving.py" -text whitespace=cr-at-eol
+"diagnostics/test_dynamic_area_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_e8_anticipation_ablation.py" -text whitespace=cr-at-eol
+"diagnostics/test_e8_ordered_gate_contract.py" -text whitespace=cr-at-eol
+"diagnostics/test_e8_window_passages.py" -text whitespace=cr-at-eol
+"diagnostics/test_evaluation_trace.py" -text whitespace=cr-at-eol
+"diagnostics/test_evaluation_trace_local.py" -text whitespace=cr-at-eol
+"diagnostics/test_evaluation_trace_storage.py" -text whitespace=cr-at-eol
+"diagnostics/test_excerpt_window_labels.py" -text whitespace=cr-at-eol
+"diagnostics/test_failure_archive_paths.ps1" -text whitespace=cr-at-eol
+"diagnostics/test_fast_np_initialization.py" -text whitespace=cr-at-eol
+"diagnostics/test_fd_figure_horizon.py" -text whitespace=cr-at-eol
+"diagnostics/test_fixed_beta300v3_experiment_driver.py" -text whitespace=cr-at-eol
+"diagnostics/test_fixed_beta300v3_network_arms.py" -text whitespace=cr-at-eol
+"diagnostics/test_fixed_freeway_query_v2.py" -text whitespace=cr-at-eol
+"diagnostics/test_fixed_route_arm_windows.py" -text whitespace=cr-at-eol
+"diagnostics/test_fixed_shared_game.py" -text whitespace=cr-at-eol
+"diagnostics/test_freeway_count_geometry.py" -text whitespace=cr-at-eol
+"diagnostics/test_freeway_fd.py" -text whitespace=cr-at-eol
+"diagnostics/test_freeway_initial_count.py" -text whitespace=cr-at-eol
+"diagnostics/test_freeway_local_state.py" -text whitespace=cr-at-eol
+"diagnostics/test_head_free_service.py" -text whitespace=cr-at-eol
+"diagnostics/test_head_service_resources.py" -text whitespace=cr-at-eol
+"diagnostics/test_held_actual_meter_reference.py" -text whitespace=cr-at-eol
+"diagnostics/test_historical_meter_anchor.py" -text whitespace=cr-at-eol
+"diagnostics/test_indexed_fzp.py" -text whitespace=cr-at-eol
+"diagnostics/test_install_joint_price_field.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_joint_block_spsa.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_cli_identity.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_decision_anchor.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_final_output_budget.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_freeway_neighbors.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_leader_result.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_main_integration.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_neighbor_callbacks.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_neighbor_typed_keys.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_offratio_sensitivity.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_owner_addresses.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_owner_game_candidate.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_owner_game_round_robin.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_price_basis_proof.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_price_field.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_urban_neighbors.py" -text whitespace=cr-at-eol
+"diagnostics/test_joint_written_action.py" -text whitespace=cr-at-eol
+"diagnostics/test_known_wout_local_landing.py" -text whitespace=cr-at-eol
+"diagnostics/test_known_wout_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_legsplit_receiving.py" -text whitespace=cr-at-eol
+"diagnostics/test_legsplit_single_transfer.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_lever_profiles.py" -text whitespace=cr-at-eol
+"diagnostics/test_link_predictor.py" -text whitespace=cr-at-eol
+"diagnostics/test_live_prediction_interval.py" -text whitespace=cr-at-eol
+"diagnostics/test_local_landing_clock.py" -text whitespace=cr-at-eol
+"diagnostics/test_local_landing_clock_receiving.py" -text whitespace=cr-at-eol
+"diagnostics/test_matched_external_secant.py" -text whitespace=cr-at-eol
+"diagnostics/test_measure_control_area.py" -text whitespace=cr-at-eol
+"diagnostics/test_meter_branch_snapshots.py" -text whitespace=cr-at-eol
+"diagnostics/test_model_area_ledger_copy.py" -text whitespace=cr-at-eol
+"diagnostics/test_movement_signal_authority.py" -text whitespace=cr-at-eol
+"diagnostics/test_native1083_signal_authority.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_branch_calibration.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_clock_plan.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_demand_forecast.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_gate_process_exit.ps1" -text whitespace=cr-at-eol
+"diagnostics/test_native_input_position_partition.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_input_prehead.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_input_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_internal_common_approach.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_internal_empirical_choice.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_internal_input.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_route_choice.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_runtime_reference.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_signal_contract.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_signal_record.py" -text whitespace=cr-at-eol
+"diagnostics/test_native_vbs_clock.py" -text whitespace=cr-at-eol
+"diagnostics/test_network_recording_provenance.py" -text whitespace=cr-at-eol
+"diagnostics/test_no_control_5400_three_arm_area.py" -text whitespace=cr-at-eol
+"diagnostics/test_no_control_network_arms.py" -text whitespace=cr-at-eol
+"diagnostics/test_observation_projection.py" -text whitespace=cr-at-eol
+"diagnostics/test_offramp_route_inventory.py" -text whitespace=cr-at-eol
+"diagnostics/test_offramp_routing.py" -text whitespace=cr-at-eol
+"diagnostics/test_offset_experiment.py" -text whitespace=cr-at-eol
+"diagnostics/test_parallel_shared_response.py" -text whitespace=cr-at-eol
+"diagnostics/test_physical_movement_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_physical_phase_authority.py" -text whitespace=cr-at-eol
+"diagnostics/test_physical_ramp_branches.py" -text whitespace=cr-at-eol
+"diagnostics/test_preflight_live_audits.py" -text whitespace=cr-at-eol
+"diagnostics/test_prehead_call_local_reuse.py" -text whitespace=cr-at-eol
+"diagnostics/test_prehead_dispatch_optimization.py" -text whitespace=cr-at-eol
+"diagnostics/test_probe_production_migration.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_profile_runner_invocation.py" -text whitespace=cr-at-eol
+"diagnostics/test_projection_support_receiver_turns.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_projection_support_road_paths.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_projection_support_source_lineage.py" -text whitespace=cr-at-eol
+"diagnostics/test_ramp_meter_timing.ps1" -text whitespace=cr-at-eol
+"diagnostics/test_ramp_meter_timing.py" -text whitespace=cr-at-eol
+"diagnostics/test_reachable_meter_budgets.py" -text whitespace=cr-at-eol
+"diagnostics/test_recorded_ttd_windows.py" -text whitespace=cr-at-eol
+"diagnostics/test_remaining_probe_migration.py" -text whitespace=cr-at-eol
+"diagnostics/test_review_fixtures.py" -text whitespace=cr-at-eol
+"diagnostics/test_route_choice_1128.py" -text whitespace=cr-at-eol
+"diagnostics/test_route_choice_corridor.py" -text whitespace=cr-at-eol
+"diagnostics/test_route_choice_integration.py" -text whitespace=cr-at-eol
+"diagnostics/test_route_choice_native_observation.py" -text whitespace=cr-at-eol
+"diagnostics/test_route_choice_projection_claim.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_run_execution_status.py" -text whitespace=cr-at-eol
+"diagnostics/test_runtime_joint_leader.py" -text whitespace=cr-at-eol
+"diagnostics/test_runtime_joint_prices.py" -text whitespace=cr-at-eol
+"diagnostics/test_runtime_setup.py" -text whitespace=cr-at-eol
+"diagnostics/test_sc1004_resource_service.py" -text whitespace=cr-at-eol
+"diagnostics/test_sc1005_native_bypass.py" -text whitespace=cr-at-eol
+"diagnostics/test_sc15_service_calibration.py" -text whitespace=cr-at-eol
+"diagnostics/test_sc15_source_discharge.py" -text whitespace=cr-at-eol
+"diagnostics/test_sc2001_corridor.py" -text whitespace=cr-at-eol
+"diagnostics/test_selected_control_demand.py" -text whitespace=cr-at-eol
+"diagnostics/test_selected_native_clock_binding.py" -text whitespace=cr-at-eol
+"diagnostics/test_selected_native_recording.py" -text whitespace=cr-at-eol
+"diagnostics/test_selected_shared_profile.py" -text whitespace=cr-at-eol
+"diagnostics/test_selected_signal_sampling_audit.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_approach.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_joint_price_quantity.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_owner_batch.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_query_runtime_scope.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_response_urban_payoff.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_service_main_stack.py" -text whitespace=cr-at-eol
+"diagnostics/test_shared_service_pool.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_actuation_contract.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_clock_cache.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/test_signal_clock_trace_pair_validation.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_head_precision.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_observation_pair.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_observation_smoke_audit.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_observation_window_patch.py" -text whitespace=cr-at-eol
+"diagnostics/test_signal_profile_experiments.py" -text whitespace=cr-at-eol
+"diagnostics/test_sink_traversal_order.py" -text whitespace=cr-at-eol
+"diagnostics/test_source_meter_shutdown_evidence.py" -text whitespace=cr-at-eol
+"diagnostics/test_source_run_comparison.py" -text whitespace=cr-at-eol
+"diagnostics/test_startup_demand_gui.py" -text whitespace=cr-at-eol
+"diagnostics/test_startup_watchdog.ps1" -text whitespace=cr-at-eol
+"diagnostics/test_static_route_cohorts.py" -text whitespace=cr-at-eol
+"diagnostics/test_strict_decision_failfast.py" -text whitespace=cr-at-eol
+"diagnostics/test_summarize_fast_nc_completion.py" -text whitespace=cr-at-eol
+"diagnostics/test_trace_root_compression.py" -text whitespace=cr-at-eol
+"diagnostics/test_urban_flow_accounting.py" -text whitespace=cr-at-eol
+"diagnostics/test_validated_decision_hold.py" -text whitespace=cr-at-eol
+"diagnostics/test_vehicle_routes.py" -text whitespace=cr-at-eol
+"diagnostics/test_vissim_error_analysis.py" -text whitespace=cr-at-eol
+"diagnostics/test_watchdog_exact_git_commit.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/three_arm_cell_episode_handoff_v1.md" -text whitespace=cr-at-eol
+"diagnostics/total_offramp_ratio_review.md" -text whitespace=cr-at-eol
+"diagnostics/trace_root_compression_handoff.md" -text whitespace=cr-at-eol
+"diagnostics/unresolved_positive_occurrence_audit.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/unresolved_positive_occurrence_audit.md" -text whitespace=cr-at-eol
+"diagnostics/unresolved_projection_support_review.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/unresolved_road_support_review_1350.json" text eol=crlf whitespace=cr-at-eol
+"diagnostics/v1_trace_hierarchy_review.md" -text whitespace=cr-at-eol
+"diagnostics/validate_fixed_beta300_profile.py" -text whitespace=cr-at-eol
+"diagnostics/validate_flat_network_native_gate.py" -text whitespace=cr-at-eol
+"diagnostics/validate_native_network_arm_settings.py" -text whitespace=cr-at-eol
+"diagnostics/validate_native_signal_record.py" -text whitespace=cr-at-eol
+"diagnostics/validate_signal_offset10_pair.py" -text whitespace=cr-at-eol
+"diagnostics/vehicle_route_capture_review.md" -text whitespace=cr-at-eol
+"diagnostics/vehicle_route_collector_native_probe.vbs" -text whitespace=cr-at-eol
+"diagnostics/verify_fast_nc_baseline.py" -text whitespace=cr-at-eol
+"diagnostics/verify_head_service_resources_portable.py" text eol=crlf whitespace=cr-at-eol
+"diagnostics/verify_native_trajectory_repeat.py" -text whitespace=cr-at-eol
+"diagnostics/verify_retired_adapters.py" -text whitespace=cr-at-eol
+"diagnostics/verify_signal_observation_pair.py" -text whitespace=cr-at-eol
+"diagnostics/vsl80_result_20260910.md" text eol=crlf whitespace=cr-at-eol
+"diagnostics/vsl_profile_experiment.md" -text whitespace=cr-at-eol
+"diagnostics/watchdog_exact_git_commit_review.md" -text whitespace=cr-at-eol
+"docs/HANDOFF_20260913_controller_runtime.md" text eol=crlf whitespace=cr-at-eol
+"evaluation/calibration/physical_stock_calibration_v3.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/calibration/real_world_modi_control_v2_fdrefit_20260802.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/calibration/real_world_modi_control_v4_newdemand_20260804.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/calibration/real_world_prediction_calibration_core17legs4b_20260820.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/configs/demand_profiles/ver2_fdsweep_x15_20260907.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/action_csv_schema.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/area_arrival_routes.py" -text whitespace=cr-at-eol
+"evaluation/controllers/area_dynamic_routes.py" -text whitespace=cr-at-eol
+"evaluation/controllers/area_follower_objective.py" -text whitespace=cr-at-eol
+"evaluation/controllers/area_freeway_accounting.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/area_leader_objective.py" -text whitespace=cr-at-eol
+"evaluation/controllers/area_meter_finalization.py" -text whitespace=cr-at-eol
+"evaluation/controllers/area_runtime.py" -text whitespace=cr-at-eol
+"evaluation/controllers/control_area_join.py" -text whitespace=cr-at-eol
+"evaluation/controllers/control_area_objective.py" -text whitespace=cr-at-eol
+"evaluation/controllers/diagnostic_profile.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/diagnostic_signal_profile.py" -text whitespace=cr-at-eol
+"evaluation/controllers/fixed_signal_schedule.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/freeway_fd.py" -text whitespace=cr-at-eol
+"evaluation/controllers/freeway_local_state.py" -text whitespace=cr-at-eol
+"evaluation/controllers/head_service_resources.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/joint_owner_game.py" -text whitespace=cr-at-eol
+"evaluation/controllers/joint_owner_neighbors.py" -text whitespace=cr-at-eol
+"evaluation/controllers/link_predictor.py" -text whitespace=cr-at-eol
+"evaluation/controllers/local_signal_service.py" -text whitespace=cr-at-eol
+"evaluation/controllers/native_demand_forecast.py" -text whitespace=cr-at-eol
+"evaluation/controllers/native_input_prehead.py" -text whitespace=cr-at-eol
+"evaluation/controllers/native_input_routes.py" -text whitespace=cr-at-eol
+"evaluation/controllers/native_internal_input.py" -text whitespace=cr-at-eol
+"evaluation/controllers/native_phase_green.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/network_pressure.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/network_provenance.py" -text whitespace=cr-at-eol
+"evaluation/controllers/observation_projection.py" -text whitespace=cr-at-eol
+"evaluation/controllers/offramp_routing.py" -text whitespace=cr-at-eol
+"evaluation/controllers/offset_promotion.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/physical_movement_routes.py" -text whitespace=cr-at-eol
+"evaluation/controllers/physical_ramp_branches.py" -text whitespace=cr-at-eol
+"evaluation/controllers/plant_cycle.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/projection_support.py" -text whitespace=cr-at-eol
+"evaluation/controllers/route_choice_corridor.py" -text whitespace=cr-at-eol
+"evaluation/controllers/runtime_setup.py" -text whitespace=cr-at-eol
+"evaluation/controllers/sc2001_corridor.py" -text whitespace=cr-at-eol
+"evaluation/controllers/shared_approach.py" -text whitespace=cr-at-eol
+"evaluation/controllers/signal_actuation_contract.py" -text whitespace=cr-at-eol
+"evaluation/controllers/signal_group_plan.py" -text whitespace=cr-at-eol
+"evaluation/controllers/signal_head_observation.py" -text whitespace=cr-at-eol
+"evaluation/controllers/signal_timing_oracle.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/controllers/urban_flow_accounting.py" -text whitespace=cr-at-eol
+"evaluation/controllers/vehicle_routes.py" -text whitespace=cr-at-eol
+"evaluation/controllers/vissim_stackelberg_adapter.py" -text whitespace=cr-at-eol
+"evaluation/parameters.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/parameters.py" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_distributed_20260728/control_mapping_distributed_core17legs4b_20260819.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4b_20260819.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_distributed_20260728/detector_local_mapping_distributed_core17legs4f_20260903_blindfix20260905b.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2_20260907/freeway_mainline_chain_ver2.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21.vbs" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_inventory/signal_controller_roles.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_inventory/urban_input_gate_map_legs4b_20260819.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_inventory/vehicle_input_roles.csv" text eol=crlf whitespace=cr-at-eol
+"evaluation/runs/codex_contract_nc_headoff_continuous_s13_5400_v3_20260910/decisions_codex_contract_nc_headoff_continuous_s13_5400_v3_20260910/action_000001.csv" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed10.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1001_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1002_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1003_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1004_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1005_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed101_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed102.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed103.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed104.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed105_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed106.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed107_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed108_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed109.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed109_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed11.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed12.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed13.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed14.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed15.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed16.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed17.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed18.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed19.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed1_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2001.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2002.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2003.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2004.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed2005.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed3_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed4.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed5_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed6.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed7_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed8.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed9001.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed9002.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed9003.sig" text eol=crlf whitespace=cr-at-eol
+"network/real_world_gaepo_modi/개포동 test-bed9_n4dr150.sig" text eol=crlf whitespace=cr-at-eol
+"outputs/boundary_out_ramp_split_20260905_measured.json" text eol=crlf whitespace=cr-at-eol
+"outputs/freeway_fd_refit_sweep_20260828.json" text eol=crlf whitespace=cr-at-eol
+"outputs/freeway_ramp_split_v2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/freeway_segment_params_dlit_20260908.json" text eol=crlf whitespace=cr-at-eol
+"outputs/intersection_adjacency_core17legs4b_20260819.json" text eol=crlf whitespace=cr-at-eol
+"outputs/intersection_adjacency_pedfold_20260814.json" text eol=crlf whitespace=cr-at-eol
+"outputs/lane_group_sustained_v0_ver2_20260907_v2.json" text eol=crlf whitespace=cr-at-eol
+"outputs/link_player_assignment_pedfold_20260814.json" text eol=crlf whitespace=cr-at-eol
+"outputs/link_queue_class_v0_ver2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/link_split_final_20260814.json" text eol=crlf whitespace=cr-at-eol
+"outputs/metanet_calibration_ver2n21_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/movement_signal_group_map_v3.json" text eol=crlf whitespace=cr-at-eol
+"outputs/no_control_fd_mfd_20260802_scale135_freeway_fd_points.csv" text eol=crlf whitespace=cr-at-eol
+"outputs/no_control_fd_mfd_20260802_scale170_freeway_fd_points.csv" text eol=crlf whitespace=cr-at-eol
+"outputs/pn_boundary_turns_v1_20260819.json" text eol=crlf whitespace=cr-at-eol
+"outputs/pn_boundary_turns_v2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/signal_group_actuation_plan_mainline_20260825.json" text eol=crlf whitespace=cr-at-eol
+"outputs/signal_group_timing_v3.json" text eol=crlf whitespace=cr-at-eol
+"outputs/urban_player_territory_v1_20260819.json" text eol=crlf whitespace=cr-at-eol
+"outputs/urban_player_territory_v2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/urban_storage_capacity_core17legs4b_20260819.json" text eol=crlf whitespace=cr-at-eol
+"outputs/urban_storage_capacity_jam168_20260815.json" text eol=crlf whitespace=cr-at-eol
+"plant/src/__init__.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/__init__.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/approval_replay.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/bridge.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/compiler.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/contraction.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/hybrid.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/observation.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/physical_projection.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/physical_projection_reference.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/plant.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/run_evidence.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/schema.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/shadow.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/signal_program.py" text eol=crlf whitespace=cr-at-eol
+"plant/src/vissim_strict/topology.py" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/README.md" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/analyze_cooldown.py" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/area_windows.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/checkpoints.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/cooldown_recovery_series.pdf" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/cooldown_recovery_series.png" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/cooldown_recovery_series.svg" text eol=crlf -whitespace
+"reports/20260911_cooldown_80_90/cooldown_speed_time.pdf" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/cooldown_speed_time.png" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/cooldown_speed_time.svg" text eol=crlf -whitespace
+"reports/20260911_cooldown_80_90/diagnose_prefix.py" -text whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/post5400_source_entries.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/prefix_changed_rows.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/prefix_difference_diagnosis.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/road_recovery_windows.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/strict_prefix_failure.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_cooldown_80_90/validation.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/EIGHT_BRANCH_FOLLOWER_DESIGN.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/FAST_NP_GREEN_ALIGNED.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/FAST_NP_GREEN_ALIGNED.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/FAST_NP_NATIVE450.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/FAST_NP_NATIVE450.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/FD_MFD_SEARCH.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/IMPLEMENTATION_AND_VALIDATION.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_OBSERVATIONS.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_OBSERVATIONS.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_OBSERVATIONS_TESTS.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_OBSERVATIONS_v1.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_OBSERVATIONS_v1.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_WINDOWS.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_BRANCH_WINDOWS.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_DEMAND_DOMAIN_AUDIT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_DEMAND_EXISTING_EVIDENCE.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_QUANTITY_AND_SHARED_ROUTES.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/METER_RG_SHORT_RUN.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_ANCHOR_AUDIT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_CLOCK_PLAN_SUPPORT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_FW9_V1_EXECUTION_RESULT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_OPEN_V1_SOURCE_CLOCK_RESULT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_OPEN_V2_SOURCE_CLOCK_RESULT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_POSTCHECK_CLOCK_VALIDATION.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_PRESTEP_ALIGNMENT_V2_VALIDATION.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_REFERENCE_AND_PREPARATION_VALIDATION.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NATIVE_WRITER_PURE_VALIDATION.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NUF_BAND_AND_NATIVE_20260911.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/NUF_INITIALIZATION_AND_NATIVE_20260911.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/PARALLEL_RESPONSE_AUDIT.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP8_DOMAIN_AND_NUF_20260911.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP8_MAPPING.before_route_resolution_20260911T082732Z.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP8_MAPPING.before_route_resolution_20260911T082732Z.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP8_MAPPING.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP8_MAPPING.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP_MERGE_WINDOWS.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/RAMP_MERGE_WINDOWS.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/RUNTIME_FOLLOWUP_20260911.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/SC1005_BYPASS_AND_RAMP450.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/SC1005_BYPASS_AND_RAMP450.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/SC1005_SHIFT_NATIVE450.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/SC1005_SHIFT_NATIVE450.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/SC5_NUF_BAND_NATIVE.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/SPSA_REAL_RESULT.md" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/SPSA_REAL_RESULT_summary.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/TIME_UNLIMITED_AND_MODEL_NATIVE_20260912.md" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/VSL_REPLAY_NATIVE450.png" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/VSL_REPLAY_NATIVE450.svg" text eol=crlf -whitespace
+"reports/20260911_decision_runtime/audit_fw8_rg_meter_response.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/audit_meter_branch_snapshots.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/audit_meter_branch_snapshots_v1.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/audit_meter_branch_windows.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/audit_nuf_band_native.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/current_native_anchor_source_audit.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/model_ledger_copy_microbenchmark.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/native_clock_basis_source_v1.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/native_clock_plan_v1.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/native_fw9_v1_actual_execution_audit.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/native_open_v1_source_clock_comparison.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/native_open_v2_source_clock_comparison.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_fast_np_native.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_fast_np_startup.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_nuf_band_native.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_ramp_merge_windows.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_sc1005_bypass.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_sc1005_shift.py" -text whitespace=cr-at-eol
+"reports/20260911_decision_runtime/plot_vsl_replay.py" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/README.md" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/build_figures_before_multicase.py.txt" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/comparison_metrics.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/desired_demand_comparison.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/fd_points_60s_comparison.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/freeway_fd_70_80_90.pdf" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/freeway_fd_70_80_90.png" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/freeway_fd_70_80_90.svg" text eol=crlf -whitespace
+"reports/20260911_fd_fw070_080_090/freeway_speed_70_80_90.pdf" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/freeway_speed_70_80_90.png" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/freeway_speed_70_80_90.svg" text eol=crlf -whitespace
+"reports/20260911_fd_fw070_080_090/plot_comparison.py" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/prepare_cases.py" -text whitespace=cr-at-eol
+"reports/20260911_fd_fw070_080_090/validation.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/README.md" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/build_figures.py" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_fd.pdf" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_fd.png" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_fd.svg" text eol=crlf -whitespace
+"reports/20260911_fd_mfd_fw070_urban050/freeway_fd_points.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_geometry.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_speed_time.pdf" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_speed_time.png" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/freeway_speed_time.svg" text eol=crlf -whitespace
+"reports/20260911_fd_mfd_fw070_urban050/geometry_and_scope.json" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/urban_mfd.pdf" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/urban_mfd.png" -text whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/urban_mfd.svg" text eol=crlf -whitespace
+"reports/20260911_fd_mfd_fw070_urban050/urban_mfd_points.csv" text eol=crlf whitespace=cr-at-eol
+"reports/20260911_fd_mfd_fw070_urban050/validation.json" text eol=crlf whitespace=cr-at-eol
+"scripts/analyze_actuation.py" -text whitespace=cr-at-eol
+"scripts/analyze_control_run.py" -text whitespace=cr-at-eol
+"scripts/analyze_ramp_corridor.py" -text whitespace=cr-at-eol
+"scripts/analyze_vissim_errors.py" -text whitespace=cr-at-eol
+"scripts/approve_physical_stock_topology.py" text eol=crlf whitespace=cr-at-eol
+"scripts/build_preflight_manifest.py" text eol=crlf whitespace=cr-at-eol
+"scripts/build_state_manifest_v2_1.py" text eol=crlf whitespace=cr-at-eol
+"scripts/build_vissim_lane_graph.py" text eol=crlf whitespace=cr-at-eol
+"scripts/compile_physical_stock_topology.py" text eol=crlf whitespace=cr-at-eol
+"scripts/derive_signal_group_actuation_plan_mainline_20260825.py" -text whitespace=cr-at-eol
+"scripts/measure_control_area.py" -text whitespace=cr-at-eol
+"scripts/read_monotonic_clock.py" text eol=crlf whitespace=cr-at-eol
+"scripts/resolve_lane_routes.py" text eol=crlf whitespace=cr-at-eol
+"scripts/run_real_world_single_watchdog_distributed_core17legs4b.ps1" -text whitespace=cr-at-eol
+"scripts/run_real_world_stackelberg_controller.vbs" -text whitespace=cr-at-eol
+"scripts/tests/test_action_csv_vbs_validators.py" -text whitespace=cr-at-eol
+"scripts/tests/test_b1a_vbs_verified_capture_static.py" text eol=crlf whitespace=cr-at-eol
+"scripts/tests/test_signal_group_plan_vbs_behavior.py" -text whitespace=cr-at-eol
+"scripts/verify_parameters.py" text eol=crlf whitespace=cr-at-eol
+"tests/test_action_csv_signal_group_rows.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/requirements.txt" text eol=crlf whitespace=cr-at-eol
+"vendor/NumSim-mine/src/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/authority.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/decision_equivalence.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/endpoint_noise.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/free_flow_reference.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/analysis/stage2_mechanism.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/config/default.yaml" text eol=crlf whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/auto_tuner.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/biasedsample_mpc.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/centralized_mpc.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/classical_hierarchical.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/distributed_coordinator.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/f1_wu_faithful_follower.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/freeway_follower.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/gradseed_mpc.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/grid_parallel.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/inflow_outflow_allocation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/joint_wu_controllers.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/leader.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/local_freeway_plant.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/local_signal_plant.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/nash_solver.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/priced_wu_link_controller.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/relaxed_quantization.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/rollout_endpoint.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/segment_local_plant.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/simplified_inflow_outflow_allocation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/spillback_constraints.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/stackelberg_mpc.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/stackelberg_wu_metered.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/structured_grid.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/urban_follower.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/wu_distributed.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/controllers/wu_faithful_follower.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/evaluation/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/evaluation/diagnostics.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/evaluation/metrics.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/evaluation/plots.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/evaluation/report.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/all_scenarios_four_controller_comparison.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/calibrate_setpoints.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/capacity_drop_vsl_probe.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/rl_collect_replay_dataset.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/rl_stackelberg_smoke.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/run_ablation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/run_experiment.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/six_controller_comparison.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/stage2_mechanism_validation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/experiments/stage3_coupling_ablation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/demand.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/grid_topology.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/metanet.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/state.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/models/urban_queue_model.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/action_space.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/agents.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/ddqn.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/env.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/nash_probe.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/observations.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/replay.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/rl/rewards.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/simulation/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/simulation/baseline.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/simulation/closed_loop_runner.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/simulation/coupling.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/simulation/simulator.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/__init__.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_allocation_control_map_index.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_b3_b4_price_channels.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_boundary_out_arrival_gate.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_capacity_drop.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_clean_structure.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_closed_loop_smoke.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_constraints.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_cross_substep_fifo_margin.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_cycle_green_budget_accounting.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_decision_equivalence.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_demand_scenarios.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_endpoint_noise.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_f1_follower.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_f3_offset_price.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_feasible_set_diagnostics_cache.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_forecast_awareness.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_four_phase_model.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_global_mass_conservation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_grid_routing.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_injection_delay.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_joint_controllers.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_joint_cross_price.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_link_transit_delay_floor.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_local_signal_plant.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_metanet_equations.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_metrics.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_movement_specs_memoization.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_no_two_phase_literals.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_nuf_cap_mode.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_nuf_dual.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_observed_link_speed_delay.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_offramp_reattribution.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_p15_auto_gate.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_parallel_determinism.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_per_signal_cycle_length.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_per_signal_live_phases.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_per_signal_phase_count.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_phase_green_fraction_clip.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_post_analysis.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_queue_transit_separation.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_ramp_offset.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_rl_ddqn.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_rl_environment.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_rollout_endpoint.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_segment_local_plant.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_signal_marginal_price.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_signal_phase_model.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_six_controller_comparison.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_total_physical_vehicles.py" -text whitespace=cr-at-eol
+"vendor/NumSim-mine/src/tests/test_wu_faithful_follower.py" -text whitespace=cr-at-eol

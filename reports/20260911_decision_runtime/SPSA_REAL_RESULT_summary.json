@@ -1,0 +1,2674 @@
+{
+  "schema": "recorded-state-joint-block-spsa-review/v1",
+  "source": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\spsa_actual_t1050_v1\\comparison.json",
+  "source_sha256": "f13e09d6e3d75fba9141c77b0fb0bc44bbb13b46a96e38a2e6333f3f092da6fe",
+  "status": "reviewed_not_adopted",
+  "fixture": {
+    "sim_sec": 1050,
+    "previous_actual_action_sec": 900,
+    "freeway_demand_factor": 0.7,
+    "urban_demand_factor": 0.3,
+    "seed": 13,
+    "owner_count": 19,
+    "measured_basis_count": 69,
+    "horizon_steps": 3,
+    "step_sec": 150,
+    "beta_seconds": 0
+  },
+  "production_field_installed": false,
+  "selected_gne_action": null,
+  "native_execution": false,
+  "total_diagnostic_wall_sec": 195.03786010001204,
+  "exact_preparation_wall_sec": 118.48755220000749,
+  "exact_response_actions": 70,
+  "spsa_total_wall_sec": 71.09579620001023,
+  "fixed_meter_coordinates": {
+    "R_D_W": 1800.0,
+    "R_F_W": 1800.0,
+    "R_D_E": 1800.0,
+    "R_F_E": 1800.0
+  },
+  "fixed_meter_status": "Four analytic context/interval proofs exclude realized-fixed coordinates; no meter derivative measured. Zero representatives are not identified sensitivity.",
+  "metric_definitions": {
+    "count_weighted_sign_agreement": "sum over owners of matching eligible basis signs / sum eligible basis counts; not mean of owner percentages",
+    "sign_eligibility": "abs(exact external delta) > 1e-9 veh*h",
+    "magnitude_weighted_sign_agreement": "sum abs(exact external delta) for matching signs / sum abs(exact external delta) for eligible bases",
+    "mae": "sum abs(estimated-exact external delta) / 69 measured bases",
+    "aggregate_relative_l1": "sum abs(estimated-exact external delta) / sum abs(exact external delta), not mean of owner ratios",
+    "ranking": "Ascending cost on same owner basis moves plus HOLD=0; no search over combinations, feasibility filtering, dual terms, channel weights or GNE solve",
+    "local_plus_external": "Exact local cost change from each measured secant + exact or estimated external cost change. Unit external weight only; this is a diagnostic cost comparison, not final follower utility.",
+    "timing": "SPSA pair wall times sum disjoint pair scopes; exact preparation includes candidate generation, shared response and price fit. SPSA reused exact basis and already initialized pool; these are not cold-start alternatives or full decisions."
+  },
+  "checkpoints": [
+    {
+      "pairs": 8,
+      "response_actions": 16,
+      "pair_wall_sum_sec": 36.074676000047475,
+      "basis_count": 69,
+      "sign_compared_count": 69,
+      "sign_matches": 44,
+      "count_weighted_sign_agreement": 0.6376811594202898,
+      "magnitude_weighted_sign_agreement": 0.7774534963721029,
+      "external_delta_mae_veh_h": 0.23148523305550464,
+      "aggregate_absolute_error_veh_h": 15.97248108082982,
+      "aggregate_exact_absolute_delta_denominator_veh_h": 6.945593247264764,
+      "aggregate_relative_l1_error": 2.299656848912067,
+      "owners": {
+        "SC1": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.20334536512457912,
+            -0.15956661844230347,
+            -0.19776826636527822,
+            -0.07065080057633955
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.012016649754176045,
+            -0.6379591327893237,
+            0.0988093103374339,
+            -0.3631981639397297
+          ],
+          "exact_local_deltas_veh_h": [
+            0.2198539826106467,
+            0.16345875199987425,
+            0.20622305871021318,
+            0.07646562081398534
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B4",
+              "B1",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.15956661844230347,
+            "regret_within_this_basis_set_veh_h": 0.04377874668227566,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B4",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "B4",
+              "HOLD",
+              "B1",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.003892133557570787,
+            "regret_within_this_basis_set_veh_h": 0.003892133557570787,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC5": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.019836124710060465,
+            0.003331191332068717,
+            0.012808823705387606,
+            0.05573388624064368
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.33743157698170767,
+            0.21820634217061752,
+            0.015536463929375688,
+            -0.24089976462228463
+          ],
+          "exact_local_deltas_veh_h": [
+            0.04600614074772813,
+            0.009608361505468177,
+            -0.0019070329657497886,
+            -0.07252593731392498
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B2",
+              "B3",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "B4",
+              "HOLD",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.019836124710060465,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B2",
+              "B1"
+            ],
+            "estimated_order": [
+              "B4",
+              "B1",
+              "HOLD",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.0167920510732813,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC6": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 4,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.07241871854821769,
+            0.35434501250255757,
+            0.0845080197076662,
+            0.23351261806588308
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.26887544232739224,
+            0.5424725120279281,
+            0.20116065076527678,
+            0.11489238591273665
+          ],
+          "exact_local_deltas_veh_h": [
+            0.10100544036975778,
+            -0.1546983872239256,
+            0.013549296409852474,
+            -0.07530317545500065
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B4",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.07241871854821769,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B4",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.028586721821540095,
+            "regret_within_this_basis_set_veh_h": 0.028586721821540095,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          }
+        },
+        "SC7": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            3,
+            2
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.01721208129316132,
+            -0.023468731400861975,
+            -0.02325907199279259
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.04699129840674404,
+            -0.09830448825153315,
+            0.46586855840479424
+          ],
+          "exact_local_deltas_veh_h": [
+            0.020571513159575616,
+            -0.011149078796058143,
+            -0.029983733826971226
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B1",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.023468731400861975,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "B1",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.03461781019692012,
+            "regret_within_this_basis_set_veh_h": 0.0186249956228437,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 2
+          }
+        },
+        "SC11": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.10148211118348005,
+            -0.03694827664594569,
+            -0.04266081462548199,
+            0.11363570368167142
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.3572745329168737,
+            -0.09525391774883779,
+            0.11718375985705465,
+            0.5651990659004822
+          ],
+          "exact_local_deltas_veh_h": [
+            0.1110654722206954,
+            0.04617872118086708,
+            0.05229976581880591,
+            -0.1649172812460672
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "B2",
+              "HOLD",
+              "B3",
+              "B4"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.10148211118348005,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B1",
+              "B3"
+            ],
+            "estimated_order": [
+              "B1",
+              "B2",
+              "HOLD",
+              "B3",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.009583361037215354,
+            "regret_within_this_basis_set_veh_h": 0.06086493860161113,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 3
+          }
+        },
+        "SC12": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.09970932615578532,
+            -0.0405770649470647,
+            -0.06083043171188962,
+            0.06553531852518313
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.32465235932508624,
+            0.1473164932338928,
+            0.4042982489031453,
+            0.2457111201449399
+          ],
+          "exact_local_deltas_veh_h": [
+            0.11007496397305827,
+            0.05303469616925516,
+            0.06149597321667699,
+            -0.11288947781608749
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B2",
+              "B4",
+              "B1",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.09970932615578532,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B4",
+              "B2",
+              "B1",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.04735415929090436,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          }
+        },
+        "SC16": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            3,
+            2
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.03574306851164033,
+            -0.045557073067066356,
+            -0.06067804505347285
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.06357791889651614,
+            -0.515047792501032,
+            0.024732925708170123
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03709962877824091,
+            0.0333429631496861,
+            0.04963868026707419
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.045557073067066356,
+            "regret_within_this_basis_set_veh_h": 0.015120971986406495,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.012214109917380256,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          }
+        },
+        "SC101": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.04479780545416867,
+            -0.12115952527633578,
+            -0.07151801844914507,
+            -0.0378217376931298
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.33710324519902923,
+            -0.09932889827566527,
+            -0.08017474323173768,
+            0.3119911402497755
+          ],
+          "exact_local_deltas_veh_h": [
+            0.28644662709000324,
+            0.2800514741323594,
+            0.2500121196788334,
+            -0.1440230686241568
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B2",
+              "B3",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.04479780545416867,
+            "regret_within_this_basis_set_veh_h": 0.0763617198221671,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B4",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.24164882163583457,
+            "regret_within_this_basis_set_veh_h": 0.4234936279531212,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 4
+          }
+        },
+        "SC105": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.2146292784007029,
+            -0.21497660140382813,
+            -0.25144525102946336,
+            0.075722707961563
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.009542554977009843,
+            -0.2145311993653154,
+            -0.09715231304600414,
+            -0.3281442373157164
+          ],
+          "exact_local_deltas_veh_h": [
+            0.23508591290950687,
+            0.2279964140000974,
+            0.27189381071108887,
+            -0.06124654120880546
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "B1",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B4",
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.075722707961563,
+            "regret_within_this_basis_set_veh_h": 0.32716795899102635,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B4",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.014476166752757536,
+            "regret_within_this_basis_set_veh_h": 0.014476166752757536,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          }
+        },
+        "SC107": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            3,
+            2
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            0.1256088482565687,
+            0.018782799712952603,
+            0.09264760830927399
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.1690796998193007,
+            -0.1972489940307467,
+            0.149888822567945
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.15555671129938986,
+            -0.04557089636891565,
+            -0.16562425508370948
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.018782799712952603,
+            "regret_within_this_basis_set_veh_h": 0.018782799712952603,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B1",
+              "B2",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.026788096655963045,
+            "regret_within_this_basis_set_veh_h": 0.04618855011847245,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          }
+        },
+        "SC108": {
+          "basis_count": 3,
+          "sample_counts": [
+            2,
+            3,
+            3
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.3111883956305914,
+            -0.3437532298588759,
+            -0.1945088081617432
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.6391168025443701,
+            -0.0355101657889505,
+            -0.35582243329720686
+          ],
+          "exact_local_deltas_veh_h": [
+            0.14842051852023674,
+            0.17419357788925494,
+            0.07860331353873606
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.3111883956305914,
+            "regret_within_this_basis_set_veh_h": 0.03256483422828449,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "HOLD",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.16276787711035468,
+            "regret_within_this_basis_set_veh_h": 0.006791774859266297,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          }
+        },
+        "SC109": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            2,
+            3
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            0.3218736797722417,
+            -0.014876259309362538,
+            -0.0610640310656807
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.33818923426371716,
+            0.49928934780166623,
+            0.018107904158228532
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.2704774901974676,
+            -0.028522830856458015,
+            -0.07303148125552905
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B3",
+              "B1",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.0610640310656807,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B3",
+              "HOLD",
+              "B1",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.13409551232120975,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          }
+        },
+        "SC1001": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.009724875778810649,
+            0.2709353238005816,
+            -0.015626581305114406,
+            -0.05488500457006662
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.27998677895224366,
+            0.17890926367892002,
+            -0.1758431138472858,
+            0.293802608378285
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.0015887547007382707,
+            -0.3110055325270151,
+            -0.13601914804270532,
+            -0.09813746350998631
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "B1",
+              "HOLD",
+              "B2"
+            ],
+            "estimated_order": [
+              "B3",
+              "HOLD",
+              "B2",
+              "B1",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.015626581305114406,
+            "regret_within_this_basis_set_veh_h": 0.039258423264952214,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 4
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B4",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.15164572934781972,
+            "regret_within_this_basis_set_veh_h": 0.001376738732233207,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          }
+        },
+        "SC1002": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.05071481093057306,
+            0.16651240360434305,
+            0.019564129598487856,
+            0.10567508526256342
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.49821821100784747,
+            -0.03900196699927516,
+            -0.38131373016855163,
+            -0.15583046316212168
+          ],
+          "exact_local_deltas_veh_h": [
+            0.033472910389777066,
+            -0.18752923156443946,
+            -0.07157658258581501,
+            -0.1408092986660301
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B4",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.05071481093057306,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B4",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B4",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.017241900540795996,
+            "regret_within_this_basis_set_veh_h": 0.034770552446531156,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC1003": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.25938136029512937,
+            -0.2703279236457601,
+            -0.2487668606925657,
+            0.1339034266810002
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.49492669003384415,
+            -0.36125797813012217,
+            0.01848527770196906,
+            0.08333080914683955
+          ],
+          "exact_local_deltas_veh_h": [
+            0.26879684379003455,
+            0.27722427478271894,
+            0.2535304489186918,
+            -0.1561424067884316
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "B2",
+              "HOLD",
+              "B3",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.25938136029512937,
+            "regret_within_this_basis_set_veh_h": 0.010946563350630711,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B2",
+              "B1"
+            ],
+            "estimated_order": [
+              "B1",
+              "B2",
+              "B4",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.009415483494905175,
+            "regret_within_this_basis_set_veh_h": 0.03165446360233659,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 3
+          }
+        },
+        "SC1004": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            0.04168165254021794,
+            0.11399531684196074,
+            -0.01582774224441419,
+            -0.1057109664295175
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.4959176051542775,
+            0.24480757972165934,
+            0.18421786841154808,
+            -0.30517888142336425
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.024958718433522264,
+            -0.07166631604269025,
+            0.0098587129017913,
+            0.10888101969792308
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B2",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.1057109664295175,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "HOLD",
+              "B4",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0031700532684055815,
+            "regret_within_this_basis_set_veh_h": 0.00913908261102847,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 5
+          }
+        },
+        "SC1005": {
+          "basis_count": 4,
+          "sample_counts": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.03690353167867899,
+            -0.0643354911694618,
+            -0.05892148879302028,
+            -0.03038210822146903
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.26211926860141765,
+            -0.5127781359472622,
+            -0.36799182586407875,
+            0.3672350334819874
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03962653324184773,
+            0.060770703317647,
+            0.0560319243904408,
+            0.08878875374069617
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.0643354911694618,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1",
+              "B4"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.003564787851814799,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          }
+        },
+        "FW_W": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            2,
+            3
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.0012796654166606913,
+            -0.009206911243808236,
+            -0.00831140953810916
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.18836421841958403,
+            -0.5659230539129751,
+            -0.2714342247427813
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03812972127641956,
+            0.1653428174818714,
+            0.21035775045417893
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.009206911243808236,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B2",
+              "B3"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.15613590623806317,
+            "regret_within_this_basis_set_veh_h": 0.15613590623806317,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 2
+          }
+        },
+        "FW_E": {
+          "basis_count": 3,
+          "sample_counts": [
+            3,
+            3,
+            2
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.03364992105615272,
+            -0.05144072105895248,
+            -0.01643138500523378
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.2695516078984331,
+            0.0986534977008849,
+            0.043574278925678556
+          ],
+          "exact_local_deltas_veh_h": [
+            0.1959786915685271,
+            0.3563879506996841,
+            0.3195004507619785
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.03364992105615272,
+            "regret_within_this_basis_set_veh_h": 0.017790800002799756,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 2
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.16232877051237438,
+            "regret_within_this_basis_set_veh_h": 0.16232877051237438,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          }
+        }
+      },
+      "external_best_agreement_count": 8,
+      "external_pairwise_rank_matches": 105,
+      "external_pairwise_rank_comparisons": 162,
+      "local_plus_external_best_agreement_count": 4,
+      "local_plus_external_pairwise_rank_matches": 97,
+      "local_plus_external_pairwise_rank_comparisons": 162
+    },
+    {
+      "pairs": 16,
+      "response_actions": 32,
+      "pair_wall_sum_sec": 71.06477110012202,
+      "basis_count": 69,
+      "sign_compared_count": 69,
+      "sign_matches": 45,
+      "count_weighted_sign_agreement": 0.6521739130434783,
+      "magnitude_weighted_sign_agreement": 0.7699406121462983,
+      "external_delta_mae_veh_h": 0.1496649102368167,
+      "aggregate_absolute_error_veh_h": 10.326878806340352,
+      "aggregate_exact_absolute_delta_denominator_veh_h": 6.945593247264764,
+      "aggregate_relative_l1_error": 1.4868245862809728,
+      "owners": {
+        "SC1": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.20334536512457912,
+            -0.15956661844230347,
+            -0.19776826636527822,
+            -0.07065080057633955
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.018478339212779082,
+            -0.20608639575052667,
+            -0.08331776114891465,
+            -0.3203457460480872
+          ],
+          "exact_local_deltas_veh_h": [
+            0.2198539826106467,
+            0.16345875199987425,
+            0.20622305871021318,
+            0.07646562081398534
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B4",
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.07065080057633955,
+            "regret_within_this_basis_set_veh_h": 0.13269456454823958,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B4",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B4",
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.00581482023764579,
+            "regret_within_this_basis_set_veh_h": 0.00581482023764579,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC5": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.019836124710060465,
+            0.003331191332068717,
+            0.012808823705387606,
+            0.05573388624064368
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.12611637203935439,
+            -0.0396172427613955,
+            0.07310822347925328,
+            -0.0577980579072285
+          ],
+          "exact_local_deltas_veh_h": [
+            0.04600614074772813,
+            0.009608361505468177,
+            -0.0019070329657497886,
+            -0.07252593731392498
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B2",
+              "B3",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "B4",
+              "B2",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.019836124710060465,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B2",
+              "B1"
+            ],
+            "estimated_order": [
+              "B4",
+              "B1",
+              "B2",
+              "HOLD",
+              "B3"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.0167920510732813,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 5
+          }
+        },
+        "SC6": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.07241871854821769,
+            0.35434501250255757,
+            0.0845080197076662,
+            0.23351261806588308
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.14550213114219035,
+            0.43341445001441914,
+            -0.04646805375116336,
+            0.0543977432932804
+          ],
+          "exact_local_deltas_veh_h": [
+            0.10100544036975778,
+            -0.1546983872239256,
+            0.013549296409852474,
+            -0.07530317545500065
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "HOLD",
+              "B4",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.07241871854821769,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B4",
+              "HOLD",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.028586721821540095,
+            "regret_within_this_basis_set_veh_h": 0.028586721821540095,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC7": {
+          "basis_count": 3,
+          "sample_counts": [
+            6,
+            5,
+            5
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.01721208129316132,
+            -0.023468731400861975,
+            -0.02325907199279259
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.19602028669407934,
+            0.05843489917134317,
+            0.2886303762678501
+          ],
+          "exact_local_deltas_veh_h": [
+            0.020571513159575616,
+            -0.011149078796058143,
+            -0.029983733826971226
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B2",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.01721208129316132,
+            "regret_within_this_basis_set_veh_h": 0.0062566501077006564,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 2
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B2",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0033594318664142975,
+            "regret_within_this_basis_set_veh_h": 0.056602237686178114,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 0
+          }
+        },
+        "SC11": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.10148211118348005,
+            -0.03694827664594569,
+            -0.04266081462548199,
+            0.11363570368167142
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.09525751771032659,
+            0.14260502932706132,
+            0.0644314691531297,
+            0.495184825503094
+          ],
+          "exact_local_deltas_veh_h": [
+            0.1110654722206954,
+            0.04617872118086708,
+            0.05229976581880591,
+            -0.1649172812460672
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B2",
+              "B4"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.10148211118348005,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B1",
+              "B3"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B2",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.051281577564395775,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 4
+          }
+        },
+        "SC12": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.09970932615578532,
+            -0.0405770649470647,
+            -0.06083043171188962,
+            0.06553531852518313
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.031574377894145605,
+            0.16774491963213717,
+            0.39621680724196456,
+            0.1583816065208887
+          ],
+          "exact_local_deltas_veh_h": [
+            0.11007496397305827,
+            0.05303469616925516,
+            0.06149597321667699,
+            -0.11288947781608749
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "HOLD",
+              "B4",
+              "B2",
+              "B3"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.09970932615578532,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B4",
+              "B1",
+              "B2",
+              "B3"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.04735415929090436,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC16": {
+          "basis_count": 3,
+          "sample_counts": [
+            6,
+            5,
+            5
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.03574306851164033,
+            -0.045557073067066356,
+            -0.06067804505347285
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.1523411688766602,
+            -0.21658483692328798,
+            0.07809078637062127
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03709962877824091,
+            0.0333429631496861,
+            0.04963868026707419
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.045557073067066356,
+            "regret_within_this_basis_set_veh_h": 0.015120971986406495,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.012214109917380256,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          }
+        },
+        "SC101": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.04479780545416867,
+            -0.12115952527633578,
+            -0.07151801844914507,
+            -0.0378217376931298
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.07841801055532227,
+            -0.1918089945188619,
+            -0.2582494211706716,
+            0.06761763907517326
+          ],
+          "exact_local_deltas_veh_h": [
+            0.28644662709000324,
+            0.2800514741323594,
+            0.2500121196788334,
+            -0.1440230686241568
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B3",
+              "B2",
+              "B1",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.07151801844914507,
+            "regret_within_this_basis_set_veh_h": 0.04964150682719071,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B2",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.1818448063172866,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          }
+        },
+        "SC105": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.2146292784007029,
+            -0.21497660140382813,
+            -0.25144525102946336,
+            0.075722707961563
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.013676394127207558,
+            -0.44965353141936903,
+            -0.15251194315240468,
+            -0.04662400764600849
+          ],
+          "exact_local_deltas_veh_h": [
+            0.23508591290950687,
+            0.2279964140000974,
+            0.27189381071108887,
+            -0.06124654120880546
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "B1",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "B4",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.21497660140382813,
+            "regret_within_this_basis_set_veh_h": 0.03646864962563523,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B4",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "B4",
+              "HOLD",
+              "B3",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.013019812596269276,
+            "regret_within_this_basis_set_veh_h": 0.013019812596269276,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 8
+          }
+        },
+        "SC107": {
+          "basis_count": 3,
+          "sample_counts": [
+            6,
+            5,
+            5
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            0.1256088482565687,
+            0.018782799712952603,
+            0.09264760830927399
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.10365116237619876,
+            0.018361204406757904,
+            -0.021134998641137725
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.15555671129938986,
+            -0.04557089636891565,
+            -0.16562425508370948
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B2",
+              "B3",
+              "B1"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "HOLD",
+              "B2"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.1256088482565687,
+            "regret_within_this_basis_set_veh_h": 0.1256088482565687,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 1
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B1",
+              "B2",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.029947863042821155,
+            "regret_within_this_basis_set_veh_h": 0.04302878373161434,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          }
+        },
+        "SC108": {
+          "basis_count": 3,
+          "sample_counts": [
+            5,
+            6,
+            5
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.3111883956305914,
+            -0.3437532298588759,
+            -0.1945088081617432
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.4767844982417805,
+            -0.294179020472298,
+            -0.33280487666790626
+          ],
+          "exact_local_deltas_veh_h": [
+            0.14842051852023674,
+            0.17419357788925494,
+            0.07860331353873606
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.3111883956305914,
+            "regret_within_this_basis_set_veh_h": 0.03256483422828449,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.16276787711035468,
+            "regret_within_this_basis_set_veh_h": 0.006791774859266297,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          }
+        },
+        "SC109": {
+          "basis_count": 3,
+          "sample_counts": [
+            5,
+            5,
+            6
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            0.3218736797722417,
+            -0.014876259309362538,
+            -0.0610640310656807
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.4018108018453807,
+            0.166769761435042,
+            -0.24728313288087847
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.2704774901974676,
+            -0.028522830856458015,
+            -0.07303148125552905
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B3",
+              "HOLD",
+              "B2",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.0610640310656807,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 5
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "estimated_order": [
+              "B3",
+              "HOLD",
+              "B1",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.13409551232120975,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 4
+          }
+        },
+        "SC1001": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.009724875778810649,
+            0.2709353238005816,
+            -0.015626581305114406,
+            -0.05488500457006662
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.27908673698746234,
+            0.2878942245716891,
+            -0.060948052355404236,
+            -0.16307952019227678
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.0015887547007382707,
+            -0.3110055325270151,
+            -0.13601914804270532,
+            -0.09813746350998631
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "B1",
+              "HOLD",
+              "B2"
+            ],
+            "estimated_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B1",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.05488500457006662,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B4",
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.15302246808005293,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          }
+        },
+        "SC1002": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 1,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.05071481093057306,
+            0.16651240360434305,
+            0.019564129598487856,
+            0.10567508526256342
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.6244931153861061,
+            -0.0071529889594987295,
+            -0.14524616294488868,
+            -0.04498290140586303
+          ],
+          "exact_local_deltas_veh_h": [
+            0.033472910389777066,
+            -0.18752923156443946,
+            -0.07157658258581501,
+            -0.1408092986660301
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B1",
+              "HOLD",
+              "B3",
+              "B4",
+              "B2"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B4",
+              "B2",
+              "HOLD"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.05071481093057306,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "B4",
+              "B2",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "B4",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.017241900540795996,
+            "regret_within_this_basis_set_veh_h": 0.034770552446531156,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          }
+        },
+        "SC1003": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 4,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.25938136029512937,
+            -0.2703279236457601,
+            -0.2487668606925657,
+            0.1339034266810002
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.33601737141371846,
+            -0.4535234071483845,
+            -0.16652099450493463,
+            0.3349953220577266
+          ],
+          "exact_local_deltas_veh_h": [
+            0.26879684379003455,
+            0.27722427478271894,
+            0.2535304489186918,
+            -0.1561424067884316
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD",
+              "B4"
+            ],
+            "estimated_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.2703279236457601,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 10
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B4",
+              "HOLD",
+              "B3",
+              "B2",
+              "B1"
+            ],
+            "estimated_order": [
+              "B2",
+              "B1",
+              "HOLD",
+              "B3",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.006896351136958856,
+            "regret_within_this_basis_set_veh_h": 0.029135331244390272,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 2
+          }
+        },
+        "SC1004": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 4,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            0.04168165254021794,
+            0.11399531684196074,
+            -0.01582774224441419,
+            -0.1057109664295175
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.4709990217082757,
+            0.10920724627716294,
+            -0.009937755792541858,
+            -0.12788776579850336
+          ],
+          "exact_local_deltas_veh_h": [
+            -0.024958718433522264,
+            -0.07166631604269025,
+            0.0098587129017913,
+            0.10888101969792308
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B2",
+              "B1"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.1057109664295175,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 9
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B3",
+              "HOLD",
+              "B4",
+              "B1",
+              "B2"
+            ],
+            "estimated_order": [
+              "B4",
+              "B3",
+              "HOLD",
+              "B2",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0031700532684055815,
+            "regret_within_this_basis_set_veh_h": 0.00913908261102847,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          }
+        },
+        "SC1005": {
+          "basis_count": 4,
+          "sample_counts": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 4,
+          "exact_external_deltas_veh_h": [
+            -0.03690353167867899,
+            -0.0643354911694618,
+            -0.05892148879302028,
+            -0.03038210822146903
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.24014323966233686,
+            -0.12692668244834499,
+            -0.25633513125397767,
+            0.20238006515872642
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03962653324184773,
+            0.060770703317647,
+            0.0560319243904408,
+            0.08878875374069617
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "B4",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B3",
+              "B1",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.05892148879302028,
+            "regret_within_this_basis_set_veh_h": 0.005414002376441518,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 7
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "HOLD",
+              "B1",
+              "B4"
+            ],
+            "estimated_order": [
+              "B1",
+              "B3",
+              "B2",
+              "HOLD",
+              "B4"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.0027230015631687365,
+            "regret_within_this_basis_set_veh_h": 0.006287789414983536,
+            "ordered_pair_comparisons": 10,
+            "ordered_pair_matches": 6
+          }
+        },
+        "FW_W": {
+          "basis_count": 3,
+          "sample_counts": [
+            5,
+            5,
+            6
+          ],
+          "sign_matches": 3,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.0012796654166606913,
+            -0.009206911243808236,
+            -0.00831140953810916
+          ],
+          "estimated_external_deltas_veh_h": [
+            -0.051898397544283624,
+            -0.4407196959133188,
+            -0.25557711591673876
+          ],
+          "exact_local_deltas_veh_h": [
+            0.03812972127641956,
+            0.1653428174818714,
+            0.21035775045417893
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": -0.009206911243808236,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 6
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B2",
+              "B3"
+            ],
+            "estimated_order": [
+              "B2",
+              "B3",
+              "B1",
+              "HOLD"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": 0.15613590623806317,
+            "regret_within_this_basis_set_veh_h": 0.15613590623806317,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 1
+          }
+        },
+        "FW_E": {
+          "basis_count": 3,
+          "sample_counts": [
+            6,
+            5,
+            5
+          ],
+          "sign_matches": 2,
+          "sign_compared_count": 3,
+          "exact_external_deltas_veh_h": [
+            -0.03364992105615272,
+            -0.05144072105895248,
+            -0.01643138500523378
+          ],
+          "estimated_external_deltas_veh_h": [
+            0.05529722636072757,
+            -0.010699056290157216,
+            -0.046196927058041126
+          ],
+          "exact_local_deltas_veh_h": [
+            0.1959786915685271,
+            0.3563879506996841,
+            0.3195004507619785
+          ],
+          "external_ranking": {
+            "exact_order": [
+              "B2",
+              "B1",
+              "B3",
+              "HOLD"
+            ],
+            "estimated_order": [
+              "B3",
+              "B2",
+              "HOLD",
+              "B1"
+            ],
+            "best_agrees": false,
+            "exact_delta_at_estimated_best_veh_h": -0.01643138500523378,
+            "regret_within_this_basis_set_veh_h": 0.0350093360537187,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 3
+          },
+          "local_plus_external_ranking": {
+            "exact_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B2"
+            ],
+            "estimated_order": [
+              "HOLD",
+              "B1",
+              "B3",
+              "B2"
+            ],
+            "best_agrees": true,
+            "exact_delta_at_estimated_best_veh_h": 0.0,
+            "regret_within_this_basis_set_veh_h": 0.0,
+            "ordered_pair_comparisons": 6,
+            "ordered_pair_matches": 6
+          }
+        }
+      },
+      "external_best_agreement_count": 10,
+      "external_pairwise_rank_matches": 111,
+      "external_pairwise_rank_comparisons": 162,
+      "local_plus_external_best_agreement_count": 6,
+      "local_plus_external_pairwise_rank_matches": 101,
+      "local_plus_external_pairwise_rank_comparisons": 162
+    }
+  ]
+}

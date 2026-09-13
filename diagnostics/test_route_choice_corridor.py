@@ -71,6 +71,29 @@ def worker(payload):
     return pickle.dumps((state.route_choice_corridor_state,state.urban_link_storage,state.urban_movement_queue,state._control_area_ledger.stocks))
 
 
+def resource_capture_pair(state, cfg, step):
+    """Same existing stock/counters, only the optional response differs."""
+    pair = [state.copy(), state.copy()]
+    for candidate, capture in zip(pair, (False, True)):
+        old = candidate._control_area_ledger
+        ledger = ModelAreaLedger(old.stocks, capture_response=capture)
+        for key, value in vars(old).items():
+            if not key.startswith('_response'):
+                setattr(ledger, key, deepcopy(value))
+        ledger.begin_response_step('urban', step*cfg.simulation.T_u_sec, (step+1)*cfg.simulation.T_u_sec)
+        candidate._control_area_ledger = ledger
+    return pair
+
+
+def assert_resource_capture_exact(test, left, right):
+    for item in (left, right):
+        test.assertIsNotNone(item._control_area_ledger)
+    test.assertEqual(pickle.dumps({k:v for k,v in vars(left).items() if k != '_control_area_ledger'}),
+                     pickle.dumps({k:v for k,v in vars(right).items() if k != '_control_area_ledger'}))
+    test.assertEqual({k:v for k,v in vars(left._control_area_ledger).items() if not k.startswith('_response')},
+                     {k:v for k,v in vars(right._control_area_ledger).items() if not k.startswith('_response')})
+
+
 def current_routes(raw,assignments):
     from evaluation.controllers.vehicle_routes import ATTRIBUTES
     records=[]
@@ -84,6 +107,59 @@ def current_routes(raw,assignments):
 
 
 class RouteChoiceTests(unittest.TestCase):
+    def test_capture_shared10634_actual_receipts_and_queries_no_debit(self):
+        from src.models import urban_queue_model as uqm
+        cfg,seed,action,index=synthetic([])
+        names=['SC1004_W_to_E_SC1005','SC1004_offE_to_E_SC1005','SC1004_offW_to_E_SC1005']
+        index=next(i for i in range(index,index+60) if uqm._phase_green_fraction(action,cfg,cfg.network.urban_movements[names[0]],urban_step_index=i)>0)
+        seed.route_choice_corridor_state['last_step']=index-1
+        left,right=resource_capture_pair(seed,cfg,index)
+        results=[]
+        for state in (left,right):
+            rc.advance(state,action,None,cfg,index)
+            total=rc.intended_departure(state,action,cfg,names[0],100.,index)
+            for _ in range(2):
+                self.assertEqual(rc.intended_departure(state,action,cfg,names[0],100.,index),total)
+            if state is right:self.assertEqual(state._control_area_ledger.response()['resource_allocations'],[])
+            accepted=[]
+            for name,fraction in [(names[1],.4),(names[2],.6)]:
+                limit=rc.intended_departure(state,action,cfg,name,100.,index)
+                amount=min(total*fraction,limit);accepted.append(amount)
+                source=cfg.network.off_ramp_storage_link[cfg.network.urban_movements[name]['off_ramp']]
+                target=cfg.network.route_choice_corridor['prefix_storage']
+                state.urban_link_storage[source]+=amount;state.urban_link_storage[target]-=amount
+                emit_transfer(state,cfg,'storage:'+source,'storage:'+target,amount,preserve_area=True)
+                rc.receive_accepted(state,cfg,name,amount,index)
+            results.append((total,accepted,rc.intended_departure(state,action,cfg,names[0],100.,index)))
+        self.assertEqual(results[0],results[1]);assert_resource_capture_exact(self,left,right)
+        rows=right._control_area_ledger.response()['resource_allocations']
+        self.assertEqual([r['resource'] for r in rows],['10634','10634'])
+        self.assertEqual(rows[0]['available_veh'],results[0][0])
+        self.assertEqual(rows[1]['available_veh'],results[0][0]-results[0][1][0])
+        self.assertAlmostEqual(sum(r['accepted_total_veh'] for r in rows),results[0][0])
+        self.assertEqual(set().union(*(r['accepted_by_source_veh'] for r in rows)),{'movement:'+m for m in names[1:]})
+        self.assertFalse(right._control_area_ledger.response()['shared_capacity_certificate'])
+        right._control_area_ledger.assert_stocks(area_runtime.model_inventory(right,cfg))
+
+    def test_capture_branch_budget_and_blocked_receiving_are_separate(self):
+        cohorts=[rc._cohort('SC1004_E_choice','prefix_tagged',key,amount,270,speed=40.)
+                 for key,amount in [('1',8.),('2',1.),('3',1.)]]
+        cfg,seed,action,index=synthetic(cohorts)
+        target=cfg.network.route_choice_corridor['bypass_storage']
+        seed.urban_link_storage[target]=0.
+        seed._control_area_ledger.stocks['storage:'+target]={'inside':cfg.network.urban_link_storage_veh[target],'outside':0.}
+        left,right=resource_capture_pair(seed,cfg,index)
+        self.assertEqual(rc.advance(left,action,None,cfg,index),rc.advance(right,action,None,cfg,index))
+        assert_resource_capture_exact(self,left,right)
+        rows=right._control_area_ledger.response()['resource_allocations']
+        blocked=next(r for r in rows if r['kind']=='route_choice_receiving' and r['resource']=='storage:'+target)
+        self.assertEqual((blocked['available_veh'],blocked['accepted_total_veh']),(0.,0.))
+        branch=[r for r in rows if r['kind']=='route_choice_branch_service' and r['resource']=='1129:branch:local']
+        self.assertEqual(len(branch),2)
+        self.assertAlmostEqual(branch[1]['available_veh'],branch[0]['available_veh']-branch[0]['accepted_total_veh'])
+        self.assertGreater(sum(r['accepted_total_veh'] for r in branch),0.)
+        right._control_area_ledger.assert_stocks(area_runtime.model_inventory(right,cfg))
+
     def test_actual_1350_initial_count_and_no_entry_reward(self):
         cfg,state,raw,detectors,_,meta=fixture()
         spec=cfg.network.route_choice_corridor

@@ -1,0 +1,89 @@
+{
+  "schema": "matched-terminal-and-live-boundary-ttd/v1",
+  "completed": true,
+  "native_run": false,
+  "new_model_queries": 0,
+  "source_sha256": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_area450_v1\\boundary_metrics.json": "2c0e7cb2ae9833c06908f09697ade9ab26f745b3e97e76db6208ffac971f0356",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_model450_v1.json": "e03319c35b9bf5b6a7dcb0c35d2d1a3ceb1f56692947ff47a56eba3554d852a5",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\open1350_model_native_comparison_v1.json": "3f39615c97a72dd20afc71e700a6d1b9271c2380f21369b11fedaf30fb2f4507",
+    "evaluation\\controllers\\area_freeway_accounting.py": "a47e6b9b5485e0f22e713d3d27c14ff27ab1bdf8b5ecf97ca5d98962ac13dfcc"
+  },
+  "scope": "Existing same-command, same900state450forecast and qualified native1350. Terminal model transfer is explicitly inside to outside. Remaining model TTD is aggregate live external boundary outflow including urban and external off-ramp paths; not a per-movement mapping or new future-state forecast.",
+  "rows": [
+    {
+      "start_sec": 900,
+      "end_sec": 1050,
+      "native_unknown_excluded_veh": 6,
+      "components": {
+        "controlled_mainline_terminal": {
+          "native_veh": 151,
+          "model_veh": 156.2273346074252,
+          "bias_veh": 5.227334607425206,
+          "relative_bias_pct_actual_denominator": 3.4618109982948386
+        },
+        "live_external_boundary": {
+          "native_veh": 313,
+          "model_veh": 138.3100448772307,
+          "bias_veh": -174.6899551227693,
+          "relative_bias_pct_actual_denominator": -55.811487259670706
+        },
+        "omega_total": {
+          "native_veh": 464,
+          "model_veh": 294.5373794846559,
+          "bias_veh": -169.4626205153441,
+          "relative_bias_pct_actual_denominator": -36.522116490375886
+        }
+      }
+    },
+    {
+      "start_sec": 900,
+      "end_sec": 1350,
+      "native_unknown_excluded_veh": 12,
+      "components": {
+        "controlled_mainline_terminal": {
+          "native_veh": 492,
+          "model_veh": 658.6355255931144,
+          "bias_veh": 166.63552559311438,
+          "relative_bias_pct_actual_denominator": 33.869009266893165
+        },
+        "live_external_boundary": {
+          "native_veh": 1066,
+          "model_veh": 479.73852201694876,
+          "bias_veh": -586.2614779830512,
+          "relative_bias_pct_actual_denominator": -54.99638630235002
+        },
+        "omega_total": {
+          "native_veh": 1558,
+          "model_veh": 1138.3740476100631,
+          "bias_veh": -419.62595238993686,
+          "relative_bias_pct_actual_denominator": -26.93362980679954
+        }
+      }
+    }
+  ],
+  "native_full_terminal_by_link": {
+    "120": 286,
+    "24": 206
+  },
+  "model_full_terminal_by_direction": {
+    "freeway:FW_W->external:terminal:FW_W": 367.7997234667576,
+    "freeway:FW_E->external:terminal:FW_E": 290.8358021263568
+  },
+  "model_remaining300": {
+    "controlled_mainline_terminal": {
+      "native_veh": 341,
+      "model_veh": 502.4081909856892
+    },
+    "live_external_boundary": {
+      "native_veh": 753,
+      "model_veh": 341.4284771397181
+    },
+    "omega_total": {
+      "native_veh": 1094,
+      "model_veh": 843.8366681254072
+    }
+  },
+  "source_changes": [],
+  "wall_sec": 0.008447899992461316
+}

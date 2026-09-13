@@ -1,0 +1,27 @@
+{
+  "extends": "../fixed_beta300v3_900_signal_profile/config.json",
+  "name": "com_equivalence_fixed_ramp_vsl_head_1s",
+  "description": "Diagnostic physical-command fixture: fixed VSL80 at every configured zone, eight physical meters 5G/1A/4R, native urban SIG. Same config for both COM arms.",
+  "urban": {
+    "plan": {"mainline_only": true, "mainline_share": true},
+    "capacity": {
+      "measured": true,
+      "head_observation": {"enabled": true, "min_green_sec": 30, "min_crossings": 5}
+    }
+  },
+  "diagnostic": {
+    "signal_profile": null,
+    "vsl_profile": {
+      "FW_E__seg0": 80, "FW_E__seg5": 80,
+      "FW_E__seg10": 80, "FW_E__seg15": 80,
+      "FW_W__seg0": 80, "FW_W__seg5": 80,
+      "FW_W__seg10": 80, "FW_W__seg15": 80
+    },
+    "physical_meter_green_sec": {
+      "RM_C10480": 5, "RM_C10482": 5,
+      "RM_C10646": 5, "RM_C10644": 5,
+      "RM_C10639": 5, "RM_C10681": 5,
+      "RM_C10490": 5, "RM_C10484": 5
+    }
+  }
+}

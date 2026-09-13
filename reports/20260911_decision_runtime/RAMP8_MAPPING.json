@@ -1,0 +1,2781 @@
+{
+  "schema": "ramp8-physical-mapping-audit/v1",
+  "scope": "Physical mapping audit of the selected pinned network; no COM or rollout. Eight connector + direct upstream-link areas are proposed individual modeling domains. Production remains the existing four-group ramp model; eight-stock/flow routing is not enabled by this report. Cell indices are zero-based. Geometry/path membership is not desired demand, observed routing, capacity or feasible lane-change proof.",
+  "sources": {
+    "network": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_native_clock_fw080_u050_open_v2\\native_recording\\baseline.inpx",
+      "sha256": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2"
+    },
+    "recording_proof": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_native_clock_fw080_u050_open_v2\\network_recording.json",
+      "sha256": "3cd2b7bd8e88102e77c2b6df6a37d1adaf98d9035e03e354daf9fbeac6834fde"
+    },
+    "mapping": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2n21_20260907\\control_mapping_ver2n21.json",
+      "sha256": "d0a7bb9ff830f84c519608b2e77379f7bbe65606567cf2b9488b2c47759cde64"
+    },
+    "chain": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2_20260907\\freeway_mainline_chain_ver2.csv",
+      "sha256": "8d8689e865c207e4ca7eeb6c8fec2f0c1cb4e4bfb8c6831f87ef660870afbfee"
+    },
+    "config": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_improvement\\decision_common_anchor_20260911\\native_clock_replay_v1\\config_native_open_launch.json",
+      "sha256": "368bca8b618d9423e9c4e9b6eb06824fb1cd4c5e864be592fdd926abf4983f49"
+    },
+    "detector": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\real_world_modi_control_ver2_20260907\\detector_local_mapping_ver2_20260907.json",
+      "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+    },
+    "membership": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_area_membership.json",
+      "sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d"
+    },
+    "route_contract": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\control_area_route_contract_physical_routes.json",
+      "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+    },
+    "leg_split": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\boundary_out_ramp_split_20260905_measured.json",
+      "sha256": "927d0ba4eeb6c88d2ffa85ee94e80e7e38cdb6e34bed0fd716b3bf0abffb6437"
+    },
+    "adapter": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+      "sha256": "c3a83c07046450753d66dcc5ae58573b360153e160fd0955f2a35f027ba716e9"
+    },
+    "urban_flow": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\urban_flow_accounting.py",
+      "sha256": "1bdb8b2d67ffbcb8b4001cfe8295626848d77488ed367333511b28b91bdb19f2"
+    }
+  },
+  "network_pin_passed": true,
+  "ramps": [
+    {
+      "id": "RM_C10480",
+      "connector": 10480,
+      "legacy_report_group_only": "R_D_W",
+      "physical": {
+        "connector": 10480,
+        "from": {
+          "link": 124,
+          "start_lane": 1,
+          "position_m": 321.6131908048111
+        },
+        "to": {
+          "link": 26,
+          "start_lane": 1,
+          "position_m": 3525.124449495009
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 3,
+        "approach_link_length_m": 321.9200000001367,
+        "connector_geometry_length_m": 151.17990918271633,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030892,
+            "link": 10480,
+            "lane": 1,
+            "position_m": 145.641195575947,
+            "sc": 9101,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          124,
+          10480
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_W",
+        "cell_zero_based": 6,
+        "cell_one_based": 7,
+        "chain_position_m_from_selected_geometry": 3525.124449495009,
+        "mapping_chain_position_m": 3525.124,
+        "difference_m": 0.00044949500897928374,
+        "physical_target_link": 26,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 3525.124449495009
+      },
+      "native_routes_crossing_approach": [
+        "1131:3",
+        "1137:2",
+        "1137:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1137:3"
+      ],
+      "other_meters_reached_from_same_approach": [],
+      "outgoing_connectors": [
+        {
+          "connector": 10480,
+          "from": {
+            "link": 124,
+            "start_lane": 1,
+            "position_m": 321.6131908048111
+          },
+          "to": {
+            "link": 26,
+            "start_lane": 1,
+            "position_m": 3525.124449495009
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1137:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10480
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10775,
+          "from": {
+            "link": 124,
+            "start_lane": 1,
+            "position_m": 321.91900000000004
+          },
+          "to": {
+            "link": 125,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3,
+          "native_route_ids": [
+            "1131:3",
+            "1137:2"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10483,
+          "from": {
+            "link": 119,
+            "start_lane": 1,
+            "position_m": 392.29117323271294
+          },
+          "to": {
+            "link": 124,
+            "start_lane": 1,
+            "position_m": 201.15015124303818
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10774,
+          "from": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 412.317
+          },
+          "to": {
+            "link": 124,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "SC1001_W_out"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1131,
+        1137
+      ]
+    },
+    {
+      "id": "RM_C10482",
+      "connector": 10482,
+      "legacy_report_group_only": "R_D_W",
+      "physical": {
+        "connector": 10482,
+        "from": {
+          "link": 32,
+          "start_lane": 1,
+          "position_m": 1028.6207529816324
+        },
+        "to": {
+          "link": 120,
+          "start_lane": 1,
+          "position_m": 10.227348372713095
+        },
+        "lane_count": 2,
+        "approach_link_lane_count": 3,
+        "approach_link_length_m": 1029.6579999996138,
+        "connector_geometry_length_m": 380.6302178435453,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030893,
+            "link": 10482,
+            "lane": 2,
+            "position_m": 374.2173333514973,
+            "sc": 9102,
+            "sg": 1
+          },
+          {
+            "head": 90030894,
+            "link": 10482,
+            "lane": 1,
+            "position_m": 374.11967822309003,
+            "sc": 9102,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          32,
+          10482
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_W",
+        "cell_zero_based": 7,
+        "cell_one_based": 8,
+        "chain_position_m_from_selected_geometry": 3832.586457511578,
+        "mapping_chain_position_m": 3832.586,
+        "difference_m": 0.0004575115781335626,
+        "physical_target_link": 120,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 10.227348372713095
+      },
+      "native_routes_crossing_approach": [
+        "1136:1",
+        "1136:2",
+        "1136:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1136:1"
+      ],
+      "other_meters_reached_from_same_approach": [
+        10490
+      ],
+      "outgoing_connectors": [
+        {
+          "connector": 10482,
+          "from": {
+            "link": 32,
+            "start_lane": 1,
+            "position_m": 1028.6207529816324
+          },
+          "to": {
+            "link": 120,
+            "start_lane": 1,
+            "position_m": 10.227348372713095
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1136:1"
+          ],
+          "eventual_meters_in_these_routes": [
+            10482
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10778,
+          "from": {
+            "link": 32,
+            "start_lane": 1,
+            "position_m": 1029.657
+          },
+          "to": {
+            "link": 129,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3,
+          "native_route_ids": [
+            "1136:2",
+            "1136:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10490
+          ],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [],
+      "direct_vehicle_inputs": [
+        {
+          "input": 1102,
+          "link": 32
+        }
+      ],
+      "current_detector_origin_aliases": [
+        "in_SC1001_W"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1136
+      ]
+    },
+    {
+      "id": "RM_C10646",
+      "connector": 10646,
+      "legacy_report_group_only": "R_F_W",
+      "physical": {
+        "connector": 10646,
+        "from": {
+          "link": 121,
+          "start_lane": 1,
+          "position_m": 233.01998411246473
+        },
+        "to": {
+          "link": 120,
+          "start_lane": 1,
+          "position_m": 2252.9982926203243
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 4,
+        "approach_link_length_m": 233.36599999974578,
+        "connector_geometry_length_m": 307.31002491713195,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030895,
+            "link": 10646,
+            "lane": 1,
+            "position_m": 302.8105127917601,
+            "sc": 9103,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          121,
+          10646
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_W",
+        "cell_zero_based": 11,
+        "cell_one_based": 12,
+        "chain_position_m_from_selected_geometry": 6075.357401759189,
+        "mapping_chain_position_m": 6075.357,
+        "difference_m": 0.00040175918911700137,
+        "physical_target_link": 120,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 2252.9982926203243
+      },
+      "native_routes_crossing_approach": [
+        "1130:3",
+        "1135:2",
+        "1135:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1135:2"
+      ],
+      "other_meters_reached_from_same_approach": [],
+      "outgoing_connectors": [
+        {
+          "connector": 10646,
+          "from": {
+            "link": 121,
+            "start_lane": 1,
+            "position_m": 233.01998411246473
+          },
+          "to": {
+            "link": 120,
+            "start_lane": 1,
+            "position_m": 2252.9982926203243
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1135:2"
+          ],
+          "eventual_meters_in_these_routes": [
+            10646
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10773,
+          "from": {
+            "link": 121,
+            "start_lane": 1,
+            "position_m": 233.365
+          },
+          "to": {
+            "link": 123,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 4,
+          "native_route_ids": [
+            "1130:3",
+            "1135:3"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10682,
+          "from": {
+            "link": 2,
+            "start_lane": 1,
+            "position_m": 2012.357464508074
+          },
+          "to": {
+            "link": 121,
+            "start_lane": 1,
+            "position_m": 118.4461500324946
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10772,
+          "from": {
+            "link": 68,
+            "start_lane": 1,
+            "position_m": 117.98299999999999
+          },
+          "to": {
+            "link": 121,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 4
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "SC1004_W_out"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1130,
+        1135
+      ]
+    },
+    {
+      "id": "RM_C10644",
+      "connector": 10644,
+      "legacy_report_group_only": "R_F_W",
+      "physical": {
+        "connector": 10644,
+        "from": {
+          "link": 69,
+          "start_lane": 1,
+          "position_m": 1740.4823273551347
+        },
+        "to": {
+          "link": 120,
+          "start_lane": 1,
+          "position_m": 2954.755850369194
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 4,
+        "approach_link_length_m": 1745.949830187746,
+        "connector_geometry_length_m": 730.4710739068639,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030896,
+            "link": 10644,
+            "lane": 1,
+            "position_m": 724.5605214129818,
+            "sc": 9104,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          69,
+          10644
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_W",
+        "cell_zero_based": 13,
+        "cell_one_based": 14,
+        "chain_position_m_from_selected_geometry": 6777.114959508059,
+        "mapping_chain_position_m": 6777.115,
+        "difference_m": -4.0491941035725176e-05,
+        "physical_target_link": 120,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 2954.755850369194
+      },
+      "native_routes_crossing_approach": [
+        "1134:1",
+        "1134:2",
+        "1134:3",
+        "1134:4"
+      ],
+      "route_ids_using_own_meter": [
+        "1134:1"
+      ],
+      "other_meters_reached_from_same_approach": [
+        10639
+      ],
+      "outgoing_connectors": [
+        {
+          "connector": 10636,
+          "from": {
+            "link": 69,
+            "start_lane": 3,
+            "position_m": 1745.949830187746
+          },
+          "to": {
+            "link": 75,
+            "start_lane": 1,
+            "position_m": 1.741801959503713
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1134:2"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        },
+        {
+          "connector": 10637,
+          "from": {
+            "link": 69,
+            "start_lane": 1,
+            "position_m": 1744.343313654834
+          },
+          "to": {
+            "link": 70,
+            "start_lane": 1,
+            "position_m": 1.9866558434250807
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1134:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10639
+          ],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        },
+        {
+          "connector": 10640,
+          "from": {
+            "link": 69,
+            "start_lane": 1,
+            "position_m": 1745.949830187746
+          },
+          "to": {
+            "link": 71,
+            "start_lane": 4,
+            "position_m": 3.470217644086532
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1134:4"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        },
+        {
+          "connector": 10644,
+          "from": {
+            "link": 69,
+            "start_lane": 1,
+            "position_m": 1740.4823273551347
+          },
+          "to": {
+            "link": 120,
+            "start_lane": 1,
+            "position_m": 2954.755850369194
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1134:1"
+          ],
+          "eventual_meters_in_these_routes": [
+            10644
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        }
+      ],
+      "incoming_connectors": [],
+      "direct_vehicle_inputs": [
+        {
+          "input": 1101,
+          "link": 69
+        }
+      ],
+      "current_detector_origin_aliases": [],
+      "direct_or_inherited_native_routing_decisions": [
+        1134
+      ]
+    },
+    {
+      "id": "RM_C10639",
+      "connector": 10639,
+      "legacy_report_group_only": "R_F_E",
+      "physical": {
+        "connector": 10639,
+        "from": {
+          "link": 70,
+          "start_lane": 1,
+          "position_m": 180.14322835147638
+        },
+        "to": {
+          "link": 2,
+          "start_lane": 1,
+          "position_m": 1876.2915917167772
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 2,
+        "approach_link_length_m": 180.54899999981276,
+        "connector_geometry_length_m": 320.55468856383953,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030897,
+            "link": 10639,
+            "lane": 1,
+            "position_m": 314.83469380887993,
+            "sc": 9105,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          70,
+          10639
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_E",
+        "cell_zero_based": 8,
+        "cell_one_based": 9,
+        "chain_position_m_from_selected_geometry": 4610.818824090385,
+        "mapping_chain_position_m": 4610.819,
+        "difference_m": -0.00017590961579116993,
+        "physical_target_link": 2,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 1876.2915917167772
+      },
+      "native_routes_crossing_approach": [
+        "1133:2",
+        "1134:3",
+        "1140:1",
+        "1140:2",
+        "1140:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1134:3"
+      ],
+      "other_meters_reached_from_same_approach": [],
+      "outgoing_connectors": [
+        {
+          "connector": 10639,
+          "from": {
+            "link": 70,
+            "start_lane": 1,
+            "position_m": 180.14322835147638
+          },
+          "to": {
+            "link": 2,
+            "start_lane": 1,
+            "position_m": 1876.2915917167772
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1134:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10639
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10776,
+          "from": {
+            "link": 70,
+            "start_lane": 1,
+            "position_m": 180.548
+          },
+          "to": {
+            "link": 126,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1133:2",
+            "1140:1",
+            "1140:2",
+            "1140:3"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10637,
+          "from": {
+            "link": 69,
+            "start_lane": 1,
+            "position_m": 1744.343313654834
+          },
+          "to": {
+            "link": 70,
+            "start_lane": 1,
+            "position_m": 1.9866558434250807
+          },
+          "lane_count": 2
+        },
+        {
+          "connector": 10638,
+          "from": {
+            "link": 120,
+            "start_lane": 1,
+            "position_m": 2402.4810008143345
+          },
+          "to": {
+            "link": 70,
+            "start_lane": 1,
+            "position_m": 40.2672695110303
+          },
+          "lane_count": 2
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "in_SC1004_W"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1133,
+        1134,
+        1140
+      ]
+    },
+    {
+      "id": "RM_C10681",
+      "connector": 10681,
+      "legacy_report_group_only": "R_F_E",
+      "physical": {
+        "connector": 10681,
+        "from": {
+          "link": 68,
+          "start_lane": 1,
+          "position_m": 117.41878136863699
+        },
+        "to": {
+          "link": 2,
+          "start_lane": 1,
+          "position_m": 2165.428752742947
+        },
+        "lane_count": 2,
+        "approach_link_lane_count": 4,
+        "approach_link_length_m": 117.9839999996958,
+        "connector_geometry_length_m": 296.4388819105002,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030898,
+            "link": 10681,
+            "lane": 1,
+            "position_m": 290.72003141146473,
+            "sc": 9106,
+            "sg": 1
+          },
+          {
+            "head": 90030899,
+            "link": 10681,
+            "lane": 2,
+            "position_m": 290.72003141146473,
+            "sc": 9106,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          68,
+          10681
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_E",
+        "cell_zero_based": 9,
+        "cell_one_based": 10,
+        "chain_position_m_from_selected_geometry": 4899.955985116554,
+        "mapping_chain_position_m": 4899.956,
+        "difference_m": -1.4883446056046523e-05,
+        "physical_target_link": 2,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 2165.428752742947
+      },
+      "native_routes_crossing_approach": [
+        "1123:2",
+        "1124:1",
+        "1125:1",
+        "1135:2",
+        "1135:3",
+        "1135:4"
+      ],
+      "route_ids_using_own_meter": [
+        "1135:4"
+      ],
+      "other_meters_reached_from_same_approach": [
+        10646
+      ],
+      "outgoing_connectors": [
+        {
+          "connector": 10681,
+          "from": {
+            "link": 68,
+            "start_lane": 1,
+            "position_m": 117.41878136863699
+          },
+          "to": {
+            "link": 2,
+            "start_lane": 1,
+            "position_m": 2165.428752742947
+          },
+          "lane_count": 2,
+          "native_route_ids": [
+            "1135:4"
+          ],
+          "eventual_meters_in_these_routes": [
+            10681
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10772,
+          "from": {
+            "link": 68,
+            "start_lane": 1,
+            "position_m": 117.98299999999999
+          },
+          "to": {
+            "link": 121,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 4,
+          "native_route_ids": [
+            "1135:2",
+            "1135:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10646
+          ],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10625,
+          "from": {
+            "link": 46,
+            "start_lane": 1,
+            "position_m": 949.2075539887308
+          },
+          "to": {
+            "link": 68,
+            "start_lane": 1,
+            "position_m": 2.1195482118491564
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10629,
+          "from": {
+            "link": 52,
+            "start_lane": 1,
+            "position_m": 465.5309727222275
+          },
+          "to": {
+            "link": 68,
+            "start_lane": 1,
+            "position_m": 2.0669514701978264
+          },
+          "lane_count": 3
+        },
+        {
+          "connector": 10633,
+          "from": {
+            "link": 66,
+            "start_lane": 4,
+            "position_m": 2660.00849036297
+          },
+          "to": {
+            "link": 68,
+            "start_lane": 4,
+            "position_m": 2.361151130014316
+          },
+          "lane_count": 1
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "SC1004_W_out"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1123,
+        1124,
+        1125,
+        1135
+      ]
+    },
+    {
+      "id": "RM_C10490",
+      "connector": 10490,
+      "legacy_report_group_only": "R_D_E",
+      "physical": {
+        "connector": 10490,
+        "from": {
+          "link": 129,
+          "start_lane": 1,
+          "position_m": 299.9855236542128
+        },
+        "to": {
+          "link": 119,
+          "start_lane": 1,
+          "position_m": 305.38646819908536
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 3,
+        "approach_link_length_m": 301.92699999982665,
+        "connector_geometry_length_m": 279.03213017760226,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030900,
+            "link": 10490,
+            "lane": 1,
+            "position_m": 272.6035592816065,
+            "sc": 9107,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          129,
+          10490
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_E",
+        "cell_zero_based": 13,
+        "cell_one_based": 14,
+        "chain_position_m_from_selected_geometry": 7153.367017902778,
+        "mapping_chain_position_m": 7153.367,
+        "difference_m": 1.7902777472045273e-05,
+        "physical_target_link": 119,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 305.38646819908536
+      },
+      "native_routes_crossing_approach": [
+        "1132:2",
+        "1136:2",
+        "1136:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1136:3"
+      ],
+      "other_meters_reached_from_same_approach": [],
+      "outgoing_connectors": [
+        {
+          "connector": 10490,
+          "from": {
+            "link": 129,
+            "start_lane": 1,
+            "position_m": 299.9855236542128
+          },
+          "to": {
+            "link": 119,
+            "start_lane": 1,
+            "position_m": 305.38646819908536
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1136:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10490
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10777,
+          "from": {
+            "link": 129,
+            "start_lane": 1,
+            "position_m": 301.92600000000016
+          },
+          "to": {
+            "link": 127,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3,
+          "native_route_ids": [
+            "1132:2",
+            "1136:2"
+          ],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10491,
+          "from": {
+            "link": 26,
+            "start_lane": 1,
+            "position_m": 3650.904900904122
+          },
+          "to": {
+            "link": 129,
+            "start_lane": 1,
+            "position_m": 239.38422422843928
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10778,
+          "from": {
+            "link": 32,
+            "start_lane": 1,
+            "position_m": 1029.657
+          },
+          "to": {
+            "link": 129,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "in_SC1001_W"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1132,
+        1136
+      ]
+    },
+    {
+      "id": "RM_C10484",
+      "connector": 10484,
+      "legacy_report_group_only": "R_D_E",
+      "physical": {
+        "connector": 10484,
+        "from": {
+          "link": 31,
+          "start_lane": 1,
+          "position_m": 412.08696861958236
+        },
+        "to": {
+          "link": 24,
+          "start_lane": 1,
+          "position_m": 10.318793452441241
+        },
+        "lane_count": 1,
+        "approach_link_lane_count": 3,
+        "approach_link_length_m": 412.3179999997671,
+        "connector_geometry_length_m": 386.74543250180557,
+        "lane_change_distance_m": 1000.0,
+        "signal_heads": [
+          {
+            "head": 90030901,
+            "link": 10484,
+            "lane": 1,
+            "position_m": 377.1107628548054,
+            "sc": 9108,
+            "sg": 1
+          }
+        ],
+        "approach_signal_heads": []
+      },
+      "management_area": {
+        "physical_links": [
+          31,
+          10484
+        ],
+        "all_links_inside_Omega": true,
+        "any_link_in_PN_core": false,
+        "dedicated_ramp_only": false,
+        "stock_rule": "All road occupants for spatial congestion; own-ramp destination cohort for ramp demand/queue, separate through and other-ramp cohorts. Reassign or subtract existing urban occupancy, never add duplicate stock."
+      },
+      "receiving": {
+        "model_link": "FW_E",
+        "cell_zero_based": 14,
+        "cell_one_based": 15,
+        "chain_position_m_from_selected_geometry": 7448.365520876056,
+        "mapping_chain_position_m": 7448.366,
+        "difference_m": -0.00047912394438753836,
+        "physical_target_link": 24,
+        "physical_target_start_lane": 1,
+        "physical_target_position_m": 10.318793452441241
+      },
+      "native_routes_crossing_approach": [
+        "1116:3",
+        "1118:2",
+        "1119:1",
+        "1137:1",
+        "1137:2",
+        "1137:3"
+      ],
+      "route_ids_using_own_meter": [
+        "1137:1"
+      ],
+      "other_meters_reached_from_same_approach": [
+        10480
+      ],
+      "outgoing_connectors": [
+        {
+          "connector": 10484,
+          "from": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 412.08696861958236
+          },
+          "to": {
+            "link": 24,
+            "start_lane": 1,
+            "position_m": 10.318793452441241
+          },
+          "lane_count": 1,
+          "native_route_ids": [
+            "1137:1"
+          ],
+          "eventual_meters_in_these_routes": [
+            10484
+          ],
+          "route_membership_status": "verified",
+          "type": "own_meter"
+        },
+        {
+          "connector": 10704,
+          "from": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 281.15550089909544
+          },
+          "to": {
+            "link": 79,
+            "start_lane": 1,
+            "position_m": 2.3075558395721987
+          },
+          "lane_count": 2,
+          "native_route_ids": [],
+          "eventual_meters_in_these_routes": [],
+          "route_membership_status": "geometry_only_no_selected_native_route_found",
+          "type": "other_meter_or_through"
+        },
+        {
+          "connector": 10774,
+          "from": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 412.317
+          },
+          "to": {
+            "link": 124,
+            "start_lane": 1,
+            "position_m": 0.0005
+          },
+          "lane_count": 3,
+          "native_route_ids": [
+            "1137:2",
+            "1137:3"
+          ],
+          "eventual_meters_in_these_routes": [
+            10480
+          ],
+          "route_membership_status": "verified",
+          "type": "other_meter_or_through"
+        }
+      ],
+      "incoming_connectors": [
+        {
+          "connector": 10119,
+          "from": {
+            "link": 29,
+            "start_lane": 2,
+            "position_m": 538.4397494919805
+          },
+          "to": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 2.030656464320884
+          },
+          "lane_count": 2
+        },
+        {
+          "connector": 10121,
+          "from": {
+            "link": 37,
+            "start_lane": 1,
+            "position_m": 501.3197511551374
+          },
+          "to": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 2.884438615965581
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10698,
+          "from": {
+            "link": 40,
+            "start_lane": 4,
+            "position_m": 1258.236741371944
+          },
+          "to": {
+            "link": 31,
+            "start_lane": 3,
+            "position_m": 1.927973927034941
+          },
+          "lane_count": 1
+        },
+        {
+          "connector": 10703,
+          "from": {
+            "link": 78,
+            "start_lane": 1,
+            "position_m": 473.8555972533852
+          },
+          "to": {
+            "link": 31,
+            "start_lane": 1,
+            "position_m": 350.71798399597975
+          },
+          "lane_count": 2
+        }
+      ],
+      "direct_vehicle_inputs": [],
+      "current_detector_origin_aliases": [
+        "SC1001_W_out"
+      ],
+      "direct_or_inherited_native_routing_decisions": [
+        1116,
+        1118,
+        1119,
+        1137
+      ]
+    }
+  ],
+  "native_routes": [
+    {
+      "id": "1116:3",
+      "decision": 1116,
+      "start_link": 37,
+      "start_position_m": 258.6755976193677,
+      "destination_link": 31,
+      "destination_position_m": 19.472161647798654,
+      "path": [
+        37,
+        10121,
+        31
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:4",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1118:2",
+      "decision": 1118,
+      "start_link": 29,
+      "start_position_m": 10.829723073261189,
+      "destination_link": 31,
+      "destination_position_m": 21.21950959630771,
+      "path": [
+        29,
+        10119,
+        31
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:10",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1119:1",
+      "decision": 1119,
+      "start_link": 40,
+      "start_position_m": 25.779105041881785,
+      "destination_link": 31,
+      "destination_position_m": 17.25269123457933,
+      "path": [
+        40,
+        10698,
+        31
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:10",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1123:2",
+      "decision": 1123,
+      "start_link": 52,
+      "start_position_m": 11.07016755143615,
+      "destination_link": 68,
+      "destination_position_m": 4.9506564983648245,
+      "path": [
+        52,
+        10629,
+        68
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:10",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1124:1",
+      "decision": 1124,
+      "start_link": 66,
+      "start_position_m": 1394.0755542126192,
+      "destination_link": 68,
+      "destination_position_m": 5.676183235579589,
+      "path": [
+        66,
+        10633,
+        68
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:6",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1125:1",
+      "decision": 1125,
+      "start_link": 46,
+      "start_position_m": 16.47896993957252,
+      "destination_link": 68,
+      "destination_position_m": 6.322767103712503,
+      "path": [
+        46,
+        10625,
+        68
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:6",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1130:3",
+      "decision": 1130,
+      "start_link": 74,
+      "start_position_m": 35.47797461194468,
+      "destination_link": 123,
+      "destination_position_m": 295.92350735286266,
+      "path": [
+        74,
+        10699,
+        2,
+        10682,
+        121,
+        10773,
+        123
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:4",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1131:3",
+      "decision": 1131,
+      "start_link": 2,
+      "start_position_m": 2320.5697214347756,
+      "destination_link": 125,
+      "destination_position_m": 345.9387801386575,
+      "path": [
+        2,
+        10613,
+        119,
+        10483,
+        124,
+        10775,
+        125
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:3",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1132:2",
+      "decision": 1132,
+      "start_link": 26,
+      "start_position_m": 75.74855211907948,
+      "destination_link": 127,
+      "destination_position_m": 481.2268908561873,
+      "path": [
+        26,
+        10491,
+        129,
+        10777,
+        127
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:3",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1133:2",
+      "decision": 1133,
+      "start_link": 120,
+      "start_position_m": 424.2286792840173,
+      "destination_link": 126,
+      "destination_position_m": 151.451,
+      "path": [
+        120,
+        10638,
+        70,
+        10776,
+        126
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1134:1",
+      "decision": 1134,
+      "start_link": 69,
+      "start_position_m": 48.85709342855405,
+      "destination_link": 120,
+      "destination_position_m": 3172.586166339181,
+      "path": [
+        69,
+        10644,
+        120
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:12",
+      "physical_meter_connectors": [
+        10644
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1134:2",
+      "decision": 1134,
+      "start_link": 69,
+      "start_position_m": 48.85709342855405,
+      "destination_link": 75,
+      "destination_position_m": 67.10337614403937,
+      "path": [
+        69,
+        10636,
+        75
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1134:3",
+      "decision": 1134,
+      "start_link": 69,
+      "start_position_m": 48.85709342855405,
+      "destination_link": 2,
+      "destination_position_m": 2306.235002215379,
+      "path": [
+        69,
+        10637,
+        70,
+        10639,
+        2
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:3",
+      "physical_meter_connectors": [
+        10639
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1134:4",
+      "decision": 1134,
+      "start_link": 69,
+      "start_position_m": 48.85709342855405,
+      "destination_link": 10640,
+      "destination_position_m": 210.67735258800494,
+      "path": [
+        69,
+        10640
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:0.25",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1135:2",
+      "decision": 1135,
+      "start_link": 68,
+      "start_position_m": 7.491513071180599,
+      "destination_link": 120,
+      "destination_position_m": 2272.2977955121637,
+      "path": [
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:3",
+      "physical_meter_connectors": [
+        10646
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1135:3",
+      "decision": 1135,
+      "start_link": 68,
+      "start_position_m": 7.491513071180599,
+      "destination_link": 123,
+      "destination_position_m": 179.06973212909716,
+      "path": [
+        68,
+        10772,
+        121,
+        10773,
+        123
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1135:4",
+      "decision": 1135,
+      "start_link": 68,
+      "start_position_m": 7.491513071180599,
+      "destination_link": 2,
+      "destination_position_m": 2289.198499870484,
+      "path": [
+        68,
+        10681,
+        2
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [
+        10681
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1136:1",
+      "decision": 1136,
+      "start_link": 32,
+      "start_position_m": 17.980985262919493,
+      "destination_link": 120,
+      "destination_position_m": 218.84969142645423,
+      "path": [
+        32,
+        10482,
+        120
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:6",
+      "physical_meter_connectors": [
+        10482
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1136:2",
+      "decision": 1136,
+      "start_link": 32,
+      "start_position_m": 17.980985262919493,
+      "destination_link": 127,
+      "destination_position_m": 295.05510999273133,
+      "path": [
+        32,
+        10778,
+        129,
+        10777,
+        127
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1136:3",
+      "decision": 1136,
+      "start_link": 32,
+      "start_position_m": 17.980985262919493,
+      "destination_link": 119,
+      "destination_position_m": 568.5259965529576,
+      "path": [
+        32,
+        10778,
+        129,
+        10490,
+        119
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:2",
+      "physical_meter_connectors": [
+        10490
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1137:1",
+      "decision": 1137,
+      "start_link": 31,
+      "start_position_m": 28.547361281307357,
+      "destination_link": 24,
+      "destination_position_m": 51.15928919679027,
+      "path": [
+        31,
+        10484,
+        24
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:3",
+      "physical_meter_connectors": [
+        10484
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1137:2",
+      "decision": 1137,
+      "start_link": 31,
+      "start_position_m": 28.547361281307357,
+      "destination_link": 125,
+      "destination_position_m": 29.76075234703643,
+      "path": [
+        31,
+        10774,
+        124,
+        10775,
+        125
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1137:3",
+      "decision": 1137,
+      "start_link": 31,
+      "start_position_m": 28.547361281307357,
+      "destination_link": 26,
+      "destination_position_m": 3591.078161043894,
+      "path": [
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "2 0:2",
+      "physical_meter_connectors": [
+        10480
+      ],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1140:1",
+      "decision": 1140,
+      "start_link": 70,
+      "start_position_m": 67.91546792621297,
+      "destination_link": 47,
+      "destination_position_m": 7.840256945224779,
+      "path": [
+        70,
+        10776,
+        126,
+        10641,
+        71,
+        10635,
+        47
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1140:2",
+      "decision": 1140,
+      "start_link": 70,
+      "start_position_m": 67.91546792621297,
+      "destination_link": 56,
+      "destination_position_m": 43.42742308420119,
+      "path": [
+        70,
+        10776,
+        126,
+        10641,
+        71,
+        10634,
+        56
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1140:3",
+      "decision": 1140,
+      "start_link": 70,
+      "start_position_m": 67.91546792621297,
+      "destination_link": 67,
+      "destination_position_m": 26.34916083727334,
+      "path": [
+        70,
+        10776,
+        126,
+        10641,
+        71,
+        10642,
+        67
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "physical_meter_connectors": [],
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    }
+  ],
+  "model_onramp_bindings": [
+    {
+      "movement": "SC1001_E_SC1002_to_onE",
+      "original_group": "R_D_E",
+      "origin": "SC1002_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10484,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1118:2",
+        "1137:1"
+      ],
+      "verified_path": [
+        29,
+        10119,
+        31,
+        10484,
+        24
+      ],
+      "folded_physical_turn_contract": "SC1001_E_SC1002_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_E_SC1002_to_onW",
+      "original_group": "R_D_W",
+      "origin": "SC1002_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10480,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1118:2",
+        "1137:3"
+      ],
+      "verified_path": [
+        29,
+        10119,
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "folded_physical_turn_contract": "SC1001_E_SC1002_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_N_SC2002_to_onE",
+      "original_group": "R_D_E",
+      "origin": "SC2002_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10484,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1116:3",
+        "1137:1"
+      ],
+      "verified_path": [
+        37,
+        10121,
+        31,
+        10484,
+        24
+      ],
+      "folded_physical_turn_contract": "SC1001_N_SC2002_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_N_SC2002_to_onW",
+      "original_group": "R_D_W",
+      "origin": "SC2002_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10480,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1116:3",
+        "1137:3"
+      ],
+      "verified_path": [
+        37,
+        10121,
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "folded_physical_turn_contract": "SC1001_N_SC2002_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_S_SC1003_to_onE",
+      "original_group": "R_D_E",
+      "origin": "SC1003_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10484,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1119:1",
+        "1137:1"
+      ],
+      "verified_path": [
+        40,
+        10698,
+        31,
+        10484,
+        24
+      ],
+      "folded_physical_turn_contract": "SC1001_S_SC1003_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_S_SC1003_to_onW",
+      "original_group": "R_D_W",
+      "origin": "SC1003_to_SC1001",
+      "signal": "SC1001",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10480,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1119:1",
+        "1137:3"
+      ],
+      "verified_path": [
+        40,
+        10698,
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "folded_physical_turn_contract": "SC1001_S_SC1003_to_W_RAMP"
+    },
+    {
+      "movement": "SC1001_W_to_onE",
+      "original_group": "R_D_E",
+      "origin": "in_SC1001_W",
+      "signal": "SC1001",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": true,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10490,
+      "status": "verified_physical_route_and_input_origin",
+      "native_route_ids": [
+        "1136:3"
+      ],
+      "verified_path": [
+        32,
+        10778,
+        129,
+        10490,
+        119
+      ],
+      "current_code_connector": 10490
+    },
+    {
+      "movement": "SC1001_W_to_onW",
+      "original_group": "R_D_W",
+      "origin": "in_SC1001_W",
+      "signal": "SC1001",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": true,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10482,
+      "status": "verified_physical_route_and_input_origin",
+      "native_route_ids": [
+        "1136:1"
+      ],
+      "verified_path": [
+        32,
+        10482,
+        120
+      ],
+      "current_code_connector": 10482
+    },
+    {
+      "movement": "SC1004_E_SC1005_to_onE",
+      "original_group": "R_F_E",
+      "origin": "SC1005_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10681,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1123:2",
+        "1135:4"
+      ],
+      "verified_path": [
+        52,
+        10629,
+        68,
+        10681,
+        2
+      ],
+      "folded_physical_turn_contract": "SC1004_E_SC1005_to_W"
+    },
+    {
+      "movement": "SC1004_E_SC1005_to_onW",
+      "original_group": "R_F_W",
+      "origin": "SC1005_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10646,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1123:2",
+        "1135:2"
+      ],
+      "verified_path": [
+        52,
+        10629,
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "folded_physical_turn_contract": "SC1004_E_SC1005_to_W"
+    },
+    {
+      "movement": "SC1004_E_SC107_to_onE",
+      "original_group": "R_F_E",
+      "origin": "SC107_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10681,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1128:2",
+        "1123:2",
+        "1135:4"
+      ],
+      "verified_path": [
+        1220000102,
+        10501,
+        52,
+        10629,
+        68,
+        10681,
+        2
+      ],
+      "folded_physical_turn_contract": "SC1004_E_SC107_to_W",
+      "followup_evidence": [
+        "route_choice_1128",
+        "dynamic_area_routes",
+        "head_service_resource"
+      ],
+      "shared_head_service_resource": {
+        "link": 52,
+        "signal": "SC1004",
+        "sg": 6,
+        "connector": 10629,
+        "other_origin": "SC1005_to_SC1004",
+        "rule": "Shared physical occupancy/receiving/head capacity must not be duplicated by origin alias."
+      },
+      "original_generic_contract_limitation": "The old generic no_match omitted the explicit 10501 bypass and dynamic topology repair for shared link52."
+    },
+    {
+      "movement": "SC1004_E_SC107_to_onW",
+      "original_group": "R_F_W",
+      "origin": "SC107_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.125,
+      "physical_connector": 10646,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1128:2",
+        "1123:2",
+        "1135:2"
+      ],
+      "verified_path": [
+        1220000102,
+        10501,
+        52,
+        10629,
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "folded_physical_turn_contract": "SC1004_E_SC107_to_W",
+      "followup_evidence": [
+        "route_choice_1128",
+        "dynamic_area_routes",
+        "head_service_resource"
+      ],
+      "shared_head_service_resource": {
+        "link": 52,
+        "signal": "SC1004",
+        "sg": 6,
+        "connector": 10629,
+        "other_origin": "SC1005_to_SC1004",
+        "rule": "Shared physical occupancy/receiving/head capacity must not be duplicated by origin alias."
+      },
+      "original_generic_contract_limitation": "The old generic no_match omitted the explicit 10501 bypass and dynamic topology repair for shared link52."
+    },
+    {
+      "movement": "SC1004_N_SC1003_to_onE",
+      "original_group": "R_F_E",
+      "origin": "SC1003_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.0625,
+      "physical_connector": 10681,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1125:1",
+        "1135:4"
+      ],
+      "verified_path": [
+        46,
+        10625,
+        68,
+        10681,
+        2
+      ],
+      "folded_physical_turn_contract": "SC1004_N_SC1003_to_W"
+    },
+    {
+      "movement": "SC1004_N_SC1003_to_onW",
+      "original_group": "R_F_W",
+      "origin": "SC1003_to_SC1004",
+      "signal": "SC1004",
+      "original_kind": "on_ramp",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.0625,
+      "physical_connector": 10646,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1125:1",
+        "1135:2"
+      ],
+      "verified_path": [
+        46,
+        10625,
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "folded_physical_turn_contract": "SC1004_N_SC1003_to_W"
+    },
+    {
+      "movement": "SC1004_S_to_onE",
+      "original_group": "R_F_E",
+      "origin": "in_SC1004_S",
+      "signal": "SC1004",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.0625,
+      "physical_connector": 10681,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1124:1",
+        "1135:4"
+      ],
+      "verified_path": [
+        66,
+        10633,
+        68,
+        10681,
+        2
+      ],
+      "folded_physical_turn_contract": "SC1004_S_to_W"
+    },
+    {
+      "movement": "SC1004_S_to_onW",
+      "original_group": "R_F_W",
+      "origin": "in_SC1004_S",
+      "signal": "SC1004",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.0625,
+      "physical_connector": 10646,
+      "status": "verified_composed_native_path_after_fold",
+      "native_route_ids": [
+        "1124:1",
+        "1135:2"
+      ],
+      "verified_path": [
+        66,
+        10633,
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "folded_physical_turn_contract": "SC1004_S_to_W"
+    },
+    {
+      "movement": "SC1004_W_to_onE",
+      "original_group": "R_F_E",
+      "origin": "in_SC1004_W",
+      "signal": "SC1004",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": true,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": 10639,
+      "status": "physical_route_verified_but_generic_origin_destination_reallocation_defect_unfixed",
+      "native_route_ids": [
+        "1134:3"
+      ],
+      "verified_path": [
+        69,
+        10637,
+        70,
+        10639,
+        2
+      ],
+      "current_code_connector": 10639,
+      "unresolved": "UNFIXED: shared69 branch3 already supplies the 10639 ramp route. Branch4 supplies in_SC1004_W from 10640 toward71/1138 city destinations, but the retained generic gate alias can split that arrived stock again by its beta into R_F_E. This is destination reallocation/origin mixing, not evidence of duplicate native input generation. Initial link70 stock also contains through/off-ramp cohorts and requires actual route-based ownership.",
+      "future_demand_authority": {
+        "native_input": 1101,
+        "storage": "shared_69",
+        "decision": 1134,
+        "branch": "3",
+        "first_onramp_connector": 10639
+      }
+    },
+    {
+      "movement": "SC1004_W_to_onW",
+      "original_group": "R_F_W",
+      "origin": "in_SC1004_W",
+      "signal": "SC1004",
+      "original_kind": "boundary_in",
+      "active_direct_onramp_after_leg_fold": false,
+      "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+      "physical_connector": null,
+      "status": "invalid_direct_alias_for_downstream_origin_already_removed_by_fold",
+      "native_route_ids": [],
+      "verified_path": null,
+      "folded_physical_turn_contract": "SC1004_W_to_W",
+      "unresolved": "The current production four-group routing and in_SC1004_W cohort ownership remain unrepaired; mapping evidence does not implement the eight-ramp migration.",
+      "invalid_alias_reason": "From downstream in_SC1004_W reached through shared69 branch4/10640/71, native1138 has city destinations and no direct10644 path. The physical10644 ramp branches upstream on69. Do not restore this legacy alias as a new demand source. This is a local direct-route finding, not a claim that no longer city loop could reach a ramp.",
+      "actual_upstream_ramp_source": {
+        "native_input": 1101,
+        "storage": "shared_69",
+        "decision": 1134,
+        "branch": "1",
+        "physical_connector": 10644,
+        "verified_path": [
+          69,
+          10644,
+          120
+        ]
+      }
+    }
+  ],
+  "legsplit_bindings": [
+    {
+      "model_out_link": "SC1001_W_out",
+      "legacy_group": "R_D_E",
+      "physical_connector": 10484,
+      "native_route_id": "1137:1",
+      "verified_path": [
+        31,
+        10484,
+        24
+      ],
+      "legacy_share": 0.5,
+      "share_status": "Historical group-level calibration; not destination demand for current selected network or justification for 50:50",
+      "current_direct_upstream_link": 31
+    },
+    {
+      "model_out_link": "SC1001_W_out",
+      "legacy_group": "R_D_W",
+      "physical_connector": 10480,
+      "native_route_id": "1137:3",
+      "verified_path": [
+        31,
+        10774,
+        124,
+        10480,
+        26
+      ],
+      "legacy_share": 0.25,
+      "share_status": "Historical group-level calibration; not destination demand for current selected network or justification for 50:50",
+      "current_direct_upstream_link": 124
+    },
+    {
+      "model_out_link": "SC1004_W_out",
+      "legacy_group": "R_F_E",
+      "physical_connector": 10681,
+      "native_route_id": "1135:4",
+      "verified_path": [
+        68,
+        10681,
+        2
+      ],
+      "legacy_share": 0.1667,
+      "share_status": "Historical group-level calibration; not destination demand for current selected network or justification for 50:50",
+      "current_direct_upstream_link": 68
+    },
+    {
+      "model_out_link": "SC1004_W_out",
+      "legacy_group": "R_F_W",
+      "physical_connector": 10646,
+      "native_route_id": "1135:2",
+      "verified_path": [
+        68,
+        10772,
+        121,
+        10646,
+        120
+      ],
+      "legacy_share": 0.5,
+      "share_status": "Historical group-level calibration; not destination demand for current selected network or justification for 50:50",
+      "current_direct_upstream_link": 121
+    }
+  ],
+  "same_direction_receiving_pairs": [
+    {
+      "a": 10480,
+      "b": 10482,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 307.46200801656914,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10480,
+      "b": 10646,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2550.2329522641803,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10480,
+      "b": 10644,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 3251.99051001305,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10482,
+      "b": 10646,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": true,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2242.770944247611,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10482,
+      "b": 10644,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": true,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2944.528501996481,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10646,
+      "b": 10644,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": true,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 701.7575577488697,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10639,
+      "b": 10681,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": true,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 289.13716102616945,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10639,
+      "b": 10490,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2542.548193812393,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10639,
+      "b": 10484,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2837.546696785671,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10681,
+      "b": 10490,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2253.4110327862236,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10681,
+      "b": 10484,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 2548.4095357595015,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    },
+    {
+      "a": 10490,
+      "b": 10484,
+      "same_model_receiving_cell": false,
+      "same_physical_target_link": false,
+      "same_physical_merge_point": false,
+      "chain_separation_m": 294.99850297327794,
+      "coupling": "Different local receiving cells; downstream mainline propagation can couple them. Do not create independent copies of downstream road supply."
+    }
+  ],
+  "checks": {
+    "eight_ramps": true,
+    "all_native_paths_continuous": true,
+    "ten_heads_cover_ten_meter_lanes": true,
+    "eight_distinct_direction_cell_addresses": true,
+    "spatial_area_links_pairwise_disjoint": true,
+    "all_16_links_inside_Omega": true,
+    "no_New_Omega_boundary_created": true,
+    "demand_not_inferred": true,
+    "production_files_modified": false,
+    "followup_composed_paths_continuous": true,
+    "two_E_SC107_unknown_bindings_resolved": true,
+    "production_still_four_group_model": true,
+    "W_alias_destination_reallocation_fixed": false
+  },
+  "unresolved": [
+    "UNFIXED PRODUCTION DEFECT: SC1004_W_to_onE mixes generic in_SC1004_W arrivals with the physically separate shared69 branch3 ramp cohort; branch4 city-bound flow can be reassigned to a ramp. No controller/source code was changed by this audit.",
+    "SC1004_W_to_onW is an invalid direct alias for the downstream origin and is already removed by leg fold. Native1101/shared69 branch1 supplies10644; do not restore the alias or create another input1101 supply.",
+    "RM_C10644 is absent from the legacy three-gate/two-legsplit table but is supplied by the existing shared69 branch1 module. The SC2001 projection alias does not identify an actual SC2001 head on69.",
+    "Production remains four grouped ramp stocks/flow routing. The proposed eight physical domains, movement mapping corrections, and cohort ownership rules are not an implemented migration.",
+    "No per-vehicle chosen route or origin-time destination demand is recovered here. Raw relFlow strings, including blanks, are retained without inventing defaults or normalizing probabilities.",
+    "Road positions and connector lane ranges establish connection, not successful lane changes under queueing. Link70 contains both ramp-bound and off-ramp/through cohorts.",
+    "Existing urban/ramp stock assignments must be partitioned at migration. Spatial area total, own-ramp cohort and Omega residence must not be summed as independent vehicles."
+  ],
+  "ownership_rule": "A vehicle belongs to one physical road/connector cell at a time. Within an approach, maintain destination cohorts for own ramp, other ramps and through traffic; movements to the next ramp area are internal transfers. Apply each physical receiving resource once.",
+  "implementation_status": {
+    "production_model": "four_legacy_ramp_groups",
+    "production_ramp_groups": [
+      "R_D_W",
+      "R_D_E",
+      "R_F_W",
+      "R_F_E"
+    ],
+    "eight_independent_stocks_and_flow_routing_implemented": false,
+    "legacy_groups_reporting_only": "Future migration intention, not current production behavior.",
+    "controller_or_network_modified_by_this_audit": false,
+    "com_or_model_run_performed_by_this_audit": false,
+    "W_origin_destination_reallocation_defect": "unfixed"
+  },
+  "followup_sources": {
+    "dynamic_area_routes": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\dynamic_area_routes_ver2.json",
+      "sha256": "930b08a525492cac4d050b5034b9adb8f81c288a6a5e9620ec919619a9843515"
+    },
+    "route_choice_1128": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\route_choice_corridor_1128_ver2.json",
+      "sha256": "5ce589875e64cd8940d968084ca502aec62fdffb65c2c8ca819ed8cf3b0e5bf4"
+    },
+    "head_service_resource": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\head_service_resource_contract.json",
+      "sha256": "d275ce27e0b11e5ab53f157dc6ec3c15365a07e3138361238caf2dfd02121ad9"
+    },
+    "shared_approach_contract": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\shared_approach_ver2.json",
+      "sha256": "a284c2197dd66d870f1b66e444a9264590d8f9aa4b74cbf99cdccc0802e4c5f4"
+    },
+    "shared_approach_runtime": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\shared_approach.py",
+      "sha256": "37a7929012b61aa16a862683859ad808961e55ab6b3c9180f87a821a285ea172"
+    },
+    "runtime_setup": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\runtime_setup.py",
+      "sha256": "d86fe135c124eeaf83a6680d967eabaa65811163d9898a16aff22b1bd1d26853"
+    },
+    "adapter_at_followup": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\vissim_stackelberg_adapter.py",
+      "sha256": "c3a83c07046450753d66dcc5ae58573b360153e160fd0955f2a35f027ba716e9"
+    },
+    "urban_flow_at_followup": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\urban_flow_accounting.py",
+      "sha256": "1bdb8b2d67ffbcb8b4001cfe8295626848d77488ed367333511b28b91bdb19f2"
+    },
+    "route_choice_sc1004": {
+      "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\route_choice_corridor_sc1004_calibrated.json",
+      "sha256": "fd04d42be2588a93e7175e805c78bd4985801a90b8840c77ec0f7b078abf1bfc"
+    }
+  },
+  "followup_native_routes": [
+    {
+      "id": "1128:2",
+      "decision": 1128,
+      "start_link": 1220000102,
+      "start_position_m": 20.576829873567828,
+      "destination_link": 10501,
+      "destination_position_m": 546.4189825275438,
+      "path": [
+        1220000102,
+        10501
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1138:1",
+      "decision": 1138,
+      "start_link": 10640,
+      "start_position_m": 213.6532606672337,
+      "destination_link": 47,
+      "destination_position_m": 7.840256945224779,
+      "path": [
+        10640,
+        71,
+        10635,
+        47
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1138:2",
+      "decision": 1138,
+      "start_link": 10640,
+      "start_position_m": 213.6532606672337,
+      "destination_link": 56,
+      "destination_position_m": 43.42742308420119,
+      "path": [
+        10640,
+        71,
+        10634,
+        56
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    },
+    {
+      "id": "1138:3",
+      "decision": 1138,
+      "start_link": 10640,
+      "start_position_m": 213.6532606672337,
+      "destination_link": 67,
+      "destination_position_m": 24.569856270077786,
+      "path": [
+        10640,
+        71,
+        10642,
+        67
+      ],
+      "combineStaRoutDec": "true",
+      "relflow_raw": "",
+      "continuity_verified": true,
+      "demand_or_probability_estimated": false
+    }
+  ],
+  "route_resolution_followup": {
+    "date": "2026-09-11",
+    "previous_binding_snapshots": {
+      "SC1004_E_SC107_to_onE": {
+        "movement": "SC1004_E_SC107_to_onE",
+        "original_group": "R_F_E",
+        "origin": "SC107_to_SC1004",
+        "signal": "SC1004",
+        "original_kind": "on_ramp",
+        "active_direct_onramp_after_leg_fold": false,
+        "beta_from_legacy_config_not_validated_demand": 0.125,
+        "physical_connector": null,
+        "status": "unknown",
+        "native_route_ids": [],
+        "verified_path": null,
+        "folded_physical_turn_contract": "SC1004_E_SC107_to_W",
+        "unresolved": "No unique physical turn for this original model approach to the leg-split road; no connector assigned from group name alone."
+      },
+      "SC1004_E_SC107_to_onW": {
+        "movement": "SC1004_E_SC107_to_onW",
+        "original_group": "R_F_W",
+        "origin": "SC107_to_SC1004",
+        "signal": "SC1004",
+        "original_kind": "on_ramp",
+        "active_direct_onramp_after_leg_fold": false,
+        "beta_from_legacy_config_not_validated_demand": 0.125,
+        "physical_connector": null,
+        "status": "unknown",
+        "native_route_ids": [],
+        "verified_path": null,
+        "folded_physical_turn_contract": "SC1004_E_SC107_to_W",
+        "unresolved": "No unique physical turn for this original model approach to the leg-split road; no connector assigned from group name alone."
+      },
+      "SC1004_W_to_onE": {
+        "movement": "SC1004_W_to_onE",
+        "original_group": "R_F_E",
+        "origin": "in_SC1004_W",
+        "signal": "SC1004",
+        "original_kind": "boundary_in",
+        "active_direct_onramp_after_leg_fold": true,
+        "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+        "physical_connector": 10639,
+        "status": "physical_route_verified_but_model_gate_origin_unresolved",
+        "native_route_ids": [
+          "1134:3"
+        ],
+        "verified_path": [
+          69,
+          10637,
+          70,
+          10639,
+          2
+        ],
+        "current_code_connector": 10639,
+        "unresolved": "Model in_SC1004_W aliases link70 but physical input1101 is on69; existing route contract has no unique input. Do not infer wish demand from connector discharge."
+      },
+      "SC1004_W_to_onW": {
+        "movement": "SC1004_W_to_onW",
+        "original_group": "R_F_W",
+        "origin": "in_SC1004_W",
+        "signal": "SC1004",
+        "original_kind": "boundary_in",
+        "active_direct_onramp_after_leg_fold": false,
+        "beta_from_legacy_config_not_validated_demand": 0.08333333333333333,
+        "physical_connector": null,
+        "status": "unknown",
+        "native_route_ids": [],
+        "verified_path": null,
+        "folded_physical_turn_contract": "SC1004_W_to_W",
+        "unresolved": "No unique physical turn for this original model approach to the leg-split road; no connector assigned from group name alone."
+      }
+    },
+    "resolved_unknown_movements": [
+      "SC1004_E_SC107_to_onE",
+      "SC1004_E_SC107_to_onW"
+    ],
+    "downstream_choice_order": {
+      "1128_2_destination": {
+        "link": 10501,
+        "pos_m": 546.4189825275438
+      },
+      "10501_enters": {
+        "link": 52,
+        "lane": 3,
+        "pos_m": 2.436337264566954
+      },
+      "1123_decision": {
+        "link": 52,
+        "pos_m": 11.07016755143615
+      },
+      "1123_2_destination": {
+        "link": 68,
+        "pos_m": 4.9506564983648245
+      },
+      "1135_decision": {
+        "link": 68,
+        "pos_m": 7.491513071180599
+      },
+      "1134_4_destination": {
+        "link": 10640,
+        "pos_m": 210.67735258800494
+      },
+      "1138_decision": {
+        "link": 10640,
+        "pos_m": 213.6532606672337
+      },
+      "interpretation": "Listed route ends precede the next downstream decision; this checks geometric ordering, not an actual traffic run or general route override behavior."
+    },
+    "unfixed_defect_evidence": [
+      {
+        "source": "shared_approach_runtime",
+        "lines": "310-325",
+        "behavior": "branch3 transfers accepted stock directly to ramp; branch4 schedules in_SC1004_W urban arrivals."
+      },
+      {
+        "source": "urban_flow_at_followup",
+        "lines": "334-346",
+        "behavior": "Each urban source arrival is split among its movement betas, including retained generic gate ramp aliases."
+      },
+      {
+        "source": "adapter_at_followup",
+        "lines": "2775-2781,3358-3395,3397-3454",
+        "behavior": "SC1004_W_to_onE is retained/registered; missing in_SC1004_W gate measurement keeps beta on fallback."
+      },
+      {
+        "source": "route_choice_sc1004",
+        "lines": "36-46",
+        "behavior": "The route-choice shared continuation retargets shared69 branch2 only; it does not remove branch4/gate alias mixing."
+      }
+    ],
+    "previous_report_backups": [
+      {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\reports\\20260911_decision_runtime\\RAMP8_MAPPING.before_route_resolution_20260911T082732Z.json",
+        "sha256": "8f8ffe6e20da7edaa3f1ee38c7c030fb291b7c45327564173e2c57dadcb1a8f9"
+      },
+      {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\reports\\20260911_decision_runtime\\RAMP8_MAPPING.before_route_resolution_20260911T082732Z.md",
+        "sha256": "9c62ff4619aad51c70a5eb2ce5eb5910d4e3e59cac1ebcad372e254cbb850ed5"
+      }
+    ]
+  }
+}

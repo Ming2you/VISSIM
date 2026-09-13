@@ -42,7 +42,12 @@ def configure(cfg, tuning, raw, plan):
     if document.get('schema') != 'physical-head-resource-join/v1' or set(document['resources']) != {'10619', '10629'}:
         raise ValueError('Unreviewed physical head resource set')
     network = _read(document['network'])
-    if hashlib.sha256(Path(raw['network_path']).read_bytes()).digest() != hashlib.sha256(network).digest():
+    if tuning.get('execution', {}).get('native_signal_record') is True:
+        from evaluation.controllers.network_provenance import snapshot_physical_file_sha256
+        matches = snapshot_physical_file_sha256(raw) == hashlib.sha256(network).hexdigest()
+    else:
+        matches = hashlib.sha256(Path(raw['network_path']).read_bytes()).digest() == hashlib.sha256(network).digest()
+    if not matches:
         raise ValueError('Head resource and snapshot networks differ')
     from evaluation.controllers.signal_head_observation import physical_groups
     geometry = physical_groups(raw['network_path'], plan)

@@ -173,5 +173,327 @@
         "Other signal controllers upstream, receiving blockage, and native conflict areas remain separate constraints."
       ]
     }
+  },
+  "unsignalized_movements": {
+    "SC1004_W_to_S": {
+      "expected_spec": {
+        "phase": "SC1004_p3",
+        "kind": "boundary_in",
+        "origin": "in_SC1004_W",
+        "receiving_link": "SC1004_S_out"
+      },
+      "path": [
+        "71",
+        "10642",
+        "67"
+      ],
+      "connector": {
+        "id": "10642",
+        "source_lane": 1,
+        "source_pos": 37.48744982114758,
+        "target_lane": 1,
+        "target_pos": 16.86110583796175,
+        "lanes": 1
+      },
+      "source_heads": [
+        {
+          "head": "90030879",
+          "link": "71",
+          "lane": 5,
+          "pos_m": 78.9296892094976,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030880",
+          "link": "71",
+          "lane": 4,
+          "pos_m": 78.86932923744655,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030881",
+          "link": "71",
+          "lane": 3,
+          "pos_m": 78.91142117780679,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030882",
+          "link": "71",
+          "lane": 2,
+          "pos_m": 78.87435771713787,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030883",
+          "link": "71",
+          "lane": 1,
+          "pos_m": 78.98007404982688,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        }
+      ],
+      "native_routes": [
+        "1126:3",
+        "1138:3",
+        "1140:3"
+      ],
+      "rationale": "10642 departs lane1 of71 at37.48745m before all source signal heads at78.869..78.980m; no head on10642 or67. Remove only direct phase gating. Upstream signals, lane access, shared receiving and stock constraints remain.",
+      "native_validation": "diagnostics/control_improvement/held_boundary_u030_t900_native_south_origins_v1.json"
+    },
+    "SC1004_offW_to_S": {
+      "expected_spec": {
+        "phase": "SC1004_p3",
+        "kind": "off_ramp",
+        "origin": "OR_F_W",
+        "receiving_link": "SC1004_S_out"
+      },
+      "path": [
+        "71",
+        "10642",
+        "67"
+      ],
+      "connector": {
+        "id": "10642",
+        "source_lane": 1,
+        "source_pos": 37.48744982114758,
+        "target_lane": 1,
+        "target_pos": 16.86110583796175,
+        "lanes": 1
+      },
+      "source_heads": [
+        {
+          "head": "90030879",
+          "link": "71",
+          "lane": 5,
+          "pos_m": 78.9296892094976,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030880",
+          "link": "71",
+          "lane": 4,
+          "pos_m": 78.86932923744655,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030881",
+          "link": "71",
+          "lane": 3,
+          "pos_m": 78.91142117780679,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030882",
+          "link": "71",
+          "lane": 2,
+          "pos_m": 78.87435771713787,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030883",
+          "link": "71",
+          "lane": 1,
+          "pos_m": 78.98007404982688,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        }
+      ],
+      "native_routes": [
+        "1126:3",
+        "1138:3",
+        "1140:3"
+      ],
+      "rationale": "10642 departs lane1 of71 at37.48745m before all source signal heads at78.869..78.980m; no head on10642 or67. Remove only direct phase gating. Upstream signals, lane access, shared receiving and stock constraints remain.",
+      "native_validation": "diagnostics/control_improvement/held_boundary_u030_t900_native_south_origins_v1.json"
+    },
+    "SC1004_offE_to_S": {
+      "expected_spec": {
+        "phase": "SC1004_p3",
+        "kind": "off_ramp",
+        "origin": "OR_F_E",
+        "receiving_link": "SC1004_S_out"
+      },
+      "path": [
+        "71",
+        "10642",
+        "67"
+      ],
+      "connector": {
+        "id": "10642",
+        "source_lane": 1,
+        "source_pos": 37.48744982114758,
+        "target_lane": 1,
+        "target_pos": 16.86110583796175,
+        "lanes": 1
+      },
+      "source_heads": [
+        {
+          "head": "90030879",
+          "link": "71",
+          "lane": 5,
+          "pos_m": 78.9296892094976,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030880",
+          "link": "71",
+          "lane": 4,
+          "pos_m": 78.86932923744655,
+          "SC": "SC1004",
+          "SG": "5",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030881",
+          "link": "71",
+          "lane": 3,
+          "pos_m": 78.91142117780679,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030882",
+          "link": "71",
+          "lane": 2,
+          "pos_m": 78.87435771713787,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        },
+        {
+          "head": "90030883",
+          "link": "71",
+          "lane": 1,
+          "pos_m": 78.98007404982688,
+          "SC": "SC1004",
+          "SG": "2",
+          "all_vehicle_types": true,
+          "compliance": 1.0
+        }
+      ],
+      "native_routes": [
+        "1126:3",
+        "1138:3",
+        "1140:3"
+      ],
+      "rationale": "10642 departs lane1 of71 at37.48745m before all source signal heads at78.869..78.980m; no head on10642 or67. Remove only direct phase gating. Upstream signals, lane access, shared receiving and stock constraints remain.",
+      "native_validation": "diagnostics/control_improvement/held_boundary_u030_t900_native_south_origins_v1.json"
+    }
+  },
+  "head_free_movements": {
+    "SC107_N_SC1_to_S": {
+      "expected_spec": {
+        "signal": "SC107",
+        "phase": "SC107_p2",
+        "kind": "boundary_out",
+        "origin": "SC1_to_SC107",
+        "receiving_link": "SC107_S_out",
+        "approach": "N_SC1",
+        "turn": "through"
+      },
+      "path": [
+        "1220006803",
+        "10597",
+        "1220006801",
+        "10594",
+        "1220042200"
+      ],
+      "native_routes": [
+        "1063:2"
+      ],
+      "decision": {
+        "no": "1063",
+        "link": "1220006803",
+        "pos": 16.205595008702627,
+        "allVehTypes": "true",
+        "routeChoiceMeth": "STATIC"
+      },
+      "connectors": {
+        "10597": {
+          "source_lane": 3,
+          "source_pos": 407.20614276617295,
+          "target_lane": 1,
+          "target_pos": 0.285672,
+          "lanes": 2
+        },
+        "10594": {
+          "source_lane": 1,
+          "source_pos": 206.34080312488106,
+          "target_lane": 1,
+          "target_pos": 3.3038470572073066,
+          "lanes": 2
+        }
+      },
+      "conflicts": {
+        "1486": {
+          "link1": "1220006803",
+          "link2": "10563",
+          "status": "PASSIVE"
+        },
+        "1496": {
+          "link1": "1220006803",
+          "link2": "10567",
+          "status": "PASSIVE"
+        },
+        "1814": {
+          "link1": "1220042200",
+          "link2": "10594",
+          "status": "PASSIVE"
+        },
+        "2358": {
+          "link1": "1220042200",
+          "link2": "1220042300",
+          "status": "PASSIVE"
+        },
+        "2359": {
+          "link1": "1220042200",
+          "link2": "10595",
+          "status": "PASSIVE"
+        }
+      },
+      "rationale": "Native1063:2 uses a head-free grade-separated through route. SG7 heads1070701/1070702 stand on1220043200, used by the distinct surface routes1063:1/:3. Remove only direct phase gating; preserve phase for identity, beta, capacity, source stock, arrival history, receiving and Omega membership.",
+      "comparison_reference": "diagnostics/control_improvement/held_boundary_u030_t900_peeloff_v4.json",
+      "native_reference": "diagnostics/control_improvement/r03_u030_first_window/boundary_metrics.json",
+      "caveats": [
+        "A head-free path does not imply unconstrained discharge; lane access, traffic already queued and downstream space remain separate constraints.",
+        "The native18/model6.769615 comparison is one held900..1050 window; not a capacity calibration or network-wide error estimate."
+      ]
+    }
   }
 }

@@ -1,0 +1,123 @@
+{
+  "completed": true,
+  "sources": {
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\state_000900.json": "e46239a5a5ee7ef80008e982852eb19e27a8c1a6e711f2553c2c9c4bc335c1be",
+    "diagnostics\\control_area_membership.json": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d",
+    "evaluation\\runs\\codex_physical8_fw080_u050_open1350_v1\\vissim_eval\\baseline_001.fzp": "58de555af08f465cfc927774c1bcadc5ce68336f113b5eafed1687b9621b3637",
+    "diagnostics\\probe_e8_lane_receiving.py": "62fb3db0fa69a37c68a31f35127afc72e23c0284640c3e7f05d2b6b2f881fbc0",
+    "scripts\\measure_control_area.py": "8f6df1cf9ef9bcd646799c81703a6cdcae4a0f42ae84484136f53889833d7327"
+  },
+  "sim_sec": 900,
+  "COM_count": 1443,
+  "FZP_count": 1448,
+  "COM_inside_count": 1033,
+  "FZP_inside_count": 1034,
+  "all_common_ids_same_link_lane": true,
+  "all_common_positions_speeds_match_FZP_precision": true,
+  "COM_only_ids": [],
+  "FZP_only_ids": [
+    436,
+    1172,
+    2123,
+    2798,
+    3059
+  ],
+  "only_inside_id": 2123,
+  "terminal_inside_link": "120",
+  "verified_terminal_length_m": 6958.141,
+  "terminal_overshoot_m": 28.84900000000016,
+  "examples": {
+    "436": {
+      "inside": false,
+      "frames": {
+        "899": [
+          1220000803,
+          2,
+          333.52,
+          43.85
+        ],
+        "900": [
+          1220000803,
+          2,
+          345.83,
+          44.79
+        ],
+        "901": null
+      }
+    },
+    "1172": {
+      "inside": false,
+      "frames": {
+        "899": [
+          1220024901,
+          3,
+          158.19,
+          41.98
+        ],
+        "900": [
+          1220024901,
+          3,
+          169.95,
+          42.69
+        ],
+        "901": null
+      }
+    },
+    "2123": {
+      "inside": true,
+      "frames": {
+        "899": [
+          120,
+          3,
+          6953.16,
+          121.8
+        ],
+        "900": [
+          120,
+          3,
+          6986.99,
+          121.8
+        ],
+        "901": null
+      }
+    },
+    "2798": {
+      "inside": false,
+      "frames": {
+        "899": [
+          125,
+          1,
+          1193.65,
+          110.39
+        ],
+        "900": [
+          125,
+          1,
+          1224.2,
+          109.59
+        ],
+        "901": null
+      }
+    },
+    "3059": {
+      "inside": false,
+      "frames": {
+        "899": [
+          45,
+          4,
+          94.57,
+          42.65
+        ],
+        "900": [
+          45,
+          4,
+          106.52,
+          43.41
+        ],
+        "901": null
+      }
+    }
+  },
+  "read_bytes": 264066,
+  "interpretation": "The initial 1033 model/COM vs1034 FZP stock difference is one native end-of-link overshoot sample, absent from same-time paused COM and next FZP second; not projection loss. Existing 1-second FZP trapezoidal residence/event conventions remain unchanged, so terminal event assignment may lag paused COM by a sample. Baseline and treatment share this exact prefix; this does not explain hundreds of vehicles of forecast bias. No physical configuration or controller source changed."
+}

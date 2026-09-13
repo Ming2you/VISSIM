@@ -1,0 +1,32 @@
+FFF
+======================================================================
+FAIL: test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin (diagnostics.test_fixed_shared_game.FixedSharedGameTests.test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin) (kwargs={'time_budget_sec': 120.0, 'traversal': 'round_robin', 'response_query': <function FixedSharedGameTests.full_sweep_query.<locals>.query at 0x000001A2E9786700>})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_fixed_shared_game.py", line 287, in test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin
+    with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, 'Complete-sweep prefetch requires'):
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin (diagnostics.test_fixed_shared_game.FixedSharedGameTests.test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin) (kwargs={'time_budget_sec': None, 'traversal': 'sequential', 'response_query': <function FixedSharedGameTests.full_sweep_query.<locals>.query at 0x000001A2E9786700>})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_fixed_shared_game.py", line 287, in test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin
+    with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, 'Complete-sweep prefetch requires'):
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin (diagnostics.test_fixed_shared_game.FixedSharedGameTests.test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin) (kwargs={'time_budget_sec': None, 'traversal': 'round_robin', 'response_query': None})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_fixed_shared_game.py", line 287, in test_complete_sweep_prefetch_requires_unlimited_parallel_round_robin
+    with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, 'Complete-sweep prefetch requires'):
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.408s
+
+FAILED (failures=3)

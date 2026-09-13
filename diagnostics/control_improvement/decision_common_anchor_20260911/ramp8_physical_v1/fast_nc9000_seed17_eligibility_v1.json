@@ -1,0 +1,150 @@
+{
+  "schema": "fast-nc9000-eligibility-readonly/v1",
+  "status": "Configuration eligible; same-seed complete FZP equivalence PENDING canonical NC9000 completion",
+  "scope": "Small manifests/readback/runner/helper source only. No FZP/LSA/LDP reads, model/native/COM execution, source changes or launch.",
+  "fast_seed13_completed": {
+    "completed": true,
+    "error": null,
+    "exit_code": 0,
+    "owned_native_alive": false,
+    "seed": 13,
+    "terminal_sec": 9000,
+    "started": "2026-09-11T11:19:15.8776596+09:00",
+    "finished": "2026-09-11T11:24:07.2718379+09:00"
+  },
+  "fast_seed13_wall_sec": 291.394178,
+  "readback": {
+    "rows": 819,
+    "kind_counts": {
+      "demand": 204,
+      "meter": 16,
+      "route": 3,
+      "tail_demand": 68,
+      "vsl": 528
+    },
+    "all_expected_equal_actual": true,
+    "stderr_bytes": 0
+  },
+  "prepared_files_comparison": {
+    "demand.csv": {
+      "byte_identical": true,
+      "sha256": "61e3e9501e3d24bd360646cca2dacd13f39e74021cfa9d75b9bf15fa2a80343b"
+    },
+    "controls.csv": {
+      "byte_identical": true,
+      "sha256": "549583e3617c1fc18677bc3187c1d292d619a60022b7afed3e1d98476d48e84e"
+    },
+    "route_checks.csv": {
+      "byte_identical": true,
+      "sha256": "2f5c5c39bb8b9d051eaf7fb28191cbc18ab32e657b76847e7c9b2d804d2b08c2"
+    }
+  },
+  "physical_network": {
+    "fast_recorded_source_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+    "canonical_physical_source_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+    "canonical_recording_network_sha256": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2",
+    "source_hashes_equal": true,
+    "recording_contract": "Only selected scDetRecConf and evaluation/scDetRec writeFile spans may differ, validated on canonical startup by validate_recording_proof. No runtime validation rerun in this read-only review."
+  },
+  "demand": {
+    "inputs": 34,
+    "intervals": 6,
+    "rows": 204,
+    "starts_sec": [
+      0,
+      900,
+      1800,
+      2700,
+      3600,
+      4500
+    ],
+    "tail": "Final interval at4500 is held to9000, no added route/input intervals. Fast runner verifies all34 final values before first step and after terminal.",
+    "canonical_derived_write_max_abs_difference_vph": 9.094947017729282e-13,
+    "canonical_derived_write_float_exact_rows": 194,
+    "implication": "Prepared selected demand file is exact; canonical numeric reconstruction permits tiny rounding. The pending full FZP equality is the actual physical gate."
+  },
+  "execution": {
+    "initial_native_steps": 1,
+    "initial_sec": 1,
+    "continuous_calls": 1,
+    "vsl_controls": 66,
+    "vsl_classes": [
+      10,
+      20,
+      30,
+      70
+    ],
+    "vsl_distribution": 120,
+    "meter_controllers": [
+      9101,
+      9102,
+      9103,
+      9104,
+      9105,
+      9106,
+      9107,
+      9108
+    ],
+    "meter_state": "GREEN",
+    "meter_COM_ownership": true,
+    "urban_signal_writes": 0,
+    "urban_clock": "Native signal programs, progNo/offset/clock not changed by fast runner",
+    "SimRes": 1,
+    "SimPeriod": 9001,
+    "terminal_SimSec": 9000,
+    "NumRuns": 1,
+    "FZP_resolution_sec": 1,
+    "model_or_controller_calls": 0,
+    "head_or_vehicle_queries": 0,
+    "readback_times": "After native second1 and at terminal9000"
+  },
+  "seed17_command_after_gate_only": "powershell.exe -NoProfile -File diagnostics/fast_nc_run.ps1 -Prepared diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared -Output evaluation/runs/fast_nc_fw080_urban050_s17_9000_v1 -Seed 17 -Execute",
+  "seed_metadata_caution": "fast_nc_prepare.py hardcodes prepared.json.seed=13. Runner does not use it; explicit -Seed17 is forwarded to SetChecked RandSeed and run.json.seed. Preserve prepared input artifact; do not relabel old run.",
+  "gate_after_canonical_completion": {
+    "preconditions": "Both runs completed at9000, exit0, owned native closed; no live-file reads. Preserve recorded errors/removals rather than assuming no stderr means no native errors.",
+    "existing_helper": "diagnostics.audit_observed_nc_trajectory.payload(path)",
+    "compare_fields": [
+      "header",
+      "payload_sha256",
+      "payload_bytes",
+      "rows",
+      "first_sec",
+      "last_sec"
+    ],
+    "extent": [
+      1,
+      9000
+    ],
+    "meaning": "Exact complete ordered bytes after the $VEHICLE header, plus equal column header/row count/extent. Run-specific pre-data metadata excluded; no row normalization or subsampling.",
+    "limitation": "Existing verify_fast_nc_baseline.py and audit_nc5400_native_signals.events are hardcoded5400; do not run unchanged against9000. Existing5400 fast baseline equivalence passed trajectory and signals but does not replace this9000 gate."
+  },
+  "additional_seed_qualification": {
+    "existing_summary_command": "python diagnostics/summarize_fast_nc.py --run evaluation/runs/fast_nc_fw080_urban050_s17_9000_v1 --out FRESH_SUMMARY_DIR",
+    "supported": "Completed native FZP physical outcome/TD/TTT and native removal audit through existing helper, with explicit seed17 fast-run provenance and command persistence readback.",
+    "unsupported": "Fast baseline has no canonical decision snapshots, head capture, completion_receipt.json, canonical run_provenance JSON, or full SG_BILD LDP. Do not label it as passing the unchanged canonical closed-loop qualifier or same-seed head/state/clock audits.",
+    "source_provenance_limit": "Old fast run.json/prepared.json do not pin the runner scripts and all loaded SIG files. This note pins current small inputs/sources only, not invented historical runner pins. A seed13 full-trajectory pass validates observed behavior for that comparison, not all future seeds or unobserved events.",
+    "no_adapter_needed": true
+  },
+  "source_sha256_at_review": {
+    "evaluation/runs/fast_nc_fw080_urban050_s13_9000_v1/run.json": "84226f9b1a14d73a60dbe8c2ebe1eeb5994f50ef109226cb4ac967564f2cbe18",
+    "evaluation/runs/fast_nc_fw080_urban050_s13_9000_v1/readback.csv": "cf3b23c74e1ddeaf444111b3656594b33182e34a0afef362896d8d9aff42a7e8",
+    "evaluation/runs/fast_nc_fw080_urban050_s13_9000_v1/stdout.txt": "e6742cbf8802abd2ea5151c2bd9380b5b64fe6e9713de45770351be78eee17df",
+    "evaluation/runs/fast_nc_fw080_urban050_s13_9000_v1/stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared/prepared.json": "02125fd58b22319dbe6faadb8d8011319f9f20f20aba720e1163f2f645c32978",
+    "diagnostics/selected_control_demand/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/launch.json": "e35948d0a8024d3014484eae705639426c4994efca4ce952285ee7049982a6c3",
+    "diagnostics/selected_control_demand/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/network_recording.json": "2665f0bd71972c67504f385e2fe28c10f582306a89299a4b98462ec39d445016",
+    "diagnostics/fast_nc_run.ps1": "a9c920f147e641e9b7e590c6bb0aeacc8d24c8f77f38c1320104aaef5ca51b86",
+    "diagnostics/fast_nc_runner.vbs": "bda7e072cd8d1ed32d262bbda24782e49c151d826a83c5e8b1c0b7d3a6ef612c",
+    "diagnostics/fast_nc_prepare.py": "e888bd1a6c4e910c01fe622bc0589d157107be8c0a5862c661427cb68cd22674",
+    "diagnostics/audit_observed_nc_trajectory.py": "a69707b13cfd4ef38d62c9df20128e09ca4a0280db41e20c3e8bbbe48bf81d11",
+    "diagnostics/verify_fast_nc_baseline.py": "d2235b4d339c155ccb5295c55b64b89486f598c1dd28232b131fc8f23376808c",
+    "diagnostics/summarize_fast_nc.py": "85c3d4fa28f29486b8972f594b690fce65311d85b108ed2099248beeaaf7f9e6",
+    "evaluation/controllers/network_provenance.py": "419552d608a220bf5593d98a75df5c15347c46a911ea121adca70e352b3ceb2f",
+    "diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared/demand.csv": "61e3e9501e3d24bd360646cca2dacd13f39e74021cfa9d75b9bf15fa2a80343b",
+    "diagnostics/demand_sweep/fw080_urban050/prepared/demand.csv": "61e3e9501e3d24bd360646cca2dacd13f39e74021cfa9d75b9bf15fa2a80343b",
+    "diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared/controls.csv": "549583e3617c1fc18677bc3187c1d292d619a60022b7afed3e1d98476d48e84e",
+    "diagnostics/demand_sweep/fw080_urban050/prepared/controls.csv": "549583e3617c1fc18677bc3187c1d292d619a60022b7afed3e1d98476d48e84e",
+    "diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared/route_checks.csv": "2f5c5c39bb8b9d051eaf7fb28191cbc18ab32e657b76847e7c9b2d804d2b08c2",
+    "diagnostics/demand_sweep/fw080_urban050/prepared/route_checks.csv": "2f5c5c39bb8b9d051eaf7fb28191cbc18ab32e657b76847e7c9b2d804d2b08c2"
+  }
+}

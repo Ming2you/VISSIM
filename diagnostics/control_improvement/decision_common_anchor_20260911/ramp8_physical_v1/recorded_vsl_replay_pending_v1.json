@@ -1,0 +1,11 @@
+{
+  "schema": "pending-source-edit/v1",
+  "applied": false,
+  "path": "evaluation\\controllers\\diagnostic_signal_profile.py",
+  "source_file_sha256": "a742a52d7ee53ec166103f9fde955be02999c922e59de98a7f89ed998d373e01",
+  "old_text_sha256": "a742a52d7ee53ec166103f9fde955be02999c922e59de98a7f89ed998d373e01",
+  "new_text_sha256": "47883d949afd7e1991a64e8d9a6b6ea147e0c531bf37ca12fb235de9a409ba23",
+  "before": "    control.vsl = {str(link): 120.0 for link in cfg.network.freeway_links}\n",
+  "after": "    control.vsl = {str(link): 120.0 for link in cfg.network.freeway_links}\n    replay_vsl = spec.get(\"replay_recorded_vsl\", False)\n    if type(replay_vsl) is not bool:\n        raise ValueError(\"recorded VSL replay requires a boolean flag\")\n    if replay_vsl:\n        values = recorded.get(\"vsl\")\n        links = tuple(map(str, cfg.network.freeway_links))\n        head_of = getattr(cfg.network, \"freeway_vsl_zone_head_of_cell\", None) or {}\n        if any(not head_of.get(link) for link in links):\n            raise ValueError(\"recorded VSL replay requires configured zones\")\n        required = set(links) | {f\"{link}__seg{i}\" for link in links\n                                 for i in range(len(head_of[link]))}\n        if not isinstance(values, Mapping) or set(values) != required:\n            raise ValueError(\"recorded VSL map must cover exactly every link and cell\")\n        allowed = set(cfg.freeway_follower.vsl_set)\n        for key, value in values.items():\n            if (isinstance(value, bool) or not isinstance(value, (int, float))\n                    or not math.isfinite(value) or value not in allowed):\n                raise ValueError(f\"unsupported recorded VSL speed: {key}\")\n        for link in links:\n            for cell, head in enumerate(head_of[link]):\n                if values[f\"{link}__seg{cell}\"] != values[f\"{link}__seg{int(head)}\"]:\n                    raise ValueError(f\"recorded VSL cells disagree within a zone: {link}\")\n        control.vsl = {key: float(value) for key, value in values.items()}\n",
+  "scope": "Prepared while source-pinned decision runs; no production source or runtime path changed."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "com-execution-command-clock-validation/v1",
+  "passed": true,
+  "synthetic_tests": 42,
+  "test_elapsed_sec": 6.785,
+  "test_command": "python -B -X utf8 -m unittest diagnostics.com_execution_equivalence.test_verify_pair diagnostics.com_execution_equivalence.test_command_clock -q",
+  "source_sha256": {
+    "diagnostics/com_execution_equivalence/verify_pair.py": "b2c0c882c976ab9f84fff006adfc21d026dee79a41ced7545061f0fc16bb6e3b",
+    "diagnostics/com_execution_equivalence/test_verify_pair.py": "3c5295799688ea083a498ca18fbb2eb5ba7ec3613c2325f3adef02b160e0e322",
+    "diagnostics/com_execution_equivalence/VERIFIER.md": "4ac75e445e6dd54e5a64729471e14c0342f3837b2202cd00a733d52c1cab0c60",
+    "diagnostics/com_execution_equivalence/command_clock.py": "524dd0e6548b4f6a10a52036a2d220d0ebb27293d59f9c2b461569964fc0cbb2",
+    "diagnostics/com_execution_equivalence/test_command_clock.py": "05b2cd685752c9045dcdff60385560e0b2743cd5b70c3433227a831e01c6ed39",
+    "diagnostics/live_beta0_first_interval_audit.py": "6d0636db88df561cbe7185b604fcafb9f4ea26e1f9489cbdbe211f0a9b61f4ee",
+    "evaluation/controllers/signal_timing_oracle.py": "8241e996bf60db9446c5ddefce40eab9ab71350e84978201ff451e32c59e449b"
+  },
+  "historical_reports_preserved": [
+    "diagnostics/com_execution_equivalence/verifier_validation.json",
+    "diagnostics/com_execution_equivalence/verifier_revision_validation.json",
+    "diagnostics/com_execution_equivalence/signal_head_pair_v1.json"
+  ],
+  "changes": [
+    "Per-arm actual ordered CSV CommandClock is mandatory for every SG and VSL readback row.",
+    "Immediate t and post-step t-1 use independently reconstructed pinned native timing.",
+    "State compact provenance and canonical action v2 input pins are validated separately; no run_id-only fallback."
+  ],
+  "regressions": [
+    "Both actual readbacks agree but violate the command clock.",
+    "Wrong VSL value is globally allowed but wrong at this application time.",
+    "Pinned native timing source changes.",
+    "Action compact provenance rejected; wrong run, manifest path/SHA, state time/path/SHA or exists rejected.",
+    "Existing optional missing provenance fixture now updates its action manifest pin; first test run found this fixture-only stale pin."
+  ],
+  "small_actual_input_check": {
+    "path": "diagnostics/com_execution_equivalence/signal_head_inputs_schema_v2.json",
+    "sha256": "012a145bceea4a5942f9baf248920dc00a2b4281a8da385e813159ab3fa0e3a9",
+    "decisions": [
+      1,
+      150,
+      300,
+      450,
+      600,
+      750,
+      900,
+      1050,
+      1200
+    ],
+    "all_commands_and_named_state_control_fields_exact": true,
+    "per_arm_command_clock_setup_passed": true,
+    "elapsed_sec": 0.5837382
+  },
+  "actual_fzp_reads": 0,
+  "actual_lsa_reads": 0,
+  "actual_readback_reads": 0,
+  "com_runs": 0,
+  "model_runs": 0,
+  "production_changes": false,
+  "helper_changes": false,
+  "scope": "Synthetic suite uses generated tiny FZP/LSA/CSV fixtures only. Actual reads limited to completed small JSON/action CSV plus pinned timing sources; actual pair final validation belongs to root."
+}

@@ -166,7 +166,12 @@ controlStartSec = 900
 simPeriod = 1800
 stateLogIntervalSec = 30
 Class FakeSimulation
+    Public currentSec
+    Private Sub Class_Initialize()
+        currentSec = 0
+    End Sub
     Sub RunSingleStep()
+        currentSec = 1
     End Sub
 End Class
 Class FakeVissim
@@ -176,6 +181,15 @@ Class FakeVissim
     End Sub
 End Class
 Set Vissim = New FakeVissim
+Function PerfNow()
+    PerfNow = 0
+End Function
+Sub PerfAdd(name, started)
+End Sub
+Sub RecordStartupSimulationProgress()
+    If Vissim.Simulation.currentSec <> 1 Then WScript.Quit 4
+    WScript.Echo "STARTUP_PROGRESS=1"
+End Sub
 Function ForceStepwiseMode()
     ForceStepwiseMode = False
 End Function
@@ -212,9 +226,10 @@ RunContinuousStaticMode
             path = Path(tmp) / "scheduler_mock.vbs"
             path.write_text("\n".join(extracted) + "\n" + mock, encoding="utf-16")
             result = subprocess.run(["cscript.exe", "//nologo", str(path)],
-                                    text=True, capture_output=True)
+                                    text=True, capture_output=True, encoding="mbcs")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         lines = result.stdout.splitlines()
+        self.assertEqual(lines.count("STARTUP_PROGRESS=1"), 1)
         self.assertEqual([line for line in lines if line.startswith("DECISION=")],
                          ["DECISION=1", "DECISION=900"])
         self.assertLess(lines.index("LOG=900"), lines.index("DECISION=900"))
@@ -279,7 +294,7 @@ If signalFailures <> 1 Then WScript.Quit 3
             path = Path(tmp) / "native_ownership_mock.vbs"
             path.write_text(native + "\n" + mock, encoding="utf-16")
             result = subprocess.run(["cscript.exe", "//nologo", str(path)],
-                                    text=True, capture_output=True)
+                                    text=True, capture_output=True, encoding="mbcs")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("sim_sec=1 checked=2 non_native=0 missing=0", result.stdout)
         self.assertIn("sim_sec=900 checked=2 non_native=1 missing=0", result.stdout)

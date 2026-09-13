@@ -1,0 +1,11 @@
+{
+  "schema": "pending-source-edit/v1",
+  "applied": false,
+  "path": "evaluation\\controllers\\diagnostic_signal_profile.py",
+  "source_file_sha256": "47883d949afd7e1991a64e8d9a6b6ea147e0c531bf37ca12fb235de9a409ba23",
+  "old_text_sha256": "47883d949afd7e1991a64e8d9a6b6ea147e0c531bf37ca12fb235de9a409ba23",
+  "new_text_sha256": "620d79a5dff5394bc3f18ef9a18eceb6da1cf2aec185b489d2e9c1c60304f608",
+  "before": "    control = ControlAction.uncontrolled(cfg)\n",
+  "after": "    control = ControlAction.uncontrolled(cfg)\n    replay_targets = spec.get(\"replay_recorded_targets\", False)\n    if type(replay_targets) is not bool:\n        raise ValueError(\"recorded leader target replay requires a boolean flag\")\n    if replay_targets:\n        for key in (\"N_P_star\", \"N_UF_star\"):\n            value = recorded.get(key)\n            if (isinstance(value, bool) or not isinstance(value, (int, float))\n                    or not math.isfinite(value) or (key == \"N_UF_star\" and value < 0)):\n                raise ValueError(f\"invalid recorded leader target: {key}\")\n            setattr(control, key, float(value))\n",
+  "scope": "Opt-in exact leader target bookkeeping in fixed replay; no signal/VSL/meter or game change. Prepared only; active decision source stays fixed."
+}

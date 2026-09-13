@@ -1,0 +1,63 @@
+{
+  "schema": "handoff-preflight/v1",
+  "new_native_run_started": false,
+  "tests": [
+    {
+      "modules": [
+        "diagnostics.test_shared_owner_batch",
+        "diagnostics.test_joint_neighbor_callbacks",
+        "diagnostics.test_joint_block_spsa",
+        "diagnostics.test_shared_query_runtime_scope"
+      ],
+      "tests": 63,
+      "passed": true,
+      "elapsed_sec": 12.128
+    },
+    {
+      "modules": [
+        "diagnostics.test_selected_control_demand",
+        "diagnostics.test_summarize_fast_nc_completion"
+      ],
+      "tests": 28,
+      "passed": true,
+      "elapsed_sec": 2.801
+    }
+  ],
+  "parameters_original_and_portable_passed": true,
+  "isolated_runtime_file_count": 404,
+  "isolated_prepared_rows": 204,
+  "isolated_action_rows": 74,
+  "isolated_wrapper_plan_passed": true,
+  "isolated_plan_old_worktree_references": 0,
+  "native_execution_on_destination_not_tested": true,
+  "historical_whitespace_warnings_preserved": [
+    "qualify_response_scheduling.py EOF",
+    "recorded_targets_before_test_v1.txt captured trailing whitespace",
+    "signal_clock_dd13e08.py fixture EOF",
+    "review_demand_observation.md EOF"
+  ],
+  "git_index_export": {
+    "manifest_files_at_check": 1537,
+    "sha_mismatches": 0,
+    "scope": "Before final narrative/fixture inventory additions; final transfer manifest lists final bytes."
+  },
+  "isolated_tests": {
+    "tests": 86,
+    "passed": true,
+    "elapsed_sec": 14.106,
+    "modules": [
+      "diagnostics.test_shared_owner_batch",
+      "diagnostics.test_joint_neighbor_callbacks",
+      "diagnostics.test_joint_block_spsa",
+      "diagnostics.test_shared_query_runtime_scope",
+      "diagnostics.test_selected_control_demand.Completion",
+      "diagnostics.test_summarize_fast_nc_completion"
+    ]
+  },
+  "legacy_selected_demand_tests": {
+    "tests": 5,
+    "original_pc_passed": true,
+    "new_pc_portability_not_certified": true,
+    "reason": "Hardcoded original prepared network and joint_config_v2 paths; regenerate test-only fixtures on destination; production uses portable v3."
+  }
+}

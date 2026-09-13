@@ -1,0 +1,28 @@
+{
+  "extends": "../fixed_beta300v3_900_signal_profile/config.json",
+  "name": "com_equivalence_fixed_signal_head_1s",
+  "description": "Diagnostic physical-command fixture for old/new COM execution equivalence. Same config for both arms; no MPC policy or prediction-fidelity claim.",
+  "urban": {
+    "plan": {"mainline_only": true, "mainline_share": true},
+    "capacity": {
+      "measured": true,
+      "head_observation": {"enabled": true, "min_green_sec": 30, "min_crossings": 5}
+    }
+  },
+  "diagnostic": {
+    "signal_profile": {
+      "green_action_json": "diagnostics/fixed_beta300v3_900_signal_profile/frozen_greens.json",
+      "green_action_sha256": "d74ea088d132a96af0c9f54a60efd7309d601a0977dd747db4cd036c6e055614",
+      "plan_content_sha256": "d2bf41f133ab39216dbdc6734187e286cee620f2c5b6e6946258cc14743880d7",
+      "base_writer_offsets_sec": {
+        "SC1": 0.0, "SC5": 18.75, "SC6": 93.75, "SC7": 0.0,
+        "SC11": 37.5, "SC12": 37.5, "SC16": 112.5, "SC101": 18.75,
+        "SC105": 0.0, "SC107": 0.0, "SC108": 0.0, "SC109": 131.25,
+        "SC1001": 75.0, "SC1002": 56.25, "SC1003": 18.75,
+        "SC1004": 56.25, "SC1005": 0.0
+      },
+      "relative_offset_sec": {},
+      "green_delta_sec": {}
+    }
+  }
+}

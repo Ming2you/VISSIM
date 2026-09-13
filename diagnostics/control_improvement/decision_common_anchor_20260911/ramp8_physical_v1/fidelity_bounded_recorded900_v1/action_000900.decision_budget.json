@@ -1,0 +1,34 @@
+{
+  "budget_sec": 120.0,
+  "finalization_reserve_sec": 10.0,
+  "wall_sec": 111.43319650000194,
+  "cpu_sec": 39.375,
+  "overrun_sec": 0.0,
+  "expired_stage": null,
+  "inclusive_scopes": {
+    "load_and_model_prepare": {
+      "calls": 1,
+      "wall_sec": 2.350498999992851,
+      "cpu_sec": 2.265625
+    },
+    "actual_hold_prediction_and_validation": {
+      "calls": 1,
+      "wall_sec": 6.13648749999993,
+      "cpu_sec": 0.109375
+    },
+    "common_price_preparation_and_measurement": {
+      "calls": 1,
+      "wall_sec": 63.31739719999314,
+      "cpu_sec": 8.484375
+    },
+    "final_action_validation_and_output": {
+      "calls": 1,
+      "wall_sec": 0.08335630000510719,
+      "cpu_sec": 0.078125
+    }
+  },
+  "scope_rule": "Inclusive nested scopes; do not sum. Deadline checked between callbacks; an in-flight callback can overrun.",
+  "output_completed": true,
+  "output_error": null,
+  "application_requires_successful_process_exit": true
+}

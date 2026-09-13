@@ -1,0 +1,22 @@
+{
+  "schema": "com-execution-pair-verifier-preparation/v1",
+  "synthetic_tests": 18,
+  "passed": true,
+  "test_elapsed_sec": 1.929,
+  "test_command": "python -B -X utf8 -m unittest diagnostics.com_execution_equivalence.test_verify_pair -v",
+  "source_sha256": {
+    "diagnostics\\com_execution_equivalence\\verify_pair.py": "dc654cfb32b9eaf95acaed17b750992fb2949141e64e47e01a097eb5bf0040c6",
+    "diagnostics\\com_execution_equivalence\\test_verify_pair.py": "e87cca85e427ff426b182e9e84ac395030ec8f9ba97982dff75b72dac785e76a",
+    "diagnostics\\com_execution_equivalence\\VERIFIER.md": "1e7cfd3b80bb95dcf8deec0f40e003b2b0f6cb373859b0408222aab2be1c0ec5"
+  },
+  "production_modified": false,
+  "actual_pair_runs_analyzed": 0,
+  "actual_fzp_payload_reads": 0,
+  "COM_or_model_execution": false,
+  "review": "Flow checked actual r02 19 input keys and primary decision cadence; both-missing-intermediate-decision regression added.",
+  "independent_verdicts": [
+    "actual_execution_equivalent",
+    "native_lsa_com_coverage_passed"
+  ],
+  "scope": "Primary head-ON pairs only; same merged source, two SG environment differences only. All observed run files preserved."
+}

@@ -93,6 +93,36 @@ class NativePreheadTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'one finish'):prehead.finish_step(state,action,cfg,step)
         state._control_area_ledger.assert_stocks(inventory)
 
+    def test_capture_validates_left_residual_and_preserves_wn_overdraw_off_exact(self):
+        from diagnostics.test_route_choice_corridor import resource_capture_pair,assert_resource_capture_exact
+        cfg,seed,action,spec,step,budget=self.ready_left()
+        left,right=resource_capture_pair(seed,cfg,step)
+        for state in (left,right):self.accept_wn(cfg,state,spec,step,budget/2)
+        self.assertEqual(prehead.finish_step(left,action,cfg,step),prehead.finish_step(right,action,cfg,step))
+        assert_resource_capture_exact(self,left,right)
+        row,=right._control_area_ledger.response()['resource_allocations']
+        self.assertEqual(row['kind'],'residual_tag_service')
+        self.assertEqual(row['available_veh'],budget/2)
+        self.assertAlmostEqual(row['accepted_total_veh'],budget/2)
+        self.assertFalse(any('movement:'+m in row['accepted_by_source_veh'] for m in spec['wn_movements']))
+        self.assertAlmostEqual(row['accepted_by_source_veh']['input:1093:movement:'+spec['left_movement']],budget/2)
+        right._control_area_ledger.assert_stocks(area_runtime.model_inventory(right,cfg))
+        off,on=resource_capture_pair(seed,cfg,step)
+        for state in (off,on):self.accept_wn(cfg,state,spec,step,2*budget)
+        expected=prehead.finish_step(off,action,cfg,step)
+        actual=prehead.finish_step(on,action,cfg,step)
+        self.assertEqual(expected,actual)
+        self.assertAlmostEqual(actual['native_prehead_existing_wn_budget_overdraw_veh'],budget)
+        self.assertEqual(actual['native_prehead_first_service_veh'],0.)
+        self.assertGreater(on.native_input_prehead_state['existing_wn_budget_overdraw_veh'],0.)
+        assert_resource_capture_exact(self,off,on)
+        row,=on._control_area_ledger.response()['resource_allocations']
+        self.assertEqual(row['kind'],'residual_tag_service')
+        self.assertEqual((row['available_veh'],row['accepted_total_veh']),(0.,0.))
+        self.assertEqual(row['accepted_by_source_veh'],{'input:1093:movement:'+spec['left_movement']:0.})
+        self.assertFalse(on._control_area_ledger.response()['shared_capacity_certificate'])
+        on._control_area_ledger.assert_stocks(area_runtime.model_inventory(on,cfg))
+
     def test_absent_kind_is_exact_noop_and_unfinished_steps_fail(self):
         cfg,state,*_=self.built;cfg=deepcopy(cfg);state=state.copy()
         cfg.network.native_internal_inputs['inputs'].pop('1093');before=pickle.dumps(state)

@@ -1,0 +1,21 @@
+VSL changed-write 제안 — 미적용·미검증
+
+현재 확인된 것은 초기1초와 매150초 새 action에서 같은 VSL값을 재대입하는 동작이다. 매초 VSL setter가 실행된다는 주장은 하지 않는다. 현동작은 현재의 새명령 쓰기/readback 계약이며 버그로 단정하지 않는다. 9000초 fast/canonical 동일성 gate는448초부터 실패했고 원인은 미확인이다. 진행 중인 유효 full쌍은 그대로 유지한다.
+
+제안 범위
+기존 SetClassSpeedChecked, watchdog 설정 전달, native readback validator와 독립 CommandClock만 바꾼다. 새 adapter/실행경로 없음. actuation.vsl_write_on_change는 strict bool, 기본 OFF. wrapper가 extends 체인을 고정하고 환경값을 강제로0/1로 전달·매시도 재검사한다. OFF는 기존7열 기록과 setter/readback를 유지한다. 신호 on-change의 성공 캐시 방식은 참고하되 별도 스위치로 VSL만 비교할 수 있게 한다.
+
+ON 계약
+캐시 주소는 DSD번호×차량class(10/20/30/70)이며 목표값·마지막 성공 쓰기·마지막 실제 확인 시각을 보관한다. 첫 적용과 값 변경은 반드시 setter+immediate getter. 이후 같은 요청은 현재 실제 getter가 정확히 맞을 때만 setter를 생략한다. 실패·외부 값 변경은 캐시 무효화 후 기존 오류/중단 경로로 넘기며 조용히 복구하지 않는다. 재시도가 허용되면 cache miss로 실제 쓰기를 수행한다. 유일한 LoadNet 직후와 역행/중복 명령 시각에 캐시를 비운다. 임의의 외부 네트워크 교체까지 보장한다고 주장하지 않는다.
+
+ON 기록은9열(기존7열+last_write_sec,verified_sec). skipped_verified는 실제 현재 getter 결과·해당 주소의 직전 성공 setter 시각·현재 확인 시각을 담는다. 실패는 ok0으로 남긴다. validator는 CSV 헤더로 활성화하지 않고 고정된 config/transport에서만 ON을 허용한다. 첫 immediate, 주소별·결정별1행, 현재 명령, 최신 성공 writer 참조를 모두 확인한다. 실제 setter 목록과 검증된 skip 목록은 분리한다. CL의 SG/LDP/LSA·실행·source 검증은 유지하며 계속 유지됐다는 증명은 추가하지 않는다. 기존 strict pair의 setter 목록 일치 규칙도 완화하지 않는다.
+
+적용 승인 뒤 검증 계획 — 아직 실행 안 함
+1. patch에는 기존 test_com_execution_writer fake-device 호출 규격과 첫/동일/변경·외부 reset·retry·주소 격리·clock reset 회귀도 제안했다(미실행). 추가 fake 검증: 첫/동일/변경 요청의 정확한 getter/setter 수, DSD/class 격리, 네 class별 trace, 시각 초기화, 쓰기/읽기 실패·외부 변경·retry 캐시 무효화. 실제 VISSIM COM 없이 수행.
+2. 기존 test_verify_native_execution/test_verify_pair: OFF7열 유지; ON 정상 skip; 첫 skip·누락/중복/추가 주소·class·결정 실패; 과거/미래/다른 주소 writer 참조·verified_sec 불일치·현재명령 불일치·ok0/비유한 값 실패. config/env/헤더 불일치, extends override, inherited env 단독 활성화 실패 포함.
+3. 위 회귀 추가 후 python -m unittest diagnostics.test_com_execution_writer diagnostics.com_execution_equivalence.test_verify_native_execution diagnostics.com_execution_equivalence.test_verify_pair. 명시적 ON config의 기존 parameter 검증, 비-native VBS fake/compile harness와 PowerShell parser 확인.
+4. 현 full쌍 종료 후 별도 승인된 짧은 native 고정명령 비교에서 각 arm의 실제 실행을 검증하고 전체 ordered FZP로 물리 동등성을 따로 평가한다. setter 이력 자체는 의도적으로 다르다. 차이가 있으면 숨기지 않고 물리중립 최적화 주장을 보류한다. 이후 비교쌍은 같은 write policy를 사용한다.
+
+고정120/9000초 예의 호출수 산술: 기존264주소×61회=16104 setters → 후보264 setters+15840 verified skips. 실제 getter16104회는 유지한다. 측정된 속도 향상 또는 물리 동등성 증거가 아니다.
+
+준비 중 실제 수행: diff 문맥을 메모리에서 맞추고 제안 Python 텍스트만 compile했다. VBS/PowerShell/fake 테스트·COM/모델/native/FZP는 실행하지 않았다. 네 canonical 파일과 기존 테스트 파일은 바이트 그대로이며 D의 patch/이 계획만 작성했다.

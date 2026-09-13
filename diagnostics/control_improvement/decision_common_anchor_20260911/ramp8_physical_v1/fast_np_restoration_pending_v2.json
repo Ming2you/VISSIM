@@ -1,0 +1,19 @@
+{
+  "schema": "pending-source-edit/v2",
+  "applied": false,
+  "path": "evaluation/controllers/joint_owner_game.py",
+  "source_file_sha256": "899c52fcbed696dfe674a561ab93ff1849ebb8883b14490b089e865f0eadd669",
+  "old_text_sha256": "899c52fcbed696dfe674a561ab93ff1849ebb8883b14490b089e865f0eadd669",
+  "new_text_sha256": "301307865709152f624557d581826a3c3d5ab8c5b933957792f3d16d181988ca",
+  "replacements": [
+    {
+      "before": "                        nuf_semantics='fixed_target', deadline_check=None):\n",
+      "after": "                        nuf_semantics='fixed_target', deadline_check=None, initial_seeds=()):\n"
+    },
+    {
+      "before": "        current_eval = checked(current)\n        if current_eval.feasible:\n",
+      "after": "        current_eval = checked(current)\n        if type(initial_seeds) is not tuple:\n            raise ValueError('Explicit finite initializer tuple required')\n        for seed in initial_seeds if not current_eval.feasible else ():\n            if _extra(seed, nuf_semantics=nuf_semantics) != _extra(incumbent, nuf_semantics=nuf_semantics):\n                raise ValueError('Initializer changed fixed targets or nonlever payload')\n            value = checked(seed)\n            if value.feasible or value.violation < current_eval.violation - improvement_tolerance:\n                current, current_eval = deepcopy(seed), value\n            if current_eval.feasible:\n                break\n        if current_eval.feasible:\n"
+    }
+  ],
+  "scope": "Opt-in fast NP initializer and bounded per-candidate restoration. No physical model, target, trust-region, price, or follower neighborhood change."
+}

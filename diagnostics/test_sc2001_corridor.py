@@ -220,5 +220,38 @@ class CorridorTests(unittest.TestCase):
         self.assertFalse(hasattr(state, '_control_area_ledger'))
 
 
+class CorridorResourceEvidenceTests(unittest.TestCase):
+    def test_actual_common_service_after_branch_receiving_scaling_off_exact(self):
+        from types import SimpleNamespace as NS
+        spec = {'storage': 'SC2001', 'capacity_veh': 20., 'lanes': 1.,
+                'branches': {'R_D_E': {'target_kind': 'ramp', 'target': 'R_D_E', 'target_inside': True, 'lanes': 1.},
+                             'outside_125': {'target_kind': 'outside', 'target_inside': False, 'lanes': 3.}}}
+        cfg = NS(network=NS(sc2001_corridor=spec, movement_capacity_veh_h=3600.,
+                    boundary_out_capacity_veh_h=3600., ramp_queue_cap=lambda r:10.),
+                 simulation=NS(T_u_sec=5., T_u_h=5/3600))
+        initial = NS(urban_link_storage={'SC2001': 8.}, ramp_queue={'R_D_E': 9.},
+            sc2001_corridor_state={'last_step': -1, 'departed_veh': 0.,
+                'bins': {'A': {'R_D_E': {0: 3.}, 'outside_125': {0: 3.}},
+                         'B': {'R_D_E': {0: 3.}, 'outside_125': {0: 3.}}}})
+        states, results = [], []
+        for capture in (False, True):
+            state = copy.deepcopy(initial)
+            state._control_area_ledger = ModelAreaLedger({'storage:SC2001': {'inside': 12.},
+                'ramp:R_D_E': {'inside': 9.}}, capture_response=capture)
+            state._control_area_ledger.begin_response_step('urban', 0, 5)
+            results.append(corridor.advance(state, None, None, cfg, 0)); states.append(state)
+        self.assertEqual(results[0], results[1])
+        self.assertEqual({k:v for k,v in vars(states[0]).items() if k != '_control_area_ledger'},
+                         {k:v for k,v in vars(states[1]).items() if k != '_control_area_ledger'})
+        ledger = states[1]._control_area_ledger
+        rows = ledger.response()['resource_allocations']
+        common, = [r for r in rows if r['kind'] == 'sc2001_shared_service']
+        self.assertAlmostEqual(common['accepted_total_veh'], 5.)
+        self.assertAlmostEqual(common['accepted_by_source_veh']['sc2001:branch:R_D_E'], 5/6)
+        ledger.assert_stocks({'storage:SC2001': 7., 'ramp:R_D_E': 9.+5/6})
+        self.assertEqual(states[0]._control_area_ledger.metrics, ledger.metrics)
+        self.assertFalse(ledger.response()['shared_capacity_certificate'])
+
+
 if __name__ == '__main__':
     unittest.main()

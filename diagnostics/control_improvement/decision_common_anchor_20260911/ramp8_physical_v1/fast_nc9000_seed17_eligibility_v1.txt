@@ -1,0 +1,21 @@
+Fast NC9000 / seed17 eligibility (read-only)
+
+Configuration eligible; current canonical seed13 whole-FZP equality remains PENDING.
+The finished fast seed13 run completed in 291.394 s (9000, exit0, owned native closed).
+819 readbacks match:204 demand,68 tail-demand,3 route,528 VSL,16 meter; stderr empty.
+Original physical network SHA matches:085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317.
+Prepared demand/controls/route_checks bytes are identical between cooldown9000 and current selected FW080/U050.
+Canonical recording INPX differs only via the startup-validated recording whitelist; canonical reconstructed demand has max rounding difference9.094947017729282e-13 vph (194/204 exact floats), hence the physical trajectory gate still matters.
+
+Fast execution: native step to1, then66 VSL distributions120 for classes10/20/30/70 and8 COM GREEN meters, then one RunContinuous to9000. No model/controller/head/vehicle query calls and no urban signal-program/offset/clock writes. Six input intervals stay unchanged; final4500 interval is held to9000 and checked at start/end.
+
+After current native closes, compare both completed runs with existing diagnostics.audit_observed_nc_trajectory.payload(path): require identical header,payload_sha256,payload_bytes,rows,first_sec,last_sec, covering1..9000. This excludes only pre-data metadata. Do not run the old verify_fast_nc_baseline.py or audit_nc5400_native_signals.events unchanged: both require5400. Historical5400 equivalence passed but is not the9000 proof.
+
+If that gate passes, the existing seed17 command is:
+powershell.exe -NoProfile -File diagnostics/fast_nc_run.ps1 -Prepared diagnostics/demand_sweep/fw080_urban050_cooldown9000/prepared -Output evaluation/runs/fast_nc_fw080_urban050_s17_9000_v1 -Seed 17 -Execute
+
+No command was launched. Explicit -Seed17 controls actual RandSeed/readback and run.json.seed; prepared.json.seed=13 is hardcoded preparation metadata and unused by the runner. Preserve the original prepared artifact.
+
+Use existing diagnostics/summarize_fast_nc.py --run <fast seed17 run> --out <fresh directory> for physical outcome/TD/TTT/removal summaries. Fast baseline lacks canonical decision snapshots, head capture, full SG_BILD LDP and canonical completion/provenance files; the unchanged closed-loop qualifier cannot certify it. Record that limit rather than fabricating head/state/clock equality. The fast run's old manifest lacks historical runner/SIG pins; the companion JSON pins current reviewed inputs only. Full seed13 trajectory equality is evidence for that run, not universal seed equivalence. Preserve native .err/removal evidence.
+
+No FZP/LSA/LDP, model/native/COM jobs or source changes in this review.

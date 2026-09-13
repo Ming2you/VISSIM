@@ -1,0 +1,5048 @@
+{
+  "complete": true,
+  "native_run": false,
+  "source_sha256": {
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\domain_invoke.py": "204f9e3beda56292c35c6d7b95ae435c36c907d9ab080c7322529a922f3bf011",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\domain_config.json": "513cf8a8e58d85db90fd3b0b5b006388dd5cd8d9cab18ec4f735b022b3cccd93",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\topology.json": "7b46a70327808fd9a959bbeac0dee7f729fe3258f41ddc0c5dcebe0fcd3c282d",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\state_000900.json": "e46239a5a5ee7ef80008e982852eb19e27a8c1a6e711f2553c2c9c4bc335c1be",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000750.json": "64c4226e1efc4b9eb80828fc21bfde1db5719735f4e4ac5e7ae404af54a02c52",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.json": "c13d05158341a6925c5aa339201568dbd378729057bc942fb1f2bb5fea76e280",
+    "evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.csv": "e04292c4f6a4d19c7657a97ff2cb1a2dc43f50b10acb0cc6c5268ac6b29cda04",
+    "evaluation\\controllers\\action_csv_schema.py": "e8c0f55f208da0a0b30c541caf77f0d8e7a6945a2afb8644572bee32eb36fc00",
+    "evaluation\\controllers\\area_arrival_routes.py": "ef9ea7c42c171823e68bb67e3a0f7c0f50e6230cfe110ac9791e1bfe582d1465",
+    "evaluation\\controllers\\area_dynamic_routes.py": "aa5b09df275e510184e752a3e3004aa28c87b5e045c1fc0aca9eb1759d025b65",
+    "evaluation\\controllers\\area_follower_objective.py": "2085f6e2d0d306f36785e15cecb07786b14a9b4eb6681b3a78d5d2ca33ae1e2a",
+    "evaluation\\controllers\\area_freeway_accounting.py": "5615ee6936b2098334c52aedebc460583040f2362d0df43403fc2f88e65be08a",
+    "evaluation\\controllers\\area_leader_objective.py": "20d2a124f3f67a6330ce811da0601edc30547fb5b2f08ecd5f0cb8e98584c826",
+    "evaluation\\controllers\\area_meter_finalization.py": "5985184e20abe73ad9f6ea73206257c06913cd223942a03cc26ed1a67aa063c7",
+    "evaluation\\controllers\\area_runtime.py": "b8d3b026723500c1dadfa3855eb9a49d924615b2ab02aeb9444194054d0a3d1f",
+    "evaluation\\controllers\\control_area_join.py": "78ae838f9f2b662d14cc79c559ecb7d37df7646e52771947c9bc25a08c4a6eef",
+    "evaluation\\controllers\\control_area_objective.py": "7a01ce9fa94f96f538c5317072c6c9e534fdd6aeb4f5f1fbe7c09cd198867c7a",
+    "evaluation\\controllers\\diagnostic_profile.py": "57177f6eab4ccea46bf73c5190dfab57ef75dd55ff4ed86e5818b143248d15a3",
+    "evaluation\\controllers\\diagnostic_signal_profile.py": "21f3aa840b0469b495c767f4758b99696608cb6ccbdf5e2156692f46e24bf443",
+    "evaluation\\controllers\\fixed_signal_schedule.py": "533702804f243ea147baf6d91ee397ecc32d6900f7d5f55530ae19b0d220ae79",
+    "evaluation\\controllers\\freeway_fd.py": "c4a5624986fa42d835e3583901fbd6a997fc13c79541431b775d0bcabc5c298a",
+    "evaluation\\controllers\\freeway_local_state.py": "0987339971659150b4a341d4b3e39b32530637e87c776cf79dcceaec2f0a48db",
+    "evaluation\\controllers\\head_service_resources.py": "2ae56d3a87b01a474c9db8138902b9fb8fd1e4132ceccd3286e2769175afb1cb",
+    "evaluation\\controllers\\joint_owner_game.py": "411808eccee21e0c934f17a089a35ee37ebb5f3ecb7d0fa1d3145e8dd4ac7d22",
+    "evaluation\\controllers\\joint_owner_neighbors.py": "640522539801497d7e0a8840175eafa9d74fcae302b82eec6cd358bf5a0caff5",
+    "evaluation\\controllers\\link_predictor.py": "36ece795b2c8f57f73c4b54d17754e6c8c16d2023e90e0869b9129db46e11312",
+    "evaluation\\controllers\\local_signal_service.py": "8e1c57548820134df3a868b283ac0d8a33c08d60c4386b2afa2ee42310dedb21",
+    "evaluation\\controllers\\native_demand_forecast.py": "3e61141e628d889213d94515ade0e521f0879cfd937860f08859db622991fdbd",
+    "evaluation\\controllers\\native_input_prehead.py": "b9c09f0e3ff2d9afb581e1e602a94a215f50dff49aaf11b30b95a9eb7c5afc59",
+    "evaluation\\controllers\\native_input_routes.py": "481226d8444a120ab0b7ffc9b4e54b94497f16e6c696f36278988a5aa2c93359",
+    "evaluation\\controllers\\native_internal_input.py": "d6feb374114c73d71876c9dd999cf43bf51c7803c24732569e24609a8291fa3d",
+    "evaluation\\controllers\\native_phase_green.py": "bb9d6c612809128ff51ca864ee1c8461414009254455016dd473625a619a8bc3",
+    "evaluation\\controllers\\network_pressure.py": "3e7e2ae03638b85434b803125db78c60ee487bb4400c1179cd82ecd17d835209",
+    "evaluation\\controllers\\network_provenance.py": "419552d608a220bf5593d98a75df5c15347c46a911ea121adca70e352b3ceb2f",
+    "evaluation\\controllers\\observation_projection.py": "fdd1b47ed9ded7c705ab72b4926008c6d7257a8afb5f00d55cf3a2801f023253",
+    "evaluation\\controllers\\offramp_routing.py": "aace07598799c09891c4ca67394f2329f75fbc08139e523867d4c11095c3bd78",
+    "evaluation\\controllers\\offset_promotion.py": "99b78412b3e3147b07b3a18a26f472aaf3210f64b8db8065514b3f021810274d",
+    "evaluation\\controllers\\physical_movement_routes.py": "67f4eb572b1a3d0dbf44e4d724dd98f5c2373d0a0a14995a92daefe66881d45b",
+    "evaluation\\controllers\\physical_ramp_branches.py": "b9da1f8464ed01a6649719f8b01ad76fab4fa7cc3394f82a5a9efbda790c6a84",
+    "evaluation\\controllers\\plant_cycle.py": "60cc7e56932726da83c0694b993ce2cd5be140bdc8d0b9260d53c50509910799",
+    "evaluation\\controllers\\projection_support.py": "683faa89a8b11fc189cea803ec432ff060a5144b20a4bee10997dd709a1b7ad7",
+    "evaluation\\controllers\\route_choice_corridor.py": "b30ad533a52a4e391f0153728fcd025d1b7978f6ee3cf121722447b5fb1f38e8",
+    "evaluation\\controllers\\runtime_setup.py": "2ccff90b9d18ad0708358a5d433cecd0f8729723be7cad1100d86e9d52d2e7ed",
+    "evaluation\\controllers\\sc2001_corridor.py": "17dad34ff7e737483a99bda6a344bd9825de1adb9aae1309f75c4908be3e9f4b",
+    "evaluation\\controllers\\shared_approach.py": "37a7929012b61aa16a862683859ad808961e55ab6b3c9180f87a821a285ea172",
+    "evaluation\\controllers\\signal_actuation_contract.py": "9b09168409dfe6446f428c664b4db51e0464f4f178fbaf7ca379bd8c1fdd848f",
+    "evaluation\\controllers\\signal_group_plan.py": "41abeaa724aa45ffffdae33619520c429c57edfcb96bba7ce226cf928b00bab2",
+    "evaluation\\controllers\\signal_head_observation.py": "1e85a63629b71d0d60f51fdd4993691040fb5e07880da2bf9b15539022250b0f",
+    "evaluation\\controllers\\signal_timing_oracle.py": "8241e996bf60db9446c5ddefce40eab9ab71350e84978201ff451e32c59e449b",
+    "evaluation\\controllers\\urban_flow_accounting.py": "1bdb8b2d67ffbcb8b4001cfe8295626848d77488ed367333511b28b91bdb19f2",
+    "evaluation\\controllers\\vehicle_routes.py": "18ef02ca0ef013ea5f4b6b110f69e0f7e47e276107ece7a44a6687cf52ec0dfa",
+    "evaluation\\controllers\\vissim_stackelberg_adapter.py": "a73bc0eaa32f3d1533831b98b21e1f34b3f05f8a5eb661f517125096f7cf13d1"
+  },
+  "owners": {
+    "FW_W": {
+      "candidate_count": 63,
+      "pure_meter_greens": {
+        "RM_C10480": [
+          9.0,
+          8.0
+        ],
+        "RM_C10482": [
+          9.0,
+          8.0
+        ],
+        "RM_C10646": [
+          9.0,
+          8.0
+        ],
+        "RM_C10644": [
+          9.0,
+          8.0
+        ]
+      },
+      "pure_vsl_count": 6,
+      "coupled_count": 48,
+      "canonical_command_checks": 63,
+      "elapsed_sec": 13.315709400001651,
+      "provenance": {
+        "schema": "canonical-joint-neighbor-bindings/v1",
+        "binding_sha256": "4a1b9ac90f63f40afcb5da7590124d54f368fe1b95856f24a878181ee1442ac4",
+        "meter_context_sha256": "e0d2ad978dc6eb0f2872e8873c8e68f20965fbc0a6574023e748c094764a381f",
+        "context_fingerprint": "2d538f585b37a184cea45727f2dfa1e6579b7518694cdb5a7fdeb169d2c5ed20",
+        "held_horizon_sec": 450.0,
+        "nuf_semantics": "fixed_target",
+        "leader_target_nuf_veh_h": 2108.340768942408,
+        "hard_total_budget": null,
+        "hard_directional_budgets": {},
+        "previous_meter_anchor": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.csv",
+          "sha256": "e04292c4f6a4d19c7657a97ff2cb1a2dc43f50b10acb0cc6c5268ac6b29cda04"
+        },
+        "shared_feasibility_certified": false,
+        "legacy_temporal_search_equivalent": false,
+        "scope": "finite full-action held neighborhood; no price, cost or receiving allocation",
+        "meter_filter_scope": "source requests before canonical quantization; no new realized trust policy",
+        "fixed_actual_action_box": {
+          "anchor_token": "bdd2fe40d04cbc8f93848773b493e436ddf784383b2fd7604813612f485e6cd4",
+          "entries": [
+            [
+              "green_times",
+              "SC1_p1",
+              54.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p3",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p4",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1",
+              19.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC5_p1",
+              43.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p3",
+              47.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p4",
+              25.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC5",
+              114.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC6_p1",
+              43.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p3",
+              52.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p4",
+              22.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC6",
+              13.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC7_p1",
+              67.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p2",
+              90.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p3",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC7",
+              119.0,
+              60.0,
+              120.0
+            ],
+            [
+              "green_times",
+              "SC11_p1",
+              36.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p2",
+              35.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p3",
+              34.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p4",
+              33.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC11",
+              55.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC12_p1",
+              50.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p2",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p3",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p4",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC12",
+              145.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC16_p1",
+              63.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p2",
+              17.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p3",
+              27.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p4",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC16",
+              1.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC101_p1",
+              48.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p2",
+              27.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p3",
+              39.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC101",
+              25.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC105_p1",
+              48.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p3",
+              35.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p4",
+              34.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC105",
+              115.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC107_p1",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p2",
+              25.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p3",
+              78.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p4",
+              38.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC107",
+              12.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC108_p1",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p2",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p3",
+              88.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p4",
+              22.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC108",
+              38.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC109_p1",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p2",
+              20.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p3",
+              90.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p4",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC109",
+              39.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1001_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1001",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1002_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1002",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1003_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1003",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1004_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1004",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1005_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1005",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "vsl",
+              "FW_W",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg0",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg1",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg2",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg3",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg4",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg5",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg6",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg7",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg8",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg9",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg10",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg11",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg12",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg13",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg14",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg15",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg16",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg17",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg18",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg19",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg20",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg0",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg1",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg2",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg3",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg4",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg5",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg6",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg7",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg8",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg9",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg10",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg11",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg12",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg13",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg14",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg15",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg16",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg17",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg18",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg19",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg20",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10480",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10482",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10646",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10644",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10639",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10681",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10490",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10484",
+              10.0,
+              2.0,
+              null
+            ]
+          ],
+          "post_realization_checked": true
+        },
+        "price_probe": false
+      }
+    },
+    "FW_E": {
+      "candidate_count": 63,
+      "pure_meter_greens": {
+        "RM_C10639": [
+          9.0,
+          8.0
+        ],
+        "RM_C10681": [
+          9.0,
+          8.0
+        ],
+        "RM_C10490": [
+          9.0,
+          8.0
+        ],
+        "RM_C10484": [
+          9.0,
+          8.0
+        ]
+      },
+      "pure_vsl_count": 6,
+      "coupled_count": 48,
+      "canonical_command_checks": 63,
+      "elapsed_sec": 13.37873320000108,
+      "provenance": {
+        "schema": "canonical-joint-neighbor-bindings/v1",
+        "binding_sha256": "4a1b9ac90f63f40afcb5da7590124d54f368fe1b95856f24a878181ee1442ac4",
+        "meter_context_sha256": "e0d2ad978dc6eb0f2872e8873c8e68f20965fbc0a6574023e748c094764a381f",
+        "context_fingerprint": "2d538f585b37a184cea45727f2dfa1e6579b7518694cdb5a7fdeb169d2c5ed20",
+        "held_horizon_sec": 450.0,
+        "nuf_semantics": "fixed_target",
+        "leader_target_nuf_veh_h": 2108.340768942408,
+        "hard_total_budget": null,
+        "hard_directional_budgets": {},
+        "previous_meter_anchor": {
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_native_clock_fw080_u050_open_v2\\decisions_codex_native_clock_fw080_u050_open_v2\\action_000900.csv",
+          "sha256": "e04292c4f6a4d19c7657a97ff2cb1a2dc43f50b10acb0cc6c5268ac6b29cda04"
+        },
+        "shared_feasibility_certified": false,
+        "legacy_temporal_search_equivalent": false,
+        "scope": "finite full-action held neighborhood; no price, cost or receiving allocation",
+        "meter_filter_scope": "source requests before canonical quantization; no new realized trust policy",
+        "fixed_actual_action_box": {
+          "anchor_token": "bdd2fe40d04cbc8f93848773b493e436ddf784383b2fd7604813612f485e6cd4",
+          "entries": [
+            [
+              "green_times",
+              "SC1_p1",
+              54.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p3",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1_p4",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1",
+              19.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC5_p1",
+              43.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p3",
+              47.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC5_p4",
+              25.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC5",
+              114.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC6_p1",
+              43.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p3",
+              52.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC6_p4",
+              22.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC6",
+              13.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC7_p1",
+              67.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p2",
+              90.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p3",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC7_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC7",
+              119.0,
+              60.0,
+              120.0
+            ],
+            [
+              "green_times",
+              "SC11_p1",
+              36.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p2",
+              35.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p3",
+              34.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC11_p4",
+              33.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC11",
+              55.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC12_p1",
+              50.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p2",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p3",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC12_p4",
+              32.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC12",
+              145.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC16_p1",
+              63.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p2",
+              17.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p3",
+              27.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC16_p4",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC16",
+              1.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC101_p1",
+              48.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p2",
+              27.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p3",
+              39.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC101_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC101",
+              25.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC105_p1",
+              48.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p2",
+              21.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p3",
+              35.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC105_p4",
+              34.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC105",
+              115.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC107_p1",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p2",
+              25.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p3",
+              78.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC107_p4",
+              38.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC107",
+              12.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC108_p1",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p2",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p3",
+              88.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC108_p4",
+              22.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC108",
+              38.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC109_p1",
+              0.0,
+              0.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p2",
+              20.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p3",
+              90.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC109_p4",
+              31.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC109",
+              39.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1001_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1001_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1001",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1002_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1002_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1002",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1003_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1003_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1003",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1004_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1004_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1004",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "green_times",
+              "SC1005_p1",
+              46.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p2",
+              23.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p3",
+              45.0,
+              6.0,
+              null
+            ],
+            [
+              "green_times",
+              "SC1005_p4",
+              24.0,
+              6.0,
+              null
+            ],
+            [
+              "offsets",
+              "SC1005",
+              75.0,
+              75.0,
+              150.0
+            ],
+            [
+              "vsl",
+              "FW_W",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg0",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg1",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg2",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg3",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg4",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg5",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg6",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg7",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg8",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg9",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg10",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg11",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg12",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg13",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg14",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg15",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg16",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg17",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg18",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg19",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_W__seg20",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg0",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg1",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg2",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg3",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg4",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg5",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg6",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg7",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg8",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg9",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg10",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg11",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg12",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg13",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg14",
+              120.0,
+              40.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg15",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg16",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg17",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg18",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg19",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "vsl",
+              "FW_E__seg20",
+              120.0,
+              0.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10480",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10482",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10646",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10644",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10639",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10681",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10490",
+              10.0,
+              2.0,
+              null
+            ],
+            [
+              "diagnostics",
+              "rw_meter_green_RM_C10484",
+              10.0,
+              2.0,
+              null
+            ]
+          ],
+          "post_realization_checked": true
+        },
+        "price_probe": false
+      }
+    }
+  },
+  "responses": {
+    "open": {
+      "objective_veh_h": 192.2197695851888,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631874796,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195784847,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522746681,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993886093845
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705499837,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156627878,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418197345,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108875076
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667764962,
+          "FW_W": 1340.4555021659116
+        },
+        "total_rate_veh_h": 2108.340768942408,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960214086391,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9908392372206185,
+        "SC1002": 6.095833088695199,
+        "SC1003": 2.6289541045194262,
+        "SC1004": 4.583171694385531,
+        "SC1005": 3.825055171784665,
+        "FW_W": 73.61075997664084,
+        "FW_E": 65.53055290228687
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 0.028964999999516294,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "f489210b0ac16dfabd1b6d5f4bd480604a51f4db3e26d3c0348020a845681400"
+    },
+    "RM_C10480_g8": {
+      "objective_veh_h": 192.2197695851888,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631874796,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195784847,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522746681,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993886093845
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705499837,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156627878,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418197345,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108875076
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667764962,
+          "FW_W": 1340.4555021659116
+        },
+        "total_rate_veh_h": 2108.340768942408,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960214086391,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9908392372206185,
+        "SC1002": 6.095833088695199,
+        "SC1003": 2.6289541045194262,
+        "SC1004": 4.583171694385531,
+        "SC1005": 3.825055171784665,
+        "FW_W": 73.61075997664084,
+        "FW_E": 65.53055290228687
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 4.968760199999451,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "3941f69daeca1f06d746e09db6421e17270e95ffc3175f2ed380ff8e1c566a88"
+    },
+    "RM_C10482_g8": {
+      "objective_veh_h": 192.2197695851888,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631874796,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195784847,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522746681,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993886093845
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705499837,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156627878,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418197345,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108875076
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667764962,
+          "FW_W": 1340.4555021659116
+        },
+        "total_rate_veh_h": 2108.340768942408,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960214086391,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9908392372206185,
+        "SC1002": 6.095833088695199,
+        "SC1003": 2.6289541045194262,
+        "SC1004": 4.583171694385531,
+        "SC1005": 3.825055171784665,
+        "FW_W": 73.61075997664084,
+        "FW_E": 65.53055290228687
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 2332.8,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 5.295235600000524,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "f87b06e1af57443facb6d7ecf0ba65ca29e4cf53877dbe9d95bb4e7730a9f526"
+    },
+    "RM_C10646_g8": {
+      "objective_veh_h": 192.22178149780478,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.10146459324505,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805189527308,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170501884045,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993878367896
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.8117167459604,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.38441516218467,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536401507236,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595102694317
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852659915192,
+          "FW_W": 1340.4555013562706
+        },
+        "total_rate_veh_h": 2108.34076734779,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.5709804827355849,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414978362267178,
+        "SC107": 1.8250957306757853,
+        "SC108": 4.342499667875518,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.990844267436126,
+        "SC1002": 6.0958332410141525,
+        "SC1003": 2.6289669427615845,
+        "SC1004": 4.582933362917876,
+        "SC1005": 3.825053385685304,
+        "FW_W": 73.61276081852995,
+        "FW_E": 65.53053073710568
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 4.564381800000774,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "facf76001b42cecc3855be431b823ede43ffdf70e3937b7663adefc177f76fb9"
+    },
+    "RM_C10644_g8": {
+      "objective_veh_h": 192.24788075646296,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631519736,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195633055,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522240606,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.519938860228336
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705215789,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156506444,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536417792485,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108818267
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667667667,
+          "FW_W": 1340.455502150928
+        },
+        "total_rate_veh_h": 2108.3407689176947,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980490034285,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.4149802437195445,
+        "SC107": 1.825096160851079,
+        "SC108": 4.342500758025629,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.990837387499054,
+        "SC1002": 6.095833044861042,
+        "SC1003": 2.628947951338971,
+        "SC1004": 4.583170426751295,
+        "SC1005": 3.8250561293650645,
+        "FW_W": 73.63887657870661,
+        "FW_E": 65.53056676069481
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 5.2918671000006725,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "45ee0943794de1d3d7bc4fa4154458f9942f022104ad96aba0909a0a8695198b"
+    },
+    "FW_W_joint_first": {
+      "objective_veh_h": 192.26163514959663,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101473625583052,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.298053759288095,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.76817112334665,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.519956848354965
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81178900466442,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.38443007430476,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536898677322,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1596547868397
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8854154806281,
+          "FW_W": 1340.4555885270947
+        },
+        "total_rate_veh_h": 2108.341004007723,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250781477213711,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.983748951195089,
+        "SC1002": 6.09583308637025,
+        "SC1003": 2.628852646341881,
+        "SC1004": 4.582095166512677,
+        "SC1005": 3.8247625738288433,
+        "FW_W": 73.65311145427019,
+        "FW_E": 65.52760289919641
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 810.0,
+          "group_rate_vph": 1328.4,
+          "green_sec": 9.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 100.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 100.0,
+        "FW_W__seg1": 100.0,
+        "FW_W__seg2": 100.0,
+        "FW_W__seg3": 100.0,
+        "FW_W__seg4": 100.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 4.656454800000574,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "04c946ccb0b9b204770cc692b2bbcbfd341eef6a145bf12145ca9a922c010e61"
+    },
+    "RM_C10639_g8": {
+      "objective_veh_h": 192.2197695851888,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631874796,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195784847,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522746681,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993886093845
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705499837,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156627878,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418197345,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108875076
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667764962,
+          "FW_W": 1340.4555021659116
+        },
+        "total_rate_veh_h": 2108.340768942408,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960214086391,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9908392372206185,
+        "SC1002": 6.095833088695199,
+        "SC1003": 2.6289541045194262,
+        "SC1004": 4.583171694385531,
+        "SC1005": 3.825055171784665,
+        "FW_W": 73.61075997664084,
+        "FW_E": 65.53055290228687
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 5.5772164999998495,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "4e382d025bfa25292a4d2cff6395615fd0fa4d9036dfcc1588bb2085d367c3da"
+    },
+    "RM_C10681_g8": {
+      "objective_veh_h": 192.2197695851888,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101464631874796,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195784847,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522746681,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51993886093845
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81171705499837,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156627878,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418197345,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1595108875076
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852667764962,
+          "FW_W": 1340.4555021659116
+        },
+        "total_rate_veh_h": 2108.340768942408,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960214086391,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9908392372206185,
+        "SC1002": 6.095833088695199,
+        "SC1003": 2.6289541045194262,
+        "SC1004": 4.583171694385531,
+        "SC1005": 3.825055171784665,
+        "FW_W": 73.61075997664084,
+        "FW_E": 65.53055290228687
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 2332.8,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 7.118406999999934,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "419e334e868d33b9cb42721244c44014ced2a2711f8b05616f698c6be233d0ad"
+    },
+    "RM_C10490_g8": {
+      "objective_veh_h": 192.22038598014805,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101443785187444,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.29805195865859,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170523016773,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.51990130477194
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81155028149955,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.3844156692687,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418413418,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.15921043817553
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8849663293249,
+          "FW_W": 1340.4553353988938
+        },
+        "total_rate_veh_h": 2108.340301728219,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.825096017601107,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.9915824222755205,
+        "SC1002": 6.095751365717558,
+        "SC1003": 2.6289231111640428,
+        "SC1004": 4.583171501108243,
+        "SC1005": 3.825055109695143,
+        "FW_W": 73.61072324487927,
+        "FW_E": 65.53129598851426
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 6.210566299998391,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "f90f54f977625edeeec3e6222a099b2403fea2734d0562a12a86b2af3107823b"
+    },
+    "RM_C10484_g8": {
+      "objective_veh_h": 192.2230612722767,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.101461163394612,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.298051957951344,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.768170522780977,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.519932668093915
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.81168930715688,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 298.38441566361075,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 86.14536418224782,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 380.1594613447513
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 767.8852172340144,
+          "FW_W": 1340.4554744188931
+        },
+        "total_rate_veh_h": 2108.3406916529075,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.570980488103368,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.414979745969509,
+        "SC107": 1.8250960211035925,
+        "SC108": 4.342500469619573,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.990860299962209,
+        "SC1002": 6.095811837858585,
+        "SC1003": 2.6289460471988915,
+        "SC1004": 4.583171670849223,
+        "SC1005": 3.825055166829157,
+        "FW_W": 73.61075144197801,
+        "FW_E": 65.5338761548937
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 720.0,
+          "group_rate_vph": 1166.4,
+          "green_sec": 8.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 120.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 120.0,
+        "FW_E__seg1": 120.0,
+        "FW_E__seg2": 120.0,
+        "FW_E__seg3": 120.0,
+        "FW_E__seg4": 120.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 5.812889400000131,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "1bca9403f79e78b541a844ba1cc0698293e0fb6addb732363aeb924f9ce9ce23"
+    },
+    "FW_E_joint_first": {
+      "objective_veh_h": 192.3593127895789,
+      "predicted_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.009635098835826,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 37.05932156290023,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 10.688577809070935,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.33627979486051
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.07708079068661,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 296.47457250320184,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 85.50862247256748,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 378.69023835888413
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 765.7792525384668,
+          "FW_W": 1337.811022742014
+        },
+        "total_rate_veh_h": 2103.590275280481,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "local_costs": {
+        "SC1": 4.004737014114944,
+        "SC5": 2.0444672378701827,
+        "SC6": 2.637606443078581,
+        "SC7": 0.5709791447079373,
+        "SC11": 1.3968631470096862,
+        "SC12": 1.1147454335332099,
+        "SC16": 0.6049187052316319,
+        "SC101": 2.8777053155981305,
+        "SC105": 3.4146334466986614,
+        "SC107": 1.8249491791334256,
+        "SC108": 4.342299817083482,
+        "SC109": 2.6703142092685916,
+        "SC1001": 5.955712150055869,
+        "SC1002": 6.095804303687628,
+        "SC1003": 2.625643780080206,
+        "SC1004": 4.570930256576085,
+        "SC1005": 3.8235956346060673,
+        "FW_W": 73.54466295442427,
+        "FW_E": 65.68950925295886
+      },
+      "physical_commands": {
+        "RM_C10480": {
+          "sc_no": 9101.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10480"
+        },
+        "RM_C10482": {
+          "sc_no": 9102.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10482"
+        },
+        "RM_C10646": {
+          "sc_no": 9103.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10646"
+        },
+        "RM_C10644": {
+          "sc_no": 9104.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10644"
+        },
+        "RM_C10639": {
+          "sc_no": 9105.0,
+          "sg_no": 1.0,
+          "rate_vph": 810.0,
+          "group_rate_vph": 1328.4,
+          "green_sec": 9.0,
+          "model_ramp_key": "RM_C10639"
+        },
+        "RM_C10681": {
+          "sc_no": 9106.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 3024.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10681"
+        },
+        "RM_C10490": {
+          "sc_no": 9107.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10490"
+        },
+        "RM_C10484": {
+          "sc_no": 9108.0,
+          "sg_no": 1.0,
+          "rate_vph": 900.0,
+          "group_rate_vph": 1512.0,
+          "green_sec": 10.0,
+          "model_ramp_key": "RM_C10484"
+        }
+      },
+      "vsl": {
+        "FW_W": 120.0,
+        "FW_E": 100.0,
+        "FW_W__seg0": 120.0,
+        "FW_W__seg1": 120.0,
+        "FW_W__seg2": 120.0,
+        "FW_W__seg3": 120.0,
+        "FW_W__seg4": 120.0,
+        "FW_W__seg5": 120.0,
+        "FW_W__seg6": 120.0,
+        "FW_W__seg7": 120.0,
+        "FW_W__seg8": 120.0,
+        "FW_W__seg9": 120.0,
+        "FW_W__seg10": 120.0,
+        "FW_W__seg11": 120.0,
+        "FW_W__seg12": 120.0,
+        "FW_W__seg13": 120.0,
+        "FW_W__seg14": 120.0,
+        "FW_W__seg15": 120.0,
+        "FW_W__seg16": 120.0,
+        "FW_W__seg17": 120.0,
+        "FW_W__seg18": 120.0,
+        "FW_W__seg19": 120.0,
+        "FW_W__seg20": 120.0,
+        "FW_E__seg0": 100.0,
+        "FW_E__seg1": 100.0,
+        "FW_E__seg2": 100.0,
+        "FW_E__seg3": 100.0,
+        "FW_E__seg4": 100.0,
+        "FW_E__seg5": 120.0,
+        "FW_E__seg6": 120.0,
+        "FW_E__seg7": 120.0,
+        "FW_E__seg8": 120.0,
+        "FW_E__seg9": 120.0,
+        "FW_E__seg10": 120.0,
+        "FW_E__seg11": 120.0,
+        "FW_E__seg12": 120.0,
+        "FW_E__seg13": 120.0,
+        "FW_E__seg14": 120.0,
+        "FW_E__seg15": 120.0,
+        "FW_E__seg16": 120.0,
+        "FW_E__seg17": 120.0,
+        "FW_E__seg18": 120.0,
+        "FW_E__seg19": 120.0,
+        "FW_E__seg20": 120.0
+      },
+      "elapsed_sec": 5.1107163000015134,
+      "source_action_nuf_field": 0.0,
+      "source_action_nuf_is_benchmark_target": false,
+      "response_sha256": "fb3c5e4e4baab92ebf80c25c7a995fb49670d593522cabcc09fd4bd43995c2b7"
+    }
+  },
+  "scope": "Canonical physical eight-meter candidate generation and CSV projection at recorded80/50seed13t900. Frozen held450s response checks; not a joint-game optimization or native execution.",
+  "vsl_expansion": {
+    "added_segment_keys": [
+      "FW_W__seg0",
+      "FW_W__seg1",
+      "FW_W__seg2",
+      "FW_W__seg3",
+      "FW_W__seg4",
+      "FW_W__seg5",
+      "FW_W__seg6",
+      "FW_W__seg7",
+      "FW_W__seg8",
+      "FW_W__seg9",
+      "FW_W__seg10",
+      "FW_W__seg11",
+      "FW_W__seg12",
+      "FW_W__seg13",
+      "FW_W__seg14",
+      "FW_W__seg15",
+      "FW_W__seg16",
+      "FW_W__seg17",
+      "FW_W__seg18",
+      "FW_W__seg19",
+      "FW_W__seg20",
+      "FW_E__seg0",
+      "FW_E__seg1",
+      "FW_E__seg2",
+      "FW_E__seg3",
+      "FW_E__seg4",
+      "FW_E__seg5",
+      "FW_E__seg6",
+      "FW_E__seg7",
+      "FW_E__seg8",
+      "FW_E__seg9",
+      "FW_E__seg10",
+      "FW_E__seg11",
+      "FW_E__seg12",
+      "FW_E__seg13",
+      "FW_E__seg14",
+      "FW_E__seg15",
+      "FW_E__seg16",
+      "FW_E__seg17",
+      "FW_E__seg18",
+      "FW_E__seg19",
+      "FW_E__seg20"
+    ],
+    "effective_segment_commands_preserved": true,
+    "effective_segment_values": {
+      "FW_W": [
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0
+      ],
+      "FW_E": [
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0
+      ]
+    },
+    "source": "Installed segment_vsl used by canonical writer"
+  },
+  "fixed_benchmark_nuf_target_veh_h": 2108.340768942408,
+  "baseline_response_sec": 4.804823599999509,
+  "actual_move_box": [
+    [
+      "green_times",
+      "SC1_p1",
+      54.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1_p2",
+      21.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1_p3",
+      32.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1_p4",
+      31.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1",
+      19.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC5_p1",
+      43.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC5_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC5_p3",
+      47.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC5_p4",
+      25.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC5",
+      114.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC6_p1",
+      43.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC6_p2",
+      21.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC6_p3",
+      52.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC6_p4",
+      22.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC6",
+      13.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC7_p1",
+      67.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC7_p2",
+      90.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC7_p3",
+      0.0,
+      0.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC7_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC7",
+      119.0,
+      60.0,
+      120.0
+    ],
+    [
+      "green_times",
+      "SC11_p1",
+      36.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC11_p2",
+      35.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC11_p3",
+      34.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC11_p4",
+      33.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC11",
+      55.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC12_p1",
+      50.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC12_p2",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC12_p3",
+      32.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC12_p4",
+      32.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC12",
+      145.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC16_p1",
+      63.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC16_p2",
+      17.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC16_p3",
+      27.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC16_p4",
+      0.0,
+      0.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC16",
+      1.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC101_p1",
+      48.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC101_p2",
+      27.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC101_p3",
+      39.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC101_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC101",
+      25.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC105_p1",
+      48.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC105_p2",
+      21.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC105_p3",
+      35.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC105_p4",
+      34.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC105",
+      115.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC107_p1",
+      0.0,
+      0.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC107_p2",
+      25.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC107_p3",
+      78.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC107_p4",
+      38.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC107",
+      12.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC108_p1",
+      31.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC108_p2",
+      0.0,
+      0.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC108_p3",
+      88.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC108_p4",
+      22.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC108",
+      38.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC109_p1",
+      0.0,
+      0.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC109_p2",
+      20.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC109_p3",
+      90.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC109_p4",
+      31.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC109",
+      39.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC1001_p1",
+      46.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1001_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1001_p3",
+      45.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1001_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1001",
+      75.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC1002_p1",
+      46.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1002_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1002_p3",
+      45.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1002_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1002",
+      75.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC1003_p1",
+      46.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1003_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1003_p3",
+      45.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1003_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1003",
+      75.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC1004_p1",
+      46.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1004_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1004_p3",
+      45.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1004_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1004",
+      75.0,
+      75.0,
+      150.0
+    ],
+    [
+      "green_times",
+      "SC1005_p1",
+      46.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1005_p2",
+      23.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1005_p3",
+      45.0,
+      6.0,
+      null
+    ],
+    [
+      "green_times",
+      "SC1005_p4",
+      24.0,
+      6.0,
+      null
+    ],
+    [
+      "offsets",
+      "SC1005",
+      75.0,
+      75.0,
+      150.0
+    ],
+    [
+      "vsl",
+      "FW_W",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg0",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg1",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg2",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg3",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg4",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg5",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg6",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg7",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg8",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg9",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg10",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg11",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg12",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg13",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg14",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg15",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg16",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg17",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg18",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg19",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_W__seg20",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg0",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg1",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg2",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg3",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg4",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg5",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg6",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg7",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg8",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg9",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg10",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg11",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg12",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg13",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg14",
+      120.0,
+      40.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg15",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg16",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg17",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg18",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg19",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "vsl",
+      "FW_E__seg20",
+      120.0,
+      0.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10480",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10482",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10646",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10644",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10639",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10681",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10490",
+      10.0,
+      2.0,
+      null
+    ],
+    [
+      "diagnostics",
+      "rw_meter_green_RM_C10484",
+      10.0,
+      2.0,
+      null
+    ]
+  ],
+  "recorded_meter_greens_exact": true,
+  "source_changes": [],
+  "elapsed_sec": 91.74135580000075
+}

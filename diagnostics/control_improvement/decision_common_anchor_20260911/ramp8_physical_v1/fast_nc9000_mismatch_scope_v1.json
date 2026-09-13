@@ -1,0 +1,60 @@
+{
+  "schema": "fast-nc9000-mismatch-scope/v1",
+  "status": "Physical equality gate failed; fast-baseline qualifier patch NOT APPLIED and NOT ELIGIBLE",
+  "method": "Read existing small JSON and runner source only. No FZP/LSA/LDP, native, model or COM operation.",
+  "first_difference": {
+    "baseline_raw": "448.00;1256;2;2;852.93;0.50;113.97;123.00;11.64",
+    "candidate_raw": "448.00;1256;2;2;852.94;0.50;113.97;123.00;11.64",
+    "different_columns": [
+      "POS"
+    ],
+    "note": "First ordered data-row mismatch in 1..9000; no claim outside that comparison window."
+  },
+  "equal_rows_before_difference": 327211,
+  "confirmed_execution_differences": [
+    {
+      "item": "VSL setter frequency",
+      "canonical": "SetClassSpeedChecked unconditionally writes DesSpeedDistr at every decision (VBS1790-1820).",
+      "canonical_immediate_readback_rows": 16104,
+      "canonical_unchanged_observation_rows": 15840,
+      "canonical_calls_per_DSD_class": 61,
+      "fast": "At1 write66 DSD x4 classes once, at9000 read only.",
+      "before448_canonical_setters": 792,
+      "before448_fast_setters": 264,
+      "causal_status": "Unconfirmed; no evidence here that assigning the same distribution changes vehicle desired speeds or consumes RNG."
+    },
+    {
+      "item": "Stepping and observation",
+      "canonical": "RunSingleStep every second with physical head capture, readbacks and controller call at150s boundaries.",
+      "fast": "One first RunSingleStep, then a single RunContinuous to9000; no head/model/controller calls.",
+      "causal_status": "Different execution procedure is established; physical effect of observation/stepping is not established."
+    },
+    {
+      "item": "Demand numeric construction",
+      "canonical": "Source volume times per-input reconstructed multiplier;194/204 final values float-exact to fast prepared, maximum error9.094947017729282e-13 vph.",
+      "fast": "Sets prepared absolute final volume directly.",
+      "causal_status": "Last-bit value differences are recorded; no demonstrated mechanism linking them to the448s POS mismatch."
+    }
+  ],
+  "evidence_against_specific_claims": {
+    "initial_order": "Both source paths do native step1, initialize8 COM GREEN meters, then VSL120 and meterGREEN commands; canonical inserts head capture/controller computation between meter initialization and CSV application. No major initial actuation-order difference was found.",
+    "meter_rewrites": "Canonical signal readback receipt has8 initial immediate GREEN transitions and post-step confirmations; unchanged requested states use the existing skip cache. No evidence of repeated physical meter transitions.",
+    "urban_signal_writes": "Completed canonical NC actual signal readbacks contain only9101..9108; no urban signal writes are recorded.",
+    "time": "First mismatch448 precedes the450s decision. t450 and later actions cannot cause this first recorded difference.",
+    "network": "Original physical network SHA and prepared demand/controls/route CSVs match. Current recording INPX has the validated recording-only transformation."
+  },
+  "unresolved": [
+    "Old fast runner and all actually loaded SIG files were not historically source-pinned; historical drift cannot be ruled out, but no changed SIG evidence was found.",
+    "CPU, floating-point execution environment, NumCores behavior and parallel RNG effects were not measured; no causal claim.",
+    "No stored full per-vehicle internal state or RNG state explains why vehicle1256 first differs by0.01m."
+  ],
+  "decision": "Keep canonical seed13 and seed17 pairs; do not treat fast NC as an exact substitute. Root proceeds with current requested runs; no extra experiment proposed here.",
+  "source_sha256": {
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_canonical_gate_v2.json": "dffe801f831ad040a65746e27152b2749af0e1adb4f07052ea382de22d44de8f",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_nc9000_first_difference_v1.json": "6e118096d1a35a26f53a89e531b9824fba5a9a2aa13581b37ff84d3d0b351970",
+    "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/completion_receipt.json": "d2220ff9759217a2df7344471db8499e36b955d822aea45dabcd8079bf412081",
+    "diagnostics/fast_nc_runner.vbs": "bda7e072cd8d1ed32d262bbda24782e49c151d826a83c5e8b1c0b7d3a6ef612c",
+    "scripts/run_real_world_stackelberg_controller.vbs": "ce0541673888e00f0160c01aca882e131606a95a6bd9fac639897bf643dcab4e",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fast_baseline_qualifier_proposal_v1.patch": "a35d94c41574db3eab5744c5e0704b1a044583c90f843b09f401d430dd9dfe58"
+  }
+}

@@ -1,0 +1,102 @@
+test_recorded_targets_replay_preserves_targets_without_changing_commands (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_preserves_targets_without_changing_commands) ... FAIL
+test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) ... 
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=None) ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=None) ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=nan) ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=inf) ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=True) ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value='1887') ... FAIL
+  test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=-1.0) ... FAIL
+test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) ... FAIL
+
+======================================================================
+FAIL: test_recorded_targets_replay_preserves_targets_without_changing_commands (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_preserves_targets_without_changing_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 136, in test_recorded_targets_replay_preserves_targets_without_changing_commands
+    self.assertEqual((replayed.N_P_star, replayed.N_UF_star),
+AssertionError: Tuples differ: (0.0, 0.0) != (-250.0, 1887.525930614418)
+
+First differing element 0:
+0.0
+-250.0
+
+- (0.0, 0.0)
++ (-250.0, 1887.525930614418)
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=nan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=inf)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_P_star', value=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value='1887')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values) (key='N_UF_star', value=-1.0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 159, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "recorded leader target"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values (diagnostics.test_signal_profile_experiments.SignalProfileTests.test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\alsrj\Desktop\학술\찐찐막\Codex\VISSIM\.worktrees\control-full-review\diagnostics\test_signal_profile_experiments.py", line 162, in test_recorded_targets_replay_rejects_missing_nonfinite_or_boolean_values
+    with self.assertRaisesRegex(ValueError, "boolean"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.939s
+
+FAILED (failures=9)

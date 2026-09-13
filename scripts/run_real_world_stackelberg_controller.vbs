@@ -5,14 +5,14 @@ If WScript.Arguments.Count < 4 Then
     WScript.Quit 2
 End If
 
-Dim fso, shell, stateFile, actionFile, bottleneckLinkFile, bottleneckSegmentFile, signalTraceFile, Vissim
+Dim fso, shell, stateFile, actionFile, bottleneckLinkFile, bottleneckSegmentFile, signalTraceFile, vslTraceFile, Vissim
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
 
 ' Coarse wall-clock instrumentation, OFF unless RW_PERF=1 is in the environment.
 ' When off every hook is a single boolean test, so it never shows up in a run.
 ' When on, a "PERF name=<stage> sec=<total> n=<calls>" block is echoed at the end.
-Dim RW_PERF_ENABLED, perfSum, perfCnt
+Dim RW_PERF_ENABLED, perfSum, perfCnt, startupPerfT0
 RW_PERF_ENABLED = (Trim(shell.ExpandEnvironmentStrings("%RW_PERF%")) = "1")
 Set perfSum = CreateObject("Scripting.Dictionary")
 Set perfCnt = CreateObject("Scripting.Dictionary")
@@ -49,6 +49,8 @@ obsWindowStart = 1 : obsTransitions = 0 : obsBulkReads = 0 : obsCacheHits = 0
 
 ' Signal COM handle caches - see CachedSignalController.
 Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, signalTraceStage
+Dim sigPendingPostCheck, signalWriteOnChangeConfigured, signalWriteOnChangeEnabled
+Dim signalReadbackIntervalConfigured, signalReadbackIntervalValue
 ' 큐 관측 창 집계(2026-08-22). 결정 순간 1회 표본은 **신호 주기에 위상 잠금**된다 —
 ' 제어주기 150s 가 신호주기 150s 와 같아 표본이 항상 같은 위상에 떨어진다. 실측(SC1
 ' 무제어): 동서 접근로가 결정시점 0.1대인데 150s 창 평균 3.3 · 창 최대 12.8 이다(-97%).
@@ -85,9 +87,10 @@ Set sigSgCache = CreateObject("Scripting.Dictionary")
 Set sigSgCountCache = CreateObject("Scripting.Dictionary")
 Set sigSgNameCache = CreateObject("Scripting.Dictionary")
 Set sigRequestedState = CreateObject("Scripting.Dictionary")
+Set sigPendingPostCheck = CreateObject("Scripting.Dictionary")
 signalTraceStage = "immediate"
 
-Dim netPath, stateOutPath, actionOutPath, bottleneckLinkOutPath, bottleneckSegmentOutPath, signalTraceOutPath, decisionDir, simPeriod, controlInterval, randSeed, stateLogIntervalSec, demandScale, demandProfilePath, vehicleInputRolesPath
+Dim netPath, stateOutPath, actionOutPath, bottleneckLinkOutPath, bottleneckSegmentOutPath, signalTraceOutPath, vslTraceOutPath, decisionDir, simPeriod, controlInterval, randSeed, stateLogIntervalSec, demandScale, demandProfilePath, vehicleInputRolesPath
 Dim adapterPath, calibrationPath, tuningPath, mappingPath, detectorMappingPath, controllerName, controlStartSec, warmupControllerName, generatedConfigPath
 Dim adapterMode
 Dim incidentLinkNo, incidentLaneNo, incidentPosM, incidentStartSec, incidentEndSec, incidentName, incidentEnabled
@@ -207,6 +210,8 @@ RW_SIGNAL_SG_PLAN_SCHEMA = 0
 RW_SIGNAL_SG_PLAN_SOURCE_SHA256 = ""
 RW_SIGNAL_SG_EXPECTED = ""
 RW_SIGNAL_SG_CONFLICTS = ""
+Dim RW_SIGNAL_NATIVE_CLOCKS
+RW_SIGNAL_NATIVE_CLOCKS = ""
 RW_SCHEMA_VERSION = 0
 RW_FREEWAY_LINKS = "2,24,26,74,10699,10702"
 RW_FREEWAY_INPUT_LINKS = "26,74"
@@ -261,6 +266,8 @@ Set sgPlanConflicts = CreateObject("Scripting.Dictionary")
 Set sgPlanWindows = CreateObject("Scripting.Dictionary")
 Set sgPlanCycle = CreateObject("Scripting.Dictionary")
 Set sgPlanGroups = CreateObject("Scripting.Dictionary")
+Dim nativeClockPlans
+Set nativeClockPlans = CreateObject("Scripting.Dictionary")
 signalNameRuleFallbacks = 0
 signalSgPlanRows = 0
 signalCoGreenBlocks = 0
@@ -269,6 +276,9 @@ ParseSignalGroupPlanConfig
 
 Const RAMP_CYCLE_SEC = 10
 Const RAMP_AMBER_SEC = 1
+Dim runtimeRampAmberSec
+runtimeRampAmberSec = ReadRuntimeRampAmberSec()
+WScript.Echo "RAMP_AMBER_SEC=" & CStr(runtimeRampAmberSec)
 ' N4-0. 현시 전이당 clearance 는 실 프로그램과 같아야 한다. 2026-08-12 실측 - 제어 15 SC 의
 ' 활성 프로그램(inpx supplyFile2 + progNo)에서 녹색창 118개 중 116개가 amber 정확히 3.0 s
 ' 이고 녹색 끝에서 다음 SG 녹색 시작까지의 간격도 정확히 3.0 s 다. 즉 all-red 는 없다.
@@ -349,16 +359,19 @@ EnsureFolder decisionDir
 bottleneckLinkOutPath = DerivedRunCsvPath("bottleneck_links")
 bottleneckSegmentOutPath = DerivedRunCsvPath("bottleneck_segments")
 signalTraceOutPath = fso.BuildPath(decisionDir, "signal_readback.csv")
+vslTraceOutPath = fso.BuildPath(decisionDir, "vsl_readback.csv")
 Set stateFile = fso.CreateTextFile(stateOutPath, True)
 Set actionFile = fso.CreateTextFile(actionOutPath, True)
 Set bottleneckLinkFile = fso.CreateTextFile(bottleneckLinkOutPath, True)
 Set bottleneckSegmentFile = fso.CreateTextFile(bottleneckSegmentOutPath, True)
 Set signalTraceFile = fso.CreateTextFile(signalTraceOutPath, True)
+Set vslTraceFile = fso.CreateTextFile(vslTraceOutPath, True)
 stateFile.WriteLine "sim_sec,total_vehicles,urban_vehicles,freeway_vehicles,ramp_vehicles,boundary_vehicles,other_vehicles,mean_speed_kph,freeway_mean_speed_kph,stopped_vehicles,controller_mode,controller_status,decision_wall_sec"
 actionFile.WriteLine "sim_sec,kind,id,dsd_no,sc_no,link,lane,speed_kph,p1_green,p2_green,p3_green,p4_green,offset,rate_vph,green_sec,metadata,readback"
 bottleneckLinkFile.WriteLine "sim_sec,link,count,stopped_count,mean_speed_kph,category,is_freeway,is_ramp_meter_connector,is_local_observable"
 bottleneckSegmentFile.WriteLine "sim_sec,model_link,direction,segment_index,segment_id,physical_link,count,stopped_count,mean_speed_kph,length_km,lanes,density_veh_km_lane"
 signalTraceFile.WriteLine "sim_sec,sc_no,sg_no,requested_state,readback_state,ok,stage"
+vslTraceFile.WriteLine "sim_sec,dsd_no,veh_class_no,requested_kph,readback_distribution_no,ok,stage"
 
 ' N4-0. 축 2값(sigMajor/sigMinor)이 현시 4값 한 칸(sigPhaseGreen)으로 바뀌었다.
 ' 사전 한 칸에 "g1|g2|g3|g4" 로 담는다 - VBScript 사전은 배열을 잘 담지 못한다.
@@ -384,8 +397,16 @@ Set demandUrbanInternalBySec = CreateObject("Scripting.Dictionary")
 
 Set Vissim = CreateObject("Vissim.Vissim")
 WScript.Echo "STAGE=COM_CREATED"
+startupPerfT0 = PerfNow()
 Vissim.LoadNet netPath, False
+PerfAdd "startup.load_net", startupPerfT0
 WScript.Echo "STAGE=NET_LOADED"
+On Error Resume Next
+Vissim.Graphics.CurrentNetworkWindow.AttValue("QuickMode") = 1
+Vissim.SuspendUpdateGUI
+Err.Clear
+On Error GoTo 0
+WScript.Echo "STARTUP_STAGE=GUI_SUSPEND_REQUESTED timer_sec=" & CStr(Timer)
 vissimVersionRaw = SafeAtt(Vissim, "VERSION")
 WScript.Echo "VERSION=" & vissimVersionRaw
 WScript.Echo "LINKS=" & Vissim.Net.Links.Count
@@ -404,6 +425,8 @@ If incidentEnabled Then
 Else
     WScript.Echo "INCIDENT=DISABLED"
 End If
+WScript.Echo "STARTUP_STAGE=DEMAND_BEGIN timer_sec=" & CStr(Timer)
+startupPerfT0 = PerfNow()
 If Trim(CStr(demandProfilePath)) <> "" Then
     ApplyVehicleInputDemandProfile CDbl(demandScale), demandProfilePath, vehicleInputRolesPath
     WScript.Echo "DEMAND=PROFILE_SCALED_IN_MEMORY scale=" & Num(demandScale) & " profile=" & demandProfilePath
@@ -413,18 +436,19 @@ ElseIf Abs(CDbl(demandScale) - 1.0) > 0.000001 Then
 Else
     WScript.Echo "DEMAND=ORIGINAL_INPX_UNCHANGED"
 End If
+PerfAdd "startup.demand", startupPerfT0
+WScript.Echo "STARTUP_STAGE=DEMAND_DONE timer_sec=" & CStr(Timer)
 LoadFarMeasurementLinks
+WScript.Echo "STARTUP_STAGE=EVALUATION_BEGIN timer_sec=" & CStr(Timer)
 ConfigureEvaluationOutput fso.BuildPath(fso.GetParentFolderName(stateOutPath), "vissim_eval")
+WScript.Echo "STARTUP_STAGE=EVALUATION_DONE timer_sec=" & CStr(Timer)
 LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, urbanInputGateMapPath
 DemandForecastAtSimSec 0, urbanDemandVph, freewayDemandVph
 WScript.Echo "DEMAND_FORECAST_CURRENT sim_sec=0 urban_vph=" & Num(urbanDemandVph) & " freeway_vph=" & Num(freewayDemandVph) & " profile=" & demandForecastProfileName
 
-On Error Resume Next
-Vissim.Graphics.CurrentNetworkWindow.AttValue("QuickMode") = 1
-Vissim.SuspendUpdateGUI
-Err.Clear
-On Error GoTo 0
 
+WScript.Echo "STARTUP_STAGE=CONTROL_SETUP_BEGIN timer_sec=" & CStr(Timer)
+startupPerfT0 = PerfNow()
 ActivateRampMeters
 If incidentEnabled Then InstallIncidentLaneClosure
 ApplyIncidentLaneClosure 0
@@ -438,8 +462,12 @@ TrySetAtt Vissim.Simulation, "UseMaxSimSpeed", True
 ' minimum value of attribute Simulation speed (Min: 0)").
 TrySetUnreachableAtt Vissim.Simulation, "SimSpeed", 0, "UseMaxSimSpeed=True already guarantees max speed"
 
+PerfAdd "startup.control_setup", startupPerfT0
+WScript.Echo "STARTUP_STAGE=CONTROL_SETUP_DONE timer_sec=" & CStr(Timer)
 If obsEnabled Then
+    startupPerfT0 = PerfNow()
     InitializeHeadObservation
+    PerfAdd "startup.head_init", startupPerfT0
     WScript.Echo "RUN_MODE=STEPWISE_PHYSICAL_HEAD_OBSERVATION"
     RunStepwiseMode
 ElseIf UseContinuousStaticMode() Then
@@ -456,6 +484,7 @@ actionFile.Close
 bottleneckLinkFile.Close
 bottleneckSegmentFile.Close
 signalTraceFile.Close
+vslTraceFile.Close
 
 On Error Resume Next
 Vissim.ResumeUpdateGUI True
@@ -515,6 +544,7 @@ WScript.Echo "ACTION_CSV=" & actionOutPath
 WScript.Echo "BOTTLENECK_LINK_CSV=" & bottleneckLinkOutPath
 WScript.Echo "BOTTLENECK_SEGMENT_CSV=" & bottleneckSegmentOutPath
 WScript.Echo "SIGNAL_READBACK_CSV=" & signalTraceOutPath
+WScript.Echo "VSL_READBACK_CSV=" & vslTraceOutPath
 WScript.Echo "DECISION_DIR=" & decisionDir
 
 Set Vissim = Nothing
@@ -624,9 +654,24 @@ Function UseSingleDecisionEventMode()
     UseSingleDecisionEventMode = (Left(c, 11) = "diagnostic-" And CLng(controlStartSec) >= 0)
 End Function
 
+Sub RecordStartupSimulationProgress()
+    Dim actualSec
+    actualSec = SafeAtt(Vissim.Simulation, "SimSec")
+    If Not IsFiniteNumberInRange(actualSec, 0.000001, CDbl(simPeriod) + 1.0) Then
+        Err.Raise 513, , "First native step did not return a positive simulation time"
+    End If
+    ' Actual native readback, before initialization/observation/controller work.
+    WScript.Echo "NATIVE_SIM_PROGRESS sim_sec=" & Num(CDbl(actualSec))
+End Sub
+
 Sub RunStepwiseMode()
+    WScript.Echo "STARTUP_STAGE=FIRST_STEP_BEGIN timer_sec=" & CStr(Timer)
+    startupPerfT0 = PerfNow()
     Vissim.Simulation.RunSingleStep
+    PerfAdd "sim.first_step", startupPerfT0
+    WScript.Echo "STARTUP_STAGE=FIRST_STEP_DONE timer_sec=" & CStr(Timer)
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
+    RecordStartupSimulationProgress
     InitializeComRampMeterControl
     CollectHeadObservation 1
     RunControllerDecision 1
@@ -662,9 +707,12 @@ End Sub
 Sub RunContinuousStaticMode()
     Dim currentSec, nextLogSec, targetSec, nextIncidentSec, mainControlApplied, dueToControlStart, dueToLog
 
+    startupPerfT0 = PerfNow()
     Vissim.Simulation.RunSingleStep
+    PerfAdd "sim.first_step", startupPerfT0
     currentSec = 1
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
+    RecordStartupSimulationProgress
     InitializeComRampMeterControl
     RunControllerDecision 1
     ValidateDiagnosticProfileNativeSignals 1
@@ -711,9 +759,12 @@ Sub RunEventContinuousMode()
     Dim currentSec, targetSec, singleDecisionMode, mainControlApplied
     Dim nextControlSec, nextIncidentSec, dueToControlStart, dueToRepeatedControl, dueToLog, loggedAtCurrentSec
 
+    startupPerfT0 = PerfNow()
     Vissim.Simulation.RunSingleStep
+    PerfAdd "sim.first_step", startupPerfT0
     currentSec = 1
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
+    RecordStartupSimulationProgress
     InitializeComRampMeterControl
     RunControllerDecision 1
     ApplyRuntimeSignals 1
@@ -805,9 +856,12 @@ Function NextLogAfter(sec)
 End Function
 
 Sub RunContinuousTo(targetSec)
+    Dim continuousPerfT0
     If CLng(targetSec) <= CLng(SafeAtt(Vissim.Simulation, "SimSec")) Then Exit Sub
     TrySetAtt Vissim.Simulation, "SimBreakAt", CDbl(targetSec)
+    continuousPerfT0 = PerfNow()
     Vissim.Simulation.RunContinuous
+    PerfAdd "sim.continuous", continuousPerfT0
     WScript.Echo "RUN_CONTINUOUS_BREAK target_sim_sec=" & CStr(targetSec) & " actual_sim_sec=" & SafeAtt(Vissim.Simulation, "SimSec")
 End Sub
 
@@ -849,10 +903,23 @@ Function RampStateAt(greenSec, simSec)
         RampStateAt = "RED"
     ElseIf pos < CDbl(greenSec) Then
         RampStateAt = "GREEN"
-    ElseIf pos < CDbl(greenSec) + RAMP_AMBER_SEC Then
+    ElseIf pos < CDbl(greenSec) + runtimeRampAmberSec Then
         RampStateAt = "AMBER"
     Else
         RampStateAt = "RED"
+    End If
+End Function
+
+Function ReadRuntimeRampAmberSec()
+    Dim value
+    value = EnvText("RW_RAMP_AMBER_SEC")
+    If value = "" Then
+        ReadRuntimeRampAmberSec = RAMP_AMBER_SEC
+    ElseIf value = "0" Or value = "1" Then
+        ReadRuntimeRampAmberSec = CLng(value)
+    Else
+        WScript.Echo "ERROR=INVALID_RAMP_AMBER_SEC value=" & value
+        WScript.Quit 2
     End If
 End Function
 
@@ -937,14 +1004,57 @@ Function SignalCycleFromPhases(phaseText)
         LivePhaseCount(phaseText) * (AMBER_SEC + ALL_RED_SEC)
 End Function
 
+' Source clock contract is supplied by generated config, never command rows.
+Function SignalCycleForController(scNo, phaseText)
+    Dim key, spec, values, i, actualMask, expectedCycle, actualCycle
+    key = CStr(CLng(scNo))
+    SignalCycleForController = SignalCycleFromPhases(phaseText)
+    If Not nativeClockPlans.Exists(key) Then Exit Function
+    SignalCycleForController = 0
+    spec = Split(CStr(nativeClockPlans(key)), "|")
+    values = Split(CStr(phaseText), "|")
+    If UBound(values) <> 3 Then Exit Function
+    actualMask = ""
+    For i = 0 To 3
+        If CDbl(values(i)) > 0 Then
+            actualMask = actualMask & "1"
+        Else
+            actualMask = actualMask & "0"
+        End If
+    Next
+    If actualMask <> CStr(spec(3)) Then Exit Function
+    expectedCycle = CDbl(spec(1))
+    If CStr(spec(0)) = "serial" Then
+        actualCycle = SignalCycleFromPhases(phaseText) + CDbl(spec(2))
+    ElseIf CStr(spec(0)) = "concurrent_p1_p2" Then
+        If actualMask <> "1101" Then Exit Function
+        If CDbl(values(0)) + AMBER_SEC > CDbl(values(1)) + 0.000001 Then Exit Function
+        actualCycle = CDbl(values(1)) + CDbl(values(3)) + 2 * (AMBER_SEC + ALL_RED_SEC)
+    Else
+        Exit Function
+    End If
+    If Abs(actualCycle - expectedCycle) > 0.000001 Then Exit Function
+    SignalCycleForController = expectedCycle
+End Function
+
+Function SignalClockPosition(scNo, simSec, offset, cycle)
+    Dim frameAdvance
+    frameAdvance = 0
+    ' Native program coordinates describe the next recorded simulation frame.
+    ' A pre-step COM write at t is observed in frame t+1 (verified native replay).
+    ' Preserve the existing legacy clock and the application order itself.
+    If nativeClockPlans.Exists(CStr(scNo)) Then frameAdvance = 1
+    SignalClockPosition = FMod(CDbl(simSec) + offset + frameAdvance, cycle)
+End Function
+
 Function SignalCompositeStateAt(simSec)
     Dim scKey, phaseText, offset, cycle, pos, s, groupIds, g
     s = ""
     For Each scKey In sigPhaseGreen.Keys
         phaseText = CStr(sigPhaseGreen(CStr(scKey)))
         offset = CDbl(DictValue(sigOffset, CStr(scKey), 0.0))
-        cycle = SignalCycleFromPhases(phaseText)
-        pos = FMod(CDbl(simSec) + offset, cycle)
+        cycle = SignalCycleForController(scKey, phaseText)
+        pos = SignalClockPosition(scKey, simSec, offset, cycle)
         ' N4-5. 이벤트 스케줄러는 이 합성 상태가 바뀌는 초에만 멈춘다. 계획이 켜지면
         ' 현시 안의 SG 경계도 전이다 - 여기서 안 보면 그 전이가 다음 이벤트까지 늦게 쓰인다.
         If sgPlanEnabled And sgPlanGroups.Exists(CStr(CLng(scKey))) Then
@@ -967,7 +1077,7 @@ Function MaxSignalCycleSec()
     Dim scKey, cycle, maxCycle
     maxCycle = 0
     For Each scKey In sigPhaseGreen.Keys
-        cycle = SignalCycleFromPhases(CStr(sigPhaseGreen(CStr(scKey))))
+        cycle = SignalCycleForController(scKey, CStr(sigPhaseGreen(CStr(scKey))))
         If CLng(cycle) > CLng(maxCycle) Then maxCycle = CLng(cycle)
     Next
     MaxSignalCycleSec = CLng(maxCycle)
@@ -1051,6 +1161,7 @@ Sub RunControllerDecision(simSec)
         bottleneckLinkFile.Close
         bottleneckSegmentFile.Close
         signalTraceFile.Close
+        vslTraceFile.Close
         Vissim.ResumeUpdateGUI True
         Set Vissim = Nothing
         On Error GoTo 0
@@ -1062,6 +1173,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     Dim ts, line, first, parts, kind, dsdNo, speed, dsd, readback, scNo, perfT0
     Dim vslRows, rampRows, signalRows, invalidRows, expectedVslRows, expectedRampRows, expectedSignalRows
     Dim seenVsl, seenRamp, seenSignal, rowKey, validatedRows(), validatedRowCount, i, vslWriteOk
+    Dim rb10, rb20, rb30, rb70, ok10, ok20, ok30, ok70
     Dim sgRows, expectedSgRows, seenSg, pendingSgWindows, pendingSgCounts, pendingSgCycle, pendingSgOffset
     Dim rowSignalCycle, rowSignalOffset, planReason
     perfT0 = PerfNow()
@@ -1142,7 +1254,7 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                         seenSignal.Add rowKey, True
                         signalRows = signalRows + 1
                         rowSignalCycle(CStr(CLng(Trim(CStr(parts(3)))))) = _
-                            SignalCycleFromPhases(PhaseGreenText(parts))
+                            SignalCycleForController(parts(3), PhaseGreenText(parts))
                         rowSignalOffset(CStr(CLng(Trim(CStr(parts(3)))))) = CDbl(Trim(CStr(parts(11))))
                     End If
                 ElseIf kind = "signal_sg" Then
@@ -1218,16 +1330,21 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
                 Exit Function
             End If
             On Error GoTo 0
-            vslWriteOk = SetClassSpeedChecked(dsd, 10, speed)
-            If Not SetClassSpeedChecked(dsd, 20, speed) Then vslWriteOk = False
-            If Not SetClassSpeedChecked(dsd, 30, speed) Then vslWriteOk = False
-            If Not SetClassSpeedChecked(dsd, 70, speed) Then vslWriteOk = False
+            ok10 = SetClassSpeedChecked(dsd, 10, speed, rb10)
+            ok20 = SetClassSpeedChecked(dsd, 20, speed, rb20)
+            ok30 = SetClassSpeedChecked(dsd, 30, speed, rb30)
+            ok70 = SetClassSpeedChecked(dsd, 70, speed, rb70)
+            RecordVslReadback simSec, dsdNo, 10, speed, rb10, ok10
+            RecordVslReadback simSec, dsdNo, 20, speed, rb20, ok20
+            RecordVslReadback simSec, dsdNo, 30, speed, rb30, ok30
+            RecordVslReadback simSec, dsdNo, 70, speed, rb70, ok70
+            vslWriteOk = (ok10 And ok20 And ok30 And ok70)
             If Not vslWriteOk Then
                 WScript.Echo "ERROR=VSL_COM_WRITE_READBACK dsd=" & CStr(dsdNo) & " speed=" & CStr(speed)
                 PerfAdd "action.apply", perfT0
                 Exit Function
             End If
-            readback = SafeAtt(dsd, "DesSpeedDistr(10)") & "|" & SafeAtt(dsd, "DesSpeedDistr(70)")
+            readback = CStr(rb10) & "|" & CStr(rb70)
         ElseIf kind = "ramp_meter" Then
             scNo = CStr(CLng(Trim(CStr(parts(3)))))
             rampGreen(scNo) = CDbl(Trim(CStr(parts(13))))
@@ -1387,7 +1504,8 @@ Function SignalActionValuesValid(parts)
     Next
     ' 주기를 만들려면 녹색을 받는 현시가 둘 이상이어야 한다.
     If liveCount < 2 Then Exit Function
-    cycleValue = SignalCycleFromPhases(phaseText)
+    cycleValue = SignalCycleForController(parts(3), phaseText)
+    If cycleValue <= 0 Then Exit Function
     If Not IsFiniteNumberInRange(parts(11), 0.0, cycleValue) Then Exit Function
     offsetNumber = CDbl(Trim(CStr(parts(11))))
     If offsetNumber >= cycleValue Then Exit Function
@@ -1669,27 +1787,48 @@ Function InCsvText(value, csvText)
     Next
 End Function
 
-Function SetClassSpeedChecked(dsd, vehClassNo, speedKph)
-    Dim attributeName, readback
+Function SetClassSpeedChecked(dsd, vehClassNo, speedKph, ByRef actualReadback)
+    Dim attributeName, readback, speedErrNo, speedErrDesc
     SetClassSpeedChecked = False
+    actualReadback = "ERR:NOT_READ"
     attributeName = "DesSpeedDistr(" & CStr(vehClassNo) & ")"
     On Error Resume Next
     dsd.AttValue(attributeName) = CLng(speedKph)
-    If Err.Number <> 0 Then
+    speedErrNo = Err.Number: speedErrDesc = Err.Description
+    PerfCount "com.vsl.setter", 1
+    If speedErrNo <> 0 Then
+        actualReadback = "ERR:WRITE:" & CStr(speedErrNo)
         Err.Clear
         On Error GoTo 0
         Exit Function
     End If
     readback = dsd.AttValue(attributeName)
-    If Err.Number <> 0 Then
+    speedErrNo = Err.Number: speedErrDesc = Err.Description
+    PerfCount "com.vsl.checked_read", 1
+    If speedErrNo <> 0 Then
+        actualReadback = "ERR:READ:" & CStr(speedErrNo)
         Err.Clear
         On Error GoTo 0
         Exit Function
     End If
     On Error GoTo 0
-    If Not IsFiniteNumberInRange(readback, 0.0, 1000.0) Then Exit Function
+    If Not IsFiniteNumberInRange(readback, 0.0, 1000.0) Then
+        actualReadback = "ERR:INVALID_VALUE"
+        Exit Function
+    End If
+    actualReadback = readback
     SetClassSpeedChecked = (CLng(CDbl(readback)) = CLng(CDbl(speedKph)))
 End Function
+
+Sub RecordVslReadback(simSec, dsdNo, vehClassNo, requestedKph, actualReadback, ok)
+    Dim actualText, okText
+    actualText = CStr(actualReadback)
+    If IsNumeric(actualReadback) Then actualText = Num(CDbl(actualReadback))
+    okText = "0"
+    If ok Then okText = "1"
+    vslTraceFile.WriteLine CStr(simSec) & "," & CStr(dsdNo) & "," & CStr(vehClassNo) & _
+        "," & Num(requestedKph) & "," & actualText & "," & okText & ",immediate"
+End Sub
 
 Function EnableSignalControllerForRuntime(scNo)
     Dim sc, sg, sgNo, sgCount, enableOk, contrReadback
@@ -1761,8 +1900,8 @@ Sub ApplyRuntimeSignals(simSec)
     For Each scKey In sigPhaseGreen.Keys
         phaseText = CStr(sigPhaseGreen(CStr(scKey)))
         offset = CDbl(sigOffset(CStr(scKey)))
-        cycle = SignalCycleFromPhases(phaseText)
-        pos = FMod(CDbl(simSec) + offset, cycle)
+        cycle = SignalCycleForController(scKey, phaseText)
+        pos = SignalClockPosition(scKey, simSec, offset, cycle)
         ' N4-5. 계획이 있으면 SG 별 창으로 구동한다. 현시의 위치·길이·주기 공식은 위와 같고
         ' 현시 **안의** 분배만 native 배분을 따른다.
         If sgPlanEnabled And sgPlanCycle.Exists(CStr(CLng(scKey))) Then
@@ -2048,6 +2187,32 @@ Sub ParseSignalGroupPlanConfig
                 CStr(CLng(Trim(CStr(sides(0))))) & "-" & CStr(CLng(Trim(CStr(sides(1)))))) = True
         End If
     Next
+    ParseNativeClockConfig
+End Sub
+
+Sub ParseNativeClockConfig
+    Dim tokens, token, parts, key, mask, j
+    tokens = Split(CStr(RW_SIGNAL_NATIVE_CLOCKS), ";")
+    For Each token In tokens
+        If Trim(CStr(token)) <> "" Then
+            parts = Split(CStr(token), ":")
+            If UBound(parts) <> 4 Then WScript.Quit 2
+            If Not IsFiniteNumberInRange(parts(0), 1, 1000000) Then WScript.Quit 2
+            key = CStr(CLng(parts(0)))
+            If Not sgPlanGroups.Exists(key) Then WScript.Quit 2
+            If nativeClockPlans.Exists(key) Then WScript.Quit 2
+            If CStr(parts(1)) <> "serial" And CStr(parts(1)) <> "concurrent_p1_p2" Then WScript.Quit 2
+            If Not IsFiniteNumberInRange(parts(2), 1, 10000) Then WScript.Quit 2
+            If Not IsFiniteNumberInRange(parts(3), 0, CDbl(parts(2))) Then WScript.Quit 2
+            mask = CStr(parts(4))
+            If Len(mask) <> 4 Then WScript.Quit 2
+            For j = 1 To 4
+                If Mid(mask, j, 1) <> "0" And Mid(mask, j, 1) <> "1" Then WScript.Quit 2
+            Next
+            nativeClockPlans.Add key, CStr(parts(1)) & "|" & CStr(parts(2)) & "|" & CStr(parts(3)) & "|" & mask
+        End If
+    Next
+    If nativeClockPlans.Count > 0 And nativeClockPlans.Count <> sgPlanGroups.Count Then WScript.Quit 2
 End Sub
 
 Function SignalGroupPlanKey(scNo, sgNo)
@@ -2100,13 +2265,13 @@ Function SignalGroupStateFromPlan(scNo, sgNo, pos, cycle)
             endSec = CDbl(bounds(1))
             amberEnd = endSec + CDbl(AMBER_SEC)
             If position >= endSec And position < amberEnd Then
-                If Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
+                If nativeClockPlans.Exists(CStr(CLng(scNo))) Or Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
                     SignalGroupStateFromPlan = "AMBER"
                 End If
                 Exit Function
             End If
             If amberEnd > cycleSec And position < amberEnd - cycleSec Then
-                If Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
+                If nativeClockPlans.Exists(CStr(CLng(scNo))) Or Not AnySignalGroupGreenAt(scNo, position, cycleSec) Then
                     SignalGroupStateFromPlan = "AMBER"
                 End If
                 Exit Function
@@ -2234,52 +2399,27 @@ Sub ApplyRuntimeRampMeters(simSec)
 End Sub
 
 Function ApplyRampMeterSignal(scNo, greenSec, simSec)
-    Dim pos, state
+    Dim state
     signalTraceSimSec = CLng(simSec)
-    pos = FMod(CDbl(simSec), RAMP_CYCLE_SEC)
-    If greenSec <= 0 Then
-        state = "RED"
-    ElseIf pos < greenSec Then
-        state = "GREEN"
-    ElseIf pos < greenSec + RAMP_AMBER_SEC Then
-        state = "AMBER"
-    Else
-        state = "RED"
-    End If
+    state = RampStateAt(greenSec, simSec)
     ApplyRampMeterSignal = SetSignalGroupState(scNo, 1, state)
 End Function
 
-' 바뀐 SG 만 쓴다. 기본 꺼짐 = 기존과 비트 동일.
-'
-' 왜. `ApplySignalGroupPlan` 이 매 스텝 그 SC 의 SG **전부**에 쓰고, `SetSignalGroupState`
-' 는 쓰기 1회 + 검증 읽기 1회를 한다. 여기에 지속성 확인이 스텝마다 전량 1회 더 붙어
-' 스텝당 왕복이 168 x 3 = 504 회, 5400초 런이면 약 272만 회가 된다. 그런데 그 초에 실제로
-' 상태가 바뀌는 SG 는 몇 개뿐이다 — 나머지는 같은 값을 다시 쓰고 다시 읽는다.
-'
-' 같은 값 재기록은 의미상 no-op 이다. ContrByCOM 상태는 유지된다 — 실측(phasefull_on,
-' 5400초): 지속성 확인 811,192 건 중 **불일치 0 건**. 그래도 기본은 켜지 않는다.
-' 건너뛴 건수는 SIGNAL_WRITE_SKIPPED_UNCHANGED 로 따로 센다(조용히 줄지 않게).
-' 안 바뀐 SG 는 COM 쓰기를 건너뛴다. **기본 켜짐**(2026-08-24).
-'
-' 왜 기본인가. 러너가 모든 SG 에 ContrByCOM=True 를 걸어 합성 주기를 **매 초** 밀어
-' 넣는다(메인 루프의 ApplyRuntimeSignals). COM 은 프로세스 간 호출이라 하나당 비용이
-' VBScript 조건문의 수천 배다. 그런데 신호 상태는 초당 거의 안 바뀐다 - 대부분의 쓰기가
-' 같은 값을 다시 쓰는 것이다. 요청 상태가 직전과 같을 때만 건너뛰고 반환값은 그대로
-' 돌려주므로 **제어 거동은 동일**하다.
-'
-' 끄는 경우: 액추에이션 충실도를 되읽기로 증명해야 할 때. 건너뛰면
-' RecordSignalReadback 이 안 불려 "되읽기 N행 · 불일치 0" 같은 근거가 줄어든다.
-' 그때만 RW_SIGNAL_WRITE_ON_CHANGE=0 으로 끈다.
-'
-' **되돌리지 마라.** 이 스위치는 전에 구현해 두고도 기본이 꺼짐이라 어떤 런도 켜지
-' 않았고, 있는 줄 모른 채 계속 느린 경로로 돌았다.
+' Cache only successful writes. Per-second model head observations remain actual
+' SigState/ContrByCOM reads, never requested-state carryover across time steps.
+' Unchanged writes are skipped by default; set RW_SIGNAL_WRITE_ON_CHANGE=0 only
+' for a bounded comparison with the original repeated-write execution.
 Function SkipUnchangedSignalWrites()
-    SkipUnchangedSignalWrites = _
-        (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_WRITE_ON_CHANGE%")) <> "0")
+    If Not signalWriteOnChangeConfigured Then
+        signalWriteOnChangeEnabled = _
+            (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_WRITE_ON_CHANGE%")) <> "0")
+        signalWriteOnChangeConfigured = True
+    End If
+    SkipUnchangedSignalWrites = signalWriteOnChangeEnabled
 End Function
 
 Function SetSignalGroupState(scNo, sgNo, state)
-    Dim sg, skipKey
+    Dim sg, skipKey, setterErrNo, setterErrDesc
     SetSignalGroupState = ""
     If SkipUnchangedSignalWrites() Then
         skipKey = CStr(CLng(scNo)) & "-" & CStr(CLng(sgNo))
@@ -2301,14 +2441,17 @@ Function SetSignalGroupState(scNo, sgNo, state)
     End If
     On Error Resume Next
     sg.AttValue("SigState") = state
-    If Err.Number <> 0 Then
+    setterErrNo = Err.Number: setterErrDesc = Err.Description
+    PerfCount "com.sg.setter", 1
+    If setterErrNo <> 0 Then
         signalFailures = signalFailures + 1
-        WScript.Echo "ERROR=FAILED_SET_SIGSTATE sc=" & scNo & " sg=" & sgNo & " state=" & state & " err=" & Err.Description
-        SetSignalGroupState = "ERR:" & Err.Description
+        WScript.Echo "ERROR=FAILED_SET_SIGSTATE sc=" & scNo & " sg=" & sgNo & " state=" & state & " err=" & setterErrDesc
+        SetSignalGroupState = "ERR:" & setterErrDesc
         RecordSignalReadback scNo, sgNo, state, SetSignalGroupState, False
         Err.Clear
     Else
         SetSignalGroupState = SafeAtt(sg, "SigState")
+        PerfCount "com.sg.apply_read", 1
         If UCase(Trim(CStr(SetSignalGroupState))) <> UCase(Trim(CStr(state))) Then
             signalFailures = signalFailures + 1
             WScript.Echo "ERROR=SIGSTATE_READBACK_MISMATCH sc=" & scNo & " sg=" & sgNo & _
@@ -2323,6 +2466,7 @@ Function SetSignalGroupState(scNo, sgNo, state)
             Else
                 sigRequestedState.Add requestedKey, CStr(state)
             End If
+            sigPendingPostCheck(requestedKey) = CStr(state)
             RecordSignalReadback scNo, sgNo, state, SetSignalGroupState, True
         End If
     End If
@@ -2613,6 +2757,7 @@ Function VehicleRoutesJson(expectedSimSec, expectedCount, expectedVehNos)
         Exit Function
     End If
     On Error GoTo 0
+    PerfCount "com.vehicle.route_bulk_returned", 4
     If beforeCount <> expectedCount Or afterCount <> expectedCount _
             Or beforeSec <> expectedSimSec Or afterSec <> expectedSimSec Then
         RecordVehicleCaptureFailure "route_capture_changed", "route capture differs from physical snapshot count or time"
@@ -3598,53 +3743,47 @@ Function LocalObservationLinkCountsJson(counts)
     LocalObservationLinkCountsJson = s
 End Function
 
-' 되읽기 주기[초]. 기본 1 = 기존과 완전히 동일하다.
-'
-' 왜 스위치가 필요한가. 이 Sub 는 시뮬 루프의 **매 스텝** 불리고, 스텝은 신호 전이가
-' 매초 있어 사실상 초 단위다. 신호그룹 168개를 **개별** COM 으로 읽으므로 5400초 런에서
-' immediate+post_step 합쳐 약 162만 회의 왕복이 된다(실측: signal_readback.csv 162만 행,
-' 고유 시각 5,400개, 간격 1초). 상태 스캔은 GetMultiAttValues 벌크라 1,081회뿐인데
-' 이쪽이 그 1,500배다.
-'
-' 늘려도 **보증은 유지된다** — 불일치 시 signalFailures 를 올리는 검사 자체는 그대로고
-' 표본만 성글어진다. 세밀한 신호 타임라인이 필요하면 VISSIM 네이티브
-' SigChangesWriteFile 을 켜라(RW_NATIVE_EVAL=1). 그쪽은 폴링이 아니라 **상태 변화 시점**을
-' 정확한 타임스탬프로 남기므로 1 Hz 폴링보다 해상도가 오히려 좋다.
-' 되읽기 간격 기본 **30초**(2026-08-24, 종전 1초).
-'
-' 이게 이 러너의 최대 병목이다. 위 실측대로 1초 폴링이면 immediate+post_step 합쳐
-' **162만 회** COM 왕복이 된다 - 5초 상태 스캔(1,081회)의 **1,500배**다.
-' 시뮬 150초 구간이 74.4초 걸리는(실시간 2.02배) 주된 이유가 여기다.
-'
-' 30초로 두면 왕복이 162만 -> 약 5.4만(97% 감소)이고, **보증은 유지된다** -
-' 불일치 시 signalFailures 를 올리는 검사 자체는 그대로고 표본만 성글어진다.
-' 세밀한 타임라인은 네이티브 SigChangesWriteFile 이 대신한다(RW_NATIVE_EVAL, 아래).
-' 그쪽은 폴링이 아니라 **상태 변화 시점**을 정확한 타임스탬프로 남기므로 1 Hz 폴링보다
-' 해상도가 오히려 좋다.
-'
-' 되돌리지 마라. 액추에이션을 1초 표본으로 재증명해야 할 때만 RW_SIGNAL_READBACK_SEC=1.
+' Actual persistence verification cadence; zero selects normal sparse checks.
+' Pure persistence verification is separate from required model observations.
+' Native LSA in the installed COM path omits COM-driven transitions; it cannot
+' replace actual application readback. Preserve the real signal_readback.csv.
+' Normal mode checks changed writes at the next simulation callback, plus all
+' owned SGs at control/terminal boundaries. Stepwise mode makes that next check
+' one simulation second later. Event mode records its actual (sparser) times.
+' RW_SIGNAL_READBACK_SEC=1 restores full per-step verification for short audits.
 Function SignalReadbackIntervalSec()
     Dim v
-    v = Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_READBACK_SEC%"))
-    If IsNumeric(v) Then
-        SignalReadbackIntervalSec = CLng(v)
-        If SignalReadbackIntervalSec < 1 Then SignalReadbackIntervalSec = 1
-    Else
-        SignalReadbackIntervalSec = 30
+    If Not signalReadbackIntervalConfigured Then
+        v = Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_READBACK_SEC%"))
+        If IsNumeric(v) Then
+            signalReadbackIntervalValue = CLng(v)
+            If signalReadbackIntervalValue < 0 Then Err.Raise 513, , "Negative signal verification interval"
+        Else
+            signalReadbackIntervalValue = 0
+        End If
+        signalReadbackIntervalConfigured = True
     End If
+    SignalReadbackIntervalSec = signalReadbackIntervalValue
 End Function
 
 Sub ValidateRuntimeSignalPersistence(simSec)
     Dim key, parts, scNo, sgNo, sg, requestedState, readbackState, ok, readbackT0
+    Dim interval, fullCheck, checkKeys
     If sigRequestedState.Count <= 0 Then Exit Sub
-    If SignalReadbackIntervalSec() > 1 Then
-        If (CLng(simSec) Mod SignalReadbackIntervalSec()) <> 0 _
-           And CLng(simSec) <> CLng(simPeriod) Then Exit Sub
+    interval = SignalReadbackIntervalSec()
+    fullCheck = ((CLng(simSec) Mod CLng(controlInterval)) = 0 Or _
+        CLng(simSec) = CLng(controlStartSec) Or CLng(simSec) = CLng(simPeriod))
+    If interval > 0 Then fullCheck = (fullCheck Or ((CLng(simSec) Mod interval) = 0))
+    If fullCheck Then
+        checkKeys = sigRequestedState.Keys
+    Else
+        If sigPendingPostCheck.Count = 0 Then Exit Sub
+        checkKeys = sigPendingPostCheck.Keys
     End If
     readbackT0 = PerfNow()
     signalTraceSimSec = CLng(simSec)
     signalTraceStage = "post_step"
-    For Each key In sigRequestedState.Keys
+    For Each key In checkKeys
         parts = Split(CStr(key), "-")
         scNo = CLng(parts(0)): sgNo = CLng(parts(1))
         requestedState = CStr(sigRequestedState(key))
@@ -3654,6 +3793,7 @@ Sub ValidateRuntimeSignalPersistence(simSec)
             ok = False
         Else
             readbackState = SafeAtt(sg, "SigState")
+            PerfCount "com.sg.persistence_read", 1
             ok = (UCase(Trim(CStr(readbackState))) = UCase(Trim(CStr(requestedState))))
         End If
         If Not ok Then
@@ -3663,6 +3803,7 @@ Sub ValidateRuntimeSignalPersistence(simSec)
         End If
         RecordSignalReadback scNo, sgNo, requestedState, readbackState, ok
     Next
+    sigPendingPostCheck.RemoveAll
     signalTraceStage = "immediate"
     PerfAdd "signals.readback", readbackT0
 End Sub
@@ -4286,8 +4427,8 @@ End Function
 ' accumulates per-interval sums into totalsBefore/totalsAfter, and returns the
 ' interval row count in nIntervals.
 Sub ScaleInputAllIntervals(vi, factor, totalsBefore, totalsAfter, beforeText, afterText, nIntervals)
-    Dim col, arr, item, viNo, timeInt, before, target, after, idx, key, tol
-    viNo = SafeAtt(vi, "No")
+    Dim col, arr, item, viNo, timeInt, before, target, after, idx, key, tol, writeErrNo, writeErrDesc, demandPerfT0
+    viNo = StrictDemandAttribute(vi, "No", "vehicle_input")
     beforeText = ""
     afterText = ""
     nIntervals = 0
@@ -4301,15 +4442,28 @@ Sub ScaleInputAllIntervals(vi, factor, totalsBefore, totalsAfter, beforeText, af
     On Error GoTo 0
 
     For Each item In arr
-        timeInt = SafeAtt(item, "TimeInt")
-        before = ToDbl(SafeAtt(item, "Volume"))
+        timeInt = StrictDemandAttribute(item, "TimeInt", "no=" & viNo)
+        If Trim(CStr(timeInt)) = "" Then FatalDemandError "DEMAND_INTERVAL_KEY_EMPTY no=" & viNo
+        demandPerfT0 = PerfNow()
+        before = StrictDemandVolume(item, "no=" & viNo & " time_int=" & timeInt & " stage=before")
+        PerfAdd "startup.demand.volume_before_read", demandPerfT0
         target = CDbl(before) * CDbl(factor)
+        WScript.Echo "DEMAND_WRITE_BEGIN no=" & viNo & " time_int=" & timeInt & " before=" & Num(before) & " target=" & Num(target) & " timer_sec=" & CStr(Timer)
+        demandPerfT0 = PerfNow()
         On Error Resume Next
+        Err.Clear
         item.AttValue("Volume") = target
-        If Err.Number <> 0 Then FatalDemandError "DEMAND_INTERVAL_SET_FAILED no=" & viNo & " time_int=" & timeInt & " target=" & Num(target) & " err=" & Err.Description
+        writeErrNo = Err.Number
+        writeErrDesc = Err.Description
         Err.Clear
         On Error GoTo 0
-        after = ToDbl(SafeAtt(item, "Volume"))
+        PerfCount "com.input_volume.setter", 1
+        PerfAdd "startup.demand.volume_set", demandPerfT0
+        If writeErrNo <> 0 Then FatalDemandError "DEMAND_INTERVAL_SET_FAILED no=" & viNo & " time_int=" & timeInt & " target=" & Num(target) & " error_number=" & CStr(writeErrNo) & " err=" & writeErrDesc
+        WScript.Echo "DEMAND_WRITE_DONE no=" & viNo & " time_int=" & timeInt & " timer_sec=" & CStr(Timer)
+        demandPerfT0 = PerfNow()
+        after = StrictDemandVolume(item, "no=" & viNo & " time_int=" & timeInt & " stage=after")
+        PerfAdd "startup.demand.volume_after_read", demandPerfT0
         tol = 0.001 + Abs(CDbl(target)) * 0.000001
         If Abs(CDbl(after) - CDbl(target)) > tol Then
             FatalDemandError "DEMAND_INTERVAL_READBACK_MISMATCH no=" & viNo & " time_int=" & timeInt & _
@@ -4337,6 +4491,29 @@ Sub ScaleInputAllIntervals(vi, factor, totalsBefore, totalsAfter, beforeText, af
 
     If nIntervals = 0 Then FatalDemandError "DEMAND_INTERVAL_EMPTY no=" & viNo
 End Sub
+
+' A failed native demand read must never become an unintended zero write.
+Function StrictDemandAttribute(obj, attribute, identity)
+    Dim value, readErrNo, readErrDesc
+    On Error Resume Next
+    Err.Clear
+    value = obj.AttValue(attribute)
+    readErrNo = Err.Number
+    readErrDesc = Err.Description
+    Err.Clear
+    On Error GoTo 0
+    If CStr(attribute) = "Volume" Then PerfCount "com.input_volume.read", 1
+    If readErrNo <> 0 Then FatalDemandError "DEMAND_ATTRIBUTE_READ_FAILED " & identity & " attribute=" & attribute & " error_number=" & CStr(readErrNo) & " err=" & readErrDesc
+    If IsNull(value) Or IsEmpty(value) Then FatalDemandError "DEMAND_ATTRIBUTE_READ_EMPTY " & identity & " attribute=" & attribute
+    StrictDemandAttribute = value
+End Function
+
+Function StrictDemandVolume(obj, identity)
+    Dim value
+    value = StrictDemandAttribute(obj, "Volume", identity)
+    If Not IsNumeric(value) Then FatalDemandError "DEMAND_VOLUME_NOT_NUMERIC " & identity
+    StrictDemandVolume = CDbl(value)
+End Function
 
 ' "1-2" -> 2. Returns 0 when the key does not carry an interval index.
 Function TimeIntIndex(value)
@@ -4462,25 +4639,12 @@ Sub ConfigureEvaluationOutput(path)
     ' 실패가 곧 보장이다(실측 문구: "put_AttValue failed - module not active").
     TrySetUnreachableEvaluationAtt "DatabaseConnection", "", "database module inactive means no DB output is possible"
     TrySetEvaluationAtt "ListAutoExportType", "FILE"
-    ' RW_NATIVE_EVAL=1 이면 VISSIM 자체 기록을 켠다. **.inpx 는 건드리지 않는다** —
-    ' 파일을 고치면 network sha256 이 바뀌어 지금까지 모든 런과의 비트 비교가 끊긴다
-    ' (병렬화 정확성을 그 비교로 증명했다). COM 으로 켜면 그대로 유지된다.
-    '
-    '   VehRecWriteFile     차량 전수 기록. 인루프 5초 스캔을 대체한다(사후 처리).
-    '   SigChangesWriteFile 신호 상태 변화. 초당 168회 개별 되읽기를 대체한다.
-    '
-    ' 속성 이름은 이 설치본에서 직접 열거해 확인했다(VehRecInterval·SigChgs* 는 없다).
-    ' 2026-08-24 **기본 켜짐**. 끄려면 RW_NATIVE_EVAL=0.
-    '
-    ' VISSIM 자체 기록이라 시뮬 루프에 COM 왕복이 안 붙는다. 인루프 폴링 둘을 대체한다 -
-    ' VehRecWriteFile 이 5초 스캔을, SigChangesWriteFile 이 1초 되읽기를 맡는다.
-    ' 게다가 SigChanges 는 변화 시점을 정확히 남겨 폴링보다 해상도가 좋다.
-    '
-    ' .inpx 는 안 건드린다. 파일을 고치면 network sha256 이 바뀌어 지금까지 모든 런과의
-    ' 비트 비교가 끊긴다(병렬화 정확성을 그 비교로 증명했다). COM 으로 켜면 유지된다.
-    '
-    ' 부수 이득: .fzp 차량 전수 기록이 쌓이면 TTT 를 state CSV 적분이 아니라 궤적에서
-    ' 직접 낼 수 있다. 지금 TTT 는 total_vehicles 사다리꼴 적분이 유일한 경로다.
+    ' Native files support post-run validation without per-vehicle COM logging.
+    ' Required model observations remain in the live loop independently.
+    ' In this installation native LSA omits COM-driven transitions. Keep native
+    ' output, report its coverage, and retain actual COM application readbacks.
+    ' Do not treat a command CSV or missing LSA rows as execution confirmation.
+    ' These runtime evaluation settings preserve the network file bytes.
     If Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) <> "0" Then
         TrySetEvaluationAtt "VehRecWriteFile", True
         TrySetEvaluationAtt "VehRecFromTime", 0
@@ -4493,6 +4657,9 @@ Sub ConfigureEvaluationOutput(path)
         ' 기본 5 로 두어 걷어낸 인루프 5초 로깅과 같은 해상도를 유지한다.
         TrySetEvaluationAtt "VehRecResolution", NativeVehRecResolution()
         TrySetEvaluationAtt "SigChangesWriteFile", True
+        ' Read once before simulation. LDP channel configuration belongs to the
+        ' loaded network; do not infer it from LSA or change it in the live loop.
+        WScript.Echo "NATIVE_SC_DET_RECORD=" & CStr(SafeAtt(Vissim.Evaluation, "SCDetRecWriteFile"))
         WScript.Echo "NATIVE_EVAL=1 vehRec=1 sigChanges=1 from=0 to=" & CStr(simPeriod) & _
             " filter=ALL resolution=" & CStr(NativeVehRecResolution())
     End If
@@ -5151,6 +5318,7 @@ Function ReadVerifiedVehicleTables(expectedSimSec, ByRef noArray, ByRef laneArra
         Exit Function
     End If
     On Error GoTo 0
+    PerfCount "com.vehicle.physical_bulk_returned", 4
 
     If Not TryNonnegativeLongVariant(rawCountBefore, collectionCountBefore) _
             Or Not TryNonnegativeLongVariant(rawCountAfter, collectionCountAfter) Then
@@ -5634,6 +5802,16 @@ Sub PerfAdd(name, t0)
     perfCnt(name) = CLng(perfCnt(name)) + 1
 End Sub
 
+Sub PerfCount(name, amount)
+    ' PERF com.* rows use sec=0 and n=covered native attribute calls, not wall time.
+    If Not RW_PERF_ENABLED Then Exit Sub
+    If Not perfSum.Exists(name) Then
+        perfSum.Add name, 0.0
+        perfCnt.Add name, 0
+    End If
+    perfCnt(name) = CLng(perfCnt(name)) + CLng(amount)
+End Sub
+
 Sub PerfReport()
     Dim k
     If Not RW_PERF_ENABLED Then Exit Sub
@@ -5801,6 +5979,7 @@ Sub ObservationSignalReadback(scNo, sgNo, actualState, ok)
     key = CStr(scNo) & "-" & CStr(sgNo)
     Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNo))
     owner = LCase(Trim(CStr(SafeAtt(sg, "ContrByCOM"))))
+    PerfCount "com.sg.head_owner_read", 1
     valid = (owner = "true" Or owner = "false" Or owner = "1" Or owner = "0") And CBool(ok)
     Select Case UCase(Trim(CStr(actualState)))
         Case "GREEN", "RED", "AMBER", "REDAMBER", "OFF"
@@ -5812,7 +5991,8 @@ Sub ObservationSignalReadback(scNo, sgNo, actualState, ok)
 End Sub
 
 Sub CaptureHeadSignalStates(simSec)
-    Dim key, h, sg, value
+    Dim key, h, sg, value, capturePerfT0
+    capturePerfT0 = PerfNow()
     If CLng(obsSignalSec) <> CLng(simSec) Then
         obsActual.RemoveAll
         obsSignalSec = CLng(simSec)
@@ -5824,15 +6004,18 @@ Sub CaptureHeadSignalStates(simSec)
             Set sg = CachedSignalGroup(CLng(h(3)), CLng(h(4)))
             signalTraceSimSec = CLng(simSec)
             ObservationSignalReadback h(3), h(4), SafeAtt(sg, "SigState"), True
+            PerfCount "com.sg.head_read", 1
         End If
         value = obsActual(key)
         If Not CBool(value(2)) Then obsClockComplete = False
     Next
+    PerfAdd "head.signal_capture", capturePerfT0
 End Sub
 
 Sub SealHeadSignalStates(simSec)
-    Dim key, actualSec
+    Dim key, actualSec, sealPerfT0
     If Not obsEnabled Then Exit Sub
+    sealPerfT0 = PerfNow()
     actualSec = HeadObservationTime(simSec)
     CaptureHeadSignalStates actualSec
     obsHeld.RemoveAll
@@ -5840,6 +6023,7 @@ Sub SealHeadSignalStates(simSec)
         obsHeld.Add key, obsActual(key)
     Next
     obsHeldSec = CLng(simSec)
+    PerfAdd "head.seal", sealPerfT0
 End Sub
 
 Function HeadForLane(link, lane)
@@ -5920,7 +6104,7 @@ Sub ObserveHeadTransition(vehicle, oldRow, current, present)
 End Sub
 
 Sub CollectHeadObservation(simSec)
-    Dim actualSec
+    Dim actualSec, capturePerfT0, historyPerfT0
     If Not obsEnabled Then Exit Sub
     actualSec = HeadObservationTime(simSec)
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
@@ -5932,11 +6116,14 @@ Sub CollectHeadObservation(simSec)
     Dim frame, i, key, oldRow, current, h, value, headId, present
     If actualSec = CLng(obsFrameSec) Then Exit Sub
     If obsFrameSec >= 0 And CLng(simSec) <> CLng(obsFrameSec) + 1 Then Err.Raise 513, , "Head observation cadence gap"
+    capturePerfT0 = PerfNow()
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
         countE, speedE, stoppedE, countW, speedW, stoppedW, counts, stops, speeds, tails, qTotal, qStopped, scanOk, _
         countBefore, countAfter, timeBefore, timeAfter, vehs, links, lanes, positions, vehSpeeds, stoppedRows, laneRaw, fullCounts, fullStops
     If Not scanOk Then AbortVehicleObservation simSec
     CaptureHeadSignalStates simSec
+    PerfAdd "head.capture", capturePerfT0
+    historyPerfT0 = PerfNow()
     Set frame = CreateObject("Scripting.Dictionary")
     If Not IsEmpty(vehs) Then
         For i = LBound(vehs) To UBound(vehs)
@@ -5993,6 +6180,7 @@ Sub CollectHeadObservation(simSec)
     AccumulateFreewayExits vehs, links
     Set obsPrevious = frame
     obsFrameSec = CLng(simSec)
+    PerfAdd "head.history", historyPerfT0
 End Sub
 
 Function ObservationNumbersJson(values)

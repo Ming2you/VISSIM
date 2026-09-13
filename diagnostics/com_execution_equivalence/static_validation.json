@@ -1,0 +1,160 @@
+{
+  "schema_version": "com-execution-equivalence-static-validation/v1",
+  "passed": true,
+  "validation_scope": "stdlib JSON/CSV values and file pins only; no model/adapter import, writer execution, COM, VISSIM, tests of runtime behavior, or FZP read",
+  "effective_configs": {
+    "signal_profile": "9c14de3fdb194f05d29f9ea349def0c52c941f9cc6ddb4ffb02861f09d358b4b",
+    "ramp_profile": "bc4b31d301e48d1a17fee84d6a36e166e407f71ccb895db39fc53b25da58f9ea",
+    "signal_profile_event": "15c720c477cb87cb65426337634f3461233f0392fedf4e5376c0a55d777f21ab",
+    "ramp_profile_event": "5ca57f366090bfb631e793b945b3e1a43c8bb6248e76c930b96a0d12084764e8"
+  },
+  "parent_model_changes_only": [
+    "name",
+    "description",
+    "diagnostic",
+    "urban.capacity.head_observation"
+  ],
+  "event_only_one_boolean_changed": true,
+  "cycles_sec": {
+    "SC1": 150.0,
+    "SC5": 150.0,
+    "SC6": 150.0,
+    "SC7": 150.0,
+    "SC11": 150.0,
+    "SC12": 150.0,
+    "SC16": 150.0,
+    "SC101": 150.0,
+    "SC105": 150.0,
+    "SC107": 150.0,
+    "SC108": 150.0,
+    "SC109": 150.0,
+    "SC1001": 150.0,
+    "SC1002": 150.0,
+    "SC1003": 150.0,
+    "SC1004": 150.0,
+    "SC1005": 150.0
+  },
+  "nonzero_offsets": 11,
+  "vsl_zone_heads": [
+    "FW_E__seg0",
+    "FW_E__seg10",
+    "FW_E__seg15",
+    "FW_E__seg5",
+    "FW_W__seg0",
+    "FW_W__seg10",
+    "FW_W__seg15",
+    "FW_W__seg5"
+  ],
+  "physical_meter_count": 8,
+  "meter_green_sec": 5,
+  "meter_cycle_sec": 10,
+  "meter_amber_sec": 1,
+  "meter_red_sec": 4,
+  "golden_signal_csv": {
+    "1": {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000001.csv",
+      "sha256": "110d30d03413f134c013335407359d58c9eae0334456d228f76b5e1c726417ae",
+      "rows": 74
+    },
+    "900": {
+      "path": "diagnostics/fixed_beta300v3_profile_invocation_v2/action_000900.csv",
+      "sha256": "b8602b070e05108616bea05b5075335b7cbedf47a2168aed11b2c50f46ed6b5c",
+      "rows": 213
+    }
+  },
+  "desired_rows": 204,
+  "desired_input_count": 34,
+  "max_profile_abs_error_vph": 4.547473508864641e-13,
+  "powershell_5_1_parse": {
+    "version": "5.1.26100.9444",
+    "errors": 0,
+    "blocks": 2,
+    "tokens": 567,
+    "executed": false,
+    "checks_json_lookup_passed": true,
+    "pin_count_harness_reproduction": {
+      "direct_source_count": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "direct_generated_count": 1,
+      "explicit_source_count": 19,
+      "explicit_generated_count": 1,
+      "scope": "one-off validation harness only; generated JSON and documented commands unchanged"
+    },
+    "historical_input_pin_count": 20
+  },
+  "runtime_checks_pending": [
+    "root merged source supports readback=0; current fixture preparation does not install it",
+    "head ON diagnostic configure/main paths",
+    "ramp profile actual 74-row writer output",
+    "old/new full payload and command/readback equivalence"
+  ],
+  "primary_pair_intended_environment_changes": [
+    "RW_SIGNAL_READBACK_SEC",
+    "RW_SIGNAL_WRITE_ON_CHANGE"
+  ],
+  "primary_runtime_source_identity": "must be identical root-merged source; not executed",
+  "completion_check_adaptations": [
+    {
+      "file": "checks_signal.json",
+      "sha256": "8db0d398deaa426ebfd9dd5d6671cc7d9ec3a438d68322503bb7dcf401d05968",
+      "source_pins": 20,
+      "generated_pins": 1,
+      "all_input_pins_preserved": true,
+      "input_pin_count": 21
+    },
+    {
+      "file": "checks_ramp.json",
+      "sha256": "222170ee4b4841230b7a73698ee37eea04bb0091a37d3f4152100f1f1dfb63d0",
+      "source_pins": 20,
+      "generated_pins": 1,
+      "all_input_pins_preserved": true,
+      "input_pin_count": 21
+    }
+  ],
+  "completion_cli_executed": false,
+  "sgplan_pin_update": {
+    "passed": true,
+    "path": "evaluation/real_world_modi_control_ver2n21_20260907/real_world_modi_control_config_ver2n21_sgplan.vbs",
+    "sha256": "eca795f88eae4ba00a71723379247ea9ab369ba23c25714b30c7198310ee3503",
+    "bytes": 4206,
+    "input_pin_count": 21,
+    "controlled_sgs": 136,
+    "csv_window_sgs": 122,
+    "red_only_sgs": [
+      "7:2",
+      "7:3",
+      "7:5",
+      "7:6",
+      "16:1",
+      "16:5",
+      "107:4",
+      "107:8",
+      "108:3",
+      "108:7",
+      "109:1",
+      "109:3",
+      "109:4",
+      "109:8"
+    ],
+    "scope": "One bounded stdlib read/hash of actual sibling plus JSON joins. No VBS execution, model import, COM, native/FZP read, or production modification. Prior PowerShell parse/check result predates this added pin."
+  }
+}

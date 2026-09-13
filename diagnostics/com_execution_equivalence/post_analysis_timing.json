@@ -1,0 +1,28 @@
+{
+  "schema": "com-post-analysis-timing/v1",
+  "scope": "Separate post-run verifier command elapsed wall from exec_command result; includes Python startup and file verification, no COM or simulation. Not included in per-run wrapper wall.",
+  "runs": [
+    {
+      "result": "signal_head_pair_v1.json",
+      "elapsed_sec": 3.8070301,
+      "valid_analysis": false,
+      "reason": "Preserved actual-schema validator failure; do not use as completed qualification."
+    },
+    {
+      "result": "signal_head_pair_v2.json",
+      "elapsed_sec": 4.9573709,
+      "valid_analysis": true
+    },
+    {
+      "result": "ramp_head_pair_v1.json",
+      "elapsed_sec": 4.2004489,
+      "valid_analysis": true
+    },
+    {
+      "result": "closed_loop_head_pair_v1.json",
+      "elapsed_sec": 3.9443518,
+      "valid_analysis": true
+    }
+  ],
+  "note": "valid_analysis means validator completed its requested checks; overall verdict remains FAIL for native LSA coverage."
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "com-execution-equivalence/v1",
+  "passed": false,
+  "checks": {
+    "completion_and_provenance": {
+      "passed": true,
+      "recorded_fields_checked": 124,
+      "exact_exceptions": [
+        {
+          "key": "env.RW_SIGNAL_READBACK_SEC",
+          "left": "1",
+          "right": "0",
+          "reason": "Old repeated write/full audit versus changed-write/sparse audit"
+        },
+        {
+          "key": "env.RW_SIGNAL_WRITE_ON_CHANGE",
+          "left": "0",
+          "right": "1",
+          "reason": "Old repeated write/full audit versus changed-write/sparse audit"
+        }
+      ],
+      "optional_missing_files": [],
+      "scope": "Pinned per-run provenance; no current checkout source inventory rehash.",
+      "identity_exclusions": [
+        "name",
+        "run_id",
+        "created_at",
+        "workspace/git metadata",
+        "per-run generated file path when content SHA is identical"
+      ]
+    },
+    "commands_and_state_inputs": {
+      "passed": false,
+      "error": "KeyError: 'manifest_path'"
+    },
+    "fzp": {
+      "passed": true,
+      "extent_passed": true,
+      "different_ordered_rows": 0,
+      "first_difference": null,
+      "records": [
+        {
+          "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\vissim_eval\\baseline_001.fzp",
+          "rows": 1210521,
+          "bytes": 61152900,
+          "file_sha256": "2360e6cae1e10232d0ff8320ccfaef81a43a2355529f2cbe6d2ae603904c593c",
+          "data_sha256": "621cbee6bedd4bbe05dbbc5b80f0fd7b8d348b496cdc23e2719143bea1465eac",
+          "first_sec": "1.00",
+          "last_sec": "1200.00"
+        },
+        {
+          "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\vissim_eval\\baseline_001.fzp",
+          "rows": 1210521,
+          "bytes": 61152900,
+          "file_sha256": "f0887449fb9fcef147d8b4f11f1db50328275b6bc4d1538fff3a6e8c8b95feb5",
+          "data_sha256": "621cbee6bedd4bbe05dbbc5b80f0fd7b8d348b496cdc23e2719143bea1465eac",
+          "first_sec": "1.00",
+          "last_sec": "1200.00"
+        }
+      ],
+      "excluded": "Only pre-$VEHICLE metadata, blank lines and line-ending bytes."
+    }
+  },
+  "actual_execution_equivalent": false,
+  "native_lsa_com_coverage_passed": false,
+  "runs": [
+    {
+      "name": "codex_com_signal_head_old_s13_1200_r02",
+      "run_directory": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02",
+      "run_id": "5420eeffb82a4bc48c70bc3cc20bb9ee",
+      "completion": {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\completion_receipt.json",
+        "sha256": "51501a162de8197ef1ca638d27f34cc06d3da76d071ad5f0358638589fdf5241"
+      },
+      "signal_readback": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\decisions_codex_com_signal_head_old_s13_1200_r02\\signal_readback.csv",
+      "vsl_readback": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\decisions_codex_com_signal_head_old_s13_1200_r02\\vsl_readback.csv",
+      "fzp": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\vissim_eval\\baseline_001.fzp",
+      "fzp_file_count": 1,
+      "lsa": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_old_s13_1200_r02\\vissim_eval\\baseline_001.lsa",
+      "lsa_file_count": 1
+    },
+    {
+      "name": "codex_com_signal_head_new_s13_1200_r01",
+      "run_directory": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01",
+      "run_id": "ffd84747c7bf45a7a7fc4c909ed0c15e",
+      "completion": {
+        "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\completion_receipt.json",
+        "sha256": "7caacd867f574c8b7d046147911cc015987569c153b929662c56e137e1e623cd"
+      },
+      "signal_readback": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\decisions_codex_com_signal_head_new_s13_1200_r01\\signal_readback.csv",
+      "vsl_readback": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\decisions_codex_com_signal_head_new_s13_1200_r01\\vsl_readback.csv",
+      "fzp": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\vissim_eval\\baseline_001.fzp",
+      "fzp_file_count": 1,
+      "lsa": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_com_signal_head_new_s13_1200_r01\\vissim_eval\\baseline_001.lsa",
+      "lsa_file_count": 1
+    }
+  ],
+  "control_interval_sec": 150,
+  "limitations": [
+    "No causal performance attribution; both arms use the same instrumentation.",
+    "Equal fixed commands do not validate adaptive controller equivalence.",
+    "LSA coverage failure remains FAIL even if actual readbacks and FZP pass."
+  ],
+  "validator_sha256": "9340a454e99846ccbe20ca60e9cdf7b455f6dddad4cddb8649ce5c6bb935f9f6",
+  "command_clock_source_sha256": {
+    "diagnostics\\com_execution_equivalence\\command_clock.py": "524dd0e6548b4f6a10a52036a2d220d0ebb27293d59f9c2b461569964fc0cbb2",
+    "diagnostics\\live_beta0_first_interval_audit.py": "6d0636db88df561cbe7185b604fcafb9f4ea26e1f9489cbdbe211f0a9b61f4ee",
+    "evaluation\\controllers\\signal_timing_oracle.py": "8241e996bf60db9446c5ddefce40eab9ab71350e84978201ff451e32c59e449b"
+  }
+}

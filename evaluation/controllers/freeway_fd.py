@@ -63,9 +63,11 @@ def cell_parameters(net, link=None, index=None) -> FDParameters:
     rows = table.get(str(link), ()) if isinstance(table, Mapping) else ()
     row = rows[index] if isinstance(rows, (tuple, list)) and index is not None and 0 <= index < len(rows) else {}
     row = row if isinstance(row, Mapping) else {}
+    by_direction = (getattr(net, "rho_crit_two_branch_by_direction", {}) or {}
+                    if getattr(net, "vsl_fd_two_branch", False) else {})
     result = FDParameters(
         float(row.get("v_free", net.v_free)),
-        float(getattr(net, "rho_crit_two_branch", 0.0)),
+        float(by_direction.get(str(link), getattr(net, "rho_crit_two_branch", 0.0))),
         float(row.get("rho_max", net.rho_max)),
     )
     result.validate()

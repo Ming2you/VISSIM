@@ -1,0 +1,319 @@
+{
+  "completed": true,
+  "native_run": false,
+  "new_model_rollouts": 0,
+  "effective_setup_observation": {
+    "method": "One build_projected of same preserved900/previous750 with current config, no rollout; observed before this artifact",
+    "off_ramp_split_ratio": {
+      "OR_D_W": 0.2,
+      "OR_F_W": 0.2,
+      "OR_D_E": 0.2,
+      "OR_F_E": 0.2
+    },
+    "offramp_direct_share_by_offramp": {
+      "OR_D_W": 0.468,
+      "OR_D_E": 0.468,
+      "OR_F_W": 0.484,
+      "OR_F_E": 0.484
+    }
+  },
+  "default_source": "src/config/default.yaml defines0.2 for all four; canonical build_config reads this base before subsequent override layers. Raw dataclass0.06 is NOT the observed effective value.",
+  "native_rows": [
+    {
+      "group": "OR_D_W",
+      "decision": "1132",
+      "decision_link": 26,
+      "decision_pos_m": 75.74855211907948,
+      "weights": {
+        "direct": 3.0,
+        "signal": 3.0,
+        "through": 10.0
+      },
+      "conditional_off_fraction": 0.375,
+      "conditional_direct_share_within_off": 0.5,
+      "routes": [
+        {
+          "route": "1",
+          "branch": "direct",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "blank_default_one": false,
+          "path": [
+            "26",
+            "10479",
+            "125"
+          ],
+          "dest_pos_m": 345.9696783569605
+        },
+        {
+          "route": "2",
+          "branch": "signal",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "blank_default_one": false,
+          "path": [
+            "26",
+            "10491",
+            "129",
+            "10777",
+            "127"
+          ],
+          "dest_pos_m": 481.2268908561873
+        },
+        {
+          "route": "3",
+          "branch": "through",
+          "relFlow_raw": "2 0:10",
+          "weight": 10.0,
+          "blank_default_one": false,
+          "path": [
+            "26",
+            "10771",
+            "120"
+          ],
+          "dest_pos_m": 388.96611975898895
+        }
+      ]
+    },
+    {
+      "group": "OR_F_W",
+      "decision": "1133",
+      "decision_link": 120,
+      "decision_pos_m": 424.2286792840173,
+      "weights": {
+        "direct": 3.0,
+        "signal": 1.0,
+        "through": 8.0
+      },
+      "conditional_off_fraction": 0.3333333333333333,
+      "conditional_direct_share_within_off": 0.75,
+      "routes": [
+        {
+          "route": "1",
+          "branch": "direct",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "blank_default_one": false,
+          "path": [
+            "120",
+            "10645",
+            "123"
+          ],
+          "dest_pos_m": 583.4840070873894
+        },
+        {
+          "route": "2",
+          "branch": "signal",
+          "relFlow_raw": "",
+          "weight": 1.0,
+          "blank_default_one": true,
+          "path": [
+            "120",
+            "10638",
+            "70",
+            "10776",
+            "126"
+          ],
+          "dest_pos_m": 151.451
+        },
+        {
+          "route": "3",
+          "branch": "through",
+          "relFlow_raw": "2 0:8",
+          "weight": 8.0,
+          "blank_default_one": false,
+          "path": [
+            "120",
+            "120"
+          ],
+          "dest_pos_m": 3054.9022015120368
+        }
+      ]
+    },
+    {
+      "group": "OR_D_E",
+      "decision": "1131",
+      "decision_link": 2,
+      "decision_pos_m": 2320.5697214347756,
+      "weights": {
+        "direct": 3.0,
+        "signal": 4.0,
+        "through": 8.0
+      },
+      "conditional_off_fraction": 0.4666666666666667,
+      "conditional_direct_share_within_off": 0.42857142857142855,
+      "routes": [
+        {
+          "route": "1",
+          "branch": "through",
+          "relFlow_raw": "2 0:8",
+          "weight": 8.0,
+          "blank_default_one": false,
+          "path": [
+            "2",
+            "10613",
+            "119",
+            "10702",
+            "24"
+          ],
+          "dest_pos_m": 144.76333542677457
+        },
+        {
+          "route": "2",
+          "branch": "signal",
+          "relFlow_raw": "2 0:4",
+          "weight": 4.0,
+          "blank_default_one": false,
+          "path": [
+            "2",
+            "10481",
+            "127"
+          ],
+          "dest_pos_m": 334.36343025078986
+        },
+        {
+          "route": "3",
+          "branch": "direct",
+          "relFlow_raw": "2 0:3",
+          "weight": 3.0,
+          "blank_default_one": false,
+          "path": [
+            "2",
+            "10613",
+            "119",
+            "10483",
+            "124",
+            "10775",
+            "125"
+          ],
+          "dest_pos_m": 345.9387801386575
+        }
+      ]
+    },
+    {
+      "group": "OR_F_E",
+      "decision": "1130",
+      "decision_link": 74,
+      "decision_pos_m": 35.47797461194468,
+      "weights": {
+        "direct": 4.0,
+        "signal": 1.6,
+        "through": 8.0
+      },
+      "conditional_off_fraction": 0.4117647058823529,
+      "conditional_direct_share_within_off": 0.7142857142857143,
+      "routes": [
+        {
+          "route": "1",
+          "branch": "signal",
+          "relFlow_raw": "2 0:1.6",
+          "weight": 1.6,
+          "blank_default_one": false,
+          "path": [
+            "74",
+            "10699",
+            "2",
+            "10643"
+          ],
+          "dest_pos_m": 15.59397086406085
+        },
+        {
+          "route": "2",
+          "branch": "through",
+          "relFlow_raw": "2 0:8",
+          "weight": 8.0,
+          "blank_default_one": false,
+          "path": [
+            "74",
+            "10699",
+            "2"
+          ],
+          "dest_pos_m": 2268.325676212646
+        },
+        {
+          "route": "3",
+          "branch": "direct",
+          "relFlow_raw": "2 0:4",
+          "weight": 4.0,
+          "blank_default_one": false,
+          "path": [
+            "74",
+            "10699",
+            "2",
+            "10682",
+            "121",
+            "10773",
+            "123"
+          ],
+          "dest_pos_m": 295.92350735286266
+        }
+      ]
+    }
+  ],
+  "native_onramp_landings": [
+    {
+      "connector": 10480,
+      "native_target": {
+        "lane": "26 1",
+        "pos": "3525.1244494950088"
+      }
+    },
+    {
+      "connector": 10482,
+      "native_target": {
+        "lane": "120 1",
+        "pos": "10.227348372713095"
+      }
+    },
+    {
+      "connector": 10646,
+      "native_target": {
+        "lane": "120 1",
+        "pos": "2252.9982926203243"
+      }
+    },
+    {
+      "connector": 10644,
+      "native_target": {
+        "lane": "120 1",
+        "pos": "2954.7558503691939"
+      }
+    },
+    {
+      "connector": 10639,
+      "native_target": {
+        "lane": "2 1",
+        "pos": "1876.2915917167772"
+      }
+    },
+    {
+      "connector": 10681,
+      "native_target": {
+        "lane": "2 1",
+        "pos": "2165.4287527429469"
+      }
+    },
+    {
+      "connector": 10490,
+      "native_target": {
+        "lane": "119 1",
+        "pos": "305.38646819908536"
+      }
+    },
+    {
+      "connector": 10484,
+      "native_target": {
+        "lane": "24 1",
+        "pos": "10.318793452441241"
+      }
+    }
+  ],
+  "scope": "Stored native relative weights for vehicles eligible to select each routing decision. Not actual or desired veh/h at the divergence and not automatically applicable to vehicles already assigned a route or merging downstream of the decision. No ratio is adopted in the active model/network. Route continuity and source/time/cohort eligibility require checking before replacement.",
+  "source_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\selected_control_demand\\codex_physical8_fw080_u050_open1350_v1\\native_recording\\baseline.inpx": "25acf56cbdc475479094a20903dc190557d0ccd278094f0a3c6121a3ff23fdd2",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\runs\\codex_physical8_fw080_u050_open1350_v1\\run_provenance_codex_physical8_fw080_u050_open1350_v1.json": "df295c079b8e0a06ec4c137acdbf171c7ad6bb6d355f1f94d367e8cfda0a922c",
+    "diagnostics\\control_improvement\\decision_common_anchor_20260911\\ramp8_physical_v1\\joint_config_unlimited_prefetch_v1.json": "0f34ab8775e1bcf976450606a1a06a9d898bf9dd2e7bba4fd631f063e7684865",
+    "vendor\\NumSim-mine\\src\\config\\default.yaml": "d90bbc4b942b1050f2a5fe55557efbf8ed7ea673cbad12b7d286b0beb445b55d",
+    "evaluation\\controllers\\vissim_stackelberg_adapter.py": "5b15a883034e530eccfc4db9e01cd4843ef3def65951f72fb996f09835e00826"
+  }
+}

@@ -1,0 +1,715 @@
+{
+  "schema": "offramp-fidelity-existing-json-comparison/v1",
+  "complete": true,
+  "new_model_queries": 0,
+  "new_native_runs": 0,
+  "new_fzp_reads": 0,
+  "window_sec": [
+    900,
+    1350
+  ],
+  "scope": "One held-command forecast from the same recorded900 observation; cached completed native1350 baseline. Prediction correction, not closed-loop controller benefit or runtime benchmark.",
+  "identity_checks": {
+    "initial_inventory_exact_between_models": true,
+    "initial_ramp_stocks_exact": true,
+    "forecast_sha256": "4aa19ec3fec8eeb94b30b588431ccea7ed7c7f58492f478982cc8dfd3f0003dd",
+    "source_state_and_action_pins_exact": {
+      "state_000900.json": "e46239a5a5ee7ef80008e982852eb19e27a8c1a6e711f2553c2c9c4bc335c1be",
+      "action_000750.json": "64c4226e1efc4b9eb80828fc21bfde1db5719735f4e4ac5e7ae404af54a02c52",
+      "action_000900.json": "c13d05158341a6925c5aa339201568dbd378729057bc942fb1f2bb5fea76e280",
+      "action_000900.csv": "e04292c4f6a4d19c7657a97ff2cb1a2dc43f50b10acb0cc6c5268ac6b29cda04"
+    },
+    "physical_meter_commands_exact_between_models": true,
+    "native_command_rows_exact": 213,
+    "native_control_metadata_column_excluded": true,
+    "native_state900_observation_values_exact_cached_proof": true,
+    "native_state_identity_exclusions": [
+      "network_path",
+      "sim_period_sec",
+      "run_provenance.manifest_path",
+      "run_provenance.run_id",
+      "local_observation.signal_observation_window.config_sha256"
+    ],
+    "initial_omega_stock_existing_model_vs_native": {
+      "model": 1033,
+      "native": 1034
+    }
+  },
+  "metric_grain": {
+    "TTT_veh_h": "one450s window; veh*h; MAE=absolute aggregate bias",
+    "TD_veh": "one450s window; Omega outward crossings including qualified inferred terminal exits; MAE=absolute aggregate bias",
+    "terminal_veh": "two freeway terminal links120/24 over450s; MAE over2 directions",
+    "live_external_TD_veh": "one450s total of live Omega outward crossings; model TD minus terminal; MAE=absolute aggregate bias, not per-link error",
+    "offramp_8_entry_veh": "8 physical mainline-to-offramp entries over450s; MAE over8 branches",
+    "ramp_8_merge_veh": "8 physical ramp-to-mainline accepted merges over450s; MAE over8 ramps"
+  },
+  "comparisons": {
+    "legacy": {
+      "TTT_veh_h": {
+        "n": 1,
+        "native_total": 166.56527777777788,
+        "model_total": 191.0985947878681,
+        "total_bias": 24.53331701009023,
+        "mean_bias": 24.53331701009023,
+        "MAE": 24.53331701009023
+      },
+      "TD_veh": {
+        "n": 1,
+        "native_total": 1558.0,
+        "model_total": 1138.3740476100631,
+        "total_bias": -419.62595238993686,
+        "mean_bias": -419.62595238993686,
+        "MAE": 419.62595238993686
+      },
+      "terminal_veh": {
+        "n": 2,
+        "native_total": 492.0,
+        "model_total": 658.6355255931144,
+        "total_bias": 166.63552559311438,
+        "mean_bias": 83.31776279655719,
+        "MAE": 83.31776279655719
+      },
+      "live_external_TD_veh": {
+        "n": 1,
+        "native_total": 1066.0,
+        "model_total": 479.73852201694876,
+        "total_bias": -586.2614779830512,
+        "mean_bias": -586.2614779830512,
+        "MAE": 586.2614779830512
+      },
+      "offramp_8_entry_veh": {
+        "n": 8,
+        "native_total": 790.0,
+        "model_total": 402.74512299830496,
+        "total_bias": -387.25487700169504,
+        "mean_bias": -48.40685962521188,
+        "MAE": 48.40685962521188
+      },
+      "ramp_8_merge_veh": {
+        "n": 8,
+        "native_total": 301.0,
+        "model_total": 235.94074132680225,
+        "total_bias": -65.05925867319775,
+        "mean_bias": -8.132407334149718,
+        "MAE": 10.91735085726706
+      }
+    },
+    "sc1005_unsignalized_only": {
+      "TTT_veh_h": {
+        "n": 1,
+        "native_total": 166.56527777777788,
+        "model_total": 191.0110347620554,
+        "total_bias": 24.445756984277523,
+        "mean_bias": 24.445756984277523,
+        "MAE": 24.445756984277523
+      },
+      "TD_veh": {
+        "n": 1,
+        "native_total": 1558.0,
+        "model_total": 1141.2293880604823,
+        "total_bias": -416.7706119395177,
+        "mean_bias": -416.7706119395177,
+        "MAE": 416.7706119395177
+      },
+      "terminal_veh": {
+        "n": 2,
+        "native_total": 492.0,
+        "model_total": 658.7821002076787,
+        "total_bias": 166.78210020767864,
+        "mean_bias": 83.39105010383932,
+        "MAE": 83.39105010383932
+      },
+      "live_external_TD_veh": {
+        "n": 1,
+        "native_total": 1066.0,
+        "model_total": 482.4472878528036,
+        "total_bias": -583.5527121471964,
+        "mean_bias": -583.5527121471964,
+        "MAE": 583.5527121471964
+      },
+      "offramp_8_entry_veh": {
+        "n": 8,
+        "native_total": 790.0,
+        "model_total": 403.1868240416682,
+        "total_bias": -386.8131759583318,
+        "mean_bias": -48.35164699479147,
+        "MAE": 48.35164699479147
+      },
+      "ramp_8_merge_veh": {
+        "n": 8,
+        "native_total": 301.0,
+        "model_total": 238.89229565123352,
+        "total_bias": -62.107704348766475,
+        "mean_bias": -7.763463043595809,
+        "MAE": 10.549182033455187
+      }
+    },
+    "route_inventory": {
+      "TTT_veh_h": {
+        "n": 1,
+        "native_total": 166.56527777777788,
+        "model_total": 187.907231633888,
+        "total_bias": 21.34195385611011,
+        "mean_bias": 21.34195385611011,
+        "MAE": 21.34195385611011
+      },
+      "TD_veh": {
+        "n": 1,
+        "native_total": 1558.0,
+        "model_total": 1131.8333950382207,
+        "total_bias": -426.1666049617793,
+        "mean_bias": -426.1666049617793,
+        "MAE": 426.1666049617793
+      },
+      "terminal_veh": {
+        "n": 2,
+        "native_total": 492.0,
+        "model_total": 525.0898513430752,
+        "total_bias": 33.089851343075225,
+        "mean_bias": 16.544925671537612,
+        "MAE": 16.544925671537612
+      },
+      "live_external_TD_veh": {
+        "n": 1,
+        "native_total": 1066.0,
+        "model_total": 606.7435436951455,
+        "total_bias": -459.2564563048545,
+        "mean_bias": -459.2564563048545,
+        "MAE": 459.2564563048545
+      },
+      "offramp_8_entry_veh": {
+        "n": 8,
+        "native_total": 790.0,
+        "model_total": 611.1952714885277,
+        "total_bias": -178.80472851147226,
+        "mean_bias": -22.350591063934033,
+        "MAE": 25.955571648645464
+      },
+      "ramp_8_merge_veh": {
+        "n": 8,
+        "native_total": 301.0,
+        "model_total": 249.18686479077138,
+        "total_bias": -51.813135209228626,
+        "mean_bias": -6.476641901153578,
+        "MAE": 10.978374332863
+      }
+    }
+  },
+  "terminal_rows": [
+    {
+      "freeway": "FW_W",
+      "native_terminal_link": "120",
+      "native_veh": 286,
+      "model_veh": {
+        "legacy": 367.7997234667576,
+        "sc1005_unsignalized_only": 367.9413908439102,
+        "route_inventory": 309.5470987343106
+      }
+    },
+    {
+      "freeway": "FW_E",
+      "native_terminal_link": "24",
+      "native_veh": 206,
+      "model_veh": {
+        "legacy": 290.8358021263568,
+        "sc1005_unsignalized_only": 290.84070936376844,
+        "route_inventory": 215.5427526087646
+      }
+    }
+  ],
+  "offramp_rows": [
+    {
+      "group": "OR_D_W",
+      "branch": "direct",
+      "connector": 10479,
+      "native_source_mainline": 26,
+      "inside_omega": false,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 91,
+      "model_veh": {
+        "legacy": 50.6131220858968,
+        "sc1005_unsignalized_only": 50.61316818224266,
+        "route_inventory": 79.94367669565152
+      },
+      "bias_veh": {
+        "legacy": -40.3868779141032,
+        "sc1005_unsignalized_only": -40.38683181775734,
+        "route_inventory": -11.056323304348481
+      }
+    },
+    {
+      "group": "OR_D_W",
+      "branch": "signal",
+      "connector": 10491,
+      "native_source_mainline": 26,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 139,
+      "model_veh": {
+        "legacy": 57.53457467883997,
+        "sc1005_unsignalized_only": 57.5346270789596,
+        "route_inventory": 61.947676274984964
+      },
+      "bias_veh": {
+        "legacy": -81.46542532116004,
+        "sc1005_unsignalized_only": -81.4653729210404,
+        "route_inventory": -77.05232372501504
+      }
+    },
+    {
+      "group": "OR_F_W",
+      "branch": "direct",
+      "connector": 10645,
+      "native_source_mainline": 120,
+      "inside_omega": false,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 98,
+      "model_veh": {
+        "legacy": 44.65750115935884,
+        "sc1005_unsignalized_only": 44.846213609492345,
+        "route_inventory": 67.4951510934103
+      },
+      "bias_veh": {
+        "legacy": -53.34249884064116,
+        "sc1005_unsignalized_only": -53.153786390507655,
+        "route_inventory": -30.5048489065897
+      }
+    },
+    {
+      "group": "OR_F_W",
+      "branch": "signal",
+      "connector": 10638,
+      "native_source_mainline": 120,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 72,
+      "model_veh": {
+        "legacy": 47.61006321948173,
+        "sc1005_unsignalized_only": 47.81125252582241,
+        "route_inventory": 25.525056526453884
+      },
+      "bias_veh": {
+        "legacy": -24.38993678051827,
+        "sc1005_unsignalized_only": -24.18874747417759,
+        "route_inventory": -46.47494347354612
+      }
+    },
+    {
+      "group": "OR_D_E",
+      "branch": "direct",
+      "connector": 10483,
+      "native_source_mainline": 119,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 88,
+      "model_veh": {
+        "legacy": 40.08262148388143,
+        "sc1005_unsignalized_only": 40.107607660992315,
+        "route_inventory": 60.61042812574788
+      },
+      "bias_veh": {
+        "legacy": -47.91737851611857,
+        "sc1005_unsignalized_only": -47.892392339007685,
+        "route_inventory": -27.38957187425212
+      }
+    },
+    {
+      "group": "OR_D_E",
+      "branch": "signal",
+      "connector": 10481,
+      "native_source_mainline": 2,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 75,
+      "model_veh": {
+        "legacy": 45.56400561842932,
+        "sc1005_unsignalized_only": 45.592408708649394,
+        "route_inventory": 78.28946812391568
+      },
+      "bias_veh": {
+        "legacy": -29.43599438157068,
+        "sc1005_unsignalized_only": -29.407591291350606,
+        "route_inventory": 3.2894681239156824
+      }
+    },
+    {
+      "group": "OR_F_E",
+      "branch": "direct",
+      "connector": 10682,
+      "native_source_mainline": 2,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 150,
+      "model_veh": {
+        "legacy": 56.47468562016978,
+        "sc1005_unsignalized_only": 56.4738683973466,
+        "route_inventory": 161.13045421493004
+      },
+      "bias_veh": {
+        "legacy": -93.52531437983022,
+        "sc1005_unsignalized_only": -93.52613160265341,
+        "route_inventory": 11.13045421493004
+      }
+    },
+    {
+      "group": "OR_F_E",
+      "branch": "signal",
+      "connector": 10643,
+      "native_source_mainline": 2,
+      "inside_omega": true,
+      "boundary": "native mainline -> branch connector entry; model accepted branch landing",
+      "native_veh": 77,
+      "model_veh": {
+        "legacy": 60.20854913224709,
+        "sc1005_unsignalized_only": 60.20767787816291,
+        "route_inventory": 76.25336043343349
+      },
+      "bias_veh": {
+        "legacy": -16.791450867752907,
+        "sc1005_unsignalized_only": -16.79232212183709,
+        "route_inventory": -0.7466395665665146
+      }
+    }
+  ],
+  "merge_rows": [
+    {
+      "ramp": "RM_C10480",
+      "connector": 10480,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 23.0,
+      "model_veh": {
+        "legacy": 12.052870274526473,
+        "sc1005_unsignalized_only": 12.054421208010544,
+        "route_inventory": 15.484936580148219
+      },
+      "bias_veh": {
+        "legacy": -10.947129725473527,
+        "sc1005_unsignalized_only": -10.945578791989456,
+        "route_inventory": -7.515063419851781
+      }
+    },
+    {
+      "ramp": "RM_C10482",
+      "connector": 10482,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 55.0,
+      "model_veh": {
+        "legacy": 51.137934001528514,
+        "sc1005_unsignalized_only": 51.137934001528514,
+        "route_inventory": 51.137934001528514
+      },
+      "bias_veh": {
+        "legacy": -3.8620659984714862,
+        "sc1005_unsignalized_only": -3.8620659984714862,
+        "route_inventory": -3.8620659984714862
+      }
+    },
+    {
+      "ramp": "RM_C10484",
+      "connector": 10484,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 42.0,
+      "model_veh": {
+        "legacy": 47.422737949605285,
+        "sc1005_unsignalized_only": 47.42583981657343,
+        "route_inventory": 54.2898935839736
+      },
+      "bias_veh": {
+        "legacy": 5.422737949605285,
+        "sc1005_unsignalized_only": 5.425839816573429,
+        "route_inventory": 12.289893583973601
+      }
+    },
+    {
+      "ramp": "RM_C10490",
+      "connector": 10490,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 24.0,
+      "model_veh": {
+        "legacy": 27.968061783889716,
+        "sc1005_unsignalized_only": 27.968061783889716,
+        "route_inventory": 27.968061783889716
+      },
+      "bias_veh": {
+        "legacy": 3.9680617838897163,
+        "sc1005_unsignalized_only": 3.9680617838897163,
+        "route_inventory": 3.9680617838897163
+      }
+    },
+    {
+      "ramp": "RM_C10639",
+      "connector": 10639,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 9.0,
+      "model_veh": {
+        "legacy": 9.729487179487181,
+        "sc1005_unsignalized_only": 9.729487179487181,
+        "route_inventory": 9.729487179487181
+      },
+      "bias_veh": {
+        "legacy": 0.7294871794871813,
+        "sc1005_unsignalized_only": 0.7294871794871813,
+        "route_inventory": 0.7294871794871813
+      }
+    },
+    {
+      "ramp": "RM_C10644",
+      "connector": 10644,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 66.0,
+      "model_veh": {
+        "legacy": 67.01948717948719,
+        "sc1005_unsignalized_only": 67.01948717948719,
+        "route_inventory": 67.01948717948719
+      },
+      "bias_veh": {
+        "legacy": 1.0194871794871858,
+        "sc1005_unsignalized_only": 1.0194871794871858,
+        "route_inventory": 1.0194871794871858
+      }
+    },
+    {
+      "ramp": "RM_C10646",
+      "connector": 10646,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 56.0,
+      "model_veh": {
+        "legacy": 16.707036866865078,
+        "sc1005_unsignalized_only": 18.91710250656739,
+        "route_inventory": 18.91710250656739
+      },
+      "bias_veh": {
+        "legacy": -39.29296313313492,
+        "sc1005_unsignalized_only": -37.08289749343261,
+        "route_inventory": -37.08289749343261
+      }
+    },
+    {
+      "ramp": "RM_C10681",
+      "connector": 10681,
+      "boundary": "ramp connector -> mainline; accepted merge",
+      "native_veh": 26.0,
+      "model_veh": {
+        "legacy": 3.9031260914128167,
+        "sc1005_unsignalized_only": 4.639961975689567,
+        "route_inventory": 4.639961975689567
+      },
+      "bias_veh": {
+        "legacy": -22.096873908587185,
+        "sc1005_unsignalized_only": -21.360038024310434,
+        "route_inventory": -21.360038024310434
+      }
+    }
+  ],
+  "adjacent150_windows": [
+    {
+      "start_sec": 900,
+      "end_sec": 1050,
+      "native": {
+        "TD_veh": 464,
+        "terminal_veh": 151,
+        "live_external_TD_veh": 313
+      },
+      "models": {
+        "legacy": {
+          "TD_veh": 294.5373794846559,
+          "terminal_veh": 156.2273346074252,
+          "live_external_TD_veh": 138.3100448772307
+        },
+        "route_inventory": {
+          "TD_veh": 322.7320744012005,
+          "terminal_veh": 152.9951365912611,
+          "live_external_TD_veh": 169.73693780993943
+        }
+      }
+    },
+    {
+      "start_sec": 1050,
+      "end_sec": 1200,
+      "native": {
+        "TD_veh": 549,
+        "terminal_veh": 178,
+        "live_external_TD_veh": 371
+      },
+      "models": {
+        "legacy": {
+          "TD_veh": 400.1716913495149,
+          "terminal_veh": 239.7349505341233,
+          "live_external_TD_veh": 160.4367408153916
+        },
+        "route_inventory": {
+          "TD_veh": 410.00153901602243,
+          "terminal_veh": 196.9342819851472,
+          "live_external_TD_veh": 213.06725703087523
+        }
+      }
+    },
+    {
+      "start_sec": 1200,
+      "end_sec": 1350,
+      "native": {
+        "TD_veh": 545,
+        "terminal_veh": 163,
+        "live_external_TD_veh": 382
+      },
+      "models": {
+        "legacy": {
+          "TD_veh": 443.66497677589234,
+          "terminal_veh": 262.67324045156556,
+          "live_external_TD_veh": 180.99173632432678
+        },
+        "route_inventory": {
+          "TD_veh": 399.09978162099776,
+          "terminal_veh": 175.1604327666672,
+          "live_external_TD_veh": 223.93934885433055
+        }
+      }
+    }
+  ],
+  "adjacent150_MAE_and_bias": {
+    "legacy": {
+      "TD_veh": {
+        "n": 3,
+        "native_total": 1558.0,
+        "model_total": 1138.3740476100631,
+        "total_bias": -419.62595238993686,
+        "mean_bias": -139.87531746331229,
+        "MAE": 139.87531746331229
+      },
+      "terminal_veh": {
+        "n": 3,
+        "native_total": 492.0,
+        "model_total": 658.635525593114,
+        "total_bias": 166.63552559311407,
+        "mean_bias": 55.54517519770469,
+        "MAE": 55.54517519770469
+      },
+      "live_external_TD_veh": {
+        "n": 3,
+        "native_total": 1066.0,
+        "model_total": 479.7385220169491,
+        "total_bias": -586.2614779830509,
+        "mean_bias": -195.42049266101697,
+        "MAE": 195.42049266101697
+      }
+    },
+    "route_inventory": {
+      "TD_veh": {
+        "n": 3,
+        "native_total": 1558.0,
+        "model_total": 1131.8333950382207,
+        "total_bias": -426.1666049617793,
+        "mean_bias": -142.05553498725976,
+        "MAE": 142.05553498725976
+      },
+      "terminal_veh": {
+        "n": 3,
+        "native_total": 492.0,
+        "model_total": 525.0898513430755,
+        "total_bias": 33.08985134307551,
+        "mean_bias": 11.029950447691837,
+        "MAE": 11.029950447691837
+      },
+      "live_external_TD_veh": {
+        "n": 3,
+        "native_total": 1066.0,
+        "model_total": 606.7435436951453,
+        "total_bias": -459.2564563048548,
+        "mean_bias": -153.0854854349516,
+        "MAE": 153.0854854349516
+      }
+    }
+  },
+  "adjacent150_scope": "Three adjacent bins of the same held450 forecast; not three independently initialized forecasts. SC1005-only full window bins were not stored and are not inferred.",
+  "model_coverage": {
+    "legacy": {
+      "schema": "implemented-model-constraint-coverage/v1",
+      "claim_scope": "implemented traffic-transition allocation and post-projection limits; control-domain feasibility is a caller obligation",
+      "expected_visits": 1125,
+      "completed_visits": 1125,
+      "schedule_complete": true,
+      "complete": true,
+      "allocator_visits_complete": true,
+      "captured_frames_complete": true,
+      "missing_constraints": [],
+      "checked_allocation_count": 108659,
+      "checked_state_bound_count": 32040,
+      "conditional_model_feasibility_witness": true
+    },
+    "sc1005_unsignalized_only": {
+      "schema": "implemented-model-constraint-coverage/v1",
+      "claim_scope": "implemented traffic-transition allocation and post-projection limits; control-domain feasibility is a caller obligation",
+      "expected_visits": 1125,
+      "completed_visits": 1125,
+      "schedule_complete": true,
+      "complete": true,
+      "allocator_visits_complete": true,
+      "captured_frames_complete": true,
+      "missing_constraints": [],
+      "checked_allocation_count": 108659,
+      "checked_state_bound_count": 32040,
+      "conditional_model_feasibility_witness": true
+    },
+    "route_inventory": {
+      "schema": "implemented-model-constraint-coverage/v1",
+      "claim_scope": "implemented traffic-transition allocation and post-projection limits; control-domain feasibility is a caller obligation",
+      "expected_visits": 1125,
+      "completed_visits": 1125,
+      "schedule_complete": true,
+      "complete": true,
+      "allocator_visits_complete": true,
+      "captured_frames_complete": true,
+      "missing_constraints": [],
+      "checked_allocation_count": 110182,
+      "checked_state_bound_count": 32040,
+      "conditional_model_feasibility_witness": true
+    }
+  },
+  "headfree_initial_capacity": {
+    "movement": "SC1005_N_SC105_to_W_SC1004",
+    "legacy_effective_capacity_veh_h": 206.53061224489795,
+    "new312_floor_active_in_this_rollout": false,
+    "reason": "The reused900 snapshot has the legacy prior without a qualified head-free floor. The current rollout retains206.53061224489795veh/h; the separate312 lower-bound diagnostic is not credited here."
+  },
+  "findings": [
+    "Offramp8 MAE improves48.4068596252 ->25.9555716486veh; both native and model measure accepted mainline-to-branch entries, not desired routing demand.",
+    "Terminal total and live external TD each move toward native totals. Their opposite signed biases cancel less, so aggregate TD error worsens419.6259523899 ->426.1666049618veh.",
+    "Merge total deficit narrows, but8-ramp MAE worsens10.9173508573 ->10.9783743329veh; connector10484 overprediction increases.",
+    "The combined route model also includes the adopted SC1005 unsignalized correction; the intermediate SC1005-only receipt is retained for separation.",
+    "TTT bias falls24.5333170101 ->21.3419538561veh*h, but overall native fidelity and controller benefit are not established."
+  ],
+  "caveats": {
+    "native_TD_requires_review": true,
+    "unresolved_native_inside_disappearances_excluded_from_TD": 12,
+    "native_stock_closure": {
+      "max_abs_residual_veh": 0,
+      "window_residual_veh": 0
+    },
+    "nonadditive_metrics": "Eight off-ramp entries and eight merges must not be added to TD. Only westbound direct off-ramp entries are Omega exits at the branch itself; live TD also contains other city crossings.",
+    "routing_resolution": "21-cell proportional mixing with corrected8 source cells; no exact sub-cell travel or vehicle lane behavior claim.",
+    "saturation_capacity_identified": false,
+    "full_native_fidelity_certified": false,
+    "GNE_certified": false,
+    "timing_comparison": "No runtime/speed conclusion is drawn from these differently instrumented receipts."
+  },
+  "source_receipts_sha256": {
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_model450_v1.json": "e03319c35b9bf5b6a7dcb0c35d2d1a3ceb1f56692947ff47a56eba3554d852a5",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_config_model450_v1.json": "afed45f5ced3de10fe850e687686c1e018a39c148186fe84b8f06a194173c836",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_routes_recorded900_v1.json": "a303fb7650d82f39efcc922ff4696fd4b4dbef9eff6a645bf1dc27ac3b4c654a",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_area450_v1/boundary_metrics.json": "2c0e7cb2ae9833c06908f09697ade9ab26f745b3e97e76db6208ffac971f0356",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_eight_branches_450_v1.json": "95ea4067861bdfa05982a45bebf5a142701c0db0c023efdec488d7d3cbe11f71",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/ramp_merge_three_windows_v1.json": "beaceae30fd8219daa83538b4e2c577660d63380ca4a6663024f7572c97d822a",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_ramp450_v1.json": "d3f90c1e384943b8e291f742e0dee99cbdce0b05b5e262e67bb27dc1ee347b3a",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_model_native_comparison_v1.json": "3f39615c97a72dd20afc71e700a6d1b9271c2380f21369b11fedaf30fb2f4507",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_preflight_command_equality_v1.json": "73a223bfe006ab44339256bd9aa6d3aaed59ed8dad582dfa90c4a9f02059f7c5",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/open1350_ttd_windows_v1.json": "531f7de33fa40f27c06e0f33cab4e4e4e0bcfda7c5986876bed496b3b304e6c6",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/ttd_windows_qualification_v1.json": "343130d4b37642aa83dd32ecce7c9d2be7791a54f208c5ea052b129405532f42",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_bypass_config_parity_v1.json": "1e0e8590c132ba514e8e7003bf160b88e07ca2c1d51b4abc2312e4ddef21ab22",
+    "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/sc1005_service_capacity_origin_v1.json": "0a7263212df62fd60e3f941ebac204695b64d793d7f876fdc96923db8b027aef"
+  },
+  "analysis_code": {
+    "path": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/build_fidelity_comparison_v1.py",
+    "sha256": "4eed7f95ef5696a85361935b89871103761d1bd18d351fb47dcad54a134a47cb"
+  },
+  "source_receipts_unchanged": true
+}

@@ -29,6 +29,20 @@ CSCRIPT = shutil.which("cscript.exe") or shutil.which("cscript")
 # 바뀐 뒤에도 옛 clearance 로만 돌아, 검사가 지금 돌아가는 코드를 재지 않게 된다.
 AMBER_SEC, ALL_RED_SEC = plant_cycle.runner_clearance_sec()
 
+CONFIG_DEPENDENCIES = ('ParseNativeClockConfig', 'IsFiniteNumberInRange',
+                       'IsControlledSignalGroup', 'MainlineSignalGroupsOnly')
+NATIVE_GLOBALS = '''
+Dim nativeClockPlans, RW_SIGNAL_NATIVE_CLOCKS, shell, sgPlanMidblockSkips
+Set nativeClockPlans = CreateObject("Scripting.Dictionary")
+Set shell = CreateObject("WScript.Shell")
+RW_SIGNAL_NATIVE_CLOCKS = ""
+sgPlanMidblockSkips = 0
+'''
+
+
+def helpers_with_config(source, names):
+    return "\n\n".join(procedure(source, name) for name in dict.fromkeys((*names, *CONFIG_DEPENDENCIES)))
+
 PLAN_PROCEDURES = (
     "ParseSignalGroupPlanConfig",
     "SignalGroupPlanKey",
@@ -45,10 +59,11 @@ PLAN_PROCEDURES = (
 def harness_source(source: str | None = None, body: str = "") -> str:
     if source is None:
         source = SOURCE
-    helpers = "\n\n".join(procedure(source, name) for name in PLAN_PROCEDURES)
+    helpers = helpers_with_config(source, PLAN_PROCEDURES)
     return f'''Option Explicit
 Const AMBER_SEC = {AMBER_SEC:g}
 Const ALL_RED_SEC = {ALL_RED_SEC:g}
+{NATIVE_GLOBALS}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
 Dim failures
@@ -191,10 +206,11 @@ CONTRACT_PROCEDURES = (
 def contract_harness_source(source: str | None = None, body: str = "") -> str:
     if source is None:
         source = SOURCE
-    helpers = "\n\n".join(procedure(source, name) for name in CONTRACT_PROCEDURES)
+    helpers = helpers_with_config(source, CONTRACT_PROCEDURES)
     return f'''Option Explicit
 Const AMBER_SEC = {AMBER_SEC:g}
 Const ALL_RED_SEC = {ALL_RED_SEC:g}
+{NATIVE_GLOBALS}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS, RW_SIGNAL_SCS
 Dim seenSg, pendWindows, pendCounts, pendCycle, pendOffset, rowCycle, rowOffset
@@ -330,12 +346,14 @@ EVENT_PROCEDURES = (
     # SignalGroupStateFromPlan 이 amber 억제 판정에 이것을 부른다.
     "AnySignalGroupGreenAt",
     "SignalCompositeStateAt",
+    "SignalClockPosition",
     "NextSignalTransitionAfter",
     "MaxSignalCycleSec",
     # N4-0. 주기를 현시 4값에서 만든다 - 이 셋을 안 떼어내면 harness 가 조용히 죽는다.
     "PhaseGreenSum",
     "LivePhaseCount",
     "SignalCycleFromPhases",
+    "SignalCycleForController",
     "DictValue",
     "FMod",
 )
@@ -344,10 +362,11 @@ EVENT_PROCEDURES = (
 def event_harness_source(source: str | None = None, body: str = "") -> str:
     if source is None:
         source = SOURCE
-    helpers = "\n\n".join(procedure(source, name) for name in EVENT_PROCEDURES)
+    helpers = helpers_with_config(source, EVENT_PROCEDURES)
     return f'''Option Explicit
 Const AMBER_SEC = {AMBER_SEC:g}
 Const ALL_RED_SEC = {ALL_RED_SEC:g}
+{NATIVE_GLOBALS}
 Dim sgPlanEnabled, sgPlanExpected, sgPlanConflicts, sgPlanWindows, sgPlanCycle, sgPlanGroups
 Dim RW_SIGNAL_SG_PLAN_SCHEMA, RW_SIGNAL_SG_EXPECTED, RW_SIGNAL_SG_CONFLICTS
 Dim sigPhaseGreen, sigOffset, simPeriod

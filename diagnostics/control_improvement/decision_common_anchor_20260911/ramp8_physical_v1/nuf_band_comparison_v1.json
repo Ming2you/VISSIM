@@ -1,0 +1,344 @@
+{
+  "5": {
+    "completed": true,
+    "source_changes": [],
+    "wrapper_elapsed_sec": 111.72077770000033,
+    "budget": {
+      "budget_sec": 120.0,
+      "finalization_reserve_sec": 10.0,
+      "wall_sec": 111.38385280000148,
+      "cpu_sec": 38.953125,
+      "overrun_sec": 0.0,
+      "expired_stage": "joint_game",
+      "inclusive_scopes": {
+        "load_and_model_prepare": {
+          "calls": 1,
+          "wall_sec": 2.8166747000032046,
+          "cpu_sec": 2.71875
+        },
+        "actual_hold_prediction_and_validation": {
+          "calls": 1,
+          "wall_sec": 4.260265900000377,
+          "cpu_sec": 0.109375
+        },
+        "common_price_preparation_and_measurement": {
+          "calls": 1,
+          "wall_sec": 75.81657079999786,
+          "cpu_sec": 15.84375
+        },
+        "leader_seed_merge_prediction": {
+          "calls": 1,
+          "wall_sec": 2.94996589999937,
+          "cpu_sec": 0.0
+        },
+        "final_action_validation_and_output": {
+          "calls": 1,
+          "wall_sec": 0.09222549999685725,
+          "cpu_sec": 0.0625
+        }
+      },
+      "scope_rule": "Inclusive nested scopes; do not sum. Deadline checked between callbacks; an in-flight callback can overrun.",
+      "output_completed": true,
+      "output_error": null,
+      "application_requires_successful_process_exit": true
+    },
+    "quantity_constraints": {
+      "schema": "shared-quantity-constraints/v1",
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 328.70730222626764,
+        "target": 2400.0,
+        "residual": -2071.2926977737325,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "equality",
+        "unit": "veh/h",
+        "actual": 1887.6394295259204,
+        "target": 1887.525930614418,
+        "residual": 0.11349891150234726,
+        "violation": 0.11349891150234726,
+        "tolerance": 40.0,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "feasible": true,
+      "net_inflow_veh_by_owner": {
+        "SC1": 48.77196775006298,
+        "SC5": 0.0,
+        "SC6": 0.0,
+        "SC7": 0.0,
+        "SC11": 3.5,
+        "SC12": 3.3626666666666662,
+        "SC16": 4.615349684258533,
+        "SC101": 0.0,
+        "SC105": 0.0,
+        "SC107": -19.474942571635555,
+        "SC108": 24.608856252041964,
+        "SC109": 7.08729273113719,
+        "SC1001": 142.2988563397114,
+        "SC1002": 0.0,
+        "SC1003": 0.0,
+        "SC1004": 113.9372553740245,
+        "SC1005": 0.0
+      },
+      "meter_rate_veh_h_by_owner": {
+        "FW_E": 712.2629699761616,
+        "FW_W": 1175.3764595497587
+      },
+      "nuf_definition": "predicted_accepted_mainline_merge",
+      "physical_ramp_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.05759939583907,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 16.707036866865078,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 3.9031260914128167,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.43219619223048
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.46079516671256,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 133.65629493492062,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 31.225008731302534,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 379.4575695378438
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 712.2629699761616,
+          "FW_W": 1175.3764595497587
+        },
+        "total_rate_veh_h": 1887.6394295259204,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "window": {
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "horizon_steps": 3,
+        "urban_samples": 90
+      },
+      "nonowner_service_included_in_np": false,
+      "individual_np_quotas_created": false,
+      "directional_nuf_constraints_checked": false,
+      "quantity_constraints_only": true,
+      "physical_feasibility_certified": false,
+      "leader_target_changed": false
+    },
+    "objective_veh_h": 190.8976027366147,
+    "game_evaluations": 11,
+    "owner_nonbase_neighbors": {
+      "FW_W": 1,
+      "SC1": 1,
+      "FW_E": 1,
+      "SC5": 1,
+      "SC6": 1,
+      "SC7": 0,
+      "SC11": 0,
+      "SC12": 0,
+      "SC16": 0,
+      "SC101": 0,
+      "SC105": 0,
+      "SC107": 0,
+      "SC108": 0,
+      "SC109": 0,
+      "SC1001": 0,
+      "SC1002": 0,
+      "SC1003": 0,
+      "SC1004": 0,
+      "SC1005": 0
+    },
+    "sweeps_completed": 0,
+    "gap": null,
+    "updates": [
+      "SC5"
+    ],
+    "workers_closed": true,
+    "workers_alive": []
+  },
+  "10": {
+    "completed": true,
+    "source_changes": [],
+    "wrapper_elapsed_sec": 111.54628020000018,
+    "budget": {
+      "budget_sec": 120.0,
+      "finalization_reserve_sec": 10.0,
+      "wall_sec": 111.28744770000048,
+      "cpu_sec": 42.328125,
+      "overrun_sec": 0.0,
+      "expired_stage": "urban_candidate_realization",
+      "inclusive_scopes": {
+        "load_and_model_prepare": {
+          "calls": 1,
+          "wall_sec": 2.681337399997574,
+          "cpu_sec": 2.578125
+        },
+        "actual_hold_prediction_and_validation": {
+          "calls": 1,
+          "wall_sec": 3.8773228999998537,
+          "cpu_sec": 0.078125
+        },
+        "common_price_preparation_and_measurement": {
+          "calls": 1,
+          "wall_sec": 72.50989600000321,
+          "cpu_sec": 15.71875
+        },
+        "leader_seed_merge_prediction": {
+          "calls": 1,
+          "wall_sec": 2.865577000000485,
+          "cpu_sec": 0.0
+        },
+        "final_action_validation_and_output": {
+          "calls": 1,
+          "wall_sec": 0.08659919999990962,
+          "cpu_sec": 0.0625
+        }
+      },
+      "scope_rule": "Inclusive nested scopes; do not sum. Deadline checked between callbacks; an in-flight callback can overrun.",
+      "output_completed": true,
+      "output_error": null,
+      "application_requires_successful_process_exit": true
+    },
+    "quantity_constraints": {
+      "schema": "shared-quantity-constraints/v1",
+      "np": {
+        "mode": "cap",
+        "unit": "veh",
+        "actual": 328.70730222626764,
+        "target": 2400.0,
+        "residual": -2071.2926977737325,
+        "violation": 0.0,
+        "tolerance": 1e-07,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "nuf": {
+        "mode": "equality",
+        "unit": "veh/h",
+        "actual": 1887.6394295259204,
+        "target": 1887.525930614418,
+        "residual": 0.11349891150234726,
+        "violation": 0.11349891150234726,
+        "tolerance": 80.0,
+        "constraint_checked": true,
+        "satisfied": true
+      },
+      "feasible": true,
+      "net_inflow_veh_by_owner": {
+        "SC1": 48.77196775006298,
+        "SC5": 0.0,
+        "SC6": 0.0,
+        "SC7": 0.0,
+        "SC11": 3.5,
+        "SC12": 3.3626666666666662,
+        "SC16": 4.615349684258533,
+        "SC101": 0.0,
+        "SC105": 0.0,
+        "SC107": -19.474942571635555,
+        "SC108": 24.608856252041964,
+        "SC109": 7.08729273113719,
+        "SC1001": 142.2988563397114,
+        "SC1002": 0.0,
+        "SC1003": 0.0,
+        "SC1004": 113.9372553740245,
+        "SC1005": 0.0
+      },
+      "meter_rate_veh_h_by_owner": {
+        "FW_E": 712.2629699761616,
+        "FW_W": 1175.3764595497587
+      },
+      "nuf_definition": "predicted_accepted_mainline_merge",
+      "physical_ramp_merge": {
+        "schema": "predicted-physical-ramp-merge/v1",
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "accepted_vehicles_by_ramp": {
+          "RM_C10480": 12.05759939583907,
+          "RM_C10482": 51.137934001528514,
+          "RM_C10646": 16.707036866865078,
+          "RM_C10644": 67.01948717948719,
+          "RM_C10639": 9.729487179487181,
+          "RM_C10681": 3.9031260914128167,
+          "RM_C10490": 27.968061783889716,
+          "RM_C10484": 47.43219619223048
+        },
+        "rate_veh_h_by_ramp": {
+          "RM_C10480": 96.46079516671256,
+          "RM_C10482": 409.1034720122281,
+          "RM_C10646": 133.65629493492062,
+          "RM_C10644": 536.1558974358975,
+          "RM_C10639": 77.83589743589745,
+          "RM_C10681": 31.225008731302534,
+          "RM_C10490": 223.74449427111773,
+          "RM_C10484": 379.4575695378438
+        },
+        "rate_veh_h_by_owner": {
+          "FW_E": 712.2629699761616,
+          "FW_W": 1175.3764595497587
+        },
+        "total_rate_veh_h": 1887.6394295259204,
+        "boundary": "ramp_to_mainline",
+        "omega_ttd": false,
+        "leader_target_inherited": false
+      },
+      "window": {
+        "start_sec": 900.0,
+        "end_sec": 1350.0,
+        "horizon_steps": 3,
+        "urban_samples": 90
+      },
+      "nonowner_service_included_in_np": false,
+      "individual_np_quotas_created": false,
+      "directional_nuf_constraints_checked": false,
+      "quantity_constraints_only": true,
+      "physical_feasibility_certified": false,
+      "leader_target_changed": false
+    },
+    "objective_veh_h": 190.8976027366147,
+    "game_evaluations": 17,
+    "owner_nonbase_neighbors": {
+      "FW_W": 1,
+      "SC1": 1,
+      "FW_E": 1,
+      "SC5": 1,
+      "SC6": 1,
+      "SC7": 1,
+      "SC11": 1,
+      "SC12": 1,
+      "SC16": 0,
+      "SC101": 0,
+      "SC105": 0,
+      "SC107": 0,
+      "SC108": 0,
+      "SC109": 0,
+      "SC1001": 0,
+      "SC1002": 0,
+      "SC1003": 0,
+      "SC1004": 0,
+      "SC1005": 0
+    },
+    "sweeps_completed": 0,
+    "gap": null,
+    "updates": [
+      "SC5"
+    ],
+    "workers_closed": true,
+    "workers_alive": []
+  },
+  "same_price_values": true,
+  "same_final_commands": true,
+  "selected_band_vehicles": 5,
+  "reason": "Same selected commands and same shared evaluated response; no demonstrated benefit from wider band in this recorded state. Time-limited coverage differs and is not convergence."
+}

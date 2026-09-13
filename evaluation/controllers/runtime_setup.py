@@ -97,7 +97,11 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     # Observed capacity already contains the native simultaneous-green effect.
     metadata.update(a.install_native_signal_structure(cfg, tuning))
     metadata.update(signal_actuation_contract.configure(cfg, tuning, a.load_signal_group_actuation_plan()))
+    if getattr(cfg.network, 'native_signal_minimum_policy', None) == 'include_source_reference':
+        metadata.update(a.validate_native_signal_runtime_source(cfg, state_json))
     from evaluation.controllers import head_service_resources
+    from evaluation.controllers import signal_head_observation
+    metadata.update(signal_head_observation.configure_head_free_service(cfg, tuning, state_json))
     metadata.update(head_service_resources.configure(
         cfg, tuning, state_json, a.load_signal_group_actuation_plan()))
     metadata.update(a.install_measured_movement_capacity(
@@ -162,9 +166,15 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         detector_mapping, state_json, corridor_projection = sc2001_corridor.prepare_projection(
             cfg, detector_mapping, state_json)
         metadata.update(corridor_projection)
+    from evaluation.controllers import physical_ramp_branches
+    detector_mapping, physical_ramp_metadata = physical_ramp_branches.configure(
+        cfg, tuning, mapping, detector_mapping, state_json)
+    metadata.update(physical_ramp_metadata)
+    metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
     state = a.traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input)
+    metadata.update(offramp_routing.initialize_inventory(state, cfg, state_json))
     metadata.update(a.install_monitor_fixed_signal_runtime_patch(
         cfg, state_json, detector_mapping) or {})
     if local_observation:
@@ -196,6 +206,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers import area_meter_finalization
         metadata.update(area_meter_finalization.configure(
             a, cfg, tuning, mapping, state_json, previous_action_path, state, calibration))
+    from evaluation.controllers.route_choice_corridor import configure_known_legsplit
+    metadata.update(configure_known_legsplit(cfg, tuning, state, state_json))
     return state, detector_mapping, metadata
 
 

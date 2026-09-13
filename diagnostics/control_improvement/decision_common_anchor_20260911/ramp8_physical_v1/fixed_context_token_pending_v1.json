@@ -1,0 +1,19 @@
+{
+  "schema": "pending-source-edit/v2",
+  "applied": false,
+  "path": "evaluation\\controllers\\area_follower_objective.py",
+  "source_file_sha256": "56a956dfb8251f4c1169c9069db936015bcccf6271aba2172911948646dc0d8e",
+  "old_text_sha256": "aa2e271fb8f1b7f7029c16ecff8694027240889701e89686e337b750a7d4667a",
+  "new_text_sha256": "01974e259267a89ad7c98696e2135dc0e4ae5c61923c5d34053940f4ccf5b8bf",
+  "replacements": [
+    {
+      "before": "    def fingerprint(supplied):\n        if packed((private, initial, anchor, demand, policy,\n",
+      "after": "    fixed_context_identity = token((external_token, fixed))\n    def fingerprint(supplied):\n        if packed((private, initial, anchor, demand, policy,\n"
+    },
+    {
+      "before": "        return token((external_token, fixed))\n",
+      "after": "        return fixed_context_identity\n"
+    }
+  ],
+  "scope": "Pure repeated context hashing reduction; all before/after live-value validation remains. No model/domain/score changes. Not installed while live game is active."
+}

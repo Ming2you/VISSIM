@@ -1,0 +1,15 @@
+{
+  "schema": "pending-source-edit/v2",
+  "applied": false,
+  "path": "evaluation/controllers/area_runtime.py",
+  "source_file_sha256": "4fd80602b16e4c3ce200f9575efea30e55a469d74aeb94d08735c2e142a282be",
+  "old_text_sha256": "4fd80602b16e4c3ce200f9575efea30e55a469d74aeb94d08735c2e142a282be",
+  "new_text_sha256": "d3491de9022354733c8be719dc01c8acae630bb27a9f960168e050ae3fb101e8",
+  "replacements": [
+    {
+      "before": "    cfg.network.control_area_beta_seconds = beta\n",
+      "after": "    import math\n    fast_np = section.get('fast_np_initialization')\n    if fast_np is not None:\n        required = {'candidate_time_budget_sec', 'restoration_time_budget_sec', 'restoration_max_evaluations'}\n        if not isinstance(fast_np, dict) or set(fast_np) != required:\n            raise ValueError('Explicit fast NP candidate/restoration budgets required')\n        for key in ('candidate_time_budget_sec', 'restoration_time_budget_sec'):\n            if type(fast_np[key]) not in (int, float) or not math.isfinite(fast_np[key]) or fast_np[key] <= 0:\n                raise ValueError('Positive finite fast NP time budgets required')\n        if (type(fast_np['restoration_max_evaluations']) is not int or fast_np['restoration_max_evaluations'] < 3\n                or fast_np['restoration_time_budget_sec'] > fast_np['candidate_time_budget_sec']):\n            raise ValueError('Restoration must fit candidate time and allow the incumbent plus two seeds')\n        if full_prefetch:\n            raise ValueError('Bounded fast NP candidates cannot use unlimited full-sweep prefetch')\n        cfg.network.control_area_fast_np_initialization = dict(fast_np)\n    elif hasattr(cfg.network, 'control_area_fast_np_initialization'):\n        del cfg.network.control_area_fast_np_initialization\n    cfg.network.control_area_beta_seconds = beta\n"
+    }
+  ],
+  "scope": "Opt-in fast NP initializer and bounded per-candidate restoration. No physical model, target, trust-region, price, or follower neighborhood change."
+}

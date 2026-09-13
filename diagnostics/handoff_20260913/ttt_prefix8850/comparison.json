@@ -1,0 +1,86 @@
+{
+  "schema": "interrupted-native-prefix-comparison/v1",
+  "full_run_completed": false,
+  "native_execution_certified": false,
+  "scope": "Observed native 0–8850s prefix; no completion receipt, final LDP/ERR verification remains unavailable. Final vehicles remain censored; no tail extrapolation.",
+  "comparisons": {
+    "0_8850": {
+      "no_control_ttt_veh_h": 4155.383750000014,
+      "control_ttt_veh_h": 4131.682499999996,
+      "control_minus_no_control_veh_h": -23.701250000017353,
+      "ttt_reduction_percent": 0.5703745171554198
+    },
+    "900_8850": {
+      "no_control_ttt_veh_h": 3965.121527777791,
+      "control_ttt_veh_h": 3941.4202777777737,
+      "control_minus_no_control_veh_h": -23.701250000017353,
+      "ttt_reduction_percent": 0.5977433436523308
+    }
+  },
+  "last_frame_vs_com": {
+    "fzp_vehicles": 1236,
+    "com_vehicles": 1235,
+    "missing_from_fzp": [],
+    "fzp_only_ids": [
+      "32482"
+    ]
+  },
+  "boundaries": {
+    "start_sec": 0.0,
+    "initial_state": "empty fresh network assumption",
+    "first_fzp_sec": 1.0,
+    "last_fzp_sec": 8850.0,
+    "observed_through_sec": 8850.0,
+    "requested_end_sec": 8850.0,
+    "final_state_used": false,
+    "unobserved_tail_sec": 0.0,
+    "tail_method": "none"
+  },
+  "sampling": {
+    "fzp_rows": 18551214,
+    "fzp_snapshots": 8850,
+    "nominal_step_sec": 1.0,
+    "maximum_step_sec": 1.0,
+    "missing_snapshot_gaps": 0
+  },
+  "fzp": {
+    "path": "evaluation/runs/codex_fid_cl9000_s13_v3/vissim_eval/baseline_001.fzp",
+    "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM",
+    "file_sha256": "8231f7431a23fa9692aa0efb551054e1d83198aeb650700cbf31665806ea50de",
+    "payload_sha256": "4c8ef548c47da1217489352552923e6f9b79bc56faf39e4cf9956b84b57da2a7",
+    "rows": 18551214
+  },
+  "sources": [
+    {
+      "path": "evaluation/runs/codex_fid_cl9000_s13_v3/run_provenance_codex_fid_cl9000_s13_v3.json",
+      "sha256": "68c2291e878a1c46e648721b24f048e73625353fdd604b731632126dd17481a2",
+      "bytes": 64905
+    },
+    {
+      "path": "evaluation/runs/codex_phys8_fidelity_fw080_u050_nc9000_s13_v1/run_provenance_codex_phys8_fidelity_fw080_u050_nc9000_s13_v1.json",
+      "sha256": "53e649d78aefcbe31587d9009638a72716a7e2a8ea1d2df59861ceaec4983913",
+      "bytes": 66030
+    },
+    {
+      "path": "evaluation/runs/codex_fid_cl9000_s13_v3/decisions_codex_fid_cl9000_s13_v3/state_008850.json",
+      "sha256": "ad1514e0d37d11c7c15e3cadf4366a13b24aeb404b7a929c95e4c6d686708cd9",
+      "bytes": 468975
+    },
+    {
+      "path": "diagnostics/control_area_membership.json",
+      "sha256": "4863f5ee5bae6dd47bd00d2adf4a437b9c5eed94f17d3af72fb647fdb31ade9d",
+      "bytes": 127318
+    },
+    {
+      "path": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/fidelity_nc9000_s13_full_v1/area_timeseries.csv",
+      "sha256": "e2feca0bc13cbc19744dbc457e914fbca1b00f2c11c8da50330179bcdd4854dd",
+      "bytes": 608272
+    },
+    {
+      "path": "diagnostics/handoff_20260913/compare_ttt_prefix.py",
+      "sha256": "fb4ec1d0802c76f078db59f61c81058773f66e6d922e52ba1faf284c4b6bb1f9",
+      "bytes": 5187
+    }
+  ],
+  "elapsed_sec_not_benchmark": 69.88561249999998
+}

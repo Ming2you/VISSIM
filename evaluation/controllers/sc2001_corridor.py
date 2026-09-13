@@ -288,6 +288,10 @@ def advance(state, control, demand, cfg, urban_step_index):
     ready = {key: sum(amount for branches in local['bins'].values() for due, amount in branches.get(key, {}).items()
                      if due <= urban_step_index) for key in spec['branches']}
     accepted = {}
+    from evaluation.controllers.control_area_objective import get_ledger
+    ledger = get_ledger(state)
+    capture = ledger is not None and ledger.captures_response
+    branch_limits = {} if capture else None
     for key, branch in spec['branches'].items():
         service = sat*branch['lanes']*dt_h
         if branch['target_kind'] == 'ramp':
@@ -299,11 +303,22 @@ def advance(state, control, demand, cfg, urban_step_index):
                 raise ValueError('SC2001 external exit requires finite positive boundary service')
             receiving = cap_h*dt_h
         accepted[key] = min(ready[key], receiving, service)
+        if capture:
+            branch_limits[key] = (receiving, service)
     # Aggregate78 has two lanes. Preserve each destination's blockage rather
     # than reallocating its prior; proportionally share the common service.
     shared_service = sat*spec['lanes']*dt_h
     factor = min(1., shared_service/sum(accepted.values())) if sum(accepted.values()) else 1.
     accepted = {key: value*factor for key, value in accepted.items()}
+    if capture:
+        for key, amount in accepted.items():
+            receiving, service = branch_limits[key]
+            sources = {'sc2001:branch:' + key: amount}
+            ledger.record_resource_allocation('sc2001_ready', spec['storage'] + ':' + key, ready[key], sources)
+            ledger.record_resource_allocation('sc2001_branch_service', spec['storage'] + ':' + key, service, sources)
+            ledger.record_resource_allocation('sc2001_receiving', spec['storage'] + ':' + key, receiving, sources)
+        ledger.record_resource_allocation('sc2001_shared_service', spec['storage'], shared_service,
+                                         {'sc2001:branch:' + key: amount for key, amount in accepted.items()})
     by_origin = {}
     for key, amount in accepted.items():
         if amount <= 0:
@@ -340,6 +355,8 @@ def advance(state, control, demand, cfg, urban_step_index):
     if abs(residual) > 1e-7 or not math.isclose(_occupancy(state, spec), _tracked(local), abs_tol=1e-7):
         raise AssertionError('SC2001 accepted-flow mass balance failed')
     local['last_step'] = urban_step_index; local['departed_veh'] += departed
+    if capture:
+        ledger.complete_constraint_coverage('sc2001_corridor')
     return {'sc2001_departed_veh': departed, 'sc2001_external_exit_veh': accepted['outside_125'],
             'sc2001_accepted_by_branch': accepted, 'sc2001_accepted_by_origin': by_origin,
             'sc2001_storage_veh': _occupancy(state, spec), 'sc2001_mass_residual_veh': residual}

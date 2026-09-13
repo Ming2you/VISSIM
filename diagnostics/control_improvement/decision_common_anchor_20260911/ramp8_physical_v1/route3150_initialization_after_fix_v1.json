@@ -1,0 +1,168 @@
+{
+  "schema": "missed-route-recorded-initialization/v1",
+  "complete": true,
+  "scope": "Actual recorded3150 canonical build_projected initialization only; no demand forecast/model substep/endpoint/native execution",
+  "elapsed_sec_not_benchmark": 2.116917999999714,
+  "sources": {
+    "evaluation\\runs\\codex_phys8_fidelity_fw080_u050_cl9000_s13_v1\\decisions_codex_phys8_fidelity_fw080_u050_cl9000_s13_v1\\state_003150.json": "561d599e41d1c3fae471c7810fa4140c3650d7509a060663cd2545cd377b5770",
+    "evaluation\\runs\\codex_phys8_fidelity_fw080_u050_cl9000_s13_v1\\decisions_codex_phys8_fidelity_fw080_u050_cl9000_s13_v1\\action_003000.json": "54f475b29a913eda90f6bcf494bc83159de22561e25d67df5d0a685029875adc",
+    "diagnostics\\selected_control_demand\\codex_phys8_fidelity_fw080_u050_cl9000_s13_v1\\config.json": "ce4b0a759821e83a7861f353f9bc2b23b30cfe1f943c8726cd9ec93ddeb38993",
+    "evaluation\\controllers\\offramp_routing.py": "385a1386b426598948a6679d7bcc1f7a4d8e532b5461b57fcf11901ac62fc10b"
+  },
+  "metadata": {
+    "offramp_route_inventory_enabled": 1.0,
+    "offramp_route_inventory_source": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json",
+    "offramp_route_inventory_semantics": "Observed current routes retained; constant future eligible choices expanded once as expected mass; accepted-flow cell advection",
+    "offramp_route_inventory_branches": {
+      "10481": {
+        "group": "OR_D_E",
+        "branch": "signal",
+        "freeway": "FW_E",
+        "source_cell": 13,
+        "source_chain_m": 6826.842552641461,
+        "decision": "1131",
+        "receiver": "OR_D_E_storage"
+      },
+      "10483": {
+        "group": "OR_D_E",
+        "branch": "direct",
+        "freeway": "FW_E",
+        "source_cell": 14,
+        "source_chain_m": 7240.272173232713,
+        "decision": "1131",
+        "receiver": "SC1001_W_out"
+      },
+      "10491": {
+        "group": "OR_D_W",
+        "branch": "signal",
+        "freeway": "FW_W",
+        "source_cell": 7,
+        "source_chain_m": 3650.904900904122,
+        "decision": "1132",
+        "receiver": "OR_D_W_storage"
+      },
+      "10479": {
+        "group": "OR_D_W",
+        "branch": "direct",
+        "freeway": "FW_W",
+        "source_cell": 6,
+        "source_chain_m": 3425.400538779528,
+        "decision": "1132",
+        "receiver": "SC1001_W_tail"
+      },
+      "10643": {
+        "group": "OR_F_E",
+        "branch": "signal",
+        "freeway": "FW_E",
+        "source_cell": 8,
+        "source_chain_m": 4386.333040435746,
+        "decision": "1130",
+        "receiver": "OR_F_E_storage"
+      },
+      "10682": {
+        "group": "OR_F_E",
+        "branch": "direct",
+        "freeway": "FW_E",
+        "source_cell": 9,
+        "source_chain_m": 4746.8844645080735,
+        "decision": "1130",
+        "receiver": "SC1004_W_out"
+      },
+      "10638": {
+        "group": "OR_F_W",
+        "branch": "signal",
+        "freeway": "FW_W",
+        "source_cell": 12,
+        "source_chain_m": 6224.840000814334,
+        "decision": "1133",
+        "receiver": "OR_F_W_storage"
+      },
+      "10645": {
+        "group": "OR_F_W",
+        "branch": "direct",
+        "freeway": "FW_W",
+        "source_cell": 11,
+        "source_chain_m": 5909.740224305974,
+        "decision": "1133",
+        "receiver": "SC1004_W_tail"
+      }
+    },
+    "offramp_route_inventory_initial_known_veh": 1441,
+    "offramp_route_inventory_initial_null_veh": 210,
+    "offramp_route_inventory_initial_missed_target_veh": 1,
+    "offramp_route_inventory_initial_missed_targets": [
+      {
+        "veh_no": 12602,
+        "route": "1130:3",
+        "target": "10682",
+        "freeway": "FW_E",
+        "cell": 11,
+        "link_no": 2,
+        "position_m": 2984.55705764323,
+        "chain_m": 5719.08405764323,
+        "target_source_chain_m": 4746.8844645080735,
+        "past_target_m": 972.1995931351566
+      }
+    ],
+    "offramp_route_inventory_missed_target_diagnostics": {
+      "observed_missed_target_veh": 1,
+      "policy": "Observed route retained; accepted forward transport only; no branch redraw or normal terminal TD; final-cell stock remains censored",
+      "current_missed_target_veh": 1.0,
+      "terminal_censored_veh": 0.0
+    }
+  },
+  "freeway_vehicle_counts": {
+    "FW_W": [
+      41.0,
+      55.00000000000001,
+      62.0,
+      74.0,
+      73.0,
+      43.0,
+      46.0,
+      18.0,
+      17.0,
+      8.0,
+      9.0,
+      17.0,
+      14.0,
+      20.0,
+      19.0,
+      21.0,
+      14.0,
+      16.0,
+      14.0,
+      25.0,
+      18.0
+    ],
+    "FW_E": [
+      38.0,
+      28.0,
+      27.0,
+      31.0,
+      110.0,
+      161.0,
+      185.0,
+      158.0,
+      144.0,
+      39.0,
+      13.0,
+      10.0,
+      13.0,
+      13.0,
+      6.0,
+      9.0,
+      6.0,
+      9.0,
+      7.0,
+      10.0,
+      10.0
+    ]
+  },
+  "inventory_diagnostics": {
+    "observed_missed_target_veh": 1,
+    "policy": "Observed route retained; accepted forward transport only; no branch redraw or normal terminal TD; final-cell stock remains censored",
+    "current_missed_target_veh": 1.0,
+    "terminal_censored_veh": 0.0
+  }
+}
