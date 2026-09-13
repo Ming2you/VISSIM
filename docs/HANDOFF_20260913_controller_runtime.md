@@ -4,6 +4,8 @@
 
 **추가 진단:** 사용자의 낮은 개선율·미터 TTT 의심에 대한 [2026-09-13 성능·미터 진단](../diagnostics/performance_diagnosis_20260913/REPORT.md)을 함께 읽는다. 53개 결정의 탐색 제한, 2400초 동일 상태 미터 반응, native 첨두 악화·후반 회복을 확인했다. E8 미터 g8은 해당 시점의 평균 서비스 모델에서 도착 재고보다 상한이 높아 교통 반응이 정확히 동률이었다. TTT 거주시간 합산·Ω 내 생성항을 포함한 보존식에는 해당 재현에서 오류가 없었다. native g8 A/B는 아직 수행하지 않았으며 정본 모델·controller 소스는 이 추가 진단에서 변경하지 않았다. 원본 LDP의 완전한 byte-prefix로 8741초까지 신호 상태를 보완 확인했지만, 마지막 109초와 전체 런 인증은 미완료다. 아래 원래 인계 결과·실패 기록은 그대로 보존한다.
 
+**전체 진단 전송과 과거 성능 대조:** 사용자가 추가 진단 자료 전부의 GitHub 전송을 명시적으로 요청했다. `diagnostics/performance_diagnosis_20260913/`에는 모델 원시 응답 3개, 파생 LDP 25개, 중간 분석표·실패 기록까지 포함하며 `complete_diagnostic_package.json`의 SHA를 기준으로 확인한다. [과거 5.68% 결과 검토](../diagnostics/performance_diagnosis_20260913/history_5pct_review.md)에서 당시 70/40·5400초 런도 미터는 모두 g10, VSL은 모두120이었다. 당시 여러 도시 신호가 함께 갱신됐고 현재는 한 주체씩 갱신되지만, 수요·기간·모델도 달라 이것만으로 성능 차이의 원인을 확정하지 않는다. [레버 구현 변경 이력](../diagnostics/performance_diagnosis_20260913/history_lever_changes.md)을 함께 읽는다. 기존 `evaluation/runs` 원시 FZP 전체가 이번 진단 폴더에 포함되는 것은 아니며 원본 재집계에는 별도 전송이 필요하다.
+
 ## 현재 상태와 바로 확인할 결과
 
 - 작업 브랜치: `codex/control-full-review-20260909`. 원격 `https://github.com/Ming2you/VISSIM.git`.

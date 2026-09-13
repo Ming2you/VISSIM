@@ -1,0 +1,6 @@
+# Keep native and model audit evidence byte-exact on every checkout.
+* -text whitespace=cr-at-eol
+*.ldp -diff -whitespace
+*.pickle binary
+*.txt -whitespace
+*.log -whitespace

@@ -1,0 +1,1158 @@
+{
+  "schema": "historical-five-percent-review/v1",
+  "created_utc": "2026-09-13T09:27:38.980280+00:00",
+  "primary_report": "reports/20260911_overnight/OVERNIGHT_20260911.md",
+  "nc_run": "fast_nc_fw070_urban040_s13_v1",
+  "cl_run": "codex_selected_fw070_u040_beta0_r02",
+  "cl_run_id": "f4dbd2e09b8b4aef96af7696b81edb3d",
+  "seed": 13,
+  "demand": {
+    "FW_profile_factor": 0.7,
+    "urban_profile_factor": 0.4,
+    "basis": "Final profiled native demand; not raw INPX volume. Raw INPX FW multiplier0.58331; urban0.4.",
+    "inputs": 34,
+    "rows": 204,
+    "same_profile_rows_float_exact": 200,
+    "remaining_max_error_vph": 4.547473508864641e-13
+  },
+  "window_sec": [
+    0,
+    5400
+  ],
+  "control_start_sec": 900,
+  "control_interval_sec": 150,
+  "controller": "Earlier wu-link based on contract_candidate_configs_v4/n7_area_beta0.json",
+  "objective_beta_seconds": 0,
+  "metric": "Observed Omega occupancy integrated by actual-time trapezoid, veh-h. First FZP1s, initial0 empty fresh network, no tail extrapolation. Not full-network TTT or model J.",
+  "headline": {
+    "inside": {
+      "nc": 1938.9770833333293,
+      "r02": 1828.8799999999992,
+      "delta_r02_minus_nc": -110.09708333333015
+    },
+    "outside": {
+      "nc": 571.4891666666645,
+      "r02": 576.5923611111128,
+      "delta_r02_minus_nc": 5.103194444448377
+    },
+    "network": {
+      "nc": 2510.4662500000068,
+      "r02": 2405.4723611111117,
+      "delta_r02_minus_nc": -104.99388888889507
+    },
+    "omega_reduction_percent": 5.678101318457063,
+    "omega_ten_percent_target_veh_h": 1745.0793749999964,
+    "omega_target_remaining_veh_h": 83.80062500000281,
+    "network_reduction_percent": 4.182246580247584,
+    "outside_increase_percent": 0.8929643363519757,
+    "links_127_10481_delta_veh_h": -157.12680555555517,
+    "other_inside_links_net_delta_veh_h": 47.02972222222502
+  },
+  "accounting": {
+    "ttd_observed_exit_events": {
+      "nc": 11552,
+      "r02": 11605,
+      "delta_r02_minus_nc": 53
+    },
+    "ttd_terminal_exit_inferred_events": {
+      "nc": 5676,
+      "r02": 5682,
+      "delta_r02_minus_nc": 6
+    },
+    "ttd_terminal_overshoot_inferred_events": {
+      "nc": 3927,
+      "r02": 3924,
+      "delta_r02_minus_nc": -3
+    },
+    "ttd_observed_plus_terminal_events": {
+      "nc": 17228,
+      "r02": 17287,
+      "delta_r02_minus_nc": 59
+    },
+    "ttd_counted_unique_vehicle_ids": {
+      "nc": 16701,
+      "r02": 16756,
+      "delta_r02_minus_nc": 55
+    },
+    "ttd_repeat_exit_events": {
+      "nc": 527,
+      "r02": 531,
+      "delta_r02_minus_nc": 4
+    },
+    "unresolved_inside_disappearances": {
+      "nc": 181,
+      "r02": 166,
+      "delta_r02_minus_nc": -15
+    },
+    "observed_entry_events": {
+      "nc": 4719,
+      "r02": 4692,
+      "delta_r02_minus_nc": -27
+    },
+    "appeared_inside_events": {
+      "nc": 13495,
+      "r02": 13495,
+      "delta_r02_minus_nc": 0
+    },
+    "censored_last_observed_inside_vehicles": {
+      "nc": 805,
+      "r02": 734,
+      "delta_r02_minus_nc": -71
+    },
+    "native_removals": {
+      "nc": 96,
+      "r02": 77,
+      "delta_r02_minus_nc": -19
+    },
+    "native_removals_inside": {
+      "nc": 63,
+      "r02": 58,
+      "delta_r02_minus_nc": -5
+    },
+    "native_removals_outside": {
+      "nc": 33,
+      "r02": 19,
+      "delta_r02_minus_nc": -14
+    },
+    "unknown_not_matched_to_native_inside": {
+      "nc": 118,
+      "r02": 108,
+      "delta_r02_minus_nc": -10
+    },
+    "final_network_stock": {
+      "nc": 1071,
+      "r02": 985,
+      "delta_r02_minus_nc": -86
+    },
+    "final_outside_stock": {
+      "nc": 266,
+      "r02": 251,
+      "delta_r02_minus_nc": -15
+    }
+  },
+  "completion": {
+    "nc_completed": true,
+    "cl_completed": true,
+    "both_wrapper_exit_code": 0,
+    "owned_native_closed_in_receipts": true,
+    "cl_child_cscript_exit_code": null,
+    "scope": "Historical recorded receipt, not new process verification."
+  },
+  "physical_network_sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317",
+  "physical_commands": {
+    "files": 37,
+    "warmup_files": 6,
+    "warmup_rows_each": 74,
+    "controlled_files": 31,
+    "controlled_rows_each": 213,
+    "all_vsl_kph": [
+      120.0
+    ],
+    "all_meter_green_sec": [
+      10.0
+    ],
+    "vsl_changes": 0,
+    "meter_changes": 0,
+    "first_control_output_sec": 900,
+    "subsequent_urban_changed_outputs": 30,
+    "urban_changed_or_first_output_count": 31,
+    "commands_with_postcommand_exposure": 30,
+    "terminal5400_exposure_sec": 0,
+    "vsl_readback_rows": 2442,
+    "vsl_readbacks": {
+      "120|120": 2442
+    },
+    "meter_readback_rows": 296,
+    "meter_readbacks": {
+      "GREEN": 296
+    },
+    "readback_scope": "Setter-time historical run CSV only; not modern four-class or continuous native certification. Warmup CSV contains no urban signal command, so first900 changes mean first command fields, not a numerical comparison to native warmup phase values.",
+    "per_command": [
+      {
+        "sec": 1,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 150,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 300,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 450,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 600,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 750,
+        "rows": 74,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": []
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 900,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1050,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1200,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1350,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1500,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1650,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1800,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 1950,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2100,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2250,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2400,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2550,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2700,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 2850,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3000,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3150,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3300,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3450,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3600,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3750,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 3900,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4050,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4200,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4350,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4500,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4650,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4800,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 4950,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 5100,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 5250,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1",
+            "SC1001",
+            "SC1002",
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": true
+      },
+      {
+        "sec": 5400,
+        "rows": 213,
+        "changed_vs_previous_output": {
+          "vsl": [],
+          "ramp_meter": [],
+          "signal": [
+            "SC1003",
+            "SC1004",
+            "SC1005",
+            "SC101",
+            "SC105",
+            "SC107",
+            "SC108",
+            "SC109",
+            "SC11",
+            "SC12",
+            "SC16",
+            "SC5",
+            "SC6",
+            "SC7"
+          ]
+        },
+        "following_exposure_before_terminal": false
+      }
+    ]
+  },
+  "validation_existing_aggregate": {
+    "nc": {
+      "complete": true,
+      "frames_1s": 5400,
+      "area_closure_max": 0,
+      "road_closure_checks_as_reported": 108000,
+      "td_partition_exact": true,
+      "native_removals_all_uniquely_matched": true,
+      "terminal_removal_collision": false,
+      "timeseries_trapezoid_matches_area_and_links_abs_tolerance": 1e-08,
+      "last_window_road_balances_exact": true,
+      "unfinished_input_warnings": []
+    },
+    "r02": {
+      "complete": true,
+      "frames_1s": 5400,
+      "area_closure_max": 0,
+      "road_closure_checks_as_reported": 108000,
+      "td_partition_exact": true,
+      "native_removals_all_uniquely_matched": true,
+      "terminal_removal_collision": false,
+      "timeseries_trapezoid_matches_area_and_links_abs_tolerance": 1e-08,
+      "last_window_road_balances_exact": true,
+      "unfinished_input_warnings": []
+    },
+    "fw_E": {
+      "processed_rows_each": 3780,
+      "identical_rows": 1827,
+      "full_trajectory_equivalence_claim": false
+    },
+    "fw_W": {
+      "processed_rows_each": 3780,
+      "identical_rows": 1641,
+      "full_trajectory_equivalence_claim": false
+    },
+    "warmup_processed_area_1_to_900_rows_exact": true,
+    "source_input_csv_exact": true,
+    "source_input_scope": {
+      "verified_isolated_sources": {
+        "74": 1098,
+        "66": 1100,
+        "69": 1101
+      },
+      "excluded": {
+        "1099": "source26 has incoming connector10480; first appearance cannot be uniquely attributed"
+      },
+      "observation": "First-ever sampled ID on an isolated source; seen-ID reappearance excluded. Insertions that traverse the entire source between1s frames can be missed; not desired demand."
+    },
+    "processed_input_changes": []
+  },
+  "aggregate_producer_sha256": {
+    "nc": "509b7afb2281ea75053350456fdf880a38500a4742c59788b39ac940f25f42b2",
+    "r02": "abdf6094e02e23c9faef04031c0faa6338924e18102c286ff27e6dc5e27888ad"
+  },
+  "limitations": [
+    "No new raw FZP, LSA, LDP, model or COM run/scan.",
+    "Stored warmup processed area series equal, but raw warmup trajectories/native clocks not revalidated here.",
+    "Historical NC uses fast continuous runner; no blanket cross-runner equivalence claim.",
+    "Stored summary producers differ; stored accounting checks do not create full native or GNE certificate.",
+    "Native deletion96/77 and raw inside disappearance181/166 remain; inside deletion63/58 is a subset, not additive.",
+    "Single seed and observed5400 period only;5400 output cannot cause pre5400 TTT."
+  ],
+  "comparison_current": {
+    "same_condition": false,
+    "current_runs": [
+      "codex_phys8_fidelity_fw080_u050_nc9000_s13_v1",
+      "codex_fid_cl9000_s13_v3"
+    ],
+    "current_demand": "FW80/urban50",
+    "current_seed": 13,
+    "observed_window_sec": [
+      0,
+      8850
+    ],
+    "requested_terminal_sec": 9000,
+    "current_completed": false,
+    "current_ttt_veh_h": [
+      4155.38375,
+      4131.6825
+    ],
+    "current_reduction_percent": 0.5703745171550058,
+    "current_last_complete_control_sec": 8700,
+    "same_metric_family": "observed Omega TTT",
+    "current_signal_verified_through_sec": 8741,
+    "current_signal_unverified_tail_sec": 109,
+    "differences": [
+      "70/40 versus80/50 demand",
+      "completed5400 versus interrupted9000 observed8850",
+      "earlier controller/model/search/native initialization versus current physical8 joint-follower/fidelity implementation",
+      "multiple urban controllers changed versus current one accepted urban owner per decision",
+      "fast NC versus canonical NC runner"
+    ],
+    "interpretation": "5.68 to0.57 does not isolate a controller regression. Historical active metering cannot explain5.68 because meter andVSL physical commands remained open."
+  },
+  "alternative_old_5_48": "Exact8339.0/minus483.8/5.48 original not identified. Related protected_ttt_20260903.json is5s all-network summary: oldCL8827.227778 -> rampclean8343.979167 (~5.47% lower), NC7960.694444 (rampclean~4.81% worse). Not NC improvement or established currentOmega definition; no broader historical search performed.",
+  "source_manifest": "history_5pct_sources/manifest.json",
+  "copies_verified": 56,
+  "copied_bytes": 2876029,
+  "originals_unchanged_at_verification": true,
+  "diagnostic_note": "Initial new report construction stopped on incorrect assumption all37 action CSVs have213 rows. No original changed and no report was produced then. Actual warmup6x74 and controlled31x213 split checked before this output."
+}
