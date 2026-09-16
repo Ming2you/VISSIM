@@ -1,4 +1,4 @@
-"""Snapshot physical identity, with an explicit recording-only INPX proof.
+"""Snapshot physical identity, with an explicit observational INPX proof.
 
 Without ``network_recording`` the legacy fingerprint contract is unchanged.
 With it, files.network remains the *loaded* file's truthful SHA; only this
@@ -7,6 +7,7 @@ function returns the validated physical source SHA for calibration contracts.
 from collections import OrderedDict
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 from xml.parsers import expat
@@ -35,12 +36,19 @@ def _groups(groups):
     return tuple(sorted(result.items()))
 
 
-def _layout(data):
+def _layout(data, include_detectors=False):
     """Obtain actual XML byte spans; comments/quoted text are never elements."""
     if type(data) is not bytes:
         raise ValueError('Network input must be immutable bytes')
     parser = expat.ParserCreate()
     stack = []; controllers = {}; evaluations = []; recordings = []
+    detector_nodes = {key: [] for key in ('points', 'measurements', 'dataColl', 'links')}
+    detector_paths = {
+        ('network', 'dataCollectionPoints'): 'points',
+        ('network', 'dataCollectionMeasurements'): 'measurements',
+        ('network', 'evaluation', 'dataColl'): 'dataColl',
+        ('network', 'links', 'link'): 'links',
+    }
     def start(tag, attrs):
         pos = parser.CurrentByteIndex
         # The XML parser has already recognized a start tag. Respect quoted >.
@@ -55,6 +63,16 @@ def _layout(data):
         node = {'tag': tag, 'attrs': attrs, 'start': pos, 'open_end': end+1,
                 'self_closing': data[pos:end].rstrip().endswith(b'/')}
         path = tuple(n['tag'] for n in stack) + (tag,)
+        if include_detectors:
+            if path in detector_paths:
+                node['children'] = []; node['coordinates'] = []; detector_nodes[detector_paths[path]].append(node)
+            elif path in (('network', 'dataCollectionPoints', 'dataCollectionPoint'),
+                          ('network', 'dataCollectionMeasurements', 'dataCollectionMeasurement')):
+                stack[-1]['children'].append(node)
+            elif path == ('network', 'links', 'link', 'lanes', 'lane'):
+                stack[-2]['children'].append(node)
+            elif path == ('network', 'links', 'link', 'geometry', 'linkPolyPts', 'linkPolyPoint'):
+                stack[-3]['coordinates'].append(tuple(float(attrs.get(key, '0')) for key in ('x', 'y', 'zOffset')))
         if not stack and tag != 'network':
             raise ValueError('Expected a native network root')
         if path == ('network', 'signalControllers', 'signalController'):
@@ -77,6 +95,7 @@ def _layout(data):
         stack.append(node)
     def end(tag):
         node = stack.pop()
+        node['close_start'] = parser.CurrentByteIndex
         node['end'] = (node['open_end'] if node['self_closing'] else
                        data.index(b'>', parser.CurrentByteIndex)+1)
     def reject_doctype(*args):
@@ -87,7 +106,88 @@ def _layout(data):
     except expat.ExpatError as exc: raise ValueError('Malformed network XML') from exc
     if len(evaluations) != 1 or len(recordings) != 1:
         raise ValueError('Expected exactly one evaluation/scDetRec')
+    if include_detectors:
+        return controllers, recordings[0], detector_nodes
     return controllers, recordings[0]
+
+
+def _detector_edits(source_bytes, declaration):
+    """Append declared singleton lane measurements; keep all other bytes exact."""
+    if not isinstance(declaration, dict) or declaration.get('schema') != 'rule-native-detectors/v1':
+        raise ValueError('Unsupported rule detector declaration')
+    if ('source_network_sha256' in declaration and
+            declaration['source_network_sha256'] != hashlib.sha256(source_bytes).hexdigest()):
+        raise ValueError('Rule detector declaration physical network SHA differs')
+    times = [declaration.get(key) for key in ('from_sec', 'interval_sec', 'to_sec')]
+    if any(type(value) is not int for value in times) or times[0] < 0 or times[1] <= 0 or times[2] <= times[0]:
+        raise ValueError('Invalid rule detector collection times')
+    stations = declaration.get('stations')
+    if not isinstance(stations, list) or not stations:
+        raise ValueError('Rule detector stations must be a nonempty list')
+    _, _, nodes = _layout(source_bytes, include_detectors=True)
+    if any(len(nodes[key]) != 1 for key in ('points', 'measurements', 'dataColl')):
+        raise ValueError('Expected unique native data collection containers/evaluation')
+    point_root, measurement_root, evaluation = (nodes[key][0] for key in ('points', 'measurements', 'dataColl'))
+    links = {int(node['attrs']['no']): len(node['children']) for node in nodes['links']}
+    lengths = {int(node['attrs']['no']): sum(math.dist(a, b) for a, b in zip(node['coordinates'], node['coordinates'][1:]))
+               for node in nodes['links']}
+    existing_points = {int(node['attrs']['no']): node['attrs'] for node in point_root['children']}
+    existing_measurements = {int(node['attrs']['no']) for node in measurement_root['children']}
+    point_rows = []; measurement_rows = []; points = {}; addresses = {}; measurements = set(); station_ids = set()
+    for station in stations:
+        if not isinstance(station, dict): raise ValueError('Invalid rule detector station')
+        identity, role, target = (station.get(key) for key in ('id', 'role', 'target'))
+        if (not isinstance(identity, str) or not identity or identity in station_ids or
+                role not in ('ramps', 'vsl_zones') or not isinstance(target, str) or
+                not re.fullmatch(r'[A-Za-z0-9_]+', target)):
+            raise ValueError('Invalid/duplicate rule detector station identity')
+        station_ids.add(identity)
+        link, position = station.get('link_no'), station.get('position_m')
+        if (type(link) is not int or link not in links or type(position) not in (int, float) or
+                not math.isfinite(position) or not 0 <= position < lengths[link]):
+            raise ValueError('Invalid rule detector link/position')
+        lanes, point_ids, measurement_ids = (station.get(key) for key in ('lane_numbers', 'point_ids', 'measurement_ids'))
+        if (any(not isinstance(value, list) for value in (lanes, point_ids, measurement_ids)) or
+                not lanes or len(lanes) != len(point_ids) or len(lanes) != len(measurement_ids) or
+                any(type(lane) is not int or not 1 <= lane <= links[link] for lane in lanes) or len(set(lanes)) != len(lanes)):
+            raise ValueError('Invalid rule detector lane arrays')
+        for lane, point, measurement in zip(lanes, point_ids, measurement_ids):
+            if any(type(value) is not int or value <= 0 for value in (point, measurement)):
+                raise ValueError('Invalid rule detector point/measurement number')
+            if measurement in measurements or measurement in existing_measurements:
+                raise ValueError('Duplicate/existing rule detector measurement number')
+            measurements.add(measurement)
+            address = (link, lane, float(position))
+            if (point in points and points[point] != address) or (address in addresses and addresses[address] != point):
+                raise ValueError('Rule detector point reuse differs from its physical address')
+            name = f'RULE|{role}|{target}|lane{lane}'
+            if point not in points:
+                if point in existing_points:
+                    previous = existing_points[point]
+                    if previous.get('lane') != f'{link} {lane}' or float(previous.get('pos', 'nan')) != position:
+                        raise ValueError('Existing rule detector point address differs')
+                else:
+                    point_rows.append(f'\n\t\t<dataCollectionPoint lane="{link} {lane}" name="{name}" no="{point}" pos="{format(position, ".17g")}" />')
+                points[point] = address; addresses[address] = point
+            measurement_rows.append(f'\n\t\t<dataCollectionMeasurement name="{name}" no="{measurement}"><dataCollectionPoints><intObjectRef key="{point}" /></dataCollectionPoints></dataCollectionMeasurement>')
+    edits = []
+    for node, rows in ((point_root, point_rows), (measurement_root, measurement_rows)):
+        if not rows: continue
+        block = ''.join(rows).encode('ascii')
+        if node['self_closing']:
+            slash = source_bytes.rfind(b'/', node['start'], node['open_end'])
+            edits.append((slash, node['open_end'], b'>'+block+b'\n\t</'+node['tag'].encode('ascii')+b'>'))
+        else:
+            edits.append((node['close_start'], node['close_start'], block+b'\n\t'))
+    opening = source_bytes[evaluation['start']:evaluation['open_end']]
+    attributes = list(re.finditer(rb"([^\s=<>/]+)\s*=\s*([\"'])(.*?)\2", opening, re.S))
+    changes = {'collectData': 'true', 'fromTime': str(times[0]), 'interval': str(times[1]), 'toTime': str(times[2])}
+    for key, value in changes.items():
+        matches = [match for match in attributes if match.group(1) == key.encode('ascii')]
+        if len(matches) != 1: raise ValueError('Missing/duplicate native dataColl evaluation attribute')
+        match = matches[0]
+        edits.append((evaluation['start']+match.start(3), evaluation['start']+match.end(3), value.encode('ascii')))
+    return sorted(edits)
 
 
 def _recording_edits(source_bytes, groups):
@@ -125,28 +225,32 @@ def _recording_edits(source_bytes, groups):
     return sorted(edits)
 
 
-def prepare_recording_bytes(source_bytes, groups):
+def prepare_recording_bytes(source_bytes, groups, rule_detectors=None):
     """Return the native_all_sg_300_v1 SG_BILD format without rewriting XML.
 
 Only selected scDetRecConf children are added/replaced and evaluation/scDetRec
 writeFile is set to true. Existing non-recording whitespace/bytes stay exact.
+With an explicit rule_detectors declaration, singleton data collection points
+and measurements are appended and only dataColl collection times/enabling change.
 The caller owns output paths, native assets, run identity and file creation.
 """
     edits = _recording_edits(source_bytes, groups)
+    if rule_detectors is not None:
+        edits = sorted(edits + _detector_edits(source_bytes, rule_detectors))
     result = source_bytes
     for start, end, replacement in reversed(edits):
         result = result[:start]+replacement+result[end:]
     return result
 
 
-def validate_recording_bytes(source_bytes, recorded_bytes, groups):
+def validate_recording_bytes(source_bytes, recorded_bytes, groups, rule_detectors=None):
     """Require exact reproducible recording bytes, not just XML similarity.
 
 Regeneration pins every byte outside the permitted replacement spans to the
 source, including geometry, routes, demand, attributes and whitespace. The
 original source spans retained by the proof make the transformation reversible.
 """
-    if type(recorded_bytes) is not bytes or prepare_recording_bytes(source_bytes, groups) != recorded_bytes:
+    if type(recorded_bytes) is not bytes or prepare_recording_bytes(source_bytes, groups, rule_detectors=rule_detectors) != recorded_bytes:
         raise ValueError('Network differs beyond the exact recording-only transformation')
 
 
@@ -177,18 +281,20 @@ same-stat filesystem tamper detector. Startup and new processes validate afresh.
     if not isinstance(proof, dict) or proof.get('schema') != RECORDING_SCHEMA:
         raise ValueError('Unsupported network recording proof schema')
     groups = _groups(proof.get('groups'))
+    rule_detectors = proof.get('rule_detectors')
+    detector_key = (None if rule_detectors is None else json.dumps(rule_detectors, sort_keys=True, separators=(',', ':'), allow_nan=False))
     source, source_sha = _pin(proof.get('source_network'))
     recorded, recorded_sha = _pin(proof.get('recorded_network'))
     if source == recorded: raise ValueError('Recording output must be separate from its physical source')
     before = (_stat(source), _stat(recorded))
-    key = (str(source), source_sha, str(recorded), recorded_sha, groups, before)
+    key = (str(source), source_sha, str(recorded), recorded_sha, groups, detector_key, before)
     if key in _PROOF_CACHE:
         _PROOF_CACHE.move_to_end(key)
         return source_sha
     source_bytes, recorded_bytes = source.read_bytes(), recorded.read_bytes()
     if hashlib.sha256(source_bytes).hexdigest() != source_sha or hashlib.sha256(recorded_bytes).hexdigest() != recorded_sha:
         raise ValueError('Network recording proof file SHA differs')
-    validate_recording_bytes(source_bytes, recorded_bytes, dict(groups))
+    validate_recording_bytes(source_bytes, recorded_bytes, dict(groups), rule_detectors=rule_detectors)
     if before != (_stat(source), _stat(recorded)):
         raise ValueError('Network file changed while validating recording proof')
     _PROOF_CACHE[key] = True

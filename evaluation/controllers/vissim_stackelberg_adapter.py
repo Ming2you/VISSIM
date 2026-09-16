@@ -47,6 +47,7 @@ from evaluation.controllers import diagnostic_profile
 from evaluation.controllers import diagnostic_signal_profile
 from evaluation.controllers import offset_promotion
 from evaluation.controllers import observation_projection
+from evaluation.controllers import freeway_geometry
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
 from evaluation.controllers import signal_actuation_contract
@@ -753,6 +754,8 @@ def _segment_length_profile_km(calibration: Mapping[str, Any]) -> dict[str, list
 
 def _freeway_segment_lengths_km(cfg, link: str, count: int) -> list[float]:
     net = cfg.network
+    if getattr(net, "freeway_variable_cell_lengths", False):
+        return freeway_geometry.cell_lengths_km(net, link, count)
     profile = getattr(net, "freeway_segment_length_profile_km", {})
     values: list[float] = []
     if isinstance(profile, Mapping):
@@ -780,8 +783,10 @@ def _freeway_vehicle_count_by_link(state, cfg) -> dict[str, list[float]]:
         key = str(link)
         densities = [float(value) for value in state.freeway_density.get(key, [])]
         # Physical N follows the scalar cell length in the continuity equation.
-        lengths = ([float(net.freeway_segment_length_km)] * len(densities)
-                   if physical_counts else _freeway_segment_lengths_km(cfg, key, len(densities)))
+        lengths = (freeway_geometry.cell_lengths_km(net, key, len(densities))
+                   if getattr(net, "freeway_variable_cell_lengths", False) else
+                   ([float(net.freeway_segment_length_km)] * len(densities)
+                    if physical_counts else _freeway_segment_lengths_km(cfg, key, len(densities))))
         raw_lanes = lane_profile.get(key, []) if isinstance(lane_profile, Mapping) else []
         lanes = [
             max(lane_floor, _as_float(raw_lanes[i], getattr(net, "freeway_lanes", 2)))
@@ -6639,7 +6644,9 @@ def install_vissim_calibration_runtime_patches(cfg, calibration: Mapping[str, An
                         for value in raw_lengths
                     ] if isinstance(raw_lengths, list) else []
                     base = max(1.0e-6, float(getattr(net, "freeway_segment_length_km", 0.58)))
-                    if physical_counts:
+                    if getattr(net, "freeway_variable_cell_lengths", False):
+                        lengths = freeway_geometry.cell_lengths_km(net, key, len(densities))
+                    elif physical_counts:
                         lengths = [float(net.freeway_segment_length_km)] * len(densities)
                     elif len(lengths) < len(densities):
                         lengths = lengths + [base] * (len(densities) - len(lengths))
@@ -8305,6 +8312,48 @@ def _plant_ramp_spillback_into(cfg, tuning) -> None:
     setattr(cfg.network, "ramp_spillback_obs", bool(_is_enabled_value(section.get("spillback_obs", False))))
 
 
+def install_freeway_geometry_profile(cfg, tuning, mapping) -> dict[str, float]:
+    """Opt in to one pinned physical grid; native controls are not re-positioned."""
+    section = _mapping(_mapping(tuning).get("freeway"))
+    spec = str(section.get("geometry_profile", "") or "").strip()
+    if not spec:
+        return {}
+    if section.get("physical_vehicle_counts") is False:
+        raise ValueError("Physical geometry requires physical_vehicle_counts")
+    path = Path(spec)
+    if not path.is_absolute():
+        path = WORKSPACE_ROOT / path
+    document = freeway_geometry.validate_profile(json.loads(path.read_text(encoding="utf-8-sig")))
+    if document["source_mapping_content_sha256"] != freeway_geometry.content_sha256(mapping):
+        raise ValueError("Physical geometry profile and source mapping differ")
+    net = cfg.network
+    lengths = {road: list(row["segment_lengths_km"]) for road,row in document["roads"].items()}
+    lanes = {road: list(row["segment_lanes"]) for road,row in document["roads"].items()}
+    params = getattr(net, "freeway_segment_params", {}) or {}
+    for road, values in lengths.items():
+        rows = params.setdefault(road, [{} for _ in values])
+        if len(rows) != len(values):
+            raise ValueError("Physical grid and FD parameter counts differ")
+        for row, length in zip(rows, values):
+            row["segment_length_km"] = length
+    net.freeway_variable_cell_lengths = True
+    net.physical_vehicle_counts = True
+    net.freeway_segment_length_profile_km = lengths
+    net.freeway_segment_lanes = lanes
+    net.freeway_segment_params = params
+    net.freeway_geometry_profile = {"path": str(path.resolve()),
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "physical_geometry_sha256": document["physical_geometry_sha256"],
+        "supported_scope": document["supported_scope"]}
+    installed = install_vissim_calibration_runtime_patches(cfg, {
+        "physical_inventory": {"freeway_segment_length_profile_km": lengths}})
+    if installed.get("calibration_state_vehicle_count_patch_installed") != 1.0:
+        raise RuntimeError("Physical grid vehicle-count getter was not installed")
+    return {"freeway_variable_cell_lengths": 1.0,
+            "freeway_physical_cell_length_min_km": min(v for row in lengths.values() for v in row),
+            "freeway_physical_cell_length_max_km": max(v for row in lengths.values() for v in row)}
+
+
 def install_freeway_segment_lanes(cfg, tuning, mapping) -> dict[str, float]:
     """config `freeway.segment_lanes: "mapping"` → control_mapping 의 세그먼트별 차로를 cfg.network 에 싣는다 (2026-09-07).
 
@@ -8314,6 +8363,8 @@ def install_freeway_segment_lanes(cfg, tuning, mapping) -> dict[str, float]:
     section = _mapping(_mapping(tuning).get("freeway"))
     mode = str(section.get("segment_lanes", "") or "").strip().lower()
     if mode != "mapping":
+        if section.get("geometry_profile"):
+            raise ValueError("Physical geometry requires freeway.segment_lanes=mapping")
         return {"freeway_segment_lanes_enabled": 0.0}
     links = _mapping(_mapping(mapping).get("freeway_model_links"))
     lanes_by: dict[str, list[float]] = {}
@@ -8350,10 +8401,13 @@ def install_freeway_segment_lanes(cfg, tuning, mapping) -> dict[str, float]:
             params_by[str(model)] = rows
     setattr(cfg.network, "freeway_segment_lanes", lanes_by)
     setattr(cfg.network, "freeway_segment_params", params_by)
+    geometry_metadata = install_freeway_geometry_profile(cfg, tuning, mapping)
+    lanes_by = cfg.network.freeway_segment_lanes
     out = {"freeway_segment_lanes_enabled": 1.0 if lanes_by else 0.0, "freeway_segment_lanes_links": float(len(lanes_by))}
     for model, arr in lanes_by.items():
         out["freeway_segment_lanes_min_%s" % model] = float(min(arr))
         out["freeway_segment_lanes_max_%s" % model] = float(max(arr))
+    out.update(geometry_metadata)
     return out
 
 
@@ -9620,13 +9674,18 @@ def traffic_state_from_vissim(
     # Project observed N into the exact density coordinates used by the
     # continuity equation. Keep physical lengths for travel/speed geometry.
     continuity_length_km = None
-    if bool(getattr(cfg.network, "physical_vehicle_counts", False)):
+    if (bool(getattr(cfg.network, "physical_vehicle_counts", False))
+            and not getattr(cfg.network, "freeway_variable_cell_lengths", False)):
         continuity_length_km = float(cfg.network.freeway_segment_length_km)
         if not math.isfinite(continuity_length_km) or continuity_length_km <= 0.0:
             raise ValueError("physical_vehicle_counts requires a positive finite continuity cell length")
     segs = state_json.get("freeway_segments", {})
     for link in cfg.network.freeway_links:
         rows = list(segs.get(link, []))
+        physical_lengths = (freeway_geometry.cell_lengths_km(cfg.network, link, cfg.network.freeway_segments_per_link)
+                            if getattr(cfg.network, "freeway_variable_cell_lengths", False) else None)
+        if physical_lengths is not None and len(rows) != len(physical_lengths):
+            raise ValueError("Physical grid observation must contain every cell")
         densities: list[float] = []
         speeds: list[float] = []
         flows: list[float] = []
@@ -9636,6 +9695,10 @@ def traffic_state_from_vissim(
             count = max(0.0, float(row.get("count", 0.0)))
             speed_sum = max(0.0, float(row.get("speed_sum", 0.0)))
             length_km = max(1.0e-6, float(row.get("length_km", cfg.network.freeway_segment_length_km)))
+            if physical_lengths is not None:
+                if "length_km" not in row or abs(length_km-physical_lengths[i]) > 1.0e-6:
+                    raise ValueError("Observation and configured physical cell lengths differ")
+                length_km = physical_lengths[i]
             lanes = max(1.0, float(row.get("lanes", cfg.network.freeway_lanes)))
             # 2026-09-07 세그먼트별 차로(freeway.segment_lanes=mapping): VBS 의 모형 링크 단일값 대신 매핑의 세그먼트 차로로
             #   밀도를 count/(length·lanes_i) 로 다시 잰다. state.freeway_effective_lanes 에도 그대로 실린다.
@@ -10114,11 +10177,12 @@ def _freeway_excess_vehicle_proxy(state, cfg) -> float:
     excess = 0.0
     for link, densities in getattr(state, "freeway_density", {}).items():
         lanes = getattr(state, "freeway_effective_lanes", {}).get(link, [])
+        lengths = freeway_geometry.cell_lengths_km(net, link, len(densities))
         for idx, rho in enumerate(densities):
             lane_count = float(lanes[idx]) if idx < len(lanes) else float(net.freeway_lanes)
             excess += (
                 max(0.0, _as_float(rho) - float(net.rho_crit))
-                * float(net.freeway_segment_length_km)
+                * float(lengths[idx])
                 * max(1.0e-9, lane_count)
             )
     return float(excess)
@@ -12236,6 +12300,8 @@ def bind_joint_cli_module(tuning):
 
 def joint_owner_game_settings(tuning, cfg, controller_variant):
     """One explicit solver variant; absence leaves the installed path alone."""
+    if controller_variant == diagnostic_profile.RULE_CONTROLLER:
+        return None  # Rule baselines share the physical plant, not the game/search.
     section = _mapping(tuning.get('adapter')).get('joint_owner_game')
     if section is None:
         return None
@@ -12373,6 +12439,8 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
                              tuning, provenance, previous_path, options, report_path, *, segment_vsl_func, budget=None,
                              worker_state_json=None, worker_detector_mapping=None):
     """Select final shared follower responses and preserve a bounded decision receipt."""
+    if getattr(cfg.network, "freeway_variable_cell_lengths", False):
+        raise NotImplementedError("Variable-cell geometry is validated for the freeway component only; the local GNE kernel must be updated before joint control")
     from evaluation.controllers import area_follower_objective as joint
     from src.controllers.nash_solver import NashResult
     from src.controllers.stackelberg_mpc import DecisionResult
@@ -12511,6 +12579,7 @@ def main() -> None:
             "diagnostic-vsl80-only",
             diagnostic_profile.CONTROLLER,
             diagnostic_profile.RAMP_CONTROLLER,
+            diagnostic_profile.RULE_CONTROLLER,
             diagnostic_signal_profile.CONTROLLER,
             "diagnostic-vsl110",
             "diagnostic-vsl100",
@@ -13055,9 +13124,32 @@ def main() -> None:
             metadata["diagnostic_signal_profile_active"] = 1.0
         elif args.controller in diagnostic_profile.CONTROLLERS:
             diagnostic_profile.validate_controller(args.controller, tuning)
+            profile_tuning = tuning
+            profile_inputs = {}
+            if args.controller == diagnostic_profile.RULE_CONTROLLER:
+                from copy import deepcopy
+                profile_tuning = deepcopy(tuning)
+                rule = profile_tuning['diagnostic']['rule_profile']
+                if float(state_json['sim_sec']) < float(rule['control_start_sec']):
+                    rule['arm'] = 'none'
+                previous_rule = json.loads(previous_path.read_text(encoding='utf-8-sig')) if previous_path.is_file() else {}
+                profile_inputs = {
+                    'rule_observation': state_json.get('rule_observation'),
+                    'rule_history': previous_rule.get('diagnostics', {}).get('diagnostic_rule_next_history'),
+                }
+                if float(state_json['sim_sec']) > 1 and profile_inputs['rule_history'] is None:
+                    raise ValueError('Rule decision is missing the previous successfully written command history')
+                if float(state_json['sim_sec']) >= control_interval:
+                    measured = profile_inputs['rule_observation'] or {}
+                    if (measured.get('completed_interval_available') is not True
+                            or measured.get('sim_sec') != state_json['sim_sec']
+                            or measured.get('window_end_sec') != state_json['sim_sec']
+                            or measured.get('window_start_sec') != float(state_json['sim_sec'])-control_interval):
+                        raise ValueError('Rule detector observation is missing or from a different completed interval')
             control = diagnostic_profile.build_control(
-                cfg, ControlAction, tuning, mapping, args.diagnostic_allowed_vsl_speeds)
-            actuation = diagnostic_profile.fixed_actuation(actuation, tuning)
+                cfg, ControlAction, profile_tuning, mapping, args.diagnostic_allowed_vsl_speeds,
+                **profile_inputs)
+            actuation = diagnostic_profile.fixed_actuation(actuation, profile_tuning)
             metadata["diagnostic_vsl_profile_active"] = 1.0
             metadata["suppress_signal_rows"] = 1.0
         elif args.controller == "diagnostic-vsl80-only":

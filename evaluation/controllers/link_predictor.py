@@ -239,6 +239,8 @@ def install(cfg):
     original = WuFaithfulFollower._solve_freeway_agent_local
     if not getattr(original, '_rw_local_landing_state', False):
         def selected(self, *args, **kwargs):
+            if getattr(self.cfg.network, 'freeway_variable_cell_lengths', False):
+                raise NotImplementedError("Variable-cell geometry cannot use either legacy local freeway solver branch")
             if not getattr(self.cfg.network, 'local_landing_state', False):
                 return original(self, *args, **kwargs)
             return solve_freeway_agent_local(self, *args, **kwargs)
@@ -308,6 +310,8 @@ def solve_freeway_agent_local(
 
 def _freeway_query_setup(self, link, previous):
     """Read the original pre-enumeration setup once, in its original order."""
+    if getattr(self.cfg.network, "freeway_variable_cell_lengths", False):
+        raise NotImplementedError("Variable-cell geometry cannot use the legacy scalar-length local freeway kernel")
     from src.controllers import wu_faithful_follower as vendor
     ControlAction = vendor.ControlAction
     segment_vsl = vendor.segment_vsl

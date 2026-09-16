@@ -2,7 +2,7 @@ param(
   [Parameter(Mandatory=$true)][string]$SelectedPrepared,
   [Parameter(Mandatory=$true)][string]$Tuning,
   [Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Name,
-  [ValidateSet('wu-link','no-control','diagnostic-signal-profile')][string]$Controller='wu-link',
+  [ValidateSet('wu-link','no-control','diagnostic-signal-profile','diagnostic-rule-profile')][string]$Controller='wu-link',
   # Short diagnostics remain the default; selected recovery comparisons use9000.
   [ValidateRange(1050,9000)][int]$SimPeriod=1050,
   [int]$ControlStartSec=900,
@@ -44,6 +44,7 @@ if ($configDoc.urban.capacity.measured -and !$configDoc.urban.capacity.head_obse
 }
 if ($configDoc.actuation.real_world_signal_control.apply_to_no_control) { throw 'Warmup must leave urban signals native' }
 $frozenSignalReplay=$Controller -eq 'diagnostic-signal-profile'
+$ruleBaseline=$Controller -eq 'diagnostic-rule-profile'
 if ($frozenSignalReplay) {
   if ($null -ne $configDoc.adapter.joint_owner_game) { throw 'Frozen replay must not configure a joint solver' }
   if ($null -eq $configDoc.diagnostic.signal_profile -or
@@ -65,6 +66,11 @@ $arguments=@{
   StateLogIntervalSec=$StateLogIntervalSec;StartupStallSec=300;StallSec=2400;MaxAttempts=1;NoGlobalKill=$true
 }
 if ($frozenSignalReplay) { $arguments.ForceStepwise=$true }
+if ($ruleBaseline) {
+  if (-not $configDoc.diagnostic.rule_profile.enabled -or $configDoc.diagnostic.rule_profile.control_start_sec -ne $ControlStartSec) { throw 'Rule profile must declare the actual control start' }
+  $arguments.WarmupController='diagnostic-rule-profile'
+  $arguments.ForceStepwise=$true
+}
 if ($proof.native_signal_record) {
   $arguments.Network=$proof.runtime_network
   $arguments.NetworkRecordingProof=$proof.network_recording_proof.path
@@ -75,6 +81,7 @@ $plan=[ordered]@{execute=[bool]$Execute;selected_demand=$proof;arguments=$argume
   warmup_note="Same native network, demand within1e-10vph, VSL120 and open meters; actual first${ControlStartSec}s FZP equality remains a one-time runtime gate";
   native_profile_note='New native_internal_inputs and shared_approach declarations change only demand_profile plus derivation; config changes only those two declaration paths; existing validators remain active'}
 if ($proof.native_signal_record) { $plan.signal_execution_mode=if ($fastSignalExecution) {'changed_writes_native_postcheck'} else {'dense_diagnostic_native_postcheck'} }
+if ($ruleBaseline) { $plan.warmup_note="All four rule arms use VSL100 and open meters from the first command through ${ControlStartSec}s; native urban signals remain unchanged" }
 if (-not $Execute) { $plan | ConvertTo-Json -Depth 8; exit 0 }
 if (@(Get-Process -Name VISSIM200,VISSIM200CL -ErrorAction SilentlyContinue).Count) { throw 'Existing native VISSIM process: refuse concurrent execution (no process is stopped)' }
 if (Test-Path -LiteralPath $profileDirectory) { throw 'Require new demand directory (no profile overwrite)' }

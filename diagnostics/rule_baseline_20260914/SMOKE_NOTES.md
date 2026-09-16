@@ -1,0 +1,8 @@
+# Rule baseline integration and measurement qualification
+
+- `rule100_none_smoke1050_v1`: failed at the first controller call because the new rule mode reached the existing joint-game mode guard. No baseline result. Failure and owned-process completion receipt retained. Fixed by excluding this explicit rule mode from game setup; the saved first state then passed the real adapter/writer in 3.26s.
+- `rule100_none_smoke1050_v2`: native run reached1050 with signal/action/COM failure counters0 and completed receipt. All commands100km/h and all8 meters continuous green; native urban signals retained. This qualifies execution, not the initially mislabeled occupancy units.
+- Its `rule_observation.occupancy_pct` values contain raw COM fractions. They are **not percentages** and must not be used as ALINEA inputs or corrected in place. The policy was `none` throughout, so this observation error did not change its traffic commands.
+- Installed `Vissim 2020 - COM Intro.pdf`, PDF p16, explicitly defines COM percentage attributes as fractions0..1. The writer now validates raw range0..1, retains `occupancy_raw_fraction`, and emits `occupancy_pct=100*raw` for every subsequent case. Example at300s: E0 lane1 raw0.085087 means8.5087%.
+- The four comparison arms use unchanged freeway80/urban50 demand, seed13, native urban programs,100km/h common warmup, and begin rule feedback at900s. The first comparison ends at3000s to cover congestion onset; it is not a full recovery comparison.
+- ALINEA target15% and gain70veh/h/percentage-point/lane are explicit exploratory settings, not fitted critical occupancy. Meter request, discrete green, model service ceiling, and actual merge count remain distinct quantities.

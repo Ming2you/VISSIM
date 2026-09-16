@@ -1,5 +1,6 @@
 """Small preparation/syntax guards, no model or simulator creation."""
 import math
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -7,6 +8,24 @@ from diagnostics import fast_nc_prepare as p
 
 
 class NativeInputs(unittest.TestCase):
+    def test_native_preserve_snapshots_exact_input_and_assets(self):
+        # This deliberately does not satisfy the legacy204-row/default NC schema.
+        # Preservation must use the supplied file, not old profiles or controls.
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            source=root/'user.inpx'
+            data=b'<network><simulation numRuns="1" randSeed="17" simRes="5"/><vehicleInputs><input volume="123"/></vehicleInputs><signal supplyFile2="#data#a.sig"/></network>'
+            source.write_bytes(data); (root/'a.sig').write_bytes(b'user signal')
+            out=root/'prepared'
+            p.prepare_native_preserve(source,out,9000)
+            proof=json.loads((out/'prepared.json').read_text())
+            self.assertEqual((out/'network/user.inpx').read_bytes(),data)
+            self.assertEqual((out/'network/a.sig').read_bytes(),b'user signal')
+            self.assertEqual(source.read_bytes(),data)
+            self.assertEqual(proof['seed'],17)
+            self.assertFalse((out/'demand.csv').exists())
+            self.assertFalse((out/'controls.csv').exists())
+
     def test_global_scale_one_is_exact_and_positive(self):
         self.assertEqual(p.demand_rows(p.BASE),p.demand_rows(p.BASE,global_scale=1))
         for scale in (0,-1,float('nan'),float('inf')):

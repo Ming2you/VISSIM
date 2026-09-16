@@ -6,6 +6,8 @@ If WScript.Arguments.Count < 4 Then
 End If
 
 Dim fso, shell, stateFile, actionFile, bottleneckLinkFile, bottleneckSegmentFile, signalTraceFile, vslTraceFile, Vissim
+Dim ruleStations, ruleMeasurements, ruleObservationSec, ruleObservationCache
+ruleObservationSec = -1
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set shell = CreateObject("WScript.Shell")
 
@@ -651,7 +653,7 @@ End Function
 Function UseSingleDecisionEventMode()
     Dim c
     c = LCase(CStr(controllerName))
-    UseSingleDecisionEventMode = (Left(c, 11) = "diagnostic-" And CLng(controlStartSec) >= 0)
+    UseSingleDecisionEventMode = (Left(c, 11) = "diagnostic-" And c <> "diagnostic-rule-profile" And CLng(controlStartSec) >= 0)
 End Function
 
 Sub RecordStartupSimulationProgress()
@@ -1104,6 +1106,7 @@ Sub RunControllerDecision(simSec)
     If tuningPath <> "" Then cmd = cmd & " --tuning-json " & Q(tuningPath)
     If LCase(CStr(effController)) = "diagnostic-vsl-profile" Or _
             LCase(CStr(effController)) = "diagnostic-ramp-profile" Or _
+            LCase(CStr(effController)) = "diagnostic-rule-profile" Or _
             LCase(CStr(effController)) = "diagnostic-signal-profile" Then
         cmd = cmd & " --diagnostic-allowed-vsl-speeds " & Q(RW_ALLOWED_VSL_SPEEDS)
     End If
@@ -1718,6 +1721,7 @@ Function SignalRowsSuppressedForController(value)
         controller = "diagnostic-vsl80-only" Or _
         controller = "diagnostic-vsl-profile" Or _
         controller = "diagnostic-ramp-profile" Or _
+        controller = "diagnostic-rule-profile" Or _
         controller = "diagnostic-vsl80-original" Or _
         controller = "diagnostic-ramp-all735-original" Or _
         controller = "diagnostic-ramp-all360-original" _
@@ -2657,6 +2661,7 @@ Sub WriteStateJson(simSec, path, resetWindows)
     ts.WriteLine "  ""sim_sec"": " & Num(simSec) & ","
     ts.WriteLine "  ""sim_period_sec"": " & Num(simPeriod) & ","
     ts.WriteLine "  ""control_interval_sec"": " & Num(controlInterval) & ","
+    If LCase(CStr(controllerName)) = "diagnostic-rule-profile" Then ts.WriteLine "  ""rule_observation"": " & RuleObservationJson(simSec) & ","
     ts.WriteLine "  ""network_path"": """ & JsonEscape(netPath) & ""","
     WriteB1aStateRunProvenance ts
     ts.WriteLine "  ""total_vehicles"": " & CStr(total) & ","
@@ -2732,6 +2737,95 @@ Sub WriteStateJson(simSec, path, resetWindows)
     End If
     PerfAdd "state.json", perfT0
 End Sub
+
+Sub InitializeRuleDetectors()
+    Dim doc, node, parts, key, mid, ids
+    Set ruleStations = CreateObject("Scripting.Dictionary")
+    Set ruleMeasurements = CreateObject("Scripting.Dictionary")
+    Set doc = CreateObject("Msxml2.DOMDocument.6.0")
+    doc.async = False
+    If Not doc.Load(netPath) Then Err.Raise 513, , "Cannot read rule detector network"
+    For Each node In doc.SelectNodes("/network/dataCollectionMeasurements/dataCollectionMeasurement")
+        parts = Split(CStr(node.GetAttribute("name")), "|")
+        If UBound(parts) = 3 Then
+            If parts(0) = "RULE" Then
+                If parts(1) <> "ramps" And parts(1) <> "vsl_zones" Then Err.Raise 513, , "Invalid rule detector role"
+                mid = CStr(node.GetAttribute("no"))
+                key = parts(1) & "|" & parts(2)
+                If ruleMeasurements.Exists(mid) Then Err.Raise 513, , "Duplicate rule detector identity"
+                Set ruleMeasurements(mid) = Vissim.Net.DataCollectionMeasurements.ItemByKey(CLng(mid))
+                If ruleStations.Exists(key) Then
+                    ruleStations(key) = ruleStations(key) & "," & mid
+                Else
+                    ruleStations(key) = mid
+                End If
+            End If
+        End If
+    Next
+    If ruleStations.Count = 0 Then Err.Raise 513, , "Rule detector declaration is absent"
+    WScript.Echo "RULE_DETECTORS stations=" & ruleStations.Count & " lane_measurements=" & ruleMeasurements.Count
+End Sub
+
+Function RuleObservationJson(simSec)
+    Dim result, roles, role, key, parts, mid, ids, measurement, intervalNo, suffix
+    Dim count, speed, occupancy, occupancyRaw, n, weightedSpeed, occupied, lanes, speedMean, laneRows, first, metric
+    If CLng(ruleObservationSec) = CLng(simSec) Then
+        RuleObservationJson = ruleObservationCache
+        Exit Function
+    End If
+    If Not IsObject(ruleStations) Then InitializeRuleDetectors
+    result = "{""sim_sec"":" & Num(simSec) & ",""occupancy_unit"":""percent"",""flow_unit"":""veh/h/lane"",""speed_unit"":""km/h"""
+    If simSec < controlInterval Then
+        result = result & ",""completed_interval_available"":false,""vsl_zones"":{},""ramps"":{}}"
+    Else
+        If CLng(simSec) Mod CLng(controlInterval) <> 0 Then Err.Raise 513, , "Rule observation must end on a complete interval"
+        intervalNo = CLng(simSec) \ CLng(controlInterval)
+        suffix = "(Current," & CStr(intervalNo) & ",All)"
+        result = result & ",""completed_interval_available"":true,""window_start_sec"":" & Num(simSec-controlInterval) & ",""window_end_sec"":" & Num(simSec) & ",""native_time_interval"":" & intervalNo
+        roles = Array("vsl_zones", "ramps")
+        For Each role In roles
+            result = result & ",""" & role & """:{"
+            first = True
+            For Each key In ruleStations.Keys
+                parts = Split(key, "|")
+                If parts(0) = role Then
+                    If Not first Then result = result & ","
+                    first = False
+                    n = 0.0 : weightedSpeed = 0.0 : occupied = 0.0 : lanes = 0
+                    laneRows = ""
+                    ids = Split(ruleStations(key), ",")
+                    For Each mid In ids
+                        Set measurement = ruleMeasurements(mid)
+                        count = measurement.AttValue("Vehs" & suffix)
+                        speed = measurement.AttValue("SpeedAvgArith" & suffix)
+                        occupancyRaw = measurement.AttValue("OccupRate" & suffix)
+                        If Not IsFiniteNumberInRange(count, 0, 1000000) Then Err.Raise 513, , "Missing rule detector count: " & mid & suffix
+                        ' Vissim2020 COM Intro p16: percentage attributes are
+                        ' returned as fractions [0,1], although GUI uses percent.
+                        If Not IsFiniteNumberInRange(occupancyRaw, 0, 1) Then Err.Raise 513, , "Missing rule detector occupancy fraction: " & mid & suffix
+                        occupancy = 100.0*CDbl(occupancyRaw)
+                        If CDbl(count) = 0 And (IsEmpty(speed) Or IsNull(speed)) Then speed = 0.0
+                        If Not IsFiniteNumberInRange(speed, 0, 300) Then Err.Raise 513, , "Missing rule detector speed: " & mid & suffix
+                        If lanes > 0 Then laneRows = laneRows & ","
+                        laneRows = laneRows & "{""measurement_no"":" & mid & ",""vehicles"":" & Num(count) & ",""speed_kph"":" & Num(speed) & ",""occupancy_raw_fraction"":" & Num(occupancyRaw) & ",""occupancy_pct"":" & Num(occupancy) & "}"
+                        n = n + CDbl(count)
+                        weightedSpeed = weightedSpeed + CDbl(count)*CDbl(speed)
+                        occupied = occupied + CDbl(occupancy)
+                        lanes = lanes + 1
+                    Next
+                    speedMean = 0.0
+                    If n > 0 Then speedMean = weightedSpeed/n
+                    result = result & """" & JsonEscape(parts(1)) & """:{""flow_vph_per_lane"":" & Num(n*3600/controlInterval/lanes) & ",""occupancy_pct"":" & Num(occupied/lanes) & ",""speed_kph"":" & Num(speedMean) & ",""speed_sample_vehicles"":" & Num(n) & ",""lane_measurements"": [" & laneRows & "]}"
+                End If
+            Next
+            result = result & "}"
+        Next
+        result = result & "}"
+    End If
+    ruleObservationSec = CLng(simSec)
+    ruleObservationCache = result
+    RuleObservationJson = result
+End Function
 
 Function VehicleRoutesJson(expectedSimSec, expectedCount, expectedVehNos)
     ' Separate optional sibling: the qualified v2.1 physical envelope is unchanged.

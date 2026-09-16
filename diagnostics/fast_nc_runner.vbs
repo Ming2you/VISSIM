@@ -3,15 +3,30 @@ Option Explicit
 If WScript.Arguments.Count = 1 Then
     If WScript.Arguments(0) = "--check" Then WScript.Echo "SYNTAX_OK": WScript.Quit 0
 End If
-If WScript.Arguments.Count <> 4 And WScript.Arguments.Count <> 5 Then WScript.Echo "Usage: network prepared output seed [terminal_sec]": WScript.Quit 2
-Dim fs, sim, net, prepared, output, seed, terminalSec, logFile, vi, item, arr, volumes, tailVolumes, row, parts, key, count, before, target, sc
+If WScript.Arguments.Count <> 4 And WScript.Arguments.Count <> 5 And WScript.Arguments.Count <> 6 Then WScript.Echo "Usage: network prepared output seed [terminal_sec] [native_preserve|fixed_profile]": WScript.Quit 2
+Dim fs, sim, net, prepared, output, seed, terminalSec, logFile, vi, item, arr, volumes, tailVolumes, row, parts, key, count, before, target, sc, nativePreserve
+Dim fixedProfile, fixedTrace, fixedExpected, fixedOwnership, fixedMeters, fixedEventCount, fixedBreakSec
 Set fs = CreateObject("Scripting.FileSystemObject")
 net = WScript.Arguments(0): prepared = WScript.Arguments(1): output = WScript.Arguments(2): seed = CLng(WScript.Arguments(3))
 terminalSec = 5400
-If WScript.Arguments.Count = 5 Then terminalSec = CDbl(WScript.Arguments(4))
-If terminalSec <> 5400 And terminalSec <> 7200 And terminalSec <> 9000 Then WScript.Echo "ERROR=Invalid terminal_sec": WScript.Quit 2
+If WScript.Arguments.Count >= 5 Then terminalSec = CDbl(WScript.Arguments(4))
+nativePreserve = False
+fixedProfile = False
+If WScript.Arguments.Count = 6 Then
+    If WScript.Arguments(5) = "native_preserve" Then
+        nativePreserve = True
+    ElseIf WScript.Arguments(5) = "fixed_profile" Then
+        fixedProfile = True
+    Else
+        WScript.Echo "ERROR=Invalid mode": WScript.Quit 2
+    End If
+End If
+If terminalSec <> 5400 And terminalSec <> 7200 And terminalSec <> 9000 Then
+    If Not fixedProfile Or (terminalSec <> 1800 And terminalSec <> 2250) Then WScript.Echo "ERROR=Invalid terminal_sec": WScript.Quit 2
+End If
 Set logFile = fs.CreateTextFile(fs.BuildPath(output, "readback.csv"), False, False)
 logFile.WriteLine "kind,no,time_int,expected,actual"
+If nativePreserve Or fixedProfile Then RunPreservedNative
 Set volumes = CreateObject("Scripting.Dictionary")
 Set tailVolumes = CreateObject("Scripting.Dictionary")
 Set row = fs.OpenTextFile(fs.BuildPath(prepared,"demand.csv"),1)
@@ -104,8 +119,7 @@ ApplyAndCheckControls True
 logFile.Close
 SetChecked sim.Simulation, "SimBreakAt", terminalSec
 WScript.Echo "STAGE=RUN_CONTINUOUS_BEGIN"
-sim.Simulation.RunContinuous
-If CDbl(sim.Simulation.AttValue("SimSec")) <> terminalSec Then Die "Terminal differs from requested horizon"
+ContinueToTerminal
 Set logFile = fs.OpenTextFile(fs.BuildPath(output,"readback.csv"),8)
 ApplyAndCheckControls False
 If terminalSec > 5400 Then CheckTailDemand
@@ -193,4 +207,171 @@ End Sub
 Sub Die(message)
     WScript.Echo "ERROR=" & message
     WScript.Quit 1
+End Sub
+
+Sub RunPreservedNative()
+    Dim saved, fields, actual, checks, savedPeriod, effectivePeriod
+    Set sim = CreateObject("Vissim.Vissim")
+    WScript.Echo "STAGE=COM_CREATED"
+    sim.LoadNet net, False
+    WScript.Echo "STAGE=NET_LOADED"
+    Set saved = fs.OpenTextFile(fs.BuildPath(prepared,"native_simulation.csv"),1)
+    If saved.ReadLine <> "attribute,value" Then Die "Native simulation schema"
+    checks = 0
+    Do Until saved.AtEndOfStream
+        fields = Split(saved.ReadLine,",")
+        If UBound(fields) <> 1 Then Die "Native simulation row"
+        actual = CDbl(sim.Simulation.AttValue(fields(0)))
+        If actual <> CDbl(fields(1)) Then Die "Saved simulation differs: " & fields(0)
+        logFile.WriteLine "native_simulation," & fields(0) & ",," & fields(1) & "," & CStr(actual)
+        checks = checks + 1
+    Loop
+    saved.Close
+    If (Not fixedProfile And checks <> 3) Or (fixedProfile And checks <> 4) Or CDbl(sim.Simulation.AttValue("RandSeed")) <> seed Then Die "Native simulation identity"
+    On Error Resume Next
+    sim.Graphics.CurrentNetworkWindow.AttValue("QuickMode") = 1
+    sim.SuspendUpdateGUI
+    Err.Clear
+    On Error GoTo 0
+    ' Recording only: no input, route, signal, meter, VSL, seed or SimRes writes.
+    SetChecked sim.Evaluation, "EvalOutDir", fs.BuildPath(output,"vissim_eval")
+    SetChecked sim.Evaluation, "ListAutoExportType", "FILE"
+    SetChecked sim.Evaluation, "VehRecWriteFile", True
+    SetChecked sim.Evaluation, "VehRecFromTime", 0
+    SetChecked sim.Evaluation, "VehRecToTime", terminalSec
+    SetChecked sim.Evaluation, "VehRecFilterType", "ALL"
+    SetChecked sim.Evaluation, "VehRecResolution", 1
+    SetChecked sim.Evaluation, "SigChangesWriteFile", True
+    If fixedProfile Then
+        savedPeriod = CDbl(sim.Simulation.AttValue("SimPeriod"))
+        effectivePeriod = savedPeriod
+        If savedPeriod <= terminalSec Then
+            effectivePeriod = terminalSec + 1
+            SetChecked sim.Simulation, "SimPeriod", effectivePeriod
+        End If
+        actual = CDbl(sim.Simulation.AttValue("SimPeriod"))
+        If actual <> effectivePeriod Then Die "Fixed effective simulation period differs"
+        logFile.WriteLine "fixed_simulation,SimPeriod,," & CStr(effectivePeriod) & "," & CStr(actual)
+        WScript.Echo "FIXED_SIM_PERIOD_SAVED=" & CStr(savedPeriod)
+        WScript.Echo "FIXED_SIM_PERIOD_EFFECTIVE=" & CStr(actual)
+    Else
+        If CDbl(sim.Simulation.AttValue("SimPeriod")) <> terminalSec + 1 Then SetChecked sim.Simulation, "SimPeriod", terminalSec + 1
+    End If
+    SetChecked sim.Simulation, "UseMaxSimSpeed", True
+    SetChecked sim.Simulation, "SimBreakAt", terminalSec
+    logFile.Close
+    If fixedProfile Then
+        RunFixedProfile
+    Else
+        WScript.Echo "NATIVE_PRESERVE=1"
+        WScript.Echo "TRAFFIC_SETTING_WRITES=0"
+        WScript.Echo "STAGE=RUN_CONTINUOUS_BEGIN"
+        ContinueToTerminal
+    End If
+    WScript.Echo "STAGE=SIM_DONE"
+    WScript.Echo "SIM_SEC=" & CStr(terminalSec)
+    sim.Simulation.Stop
+    Set saved = Nothing
+    Set sim = Nothing
+    WScript.Quit 0
+End Sub
+
+Sub ContinueToTerminal()
+    Dim targetSec
+    targetSec = terminalSec
+    If fixedProfile Then targetSec = fixedBreakSec
+    If fixedProfile Then SetChecked sim.Simulation, "SimBreakAt", targetSec
+    sim.Simulation.RunContinuous
+    If CDbl(sim.Simulation.AttValue("SimSec")) <> targetSec Then Die "Terminal differs from requested horizon"
+End Sub
+
+Sub RunFixedProfile()
+    Dim input, fields, sec, previousSec, obj, address, value, actual, own
+    Set fixedExpected = CreateObject("Scripting.Dictionary")
+    Set fixedOwnership = CreateObject("Scripting.Dictionary")
+    Set fixedMeters = CreateObject("Scripting.Dictionary")
+    Set fixedTrace = fs.CreateTextFile(fs.BuildPath(output,"fixed_readback.csv"),False,False)
+    fixedTrace.WriteLine "time_s,phase,kind,no,veh_class,expected,actual,contr_by_com,ok"
+    fixedEventCount = 0
+    FixedSnapshot "initial"
+    Set input = fs.OpenTextFile(fs.BuildPath(prepared,"fixed_events.csv"),1)
+    If input.ReadLine <> "time_s,kind,no,veh_class,value" Then Die "Fixed event CSV schema"
+    previousSec = 0
+    WScript.Echo "FIXED_PROFILE=1"
+    WScript.Echo "STAGE=RUN_CONTINUOUS_BEGIN"
+    Do Until input.AtEndOfStream
+        fields = Split(input.ReadLine,",")
+        If UBound(fields) <> 4 Then Die "Fixed event CSV width"
+        sec = CDbl(fields(0))
+        If sec < previousSec Or sec <= 0 Or sec >= terminalSec Then Die "Fixed event time order"
+        If sec > previousSec Then
+            fixedBreakSec = sec
+            ContinueToTerminal
+            WScript.Echo "SIM_SEC=" & CStr(sec)
+        End If
+        previousSec = sec
+        If fields(1) = "vsl" Then
+            Set obj = sim.Net.DesSpeedDecisions.ItemByKey(CLng(fields(2)))
+            value = CLng(fields(4))
+            SetChecked obj, "DesSpeedDistr(" & fields(3) & ")", value
+            actual = obj.AttValue("DesSpeedDistr(" & fields(3) & ")")
+            address = fields(2) & ":" & fields(3)
+            If Not fixedExpected.Exists(address) Then Die "Fixed event unknown DSD class"
+            fixedExpected(address) = value
+            fixedTrace.WriteLine CStr(sec) & ",write,vsl," & fields(2) & "," & fields(3) & "," & CStr(value) & "," & CStr(actual) & ",,1"
+        ElseIf fields(1) = "meter" Then
+            If CLng(fields(2)) < 9101 Or CLng(fields(2)) > 9108 Or fields(3) <> "1" Then Die "Fixed meter address"
+            If fields(4) <> "RED" And fields(4) <> "GREEN" Then Die "Fixed meter RED/GREEN only"
+            Set obj = sim.Net.SignalControllers.ItemByKey(CLng(fields(2))).SGs.ItemByKey(1)
+            SetChecked obj, "ContrByCOM", True
+            SetChecked obj, "SigState", fields(4)
+            actual = obj.AttValue("SigState"): own = obj.AttValue("ContrByCOM")
+            fixedMeters(fields(2) & ":1") = True
+            fixedTrace.WriteLine CStr(sec) & ",write,meter," & fields(2) & ",1," & fields(4) & "," & CStr(actual) & "," & CStr(CBool(own)) & ",1"
+        Else
+            Die "Fixed event kind"
+        End If
+        fixedEventCount = fixedEventCount + 1
+    Loop
+    input.Close
+    fixedBreakSec = terminalSec
+    ContinueToTerminal
+    FixedSnapshot "final"
+    fixedTrace.Close
+    WScript.Echo "FIXED_EVENT_ROWS=" & CStr(fixedEventCount)
+    WScript.Echo "FIXED_UNTARGETED_PRESERVATION=1"
+End Sub
+
+Sub FixedSnapshot(phase)
+    Dim input, fields, obj, address, expected, actual, own, sec
+    sec = sim.Simulation.AttValue("SimSec")
+    Set input = fs.OpenTextFile(fs.BuildPath(prepared,"fixed_initial.csv"),1)
+    If input.ReadLine <> "time_s,kind,no,veh_class,value" Then Die "Fixed initial CSV schema"
+    Do Until input.AtEndOfStream
+        fields = Split(input.ReadLine,",")
+        If UBound(fields) <> 4 Then Die "Fixed initial CSV width"
+        address = fields(2) & ":" & fields(3)
+        If fields(1) = "vsl" Then
+            Set obj = sim.Net.DesSpeedDecisions.ItemByKey(CLng(fields(2)))
+            actual = obj.AttValue("DesSpeedDistr(" & fields(3) & ")")
+            If phase = "initial" Then fixedExpected(address) = CLng(fields(4))
+            expected = fixedExpected(address)
+            If CLng(actual) <> CLng(expected) Then Die "Fixed DSD snapshot differs"
+            fixedTrace.WriteLine CStr(sec) & "," & phase & ",vsl," & fields(2) & "," & fields(3) & "," & CStr(expected) & "," & CStr(actual) & ",,1"
+        ElseIf fields(1) = "signal" Then
+            Set obj = sim.Net.SignalControllers.ItemByKey(CLng(fields(2))).SGs.ItemByKey(CLng(fields(3)))
+            actual = obj.AttValue("SigState"): own = CBool(obj.AttValue("ContrByCOM"))
+            If phase = "initial" Then
+                fixedOwnership(address) = own
+            ElseIf Not fixedMeters.Exists(address) Then
+                If own <> fixedOwnership(address) Then Die "Untargeted SG ownership changed"
+            Else
+                If Not own Then Die "Targeted meter ownership lost"
+            End If
+            fixedTrace.WriteLine CStr(sec) & "," & phase & ",signal," & fields(2) & "," & fields(3) & ",READ," & CStr(actual) & "," & CStr(own) & ",1"
+        Else
+            Die "Fixed initial kind"
+        End If
+    Loop
+    input.Close
 End Sub

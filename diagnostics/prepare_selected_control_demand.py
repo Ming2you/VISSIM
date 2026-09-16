@@ -38,11 +38,14 @@ def recording_artifacts(report, output):
     original = source.read_bytes()
     if hashlib.sha256(original).hexdigest()!=report['network_sha256']:
         raise ValueError('Physical source changed during recording preparation')
-    recorded = prepare_recording_bytes(original, groups)
+    rule_detectors = report.get('rule_detectors')
+    recorded = prepare_recording_bytes(original, groups, rule_detectors=rule_detectors)
     proof = {'schema':'native-signal-recording-network/v1',
         'source_network':{'path':str(source),'sha256':report['network_sha256']},
         'recorded_network':{'path':str(target),'sha256':hashlib.sha256(recorded).hexdigest()},
         'groups':groups}
+    if rule_detectors is not None:
+        proof['rule_detectors'] = rule_detectors
     files = {target:recorded}
     tree = ET.fromstring(original)
     names = {node.get('supplyFile2') for node in tree.findall('./signalControllers/signalController')
@@ -256,6 +259,14 @@ def package(selected_prepared, tuning, output):
         str(output/'shared_approach.json'):hashlib.sha256(json_bytes(shared)).hexdigest()}
     enabled = config.get('execution',{}).get('native_signal_record',False)
     if not isinstance(enabled,bool): raise ValueError('execution.native_signal_record must be boolean')
+    rule = config.get('diagnostic', {}).get('rule_profile', {})
+    if rule.get('enabled'):
+        if not enabled: raise ValueError('Rule baseline requires native recording')
+        detector_path = (ROOT / rule['detector_mapping_json']).resolve(strict=True)
+        if sha(detector_path) != rule['detector_mapping_sha256']:
+            raise ValueError('Rule detector declaration changed')
+        report['rule_detectors'] = json.loads(detector_path.read_text(encoding='utf-8-sig'))
+        report['source_sha256'][str(detector_path)] = sha(detector_path)
     if enabled: recording_artifacts(report, output)
     return profile,comparison,report,revised,config,shared
 

@@ -1,0 +1,185 @@
+"""Cutoff-safe boundary forecasts and separately labeled conditioned diagnostics."""
+import csv
+import json
+import math
+from collections import defaultdict
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+PROTOCOL = json.loads((HERE/'PROTOCOL.json').read_text(encoding='utf-8'))
+
+
+def read_table(path):
+    with Path(path).open(encoding='utf-8-sig',newline='') as f:
+        return list(csv.DictReader(f))
+
+
+class ObservationData:
+    def __init__(self,folder):
+        self.folder = Path(folder)
+        self.geometry = json.loads((self.folder/'geometry.json').read_text(encoding='utf-8-sig'))
+        assert self.geometry['cell_index_base'] == 0
+        self.cells = defaultdict(list)
+        for r in read_table(self.folder/'cells_30s.csv'):
+            row={**r,'time_s':int(float(r['time_s'])),'cell':int(r['cell']),
+                'n_veh':float(r['n_veh']),'rho_veh_per_km_lane':float(r['rho_veh_per_km_lane']),
+                'v_kmh':float(r['v_kmh']) if r['v_kmh'] else None}
+            self.cells[row['time_s']].append(row)
+        self.flows={}
+        for r in read_table(self.folder/'flows_30s.csv'):
+            key=(int(float(r['window_end_s'])),r['road'],int(r['cell']))
+            assert key not in self.flows
+            self.flows[key]=r
+        self.boundaries={}
+        for r in read_table(self.folder/'boundaries_30s.csv'):
+            key=(int(float(r['window_end_s'])),r['id'])
+            assert key not in self.boundaries
+            self.boundaries[key]=r
+        self.definitions={r['id']:r for r in self.geometry['boundaries']}
+        self.cell_geometry={(r['road'],r['cell']):r for r in self.geometry['cells']}
+        self.ports = {}
+        self.port_cohorts = {}
+        if (self.folder/'ports_30s.csv').exists():
+            for r in read_table(self.folder/'ports_30s.csv'):
+                self.ports[int(float(r['window_end_s'])), str(r['connector'])] = r
+            self.port_cohorts = json.loads((self.folder/'port_cohorts_30s.json').read_text(encoding='utf-8'))
+
+    def demand_vph(self,road,time_s):
+        rows=[r for r in self.geometry['desired_source_demand'] if r['road']==road
+            and r['start_sec']<=time_s and (r['end_sec'] is None or time_s<r['end_sec'])]
+        assert len(rows)==1, (road,time_s)
+        return float(rows[0]['desired_volume_vph'])
+
+    def desired_before(self,road,cutoff):
+        total=0.
+        for r in self.geometry['desired_source_demand']:
+            if r['road']!=road: continue
+            end=cutoff if r['end_sec'] is None else min(cutoff,r['end_sec'])
+            total+=max(0.,end-r['start_sec'])*float(r['desired_volume_vph'])/3600
+        return total
+
+
+def build_window(data,cutoff,mode,port_profile=None):
+    if mode not in PROTOCOL['evaluation_modes']:
+        raise ValueError('Unknown boundary mode')
+    horizon=PROTOCOL['horizon_sec']; history=PROTOCOL['history_sec']; step=PROTOCOL['model_step_sec']
+    assert cutoff % 30 == 0 and cutoff >= history and cutoff+horizon <= 9000
+    initial=[{k:r[k] for k in ('time_s','road','cell','n_veh','v_kmh')} for r in data.cells[cutoff]]
+    assert len(initial)==42
+    ends=list(range(cutoff-history+30,cutoff+1,30))
+    recent={}
+    initial_off={}
+    source_backlog={}
+    for name,b in data.definitions.items():
+        selected=[data.boundaries[t,name] for t in ends]
+        recent[name]=sum(float(r['crossings']) for r in selected)*3600/history
+        if b['kind']=='offramp':
+            initial_off[str(b['connector'])]=float(data.boundaries[cutoff,name]['snapshot_n_veh'])
+        if b['kind']=='source':
+            admitted=float(data.boundaries[cutoff,name]['cumulative_crossings'])
+            source_backlog[b['road']]=max(0.,data.desired_before(b['road'],cutoff)-admitted)
+    initial_external=dict(source_backlog)
+
+    def split(name,end=None):
+        b=data.definitions[name]
+        sample_ends=ends if end is None else [end]
+        numerator=sum(float(data.boundaries[t,name]['crossings']) for t in sample_ends)
+        denominator=sum(float(data.flows[t,b['road'],int(b['from_cell'])]['downstream_crossings'])+
+                        float(data.flows[t,b['road'],int(b['from_cell'])]['off_departures']) for t in sample_ends)
+        return min(1.,numerator/denominator) if denominator>0 else 0.
+
+    history_splits={name:split(name) for name,b in data.definitions.items() if b['kind']=='offramp'}
+    steps=[]
+    for start in range(cutoff,cutoff+horizon,step):
+        item={'window_start_s':start,'window_end_s':start+step,
+            'source_demand_vph':{},'ramp_release_vph':{},'off_capacity_vph':{},
+            'off_split_ratio':{},'offramp_occupancy_veh':{}}
+        if port_profile:
+            item['off_drain_vph'] = {}
+        # The containing (a,a+30] observed interval is accessed ONLY in diagnostic mode.
+        measured_end=(start//30+1)*30 if mode=='conditioned_diagnostic' else None
+        for name,b in data.definitions.items():
+            kind=b['kind']; road=b['road']
+            if mode=='conditioned_diagnostic':
+                observed=data.boundaries[measured_end,name]
+                rate=float(observed['crossings'])*120.
+            else:
+                rate=recent[name]
+            if kind=='source':
+                if mode=='history_forecast':
+                    demand=data.demand_vph(road,start)
+                    rate=min(rate,max(0.,demand+source_backlog[road]*3600/step))
+                    source_backlog[road]=max(0.,source_backlog[road]+(demand-rate)*step/3600)
+                item['source_demand_vph'][road]=rate
+            elif kind=='ramp':
+                item['ramp_release_vph'][name]=rate
+            elif kind=='offramp':
+                conn=str(b['connector'])
+                item['off_capacity_vph'][conn]=rate
+                item['off_split_ratio'][conn]=split(name,measured_end) if measured_end is not None else history_splits[name]
+                # Stock is a state at the interval START, unlike interval-average flow.
+                snapshot_time=(start//30)*30
+                item['offramp_occupancy_veh'][conn]=float(data.boundaries[snapshot_time,name]['snapshot_n_veh']) if measured_end is not None else initial_off[conn]
+                if port_profile:
+                    drain_ends = [measured_end] if measured_end is not None else ends
+                    rows = [data.ports[t,conn] for t in drain_ends]
+                    if any(float(r['unresolved_absences_veh']) for r in rows):
+                        raise ValueError('Unresolved port loss cannot be treated as drainage')
+                    item['off_drain_vph'][conn] = sum(float(r['departures_veh']) for r in rows)*3600/(30*len(rows))
+            else:
+                raise ValueError('Unexpected boundary '+kind)
+        for key in ('source_demand_vph','ramp_release_vph','off_capacity_vph','off_split_ratio','offramp_occupancy_veh'):
+            assert all(math.isfinite(x) and x>=0 for x in item[key].values())
+        if port_profile and not all(math.isfinite(x) and x>=0 for x in item['off_drain_vph'].values()):
+            raise ValueError('Nonfinite or negative physical connector drainage')
+        steps.append(item)
+    result = {'initial_cells':initial,'boundary_steps':steps,
+        'initial_origin_queue':{'FW_E':0.,'FW_W':0.},
+        'meta':{'cutoff_s':cutoff,'horizon_s':horizon,'mode':mode,
+            'features_latest_realized_time_s':cutoff if mode=='history_forecast' else cutoff+horizon,
+            'external_backlog_estimate_at_cutoff':initial_external,
+            'external_backlog_estimate_at_end':source_backlog if mode=='history_forecast' else None,
+            'source_request_meaning':'forecast/observed admitted interface flow, not all native desired demand',
+            'off_capacity_meaning':'recent or future-observed departure-rate proxy; not measured saturation capacity',
+            'scope':'No within-horizon mainline state resets. Exogenous downstream support, not full coupled urban forecast.'}}
+    if port_profile:
+        off_ids = [str(b['connector']) for b in data.definitions.values() if b['kind']=='offramp']
+        result['port_dynamics'] = {'schema':'physical-off-storage/v1',
+            'occupancy_lane_loss': bool(port_profile['occupancy_lane_loss']),
+            'travel_speed_kmh':{c:float(port_profile['travel_speed_kmh'][c]) for c in off_ids},
+            'initial_cohorts':{c:data.port_cohorts[str(cutoff)][c] for c in off_ids}}
+        result['meta']['off_capacity_meaning'] = 'Evolving free connector storage after causally available drainage; no observed entry-rate cap'
+        result['meta']['off_drain_meaning'] = 'Observed future physical connector exits (conditioned)' if measured_end is not None else 'Past150s physical exits held as an external drainage-service proxy, not a full urban signal forecast'
+        result['meta']['off_occupancy_resets'] = 0
+    return result
+
+
+def self_test():
+    # Future traffic may be missing entirely: genuine forecasts must still build.
+    class Fake:
+        geometry={'desired_source_demand':[]}
+        definitions={
+            'source_1':{'kind':'source','road':'FW_E'},
+            'RM_C1':{'kind':'ramp','road':'FW_E'},
+            'off1':{'kind':'offramp','road':'FW_E','connector':99,'from_cell':0}}
+        cells={900:[{'time_s':900,'road':road,'cell':i,'n_veh':20.,'v_kmh':60.}
+                    for road in ('FW_E','FW_W') for i in range(21)]}
+        boundaries={(t,name):{'crossings':3.,'cumulative_crossings':100.,'snapshot_n_veh':4.}
+                    for t in range(780,901,30) for name in ('source_1','RM_C1','off1')}
+        flows={(t,'FW_E',0):{'downstream_crossings':6.,'off_departures':3.} for t in range(780,901,30)}
+        def desired_before(self,road,cutoff): return 110.
+        def demand_vph(self,road,time_s): return 600.
+    data=Fake()
+    a=build_window(data,900,'history_forecast')
+    assert len(a['boundary_steps'])==45 and a['meta']['features_latest_realized_time_s']==900
+    for t in range(930,1351,30):
+        for name in data.definitions:
+            data.boundaries[t,name]={'crossings':999999.,'snapshot_n_veh':999999.}
+        data.flows[t,'FW_E',0]={'downstream_crossings':0.,'off_departures':999999.}
+    assert a==build_window(data,900,'history_forecast'), 'Future traffic leaked into forecast'
+    assert a!=build_window(data,900,'conditioned_diagnostic')
+    print('Boundary cutoff and future-mutation checks: PASS')
+
+
+if __name__=='__main__':
+    self_test()

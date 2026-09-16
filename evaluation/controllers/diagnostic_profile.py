@@ -12,12 +12,17 @@ import math
 
 CONTROLLER = "diagnostic-vsl-profile"
 RAMP_CONTROLLER = "diagnostic-ramp-profile"
-CONTROLLERS = (CONTROLLER, RAMP_CONTROLLER)
+RULE_CONTROLLER = "diagnostic-rule-profile"
+CONTROLLERS = (CONTROLLER, RAMP_CONTROLLER, RULE_CONTROLLER)
 UNCONTROLLED_KPH = 120.0
 
 
-def build_control(cfg, ControlAction, tuning, mapping, allowed_vsl_speeds):
+def build_control(cfg, ControlAction, tuning, mapping, allowed_vsl_speeds, *,
+                  rule_observation=None, rule_history=None):
     """Build the complete zone profile; reject unsupported heads or speeds."""
+    if tuning.get("diagnostic", {}).get("rule_profile", {}).get("enabled") is True:
+        return _build_rule_control(cfg, ControlAction, tuning, mapping, allowed_vsl_speeds,
+                                   rule_observation, rule_history)
     profile = tuning.get("diagnostic", {}).get("vsl_profile")
     if not isinstance(profile, Mapping):
         raise ValueError("diagnostic.vsl_profile must be a mapping ({} is the baseline)")
@@ -102,6 +107,12 @@ def fixed_actuation(actuation, tuning=None):
     cycle = float(meters.get("cycle_sec", 10.0))
     if cycle != 10.0:
         raise ValueError("diagnostic profile requires the runner's 10-second ramp cycle")
+    if (tuning or {}).get("diagnostic", {}).get("rule_profile", {}).get("enabled") is True:
+        if meters.get("amber_sec") != 0:
+            raise ValueError("rule profile requires RED/GREEN-only meters")
+        meters.update(allocation="diagnostic_rule_profile", enabled=True)
+        result.setdefault("real_world_signal_control", {})["enabled"] = False
+        return result
     # Setting both bounds to the cycle also works for unequal group capacities.
     # Proportional allocation avoids a measured-table optimizer or cached greens.
     meters.update(allocation="proportional", enabled=True, cycle_sec=cycle,
@@ -119,6 +130,14 @@ def fixed_actuation(actuation, tuning=None):
 def validate_controller(controller, tuning):
     """A nonconstant meter requires the runner's event mode, not static VSL mode."""
     overrides = tuning.get("diagnostic", {}).get("physical_meter_green_sec")
+    rule = tuning.get("diagnostic", {}).get("rule_profile", {})
+    if controller == RULE_CONTROLLER:
+        if rule.get("enabled") is not True or rule.get("arm") not in ("none", "vsl", "rm", "both"):
+            raise ValueError("diagnostic-rule-profile requires an enabled, explicit rule arm")
+        if overrides is not None:
+            raise ValueError("rule commands cannot also use fixed physical meter overrides")
+    elif rule.get("enabled") is True:
+        raise ValueError("enabled rule_profile requires --controller diagnostic-rule-profile")
     if controller == RAMP_CONTROLLER and not isinstance(overrides, Mapping):
         raise ValueError("diagnostic-ramp-profile requires physical_meter_green_sec ({} means all open)")
     if controller == CONTROLLER and overrides is not None:
@@ -160,8 +179,158 @@ def _physical_meter_rows(cfg, mapping, overrides):
 def physical_meter_actions(control, cfg, actuation, mapping):
     """Return explicit physical commands, or None for the unchanged normal writer."""
     settings = actuation.get("real_world_ramp_metering", {})
+    if settings.get("allocation") == "diagnostic_rule_profile":
+        from evaluation.controllers import physical_ramp_branches
+        if not physical_ramp_branches.enabled(cfg):
+            raise ValueError("rule profile requires eight physical ramp branches")
+        return physical_ramp_branches.physical_commands(control, cfg, actuation=actuation, mapping=mapping)
     if settings.get("allocation") != "diagnostic_profile":
         return None
     if float(settings.get("cycle_sec", 0)) != 10:
         raise ValueError("diagnostic physical meter commands require a 10-second cycle")
     return _physical_meter_rows(cfg, mapping, settings.get("diagnostic_green_sec"))
+
+
+def _number(value, label, minimum=0.0, maximum=math.inf):
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or not minimum <= value <= maximum):
+        raise ValueError(f"invalid {label}: {value!r}")
+    return float(value)
+
+
+def _observation(row):
+    if not isinstance(row, Mapping):
+        raise ValueError("rule detector observation must be a mapping")
+    return (_number(row.get("flow_vph_per_lane"), "detector flow_vph_per_lane"),
+            _number(row.get("occupancy_pct"), "detector occupancy_pct", maximum=100),
+            _number(row.get("speed_kph"), "detector speed_kph"))
+
+
+def rule_vsl_speed(observation, spec):
+    """Photo decision tree; q and occupancy equality use the low-demand arm."""
+    flow, occupancy, speed = _observation(observation)
+    q_limit = _number(spec.get("flow_threshold_vph_per_lane"), "VSL flow threshold")
+    o_limit = _number(spec.get("occupancy_threshold_pct"), "VSL occupancy threshold", maximum=100)
+    thresholds = spec.get("speed_thresholds_kph")
+    commands = spec.get("speed_commands_kph")
+    if not isinstance(thresholds, (list, tuple)) or len(thresholds) != 2 or not isinstance(commands, (list, tuple)) or len(commands) != 3:
+        raise ValueError("rule VSL requires two speed thresholds and three commands")
+    low, high = [_number(value, "VSL speed threshold") for value in thresholds]
+    slow, medium, fast = [_number(value, "VSL speed command") for value in commands]
+    if not low < high or not 0 < slow < medium < fast:
+        raise ValueError("rule VSL thresholds and commands must be strictly increasing")
+    if flow <= q_limit and occupancy <= o_limit:
+        return fast
+    return fast if speed > high else medium if speed > low else slow
+
+
+def _build_rule_control(cfg, ControlAction, tuning, mapping, allowed, observation, history):
+    from evaluation.controllers import physical_ramp_branches
+    validate_controller(RULE_CONTROLLER, tuning)
+    spec = tuning["diagnostic"]["rule_profile"]
+    if not physical_ramp_branches.enabled(cfg):
+        raise ValueError("rule profile requires the installed eight-ramp physical plant")
+    ramps = cfg.network.physical_ramp_branches
+    if len(ramps["ramps"]) != 8 or ramps["cycle_sec"] != 10 or ramps["max_green_change_sec"] != 2:
+        raise ValueError("rule profile must retain eight meters, 10-second cycle and actual-green +/-2")
+    reference_speed = _number(spec.get("reference_speed_kph"), "rule reference speed")
+    vsl_spec = spec.get("vsl_rule", {})
+    # Validate the configured decision tree even in its fixed-reference arm.
+    if rule_vsl_speed({"flow_vph_per_lane": 0, "occupancy_pct": 0, "speed_kph": 0}, vsl_spec) != reference_speed:
+        raise ValueError("rule reference speed must equal the highest VSL rule command")
+    physical_speeds = {float(value) for value in (allowed.split(",") if isinstance(allowed, str) else allowed)}
+    command_speeds = {float(value) for value in cfg.freeway_follower.vsl_set}
+    missing = set(vsl_spec["speed_commands_kph"]) - (physical_speeds & command_speeds)
+    if missing:
+        raise ValueError(f"rule commands missing from physical/model VSL sets: {sorted(missing)}")
+    heads = {f"{link}__seg{head}" for link, values in cfg.network.freeway_vsl_zone_heads.items() for head in values}
+    zone_values = dict.fromkeys(heads, reference_speed)
+    arm = spec["arm"]
+    if arm != "none":
+        if not isinstance(observation, Mapping) or any(observation.get(key) != value for key, value in (
+                ("occupancy_unit", "percent"), ("flow_unit", "veh/h/lane"), ("speed_unit", "km/h"))):
+            raise ValueError("explicit detector units percent, veh/h/lane and km/h are required")
+    if arm in ("vsl", "both"):
+        observed = observation.get("vsl_zones", {})
+        if not isinstance(observed, Mapping) or set(observed) != heads:
+            raise ValueError("rule VSL observation must cover exactly all configured zone heads")
+        zone_values = {key: rule_vsl_speed(observed[key], vsl_spec) for key in sorted(heads)}
+    fixed = deepcopy(tuning)
+    fixed["diagnostic"].pop("rule_profile")
+    fixed["diagnostic"]["vsl_profile"] = zone_values
+    control = build_control(cfg, ControlAction, fixed, mapping, allowed)
+    # Urban SG rows stay native, but the plant replay must describe their real
+    # phase lengths and clock, not ControlAction.uncontrolled's nominal plan.
+    from evaluation.controllers.vissim_stackelberg_adapter import represent_native_no_control_signals
+    control = represent_native_no_control_signals(control, cfg)
+    native_reference = control.diagnostics.get("no_control_native_signal_reference")
+    if native_reference is not None:
+        control.diagnostics["diagnostic_rule_native_signal_reference"] = deepcopy(native_reference)
+    control.vsl.update({str(link): reference_speed for link in cfg.network.freeway_links})
+    history = history if history is not None else {
+        "actual_green_sec": dict.fromkeys(ramps["ramps"], 10.0),
+        "requested_rate_vph": {mid: row["service_by_green_veh_h"]["10"] for mid, row in ramps["ramps"].items()}}
+    if not isinstance(history, Mapping):
+        raise ValueError("rule history must include actual greens and bounded continuous rate requests")
+    for key in ("actual_green_sec", "requested_rate_vph"):
+        if not isinstance(history.get(key), Mapping) or set(history[key]) != set(ramps["ramps"]):
+            raise ValueError(f"rule history requires all eight meters: {key}")
+    reference = control.copy()
+    for mid, row in ramps["ramps"].items():
+        green = _number(history["actual_green_sec"][mid], "previous actual green", maximum=10)
+        if green != int(green) or str(int(green)) not in row["service_by_green_veh_h"]:
+            raise ValueError("previous actual green is not representable by the service table")
+        reference.diagnostics["rw_meter_green_"+mid] = green
+        reference.ramp_metering[mid] = row["service_by_green_veh_h"][str(int(green))]
+    reference = physical_ramp_branches.prepare_control(reference, cfg)
+    greens, requests, audit = {}, {}, {}
+    if arm in ("rm", "both"):
+        observed = observation.get("ramps", {})
+        if not isinstance(observed, Mapping) or set(observed) != set(ramps["ramps"]):
+            raise ValueError("ALINEA requires downstream observations for all eight ramps")
+        alinea = spec.get("alinea", {})
+    for mid, row in ramps["ramps"].items():
+        previous_green = reference.diagnostics["rw_meter_green_"+mid]
+        table = row["service_by_green_veh_h"]
+        previous_request = _number(history["requested_rate_vph"][mid], "previous ALINEA request")
+        request = raw = float(table["10"])
+        if arm in ("rm", "both"):
+            _, occupancy, _ = _observation(observed[mid])
+            params = {}
+            for key in ("gain_vph_per_pct", "target_occupancy_pct", "min_rate_vph", "max_rate_vph"):
+                value = alinea.get(key)
+                if isinstance(value, Mapping):
+                    if set(value) != set(ramps["ramps"]):
+                        raise ValueError(f"ALINEA {key} must cover all eight meters")
+                    value = value[mid]
+                params[key] = _number(value, "ALINEA "+key)
+            if not 0 < params["target_occupancy_pct"] <= 100 or params["gain_vph_per_pct"] <= 0:
+                raise ValueError("ALINEA needs positive gain and a target occupancy in percent")
+            if not params["min_rate_vph"] < params["max_rate_vph"] <= max(table.values()):
+                raise ValueError("ALINEA request bounds must lie within physical service range")
+            raw = previous_request + params["gain_vph_per_pct"] * (params["target_occupancy_pct"]-occupancy)
+            request = min(params["max_rate_vph"], max(params["min_rate_vph"], raw))
+        choices = [int(g) for g in table if (int(g) == 0 or int(g) >= ramps["minimum_green_sec"])
+                   and abs(int(g)-previous_green) <= ramps["max_green_change_sec"]]
+        if not choices:
+            raise ValueError("no physical metering green inside the actual-command trust region")
+        green = min(choices, key=lambda g: (abs(table[str(g)]-request), abs(g-previous_green), -g))
+        # Keep the continuous remainder through quantization, but do not wind
+        # up beyond rates the present actual-green trust region can realize.
+        next_request = min(max(table[str(g)] for g in choices),
+                           max(min(table[str(g)] for g in choices), request))
+        greens[mid], requests[mid] = float(green), next_request
+        audit[mid] = {"previous_actual_green_sec": previous_green, "previous_request_vph": previous_request,
+                      "raw_requested_rate_vph": raw, "bounded_requested_rate_vph": request,
+                      "next_integrator_rate_vph": next_request,
+                      "applied_green_sec": float(green), "applied_service_ceiling_vph": table[str(green)],
+                      "csv_command_rate_vph": float(green)*row["capacity_vph"]/ramps["cycle_sec"]}
+    control = physical_ramp_branches.candidate_from_greens(reference, reference, cfg, greens)
+    control.diagnostics.update({"diagnostic_rule_profile_active": 1.0, "diagnostic_rule_arm": arm,
+        "diagnostic_physical_meter_green_sec": greens,
+        "diagnostic_ramps_forced_open": float(all(g == 10 for g in greens.values())),
+        "diagnostic_rule_meter_audit": audit,
+        "diagnostic_rule_observation": deepcopy(observation),
+        "diagnostic_rule_next_history": {"actual_green_sec": greens, "requested_rate_vph": requests},
+        "diagnostic_rule_rate_semantics": "bounded ALINEA request; discrete model service ceiling; CSV encoding; none is measured flow"})
+    return control

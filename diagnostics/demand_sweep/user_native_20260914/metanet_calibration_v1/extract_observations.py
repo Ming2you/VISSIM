@@ -1,0 +1,566 @@
+"""One post-completion native FZP pass: canonical spatial states and physical flows.
+
+The 21 spatial bins come from the canonical mapping; physical lane-km and ramp
+attachment positions come from this run's actual INPX. Observations are not a
+forecast: future boundaries must be withheld separately by the forecast caller.
+"""
+from __future__ import annotations
+
+import argparse
+from bisect import bisect_right
+from collections import Counter, defaultdict
+import csv
+import hashlib
+import json
+import math
+from pathlib import Path
+import sys
+import time
+import xml.etree.ElementTree as ET
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT))
+from diagnostics.analyze_no_control_corridors import native_frames
+from diagnostics.capture_native_runtime_errors import parse_bytes
+from diagnostics.summarize_fast_nc import completion_inputs
+
+MAPPING = ROOT / 'evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json'
+OFF_INVENTORY = ROOT / 'diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json'
+FLOW_FIELDS = ('upstream_crossings', 'downstream_crossings', 'source_admissions',
+               'ramp_merges', 'off_departures', 'terminal_exits_inferred',
+               'unexplained_entries', 'unexplained_losses', 'native_removals',
+               'observed_births', 'source_first_appearances', 'source_reappearances')
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def load(path):
+    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+
+
+def sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def save(path, value):
+    with Path(path).open('x', encoding='utf-8') as stream:
+        json.dump(value, stream, ensure_ascii=False, indent=2, allow_nan=False)
+        stream.write('\n')
+
+
+def table(path, rows):
+    require(bool(rows), 'No table rows: ' + str(path))
+    with Path(path).open('x', encoding='utf-8', newline='') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def physical_geometry(network, mapping=MAPPING, off_inventory=OFF_INVENTORY, geometry_profile=None):
+    document, mapped = ET.parse(network), load(mapping)
+    profile = load(geometry_profile) if geometry_profile else None
+    if profile:
+        from evaluation.controllers.freeway_geometry import validate_profile
+        validate_profile(profile)
+        require(profile['source_mapping']['sha256'] == sha(mapping), 'Geometry profile mapping mismatch')
+    nodes = {int(n.get('no')): n for n in document.findall('./links/link')}
+    physical, connectors, pairs, incoming = {}, {}, defaultdict(list), defaultdict(list)
+    for number, node in nodes.items():
+        points = [tuple(float(p.get(k, 0)) for k in ('x', 'y', 'zOffset'))
+                  for p in node.findall('./geometry/linkPolyPts/linkPolyPoint')]
+        length = math.fsum(math.dist(a, b) for a, b in zip(points, points[1:]))
+        physical[number] = {'length_m': length, 'lanes': len(node.findall('./lanes/lane'))}
+        before, after = node.find('fromLinkEndPt'), node.find('toLinkEndPt')
+        if before is not None and after is not None:
+            src, dst = int(before.get('lane').split()[0]), int(after.get('lane').split()[0])
+            connectors[number] = {'connector': number, 'from_link': src, 'to_link': dst,
+                'from_pos_m': float(before.get('pos')), 'to_pos_m': float(after.get('pos')),
+                **physical[number]}
+            pairs[src, dst].append(number)
+            incoming[dst].append(number)
+    bounds, addresses, cells, chains = {}, {}, [], {}
+    for road, row in mapped['freeway_model_links'].items():
+        profile_road = profile['roads'][road] if profile else row
+        edges = list(map(float, profile_road['segment_bounds_m']))
+        require(len(edges) == 22 and edges[0] == 0 and all(a < b for a, b in zip(edges, edges[1:])),
+                'Expected 21 ordered canonical spatial cells')
+        bounds[road] = edges
+        chain = []
+        for number, offset, mapped_length in zip(row['chain_links'], row['chain_offsets_m'], row['chain_lengths_m']):
+            require(number not in addresses and number in physical, 'Missing/overlapping chain link')
+            actual = physical[number]
+            require(abs(actual['length_m'] - mapped_length) < .01,
+                    'Actual mainline geometry changed; canonical positions require review')
+            addresses[number] = (road, float(offset))
+            chain.append({'link': number, 'offset_m': float(offset), **actual})
+        chains[road] = chain
+        for index, (lower, upper) in enumerate(zip(edges, edges[1:])):
+            pieces = []
+            for p, item in enumerate(chain):
+                # Mapping rounds link ends to millimetres; close those rounding
+                # gaps at the next canonical offset (last end at canonical edge).
+                end = chain[p + 1]['offset_m'] if p + 1 < len(chain) else edges[-1]
+                overlap = max(0., min(upper, end) - max(lower, item['offset_m']))
+                if overlap:
+                    pieces.append({'link': item['link'], 'length_m': overlap, 'lanes': item['lanes']})
+            lane_km = math.fsum(p['length_m'] * p['lanes'] / 1000 for p in pieces)
+            require(abs(math.fsum(p['length_m'] for p in pieces) - (upper - lower)) < 1e-6,
+                    'Physical cell length coverage failure')
+            cells.append({'road': road, 'cell': index, 'start_m': lower, 'end_m': upper,
+                'length_km': (upper - lower) / 1000, 'lane_km': lane_km,
+                'effective_lanes': lane_km / ((upper - lower) / 1000),
+                'canonical_segment_lanes': profile_road['segment_lanes'][index], 'physical_pieces': pieces})
+            if profile:
+                require(abs(cells[-1]['effective_lanes'] - profile_road['segment_lanes'][index]) < 1e-6,
+                        'Profile cell is not homogeneous in actual INPX lanes')
+
+    def address(number, position):
+        road, offset = addresses[number]
+        x = offset + position
+        return road, min(20, bisect_right(bounds[road], x) - 1), x
+
+    boundaries = []
+    for ramp in mapped['ramp_meters']:
+        item = connectors[int(ramp['connector'])]
+        road, cell, pos = address(item['to_link'], item['to_pos_m'])
+        boundaries.append({'id': ramp['id'], 'kind': 'ramp', 'road': road,
+            'from_cell': None, 'to_cell': cell, 'chain_pos_m': pos, **item})
+    for group, row in load(off_inventory)['groups'].items():
+        for branch in ('signal', 'direct'):
+            item = connectors[int(row[branch + '_connector'])]
+            road, cell, pos = address(item['from_link'], item['from_pos_m'])
+            boundaries.append({'id': group + '_' + branch, 'group': group, 'branch': branch, 'kind': 'offramp', 'road': road,
+                'from_cell': cell, 'to_cell': None, 'chain_pos_m': pos, **item})
+    sources, demand = {}, []
+    for node in document.findall('./vehicleInputs/vehicleInput'):
+        link, number = int(node.get('link')), int(node.get('no'))
+        if link not in addresses:
+            continue
+        road, cell, pos = address(link, 0.)
+        require(cell == 0 and pos == 0 and not any(connectors[c]['to_pos_m'] <= 1. for c in incoming[link]),
+                'Source input is not an isolated first-chain origin')
+        sources[link] = 'source_' + str(number)
+        boundaries.append({'id': sources[link], 'kind': 'source', 'road': road,
+            'from_cell': None, 'to_cell': 0, 'chain_pos_m': 0., 'connector': None,
+            'from_link': None, 'to_link': link, 'input_no': number})
+        volumes = node.findall('./timeIntVehVols/timeIntervalVehVolume')
+        for i, volume in enumerate(volumes):
+            start = int(volume.get('timeInt').split()[1]) / 1000
+            end = int(volumes[i + 1].get('timeInt').split()[1]) / 1000 if i + 1 < len(volumes) else None
+            demand.append({'road': road, 'input_no': number, 'source_link': link,
+                'start_sec': start, 'end_sec': end, 'desired_volume_vph': float(volume.get('volume')),
+                'native_cont': volume.get('cont'), 'native_vol_type': volume.get('volType')})
+    require(len(sources) == 2 and len(boundaries) == 18, 'Expected two sources/eight ramps/eight offramps')
+    result = {'schema': 'metanet-spatial-geometry/v1', 'cell_index_base': 0,
+        'network': {'path': str(network), 'sha256': sha(network)},
+        'mapping': {'path': str(mapping), 'sha256': sha(mapping)},
+        'off_inventory': {'path': str(off_inventory), 'sha256': sha(off_inventory)},
+        'cells': cells, 'chains': chains, 'bounds': bounds, 'boundaries': boundaries,
+        'desired_source_demand': demand,
+        'geometry_policy': 'Canonical spatial bins/offsets; actual INPX lane counts and connector attachments. Sub-millimetre rounded chain gaps closed at next canonical offset.',
+        'addresses': addresses, 'sources': sources,
+        'direct_connector_pairs': [{'from_link': a, 'to_link': b, 'connectors': cs} for (a, b), cs in pairs.items()]}
+    if profile:
+        from evaluation.controllers.freeway_geometry import geometry_fingerprint
+        require(geometry_fingerprint(result) == profile['physical_geometry_sha256'],
+                'Actual network attachments differ from physical geometry profile')
+        result['geometry_profile'] = {'path': str(Path(geometry_profile).resolve()), 'sha256': sha(geometry_profile)}
+        result['geometry_policy'] = 'Physical lane-transition aligned 21-cell grid; actual INPX lane-km and port positions.'
+    return result
+
+
+class PortObserver:
+    """Disjoint physical connector stocks; never infer disappearance as discharge."""
+
+    def __init__(self, geometry):
+        self.ports = {b['connector']: b for b in geometry['boundaries'] if b['kind'] in ('ramp', 'offramp')}
+        self.previous = {}
+        self.entered = {}
+        self.opening = Counter()
+        self.bins = defaultdict(Counter)
+        self.rows, self.events, self.snapshots = [], [], {}
+
+    def advance(self, sec, current):
+        selected = {v: r for v, r in current.items() if r[0] in self.ports}
+        for vehicle in self.previous.keys() | selected.keys():
+            old, new = self.previous.get(vehicle), selected.get(vehicle)
+            if old is not None and new is not None and old[0] == new[0]:
+                continue
+            if old is not None:
+                conn = old[0]
+                actual_new = current.get(vehicle)
+                kind = 'departure' if actual_new is not None else 'unresolved_absence'
+                self.bins[conn][kind] += 1
+                entered = self.entered.pop((vehicle, conn), None)
+                self.events.append({'time_s': sec, 'vehicle': vehicle, 'connector': conn,
+                    'kind': kind, 'other_link': actual_new[0] if actual_new else None,
+                    'lane': old[1], 'position_m': old[2], 'speed_kmh': old[3],
+                    'residence_s': sec-entered if entered is not None else None})
+            if new is not None:
+                conn = new[0]
+                self.bins[conn]['arrival'] += 1
+                self.entered[vehicle, conn] = sec
+                self.events.append({'time_s': sec, 'vehicle': vehicle, 'connector': conn,
+                    'kind': 'arrival', 'other_link': None,
+                    'lane': new[1], 'position_m': new[2], 'speed_kmh': new[3], 'residence_s': None})
+        if sec % 30 == 0:
+            groups = defaultdict(list)
+            for r in selected.values():
+                groups[r[0]].append([r[2], r[3], r[1]])
+            snapshot = {}
+            for conn, definition in self.ports.items():
+                rows, flow = groups[conn], self.bins[conn]
+                count = len(rows)
+                residual = count-self.opening[conn]-flow['arrival']+flow['departure']+flow['unresolved_absence']
+                require(residual == 0, 'Physical port conservation failure')
+                self.rows.append({'window_start_s': sec-30, 'window_end_s': sec,
+                    'connector': conn, 'kind': definition['kind'], 'road': definition['road'],
+                    'start_n_veh': self.opening[conn], 'end_n_veh': count,
+                    'arrivals_veh': flow['arrival'], 'departures_veh': flow['departure'],
+                    'unresolved_absences_veh': flow['unresolved_absence'],
+                    'stopped_veh': sum(r[1] <= 1. for r in rows),
+                    'mean_speed_kmh': sum(r[1] for r in rows)/count if count else None,
+                    'conservation_residual_veh': residual})
+                snapshot[str(conn)] = rows
+                self.opening[conn] = count
+            self.snapshots[str(sec)] = snapshot
+            self.bins = defaultdict(Counter)
+        self.previous = selected
+
+
+class Observer:
+    def __init__(self, geometry, removals=()):
+        self.geometry = geometry
+        self.addresses = {int(k): tuple(v) for k, v in geometry['addresses'].items()}
+        self.sources = {int(k): v for k, v in geometry['sources'].items()}
+        self.bounds = geometry['bounds']
+        self.cell_geometry = {(x['road'], x['cell']): x for x in geometry['cells']}
+        self.keys = list(self.cell_geometry)
+        self.boundaries = {x['id']: x for x in geometry['boundaries']}
+        self.ramps = {x['connector']: x for x in geometry['boundaries'] if x['kind'] == 'ramp'}
+        self.offramps = {x['connector']: x for x in geometry['boundaries'] if x['kind'] == 'offramp'}
+        self.pairs = {(x['from_link'], x['to_link']): x['connectors'] for x in geometry['direct_connector_pairs']}
+        self.removals = defaultdict(list)
+        for index, item in enumerate(removals):
+            self.removals[int(item['vehicle_id']), int(item['link'])].append((index, item))
+        self.removal_matched = set()
+        self.previous, self.seen, self.previous_cells = {}, set(), {}
+        self.sec = 0
+        self.bin, self.cumulative = defaultdict(Counter), defaultdict(Counter)
+        self.boundary_bin, self.boundary_cumulative = defaultdict(Counter), defaultdict(Counter)
+        self.counts, self.opening = Counter(), Counter()
+        self.cells, self.flows, self.boundary_rows, self.evidence = [], [], [], []
+        self.checks = 0
+        self.initial_snapshot()
+
+    def locate(self, row):
+        item = self.addresses.get(row[0])
+        if item is None:
+            return None
+        road, offset = item
+        pos = offset + row[2]
+        if pos < 0:
+            return None
+        return road, min(len(self.bounds[road]) - 2, bisect_right(self.bounds[road], pos) - 1), pos
+
+    def initial_snapshot(self):
+        for key in self.keys:
+            self.cells.append({'time_s': 0, 'road': key[0], 'cell': key[1], 'n_veh': 0,
+                'rho_veh_per_km_lane': 0., 'v_kmh': None, 'stopped_veh': 0,
+                'speed_eligible_n_ge5': False, 'snapshot_basis': 'empty_initialization_not_FZP_frame'})
+
+    def flow(self, key, field, amount=1):
+        self.bin[key][field] += amount
+        self.cumulative[key][field] += amount
+
+    def boundary(self, name, field='crossings', amount=1):
+        self.boundary_bin[name][field] += amount
+        self.boundary_cumulative[name][field] += amount
+
+    def crossing(self, road, before, after):
+        require(before <= after, 'Backward crossing not allowed')
+        for cell in range(before, after):
+            self.flow((road, cell), 'downstream_crossings')
+            self.flow((road, cell + 1), 'upstream_crossings')
+
+    def unexplained(self, vehicle, old, new, a, b, reason):
+        if a:
+            self.flow(a[:2], 'unexplained_losses')
+        if b:
+            self.flow(b[:2], 'unexplained_entries')
+        self.evidence.append({'vehicle_id': vehicle, 'lower_sec': self.sec - 1, 'upper_sec': self.sec,
+            'reason': reason, 'before': old, 'after': new})
+
+    def advance(self, sec, current):
+        require(sec == self.sec + 1, 'Require exact consecutive 1-second frames')
+        self.sec = sec
+        locations, counts, speeds, stopped, physical_counts = {}, Counter(), Counter(), Counter(), Counter()
+        for vehicle, row in current.items():
+            physical_counts[row[0]] += 1
+            b = self.locate(row)
+            if b:
+                locations[vehicle] = b
+                counts[b[:2]] += 1
+                speeds[b[:2]] += row[3]
+                stopped[b[:2]] += row[3] <= 1.
+            if vehicle not in self.previous and row[0] in self.sources:
+                name = self.sources[row[0]]
+                field = 'source_reappearances' if vehicle in self.seen else 'source_first_appearances'
+                self.boundary(name, field)
+                self.flow((self.boundaries[name]['road'], 0), field)
+            if b and vehicle not in self.seen:
+                self.flow(b[:2], 'observed_births')
+        for vehicle in self.previous.keys() | current.keys():
+            old, new = self.previous.get(vehicle), current.get(vehicle)
+            a, b = self.previous_cells.get(vehicle), locations.get(vehicle)
+            if a and b:
+                if a[:2] == b[:2]:
+                    continue
+                plausible = b[0] == a[0] and b[2] >= a[2] and b[2] - a[2] <= max(old[3], new[3]) / 3.6 + 12.
+                if plausible:
+                    self.crossing(a[0], a[1], b[1])
+                else:
+                    self.unexplained(vehicle, old, new, a, b, 'nonforward_or_implausible_chain_jump')
+            elif b:
+                ramp = self.ramps.get(old[0]) if old else None
+                source = self.sources.get(new[0])
+                source_birth = source and vehicle not in self.seen
+                source_zero_crossing = source and old is not None and old[0] == new[0] and old[2] < 0 <= new[2]
+                if source_birth or source_zero_crossing:
+                    self.flow((b[0], 0), 'source_admissions')
+                    self.boundary(source)
+                    self.crossing(b[0], 0, b[1])
+                elif ramp and b[0] == ramp['road'] and b[1] >= ramp['to_cell']:
+                    self.flow((b[0], ramp['to_cell']), 'ramp_merges')
+                    self.boundary(ramp['id'])
+                    self.crossing(b[0], ramp['to_cell'], b[1])
+                else:
+                    self.unexplained(vehicle, old, new, a, b, 'unverified_mainline_entry')
+                    if old:
+                        for c in self.pairs.get((old[0], new[0]), []):
+                            if c in self.ramps:
+                                self.boundary(self.ramps[c]['id'], 'excluded_connector_skip')
+            elif a:
+                off = self.offramps.get(new[0]) if new else None
+                matches = [(i, item) for i, item in self.removals.get((vehicle, old[0]), [])
+                           if abs(float(item['time_sec']) - sec) <= 1.] if new is None else []
+                if off and a[0] == off['road'] and a[1] <= off['from_cell']:
+                    self.crossing(a[0], a[1], off['from_cell'])
+                    self.flow((a[0], off['from_cell']), 'off_departures')
+                    self.boundary(off['id'])
+                elif matches:
+                    self.flow(a[:2], 'native_removals')
+                    self.removal_matched.update(i for i, _ in matches)
+                    self.evidence.append({'vehicle_id': vehicle, 'lower_sec': sec - 1, 'upper_sec': sec,
+                        'reason': 'matched_native_removal', 'before': old, 'after': new,
+                        'native_removal_indices': [i for i, _ in matches]})
+                elif new is None and old[0] == self.geometry['chains'][a[0]][-1]['link'] and abs(self.bounds[a[0]][-1] - a[2]) <= old[3] / 3.6 + 11.5:
+                    self.flow(a[:2], 'terminal_exits_inferred')
+                else:
+                    self.unexplained(vehicle, old, new, a, b, 'unverified_mainline_loss')
+                    if new:
+                        for c in self.pairs.get((old[0], new[0]), []):
+                            if c in self.offramps:
+                                self.boundary(self.offramps[c]['id'], 'excluded_connector_skip')
+        if sec % 30 == 0:
+            for key in self.keys:
+                n = counts[key]
+                self.cells.append({'time_s': sec, 'road': key[0], 'cell': key[1], 'n_veh': n,
+                    'rho_veh_per_km_lane': n / self.cell_geometry[key]['lane_km'],
+                    'v_kmh': speeds[key] / n if n else None, 'stopped_veh': stopped[key],
+                    'speed_eligible_n_ge5': n >= 5, 'snapshot_basis': 'exact_FZP_frame'})
+                flow = self.bin[key]
+                residual = n - self.opening[key] - flow['upstream_crossings'] - flow['source_admissions'] - flow['ramp_merges'] - flow['unexplained_entries'] + flow['downstream_crossings'] + flow['off_departures'] + flow['terminal_exits_inferred'] + flow['unexplained_losses'] + flow['native_removals']
+                require(residual == 0, f'Cell conservation failure t={sec} {key}: {residual}')
+                self.checks += 1
+                self.flows.append({'window_start_s': sec - 30, 'window_end_s': sec,
+                    'road': key[0], 'cell': key[1], 'start_n_veh': self.opening[key], 'end_n_veh': n,
+                    **{field: flow[field] for field in FLOW_FIELDS},
+                    **{'cumulative_' + field: self.cumulative[key][field] for field in FLOW_FIELDS},
+                    'conservation_residual_veh': residual})
+            for name, item in self.boundaries.items():
+                values = self.boundary_bin[name]
+                self.boundary_rows.append({'window_start_s': sec - 30, 'window_end_s': sec,
+                    'id': name, 'kind': item['kind'], 'road': item['road'], 'connector': item['connector'],
+                    'from_cell': item['from_cell'], 'to_cell': item['to_cell'], 'crossings': values['crossings'],
+                    'flow_vph': values['crossings'] * 120.,
+                    'cumulative_crossings': self.boundary_cumulative[name]['crossings'],
+                    'snapshot_n_veh': physical_counts[item['connector']] if item['connector'] else None,
+                    'excluded_connector_skip': values['excluded_connector_skip'],
+                    'source_first_appearances': values['source_first_appearances'],
+                    'source_reappearances': values['source_reappearances']})
+            self.opening, self.bin, self.boundary_bin = counts.copy(), defaultdict(Counter), defaultdict(Counter)
+        self.previous, self.previous_cells, self.counts = current, locations, counts
+        self.seen.update(current)
+
+
+def synthetic_tests():
+    geometry = {'addresses': {1: ('FW_E', 0.)}, 'sources': {1: 'source_1'},
+        'bounds': {'FW_E': [0., 10., 20., 30.]},
+        'cells': [{'road': 'FW_E', 'cell': i, 'lane_km': .04} for i in range(3)],
+        'chains': {'FW_E': [{'link': 1}]},
+        'boundaries': [{'id': 'source_1', 'kind': 'source', 'road': 'FW_E', 'connector': None,
+                        'from_cell': None, 'to_cell': 0}], 'direct_connector_pairs': []}
+    obs = Observer(geometry)
+    # Same physical link crosses two cell boundaries in one frame. A different
+    # vehicle crosses at t=31: it must be absent from the (0,30] counts.
+    for sec in range(1, 61):
+        current = {1: (1, 1, 25. if sec >= 30 else 1., 100.),
+                   2: (1, 1, 15. if sec >= 31 else 1., 100.)}
+        obs.advance(sec, current)
+    first = {r['cell']: r for r in obs.flows if r['window_end_s'] == 30}
+    second = {r['cell']: r for r in obs.flows if r['window_end_s'] == 60}
+    require(first[0]['downstream_crossings'] == 1 and first[1]['downstream_crossings'] == 1,
+            'Missed same-link/multi-cell spatial crossings')
+    require(first[0]['end_n_veh'] == 1 and first[2]['end_n_veh'] == 1,
+            'Wrong exact cutoff state')
+    require(second[0]['downstream_crossings'] == 1 and second[1]['downstream_crossings'] == 0,
+            'Cutoff leaked a future crossing')
+    require(sum(r['source_admissions'] for r in obs.flows) == 2 and obs.checks == 6,
+            'Birth/cell conservation test failed')
+    # Disappearance far from a terminal must be an excluded loss, never flow.
+    missing = Observer(geometry)
+    for sec in range(1, 31):
+        missing.advance(sec, {7: (1, 1, 1., 0.)} if sec < 5 else {})
+    require(sum(r['unexplained_losses'] for r in missing.flows) == 1
+            and sum(r['terminal_exits_inferred'] for r in missing.flows) == 0,
+            'Unverified disappearance became terminal flow')
+    branch_geometry = {**geometry, 'boundaries': geometry['boundaries'] + [
+        {'id': 'RM_C2', 'kind': 'ramp', 'road': 'FW_E', 'connector': 2, 'from_cell': None, 'to_cell': 0},
+        {'id': 'OR_test_signal', 'kind': 'offramp', 'road': 'FW_E', 'connector': 3, 'from_cell': 2, 'to_cell': None}],
+        'direct_connector_pairs': [{'from_link': 9, 'to_link': 1, 'connectors': [2]}]}
+    branch = Observer(branch_geometry, [{'vehicle_id': 11, 'link': 1, 'time_sec': 4}])
+    for sec in range(1, 31):
+        # A merge and divergence each traverse an intervening cell boundary
+        # inside their one-second observation brackets. A connector-skipping
+        # urban->mainline jump must stay out of measured ramp release.
+        current = {10: (2, 1, 1., 100.)} if sec == 1 else {10: (1, 1, 15., 100.)} if sec == 2 else {10: (3, 1, 1., 100.)}
+        current[12] = (9, 1, 1., 100.) if sec == 1 else (1, 1, 2., 100.)
+        if sec < 4:
+            current[11] = (1, 1, 29., 100.)
+        branch.advance(sec, current)
+    totals = Counter()
+    for row in branch.flows:
+        totals.update({field: row[field] for field in FLOW_FIELDS})
+    require(totals['ramp_merges'] == 1 and totals['off_departures'] == 1
+            and totals['unexplained_entries'] == 1 and totals['native_removals'] == 1
+            and totals['terminal_exits_inferred'] == 0,
+            'Ramp/off/deletion or excluded-short-connector flow classification failed')
+    require(next(r for r in branch.boundary_rows if r['id'] == 'RM_C2')['excluded_connector_skip'] == 1,
+            'Missing skipped connector ambiguity evidence')
+    return {'status': 'PASS', 'checks': ['same_link_two_boundary_crossing', 'cutoff_30_vs_31_no_future_leak',
+        'source_birth_and_cell_conservation', 'internal_disappearance_excluded_from_flow',
+        'merge_divergence_crossing_intermediate_cells', 'short_connector_skip_excluded',
+        'native_removal_overrides_terminal_inference']}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--run', type=Path)
+    parser.add_argument('--out', type=Path)
+    parser.add_argument('--geometry-only', action='store_true')
+    parser.add_argument('--geometry-profile', type=Path)
+    parser.add_argument('--verified-network', type=Path,
+                        help='Use a relocated immutable network only if its bytes match the original receipt snapshot SHA')
+    parser.add_argument('--port-details', action='store_true', help='Collect physical port entries, drains and initial travel cohorts in the same FZP pass')
+    parser.add_argument('--self-test', action='store_true')
+    args = parser.parse_args()
+    if args.self_test:
+        checks = synthetic_tests()
+        port = PortObserver({'boundaries': [{'connector': 10, 'kind': 'offramp', 'road': 'FW_E'}]})
+        for sec in range(1, 31):
+            frame = ({1: (10, 1, 8., 10.), 2: (10, 1, 2., 0.)} if sec < 10
+                     else {1: (20, 1, 1., 10.)} if sec < 20 else {})
+            port.advance(sec, frame)
+        row = port.rows[0]
+        require(row['arrivals_veh'] == 2 and row['departures_veh'] == 1
+                and row['unresolved_absences_veh'] == 1 and row['end_n_veh'] == 0,
+                'Port disappearance must not become physical discharge')
+        checks['checks'].append('port_entry_drain_absence_conservation')
+        print(json.dumps(checks, indent=2))
+        return
+    require(args.run is not None and args.out is not None, '--run and --out required')
+    run, out = args.run.resolve(), args.out.resolve()
+    require(out.is_relative_to(Path(__file__).parent.parent) and not out.exists(), 'New extraction output under this scenario diagnostic required')
+    receipt_path, receipt, errors, _ = completion_inputs(run)
+    require(receipt.get('native_preserve') is True, 'Native-preserve completion receipt required')
+    prepared_path = Path(receipt['prepared']) / 'prepared.json'
+    prepared = load(prepared_path)
+    network = Path(receipt['network'])
+    require(prepared['network'] == str(network) and prepared['mode'] == 'native_preserve', 'Snapshot identity mismatch')
+    expected = prepared['snapshot_sha256'][str(network)]
+    original_network = {'path':str(network), 'current_sha256':sha(network), 'expected_sha256':expected}
+    if args.verified_network:
+        network = args.verified_network.resolve()
+    require(sha(network) == expected, 'Actual snapshot INPX SHA changed')
+    geometry = physical_geometry(network, geometry_profile=args.geometry_profile)
+    geometry['source_network'] = {'path': prepared['source_network'], 'sha256': prepared['source_network_sha256']}
+    out.mkdir()
+    extraction_source = Path(__file__).read_bytes()
+    (out/'extractor_source_snapshot.py.txt').write_bytes(extraction_source)
+    save(out / 'geometry.json', geometry)
+    table(out / 'desired_source_demand.csv', geometry['desired_source_demand'])
+    if args.geometry_only:
+        return
+    removals, error_proof = [], []
+    for path in errors:
+        parsed = parse_bytes(path.read_bytes())
+        require(not parsed['partial_tail_bytes'] and not parsed['unparsed_removal_lines'], 'Incomplete removal evidence')
+        removals.extend(x for x in parsed['events'] if x['kind'] == 'lane_change_removal')
+        error_proof.append({'path': str(path), 'sha256': sha(path)})
+    files = list((run / 'vissim_eval').glob('*.fzp'))
+    require(len(files) == 1, 'Exactly one FZP required')
+    fzp = files[0]
+    stat = fzp.stat()
+    evidence = {'path': str(fzp), 'bytes': stat.st_size}
+    observer = Observer(geometry, removals)
+    ports = PortObserver(geometry) if args.port_details else None
+    started = time.monotonic()
+    for sec, frame in native_frames(fzp, evidence, deadline=started + 1800):
+        observer.advance(sec, frame)
+        if ports is not None:
+            ports.advance(sec, frame)
+        if sec % 900 == 0:
+            print(json.dumps({'seed': receipt['seed'], 'scanned_sec': sec}), flush=True)
+    require(observer.sec == receipt['terminal_sec'] and observer.sec % 30 == 0, 'Incomplete extraction extent')
+    after = fzp.stat()
+    require((stat.st_size, stat.st_mtime_ns) == (after.st_size, after.st_mtime_ns), 'FZP mutated while extracting')
+    require(sha(network) == expected, 'Network evidence changed during extraction')
+    require(Path(__file__).read_bytes() == extraction_source, 'Extractor source changed during extraction')
+    for name, rows in [('cells_30s', observer.cells), ('flows_30s', observer.flows), ('boundaries_30s', observer.boundary_rows)]:
+        table(out / (name + '.csv'), rows)
+    if ports is not None:
+        table(out / 'ports_30s.csv', ports.rows)
+        table(out / 'port_events.csv', ports.events)
+        save(out / 'port_cohorts_30s.json', ports.snapshots)
+    save(out / 'exclusion_evidence.json', {'events': observer.evidence, 'native_removals': removals,
+        'unmatched_native_removal_indices': sorted(set(range(len(removals))) - observer.removal_matched)})
+    save(out / 'manifest.json', {'schema': 'metanet-spatial-observations/v1', 'seed': receipt['seed'],
+        'terminal_sec': observer.sec, 'cell_index_base': 0, 'fzp': evidence,
+        'run_receipt': {'path': str(receipt_path), 'sha256': sha(receipt_path)},
+        'prepared': {'path': str(prepared_path), 'sha256': sha(prepared_path)},
+        'network': geometry['network'], 'errors': error_proof, 'extractor_sha256': sha(__file__),
+        'network_evidence_relocation': {'original':original_network, 'verified_artifact':str(network)} if args.verified_network else None,
+        'cell_window_conservation_checks': observer.checks, 'max_conservation_residual_veh': 0,
+        'elapsed_sec_not_benchmark': time.monotonic() - started, 'synthetic_tests': synthetic_tests(),
+        'clock': {'states': 'Exact FZP frame at t; t=0 explicitly empty initialization.',
+            'flows': '(window_start_s,window_end_s]; each transition bracket is (t-1,t]. No exact subsecond event time claimed.',
+            'forecast_use': 'Future observed boundaries are diagnostic replay only. Genuine forecasts must use records ending at/before their initialization cutoff.',
+            'end': 'Last-frame vehicles remain stock; no tail extrapolation or terminal disappearance invented.'},
+        'definitions': {'rho': 'snapshot N / actual cell lane-km', 'speed': 'vehicle arithmetic mean; null empty; score only n>=5',
+            'mainline_crossing': 'Forward canonical position crosses spatial edge, including within same physical link and multi-cell movement.',
+            'off_departure': 'Mainline vehicle observed next on named off-ramp connector; separate from downstream mainline crossings.',
+            'ramp_merge': 'Named ramp connector vehicle observed next on mainline; queued connector stock measured separately.',
+            'source_admission': 'First-appearance insertion on source chain, or source negative-to-nonnegative coordinate crossing; excludes seen-ID reappearance.',
+            'birth': 'First-ever observation on mainline; evidence, not an additional additive inflow.',
+            'terminal_exit': 'One-second kinematic inference at final physical chain end after excluding native removal; not directly observed beyond-network passage.',
+            'excluded': 'Unverified entries/losses and skipped ramp connector passages excluded from physical flows but retained in conservation.'},
+        'files': {p.name: sha(p) for p in out.iterdir() if p.is_file()}})
+    print(json.dumps({'complete': str(out), 'seed': receipt['seed'], 'checks': observer.checks}))
+
+
+if __name__ == '__main__':
+    main()

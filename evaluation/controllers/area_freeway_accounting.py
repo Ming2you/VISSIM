@@ -20,6 +20,7 @@ from src.models import metanet as _mn
 from src.simulation import coupling as _cp
 from evaluation.controllers import control_area_objective as _area
 from evaluation.controllers import offramp_routing as _routing
+from evaluation.controllers.freeway_geometry import cell_lengths_km as _net_cell_lengths_km
 
 VENDOR_FREEWAY_METHOD_SHA256 = "eb19ad40207a07bac75db9b67c03280be8558a310123e9eddacf655ac49e8762"
 VENDOR_COUPLING_METHOD_SHA256 = "ced88a0a6fef090f3eb78a43af4538f73c8b7d11de07c5633142fa9867ba59c0"
@@ -73,19 +74,25 @@ def _record_ramp_release_query(state, control, demand, cfg, release, function):
     ledger.complete_constraint_coverage('ramp_release_query')
 
 
+def cell_lengths_km(cfg, link, count):
+    """Continuity/speed/receiving geometry shared with observation projection."""
+    return _net_cell_lengths_km(cfg.network, link, count)
+
+
 def continuity_vehicle_counts(state, cfg):
     """Stocks in the equations below, independent of patched display getters.
 
-    The current model continuity uses one segment length and dynamic effective
-    lanes. Observation geometry may differ; report that projection difference
-    separately instead of inventing a flow event to reconcile the two stocks.
+    Explicit physical profiles opt in to variable lengths. Legacy configurations
+    keep their scalar continuity coordinates, including any reported difference
+    from observation geometry. Dynamic lane changes never create vehicles.
     """
     net = cfg.network
     if int(getattr(net, "freeway_buffer_segments", 0)):
         raise ValueError("control-area accounting requires explicit buffer-chain membership")
     state.ensure_freeway_lane_profile(net)
-    return {link: [max(0.0, rho) * net.freeway_segment_length_km * max(lane, 1e-9)
-                   for rho, lane in zip(state.freeway_density[link], state.freeway_effective_lanes[link])]
+    return {link: [max(0.0, rho) * length * max(lane, 1e-9)
+                   for rho, lane, length in zip(state.freeway_density[link], state.freeway_effective_lanes[link],
+                                               cell_lengths_km(cfg, link, len(state.freeway_density[link])))]
             for link in net.freeway_links}
 
 
@@ -150,6 +157,7 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
     for link in net.freeway_links:
         rhos = list(state.freeway_density[link])
         speeds = list(state.freeway_speed[link])
+        lengths = cell_lengths_km(cfg, link, len(rhos))
         previous_lanes = list(state.freeway_effective_lanes.get(link, []))
         lanes_now = lane_now_by_link[link]
         offramps_by_segment: _mn.Dict[int, list[str]] = {}
@@ -176,8 +184,8 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             bu_v = list(state.freeway_buffer_up_speed[link])
             bd_r = list(state.freeway_buffer_down_density[link])
             bd_v = list(state.freeway_buffer_down_speed[link])
-        vehicles = [max(0.0, rho) * net.freeway_segment_length_km * max(lane, 1e-09) for rho, lane in zip(rhos, previous_lanes)]
-        rho_for_flow = [n / max(net.freeway_segment_length_km * max(lane, 1e-09), 1e-09) for n, lane in zip(vehicles, lanes_now)]
+        vehicles = [max(0.0, rho) * length * max(lane, 1e-09) for rho, lane, length in zip(rhos, previous_lanes, lengths)]
+        rho_for_flow = [n / max(length * max(lane, 1e-09), 1e-09) for n, lane, length in zip(vehicles, lanes_now, lengths)]
         vsl_max = max(cfg.freeway_follower.vsl_set)
         q_values = [_mn.segment_flow_veh_h(rho, speed, lane) for rho, speed, lane in zip(rho_for_flow, speeds, lanes_now)]
         if phi_cd < 1.0:
@@ -186,7 +194,7 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                     q_values[_i] = min(q_values[_i], phi_cd * q_cap * max(lanes_now[_i], 1e-09) / max(float(net.freeway_lanes), 1e-09))
         flow_acc += sum(q_values)
         flow_count += len(q_values)
-        receiving = [max(0.0, (net.rho_max - rho_for_flow[i]) * net.freeway_segment_length_km * max(lanes_now[i], 1e-09) / max(dt_h, 1e-09)) for i in range(len(rho_for_flow))]
+        receiving = [max(0.0, (net.rho_max - rho_for_flow[i]) * lengths[i] * max(lanes_now[i], 1e-09) / max(dt_h, 1e-09)) for i in range(len(rho_for_flow))]
         receiving_for_mainline = [max(0.0, receiving[i] - max(0.0, ramp_in_by_link[link][i])) for i in range(len(rho_for_flow))]
         off_ratio_by_segment = [_mn._clip(sum((net.off_ramp_split_ratio.get(off_ramp, 0.0) for off_ramp in offramps_by_segment.get(i, []))), 0.0, 1.0) for i in range(len(rho_for_flow))]
         mainline_sending = [(1.0 - off_ratio_by_segment[i]) * q_values[i] for i in range(len(rho_for_flow))]
@@ -297,7 +305,7 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             vehicle_new = max(0.0, vehicle_raw)
             if abs(vehicle_new - vehicle_raw) > 1e-09:
                 density_projection_count += 1
-            rho_new = vehicle_new / max(net.freeway_segment_length_km * max(lanes_now[i], 1e-09), 1e-09)
+            rho_new = vehicle_new / max(lengths[i] * max(lanes_now[i], 1e-09), 1e-09)
             upstream_speed = (bu_v[-1] if buf_n > 0 else net.v_free) if i == 0 else speeds[i - 1]
             if i + 1 < len(rhos):
                 downstream_rho = rho_for_flow[i + 1]
@@ -310,9 +318,9 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             vsl_i = _mn.segment_vsl(control, link, i, cfg)
             vsl_active_i = vsl_i < vsl_max - 0.5
             v_eff = _mn.effective_desired_speed_kmh(rho, net.v_free, net.rho_crit, vsl_i, net.alpha_vsl, vsl_active_i, net.metanet_a_m, getattr(net, 'vsl_fd_two_branch', False), net.rho_max, float(getattr(net, 'rho_crit_two_branch', 0.0) or 0.0))
-            v_new = _mn.metanet_speed_update_kmh(speeds[i], upstream_speed, rho, downstream_rho, v_eff, dt_h, net.freeway_segment_length_km, net.metanet_tau_h, _mn.select_anticipation_nu(rho, net, vsl_i), net.metanet_kappa_veh_km_lane, net.v_min)
+            v_new = _mn.metanet_speed_update_kmh(speeds[i], upstream_speed, rho, downstream_rho, v_eff, dt_h, lengths[i], net.metanet_tau_h, _mn.select_anticipation_nu(rho, net, vsl_i), net.metanet_kappa_veh_km_lane, net.v_min)
             if delta_m > 0.0 and ramp_in_by_link[link][i] > 0.0:
-                v_new = max(net.v_min, v_new - delta_m * dt_h * ramp_in_by_link[link][i] * speeds[i] / (net.freeway_segment_length_km * max(lanes_now[i], 1e-09) * (rho + net.metanet_kappa_veh_km_lane)))
+                v_new = max(net.v_min, v_new - delta_m * dt_h * ramp_in_by_link[link][i] * speeds[i] / (lengths[i] * max(lanes_now[i], 1e-09) * (rho + net.metanet_kappa_veh_km_lane)))
             if v_new <= net.v_min + 1e-09:
                 speed_projection_count += 1
             if boundary_speed_cap is not None and v_new > boundary_speed_cap:
