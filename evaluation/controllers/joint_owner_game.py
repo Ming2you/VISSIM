@@ -17,7 +17,7 @@ __all__ = (
     'PHASES', 'LEVER_FIELDS', 'Address', 'Ownership', 'build_ownership',
     'validate_action_addresses', 'assert_owner_transition',
     'Neighborhood', 'Evaluation', 'solve', 'validate_nuf_semantics',
-    'RestorationEvaluation', 'restore_feasibility',
+    'RestorationEvaluation', 'restore_feasibility', 'prepare_final_audit_domains',
 )
 
 
@@ -46,7 +46,7 @@ def traversal_owner_order(ownership, traversal):
     owners = tuple(ownership.owners)
     if traversal in ('sequential', 'round_robin'):
         return owners
-    if traversal != 'round_robin_balanced':
+    if traversal not in ('round_robin_balanced', 'sequential_balanced'):
         raise ValueError('Unsupported owner traversal')
     urban, freeway = [], []
     for owner in owners:
@@ -538,12 +538,166 @@ def restore_feasibility(ownership, incumbent, context, *, neighbors, evaluate,
             'certificate_scope': 'Bounded feasibility search only; no domain-infeasibility or equilibrium certificate'}
 
 
+def prepare_final_audit_domains(ownership, incumbent, context, *, neighbors,
+                               context_fingerprint, physical_fingerprint,
+                               nuf_semantics='fixed_target', traversal='sequential',
+                               deadline_check=None, reuse_physical_proofs=False,
+                               physical_proof_guard=None):
+    """Freeze the final finite domains and count the exact score-call budget.
+
+    No payoff/model evaluation occurs here. Every complete realized domain is
+    validated using the same action-plus-physical dedupe as solve(). The
+    returned callback rejects any other incumbent/context and never regenerates
+    a candidate. The full audit must still evaluate every baseline and unique
+    neighbor; this inventory alone is not a gap or feasibility certificate.
+
+    Opt-in physical proof reuse stores the exact full serialized candidate,
+    never a lever-only/identity key. The caller supplies the same complete
+    physical binding guard used by its writer callback. Every reuse checks
+    that guard and the full context; unknown actions fail closed.
+    """
+    import pickle
+    if type(reuse_physical_proofs) is not bool:
+        raise ValueError('Physical proof reuse requires an explicit boolean')
+    if reuse_physical_proofs and not callable(physical_proof_guard):
+        raise ValueError('Physical proof reuse requires its original physical binding guard')
+    physical_proofs = {}
+    packed = lambda action: pickle.dumps(action, protocol=5)
+    owners = traversal_owner_order(ownership, traversal)
+    validate_action_addresses(ownership, incumbent)
+    validate_nuf_semantics(incumbent, nuf_semantics)
+    original_key, original_extra = _action_key(ownership, incumbent), _extra(incumbent)
+    token = context_fingerprint(context)
+    if type(token) not in (str, bytes) or not token:
+        raise ValueError('Context fingerprint must be a nonempty full-value string/bytes')
+
+    def checkpoint(query_context):
+        if deadline_check is not None:
+            deadline_check('joint_final_domain_inventory')
+        if context_fingerprint(query_context) != token:
+            raise ValueError('Final audit frozen context changed')
+
+    def commands(action, query_context):
+        checkpoint(query_context)
+        trial = deepcopy(action)
+        before = (_action_key(ownership, trial), _extra(trial))
+        full_before = packed(trial) if reuse_physical_proofs else None
+        values = physical_fingerprint(trial, query_context)
+        checkpoint(query_context)
+        if (before != (_action_key(ownership, trial), _extra(trial))
+                or (reuse_physical_proofs and packed(trial) != full_before)):
+            raise ValueError('Final audit physical callback mutated its action')
+        if (not isinstance(values, Mapping) or set(values) != set(owners)
+                or any(type(values[o]) not in (str, bytes) or not values[o] for o in owners)):
+            raise ValueError('Final audit physical fingerprints must cover exactly all owners')
+        if reuse_physical_proofs:
+            key = packed(action)
+            # Traversal order governs evaluation, not the scored mapping's
+            # serialization. Preserve the original callback's key order too.
+            values_tuple = tuple(values.items())
+            if key in physical_proofs and physical_proofs[key] != values_tuple:
+                raise ValueError('One full final audit action produced inconsistent physical proofs')
+            physical_proofs[key] = values_tuple
+        return tuple((o, type(values[o]).__name__, values[o].hex() if type(values[o]) is bytes else values[o])
+                     for o in owners)
+
+    fixed_physical = commands(incumbent, context)
+    frozen, counts = {}, {}
+    for owner in owners:
+        checkpoint(context)
+        query = deepcopy(incumbent)
+        domain = neighbors(owner, query, context)
+        checkpoint(context)
+        validate_action_addresses(ownership, query)
+        validate_nuf_semantics(query, nuf_semantics)
+        if ((_action_key(ownership, query), _extra(query)) != (original_key, original_extra)
+                or commands(query, context) != fixed_physical):
+            raise ValueError('Final audit neighbor callback mutated its incumbent')
+        if (not isinstance(domain, Neighborhood) or type(domain.candidates) is not tuple
+                or type(domain.complete) is not bool or not domain.complete
+                or type(domain.domain_label) is not str or not domain.domain_label):
+            raise ValueError('Final audit requires a complete materialized finite domain')
+        domain = deepcopy(domain)
+        seen = {(original_key, fixed_physical)}
+        duplicates = unique = 0
+        for candidate in domain.candidates:
+            checkpoint(context)
+            validate_action_addresses(ownership, candidate)
+            validate_nuf_semantics(candidate, nuf_semantics)
+            assert_owner_transition(ownership, owner, incumbent, candidate)
+            if _extra(candidate, nuf_semantics=nuf_semantics) != _extra(incumbent, nuf_semantics=nuf_semantics):
+                raise ValueError('Final audit candidate changed frozen nonlever context')
+            physical = commands(candidate, context)
+            if any(new != old for new, old in zip(physical, fixed_physical) if new[0] != owner):
+                raise ValueError('Final audit candidate changed another owner physical command')
+            key = (_action_key(ownership, candidate), physical)
+            if key in seen:
+                duplicates += 1
+            else:
+                seen.add(key)
+                unique += 1
+        frozen[owner] = domain
+        counts[owner] = {'announced_candidates': len(domain.candidates),
+                         'unique_neighbors': unique, 'duplicate_count': duplicates,
+                         'evaluation_budget': 1+unique, 'domain_label': domain.domain_label}
+    checkpoint(context)
+
+    def frozen_physical(action, query_context):
+        checkpoint(query_context)
+        before = packed(action)
+        physical_proof_guard(query_context)
+        checkpoint(query_context)
+        validate_action_addresses(ownership, action)
+        validate_nuf_semantics(action, nuf_semantics)
+        if packed(action) != before:
+            raise ValueError('Final audit physical proof guard mutated its action')
+        if before not in physical_proofs:
+            raise ValueError('Final audit physical proof is bound to the exact inventoried full action')
+        # Values have only immutable str/bytes leaves; this fresh mapping cannot
+        # change another read or the retained final command proof.
+        return dict(physical_proofs[before])
+
+    def frozen_command_key(action, query_context):
+        values = frozen_physical(action, query_context)
+        return tuple((o, type(values[o]).__name__, values[o].hex() if type(values[o]) is bytes else values[o])
+                     for o in owners)
+
+    def frozen_neighbors(owner, query, query_context):
+        checkpoint(query_context)
+        validate_action_addresses(ownership, query)
+        validate_nuf_semantics(query, nuf_semantics)
+        if (owner not in frozen or (_action_key(ownership, query), _extra(query)) != (original_key, original_extra)
+                or (frozen_command_key(query, query_context) if reuse_physical_proofs
+                    else commands(query, query_context)) != fixed_physical):
+            raise ValueError('Prepared final audit is bound to one unchanged final action/context')
+        return deepcopy(frozen[owner])
+
+    budget = sum(row['evaluation_budget'] for row in counts.values())
+    result = {'neighbors': frozen_neighbors, 'evaluation_budget': budget,
+            'proof': {'schema': 'frozen-final-finite-domain-inventory/v1',
+                      'owners': owners, 'owner_count': len(owners), 'per_owner': counts,
+                      'evaluation_budget': budget,
+                      'context_fingerprint': token.hex() if type(token) is bytes else token,
+                      'same_incumbent_for_all_owners': True,
+                      'dedupe': 'Exact lever addresses plus complete physical command tokens',
+                      'payoff_evaluations': 0, 'gap_certified': False}}
+    if reuse_physical_proofs:
+        result['physical_fingerprint'] = frozen_physical
+        result['proof']['physical_proof_reuse'] = {
+            'enabled': True, 'exact_full_action_count': len(physical_proofs),
+            'retained_key_bytes': sum(map(len, physical_proofs)),
+            'original_physical_binding_guard_preserved': True,
+            'final_written_command_verification_required': True}
+    return result
+
+
 def solve(ownership, incumbent, context, *, neighbors, evaluate,
           context_fingerprint, physical_fingerprint,
           max_sweeps, max_evaluations, time_budget_sec,
           improvement_tolerance, shared_tolerance, scope_label, clock=monotonic,
           nuf_semantics='fixed_target', traversal='sequential', deadline_check=None,
-          before_evaluate=None, final_check_reserve_sec=0., decision_time_remaining_sec=None):
+          before_evaluate=None, final_check_reserve_sec=0., decision_time_remaining_sec=None,
+          search_owner_candidate_limit=None, defer_final_audit=False, audit_only=False):
     """Ordered whole-owner best improvements plus a separate final gap audit.
 
     All work limits and tolerances are explicit caller inputs. `neighbors`
@@ -581,8 +735,23 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
     Unfinished domains and the final audit remain unknown.
     An exhausted search sweep budget may still have a complete final finite
     certificate if its separately evaluated final gaps meet the declared bound.
+
+    Opt-in sequential_balanced visits each owner at the latest checked
+    incumbent. A positive search_owner_candidate_limit bounds only that
+    owner's search prefix; an observed feasible improvement may be committed
+    before visiting the next owner at the newly realized full action. No
+    candidates evaluated at an older incumbent are merged or reused. A capped
+    owner domain has an unknown gap; the independent final audit remains full.
+
+    defer_final_audit explicitly leaves all final gaps unknown so a caller can
+    rank checked search responses before auditing only the selected action.
+    audit_only skips all search and never adopts deviations. The caller can
+    supply prepare_final_audit_domains()'s exact budget and frozen callback;
+    bounded deadlines still apply and may leave the audit incomplete.
     """
     requested_traversal = traversal
+    if type(defer_final_audit) is not bool or type(audit_only) is not bool or (defer_final_audit and audit_only):
+        raise ValueError('Boolean defer_final_audit and audit_only are mutually exclusive')
     owners = traversal_owner_order(ownership, traversal)
     if traversal == 'round_robin_balanced':
         traversal = 'round_robin'
@@ -606,6 +775,10 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
         raise ValueError('Decision deadline_check must be callable')
     if before_evaluate is not None and not callable(before_evaluate):
         raise ValueError('Response preparation must be callable')
+    if search_owner_candidate_limit is not None:
+        if (type(search_owner_candidate_limit) is not int or search_owner_candidate_limit < 1
+                or traversal != 'sequential_balanced'):
+            raise ValueError('Positive search_owner_candidate_limit requires sequential_balanced traversal')
     _number(final_check_reserve_sec, 'final_check_reserve_sec', nonnegative=True)
     reserve_envelope = time_budget_sec
     if decision_time_remaining_sec is not None:
@@ -723,12 +896,15 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
             raise _Stop('callback_failure', 'Known infeasible candidates require a reason')
         return value
 
-    def inspect_steps(owner, base, record):
+    def inspect_steps(owner, base, record, candidate_limit=None):
         nonlocal neighbor_calls
         record.update(status='evaluating', gap=None, complete=False, evaluations=0,
                       duplicate_count=0, announced_candidates=None, unique_neighbors=0,
                       feasible_neighbors=0, infeasible_neighbors=0, rejected=[],
                       max_shared_violation_seen=0.0, observed_gap_lower_bound=None)
+        if traversal == 'sequential_balanced':
+            record.update(search_candidate_limit=candidate_limit,
+                          evaluated_lever_families={}, feasible_lever_families={})
         base_eval = checked_eval(owner, base, record, base)
         if not base_eval.feasible:
             raise _Stop('infeasible_incumbent', base_eval.reason or 'Incumbent is infeasible')
@@ -761,7 +937,7 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
             checkpoint()
             validate_action_addresses(ownership, candidate)
             validate_nuf_semantics(candidate, nuf_semantics)
-            assert_owner_transition(ownership, owner, base, candidate)
+            changed_addresses = assert_owner_transition(ownership, owner, base, candidate)
             if (_extra(candidate, nuf_semantics=nuf_semantics)
                     != _extra(base, nuf_semantics=nuf_semantics)):
                 raise _Stop('callback_mutation', 'Neighbor changed a leader target or other nonlever payload')
@@ -772,9 +948,21 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
             if key in seen:
                 record['duplicate_count'] += 1
                 continue
+            if candidate_limit is not None and record['unique_neighbors'] >= candidate_limit:
+                record.update(status='owner_candidate_limit', complete=False, gap=None,
+                              minimum_observed_feasible_cost=best_cost,
+                              minimum_observed_feasible_command_key=best_physical,
+                              observed_gap_lower_bound=max(0.0, base_eval.cost-best_cost),
+                              first_unvisited_candidate_index=index,
+                              remaining_announced_candidates=len(domain.candidates)-index)
+                return best
             seen.add(key)
             record['unique_neighbors'] += 1
             result = checked_eval(owner, candidate, record, base)
+            if traversal == 'sequential_balanced':
+                family = '+'.join(sorted({field for field, _ in changed_addresses}))
+                for name in ('evaluated_lever_families',) + (('feasible_lever_families',) if result.feasible else ()):
+                    record[name][family] = record[name].get(family, 0) + 1
             if not result.feasible:
                 record['infeasible_neighbors'] += 1
                 record['rejected'].append({'candidate_index': index, 'reason': result.reason,
@@ -797,9 +985,9 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
                       vacuous_no_feasible_nontrivial_neighbor=record['feasible_neighbors'] == 0)
         return best
 
-    def inspect(owner, base, record):
+    def inspect(owner, base, record, candidate_limit=None):
         # Exhaustion preserves the original sequential callback/check order.
-        steps = inspect_steps(owner, base, record)
+        steps = inspect_steps(owner, base, record, candidate_limit)
         while True:
             try:
                 next(steps)
@@ -829,7 +1017,7 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
         checkpoint()
 
     try:
-        for sweep in range(1, max_sweeps + 1):
+        for sweep in (() if audit_only else range(1, max_sweeps + 1)):
             sweeps_started = sweep
             changed = False
             if traversal == 'round_robin':
@@ -855,6 +1043,29 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
                                 'from_cost': records[owner]['incumbent_cost'], 'to_cost': best_cost,
                                 'gap': improvement, 'physical': physical}
                 changed = commit_round_robin(partial=False)
+            elif traversal == 'sequential_balanced':
+                records = {owner: {'complete': False, 'gap': None, 'status': 'unvisited', 'evaluations': 0}
+                           for owner in owners}
+                search_sweeps.append({'sweep': sweep, 'owners': records,
+                    'incumbent_policy': 'Regenerate and check each owner at the latest accepted complete action'})
+                for owner in owners:
+                    record = records[owner]
+                    best = inspect(owner, current, record, search_owner_candidate_limit)
+                    improvement = record['observed_gap_lower_bound']
+                    if improvement > improvement_tolerance:
+                        # inspect() checked this whole action's physical token,
+                        # foreign-owner invariance and shared witness. The next
+                        # owner must regenerate from this action, never splice
+                        # a previously evaluated unilateral move into it.
+                        current = deepcopy(best)
+                        changed = True
+                        accepted.append({'sweep': sweep, 'owner': owner,
+                            'from_cost': record['incumbent_cost'],
+                            'to_cost': record.get('minimum_feasible_cost', record.get('minimum_observed_feasible_cost')),
+                            'gap': improvement, 'lever_values': _action_key(ownership, current),
+                            'physical_command_key': record.get('minimum_feasible_command_key', record.get('minimum_observed_feasible_command_key')),
+                            'owner_domain_complete': record['complete'],
+                            'selection_policy': 'Best checked own-payoff improvement at the latest incumbent'})
             else:
                 for owner in owners:
                     record = {}
@@ -868,13 +1079,16 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
                                          'physical_command_key': record['minimum_feasible_command_key']})
             sweeps_completed = sweep
             if not changed:
-                search_status = 'no_strict_improvement_in_complete_sweep'
+                search_status = ('no_strict_improvement_in_checked_prefixes'
+                    if traversal == 'sequential_balanced' and not all(r['complete'] for r in records.values())
+                    else 'no_strict_improvement_in_complete_sweep')
                 break
         else:
-            search_status = 'iteration_limit'
+            search_status = 'audit_only' if audit_only else 'iteration_limit'
         # A single unchanged final control/context is used for ALL owners.
         # No final improvement is committed here; positive gaps remain visible.
-        audit_final()
+        if not defer_final_audit:
+            audit_final()
     except _Stop as exc:
         error = {'kind': exc.kind, 'phase': phase, 'message': str(exc)}
         if (traversal == 'round_robin' and phase == 'search'
@@ -893,7 +1107,8 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
             search_status = 'interrupted_search_time_budget'
             error = None
             try:
-                audit_final()
+                if not defer_final_audit:
+                    audit_final()
             except _Stop as final_exc:
                 error = {'kind': final_exc.kind, 'phase': phase, 'message': str(final_exc)}
             except Exception as final_exc:
@@ -905,12 +1120,19 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
     if error:
         if phase == 'search':
             search_status = 'interrupted_' + error['kind']
+            if traversal == 'sequential_balanced' and search_sweeps:
+                for record in search_sweeps[-1]['owners'].values():
+                    if record['status'] == 'evaluating':
+                        record.update(status=error['kind'], gap=None, complete=False)
         for record in final.values():
             if not record['complete']:
                 record['gap'] = None
                 if record['status'] == 'evaluating':
                     record['status'] = error['kind']
-    complete = error is None and all(record['complete'] for record in final.values())
+    if defer_final_audit:
+        for record in final.values():
+            record.update(status='deferred', complete=False, gap=None)
+    complete = not defer_final_audit and error is None and all(record['complete'] for record in final.values())
     max_gap = max(record['gap'] for record in final.values()) if complete else None
     elapsed = _number(clock(), 'clock') - start
     result = {'control': deepcopy(current), 'certified': complete and max_gap <= improvement_tolerance,
@@ -932,6 +1154,20 @@ def solve(ownership, incumbent, context, *, neighbors, evaluate,
     if traversal == 'round_robin':
         result.update(traversal=requested_traversal, search_sweeps=search_sweeps,
                       partial_domain_gaps_are_unknown=True)
+    if traversal == 'sequential_balanced':
+        result.update(traversal=requested_traversal, search_sweeps=search_sweeps,
+                      partial_domain_gaps_are_unknown=True,
+                      search_owner_candidate_limit=search_owner_candidate_limit,
+                      sequential_revalidation=True)
+    if defer_final_audit:
+        result['final_audit_deferred'] = True
+    if audit_only:
+        result.update(audit_only=True, search_skipped=True,
+                      finite_domain_coverage={
+                          'complete_owner_count': sum(r['complete'] for r in final.values()),
+                          'owner_count': len(owners),
+                          'unvisited_neighbors': 0 if complete else None,
+                          'full_final_audit_complete': complete})
     if final_check_reserve_sec:
         result['final_check_reserve'] = {'seconds': final_check_reserve_sec,
             'search_time_budget_sec': search_time, 'search_stop': search_stop,

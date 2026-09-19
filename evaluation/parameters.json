@@ -1,5 +1,23 @@
 {
   "_schema": "vissim-canonical-parameters/1",
+  "sdmpc": {
+    "_note": "Opt-in prox-linear SDMPC; Numerical-Sim b53ebd7 structure with native VISSIM controls and actual450s merge NUF.",
+    "max_iterations": 2,
+    "line_search_steps": 3,
+    "restoration_iterations": 2,
+    "proximal": 10.0,
+    "fd_green_sec": 1.0,
+    "fd_offset_sec": 1.0,
+    "fd_meter_green_sec": 2.0,
+    "fd_vsl_kmh": 10.0,
+    "budget_scale_np_veh": 100.0,
+    "budget_scale_nuf_veh_h": 1000.0,
+    "dual_step": 1.0,
+    "qp_iterations": 100,
+    "qp_tolerance": 1e-10,
+    "objective_tolerance": 1e-7,
+    "territory_path": "outputs/urban_player_territory_v1_20260819.json"
+  },
   "_why": [
     "2026-08-27. 값을 여러 곳에서 따로 정하다가 실효값이 의도와 달라지는 사고가 반복됐다.",
     "leader_value_depth 를 3 으로 두면 리더 롤아웃 깊이가 3 이 아니라 3+3=6 이 됐고,",

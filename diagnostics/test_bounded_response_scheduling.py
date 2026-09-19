@@ -111,6 +111,39 @@ class SchedulingTests(unittest.TestCase):
         self.assertEqual(proof['scopes'], 2)  # Search base and new final incumbent.
         self.assertFalse(proof['full_domain_precomputed'])
 
+    def test_sequential_owner_quota_prefetch_preserves_rebased_moves_and_full_audit(self):
+        f = self.fixture
+        def neighbors(owner, base, context):
+            address = next(a for a in f.addresses if a.owner == owner)
+            candidates = [copy.deepcopy(base)]
+            for value in (2., 3., 4.):
+                trial = copy.deepcopy(base)
+                getattr(trial, address.field)[address.key] = value
+                candidates.extend((trial, copy.deepcopy(trial)))
+            return game.Neighborhood(tuple(candidates), True, 'same rebased owner candidates')
+        f.callbacks['neighbors'] = neighbors
+        before_q, _, before_cache = self.query()
+        before_events = []
+        before = f.solve(response_query=before_q, traversal='sequential_balanced',
+            search_owner_candidate_limit=2, time_budget_sec=None, progress=before_events.append)
+        self.enabled()
+        after_q, sizes, after_cache = self.query()
+        after_events = []
+        after = f.solve(response_query=after_q, traversal='sequential_balanced',
+            search_owner_candidate_limit=2, time_budget_sec=None, progress=after_events.append)
+        self.assertTrue(after['game']['final_check_complete'])
+        self.assertEqual(len(after['game']['accepted_updates']), 19)
+        self.assertEqual(set(before_cache), set(after_cache))
+        self.assertEqual([(r['owner'], r['requests']) for r in before_events],
+                         [(r['owner'], r['requests']) for r in after_events])
+        for key in ('control', 'accepted_updates', 'per_owner', 'search_sweeps', 'evaluations',
+                    'certified', 'final_check_complete', 'maximum_finite_candidate_gap', 'error'):
+            self.assertEqual(before['game'][key], after['game'][key], key)
+        self.assertLessEqual(max(sizes), 4)
+        proof = after['queries']['bounded_response_schedule']
+        self.assertEqual(proof['unconsumed_prefetched_actions'], 0)
+        self.assertEqual(proof['scopes'], 20)  # Each rebased owner plus the fixed final audit.
+
     def test_small_budget_never_prefetches_more_than_remaining_logical_reads(self):
         f = self.fixture
         self.enabled()

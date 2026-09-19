@@ -516,8 +516,13 @@ def _evaluate_shared_owner_batch_owned(private, initial, anchor, demand, actions
             tick = perf_counter()
             cpu_tick = process_time()
             with shared_query_runtime_scope():
-                local = score_shared_owner_point(private, point, initial, action, anchor,
-                                                 horizon_steps=horizon_steps)
+                sdmpc_partition = None
+                if getattr(private.cfg.network, 'sdmpc_options', None) is not None:
+                    from evaluation.controllers.sdmpc import omega_costs
+                    local, sdmpc_partition = omega_costs(point, private.cfg)
+                else:
+                    local = score_shared_owner_point(private, point, initial, action, anchor,
+                                                     horizon_steps=horizon_steps)
             response = point.control_area_response
             quantities = shared_urban_quantities(private, response,
                 start_sec=initial.time_sec, horizon_steps=horizon_steps)
@@ -546,6 +551,8 @@ def _evaluate_shared_owner_batch_owned(private, initial, anchor, demand, actions
                 'resource_summary': {'count': len(resources),
                     'kinds': dict(Counter(row['kind'] for row in resources)),
                     'max_exceedance_veh': max((row['exceedance_veh'] for row in resources), default=0.)}}
+            if sdmpc_partition is not None:
+                value['sdmpc_omega_partition'] = sdmpc_partition
             cache[key] = packed(value)
             results.append(unpacked(cache[key]))
             this_score = perf_counter() - tick
@@ -808,12 +815,17 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
     cache['record'] = record
     executor = None
     closed = False
+    pending_prefetch = {}
     worker_processes = {}
     worker_proofs = {}
     bootstrap_bytes = pickle.dumps(worker_bootstrap, protocol=5) if parallel_workers else None
     transport_token = (_shared_response_transport_token(packed_owned, runtime_bytes,
         bootstrap_bytes, horizon_steps, source_fingerprint) if parallel_workers else None)
     parent_context_token = hashlib.sha256(packed_owned).hexdigest()
+    parallel_signature = (pickle.dumps((packed_owned, horizon_steps, source_fingerprint,
+                                       cache['runtime_token']), protocol=5)
+                          if parallel_workers else None)
+    parallel_runtime_token = cache['runtime_token']
     counters.update(parallel_workers=parallel_workers, parallel_submitted=0,
         parallel_completed=0, parallel_accepted=0, worker_task_wall_sec_sum=0.,
         worker_task_cpu_sec_sum=0., parallel_submit_wall_sec=0., parallel_wait_wall_sec=0.,
@@ -845,6 +857,10 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
         if closed:
             return
         closed = True
+        if pending_prefetch:
+            counters['parallel_prefetch_cancelled_batches'] = (
+                counters.get('parallel_prefetch_cancelled_batches', 0) + len(pending_prefetch))
+            pending_prefetch.clear()
         tick = perf_counter()
         remember_workers()
         pool, executor = executor, None
@@ -864,16 +880,16 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
         if any(p.is_alive() for p in worker_processes.values()):
             raise RuntimeError('Owned shared response worker survived bounded cleanup')
 
-    def parallel_query(actions):
+    def submit_parallel(actions):
         nonlocal executor
-        from concurrent.futures import FIRST_COMPLETED, wait
         from concurrent.futures import ProcessPoolExecutor
         import multiprocessing
         if not actions:
             raise ValueError('A shared owner batch must contain candidates')
         remaining('parallel_response_prepare')
-        signature = pickle.dumps((packed_owned, horizon_steps, source_fingerprint,
-                                  cache['runtime_token']), protocol=5)
+        if cache['runtime_token'] != parallel_runtime_token:
+            raise ValueError('Parallel response reused a different frozen runtime token')
+        signature = parallel_signature
         if cache['context'] is None:
             cache['context'] = signature
         elif cache['context'] != signature:
@@ -898,6 +914,13 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
             counters['parallel_submitted'] += 1
             remember_workers()
         counters['parallel_submit_wall_sec'] += perf_counter()-tick
+        return {'keys': keys, 'misses': misses, 'values': values, 'futures': futures,
+                'original_hits': original_hits, 'requested': len(actions)}
+
+    def finish_parallel(pending):
+        from concurrent.futures import FIRST_COMPLETED, wait
+        keys, misses, values = pending['keys'], pending['misses'], pending['values']
+        futures, original_hits = pending['futures'], pending['original_hits']
         endpoint_sec = score_sec = 0.
         while futures:
             tick = perf_counter()
@@ -964,11 +987,23 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
         counters['avoided_local_score_sec_from_prior_queries'] += saved_score
         counters['endpoint_sec'] += endpoint_sec
         counters['local_score_sec'] += score_sec
-        return {'results': results, 'requested': len(actions), 'endpoint_calls': len(misses),
+        return {'results': results, 'requested': pending['requested'], 'endpoint_calls': len(misses),
             'cache_hits': original_hits,
             'retained_result_bytes': sum(len(k)+len(v) for k, v in values.items()),
             'endpoint_sec': endpoint_sec, 'score_sec': score_sec,
             'scope': 'Decision-owned spawned copies of the canonical shared response; original action order retained'}
+
+    def parallel_query(actions):
+        if pending_prefetch and any(pickle.dumps(action, protocol=5) not in cache['values'] for action in actions):
+            raise ValueError('In-flight audit preparation allows only already validated cached reads')
+        return finish_parallel(submit_parallel(actions))
+
+    def failed_query():
+        nonlocal owned
+        counters['failures'] += 1
+        owned = pickle.loads(packed_owned)
+        if parallel_workers:
+            close()
 
     def query(actions):
         nonlocal owned
@@ -995,14 +1030,58 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
                     **({'response_audit': response_audit} if response_audit is not None else {}))
             return result
         except BaseException:
-            counters['failures'] += 1
-            owned = pickle.loads(packed_owned)
-            if parallel_workers:
-                close()
+            failed_query()
             raise
         finally:
             counters['query_wall_sec'] += perf_counter()-tick
             counters['query_cpu_sec'] += process_time()-cpu_tick
+
+    def submit_prefetch(actions):
+        """Submit one opaque fixed batch; caller consumes it once in game order.
+
+        No parent thread is created. Transport results become cache entries only
+        when the returned function runs the existing complete proof checks.
+        Query wall/CPU sums count disjoint parent submit/finish calls, not the
+        overlapping lifetime of an in-flight future batch.
+        """
+        tick, cpu_tick = perf_counter(), process_time()
+        counters['batches'] += 1
+        actions = tuple(actions)
+        counters['requests'] += len(actions)
+        try:
+            if closed or not parallel_workers or not cache_enabled or not unlimited_time:
+                raise ValueError('Asynchronous audit preparation requires an open unlimited parallel cache')
+            if pending_prefetch or len(actions) > parallel_workers:
+                raise ValueError('Only one worker-sized audit batch may remain in flight')
+            remaining('async_audit_submit')
+            packet = submit_parallel(actions)
+            identity = id(packet)
+            pending_prefetch[identity] = packet
+            counters['parallel_prefetch_batches'] = counters.get('parallel_prefetch_batches', 0)+1
+            counters['parallel_prefetch_max_pending_batches'] = max(
+                counters.get('parallel_prefetch_max_pending_batches', 0), len(pending_prefetch))
+        except BaseException:
+            failed_query()
+            raise
+        finally:
+            counters['query_wall_sec'] += perf_counter()-tick
+            counters['query_cpu_sec'] += process_time()-cpu_tick
+
+        def finish():
+            tick, cpu_tick = perf_counter(), process_time()
+            try:
+                if closed or identity not in pending_prefetch:
+                    raise ValueError('Audit response batch is closed or already consumed')
+                pending_prefetch.pop(identity)
+                remaining('async_audit_finish')
+                return finish_parallel(packet)
+            except BaseException:
+                failed_query()
+                raise
+            finally:
+                counters['query_wall_sec'] += perf_counter()-tick
+                counters['query_cpu_sec'] += process_time()-cpu_tick
+        return finish
 
     def stats():
         result = dict(counters)
@@ -1022,6 +1101,7 @@ def make_decision_shared_query(follower, state, reference, forecast, *, horizon_
         return result
     query.stats = stats
     query.close = close
+    query.submit_prefetch = submit_prefetch
     return query
 
 
@@ -1252,7 +1332,7 @@ def joint_context_fingerprint(adapter):
 
 def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapping, sources, *,
                              reference, total_budget, directional, tolerance, budget=None,
-                             price_probe=False, progress=None):
+                             price_probe=False, progress=None, representative_neighbors=False):
     from evaluation.controllers import vissim_stackelberg_adapter as adapter
     from evaluation.controllers import area_meter_finalization as meters
     from evaluation.controllers.joint_owner_neighbors import make_joint_neighbor_callbacks, interleave_realized_neighbors
@@ -1288,6 +1368,9 @@ def _joint_runtime_callbacks(follower, state, forecast, historical, leader, mapp
         domain = original(owner, action, supplied)
         if not price_probe:
             domain = interleave_realized_neighbors(callbacks['ownership'], owner, action, domain)
+            if representative_neighbors:
+                from evaluation.controllers.joint_owner_neighbors import prioritize_lever_representatives
+                domain = prioritize_lever_representatives(callbacks['ownership'], owner, action, domain)
         if progress:
             progress({'stage': 'joint_neighbors', 'owner': owner, 'candidates': len(domain.candidates),
                       'complete': domain.complete, 'price_probe': price_probe})
@@ -1400,6 +1483,120 @@ def validate_actual_decision_hold(follower, state, reference, item, *, callbacks
         'shared_tolerance': options['shared_tolerance'], 'finite_neighborhood_certified': False,
         'final_check_complete': False, 'maximum_finite_candidate_gap': None,
         'scope': 'Current-state fixed-target/box/command/model feasibility only; no prices, search or GNE certificate'}
+
+
+def objective_response_summary(item, *, start_sec, end_sec):
+    """Retain an already scored Omega response without an endpoint or price call."""
+    area = item['control_area']
+    fields = {'objective_veh_h': item['objective_veh_h'],
+              **{key: area[key] for key in ('ttt_veh_h', 'ttd_veh', 'beta_seconds')},
+              'start_sec': start_sec, 'end_sec': end_sec}
+    if (any(type(value) not in (int, float) or not math.isfinite(value)
+            for value in fields.values()) or end_sec <= start_sec):
+        raise ValueError('Objective audit requires finite values and a positive prediction window')
+    if item.get('price_or_quantity_terms_included') is not False:
+        raise ValueError('Objective audit requires the pure Omega response before owner prices')
+    tokens = {key: item[key] for key in ('action_token', 'response_token', 'frozen_context_token')}
+    if any(type(value) is not str or not value for value in tokens.values()):
+        raise ValueError('Objective audit requires action, response and frozen-context tokens')
+    return {'schema': 'omega-response-summary/v1', **fields, **tokens,
+            'additional_endpoint_calls': 0,
+            'scope': 'One already scored prediction window; TTD excludes residual and unverified disappearance'}
+
+
+def compare_objective_responses(held, selected):
+    """Only compare predictions with the same physical context, window and beta."""
+    differences = (['missing_hold'] if held is None else
+                   ['missing_selected'] if selected is None else
+                   [key for key in ('frozen_context_token', 'start_sec', 'end_sec', 'beta_seconds')
+                    if held[key] != selected[key]])
+    comparable = not differences
+    return {'schema': 'omega-hold-selected-comparison/v1', 'comparable': comparable,
+            'mismatched_or_missing_fields': differences, 'held': held, 'selected': selected,
+            'ttt_reduction_veh_h': held['ttt_veh_h']-selected['ttt_veh_h'] if comparable else None,
+            'ttd_increase_veh': selected['ttd_veh']-held['ttd_veh'] if comparable else None,
+            'objective_reduction_veh_h': held['objective_veh_h']-selected['objective_veh_h'] if comparable else None,
+            'additional_endpoint_calls': 0,
+            'scope': 'Diagnostic prediction comparison only; no acceptance veto, owner-payoff substitution or sum across overlapping windows'}
+
+
+def attach_selected_final_audit(search_response, audit_response):
+    """Attach a non-adopting audit only after exact selected-response equality."""
+    import copy
+    import pickle
+    for key in ('final_action_token', 'fixed_inputs_token', 'final_score', 'command_evidence'):
+        if pickle.dumps(search_response[key], protocol=5) != pickle.dumps(audit_response[key], protocol=5):
+            raise ValueError('Selected final audit changed the scored action/context: ' + key)
+    if not audit_response['game'].get('search_skipped') or audit_response['game'].get('accepted_updates'):
+        raise ValueError('Selected final audit must not search or adopt a command')
+    result = copy.deepcopy(search_response)
+    original, final = result['game'], audit_response['game']
+    proof = {'schema': 'selected-final-audit/v1',
+        'search_evaluations': original['evaluations'], 'audit_evaluations': final['evaluations'],
+        'search_error': copy.deepcopy(original['error']), 'audit_error': copy.deepcopy(final['error']),
+        'complete': final['final_check_complete'], 'action_and_response_unchanged': True,
+        'domain_inventory': copy.deepcopy(audit_response['final_audit_domain_inventory']),
+        'audit_queries': copy.deepcopy(audit_response['queries'])}
+    if 'finite_domain_coverage' in final:
+        proof['finite_domain_coverage'] = copy.deepcopy(final['finite_domain_coverage'])
+    original['search_limits'] = copy.deepcopy(original['limits'])
+    original['limits']['max_evaluations'] = (original['limits'].get('max_evaluations', proof['search_evaluations'])
+                                            + final['limits']['max_evaluations'])
+    for key in ('per_owner', 'final_check_complete', 'maximum_finite_candidate_gap', 'certified', 'error'):
+        original[key] = copy.deepcopy(final[key])
+    original['evaluations'] += final['evaluations']
+    original['neighbor_calls'] = original.get('neighbor_calls', 0)+final.get('neighbor_calls', 0)
+    original['elapsed_sec'] = original.get('elapsed_sec', 0.)+final.get('elapsed_sec', 0.)
+    original['final_audit_deferred'] = False
+    if 'finite_domain_coverage' in final:
+        original['finite_domain_coverage'] = copy.deepcopy(final['finite_domain_coverage'])
+    search_queries = copy.deepcopy(result.get('queries', {}))
+    audit_queries = copy.deepcopy(audit_response['queries'])
+    aggregate = {key: search_queries.get(key, 0)+audit_queries.get(key, 0)
+        for key in ('requests', 'endpoint_calls', 'cache_hits', 'endpoint_sec', 'local_score_sec',
+                    'price_sec', 'query_sec', 'solve_wall_sec')
+        if key in search_queries or key in audit_queries}
+    result['queries'] = {**aggregate, 'search': search_queries, 'selected_final_audit': audit_queries,
+        'scope': 'Disjoint search and selected-audit counters summed; scheduling/prefetch and retained bytes are preserved separately per stage'}
+    result['selected_final_audit'] = proof
+    return result
+
+
+def prioritize_hold_np_candidates(order, proposals, hold_validation):
+    """Promote existing caps around the actual-hold NP; preserve the full domain.
+
+    Keep the original broad-cap first candidate. Next visit the nearest distinct
+    cap at/above the observed hold and the nearest cap below it, preferring the
+    first candidate's meter seed. Remaining candidates keep their diverse order.
+    The observed NP is a seed heuristic, never a whole-domain feasibility bound.
+    """
+    if not isinstance(hold_validation, dict):
+        raise ValueError('hold_np_nearby ordering requires the actual decision hold witness')
+    quantity = hold_validation['quantity_constraints']['np']
+    actual = quantity['actual']
+    if type(actual) not in (int, float) or not math.isfinite(actual):
+        raise ValueError('hold_np_nearby requires finite observed hold NP')
+    first = order[0]
+    first_cap = proposals[first]['target_np_veh']
+    caps = {proposal['target_np_veh'] for proposal in proposals} - {first_cap}
+    upper = sorted(cap for cap in caps if cap >= actual)
+    lower = sorted((cap for cap in caps if cap < actual), reverse=True)
+    chosen = [first]
+    reference_rates = proposals[first]['control'].ramp_metering
+    position = {index: rank for rank, index in enumerate(order)}
+    for cap in ((upper[:1] + lower[:1])):
+        matches = [index for index, proposal in enumerate(proposals) if proposal['target_np_veh'] == cap]
+        def preference(index):
+            rates = proposals[index]['control'].ramp_metering
+            distance = math.fsum((rates[key]-reference_rates[key])**2 for key in reference_rates)
+            return distance, position[index]
+        chosen.append(min(matches, key=preference))
+    promoted = set(chosen)
+    return chosen + [index for index in order if index not in promoted], {
+        'schema': 'hold-np-nearby-order/v1', 'actual_hold_np_veh': actual,
+        'promoted_indices': chosen, 'promoted_np_caps_veh': [proposals[i]['target_np_veh'] for i in chosen],
+        'domain_changed': False, 'additional_endpoint_calls': 0,
+        'scope': 'Existing broad cap, then existing caps around observed hold NP; no infeasibility claim or target/NUF change'}
 
 
 
@@ -1604,6 +1801,10 @@ def prepare_common_joint_prices(controller, state, forecast, historical, mapping
                     'quantity_constraints': hold['final_score']['quantity_constraints'],
                     'directional_constraints': hold['directional_constraints'],
                     'resource_max_exceedance_veh': item['resource_summary']['max_exceedance_veh']}
+                if options.get('retain_objective_comparison', False):
+                    validation['objective_summary'] = objective_response_summary(item,
+                        start_sec=state.time_sec,
+                        end_sec=state.time_sec+follower.cfg.mpc.horizon_steps*follower.cfg.simulation.T_c_sec)
                 if initialization is not None:
                     validation['nuf_initialization'] = copy.deepcopy(initialization)
                 if budget is not None:
@@ -1659,9 +1860,26 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
                       'shared_tolerance', 'np_tolerance_veh', 'nuf_tolerance_veh_h', 'traversal'}
     leader_keys = {'max_leader_candidates', 'leader_time_budget_sec', 'leader_candidate_order'}
     decision_keys = {'decision_time_budget_sec', 'finalization_reserve_sec', 'response_cache_enabled',
-                     'response_parallel_workers', 'ignore_wall_time_limits'}
+                     'response_parallel_workers', 'ignore_wall_time_limits', 'retain_objective_comparison',
+                     'representative_neighbors', 'search_owner_candidate_limit', 'defer_candidate_final_audit',
+                     'skip_selected_final_audit'}
     if type(options.get('ignore_wall_time_limits', False)) is not bool:
         raise ValueError('ignore_wall_time_limits must be boolean')
+    if type(options.get('retain_objective_comparison', False)) is not bool:
+        raise ValueError('retain_objective_comparison must be boolean')
+    if type(options.get('representative_neighbors', False)) is not bool:
+        raise ValueError('representative_neighbors must be boolean')
+    if type(options.get('defer_candidate_final_audit', False)) is not bool:
+        raise ValueError('defer_candidate_final_audit must be boolean')
+    if type(options.get('skip_selected_final_audit', False)) is not bool:
+        raise ValueError('skip_selected_final_audit must be boolean')
+    if options.get('skip_selected_final_audit', False) and not options.get('defer_candidate_final_audit', False):
+        raise ValueError('skip_selected_final_audit requires defer_candidate_final_audit')
+    owner_limit = options.get('search_owner_candidate_limit')
+    if owner_limit is not None and (type(owner_limit) is not int or owner_limit < 1):
+        raise ValueError('search_owner_candidate_limit must be a positive integer')
+    if owner_limit is not None and options['traversal'] != 'sequential_balanced':
+        raise ValueError('search_owner_candidate_limit requires sequential_balanced traversal')
     if not isinstance(options, dict) or not candidate_keys | leader_keys <= set(options) or set(options) - candidate_keys - leader_keys - decision_keys:
         raise ValueError('Exact explicit joint candidate and leader work options required')
     if (type(options['max_leader_candidates']) is not int or options['max_leader_candidates'] < 1
@@ -1671,7 +1889,7 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
         value = options[key]
         if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
             raise ValueError('Finite nonnegative explicit work limit/tolerance required: ' + key)
-    if options['leader_candidate_order'] != 'diverse' or options['traversal'] not in ('sequential', 'round_robin', 'round_robin_balanced'):
+    if options['leader_candidate_order'] not in ('diverse', 'hold_np_nearby') or options['traversal'] not in ('sequential', 'round_robin', 'round_robin_balanced', 'sequential_balanced'):
         raise ValueError('Explicit diverse leader order and supported follower traversal required')
     if not isinstance(runtime_sources, dict) or not runtime_sources:
         raise ValueError('Runtime source provenance required')
@@ -1697,6 +1915,7 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
         return (controller.leader, controller.nash_solver, controller.cfg,
                 state, forecast, historical, mapping, runtime_sources, options)
     fixed = digest(frozen_values())
+    candidate_keys |= set(options) & {'representative_neighbors', 'search_owner_candidate_limit', 'defer_candidate_final_audit'}
     candidate_options = {key: options[key] for key in sorted(candidate_keys)}
     domain = prepare_joint_leader_candidates(controller, state, forecast, historical,
         budget_tolerance_veh_h=options['nuf_tolerance_veh_h'], check_budget=budget.check)
@@ -1751,12 +1970,17 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
         raise ValueError('Leader preparation changed its frozen decision inputs')
 
     best, best_index, attempted, stop, failure = None, None, [], None, None
+    best_proposal = None
     common = None
+    hold_order_evidence = None
     try:
         with budget.scope('common_price_preparation_and_measurement'):
             common = prepare_common_joint_prices(controller, state, forecast, historical, mapping,
                 runtime_sources=runtime_sources, options=options, budget=budget, progress=progress,
                 worker_bootstrap=worker_bootstrap)
+        if options['leader_candidate_order'] == 'hold_np_nearby':
+            order, hold_order_evidence = prioritize_hold_np_candidates(
+                order, proposals, getattr(budget, 'hold_validation', None))
     except TimeoutError as exc:
         stop = 'decision_time_budget_during_common_prices'
         if progress:
@@ -1830,8 +2054,15 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
                     maximum_finite_candidate_gap=game['maximum_finite_candidate_gap'],
                     final_action_token=solved['response']['final_action_token'],
                     game_error=copy.deepcopy(game['error']), evaluations=game['evaluations'])
+                if options.get('retain_objective_comparison', False):
+                    held_summary = getattr(budget, 'hold_validation', {}).get('objective_summary')
+                    if held_summary is not None:
+                        row['objective_summary'] = objective_response_summary(solved['response']['final_score'],
+                            start_sec=held_summary['start_sec'], end_sec=held_summary['end_sec'])
                 if best is None or row['objective_veh_h'] < summaries[best_index]['objective_veh_h']:
                     best, best_index = solved, index
+                    if options.get('defer_candidate_final_audit', False):
+                        best_proposal = copy.deepcopy(prepared)
             elif status in ('infeasible_initializer', 'unscored_budget_stop', 'restoration_budget_stop') and solved['validated_nash'] is None:
                 row.update(status=status, game_error=copy.deepcopy(solved['response']['game']['error']),
                            initializer_evidence=copy.deepcopy(solved['initializer_evidence']))
@@ -1850,6 +2081,48 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
             break
         finally:
             row['elapsed_sec'] = perf_counter() - tick
+    selected_audit_status = None
+    if options.get('skip_selected_final_audit', False) and best is not None and failure is None:
+        # Search already validates the chosen physical response and constraints.
+        # Omit only the exhaustive unilateral-neighbor gap measurement.
+        selected_audit_status = {'complete': False, 'status': 'skipped_by_config',
+            'audit_evaluations': 0, 'action_and_response_unchanged': True}
+        if progress:
+            progress({'stage': 'selected_final_audit_skipped', 'index': best_index,
+                      'reason': 'skip_selected_final_audit'})
+    elif options.get('defer_candidate_final_audit', False) and best is not None and failure is None:
+        if progress:
+            progress({'stage': 'selected_final_audit_start', 'index': best_index,
+                      'final_action_token': best['response']['final_action_token']})
+        try:
+            with budget.scope('selected_final_audit'):
+                audited = solve_runtime_joint_candidate(controller, state, forecast, historical,
+                    best_proposal, mapping, runtime_sources=runtime_sources, options=candidate_options,
+                    progress=progress, common=common, budget=budget, audit_response=best['response'])
+            combined = attach_selected_final_audit(best['response'], audited['response'])
+            if (digest(frozen_values()) != fixed or digest(domain) != domain_token
+                    or audited['source_fingerprint'] != digest(runtime_sources)):
+                raise ValueError('Selected final audit changed frozen decision inputs or source context')
+            best = {**best, 'response': combined,
+                'validated_nash': validate_joint_leader_result(combined,
+                    target_np_veh=best['target_np_veh'], target_nuf_veh_h=best['target_nuf_veh_h'], cfg=controller.cfg)}
+            selected_audit_status = combined['selected_final_audit']
+            row = summaries[best_index]
+            row.update(final_check_complete=combined['game']['final_check_complete'],
+                finite_neighborhood_certified=combined['game']['certified'],
+                maximum_finite_candidate_gap=combined['game']['maximum_finite_candidate_gap'],
+                game_error=copy.deepcopy(combined['game']['error']), evaluations=combined['game']['evaluations'])
+        except TimeoutError as exc:
+            selected_audit_status = {'complete': False, 'status': 'decision_deadline',
+                'reason': str(exc), 'action_and_response_unchanged': True}
+            stop = 'decision_time_budget'
+        except Exception as exc:
+            failure = {'type': type(exc).__name__, 'message': str(exc)}
+            stop = 'selected_final_audit_failure'
+        if progress:
+            progress({'stage': 'selected_final_audit_finished', 'index': best_index,
+                      'complete': bool(selected_audit_status and selected_audit_status['complete']),
+                      'failure': failure})
     elapsed = perf_counter() - started
     rank = sorted((i for i in attempted if summaries[i]['status'] == 'feasible_final_response'),
                   key=lambda i: (summaries[i]['objective_veh_h'], attempted.index(i)))
@@ -1898,6 +2171,16 @@ def solve_runtime_joint_leader(controller, state, forecast, historical, mapping,
             metadata['selection_status'] = 'validated_actual_hold'
             metadata['hold_price_complete'] = common is not None
     metadata['actual_hold_validation'] = getattr(budget, 'hold_validation', None)
+    if options.get('defer_candidate_final_audit', False):
+        metadata['selected_final_audit'] = selected_audit_status
+    if hold_order_evidence is not None:
+        metadata['hold_np_order'] = hold_order_evidence
+    if options.get('retain_objective_comparison', False):
+        held_summary = getattr(budget, 'hold_validation', {}).get('objective_summary')
+        selected_summary = (summaries[best_index].get('objective_summary')
+                            if best_index is not None and failure is None else
+                            held_summary if held is not None else None)
+        metadata['objective_comparison'] = compare_objective_responses(held_summary, selected_summary)
     return {'selected': best if failure is None else None, 'held_response': held, 'metadata': metadata}
 
 
@@ -2006,7 +2289,8 @@ def _runtime_joint_candidate_validation(result, *, target_np, target_nuf, initia
 
 
 def solve_runtime_joint_candidate(controller, state, forecast, historical, proposal, mapping, *,
-                                  runtime_sources, options, progress=None, common=None, budget=None):
+                                  runtime_sources, options, progress=None, common=None, budget=None,
+                                  audit_response=None):
     """Candidate initialization and response under one decision's actual-anchor prices."""
     import copy
     import hashlib
@@ -2047,12 +2331,18 @@ def solve_runtime_joint_candidate(controller, state, forecast, historical, propo
         callbacks, context, fingerprint = _joint_runtime_callbacks(follower, state, forecast,
             historical, leader, mapping, runtime_sources, reference=common['reference'],
             total_budget=total_budget, directional=directional, tolerance=options['nuf_tolerance_veh_h'],
-            budget=budget, progress=progress)
+            budget=budget, progress=progress,
+            **({'representative_neighbors': options['representative_neighbors']}
+               if 'representative_neighbors' in options else {}))
         work_options = dict(options)
+        work_options.pop('representative_neighbors', None)
+        defer_audit = work_options.pop('defer_candidate_final_audit', False)
+        if defer_audit:
+            work_options['defer_final_audit'] = True
         if budget and budget.unlimited_time:
             work_options['time_budget_sec'] = None
         fast_seeds = ()
-        if fast_policy is not None:
+        if fast_policy is not None and audit_response is None:
             if common.get('fast_np') is None:
                 raise ValueError('Fast NP candidate lacks common response-derived seeds')
             prepared_seeds = []
@@ -2061,9 +2351,20 @@ def solve_runtime_joint_candidate(controller, state, forecast, historical, propo
                 seed.green_times, seed.offsets = copy.deepcopy((prototype.green_times, prototype.offsets))
                 prepared_seeds.append(seed)
             fast_seeds = tuple(prepared_seeds)
-            cap = max(0., fast_policy['candidate_time_budget_sec'] - (perf_counter()-candidate_started))
-            work_options['time_budget_sec'] = min(cap, work_options['time_budget_sec']) if work_options['time_budget_sec'] is not None else cap
-        result = solve_fixed_shared_game(follower, state, common['reference'], forecast, initial,
+            if not (budget and budget.unlimited_time):
+                cap = max(0., fast_policy['candidate_time_budget_sec'] - (perf_counter()-candidate_started))
+                work_options['time_budget_sec'] = min(cap, work_options['time_budget_sec']) if work_options['time_budget_sec'] is not None else cap
+        effective_restoration_policy = fast_policy
+        if fast_policy is not None and budget and budget.unlimited_time:
+            effective_restoration_policy = {**fast_policy, 'restoration_time_budget_sec': None}
+        solve_incumbent = initial
+        if audit_response is not None:
+            solve_incumbent = copy.deepcopy(audit_response['game']['control'])
+            work_options.pop('defer_final_audit', None)
+            work_options['audit_only'] = True
+            work_options['time_budget_sec'] = None if budget and budget.unlimited_time else budget.remaining() if budget else None
+            effective_restoration_policy = None
+        result = solve_fixed_shared_game(follower, state, common['reference'], forecast, solve_incumbent,
             callbacks=callbacks, context=context, context_fingerprint=fingerprint,
             horizon_steps=cfg.mpc.horizon_steps, lambda_p=follower._lambda_P, lambda_uf=follower._lambda_UF,
             target_np_veh=target_np, target_nuf_veh_h=target_nuf,
@@ -2073,19 +2374,37 @@ def solve_runtime_joint_candidate(controller, state, forecast, historical, propo
             response_query=common['response_query'], deadline_check=budget.check if budget else None,
             **({'decision_deadline_monotonic': budget.started+budget.seconds-budget.reserve_sec}
                 if budget and not budget.unlimited_time else {}),
-            restore_initializer=True, initial_seeds=fast_seeds, restoration_policy=fast_policy,
+            restore_initializer=audit_response is None, initial_seeds=fast_seeds, restoration_policy=effective_restoration_policy,
             progress=progress if budget and budget.unlimited_time else None, **work_options)
-        if fast_policy is not None:
+        if fast_policy is not None and audit_response is None:
             result['fast_np'] = copy.deepcopy(common['fast_np']['evidence'])
             result['fast_np']['candidate_time_budget_sec'] = fast_policy['candidate_time_budget_sec']
             result['fast_np']['candidate_elapsed_sec'] = perf_counter()-candidate_started
             result['fast_np']['candidate_time_overrun_sec'] = max(0., perf_counter()-candidate_started-fast_policy['candidate_time_budget_sec'])
+            if budget and budget.unlimited_time:
+                result['fast_np'].update(candidate_time_budget_sec=None, candidate_time_overrun_sec=None,
+                    configured_inactive_candidate_time_budget_sec=fast_policy['candidate_time_budget_sec'],
+                    configured_inactive_restoration_time_budget_sec=fast_policy['restoration_time_budget_sec'],
+                    restoration_time_budget_sec=None, wall_limits_disabled=True)
             result['fast_np']['seed_checks'] = copy.deepcopy(result['initializer_seed_checks'])
             observed = [r['np_veh'] for r in result['initializer_seed_checks']
                         if r.get('model_and_writer_validated') and r['nuf_satisfied']]
             result['fast_np']['observed_np_range_veh'] = [min(observed), max(observed)] if observed else None
             result['fast_np']['observed_range_scope'] = 'Only evaluated seeds satisfying the fixed NUF band and model/writer constraints; no whole-domain limit.'
-            result['fast_np']['skip_rule'] = 'Unrestored cap/NUF within short budget remains unknown; advance to the next leader candidate. Model/command contract failure aborts.'
+            result['fast_np']['skip_rule'] = ('Unrestored cap/NUF within finite evaluation/sweep bounds remains unknown; wall limits are disabled. Model/command contract failure aborts.'
+                if budget and budget.unlimited_time else
+                'Unrestored cap/NUF within short budget remains unknown; advance to the next leader candidate. Model/command contract failure aborts.')
+        if (audit_response is not None and result['final_score'] is None
+                and (result['game'].get('error') or {}).get('kind') in
+                    ('time_budget', 'evaluation_budget', 'decision_deadline')):
+            # A deadline can stop audit prefetch before its first owner score.
+            # Retain the already validated selected response only when the
+            # immutable inputs/action/writer proof still match exactly.
+            for key in ('final_action_token', 'fixed_inputs_token', 'command_evidence'):
+                if pickle.dumps(result[key], protocol=5) != pickle.dumps(audit_response[key], protocol=5):
+                    raise ValueError('Interrupted selected audit changed its known response binding: ' + key)
+            result['final_score'] = copy.deepcopy(audit_response['final_score'])
+            result['selected_score_retained_after_audit_deadline'] = True
         status, validated, initializer_evidence = _runtime_joint_candidate_validation(result,
             target_np=target_np, target_nuf=target_nuf, initial=result.get('restored_initial', initial),
             expected_owners=callbacks['ownership'].owners,cfg=cfg)
@@ -2099,7 +2418,8 @@ def solve_runtime_joint_candidate(controller, state, forecast, historical, propo
 
 def _make_bounded_response_schedule(ownership, *, neighbors, physical_fingerprint,
                                     response_query, fingerprint, traversal,
-                                    nuf_semantics, lookahead):
+                                    nuf_semantics, lookahead, search_owner_candidate_limit=None,
+                                    audit_response_pipeline=False):
     """Warm only the next logical reads; the game still evaluates/adopts in order."""
     import copy
     from time import perf_counter
@@ -2112,13 +2432,21 @@ def _make_bounded_response_schedule(ownership, *, neighbors, physical_fingerprin
     scope = None
     domains, queued = {}, deque()
     stream = None
-    base = supplied = work_check = phase = None
+    base = supplied = work_check = phase = active_owner = None
     prefetched, consumed = set(), set()
     proof = {'lookahead': lookahead, 'scopes': 0, 'batches': 0,
         'requested_responses': 0, 'endpoint_calls': 0, 'prepared_reads': 0,
         'physical_checks': 0, 'wall_sec': 0., 'phases': {},
         'completed_batches_past_work_limit': 0,
         'selection_or_domain_changed': False}
+    if type(audit_response_pipeline) is not bool:
+        raise ValueError('Audit response pipeline must be boolean')
+    if audit_response_pipeline and not callable(getattr(response_query, 'submit_prefetch', None)):
+        raise ValueError('Audit response pipeline requires the existing guarded async response transport')
+    pipeline_pending = None
+    if audit_response_pipeline:
+        proof.update(audit_response_pipeline=True, pipeline_submitted_batches=0,
+                     pipeline_max_buffered_logical_reads=0)
 
     def check():
         work_check()
@@ -2178,6 +2506,15 @@ def _make_bounded_response_schedule(ownership, *, neighbors, physical_fingerprin
             for owner in owners:
                 yield from owner_actions(owner, base_physical)
             return
+        if traversal == 'sequential_balanced':
+            actions = owner_actions(active_owner, base_physical)
+            if search_owner_candidate_limit is None:
+                yield from actions
+            else:
+                from itertools import islice
+                # Include one incumbent read before the limited neighbor reads.
+                yield from islice(actions, search_owner_candidate_limit+1)
+            return
         pending = {}
         # A game's first next(inspect_steps) reads the base and first neighbor.
         for owner in owners:
@@ -2197,16 +2534,98 @@ def _make_bounded_response_schedule(ownership, *, neighbors, physical_fingerprin
                         del pending[owner]
 
     def prepare(owner, current_base, action, context, current_phase, credit, checkpoint):
-        nonlocal scope, stream, base, supplied, work_check, phase
+        nonlocal scope, stream, base, supplied, work_check, phase, active_owner, pipeline_pending
         work_check, supplied = checkpoint, context
         check()
         identity = (packed(current_base), current_phase, fingerprint(context))
+        if traversal == 'sequential_balanced' and current_phase == 'search':
+            identity += (owner,)
         if identity != scope:
+            if pipeline_pending is not None:
+                raise ValueError('An in-flight audit batch cannot cross action/context scopes')
             scope, base, phase = identity, copy.deepcopy(current_base), current_phase
+            active_owner = owner
             domains.clear()
             queued.clear()
             stream = logical_actions()
             proof['scopes'] += 1
+        if audit_response_pipeline:
+            if phase != 'final_check':
+                raise ValueError('Asynchronous response pipeline is restricted to the fixed final audit')
+
+            def submit_next(available_credit):
+                reads, probes = [], []
+                for _ in range(min(lookahead, available_credit)):
+                    check()
+                    try:
+                        who, candidate = next(stream)
+                    except StopIteration:
+                        break
+                    reads.append((who, packed(candidate)))
+                    probes.append(candidate)
+                if not probes:
+                    return None
+                before = tuple(packed(candidate) for candidate in probes)
+                check()
+                finish = response_query.submit_prefetch(tuple(probes))
+                if tuple(packed(candidate) for candidate in probes) != before:
+                    raise ValueError('Async submission changed its supplied actions')
+                check()
+                proof['pipeline_submitted_batches'] += 1
+                return (reads, probes, before, finish)
+
+            if not queued:
+                if pipeline_pending is None:
+                    pipeline_pending = submit_next(credit)
+                if pipeline_pending is not None:
+                    reads, probes, before, finish = pipeline_pending
+                    pipeline_pending = None
+                    tick = perf_counter()
+                    phase_proof = proof['phases'].setdefault(phase, {'batches': 0,
+                        'requested_responses': 0, 'endpoint_calls': 0, 'wall_sec': 0.})
+                    try:
+                        batch = finish()
+                        proof['batches'] += 1
+                        proof['requested_responses'] += len(probes)
+                        proof['endpoint_calls'] += batch['endpoint_calls']
+                        phase_proof['batches'] += 1
+                        phase_proof['requested_responses'] += len(probes)
+                        phase_proof['endpoint_calls'] += batch['endpoint_calls']
+                        if (tuple(packed(candidate) for candidate in probes) != before
+                                or len(batch['results']) != len(probes)):
+                            raise ValueError('Async audit response mutated or omitted an action')
+                        tokens = set()
+                        for payload, item in zip(before, batch['results']):
+                            if item.get('action_token') != hashlib.sha256(payload).hexdigest():
+                                raise ValueError('Async audit response belongs to another full action')
+                            token = item.get('frozen_context_token')
+                            if type(token) is not str or not token:
+                                raise ValueError('Async audit response lacks its frozen context token')
+                            tokens.add(token)
+                        if len(tokens) != 1:
+                            raise ValueError('Async audit response batch mixed frozen contexts')
+                        prefetched.update(before)
+                        try:
+                            check()
+                        except (game._Stop, TimeoutError):
+                            proof['completed_batches_past_work_limit'] += 1
+                            raise
+                        queued.extend(reads)
+                    finally:
+                        elapsed = perf_counter()-tick
+                        proof['wall_sec'] += elapsed
+                        phase_proof['wall_sec'] += elapsed
+                    # Current buffered reads already reserve this credit. Only
+                    # the next guaranteed finite-audit reads may run ahead.
+                    pipeline_pending = submit_next(max(0, credit-len(queued)))
+                    buffered = len(queued) + (len(pipeline_pending[0]) if pipeline_pending is not None else 0)
+                    proof['pipeline_max_buffered_logical_reads'] = max(
+                        proof['pipeline_max_buffered_logical_reads'], buffered)
+            if not queued or queued[0] != (owner, packed(action)):
+                raise ValueError('Async audit logical order differs from the unchanged game')
+            queued.popleft()
+            proof['prepared_reads'] += 1
+            return
         if not queued:
             probes = []
             for _ in range(min(lookahead, credit)):
@@ -2264,11 +2683,15 @@ def _make_bounded_response_schedule(ownership, *, neighbors, physical_fingerprin
         consumed.add(packed(action))
 
     def report(logical_reads):
-        return {**copy.deepcopy(proof), 'logical_reads': logical_reads,
+        result = {**copy.deepcopy(proof), 'logical_reads': logical_reads,
             'prefetched_distinct_actions': len(prefetched),
             'consumed_prefetched_actions': len(prefetched & consumed),
             'unconsumed_prefetched_actions': len(prefetched-consumed),
             'queued_logical_reads': len(queued), 'full_domain_precomputed': False}
+        if audit_response_pipeline:
+            result['pipeline_pending_logical_reads'] = len(pipeline_pending[0]) if pipeline_pending is not None else 0
+            result['pipeline_timing_scope'] = 'Parent finish/wait wall; next batch submission and consumption overlap worker execution. No sum of future lifetimes.'
+        return result
 
     prepare.neighbors, prepare.note_read, prepare.report = get_domain, note_read, report
     return prepare
@@ -2281,7 +2704,8 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
                             improvement_tolerance, shared_tolerance, scope_label,
                             np_tolerance_veh, nuf_tolerance_veh_h, traversal='sequential',
                             response_query=None, deadline_check=None, restore_initializer=False,
-                            progress=None, initial_seeds=(), restoration_policy=None, decision_deadline_monotonic=None):
+                            progress=None, initial_seeds=(), restoration_policy=None, decision_deadline_monotonic=None,
+                            search_owner_candidate_limit=None, defer_final_audit=False, audit_only=False):
     """Select a realized joint action at one explicit fixed leader/price context.
 
     Uses the installed neighbor/writer callbacks and the same captured physical
@@ -2304,6 +2728,11 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
     from evaluation.controllers.area_leader_objective import fixed_joint_price_terms, shared_quantity_constraints
     from evaluation.controllers import physical_ramp_branches
     nuf_semantics = 'fixed_target' if physical_ramp_branches.enabled(follower.cfg) else 'realized_sum'
+
+    if type(defer_final_audit) is not bool or type(audit_only) is not bool or (defer_final_audit and audit_only):
+        raise ValueError('Final audit modes require exclusive explicit booleans')
+    if audit_only and (restore_initializer or initial_seeds or restoration_policy is not None):
+        raise ValueError('Final audit cannot restore or change its selected incumbent')
 
     if progress is not None and not callable(progress):
         raise ValueError('Fixed game progress must be callable')
@@ -2344,6 +2773,7 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         return fixed_context_identity
 
     cache = {}
+    physical_query = callbacks['physical_fingerprint']
     batch_context_token = None
     scheduled = None
     stats = {'requests': 0, 'endpoint_calls': 0, 'cache_hits': 0,
@@ -2419,7 +2849,7 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
                 start_sec=initial.time_sec, horizon_steps=horizon_steps)
             fingerprint(supplied)
             item.update(owner_costs=costs, additive_terms=additions, quantity_constraints=quantity_constraints,
-                        physical_owner_tokens=command_query(callbacks['physical_fingerprint'], action, supplied))
+                        physical_owner_tokens=command_query(physical_query, action, supplied))
             cache[key] = packed(item)
             stats['price_sec'] += perf_counter() - tick
         else:
@@ -2467,7 +2897,9 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         restore_evaluations, restore_time = max_evaluations, time_budget_sec
         if restoration_policy is not None:
             restore_evaluations = min(max_evaluations, restoration_policy['restoration_max_evaluations'])
-            restore_time = min(time_budget_sec, restoration_policy['restoration_time_budget_sec']) if time_budget_sec is not None else restoration_policy['restoration_time_budget_sec']
+            policy_time = restoration_policy['restoration_time_budget_sec']
+            if policy_time is not None:
+                restore_time = min(time_budget_sec, policy_time) if time_budget_sec is not None else policy_time
         restoration = game.restore_feasibility(callbacks['ownership'], incumbent, context,
             neighbors=callbacks['neighbors'], evaluate=feasibility, context_fingerprint=fingerprint,
             physical_fingerprint=callbacks['physical_fingerprint'], max_evaluations=restore_evaluations,
@@ -2484,22 +2916,56 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         # game budget trying to score the same failed initializer again.
         remaining_evaluations = 0
     game_neighbors = callbacks['neighbors']
+    audit_inventory = None
+    if audit_only:
+        reuse_proofs = getattr(private.cfg.network, 'control_area_reuse_final_audit_physical_proofs', False)
+        if type(reuse_proofs) is not bool:
+            raise ValueError('Final audit physical proof reuse must be boolean')
+        audit_inventory = game.prepare_final_audit_domains(callbacks['ownership'], incumbent, context,
+            neighbors=game_neighbors, context_fingerprint=fingerprint,
+            physical_fingerprint=lambda action, supplied: command_query(callbacks['physical_fingerprint'], action, supplied),
+            nuf_semantics=nuf_semantics, traversal=traversal, deadline_check=deadline_check,
+            **({'reuse_physical_proofs': True, 'physical_proof_guard': callbacks.get('guard_physical_proofs')}
+               if reuse_proofs else {}))
+        remaining_evaluations = audit_inventory['evaluation_budget']
+        game_neighbors = audit_inventory['neighbors']
+        if reuse_proofs:
+            physical_query = audit_inventory['physical_fingerprint']
+        if progress:
+            progress({'stage': 'selected_final_audit_domain_inventory',
+                      'evaluation_budget': remaining_evaluations,
+                      'per_owner': audit_inventory['proof']['per_owner']})
+    unprepared_neighbors = game_neighbors
     from evaluation.controllers.area_runtime import response_scheduling_options
     scheduling = response_scheduling_options(getattr(private.cfg.network, 'control_area_response_scheduling', None))
     prefetch_enabled = getattr(private.cfg.network, 'control_area_prefetch_first_owner_responses', False)
     full_prefetch = getattr(private.cfg.network, 'control_area_prefetch_complete_sweep_responses', False)
+    pipeline_option = getattr(private.cfg.network, 'control_area_audit_response_pipeline', False)
+    if type(pipeline_option) is not bool:
+        raise ValueError('Audit response pipeline must be boolean')
+    pipeline_active = audit_only and pipeline_option
+    if pipeline_active and (not reuse_proofs or time_budget_sec is not None
+            or decision_deadline_monotonic is not None or scheduling is None or full_prefetch
+            or response_query is None or not callable(getattr(response_query, 'submit_prefetch', None))
+            or not callable(getattr(response_query, 'stats', None))
+            or response_query.stats().get('cache_enabled') is not True
+            or response_query.stats().get('parallel_workers', 0) < 2):
+        raise ValueError('Audit pipeline requires an unlimited fixed inventory and bounded parallel response cache')
     if scheduling is not None:
-        if (traversal not in ('round_robin', 'round_robin_balanced') or full_prefetch
+        if (traversal not in ('round_robin', 'round_robin_balanced', 'sequential_balanced') or full_prefetch
                 or response_query is None or not callable(getattr(response_query, 'stats', None))
                 or response_query.stats().get('cache_enabled') is not True
                 or response_query.stats().get('parallel_workers', 0) < 1):
-            raise ValueError('Bounded scheduling requires round-robin and the existing parallel response cache')
+            raise ValueError('Bounded scheduling requires a supported ordered traversal and the existing parallel response cache')
         prefetch_enabled = False
-        scheduled = _make_bounded_response_schedule(callbacks['ownership'], neighbors=callbacks['neighbors'],
-            physical_fingerprint=lambda action, supplied: command_query(callbacks['physical_fingerprint'], action, supplied),
+        scheduled = _make_bounded_response_schedule(callbacks['ownership'], neighbors=game_neighbors,
+            physical_fingerprint=lambda action, supplied: command_query(physical_query, action, supplied),
             response_query=response_query, fingerprint=fingerprint, traversal=traversal,
             nuf_semantics=nuf_semantics,
-            lookahead=min(scheduling['lookahead'], response_query.stats()['parallel_workers']))
+            lookahead=min(scheduling['lookahead'], response_query.stats()['parallel_workers']),
+            **({'audit_response_pipeline': True} if pipeline_active else {}),
+            **({'search_owner_candidate_limit': search_owner_candidate_limit}
+               if search_owner_candidate_limit is not None else {}))
         game_neighbors = scheduled.neighbors
     if type(full_prefetch) is not bool:
         raise ValueError('Complete-sweep response prefetch must be boolean')
@@ -2527,7 +2993,7 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
             try:
                 for who in owners:
                     trial = copy.deepcopy(action); before_trial = packed(trial)
-                    domain = callbacks['neighbors'](who, trial, supplied)
+                    domain = unprepared_neighbors(who, trial, supplied)
                     fingerprint(supplied)
                     if packed(trial) != before_trial:
                         raise ValueError('Prefetch neighbor producer changed its supplied incumbent')
@@ -2613,7 +3079,7 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         def prepared_neighbors(owner, action, supplied):
             fingerprint(supplied)
             if packed(action) != base_key:
-                return callbacks['neighbors'](owner, action, supplied)
+                return unprepared_neighbors(owner, action, supplied)
             if owner in domains:
                 return copy.deepcopy(domains[owner])
             started_batch = perf_counter()
@@ -2626,7 +3092,7 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
                         continue
                     if deadline_check is not None:
                         deadline_check('first_owner_response_preparation')
-                    domain = callbacks['neighbors'](next_owner, copy.deepcopy(action), supplied)
+                    domain = unprepared_neighbors(next_owner, copy.deepcopy(action), supplied)
                     if not isinstance(domain, game.Neighborhood) or not domain.complete:
                         raise ValueError('First-owner prefetch needs the complete unchanged neighborhood')
                     domains[next_owner] = domain
@@ -2659,16 +3125,20 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         game_neighbors = prepared_neighbors
         stats['first_owner_prefetch'] = prefetch
     remaining_time = (max(0., time_budget_sec-(perf_counter()-started))
-        if time_budget_sec is not None and (restore_initializer or prefetch_enabled or scheduling is not None) else time_budget_sec)
+        if time_budget_sec is not None and (restore_initializer or prefetch_enabled or scheduling is not None or audit_only) else time_budget_sec)
     decision_remaining = (max(0., decision_deadline_monotonic-perf_counter())
         if scheduling is not None and decision_deadline_monotonic is not None else None)
     result = game.solve(callbacks['ownership'], incumbent, context,
         neighbors=game_neighbors, evaluate=evaluate,
-        context_fingerprint=fingerprint, physical_fingerprint=callbacks['physical_fingerprint'],
+        context_fingerprint=fingerprint, physical_fingerprint=physical_query,
         max_sweeps=max_sweeps, max_evaluations=remaining_evaluations, time_budget_sec=remaining_time,
         improvement_tolerance=improvement_tolerance, shared_tolerance=shared_tolerance,
         scope_label=scope_label, nuf_semantics=nuf_semantics, traversal=traversal,
         deadline_check=deadline_check,
+        **({'search_owner_candidate_limit': search_owner_candidate_limit}
+           if search_owner_candidate_limit is not None else {}),
+        **({'defer_final_audit': True} if defer_final_audit else {}),
+        **({'audit_only': True} if audit_only else {}),
         **({'before_evaluate': scheduled,
             'final_check_reserve_sec': scheduling['final_check_reserve_sec'],
             **({'decision_time_remaining_sec': decision_remaining} if decision_remaining is not None else {})}
@@ -2690,6 +3160,8 @@ def solve_fixed_shared_game(follower, state, reference, forecast, incumbent, *,
         raise ValueError('Final written command differs from the scored full action')
     fingerprint(context)
     extra = {'initializer_restoration': restoration, 'restored_initial': incumbent} if restore_initializer else {}
+    if audit_inventory is not None:
+        extra['final_audit_domain_inventory'] = audit_inventory['proof']
     if restoration_policy is not None:
         seed_checks = []
         for index, seed in enumerate((seed_incumbent, *initial_seeds)):

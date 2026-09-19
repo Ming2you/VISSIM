@@ -1137,6 +1137,15 @@ Sub RunControllerDecision(simSec)
     Else
         decisionsOk = decisionsOk + 1
         lastActionJson = outJsonPath
+        ' SDMPC 가격 상태는 실제 ApplyActionCsv 성공 이후에만 확정 가능하다.
+        If fso.FileExists(outJsonPath & ".sdmpc_pending") Then
+            Dim sdmpcAppliedFile
+            Set sdmpcAppliedFile = fso.CreateTextFile(outJsonPath & ".applied", True, True)
+            sdmpcAppliedFile.WriteLine CStr(simSec)
+            sdmpcAppliedFile.WriteLine CStr(outCsvPath)
+            sdmpcAppliedFile.WriteLine CStr(fso.GetFile(outCsvPath).Size)
+            sdmpcAppliedFile.Close
+        End If
     End If
     PerfAdd "decision.total", perfT0
     ' A diagnostic intervention is fixed at its first decision. Continuing
@@ -1320,16 +1329,10 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
         If kind = "vsl" Then
             dsdNo = CLng(Trim(CStr(parts(2))))
             speed = CDbl(Trim(CStr(parts(6))))
-            On Error Resume Next
-            Set dsd = Vissim.Net.DesSpeedDecisions.ItemByKey(dsdNo)
-            If Err.Number <> 0 Then
-                WScript.Echo "ERROR=VSL_DSD_NOT_FOUND dsd=" & CStr(dsdNo) & " err=" & Err.Description
-                Err.Clear
-                On Error GoTo 0
+            If Not LookupVslDecision(simSec, dsdNo, dsd) Then
                 PerfAdd "action.apply", perfT0
                 Exit Function
             End If
-            On Error GoTo 0
             ok10 = SetClassSpeedChecked(dsd, 10, speed, rb10)
             ok20 = SetClassSpeedChecked(dsd, 20, speed, rb20)
             ok30 = SetClassSpeedChecked(dsd, 30, speed, rb30)
@@ -1374,6 +1377,34 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     Next
     ApplyActionCsv = True
     PerfAdd "action.apply", perfT0
+End Function
+
+Function LookupVslDecision(simSec, dsdNo, ByRef dsd)
+    Dim lookupErrNo, lookupErrDesc, lookupErrSource
+    LookupVslDecision = False
+    Set dsd = Nothing
+    On Error Resume Next
+    Err.Clear
+    Set dsd = Vissim.Net.DesSpeedDecisions.ItemByKey(dsdNo)
+    ' Snapshot before logging or any other COM call can replace IErrorInfo.
+    lookupErrNo = Err.Number
+    lookupErrDesc = Err.Description
+    lookupErrSource = Err.Source
+    Err.Clear
+    On Error GoTo 0
+    If lookupErrNo <> 0 Then
+        Set dsd = Nothing
+        WScript.Echo "ERROR=VSL_DSD_LOOKUP_FAILED sim_sec=" & CStr(simSec) & _
+            " dsd=" & CStr(dsdNo) & " err_no=" & CStr(lookupErrNo) & _
+            " err_hex=" & Hex(lookupErrNo) & " source=" & OneLine(lookupErrSource) & _
+            " err=" & OneLine(lookupErrDesc)
+        Exit Function
+    End If
+    If dsd Is Nothing Then
+        WScript.Echo "ERROR=VSL_DSD_NULL_OBJECT sim_sec=" & CStr(simSec) & " dsd=" & CStr(dsdNo)
+        Exit Function
+    End If
+    LookupVslDecision = True
 End Function
 
 Function ActionCsvHeaderValid(parts)

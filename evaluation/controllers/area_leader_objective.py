@@ -468,8 +468,9 @@ def verify_joint_written_action(response, control, cfg, mapping, segment_vsl_val
     require(isinstance(response, dict), 'Validated joint response required')
     game, score, evidence = (response.get(k) for k in ('game', 'final_score', 'command_evidence'))
     held = response.get('schema') == 'validated-decision-hold/v1'
+    sdmpc = response.get('schema') == 'validated-sdmpc-response/v1'
     require(all(isinstance(v, dict) for v in (score, evidence)), 'Scored response and command evidence required')
-    if held:
+    if held or sdmpc:
         require(response.get('feasible') is True and response.get('finite_neighborhood_certified') is False
                 and response.get('maximum_finite_candidate_gap') is None, 'Invalid validated hold status')
         coverage = score.get('model_constraint_coverage', {})
@@ -514,6 +515,8 @@ def verify_joint_written_action(response, control, cfg, mapping, segment_vsl_val
         'scope': 'Scored model fields and written command files only; no native application or traffic certificate'}
     if held:
         result.update(response_kind='validated_actual_hold', nash_result=False, final_gap_checked=False)
+    if sdmpc:
+        result.update(response_kind='validated_sdmpc', nash_result=False, final_gap_checked=False)
     if action_json_path is not None:
         json_path, csv_path = Path(action_json_path), Path(action_csv_path)
         json_bytes, csv_bytes = json_path.read_bytes(), csv_path.read_bytes()

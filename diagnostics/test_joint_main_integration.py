@@ -77,6 +77,29 @@ class JointMainIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'must be boolean'):
             adapter.joint_owner_game_settings({'adapter':{'joint_owner_game':specified}},cfg,'wu-link')
 
+    def test_confidence_options_are_explicit_and_strict(self):
+        cfg = SimpleNamespace(network=SimpleNamespace(control_area_enabled=True),
+            simulation=SimpleNamespace(T_c_sec=150.),
+            mpc=SimpleNamespace(leader_budget_off=False, wu_faithful_np_coordination_mode='cap',
+                wu_faithful_nuf_coordination_mode='equality', stackelberg_enable_fallback=False,
+                stackelberg_enable_pfo_incumbent=False))
+        selected = dict(OPTIONS, traversal='sequential_balanced', leader_candidate_order='hold_np_nearby',
+            retain_objective_comparison=True, representative_neighbors=True,
+            defer_candidate_final_audit=True, search_owner_candidate_limit=3)
+        result = adapter.joint_owner_game_settings({'adapter': {'joint_owner_game': selected}}, cfg, 'wu-link')
+        for key, value in selected.items():
+            self.assertEqual(result[key], value)
+        for key, bad_values in {
+            'retain_objective_comparison': [1, 'true', None],
+            'representative_neighbors': [0, 'false', None],
+            'defer_candidate_final_audit': [1, 'true', None],
+            'search_owner_candidate_limit': [True, 0, -1, 3.0, '3'],
+        }.items():
+            for value in bad_values:
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    adapter.joint_owner_game_settings(
+                        {'adapter': {'joint_owner_game': dict(selected, **{key: value})}}, cfg, 'wu-link')
+
     def test_actual_historical_command_pair_binds_saved_context_and_rejects_mismatch(self):
         cfg, control = CanonicalMeterCandidateTests().fixture()
         meters.finalize(control, cfg)
@@ -145,6 +168,22 @@ class JointMainIntegrationTests(unittest.TestCase):
             failed = json.loads(path.read_text(encoding='utf-8'))
             self.assertFalse(failed['completed'])
             self.assertEqual(failed['selection']['selection_status'], 'aborted_failure')
+
+    def test_sdmpc_dispatch_keeps_scored_action_frozen(self):
+        response = {'control': SimpleNamespace(diagnostics={}), 'final_score': {'objective_veh_h': 12.}}
+        cfg = SimpleNamespace(simulation=SimpleNamespace(T_c_sec=150), network=SimpleNamespace(sdmpc_options={}))
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(adapter, 'load_joint_historical_reference', return_value=({'previous': 'history'}, {})), \
+                patch.object(adapter, 'joint_runtime_source_pins', return_value={}), \
+                patch('evaluation.controllers.area_follower_objective.expand_shared_vsl_action', return_value=('history', {})), \
+                patch('evaluation.controllers.sdmpc.solve', return_value=(response, {'feasible': True})):
+            result, final, report = adapter.run_joint_owner_decision(object(), SimpleNamespace(time_sec=900.),
+                [1], object(), cfg, {}, {}, {'run_id': 'fixture'}, Path('previous.json'), OPTIONS,
+                Path(folder)/'action.joint.json', segment_vsl_func=object())
+            result.control.diagnostics['writer_context'] = 'added after scoring'
+            self.assertEqual(final['control'].diagnostics, {})
+            self.assertTrue(report['completed'])
+            self.assertIsNone(result.nash)
 
     def test_worker_cleanup_failure_still_writes_failed_decision_evidence(self):
         response = fixture()

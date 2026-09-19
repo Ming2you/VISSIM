@@ -74,6 +74,26 @@ class JointWrittenActionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'seven action fields'):
             self.verify()
 
+    def test_sdmpc_uses_frozen_scored_control_with_writer_diagnostics(self):
+        self.response['schema'] = 'validated-sdmpc-response/v1'
+        self.response['control'] = self.response.pop('game')['control']
+        self.response.update(feasible=True, shared_tolerance=1e-7,
+            directional_constraints={k: {'actual':3600., 'target':3600., 'tolerance':1e-7}
+                for k in ('FW_W', 'FW_E')})
+        self.response['final_score'].update(conditional_model_feasibility_witness=True,
+            model_constraint_coverage={'complete':True,'conditional_model_feasibility_witness':True},
+            resource_summary={'max_exceedance_veh':0.},quantity_constraints={'feasible':True})
+        self.control = copy.deepcopy(self.response['control'])
+        self.control.diagnostics['_control_area_written_meter_context'] = {'sim_sec': 900.}
+        self.write()
+        receipt = self.verify(post=True)
+        self.assertTrue(receipt['written_command_binding_passed'])
+        self.assertEqual(receipt['response_kind'], 'validated_sdmpc')
+        self.assertFalse(receipt['nash_result'])
+        self.response['final_score']['quantity_constraints']['feasible'] = False
+        with self.assertRaisesRegex(ValueError, 'feasible model evidence'):
+            self.verify()
+
     def test_hold_cannot_hide_quantity_or_resource_failure(self):
         self.response['schema'] = 'validated-decision-hold/v1'
         self.response['control'] = self.response.pop('game')['control']

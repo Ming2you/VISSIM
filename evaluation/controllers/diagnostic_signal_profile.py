@@ -110,6 +110,21 @@ def build_control(cfg, ControlAction, tuning, plan_table, workspace_root):
         offset_promotion.FORCED_ARM_TABLE_KEY: json.dumps(offsets, sort_keys=True),
     })
     from evaluation.controllers import physical_ramp_branches
+    replay_metering = spec.get('replay_recorded_metering', False)
+    if type(replay_metering) is not bool:
+        raise ValueError('recorded metering replay requires a boolean flag')
+    if replay_metering:
+        physical = getattr(cfg.network, 'physical_ramp_branches', None)
+        values = recorded.get('ramp_metering')
+        if (not physical or not isinstance(values, Mapping)
+                or set(values) != set(physical['ramps'])):
+            raise ValueError('recorded metering replay requires exactly eight physical service coordinates')
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0 for v in values.values()):
+            raise ValueError('recorded physical metering services must be finite and nonnegative')
+        # Preserve the pinned recorded service coordinates. The sibling CSV is
+        # checked below, including exact agreement with the current service
+        # table for its eight greens. Never replace a mismatch with an estimate.
+        control.ramp_metering = {key: float(value) for key, value in values.items()}
     if getattr(cfg.network, 'physical_ramp_branches', None):
         # Eight-branch replay needs the original eight physical green commands;
         # ControlAction.uncontrolled() has no per-SG execution evidence.
