@@ -65,7 +65,7 @@ def table(path, rows, fields=None):
         writer.writerows(rows)
 
 
-def completed(experiment, arm):
+def completed(experiment, arm, expected_seed=13):
     run, prepared = experiment/f'run_{arm}', experiment/f'prepared_{arm}'
     receipt, meta = load(run/'run.json'), load(prepared/'prepared.json')
     validation = load(run/'fixed_validation.json')
@@ -75,7 +75,7 @@ def completed(experiment, arm):
     require(receipt.get('fixed_profile') is True and meta.get('mode') == 'fixed_profile'
             and receipt.get('native_preserve') is False, 'Explicit fixed-profile receipt required')
     require(receipt.get('terminal_sec') == END and meta['terminal_sec'] == END
-            and meta['seed'] == receipt['seed'] == 13, 'Wrong fixed experiment extent/seed')
+            and meta['seed'] == receipt['seed'] == expected_seed, 'Wrong fixed experiment extent/seed')
     require(receipt.get('fixed_profile_validation_exit_code') == 0 and validation.get('passed') is True,
             'Native command/LDP validation did not pass: '+arm)
     require(Path(receipt['prepared']).resolve() == prepared.resolve()

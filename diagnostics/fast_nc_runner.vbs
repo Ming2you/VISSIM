@@ -22,7 +22,7 @@ If WScript.Arguments.Count = 6 Then
     End If
 End If
 If terminalSec <> 5400 And terminalSec <> 7200 And terminalSec <> 9000 Then
-    If Not fixedProfile Or (terminalSec <> 1800 And terminalSec <> 2250) Then WScript.Echo "ERROR=Invalid terminal_sec": WScript.Quit 2
+    If Not fixedProfile Or (terminalSec <> 1050 And terminalSec <> 1800 And terminalSec <> 2250 And terminalSec <> 3000 And terminalSec <> 4500) Then WScript.Echo "ERROR=Invalid terminal_sec": WScript.Quit 2
 End If
 Set logFile = fs.CreateTextFile(fs.BuildPath(output, "readback.csv"), False, False)
 logFile.WriteLine "kind,no,time_int,expected,actual"
@@ -294,11 +294,26 @@ Sub RunFixedProfile()
     fixedTrace.WriteLine "time_s,phase,kind,no,veh_class,expected,actual,contr_by_com,ok"
     fixedEventCount = 0
     FixedSnapshot "initial"
-    Set input = fs.OpenTextFile(fs.BuildPath(prepared,"fixed_events.csv"),1)
-    If input.ReadLine <> "time_s,kind,no,veh_class,value" Then Die "Fixed event CSV schema"
-    previousSec = 0
     WScript.Echo "FIXED_PROFILE=1"
     WScript.Echo "STAGE=RUN_CONTINUOUS_BEGIN"
+    If fs.FileExists(fs.BuildPath(prepared,"rule_policy.json")) Then
+        RunRuleProfile
+    Else
+        ApplyEventFile fs.BuildPath(prepared,"fixed_events.csv")
+    End If
+    fixedBreakSec = terminalSec
+    ContinueToTerminal
+    FixedSnapshot "final"
+    fixedTrace.Close
+    WScript.Echo "FIXED_EVENT_ROWS=" & CStr(fixedEventCount)
+    WScript.Echo "FIXED_UNTARGETED_PRESERVATION=1"
+End Sub
+
+Sub ApplyEventFile(path)
+    Dim input, fields, sec, previousSec, obj, address, value, actual, own
+    Set input = fs.OpenTextFile(path,1)
+    If input.ReadLine <> "time_s,kind,no,veh_class,value" Then Die "Fixed event CSV schema"
+    previousSec = CDbl(sim.Simulation.AttValue("SimSec"))
     Do Until input.AtEndOfStream
         fields = Split(input.ReadLine,",")
         If UBound(fields) <> 4 Then Die "Fixed event CSV width"
@@ -334,12 +349,65 @@ Sub RunFixedProfile()
         fixedEventCount = fixedEventCount + 1
     Loop
     input.Close
-    fixedBreakSec = terminalSec
-    ContinueToTerminal
-    FixedSnapshot "final"
-    fixedTrace.Close
-    WScript.Echo "FIXED_EVENT_ROWS=" & CStr(fixedEventCount)
-    WScript.Echo "FIXED_UNTARGETED_PRESERVATION=1"
+End Sub
+
+Sub RunRuleProfile()
+    Dim settings, python, helper, startSec, sec, ids, input, mid, measurements, measurement
+    Dim suffix, n, speed, occupancy, observation, shell, command, code, q
+    Set settings = fs.OpenTextFile(fs.BuildPath(prepared,"rule_runtime.txt"),1,False,-1)
+    python = settings.ReadLine: helper = settings.ReadLine: startSec = CLng(settings.ReadLine)
+    settings.Close
+    Set measurements = CreateObject("Scripting.Dictionary")
+    Set input = fs.OpenTextFile(fs.BuildPath(prepared,"rule_measurements.csv"),1)
+    If input.ReadLine <> "measurement" Then Die "Rule measurement schema"
+    Do Until input.AtEndOfStream
+        mid = input.ReadLine
+        Set measurements(mid) = sim.Net.DataCollectionMeasurements.ItemByKey(CLng(mid))
+    Loop
+    input.Close
+    Set shell = CreateObject("WScript.Shell")
+    q = Chr(34)
+    For sec = startSec To terminalSec - 1 Step 150
+        fixedBreakSec = sec: ContinueToTerminal
+        WScript.Echo "SIM_SEC=" & CStr(sec)
+        suffix = "(Current," & CStr(sec \ 150) & ",All)"
+        Set observation = fs.CreateTextFile(fs.BuildPath(output,"observation_" & CStr(sec) & ".csv"),False,False)
+        observation.WriteLine "measurement,vehicles,speed,occupancy"
+        For Each mid In measurements.Keys
+            Set measurement = measurements(mid)
+            n = measurement.AttValue("Vehs" & suffix)
+            speed = measurement.AttValue("SpeedAvgArith" & suffix)
+            occupancy = measurement.AttValue("OccupRate" & suffix)
+            If IsNull(n) Or IsEmpty(n) Or Not IsNumeric(n) Then Die "Missing rule count"
+            If CDbl(n) = 0 And (IsNull(speed) Or IsEmpty(speed)) Then speed = 0
+            If IsNull(speed) Or IsEmpty(speed) Or Not IsNumeric(speed) Then Die "Missing rule speed"
+            If IsNull(occupancy) Or IsEmpty(occupancy) Or Not IsNumeric(occupancy) Then Die "Missing rule occupancy"
+            observation.WriteLine mid & "," & CStr(n) & "," & CStr(speed) & "," & CStr(occupancy)
+        Next
+        observation.Close
+        If fs.FileExists(fs.BuildPath(prepared,"mpc_policy.json")) Then MpcVehicleSnapshot sec
+        command = q & python & q & " -B -X utf8 " & q & helper & q & " --rule-step " & q & prepared & q & " " & q & output & q & " " & CStr(sec)
+        code = shell.Run(command,0,True)
+        If code <> 0 Then Die "Canonical rule calculation failed at " & CStr(sec)
+        ApplyEventFile fs.BuildPath(output,"rule_events.csv")
+    Next
+End Sub
+
+Sub MpcVehicleSnapshot(sec)
+    Dim numbers, lanes, positions, speeds, i, snapshot
+    'Four bulk reads at a control boundary only. First array column is row index,
+    'not Vehicle.No; read the explicit number for native trajectory alignment.
+    numbers = sim.Net.Vehicles.GetMultiAttValues("No")
+    lanes = sim.Net.Vehicles.GetMultiAttValues("Lane")
+    positions = sim.Net.Vehicles.GetMultiAttValues("Pos")
+    speeds = sim.Net.Vehicles.GetMultiAttValues("Speed")
+    Set snapshot = fs.CreateTextFile(fs.BuildPath(output,"mpc_vehicles_" & CStr(sec) & ".csv"),False,False)
+    snapshot.WriteLine "vehicle,lane,position_m,speed_kmh"
+    For i = LBound(lanes,1) To UBound(lanes,1)
+        If lanes(i,0) <> numbers(i,0) Or lanes(i,0) <> positions(i,0) Or lanes(i,0) <> speeds(i,0) Then Die "MPC snapshot vehicle alignment"
+        snapshot.WriteLine CStr(numbers(i,1)) & "," & CStr(lanes(i,1)) & "," & CStr(positions(i,1)) & "," & CStr(speeds(i,1))
+    Next
+    snapshot.Close
 End Sub
 
 Sub FixedSnapshot(phase)

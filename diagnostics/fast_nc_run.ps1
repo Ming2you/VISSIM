@@ -10,7 +10,7 @@ $preparedPath = (Resolve-Path -LiteralPath $Prepared).Path
 $settings = Get-Content -LiteralPath (Join-Path $preparedPath 'prepared.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $fixedProfile = $settings.mode -eq 'fixed_profile'
 if (@(5400,7200,9000) -notcontains $settings.terminal_sec) {
-  if (!$fixedProfile -or @(1800,2250) -notcontains $settings.terminal_sec) { throw 'Prepared terminal_sec must be5400,7200 or9000 (explicit fixed_profile also1800/2250)' }
+  if (!$fixedProfile -or @(1050,1800,2250,3000,4500) -notcontains $settings.terminal_sec) { throw 'Unsupported native diagnostic terminal_sec' }
 }
 $terminalSec = [int]$settings.terminal_sec
 $nativePreserve = $settings.mode -eq 'native_preserve'

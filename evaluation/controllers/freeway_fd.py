@@ -11,6 +11,67 @@ from dataclasses import dataclass
 from typing import Mapping
 
 
+def configure_state_response(cfg, tuning) -> dict[str, float]:
+    """Explicit directional METANET response regimes; absent is an exact no-op.
+
+    This changes relaxation/anticipation, not demand, conservation, capacity,
+    merge flow, or the objective. Values travel with cfg into spawned workers.
+    An enabled experiment is not evidence that these regimes improve prediction.
+    """
+    section = (tuning.get('freeway', {}) or {}).get('state_response')
+    if section is None:
+        if hasattr(cfg.network, 'freeway_state_response'):
+            del cfg.network.freeway_state_response
+        return {'freeway_state_response_enabled': 0.0}
+    if not isinstance(section, Mapping) or not section:
+        raise ValueError('state_response requires an explicit nonempty direction map')
+    allowed = {'relaxation', 'anticipation', 'congested_nu_multiplier'}
+    values = {}
+    for road, row in section.items():
+        if road not in cfg.network.freeway_links or not isinstance(row, Mapping) or not row or set(row)-allowed:
+            raise ValueError('Invalid state_response direction or fields: ' + str(road))
+        values[road] = {}
+        for key, value in row.items():
+            if key == 'congested_nu_multiplier':
+                members = {'factor': value}
+            else:
+                expected = ({'acceleration_sec', 'deceleration_sec'} if key == 'relaxation'
+                            else {'downstream_ge_local', 'downstream_lt_local'})
+                if not isinstance(value, Mapping) or set(value) != expected:
+                    raise ValueError('State response requires both branches: ' + key)
+                members = value
+            parsed = {}
+            for name, number in members.items():
+                if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(number):
+                    raise ValueError('State response values must be finite numeric values')
+                lower = cfg.simulation.T_f_h * 3600 if key == 'relaxation' else 0.0
+                if number < lower or (key != 'anticipation' and number <= 0):
+                    raise ValueError('Invalid state response value: ' + name)
+                parsed[name] = float(number)
+            values[road][key] = parsed['factor'] if key == 'congested_nu_multiplier' else parsed
+    cfg.network.freeway_state_response = values
+    return {'freeway_state_response_enabled': 1.0, 'freeway_state_response_directions': float(len(values))}
+
+
+def state_response_coefficients(spec, speed, desired, rho, downstream, critical, tau_h, nu):
+    """Evaluate regimes from this model step, never future observations.
+
+    Equality uses the acceleration and downstream-ge branches; at rho==critical
+    there is no congested multiplier. No correction is added to vehicle flows.
+    """
+    if not spec:
+        return tau_h, nu
+    if 'relaxation' in spec:
+        branch = 'acceleration_sec' if desired >= speed else 'deceleration_sec'
+        tau_h = spec['relaxation'][branch] / 3600.0
+    if 'anticipation' in spec:
+        branch = 'downstream_ge_local' if downstream >= rho else 'downstream_lt_local'
+        nu = spec['anticipation'][branch]
+    if 'congested_nu_multiplier' in spec and rho > critical:
+        nu *= spec['congested_nu_multiplier']
+    return tau_h, nu
+
+
 @dataclass(frozen=True)
 class FDParameters:
     v_free: float
@@ -149,6 +210,8 @@ def install_freeway_fd_runtime(a, w, cfg, tuning=None) -> dict[str, float]:
             nu_free, nu_cong = vsl.nu_free, vsl.nu_cong
         else:
             nu_free, nu_cong = net.metanet_nu_km2_h, net.metanet_nu_cong_km2_h
+        if a._FW_SEG_CTX.get('armed'):
+            a._FW_SEG_CTX['response_rho_crit'] = effective_rho_crit(net, vsl)
         if getattr(net, "capacity_drop_anticipation", False) and rho > effective_rho_crit(net, vsl):
             return float(nu_cong)
         return float(nu_free)

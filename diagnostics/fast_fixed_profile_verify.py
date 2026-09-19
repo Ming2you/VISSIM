@@ -59,7 +59,35 @@ def verify(prepared, run, reference=None):
         selected = [r for r in setup if r['kind'] == kind and r['no'] == 'SimPeriod']
         require(len(selected) == 1 and float(selected[0]['expected']) == expected and float(selected[0]['actual']) == expected,
                 'Missing/different saved or effective SimPeriod readback')
-    events = rows(prepared/'fixed_events.csv')
+    rule_policy = prepared/'rule_policy.json'
+    events = rows((run if rule_policy.exists() else prepared)/'fixed_events.csv')
+    for event in events:
+        if event['kind'] == 'vsl':
+            value = float(event['value'])
+            require(value.is_integer() and value > 0, 'VSL distribution ID must be a positive integer')
+            event['value'] = str(int(value))
+    if rule_policy.exists():
+        policy = json.loads(rule_policy.read_text(encoding='utf-8'))
+        proof['meter_schedules'] = {}
+        first_meter_write = {}
+        for event in events:
+            if event['kind'] == 'meter':
+                sc=event['no']
+                first_meter_write[sc]=min(first_meter_write.get(sc,end),int(event['time_s']))
+        for sec in range(meta['control_start_sec'], end, 150):
+            decision = json.loads((run/f'decision_{sec}.json').read_text())
+            require(decision['sec'] == sec and decision['arm'] == policy['rule']['arm'], 'Rule decision identity differs')
+            if decision['arm'] in ('rm', 'both'):
+                for mid, row in decision['meters'].items():
+                    sc = str(policy['meters'][mid]['sc'])
+                    required_active=row['green_sec']<10 or mid in decision['history'].get('states',{})
+                    require(not required_active or (sc in first_meter_write and first_meter_write[sc]<=sec),
+                            f'Missing meter activation at{sec}:{sc}')
+                    # A planned g10 anchor can remain native OFF until its first
+                    # actual COM activation. OFF is not an observed GREEN phase.
+                    if sc not in first_meter_write or sec<first_meter_write[sc]:
+                        continue
+                    proof['meter_schedules'].setdefault(sc, []).append((sec, row['green_sec']))
     initial = rows(prepared/'fixed_initial.csv')
     readback = rows(run/'fixed_readback.csv')
     writes = [r for r in readback if r['phase'] == 'write']

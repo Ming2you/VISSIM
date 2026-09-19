@@ -82,6 +82,14 @@ class RestoreEvidenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Restore first'):
             self.run_restore('--verify')
 
+    def test_explicit_incremental_package(self):
+        self.make_package({'diagnostics/increment.json': b'increment'})
+        with patch.object(restorer, 'HERE', self.folder/'nonexistent'), patch.object(sys, 'argv',
+                [str(SCRIPT), '--root', str(self.root), '--package', str(self.package),
+                 '--restore', '--verify']), redirect_stdout(io.StringIO()):
+            restorer.main()
+        self.assertEqual((self.root/'diagnostics/increment.json').read_bytes(), b'increment')
+
     def test_conflict_aborts_before_any_writes(self):
         self.make_package({'diagnostics/new.json': b'new', 'diagnostics/existing.json': b'expected'})
         existing = self.root / 'diagnostics/existing.json'

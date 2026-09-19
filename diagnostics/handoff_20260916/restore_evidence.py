@@ -24,11 +24,14 @@ def target(root, relative):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--root', type=Path, default=ROOT)
+    ap.add_argument('--package', type=Path, default=HERE,
+                    help='Directory containing an additional handoff manifest and parts')
     ap.add_argument('--restore', action='store_true')
     ap.add_argument('--verify', action='store_true')
     args = ap.parse_args()
     root = args.root.resolve()
-    manifest = json.loads((HERE/'evidence_manifest.json').read_text(encoding='utf-8'))
+    package = args.package.resolve()
+    manifest = json.loads((package/'evidence_manifest.json').read_text(encoding='utf-8'))
     destinations=[target(root,row['path']) for row in manifest['files']]
     if len(set(destinations)) != len(destinations):
         raise ValueError('Duplicate manifest destination')
@@ -48,7 +51,7 @@ def main():
     if args.restore and missing:
         with tempfile.TemporaryFile() as merged:
             for part in manifest['parts']:
-                p=HERE/part['name']
+                p=package/part['name']
                 if p.stat().st_size != part['bytes'] or sha(p) != part['sha256']:
                     raise ValueError('Archive part checksum differs: '+part['name'])
                 with p.open('rb') as f: shutil.copyfileobj(f,merged)

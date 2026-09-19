@@ -8976,6 +8976,8 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
             try:
                 _FW_SEG_CTX["p"] = _fw_seg_param_dict(cfg_.network, link, index)
                 _FW_SEG_CTX["armed"] = True
+                _FW_SEG_CTX["state_response"] = (getattr(cfg_.network, "freeway_state_response", {}) or {}).get(str(link), {})
+                _FW_SEG_CTX["response_rho_crit"] = float(_FW_SEG_CTX["p"].get("rho_crit", cfg_.network.rho_crit))
                 # 차로감소항 재료. Δλ = λ_i − λ_{i+1} (감소일 때만 양수) 와 φ 를 여기서 실어 둔다 —
                 # metanet_speed_update_kmh 는 cfg 를 못 본다.
                 _phi = _as_float(getattr(cfg_.network, "freeway_lane_drop_phi", 0.0), 0.0)
@@ -9034,6 +9036,8 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
             _dl = (_FW_SEG_CTX.get("dlam") or 0.0) if _armed else 0.0
             _lam = max(1.0e-9, float(_FW_SEG_CTX.get("lanes") or 1.0))
             _rc_link = float(_FW_SEG_CTX.get("rho_crit_link") or 27.0)
+            _response = _FW_SEG_CTX.get("state_response", {}) if _FW_SEG_CTX["armed"] else {}
+            _response_rc = _FW_SEG_CTX.get("response_rho_crit", _rc_link)
             _FW_SEG_CTX["armed"] = False
             _FW_SEG_CTX["dlam"] = 0.0
             _FW_SEG_CTX["lanes"] = 0.0
@@ -9041,6 +9045,10 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
                 tau_h = float(p.get("metanet_tau_h", tau_h))
                 kappa_veh_km_lane = float(p.get("metanet_kappa_veh_km_lane", kappa_veh_km_lane))
                 length_km = float(p.get("segment_length_km", length_km))
+            if _response:
+                from evaluation.controllers.freeway_fd import state_response_coefficients
+                tau_h, nu_km2_h = state_response_coefficients(
+                    _response, speed, v_eff, rho, downstream_rho, _response_rc, tau_h, nu_km2_h)
             v_new = _o_up(speed, upstream_speed, rho, downstream_rho, v_eff, dt_h, length_km,
                           tau_h, nu_km2_h, kappa_veh_km_lane, v_min)
             # 차로감소항: Δv = −φ·T·Δλ·ρ·v² / (L·λ·ρ_cr). 차로가 주는 직전 셀에만 걸린다.

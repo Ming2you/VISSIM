@@ -224,6 +224,33 @@ def rule_vsl_speed(observation, spec):
     return fast if speed > high else medium if speed > low else slow
 
 
+def alinea_meter_step(table, previous_green, previous_request, params, occupancy,
+                      minimum_green, max_green_change):
+    """Shared rule arithmetic, independent of plant initialization and COM."""
+    previous_green = _number(previous_green, "previous actual green", maximum=10)
+    previous_request = _number(previous_request, "previous ALINEA request")
+    if previous_green != int(previous_green) or str(int(previous_green)) not in table:
+        raise ValueError("previous actual green is not representable")
+    raw = request = float(table["10"])
+    if params is not None:
+        params = {k: _number(params[k], "ALINEA " + k) for k in
+                  ("gain_vph_per_pct", "target_occupancy_pct", "min_rate_vph", "max_rate_vph")}
+        occupancy = _number(occupancy, "occupancy percent", maximum=100)
+        if not 0 < params["target_occupancy_pct"] <= 100 or params["gain_vph_per_pct"] <= 0:
+            raise ValueError("ALINEA needs positive gain and target occupancy")
+        if not 0 <= params["min_rate_vph"] < params["max_rate_vph"] <= max(table.values()):
+            raise ValueError("ALINEA request bounds exceed service range")
+        raw = previous_request + params["gain_vph_per_pct"] * (params["target_occupancy_pct"] - occupancy)
+        request = min(params["max_rate_vph"], max(params["min_rate_vph"], raw))
+    choices = [int(g) for g in table if (int(g) == 0 or int(g) >= minimum_green)
+               and abs(int(g) - previous_green) <= max_green_change]
+    if not choices:
+        raise ValueError("no physical green in trust region")
+    green = min(choices, key=lambda g: (abs(table[str(g)] - request), abs(g - previous_green), -g))
+    next_request = min(max(table[str(g)] for g in choices), max(min(table[str(g)] for g in choices), request))
+    return green, next_request, raw, request
+
+
 def _build_rule_control(cfg, ControlAction, tuning, mapping, allowed, observation, history):
     from evaluation.controllers import physical_ramp_branches
     validate_controller(RULE_CONTROLLER, tuning)
@@ -293,7 +320,7 @@ def _build_rule_control(cfg, ControlAction, tuning, mapping, allowed, observatio
         previous_green = reference.diagnostics["rw_meter_green_"+mid]
         table = row["service_by_green_veh_h"]
         previous_request = _number(history["requested_rate_vph"][mid], "previous ALINEA request")
-        request = raw = float(table["10"])
+        params, occupancy = None, None
         if arm in ("rm", "both"):
             _, occupancy, _ = _observation(observed[mid])
             params = {}
@@ -308,17 +335,9 @@ def _build_rule_control(cfg, ControlAction, tuning, mapping, allowed, observatio
                 raise ValueError("ALINEA needs positive gain and a target occupancy in percent")
             if not params["min_rate_vph"] < params["max_rate_vph"] <= max(table.values()):
                 raise ValueError("ALINEA request bounds must lie within physical service range")
-            raw = previous_request + params["gain_vph_per_pct"] * (params["target_occupancy_pct"]-occupancy)
-            request = min(params["max_rate_vph"], max(params["min_rate_vph"], raw))
-        choices = [int(g) for g in table if (int(g) == 0 or int(g) >= ramps["minimum_green_sec"])
-                   and abs(int(g)-previous_green) <= ramps["max_green_change_sec"]]
-        if not choices:
-            raise ValueError("no physical metering green inside the actual-command trust region")
-        green = min(choices, key=lambda g: (abs(table[str(g)]-request), abs(g-previous_green), -g))
-        # Keep the continuous remainder through quantization, but do not wind
-        # up beyond rates the present actual-green trust region can realize.
-        next_request = min(max(table[str(g)] for g in choices),
-                           max(min(table[str(g)] for g in choices), request))
+        green, next_request, raw, request = alinea_meter_step(
+            table, previous_green, previous_request, params, occupancy,
+            ramps["minimum_green_sec"], ramps["max_green_change_sec"])
         greens[mid], requests[mid] = float(green), next_request
         audit[mid] = {"previous_actual_green_sec": previous_green, "previous_request_vph": previous_request,
                       "raw_requested_rate_vph": raw, "bounded_requested_rate_vph": request,

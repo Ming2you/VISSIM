@@ -18,7 +18,7 @@ The caller must account for that backlog's actual upstream area and waiting cost
 """
 from __future__ import annotations
 
-from math import fsum, isfinite
+from math import exp, expm1, fsum, isfinite
 from typing import Iterable, Sequence
 
 
@@ -45,6 +45,24 @@ def _sum(values: Iterable[float], name: str) -> float:
     return _number(result, name)
 
 
+def gap_acceptance_supply_vph(conflicting_vph: float, critical_sec: float,
+                              followup_sec: float) -> float:
+    """Per-lane gap opportunity bound; not a demand or a promised release.
+
+    Poisson conflicting arrivals and fixed critical/follow-up times are a closure
+    approximation. Always intersect this with the existing mainline receiving
+    budget. Actual release remains limited by eligible ramp stock and the meter.
+    """
+    q = _number(conflicting_vph, 'conflicting_vph')
+    tc = _number(critical_sec, 'critical_sec', positive=True)
+    tf = _number(followup_sec, 'followup_sec', positive=True)
+    if tc < tf:
+        raise ValueError('Critical gap must be at least the follow-up time')
+    if q == 0:
+        return 3600. / tf
+    return q * exp(-q * tc / 3600.) / -expm1(-q * tf / 3600.)
+
+
 class PhysicalRampBoundary:
     """One connector; use separate instances for the eight physical ramps.
 
@@ -59,6 +77,7 @@ class PhysicalRampBoundary:
         lanes: int, spacing_m: float, travel_speed_kmh: float, time_sec: float,
         initial_cohorts: Iterable[Sequence[float]] = (),
         initial_backlog_veh: float = 0.0,
+        posthead_travel_speed_kmh: float | None = None,
     ):
         self.connector_id = str(connector_id)
         self.length_m = _number(length_m, "length_m", positive=True)
@@ -72,6 +91,10 @@ class PhysicalRampBoundary:
         self.spacing_m = _number(spacing_m, "spacing_m", positive=True)
         self.travel_speed_kmh = _number(travel_speed_kmh, "travel_speed_kmh", positive=True)
         self._speed_mps = _number(self.travel_speed_kmh / 3.6, "travel_speed_mps", positive=True)
+        self.posthead_travel_speed_kmh = (self.travel_speed_kmh if posthead_travel_speed_kmh is None
+            else _number(posthead_travel_speed_kmh, 'posthead_travel_speed_kmh', positive=True))
+        self._posthead_speed_mps = self.posthead_travel_speed_kmh / 3.6
+        self._split_travel = posthead_travel_speed_kmh is not None
         self.time_sec = _number(time_sec, "time_sec")
         self.capacity_veh = _number(self.length_m * self.lanes / self.spacing_m,
                                     "capacity_veh", positive=True)
@@ -95,7 +118,7 @@ class PhysicalRampBoundary:
             elif pos == self.head_position_m:
                 self._head_ready += 1.0
             elif pos < self.length_m:
-                self._downstream.append((self._arrival(self.time_sec, self.length_m-pos), 1.0))
+                self._downstream.append((self._arrival(self.time_sec, self.length_m-pos, posthead=True), 1.0))
             else:
                 self._merge_ready += 1.0
         self.initial_cohorts = tuple(rows)
@@ -113,8 +136,9 @@ class PhysicalRampBoundary:
         self._receipt: dict = {}
         self._check_conservation()
 
-    def _arrival(self, departure: float, distance_m: float) -> float:
-        return _number(departure + distance_m / self._speed_mps, "cohort arrival time")
+    def _arrival(self, departure: float, distance_m: float, *, posthead: bool = False) -> float:
+        speed = self._posthead_speed_mps if posthead else self._speed_mps
+        return _number(departure + distance_m / speed, "cohort arrival time")
 
     def _require_phase(self, expected: str) -> None:
         if self._phase != expected:
@@ -162,12 +186,12 @@ class PhysicalRampBoundary:
         }
 
     def metadata(self) -> dict:
-        return {
+        result = {
             "schema": "physical-ramp-boundary/v1", "connector_id": self.connector_id,
             "length_m": self.length_m, "head_position_m": self.head_position_m,
             "lanes": self.lanes, "spacing_m": self.spacing_m,
             "travel_speed_kmh": self.travel_speed_kmh,
-            "post_head_travel_sec": (self.length_m-self.head_position_m)/self._speed_mps,
+            "post_head_travel_sec": (self.length_m-self.head_position_m)/self._posthead_speed_mps,
             "capacity_veh": self.capacity_veh,
             "travel_model": "Deterministic supplied mean speed; initial speeds retained but not extrapolated",
             "time_rule": "Existing cohorts advance to interval end; new head departures and admissions occur at end",
@@ -175,6 +199,10 @@ class PhysicalRampBoundary:
             "ttt_rule": "Interval-start connector stock times duration; outside-component backlog excluded",
             "initial_cohorts": self.initial_cohorts,
         }
+        if self._split_travel:
+            result['posthead_travel_speed_kmh'] = self.posthead_travel_speed_kmh
+            result['travel_model'] = 'Separate supplied approach/post-head speeds; receiving queue adds delay explicitly'
+        return result
 
     def begin_interval(self, start_sec: float, duration_sec: float = 10.0) -> dict:
         self._require_phase("idle")
@@ -246,7 +274,7 @@ class PhysicalRampBoundary:
         served = min(service, self._head_ready)
         if posthead_free is not None:
             served = min(served, posthead_free)
-        arrival = self._arrival(self._receipt["end_sec"], self.length_m-self.head_position_m)
+        arrival = self._arrival(self._receipt["end_sec"], self.length_m-self.head_position_m, posthead=True)
         if arrival <= self._receipt["end_sec"]:
             raise ValueError("Post-head travel is below clock precision")
         total = _sum((self.cumulative_head_service_veh, served), "cumulative head service")
@@ -298,7 +326,8 @@ class PhysicalRampBoundary:
                                cycle_sec: float, receiving_budget_veh: float,
                                service_veh: float, mode: str,
                                green_sec: float | None,
-                               request_arrivals_veh: float) -> dict:
+                               request_arrivals_veh: float,
+                               request_arrivals_by_second: Sequence[float] | None = None) -> dict:
         """One complete meter cycle in local 1 s steps, with frozen FW supply.
 
         The caller queries the canonical freeway receiving budget once. Its
@@ -326,6 +355,13 @@ class PhysicalRampBoundary:
             raise ValueError("Active meter requires an integral green within its cycle")
         if mode == "RED" and (service != 0 or green not in (None, 0.0)):
             raise ValueError("RED cannot provide service")
+        arrival_profile = None
+        if request_arrivals_by_second is not None:
+            if len(request_arrivals_by_second) != int(duration):
+                raise ValueError('Arrival profile must contain every local second')
+            arrival_profile = tuple(_number(x,'arrival profile') for x in request_arrivals_by_second)
+            if abs(fsum(arrival_profile)-requests) > _MASS_TOLERANCE:
+                raise ValueError('Arrival profile must preserve the requested total')
         capacity = (self.length_m-self.head_position_m)*self.lanes/self.spacing_m
         before = self.snapshot()
         local_rows = []
@@ -341,7 +377,7 @@ class PhysicalRampBoundary:
             self.apply_head_service(amount, mode=local_mode,
                 green_sec=None if mode == "OFF" else green if active else 0.0,
                 posthead_capacity_veh=capacity)
-            local_rows.append(self.finish_interval(requests/duration))
+            local_rows.append(self.finish_interval(requests/duration if arrival_profile is None else arrival_profile[second]))
         after = self.snapshot()
         counts = {key: _sum((r[key] for r in local_rows), key) for key in (
             "arrived_at_head_veh", "arrived_at_merge_veh", "accepted_merge_veh",
@@ -360,3 +396,101 @@ class PhysicalRampBoundary:
             "receiving_rate_envelope_veh_s": budget/duration,
             "nominal_posthead_storage_veh": capacity, "max_posthead_veh": max(posthead),
             "initial_posthead_excess_veh": max(0.0,posthead[0]-capacity)}
+
+
+class LaneResolvedRampBoundary(PhysicalRampBoundary):
+    """Opt-in independent lane buffers for a physical ramp connector.
+
+    A vacant lane cannot lend head service or storage to a queued lane. This
+    assumes no in-connector lane exchange during the forecast; the caller must
+    supply causal arrival shares. Merge supply is divided equally by physical
+    lane count, not fitted from observed departures. The caller separately bounds
+    supply by its explicitly configured receiving-node model.
+    Only the existing local one-second interface is supported.
+    """
+
+    def __init__(self, *, lane_arrival_shares, **kwargs):
+        kwargs = dict(kwargs)
+        kwargs['initial_cohorts'] = tuple(kwargs.get('initial_cohorts', ()))
+        super().__init__(**kwargs)
+        if (not isinstance(lane_arrival_shares, (list, tuple))
+                or len(lane_arrival_shares) != self.lanes):
+            raise ValueError('One explicit arrival share per physical ramp lane is required')
+        shares = tuple(_number(x, 'lane arrival share') for x in lane_arrival_shares)
+        if abs(fsum(shares)-1.) > _MASS_TOLERANCE:
+            raise ValueError('Physical ramp lane arrival shares must sum to one')
+        if kwargs.get('initial_backlog_veh', 0.) != 0:
+            raise ValueError('Unclassified initial lane backlog is unsupported')
+        self.lane_arrival_shares = shares
+        self._lane_buffers = []
+        for lane in range(1, self.lanes+1):
+            spec = dict(kwargs, lanes=1)
+            spec['initial_cohorts'] = [(pos, speed, 1) for pos, speed, index
+                                       in self.initial_cohorts if index == lane]
+            self._lane_buffers.append(PhysicalRampBoundary(**spec))
+
+    @staticmethod
+    def _aggregate_snapshots(snapshots, connector_id):
+        # All nonidentifying snapshot fields are additive inventories/counters.
+        first = snapshots[0]
+        if any((s['time_sec'], s['phase']) != (first['time_sec'], first['phase'])
+               for s in snapshots):
+            raise ValueError('Lane buffer clocks/phases differ')
+        identity = {'connector_id', 'time_sec', 'phase'}
+        return {**{k: first[k] for k in identity}, 'connector_id': connector_id,
+                **{k: fsum(s[k] for s in snapshots) for k in first if k not in identity}}
+
+    def snapshot(self):
+        if not hasattr(self, '_lane_buffers'):
+            return super().snapshot()
+        return self._aggregate_snapshots([b.snapshot() for b in self._lane_buffers], self.connector_id)
+
+    def metadata(self):
+        return {**super().metadata(), 'lane_resolution': True,
+                'lane_arrival_shares': self.lane_arrival_shares,
+                'lane_exchange': 'None; independent lane FIFO inventories',
+                'lane_supply': 'Equal shares of canonical aggregate receiving budget'}
+
+    def begin_interval(self, *args, **kwargs):
+        raise ValueError('Lane-resolved ramps require advance_local_interval')
+
+    commit_merge = begin_interval
+    apply_head_service = begin_interval
+    finish_interval = begin_interval
+
+    def advance_local_interval(self, **kwargs):
+        receipts = []
+        for share, buffer in zip(self.lane_arrival_shares, self._lane_buffers):
+            lane_args = dict(kwargs)
+            for key in ('receiving_budget_veh', 'service_veh'):
+                lane_args[key] = _number(kwargs[key], key)/self.lanes
+            lane_args['request_arrivals_veh'] = _number(kwargs['request_arrivals_veh'], 'request_arrivals_veh')*share
+            if kwargs.get('request_arrivals_by_second') is not None:
+                lane_args['request_arrivals_by_second'] = [x*share for x in kwargs['request_arrivals_by_second']]
+            receipts.append(buffer.advance_local_interval(**lane_args))
+        def combine(rs):
+            first = rs[0]
+            same = {'start_sec', 'end_sec', 'duration_sec', 'meter_mode', 'green_sec',
+                    'local_step_sec', 'eligible_merge_scope'}
+            result = {k:v for k,v in first.items() if k in same}
+            for k,v in first.items():
+                if k in same or k in ('start','end','local_receipts'):
+                    continue
+                if not isinstance(v, (int,float)):
+                    raise ValueError('Unexpected lane receipt field: '+k)
+                result[k] = fsum(r[k] for r in rs)
+            for key in ('start','end'):
+                result[key] = self._aggregate_snapshots([r[key] for r in rs], self.connector_id)
+            return result
+        result = combine(receipts)
+        result['local_receipts'] = [combine([r['local_receipts'][i] for r in receipts])
+                                    for i in range(len(receipts[0]['local_receipts']))]
+        result['lane_receipts'] = [{k:v for k,v in r.items() if k!='local_receipts'} for r in receipts]
+        result['lane_arrival_shares'] = self.lane_arrival_shares
+        self.time_sec = result['end_sec']
+        # Public counters are consumed by the rollout residence ledger, not only
+        # snapshots. Keep them identical to the sum of the physical lanes.
+        for key in ('backlog_veh', 'cumulative_requested_veh', 'cumulative_admitted_veh',
+                    'cumulative_head_service_veh', 'cumulative_merge_veh', 'connector_ttt_veh_h'):
+            setattr(self, key, fsum(getattr(b, key) for b in self._lane_buffers))
+        return result

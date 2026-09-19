@@ -3,6 +3,7 @@ from pathlib import Path
 import copy
 import json
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -10,7 +11,7 @@ HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[3]
 CAL=HERE.parent/'metanet_calibration_v1'
 sys.path[:0]=[str(ROOT),str(CAL),str(ROOT/'diagnostics/rule_baseline_20260914/.plot-deps')]
-from canonical_harness import load_base_model,accounting
+from canonical_harness import load_base_model,accounting,DEFAULT_CONFIG
 
 
 class RampLocalHarnessTests(unittest.TestCase):
@@ -81,6 +82,20 @@ class RampLocalHarnessTests(unittest.TestCase):
             w=copy.deepcopy(self.windows['none_1350_history_forecast'])
             w['ramp_dynamics'].update(local_step_sec=step,meter_cycle_sec=cycle)
             with self.subTest(step=step,cycle=cycle),self.assertRaises(ValueError):self.rollout(w)
+
+    def test_explicit_physical_capacity_does_not_inherit_group_cap(self):
+        config=json.loads(DEFAULT_CONFIG.read_text(encoding='utf-8-sig'))
+        caps={mid:1500.*r['lanes'] for mid,r in self.model.ramps.items()}
+        config['freeway']['physical_ramp_capacity_vph']=caps
+        with tempfile.TemporaryDirectory(dir=HERE) as folder:
+            path=Path(folder)/'config.json';path.write_text(json.dumps(config),encoding='utf-8')
+            model=load_base_model(self.model.geometry,path)
+            for mid,ramp in model.ramps.items():
+                self.assertEqual(model._config(ramp['road'],{}).network.ramp_capacity_veh_h[mid],caps[mid])
+            self.assertEqual(model.provenance['physical_ramp_capacity_vph'],caps)
+            del config['freeway']['physical_ramp_capacity_vph'][next(iter(caps))]
+            path.write_text(json.dumps(config),encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'exactly eight'):load_base_model(self.model.geometry,path)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

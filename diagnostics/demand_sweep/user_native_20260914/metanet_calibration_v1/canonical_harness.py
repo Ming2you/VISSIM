@@ -19,7 +19,8 @@ sys.path[:0] = [str(ROOT), str(ROOT / "vendor/NumSim-mine")]
 from evaluation.controllers import vissim_stackelberg_adapter as adapter
 from evaluation.controllers import runtime_setup, area_freeway_accounting as accounting
 from evaluation.controllers.control_area_objective import ModelAreaLedger
-from evaluation.controllers.physical_ramp_boundary import PhysicalRampBoundary
+from evaluation.controllers.physical_ramp_boundary import (PhysicalRampBoundary,
+    LaneResolvedRampBoundary, gap_acceptance_supply_vph)
 from src.models.state import TrafficState, ControlAction
 from src.models.demand import DemandStep
 
@@ -72,7 +73,8 @@ def load_base_model(geometry, baseline_config=DEFAULT_CONFIG):
 class DelayedPort:
     """Finite connector stock with causal travel cohorts and separate drainage."""
 
-    def __init__(self, capacity, length_m, travel_speed_kmh, cohorts, start_s):
+    def __init__(self, capacity, length_m, travel_speed_kmh, cohorts, start_s, *, interval_service=False,
+                 entry_accel_mps2=None):
         if (not all(math.isfinite(x) for x in (capacity, length_m, travel_speed_kmh, start_s))
                 or min(capacity, length_m, travel_speed_kmh) <= 0 or start_s < 0):
             raise ValueError('Positive port geometry/travel speed required')
@@ -80,11 +82,31 @@ class DelayedPort:
                or min(float(row[0]),float(row[1])) < 0 or float(row[2]) < 1 for row in cohorts):
             raise ValueError('Invalid observed connector position/speed/lane cohort')
         self.capacity = float(capacity)
+        if type(interval_service) is not bool:
+            raise ValueError('Interval drainage switch must be boolean')
+        self.interval_service = interval_service
+        if entry_accel_mps2 is not None and (isinstance(entry_accel_mps2, bool)
+                or not isinstance(entry_accel_mps2, (int, float)) or not math.isfinite(entry_accel_mps2)
+                or entry_accel_mps2 <= 0 or not interval_service):
+            raise ValueError('Entry-speed travel requires positive acceleration and interval service')
+        self.entry_accel_mps2 = entry_accel_mps2
+        self.length_m = float(length_m)
+        self.cruise_kmh = float(travel_speed_kmh)
+        self.residence_veh_h = 0.
         self.last_time_s = float(start_s)
         self.travel_s = float(length_m) / (float(travel_speed_kmh)/3.6)
         self.ready = 0.
         self.pending = [[start_s+max(0., length_m-float(p))/(travel_speed_kmh/3.6), 1.]
                         for p, _v, _lane in cohorts]
+        if entry_accel_mps2 is not None:
+            if any(int(row[2]) != 1 for row in cohorts):
+                raise ValueError('Entry-speed FIFO currently requires a single-lane connector')
+            self.pending = []
+            previous_due = float(start_s)
+            for p, speed, _lane in sorted(cohorts, key=lambda row: float(row[0]), reverse=True):
+                due = max(previous_due, start_s+self._travel(max(0., length_m-float(p)), float(speed)))
+                self.pending.append([due, 1.])
+                previous_due = due
         self.initial = self.stock
         self.admitted = self.departed = 0.
         if self.stock > self.capacity+1e-8:
@@ -94,11 +116,50 @@ class DelayedPort:
     def stock(self):
         return self.ready+sum(n for _t,n in self.pending)
 
+    def _travel(self, distance_m, speed_kmh):
+        if not math.isfinite(speed_kmh) or speed_kmh < 0:
+            raise ValueError('Entry speed must be finite and nonnegative')
+        vc = self.cruise_kmh/3.6
+        v0 = min(speed_kmh/3.6, vc)
+        a = self.entry_accel_mps2
+        distance_acc = (vc*vc-v0*v0)/(2*a)
+        if distance_m <= distance_acc:
+            return 2*distance_m/(math.sqrt(v0*v0+2*a*distance_m)+v0) if distance_m else 0.
+        return (vc-v0)/a+(distance_m-distance_acc)/vc
+
     def release(self, start_s, dt_s, service_vph):
         if (not all(math.isfinite(x) for x in (start_s, dt_s, service_vph))
                 or dt_s <= 0 or service_vph < 0 or start_s < self.last_time_s-1e-9):
             raise ValueError('Nonfinite, negative or backward connector drainage request')
         self.last_time_s = float(start_s)
+        if self.interval_service:
+            # Service is available only after a cohort reaches the connector
+            # exit. Unused service before its arrival cannot be saved. This
+            # removes the old extra up-to-one-freeway-step readiness delay.
+            end_s = start_s + dt_s
+            inventory = self.stock
+            events = sorted((max(start_s, t), n) for t, n in self.pending if t <= end_s)
+            self.pending = [[t,n] for t,n in self.pending if t > end_s]
+            clock = start_s
+            amount = 0.
+            for event_s, n in events + [(end_s, 0.)]:
+                duration = event_s-clock
+                rate = service_vph/3600.
+                served = min(self.ready, service_vph * duration / 3600.)
+                # Exact fluid residence: travelling stock remains inside;
+                # only actual exits reduce it. Unused service is not banked.
+                residence = inventory*duration
+                if rate > 0:
+                    residence -= served*(duration-served/(2*rate))
+                self.residence_veh_h += residence/3600.
+                inventory -= served
+                self.ready -= served
+                amount += served
+                self.ready += n
+                clock = event_s
+            self.departed += amount
+            self.last_time_s = float(end_s)
+            return amount
         self.ready += sum(n for t,n in self.pending if t <= start_s+1e-9)
         self.pending = [[t,n] for t,n in self.pending if t > start_s+1e-9]
         amount = min(self.ready, max(0., service_vph)*dt_s/3600.)
@@ -106,14 +167,22 @@ class DelayedPort:
         self.departed += amount
         return amount
 
-    def accept(self, end_s, amount):
+    def accept(self, end_s, amount, *, entry_speed_kmh=None):
         if (not math.isfinite(end_s) or not math.isfinite(amount)
                 or end_s < self.last_time_s-1e-9 or amount < 0):
             raise ValueError('Invalid connector admission time/amount')
         if self.stock+amount > self.capacity+1e-7:
             raise ArithmeticError('Connector admission violates finite storage')
+        arrival_s = end_s+self.travel_s
+        if self.entry_accel_mps2 is not None:
+            if (isinstance(entry_speed_kmh, bool) or not isinstance(entry_speed_kmh, (int, float))
+                    or not math.isfinite(entry_speed_kmh) or entry_speed_kmh < 0):
+                raise ValueError('Entry-speed travel needs the current upstream model speed')
+            arrival_s = end_s+self._travel(self.length_m, entry_speed_kmh)
+            if self.pending:
+                arrival_s = max(arrival_s, max(t for t, n in self.pending if n > 0)) if any(n > 0 for t,n in self.pending) else arrival_s
         self.last_time_s = float(end_s)
-        self.pending.append([end_s+self.travel_s, max(0., amount)])
+        self.pending.append([arrival_s, max(0., amount)])
         self.admitted += amount
         residual = self.stock-self.initial-self.admitted+self.departed
         if abs(residual) > 1e-7:
@@ -156,6 +225,65 @@ class CanonicalFreewayModel:
             "storage_capacity_veh": r["length_m"]*r["lanes"]/spacing} for r in ports if r["kind"] == "offramp"}
         if len(self.ramps) != 8 or len(self.offramps) != 8:
             raise ValueError("Expected eight separate on-ramp and eight off-ramp ports")
+        # A two-lane physical port must not silently inherit a four-group
+        # reservoir's one-ramp capacity. Opt-in values have explicit provenance;
+        # absence retains archived forecasts exactly.
+        physical_caps = tuning.get('freeway', {}).get('physical_ramp_capacity_vph')
+        if physical_caps is not None:
+            if not isinstance(physical_caps, dict) or set(physical_caps) != set(self.ramps):
+                raise ValueError('Physical ramp capacities require exactly eight meter IDs')
+            for ramp, value in physical_caps.items():
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+                    raise ValueError('Physical ramp capacities must be positive finite rates')
+                self.ramps[ramp]['service_capacity_veh_h'] = float(value)
+        self.ramp_head_service_veh_per_cycle = tuning.get('freeway', {}).get('physical_ramp_head_service_veh_per_cycle', {})
+        self.ramp_travel_speeds = copy.deepcopy(tuning.get('freeway', {}).get('physical_ramp_travel_speeds', {}))
+        self.ramp_arrival_profile = copy.deepcopy(tuning.get('freeway', {}).get('physical_ramp_arrival_profile', {}))
+        if self.ramp_arrival_profile:
+            ap=self.ramp_arrival_profile
+            if (not isinstance(ap,dict) or set(ap)!={'history_sec','ramps'} or type(ap['history_sec']) is not int
+                    or ap['history_sec']!=150 or not isinstance(ap['ramps'],list) or not ap['ramps']
+                    or len(set(ap['ramps']))!=len(ap['ramps']) or set(ap['ramps'])-set(self.ramps)):
+                raise ValueError('Arrival profile requires named ramps and the existing 150s history')
+        elif self.ramp_arrival_profile != {}:
+            raise ValueError('Arrival profile must be an explicit mapping')
+        if not isinstance(self.ramp_travel_speeds, dict) or set(self.ramp_travel_speeds)-set(self.ramps):
+            raise ValueError('Unknown physical ramp travel calibration')
+        for spec in self.ramp_travel_speeds.values():
+            if not isinstance(spec, dict) or set(spec) != {'upstream_kmh','posthead_kmh'}:
+                raise ValueError('Ramp travel calibration requires upstream_kmh and posthead_kmh')
+            if any(isinstance(x,bool) or not isinstance(x,(int,float)) or not math.isfinite(x) or x<=0 for x in spec.values()):
+                raise ValueError('Ramp travel speeds must be positive finite numbers')
+        self.offramp_interval_service = tuning.get('freeway', {}).get('physical_offramp_interval_service', False)
+        if type(self.offramp_interval_service) is not bool:
+            raise ValueError('Physical off-ramp interval service must be boolean')
+        self.component_residence = tuning.get('freeway', {}).get('physical_component_residence', False)
+        if type(self.component_residence) is not bool or (self.component_residence and not self.offramp_interval_service):
+            raise ValueError('Component residence must be boolean and requires interval-service off-ramp dynamics')
+        self.offramp_entry_speed = copy.deepcopy(tuning.get('freeway', {}).get('physical_offramp_entry_speed', {}))
+        if not isinstance(self.offramp_entry_speed, dict) or set(self.offramp_entry_speed)-set(self.offramps):
+            raise ValueError('Unknown off-ramp entry-speed target')
+        for off, accel in self.offramp_entry_speed.items():
+            if (isinstance(accel, bool) or not isinstance(accel, (int, float)) or not math.isfinite(accel)
+                    or accel <= 0 or self.offramps[off]['lanes'] != 1 or not self.offramp_interval_service):
+                raise ValueError('Entry-speed travel needs positive acceleration, one lane and interval service')
+        if not isinstance(self.ramp_head_service_veh_per_cycle, dict) or set(self.ramp_head_service_veh_per_cycle)-set(self.ramps):
+            raise ValueError('Unknown physical ramp head-service calibration')
+        for ramp, curve in self.ramp_head_service_veh_per_cycle.items():
+            if not isinstance(curve, dict) or set(curve)!=set(map(str,range(2,11))):
+                raise ValueError('Physical ramp head service requires green2 through10')
+            values=[curve[str(g)] for g in range(2,11)]
+            if any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or v<0 for v in values) or values!=sorted(values):
+                raise ValueError('Physical ramp head-service curve must be finite, nonnegative, monotone')
+        self.ramp_receiving_nodes = copy.deepcopy(tuning.get('freeway', {}).get('physical_ramp_receiving_nodes', {}))
+        if not isinstance(self.ramp_receiving_nodes, dict) or set(self.ramp_receiving_nodes)-set(self.ramps):
+            raise ValueError('Unknown physical ramp receiving node')
+        for ramp, spec in self.ramp_receiving_nodes.items():
+            if not isinstance(spec, dict) or set(spec) != {'critical_gap_sec', 'followup_sec', 'lane_arrival_history_sec'}:
+                raise ValueError('Receiving node requires explicit gap, follow-up and lane arrival history')
+            gap_acceptance_supply_vph(0., spec['critical_gap_sec'], spec['followup_sec'])
+            if isinstance(spec['lane_arrival_history_sec'], bool) or spec['lane_arrival_history_sec'] != 150:
+                raise ValueError('Receiving node requires the existing causal 150s observation history')
         self.provenance = {
             "scope": "canonical freeway component; external ramp releases and off-ramp receiving boundaries; no coupled urban forecast or destination route inventory",
             "baseline_config": str(Path(baseline_config).relative_to(ROOT)),
@@ -189,6 +317,20 @@ class CanonicalFreewayModel:
             "source_capacity_veh_h": cfg.network.freeway_capacity_veh_h,
             "parameter_bounds": PARAMETER_BOUNDS,
         }
+        if physical_caps is not None:
+            self.provenance['physical_ramp_capacity_vph'] = dict(physical_caps)
+        if self.ramp_head_service_veh_per_cycle:
+            self.provenance['physical_ramp_head_service_veh_per_cycle'] = copy.deepcopy(self.ramp_head_service_veh_per_cycle)
+        if self.ramp_receiving_nodes:
+            self.provenance['physical_ramp_receiving_nodes'] = copy.deepcopy(self.ramp_receiving_nodes)
+        if self.ramp_travel_speeds:
+            self.provenance['physical_ramp_travel_speeds'] = copy.deepcopy(self.ramp_travel_speeds)
+        if self.offramp_interval_service:
+            self.provenance['physical_offramp_interval_service'] = True
+        if self.offramp_entry_speed:
+            self.provenance['physical_offramp_entry_speed'] = dict(self.offramp_entry_speed)
+        if self.component_residence:
+            self.provenance['physical_component_residence'] = True
 
     def _config(self, road, parameters):
         cfg = copy.deepcopy(self.base)
@@ -243,7 +385,7 @@ class CanonicalFreewayModel:
         return cfg
 
     def rollout(self, initial_cells, boundary_steps, overrides=None, initial_origin_queue=None, *, roads=None,
-                port_dynamics=None, ramp_dynamics=None, vsl_zone_heads=None):
+                port_dynamics=None, ramp_dynamics=None, vsl_zone_heads=None, residence_audit=False):
         """Advance one contiguous450s forecast; read observed cells only at t0.
 
         Boundary steps are10s dictionaries with source_demand_vph[road],
@@ -259,6 +401,8 @@ class CanonicalFreewayModel:
         """
         initial = {(r["road"], int(r["cell"])): r for r in initial_cells}
         starts = {float(r["time_s"]) for r in initial_cells}
+        if residence_audit and (not port_dynamics or not self.offramp_interval_service):
+            raise ValueError('Exact off-ramp residence audit requires interval-service port dynamics')
         if len(starts) != 1 or not boundary_steps:
             raise ValueError("Exactly one observed initial frame and nonempty boundaries required")
         start = next(iter(starts))
@@ -300,6 +444,8 @@ class CanonicalFreewayModel:
                 meter_cycle = ramp_dynamics.get('meter_cycle_sec')
                 if isinstance(meter_cycle, bool) or meter_cycle != tf:
                     raise ValueError('Local ramp cycle must explicitly equal the freeway interval')
+        if self.ramp_receiving_nodes and (local_ramp_step != 1. or set(self.ramp_receiving_nodes)-set(ramp_specs)):
+            raise ValueError('Receiving nodes require their physical lane buffers and local 1s meter dynamics')
         for road in selected_roads:
             cfg = self._config(road, override_by.get(road, {}))
             if vsl_zone_heads is not None and road in vsl_zone_heads:
@@ -331,7 +477,8 @@ class CanonicalFreewayModel:
             for ramp in net.ramps:
                 if ramp not in ramp_specs:
                     continue
-                buffer = PhysicalRampBoundary(**ramp_specs[ramp])
+                buffer_class = LaneResolvedRampBoundary if ramp in self.ramp_receiving_nodes else PhysicalRampBoundary
+                buffer = buffer_class(**ramp_specs[ramp])
                 geometry = self.ramps[ramp]
                 if (buffer.connector_id != str(geometry['connector']) or buffer.time_sec != start
                         or abs(buffer.length_m-geometry['length_m']) > 1e-8
@@ -349,7 +496,9 @@ class CanonicalFreewayModel:
                 for off in net.off_ramps:
                     spec = self.offramps[off]
                     stores[off] = DelayedPort(spec['storage_capacity_veh'], spec['length_m'],
-                        port_dynamics['travel_speed_kmh'][off], port_dynamics['initial_cohorts'][off], start)
+                        port_dynamics['travel_speed_kmh'][off], port_dynamics['initial_cohorts'][off], start,
+                        interval_service=self.offramp_interval_service,
+                        entry_accel_mps2=self.offramp_entry_speed.get(off))
             bucket = {c: {"downstream_crossings": 0.0, "source_admissions": 0.0,
                           "ramp_merges": 0.0, "off_departures": 0.0, "terminal_exits": 0.0} for c in range(21)}
             projections = speed_projections = 0
@@ -360,6 +509,8 @@ class CanonicalFreewayModel:
             maximum_density_ratio = 0.0
             for step in boundary_steps:
                 t = float(step["window_start_s"])
+                off_entry_speeds = {off:state.freeway_speed[road][net.off_ramp_segment_index[off]]
+                                    for off in stores if off in self.offramp_entry_speed}
                 if 'vsl_commands' in step:
                     control.vsl.update(step['vsl_commands'])
                 releases = {r: float(step["ramp_release_vph"][r]) for r in net.ramps if r not in ramp_buffers}
@@ -393,6 +544,25 @@ class CanonicalFreewayModel:
                         supply_state, control, demand, cfg, include_current_arrivals=False)
                     for ramp, buffer in ramp_buffers.items():
                         budget_rate = float(selected[ramp])
+                        node_audit = None
+                        if ramp in self.ramp_receiving_nodes:
+                            spec = self.ramp_receiving_nodes[ramp]
+                            upstream = net.ramp_merge_segment_index[ramp]-1
+                            if upstream < 0:
+                                raise ValueError('Receiving-node model requires an upstream freeway cell')
+                            # Exclude traffic leaving before the physical merge.
+                            split = sum(net.off_ramp_split_ratio[o] for o in net.off_ramps
+                                        if net.off_ramp_segment_index[o] == upstream)
+                            if not 0. <= split <= 1.:
+                                raise ValueError('Invalid upstream off-ramp split sum')
+                            conflicting = state.freeway_density[road][upstream]*state.freeway_speed[road][upstream]*(1.-split)
+                            per_lane = gap_acceptance_supply_vph(conflicting, spec['critical_gap_sec'], spec['followup_sec'])
+                            node_audit = {'conflicting_vph_per_lane': conflicting,
+                                'upstream_cell': upstream, 'off_split_removed': split,
+                                'gap_supply_vph_per_lane': per_lane,
+                                'unlimited_node_canonical_budget_vph': budget_rate,
+                                'lane_flow_assumption': 'Upstream cell mean per lane after off-ramp split'}
+                            budget_rate = min(budget_rate, buffer.lanes*per_lane)
                         if not math.isfinite(budget_rate) or budget_rate < 0:
                             raise ValueError('Invalid canonical ramp receiving budget')
                         arrival_vph = float(step['ramp_arrival_vph'][ramp])
@@ -401,6 +571,7 @@ class CanonicalFreewayModel:
                         receipt = buffer.advance_local_interval(start_sec=t, duration_sec=tf,
                             cycle_sec=meter_cycle, receiving_budget_veh=budget_rate*dt_h,
                             request_arrivals_veh=arrival_vph*dt_h,
+                            request_arrivals_by_second=step.get('ramp_arrival_profile',{}).get(ramp),
                             **step['ramp_head_service'][ramp])
                         accepted = receipt['accepted_merge_veh']
                         q = accepted/dt_h
@@ -410,6 +581,8 @@ class CanonicalFreewayModel:
                         receipt.update(road=road, ramp=ramp,
                             canonical_receiving_budget_vph=budget_rate,
                             applied_merge_vph=q, merge_interface_roundoff_veh=coupling_roundoff)
+                        if node_audit is not None:
+                            receipt['receiving_node'] = node_audit
                         interval_ramp_rows.append(receipt)
                         releases[ramp] = q
                         state.ramp_queue[ramp] = receipt['end']['merge_ready_veh']
@@ -504,7 +677,8 @@ class CanonicalFreewayModel:
                     elif kind == "freeway_offramp_sending":
                         actual["off"][net.off_ramp_segment_index[row["resource"]]] += value
                         if row['resource'] in stores:
-                            stores[row['resource']].accept(t+tf, value)
+                            stores[row['resource']].accept(t+tf, value,
+                                entry_speed_kmh=off_entry_speeds.get(row['resource']))
                 for off, store in stores.items():
                     port_rows.append({'time_s': t+tf, 'road': road, 'connector': off,
                         'n_veh': store.stock, 'ready_veh': store.ready,
@@ -545,6 +719,9 @@ class CanonicalFreewayModel:
                 "requested_source_veh":requested_source,"accepted_source_veh":accepted_source,
                 "initial_origin_queue_veh":float((initial_origin_queue or {}).get(road,0)),
                 "final_origin_queue_veh":state.mainline_origin_queue[road],"initial_n_veh":sum(n0),"final_n_veh":sum(after)})
+            if residence_audit:
+                details[-1]['off_connector_residence_event_veh_h'] = sum(store.residence_veh_h for store in stores.values())
+                details[-1]['off_connector_residence_by_port'] = {off:store.residence_veh_h for off,store in stores.items()}
             if ramp_buffers:
                 residence_key = ('ramp_connector_residence_local_1s_veh_h' if local_ramp_step == 1.
                                  else 'ramp_connector_residence_10s_veh_h')
