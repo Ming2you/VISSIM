@@ -86,3 +86,12 @@ Read `PAIRED_RESPONSE_AND_MARGINAL_METERING.md` and `response_identification_val
 ## 2026-09-21 handoff follow-up
 
 See diagnostics/handoff_20260921/FOLLOWUP.md. The completed matched2550s boundary audit closes 450 one-second transitions per arm: initial cohort residence difference +.431389veh·h, later cohort −.030000; whole-mainline +.401389. Boundary moments are bookkeeping, not separately identified causal effects. No new native/core/default changes. Preserve this harmful marginal RM case alongside beneficial RM/VSL cases. Gain calibration remains NOT_QUALIFIED.
+
+## 2026-09-21 after f7a6ca3: common-cohort path verification
+
+Read `MARGINAL_COHORT_PATHS.md` and `marginal_cohort_paths_v1/validation.json`. The same initial676mainline vehicles explain1553additionalvehicle-seconds;665observed exits have identical exit kinds,11censored remain explicit. Initialcell13–20cohort total difference is0; upstream initial vehicles acquire delay later. For341same-terminal vehicles observed incell16, summed arrival is670s earlier but remainingtravel2184s longer, giving1514s laterterminalexit. Initial stopped/slow30 time actually falls61/155vehicle-seconds. Do not fit a stopped-count or universal merge benefit term.900stock and1352per-vehicle cell-sum checks pass. No core/default/native changes; new local diagnostics not pushed. Next isolate actual canonical speed-response attenuation versus conservative transport, without repeating rejected global parameter/FIR/oracle sweeps. Goalactive,NOT_QUALIFIED; own sessions terminal.
+
+
+## 2026-09-21 latest delivery: consumed speed response and rejected relaxation trials
+
+Read `SPEED_RESPONSE_AND_HANDOFF.md` and `diagnostics/handoff_20260921_response/README.md` first. The 21,600 consumed speed updates reconstruct exactly and all four reference forecast JSONs remain exact. Two fixed local tau/nu contrasts in cells15–20 retain the wrong RM/VSL/both net-gain signs; neither is adopted. Native merge exposure shows equal first150s counts can have different timing/speeds, but does not identify a causal insertion-speed effect. Next separate current merge entry speed/gaps and subsequent mainline braking duration, avoiding double counting existing merge loss; retain beneficial and harmful cases, off-ramp costs,450s gains/guards and fresh holdout requirements. No production/default/network changes or new native runs. Latest completed diagnostics are included in this delivery; calibration remains NOT_QUALIFIED.

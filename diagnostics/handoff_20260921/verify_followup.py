@@ -21,6 +21,9 @@ def main():
     previous = {r['path']: r for r in load(HERE / 'direct_files.json')['files']}
     update = {r['path']: r for r in load(HERE / 'followup_files.json')['files']}
     files = {**previous, **update}
+    latest_manifest = ROOT / 'diagnostics/handoff_20260921_response/direct_files.json'
+    if latest_manifest.exists():
+        files.update({r['path']: r for r in load(latest_manifest)['files']})
     for name, row in files.items():
         p = ROOT / name
         assert p.stat().st_size == row['bytes'], name
