@@ -12,9 +12,55 @@ from diagnostics.fast_fixed_profile import prepare
 HERE=Path(__file__).resolve().parent
 
 
+def prepare_body_coordinates(resolution):
+    """Paired observation / integration-resolution diagnostic, no control writes."""
+    import openpyxl
+    base=HERE/'route_state_native_v1/none_s23'
+    source=base/'source/baseline.inpx';original=source.read_bytes();root=ET.fromstring(original)
+    out=HERE/'body_geometry_native_v1'/f'none_s23_res{resolution}'
+    out.mkdir(parents=True,exist_ok=False)
+    fields=[('COORDFRONTX',4),('COORDFRONTY',4),('COORDREARX',4),('COORDREARY',4),('ACCELERATION',4)]
+    doc=Path('C:/Program Files/PTV Vision/PTV Vissim 2020/Doc/Eng/attribute.xlsx')
+    book=openpyxl.load_workbook(doc,read_only=True,data_only=True);rows=iter(book['Attributes'].values);columns=next(rows)
+    values={d['AttributeID'].upper():d for row in rows if (d:=dict(zip(columns,row)))['Object']=='Vehicle'}
+    documentation={name:{key:values[name][key] for key in ('AttributeID','ValueType','Description(ENG)')} for name,_ in fields}
+    book.close()
+    extra=''.join(f'<attributeSelection attributeID="{name}" decimals="{decimals}" format="DEFAULT" showUnits="false"/>\n' for name,decimals in fields).encode()
+    changed,n=re.subn(rb'(<vehRec\b[^>]*>\s*<attributes>)(.*?)(</attributes>)',lambda m:m[1]+m[2]+extra+m[3],original,flags=re.S)
+    assert n==1 and root.find('simulation').get('simRes')=='1'
+    changed,n=re.subn(rb'(<simulation\b[^>]*\bsimRes=")1(")',lambda m:m[1]+str(resolution).encode()+m[2],changed)
+    assert n==1
+    edited=ET.fromstring(changed);attrs=edited.find('./evaluation/vehRec/attributes')
+    assert len(attrs)==25 and [v.get('attributeID') for v in list(attrs)[-5:]]==[f[0] for f in fields]
+    for node in list(attrs)[-5:]:attrs.remove(node)
+    edited.find('simulation').set('simRes','1')
+    def norm(node):return node.tag,dict(node.attrib),(node.text or '').strip(),[norm(c) for c in node]
+    assert norm(edited)==norm(root)
+    target=out/'source';target.mkdir();network=target/'baseline.inpx';network.write_bytes(changed)
+    for name in set(v[6:] for node in root.iter() for v in node.attrib.values() if v.startswith('#data#')):
+        assert Path(name).name==name
+        (target/name).write_bytes((source.parent/name).read_bytes())
+    profile=e.load(base/'profile.json')
+    assert profile['seed']==23 and not profile['vsl_commands'] and not profile['meter_commands'] and profile['terminal_sec']==3000
+    profile.update(network_sha256=hashlib.sha256(changed).hexdigest(),native_resolution_probe=resolution)
+    e.save(out/'profile.json',profile);prepare(network,out/'profile.json',out/'prepared')
+    e.save(out/'protocol.json',dict(source=str(source.relative_to(e.ROOT)),source_sha256=hashlib.sha256(original).hexdigest(),
+        saved_resolution=1,diagnostic_resolution=resolution,end_s=3000,seed=23,
+        allowed_xml_changes=['five vehicle recording attributes','simulation.simRes'],other_xml_exact=True,
+        expected_original20_fzp_exact=resolution==1,not_equivalent_traffic=resolution!=1,
+        new_control_commands=0,live_vehicle_queries=0,recording_interval_s=1,initial_no_progress_watchdog_s=300,
+        fields=fields,attribute_documentation=documentation,attribute_documentation_sha256=hashlib.sha256(doc.read_bytes()).hexdigest(),
+        purpose='Resolve projected overlaps using actual front/rear coordinates and separately test coarse numerical resolution; no benefit qualification'))
+    print(out)
+
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--route-state',action='store_true')
+    ap.add_argument('--body-resolution',type=int,choices=(1,10),default=None)
     ap.add_argument('--case',choices=['none_s23','vsl_s23','rm_ramp_s23'],default='none_s23');args=ap.parse_args()
+    if args.body_resolution is not None:
+        if args.route_state or args.case!='none_s23':ap.error('Body-resolution probe is native NC only')
+        prepare_body_coordinates(args.body_resolution);return
     if args.case!='none_s23' and not args.route_state:ap.error('VSL repetition requires route-state mode')
     if args.case=='none_s23':
         source=HERE/'native_v1/none_s23/source/baseline.inpx'

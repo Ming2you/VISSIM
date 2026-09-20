@@ -35,7 +35,13 @@ def compile_profile(network, profile):
     simulation = native.find('./simulation')
     if profile.get('seed') != int(simulation.get('randSeed')):
         raise ValueError('Profile must retain saved seed')
-    if int(simulation.get('simRes')) != 1:
+    resolution_probe = profile.get('native_resolution_probe')
+    if resolution_probe is not None:
+        if (type(resolution_probe) is not int or resolution_probe not in (1, 10)
+                or int(simulation.get('simRes')) != resolution_probe
+                or profile.get('vsl_commands') or profile.get('meter_commands')):
+            raise ValueError('Resolution probe requires matching saved resolution and no control commands')
+    elif int(simulation.get('simRes')) != 1:
         raise ValueError('Fixed profile requires saved SimRes1')
     start = integer(profile['control_start_sec'], 'control start', 150)
     end = integer(profile['terminal_sec'], 'terminal', 1)
@@ -127,6 +133,9 @@ def compile_profile(network, profile):
              'off_anchor_scope': 'OFF is retained in evidence;10 is a declared open-service trust anchor only, not observed GREEN or demonstrated equivalence',
              'event_clock': 'Write after native frame at time t; first affected LDP frame is t+1; RED/GREEN uses absolute time modulo10',
              'scope': 'Fixed-command causal diagnostic; no controller optimization, N_UF feasibility or GNE certification'}
+    if resolution_probe is not None:
+        proof['native_resolution_probe'] = resolution_probe
+        proof['event_clock'] = 'No control writes; native resolution is a diagnostic scenario variable, not equivalent traffic'
     return events, initial, proof
 
 

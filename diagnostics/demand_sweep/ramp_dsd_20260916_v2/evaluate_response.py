@@ -437,8 +437,13 @@ def online_data(prepared,output,sec,contract):
                 continue
             if cache['fields'] is None:continue
             parts=raw.rstrip(b'\r\n').split(b';');ix=cache['fields']
-            t=int(float(parts[ix['SIMSEC']]))
-            if t>sec:raise ValueError('Future native frame in paused MPC observation')
+            native_time=float(parts[ix['SIMSEC']])
+            if not math.isfinite(native_time) or native_time<0:
+                raise ValueError('Invalid native timestamp in MPC observation')
+            if native_time>sec:raise ValueError('Future native frame in paused MPC observation')
+            if not native_time.is_integer():
+                raise ValueError('MPC history requires integer-aligned one-second native frames; do not round fractional times')
+            t=int(native_time)
             if cache['time'] is not None and t!=cache['time']:
                 advance(cache['time'],cache['frame']);cache['frame']={}
             cache['time']=t

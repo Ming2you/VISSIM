@@ -210,7 +210,7 @@ Sub Die(message)
 End Sub
 
 Sub RunPreservedNative()
-    Dim saved, fields, actual, checks, savedPeriod, effectivePeriod
+    Dim saved, fields, actual, checks, savedPeriod, effectivePeriod, recordingSteps
     Set sim = CreateObject("Vissim.Vissim")
     WScript.Echo "STAGE=COM_CREATED"
     sim.LoadNet net, False
@@ -240,7 +240,10 @@ Sub RunPreservedNative()
     SetChecked sim.Evaluation, "VehRecFromTime", 0
     SetChecked sim.Evaluation, "VehRecToTime", terminalSec
     SetChecked sim.Evaluation, "VehRecFilterType", "ALL"
-    SetChecked sim.Evaluation, "VehRecResolution", 1
+    ' VISSIM2020 measures this attribute in simulation steps, not seconds.
+    recordingSteps = CLng(sim.Simulation.AttValue("SimRes"))
+    SetChecked sim.Evaluation, "VehRecResolution", recordingSteps
+    logFile.WriteLine "native_recording,VehRecResolution,," & CStr(recordingSteps) & "," & CStr(sim.Evaluation.AttValue("VehRecResolution"))
     SetChecked sim.Evaluation, "SigChangesWriteFile", True
     If fixedProfile Then
         savedPeriod = CDbl(sim.Simulation.AttValue("SimPeriod"))

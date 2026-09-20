@@ -3,6 +3,7 @@ param(
   [Parameter(Mandatory=$true)][string]$Output,
   [ValidateRange(1,2147483647)][int]$Seed = 13,
   [switch]$Execute,
+  [ValidateRange(0,1000)][double]$MinimumFreeGiB = 0,
   [string]$Python = (Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe')
 )
 $ErrorActionPreference = 'Stop'
@@ -36,6 +37,14 @@ if (-not $Execute) {
     controller='none'; vehicle_queries=0; initial_native_steps=$(if ($nativePreserve -or $fixedProfile) {0} else {1}); continuous_calls=$(if ($fixedProfile) {'scheduled event times plus terminal'} else {1}); terminal_sec=$terminalSec; native_preserve=$nativePreserve; fixed_profile=$fixedProfile} | ConvertTo-Json
   exit 0
 }
+$requiredFreeBytes = [long][Math]::Ceiling($MinimumFreeGiB * 1GB)
+$outputDrive = $null
+if ($requiredFreeBytes -gt 0) {
+  $outputDrive = New-Object System.IO.DriveInfo ([IO.Path]::GetPathRoot($outputPath))
+  if ($outputDrive.AvailableFreeSpace -lt $requiredFreeBytes) {
+    throw ('Insufficient output space: require {0} bytes, available {1}; no native process started' -f $requiredFreeBytes,$outputDrive.AvailableFreeSpace)
+  }
+}
 if (Test-Path -LiteralPath $outputPath) { throw 'Require a new output directory' }
 if (@(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) { throw 'Existing VISSIM instance: do not share ownership' }
 $null = New-Item -ItemType Directory -Path $outputPath
@@ -60,6 +69,11 @@ $record = [ordered]@{network=$network; prepared=$preparedPath; output=$outputPat
   cscript_pid=$runner.Id; cscript_start=$runnerStart.ToString('o'); vissim=$null;
   started=$started.ToString('o'); first_native_progress=$null; completed=$false; error=$null}
 $record.native_preserve=$nativePreserve
+if ($requiredFreeBytes -gt 0) {
+  $record.minimum_free_bytes_at_launch=$requiredFreeBytes
+  $record.free_bytes_at_launch=$outputDrive.AvailableFreeSpace
+  $record.minimum_free_bytes_during_run=128MB
+}
 if ($fixedProfile) {
   $record.fixed_profile=$true
   $record.fixed_profile_proof=$settings.fixed_profile_proof
@@ -99,7 +113,8 @@ while (-not $runner.HasExited) {
       $record.vissim = @{pid=$owned.pid;start=$owned.start.ToString('o')}; Save-Receipt
     }
   }
-  if (-not $progress -or $fixedProfile) {
+  $diskLow = $requiredFreeBytes -gt 0 -and $outputDrive.AvailableFreeSpace -lt 128MB
+  if (-not $progress -or $fixedProfile -or $diskLow) {
     foreach ($file in @(Get-ChildItem -LiteralPath $evalPath -Filter '*.fzp' -File)) {
       $lastSim = Last-Fzp-Time $file.FullName
       if ($fixedProfile -and $null -ne $lastSim -and ($null -eq $lastObservedSim -or $lastSim -gt $lastObservedSim)) {
@@ -111,9 +126,10 @@ while (-not $runner.HasExited) {
         if (-not $progress) { $progress = $true; $record.first_native_progress=@{sim_sec=$lastSim; at=(Get-Date).ToString('o')}; Save-Receipt }
       }
     }
-    if ((-not $progress -and ((Get-Date)-$started).TotalSeconds -ge 300) -or ($fixedProfile -and $progress -and ((Get-Date)-$lastProgressAt).TotalSeconds -ge 300)) {
+    if ($diskLow -or (-not $progress -and ((Get-Date)-$started).TotalSeconds -ge 300) -or ($fixedProfile -and $progress -and ((Get-Date)-$lastProgressAt).TotalSeconds -ge 300)) {
       $timedOut=$true; $record.error='Startup300s: no complete FZP data timestamp showing actual native progression'
       if ($fixedProfile -and $progress) { $record.error='Progress300s: complete native FZP timestamp stopped advancing' }
+      if ($diskLow) { $record.error='DiskSpaceLow: less than128MiB available for output; preserve partial recording and owned processes only' }
       # Exact PID + creation-time identity only. Unknown servers are never killed.
       $identities=@([pscustomobject]@{pid=$runner.Id;start=$runnerStart})
       if ($null -ne $owned) { $identities += $owned }

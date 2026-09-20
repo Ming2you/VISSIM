@@ -92,6 +92,24 @@ class FixedProfile(unittest.TestCase):
         b.write_bytes(b'1.00;1;2;3;7\n2.00;1;2;3;99\n')
         self.assertNotEqual(prefix_digest(a,2),prefix_digest(b,2))
 
+    def test_resolution_probe_is_explicit_native_only_and_preserves_default(self):
+        self.profile['vsl_commands'] = []; self.profile['meter_commands'] = []
+        baseline = compile_profile(self.network, self.profile)
+        self.assertNotIn('native_resolution_probe', baseline[2])
+        self.network.write_bytes(self.network.read_bytes().replace(b'simRes="1"', b'simRes="10"'))
+        self.profile['network_sha256'] = sha(self.network)
+        with self.assertRaises(ValueError): compile_profile(self.network, self.profile)
+        self.profile['native_resolution_probe'] = 10
+        events, initial, proof = compile_profile(self.network, self.profile)
+        self.assertEqual(events, [])
+        self.assertEqual(initial, baseline[1])
+        self.assertEqual(proof['native_resolution_probe'], 10)
+        self.profile['meter_commands'] = [{'time_s':1350, 'sc_no':9107, 'green_sec':8}]
+        with self.assertRaises(ValueError): compile_profile(self.network, self.profile)
+        self.profile['meter_commands'] = []
+        self.profile['native_resolution_probe'] = 1
+        with self.assertRaises(ValueError): compile_profile(self.network, self.profile)
+
     def test_native_prewrite_clock_detects_one_second_shift(self):
         profile=self.root/'profile.json'; profile.write_text(json.dumps(self.profile))
         prepared=self.root/'prepared'; prepare(self.network,profile,prepared)
