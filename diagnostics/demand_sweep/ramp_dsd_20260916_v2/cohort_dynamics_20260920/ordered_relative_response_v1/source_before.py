@@ -11,7 +11,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[4]))
 from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920 import downstream_wave_audit as d
 
 
-def native_parameters(path,include_deceleration=False):
+def native_parameters(path):
     root=ET.parse(path).getroot()
     link=root.find('./links/link[@no="24"]')
     behavior_type=root.find('./linkBehaviorTypes/linkBehaviorType[@no="'+link.get('linkBehavType')+'"]')
@@ -23,11 +23,6 @@ def native_parameters(path,include_deceleration=False):
     distributions={x.get('no'):x for x in root.findall('./model2D3DDistributions/model2D3DDistribution')}
     curves={x.get('no'):[(float(p.get('x')),float(p.get('y'))) for p in x.findall('./accelFuncDataPts/accelerationFunctionDataPoint')]
             for x in root.findall('./desAccelerationFunctions/desAccelerationFunction')}
-    if include_deceleration:
-        decel={x.get('no'):[(float(p.get('x')),-float(p.get('y'))) for p in x.findall('./decelFuncDataPts/decelerationFunctionDataPoint')]
-               for x in root.findall('./desDecelerationFunctions/desDecelerationFunction')}
-        maximum={x.get('no'):[(float(p.get('x')),-float(p.get('yMin'))) for p in x.findall('./decelFuncDataPts/decelerationFunctionDataPoint')]
-                 for x in root.findall('./maxDecelerationFunctions/maxDecelerationFunction')}
     by_length={}
     for vt in root.findall('./vehicleTypes/vehicleType'):
         if vt.get('category') not in ('CAR','HGV','BUS'):continue
@@ -36,9 +31,6 @@ def native_parameters(path,include_deceleration=False):
             if len(pieces)!=1:raise ValueError('Unspecified multi-body length')
             length=round(float(pieces[0].get('length')),3)
             definition=dict(category=vt.get('category'),curve=curves[vt.get('desAccelFunc')])
-            if include_deceleration:
-                definition.update(deceleration_curve=decel[vt.get('desDecelFunc')],
-                                  max_deceleration_curve=maximum[vt.get('maxDecelFunc')])
             if length in by_length:assert by_length[length]==definition
             by_length[length]=definition
     return dict(stand_m=float(behavior.get('w99cc0')),headway_s=float(dist.get('mean')),
@@ -53,15 +45,12 @@ def acceleration(v,curve):
     return max(0.,curve[-1][1])
 
 
-def rollout(initial,parameters,horizon,bounded=True,step=.2,interaction=None):
+def rollout(initial,parameters,horizon,bounded=True,step=.2):
     """Finite acceleration with old-state gap response and order.
 
     The leader's predicted new position enforces body separation; no future
     native leader positions are read. Initial bodies are never repositioned.
     """
-    if interaction is not None:
-        if not bounded or interaction.get('law')!='idm':raise ValueError('Unsupported interaction pilot')
-        return ordered_relative_rollout(initial,parameters,horizon,step,interaction)
     vehicles=copy.deepcopy(initial);states={0:copy.deepcopy(vehicles)};checks=0
     stand,headway=parameters['stand_m'],parameters['headway_s']
     substeps=round(1/step)
@@ -89,53 +78,6 @@ def rollout(initial,parameters,horizon,bounded=True,step=.2,interaction=None):
                 assert x>=v['pos'] and u>=0 and math.isfinite(x)
                 if bounded:assert u<=speed+a*step+1e-7
                 if j:assert vehicles[order[j-1]]['pos']-lead['length']-x>=margin-1e-7
-                checks+=1
-        assert set(vehicles)==set(initial)
-        if tick%substeps==0:states[tick//substeps]=copy.deepcopy(vehicles)
-    return states,checks
-
-
-def ordered_relative_rollout(initial,parameters,horizon,step,interaction):
-    """Standard IDM longitudinal response, explicit diagnostic option only.
-
-    Native CC0/CC1 and mean desired acceleration/deceleration initialize the
-    IDM parameters; this mapping is a hypothesis, not a Wiedemann equivalence.
-    No future cut-in, lane changes, native positions or target IDs are replayed.
-    """
-    delta=float(interaction['delta'])
-    if delta<=0:raise ValueError('IDM exponent must be positive')
-    vehicles=copy.deepcopy(initial);states={0:copy.deepcopy(vehicles)};checks=0
-    stand,headway=parameters['stand_m'],parameters['headway_s']
-    substeps=round(1/step)
-    assert abs(substeps*step-1)<1e-9
-    for tick in range(1,horizon*substeps+1):
-        old=copy.deepcopy(vehicles)
-        for lane in (1,2,3):
-            order=sorted((i for i,v in old.items() if v['lane']==lane),key=lambda i:old[i]['pos'],reverse=True)
-            for j,vid in enumerate(order):
-                row=old[vid];v=row['v']/3.6;desired=row['desired']/3.6
-                p=parameters['vehicle_by_length'][round(row['length'],3)]
-                accel=acceleration(0.,p['curve']);brake=acceleration(0.,p['deceleration_curve'])
-                if min(desired,accel,brake)<=0:raise ValueError('Invalid native-to-IDM parameter mapping')
-                force=accel*(1-(v/desired)**delta)
-                if j:
-                    lead=old[order[j-1]];gap=lead['pos']-lead['length']-row['pos']
-                    if gap<=0:raise ArithmeticError('Initial or predicted same-lane bodies overlap or touch')
-                    desired_gap=stand+max(0.,v*headway+v*(v-lead['v']/3.6)/(2*math.sqrt(accel*brake)))
-                    force-=accel*(desired_gap/gap)**2
-                if v+force*step<0:
-                    u=0.;x=row['pos']-.5*v*v/force
-                else:
-                    u=v+force*step;x=row['pos']+v*step+.5*force*step*step
-                if j and vehicles[order[j-1]]['pos']-lead['length']-x< -1e-7:
-                    raise ArithmeticError('IDM integration created a body overlap; no position projection applied')
-                assert x>=row['pos'] and u>=0 and math.isfinite(x) and math.isfinite(u)
-                # An empirical candidate may demand braking beyond the native
-                # envelope; record that failure instead of hiding it by clipping.
-                ceiling=acceleration(v,p['max_deceleration_curve'])
-                vehicles[vid].update(pos=x,v=u*3.6,
-                    peak_braking_m_s2=max(row.get('peak_braking_m_s2',0.),max(0.,-force)),
-                    braking_envelope_exceeded=row.get('braking_envelope_exceeded',False) or -force>ceiling+1e-8)
                 checks+=1
         assert set(vehicles)==set(initial)
         if tick%substeps==0:states[tick//substeps]=copy.deepcopy(vehicles)
