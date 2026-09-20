@@ -27,9 +27,6 @@ def main():
     newest = ROOT / 'diagnostics/handoff_20260921_entry_speed/direct_files.json'
     if newest.exists():
         files.update({r['path']: r for r in load(newest)['files']})
-    spatial = ROOT / 'diagnostics/handoff_20260921_spatial/direct_files.json'
-    if spatial.exists():
-        files.update({r['path']: r for r in load(spatial)['files']})
     for name, row in files.items():
         p = ROOT / name
         assert p.stat().st_size == row['bytes'], name
