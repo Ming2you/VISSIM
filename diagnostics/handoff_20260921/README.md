@@ -1,5 +1,7 @@
 # 2026-09-21 모델 수정 증분 전달
 
+**후속 커밋의 현재 checkout은 [FOLLOWUP.md](FOLLOWUP.md)를 따른다.** 아래 `verify_portable.py`의 직접 파일 해시는 최초 `6d7612b` 스냅샷용이다. 이후 갱신된 인계 문서까지 검사하려면 `verify_followup.py`를 사용한다. 원래 manifest와 증거 조각은 변경하지 않았다.
+
 최신 상태는 [인계 문서](../../docs/HANDOFF_20260921_gain_prediction.md)를 먼저 읽는다. RM/VSL 이득 보정은 NOT_QUALIFIED이며 미채택 후보도 재현과 실패 원인 보존을 위해 포함했다.
 
 저장소 루트에서 Python 환경(numpy 포함)을 준비하고 순서대로 실행한다. 이 명령은 VISSIM을 시작하지 않는다.
