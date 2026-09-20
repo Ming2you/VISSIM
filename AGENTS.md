@@ -1,6 +1,6 @@
 # AGENTS.md — Codex 진입점
 
-**최신 재개점(2026-09-21)**: `docs/HANDOFF_20260921_gain_prediction.md`와 `diagnostics/handoff_20260921_midpoint/README.md`를 먼저 읽는다. 누적 모델 수정에 더해 두2550초 상태의 RM 세 강도 비교를 전달했다. 신규 native3개는3000초 완료했다. seed23에서는 손해, seed33에서는 이득인데 모델의 순이득/후보 순위가 이를 충분히 구분하지 못한다. 정본 추가 변경이나 기본 활성화 없이 **NOT_QUALIFIED**를 유지한다. 현재 완료 기록과 다음 작업은 최신 README, `K/MATCHED_METER_MIDPOINT.md`를 따른다.
+**최신 재개점(2026-09-21)**: `docs/HANDOFF_20260921_gain_prediction.md`와 `diagnostics/handoff_20260921_matched_response/README.md`를 먼저 읽는다. 누적 모델 수정과 두2550초 상태의 후속48개 예측을 전달했다. 기존 이동거리·분기 후보는 RM 순위를 맞췄지만 이득 크기와 본선 부호를 충분히 설명하지 못한다. 기본 채택 없이 **NOT_QUALIFIED**다. 최신 결과·다음 작업은 `K/MATCHED_SPATIAL_RESPONSE.md`를 따른다.
 
 1. 규칙·정본·함정은 `CLAUDE.md` 를 그대로 따른다(어댑터 1벌, `parameters.json` 단일 출처, vendor 무수정, `git add -A` 금지, 스위치는 config 키만).
 2. **최신 현황·다른 컴퓨터에서의 재개**는 `docs/HANDOFF_20260919_cost_and_ramp_response.md`와 `diagnostics/handoff_20260919/README.md`를 먼저 읽는다. 기하 인계는 `docs/HANDOFF_20260916_geometry_actuator_response.md`에 있다. 현재는 사용자 수정 망의 동측 본선 입력만 0.8배인 조건이다. 과거 전역 80/50 조건과 다르며, 새 물리 기하의 full GNE 실행은 아직 지원하지 않는다. 9월 19일 단독 진단 MPC의 비용 집계를 수정했으나 RM/VSL 이득 예측 보정은 미완료다. 이전 controller 정의·8개 독립 미터·실제 합류량 기준 N_UF는 `docs/HANDOFF_20260913_controller_runtime.md`에 있다. 이전 문서의 수치가 최신 사용자 합의와 충돌하면 최신 인계를 따른다.

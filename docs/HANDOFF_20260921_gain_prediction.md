@@ -1,6 +1,6 @@
 # 2026-09-21 모델 수정 및 이득 예측 인계
 
-**현재 최신 재개점:** `diagnostics/handoff_20260921_midpoint/README.md`와 `K/MATCHED_METER_MIDPOINT.md`가 아래 과거 인계보다 우선한다. 누적 모델 수정은 기존 브랜치에 포함되어 있고 이번에는 완료된 native3개와 고정 예측·진단을 추가했다. 같은 seed 내2550초 초기 상태에서 g8 대비 약한/강한 RM의 실제 component ΔTTT는 seed23 +.849444/+1.498611, seed33 −.589167/−.837222veh·h다. 모델은 두 상태의 손익/후보 순위를 충분히 구분하지 못한다. **순이득 보정 NOT_QUALIFIED**이며 core·기준망·기본 설정의 추가 변경은 없다. 최신 복원과 후속 작업은 해당 README를 따른다.
+**현재 최신 재개점:** `diagnostics/handoff_20260921_matched_response/README.md`와 `K/MATCHED_SPATIAL_RESPONSE.md`가 아래 과거 인계보다 우선한다. 기존1초 적분·차로·이동거리·분기 기능을 두2550초 상태에서 비교한48개 유효 예측과 seed33 사후 본선 경계 회계를 추가했다. 이동거리·분기 후보는 두 상태의 RM 순위가 맞지만 이득 크기·구성 비용은 틀려 **NOT_QUALIFIED**다. 본체·기준망·기본 설정 추가 변경이나 새 native는 없다. 최신 복원과 후속 작업은 해당 README를 따른다.
 
 아래는 이전 전달의 누적 기록이다.
 
