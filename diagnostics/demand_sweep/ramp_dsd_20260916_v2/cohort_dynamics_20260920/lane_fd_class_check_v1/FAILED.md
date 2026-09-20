@@ -1,0 +1,1 @@
+Diagnostic rejected before gain output: desired-speed observer record_desired sits between the call and PhysicalLaneGroups.advance; direct caller check therefore modified zero calls. Expected135 check correctly failed. No production/core/native modification. Archived source preserves protocol pin. v2 recognizes this known observer and records only its primary call.

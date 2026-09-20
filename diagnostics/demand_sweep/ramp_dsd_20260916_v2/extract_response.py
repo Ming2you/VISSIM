@@ -34,6 +34,8 @@ def main():
     parser.add_argument('--terminal-sec',type=int,choices=(3000,4500),default=3000)
     parser.add_argument('--runs',type=Path)
     parser.add_argument('--output',type=Path)
+    parser.add_argument('--nested-runs',action='store_true',help='Read arm/run instead of run_arm')
+    parser.add_argument('--component-stocks',action='store_true',help='Retain 1s mainline/on/off inventory by direction in the existing pass')
     args=parser.parse_args()
     pair_runs=args.runs or HERE/'response_pairs_v1'
     pair_protocol=ex.load(pair_runs/'protocol.json') if args.pairs else None
@@ -55,7 +57,7 @@ def main():
     for arm in (tuple(pair_protocol['candidate_bank']) if args.pairs else ('none','rm','vsl','both')):
         runs=args.runs or HERE/('response_pairs_v1' if args.pairs else
             ('rules_v1' if args.terminal_sec==3000 else 'rules_4500_v1'))
-        run=runs/f'run_{arm}'
+        run=runs/arm/'run' if args.nested_runs else runs/f'run_{arm}'
         receipt=ex.load(run/'run.json')
         end=pair_protocol['run_end_s'] if args.pairs else args.terminal_sec
         assert receipt['completed'] and receipt['terminal_sec']==end
@@ -71,9 +73,21 @@ def main():
             assert not parsed['unparsed_removal_lines']
             removals.extend(e for e in parsed['events'] if e['kind']=='lane_change_removal')
         observer,ports=ex.Observer(g,removals),ex.PortObserver(g)
-        evidence={};previous={};crossings=[];head_stock=[];spatial=defaultdict(lambda:[0,0,0])
+        evidence={};previous={};crossings=[];head_stock=[];spatial=defaultdict(lambda:[0,0,0]);component_stocks=[]
+        port_scope={b['connector']:(b['road'],'on' if b['kind']=='ramp' else 'off')
+                    for b in g['boundaries'] if b['kind'] in ('ramp','offramp')}
         for sec,current in native_frames(run/'vissim_eval/baseline_001.fzp',evidence,deadline=time.monotonic()+1800):
             observer.advance(sec,current);ports.advance(sec,current)
+            if args.component_stocks:
+                stock={'time_s':sec,**{road+'_'+kind:0 for road in ('FW_E','FW_W') for kind in ('mainline','on','off')}}
+                stock.update({road+'_source_negative':0 for road in ('FW_E','FW_W')})
+                for road,cell,_ in observer.previous_cells.values():stock[road+'_mainline']+=1
+                for row in current.values():
+                    address=observer.addresses.get(row[0])
+                    if address and address[1]+row[2]<0:stock[address[0]+'_source_negative']+=1
+                    if row[0] in port_scope:
+                        road,kind=port_scope[row[0]];stock[road+'_'+kind]+=1
+                component_stocks.append(stock)
             counters=defaultdict(lambda:[0,0,0,0,None,None])
             for no,row in current.items():
                 link,lane,pos,speed=row
@@ -100,6 +114,7 @@ def main():
         for name,rows in [('cells_30s',observer.cells),('flows_30s',observer.flows),('boundaries_30s',observer.boundary_rows),('ports_30s',ports.rows),('port_events',ports.events),('head_crossings',crossings),('head_stock_1s',head_stock)]:table(out/(name+'.csv'),rows)
         table(out/'entry_spatial_150s.csv',[{'start_s':t,'link':l,'start_m':b,'n_mean':s[0]/150,'speed_kmh':s[1]/s[0],'slow_fraction':s[2]/s[0]} for (t,l,b),s in sorted(spatial.items())])
         save(out/'port_cohorts_30s.json',ports.snapshots)
+        if args.component_stocks:table(out/'component_stocks_1s.csv',component_stocks)
         save(out/'manifest.json',{'source_run':str(run),'source_receipt_sha256':sha(run/'run.json'),'network_sha256':sha(network),'fzp':evidence,'cell_conservation_checks':observer.checks,'exclusions':observer.evidence,'removals':removals,'extractor_sha256':sha(Path(__file__)),'complete':True})
         print(arm+' physical extraction complete',flush=True)
 

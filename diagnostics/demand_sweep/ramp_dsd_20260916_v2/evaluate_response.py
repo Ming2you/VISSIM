@@ -24,7 +24,7 @@ CAL=HERE.parent/'user_native_20260914/metanet_calibration_v1'
 TERMS=CAL.parent/'metanet_terms_implementation_v2'
 sys.path[:0]=[str(ROOT/'.review-deps'),str(CAL),str(ROOT)]
 from canonical_harness import load_base_model,DEFAULT_CONFIG
-from boundary_factory import ObservationData,build_window
+from boundary_factory import ObservationData,build_window,upstream_origin_split,PROTOCOL as BOUNDARY_PROTOCOL
 from scoring import score_rollout
 
 def load(p):return json.loads(Path(p).read_text(encoding='utf-8-sig'))
@@ -87,8 +87,86 @@ def refresh_free_speed(data,out):
     return out/'config.json'
 
 
-def window(data,model,cutoff,mode,profile,commands):
+def refine_boundary_steps(steps,seconds):
+    """Refine numerical integration, preserving the original command timeline."""
+    if isinstance(seconds,bool) or seconds<1 or int(seconds)!=seconds or 10%seconds:
+        raise ValueError('Refinement needs an integer-second divisor of10s')
+    if seconds==10:return steps
+    seconds=int(seconds);result=[]
+    for parent in steps:
+        start,end=parent['window_start_s'],parent['window_end_s']
+        if int(start)!=start or end-start!=10:raise ValueError('Expected original10s boundary windows')
+        for ramp,profile in parent.get('ramp_arrival_profile',{}).items():
+            if len(profile)!=10 or abs(sum(profile)-parent['ramp_arrival_vph'][ramp]*10/3600)>1e-7:
+                raise ValueError('Arrival profile and configured requests disagree')
+        for t in range(int(start),int(end),seconds):
+            child=copy.deepcopy(parent);child.update(window_start_s=t,window_end_s=t+seconds)
+            for ramp,profile in parent.get('ramp_arrival_profile',{}).items():
+                values=profile[t-int(start):t-int(start)+seconds]
+                child['ramp_arrival_profile'][ramp]=values
+                child['ramp_arrival_vph'][ramp]=sum(values)*3600/seconds
+            result.append(child)
+    return result
+
+
+def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
     w=build_window(data,cutoff,mode,profile)
+    if model.port_origin_split:
+        if mode!='history_forecast' or port_origin_counts is None:
+            raise ValueError('Origin-conditioned split needs explicit cutoff-only origin observations')
+        history=int(BOUNDARY_PROTOCOL['history_sec']);before=port_origin_counts[str(cutoff-history)];after=port_origin_counts[str(cutoff)]
+        audit=[]
+        for off,p in model.offramps.items():
+            if p['road']!='FW_E':continue
+            cell=p['from_cell'];ramps=[r for r,spec in model.ramps.items() if spec['road']=='FW_E' and spec['to_cell']==cell]
+            history_flows=[data.flows[t,'FW_E',cell] for t in range(cutoff-history+30,cutoff+1,30)]
+            departed=sum(float(r['off_departures']) for r in history_flows)
+            downstream=sum(float(r['downstream_crossings']) for r in history_flows)
+            merged=sum(float(r['ramp_merges']) for r in history_flows)
+            if sum(p2['road']=='FW_E' and p2['from_cell']==cell for p2 in model.offramps.values())!=1:
+                raise ValueError('Historical origin split needs one off-ramp per physical cell')
+            ratio,bypass=upstream_origin_split(departed,downstream,merged,
+                sum(sum(before[r]) for r in ramps),sum(sum(after[r]) for r in ramps))
+            audit.append({'off':off,'history_start_s':cutoff-history,'history_end_s':cutoff,
+                'before_ratio':w['boundary_steps'][0]['off_split_ratio'][off],'origin_conditioned_ratio':ratio,
+                'observed_bypass_exits_veh':bypass})
+            for step in w['boundary_steps']:step['off_split_ratio'][off]=ratio
+        w['meta']['origin_conditioned_branch_splits']=audit
+    if model.offramp_lanes:
+        if mode != 'history_forecast':
+            raise ValueError('Lane off-ramp candidate currently requires causal history boundaries')
+        if not hasattr(data, 'port_events'):
+            data.port_events = rows(data.folder/'port_events.csv')
+        w['port_dynamics']['lane_exchange_rates_per_sec'] = {}
+        lane_service = {}
+        for off, spec in model.offramp_lanes.items():
+            history = spec['history_sec']
+            events = [r for r in data.port_events if str(r['connector']) == off
+                      and cutoff-history < float(r['time_s']) <= cutoff]
+            lane_service[off] = [sum(r['kind']=='departure' and int(r['lane'])==i for r in events)
+                                 *3600/history for i in (1,2)]
+            exposure = [0.,0.]; transfers = [[0.,0.],[0.,0.]]
+            for end in range(cutoff-history+30,cutoff+1,30):
+                before = [sum(row[2]==i for row in data.port_cohorts[str(end-30)][off]) for i in (1,2)]
+                after = [sum(row[2]==i for row in data.port_cohorts[str(end)][off]) for i in (1,2)]
+                observed = [r for r in events if end-30 < float(r['time_s']) <= end]
+                net = [after[i-1]-before[i-1]-sum(r['kind']=='arrival' and int(r['lane'])==i for r in observed)
+                       +sum(r['kind']=='departure' and int(r['lane'])==i for r in observed) for i in (1,2)]
+                if sum(net) != 0:
+                    raise ValueError('Lane exchange cannot absorb unexplained off-ramp vehicle loss')
+                for i in range(2):
+                    exposure[i] += 15*(before[i]+after[i])
+                    transfers[1-i][i] += max(0.,net[i])
+            rates = [[x/exposure[i] if exposure[i] else 0. for x in row] for i,row in enumerate(transfers)]
+            if any(sum(transfers[i]) and not exposure[i] for i in range(2)):
+                raise ValueError('Off-ramp lane transfer without source exposure')
+            w['port_dynamics']['lane_exchange_rates_per_sec'][off] = rates
+        for step in w['boundary_steps']:
+            step['off_lane_drain_vph'] = copy.deepcopy(lane_service)
+            if any(abs(sum(lane_service[off])-step['off_drain_vph'][off])>1e-7 for off in lane_service):
+                raise ValueError('Lane events disagree with aggregate off-ramp drainage')
+        w['meta']['offramp_lanes'] = {'history_end_s':cutoff,
+            'exchange':'Net30s lane residuals / past lane vehicle-seconds; opposing within-bin changes unresolved'}
     heads=load(HERE/'controller_response_v1/heads.json')
     meter=load(DEFAULT_CONFIG)['actuation']['real_world_ramp_metering']
     w['ramp_dynamics']={'schema':'physical-ramp-boundary/v1','local_step_sec':1,'meter_cycle_sec':10,'ramps':{}}
@@ -169,13 +247,18 @@ def window(data,model,cutoff,mode,profile,commands):
                 step['ramp_arrival_vph'][mid]=sum(profile)*3600/(step['window_end_s']-step['window_start_s'])
         w['meta']['ramp_arrival_profile']={'history_sec':history,'ramps':targets,
             'mode':'past empirical pattern repeated' if mode=='history_forecast' else 'future observed arrivals; diagnostic only'}
+    w['boundary_steps']=refine_boundary_steps(w['boundary_steps'],model.base.simulation.T_f_sec)
+    if model.base.simulation.T_f_sec!=10:
+        w['meta']['numerical_refinement']={'original_step_sec':10,'step_sec':model.base.simulation.T_f_sec,
+            'commands_and_request_totals_preserved':True}
     return w
 
 
 def simulate(model,w,params):
     prediction=model.rollout(w['initial_cells'],w['boundary_steps'],params,w['initial_origin_queue'],
         port_dynamics=w['port_dynamics'],ramp_dynamics=w['ramp_dynamics'],vsl_zone_heads=w['vsl_zone_heads'],
-        residence_audit=model.component_residence)
+        residence_audit=model.component_residence,
+        lane_group_dynamics=w.get('lane_group_dynamics'))
     checks=0
     for row in prediction['ramps']:
         if abs(row['conservation_residual_veh'])>1e-7:raise ArithmeticError('Ramp conservation')

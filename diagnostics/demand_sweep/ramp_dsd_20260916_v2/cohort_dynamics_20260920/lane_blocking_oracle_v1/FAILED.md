@@ -1,0 +1,1 @@
+Future-mask diagnostic stopped before its first active transition: integer-second range received float10.0. The zero-mask full forecast replay had passed. v2 explicitly checks an integer simulation interval before constructing the native1s observation range. No production or native simulation changes.

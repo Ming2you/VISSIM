@@ -1,0 +1,1 @@
+Read-only trace recorded3960 rather than180 rows: Python emits a line event on each inlined list-comprehension iteration (22 hits per interval). One controlled read-only replay confirmed this. No model value was changed. v3 deduplicates observation at each unique interval start; full forecast JSON must still match the frozen reference.

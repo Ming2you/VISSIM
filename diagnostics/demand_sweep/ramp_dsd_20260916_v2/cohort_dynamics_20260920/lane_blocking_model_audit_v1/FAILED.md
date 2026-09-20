@@ -1,0 +1,1 @@
+Preparation failed before any model rollout: KeyError none, because the intervention candidate bank omits the no-control arm. No forecast result was produced. Retried with an explicit empty NC command in v2. No core change.

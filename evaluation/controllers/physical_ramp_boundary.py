@@ -160,11 +160,16 @@ class PhysicalRampBoundary:
             raise ValueError("Connector stock exceeds storage")
         expected = _sum((self._initial_total, self.cumulative_requested_veh), "mass source")
         actual = _sum((stock, self.backlog_veh, self.cumulative_merge_veh), "mass destination")
+        if hasattr(self, '_lane_transfer_in'):
+            expected = _sum((expected, self._lane_transfer_in), 'mass with lateral entry')
+            actual = _sum((actual, self._lane_transfer_out), 'mass with lateral exit')
         residual = expected - actual
         if abs(residual) > _MASS_TOLERANCE:
             raise ValueError(f"Ramp mass conservation failed: {residual} vehicles")
         connector_residual = (self._initial_connector + self.cumulative_admitted_veh
                               - self.cumulative_merge_veh - stock)
+        if hasattr(self, '_lane_transfer_in'):
+            connector_residual += self._lane_transfer_in-self._lane_transfer_out
         backlog_residual = (self._initial_backlog + self.cumulative_requested_veh
                             - self.cumulative_admitted_veh - self.backlog_veh)
         if max(abs(connector_residual), abs(backlog_residual)) > _MASS_TOLERANCE:
@@ -173,7 +178,7 @@ class PhysicalRampBoundary:
 
     def snapshot(self) -> dict:
         """Return counts without exposing mutable cohort buffers."""
-        return {
+        result = {
             "connector_id": self.connector_id, "time_sec": self.time_sec,
             "phase": self._phase, **self._stocks(), "capacity_veh": self.capacity_veh,
             "outside_component_backlog_veh": self.backlog_veh,
@@ -184,6 +189,10 @@ class PhysicalRampBoundary:
             "connector_ttt_veh_h": self.connector_ttt_veh_h,
             "conservation_residual_veh": self._check_conservation(),
         }
+        if hasattr(self, '_lane_transfer_in'):
+            result.update(cumulative_lane_entry_veh=self._lane_transfer_in,
+                          cumulative_lane_exit_veh=self._lane_transfer_out)
+        return result
 
     def metadata(self) -> dict:
         result = {
@@ -327,7 +336,22 @@ class PhysicalRampBoundary:
                                service_veh: float, mode: str,
                                green_sec: float | None,
                                request_arrivals_veh: float,
-                               request_arrivals_by_second: Sequence[float] | None = None) -> dict:
+                               request_arrivals_by_second: Sequence[float] | None = None,
+                               allow_partial_cycle: bool = False) -> dict:
+        steps = self._local_interval_steps(start_sec=start_sec,duration_sec=duration_sec,
+            cycle_sec=cycle_sec,receiving_budget_veh=receiving_budget_veh,service_veh=service_veh,
+            mode=mode,green_sec=green_sec,request_arrivals_veh=request_arrivals_veh,
+            request_arrivals_by_second=request_arrivals_by_second,allow_partial_cycle=allow_partial_cycle)
+        while True:
+            try:next(steps)
+            except StopIteration as finished:return finished.value
+
+    def _local_interval_steps(self, *, start_sec: float, duration_sec: float,
+                              cycle_sec: float, receiving_budget_veh: float,
+                              service_veh: float, mode: str, green_sec: float | None,
+                              request_arrivals_veh: float,
+                              request_arrivals_by_second: Sequence[float] | None = None,
+                              allow_partial_cycle: bool = False):
         """One complete meter cycle in local 1 s steps, with frozen FW supply.
 
         The caller queries the canonical freeway receiving budget once. Its
@@ -344,8 +368,10 @@ class PhysicalRampBoundary:
         service = _number(service_veh, "service_veh")
         requests = _number(request_arrivals_veh, "request_arrivals_veh")
         green = None if green_sec is None else _number(green_sec, "green_sec")
-        if (start != self.time_sec or not start.is_integer() or not duration.is_integer()
-                or duration != cycle or start % cycle != 0):
+        if type(allow_partial_cycle) is not bool:raise ValueError('Partial cycle option must be boolean')
+        aligned=(cycle%duration==0 and start%duration==0 and start%cycle+duration<=cycle
+                 if allow_partial_cycle else duration==cycle and start%cycle==0)
+        if (start != self.time_sec or not start.is_integer() or not duration.is_integer() or not aligned):
             raise ValueError("Local interval must be one aligned integral-second meter cycle")
         if mode not in {"OFF", "GREEN", "RED"}:
             raise ValueError("Unknown meter mode")
@@ -366,14 +392,20 @@ class PhysicalRampBoundary:
         before = self.snapshot()
         local_rows = []
         used = 0.0
+        interval_service=0.0
         for second in range(int(duration)):
+            # Pause at an idle common clock, before any lane advances. The
+            # ordinary single-lane interface consumes these pauses immediately.
+            yield start+second
             ready = self.begin_interval(start+second, 1.0)["eligible_merge_veh"]
             accepted = min(ready, budget/duration, max(0.0, budget-used))
             self.commit_merge(accepted)
             used = _sum((used, accepted), "local receiving consumption")
-            active = mode == "OFF" or (mode == "GREEN" and second < green)
+            phase=(start+second)%cycle if allow_partial_cycle else second
+            active = mode == "OFF" or (mode == "GREEN" and phase < green)
             local_mode = "OFF" if mode == "OFF" else "GREEN" if active else "RED"
-            amount = service/(duration if mode == "OFF" else green) if active else 0.0
+            amount = service/((cycle if allow_partial_cycle else duration) if mode == "OFF" else green) if active else 0.0
+            interval_service+=amount
             self.apply_head_service(amount, mode=local_mode,
                 green_sec=None if mode == "OFF" else green if active else 0.0,
                 posthead_capacity_veh=capacity)
@@ -389,7 +421,7 @@ class PhysicalRampBoundary:
             "start": before, "end": after, **counts,
             "eligible_merge_veh": local_rows[0]['eligible_merge_veh'],
             "eligible_merge_scope": "First local1s eligibility only; later substeps may receive newly head-served vehicles",
-            "meter_mode": mode, "green_sec": green, "head_service_limit_veh": service,
+            "meter_mode": mode, "green_sec": green, "head_service_limit_veh": interval_service if allow_partial_cycle else service,
             "conservation_residual_veh": after['conservation_residual_veh'],
             "local_step_sec": 1.0, "local_receipts": local_rows,
             "receiving_budget_veh": budget, "unused_receiving_budget_veh": max(0.0,budget-used),
@@ -409,7 +441,7 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
     Only the existing local one-second interface is supported.
     """
 
-    def __init__(self, *, lane_arrival_shares, **kwargs):
+    def __init__(self, *, lane_arrival_shares, lane_exchange_rates_per_sec=None, **kwargs):
         kwargs = dict(kwargs)
         kwargs['initial_cohorts'] = tuple(kwargs.get('initial_cohorts', ()))
         super().__init__(**kwargs)
@@ -422,12 +454,28 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
         if kwargs.get('initial_backlog_veh', 0.) != 0:
             raise ValueError('Unclassified initial lane backlog is unsupported')
         self.lane_arrival_shares = shares
+        self.lane_exchange_rates = None
+        if lane_exchange_rates_per_sec is not None:
+            rates=lane_exchange_rates_per_sec
+            if not isinstance(rates,dict) or set(rates)!={'prehead','posthead'}:
+                raise ValueError('Lane exchange requires separate prehead and posthead rates')
+            checked={}
+            for stage,matrix in rates.items():
+                if (not isinstance(matrix,(list,tuple)) or len(matrix)!=self.lanes or
+                        any(not isinstance(row,(list,tuple)) or len(row)!=self.lanes for row in matrix)):
+                    raise ValueError('Lane exchange matrix must match physical lanes')
+                checked[stage]=[[_number(x,'lane exchange rate') for x in row] for row in matrix]
+                if any(x and abs(i-j)!=1 for i,row in enumerate(checked[stage]) for j,x in enumerate(row)):
+                    raise ValueError('Lane exchange is limited to adjacent physical lanes')
+            self.lane_exchange_rates=checked
         self._lane_buffers = []
         for lane in range(1, self.lanes+1):
             spec = dict(kwargs, lanes=1)
             spec['initial_cohorts'] = [(pos, speed, 1) for pos, speed, index
                                        in self.initial_cohorts if index == lane]
             self._lane_buffers.append(PhysicalRampBoundary(**spec))
+        if self.lane_exchange_rates is not None:
+            for b in self._lane_buffers:b._lane_transfer_in=b._lane_transfer_out=0.
 
     @staticmethod
     def _aggregate_snapshots(snapshots, connector_id):
@@ -446,10 +494,73 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
         return self._aggregate_snapshots([b.snapshot() for b in self._lane_buffers], self.connector_id)
 
     def metadata(self):
-        return {**super().metadata(), 'lane_resolution': True,
+        result = {**super().metadata(), 'lane_resolution': True,
                 'lane_arrival_shares': self.lane_arrival_shares,
                 'lane_exchange': 'None; independent lane FIFO inventories',
                 'lane_supply': 'Equal shares of canonical aggregate receiving budget'}
+        if self.lane_exchange_rates is not None:
+            result.update(lane_exchange='Stage-preserving adjacent-lane transfer; remaining cohort ETA unchanged',
+                          lane_exchange_rates_per_sec=self.lane_exchange_rates)
+        return result
+
+    def _exchange_lanes(self):
+        """Apply one second of lateral requests without crossing the head.
+
+        Requests use pre-transfer donor stocks. Each receiving stage uses only
+        its pre-transfer room, never room expected from an outgoing transfer.
+        Moving cohorts keep their ETA, so a lane change grants no travel time.
+        """
+        buffers=self._lane_buffers
+        if any(b._phase!='idle' or b.time_sec!=buffers[0].time_sec for b in buffers):
+            raise ValueError('Lane exchange requires common idle clocks')
+        snapshots=[b.snapshot() for b in buffers]
+        stages={'prehead':('_upstream','_head_ready',self.head_position_m/self.spacing_m),
+                'posthead':('_downstream','_merge_ready',(self.length_m-self.head_position_m)/self.spacing_m)}
+        transfers={}
+        for stage,(travel,ready,capacity) in stages.items():
+            ns=[fsum(n for eta,n in getattr(b,travel))+getattr(b,ready) for b in buffers]
+            requests=[]
+            for i,row in enumerate(self.lane_exchange_rates[stage]):
+                rate=fsum(row);fraction=-expm1(-rate)
+                requests.append([ns[i]*fraction*x/rate if rate else 0. for x in row])
+            factors=[]
+            for j,b in enumerate(buffers):
+                incoming=fsum(row[j] for row in requests)
+                room=min(max(0.,capacity-ns[j]),max(0.,b.capacity_veh-snapshots[j]['connector_veh']))
+                # The other stage cannot consume this stage's room, and total
+                # requests across stages share the whole-lane room below.
+                factors.append(min(1.,room/incoming) if incoming else 1.)
+            transfers[stage]=[[x*factors[j] for j,x in enumerate(row)] for row in requests]
+        # Reserve shared whole-lane room once across both stages.
+        for j,b in enumerate(buffers):
+            incoming=fsum(matrix[i][j] for matrix in transfers.values() for i in range(self.lanes))
+            room=max(0.,b.capacity_veh-snapshots[j]['connector_veh'])
+            factor=min(1.,room/incoming) if incoming else 1.
+            for matrix in transfers.values():
+                for row in matrix:row[j]*=factor
+        for stage,(travel,ready,capacity) in stages.items():
+            cohorts=[list(getattr(b,travel)) for b in buffers];queued=[getattr(b,ready) for b in buffers]
+            ns=[fsum(n for eta,n in rows)+q for rows,q in zip(cohorts,queued)]
+            matrix=transfers[stage]
+            for i,b in enumerate(buffers):
+                outgoing=fsum(matrix[i]);fraction=outgoing/ns[i] if ns[i] else 0.
+                setattr(b,travel,[(eta,n*(1.-fraction)) for eta,n in cohorts[i]])
+                setattr(b,ready,queued[i]*(1.-fraction))
+            for i,b in enumerate(buffers):
+                for j,amount in enumerate(matrix[i]):
+                    if not amount:continue
+                    other=buffers[j];fraction=amount/ns[i]
+                    getattr(other,travel).extend((eta,n*fraction) for eta,n in cohorts[i])
+                    setattr(other,ready,getattr(other,ready)+queued[i]*fraction)
+                    b._lane_transfer_out+=amount;other._lane_transfer_in+=amount
+            # Preserve finite cohorts without exponential list growth: equal
+            # ETA cohorts share one bin. No time quantization is introduced.
+            for b in buffers:
+                merged={}
+                for eta,n in getattr(b,travel):merged[eta]=merged.get(eta,0.)+n
+                setattr(b,travel,[(eta,n) for eta,n in sorted(merged.items()) if n])
+        for b in buffers:b._check_conservation()
+        return transfers
 
     def begin_interval(self, *args, **kwargs):
         raise ValueError('Lane-resolved ramps require advance_local_interval')
@@ -458,16 +569,64 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
     apply_head_service = begin_interval
     finish_interval = begin_interval
 
-    def advance_local_interval(self, **kwargs):
+    def advance_local_interval(self, *, receiving_budget_by_lane_veh=None, request_arrivals_by_lane_second=None, **kwargs):
+        if receiving_budget_by_lane_veh is not None:
+            if (not isinstance(receiving_budget_by_lane_veh,(list,tuple))
+                    or len(receiving_budget_by_lane_veh)!=self.lanes):
+                raise ValueError('One receiving budget per physical ramp lane is required')
+            budgets=[_number(x,'lane receiving budget') for x in receiving_budget_by_lane_veh]
+            if abs(fsum(budgets)-_number(kwargs['receiving_budget_veh'],'receiving budget'))>_MASS_TOLERANCE:
+                raise ValueError('Lane receiving budgets must preserve the aggregate budget')
+        lane_profiles=None
+        if request_arrivals_by_lane_second is not None:
+            profile=request_arrivals_by_lane_second
+            if (not isinstance(profile,(list,tuple)) or len(profile)!=self.lanes or
+                    any(not isinstance(row,(list,tuple)) or len(row)!=kwargs['duration_sec'] for row in profile)):
+                raise ValueError('Explicit arrival profile must contain every lane and second')
+            lane_profiles=[[_number(x,'lane arrival profile') for x in row] for row in profile]
+            if abs(fsum(x for row in lane_profiles for x in row)-_number(kwargs['request_arrivals_veh'],'arrival requests'))>_MASS_TOLERANCE:
+                raise ValueError('Lane arrival profiles must preserve total requested arrivals')
+            if kwargs.get('request_arrivals_by_second') is not None:
+                aggregate=kwargs['request_arrivals_by_second']
+                if len(aggregate)!=kwargs['duration_sec'] or any(abs(fsum(row[t] for row in lane_profiles)-_number(x,'arrival profile'))>_MASS_TOLERANCE
+                    for t,x in enumerate(aggregate)):
+                    raise ValueError('Lane arrival profiles disagree with the total second profile')
         receipts = []
-        for share, buffer in zip(self.lane_arrival_shares, self._lane_buffers):
+        workers=[]
+        for lane, (share, buffer) in enumerate(zip(self.lane_arrival_shares, self._lane_buffers)):
             lane_args = dict(kwargs)
             for key in ('receiving_budget_veh', 'service_veh'):
                 lane_args[key] = _number(kwargs[key], key)/self.lanes
+            if receiving_budget_by_lane_veh is not None:
+                lane_args['receiving_budget_veh']=budgets[lane]
             lane_args['request_arrivals_veh'] = _number(kwargs['request_arrivals_veh'], 'request_arrivals_veh')*share
             if kwargs.get('request_arrivals_by_second') is not None:
                 lane_args['request_arrivals_by_second'] = [x*share for x in kwargs['request_arrivals_by_second']]
-            receipts.append(buffer.advance_local_interval(**lane_args))
+            if lane_profiles is not None:
+                lane_args['request_arrivals_by_second']=lane_profiles[lane]
+                lane_args['request_arrivals_veh']=fsum(lane_profiles[lane])
+            if self.lane_exchange_rates is None:
+                receipts.append(buffer.advance_local_interval(**lane_args))
+            else:
+                worker=buffer._local_interval_steps(**lane_args)
+                workers.append(worker)
+        transfers=None
+        if workers:
+            clock=kwargs['start_sec']
+            for worker in workers:
+                if next(worker)!=clock:raise ArithmeticError('Lane worker start clocks differ')
+            transfers={s:[[0.]*self.lanes for _ in range(self.lanes)] for s in self.lane_exchange_rates}
+            for second in range(int(kwargs['duration_sec'])):
+                moved=self._exchange_lanes()
+                for stage,matrix in moved.items():
+                    for i,row in enumerate(matrix):
+                        for j,x in enumerate(row):transfers[stage][i][j]+=x
+                for worker in workers:
+                    try:
+                        if next(worker)!=clock+second+1:raise ArithmeticError('Lane worker clocks diverged')
+                    except StopIteration as finished:
+                        if second!=int(kwargs['duration_sec'])-1:raise ArithmeticError('Lane worker ended early')
+                        receipts.append(finished.value)
         def combine(rs):
             first = rs[0]
             same = {'start_sec', 'end_sec', 'duration_sec', 'meter_mode', 'green_sec',
@@ -487,6 +646,7 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
                                     for i in range(len(receipts[0]['local_receipts']))]
         result['lane_receipts'] = [{k:v for k,v in r.items() if k!='local_receipts'} for r in receipts]
         result['lane_arrival_shares'] = self.lane_arrival_shares
+        if transfers is not None:result['lane_exchange_transfers_veh']=transfers
         self.time_sec = result['end_sec']
         # Public counters are consumed by the rollout residence ledger, not only
         # snapshots. Keep them identical to the sum of the physical lanes.

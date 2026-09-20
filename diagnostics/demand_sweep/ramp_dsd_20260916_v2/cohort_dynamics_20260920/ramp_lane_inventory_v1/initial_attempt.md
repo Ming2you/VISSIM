@@ -1,0 +1,1 @@
+First invocation failed before reading trajectories or writing results: geometry field `connector_length_m` does not exist. The source geometry uses `length_m`. Fixed that lookup; retry uses the same empty output directory. Existing results are never overwritten.

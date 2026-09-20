@@ -59,6 +59,25 @@ class ObservationData:
         return total
 
 
+def upstream_origin_split(off_exits, downstream_exits, ramp_merges, initial_origin, final_origin):
+    """Conditional branch fraction after removing post-branch ramp bypasses.
+
+    Count each bypass from its own conservation equation, not all arrivals:
+    ramp_out = ramp_in + initial same-cell origin stock - final origin stock.
+    This is a historical exiting-cohort fraction, not desired OD demand.
+    """
+    values=[off_exits,downstream_exits,ramp_merges,initial_origin,final_origin]
+    if any(not math.isfinite(x) or x<0 for x in values):raise ValueError('Invalid historical origin counts')
+    bypass=ramp_merges+initial_origin-final_origin
+    if bypass < -1e-7 or bypass>downstream_exits+1e-7:
+        raise ValueError('Post-branch ramp-origin continuity contradicts observed exits')
+    denominator=downstream_exits+off_exits-max(0.,bypass)
+    if denominator<=1e-7:
+        if off_exits>1e-7:raise ValueError('Off-ramp exits with no eligible origin cohort')
+        return 0.,max(0.,bypass)
+    return min(1.,off_exits/denominator),max(0.,bypass)
+
+
 def build_window(data,cutoff,mode,port_profile=None):
     if mode not in PROTOCOL['evaluation_modes']:
         raise ValueError('Unknown boundary mode')

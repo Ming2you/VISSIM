@@ -8972,7 +8972,7 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
         _o_nu = _mn.select_anticipation_nu
         _o_up = _mn.metanet_speed_update_kmh
 
-        def _patched_segment_vsl(control, link, index, cfg_):
+        def _patched_segment_vsl(control, link, index, cfg_, *, physical_length_km=None, segment_end=True):
             try:
                 _FW_SEG_CTX["p"] = _fw_seg_param_dict(cfg_.network, link, index)
                 _FW_SEG_CTX["armed"] = True
@@ -9000,6 +9000,21 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
                 _FW_SEG_CTX["armed"] = False
                 _FW_SEG_CTX["phi"] = 0.0
                 _FW_SEG_CTX["dlam"] = 0.0
+            if physical_length_km is not None:
+                # An explicitly resolved subcell keeps the segment's FD and
+                # dynamics, but its physical length must survive the wrapper.
+                # Copy the context, never mutate the canonical parameter row.
+                length=float(physical_length_km)
+                if not math.isfinite(length) or length<=0 or not _FW_SEG_CTX['armed']:
+                    raise ValueError('Physical speed context requires a positive length and armed segment')
+                p=dict(_FW_SEG_CTX['p'])
+                if length>float(p.get('segment_length_km',length))+1e-9:
+                    raise ValueError('Physical subcell exceeds its canonical segment length')
+                p['segment_length_km']=length;_FW_SEG_CTX['p']=p
+                if not segment_end:
+                    # A downstream lane ending is not located at the interior
+                    # pre/post boundary of the same physical segment.
+                    _FW_SEG_CTX['dlam']=0.0
             return _o_sv(control, link, index, cfg_)
 
         def _patched_effective_desired_speed_kmh(rho, v_free, rho_crit, vsl, alpha_vsl=0.0,

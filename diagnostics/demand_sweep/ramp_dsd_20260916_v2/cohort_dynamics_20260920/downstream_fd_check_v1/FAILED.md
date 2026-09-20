@@ -1,0 +1,1 @@
+Diagnostic failed before any treatment prediction: trace wrapper looked for adapter._mn, but the consumed module is area_freeway_accounting._mn. Config, protocol and source are preserved. No native run or core change. Retry in v2 corrects only instrumentation access and output path.

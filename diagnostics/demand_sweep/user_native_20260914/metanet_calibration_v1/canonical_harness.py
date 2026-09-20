@@ -109,6 +109,7 @@ class DelayedPort:
                 previous_due = due
         self.initial = self.stock
         self.admitted = self.departed = 0.
+        self.internal_in = self.internal_out = 0.
         if self.stock > self.capacity+1e-8:
             raise ValueError('Observed initial connector stock exceeds declared capacity')
 
@@ -184,9 +185,85 @@ class DelayedPort:
         self.last_time_s = float(end_s)
         self.pending.append([arrival_s, max(0., amount)])
         self.admitted += amount
-        residual = self.stock-self.initial-self.admitted+self.departed
+        residual = self.stock-self.initial-self.admitted+self.departed-self.internal_in+self.internal_out
         if abs(residual) > 1e-7:
             raise ArithmeticError('Connector conservation failure')
+
+
+class LaneResolvedDelayedPort:
+    """Two physical lanes with separate service and conservative cohort exchange.
+
+    Exchange uses measured past net-transfer hazards, not a fitted cost bonus.
+    Cohort readiness times survive transfers; unused lane service is not shared.
+    This does not infer destination permission from observed transfers.
+    """
+    def __init__(self, capacity, length_m, travel_speed_kmh, cohorts, start_s, rates):
+        if (len(rates) != 2 or any(len(row) != 2 for row in rates)
+                or any(not math.isfinite(x) or x < 0 for row in rates for x in row)
+                or any(rates[i][i] != 0 for i in range(2))):
+            raise ValueError('Two-lane nonnegative exchange hazards required')
+        if any(row[2] not in (1, 2) for row in cohorts):
+            raise ValueError('Off-ramp lane outside physical connector')
+        self.lanes = [DelayedPort(capacity/2, length_m, travel_speed_kmh,
+            [row for row in cohorts if row[2] == i+1], start_s, interval_service=True) for i in range(2)]
+        self.rates = copy.deepcopy(rates)
+        self.capacity = capacity
+        self.initial = self.stock
+        self.internal_transferred = 0.
+
+    @property
+    def stock(self): return sum(p.stock for p in self.lanes)
+    @property
+    def ready(self): return sum(p.ready for p in self.lanes)
+    @property
+    def admitted(self): return sum(p.admitted for p in self.lanes)
+    @property
+    def departed(self): return sum(p.departed for p in self.lanes)
+    @property
+    def residence_veh_h(self): return sum(p.residence_veh_h for p in self.lanes)
+
+    def _exchange(self, dt_s):
+        # Simultaneous requests use start stock and free space. Newly freed space
+        # is not reused in the same exchange, avoiding fictitious swaps/capacity.
+        stocks = [p.stock for p in self.lanes]
+        requests = [min(stocks[i]*(1-math.exp(-self.rates[i][1-i]*dt_s)),
+            max(0., self.lanes[1-i].capacity-stocks[1-i])) for i in range(2)]
+        removed = []
+        for i, p in enumerate(self.lanes):
+            fraction = requests[i]/stocks[i] if stocks[i] else 0.
+            ready = p.ready*fraction
+            pending = [[t, n*fraction] for t, n in p.pending]
+            removed.append((ready, pending))
+            p.ready -= ready
+            p.pending = [[t, n*(1-fraction)] for t, n in p.pending]
+            p.internal_out += requests[i]
+        for i, (ready, pending) in enumerate(removed):
+            p = self.lanes[1-i]
+            p.ready += ready
+            combined = {}
+            for t, n in p.pending+pending:
+                if n > 0: combined[t] = combined.get(t, 0.)+n
+            p.pending = [[t, n] for t, n in sorted(combined.items())]
+            p.internal_in += requests[i]
+        self.internal_transferred += sum(requests)
+
+    def release(self, start_s, dt_s, services_vph):
+        if (dt_s <= 0 or int(dt_s) != dt_s or len(services_vph) != 2
+                or any(not math.isfinite(x) or x < 0 for x in services_vph)):
+            raise ValueError('Lane drainage needs integer seconds and two finite services')
+        amount = 0.
+        for j in range(int(dt_s)):
+            self._exchange(1.)
+            amount += sum(p.release(start_s+j, 1., q) for p, q in zip(self.lanes, services_vph))
+        return amount
+
+    def accept(self, end_s, amount, *, lane_amounts, entry_speed_kmh=None):
+        if len(lane_amounts) != 2 or abs(sum(lane_amounts)-amount) > 1e-7:
+            raise ValueError('Missing or inconsistent physical lane admissions')
+        for p, n in zip(self.lanes, lane_amounts):
+            p.accept(end_s, n)
+        if abs(self.stock-self.initial-self.admitted+self.departed) > 1e-7:
+            raise ArithmeticError('Lane connector conservation failure')
 
 
 class CanonicalFreewayModel:
@@ -209,6 +286,15 @@ class CanonicalFreewayModel:
             raise ValueError('Observation geometry and model use different canonical mappings')
         cfg = adapter.build_config(ROOT / "vendor/NumSim-mine", 150.0, 9000.0,
                                    "normal", {}, tuning, local_observation=True, flagship=True)
+        self.original_mainline_step_sec=cfg.simulation.T_f_sec
+        integration=tuning.get('freeway',{}).get('physical_integration_step_sec')
+        if integration is not None:
+            if (type(integration) is not int or integration<1 or integration>cfg.simulation.T_f_sec
+                    or cfg.simulation.T_f_sec%integration):
+                raise ValueError('Component integration must be an integer-second divisor of the original step')
+            cfg.simulation.T_f=integration
+            cfg.simulation.T_u=min(cfg.simulation.T_u,integration)
+            cfg.simulation.validate()
         self.runtime_metadata = runtime_setup.configure_freeway_runtime(adapter, cfg, tuning, mapping)
         self.base = cfg
         self.roads = tuple(cfg.network.freeway_links)
@@ -258,6 +344,94 @@ class CanonicalFreewayModel:
         if type(self.offramp_interval_service) is not bool:
             raise ValueError('Physical off-ramp interval service must be boolean')
         self.component_residence = tuning.get('freeway', {}).get('physical_component_residence', False)
+        self.lane_groups_enabled = tuning.get('freeway', {}).get('physical_mainline_lane_groups', False)
+        if type(self.lane_groups_enabled) is not bool:
+            raise ValueError('Physical mainline lane-group flag must be boolean')
+        self.ramp_lane_coupling=copy.deepcopy(tuning.get('freeway',{}).get('physical_ramp_lane_coupling',{}))
+        if (not isinstance(self.ramp_lane_coupling,dict) or set(self.ramp_lane_coupling)-set(self.ramps)
+                or (self.ramp_lane_coupling and not self.lane_groups_enabled)):
+            raise ValueError('Ramp lane coupling requires known ramps and physical lane groups')
+        for ramp,groups in self.ramp_lane_coupling.items():
+            if (not isinstance(groups,list) or len(groups)!=self.ramps[ramp]['lanes']
+                    or any(type(g) is not int or g<0 for g in groups)):
+                raise ValueError('One explicit mainline group per physical connector lane is required')
+        self.ramp_lane_exchange=copy.deepcopy(tuning.get('freeway',{}).get('physical_ramp_lane_exchange',{}))
+        if not isinstance(self.ramp_lane_exchange,dict) or set(self.ramp_lane_exchange)-set(self.ramp_lane_coupling):
+            raise ValueError('Ramp lane exchange requires explicit physical lane coupling')
+        self.ramp_conflict_through_inventory=tuning.get('freeway',{}).get('physical_ramp_conflict_through_inventory',[])
+        if (not isinstance(self.ramp_conflict_through_inventory,list) or
+                any(not isinstance(r,str) or r not in self.ramp_lane_coupling for r in self.ramp_conflict_through_inventory) or
+                len(set(self.ramp_conflict_through_inventory))!=len(self.ramp_conflict_through_inventory)):
+            raise ValueError('Through-inventory conflict requires unique physically coupled ramps')
+        self.offramp_lanes = copy.deepcopy(tuning.get('freeway', {}).get('physical_offramp_lanes', {}))
+        if (not isinstance(self.offramp_lanes, dict) or set(self.offramp_lanes)-set(self.offramps)
+                or (self.offramp_lanes and (not self.lane_groups_enabled or not self.offramp_interval_service))):
+            raise ValueError('Lane off-ramps require known ports, lane groups and interval drainage')
+        for off, spec in self.offramp_lanes.items():
+            if (set(spec) != {'entry_groups', 'history_sec'} or spec['history_sec'] != 150
+                    or spec['entry_groups'] != [0, 1] or self.offramps[off]['lanes'] != 2
+                    or self.offramps[off]['road'] != 'FW_E'):
+                raise ValueError('Unqualified off-ramp lane mapping/history')
+        self.lane_exchange_model = copy.deepcopy(tuning.get('freeway', {}).get('physical_lane_exchange_model'))
+        self.lane_interruption_gamma = tuning.get('freeway', {}).get('physical_lane_interruption_gamma')
+        self.lane_destination_policy = tuning.get('freeway', {}).get('physical_lane_destination_policy')
+        self.lane_momentum_advection = tuning.get('freeway', {}).get('physical_lane_momentum_advection', False)
+        if type(self.lane_momentum_advection) is not bool or (self.lane_momentum_advection and not self.lane_groups_enabled):
+            raise ValueError('Physical velocity advection requires a boolean and enabled lane groups')
+        port_lengths = tuning.get('freeway', {}).get('physical_port_travel_lengths', False)
+        if type(port_lengths) is not bool or (port_lengths and not self.lane_groups_enabled):
+            raise ValueError('Within-cell port travel requires boolean and physical lane groups')
+        self.port_initial_positions=tuning.get('freeway',{}).get('physical_port_initial_positions',False)
+        if type(self.port_initial_positions) is not bool or (self.port_initial_positions and not port_lengths):
+            raise ValueError('Position-aware branch initialization requires boolean and port travel')
+        self.branch_partition=copy.deepcopy(tuning.get('freeway',{}).get('physical_branch_partition',[]))
+        if (not isinstance(self.branch_partition,list) or len(self.branch_partition)!=len(set(self.branch_partition))
+                or set(self.branch_partition)-set(self.offramps)
+                or (self.branch_partition and not self.port_initial_positions)):
+            raise ValueError('Physical branch partition requires known ports and current positions')
+        self.partition_exchange=tuning.get('freeway',{}).get('physical_partition_exchange',False)
+        if type(self.partition_exchange) is not bool or (self.partition_exchange and not self.branch_partition):
+            raise ValueError('Spatial exchange requires a boolean and enabled branch partitions')
+        self.partition_speed_context=tuning.get('freeway',{}).get('physical_partition_speed_context',False)
+        if type(self.partition_speed_context) is not bool or (self.partition_speed_context and not self.branch_partition):
+            raise ValueError('Physical speed context requires a boolean and enabled branch partitions')
+        self.port_origin_split=tuning.get('freeway',{}).get('physical_port_origin_split',False)
+        if type(self.port_origin_split) is not bool or (self.port_origin_split and not port_lengths):
+            raise ValueError('Origin-conditioned branch split requires boolean and port travel')
+        self.upstream_exit_inventory=copy.deepcopy(tuning.get('freeway',{}).get('physical_upstream_exit_inventory',{}))
+        if (not isinstance(self.upstream_exit_inventory,dict) or set(self.upstream_exit_inventory)-set(self.offramps)
+                or (self.upstream_exit_inventory and not self.port_initial_positions)):
+            raise ValueError('First-exit inventory requires known ports and current pre-exit positions')
+        for off,beta in self.upstream_exit_inventory.items():
+            port=self.offramps[off];road=port['road']
+            if (isinstance(beta,bool) or not isinstance(beta,(int,float)) or not math.isfinite(beta) or not 0<=beta<=1
+                    or road!='FW_E' or any(p['road']==road and p['chain_pos_m']<=port['chain_pos_m']
+                        for key,p in self.offramps.items() if key!=off)
+                    or any(p['road']==road and p['chain_pos_m']<=port['chain_pos_m'] for p in self.ramps.values())):
+                raise ValueError('Only a configured first-exit fraction before all other ports is supported')
+        self.lane_port_travel = {}
+        if port_lengths:
+            travel = {'ramp_remaining_km':{},'off_distance_km':{}}
+            for off,p in self.offramps.items():
+                if p['road']=='FW_E':
+                    cell=self.geometry_cells['FW_E',p['from_cell']]
+                    travel['off_distance_km'][off]=(p['chain_pos_m']-cell['start_m'])/1000
+            for r,p in self.ramps.items():
+                if p['road']=='FW_E':
+                    cell=self.geometry_cells['FW_E',p['to_cell']]
+                    if any(o['road']=='FW_E' and o['from_cell']==p['to_cell'] and o['chain_pos_m']>=p['chain_pos_m']
+                           for o in self.offramps.values()):
+                        raise ValueError('This origin-tag closure requires same-cell merge after all off-ramps')
+                    travel['ramp_remaining_km'][r]=(cell['end_m']-p['chain_pos_m'])/1000
+                self.lane_port_travel['FW_E']=travel
+        if self.ramp_conflict_through_inventory and not self.lane_port_travel:
+            raise ValueError('Through-inventory conflict requires physical port lengths')
+        if self.lane_destination_policy is not None and not self.lane_groups_enabled:
+            raise ValueError('Lane destination policy requires physical lane groups')
+        if self.lane_interruption_gamma is not None and not self.lane_groups_enabled:
+            raise ValueError('Lane-entry interruption requires physical lane groups')
+        if self.lane_exchange_model is not None and (not self.lane_groups_enabled or not isinstance(self.lane_exchange_model,dict)):
+            raise ValueError('State-dependent exchange requires an explicit model and physical lane groups')
         if type(self.component_residence) is not bool or (self.component_residence and not self.offramp_interval_service):
             raise ValueError('Component residence must be boolean and requires interval-service off-ramp dynamics')
         self.offramp_entry_speed = copy.deepcopy(tuning.get('freeway', {}).get('physical_offramp_entry_speed', {}))
@@ -385,7 +559,8 @@ class CanonicalFreewayModel:
         return cfg
 
     def rollout(self, initial_cells, boundary_steps, overrides=None, initial_origin_queue=None, *, roads=None,
-                port_dynamics=None, ramp_dynamics=None, vsl_zone_heads=None, residence_audit=False):
+                port_dynamics=None, ramp_dynamics=None, vsl_zone_heads=None, residence_audit=False,
+                lane_group_dynamics=None):
         """Advance one contiguous450s forecast; read observed cells only at t0.
 
         Boundary steps are10s dictionaries with source_demand_vph[road],
@@ -415,6 +590,14 @@ class CanonicalFreewayModel:
         override_by = (overrides or {}).get("by_direction", {})
         cells, flows, details, port_rows = [], [], [], []
         selected_roads = self.roads if roads is None else tuple(roads)
+        if self.lane_groups_enabled != (lane_group_dynamics is not None):
+            raise ValueError('Lane-group config and explicit observed group state must be supplied together')
+        if lane_group_dynamics is not None:
+            if (not isinstance(lane_group_dynamics, dict) or not lane_group_dynamics
+                    or set(lane_group_dynamics)-set(selected_roads)):
+                raise ValueError('Invalid explicit lane-group road map')
+            from evaluation.controllers.physical_lane_groups import PhysicalLaneGroups
+        lane_group_results = {}
         if not selected_roads or set(selected_roads) - set(self.roads):
             raise ValueError("Unknown/empty selected freeway directions")
         if vsl_zone_heads is not None:
@@ -442,10 +625,13 @@ class CanonicalFreewayModel:
                 raise ValueError('Ramp local step must be1s or the unchanged freeway step')
             if local_ramp_step == 1.:
                 meter_cycle = ramp_dynamics.get('meter_cycle_sec')
-                if isinstance(meter_cycle, bool) or meter_cycle != tf:
-                    raise ValueError('Local ramp cycle must explicitly equal the freeway interval')
+                if isinstance(meter_cycle, bool) or meter_cycle != self.original_mainline_step_sec:
+                    raise ValueError('Local ramp cycle must retain the original actuator period')
         if self.ramp_receiving_nodes and (local_ramp_step != 1. or set(self.ramp_receiving_nodes)-set(ramp_specs)):
             raise ValueError('Receiving nodes require their physical lane buffers and local 1s meter dynamics')
+        if self.ramp_lane_coupling and (local_ramp_step!=1. or set(self.ramp_lane_coupling)-set(ramp_specs)
+                or set(self.ramp_lane_coupling)-set(self.ramp_receiving_nodes)):
+            raise ValueError('Lane coupling requires explicit local1s lane buffers and receiving nodes')
         for road in selected_roads:
             cfg = self._config(road, override_by.get(road, {}))
             if vsl_zone_heads is not None and road in vsl_zone_heads:
@@ -463,6 +649,19 @@ class CanonicalFreewayModel:
                                          else net.freeway_segment_params[road][c].get("v_free", net.v_free) for c in range(21)]
             state.mainline_origin_queue[road] = float((initial_origin_queue or {}).get(road, 0.0))
             state.urban_link_storage = dict(net.urban_link_storage_veh)
+            lane_groups = (PhysicalLaneGroups(lane_group_dynamics[road], state, cfg, accounting,
+                           exchange_model=self.lane_exchange_model,interruption_gamma=self.lane_interruption_gamma,
+                           destination_policy=self.lane_destination_policy,
+                           momentum_advection=self.lane_momentum_advection,
+                           port_travel=self.lane_port_travel.get(road),
+                           position_aware_initial=self.port_initial_positions,
+                           upstream_exit_inventory={o:b for o,b in self.upstream_exit_inventory.items()
+                                                    if self.offramps[o]['road']==road},
+                           ramp_conflict_through_inventory=[r for r in self.ramp_conflict_through_inventory if self.ramps[r]['road']==road],
+                           branch_partition=[o for o in self.branch_partition if self.offramps[o]['road']==road],
+                           partition_exchange=self.partition_exchange and any(self.offramps[o]['road']==road for o in self.branch_partition),
+                           partition_speed_context=self.partition_speed_context and any(self.offramps[o]['road']==road for o in self.branch_partition))
+                           if lane_group_dynamics and road in lane_group_dynamics else None)
             control = ControlAction.uncontrolled(cfg)
             vsl_audit = None
             if vsl_zone_heads is not None:
@@ -478,7 +677,8 @@ class CanonicalFreewayModel:
                 if ramp not in ramp_specs:
                     continue
                 buffer_class = LaneResolvedRampBoundary if ramp in self.ramp_receiving_nodes else PhysicalRampBoundary
-                buffer = buffer_class(**ramp_specs[ramp])
+                buffer = buffer_class(**ramp_specs[ramp],
+                    **({'lane_exchange_rates_per_sec':self.ramp_lane_exchange[ramp]} if ramp in self.ramp_lane_exchange else {}))
                 geometry = self.ramps[ramp]
                 if (buffer.connector_id != str(geometry['connector']) or buffer.time_sec != start
                         or abs(buffer.length_m-geometry['length_m']) > 1e-8
@@ -487,6 +687,10 @@ class CanonicalFreewayModel:
                     raise ValueError('Ramp dynamics geometry/time differs from physical port')
                 ramp_buffers[ramp] = buffer
                 ramp_metadata[ramp] = buffer.metadata()
+                if ramp in self.ramp_lane_coupling:
+                    ramp_metadata[ramp].update(
+                        lane_supply='Explicit lane receiving budgets; accepted merges retain their physical target group',
+                        lane_to_mainline_group=list(self.ramp_lane_coupling[ramp]))
             stores = {}
             if port_dynamics:
                 if port_dynamics.get('schema') != 'physical-off-storage/v1':
@@ -495,6 +699,17 @@ class CanonicalFreewayModel:
                     cfg.freeway_offramp_capacity_drop.enabled = False
                 for off in net.off_ramps:
                     spec = self.offramps[off]
+                    if off in self.offramp_lanes:
+                        if lane_groups is None:
+                            raise ValueError('Physical lane off-ramp requires mainline lane state')
+                        access = lane_groups.spec['off_access'][off]
+                        if (access['weights'] != [1, 1, 0] or
+                                lane_groups.widths[access['cell']][:2] != [1, 1]):
+                            raise ValueError('Off-ramp group-to-lane continuity changed')
+                        stores[off] = LaneResolvedDelayedPort(spec['storage_capacity_veh'], spec['length_m'],
+                            port_dynamics['travel_speed_kmh'][off], port_dynamics['initial_cohorts'][off], start,
+                            port_dynamics['lane_exchange_rates_per_sec'][off])
+                        continue
                     stores[off] = DelayedPort(spec['storage_capacity_veh'], spec['length_m'],
                         port_dynamics['travel_speed_kmh'][off], port_dynamics['initial_cohorts'][off], start,
                         interval_service=self.offramp_interval_service,
@@ -517,17 +732,26 @@ class CanonicalFreewayModel:
                 caps = {o: float(step["off_capacity_vph"][o]) for o in net.off_ramps}
                 net.off_ramp_split_ratio = {o: float(step["off_split_ratio"][o]) for o in net.off_ramps}
                 occupancy = step.get("offramp_occupancy_veh", {})
+                group_caps = {}
                 for off in net.off_ramps:
                     storage = net.off_ramp_storage_link[off]
                     if off in stores:
                         store = stores[off]
-                        store.release(t, tf, float(step['off_drain_vph'][off]))
+                        if isinstance(store, LaneResolvedDelayedPort):
+                            services = step['off_lane_drain_vph'][off]
+                            if abs(sum(services)-step['off_drain_vph'][off]) > 1e-7:
+                                raise ValueError('Lane drainage must preserve the existing total boundary service')
+                            store.release(t, tf, services)
+                            group_caps[off] = [max(0., p.capacity-p.stock)*3600/tf for p in store.lanes]+[0.]
+                        else:
+                            store.release(t, tf, float(step['off_drain_vph'][off]))
                         state.urban_link_storage[storage] = max(0., store.capacity-store.stock)
                         caps[off] = max(0., store.capacity-store.stock)*3600/tf
                     elif off in occupancy:
                         state.urban_link_storage[storage] = max(0.0, net.urban_link_storage_veh[storage] - float(occupancy[off]))
                 demand = DemandStep({road: float(step["source_demand_vph"][road])}, {}, {})
                 interval_ramp_rows = []
+                ramp_group_releases = {}
                 if ramp_buffers and local_ramp_step == 1.:
                     # Supply is queried once from the t-start freeway state.
                     # Scratch availability prevents today's post-head stock from
@@ -544,8 +768,28 @@ class CanonicalFreewayModel:
                         supply_state, control, demand, cfg, include_current_arrivals=False)
                     for ramp, buffer in ramp_buffers.items():
                         budget_rate = float(selected[ramp])
+                        canonical_budget_rate = budget_rate
+                        lane_mapping=self.ramp_lane_coupling.get(ramp)
+                        lane_budgets=None
+                        if lane_mapping is not None:
+                            if not isinstance(buffer,LaneResolvedRampBoundary) or lane_groups is None:
+                                raise ValueError('Lane coupling requires lane-resolved ramp buffers')
+                            conditions=lane_groups.ramp_lane_conditions(ramp,lane_mapping,cfg)
+                            lane_budgets=[min(budget_rate/buffer.lanes,r['space_vph']) for r in conditions]
+                        elif lane_groups is not None:
+                            budget_rate = min(budget_rate, lane_groups.ramp_supply(ramp, cfg))
                         node_audit = None
-                        if ramp in self.ramp_receiving_nodes:
+                        if lane_budgets is not None:
+                            spec=self.ramp_receiving_nodes.get(ramp)
+                            if spec is not None:
+                                gap_rates=[gap_acceptance_supply_vph(r['conflicting_vph'],spec['critical_gap_sec'],spec['followup_sec']) for r in conditions]
+                                lane_budgets=[min(q,gap) for q,gap in zip(lane_budgets,gap_rates)]
+                            budget_rate=math.fsum(lane_budgets)
+                            node_audit={'physical_lane_coupling':True,'lane_conditions':conditions,
+                                'canonical_aggregate_budget_vph':canonical_budget_rate,
+                                'receiving_budget_vph_by_lane':list(lane_budgets),
+                                'lane_to_mainline_group':list(lane_mapping)}
+                        elif ramp in self.ramp_receiving_nodes:
                             spec = self.ramp_receiving_nodes[ramp]
                             upstream = net.ramp_merge_segment_index[ramp]-1
                             if upstream < 0:
@@ -556,12 +800,21 @@ class CanonicalFreewayModel:
                             if not 0. <= split <= 1.:
                                 raise ValueError('Invalid upstream off-ramp split sum')
                             conflicting = state.freeway_density[road][upstream]*state.freeway_speed[road][upstream]*(1.-split)
+                            if lane_groups is not None:
+                                conflicting = lane_groups.conflict_vph_per_lane(ramp)
                             per_lane = gap_acceptance_supply_vph(conflicting, spec['critical_gap_sec'], spec['followup_sec'])
                             node_audit = {'conflicting_vph_per_lane': conflicting,
                                 'upstream_cell': upstream, 'off_split_removed': split,
                                 'gap_supply_vph_per_lane': per_lane,
                                 'unlimited_node_canonical_budget_vph': budget_rate,
                                 'lane_flow_assumption': 'Upstream cell mean per lane after off-ramp split'}
+                            if lane_groups is not None:
+                                node_audit['lane_flow_assumption'] = 'Physical merge target lane-group flow'
+                                node_audit.pop('upstream_cell')
+                                node_audit['conflict_sample_cell'] = net.ramp_merge_segment_index[ramp]
+                                node_audit['off_split_removed'] = 0.
+                                node_audit['unlimited_node_canonical_budget_vph'] = canonical_budget_rate
+                                node_audit['target_group_storage_limited_budget_vph'] = budget_rate
                             budget_rate = min(budget_rate, buffer.lanes*per_lane)
                         if not math.isfinite(budget_rate) or budget_rate < 0:
                             raise ValueError('Invalid canonical ramp receiving budget')
@@ -570,8 +823,10 @@ class CanonicalFreewayModel:
                             raise ValueError('Ramp approach requests must be finite and nonnegative')
                         receipt = buffer.advance_local_interval(start_sec=t, duration_sec=tf,
                             cycle_sec=meter_cycle, receiving_budget_veh=budget_rate*dt_h,
+                            **({'allow_partial_cycle':True} if tf!=meter_cycle else {}),
                             request_arrivals_veh=arrival_vph*dt_h,
                             request_arrivals_by_second=step.get('ramp_arrival_profile',{}).get(ramp),
+                            **({'receiving_budget_by_lane_veh':[q*dt_h for q in lane_budgets]} if lane_budgets is not None else {}),
                             **step['ramp_head_service'][ramp])
                         accepted = receipt['accepted_merge_veh']
                         q = accepted/dt_h
@@ -585,6 +840,13 @@ class CanonicalFreewayModel:
                             receipt['receiving_node'] = node_audit
                         interval_ramp_rows.append(receipt)
                         releases[ramp] = q
+                        if lane_mapping is not None:
+                            rates=[0.]*len(lane_groups.n[net.ramp_merge_segment_index[ramp]])
+                            for group,lane_receipt in zip(lane_mapping,receipt['lane_receipts']):
+                                rates[group]+=lane_receipt['accepted_merge_veh']/dt_h
+                            if abs(sum(rates)-q)>1e-7:raise ArithmeticError('Lane ramp/mainline interface mismatch')
+                            ramp_group_releases[ramp]=rates
+                            receipt['applied_group_merge_vph']=list(rates)
                         state.ramp_queue[ramp] = receipt['end']['merge_ready_veh']
                 elif ramp_buffers:
                     for ramp, buffer in ramp_buffers.items():
@@ -645,14 +907,32 @@ class CanonicalFreewayModel:
                         return value
                     accounting._mn.effective_desired_speed_kmh = record_desired
                 try:
-                    residence, diag = accounting._freeway_substep_events(state, control, demand, cfg,
+                    transition = lane_groups.advance if lane_groups is not None else accounting._freeway_substep_events
+                    residence, diag = transition(state, control, demand, cfg,
                         offramp_capacity_veh_h=caps, ramp_release_veh_h=releases,
+                        **({'offramp_group_capacity_veh_h': group_caps} if group_caps else {}),
+                        **({'ramp_group_release_veh_h': ramp_group_releases} if ramp_group_releases else {}),
                         ramp_release_diagnostics={"total_no_meter_flow": sum(releases.values()), "mean_ramp_receiving_factor": 1.0},
                         update_ramp_queues=False, include_ramp_queue_ttt=False)
                 finally:
                     if vsl_audit is not None:
                         accounting._mn.effective_desired_speed_kmh = desired_speed
                 if vsl_audit is not None:
+                    if lane_groups is not None:
+                        grouped = []
+                        cursor = 0
+                        for i,ws in enumerate(lane_groups.widths):
+                            size=len(ws)*(2 if i in lane_groups.partitions else 1)
+                            values = observed_desired[cursor:cursor+size]
+                            if len(values) != size:
+                                raise ValueError('Missing lane-group desired-speed observation')
+                            # Preserve the cell audit schema; report the maximum
+                            # actual group cap effect rather than averaging it away.
+                            grouped.append(max(values, key=lambda x:x[2]-x[1]))
+                            cursor += size
+                        if cursor != len(observed_desired):
+                            raise ValueError('Extra lane-group desired-speed observation')
+                        observed_desired = grouped
                     if len(observed_desired) != 21:
                         raise ValueError('Missing or extra component desired-speed observations')
                     for audit, (active, value, baseline_value) in zip(vsl_audit['cells'], observed_desired):
@@ -677,13 +957,19 @@ class CanonicalFreewayModel:
                     elif kind == "freeway_offramp_sending":
                         actual["off"][net.off_ramp_segment_index[row["resource"]]] += value
                         if row['resource'] in stores:
+                            lane_args = ({'lane_amounts': lane_groups.last_off_sent[row['resource']][:2]}
+                                if isinstance(stores[row['resource']], LaneResolvedDelayedPort) else {})
                             stores[row['resource']].accept(t+tf, value,
-                                entry_speed_kmh=off_entry_speeds.get(row['resource']))
+                                entry_speed_kmh=off_entry_speeds.get(row['resource']), **lane_args)
                 for off, store in stores.items():
                     port_rows.append({'time_s': t+tf, 'road': road, 'connector': off,
                         'n_veh': store.stock, 'ready_veh': store.ready,
                         'admitted_veh': store.admitted, 'departed_veh': store.departed,
                         'conservation_residual_veh': store.stock-store.initial-store.admitted+store.departed})
+                    if isinstance(store, LaneResolvedDelayedPort):
+                        port_rows[-1]['lanes'] = [{'n_veh':p.stock,'ready_veh':p.ready,
+                            'departed_veh':p.departed,'admitted_veh':p.admitted,
+                            'internal_in_veh':p.internal_in,'internal_out_veh':p.internal_out} for p in store.lanes]
                 for ramp, q in releases.items():
                     actual["ramp"][net.ramp_merge_segment_index[ramp]] += q*tf/3600
                 after = accounting.continuity_vehicle_counts(state,cfg)[road]
@@ -730,6 +1016,21 @@ class CanonicalFreewayModel:
                     if local_ramp_step == 1. else 'Interval-start connector stock only; upstream outside-component backlog excluded')
             if vsl_audit is not None:
                 details[-1]['vsl_binding_audit'] = vsl_audit
+            if lane_groups is not None:
+                lane_group_results[road] = lane_groups.rows
+                details[-1]['lane_group_continuity_residual_max_veh'] = lane_groups.max_residual
+                if lane_groups.partitions:
+                    details[-1]['branch_partition_continuity_residual_max_veh']=lane_groups.max_partition_residual
+                    details[-1]['branch_partition_trace']=lane_groups.partition_rows
+                if lane_groups.upstream_off:
+                    details[-1]['first_exit_inventory']={'initial':lane_groups.intent_initial,
+                        'admitted':lane_groups.intent_entered,'exited':lane_groups.intent_exited,
+                        'remaining':{o:sum(map(sum,rows))+sum(lane_groups.off[o])
+                                     for o,rows in lane_groups.upstream_off.items()},
+                        'max_residual_veh':lane_groups.max_intent_residual}
+                if lane_groups.exchange_model is not None:
+                    details[-1]['state_exchange_feature_values'] = lane_groups.exchange_model.feature_values
+                    details[-1]['state_exchange_clipped_feature_values'] = lane_groups.exchange_model.clipped_feature_values
         if any(not math.isfinite(row[key]) for row in cells for key in ("n_veh","v_kmh","rho_veh_per_km_lane")):
             raise ArithmeticError("Nonfinite canonical rollout")
         result = {"cells":cells,"flows":flows,"diagnostics":{"roads":details,"future_state_resets":0,"horizon_s":450}}
@@ -748,6 +1049,12 @@ class CanonicalFreewayModel:
                     local_step_sec=1., meter_cycle_sec=meter_cycle,
                     receiving_rule='Canonical10s t-start receiving budget with uniform1s rate envelope',
                     head_rule='Finite nominal post-head storage; preserve observed initial excess and block new head service until space opens')
+                if tf!=10.:
+                    result['diagnostics']['dynamic_ramp_boundary']['receiving_rule']=f'Canonical{tf:g}s t-start receiving budget with uniform1s rate envelope'
+                    result['diagnostics']['component_integration_step_sec']=tf
         if vsl_zone_heads is not None:
             result['diagnostics']['explicit_vsl_zone_heads'] = copy.deepcopy(vsl_zone_heads)
+        if lane_group_results:
+            result['lane_groups'] = lane_group_results
+            result['diagnostics']['lane_group_model'] = 'Candidate component model; no full-GNE integration'
         return result
