@@ -101,8 +101,10 @@ def records(path,sha):
 
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--route-state',action='store_true')
-    ap.add_argument('--case',choices=['none_s23','vsl_s23'],default='none_s23');ap.add_argument('--run',default='run_retry1');args=ap.parse_args()
-    if args.route_state:return analyze_route_state(args.case,args.run)
+    ap.add_argument('--case',choices=['none_s23','vsl_s23','rm_ramp_s23'],default='none_s23');ap.add_argument('--run',default='run_retry1');args=ap.parse_args()
+    if args.route_state:
+        if args.case=='rm_ramp_s23':return analyze_rm_interaction(args.run)
+        return analyze_route_state(args.case,args.run)
     bank=HERE/'vehicle_lengths_native_v1';run=bank/'run_retry';receipt=e.load(run/'run.json')
     assert receipt['completed'] and receipt['terminal_sec']==3000
     validation=e.load(run/'fixed_validation.json')
@@ -184,6 +186,71 @@ def main():
         'caveat':'Front-crossing vehicle counts include partially entered/exited bodies; changing lanes also complicates one-lane occupancy. Negative reserved free space is retained, never resolved by deleting vehicles.'})
     print('exact rows',count,flush=True)
     for lane,row in summaries.items():print(lane,{k:v for k,v in row.items() if k!='rows'},flush=True)
+
+
+
+def analyze_rm_interaction(run_name):
+    """Exact3000s original9 repeat, then current native interaction snapshots."""
+    bank=HERE/'route_state_native_v1/rm_ramp_s23';run=bank/run_name
+    receipt=e.load(run/'run.json');protocol=e.load(bank/'protocol.json')
+    assert receipt['completed'] and receipt['terminal_sec']==3000 and not receipt['owned_native_alive']
+    assert e.load(run/'fixed_validation.json')['passed']
+    reference=e.ROOT/protocol['reference_run']/'vissim_eval/baseline_001.fzp'
+    source=run/'vissim_eval/baseline_001.fzp';out=bank/'analysis_v2';out.mkdir(exist_ok=False)
+    files=[reference,source];stamps=[(p.stat().st_size,p.stat().st_mtime_ns) for p in files]
+    headers={};prefix_hash=hashlib.sha256();count=0;last=None
+    geometry=e.load(HERE.parent/'controller_response_s23_v1/none/geometry.json')
+    links={int(r['link']) for r in geometry['chains']['FW_E']}
+    links.update((10639,10681,10490,10484,10643,10682,10483,10485))
+    frames={};initial=[];focus=[];interaction_types=Counter()
+    def stream(path,index):
+        with path.open('rb') as f:
+            for line in f:
+                if line.startswith(b'$VEHICLE:'):
+                    headers[index]=line.split(b':',1)[1].strip().rstrip(b';').decode('ascii').split(';')
+                if not line[:1].isdigit():continue
+                fields=line.rstrip(b'\r\n').split(b';')
+                if len(fields)==len(headers[index])+1 and fields[-1]==b'':fields.pop()
+                if float(fields[0])>3000:return
+                yield fields
+    try:
+        for old,new in itertools.zip_longest(stream(reference,0),stream(source,1)):
+            assert old is not None and new is not None,('Row count differs',count)
+            assert len(old)==9 and len(new)==20,(len(old),len(new),headers)
+            assert old==new[:9],('First physical divergence',count,old,new[:9])
+            prefix_hash.update(b';'.join(old)+b'\n');count+=1
+            t=int(float(new[0]));last=t
+            if t==2400:initial.append([v.decode('ascii') for v in new])
+            if 2400<=t<=2460 and int(new[2]) in links:
+                row=[v.decode('ascii') for v in new]
+                frames.setdefault(t,[]).append(row);interaction_types[row[17]]+=1
+                if int(new[1]) in (17532,18665) and 2408<=t<=2440:
+                    focus.append(dict(time_s=t,vehicle=int(new[1]),link=int(new[2]),lane=int(new[3]),
+                        position_m=float(new[4]),speed_kmh=float(new[6]),length_m=float(new[10]),
+                        lane_change=row[16],interaction=row[17],target_type=row[18],target=row[19]))
+        assert last==3000 and len(initial)==5189
+        assert headers[0]==headers[1][:9]
+        assert headers[1][9:]==protocol['fields_added']
+        assert set(frames)==set(range(2400,2461))
+        for p,stamp in zip(files,stamps):assert (p.stat().st_size,p.stat().st_mtime_ns)==stamp
+        e.save(out/'interaction_frames.json',dict(columns=headers[1],global_initial_rows=initial,
+            frames=[dict(time_s=t,rows=rows) for t,rows in frames.items()],
+            scope='All initial network vehicles and FW_E/mainline-port observations2400..2460; retrospective current-state labels, not forecast input.'))
+        e.save(out/'focus.json',focus)
+        pins=[Path(__file__),bank/'protocol.json',run/'run.json',run/'fixed_validation.json',out/'interaction_frames.json',out/'focus.json']
+        e.save(out/'result.json',dict(passed=True,qualified=False,all_original_nine_columns_exact_rows=count,
+            original9_data_prefix_through3000_sha256=prefix_hash.hexdigest(),global_initial_rows=len(initial),
+            recorded_frames=len(frames),interaction_types=dict(interaction_types),
+            source_receipts=[dict(path=str(p.relative_to(e.ROOT)),bytes=st[0],mtime_ns=st[1]) for p,st in zip(files,stamps)],
+            source_pins={str(p.relative_to(e.ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in pins},
+            caveats=['The payload hash covers original9 data rows through3000, not whole raw files.',
+                'Native interaction describes the preceding simulation step; unavailable target is not a geometric leader.',
+                'This is an exact observation repeat, not a new independent seed or gain qualification.']))
+        print(dict(passed=True,exact_rows=count,initial=len(initial),frames=len(frames)),flush=True)
+        print([r for r in focus if r['vehicle']==17532 and 2416<=r['time_s']<=2420],flush=True)
+    except Exception as error:
+        e.save(out/'failure.json',dict(error=repr(error),compared_rows=count,last_time=last,headers=headers))
+        raise
 
 
 if __name__=='__main__':main()

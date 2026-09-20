@@ -26,6 +26,8 @@ def main():
         record = load(K/name)
         for relative, digest in record['source_pins'].items():
             p = ROOT / relative.replace('\\', '/')
+            if relative.replace('\\', '/') == 'evaluation/controllers/physical_lane_groups.py' and digest == 'c673b8c192bdd2d7aff4d077cc184161c7da0901bda94b90adac28c2054ed0ce':
+                p = K / 'ramp_entry_velocity_work_v1/physical_lane_groups_before.txt'
             assert hashlib.sha256(p.read_bytes()).hexdigest() == digest, relative
             pin_count += 1
     old = load(K/'downstream_relaxation_check_v1/protocol.json')

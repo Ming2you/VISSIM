@@ -24,6 +24,9 @@ def main():
     latest_manifest = ROOT / 'diagnostics/handoff_20260921_response/direct_files.json'
     if latest_manifest.exists():
         files.update({r['path']: r for r in load(latest_manifest)['files']})
+    newest = ROOT / 'diagnostics/handoff_20260921_entry_speed/direct_files.json'
+    if newest.exists():
+        files.update({r['path']: r for r in load(newest)['files']})
     for name, row in files.items():
         p = ROOT / name
         assert p.stat().st_size == row['bytes'], name
@@ -34,7 +37,10 @@ def main():
     timing = load(K / 'marginal_boundary_timing_v1/result.json')
     pins = {**identity['source_pins'], **protocol['source_pins'], **timing['pins']}
     for name, digest in pins.items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == digest, name
+        p = ROOT / name
+        if name.replace('\\', '/') == 'evaluation/controllers/physical_lane_groups.py' and digest == 'c673b8c192bdd2d7aff4d077cc184161c7da0901bda94b90adac28c2054ed0ce':
+            p = K / 'ramp_entry_velocity_work_v1/physical_lane_groups_before.txt'
+        assert hashlib.sha256(p.read_bytes()).hexdigest() == digest, name
 
     replay = load(K / 'response_identification_validation_v1/result.json')
     assert replay['passed'] and replay['identification_forecasts_exact'] == 18

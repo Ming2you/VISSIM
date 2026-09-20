@@ -388,7 +388,8 @@ class PhysicalLaneGroups:
                 if needed>1e-7:raise ArithmeticError('Could not conserve branch destination labels')
 
     def advance(self, state, control, demand, cfg, *, offramp_capacity_veh_h,
-                ramp_release_veh_h, offramp_group_capacity_veh_h=None, ramp_group_release_veh_h=None, **unused):
+                ramp_release_veh_h, offramp_group_capacity_veh_h=None, ramp_group_release_veh_h=None,
+                ramp_entry_speed_kmh=None, **unused):
         a,mn,net=self.a,self.a._mn,cfg.network
         if float(getattr(demand,'incident_capacity_factor',1.)) != 1.:
             raise ValueError('Lane-group candidate has not qualified incident capacity changes')
@@ -405,6 +406,12 @@ class PhysicalLaneGroups:
         incoming=[[0.]*len(ns) for ns in self.n]
         incoming_moment=copy.deepcopy(incoming) if self.momentum_advection else None
         ramp_in=copy.deepcopy(incoming)
+        ramp_moment=copy.deepcopy(incoming) if ramp_entry_speed_kmh is not None else None
+        if ramp_entry_speed_kmh is not None:
+            if (not isinstance(ramp_entry_speed_kmh,dict) or set(ramp_entry_speed_kmh)!=set(ramp_release_veh_h)
+                    or any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or v<0
+                           for v in ramp_entry_speed_kmh.values())):
+                raise ValueError('Explicit entry speed required for every supplied ramp')
         if ramp_group_release_veh_h is not None and set(ramp_group_release_veh_h)-set(ramp_release_veh_h):
             raise ValueError('Unknown ramp in group release')
         for ramp,q in ramp_release_veh_h.items():
@@ -419,10 +426,10 @@ class PhysicalLaneGroups:
                 receiving=post_free[i] if i in self.partitions else free[i]
                 if x>receiving[g]+1e-7:raise ArithmeticError('Ramp exceeds shared target-group receiving space')
                 receiving[g]=max(0.,receiving[g]-x);incoming[i][g]+=x;ramp_in[i][g]+=x
+                entry_speed=oldv[i][g] if ramp_moment is None else ramp_entry_speed_kmh[ramp]
+                if ramp_moment is not None:ramp_moment[i][g]+=x*entry_speed
                 if incoming_moment is not None:
-                    # Retain the current merge-loss law; ramp entry speed is
-                    # not separately modelled, so no extra speed loss is added.
-                    incoming_moment[i][g]+=x*oldv[i][g]
+                    incoming_moment[i][g]+=x*entry_speed
         sending=[[min(n,n*v/self.lengths[i]*dt) for n,v in zip(ns,oldv[i])] for i,ns in enumerate(self.n)]
         through=copy.deepcopy(sending);offreq={};offsent={}
         ramp_sending={}
@@ -531,6 +538,11 @@ class PhysicalLaneGroups:
                 if incoming_moment is not None:
                     self.v[i][g]=advected_speed(before[i][g],oldv[i][g],
                         outgoing[i][g]+off_by_group[i][g],incoming_moment[i][g],ns[g])
+                elif ramp_moment is not None and ramp_in[i][g]:
+                    # Replace only the newly accepted ramp vehicles' assumed
+                    # recipient speed. Other transport retains its existing law.
+                    self.v[i][g]=advected_speed(ns[g]-ramp_in[i][g],oldv[i][g],
+                        0.,ramp_moment[i][g],ns[g])
         for i,p in self.partitions.items():
             for g in range(len(self.n[i])):
                 p['pre_n'][g]+=incoming[i][g]-ramp_in[i][g]-cross[i][g]-off_by_group[i][g]
@@ -539,7 +551,8 @@ class PhysicalLaneGroups:
                 p['pre_v'][g]=advected_speed(old['pre_n'][g],old['pre_v'][g],cross[i][g]+off_by_group[i][g],
                     part_in_moment[i][g],p['pre_n'][g])
                 p['post_v'][g]=advected_speed(old['post_n'][g],old['post_v'][g],outgoing[i][g],
-                    cross[i][g]*old['pre_v'][g]+ramp_in[i][g]*old['post_v'][g],p['post_n'][g])
+                    cross[i][g]*old['pre_v'][g]+(ramp_in[i][g]*old['post_v'][g]
+                    if ramp_moment is None else ramp_moment[i][g]),p['post_n'][g])
         if self.port_travel is not None:
             for r,stock in self.ramp_origin.items():
                 p=self.spec['ramp_access'][r];i=p['cell']
@@ -627,7 +640,7 @@ class PhysicalLaneGroups:
                         for k,x in enumerate(row):
                             p[side+'_n'][g]-=x;p[side+'_n'][k]+=x;mom[g]-=x*vel[g];mom[k]+=x*vel[g]
                     p[side+'_v']=[mom[g]/n if n>1e-9 else vel[g] for g,n in enumerate(p[side+'_n'])]
-            carrier_v=list(self.v[i]) if self.momentum_advection else oldv[i]
+            carrier_v=list(self.v[i]) if self.momentum_advection or ramp_moment is not None else oldv[i]
             pre=list(ns);moment=[n*v for n,v in zip(pre,carrier_v)]
             for g,row in enumerate(request):
                 for k,x in enumerate(row):
