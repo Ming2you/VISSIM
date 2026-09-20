@@ -1,5 +1,7 @@
 # AGENTS.md — Codex 진입점
 
+**최신 전달·재개점:** `diagnostics/handoff_20260921_transport/README.md`를 먼저 읽는다. 아래 이전 전달 이후의 초기 차량·말단·수송·통과시간 후속까지 포함한다. `K/TRANSPORT_DIFFUSION_AND_PASSAGE.md`와 `K/PLAN.md`가 최신 진단이다. 수치 퍼짐 감소 후보는12개 중10개 속도오차가 늘어 기본 비활성으로 기각했고, 앞선 RM 순위 일치도 말단 경계 변경에 유지되지 않았다. core/기준망/새native 변경 없음, **NOT_QUALIFIED**. 현재/과거 감속·추종 상태의 지속시간·회복 검토가 다음 단계이며 아직 결과는 없다. 과거 보고서의 ‘로컬·푸시 미포함’은 작성 당시의 기록이다.
+
 **최신 재개점(2026-09-21)**: `docs/HANDOFF_20260921_gain_prediction.md`와 `diagnostics/handoff_20260921_matched_response/README.md`를 먼저 읽는다. 누적 모델 수정과 두2550초 상태의 후속48개 예측을 전달했다. 기존 이동거리·분기 후보는 RM 순위를 맞췄지만 이득 크기와 본선 부호를 충분히 설명하지 못한다. 기본 채택 없이 **NOT_QUALIFIED**다. 최신 결과·다음 작업은 `K/MATCHED_SPATIAL_RESPONSE.md`를 따른다.
 
 1. 규칙·정본·함정은 `CLAUDE.md` 를 그대로 따른다(어댑터 1벌, `parameters.json` 단일 출처, vendor 무수정, `git add -A` 금지, 스위치는 config 키만).

@@ -72,7 +72,38 @@ def initial_and_boundary(frames,start,geo,mode):
     return dict(bins=bins,n=n,v=v,width=width,upstream=upstream,arrivals=arrivals,rates=rates)
 
 
-def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None):
+def reconstructed_flux(n,v,bins,width):
+    """Limited downstream-face reconstruction for the existing1s transport.
+
+    First-order boundary faces; minmod interior slopes. Cap donor mass and
+    speed moment before receiver allocation, retaining both when blocked.
+    This numerical candidate is not a new traffic capacity or desired speed.
+    """
+    length=[b['length'] for b in bins];count=len(n);groups=len(n[0])
+    rho=[[x/(length[i]*width) for x in row] for i,row in enumerate(n)]
+    faces=copy.deepcopy(v);outgoing=copy.deepcopy(n)
+    for i in range(count):
+        for g in range(groups):
+            courant=v[i][g]/(3600*length[i])
+            if not 0<=courant<=1:raise ValueError('Reconstructed transport requires CFL<=1')
+            values=[]
+            for field in (rho,v):
+                slope=0.
+                if 0<i<count-1:
+                    left=(field[i][g]-field[i-1][g])/((length[i]+length[i-1])/2)
+                    right=(field[i+1][g]-field[i][g])/((length[i]+length[i+1])/2)
+                    if left*right>0:slope=math.copysign(min(abs(left),abs(right)),left)
+                values.append(max(0.,field[i][g]+.5*length[i]*(1-courant)*slope))
+            density,velocity=values;faces[i][g]=velocity
+            desired=density*velocity*width/3600
+            moment_limit=n[i][g]*v[i][g]/velocity if velocity else n[i][g]
+            outgoing[i][g]=min(n[i][g],moment_limit,desired)
+    return outgoing,faces
+
+
+def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None,reconstruct_flux=False):
+    if reconstruct_flux and not momentum_advection:
+        raise ValueError('Face transport requires conserved speed-moment advection')
     s=copy.deepcopy(inputs);n=s['n'];v=s['v'];bins=s['bins'];width=s['width']
     count=len(n);groups=len(n[0]);queue=[0.]*groups;exits=0.;records=[];mass0=sum(map(sum,n))
     mn=ch.accounting._mn;net=cfg.network;control=ch.ControlAction.uncontrolled(cfg)
@@ -95,6 +126,8 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
         old=copy.deepcopy(n);oldv=copy.deepcopy(v)
         free=[[max(0.,net.rho_max*b['length']*width-x) for x in row] for b,row in zip(bins,old)]
         outgoing=[[min(x,x*max(0.,oldv[i][g])/(3600*bins[i]['length'])) for g,x in enumerate(row)] for i,row in enumerate(old)]
+        face_v=oldv
+        if reconstruct_flux:outgoing,face_v=reconstructed_flux(old,oldv,bins,width)
         for i in range(count-1):
             for g in range(groups):outgoing[i][g]=min(outgoing[i][g],free[i+1][g])
         if not getattr(net,'terminal_zero_gradient',False):
@@ -112,6 +145,10 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
                 upstream=entry_speed if i==0 else oldv[i-1]
                 carriers[i]=[((old[i][g]-outgoing[i][g])*oldv[i][g]+incoming[g]*upstream[g])/x
                     if x else oldv[i][g] for g,x in enumerate(n[i])]
+                if reconstruct_flux:
+                    upstream=entry_speed if i==0 else face_v[i-1]
+                    carriers[i]=[(old[i][g]*oldv[i][g]-outgoing[i][g]*face_v[i][g]+incoming[g]*upstream[g])/x
+                        if x else oldv[i][g] for g,x in enumerate(n[i])]
         # Same past30s coarse-cell exchange hazards in both lane resolutions.
         # No simultaneous swap uses space just freed by another exchange.
         if groups==3:

@@ -21,7 +21,8 @@ def main():
     snapshots = [K / p for p in (
         'downstream_spatial_rollout_v1/source_before_calibration.txt',
         'downstream_spatial_calibration_v3/source_before_moment_transport.txt',
-        'downstream_spatial_horizon_v1/source_before_boundary_probe.txt')]
+        'downstream_spatial_horizon_v1/source_before_boundary_probe.txt',
+        'high_order_transport_v1/source_before.py')]
     pins = 0
     for folder in ('paired_native_interaction_v1', 'downstream_spatial_rollout_v1',
                    'downstream_spatial_calibration_v3', 'downstream_spatial_moment_calibration_v1',
