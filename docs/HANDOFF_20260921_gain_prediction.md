@@ -1,5 +1,8 @@
 # 2026-09-21 모델 수정 및 이득 예측 인계
 
+Latest delivery checkpoint: `diagnostics/handoff_20260921_acceleration/README.md` supersedes the historical local-only notes below. This increment includes current-target acceleration diagnostics, rejected default-off memory/response-scale candidates, and all 60 saved local forecasts. Core/network/demand unchanged from fbdbeed; RM/VSL gain calibration remains NOT_QUALIFIED. Restore through the transport package first. Next: separate carried-velocity mixing from same-vehicle reaction error; that analysis has not been completed.
+
+
 **최신 전달:** `diagnostics/handoff_20260921_transport/README.md`가 아래 인계보다 우선한다. `1fcca58` 이후 초기 차량2706쌍·공통 완료 통과900쌍·열린 말단6개 예측·국소 수송 후보를 추가 보존했다. 수송 후보는 기각하여 기본 비활성이며, 앞선 seed33 RM 순위 일치도 말단 처리 변경에 유지되지 않았다. 이득 예측은 **NOT_QUALIFIED**다. 정본 core·기준망·수요 추가 수정과 새 native 실행은 없었다. 복원·검사·다음 작업은 최신 README를 따른다.
 
 아래는 이전 전달 시점의 누적 기록이다.

@@ -101,34 +101,11 @@ def reconstructed_flux(n,v,bins,width):
     return outgoing,faces
 
 
-def forward_acceleration(acceleration,stock):
-    """Current-bin/next-occupied-bin exposure; no individual target identities."""
-    count=len(stock);groups=len(stock[0]);result=[[None]*groups for _ in stock]
-    for i in range(count):
-        for g in range(groups):
-            j=next((j for j in range(i+1,count) if stock[j][g]>1e-9),None)
-            if j is not None:
-                p=min(1.,1/max(stock[i][g],1e-9))
-                result[i][g]=(1-p)*acceleration[i][g]+p*acceleration[j][g]
-    return result
-
-
-def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None,reconstruct_flux=False,acceleration_memory=None,response_resolution='transport'):
-    if response_resolution not in ('transport','physical_cell'):raise ValueError('Unsupported response resolution')
+def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None,reconstruct_flux=False):
     if reconstruct_flux and not momentum_advection:
         raise ValueError('Face transport requires conserved speed-moment advection')
     s=copy.deepcopy(inputs);n=s['n'];v=s['v'];bins=s['bins'];width=s['width']
     count=len(n);groups=len(n[0]);queue=[0.]*groups;exits=0.;records=[];mass0=sum(map(sum,n))
-    cell_bins={c:[i for i,b in enumerate(bins) if b['cell']==c] for c in CELLS}
-    cell_lengths={c:sum(bins[i]['length'] for i in ids) for c,ids in cell_bins.items()}
-    acceleration=None
-    if acceleration_memory is not None:
-        if not momentum_advection or reconstruct_flux:raise ValueError('Acceleration pilot requires unchanged first-order momentum transport')
-        ws,wf=acceleration_memory['self_weight'],acceleration_memory['forward_weight']
-        if not (ws>=0 and wf>=0 and ws+wf<=1+1e-12):raise ValueError('Invalid acceleration convex weights')
-        acceleration=copy.deepcopy(acceleration_memory['initial'])
-        if len(acceleration)!=count or any(len(r)!=groups or any(not math.isfinite(x) for x in r) for r in acceleration):
-            raise ValueError('Missing or invalid initial acceleration observations')
     mn=ch.accounting._mn;net=cfg.network;control=ch.ControlAction.uncontrolled(cfg)
     floor_hits=0;max_speed=0.;max_mass=0.;terms=[];requested=0.
     if boundary_steps is not None:
@@ -147,12 +124,6 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
         entry_speed=boundary['entry_speed'] if boundary else s['upstream']
         requested=(requested+sum(arrivals)) if boundary else step*sum(s['arrivals'])
         old=copy.deepcopy(n);oldv=copy.deepcopy(v)
-        if response_resolution=='physical_cell':
-            response_rho={c:[sum(old[i][g] for i in ids)/(cell_lengths[c]*width) for g in range(groups)]
-                          for c,ids in cell_bins.items()}
-        if acceleration is not None:
-            old_acceleration=copy.deepcopy(acceleration)
-            forward=forward_acceleration(old_acceleration,old)
         free=[[max(0.,net.rho_max*b['length']*width-x) for x in row] for b,row in zip(bins,old)]
         outgoing=[[min(x,x*max(0.,oldv[i][g])/(3600*bins[i]['length'])) for g,x in enumerate(row)] for i,row in enumerate(old)]
         face_v=oldv
@@ -200,16 +171,11 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
             for g in range(groups):
                 rho=old[i][g]/(b['length']*width)
                 down=old[i+1][g]/(bins[i+1]['length']*width) if i+1<count else (rho if getattr(net,'terminal_zero_gradient',False) else min(rho,net.rho_crit))
-                response_length=b['length']
-                if response_resolution=='physical_cell':
-                    c=b['cell'];response_length=cell_lengths[c];rho=response_rho[c][g]
-                    down=(response_rho[c+1][g] if c<CELLS[-1] else
-                          rho if getattr(net,'terminal_zero_gradient',False) else min(rho,net.rho_crit))
                 up=carriers[i][g] if momentum_advection else (oldv[i-1][g] if i else boundary_upstream[g])
-                limit=mn.segment_vsl(control,'FW_E',b['cell'],cfg,physical_length_km=response_length,segment_end=True)
+                limit=mn.segment_vsl(control,'FW_E',b['cell'],cfg,physical_length_km=b['length'],segment_end=True)
                 eq=mn.effective_desired_speed_kmh(rho,net.v_free,net.rho_crit,limit,net.alpha_vsl,False,
                     net.metanet_a_m,getattr(net,'vsl_fd_two_branch',False),net.rho_max,float(getattr(net,'rho_crit_two_branch',0.) or 0.))
-                value=mn.metanet_speed_update_kmh(carriers[i][g],up,rho,down,eq,1/3600,response_length,
+                value=mn.metanet_speed_update_kmh(carriers[i][g],up,rho,down,eq,1/3600,b['length'],
                     net.metanet_tau_h,mn.select_anticipation_nu(rho,net,limit),net.metanet_kappa_veh_km_lane,net.v_min)
                 if collect_speed_terms:
                     assert not (getattr(net,'freeway_state_response',{}) or {}).get('FW_E')
@@ -219,19 +185,11 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
                     kappa=p.get('metanet_kappa_veh_km_lane',net.metanet_kappa_veh_km_lane)
                     carrier=carriers[i][g]
                     relax=(eq-carrier)/tau
-                    convection=carrier*(up-carrier)/(3600*response_length)
-                    pressure=-nu/tau/response_length*(down-rho)/(rho+kappa)
+                    convection=carrier*(up-carrier)/(3600*b['length'])
+                    pressure=-nu/tau/b['length']*(down-rho)/(rho+kappa)
                     assert abs(value-max(net.v_min,carrier+relax+convection+pressure))<1e-7
                     terms.append(dict(step=step,i=i,g=g,carrier=carrier,relax=relax,
                         convection=convection,pressure=pressure,tau=tau,actual_function_value=value))
-                if acceleration is not None:
-                    base=value-carriers[i][g]
-                    if ws or wf:
-                        ahead=forward[i][g]
-                        ahead_weight=wf if ahead is not None else 0.
-                        reaction=(1-ws-ahead_weight)*base+ws*old_acceleration[i][g]+ahead_weight*(ahead or 0.)
-                        value=max(net.v_min,carriers[i][g]+reaction)
-                    acceleration[i][g]=value-carriers[i][g]
                 if not math.isfinite(value) or value>300:raise ArithmeticError('Unbounded speed')
                 v[i][g]=max(net.v_min,value);floor_hits+=value<=net.v_min;max_speed=max(max_speed,value)
                 assert -1e-8<=n[i][g]<=net.rho_max*b['length']*width+1e-8
@@ -244,9 +202,6 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
             aggregate[c]=dict(n=stock,v=speed)
         records.append(dict(step=step,cells=aggregate,queue=sum(queue),exits=exits,residual=residual))
     checks=dict(max_mass_residual=max_mass,speed_floor_hits=floor_hits,max_speed=max_speed)
-    if acceleration is not None:
-        checks['acceleration_memory']=dict(self_weight=ws,forward_weight=wf,
-            equilibrium_weight=1-ws-wf,final_acceleration=acceleration)
     if collect_speed_terms:checks['speed_terms']=terms
     return records,checks
 

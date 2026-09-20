@@ -40,11 +40,7 @@ def main():
     for result in (high, passage):
         assert result['qualified'] is False and result['new_native_runs'] == 0
         for name, digest in result['source_pins'].items():
-            path = ROOT / name
-            candidates = [path]
-            if path.name == 'downstream_spatial_rollout.py':
-                candidates.append(K / 'target_acceleration_coupling_v1/source_before.py')
-            assert any(sha(p) == digest for p in candidates), name
+            assert sha(ROOT / name) == digest, name
             pins += 1
     assert not high['production_adopted']
     observations = load(K / 'compact_lane_state_v1/states.json')

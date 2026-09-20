@@ -113,14 +113,11 @@ def forward_acceleration(acceleration,stock):
     return result
 
 
-def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None,reconstruct_flux=False,acceleration_memory=None,response_resolution='transport'):
-    if response_resolution not in ('transport','physical_cell'):raise ValueError('Unsupported response resolution')
+def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=False,boundary_steps=None,reconstruct_flux=False,acceleration_memory=None):
     if reconstruct_flux and not momentum_advection:
         raise ValueError('Face transport requires conserved speed-moment advection')
     s=copy.deepcopy(inputs);n=s['n'];v=s['v'];bins=s['bins'];width=s['width']
     count=len(n);groups=len(n[0]);queue=[0.]*groups;exits=0.;records=[];mass0=sum(map(sum,n))
-    cell_bins={c:[i for i,b in enumerate(bins) if b['cell']==c] for c in CELLS}
-    cell_lengths={c:sum(bins[i]['length'] for i in ids) for c,ids in cell_bins.items()}
     acceleration=None
     if acceleration_memory is not None:
         if not momentum_advection or reconstruct_flux:raise ValueError('Acceleration pilot requires unchanged first-order momentum transport')
@@ -147,9 +144,6 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
         entry_speed=boundary['entry_speed'] if boundary else s['upstream']
         requested=(requested+sum(arrivals)) if boundary else step*sum(s['arrivals'])
         old=copy.deepcopy(n);oldv=copy.deepcopy(v)
-        if response_resolution=='physical_cell':
-            response_rho={c:[sum(old[i][g] for i in ids)/(cell_lengths[c]*width) for g in range(groups)]
-                          for c,ids in cell_bins.items()}
         if acceleration is not None:
             old_acceleration=copy.deepcopy(acceleration)
             forward=forward_acceleration(old_acceleration,old)
@@ -200,16 +194,11 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
             for g in range(groups):
                 rho=old[i][g]/(b['length']*width)
                 down=old[i+1][g]/(bins[i+1]['length']*width) if i+1<count else (rho if getattr(net,'terminal_zero_gradient',False) else min(rho,net.rho_crit))
-                response_length=b['length']
-                if response_resolution=='physical_cell':
-                    c=b['cell'];response_length=cell_lengths[c];rho=response_rho[c][g]
-                    down=(response_rho[c+1][g] if c<CELLS[-1] else
-                          rho if getattr(net,'terminal_zero_gradient',False) else min(rho,net.rho_crit))
                 up=carriers[i][g] if momentum_advection else (oldv[i-1][g] if i else boundary_upstream[g])
-                limit=mn.segment_vsl(control,'FW_E',b['cell'],cfg,physical_length_km=response_length,segment_end=True)
+                limit=mn.segment_vsl(control,'FW_E',b['cell'],cfg,physical_length_km=b['length'],segment_end=True)
                 eq=mn.effective_desired_speed_kmh(rho,net.v_free,net.rho_crit,limit,net.alpha_vsl,False,
                     net.metanet_a_m,getattr(net,'vsl_fd_two_branch',False),net.rho_max,float(getattr(net,'rho_crit_two_branch',0.) or 0.))
-                value=mn.metanet_speed_update_kmh(carriers[i][g],up,rho,down,eq,1/3600,response_length,
+                value=mn.metanet_speed_update_kmh(carriers[i][g],up,rho,down,eq,1/3600,b['length'],
                     net.metanet_tau_h,mn.select_anticipation_nu(rho,net,limit),net.metanet_kappa_veh_km_lane,net.v_min)
                 if collect_speed_terms:
                     assert not (getattr(net,'freeway_state_response',{}) or {}).get('FW_E')
@@ -219,8 +208,8 @@ def rollout(inputs,cfg,horizon=30,collect_speed_terms=False,momentum_advection=F
                     kappa=p.get('metanet_kappa_veh_km_lane',net.metanet_kappa_veh_km_lane)
                     carrier=carriers[i][g]
                     relax=(eq-carrier)/tau
-                    convection=carrier*(up-carrier)/(3600*response_length)
-                    pressure=-nu/tau/response_length*(down-rho)/(rho+kappa)
+                    convection=carrier*(up-carrier)/(3600*b['length'])
+                    pressure=-nu/tau/b['length']*(down-rho)/(rho+kappa)
                     assert abs(value-max(net.v_min,carrier+relax+convection+pressure))<1e-7
                     terms.append(dict(step=step,i=i,g=g,carrier=carrier,relax=relax,
                         convection=convection,pressure=pressure,tau=tau,actual_function_value=value))
