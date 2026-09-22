@@ -1,0 +1,68 @@
+{
+  "complete": true,
+  "parameters": {
+    "by_direction": {
+      "FW_W": {
+        "v_free_multiplier": 1.0899999999999999,
+        "rho_crit_multiplier": 0.68,
+        "tau_sec": 12.0,
+        "nu_km2_h": 43.05000000000001,
+        "kappa_veh_km_lane": 5.0,
+        "delta_merge": 0.0,
+        "lane_drop_phi": 0.0
+      },
+      "FW_E": {
+        "v_free_multiplier": 1.06,
+        "rho_crit_multiplier": 1.4,
+        "tau_sec": 12.0,
+        "nu_km2_h": 73.5,
+        "kappa_veh_km_lane": 5.0,
+        "delta_merge": 0.9999999999999999,
+        "lane_drop_phi": 0.0
+      }
+    }
+  },
+  "rolling150": [
+    {
+      "road": "FW_E",
+      "model": "기존 φ=3",
+      "mae": 17.967591297863535,
+      "rmse": 24.131930868886688,
+      "bias": -4.6058976168556605,
+      "count": 8696
+    },
+    {
+      "road": "FW_E",
+      "model": "φ만 재보정",
+      "mae": 17.599264978149076,
+      "rmse": 23.700891009450217,
+      "bias": -4.125171743849496,
+      "count": 8696
+    },
+    {
+      "road": "FW_W",
+      "model": "기존 φ=3",
+      "mae": 9.718266876449302,
+      "rmse": 14.497655572457495,
+      "bias": -1.671013142802745,
+      "count": 6891
+    },
+    {
+      "road": "FW_W",
+      "model": "φ만 재보정",
+      "mae": 9.723170918416049,
+      "rmse": 14.502494422374731,
+      "bias": -1.6377300525433656,
+      "count": 6891
+    }
+  ],
+  "rolling_rollouts": 118,
+  "validation_rollouts": 368,
+  "invalid": 0,
+  "occupancy_ablation_rollouts": 36,
+  "max_continuity_residual": 5.684341886080802e-14,
+  "baseline150_exact": 2,
+  "native_queue_pins_unchanged": true,
+  "control_gain_validated": false,
+  "production_adopted": false
+}

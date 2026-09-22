@@ -3,6 +3,7 @@ param(
   [Parameter(Mandatory=$true)][string]$Output,
   [ValidateRange(1,2147483647)][int]$Seed = 13,
   [switch]$Execute,
+  [ValidateRange(0,1000)][double]$MinimumFreeGiB = 0,
   [string]$Python = (Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe')
 )
 $ErrorActionPreference = 'Stop'
@@ -14,6 +15,8 @@ if (@(5400,7200,9000) -notcontains $settings.terminal_sec) {
 }
 $terminalSec = [int]$settings.terminal_sec
 $nativePreserve = $settings.mode -eq 'native_preserve'
+$fzpOnly = $settings.fzp_only -eq $true
+if ($fzpOnly -and !$nativePreserve) { throw 'FZP-only is limited to native no-control runs' }
 if ($nativePreserve -or $fixedProfile) {
   if ($PSBoundParameters.ContainsKey('Seed') -and $Seed -ne [int]$settings.seed) { throw 'Native-preserve cannot override saved seed' }
   $Seed = [int]$settings.seed
@@ -29,12 +32,22 @@ foreach ($p in @($network,$preparedPath,$outputPath,$script)) {
   if ($p.Contains('"') -or $p.Contains("`n") -or $p.Contains("`r")) { throw 'Invalid argument path' }
 }
 $arguments = '//nologo "{0}" "{1}" "{2}" "{3}" {4} {5}' -f $script,$network,$preparedPath,$outputPath,$Seed,$terminalSec
-if ($nativePreserve) { $arguments += ' native_preserve' }
+if ($nativePreserve) {
+  if ($fzpOnly) { $arguments += ' native_fzp_only' } else { $arguments += ' native_preserve' }
+}
 if ($fixedProfile) { $arguments += ' fixed_profile' }
 if (-not $Execute) {
   [pscustomobject]@{execute=$false; program=$cscript; arguments=$arguments; startup_no_progress_sec=300;
     controller='none'; vehicle_queries=0; initial_native_steps=$(if ($nativePreserve -or $fixedProfile) {0} else {1}); continuous_calls=$(if ($fixedProfile) {'scheduled event times plus terminal'} else {1}); terminal_sec=$terminalSec; native_preserve=$nativePreserve; fixed_profile=$fixedProfile} | ConvertTo-Json
   exit 0
+}
+$requiredFreeBytes = [long][Math]::Ceiling($MinimumFreeGiB * 1GB)
+$outputDrive = $null
+if ($requiredFreeBytes -gt 0) {
+  $outputDrive = New-Object System.IO.DriveInfo ([IO.Path]::GetPathRoot($outputPath))
+  if ($outputDrive.AvailableFreeSpace -lt $requiredFreeBytes) {
+    throw ('Insufficient output space: require {0} bytes, available {1}; no native process started' -f $requiredFreeBytes,$outputDrive.AvailableFreeSpace)
+  }
 }
 if (Test-Path -LiteralPath $outputPath) { throw 'Require a new output directory' }
 if (@(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) { throw 'Existing VISSIM instance: do not share ownership' }
@@ -60,6 +73,12 @@ $record = [ordered]@{network=$network; prepared=$preparedPath; output=$outputPat
   cscript_pid=$runner.Id; cscript_start=$runnerStart.ToString('o'); vissim=$null;
   started=$started.ToString('o'); first_native_progress=$null; completed=$false; error=$null}
 $record.native_preserve=$nativePreserve
+if ($fzpOnly) { $record.fzp_only=$true }
+if ($requiredFreeBytes -gt 0) {
+  $record.minimum_free_bytes_at_launch=$requiredFreeBytes
+  $record.free_bytes_at_launch=$outputDrive.AvailableFreeSpace
+  $record.minimum_free_bytes_during_run=128MB
+}
 if ($fixedProfile) {
   $record.fixed_profile=$true
   $record.fixed_profile_proof=$settings.fixed_profile_proof
@@ -73,7 +92,7 @@ function Last-Fzp-Time([string]$Path) {
   $stream = $null
   try {
     $stream = [IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
-    $size = [int][Math]::Min(65536,$stream.Length)
+    $size = [int][Math]::Min([long]65536,$stream.Length)
     $null = $stream.Seek(-$size,[IO.SeekOrigin]::End)
     $bytes = New-Object byte[] $size
     $read = $stream.Read($bytes,0,$size)
@@ -99,7 +118,8 @@ while (-not $runner.HasExited) {
       $record.vissim = @{pid=$owned.pid;start=$owned.start.ToString('o')}; Save-Receipt
     }
   }
-  if (-not $progress -or $fixedProfile) {
+  $diskLow = $requiredFreeBytes -gt 0 -and $outputDrive.AvailableFreeSpace -lt 128MB
+  if (-not $progress -or $fixedProfile -or $diskLow) {
     foreach ($file in @(Get-ChildItem -LiteralPath $evalPath -Filter '*.fzp' -File)) {
       $lastSim = Last-Fzp-Time $file.FullName
       if ($fixedProfile -and $null -ne $lastSim -and ($null -eq $lastObservedSim -or $lastSim -gt $lastObservedSim)) {
@@ -111,9 +131,10 @@ while (-not $runner.HasExited) {
         if (-not $progress) { $progress = $true; $record.first_native_progress=@{sim_sec=$lastSim; at=(Get-Date).ToString('o')}; Save-Receipt }
       }
     }
-    if ((-not $progress -and ((Get-Date)-$started).TotalSeconds -ge 300) -or ($fixedProfile -and $progress -and ((Get-Date)-$lastProgressAt).TotalSeconds -ge 300)) {
+    if ($diskLow -or (-not $progress -and ((Get-Date)-$started).TotalSeconds -ge 300) -or ($fixedProfile -and $progress -and ((Get-Date)-$lastProgressAt).TotalSeconds -ge 300)) {
       $timedOut=$true; $record.error='Startup300s: no complete FZP data timestamp showing actual native progression'
       if ($fixedProfile -and $progress) { $record.error='Progress300s: complete native FZP timestamp stopped advancing' }
+      if ($diskLow) { $record.error='DiskSpaceLow: less than128MiB available for output; preserve partial recording and owned processes only' }
       # Exact PID + creation-time identity only. Unknown servers are never killed.
       $identities=@([pscustomobject]@{pid=$runner.Id;start=$runnerStart})
       if ($null -ne $owned) { $identities += $owned }
@@ -148,7 +169,8 @@ $record.native_files=@(Get-ChildItem -LiteralPath $evalPath -File | ForEach-Obje
 $fzp=@(Get-ChildItem -LiteralPath $evalPath -Filter '*.fzp' -File | Where-Object Length -gt 0)
 $lsa=@(Get-ChildItem -LiteralPath $evalPath -Filter '*.lsa' -File | Where-Object Length -gt 0)
 $terminalPattern = '(?m)^SIM_SEC=' + $terminalSec + '\r?$'
-$record.completed=(!$timedOut -and $runner.ExitCode -eq 0 -and !$record.owned_native_alive -and $log -match $terminalPattern -and $log -match '(?m)^STAGE=SIM_DONE\r?$' -and $fzp.Count -eq 1 -and $lsa.Count -eq 1)
+$signalRecordingOK = $lsa.Count -eq 1 -or $fzpOnly
+$record.completed=(!$timedOut -and $runner.ExitCode -eq 0 -and !$record.owned_native_alive -and $log -match $terminalPattern -and $log -match '(?m)^STAGE=SIM_DONE\r?$' -and $fzp.Count -eq 1 -and $signalRecordingOK)
 if ($null -eq $owned -and @(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) {
   $record.completed=$false; $record.error='Native identity was not established and a VISSIM process remains'
 }

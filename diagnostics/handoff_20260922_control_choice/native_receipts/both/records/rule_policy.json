@@ -1,0 +1,834 @@
+{
+  "rule": {
+    "enabled": true,
+    "reference_speed_kph": 120,
+    "control_start_sec": 900,
+    "vsl_rule": {
+      "flow_threshold_vph_per_lane": 1600,
+      "occupancy_threshold_pct": 15,
+      "speed_thresholds_kph": [
+        60,
+        80
+      ],
+      "speed_commands_kph": [
+        60,
+        80,
+        120
+      ]
+    },
+    "alinea": {
+      "gain_vph_per_pct": {
+        "RM_C10480": 70,
+        "RM_C10482": 140,
+        "RM_C10646": 70,
+        "RM_C10644": 70,
+        "RM_C10639": 70,
+        "RM_C10681": 140,
+        "RM_C10490": 70,
+        "RM_C10484": 70
+      },
+      "target_occupancy_pct": 15,
+      "min_rate_vph": {
+        "RM_C10480": 255.6,
+        "RM_C10482": 511.2,
+        "RM_C10646": 255.6,
+        "RM_C10644": 255.6,
+        "RM_C10639": 255.6,
+        "RM_C10681": 511.2,
+        "RM_C10490": 255.6,
+        "RM_C10484": 255.6
+      },
+      "max_rate_vph": {
+        "RM_C10480": 1512.0,
+        "RM_C10482": 3024.0,
+        "RM_C10646": 1512.0,
+        "RM_C10644": 1512.0,
+        "RM_C10639": 1512.0,
+        "RM_C10681": 3024.0,
+        "RM_C10490": 1512.0,
+        "RM_C10484": 1512.0
+      }
+    },
+    "parameter_status": "Exploratory ALINEA target15pct and gain70veh/h/pct/lane; not calibrated critical occupancy or a validated physical capacity.",
+    "arm": "both"
+  },
+  "meters": {
+    "RM_C10480": {
+      "sc": 9101,
+      "connector": 10480,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    },
+    "RM_C10482": {
+      "sc": 9102,
+      "connector": 10482,
+      "table": {
+        "0": 0,
+        "2": 511.2,
+        "3": 712.8,
+        "4": 1036.8,
+        "5": 1360.8,
+        "6": 1684.8,
+        "7": 2008.8,
+        "8": 2332.8,
+        "9": 2656.8,
+        "10": 3024.0
+      }
+    },
+    "RM_C10646": {
+      "sc": 9103,
+      "connector": 10646,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    },
+    "RM_C10644": {
+      "sc": 9104,
+      "connector": 10644,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    },
+    "RM_C10639": {
+      "sc": 9105,
+      "connector": 10639,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    },
+    "RM_C10681": {
+      "sc": 9106,
+      "connector": 10681,
+      "table": {
+        "0": 0,
+        "2": 511.2,
+        "3": 712.8,
+        "4": 1036.8,
+        "5": 1360.8,
+        "6": 1684.8,
+        "7": 2008.8,
+        "8": 2332.8,
+        "9": 2656.8,
+        "10": 3024.0
+      }
+    },
+    "RM_C10490": {
+      "sc": 9107,
+      "connector": 10490,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    },
+    "RM_C10484": {
+      "sc": 9108,
+      "connector": 10484,
+      "table": {
+        "0": 0,
+        "2": 255.6,
+        "3": 356.4,
+        "4": 518.4,
+        "5": 680.4,
+        "6": 842.4,
+        "7": 1004.4,
+        "8": 1166.4,
+        "9": 1328.4,
+        "10": 1512.0
+      }
+    }
+  },
+  "zone_dsds": {
+    "FW_E__seg0": [
+      36,
+      37,
+      38,
+      39,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+    ],
+    "FW_E__seg5": [
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58
+    ],
+    "FW_E__seg10": [
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66
+    ],
+    "FW_E__seg15": [
+      67,
+      68,
+      69,
+      71,
+      72,
+      73
+    ],
+    "FW_W__seg0": [
+      40,
+      41,
+      42,
+      75,
+      76,
+      77,
+      79,
+      80,
+      81
+    ],
+    "FW_W__seg5": [
+      83,
+      84,
+      85,
+      87,
+      88,
+      89,
+      90
+    ],
+    "FW_W__seg10": [
+      91,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98
+    ],
+    "FW_W__seg15": [
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106
+    ]
+  },
+  "detectors": {
+    "schema": "rule-native-detectors/v1",
+    "from_sec": 0,
+    "interval_sec": 150,
+    "to_sec": 10800,
+    "stations": [
+      {
+        "id": "ramps_RM_C10480",
+        "role": "ramps",
+        "target": "RM_C10480",
+        "link_no": 26,
+        "position_m": 3675.7990504438503,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910117,
+          910118,
+          910119
+        ],
+        "measurement_ids": [
+          910117,
+          910118,
+          910119
+        ],
+        "connector_no": 10480,
+        "merge_position_m": 3625.7990504438503,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10482",
+        "role": "ramps",
+        "target": "RM_C10482",
+        "link_no": 120,
+        "position_m": 208.63312387712872,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910120,
+          910121,
+          910122,
+          910123
+        ],
+        "measurement_ids": [
+          910120,
+          910121,
+          910122,
+          910123
+        ],
+        "connector_no": 10482,
+        "merge_position_m": 158.63312387712872,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10646",
+        "role": "ramps",
+        "target": "RM_C10646",
+        "link_no": 120,
+        "position_m": 2390.148350750207,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910124,
+          910125,
+          910126,
+          910127
+        ],
+        "measurement_ids": [
+          910124,
+          910125,
+          910126,
+          910127
+        ],
+        "connector_no": 10646,
+        "merge_position_m": 2340.148350750207,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10644",
+        "role": "ramps",
+        "target": "RM_C10644",
+        "link_no": 120,
+        "position_m": 3208.626356888036,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910128,
+          910129,
+          910130,
+          910131
+        ],
+        "measurement_ids": [
+          910128,
+          910129,
+          910130,
+          910131
+        ],
+        "connector_no": 10644,
+        "merge_position_m": 3158.626356888036,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10639",
+        "role": "ramps",
+        "target": "RM_C10639",
+        "link_no": 2,
+        "position_m": 2014.2176840051573,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910132,
+          910133,
+          910134,
+          910135
+        ],
+        "measurement_ids": [
+          910132,
+          910133,
+          910134,
+          910135
+        ],
+        "connector_no": 10639,
+        "merge_position_m": 1964.2176840051573,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10681",
+        "role": "ramps",
+        "target": "RM_C10681",
+        "link_no": 2,
+        "position_m": 2357.3794608258345,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910136,
+          910137,
+          910138,
+          910139
+        ],
+        "measurement_ids": [
+          910136,
+          910137,
+          910138,
+          910139
+        ],
+        "connector_no": 10681,
+        "merge_position_m": 2307.3794608258345,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10490",
+        "role": "ramps",
+        "target": "RM_C10490",
+        "link_no": 119,
+        "position_m": 445.10542683376474,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910140,
+          910141,
+          910142
+        ],
+        "measurement_ids": [
+          910140,
+          910141,
+          910142
+        ],
+        "connector_no": 10490,
+        "merge_position_m": 395.10542683376474,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "ramps_RM_C10484",
+        "role": "ramps",
+        "target": "RM_C10484",
+        "link_no": 24,
+        "position_m": 215.69839518148052,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910143,
+          910144,
+          910145
+        ],
+        "measurement_ids": [
+          910143,
+          910144,
+          910145
+        ],
+        "connector_no": 10484,
+        "merge_position_m": 165.69839518148052,
+        "downstream_distance_m": 50.0,
+        "merge_receiver_first_lane": 1,
+        "location_basis": "50m downstream of physical connector endpoint; exploratory placement"
+      },
+      {
+        "id": "vsl_zones_FW_E__seg0",
+        "role": "vsl_zones",
+        "target": "FW_E__seg0",
+        "link_no": 74,
+        "position_m": 40.0,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910146,
+          910147,
+          910148,
+          910149
+        ],
+        "measurement_ids": [
+          910146,
+          910147,
+          910148,
+          910149
+        ],
+        "controlled_dsd_ids": [
+          36,
+          37,
+          38,
+          39,
+          43,
+          44,
+          45,
+          46
+        ],
+        "primary_dsd_ids": [
+          43,
+          44,
+          45,
+          46
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_E__seg5",
+        "role": "vsl_zones",
+        "target": "FW_E__seg5",
+        "link_no": 2,
+        "position_m": 48.18555656496521,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910150,
+          910151,
+          910152,
+          910153
+        ],
+        "measurement_ids": [
+          910150,
+          910151,
+          910152,
+          910153
+        ],
+        "controlled_dsd_ids": [
+          51,
+          52,
+          53,
+          54
+        ],
+        "primary_dsd_ids": [
+          51,
+          52,
+          53,
+          54
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_E__seg10",
+        "role": "vsl_zones",
+        "target": "FW_E__seg10",
+        "link_no": 2,
+        "position_m": 2652.0273490354593,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910154,
+          910155,
+          910156,
+          910157
+        ],
+        "measurement_ids": [
+          910154,
+          910155,
+          910156,
+          910157
+        ],
+        "controlled_dsd_ids": [
+          59,
+          60,
+          61,
+          62
+        ],
+        "primary_dsd_ids": [
+          59,
+          60,
+          61,
+          62
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_E__seg15",
+        "role": "vsl_zones",
+        "target": "FW_E__seg15",
+        "link_no": 24,
+        "position_m": 652.704139739827,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910158,
+          910159,
+          910160
+        ],
+        "measurement_ids": [
+          910158,
+          910159,
+          910160
+        ],
+        "controlled_dsd_ids": [
+          67,
+          68,
+          69
+        ],
+        "primary_dsd_ids": [
+          67,
+          68,
+          69
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_W__seg0",
+        "role": "vsl_zones",
+        "target": "FW_W__seg0",
+        "link_no": 26,
+        "position_m": 40.0,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910161,
+          910162,
+          910163
+        ],
+        "measurement_ids": [
+          910161,
+          910162,
+          910163
+        ],
+        "controlled_dsd_ids": [
+          40,
+          41,
+          42,
+          75,
+          76,
+          77
+        ],
+        "primary_dsd_ids": [
+          75,
+          76,
+          77
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_W__seg5",
+        "role": "vsl_zones",
+        "target": "FW_W__seg5",
+        "link_no": 26,
+        "position_m": 2694.4232696497,
+        "lane_numbers": [
+          1,
+          2,
+          3
+        ],
+        "point_ids": [
+          910164,
+          910165,
+          910166
+        ],
+        "measurement_ids": [
+          910164,
+          910165,
+          910166
+        ],
+        "controlled_dsd_ids": [
+          83,
+          84,
+          85
+        ],
+        "primary_dsd_ids": [
+          83,
+          84,
+          85
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_W__seg10",
+        "role": "vsl_zones",
+        "target": "FW_W__seg10",
+        "link_no": 120,
+        "position_m": 1569.2945392994002,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910167,
+          910168,
+          910169,
+          910170
+        ],
+        "measurement_ids": [
+          910167,
+          910168,
+          910169,
+          910170
+        ],
+        "controlled_dsd_ids": [
+          91,
+          92,
+          93,
+          94
+        ],
+        "primary_dsd_ids": [
+          91,
+          92,
+          93,
+          94
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      },
+      {
+        "id": "vsl_zones_FW_W__seg15",
+        "role": "vsl_zones",
+        "target": "FW_W__seg15",
+        "link_no": 120,
+        "position_m": 4263.717808949101,
+        "lane_numbers": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "point_ids": [
+          910171,
+          910172,
+          910173,
+          910174
+        ],
+        "measurement_ids": [
+          910171,
+          910172,
+          910173,
+          910174
+        ],
+        "controlled_dsd_ids": [
+          99,
+          100,
+          101,
+          102
+        ],
+        "primary_dsd_ids": [
+          99,
+          100,
+          101,
+          102
+        ],
+        "location_basis": "exact primary installed dsd_by_lane position; old extra DSDs share the zone command"
+      }
+    ],
+    "vsl_heads": {
+      "FW_E": [
+        0,
+        5,
+        10,
+        15
+      ],
+      "FW_W": [
+        0,
+        5,
+        10,
+        15
+      ]
+    },
+    "source_network_sha256": "86af2ac85090e34bd3725c6e50230c356d1c2ffdd93ac5cf693c8167f074a83c",
+    "measurement_contract": {
+      "name": "RULE|{role}|{target}|lane{lane_no}",
+      "points_per_measurement": 1,
+      "vehicles": "Vehs(Current,Last,All), completed interval count; flow_vph=3600*count/interval_sec",
+      "speed": "SpeedAvgArith(Current,Last,All); combine lanes weighted by Vehs, preserve empty-lane missing speed",
+      "time_occupancy": "OccupRate has SimulationRun,TimeInterval,VehicleClass subattributes; percent 0..100; singleton lane point",
+      "occupancy_interval_status": "Installed docs say last simulation step despite result subattributes; native smoke must establish completed-interval behavior",
+      "lane_aggregation": "Keep each lane separately including merge/exit-side lane1; lane mean OccupRate is explicit arithmetic mean, never multilanepoint union",
+      "critical_occupancy": "15 percent is exploratory, not empirically fitted",
+      "alinea_gain": "70 veh/h per percentage point is exploratory, not fitted"
+    }
+  },
+  "minimum_green": 2.0,
+  "max_green_change": 2,
+  "source_sha256": "86af2ac85090e34bd3725c6e50230c356d1c2ffdd93ac5cf693c8167f074a83c",
+  "scope": "Native feedback policy only; no MPC plant initialization or forecast claim. Native OFF retained until RM activation. Distribution IDs are not fixed vehicle speeds."
+}

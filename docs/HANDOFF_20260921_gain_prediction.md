@@ -1,4 +1,31 @@
+Latest delivery checkpoint: diagnostics/handoff_20260921_native_clock/README.md supersedes historical local-only and live-process notes below. Includes native body/resolution evidence, failed res10 prefix, recording-step correction, disk guard, and original-time MPC observation validation. NC res1 completed3000 with original20 fields exact; res10 failed at1516.1 due disk full, not a completed comparison. Six clock tests and eight fixed-profile tests PASS; core4/network/demand unchanged from1f378f3. NOT_QUALIFIED: RM/VSL gain calibration, unused holdout and full Omega/full GNE remain unfinished. Restore through ordered first. No new native during packaging.
+
+Latest delivery checkpoint: diagnostics/handoff_20260921_ordered/README.md supersedes historical local-only notes below. Includes exact velocity mixing/reaction ledgers, the rejected default-off relative-speed diagnostic in downstream_restart, 20 complete traces and 164 current lateral frames. Core/network/demand unchanged from a5dcbd3; RM/VSL gain calibration remains NOT_QUALIFIED. Restore through acceleration first. Lateral reference separation explains only4/80 projected overlaps; full body geometry and runtime timing remain unverified. Source XML simRes=1 is a diagnostic clue, not a proven cause. No new native. Next verify coordinate/timing/order interpretation before another model or parameter sweep.
+
 # 2026-09-21 모델 수정 및 이득 예측 인계
+
+Latest delivery checkpoint: `diagnostics/handoff_20260921_acceleration/README.md` supersedes the historical local-only notes below. This increment includes current-target acceleration diagnostics, rejected default-off memory/response-scale candidates, and all 60 saved local forecasts. Core/network/demand unchanged from fbdbeed; RM/VSL gain calibration remains NOT_QUALIFIED. Restore through the transport package first. Next: separate carried-velocity mixing from same-vehicle reaction error; that analysis has not been completed.
+
+
+**최신 전달:** `diagnostics/handoff_20260921_transport/README.md`가 아래 인계보다 우선한다. `1fcca58` 이후 초기 차량2706쌍·공통 완료 통과900쌍·열린 말단6개 예측·국소 수송 후보를 추가 보존했다. 수송 후보는 기각하여 기본 비활성이며, 앞선 seed33 RM 순위 일치도 말단 처리 변경에 유지되지 않았다. 이득 예측은 **NOT_QUALIFIED**다. 정본 core·기준망·수요 추가 수정과 새 native 실행은 없었다. 복원·검사·다음 작업은 최신 README를 따른다.
+
+아래는 이전 전달 시점의 누적 기록이다.
+
+**현재 최신 재개점:** `diagnostics/handoff_20260921_matched_response/README.md`와 `K/MATCHED_SPATIAL_RESPONSE.md`가 아래 과거 인계보다 우선한다. 기존1초 적분·차로·이동거리·분기 기능을 두2550초 상태에서 비교한48개 유효 예측과 seed33 사후 본선 경계 회계를 추가했다. 이동거리·분기 후보는 두 상태의 RM 순위가 맞지만 이득 크기·구성 비용은 틀려 **NOT_QUALIFIED**다. 본체·기준망·기본 설정 추가 변경이나 새 native는 없다. 최신 복원과 후속 작업은 해당 README를 따른다.
+
+아래는 이전 전달의 누적 기록이다.
+
+**현재 최신 재개점:** `diagnostics/handoff_20260921_spatial/README.md`가 아래 과거 인계 문단보다 우선한다. 누적 모델 본체 수정은 `7bb685c`까지 전달했고, 이번에는 차로별 공간 수송·30초 및150초 예측·실제 미래 경계 원인 분리 진단을 추가했다. 150초 개선은 일관되지 않으며 실제 경계를 줘도2700초 이후의 국소 이득을 놓친다. 정본 추가 수정/기본 활성화/새 VISSIM 런은 없다. **순이득 보정 NOT_QUALIFIED**를 유지한다. 최신 복원·검사 명령과 다음 작업은 해당 README에 모았다.
+
+아래는 이전 전달의 누적 기록이다.
+
+**최신 전달:** `diagnostics/handoff_20260921_entry_speed/README.md`와 `K/RAMP_ENTRY_VELOCITY.md`가 이전 아래 기록보다 우선한다. 기존 차로군 함수에 선택적 합류 속도 입력을 추가했고47개 관련 검사 및 비활성4개 전체 예측 일치를 확인했다. 세 후보 모두 RM/VSL 순이득 예측에 실패하여 기본 채택하지 않았다. RM 관측 반복은3000초 완료, 원래9열11,790,482행 정확 일치, LDP/readback PASS다. 유효 추출 자료와 실패 기록을 모두 전달하며 판정은 NOT_QUALIFIED다. 아래의 'core 변경 없음'과 'native 없음'은 이전 커밋 단계만을 설명한다.
+
+**이번 푸시의 최신 재개점:** `diagnostics/handoff_20260921_response/README.md`와 `K/SPEED_RESPONSE_AND_HANDOFF.md`를 먼저 읽는다. 동일 초기 차량군의 지연 경로, 실제 소비 속도식21,600회, 두 고정 하류 완화 후보 및 합류 속도·시점을 추가 확인했다. 두 후보 모두 순이득 부호를 고치지 못해 기각했다. 생산 모델은 그대로이며 보정은 NOT_QUALIFIED다. 아래 인계는 누적 구현과 이전 진단의 기록이다.
+
+**최신 후속 인계:** `diagnostics/handoff_20260921/FOLLOWUP.md`의 복원·검사를 따른다. 누적 모델 수정은 `6d7612b`에 포함되어 있고, 이번 후속은 완료된 진단과 결과를 추가 보존한다. 동일2550초5,208대 상태의 강화 RM 추가비용은 실제+1.49861veh·h, 모델+.01349였으며 본선 효과는 반대로 예측했다. 고정 시차 반응식도 다른 개발 seed에서 실패했다. 새 native/core/기본 설정 변경은 없으며 보정 미완료다.
+
+마지막으로 완료한 1초 본선 경계 장부는 `K/marginal_boundary_timing_v1`이다. 강화 RM의 본선 추가 체류시간은2700초−.038889,2850초+.038056,3000초+.401389veh·h로 바뀐다. 450초 말단 방출 사건의 체류시간 기여 차이+1.129167이10490 합류 사건의−.809722 등을 넘었다. 이는 보존식의 사후 회계 분해이며 독립적인 인과 효과나 새로운 예측 모델이 아니다. 초기 본선 차량676대의 추가 체류+.431389가 대부분을 차지했다. 다음에는 이 차량군의 하류16–20셀 지연 및 정상 진출 배수·도착 예측을 분리한다. 더 큰 RM 보상이나 고정 이득 계수를 넣지 않는다.
 
 현재 판정은 **NOT_QUALIFIED: RM/VSL 순이득 보정 미완료**다. 이 커밋은 누적 모델 구현, 완료된 진단과 기각 근거를 보존한다. 미채택 후보를 성능 정본으로 승격하는 커밋이 아니다. 예전 인계의 여러 “최신” 문단보다 이 문서가 우선한다.
 

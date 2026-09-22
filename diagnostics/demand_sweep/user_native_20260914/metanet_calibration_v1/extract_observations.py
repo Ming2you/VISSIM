@@ -54,7 +54,7 @@ def save(path, value):
 def table(path, rows):
     require(bool(rows), 'No table rows: ' + str(path))
     with Path(path).open('x', encoding='utf-8', newline='') as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream, fieldnames=list(dict.fromkeys(k for row in rows for k in row)))
         writer.writeheader()
         writer.writerows(rows)
 
@@ -172,11 +172,47 @@ def physical_geometry(network, mapping=MAPPING, off_inventory=OFF_INVENTORY, geo
     return result
 
 
+def skipped_port(old, new, pairs, ports):
+    """A unique physical connector between two observed links, never a disappearance."""
+    if old is None or new is None or old[0] == new[0]:
+        return None
+    candidates = pairs.get((old[0], new[0]), [])
+    if len(candidates) != 1 or candidates[0] not in ports:
+        return None
+    port = ports[candidates[0]]
+    if old[2] > port['from_pos_m'] + .02 or new[2] < port['to_pos_m'] - .02:
+        return None
+    return port
+
+
+def skipped_mainline_between_ports(old, new, ramps, offramps):
+    """Same-ID ramp -> off-ramp on one forward physical mainline link.
+
+    Both boundary events occur inside the recording interval. No disappearance,
+    multi-link route inference, precise event time, or lane is invented.
+    """
+    if old is None or new is None:
+        return None
+    ramp, off = ramps.get(old[0]), offramps.get(new[0])
+    if (ramp is None or off is None or ramp['road'] != off['road']
+            or ramp['to_link'] != off['from_link']
+            or ramp['to_pos_m'] > off['from_pos_m']
+            or ramp['to_cell'] > off['from_cell']):
+        return None
+    return ramp, off
+
+
 class PortObserver:
     """Disjoint physical connector stocks; never infer disappearance as discharge."""
 
-    def __init__(self, geometry):
+    def __init__(self, geometry, *, interval_sec=1, phase_sec=0):
+        self.phase_sec = phase_sec
+        require(type(interval_sec) is int and interval_sec in (1, 5), 'Observation interval must be1 or5 seconds')
         self.ports = {b['connector']: b for b in geometry['boundaries'] if b['kind'] in ('ramp', 'offramp')}
+        if interval_sec != 1:
+            self.interval_sec = interval_sec
+            self.previous_all = {}
+            self.pairs = {(x['from_link'], x['to_link']): x['connectors'] for x in geometry['direct_connector_pairs']}
         self.previous = {}
         self.entered = {}
         self.opening = Counter()
@@ -184,7 +220,24 @@ class PortObserver:
         self.rows, self.events, self.snapshots = [], [], {}
 
     def advance(self, sec, current):
+        event_start = len(self.events)
         selected = {v: r for v, r in current.items() if r[0] in self.ports}
+        if getattr(self, 'interval_sec', 1) == 5:
+            for vehicle in self.previous_all.keys() & current.keys():
+                old, new = self.previous_all[vehicle], current[vehicle]
+                if old[0] in self.ports or new[0] in self.ports:
+                    continue
+                port = skipped_port(old, new, self.pairs, self.ports)
+                if port is not None:
+                    conn = port['connector']
+                    for kind in ('arrival', 'departure'):
+                        self.bins[conn][kind] += 1
+                        self.events.append({'time_s': sec, 'vehicle': vehicle, 'connector': conn,
+                            'kind': kind, 'other_link': old[0] if kind == 'arrival' else new[0],
+                            'lane': None, 'position_m': None, 'speed_kmh': None, 'residence_s': None,
+                            'lower_time_s': sec-5, 'upper_time_s': sec,
+                            'inferred_unique_connector_passage': True})
+            self.previous_all = current
         for vehicle in self.previous.keys() | selected.keys():
             old, new = self.previous.get(vehicle), selected.get(vehicle)
             if old is not None and new is not None and old[0] == new[0]:
@@ -206,7 +259,10 @@ class PortObserver:
                 self.events.append({'time_s': sec, 'vehicle': vehicle, 'connector': conn,
                     'kind': 'arrival', 'other_link': None,
                     'lane': new[1], 'position_m': new[2], 'speed_kmh': new[3], 'residence_s': None})
-        if sec % 30 == 0:
+        if getattr(self, 'interval_sec', 1) == 5:
+            for event in self.events[event_start:]:
+                event.update(lower_time_s=sec-5, upper_time_s=sec)
+        if abs((sec-self.phase_sec)/30-round((sec-self.phase_sec)/30)) < 1e-8:
             groups = defaultdict(list)
             for r in selected.values():
                 groups[r[0]].append([r[2], r[3], r[1]])
@@ -232,7 +288,12 @@ class PortObserver:
 
 
 class Observer:
-    def __init__(self, geometry, removals=()):
+    def __init__(self, geometry, removals=(), *, interval_sec=1, phase_sec=0):
+        require(0 <= phase_sec < interval_sec, 'Invalid observation phase')
+        self.phase_sec = phase_sec
+        require(type(interval_sec) is int and interval_sec in (1, 5), 'Observation interval must be1 or5 seconds')
+        if interval_sec != 1:
+            self.interval_sec = interval_sec
         self.geometry = geometry
         self.addresses = {int(k): tuple(v) for k, v in geometry['addresses'].items()}
         self.sources = {int(k): v for k, v in geometry['sources'].items()}
@@ -243,12 +304,20 @@ class Observer:
         self.ramps = {x['connector']: x for x in geometry['boundaries'] if x['kind'] == 'ramp'}
         self.offramps = {x['connector']: x for x in geometry['boundaries'] if x['kind'] == 'offramp'}
         self.pairs = {(x['from_link'], x['to_link']): x['connectors'] for x in geometry['direct_connector_pairs']}
+        self.local_mainline_pairs = set()
+        for chain in geometry['chains'].values():
+            links = [x['link'] for x in chain]
+            for (src,dst), connectors in self.pairs.items():
+                if len(connectors)!=1 or any(x not in links for x in (src,connectors[0],dst)): continue
+                if links.index(dst)==links.index(src)+2 and links[links.index(src)+1]==connectors[0]:
+                    self.local_mainline_pairs.update(((src,connectors[0]),(connectors[0],dst),(src,dst)))
+        self.position_verified_transitions = []
         self.removals = defaultdict(list)
         for index, item in enumerate(removals):
             self.removals[int(item['vehicle_id']), int(item['link'])].append((index, item))
         self.removal_matched = set()
         self.previous, self.seen, self.previous_cells = {}, set(), {}
-        self.sec = 0
+        self.sec = phase_sec
         self.bin, self.cumulative = defaultdict(Counter), defaultdict(Counter)
         self.boundary_bin, self.boundary_cumulative = defaultdict(Counter), defaultdict(Counter)
         self.counts, self.opening = Counter(), Counter()
@@ -291,11 +360,12 @@ class Observer:
             self.flow(a[:2], 'unexplained_losses')
         if b:
             self.flow(b[:2], 'unexplained_entries')
-        self.evidence.append({'vehicle_id': vehicle, 'lower_sec': self.sec - 1, 'upper_sec': self.sec,
+        self.evidence.append({'vehicle_id': vehicle, 'lower_sec': self.sec - getattr(self, 'interval_sec', 1), 'upper_sec': self.sec,
             'reason': reason, 'before': old, 'after': new})
 
     def advance(self, sec, current):
-        require(sec == self.sec + 1, 'Require exact consecutive 1-second frames')
+        dt = getattr(self, 'interval_sec', 1)
+        require(abs(sec-self.sec-dt) < 1e-8, f'Require exact consecutive {dt}-second frames')
         self.sec = sec
         locations, counts, speeds, stopped, physical_counts = {}, Counter(), Counter(), Counter(), Counter()
         for vehicle, row in current.items():
@@ -319,13 +389,28 @@ class Observer:
             if a and b:
                 if a[:2] == b[:2]:
                     continue
-                plausible = b[0] == a[0] and b[2] >= a[2] and b[2] - a[2] <= max(old[3], new[3]) / 3.6 + 12.
+                plausible = b[0] == a[0] and b[2] >= a[2] and b[2] - a[2] <= dt * max(old[3], new[3]) / 3.6 + 12.
+                if (not plausible and dt==5 and b[0]==a[0] and b[2]>=a[2]
+                        and (old[0]==new[0] or (old[0],new[0]) in self.local_mainline_pairs)):
+                    # Endpoint speeds do not bound distance during a five-second
+                    # acceleration/braking interval. Concatenated full-link chain
+                    # coordinates also include unused connector-end overlaps.
+                    # Same-ID forward positions on one link, or on a verified
+                    # unique local mainline connection, prove spatial crossings.
+                    # Arbitrary jumps, reversals and missing vehicles stay excluded.
+                    plausible = True
+                    self.position_verified_transitions.append({'vehicle_id':vehicle,'lower_sec':sec-dt,
+                        'upper_sec':sec,'before':old,'after':new,'basis':'same_link_or_unique_local_mainline_connection'})
                 if plausible:
                     self.crossing(a[0], a[1], b[1])
                 else:
                     self.unexplained(vehicle, old, new, a, b, 'nonforward_or_implausible_chain_jump')
             elif b:
                 ramp = self.ramps.get(old[0]) if old else None
+                if ramp is None and dt == 5:
+                    ramp = skipped_port(old, new, self.pairs, self.ramps)
+                    if ramp is not None:
+                        self.boundary(ramp['id'], 'interval_inferred_crossings')
                 source = self.sources.get(new[0])
                 source_birth = source and vehicle not in self.seen
                 source_zero_crossing = source and old is not None and old[0] == new[0] and old[2] < 0 <= new[2]
@@ -345,8 +430,13 @@ class Observer:
                                 self.boundary(self.ramps[c]['id'], 'excluded_connector_skip')
             elif a:
                 off = self.offramps.get(new[0]) if new else None
+                if off is None and dt == 5:
+                    off = skipped_port(old, new, self.pairs, self.offramps)
+                    if off is not None:
+                        self.boundary(off['id'], 'interval_inferred_crossings')
                 matches = [(i, item) for i, item in self.removals.get((vehicle, old[0]), [])
-                           if abs(float(item['time_sec']) - sec) <= 1.] if new is None else []
+                           if (abs(float(item['time_sec']) - sec) <= 1. if dt == 1
+                               else sec-dt < float(item['time_sec']) <= sec)] if new is None else []
                 if off and a[0] == off['road'] and a[1] <= off['from_cell']:
                     self.crossing(a[0], a[1], off['from_cell'])
                     self.flow((a[0], off['from_cell']), 'off_departures')
@@ -354,10 +444,10 @@ class Observer:
                 elif matches:
                     self.flow(a[:2], 'native_removals')
                     self.removal_matched.update(i for i, _ in matches)
-                    self.evidence.append({'vehicle_id': vehicle, 'lower_sec': sec - 1, 'upper_sec': sec,
+                    self.evidence.append({'vehicle_id': vehicle, 'lower_sec': sec - dt, 'upper_sec': sec,
                         'reason': 'matched_native_removal', 'before': old, 'after': new,
                         'native_removal_indices': [i for i, _ in matches]})
-                elif new is None and old[0] == self.geometry['chains'][a[0]][-1]['link'] and abs(self.bounds[a[0]][-1] - a[2]) <= old[3] / 3.6 + 11.5:
+                elif new is None and old[0] == self.geometry['chains'][a[0]][-1]['link'] and abs(self.bounds[a[0]][-1] - a[2]) <= dt * old[3] / 3.6 + 11.5:
                     self.flow(a[:2], 'terminal_exits_inferred')
                 else:
                     self.unexplained(vehicle, old, new, a, b, 'unverified_mainline_loss')
@@ -365,7 +455,21 @@ class Observer:
                         for c in self.pairs.get((old[0], new[0]), []):
                             if c in self.offramps:
                                 self.boundary(self.offramps[c]['id'], 'excluded_connector_skip')
-        if sec % 30 == 0:
+            elif dt == 5:
+                path = skipped_mainline_between_ports(old, new, self.ramps, self.offramps)
+                if path is not None:
+                    ramp, off = path
+                    road = ramp['road']
+                    self.flow((road, ramp['to_cell']), 'ramp_merges')
+                    self.crossing(road, ramp['to_cell'], off['from_cell'])
+                    self.flow((road, off['from_cell']), 'off_departures')
+                    for name in (ramp['id'], off['id']):
+                        self.boundary(name)
+                        self.boundary(name, 'interval_inferred_crossings')
+                    self.position_verified_transitions.append({'vehicle_id':vehicle,
+                        'lower_sec':sec-dt,'upper_sec':sec,'before':old,'after':new,
+                        'basis':'same_link_forward_mainline_between_observed_ports'})
+        if abs((sec-self.phase_sec)/30-round((sec-self.phase_sec)/30)) < 1e-8:
             for key in self.keys:
                 n = counts[key]
                 self.cells.append({'time_s': sec, 'road': key[0], 'cell': key[1], 'n_veh': n,
@@ -392,6 +496,8 @@ class Observer:
                     'excluded_connector_skip': values['excluded_connector_skip'],
                     'source_first_appearances': values['source_first_appearances'],
                     'source_reappearances': values['source_reappearances']})
+                if dt == 5:
+                    self.boundary_rows[-1]['interval_inferred_crossings'] = values['interval_inferred_crossings']
             self.opening, self.bin, self.boundary_bin = counts.copy(), defaultdict(Counter), defaultdict(Counter)
         self.previous, self.previous_cells, self.counts = current, locations, counts
         self.seen.update(current)
@@ -463,6 +569,8 @@ def main():
     parser.add_argument('--out', type=Path)
     parser.add_argument('--geometry-only', action='store_true')
     parser.add_argument('--geometry-profile', type=Path)
+    parser.add_argument('--refined-geometry', type=Path, help='Existing partition with the same physical topology')
+    parser.add_argument('--phase-sec', type=float, default=0, help='Explicit native recording phase; timestamps remain fractional')
     parser.add_argument('--verified-network', type=Path,
                         help='Use a relocated immutable network only if its bytes match the original receipt snapshot SHA')
     parser.add_argument('--port-details', action='store_true', help='Collect physical port entries, drains and initial travel cohorts in the same FZP pass')
@@ -497,6 +605,15 @@ def main():
         network = args.verified_network.resolve()
     require(sha(network) == expected, 'Actual snapshot INPX SHA changed')
     geometry = physical_geometry(network, geometry_profile=args.geometry_profile)
+    if args.refined_geometry:
+        from evaluation.controllers.freeway_geometry import geometry_fingerprint
+        refined = load(args.refined_geometry)
+        require(geometry_fingerprint(refined) == geometry_fingerprint(geometry), 'Refined physical topology differs')
+        geometry['cells'], geometry['bounds'] = refined['cells'], refined['bounds']
+        indices = {b['id']: b for b in refined['boundaries']}
+        for b in geometry['boundaries']:
+            b.update({k: indices[b['id']][k] for k in ('from_cell','to_cell')})
+        geometry['refined_partition'] = {'path': str(args.refined_geometry.resolve()), 'sha256': sha(args.refined_geometry)}
     geometry['source_network'] = {'path': prepared['source_network'], 'sha256': prepared['source_network_sha256']}
     out.mkdir()
     extraction_source = Path(__file__).read_bytes()
@@ -516,16 +633,29 @@ def main():
     fzp = files[0]
     stat = fzp.stat()
     evidence = {'path': str(fzp), 'bytes': stat.st_size}
-    observer = Observer(geometry, removals)
-    ports = PortObserver(geometry) if args.port_details else None
+    interval = prepared.get('vehicle_record_interval_sec',1)
+    observer = Observer(geometry, removals, interval_sec=interval, phase_sec=args.phase_sec)
+    ports = PortObserver(geometry, interval_sec=interval, phase_sec=args.phase_sec) if args.port_details else None
     started = time.monotonic()
-    for sec, frame in native_frames(fzp, evidence, deadline=started + 1800):
+    for sec, frame in native_frames(fzp, evidence, deadline=started + 1800, interval_sec=interval, phase_sec=args.phase_sec):
         observer.advance(sec, frame)
         if ports is not None:
             ports.advance(sec, frame)
-        if sec % 900 == 0:
+        if abs((sec-args.phase_sec)/900-round((sec-args.phase_sec)/900)) < 1e-8:
             print(json.dumps({'seed': receipt['seed'], 'scanned_sec': sec}), flush=True)
-    require(observer.sec == receipt['terminal_sec'] and observer.sec % 30 == 0, 'Incomplete extraction extent')
+    if args.phase_sec:
+        from diagnostics.fast_fixed_profile_verify import native_recording_grid, rows as csv_rows
+        resolution = float(prepared['saved_simulation']['simRes'])
+        grid = native_recording_grid(csv_rows(run/'readback.csv'), resolution)
+        require(abs(float(grid[0])-interval)<1e-8 and abs(float(grid[1])-args.phase_sec)<1e-8, 'Native phase disagrees with readback')
+        expected_last = args.phase_sec + math.floor((receipt['terminal_sec']-args.phase_sec)/interval)*interval
+        require(abs(observer.sec-expected_last)<1e-8, 'Incomplete fractional extraction extent')
+        # First bin starts at actual empty initialization, not a fabricated phase-time state.
+        for rows in (observer.flows, observer.boundary_rows, ports.rows if ports else []):
+            for row in rows:
+                if abs(row['window_end_s']-(30+args.phase_sec))<1e-8: row['window_start_s']=0
+    else:
+        require(observer.sec == receipt['terminal_sec'] and observer.sec % 30 == 0, 'Incomplete extraction extent')
     after = fzp.stat()
     require((stat.st_size, stat.st_mtime_ns) == (after.st_size, after.st_mtime_ns), 'FZP mutated while extracting')
     require(sha(network) == expected, 'Network evidence changed during extraction')
@@ -538,8 +668,14 @@ def main():
         save(out / 'port_cohorts_30s.json', ports.snapshots)
     save(out / 'exclusion_evidence.json', {'events': observer.evidence, 'native_removals': removals,
         'unmatched_native_removal_indices': sorted(set(range(len(removals))) - observer.removal_matched)})
+    if observer.position_verified_transitions:
+        save(out/'position_verified_transitions.json',observer.position_verified_transitions)
     save(out / 'manifest.json', {'schema': 'metanet-spatial-observations/v1', 'seed': receipt['seed'],
         'terminal_sec': observer.sec, 'cell_index_base': 0, 'fzp': evidence,
+        'observation_interval_sec': interval,
+        'native_phase_sec': args.phase_sec, 'requested_terminal_sec': receipt['terminal_sec'],
+        'position_verified_transition_count': len(observer.position_verified_transitions),
+        'last_complete_30s_window_s': observer.cells[-1]['time_s'],
         'run_receipt': {'path': str(receipt_path), 'sha256': sha(receipt_path)},
         'prepared': {'path': str(prepared_path), 'sha256': sha(prepared_path)},
         'network': geometry['network'], 'errors': error_proof, 'extractor_sha256': sha(__file__),
@@ -547,17 +683,17 @@ def main():
         'cell_window_conservation_checks': observer.checks, 'max_conservation_residual_veh': 0,
         'elapsed_sec_not_benchmark': time.monotonic() - started, 'synthetic_tests': synthetic_tests(),
         'clock': {'states': 'Exact FZP frame at t; t=0 explicitly empty initialization.',
-            'flows': '(window_start_s,window_end_s]; each transition bracket is (t-1,t]. No exact subsecond event time claimed.',
+            'flows': f'(window_start_s,window_end_s]; each transition bracket is (t-{interval},t]. No exact within-interval event time claimed.',
             'forecast_use': 'Future observed boundaries are diagnostic replay only. Genuine forecasts must use records ending at/before their initialization cutoff.',
             'end': 'Last-frame vehicles remain stock; no tail extrapolation or terminal disappearance invented.'},
         'definitions': {'rho': 'snapshot N / actual cell lane-km', 'speed': 'vehicle arithmetic mean; null empty; score only n>=5',
             'mainline_crossing': 'Forward canonical position crosses spatial edge, including within same physical link and multi-cell movement.',
-            'off_departure': 'Mainline vehicle observed next on named off-ramp connector; separate from downstream mainline crossings.',
-            'ramp_merge': 'Named ramp connector vehicle observed next on mainline; queued connector stock measured separately.',
+            'off_departure': 'Mainline vehicle observed next on named off-ramp connector; separate from downstream mainline crossings.'+(' Unique endpoint-to-endpoint connector skips also counted and flagged.' if interval>1 else ''),
+            'ramp_merge': 'Named ramp connector vehicle observed next on mainline; queued connector stock measured separately.'+(' Unique endpoint-to-endpoint connector skips also counted and flagged.' if interval>1 else ''),
             'source_admission': 'First-appearance insertion on source chain, or source negative-to-nonnegative coordinate crossing; excludes seen-ID reappearance.',
             'birth': 'First-ever observation on mainline; evidence, not an additional additive inflow.',
-            'terminal_exit': 'One-second kinematic inference at final physical chain end after excluding native removal; not directly observed beyond-network passage.',
-            'excluded': 'Unverified entries/losses and skipped ramp connector passages excluded from physical flows but retained in conservation.'},
+            'terminal_exit': f'{interval}-second kinematic inference at final physical chain end after excluding native removal; not directly observed beyond-network passage or certified Omega TTD.',
+            'excluded': 'Unverified entries/losses retained in conservation; '+('only unique physical connector skips inferred, without a claimed lane or exact crossing time.' if interval>1 else 'skipped ramp connector passages excluded from physical flows.')},
         'files': {p.name: sha(p) for p in out.iterdir() if p.is_file()}})
     print(json.dumps({'complete': str(out), 'seed': receipt['seed'], 'checks': observer.checks}))
 

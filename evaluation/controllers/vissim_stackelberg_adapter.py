@@ -8976,7 +8976,8 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
             try:
                 _FW_SEG_CTX["p"] = _fw_seg_param_dict(cfg_.network, link, index)
                 _FW_SEG_CTX["armed"] = True
-                _FW_SEG_CTX["state_response"] = (getattr(cfg_.network, "freeway_state_response", {}) or {}).get(str(link), {})
+                from evaluation.controllers.freeway_fd import cell_state_response
+                _FW_SEG_CTX["state_response"] = cell_state_response(cfg_.network, link, index)
                 _FW_SEG_CTX["response_rho_crit"] = float(_FW_SEG_CTX["p"].get("rho_crit", cfg_.network.rho_crit))
                 # 차로감소항 재료. Δλ = λ_i − λ_{i+1} (감소일 때만 양수) 와 φ 를 여기서 실어 둔다 —
                 # metanet_speed_update_kmh 는 cfg 를 못 본다.

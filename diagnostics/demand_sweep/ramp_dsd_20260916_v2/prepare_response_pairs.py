@@ -15,10 +15,16 @@ from diagnostics.fast_fixed_profile import prepare
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--late-response',action='store_true')
+    parser.add_argument('--resolution-control',choices=('smoke','paired'))
     parser.add_argument('--seed',type=int)
     parser.add_argument('--destination',type=Path)
     args=parser.parse_args()
     here = Path(__file__).resolve().parent
+    if args.resolution_control:
+        if args.late_response or args.seed is not None or args.destination is not None:
+            parser.error('--resolution-control uses its pinned seed and destination only')
+        prepare_resolution_control(here,args.resolution_control)
+        return
     if args.late_response:
         prepare_late_response(here,23 if args.seed is None else args.seed,args.destination)
         return
@@ -109,6 +115,53 @@ def prepare_late_response(here,seed=23,destination=None):
             'meter_commands':[{'time_s':t,'sc_no':9107,'green_sec':g} for t,g in zip(times,sequence['green'])],
             'vsl_commands':[{'time_s':t,'dsd_no':d,'speed_id':v} for t,v in zip(times,sequence['vsl']) for d in protocol['dsd_ids']]}
         path=out/(arm+'.json');path.write_text(json.dumps(profile,indent=2),encoding='utf-8')
+        prepare(network,path,out/f'prepared_{arm}')
+    print(out)
+
+
+def prepare_resolution_control(here,stage):
+    """Reuse completed NC10; preserve the earlier actuator bank at integer times."""
+    base=here/'cohort_dynamics_20260920'
+    out=base/'resolution_control_v1'/stage
+    network=base/'body_geometry_native_v1/none_s23_res10/source/baseline.inpx'
+    reference=base/'body_geometry_native_v1/none_s23_res10/run_retry2'
+    digest=hashlib.sha256(network.read_bytes()).hexdigest()
+    bank={}
+    sources={}
+    for arm in ('rm_ramp','vsl','both'):
+        source=(here/'response_late_s23_v1/both.json' if arm=='both' else
+                base/f'route_state_native_v1/{arm}_s23/profile.json')
+        original=json.loads(source.read_text())
+        sources[str(source)] = hashlib.sha256(source.read_bytes()).hexdigest()
+        profile={**original,'network_sha256':digest,'native_resolution_probe':10,
+                 'vehicle_record_interval_sec':1,'terminal_sec':3000}
+        for key in ('meter_commands','vsl_commands'):
+            profile[key]=[r for r in original[key] if r['time_s']<3000]
+        bank[arm]=profile
+    if stage=='smoke':
+        profile=bank['both']
+        profile.update(control_start_sec=900,terminal_sec=1050)
+        for key in ('meter_commands','vsl_commands'):
+            profile[key]=[{**r,'time_s':900} for r in profile[key] if r['time_s']==2400]
+        bank={'both':profile}
+    else:
+        smoke=out.parent/'smoke/run_both/fixed_validation.json'
+        result=json.loads(smoke.read_text())
+        if not (result['passed'] and result.get('paired_native_signals_passed')
+                and result['paired_comparison_end_sec']==900):
+            raise ValueError('Resolution10 native clock and exact warmup gate must pass first')
+    out.mkdir(parents=True,exist_ok=False)
+    protocol={'stage':stage,'network':str(network),'network_sha256':digest,
+              'baseline_run':str(reference),'seed':23,'sim_resolution':10,
+              'native_record_interval_sec':1,'source_profiles':sources,
+              'candidate_bank':bank,'evaluation_windows':([] if stage=='smoke' else [[2400,2850],[2400,3000]]),
+              'scope':'Fixed actuator clock check' if stage=='smoke' else 'Matched resolution10 RM/VSL response; development seed, not unused validation',
+              'reuse_gate':'Every FZP data column exact through the last actual recording frame before first write; native non-target LDP equal throughout',
+              'comparison_policy':'Same resolution within each causal pair; resolution1 versus10 is not a matched traffic state',
+              'unchanged':'Network, demand, routes, native signals, physical model, objective and controller defaults'}
+    (out/'protocol.json').write_text(json.dumps(protocol,indent=2),encoding='utf-8')
+    for arm,profile in bank.items():
+        path=out/f'{arm}.json';path.write_text(json.dumps(profile,indent=2),encoding='utf-8')
         prepare(network,path,out/f'prepared_{arm}')
     print(out)
 

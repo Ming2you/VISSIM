@@ -1,0 +1,28 @@
+{
+  "source_pins": {
+    "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/downstream_relaxation_check.py": "42d4a73198f641c23ff47436a343c516d5069672675a2df1a56c52691af2dd30",
+    "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/urban_route_transport.py": "b9ab82939bb83f33830ef2b33f7c9621aefe8627fe1529797fe8faa7267f52af",
+    "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py": "0154f149c8ee24a81049336d0b9169190bbda6033fdc8888d3fd77a4fac0b593",
+    "evaluation/controllers/vissim_stackelberg_adapter.py": "efbe61b061166055f5abce97ae090d3e69f4c650d9b91a978e5b9e7e70313c28",
+    "evaluation/controllers/physical_lane_groups.py": "c673b8c192bdd2d7aff4d077cc184161c7da0901bda94b90adac28c2054ed0ce",
+    "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/config.json": "a33902540cfaef22d35c330f9ec6f15d830ac0d9955ff118515d3091eb008454",
+    "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/port_travel_fit_v1/selected_parameters.json": "b2d3660e844085a5cdbb5b36efbed19a7dc8f402911afe17122beb5a37af068b",
+    "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/downstream_response_terms_v4/result.json": "48262012687d3b0576341b97ca485600ddc38097d6d1d0d4db15a9d50adf08f3"
+  },
+  "scope": "Only FW_E port-free cells15..20",
+  "fixed_trials": {
+    "fixed_nu": {
+      "tau_sec": 30.0,
+      "nu": 35.0
+    },
+    "preserve_pressure": {
+      "tau_sec": 30.0,
+      "nu": 87.5
+    }
+  },
+  "rationale": "Previous consumed tau12/nu35; keeping nu/tau constant isolates relaxation change.",
+  "selection": "No candidate chosen or fitted using control costs; fixed diagnostic contrasts.",
+  "qualified": false,
+  "source_model": "transport_step1_exchange_off_v2",
+  "new_native_runs": 0
+}

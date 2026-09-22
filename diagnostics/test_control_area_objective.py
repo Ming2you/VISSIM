@@ -437,5 +437,49 @@ class ObjectiveTests(unittest.TestCase):
         self.assertTrue(objective.can_prune(AreaMetrics(5), incumbent_veh_h=4, max_future_exits_veh=None))
 
 
+class DistanceObjectiveTests(unittest.TestCase):
+    def test_units_and_exits_are_independent_of_distance(self):
+        obj = ControlAreaObjective(beta_hours=150/3600, distance_hours_per_km=60/3600)
+        self.assertAlmostEqual(obj.score(AreaMetrics(10, 24), tvd_veh_km=120), 7.)
+        self.assertAlmostEqual(obj.score(AreaMetrics(10, 0), tvd_veh_km=120), 8.)
+
+    def test_zero_weight_preserves_exact_old_score(self):
+        for beta in (0, 60/3600, 150/3600, 300/3600):
+            obj = ControlAreaObjective(beta)
+            metrics = AreaMetrics(1.23456, 17.89)
+            expected = metrics.ttt_veh_h - beta * metrics.ttd_veh + 0.123
+            self.assertEqual(obj.score(metrics, nonnegative_cost_veh_h=.123), expected)
+            self.assertEqual(obj.score(metrics, nonnegative_cost_veh_h=.123, tvd_veh_km=321), expected)
+
+    def test_positive_reward_requires_accounted_distance(self):
+        obj = ControlAreaObjective(0, 1/60)
+        with self.assertRaisesRegex(ValueError, 'explicitly accounted'):
+            obj.score(AreaMetrics(1))
+        for invalid in (-1, float('nan'), float('inf')):
+            with self.assertRaises(ValueError): obj.score(AreaMetrics(1), tvd_veh_km=invalid)
+            with self.assertRaises(ValueError): ControlAreaObjective(0, invalid)
+
+    def test_missing_future_distance_bound_disables_pruning(self):
+        obj = ControlAreaObjective(0, .1)
+        self.assertFalse(obj.can_prune(AreaMetrics(10), incumbent_veh_h=1,
+            max_future_exits_veh=0, tvd_veh_km=0))
+        self.assertTrue(obj.can_prune(AreaMetrics(10), incumbent_veh_h=1,
+            max_future_exits_veh=0, tvd_veh_km=0, max_future_tvd_veh_km=1))
+
+    def test_combined_bound_is_admissible(self):
+        obj = ControlAreaObjective(.25, .1)
+        bound = obj.lower_bound(AreaMetrics(3, 2), tvd_veh_km=10,
+            max_future_exits_veh=5, max_future_tvd_veh_km=30)
+        for exits in range(6):
+            for distance in (0, 10, 30):
+                for ttt in (0, .1, 10):
+                    self.assertLessEqual(bound, obj.score(AreaMetrics(3+ttt, 2+exits), tvd_veh_km=10+distance))
+
+    def test_stopped_queue_cost_is_retained_and_more_distance_is_rewarded(self):
+        obj = ControlAreaObjective(0, 60/3600)
+        self.assertEqual(obj.score(AreaMetrics(2), tvd_veh_km=0), 2)
+        self.assertLess(obj.score(AreaMetrics(2), tvd_veh_km=60), obj.score(AreaMetrics(2), tvd_veh_km=30))
+
+
 if __name__ == "__main__":
     unittest.main()

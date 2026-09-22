@@ -91,8 +91,12 @@ def no_control_commands(actions, end, interval, *, mode):
             'all_recorded_physical_commands_identical': True}
 
 
-def native_frames(path, evidence, *, deadline):
+def native_frames(path, evidence, *, deadline, interval_sec=1, phase_sec=0):
     """Explicit full-file scan, one global vehicle frame in memory at a time."""
+    d.require(type(interval_sec) is int and interval_sec in (1,5), 'Native interval must be1 or5 seconds')
+    d.require(0 <= phase_sec < interval_sec, 'Invalid native recording phase')
+    if phase_sec: evidence['native_phase_sec'] = phase_sec
+    if interval_sec!=1:evidence['observation_interval_sec']=interval_sec
     file_hash, payload_hash = hashlib.sha256(), hashlib.sha256()
     frame, now, count = {}, None, 0
     with path.open('rb') as stream:
@@ -113,10 +117,11 @@ def native_frames(path, evidence, *, deadline):
             parts = raw.rstrip(b'\r\n').split(b';')
             d.require(len(parts) == len(names), 'Unexpected native row shape')
             sec = float(parts[fields['SIMSEC']])
-            d.require(sec.is_integer(), 'Full analysis requires integer one-second frames')
-            sec = int(sec)
+            grid = (sec-phase_sec)/interval_sec
+            d.require(abs(grid-round(grid)) < 1e-8,'Native frame is off the declared sampling grid')
+            if not phase_sec: sec = int(sec)
             if now is not None and sec != now:
-                d.require(sec == now + 1, 'Missing or reordered native frame')
+                d.require(abs(sec-now-interval_sec) < 1e-8, 'Missing or reordered native frame')
                 d.require(time.monotonic() < deadline, 'Declared full-scan deadline exceeded')
                 yield now, frame
                 frame = {}

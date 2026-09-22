@@ -1,0 +1,35 @@
+{
+  "current_run": [
+    {
+      "arm": "rm",
+      "decision_count": 54,
+      "mpc_policy_present": false,
+      "mpc_decision_count": 0,
+      "recorded_policy": "Native feedback policy only; no MPC plant initialization or forecast claim. Native OFF retained until RM activation. Distribution IDs are not fixed vehicle speeds."
+    },
+    {
+      "arm": "vsl",
+      "decision_count": 54,
+      "mpc_policy_present": false,
+      "mpc_decision_count": 0,
+      "recorded_policy": "Native feedback policy only; no MPC plant initialization or forecast claim. Native OFF retained until RM activation. Distribution IDs are not fixed vehicle speeds."
+    },
+    {
+      "arm": "both",
+      "decision_count": 54,
+      "mpc_policy_present": false,
+      "mpc_decision_count": 0,
+      "recorded_policy": "Native feedback policy only; no MPC plant initialization or forecast claim. Native OFF retained until RM activation. Distribution IDs are not fixed vehicle speeds."
+    }
+  ],
+  "online_selector": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/evaluate_response.py",
+    "entry": "mpc_choice",
+    "only_called_with": "prepared/mpc_policy.json",
+    "geometry_gap": "window projects list(range(21)) although current physical mesh has31 cells per road",
+    "recording_phase_gap": "online_data explicitly rejects noninteger native timestamps; completed native frames have0.1s phase",
+    "cost_timebase_gap": "mpc_choice source-request and ramp-wait integration contains fixed10s factors; latest mainline integration is1s and ramp dynamics local1s. Requires tests before reuse.",
+    "objective_gap": "Mainline+connectors and extra waiting; no full17-player urban Omega/NP/NUF game"
+  },
+  "latest_component": "Three frozen boundary/Hadi/Wang offline candidates; no adoption receipt in current native queue."
+}

@@ -1,0 +1,17 @@
+  OK   선언된 override — network.v_free: parameters=100.0 실효=120.0
+  OK   선언된 override — network.rho_crit: parameters=33.5 실효=27.0
+  OK   선언된 override — network.freeway_capacity_veh_h: parameters=4000.0 실효=6937.0
+  OK   선언된 override — network.metanet_a_m: parameters=1.867 실효=1.6
+  OK   선언된 override — network.metanet_delta_merge: parameters=0.0 실효=0.3
+  WARN calibration 값이 버려진다 — network.v_free: calibration=120.0 parameters=100.0 (calibration 값은 버려진다)
+  WARN calibration 값이 버려진다 — network.rho_crit: calibration=30.0 parameters=33.5 (calibration 값은 버려진다)
+  WARN calibration 값이 버려진다 — network.freeway_capacity_veh_h: calibration=6900.0 parameters=4000.0 (calibration 값은 버려진다)
+  WARN calibration 값이 버려진다 — leader.N_P_crit_veh: calibration=600.0 parameters=509.448830418254 (calibration 값은 버려진다)
+  WARN 위 값을 바꿔도 아무 일도 안 일어난다. 바꾸려면 parameters.json 또는 config_overrides 를 고쳐라.
+  OK   순수 중복 키 없음 — parameters.json 편집이 실효한다
+  OK   리더 롤아웃 깊이 3 · follower 3
+  OK   녹색 예산 138.0 = cycle 150.0 - lost 12.0
+  OK   기본 현시녹색 파생 34.50 대 저장 34.50 (현시 4개)
+  OK   현시 상한 파생 78.0 = 예산 138.0 - (현시 4-1)x green_min 20 · 저장 78.0
+  OK   FD 함의 용량 6937 대 저장 6937 (비 1.00) — 용량은 rho_crit·v_free·a·차로수의 파생값이라 어긋나면 둘 중 하나가 틀렸다
+파라미터 검사 PASS — config.json

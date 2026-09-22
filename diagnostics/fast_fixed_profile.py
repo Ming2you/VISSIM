@@ -32,10 +32,18 @@ def compile_profile(network, profile):
     if profile.get('schema') != SCHEMA or profile.get('network_sha256') != sha(network):
         raise ValueError('Profile schema or exact network SHA differs')
     native = ET.parse(network).getroot()
+    interval = profile.get('vehicle_record_interval_sec', 5)
+    if type(interval) is not int or interval not in (1, 5):
+        raise ValueError('Vehicle recording interval must be1 or5 seconds')
     simulation = native.find('./simulation')
     if profile.get('seed') != int(simulation.get('randSeed')):
         raise ValueError('Profile must retain saved seed')
-    if int(simulation.get('simRes')) != 1:
+    resolution_probe = profile.get('native_resolution_probe')
+    if resolution_probe is not None:
+        if (type(resolution_probe) is not int or resolution_probe not in (1, 10)
+                or int(simulation.get('simRes')) != resolution_probe):
+            raise ValueError('Resolution probe requires matching saved resolution')
+    elif int(simulation.get('simRes')) != 1:
         raise ValueError('Fixed profile requires saved SimRes1')
     start = integer(profile['control_start_sec'], 'control start', 150)
     end = integer(profile['terminal_sec'], 'terminal', 1)
@@ -127,6 +135,10 @@ def compile_profile(network, profile):
              'off_anchor_scope': 'OFF is retained in evidence;10 is a declared open-service trust anchor only, not observed GREEN or demonstrated equivalence',
              'event_clock': 'Write after native frame at time t; first affected LDP frame is t+1; RED/GREEN uses absolute time modulo10',
              'scope': 'Fixed-command causal diagnostic; no controller optimization, N_UF feasibility or GNE certification'}
+    if resolution_probe is not None:
+        proof['native_resolution_probe'] = resolution_probe
+        if not events:
+            proof['event_clock'] = 'No control writes; native resolution is a diagnostic scenario variable, not equivalent traffic'
     return events, initial, proof
 
 
@@ -135,7 +147,8 @@ def prepare(network, profile_path, output):
     profile = json.loads(profile_path.read_text(encoding='utf-8-sig'))
     events, initial, proof = compile_profile(network, profile)
     with redirect_stdout(io.StringIO()):
-        prepare_native_preserve(network, output, profile['terminal_sec'])
+        prepare_native_preserve(network, output, profile['terminal_sec'],
+                                recording_interval_sec=profile.get('vehicle_record_interval_sec', 5))
     with (output/'native_simulation.csv').open('a', encoding='ascii', newline='') as stream:
         csv.writer(stream).writerow(['SimPeriod', proof['saved_simulation_period_sec']])
     for name, rows in [('fixed_events.csv', events), ('fixed_initial.csv', initial)]:

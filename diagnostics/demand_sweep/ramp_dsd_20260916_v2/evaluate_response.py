@@ -109,6 +109,23 @@ def refine_boundary_steps(steps,seconds):
     return result
 
 
+def observed_lane(row):
+    if row.get('lane') in (None,''):
+        raise ValueError('Sparse connector passage has no observed lane; lane-resolved calibration requires finer recording for this interval')
+    return int(row['lane'])
+
+
+def event_time_weights(row):
+    """Conserve event mass; no exact intra-5s arrival phase is available."""
+    end=int(float(row['time_s']))
+    if row.get('lower_time_s') not in (None,''):
+        lower=float(row['lower_time_s']);upper=float(row['upper_time_s'])
+        if upper!=end or upper-lower!=5 or not lower.is_integer():
+            raise ValueError('Invalid sparse event bracket')
+        return [(t,.2) for t in range(int(lower)+1,end+1)]
+    return [(end,1.)]
+
+
 def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
     w=build_window(data,cutoff,mode,profile)
     if model.port_origin_split:
@@ -143,15 +160,15 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
             history = spec['history_sec']
             events = [r for r in data.port_events if str(r['connector']) == off
                       and cutoff-history < float(r['time_s']) <= cutoff]
-            lane_service[off] = [sum(r['kind']=='departure' and int(r['lane'])==i for r in events)
+            lane_service[off] = [sum(r['kind']=='departure' and observed_lane(r)==i for r in events)
                                  *3600/history for i in (1,2)]
             exposure = [0.,0.]; transfers = [[0.,0.],[0.,0.]]
             for end in range(cutoff-history+30,cutoff+1,30):
                 before = [sum(row[2]==i for row in data.port_cohorts[str(end-30)][off]) for i in (1,2)]
                 after = [sum(row[2]==i for row in data.port_cohorts[str(end)][off]) for i in (1,2)]
                 observed = [r for r in events if end-30 < float(r['time_s']) <= end]
-                net = [after[i-1]-before[i-1]-sum(r['kind']=='arrival' and int(r['lane'])==i for r in observed)
-                       +sum(r['kind']=='departure' and int(r['lane'])==i for r in observed) for i in (1,2)]
+                net = [after[i-1]-before[i-1]-sum(r['kind']=='arrival' and observed_lane(r)==i for r in observed)
+                       +sum(r['kind']=='departure' and observed_lane(r)==i for r in observed) for i in (1,2)]
                 if sum(net) != 0:
                     raise ValueError('Lane exchange cannot absorb unexplained off-ramp vehicle loss')
                 for i in range(2):
@@ -191,7 +208,7 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
                         and cutoff-spec['lane_arrival_history_sec'] < float(r['time_s']) <= cutoff]
             lanes = model.ramps[mid]['lanes']
             if arrivals:
-                counts = [sum(int(r['lane']) == i for r in arrivals) for i in range(1, lanes+1)]
+                counts = [sum(observed_lane(r) == i for r in arrivals) for i in range(1, lanes+1)]
                 if sum(counts) != len(arrivals):
                     raise ValueError('Arrival lane outside physical ramp')
                 shares = [n/len(arrivals) for n in counts]
@@ -235,7 +252,7 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
         for r in data.port_events:
             stamp=float(r['time_s'])
             if r['kind']=='arrival' and (cutoff-history<stamp<=cutoff if mode=='history_forecast' else cutoff<stamp<=cutoff+450):
-                counts[int(stamp),str(r['connector'])]+=1.
+                for t,weight in event_time_weights(r):counts[t,str(r['connector'])]+=weight
         for step in w['boundary_steps']:
             step['ramp_arrival_profile']={}
             for mid in targets:
@@ -247,6 +264,8 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
                 step['ramp_arrival_vph'][mid]=sum(profile)*3600/(step['window_end_s']-step['window_start_s'])
         w['meta']['ramp_arrival_profile']={'history_sec':history,'ramps':targets,
             'mode':'past empirical pattern repeated' if mode=='history_forecast' else 'future observed arrivals; diagnostic only'}
+        if any(r.get('lower_time_s') not in (None,'') for r in data.port_events):
+            w['meta']['ramp_arrival_profile']['sparse_timing']='Conserved uniform mass within each observed5s bracket; intra-bracket signal phase is unobserved.'
     w['boundary_steps']=refine_boundary_steps(w['boundary_steps'],model.base.simulation.T_f_sec)
     if model.base.simulation.T_f_sec!=10:
         w['meta']['numerical_refinement']={'original_step_sec':10,'step_sec':model.base.simulation.T_f_sec,
@@ -413,13 +432,18 @@ def online_data(prepared,output,sec,contract):
     """
     from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.extract_observations import Observer,PortObserver
     cache_path=output/'mpc_observer_cache.pkl'
+    interval=contract.get('observation_interval_sec',1)
+    if type(interval) is not int or interval not in (1,5):
+        raise ValueError('MPC observation interval must be1 or5 seconds')
     if cache_path.exists():
         with cache_path.open('rb') as f:cache=pickle.load(f)
     else:
         geometry=load(contract['geometry'])
-        cache={'observer':Observer(geometry),'ports':PortObserver(geometry),
+        cache={'observer':Observer(geometry,interval_sec=interval),'ports':PortObserver(geometry,interval_sec=interval),
                'offset':0,'frame':{},'time':None,'fields':None}
     observer,ports=cache['observer'],cache['ports']
+    if getattr(observer,'interval_sec',1)!=interval:
+        raise ValueError('MPC observation interval changed during an existing run')
     def advance(t,frame):
         if t>observer.sec:
             observer.advance(t,frame);ports.advance(t,frame)
@@ -437,8 +461,15 @@ def online_data(prepared,output,sec,contract):
                 continue
             if cache['fields'] is None:continue
             parts=raw.rstrip(b'\r\n').split(b';');ix=cache['fields']
-            t=int(float(parts[ix['SIMSEC']]))
-            if t>sec:raise ValueError('Future native frame in paused MPC observation')
+            native_time=float(parts[ix['SIMSEC']])
+            if not math.isfinite(native_time) or native_time<0:
+                raise ValueError('Invalid native timestamp in MPC observation')
+            if native_time>sec:raise ValueError('Future native frame in paused MPC observation')
+            if not native_time.is_integer():
+                raise ValueError('MPC history requires integer-aligned native frames; do not round fractional times')
+            t=int(native_time)
+            if t%interval:
+                raise ValueError('MPC native observation does not align with declared sampling interval')
             if cache['time'] is not None and t!=cache['time']:
                 advance(cache['time'],cache['frame']);cache['frame']={}
             cache['time']=t
@@ -451,8 +482,8 @@ def online_data(prepared,output,sec,contract):
         vehicle=int(row['vehicle'])
         if vehicle in current:raise ValueError('Duplicate COM vehicle')
         current[vehicle]=(int(lane[0]),int(lane[1]),round(float(row['position_m']),2),round(float(row['speed_kmh']),2))
-    if observer.sec!=sec-1:
-        raise ValueError(f'Native history not closed through {sec-1}; last complete={observer.sec}; no stale substitution')
+    if observer.sec!=sec-interval:
+        raise ValueError(f'Native history not closed through {sec-interval}; last complete={observer.sec}; no stale substitution')
     # Validate already-flushed rows of the decision frame against live snapshot.
     post_record_exits=[]
     if cache['time']==sec:
@@ -484,12 +515,16 @@ def online_data(prepared,output,sec,contract):
     data.ports={(r['window_end_s'],str(r['connector'])):r for r in ports.rows if r['window_end_s']>=sec-150}
     data.port_cohorts={str(sec):ports.snapshots[str(sec)]}
     data.port_events = [dict(r) for r in ports.events if sec-150 < float(r['time_s']) <= sec]
-    evidence={'sec':sec,'native_complete_through':sec-1,'com_snapshot_sec':sec,'com_bulk_calls':4,
+    evidence={'sec':sec,'native_complete_through':sec-interval,'com_snapshot_sec':sec,'com_bulk_calls':4,
         'snapshot_vehicles':len(current),'new_native_bytes':cache['offset']-byte_start,
         'native_frame_rows_crosschecked':len(cache['frame']) if cache['time']==sec else 0,
         'native_final_frame_to_COM_absences':post_record_exits,
         'current_state_phase':'Paused COM after native final-position recording and terminal removal',
         'features_latest_realized_sec':sec,'future_traffic_used':False}
+    if interval!=1:
+        evidence.update(observation_interval_sec=interval,
+            flow_timing='Events bracketed by5s observations; unique connector skips inferred, unknown lane retained',
+            exact_1s_passage_timing_available=False)
     # Retain only the history needed by the next prediction, plus cumulative counts.
     observer.cells=[r for r in observer.cells if r['time_s']>=sec-150]
     observer.flows=[r for r in observer.flows if r['window_end_s']>=sec-150]
@@ -511,7 +546,7 @@ def mpc_choice(prepared,output,sec,history,policy):
     data,observation=online_data(prepared,output,sec,contract)
     observed_at=time.perf_counter()
     folder=Path(contract['model_directory'])
-    model=load_base_model(data.geometry,folder/'config.json')
+    model=load_base_model(data.geometry,Path(contract.get('model_config',folder/'config.json')))
     params=load(folder/'selected_parameters.json')['parameters'];profile=load(folder/'port_profile.json')
     arm=policy['rule']['arm'];greens=dict(history['greens'])
     zones={z:history['vsl'].get(str(ids[0]),120) for z,ids in policy['zone_dsds'].items()}

@@ -9,6 +9,79 @@ import copy
 import math
 
 
+def hadi_receiving_vph(rho, jam, critical, capacity, wave, theta, *, capacity_critical=False):
+    """Rate PER LANE, before physical space cap.
+
+    Optional Wang--Niu Eq4 ties the congested wave to Q'/(jam-critical).
+    Neither law changes physical jam storage or rewards a control command.
+    """
+    if (any(not math.isfinite(x) for x in (rho,jam,critical,capacity,wave,theta))
+            or rho<0 or not 0<critical<jam or min(capacity,wave)<=0 or not 0<=theta<1):
+        raise ValueError('Invalid Hadiuzzaman receiving parameters')
+    reduced=capacity*(1.-theta if rho>critical else 1.)
+    if capacity_critical and rho>critical:wave=reduced/(jam-critical)
+    return max(0.,min(reduced,wave*(jam-rho)))
+
+
+def hadi_desired_speed(fd_target, command, mode, active):
+    """Eq8. command uses ONE law for nominal and reduced VSL commands.
+
+    paper_switch diagnoses Eq3/Eq8 switching, which can increase desired
+    speed at activation independently of any physical control benefit.
+    """
+    if mode=='command' or (mode=='paper_switch' and active):return command
+    if mode in ('fd_cap','paper_switch'):return fd_target
+    raise ValueError('Unknown Hadiuzzaman relaxation mode')
+
+
+def receiving_limited_speed(predicted, previous, requested, accepted, seconds, reaction_seconds):
+    """Diagnostic response to an already allocated downstream receiving limit.
+
+    Does not alter fluxes or create capacity. It is a closure to validate, not
+    an identity between local mean speed and a cell-boundary crossing rate.
+    """
+    values=(predicted,previous,requested,accepted,seconds,reaction_seconds)
+    if any(type(v) not in (int,float) or not math.isfinite(v) or v<0 for v in values) or seconds<=0:
+        raise ValueError('Invalid receiving-speed response operands')
+    if accepted>requested+1e-7:raise ValueError('Accepted through flow exceeds requested flow')
+    if not requested or accepted>=requested-1e-12:return predicted
+    target=min(predicted,previous*accepted/requested)
+    gain=1. if reaction_seconds==0 else -math.expm1(-seconds/reaction_seconds)
+    return predicted+gain*(target-predicted)
+
+
+def junction_mean_speed(flow, velocity_moment, fallback):
+    """Eq9 virtual inlet, using accepted entering amounts (common dt)."""
+    if any(not math.isfinite(x) or x<0 for x in (flow,velocity_moment,fallback)):
+        raise ValueError('Invalid junction flow/speed')
+    return velocity_moment/flow if flow else fallback
+
+
+def junction_downstream_density(densities):
+    """Eq10 virtual outlet. An empty set/zero-density outlets give zero."""
+    if any(not math.isfinite(x) or x<0 for x in densities):
+        raise ValueError('Invalid junction density')
+    return sum(x*x for x in densities)/sum(densities) if sum(densities) else 0.
+
+
+def off_operational_factors(widths, access, stock, capacity, gamma, b):
+    """Exact smooth Eq22 one-lane loss, allocated to exit-accessible groups.
+
+    These are sending-width factors, NOT physical storage widths. Retained
+    vehicles still occupy the same road and cannot disappear with a lane loss.
+    Unlike the legacy helper there is no forced jump at stock==capacity.
+    """
+    if (len(widths)!=len(access) or any(not math.isfinite(x) or x<=0 for x in widths)
+            or any(not math.isfinite(x) or x<0 for x in access)
+            or not math.isfinite(stock) or stock<0
+            or any(not math.isfinite(x) or x<=0 for x in (capacity,gamma,b))):
+        raise ValueError('Invalid off-ramp operational-width inputs')
+    available=sum(w for w,a in zip(widths,access) if a>0)
+    if available<1.:raise ValueError('Eq22 requires at least one exit-accessible lane')
+    loss=-math.expm1(-((stock/(gamma*capacity))**b)/b)
+    return [1.-loss/available if a>0 else 1. for a in access]
+
+
 def lane_entry_speed_loss(requests, speeds, before, after, gamma):
     """Extra recipient-follower loss, separate from advected vehicle momentum.
 
@@ -106,12 +179,59 @@ class PhysicalLaneGroups:
         self.spec = copy.deepcopy(spec)
         self.a = accounting
         self.road = spec['road']
+        self.port_response=copy.deepcopy((getattr(cfg.network,'freeway_port_response',{}) or {}).get(self.road,{}))
+        self.port_response_rows=[]
+        if self.port_response:
+            if set(self.port_response)!={'merge_speed','diverge_density','spillback'}:
+                raise ValueError('Explicit complete port-response switches required')
+            if any(type(self.port_response[k]) is not bool for k in ('merge_speed','diverge_density')):
+                raise ValueError('Junction switches must be boolean')
+            spill=self.port_response['spillback']
+            if spill is not None and (not isinstance(spill,dict) or set(spill)!={'mode','gamma','b'}
+                    or spill['mode'] not in ('replace_fifo','envelope')
+                    or any(isinstance(spill[k],bool) or not isinstance(spill[k],(int,float))
+                           or not math.isfinite(spill[k]) or spill[k]<=0 for k in ('gamma','b'))):
+                raise ValueError('Invalid operational spillback response')
         self.widths = spec['widths']
         self.matrices = spec['matrices']
         self.rates = spec['exchange_rates_per_sec']
         self.lengths = accounting.cell_lengths_km(cfg, self.road, len(self.widths))
         self.dt = cfg.simulation.T_f_h
         self.sec = cfg.simulation.T_f_sec
+        self.hadi=copy.deepcopy((getattr(cfg.network,'freeway_hadiuzzaman',{}) or {}).get(self.road))
+        self.vsl_fd_response=copy.deepcopy((getattr(cfg.network,'freeway_vsl_fd_response',{}) or {}).get(self.road))
+        self.receiving_speed_response=copy.deepcopy((getattr(cfg.network,'freeway_receiving_speed_response',{}) or {}).get(self.road))
+        if self.receiving_speed_response is not None:
+            if not isinstance(self.receiving_speed_response,dict) or set(self.receiving_speed_response)!={'reaction_seconds'}:
+                raise ValueError('Explicit receiving-speed reaction time required')
+            receiving_limited_speed(1.,1.,1.,1.,self.sec,self.receiving_speed_response['reaction_seconds'])
+            if self.hadi is None or not self.hadi.get('ctm'):
+                raise ValueError('Receiving-speed response requires the explicit receiving model')
+        if self.vsl_fd_response is not None:
+            from evaluation.controllers.freeway_fd import literature_vsl_parameters
+            literature_vsl_parameters(self.vsl_fd_response,100.,30.,2.,100.,120.)
+            if getattr(cfg.network,'vsl_fd_two_branch',False):
+                raise ValueError('Literature exponential FD cannot also use two-branch FD')
+        self.hadi_audit=None
+        if self.hadi is not None:
+            if (not {'ctm','relaxation','cells'}<=set(self.hadi)
+                    or set(self.hadi)-{'ctm','relaxation','cells','relaxation_cells','congested_branch'}
+                    or self.hadi.get('congested_branch','fixed_wave') not in ('fixed_wave','capacity_critical')
+                    or type(self.hadi['ctm']) is not bool
+                    or self.hadi['relaxation'] not in ('fd_cap','command','paper_switch')
+                    or len(self.hadi['cells'])!=len(self.widths)):
+                raise ValueError('Explicit complete Hadiuzzaman configuration required')
+            scope=self.hadi.get('relaxation_cells',list(range(len(self.widths))))
+            if len(set(scope))!=len(scope) or any(type(i) is not int or not 0<=i<len(self.widths) for i in scope):
+                raise ValueError('Invalid fixed VSL-equipped cell scope')
+            self.hadi_scope=set(scope)
+            for row in self.hadi['cells']:
+                if set(row)!={'capacity_vphpl','wave_kmh','rho_critical','theta'}:
+                    raise ValueError('Explicit per-cell receiving coefficients required')
+                hadi_receiving_vph(0,cfg.network.rho_max,row['rho_critical'],row['capacity_vphpl'],row['wave_kmh'],row['theta'])
+            self.hadi_audit=dict(receiving_steps=0,limited_group_steps=0,accepted_veh=0.,
+                max_budget_violation_veh=0.,desired_calls=0,desired_changed=0,
+                max_target_increase_kmh=0.,origin_wait_veh_h=0.,boundaries={})
         self.ramp_conflict_through_inventory=set(ramp_conflict_through_inventory or ())
         if self.ramp_conflict_through_inventory:
             if port_travel is None or self.ramp_conflict_through_inventory-set(spec['ramp_access']):
@@ -313,16 +433,49 @@ class PhysicalLaneGroups:
                     raise ValueError('Observed branch partition exceeds physical storage')
             self.partitions[i]=part
 
+    def _hadi_room(self, i, stock, length, cfg):
+        row=self.hadi['cells'][i]
+        return [min(max(0.,cfg.network.rho_max*length*w-n),self.dt*w*hadi_receiving_vph(
+            n/(length*w),cfg.network.rho_max,row['rho_critical'],row['capacity_vphpl'],row['wave_kmh'],row['theta'],
+            capacity_critical=self.hadi.get('congested_branch','fixed_wave')=='capacity_critical'))
+            for n,w in zip(stock,self.widths[i])]
+
+    def _literature_target(self, cell, rho, target, command, active, cfg):
+        if self.vsl_fd_response is None or not active:
+            return target
+        from evaluation.controllers.freeway_fd import literature_vsl_parameters
+        net=cfg.network
+        rows=(getattr(net,'freeway_segment_params',{}) or {}).get(self.road,())
+        row=rows[cell] if cell<len(rows) else {}
+        vf,critical,shape=literature_vsl_parameters(self.vsl_fd_response,
+            row.get('v_free',net.v_free),row.get('rho_crit',net.rho_crit),
+            row.get('metanet_a_m',net.metanet_a_m),float(command),max(cfg.freeway_follower.vsl_set))
+        if critical>=row.get('rho_max',net.rho_max):
+            raise ValueError('VSL-induced FD critical density exceeds physical jam density')
+        return vf*math.exp(-((max(0.,rho)/critical)**shape)/shape)
+
+    def _hadi_target(self, cell, fd_target, command, active):
+        if self.hadi is None or cell not in self.hadi_scope:return fd_target
+        value=hadi_desired_speed(fd_target,command,self.hadi['relaxation'],active)
+        a=self.hadi_audit;a['desired_calls']+=1;a['desired_changed']+=abs(value-fd_target)>1e-8
+        a['max_target_increase_kmh']=max(a['max_target_increase_kmh'],value-fd_target)
+        return value
+
     def free_space(self, cfg):
         result=[[max(0.,cfg.network.rho_max*self.lengths[i]*w-n)
                  for w,n in zip(ws,self.n[i])] for i,ws in enumerate(self.widths)]
         for i,p in self.partitions.items():
             result[i]=[max(0.,cfg.network.rho_max*p['pre_length']*w-n) for w,n in zip(self.widths[i],p['pre_n'])]
+        if self.hadi is not None and self.hadi['ctm']:
+            for i,stock in enumerate(self.n):
+                p=self.partitions.get(i)
+                result[i]=self._hadi_room(i,p['pre_n'] if p else stock,p['pre_length'] if p else self.lengths[i],cfg)
         return result
 
     def _ramp_space(self, i, cfg):
         if i not in self.partitions:return self.free_space(cfg)[i]
         p=self.partitions[i]
+        if self.hadi is not None and self.hadi['ctm']:return self._hadi_room(i,p['post_n'],p['post_length'],cfg)
         return [max(0.,cfg.network.rho_max*p['post_length']*w-n) for w,n in zip(self.widths[i],p['post_n'])]
 
     def ramp_supply(self, ramp, cfg):
@@ -412,7 +565,8 @@ class PhysicalLaneGroups:
 
     def advance(self, state, control, demand, cfg, *, offramp_capacity_veh_h,
                 ramp_release_veh_h, offramp_group_capacity_veh_h=None, ramp_group_release_veh_h=None,
-                complete_allocator_scope=True, **unused):
+                complete_allocator_scope=True,
+                ramp_entry_speed_kmh=None, junction_ramp_speeds=None, offramp_start_state=None, **unused):
         a,mn,net=self.a,self.a._mn,cfg.network
         if float(getattr(demand,'incident_capacity_factor',1.)) != 1.:
             raise ValueError('Lane-group candidate has not qualified incident capacity changes')
@@ -426,9 +580,23 @@ class PhysicalLaneGroups:
         ratios={o:net.off_ramp_split_ratio[o] for o in self.off}
         self._initialize_destinations(cfg)
         free=self.free_space(cfg)
+        hadi_budget=copy.deepcopy(free) if self.hadi is not None else None
+        if self.hadi is not None:self.hadi_audit['origin_wait_veh_h']+=state.mainline_origin_queue[road]*dt
+        port_response=self.port_response
+        if port_response:
+            if set(offramp_start_state or {})!=set(self.off):raise ValueError('Missing causal off-ramp state')
+            if port_response['merge_speed'] and set(junction_ramp_speeds or {})!=set(self.spec['ramp_access']):
+                raise ValueError('Missing modelled ramp inlet speeds')
         incoming=[[0.]*len(ns) for ns in self.n]
+        junction_moment=copy.deepcopy(incoming) if port_response.get('merge_speed') else None
         incoming_moment=copy.deepcopy(incoming) if self.momentum_advection else None
         ramp_in=copy.deepcopy(incoming)
+        ramp_moment=copy.deepcopy(incoming) if ramp_entry_speed_kmh is not None else None
+        if ramp_entry_speed_kmh is not None:
+            if (not isinstance(ramp_entry_speed_kmh,dict) or set(ramp_entry_speed_kmh)!=set(ramp_release_veh_h)
+                    or any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) or v<0
+                           for v in ramp_entry_speed_kmh.values())):
+                raise ValueError('Explicit entry speed required for every supplied ramp')
         if ramp_group_release_veh_h is not None and set(ramp_group_release_veh_h)-set(ramp_release_veh_h):
             raise ValueError('Unknown ramp in group release')
         for ramp,q in ramp_release_veh_h.items():
@@ -443,10 +611,11 @@ class PhysicalLaneGroups:
                 receiving=post_free[i] if i in self.partitions else free[i]
                 if x>receiving[g]+1e-7:raise ArithmeticError('Ramp exceeds shared target-group receiving space')
                 receiving[g]=max(0.,receiving[g]-x);incoming[i][g]+=x;ramp_in[i][g]+=x
+                if junction_moment is not None:junction_moment[i][g]+=x*junction_ramp_speeds[ramp]
+                entry_speed=oldv[i][g] if ramp_moment is None else ramp_entry_speed_kmh[ramp]
+                if ramp_moment is not None:ramp_moment[i][g]+=x*entry_speed
                 if incoming_moment is not None:
-                    # Retain the current merge-loss law; ramp entry speed is
-                    # not separately modelled, so no extra speed loss is added.
-                    incoming_moment[i][g]+=x*oldv[i][g]
+                    incoming_moment[i][g]+=x*entry_speed
         sending=[[min(n,n*v/self.lengths[i]*dt) for n,v in zip(ns,oldv[i])] for i,ns in enumerate(self.n)]
         through=copy.deepcopy(sending);offreq={};offsent={}
         ramp_sending={}
@@ -504,6 +673,20 @@ class PhysicalLaneGroups:
             for g,x in enumerate(requests):
                 if x>0. and self.spec['off_access'][o]['weights'][g]:
                     fifo[i][g]=min(fifo[i][g],offsent[o][g]/x)
+        speed_fifo=copy.deepcopy(fifo)
+        operational=[[1.]*len(ns) for ns in self.n]
+        for o,p in self.spec['off_access'].items():
+            if not port_response:break
+            i=p['cell'];hard=list(fifo[i]);spill=port_response['spillback'];obs=offramp_start_state[o]
+            if spill is not None:
+                factors=off_operational_factors(self.widths[i],p['weights'],obs['n_veh'],obs['capacity_veh'],spill['gamma'],spill['b'])
+                operational[i]=factors
+                fifo[i]=factors if spill['mode']=='replace_fifo' else [min(a,b) for a,b in zip(hard,factors)]
+                if spill['mode']=='replace_fifo':speed_fifo[i]=[1.]*len(hard)
+            self.port_response_rows.append(dict(kind='spillback',time_s=state.time_sec,cell=i,connector=o,
+                off_n_veh=obs['n_veh'],off_capacity_veh=obs['capacity_veh'],physical_lanes=sum(self.widths[i]),
+                operational_lanes=sum(w*f for w,f in zip(self.widths[i],operational[i])),
+                original_fifo=hard,used_fifo=list(fifo[i]),speed_fifo=list(speed_fifo[i]),mode='existing_fifo' if spill is None else spill['mode']))
         cross={i:[min(x*fifo[i][g],post_free[i][g]) for g,x in enumerate(row)] for i,row in pre_through.items()}
         through=[[max(0.,x)*(1. if i in self.partitions else fifo[i][g]) for g,x in enumerate(row)] for i,row in enumerate(through)]
         outgoing=[[0.]*len(ns) for ns in self.n]
@@ -512,6 +695,8 @@ class PhysicalLaneGroups:
         from evaluation.controllers.sdmpc_prediction_cache import active as prediction_scope
         scope=prediction_scope()
         if scope is not None and scope.cfg.network.sdmpc_options.get('array_transport',False):
+            if junction_moment is not None:
+                raise ValueError('array_transport does not accumulate junction_moment; disable sdmpc_options.array_transport or freeway_port_response merge_speed')
             from evaluation.controllers.sdmpc_tangent_transport import longitudinal
             inter=longitudinal(self,before,oldv,part_before,free,through,incoming,
                 outgoing,incoming_moment,part_in_moment,intent_before)
@@ -524,6 +709,8 @@ class PhysicalLaneGroups:
                     factor=min(1.,free[i+1][k]/total) if total else 0.
                     for g,row in enumerate(requests):
                         x=row[k]*factor;outgoing[i][g]+=x;incoming[i+1][k]+=x;accepted+=x
+                        if junction_moment is not None:
+                            junction_moment[i+1][k]+=x*(part_before[i]['post_v'][g] if i in part_before else oldv[i][g])
                         if i+1 in part_in_moment:
                             source_v=part_before[i]['post_v'][g] if i in part_before else oldv[i][g]
                             part_in_moment[i+1][k]+=x*source_v
@@ -562,6 +749,11 @@ class PhysicalLaneGroups:
                 if incoming_moment is not None:
                     self.v[i][g]=advected_speed(before[i][g],oldv[i][g],
                         outgoing[i][g]+off_by_group[i][g],incoming_moment[i][g],ns[g])
+                elif ramp_moment is not None and ramp_in[i][g]:
+                    # Replace only the newly accepted ramp vehicles' assumed
+                    # recipient speed. Other transport retains its existing law.
+                    self.v[i][g]=advected_speed(ns[g]-ramp_in[i][g],oldv[i][g],
+                        0.,ramp_moment[i][g],ns[g])
         for i,p in self.partitions.items():
             for g in range(len(self.n[i])):
                 p['pre_n'][g]+=incoming[i][g]-ramp_in[i][g]-cross[i][g]-off_by_group[i][g]
@@ -570,7 +762,8 @@ class PhysicalLaneGroups:
                 p['pre_v'][g]=advected_speed(old['pre_n'][g],old['pre_v'][g],cross[i][g]+off_by_group[i][g],
                     part_in_moment[i][g],p['pre_n'][g])
                 p['post_v'][g]=advected_speed(old['post_n'][g],old['post_v'][g],outgoing[i][g],
-                    cross[i][g]*old['pre_v'][g]+ramp_in[i][g]*old['post_v'][g],p['post_n'][g])
+                    cross[i][g]*old['pre_v'][g]+(ramp_in[i][g]*old['post_v'][g]
+                    if ramp_moment is None else ramp_moment[i][g]),p['post_n'][g])
         if self.port_travel is not None:
             for r,stock in self.ramp_origin.items():
                 p=self.spec['ramp_access'][r];i=p['cell']
@@ -658,7 +851,7 @@ class PhysicalLaneGroups:
                         for k,x in enumerate(row):
                             p[side+'_n'][g]-=x;p[side+'_n'][k]+=x;mom[g]-=x*vel[g];mom[k]+=x*vel[g]
                     p[side+'_v']=[mom[g]/n if n>1e-9 else vel[g] for g,n in enumerate(p[side+'_n'])]
-            carrier_v=list(self.v[i]) if self.momentum_advection else oldv[i]
+            carrier_v=list(self.v[i]) if self.momentum_advection or ramp_moment is not None else oldv[i]
             pre=list(ns);moment=[n*v for n,v in zip(pre,carrier_v)]
             for g,row in enumerate(request):
                 for k,x in enumerate(row):
@@ -715,6 +908,11 @@ class PhysicalLaneGroups:
                     if i-1 in part_before and sum(weights):
                         up=sum(w*part_before[i-1]['post_v'][k] for k,w in enumerate(weights))/sum(weights)
                 else:up=net.v_free
+                if junction_moment is not None and any(p['cell']==i for p in self.spec['ramp_access'].values()):
+                    original_up=up
+                    up=junction_mean_speed(incoming[i][g],junction_moment[i][g],up)
+                    self.port_response_rows.append(dict(kind='merge_speed',time_s=state.time_sec,cell=i,group=g,
+                        accepted_in_veh=incoming[i][g],accepted_ramp_veh=ramp_in[i][g],velocity_moment=junction_moment[i][g],before_kmh=original_up,after_kmh=up))
                 if self.momentum_advection:
                     # Already carried with accepted flow; avoid counting the
                     # usual Euler convection term a second time.
@@ -727,11 +925,18 @@ class PhysicalLaneGroups:
                     for side in ('pre','post'):
                         local_rho=densities[side];length=old[side+'_length']
                         downstream=densities['post'] if side=='pre' else down
+                        if side=='pre' and port_response.get('diverge_density') and self.spec['off_access'][p['off']]['weights'][g]:
+                            obs=offramp_start_state[p['off']];external=obs['density_by_group'][g]
+                            downstream=junction_downstream_density([downstream,external])
+                            self.port_response_rows.append(dict(kind='diverge_density',time_s=state.time_sec,cell=i,group=g,
+                                before_density=densities['post'],off_density=external,after_density=downstream))
                         if self.partition_speed_context:
                             mn.segment_vsl(control,road,i,cfg,physical_length_km=length,segment_end=side=='post')
                         veq=mn.effective_desired_speed_kmh(local_rho,net.v_free,net.rho_crit,vsl,net.alpha_vsl,active,
                             net.metanet_a_m,getattr(net,'vsl_fd_two_branch',False),net.rho_max,float(getattr(net,'rho_crit_two_branch',0.) or 0.))
                         velocity=p[side+'_v'][g];remaining=dt;substeps=0
+                        veq=self._hadi_target(i,veq,vsl,active)
+                        veq=self._literature_target(i,local_rho,veq,vsl,active,cfg)
                         # Accepted longitudinal/lateral flux already carried
                         # velocity. Do not advect the upstream speed again,
                         # especially when the branch passed zero vehicles.
@@ -746,7 +951,8 @@ class PhysicalLaneGroups:
                                 rows=(getattr(net,'freeway_segment_params',{}) or {}).get(str(road),[])
                                 params=rows[i] if i<len(rows) else {}
                                 tau=float(params.get('metanet_tau_h',tau))
-                                response=(getattr(net,'freeway_state_response',{}) or {}).get(str(road),{})
+                                from evaluation.controllers.freeway_fd import cell_state_response
+                                response=cell_state_response(net,road,i)
                                 if response:
                                     from evaluation.controllers.freeway_fd import state_response_coefficients
                                     tau,_=state_response_coefficients(response,velocity,veq,local_rho,downstream,
@@ -760,8 +966,16 @@ class PhysicalLaneGroups:
                         if side=='post' and ramp_in[i][g]:
                             velocity-=net.metanet_delta_merge*ramp_in[i][g]*old['post_v'][g]/(
                                 length*self.widths[i][g]*(local_rho+net.metanet_kappa_veh_km_lane))
-                        if side=='pre' and fifo[i][g]<1. and old['pre_n'][g]>0:
+                        if side=='pre' and speed_fifo[i][g]<1. and old['pre_n'][g]>0:
                             velocity=min(velocity,(cross[i][g]+off_by_group[i][g])/dt*length/old['pre_n'][g])
+                        if side=='post' and self.receiving_speed_response is not None:
+                            prior=velocity
+                            velocity=receiving_limited_speed(velocity,old['post_v'][g],through[i][g],outgoing[i][g],
+                                self.sec,self.receiving_speed_response['reaction_seconds'])
+                            if velocity!=prior:self.port_response_rows.append(dict(kind='receiving_speed',time_s=state.time_sec,
+                                cell=i,group=g,side=side,requested_veh=through[i][g],accepted_veh=outgoing[i][g],
+                                previous_kmh=old['post_v'][g],before_kmh=prior,after_kmh=max(net.v_min,velocity),
+                                reaction_seconds=self.receiving_speed_response['reaction_seconds']))
                         p[side+'_v'][g]=max(net.v_min,velocity)
                     speed=sum(p[s+'_n'][g]*p[s+'_v'][g] for s in ('pre','post'))/n if n else p['post_v'][g]
                     residual=p['pre_n'][g]+p['post_n'][g]-n
@@ -778,8 +992,17 @@ class PhysicalLaneGroups:
                         pre_n=p['pre_n'][g],post_n=p['post_n'][g],pre_v=p['pre_v'][g],post_v=p['post_v'][g],
                         internal_cross_veh=cross[i][g],fifo=fifo[i][g],mainline_out_veh=outgoing[i][g],off_out_veh=off_by_group[i][g]))
                 else:
+                    if port_response.get('diverge_density'):
+                        extras=[offramp_start_state[o]['density_by_group'][g] for o,p in self.spec['off_access'].items()
+                                if p['cell']==i and p['weights'][g]]
+                        if extras:
+                            original_down=down;down=junction_downstream_density([down]+extras)
+                            self.port_response_rows.append(dict(kind='diverge_density',time_s=state.time_sec,cell=i,group=g,
+                                before_density=original_down,off_density=extras,after_density=down))
                     veq=mn.effective_desired_speed_kmh(rho,net.v_free,net.rho_crit,vsl,net.alpha_vsl,active,
                         net.metanet_a_m,getattr(net,'vsl_fd_two_branch',False),net.rho_max,float(getattr(net,'rho_crit_two_branch',0.) or 0.))
+                    veq=self._hadi_target(i,veq,vsl,active)
+                    veq=self._literature_target(i,rho,veq,vsl,active,cfg)
                     speed=mn.metanet_speed_update_kmh(self.v[i][g],up,rho,down,veq,dt,self.lengths[i],
                         net.metanet_tau_h,mn.select_anticipation_nu(rho,net,vsl),net.metanet_kappa_veh_km_lane,net.v_min)
                     if ramp_in[i][g]:
@@ -787,8 +1010,16 @@ class PhysicalLaneGroups:
                             self.lengths[i]*self.widths[i][g]*(rho+net.metanet_kappa_veh_km_lane))
                     if self.interruption_gamma is not None:
                         speed-=interruption[i][g]
-                    if fifo[i][g]<1. and before[i][g]>0:
+                    if speed_fifo[i][g]<1. and before[i][g]>0:
                         speed=min(speed,(outgoing[i][g]+off_by_group[i][g])/dt*self.lengths[i]/before[i][g])
+                    if self.receiving_speed_response is not None:
+                        prior=speed
+                        speed=receiving_limited_speed(speed,oldv[i][g],through[i][g],outgoing[i][g],
+                            self.sec,self.receiving_speed_response['reaction_seconds'])
+                        if speed!=prior:self.port_response_rows.append(dict(kind='receiving_speed',time_s=state.time_sec,
+                            cell=i,group=g,side='whole',requested_veh=through[i][g],accepted_veh=outgoing[i][g],
+                            previous_kmh=oldv[i][g],before_kmh=prior,after_kmh=max(net.v_min,speed),
+                            reaction_seconds=self.receiving_speed_response['reaction_seconds']))
                 self.v[i][g]=max(net.v_min,speed)
                 projections+=int(speed<=net.v_min)
                 branch=sum(stock[g] for o,stock in self.off.items() if self.spec['off_access'][o]['cell']==i)
@@ -813,6 +1044,23 @@ class PhysicalLaneGroups:
             self.max_residual=max(self.max_residual,abs(residual))
         if self.max_residual>1e-7:raise ArithmeticError('Lane-group continuity')
         if self.max_partition_residual>1e-7:raise ArithmeticError('Branch partition continuity')
+        if self.hadi is not None:
+            audit=self.hadi_audit
+            for i,row in enumerate(incoming):
+                observed=[x-ramp_in[i][g] if i in part_before else x for g,x in enumerate(row)]
+                limits=hadi_budget[i]
+                if i in part_before:
+                    observed+=[x+ramp_in[i][g] for g,x in enumerate(cross[i])]
+                    p=part_before[i]
+                    limits+=(self._hadi_room(i,p['post_n'],p['post_length'],cfg) if self.hadi['ctm'] else [
+                        max(0.,net.rho_max*p['post_length']*w-n) for w,n in zip(self.widths[i],p['post_n'])])
+                violation=max([0.]+[x-b for x,b in zip(observed,limits)])
+                audit['max_budget_violation_veh']=max(audit['max_budget_violation_veh'],violation)
+                if violation>1e-7:raise ArithmeticError('Shared CTM receiving budget exceeded')
+                audit['receiving_steps']+=len(observed);audit['accepted_veh']+=sum(observed)
+                bound=audit['boundaries'].setdefault(str(i),dict(received_veh=0.,near_budget_steps=0))
+                bound['received_veh']+=sum(row);bound['near_budget_steps']+=sum(b>0 and abs(x-b)<1e-7 for x,b in zip(observed,limits))
+                audit['limited_group_steps']+=sum(b>0 and abs(x-b)<1e-7 for x,b in zip(observed,limits))
         for o,stocks in self.upstream_off.items():
             residual=(self.intent_initial[o]+self.intent_entered[o]-self.intent_exited[o]
                       -sum(map(sum,stocks))-sum(self.off[o]))
@@ -821,6 +1069,11 @@ class PhysicalLaneGroups:
         state.freeway_density[road]=[sum(ns)/(self.lengths[i]*sum(self.widths[i])) for i,ns in enumerate(self.n)]
         state.freeway_speed[road]=[sum(n*v for n,v in zip(ns,self.v[i]))/sum(ns) if sum(ns) else sum(self.v[i])/len(ns) for i,ns in enumerate(self.n)]
         state.freeway_flow[road]=[sum(n*v for n,v in zip(ns,self.v[i]))/self.lengths[i] for i,ns in enumerate(self.n)]
+        if port_response.get('spillback'):
+            # Operational q uses accessible sending width. Geometry, rho and
+            # storage retain their physical widths for exact count accounting.
+            state.freeway_flow[road]=[sum(n*v*f for n,v,f in zip(ns,self.v[i],operational[i]))/self.lengths[i]
+                                      for i,ns in enumerate(self.n)]
         ledger=a._area.get_ledger(state)
         for i,ns in enumerate(before):
             for g,n in enumerate(ns):

@@ -843,37 +843,63 @@ class ControlAreaLedger:
 
 @dataclass(frozen=True)
 class ControlAreaObjective:
-    """J[veh*h] = TTT[veh*h] - beta_hours[h] * TTD[veh]. No implicit beta."""
+    """TTT - beta*exits - gamma*distance, all in veh*h.
+
+    TTD still denotes outward vehicle events, not travel distance (TVD).
+    Distance is opt-in: the caller must supply measured/model-accounted TVD
+    over its explicitly declared reward domain. The stock ledger alone cannot
+    reconstruct it. This scoring option does not enable runtime collection.
+    """
 
     beta_hours: float
+    distance_hours_per_km: float = 0.0
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "beta_hours", _nonnegative(self.beta_hours, "beta_hours"))
+        object.__setattr__(self, "distance_hours_per_km",
+                           _nonnegative(self.distance_hours_per_km, "distance_hours_per_km"))
 
-    def score(self, metrics: AreaMetrics, *, nonnegative_cost_veh_h: float = 0.0) -> float:
-        return (_nonnegative(metrics.ttt_veh_h, "ttt_veh_h")
+    def score(self, metrics: AreaMetrics, *, nonnegative_cost_veh_h: float = 0.0,
+              tvd_veh_km: float | None = None) -> float:
+        value = (_nonnegative(metrics.ttt_veh_h, "ttt_veh_h")
                 - self.beta_hours * _nonnegative(metrics.ttd_veh, "ttd_veh")
                 + _nonnegative(nonnegative_cost_veh_h, "nonnegative_cost_veh_h"))
+        if tvd_veh_km is None:
+            if self.distance_hours_per_km:
+                raise ValueError("Positive distance reward requires explicitly accounted tvd_veh_km")
+            return value
+        distance = _nonnegative(tvd_veh_km, "tvd_veh_km")
+        return value if not self.distance_hours_per_km else value - self.distance_hours_per_km * distance
 
     def lower_bound(
         self, partial: AreaMetrics, *, max_future_exits_veh: float | None,
         accrued_nonnegative_cost_veh_h: float = 0.0,
+        tvd_veh_km: float | None = None, max_future_tvd_veh_km: float | None = None,
     ) -> float:
         """Admissible only if the caller certifies the remaining exit upper bound.
 
         Future TTT and additional costs must be nonnegative. Without a certified
-        exit bound, a positive departure reward disables this pruning bound.
+        exit/distance bound, the corresponding positive reward disables pruning.
+        Future-distance bounds must cover the complete remaining control domain.
         """
-        value = self.score(partial, nonnegative_cost_veh_h=accrued_nonnegative_cost_veh_h)
+        value = self.score(partial, nonnegative_cost_veh_h=accrued_nonnegative_cost_veh_h,
+                           tvd_veh_km=tvd_veh_km)
         if max_future_exits_veh is None:
-            return value if self.beta_hours == 0.0 else -math.inf
-        return value - self.beta_hours * _nonnegative(max_future_exits_veh, "max_future_exits_veh")
+            if self.beta_hours:
+                return -math.inf
+        else:
+            value -= self.beta_hours * _nonnegative(max_future_exits_veh, "max_future_exits_veh")
+        if max_future_tvd_veh_km is None:
+            return -math.inf if self.distance_hours_per_km else value
+        return value - self.distance_hours_per_km * _nonnegative(max_future_tvd_veh_km, "max_future_tvd_veh_km")
 
     def can_prune(
         self, partial: AreaMetrics, *, incumbent_veh_h: float,
         max_future_exits_veh: float | None,
+        tvd_veh_km: float | None = None, max_future_tvd_veh_km: float | None = None,
     ) -> bool:
         incumbent = float(incumbent_veh_h)
         if math.isnan(incumbent):
             raise ValueError("incumbent cannot be NaN")
-        return self.lower_bound(partial, max_future_exits_veh=max_future_exits_veh) > incumbent
+        return self.lower_bound(partial, max_future_exits_veh=max_future_exits_veh,
+                                tvd_veh_km=tvd_veh_km, max_future_tvd_veh_km=max_future_tvd_veh_km) > incumbent

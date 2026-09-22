@@ -15,6 +15,7 @@ import ast
 from functools import lru_cache
 import hashlib
 import inspect
+import math
 import textwrap
 from src.models import metanet as _mn
 from src.simulation import coupling as _cp
@@ -197,6 +198,31 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         flow_acc += sum(q_values)
         flow_count += len(q_values)
         receiving = [max(0.0, (net.rho_max - rho_for_flow[i]) * lengths[i] * max(lanes_now[i], 1e-09) / max(dt_h, 1e-09)) for i in range(len(rho_for_flow))]
+        literature = (getattr(net, 'freeway_hadiuzzaman', {}) or {}).get(link)
+        if literature is not None:
+            from evaluation.controllers.physical_lane_groups import hadi_receiving_vph, hadi_desired_speed
+            if len(literature['cells']) != len(rhos):
+                raise ValueError('Literature receiving must cover every physical cell')
+            literature_limited = 0
+            literature_total = 0.
+            literature_commands = 0
+            literature_drop_cells = 0
+            if literature['ctm']:
+                for i, row in enumerate(literature['cells']):
+                    limit = lanes_now[i] * hadi_receiving_vph(rho_for_flow[i], net.rho_max,
+                        row['rho_critical'], row['capacity_vphpl']*cap_factor, row['wave_kmh'], row['theta'],
+                        capacity_critical=literature.get('congested_branch','fixed_wave') == 'capacity_critical')
+                    literature_limited += limit < receiving[i]-1e-9
+                    receiving[i] = min(receiving[i], limit)
+                    literature_total += receiving[i]
+                    no_drop = lanes_now[i] * hadi_receiving_vph(rho_for_flow[i], net.rho_max,
+                        row['rho_critical'], row['capacity_vphpl']*cap_factor, row['wave_kmh'], 0.,
+                        capacity_critical=literature.get('congested_branch','fixed_wave') == 'capacity_critical')
+                    literature_drop_cells += no_drop > receiving[i]+1e-9 and limit < no_drop-1e-9
+                    # These are already accepted, exogenous merge observations.
+                    # Reject incompatible candidates; never delete or relabel them.
+                    if ramp_in_by_link[link][i] > receiving[i]+1e-8:
+                        raise ValueError('Observed merge exceeds literature receiving budget')
         receiving_for_mainline = [max(0.0, receiving[i] - max(0.0, ramp_in_by_link[link][i])) for i in range(len(rho_for_flow))]
         off_ratio_by_segment = [_mn._clip(sum((net.off_ramp_split_ratio.get(off_ramp, 0.0) for off_ramp in offramps_by_segment.get(i, []))), 0.0, 1.0) for i in range(len(rho_for_flow))]
         mainline_sending = [(1.0 - off_ratio_by_segment[i]) * q_values[i] for i in range(len(rho_for_flow))]
@@ -218,6 +244,11 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                             mainline_demand * dt_h, source_inside=False, target_inside=False)
         queued_flow = state.mainline_origin_queue[link] / max(dt_h, 1e-09)
         entry_request = mainline_demand + queued_flow
+        source_cap = (getattr(net, 'freeway_source_capacity_veh_h', {}) or {}).get(link, q_cap)
+        if source_cap is None:
+            source_cap = entry_request  # admitted-interface boundary; storage still limits entry
+        if not math.isfinite(source_cap) or source_cap < 0:
+            raise ValueError('Invalid independent source capacity')
         if buf_n > 0:
             _bu_recv0 = max(0.0, (net.rho_max - bu_r[0]) * _buf_len * _buf_lane / max(dt_h, 1e-09))
             entry_realized = min(entry_request, q_cap, _bu_recv0)
@@ -226,10 +257,10 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                 _bu_send_last = min(_bu_send_last, phi_cd * q_cap)
             core_in0 = min(_bu_send_last, receiving_for_mainline[0])
         else:
-            entry_realized = min(entry_request, q_cap, receiving_for_mainline[0])
+            entry_realized = min(entry_request, source_cap, receiving_for_mainline[0])
             core_in0 = entry_realized
         if capture:
-            for kind, limit in (('request', entry_request), ('capacity', q_cap),
+            for kind, limit in (('request', entry_request), ('capacity', source_cap),
                                 ('receiving_after_ramps', receiving_for_mainline[0])):
                 ledger.record_resource_allocation('freeway_entry_' + kind, link, limit*dt_h,
                                                  {'origin:' + link: entry_realized*dt_h})
@@ -251,7 +282,12 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
                 elif getattr(net, 'terminal_zero_gradient', False):
                     terminal_out = mainline_sending[i]
                 else:
-                    terminal_cap = q_cap * max(lanes_now[i], 1e-09) / max(float(net.freeway_lanes), 1e-09)
+                    terminal_cap = (getattr(net, 'freeway_terminal_capacity_veh_h', {}) or {}).get(link,
+                        q_cap * max(lanes_now[i], 1e-09) / max(float(net.freeway_lanes), 1e-09))
+                    if terminal_cap is None:
+                        terminal_cap = mainline_sending[i]  # open physical network exit
+                    if not math.isfinite(terminal_cap) or terminal_cap < 0:
+                        raise ValueError('Invalid independent terminal capacity')
                     terminal_out = min(mainline_sending[i], terminal_cap)
                 q_out = terminal_out
                 if capture:
@@ -320,6 +356,9 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             vsl_i = _mn.segment_vsl(control, link, i, cfg)
             vsl_active_i = vsl_i < vsl_max - 0.5
             v_eff = _mn.effective_desired_speed_kmh(rho, net.v_free, net.rho_crit, vsl_i, net.alpha_vsl, vsl_active_i, net.metanet_a_m, getattr(net, 'vsl_fd_two_branch', False), net.rho_max, float(getattr(net, 'rho_crit_two_branch', 0.0) or 0.0))
+            if literature is not None and i in literature['relaxation_cells']:
+                v_eff = hadi_desired_speed(v_eff, float(vsl_i), literature['relaxation'], vsl_active_i)
+                literature_commands += int(literature['relaxation'] == 'command')
             v_new = _mn.metanet_speed_update_kmh(speeds[i], upstream_speed, rho, downstream_rho, v_eff, dt_h, lengths[i], net.metanet_tau_h, _mn.select_anticipation_nu(rho, net, vsl_i), net.metanet_kappa_veh_km_lane, net.v_min)
             if delta_m > 0.0 and ramp_in_by_link[link][i] > 0.0:
                 merge_kappa = (net.freeway_segment_params[link][i]["metanet_kappa_veh_km_lane"]
@@ -339,6 +378,13 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         state.freeway_speed[link] = next_speeds
         state.freeway_flow[link] = next_flows
         state.freeway_effective_lanes[link] = next_lanes
+        if literature is not None:
+            _buffer_diag['literature_receiving_limited_cells'] = float(literature_limited)
+            _buffer_diag['literature_receiving_total_vph'] = float(literature_total)
+            _buffer_diag['literature_command_cells'] = float(literature_commands)
+            _buffer_diag['literature_drop_changes_receiving_cells'] = float(literature_drop_cells)
+            _buffer_diag['literature_actual_limited_boundaries'] = float(sum(
+                sending > amount+1e-9 for sending, amount in zip(mainline_sending, q_inter)))
         if routed:
             _routing.advance_inventory(state, cfg, link, mainline=q_inter, terminal=terminal_out,
                 offramps=accepted_branches, entry=entry_realized, generated=mainline_demand,

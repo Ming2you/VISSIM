@@ -415,9 +415,12 @@ class PhysicalRampBoundary:
         requests = _number(request_arrivals_veh, "request_arrivals_veh")
         green = None if green_sec is None else _number(green_sec, "green_sec")
         if type(allow_partial_cycle) is not bool:raise ValueError('Partial cycle option must be boolean')
-        aligned=(cycle%duration==0 and start%duration==0 and start%cycle+duration<=cycle
+        fractional_one_second = allow_partial_cycle and duration == 1. and not start.is_integer()
+        aligned=(cycle%duration==0 and (fractional_one_second or
+                 (start%duration==0 and start%cycle+duration<=cycle))
                  if allow_partial_cycle else duration==cycle and start%cycle==0)
-        if (start != self.time_sec or not start.is_integer() or not duration.is_integer() or not aligned):
+        if (start != self.time_sec or (not start.is_integer() and not fractional_one_second)
+                or not duration.is_integer() or not aligned):
             raise ValueError("Local interval must be one aligned integral-second meter cycle")
         if mode not in {"OFF", "GREEN", "RED"}:
             raise ValueError("Unknown meter mode")
@@ -451,6 +454,15 @@ class PhysicalRampBoundary:
             active = mode == "OFF" or (mode == "GREEN" and phase < green)
             local_mode = "OFF" if mode == "OFF" else "GREEN" if active else "RED"
             amount = service/((cycle if allow_partial_cycle else duration) if mode == "OFF" else green) if active else 0.0
+            if fractional_one_second and mode == 'GREEN':
+                # Preserve native .1s timestamps. Integrate the overlap with
+                # [cycle start, cycle start+green), including a cycle wrap.
+                # Integer-clock callers retain their exact previous arithmetic.
+                overlap = max(0., min(1., green-phase))
+                overlap += min(green, max(0., phase+1.-cycle))
+                amount = service/green*overlap
+                active = overlap > 0.
+                local_mode = 'GREEN' if active else 'RED'
             interval_service+=amount
             self.apply_head_service(amount, mode=local_mode,
                 green_sec=None if mode == "OFF" else green if active else 0.0,

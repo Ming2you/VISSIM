@@ -1,0 +1,22 @@
+{
+  "status": "IMPROVED_COMPONENT_CANDIDATE_NOT_PRODUCTION_QUALIFIED",
+  "production_adopted": false,
+  "control_gain_validated": false,
+  "fit_candidates": 122,
+  "training_rollouts": 1098,
+  "validation_rollouts": 296,
+  "conservation_failures": 0,
+  "reasons": [
+    "Held-out demand speed, density and total outflow RMSE improve in both directions, but FW_E speed RMSE remains29-33km/h.",
+    "Fixed6937veh/h source ceiling rejects part of already-observed admitted inflow. Queue reproduced by the ceiling alone within3.1e-12veh; not a fitted control response.",
+    "FW80 urban100 FW_E missed sustained slow cell/window cases rise1->15 while false sustained congestion cases fall93->3; average score does not certify prevention/propagation.",
+    "FW_E critical-density multiplier hits upper1.4; FW_W tau,kappa,merge hit lower bounds. Coefficients are not unique physical identification; delta_merge0 does not show RM has no benefit.",
+    "Speed projection counts combine lower-speed floor and optional upper boundary cap; not evidence by themselves of numerical instability.",
+    "Allseed23 NC observations: RM/VSL counterfactual ranking and fullOmega cost not validated."
+  ],
+  "next": [
+    "Audit distinct source and terminal service bounds against current geometry and training flows; avoid raising a global capacity to manufacture VSL/RM gain.",
+    "Separate remaining FW_E onset/recovery, off-ramp propagation, and speed-cap residuals before another fit.",
+    "After those checks, validate matched RM/VSL response and an independent seed before production adoption."
+  ]
+}

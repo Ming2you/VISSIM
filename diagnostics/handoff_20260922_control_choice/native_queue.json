@@ -1,0 +1,56 @@
+{
+  "schema": "native-rule-queue/v1",
+  "root": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls",
+  "python": "C:/Users/alsrj/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe",
+  "wait_id": "fw080_urban090_none9000_s23",
+  "wait_run": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\run",
+  "wait_heatmap": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\east_heatmap.png",
+  "plot_script": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\cohort_dynamics_20260920\\middle_corridor_20260922\\same_demand_off10481\\plot.py",
+  "jobs": [
+    {
+      "id": "fw080_urban090_rm9000_s23",
+      "prepared": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rules\\prepared_rm",
+      "output": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rm\\run",
+      "log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rm\\launch.log",
+      "plot_case": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rm",
+      "plot_log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rm\\plot.log",
+      "percent": 100,
+      "plot_demand_label": "고속도로 80% · 도시 90%",
+      "plot_control_arm": "rm"
+    },
+    {
+      "id": "fw080_urban090_vsl9000_s23",
+      "prepared": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rules\\prepared_vsl",
+      "output": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\vsl\\run",
+      "log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\vsl\\launch.log",
+      "plot_case": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\vsl",
+      "plot_log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\vsl\\plot.log",
+      "percent": 100,
+      "plot_demand_label": "고속도로 80% · 도시 90%",
+      "plot_control_arm": "vsl"
+    },
+    {
+      "id": "fw080_urban090_both9000_s23",
+      "prepared": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\rules\\prepared_both",
+      "output": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\both\\run",
+      "log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\both\\launch.log",
+      "plot_case": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\both",
+      "plot_log": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\both\\plot.log",
+      "percent": 100,
+      "plot_demand_label": "고속도로 80% · 도시 90%",
+      "plot_control_arm": "both"
+    }
+  ],
+  "code_sha256": {
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\rule_baseline_20260914\\run_four.ps1": "8cb535873c68abec60a24795c1b4760f0220ddb0e6b8c9f03a31e3d61a68c8dc",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fast_nc_runner.vbs": "bf07acdaaa678d764ccbd0fd237a5aad85c3419f0628790358dd478ffc5e2cf1",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fast_nc_run.ps1": "76bc75fbcb39e07dab3a35c44d52a83fb1d6407dd4216d0d0d9eb3fc110f5618",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fast_fixed_profile.py": "03c9567f662a1cc8e3bf0d00f2e2dbdc068e7d560b2a447424a26bce5449b59d",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\fast_fixed_profile_verify.py": "914413913c41f6e085b840fa8e33bd7eda6dc7bc74cc10f88622d3c64084de7e",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\validate_native_signal_record.py": "4a647072d82afdb20cbf0c933b9d947a6a95450b3b84eac41ccff31220f501d3",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\evaluation\\controllers\\diagnostic_profile.py": "389d81c8b06c6993b4e6028d637a3bb08b8ac0b698c65fab049f5762bdeb2dc9",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\prepare_rules.py": "c79e6c283dca5fca313b1fc6c1e8f419647921d141be029c9f69aacd14344552",
+    "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\cohort_dynamics_20260920\\middle_corridor_20260922\\same_demand_off10481\\plot.py": "fab565f984d7167fa2afdbe19d94cf6d1f4f9a615473a45b98eb596f1995bdae"
+  },
+  "scope": "User-selected canonical FW80 urban90 network. Reuse completed NC9000 seed23, run RM then VSL then both9000. No plant/MPC/calibration; no other queued experiments. Existing stopped queue stays stopped."
+}
