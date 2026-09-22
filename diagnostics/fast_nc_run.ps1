@@ -15,6 +15,8 @@ if (@(5400,7200,9000) -notcontains $settings.terminal_sec) {
 }
 $terminalSec = [int]$settings.terminal_sec
 $nativePreserve = $settings.mode -eq 'native_preserve'
+$fzpOnly = $settings.fzp_only -eq $true
+if ($fzpOnly -and !$nativePreserve) { throw 'FZP-only is limited to native no-control runs' }
 if ($nativePreserve -or $fixedProfile) {
   if ($PSBoundParameters.ContainsKey('Seed') -and $Seed -ne [int]$settings.seed) { throw 'Native-preserve cannot override saved seed' }
   $Seed = [int]$settings.seed
@@ -30,7 +32,9 @@ foreach ($p in @($network,$preparedPath,$outputPath,$script)) {
   if ($p.Contains('"') -or $p.Contains("`n") -or $p.Contains("`r")) { throw 'Invalid argument path' }
 }
 $arguments = '//nologo "{0}" "{1}" "{2}" "{3}" {4} {5}' -f $script,$network,$preparedPath,$outputPath,$Seed,$terminalSec
-if ($nativePreserve) { $arguments += ' native_preserve' }
+if ($nativePreserve) {
+  if ($fzpOnly) { $arguments += ' native_fzp_only' } else { $arguments += ' native_preserve' }
+}
 if ($fixedProfile) { $arguments += ' fixed_profile' }
 if (-not $Execute) {
   [pscustomobject]@{execute=$false; program=$cscript; arguments=$arguments; startup_no_progress_sec=300;
@@ -69,6 +73,7 @@ $record = [ordered]@{network=$network; prepared=$preparedPath; output=$outputPat
   cscript_pid=$runner.Id; cscript_start=$runnerStart.ToString('o'); vissim=$null;
   started=$started.ToString('o'); first_native_progress=$null; completed=$false; error=$null}
 $record.native_preserve=$nativePreserve
+if ($fzpOnly) { $record.fzp_only=$true }
 if ($requiredFreeBytes -gt 0) {
   $record.minimum_free_bytes_at_launch=$requiredFreeBytes
   $record.free_bytes_at_launch=$outputDrive.AvailableFreeSpace
@@ -87,7 +92,7 @@ function Last-Fzp-Time([string]$Path) {
   $stream = $null
   try {
     $stream = [IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
-    $size = [int][Math]::Min(65536,$stream.Length)
+    $size = [int][Math]::Min([long]65536,$stream.Length)
     $null = $stream.Seek(-$size,[IO.SeekOrigin]::End)
     $bytes = New-Object byte[] $size
     $read = $stream.Read($bytes,0,$size)
@@ -164,7 +169,8 @@ $record.native_files=@(Get-ChildItem -LiteralPath $evalPath -File | ForEach-Obje
 $fzp=@(Get-ChildItem -LiteralPath $evalPath -Filter '*.fzp' -File | Where-Object Length -gt 0)
 $lsa=@(Get-ChildItem -LiteralPath $evalPath -Filter '*.lsa' -File | Where-Object Length -gt 0)
 $terminalPattern = '(?m)^SIM_SEC=' + $terminalSec + '\r?$'
-$record.completed=(!$timedOut -and $runner.ExitCode -eq 0 -and !$record.owned_native_alive -and $log -match $terminalPattern -and $log -match '(?m)^STAGE=SIM_DONE\r?$' -and $fzp.Count -eq 1 -and $lsa.Count -eq 1)
+$signalRecordingOK = $lsa.Count -eq 1 -or $fzpOnly
+$record.completed=(!$timedOut -and $runner.ExitCode -eq 0 -and !$record.owned_native_alive -and $log -match $terminalPattern -and $log -match '(?m)^STAGE=SIM_DONE\r?$' -and $fzp.Count -eq 1 -and $signalRecordingOK)
 if ($null -eq $owned -and @(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) {
   $record.completed=$false; $record.error='Native identity was not established and a VISSIM process remains'
 }

@@ -42,7 +42,9 @@ def prepare_body_coordinates(resolution):
         (target/name).write_bytes((source.parent/name).read_bytes())
     profile=e.load(base/'profile.json')
     assert profile['seed']==23 and not profile['vsl_commands'] and not profile['meter_commands'] and profile['terminal_sec']==3000
-    profile.update(network_sha256=hashlib.sha256(changed).hexdigest(),native_resolution_probe=resolution)
+    # Explicit fine recording for this historical coordinate/timing diagnostic.
+    # Ordinary experiment preparation defaults to5s.
+    profile.update(network_sha256=hashlib.sha256(changed).hexdigest(),native_resolution_probe=resolution,vehicle_record_interval_sec=1)
     e.save(out/'profile.json',profile);prepare(network,out/'profile.json',out/'prepared')
     e.save(out/'protocol.json',dict(source=str(source.relative_to(e.ROOT)),source_sha256=hashlib.sha256(original).hexdigest(),
         saved_resolution=1,diagnostic_resolution=resolution,end_s=3000,seed=23,
@@ -110,7 +112,7 @@ def main():
     assert bool(profile['vsl_commands'])==(args.case=='vsl_s23')
     removed_commands={key:[r for r in profile[key] if r['time_s']>=3000] for key in ('meter_commands','vsl_commands')}
     for key in removed_commands:profile[key]=[r for r in profile[key] if r['time_s']<3000]
-    profile.update(terminal_sec=3000,network_sha256=hashlib.sha256(changed).hexdigest())
+    profile.update(terminal_sec=3000,network_sha256=hashlib.sha256(changed).hexdigest(),vehicle_record_interval_sec=1)
     e.save(out/'profile.json',profile);prepare(network,out/'profile.json',out/'prepared')
     e.save(out/'protocol.json',{'seed':23,'end_s':3000,'source':str(source.relative_to(e.ROOT)),
         'source_sha256':hashlib.sha256(original).hexdigest(),'new_source_sha256':hashlib.sha256(changed).hexdigest(),

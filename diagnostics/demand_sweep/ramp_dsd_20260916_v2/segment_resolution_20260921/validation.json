@@ -1,0 +1,305 @@
+{
+  "status": "GEOMETRY_VERIFIED_GAIN_NOT_QUALIFIED",
+  "old_reference_predictions_exact": 4,
+  "source_pins_verified": 88,
+  "all_ports": 16,
+  "max_ports_per_cell": 1,
+  "cells_per_direction": 31,
+  "native_runs": 0,
+  "offline_forecasts": 16,
+  "initial_N_and_Nv_verified_in_install": true,
+  "future_state_resets": 0,
+  "coefficient_fit_evaluations": 0,
+  "first_candidate_status": "INVALID_NUMERICAL_RESPONSE",
+  "first_invalid_internal_state": {
+    "time_s": 2402.0,
+    "cell": 9,
+    "group": 2,
+    "side": "pre",
+    "length_m": 9.911917017827363,
+    "speed_kmh": 181.22174750008818
+  },
+  "guarded_mesh_status": "CONSERVATION_AND_NUMERICAL_SCREEN_PASS_GAIN_FAIL",
+  "numerical_screen_note": "Courant<=1 and loose180km/h sanity screen; not a fitted speed cap or proof of all stability properties.",
+  "production_adopted": false,
+  "results": {
+    "reference5": {
+      "deltas": {
+        "rm_ramp": {
+          "mainline": -0.26998046321490676,
+          "on": 0.2658428409398912,
+          "off": 0.0024077639741708623,
+          "total": -0.001729858300844711
+        },
+        "vsl": {
+          "mainline": 0.07260999054118145,
+          "on": -0.014874166468767491,
+          "off": -0.012064485767410815,
+          "total": 0.04567133830500314
+        },
+        "both": {
+          "mainline": -0.19735034513176686,
+          "on": 0.25111595329983327,
+          "off": -0.009673402328063574,
+          "total": 0.04409220584000284
+        }
+      },
+      "east_speed_rmse": 22.339076669670963,
+      "east_state_score": 2.313897040855771,
+      "west_state_score": 2.2939246145378283,
+      "simulation_seconds": [
+        2.164228699999967,
+        2.352943699999969,
+        2.313985799999955,
+        2.462974000000031
+      ]
+    },
+    "reference1": {
+      "deltas": {
+        "rm_ramp": {
+          "mainline": -0.2504707992026738,
+          "on": 0.25364764376170346,
+          "off": 0.001806482744946436,
+          "total": 0.004983327303976104
+        },
+        "vsl": {
+          "mainline": 0.07726676436838886,
+          "on": -0.011361911730682905,
+          "off": -0.018981178201913806,
+          "total": 0.04692367443579215
+        },
+        "both": {
+          "mainline": -0.17409435577665988,
+          "on": 0.24332850238899084,
+          "off": -0.01718955143499379,
+          "total": 0.05204459517733717
+        }
+      },
+      "east_speed_rmse": 22.81562088163605,
+      "east_state_score": 2.4248947430027497,
+      "west_state_score": 2.2806315092334146,
+      "simulation_seconds": [
+        4.418633,
+        5.50242379999986,
+        5.010663199999954,
+        4.652146600000151
+      ]
+    },
+    "refined1": {
+      "deltas": {
+        "rm_ramp": {
+          "mainline": -0.2410614157234079,
+          "on": 0.2675141332575395,
+          "off": 0.000709622867955062,
+          "total": 0.02716234040208665
+        },
+        "vsl": {
+          "mainline": 0.15426035696567908,
+          "on": -0.05524102077850657,
+          "off": -0.019983545747502163,
+          "total": 0.07903579043967035
+        },
+        "both": {
+          "mainline": -0.08687470780631656,
+          "on": 0.21231949753352986,
+          "off": -0.01944305325658746,
+          "total": 0.10600173647062583
+        }
+      },
+      "east_speed_rmse": 42.87236226841622,
+      "east_state_score": 8.57826076130924,
+      "west_state_score": 2.0310052574428434,
+      "simulation_seconds": [
+        4.880751700000019,
+        5.5151281999999355,
+        5.415198799999871,
+        5.126342500000192
+      ]
+    },
+    "refined_guard1": {
+      "deltas": {
+        "rm_ramp": {
+          "mainline": -0.25048115588224107,
+          "on": 0.2670579849554233,
+          "off": 0.0006611623621939344,
+          "total": 0.017237991435376188
+        },
+        "vsl": {
+          "mainline": 0.09437031907856408,
+          "on": -0.015679278603635716,
+          "off": -0.022968354685284353,
+          "total": 0.05572268578964401
+        },
+        "both": {
+          "mainline": -0.1559212521786577,
+          "on": 0.2514147806321425,
+          "off": -0.022317695147030747,
+          "total": 0.07317583330645405
+        }
+      },
+      "east_speed_rmse": 23.46813363242225,
+      "east_state_score": 2.647015471684318,
+      "west_state_score": 2.0310052574428434,
+      "simulation_seconds": [
+        4.549120099999982,
+        4.510357299999896,
+        4.5454079000001,
+        4.701554700000088
+      ]
+    }
+  },
+  "records": [
+    {
+      "mode": "reference5",
+      "arm": "none",
+      "group_state_checks": 3690,
+      "max_speed_kmh": 119.95632781777742,
+      "max_advective_courant": 0.8223257214833297,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference5",
+      "arm": "rm_ramp",
+      "group_state_checks": 3690,
+      "max_speed_kmh": 119.95632781777742,
+      "max_advective_courant": 0.8223257214833297,
+      "max_conservation_residual_veh": 2.1316282072803006e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference5",
+      "arm": "vsl",
+      "group_state_checks": 3690,
+      "max_speed_kmh": 119.59639308501077,
+      "max_advective_courant": 0.8099400793572074,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference5",
+      "arm": "both",
+      "group_state_checks": 3690,
+      "max_speed_kmh": 119.59639308501077,
+      "max_advective_courant": 0.8099400793572074,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference1",
+      "arm": "none",
+      "group_state_checks": 18450,
+      "max_speed_kmh": 118.95134855976856,
+      "max_advective_courant": 0.15141028863550102,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference1",
+      "arm": "rm_ramp",
+      "group_state_checks": 18450,
+      "max_speed_kmh": 118.95134855976856,
+      "max_advective_courant": 0.15141030446901305,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference1",
+      "arm": "vsl",
+      "group_state_checks": 18450,
+      "max_speed_kmh": 118.13601821098264,
+      "max_advective_courant": 0.1508978164878954,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "reference1",
+      "arm": "both",
+      "group_state_checks": 18450,
+      "max_speed_kmh": 118.13601821098264,
+      "max_advective_courant": 0.1508978321348612,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "refined1",
+      "arm": "none",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 1107.8436759096387,
+      "max_advective_courant": 31.04690584736127,
+      "max_conservation_residual_veh": 4.263256414560601e-14,
+      "numerical_screen_pass": false
+    },
+    {
+      "mode": "refined1",
+      "arm": "rm_ramp",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 1107.8436759096596,
+      "max_advective_courant": 31.046905847361856,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": false
+    },
+    {
+      "mode": "refined1",
+      "arm": "vsl",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 1106.1264500247082,
+      "max_advective_courant": 30.998781232375034,
+      "max_conservation_residual_veh": 4.263256414560601e-14,
+      "numerical_screen_pass": false
+    },
+    {
+      "mode": "refined1",
+      "arm": "both",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 1106.1264500247503,
+      "max_advective_courant": 30.998781232376214,
+      "max_conservation_residual_veh": 4.263256414560601e-14,
+      "numerical_screen_pass": false
+    },
+    {
+      "mode": "refined_guard1",
+      "arm": "none",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 122.90925828748396,
+      "max_advective_courant": 0.3505830105525749,
+      "max_conservation_residual_veh": 4.263256414560601e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "refined_guard1",
+      "arm": "rm_ramp",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 122.90925828748396,
+      "max_advective_courant": 0.3505830105525749,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "refined_guard1",
+      "arm": "vsl",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 121.70615175895165,
+      "max_advective_courant": 0.3480839996447339,
+      "max_conservation_residual_veh": 2.842170943040401e-14,
+      "numerical_screen_pass": true
+    },
+    {
+      "mode": "refined_guard1",
+      "arm": "both",
+      "group_state_checks": 31950,
+      "max_speed_kmh": 121.70615175895165,
+      "max_advective_courant": 0.3480839996447339,
+      "max_conservation_residual_veh": 4.263256414560601e-14,
+      "numerical_screen_pass": true
+    }
+  ],
+  "source_pins": {
+    "diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "bb09f97f1b1548f45d67536249ffdb7828e7e2f6ccf17f883379d08389881557",
+    "diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\cohort_dynamics_20260920\\urban_route_transport.py": "f0e1f3d52493d84d58f7966db21bcbc973bfc2e946e9a3f8b535b961a0e03622",
+    "diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\prepare.py": "cd78e48496f0357c716d60bf681732d13b57e0ac41ac92f6bfadd038b4308679",
+    "diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\run.py": "002f92ba67c2e8f5fde3a5285a0401b6e86d53b463286568a03dd811a90b7d2f",
+    "diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\analyze_space.py": "2ad79a1fff4e257f6d9dbd23039201f99e7223451386e95c924eb06f0f67a5e5",
+    "diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea"
+  }
+}

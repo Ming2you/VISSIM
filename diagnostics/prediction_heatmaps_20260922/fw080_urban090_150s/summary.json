@@ -1,0 +1,169 @@
+{
+  "complete": true,
+  "scenario": "FW80 urban90 NC9000 seed23",
+  "initializations": [
+    150.1,
+    300.1,
+    450.1,
+    600.1,
+    750.1,
+    900.1,
+    1050.1,
+    1200.1,
+    1350.1,
+    1500.1,
+    1650.1,
+    1800.1,
+    1950.1,
+    2100.1,
+    2250.1,
+    2400.1,
+    2550.1,
+    2700.1,
+    2850.1,
+    3000.1,
+    3150.1,
+    3300.1,
+    3450.1,
+    3600.1,
+    3750.1,
+    3900.1,
+    4050.1,
+    4200.1,
+    4350.1,
+    4500.1,
+    4650.1,
+    4800.1,
+    4950.1,
+    5100.1,
+    5250.1,
+    5400.1,
+    5550.1,
+    5700.1,
+    5850.1,
+    6000.1,
+    6150.1,
+    6300.1,
+    6450.1,
+    6600.1,
+    6750.1,
+    6900.1,
+    7050.1,
+    7200.1,
+    7350.1,
+    7500.1,
+    7650.1,
+    7800.1,
+    7950.1,
+    8100.1,
+    8250.1,
+    8400.1,
+    8550.1,
+    8700.1,
+    8850.1
+  ],
+  "rollouts": 354,
+  "failures": [],
+  "forecast_horizon_sec": 150,
+  "final_partial_horizon_sec": 120,
+  "prediction_sample_sec": 30,
+  "integration_step_sec": 1,
+  "first_forecast_cutoff": 150.1,
+  "last_observed_sample": 8970.1,
+  "mode": "history_forecast",
+  "within_window_observation_resets": 0,
+  "meaning": "Rolling150s forecasts stitched; not a single open-loop9000s prediction or temporal-average heatmap.",
+  "maximum_continuity_residual_veh": 5.684341886080802e-14,
+  "summary": [
+    {
+      "model": "boundary",
+      "road": "FW_E",
+      "count": 8696,
+      "speed_rmse": 24.131930868886688,
+      "speed_mae": 17.967591297863535,
+      "speed_bias": -4.60589761685566,
+      "failed_windows": 0
+    },
+    {
+      "model": "hadi",
+      "road": "FW_E",
+      "count": 8696,
+      "speed_rmse": 21.816661421488927,
+      "speed_mae": 14.8293297802372,
+      "speed_bias": 2.38611811855038,
+      "failed_windows": 0
+    },
+    {
+      "model": "wang",
+      "road": "FW_E",
+      "count": 8696,
+      "speed_rmse": 21.81024193150124,
+      "speed_mae": 14.764747715230358,
+      "speed_bias": 2.372952610947393,
+      "failed_windows": 0
+    },
+    {
+      "model": "boundary",
+      "road": "FW_W",
+      "count": 6891,
+      "speed_rmse": 14.497655572457495,
+      "speed_mae": 9.718266876449302,
+      "speed_bias": -1.6710131428027455,
+      "failed_windows": 0
+    },
+    {
+      "model": "hadi",
+      "road": "FW_W",
+      "count": 6891,
+      "speed_rmse": 45.19368249025907,
+      "speed_mae": 28.687897579599007,
+      "speed_bias": 18.899172190031322,
+      "failed_windows": 0
+    },
+    {
+      "model": "wang",
+      "road": "FW_W",
+      "count": 6891,
+      "speed_rmse": 46.28749215969916,
+      "speed_mae": 28.894789856153917,
+      "speed_bias": 16.227504565797357,
+      "failed_windows": 0
+    }
+  ],
+  "pins": {
+    "boundary": {
+      "parameters_sha256": "cb21b7c9ad2d680869064eb56dd583e3e70af8ea7fc9628807d2fa5b857c91b4",
+      "config_sha256": "486c6b32c0ce2bfb4f001470e417e4a7d3c53ac280831dc24a2f78e55098dd8a"
+    },
+    "hadi": {
+      "parameters_sha256": "b360269dc02363d38b47e54d8eb50e0145d3792cbc1fa1d2117ab39bc4d596b9",
+      "config_sha256": "dc8e3c6b28a1be02c89dfd3bb6f2d1a0c45a597b23dc1ea1e24823332a8d2b96"
+    },
+    "wang": {
+      "parameters_sha256": "782ae659f549aaf43309ff82622a8279b64a543a107246b2fb2d6624727435c5",
+      "config_sha256": "d73b87abcb055eb4a01cd7629a01ed568d20d8608f5ca5fe10a3d5670ab864b2"
+    },
+    "sources": {
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\canonical_harness.py": "3fa7bcf40250d67d2f33297e0aa6d1a78c5ca90c5dcc3d0b5142278600329e39",
+      "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\boundary_factory.py": "6ce7a7414f40897709cb36105aa6e3052aa1b661959fcbc19eba51284cca7ce0"
+    },
+    "observations": {
+      "boundaries_30s.csv": "090aaeebd9a9fb8865b806011dd09f23a373f23cf2a44db467da609a41ad63ec",
+      "cells_30s.csv": "3483f61fce79748622d2a5dcc95ae165c2149a130dac5e62fcab9966a9fa9b09",
+      "desired_source_demand.csv": "8b3bd867bec0bae0c02b8c166da26816f1370ad74913cdcf0a6ab0532dd0e056",
+      "exclusion_evidence.json": "2c44ef83d2cd33b491bba1ebbaefecd897fcbd96659e23572324c78448a0ba9b",
+      "flows_30s.csv": "8d320753a8712c92d91f22491a823fd96dfc865fedfb877cee282811c0d71c6b",
+      "geometry.json": "68bc6062b77dd4bd670d52980311ac46d1a56cd1c9384ab903342c4cefc4cbf5",
+      "manifest.json": "a050145bfb69e6bfcd2d82a6ec16cf292a67df1bf5482da706417c81bb2f73ba",
+      "position_verified_transitions.json": "f8eb742e182a5990de1e2aa8acef10e9eb24223af2a9b6101f938ac9f1ebb0bb"
+    }
+  },
+  "preflight": {
+    "default450_exact": 6,
+    "prefix150_exact": 6,
+    "prefix120_exact": 6,
+    "active_native_queue_pins_unchanged": true
+  },
+  "unit_tests_passed": 10,
+  "visual_review": "Both direction figures inspected: consistent axes/colors, all three models and actual, explicit warmup/tail mask."
+}

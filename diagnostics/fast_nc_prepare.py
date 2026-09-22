@@ -19,8 +19,19 @@ PROFILE = ROOT / 'evaluation/configs/demand_profiles/ver2_fdsweep_x15_20260907.c
 ACTION = ROOT / 'evaluation/runs/codex_contract_nc_headoff_continuous_s13_5400_v3_20260910/decisions_codex_contract_nc_headoff_continuous_s13_5400_v3_20260910/action_000001.csv'
 
 
-def prepare_native_preserve(network, output, terminal):
+def recording_settings(output, interval_sec):
+    if type(interval_sec) is not int or interval_sec not in (1, 5):
+        raise ValueError('Vehicle recording interval must be1 or5 seconds')
+    path = output/'vehicle_recording.csv'
+    with path.open('x', encoding='ascii', newline='') as f:
+        csv.writer(f).writerows([['interval_sec'], [interval_sec]])
+    return path
+
+
+def prepare_native_preserve(network, output, terminal, *, recording_interval_sec=5, fzp_only=False):
     """Snapshot a user-supplied saved network without changing traffic settings."""
+    if type(recording_interval_sec) is not int or recording_interval_sec not in (1,5):
+        raise ValueError('Vehicle recording interval must be1 or5 seconds')
     original = network.read_bytes()
     tree = ET.fromstring(original)
     simulation = tree.find('./simulation')
@@ -43,23 +54,35 @@ def prepare_native_preserve(network, output, terminal):
     copied = snapshot/network.name
     copied.write_bytes(original)
     for name, data in assets.items(): (snapshot/name).write_bytes(data)
+    if fzp_only:
+        # Disable output/aggregate collection only; saved traffic settings stay intact.
+        for node in tree.find('./evaluation').iter():
+            for key in ('collectData', 'writeFile', 'writeDatabase'):
+                if key in node.attrib:
+                    node.set(key, 'false')
+        copied.write_bytes(b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(tree, encoding='utf-8'))
     digest = hashlib.sha256(original).hexdigest()
     report = {
         'mode': 'native_preserve', 'network': str(copied.resolve()),
         'source_network': str(network), 'source_network_sha256': digest,
         'seed': seed, 'terminal_sec': terminal, 'saved_simulation': dict(simulation.attrib),
+        'vehicle_record_interval_sec': recording_interval_sec,
         'model_controller_used': False, 'demand_rows': 0, 'command_rows': 0,
         'traffic_settings_policy': 'No demand, route, signal, VSL, meter, seed or SimRes writes',
         'allowed_runtime_settings': ['output directory', 'native recording', 'QuickMode/maximum speed',
                                      'simulation period/break to requested terminal'],
         'tail_demand': 'Saved native timetable and continuation flags retained, with no input writes',
         'inputs': {str(network): digest, **{str(network.parent/n): hashlib.sha256(b).hexdigest() for n,b in assets.items()}},
-        'snapshot_sha256': {str(copied.resolve()): digest, **{str((snapshot/n).resolve()): hashlib.sha256(b).hexdigest() for n,b in assets.items()}},
+        'snapshot_sha256': {str(copied.resolve()): hashlib.sha256(copied.read_bytes()).hexdigest(), **{str((snapshot/n).resolve()): hashlib.sha256(b).hexdigest() for n,b in assets.items()}},
     }
+    if fzp_only:
+        report['fzp_only'] = True
     with (output/'native_simulation.csv').open('x', encoding='ascii', newline='') as f:
         w=csv.writer(f); w.writerow(['attribute','value'])
         for native, com in [('randSeed','RandSeed'),('simRes','SimRes'),('numRuns','NumRuns')]:
             w.writerow([com, simulation.get(native)])
+    recording = recording_settings(output, recording_interval_sec)
+    report['snapshot_sha256'][str(recording.resolve())] = hashlib.sha256(recording.read_bytes()).hexdigest()
     with (output/'prepared.json').open('x', encoding='utf-8') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     print(json.dumps({'prepared':str(output.resolve()), 'network':str(copied.resolve()),
@@ -145,15 +168,19 @@ def main():
     p.add_argument('--terminal-sec', type=int, choices=(5400, 7200, 9000), default=5400,
                    help='Extend the final native input interval without adding/resetting routing or input intervals')
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--recording-interval-sec', type=int, choices=(1, 5), default=5)
     p.add_argument('--native-preserve', action='store_true',
                    help='Use the saved network exactly; bypass legacy demand and control overrides')
+    p.add_argument('--fzp-only', action='store_true', help='Native NC only: omit other evaluations and signal recordings')
     a = p.parse_args()
     network = a.network.resolve(strict=True)
     if a.native_preserve:
         if a.demand_overrides or a.global_scale != 1:
             raise ValueError('Native-preserve cannot be combined with demand overrides')
-        prepare_native_preserve(network, a.output, a.terminal_sec)
+        prepare_native_preserve(network, a.output, a.terminal_sec, recording_interval_sec=a.recording_interval_sec, fzp_only=a.fzp_only)
         return
+    if a.fzp_only:
+        p.error('--fzp-only requires --native-preserve')
     demand = demand_rows(network, read_csv(a.demand_overrides) if a.demand_overrides else (), a.global_scale)
     command = controls()
     routes = route_checks(network)
@@ -163,10 +190,12 @@ def main():
             w=csv.DictWriter(stream,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
     inputs = [network, ROLES, PROFILE, ACTION] + ([a.demand_overrides.resolve()] if a.demand_overrides else [])
     report={'network':str(network),'seed':13,'terminal_sec':a.terminal_sec,'demand_rows':204,'global_scale':a.global_scale,
+            'vehicle_record_interval_sec':a.recording_interval_sec,
             'command_rows':74,'model_controller_used':False,'routing':'Native prepared INPX, unchanged by runner',
             'inputs':{str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in inputs},
             'initial_step':f'Native RunSingleStep to1, then same74 commands, then RunContinuous once to{a.terminal_sec}',
             'tail_demand':'Hold final native interval starting4500 through terminal; no new input/route interval'}
+    recording_settings(a.output, a.recording_interval_sec)
     (a.output/'prepared.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'prepared':str(a.output.resolve()),'network':str(network),'demand_rows':204,'command_rows':74}))
 

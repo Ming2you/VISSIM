@@ -1,0 +1,168 @@
+{
+  "schema": "metanet-completed-demand-holdout/v1",
+  "seed": 23,
+  "training": {
+    "id": "p100",
+    "observations": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/p100_observations",
+    "run": "D:\\VISSIM_runs\\20260922_both_off_half\\p100_nc9000\\run",
+    "network_sha256": "ebd90383c00df51b9386e669a8799ac5a05e90b52391838c389fe87d537187f4",
+    "cutoffs_s": [
+      900.1,
+      1800.1,
+      2700.1,
+      3600.1,
+      4500.1,
+      5400.1,
+      6300.1,
+      7200.1,
+      8100.1
+    ]
+  },
+  "validation": [
+    {
+      "id": "p90",
+      "observations": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/p90_observations",
+      "run": "D:\\VISSIM_runs\\20260922_both_off_half\\p90_nc9000\\run",
+      "network_sha256": "fedb922fcf31539e45da5ecae2e607b8f2dfd518d9a5562a3d5a9a6241cd5e4f",
+      "cutoffs_s": [
+        900.1,
+        1800.1,
+        2700.1,
+        3600.1,
+        4500.1,
+        5400.1,
+        6300.1,
+        7200.1,
+        8100.1
+      ]
+    },
+    {
+      "id": "fw080_urban100",
+      "observations": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/fw080_urban100_observations",
+      "run": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban100_nc9000\\run",
+      "network_sha256": "81e0aabb43a20c436832d9a4ab44b542ea8c4dbec26c9267cbc16774e93ee752",
+      "cutoffs_s": [
+        900.1,
+        1800.1,
+        2700.1,
+        3600.1,
+        4500.1,
+        5400.1,
+        6300.1,
+        7200.1,
+        8100.1
+      ]
+    },
+    {
+      "id": "p80",
+      "observations": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/p80_observations",
+      "run": "D:\\VISSIM_runs\\20260922_both_off_half\\p80_retry1\\run",
+      "network_sha256": "3d04d92077deac6d30848fabe033095f8cd000d98895545f600d193249d508f3",
+      "cutoffs_s": [
+        900.1,
+        1800.1,
+        2700.1,
+        3600.1,
+        4500.1
+      ]
+    },
+    {
+      "id": "p70",
+      "observations": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/p70_observations",
+      "run": "D:\\VISSIM_runs\\20260922_both_off_half\\p70\\run",
+      "network_sha256": "464ff4e3b7eb8fdf0399e0afca05c407a2ba132bd52fea84c09b07fe802ff99b",
+      "cutoffs_s": [
+        900.1,
+        1800.1,
+        2700.1,
+        3600.1,
+        4500.1
+      ]
+    }
+  ],
+  "config": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/boundary_literature_v1/wang_config.json",
+  "config_sha256": "d73b87abcb055eb4a01cd7629a01ed568d20d8608f5ca5fe10a3d5670ab864b2",
+  "baseline_config": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_20260922/fit_config.json",
+  "baseline_config_sha256": "42469f4ee99ef10c6f3004abebf3956be41acf5b8ad05b06c6130b381eb0c637",
+  "integration_step_sec": 1,
+  "recording_interval_sec": 5,
+  "fit_keys": [
+    "literature_tau_sec",
+    "nu_km2_h",
+    "kappa_veh_km_lane",
+    "receiving_capacity_vphpl",
+    "capacity_drop_fraction"
+  ],
+  "fit_mode": "conditioned_diagnostic",
+  "evaluation_modes": [
+    "conditioned_diagnostic",
+    "history_forecast"
+  ],
+  "normalization": {
+    "speed_kmh": 20,
+    "density_veh_km_lane": 10,
+    "flow_veh_h": 1000
+  },
+  "limitations": [
+    "All scenarios use seed23; different demand, not independent seed validation.",
+    "Prior heatmaps were inspected. This is a frozen demand holdout, not a blind dataset.",
+    "Fit physical dynamics with explicitly future-conditioned external boundary support; mainline states never reset.",
+    "History forecasts use only cutoff state and past150s boundary observations plus known input timetable.",
+    "No VSL/RM causal gain identification from these no-control runs.",
+    "Freeway component only; observed external ramp/off boundaries, not full urban coupling or Omega TTT.",
+    "One existing parameter family per direction; state-regime and lane interaction candidates not reintroduced without evidence.",
+    "Synthetic conservation preflight requires1s integration on the unchanged minimum76m refined grid.",
+    "Boundary semantics corrected; rejected interface flow remains visible.",
+    "Hadi/Wang core equations on aggregated cells; nominal and controlled use the same command law, no model switch.",
+    "Q/rho_c/w/theta are effective fitted coefficients, not independently identified physical capacity/drop.",
+    "No native command pairs on this exact latest network; no control-gain certification."
+  ],
+  "adoption_rule": "Require no physical failures and improvement in held-out dynamic/flow measures; no production promotion from aggregate score alone.",
+  "baseline_parameters": {
+    "FW_W": {
+      "v_free_multiplier": 1.0899999999999999,
+      "rho_crit_multiplier": 0.68,
+      "tau_sec": 12.0,
+      "nu_km2_h": 43.05000000000001,
+      "kappa_veh_km_lane": 5.0,
+      "delta_merge": 0.0
+    },
+    "FW_E": {
+      "v_free_multiplier": 0.9700000000000001,
+      "rho_crit_multiplier": 1.4,
+      "tau_sec": 16.8,
+      "nu_km2_h": 64.80000000000001,
+      "kappa_veh_km_lane": 10.75,
+      "delta_merge": 0.3
+    }
+  },
+  "initial_parameters": {
+    "FW_E": {
+      "literature_tau_sec": 108.0,
+      "nu_km2_h": 35.0,
+      "kappa_veh_km_lane": 40.0,
+      "receiving_capacity_vphpl": 2400.0,
+      "receiving_wave_kmh": 17.5,
+      "receiving_critical": 30.0,
+      "capacity_drop_fraction": 0.0
+    },
+    "FW_W": {
+      "literature_tau_sec": 108.0,
+      "nu_km2_h": 35.0,
+      "kappa_veh_km_lane": 40.0,
+      "receiving_capacity_vphpl": 2400.0,
+      "receiving_wave_kmh": 17.5,
+      "receiving_critical": 30.0,
+      "capacity_drop_fraction": 0.0
+    }
+  },
+  "comparison_family": "wang",
+  "literature_equations": {
+    "receiving": "Wang w'=Q'/(jam-rho_c), rho_c=Q/u_max; same triangular relation in free branch",
+    "speed": "Paper command relaxation + convection + anticipation; previous merge and lane-drop deceleration disabled.",
+    "scope": "All existing model VSL zones, fixed across commands; 31 cells per direction.",
+    "flow_mapping": "Existing conserved per-cell mainline/off split; ramp flow independently accounted and deducted from shared receiving budget. Wang printed r-s addition not double-counted.",
+    "capacity": "One per-lane family per direction; observed lane count varies by segment, jam storage unchanged."
+  },
+  "include_source_boundary": true
+}

@@ -20,25 +20,31 @@ def onset(rows):
     return None
 
 
-def score_rollout(data,cutoff,rollout,road):
+def score_rollout(data,cutoff,rollout,road, *, include_source_boundary=False):
     observed={(t,r['cell']):r for t,rows in data.cells.items() if cutoff<=t<=cutoff+450
               for r in rows if r['road']==road}
-    predicted={(int(r['time_s']),int(r['cell'])):r for r in rollout['cells'] if r['road']==road}
-    expected={(t,c) for t in range(cutoff+30,cutoff+451,30) for c in range(21)}
+    predicted={(round(float(r['time_s']),6),int(r['cell'])):r for r in rollout['cells'] if r['road']==road}
+    cell_ids=sorted(r['cell'] for r in data.cells[cutoff] if r['road']==road)
+    times=[round(cutoff+d,6) for d in range(30,451,30)]
+    expected={(t,c) for t in times for c in cell_ids}
     if set(predicted)!=expected or not expected.issubset(observed):
         raise ValueError('Missing or extra prediction/observation states')
-    flow={(int(r['window_end_s']),int(r['cell'])):r for r in rollout['flows'] if r['road']==road}
+    flow={(round(float(r['window_end_s']),6),int(r['cell'])):r for r in rollout['flows'] if r['road']==road}
     if set(flow)!=expected: raise ValueError('Missing or extra physical flow capture')
     if not all((t,road,c) in data.flows for t,c in expected):
         raise ValueError('Missing observed physical flows')
     rho=[];speed=[];count=[];qerrors=[];offerrors=[];horizons={}
+    source_errors=[]
     e14_discharge=[0.,0.]
     obs_ttt=pred_ttt=0.
-    old_obs=old_pred=sum(observed[cutoff,c]['n_veh'] for c in range(21))
+    old_obs=old_pred=sum(observed[cutoff,c]['n_veh'] for c in cell_ids)
     confusion={'true_positive':0,'false_positive':0,'true_negative':0,'false_negative':0}
-    for t in range(cutoff+30,cutoff+451,30):
+    for t in times:
+        if include_source_boundary:
+            source_errors.append((float(flow[t,cell_ids[0]]['source_admissions'])-
+                float(data.flows[t,road,cell_ids[0]]['source_admissions']))*120.)
         er=[];ev=[];en=[]
-        for c in range(21):
+        for c in cell_ids:
             o,p=observed[t,c],predicted[t,c]
             er.append(p['rho_veh_per_km_lane']-o['rho_veh_per_km_lane'])
             en.append(p['n_veh']-o['n_veh'])
@@ -53,16 +59,17 @@ def score_rollout(data,cutoff,rollout,road):
             qerrors.append((po-oo)*120.)
             if any(b['kind']=='offramp' and b['road']==road and int(b['from_cell'])==c for b in data.definitions.values()):
                 offerrors.append((f['off_departures']-float(a['off_departures']))*120.)
-            if road=='FW_E' and c==13:
+            discharge_cell=max((x['cell'] for x in data.geometry.get('cells',[]) if x['road']==road and x.get('parent_cell',x['cell'])==13),default=13)
+            if road=='FW_E' and c==discharge_cell:
                 e14_discharge[0]+=oo; e14_discharge[1]+=po
         rho.extend(er); speed.extend(ev); count.extend(en)
-        new_obs=sum(observed[t,c]['n_veh'] for c in range(21))
-        new_pred=sum(predicted[t,c]['n_veh'] for c in range(21))
+        new_obs=sum(observed[t,c]['n_veh'] for c in cell_ids)
+        new_pred=sum(predicted[t,c]['n_veh'] for c in cell_ids)
         obs_ttt+=(old_obs+new_obs)*30/7200
         pred_ttt+=(old_pred+new_pred)*30/7200
         old_obs,old_pred=new_obs,new_pred
-        if t-cutoff in (150,300,450):
-            horizons[str(t-cutoff)]={'density':stats(er),'speed':stats(ev),'cell_n':stats(en),
+        if round(t-cutoff,6) in (150,300,450):
+            horizons[str(int(round(t-cutoff)))]={'density':stats(er),'speed':stats(ev),'cell_n':stats(en),
                 'total_n_observed':new_obs,'total_n_predicted':new_pred}
     detail=next(r for r in rollout['diagnostics']['roads'] if r['road']==road)
     projections=int(detail.get('density_projection_count',0))
@@ -75,11 +82,13 @@ def score_rollout(data,cutoff,rollout,road):
     invalid=(not finite or projections>0 or exceed>0 or negative>0 or residual>1e-6)
     density,speeds,flows=stats(rho),stats(speed),stats(qerrors)
     objective=(density['rmse']/10)**2+(speeds['rmse']/20)**2+(flows['rmse']/1000)**2 if finite and speeds['count'] else 1e6
+    if include_source_boundary:
+        objective += (stats(source_errors)['rmse']/1000)**2
     if invalid: objective+=1e6+100*(projections+exceed+negative)+min(1e6,residual*1e4)
     events=[]
-    for c in range(21):
-        obs=[observed[t,c] for t in range(cutoff,cutoff+451,30)]
-        pred=[observed[cutoff,c]]+[predicted[t,c] for t in range(cutoff+30,cutoff+451,30)]
+    for c in cell_ids:
+        obs=[observed[t,c] for t in [cutoff]+times]
+        pred=[observed[cutoff,c]]+[predicted[t,c] for t in times]
         a,b=onset(obs),onset(pred)
         events.append({'cell':c,'observed_first_sustained_in_window_s':a,
             'predicted_first_sustained_in_window_s':b,
@@ -96,13 +105,16 @@ def score_rollout(data,cutoff,rollout,road):
             'speed_mask':'Observed cellN>=5; poor predictions with N<5 are not silently removed',
             'ttt':'Freeway component only,30-second state trapezoid; not total Omega objective including urban/ramp waits',
             'onset':'First sustained low-speed span inside this prediction window, not necessarily original network breakdown time'}}
+    if include_source_boundary:
+        result['source_flow_vph']=stats(source_errors)
+        result['definitions']['source_fit']='Additional actual admission-flow RMSE/1000 squared; prevents fitting mainline by hiding admitted vehicles upstream.'
     return result
 
 
 def persistence_score(data,cutoff,road):
     initial={r['cell']:r for r in data.cells[cutoff] if r['road']==road}
     rho=[];speed=[]
-    for t in range(cutoff+30,cutoff+451,30):
+    for t in [round(cutoff+d,6) for d in range(30,451,30)]:
         for o in data.cells[t]:
             if o['road']!=road: continue
             p=initial[o['cell']]

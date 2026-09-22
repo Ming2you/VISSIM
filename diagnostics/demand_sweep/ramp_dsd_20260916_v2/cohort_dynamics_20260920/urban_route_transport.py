@@ -760,7 +760,7 @@ class Contracts(unittest.TestCase):
 
 
 @contextmanager
-def trace_mainline_limits():
+def trace_mainline_limits(include_cells=False):
     """Observe actual transition locals without replacing a flow/speed value."""
     import inspect
     import canonical_harness as ch
@@ -787,7 +787,25 @@ def trace_mainline_limits():
                     fifo=list(local['fifo'][i]),through_request_veh=list(local['through_requests'][i]),
                     through_after_fifo_veh=list(local['through'][i]),mainline_out_veh=list(local['outgoing'][i]),
                     start_n=list(local['before'][i]),start_speed_kmh=list(local['oldv'][i]))
-            rows.append(dict(time_s=local['state'].time_sec,step_s=model.sec,ports=ports))
+            row=dict(time_s=local['state'].time_sec,step_s=model.sec,ports=ports)
+            if include_cells:
+                # Snapshot already consumed allocations. No extra physics call or
+                # mutation: distinguish sending, lane endings, FIFO and receiving.
+                row['cells']=dict(before=copy.deepcopy(local['before']),
+                    speed_before=copy.deepcopy(local['oldv']),
+                    through_requests=copy.deepcopy(local['through_requests']),
+                    after_fifo=copy.deepcopy(local['through']),
+                    outgoing=copy.deepcopy(local['outgoing']),
+                    incoming=copy.deepcopy(local['incoming']),
+                    ramp_in=copy.deepcopy(local['ramp_in']),
+                    off_out=copy.deepcopy(local['off_by_group']),
+                    receiving_after_ramp=copy.deepcopy(local['free']),
+                    matrices=copy.deepcopy(model.matrices),
+                    end_n=copy.deepcopy(model.n),
+                    partitions_before=copy.deepcopy(local['part_before']),
+                    cross=copy.deepcopy(local['cross']),
+                    pre_through=copy.deepcopy(local['pre_through']))
+            rows.append(row)
         del frame
         return original(*args,**kwargs)
     mn.metanet_speed_update_kmh=observe_speed
@@ -798,7 +816,7 @@ def trace_mainline_limits():
 def run_probe(lateral_access=False, history_exchange=False, continuation=False, nc_only=False, defer_mandatory=False,
               defer_destinations=None, prefer_receiving=False, trace_limits=False, network_exit_intent=False,
               current_exit_intent=False, branch_partition=None, branch_exchange=None, partition_context=None, transport_step=None,
-              output_name=None, partition_ports=None):
+              output_name=None, partition_ports=None, replay_context=None):
     from diagnostics.demand_sweep.ramp_dsd_20260916_v2.gain_response_20260919.fit_response import parts
     from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.ramp_lane_coupling_check import audit
     from evaluation.controllers.physical_lane_groups import PhysicalLaneGroups
@@ -849,14 +867,22 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
     suite = unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromTestCase(Contracts))
     if not suite.wasSuccessful(): raise AssertionError('Local transport contracts failed')
     e.save(out/'tests.json', dict(passed=True, tests=suite.testsRun))
-    bank = HERE/'route_state_native_v1/none_s23'
+    context=None
+    if replay_context is not None:
+        context=e.load(replay_context)
+        assert context['future_traffic_inputs'] is False and context['cutoff_s']%150==0
+        assert context['seed']==23 and not history_exchange and branch_exchange!='on'
+        for key in ('bank','data','lane','origin','intent','commands','initial','refined_initial'):
+            path=(e.ROOT/context[key]).resolve();path.relative_to(e.ROOT)
+    start=context['cutoff_s'] if context else 2400
+    bank = e.ROOT/context['bank'] if context else HERE/'route_state_native_v1/none_s23'
     network = bank/'source/baseline.inpx'
     route_map, exits = geometry(network)
     raw = e.load(bank/'analysis/frames.json')
-    past = {f['time_s']: f for f in raw['frames'] if 2250 <= f['time_s'] <= 2400}
+    past = {f['time_s']: f for f in raw['frames'] if start-150 <= f['time_s'] <= start}
     del raw
-    current = observe(past[2400], route_map, exits)
-    history = history_inputs(past, 2400, route_map, exits)
+    current = observe(past[start], route_map, exits)
+    history = history_inputs(past, start, route_map, exits)
     evidence = HERE/'urban_drain_observations_v5/s23_none_evidence.json'
     _, program, offset = dataset(evidence.with_name('s23_none.csv'), evidence)
     wave = e.load(HERE/'off_spatial_supply_v1/result.json')['wave_m_s']
@@ -887,8 +913,9 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
     if partition_context is not None:cfg['freeway']['physical_partition_speed_context']=partition_context=='on'
     if transport_step is not None:cfg['freeway']['physical_integration_step_sec']=transport_step
     config = out/'config.json'; e.save(config, cfg)
-    seed, folder, candidate_bank, start = CASES[1]
-    assert seed == 23 and start == 2400
+    seed, folder, candidate_bank, original_start = CASES[1]
+    assert seed == 23 and original_start == 2400
+    if context:folder=e.ROOT/context['data']
     data = e.ObservationData(folder)
     model = e.load_base_model(data.geometry, config)
     original_config = model._config
@@ -899,9 +926,12 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
     model._config = configuration
     parameters = e.load(HERE/'port_travel_fit_v1/selected_parameters.json')['parameters']
     profile = e.load(MODEL/'port_profile.json')
-    lane = e.load(H/'lane_group_response_20260919/observations_v1/s23.json')
-    origin = e.load(HERE/'port_positions_v1/s23.json')
-    protocol = e.load(candidate_bank/'protocol.json')
+    lane_path=e.ROOT/context['lane'] if context else H/'lane_group_response_20260919/observations_v1/s23.json'
+    origin_path=e.ROOT/context['origin'] if context else HERE/'port_positions_v1/s23.json'
+    commands_path=e.ROOT/context['commands'] if context else candidate_bank/'protocol.json'
+    lane = e.load(lane_path)
+    origin = e.load(origin_path)
+    protocol = e.load(commands_path)
     sources = [Path(__file__), network, bank/'analysis/frames.json', config,
                HERE/'off_spatial_transport.py', HERE/'off_spatial_supply.py', HERE/'route_access_observer.py',
                e.CAL/'canonical_harness.py', e.ROOT/'evaluation/controllers/physical_lane_groups.py',
@@ -910,11 +940,13 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
                e.ROOT/'evaluation/controllers/physical_ramp_boundary.py',
                HERE/'off_spatial_supply_v1/result.json', evidence, evidence.with_name('s23_none.csv'),
                HERE/'port_travel_fit_v1/selected_parameters.json', MODEL/'port_profile.json',
-               H/'lane_group_response_20260919/observations_v1/s23.json', HERE/'port_positions_v1/s23.json',
-               candidate_bank/'protocol.json']
+               lane_path, origin_path, commands_path]
+    if context:
+        sources.append(Path(replay_context))
+        sources.extend(folder/n for n in ('geometry.json','cells_30s.csv','flows_30s.csv','boundaries_30s.csv','ports_30s.csv','port_cohorts_30s.json','port_events.csv'))
     current_labels=None
     if current_exit_intent:
-        intent_path=HERE/'current_mainline_route_v1/result.json';sources.append(intent_path)
+        intent_path=e.ROOT/context['intent'] if context else HERE/'current_mainline_route_v1/result.json';sources.append(intent_path)
         current_labels=e.load(intent_path)
         assert current_labels['information_cutoff_s']==start and not current_labels['future_route_observations_used']
     exchange_observation=None
@@ -951,6 +983,16 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
                      'No explicit longitudinal gaps within urban cells, target-cell receiving is an approximation.',
                      'No new10700 traffic model: reject observed use instead of discarding it.'],
         no_gain_fitting=True, qualified=False))
+    forecast_data=data
+    if context:
+        # Physical inputs cannot see later recorded observations. Prescribed
+        # demand remains available; it is not an observed future flow.
+        forecast_data=copy.deepcopy(data)
+        forecast_data.cells={t:rows for t,rows in data.cells.items() if t<=start}
+        for attr in ('flows','boundaries','ports'):
+            setattr(forecast_data,attr,{k:v for k,v in getattr(data,attr).items() if k[0]<=start})
+        forecast_data.port_cohorts={t:v for t,v in data.port_cohorts.items() if int(t)<=start}
+        forecast_data.port_events=[r for r in e.rows(folder/'port_events.csv') if float(r['time_s'])<=start]
     init, release = ch.LaneResolvedDelayedPort.__init__, ch.LaneResolvedDelayedPort.release
     accept, advance = CumulativeLane.accept, PhysicalLaneGroups.advance
     lane_initialize=PhysicalLaneGroups.__init__
@@ -961,7 +1003,10 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
             i = int((t-start)//150)
             return ({'RM_C10490': sequence['green'][i]} if sequence['green'] else {},
                     {d: sequence['vsl'][i] for d in protocol['dsd_ids']} if sequence['vsl'] else {})
-        window = e.window(data, model, start, 'history_forecast', profile, command, port_origin_counts=origin['counts'])
+        window = e.window(forecast_data, model, start, 'history_forecast', profile, command, port_origin_counts=origin['counts'])
+        if context:
+            assert window==e.window(data,model,start,'history_forecast',profile,command,port_origin_counts=origin['counts'])
+            e.save(out/f'input_window_{arm}.json',window)
         window['lane_group_dynamics'] = {'FW_E': {**lane['geometry'], **lane['cutoffs'][str(start)],
             'initial_ramp_origin': origin['counts'][str(start)], 'initial_off_eligible': origin['eligible_before_off'][str(start)]}}
         if branch_partition=='on':
@@ -1028,6 +1073,17 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
             lane_initialize(self,*args,**kwargs)
             if self.road!='FW_E':return
             assert current_labels is not None and self.upstream_exit_inventory=={'10643':route_fraction}
+            observed=self.spec.get('observed_first_exit_by_group')
+            if observed is not None:
+                stop=self.spec['off_access']['10643']['cell']
+                assert len(observed)==stop+1
+                for i,values in enumerate(observed):
+                    eligible=self.initial_off_eligible['10643'] if i==stop else self.n[i]
+                    assert len(values)==len(eligible) and all(0<=a<=b+1e-8 for a,b in zip(values,eligible))
+                    if i==stop:self.off['10643']=list(values)
+                    else:self.upstream_off['10643'][i]=list(values)
+                self.intent_initial['10643']=sum(map(sum,self.upstream_off['10643']))+sum(self.off['10643'])
+                return
             for i in range(9):
                 eligible=self.initial_off_eligible['10643'] if i==8 else self.n[i]
                 values=[]
@@ -1056,7 +1112,7 @@ def run_probe(lateral_access=False, history_exchange=False, continuation=False, 
             CumulativeLane.accept, PhysicalLaneGroups.advance = accept, advance
             PhysicalLaneGroups.__init__=lane_initialize
         base = e.load(HERE/f'off_spatial_transport_cumulative_v1/prediction_lane_reference_{arm}.json')
-        checks = audit(prediction, base, same_time_step=model.base.simulation.T_f_sec==10)
+        checks = audit(prediction, base, same_time_step=model.base.simulation.T_f_sec==10 and context is None)
         coupled = tracked[0].coupled
         for g, p in enumerate(coupled.lanes):
             assert abs(p.departed-sum(coupled.left[g].values())) < 1e-7

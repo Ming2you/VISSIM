@@ -18,21 +18,23 @@ class ObservationData:
     def __init__(self,folder):
         self.folder = Path(folder)
         self.geometry = json.loads((self.folder/'geometry.json').read_text(encoding='utf-8-sig'))
+        manifest_path = self.folder/'manifest.json'
+        self.phase_sec = json.loads(manifest_path.read_text(encoding='utf-8')).get('native_phase_sec',0) if manifest_path.exists() else 0
         assert self.geometry['cell_index_base'] == 0
         self.cells = defaultdict(list)
         for r in read_table(self.folder/'cells_30s.csv'):
-            row={**r,'time_s':int(float(r['time_s'])),'cell':int(r['cell']),
+            row={**r,'time_s':float(r['time_s']),'cell':int(r['cell']),
                 'n_veh':float(r['n_veh']),'rho_veh_per_km_lane':float(r['rho_veh_per_km_lane']),
                 'v_kmh':float(r['v_kmh']) if r['v_kmh'] else None}
             self.cells[row['time_s']].append(row)
         self.flows={}
         for r in read_table(self.folder/'flows_30s.csv'):
-            key=(int(float(r['window_end_s'])),r['road'],int(r['cell']))
+            key=(round(float(r['window_end_s']),6),r['road'],int(r['cell']))
             assert key not in self.flows
             self.flows[key]=r
         self.boundaries={}
         for r in read_table(self.folder/'boundaries_30s.csv'):
-            key=(int(float(r['window_end_s'])),r['id'])
+            key=(round(float(r['window_end_s']),6),r['id'])
             assert key not in self.boundaries
             self.boundaries[key]=r
         self.definitions={r['id']:r for r in self.geometry['boundaries']}
@@ -41,7 +43,7 @@ class ObservationData:
         self.port_cohorts = {}
         if (self.folder/'ports_30s.csv').exists():
             for r in read_table(self.folder/'ports_30s.csv'):
-                self.ports[int(float(r['window_end_s'])), str(r['connector'])] = r
+                self.ports[round(float(r['window_end_s']),6), str(r['connector'])] = r
             self.port_cohorts = json.loads((self.folder/'port_cohorts_30s.json').read_text(encoding='utf-8'))
 
     def demand_vph(self,road,time_s):
@@ -78,14 +80,18 @@ def upstream_origin_split(off_exits, downstream_exits, ramp_merges, initial_orig
     return min(1.,off_exits/denominator),max(0.,bypass)
 
 
-def build_window(data,cutoff,mode,port_profile=None):
+def build_window(data,cutoff,mode,port_profile=None,*,model_step_sec=None,horizon_sec=None):
     if mode not in PROTOCOL['evaluation_modes']:
         raise ValueError('Unknown boundary mode')
-    horizon=PROTOCOL['horizon_sec']; history=PROTOCOL['history_sec']; step=PROTOCOL['model_step_sec']
-    assert cutoff % 30 == 0 and cutoff >= history and cutoff+horizon <= 9000
+    horizon=PROTOCOL['horizon_sec'] if horizon_sec is None else horizon_sec
+    if type(horizon) is not int or horizon<=0 or horizon>450 or horizon%30:
+        raise ValueError('Forecast horizon must be a positive30s multiple, at most450s')
+    history=PROTOCOL['history_sec']; step=model_step_sec or PROTOCOL['model_step_sec']
+    phase=getattr(data,'phase_sec',0)
+    assert step in (1,5,10) and abs((cutoff-phase)/30-round((cutoff-phase)/30))<1e-8 and cutoff>=history and cutoff+horizon<=9000
     initial=[{k:r[k] for k in ('time_s','road','cell','n_veh','v_kmh')} for r in data.cells[cutoff]]
-    assert len(initial)==42
-    ends=list(range(cutoff-history+30,cutoff+1,30))
+    assert len(initial)==len(data.geometry.get('cells',initial))
+    ends=[round(cutoff-history+d,6) for d in range(30,history+1,30)]
     recent={}
     initial_off={}
     source_backlog={}
@@ -109,14 +115,15 @@ def build_window(data,cutoff,mode,port_profile=None):
 
     history_splits={name:split(name) for name,b in data.definitions.items() if b['kind']=='offramp'}
     steps=[]
-    for start in range(cutoff,cutoff+horizon,step):
+    for delta in range(0,horizon,step):
+        start=round(cutoff+delta,6)
         item={'window_start_s':start,'window_end_s':start+step,
             'source_demand_vph':{},'ramp_release_vph':{},'off_capacity_vph':{},
             'off_split_ratio':{},'offramp_occupancy_veh':{}}
         if port_profile:
             item['off_drain_vph'] = {}
         # The containing (a,a+30] observed interval is accessed ONLY in diagnostic mode.
-        measured_end=(start//30+1)*30 if mode=='conditioned_diagnostic' else None
+        measured_end=round((math.floor((start-phase+1e-8)/30)+1)*30+phase,6) if mode=='conditioned_diagnostic' else None
         for name,b in data.definitions.items():
             kind=b['kind']; road=b['road']
             if mode=='conditioned_diagnostic':
@@ -137,7 +144,7 @@ def build_window(data,cutoff,mode,port_profile=None):
                 item['off_capacity_vph'][conn]=rate
                 item['off_split_ratio'][conn]=split(name,measured_end) if measured_end is not None else history_splits[name]
                 # Stock is a state at the interval START, unlike interval-average flow.
-                snapshot_time=(start//30)*30
+                snapshot_time=round(math.floor((start-phase+1e-8)/30)*30+phase,6)
                 item['offramp_occupancy_veh'][conn]=float(data.boundaries[snapshot_time,name]['snapshot_n_veh']) if measured_end is not None else initial_off[conn]
                 if port_profile:
                     drain_ends = [measured_end] if measured_end is not None else ends
@@ -167,7 +174,13 @@ def build_window(data,cutoff,mode,port_profile=None):
             'occupancy_lane_loss': bool(port_profile['occupancy_lane_loss']),
             'travel_speed_kmh':{c:float(port_profile['travel_speed_kmh'][c]) for c in off_ids},
             'initial_cohorts':{c:data.port_cohorts[str(cutoff)][c] for c in off_ids}}
+        if 'entry_capacity_mode' in port_profile:
+            if port_profile['entry_capacity_mode'] not in ('storage', 'storage_and_proxy'):
+                raise ValueError('Unknown physical off-ramp entry capacity mode')
+            result['port_dynamics']['entry_capacity_mode'] = port_profile['entry_capacity_mode']
         result['meta']['off_capacity_meaning'] = 'Evolving free connector storage after causally available drainage; no observed entry-rate cap'
+        if port_profile.get('entry_capacity_mode') == 'storage_and_proxy':
+            result['meta']['off_capacity_meaning'] = 'Minimum of evolving connector free storage and the unchanged observed entry-rate proxy; explicit stock-only ablation'
         result['meta']['off_drain_meaning'] = 'Observed future physical connector exits (conditioned)' if measured_end is not None else 'Past150s physical exits held as an external drainage-service proxy, not a full urban signal forecast'
         result['meta']['off_occupancy_resets'] = 0
     return result

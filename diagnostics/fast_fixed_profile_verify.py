@@ -1,6 +1,7 @@
 """Closed-file native fixed-profile verification, including paired warmup FZP."""
 import argparse
 import csv
+from decimal import Decimal
 import hashlib
 import json
 from pathlib import Path
@@ -21,23 +22,54 @@ def rows(path):
         return list(csv.DictReader(stream))
 
 
-def prefix_digest(path, cutoff):
+def prefix_digest(path, cutoff, *, recording_grid=None):
     """All raw FZP data columns/rows through cutoff; ignore volatile headers only."""
     digest = hashlib.sha256()
     count, last = 0, None
+    endpoint = Decimal(str(cutoff))
+    previous_token = None
+    if recording_grid is not None:
+        interval, phase = map(lambda value: Decimal(str(value)), recording_grid)
+        require(interval.is_finite() and phase.is_finite() and interval > 0 and 0 <= phase < interval,
+                'Invalid native FZP recording grid')
+        endpoint = ((endpoint - phase) // interval) * interval + phase
     with Path(path).open('rb') as stream:
         for line in stream:
             if not re.match(rb'^\d+(?:\.\d+)?;', line):
                 continue
-            sec = float(line.split(b';', 1)[0])
-            if sec > cutoff:
-                break
-            require(last is None or sec >= last, 'Reordered FZP prefix')
+            token = line.split(b';', 1)[0]
+            if token != previous_token:
+                sec = Decimal(token.decode('ascii'))
+                if sec > cutoff:
+                    break
+                require(last is None or sec >= last, 'Reordered FZP prefix')
+                if recording_grid is not None:
+                    require((sec - phase) % interval == 0, 'FZP sample is off the recorded native grid')
+                    require(last is None or sec == last or sec - last == interval, 'Missing native FZP recording frame')
+                previous_token = token
             digest.update(line.rstrip(b'\r\n') + b'\n')
             count += 1
             last = sec
-    require(count > 0 and last == cutoff, 'Missing exact FZP prefix endpoint')
-    return {'sha256': digest.hexdigest(), 'rows': count, 'last_time_s': last}
+    require(count > 0 and last == endpoint, 'Missing exact FZP prefix endpoint')
+    return {'sha256': digest.hexdigest(), 'rows': count, 'last_time_s': float(last)}
+
+
+def native_recording_grid(setup, resolution):
+    """Derive actual output times from COM readback, without rounding timestamps."""
+    def value(kind, name):
+        selected = [r for r in setup if r['kind'] == kind and r['no'] == name]
+        require(len(selected) == 1, 'Missing/duplicate native recording setup: ' + name)
+        expected, actual = [Decimal(selected[0][k]) for k in ('expected', 'actual')]
+        require(expected.is_finite() and actual.is_finite() and actual == expected,
+                'Native recording setup readback differs: ' + name)
+        return actual
+    actual_resolution = value('native_simulation', 'SimRes')
+    require(actual_resolution == resolution, 'Native resolution differs from explicit profile')
+    steps = value('native_recording', 'VehRecResolution')
+    start = value('native_recording', 'VehRecFromTime')
+    interval = steps / actual_resolution
+    require(interval in (1, 5) and start >= 0, 'Unsupported native recording interval/start')
+    return interval, (start + 1 / actual_resolution) % interval
 
 
 def native_record(folder, proof, end):
@@ -54,6 +86,8 @@ def verify(prepared, run, reference=None):
     proof = meta['fixed_profile_proof']
     end = int(meta['terminal_sec'])
     setup = rows(run/'readback.csv')
+    grid = (native_recording_grid(setup, proof['native_resolution_probe'])
+            if 'native_resolution_probe' in proof else None)
     for kind, expected in [('native_simulation', proof['saved_simulation_period_sec']),
                            ('fixed_simulation', proof['effective_simulation_period_sec'])]:
         selected = [r for r in setup if r['kind'] == kind and r['no'] == 'SimPeriod']
@@ -161,8 +195,11 @@ def verify(prepared, run, reference=None):
         # A zero-command NC hypothesis run must match its entire observed run.
         cutoff = end if not events else int(meta['control_start_sec'])
         stem = Path(meta['network']).stem
-        own = prefix_digest(run/'vissim_eval'/f'{stem}_001.fzp', cutoff)
-        ref = prefix_digest(reference/'vissim_eval'/f'{stem}_001.fzp', cutoff)
+        if grid is not None:
+            reference_grid = native_recording_grid(rows(reference/'readback.csv'), proof['native_resolution_probe'])
+            require(reference_grid == grid, 'Paired native recording grids differ')
+        own = prefix_digest(run/'vissim_eval'/f'{stem}_001.fzp', cutoff, recording_grid=grid)
+        ref = prefix_digest(reference/'vissim_eval'/f'{stem}_001.fzp', cutoff, recording_grid=grid)
         require(own == ref, 'Paired complete FZP warmup prefix differs')
         ref_ldp = native_record(reference, meta, end)
         targets = {r['no'] + ':1' for r in events if r['kind'] == 'meter'}
@@ -172,6 +209,8 @@ def verify(prepared, run, reference=None):
                     require(value == ref_ldp['frames'][sec][address], 'Untargeted/native warmup signal differs')
         result.update(paired_warmup_prefix=own, paired_comparison_end_sec=cutoff,
                       paired_native_signals_passed=True, reference=str(reference))
+        if grid is not None:
+            result['paired_recording_grid_sec'] = [str(v) for v in grid]
     (run/'fixed_validation.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
     return result
 

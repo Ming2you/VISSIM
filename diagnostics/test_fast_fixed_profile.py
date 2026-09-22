@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from diagnostics.fast_fixed_profile import compile_profile, prepare, sha, SCHEMA
-from diagnostics.fast_fixed_profile_verify import prefix_digest, verify
+from diagnostics.fast_fixed_profile_verify import native_recording_grid, prefix_digest, verify
 from diagnostics.test_native_signal_record import ldp
 
 
@@ -92,7 +92,7 @@ class FixedProfile(unittest.TestCase):
         b.write_bytes(b'1.00;1;2;3;7\n2.00;1;2;3;99\n')
         self.assertNotEqual(prefix_digest(a,2),prefix_digest(b,2))
 
-    def test_resolution_probe_is_explicit_native_only_and_preserves_default(self):
+    def test_resolution_probe_is_explicit_and_preserves_integer_event_clock(self):
         self.profile['vsl_commands'] = []; self.profile['meter_commands'] = []
         baseline = compile_profile(self.network, self.profile)
         self.assertNotIn('native_resolution_probe', baseline[2])
@@ -105,10 +105,36 @@ class FixedProfile(unittest.TestCase):
         self.assertEqual(initial, baseline[1])
         self.assertEqual(proof['native_resolution_probe'], 10)
         self.profile['meter_commands'] = [{'time_s':1350, 'sc_no':9107, 'green_sec':8}]
-        with self.assertRaises(ValueError): compile_profile(self.network, self.profile)
+        events, _, proof = compile_profile(self.network, self.profile)
+        self.assertEqual(events[:3],[[1350,'meter',9107,1,'GREEN'],[1358,'meter',9107,1,'RED'],[1360,'meter',9107,1,'GREEN']])
+        self.assertIn('first affected LDP frame is t+1',proof['event_clock'])
         self.profile['meter_commands'] = []
         self.profile['native_resolution_probe'] = 1
         with self.assertRaises(ValueError): compile_profile(self.network, self.profile)
+
+    def test_resolution_changes_no_compiled_commands_or_trust_region(self):
+        original=compile_profile(self.network,self.profile)
+        self.network.write_bytes(self.network.read_bytes().replace(b'simRes="1"',b'simRes="10"'))
+        self.profile.update(network_sha256=sha(self.network),native_resolution_probe=10)
+        changed=compile_profile(self.network,self.profile)
+        self.assertEqual(original[:2],changed[:2])
+        for key in ('meter_schedules','event_clock','control_start_sec','terminal_sec'):
+            self.assertEqual(original[2][key],changed[2][key])
+        self.profile['meter_commands'][0]['green_sec']=7
+        with self.assertRaises(ValueError):compile_profile(self.network,self.profile)
+
+    def test_fractional_native_prefix_respects_phase_and_control_cutoff(self):
+        a=self.root/'a.fzp';b=self.root/'b.fzp'
+        a.write_bytes(b'1.1;1;10\n2.1;1;20\n3.1;1;30\n')
+        b.write_bytes(b'1.1;1;10\n2.1;1;20\n3.1;1;999\n')
+        self.assertEqual(prefix_digest(a,3,recording_grid=(1,.1)),prefix_digest(b,3,recording_grid=(1,.1)))
+        self.assertEqual(prefix_digest(a,3,recording_grid=(1,.1))['last_time_s'],2.1)
+        with self.assertRaises(ValueError):prefix_digest(a,3)
+        with self.assertRaises(ValueError):prefix_digest(a,3,recording_grid=(1,0))
+        b.write_bytes(b'1.1;1;10\n3.1;1;30\n')
+        with self.assertRaises(ValueError):prefix_digest(b,3,recording_grid=(1,.1))
+        b.write_bytes(b'1.1;1;10\n2.2;1;20\n3.1;1;30\n')
+        with self.assertRaises(ValueError):prefix_digest(b,3,recording_grid=(1,.1))
 
     def test_native_prewrite_clock_detects_one_second_shift(self):
         profile=self.root/'profile.json'; profile.write_text(json.dumps(self.profile))
@@ -140,6 +166,18 @@ class FixedProfile(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Missing LDP frame'): verify(prepared,run)
         (run/'readback.csv').write_text('kind,no,time_int,expected,actual\nnative_simulation,SimPeriod,,9001,9001\nfixed_simulation,SimPeriod,,9001,2251\n')
         with self.assertRaisesRegex(ValueError,'SimPeriod readback'): verify(prepared,run)
+
+    def test_resolution_grid_requires_actual_matching_setup(self):
+        setup=[{'kind':kind,'no':name,'expected':value,'actual':value} for kind,name,value in
+               [('native_simulation','SimRes','10'),('native_recording','VehRecResolution','10'),
+                ('native_recording','VehRecFromTime','0')]]
+        self.assertEqual(tuple(map(float,native_recording_grid(setup,10))),(1,.1))
+        with self.assertRaises(ValueError):native_recording_grid(setup,1)
+        with self.assertRaises(ValueError):native_recording_grid(setup[:-1],10)
+        wrong=copy.deepcopy(setup);wrong[1]['actual']='1'
+        with self.assertRaises(ValueError):native_recording_grid(wrong,10)
+        setup[1].update(expected='50',actual='50');setup[2].update(expected='4.9',actual='4.9')
+        self.assertEqual(tuple(map(float,native_recording_grid(setup,10))),(5,0))
 
     def test_zero_event_reference_must_match_terminal_not_only_1350(self):
         self.profile['vsl_commands']=[]; self.profile['meter_commands']=[]

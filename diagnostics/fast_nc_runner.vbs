@@ -5,16 +5,20 @@ If WScript.Arguments.Count = 1 Then
 End If
 If WScript.Arguments.Count <> 4 And WScript.Arguments.Count <> 5 And WScript.Arguments.Count <> 6 Then WScript.Echo "Usage: network prepared output seed [terminal_sec] [native_preserve|fixed_profile]": WScript.Quit 2
 Dim fs, sim, net, prepared, output, seed, terminalSec, logFile, vi, item, arr, volumes, tailVolumes, row, parts, key, count, before, target, sc, nativePreserve
-Dim fixedProfile, fixedTrace, fixedExpected, fixedOwnership, fixedMeters, fixedEventCount, fixedBreakSec
+Dim fixedProfile, fixedTrace, fixedExpected, fixedOwnership, fixedMeters, fixedEventCount, fixedBreakSec, fzpOnly
 Set fs = CreateObject("Scripting.FileSystemObject")
 net = WScript.Arguments(0): prepared = WScript.Arguments(1): output = WScript.Arguments(2): seed = CLng(WScript.Arguments(3))
 terminalSec = 5400
 If WScript.Arguments.Count >= 5 Then terminalSec = CDbl(WScript.Arguments(4))
 nativePreserve = False
 fixedProfile = False
+fzpOnly = False
 If WScript.Arguments.Count = 6 Then
     If WScript.Arguments(5) = "native_preserve" Then
         nativePreserve = True
+    ElseIf WScript.Arguments(5) = "native_fzp_only" Then
+        nativePreserve = True
+        fzpOnly = True
     ElseIf WScript.Arguments(5) = "fixed_profile" Then
         fixedProfile = True
     Else
@@ -84,7 +88,6 @@ SetChecked sim.Evaluation, "VehRecWriteFile", True
 SetChecked sim.Evaluation, "VehRecFromTime", 0
 SetChecked sim.Evaluation, "VehRecToTime", terminalSec
 SetChecked sim.Evaluation, "VehRecFilterType", "ALL"
-SetChecked sim.Evaluation, "VehRecResolution", 1
 SetChecked sim.Evaluation, "SigChangesWriteFile", True
 ' Keep the prior NC native collection settings; no result/queue/vehicle queries.
 SetChecked sim.Evaluation, "LinkResCollectData", True
@@ -103,6 +106,7 @@ Next
 SetChecked sim.Simulation, "RandSeed", seed
 SetChecked sim.Simulation, "SimPeriod", terminalSec + 1
 SetChecked sim.Simulation, "SimRes", 1
+ConfigureVehicleRecording
 SetChecked sim.Simulation, "NumRuns", 1
 SetChecked sim.Simulation, "UseMaxSimSpeed", True
 If terminalSec > 5400 Then CheckTailDemand
@@ -210,7 +214,7 @@ Sub Die(message)
 End Sub
 
 Sub RunPreservedNative()
-    Dim saved, fields, actual, checks, savedPeriod, effectivePeriod, recordingSteps
+    Dim saved, fields, actual, checks, savedPeriod, effectivePeriod
     Set sim = CreateObject("Vissim.Vissim")
     WScript.Echo "STAGE=COM_CREATED"
     sim.LoadNet net, False
@@ -241,10 +245,8 @@ Sub RunPreservedNative()
     SetChecked sim.Evaluation, "VehRecToTime", terminalSec
     SetChecked sim.Evaluation, "VehRecFilterType", "ALL"
     ' VISSIM2020 measures this attribute in simulation steps, not seconds.
-    recordingSteps = CLng(sim.Simulation.AttValue("SimRes"))
-    SetChecked sim.Evaluation, "VehRecResolution", recordingSteps
-    logFile.WriteLine "native_recording,VehRecResolution,," & CStr(recordingSteps) & "," & CStr(sim.Evaluation.AttValue("VehRecResolution"))
-    SetChecked sim.Evaluation, "SigChangesWriteFile", True
+    ConfigureVehicleRecording
+    SetChecked sim.Evaluation, "SigChangesWriteFile", Not fzpOnly
     If fixedProfile Then
         savedPeriod = CDbl(sim.Simulation.AttValue("SimPeriod"))
         effectivePeriod = savedPeriod
@@ -277,6 +279,32 @@ Sub RunPreservedNative()
     Set saved = Nothing
     Set sim = Nothing
     WScript.Quit 0
+End Sub
+
+Sub ConfigureVehicleRecording()
+    Dim settings, intervalSec, resolution, steps, fromSec
+    intervalSec = 1
+    If fs.FileExists(fs.BuildPath(prepared,"vehicle_recording.csv")) Then
+        Set settings = fs.OpenTextFile(fs.BuildPath(prepared,"vehicle_recording.csv"),1)
+        If settings.ReadLine <> "interval_sec" Then Die "Vehicle recording schema"
+        intervalSec = CDbl(settings.ReadLine)
+        If Not settings.AtEndOfStream Then Die "Unexpected vehicle recording rows"
+        settings.Close
+    End If
+    If intervalSec <> 1 And intervalSec <> 5 Then Die "Vehicle recording interval must be1 or5 seconds"
+    resolution = CDbl(sim.Simulation.AttValue("SimRes"))
+    steps = CLng(intervalSec * resolution)
+    fromSec = 0
+    ' FromTime is integer seconds in VISSIM2020 (4.9 reads back as5).
+    ' Preserve integer5s frames at SimRes1; retain native fractional phase at higher resolution.
+    If intervalSec = 5 Then
+        fromSec = intervalSec
+        If resolution = 1 Then fromSec = intervalSec - 1
+    End If
+    SetChecked sim.Evaluation, "VehRecFromTime", fromSec
+    SetChecked sim.Evaluation, "VehRecResolution", steps
+    logFile.WriteLine "native_recording,VehRecResolution,," & CStr(steps) & "," & CStr(sim.Evaluation.AttValue("VehRecResolution"))
+    logFile.WriteLine "native_recording,VehRecFromTime,," & CStr(fromSec) & "," & CStr(sim.Evaluation.AttValue("VehRecFromTime"))
 End Sub
 
 Sub ContinueToTerminal()

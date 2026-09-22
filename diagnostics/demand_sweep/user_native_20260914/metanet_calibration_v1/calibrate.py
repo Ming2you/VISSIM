@@ -13,14 +13,19 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
-sys.path.insert(0, str(ROOT/'diagnostics/rule_baseline_20260914/.plot-deps'))
+sys.path[:0] = [str(ROOT/'.review-deps'),str(ROOT/'diagnostics/rule_baseline_20260914/.plot-deps')]
 from canonical_harness import load_base_model, PARAMETER_BOUNDS, OPTIONAL_PARAMETER_BOUNDS, BASELINE_PARAMETERS, sha256
 
 NORMALIZATION = {'density_veh_km_lane':10.0, 'speed_kmh':20.0, 'flow_veh_h':1000.0}
 FAILURE_SCORE = 1e12  # Hard transition exceptions must not outrank audited invalid rollouts.
 
 
-def score_windows(model, windows, data, road, parameters):
+def long_path(path):
+    path=Path(path).resolve()
+    return Path('\\\\?\\'+str(path)) if sys.platform=='win32' and not str(path).startswith('\\\\?\\') else path
+
+
+def score_windows(model, windows, data, road, parameters, *, include_source_boundary=False):
     from scoring import score_rollout
     scores = []
     for window in windows:
@@ -28,7 +33,8 @@ def score_windows(model, windows, data, road, parameters):
             rollout = model.rollout(window['initial_cells'], window['boundary_steps'],
                 parameters, window['initial_origin_queue'], roads=(road,),
                 port_dynamics=window.get('port_dynamics'))
-            scores.append(score_rollout(data, window['meta']['cutoff_s'], rollout, road))
+            scores.append(score_rollout(data, window['meta']['cutoff_s'], rollout, road,
+                include_source_boundary=include_source_boundary))
         except (ArithmeticError,ValueError,OverflowError) as exc:
             scores.append({'objective':FAILURE_SCORE,'invalid':True,'road':road,
                 'cutoff_s':window['meta']['cutoff_s'],'failure':type(exc).__name__+': '+str(exc)})
@@ -36,7 +42,8 @@ def score_windows(model, windows, data, road, parameters):
             'window_scores': scores}
 
 
-def optimize_direction(model, windows, data, road, output, max_evaluations=100, initial_parameters=None, fit_keys=None):
+def optimize_direction(model, windows, data, road, output, max_evaluations=100, initial_parameters=None, fit_keys=None,
+                       include_source_boundary=False):
     initial_parameters = dict(BASELINE_PARAMETERS if initial_parameters is None else initial_parameters)
     keys = tuple(PARAMETER_BOUNDS if fit_keys is None else fit_keys)
     all_bounds = {**PARAMETER_BOUNDS, **OPTIONAL_PARAMETER_BOUNDS}
@@ -55,7 +62,8 @@ def optimize_direction(model, windows, data, road, output, max_evaluations=100, 
             return cache[x]
         params = dict(initial_parameters) if phase == 'baseline' else decode(x)
         try:
-            result = score_windows(model,windows,data,road,{'by_direction':{road:params}})
+            result = score_windows(model,windows,data,road,{'by_direction':{road:params}},
+                include_source_boundary=include_source_boundary)
         except (ArithmeticError,ValueError,OverflowError) as exc:
             result = {'objective':FAILURE_SCORE,'failure':type(exc).__name__+': '+str(exc)}
         record = {'evaluation':len(records)+1,'road':road,'phase':phase,'parameters':params,
@@ -101,13 +109,19 @@ def optimize_direction(model, windows, data, road, output, max_evaluations=100, 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--observations',type=Path,required=True)
+    parser.add_argument('--observations',type=Path)
     parser.add_argument('--out',type=Path,required=True)
+    parser.add_argument('--protocol',type=Path,help='Explicit new completed-run calibration protocol; legacy seed13 protocol is unchanged')
     parser.add_argument('--max-evaluations',type=int,default=100)
     parser.add_argument('--initial-parameters',type=Path)
     parser.add_argument('--fit-keys',nargs='+')
     parser.add_argument('--port-profile',type=Path)
+    parser.add_argument('--resume-validation',action='store_true',help='Reuse frozen parameters and existing verified rollouts after an output I/O failure')
     args = parser.parse_args()
+    if args.protocol:
+        run_declared_protocol(args)
+        return
+    if args.observations is None: parser.error('--observations or --protocol required')
     if 'seed13' not in str(args.observations).lower():
         raise ValueError('Fitter accepts seed13 observations only')
     if args.out.exists():
@@ -165,6 +179,114 @@ def main():
             'baseline_temporal_validation','calibrated_temporal_validation')}} for road,row in results.items()}
     print(json.dumps({'parameters':str(args.out/'parameters.json'),'sha256':sha256(args.out/'parameters.json'),
                       'results':compact},ensure_ascii=False),flush=True)
+
+
+def run_declared_protocol(args):
+    """Re-use the same model, boundaries, scores and optimizer on pinned new runs."""
+    import gzip
+    from boundary_factory import ObservationData, build_window
+    from scoring import score_rollout, persistence_score
+    load=lambda p:json.loads(Path(p).read_text(encoding='utf-8-sig'))
+    def save(p,v): Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+    spec=load(args.protocol)
+    if spec['schema']!='metanet-completed-demand-holdout/v1': raise ValueError('Unknown protocol')
+    resume=args.resume_validation
+    if args.out.exists() and not resume: raise FileExistsError('Preserve previous calibration attempts')
+    if resume:
+        if load(args.out/'protocol.json')!=spec or (args.out/'completion.json').exists():
+            raise ValueError('Resume requires the same incomplete frozen protocol')
+    else:
+        args.out.mkdir(parents=True)
+        save(args.out/'protocol.json',spec)
+    sources=[HERE/n for n in ('calibrate.py','canonical_harness.py','boundary_factory.py','scoring.py','extract_observations.py')]
+    sources += [ROOT/'evaluation/controllers'/n for n in ('vissim_stackelberg_adapter.py','freeway_fd.py','freeway_geometry.py')]
+    pins={str(p.relative_to(ROOT)):sha256(p) for p in sources}
+    train=spec['training'];data=ObservationData(ROOT/train['observations'])
+    manifest=load(data.folder/'manifest.json')
+    if manifest['seed']!=spec['seed'] or manifest['network']['sha256']!=train['network_sha256']:
+        raise ValueError('Training source differs from frozen protocol')
+    config=ROOT/spec['config']; model=load_base_model(data.geometry,config)
+    pins.update(model.provenance['model_files'])
+    if sha256(config)!=spec['config_sha256']: raise ValueError('Model config changed')
+    baseline_config=ROOT/spec.get('baseline_config',spec['config'])
+    if sha256(baseline_config)!=spec.get('baseline_config_sha256',spec['config_sha256']): raise ValueError('Baseline config changed')
+    step=spec['integration_step_sec']
+    if model.base.simulation.T_f_sec!=step: raise ValueError('Model step differs')
+    initial=spec.get('initial_parameters',{r:dict(BASELINE_PARAMETERS) for r in model.roads})
+    baseline_parameters=spec.get('baseline_parameters',initial)
+    windows=[build_window(data,t,spec['fit_mode'],model_step_sec=step) for t in train['cutoffs_s']]
+    configs={}
+    for path in (config,baseline_config):
+        document=load(path)
+        refs=[path,ROOT/document['freeway']['segment_params']]
+        configs.update({str(p.relative_to(ROOT)):sha256(p) for p in refs})
+    input_pins={'code':pins,'configs':configs,'protocol':sha256(args.protocol),'training':{p.name:sha256(p) for p in data.folder.iterdir() if p.suffix in ('.json','.csv')}}
+    if resume:
+        import ast
+        old_pins=load(args.out/'input_pins.json')
+        if any(input_pins[k]!=old_pins[k] for k in ('configs','protocol','training')):raise ValueError('Resume inputs changed')
+        changed={p for p,h in old_pins['code'].items() if pins.get(p)!=h}
+        own=str(Path(__file__).relative_to(ROOT))
+        if changed-{own}:raise ValueError('Resume model/scorer changed')
+        before=args.out.parent/'calibrate_before_pathfix.py.txt'
+        if changed:
+            if sha256(before)!=old_pins['code'][own]:raise ValueError('Missing exact pre-I/O-fix source')
+            def physics(path):
+                tree=ast.parse(Path(path).read_text(encoding='utf-8'))
+                return {n.name:ast.dump(n,include_attributes=False) for n in tree.body
+                    if isinstance(n,ast.FunctionDef) and n.name in ('score_windows','optimize_direction')}
+            if physics(before)!=physics(__file__):raise ValueError('Resume numerical fit changed')
+        parameters=load(args.out/'parameters.json')['parameters']
+        frozen=load(args.out/'freeze.json')['parameters_sha256']
+        if sha256(args.out/'parameters.json')!=frozen:raise ValueError('Frozen parameters changed')
+        save(args.out/'validation_resume_pins.json',input_pins)
+    else:
+        save(args.out/'input_pins.json',input_pins)
+        fitted={}
+        for road in model.roads:
+            fitted[road]=optimize_direction(model,windows,data,road,args.out/'search.jsonl',
+                args.max_evaluations,initial_parameters=initial[road],fit_keys=spec['fit_keys'],
+                include_source_boundary=spec.get('include_source_boundary',False))
+        parameters={'by_direction':{r:v['parameters'] for r,v in fitted.items()}}
+        save(args.out/'parameters.json',{'parameters':parameters,'training':fitted,'production_adopted':False})
+        frozen=sha256(args.out/'parameters.json')
+        save(args.out/'freeze.json',{'parameters_sha256':frozen,'before_validation':True,'code_pins':pins})
+    scores=[]
+    reused=0
+    # No parameter changes after this point. Every declared window is retained,
+    # including failures; previous visual inspection precludes a blind-test claim.
+    for case in [train]+spec['validation']:
+        sample=ObservationData(ROOT/case['observations']);m=load(sample.folder/'manifest.json')
+        if m['seed']!=spec['seed'] or m['network']['sha256']!=case['network_sha256']: raise ValueError('Validation source differs')
+        case_model=load_base_model(sample.geometry,config)
+        baseline_model=load_base_model(sample.geometry,baseline_config)
+        for mode in spec['evaluation_modes']:
+            for t in case['cutoffs_s']:
+                window=build_window(sample,t,mode,model_step_sec=step)
+                for road in model.roads:
+                    for label,override in [('baseline',{'by_direction':baseline_parameters}),('calibrated',parameters)]:
+                        row={'case':case['id'],'mode':mode,'model':label,'road':road,'cutoff_s':t}
+                        try:
+                            active_model=baseline_model if label=='baseline' else case_model
+                            path=long_path(args.out/f'{case["id"]}_{mode}_{road}_{t}_{label}.json.gz')
+                            if resume and path.exists():
+                                with gzip.open(path,'rt',encoding='utf-8') as stream:rollout=json.load(stream)
+                                reused+=1
+                            else:
+                                rollout=active_model.rollout(window['initial_cells'],window['boundary_steps'],override,window['initial_origin_queue'],roads=(road,))
+                                with gzip.open(path,'wt',encoding='utf-8',compresslevel=1) as stream:json.dump(rollout,stream,allow_nan=False)
+                            row.update(score_rollout(sample,t,rollout,road,
+                                include_source_boundary=spec.get('include_source_boundary',False)))
+                        except (ValueError,ArithmeticError,OverflowError) as exc:
+                            row.update(invalid=True,objective=FAILURE_SCORE,failure=repr(exc))
+                        row['persistence']=persistence_score(sample,t,road)
+                        scores.append(row)
+                print(json.dumps({'validated':case['id'],'mode':mode,'cutoff_s':t}),flush=True)
+    if sha256(args.out/'parameters.json')!=frozen or any(sha256(ROOT/p)!=h for p,h in {**pins,**configs}.items()):
+        raise ValueError('Frozen parameters or source changed during validation')
+    save(args.out/'validation.json',{'scores':scores,'same_seed_demand_holdout':True,'control_gain_validated':False,'production_adopted':False})
+    save(args.out/'completion.json',{'complete':True,'invalid_windows':sum(r['invalid'] for r in scores),'windows':len(scores),'parameters_sha256':frozen,'reused_rollouts':reused})
+    print(json.dumps({'complete':str(args.out),'invalid_windows':sum(r['invalid'] for r in scores)}),flush=True)
 
 
 if __name__ == '__main__':

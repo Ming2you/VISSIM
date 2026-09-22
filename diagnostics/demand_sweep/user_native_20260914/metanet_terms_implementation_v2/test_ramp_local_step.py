@@ -96,5 +96,31 @@ class RampLocalTests(unittest.TestCase):
             with self.subTest(field=field),self.assertRaises(ValueError):m.advance_local_interval(**args)
             self.assertEqual(m.snapshot(),before)
 
+    def test_fractional_native_phase_keeps_green_overlap_and_cycle_budget(self):
+        m=PhysicalRampBoundary(connector_id='10490', length_m=300.,
+            head_position_m=200., lanes=1, spacing_m=6., travel_speed_kmh=36.,
+            time_sec=2700.1, initial_cohorts=[[200.,0.,1]]*30)
+        receipts=[]
+        for _ in range(10):
+            receipts.append(m.advance_local_interval(start_sec=m.time_sec,duration_sec=1.,
+                cycle_sec=10.,receiving_budget_veh=.5,service_veh=3.24,mode='GREEN',
+                green_sec=8.,request_arrivals_veh=0.,allow_partial_cycle=True))
+        self.assertAlmostEqual(sum(r['head_service_veh'] for r in receipts),3.24,places=10)
+        self.assertAlmostEqual(receipts[7]['head_service_veh'],3.24/8*.9,places=10)
+        self.assertEqual(receipts[8]['head_service_veh'],0.)
+        self.assertAlmostEqual(receipts[9]['head_service_veh'],3.24/8*.1,places=10)
+        self.assertEqual(m.time_sec,2710.1)
+        self.assertTrue(all(abs(r['conservation_residual_veh'])<1e-9 for r in receipts))
+
+    def test_fractional_native_off_retains_time_and_service(self):
+        m=PhysicalRampBoundary(connector_id='10490',length_m=300.,head_position_m=200.,
+            lanes=1,spacing_m=6.,travel_speed_kmh=36.,time_sec=2709.1,
+            initial_cohorts=[[200.,0.,1]]*30)
+        row=m.advance_local_interval(start_sec=2709.1,duration_sec=1.,cycle_sec=10.,
+            receiving_budget_veh=.5,service_veh=4.2,mode='OFF',green_sec=None,
+            request_arrivals_veh=0.,allow_partial_cycle=True)
+        self.assertAlmostEqual(row['head_service_veh'],.42)
+        self.assertEqual(row['end_sec'],2710.1)
+
 
 if __name__=='__main__':unittest.main(verbosity=2)

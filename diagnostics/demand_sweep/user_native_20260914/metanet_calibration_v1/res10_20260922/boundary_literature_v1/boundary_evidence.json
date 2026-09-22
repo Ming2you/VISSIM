@@ -1,0 +1,64 @@
+{
+  "training_only": true,
+  "network_sha256": "ebd90383c00df51b9386e669a8799ac5a05e90b52391838c389fe87d537187f4",
+  "roads": {
+    "FW_E": {
+      "terminal_link": 24,
+      "terminal_cell": {
+        "road": "FW_E",
+        "cell": 30,
+        "start_m": 10291.242375,
+        "end_m": 10784.028,
+        "length_km": 0.49278562500000045,
+        "lane_km": 1.4783568750000013,
+        "effective_lanes": 3.0,
+        "canonical_segment_lanes": 3,
+        "physical_pieces": [
+          {
+            "link": 24,
+            "length_m": 492.78562500000044,
+            "lanes": 3
+          }
+        ],
+        "parent_cell": 20
+      },
+      "terminal_outgoing": [],
+      "terminal_speed_min_kmh": 83.84624999999998,
+      "observed_source_max_30s_vph": 9120.0,
+      "observed_terminal_max_30s_vph": 8880.0,
+      "old_source_gate_vph": 6937.0,
+      "old_terminal_gate_vph": 5202.75,
+      "interpretation": "Physical network exit with no downstream cell; maxima are NOT sustained capacity estimates."
+    },
+    "FW_W": {
+      "terminal_link": 120,
+      "terminal_cell": {
+        "road": "FW_W",
+        "cell": 30,
+        "start_m": 10283.489928571427,
+        "end_m": 10780.5,
+        "length_km": 0.4970100714285727,
+        "lane_km": 1.9880402857142907,
+        "effective_lanes": 4.0,
+        "canonical_segment_lanes": 4,
+        "physical_pieces": [
+          {
+            "link": 120,
+            "length_m": 497.0100714285727,
+            "lanes": 4
+          }
+        ],
+        "parent_cell": 20
+      },
+      "terminal_outgoing": [],
+      "terminal_speed_min_kmh": 106.74583333333334,
+      "observed_source_max_30s_vph": 7200.0,
+      "observed_terminal_max_30s_vph": 6600.0,
+      "old_source_gate_vph": 6937.0,
+      "old_terminal_gate_vph": 6937.0,
+      "interpretation": "Physical network exit with no downstream cell; maxima are NOT sustained capacity estimates."
+    }
+  },
+  "source_policy": "Observed/forecast admitted-interface supply, without a second desired-demand gate. Receiving/storage remain; rejected supply stays in explicit outside-component queue.",
+  "terminal_policy": "Open physical network end: sending-limited, same density ghost rule. No origin-capacity reuse."
+}

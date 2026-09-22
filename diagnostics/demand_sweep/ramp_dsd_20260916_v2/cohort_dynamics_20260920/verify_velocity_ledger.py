@@ -89,4 +89,94 @@ def main():
     print(json.dumps(report,indent=2))
 
 
-if __name__=='__main__':main()
+def current_regional():
+    """Verify current-law diagnosis from saved records; no new forecasts."""
+    import numpy as np
+    base=K.parent/'segment_resolution_20260921';out=base/'recovery_entry_ledger_v1'
+    current=e.load(out/'continuous_result.json');sampled=e.load(out/'result.json')
+    rows=e.load(out/'continuous_rows.json');sample=e.load(out/'rows.json')
+    compact=e.load(K/'compact_lane_state_v1/states.json')
+    pin_checks=0
+    for record in (sampled,current):
+        assert not record['qualified'] and not record['production_adopted']
+        assert record['new_native_runs']==record['new_autonomous_forecasts']==record['fitted_parameters']==0
+        assert record['canonical_reconstruction']['rows']==9000
+        assert record['canonical_reconstruction']['max_absolute_kmh']<1e-8
+        for name,digest in record['source_pins'].items():
+            p=s.d.ROOT/name
+            if record is sampled and p.resolve()==Path(a.__file__).resolve():p=out/'executed_sampled_source.py.txt'
+            assert hashlib.sha256(p.read_bytes()).hexdigest()==digest,(name,p)
+            pin_checks+=1
+    lookup={(r['arm'],r['t'],r['cell']):r for r in rows}
+    expected={(arm,t,i) for arm in ('none','rm_ramp','vsl') for t in range(2280,2850) for i in range(26,30)}
+    assert len(rows)==len(lookup)==6840 and set(lookup)==expected
+    arrays={}
+    for arm in ('none','rm_ramp','vsl'):
+        with np.load(base/f'{arm}_s23_0.npz') as z:arrays[arm]={key:z[key] for key in ('n','mom')}
+    for r in rows:
+        arm,t,i=r['arm'],r['t'],r['cell'];j=t-2249;c=i-10;z=arrays[arm]
+        now=compact[arm]['states'][str(t)][str(c)];later=compact[arm]['states'][str(t+1)][str(c)]
+        assert later['history_coverage']==1. and later['n']==r['n']==z['n'][j+1,c].sum()
+        close(now['v'],r['current_v']);close(later['v'],r['actual'])
+        close(z['mom'][j+1,c].sum()/z['n'][j+1,c].sum(),r['actual'])
+        close(later['acceleration'],r['actual_reaction'])
+        close(r['carrier']+r['actual_reaction'],r['actual'])
+        close(r['relaxation']+r['pressure'],r['model_reaction'])
+        close(r['current_v']+r['convection']+r['model_reaction'],r['predicted'])
+        close(r['predicted']-r['actual'],r['error'])
+        close(r['mixing_error']+r['reaction_error'],r['error'])
+        assert r['current_features']=={k:now[k] for k in r['current_features']}
+    for r in sample:
+        actual=lookup[r['arm'],r['t'],r['cell']]
+        for key in r:
+            if key=='current_features':continue
+            if isinstance(r[key],(float,int)):close(r[key],actual[key])
+            else:assert r[key]==actual[key]
+    assert len(sample)==current['sampled_rows_exact']==1440
+    max_summary_difference=0.
+    def stats_equal(actual,expected):
+        nonlocal max_summary_difference
+        assert actual['rows']==expected['rows'] and actual['weight']==expected['weight']
+        assert actual['terms'].keys()==expected['terms'].keys()
+        for name,terms in actual['terms'].items():
+            for key,value in terms.items():
+                close(value,expected['terms'][name][key])
+                max_summary_difference=max(max_summary_difference,abs(value-expected['terms'][name][key]))
+    for entry in current['summaries']:
+        selected=[r for r in rows if r['arm']==entry['arm'] and entry['start']<=r['t']<entry['start']+30
+                  and (entry['scope']=='all26_29' or r['cell']==26)]
+        stats_equal(a.statistics(selected,entry['stats']['terms'],'weight'),entry['stats'])
+    for entry in current['phase_summary']:
+        selected=[r for r in rows if r['arm']==entry['arm'] and r['cell']==26 and
+                  (entry['condition']=='all' or ((r['current_features']['braking']>=.5)==(entry['condition']=='current_braking_ge_half')))]
+        stats_equal(a.statistics(selected,entry['stats']['terms'],'weight'),entry['stats'])
+        for eps,count in entry['counts_by_sign_threshold'].items():
+            assert count==sum(r['actual_reaction'] < -float(eps) and r['model_reaction']>float(eps) for r in selected)
+    before=e.load(out/'before_sources.json');core_count=0
+    for name,digest in before.items():
+        p=s.d.ROOT/name
+        if p.resolve()==Path(a.__file__).resolve():p=out/'before_velocity_ledger_audit.py.txt'
+        else:core_count+=1
+        assert hashlib.sha256(p.read_bytes()).hexdigest()==digest
+    # Original extraction and verification entry points are preserved verbatim
+    # in AST form. Old historical hashes resolve to the retained source copy.
+    for source,archive,names in ((Path(a.__file__),out/'before_velocity_ledger_audit.py.txt',('labels','statistics','main')),
+                               (Path(__file__),out/'before_verify_velocity_ledger.py.txt',('main','close'))):
+        def funcs(path):return {n.name:ast.dump(n,include_attributes=False) for n in ast.parse(path.read_text(encoding='utf-8-sig')).body if isinstance(n,ast.FunctionDef)}
+        old,new=funcs(archive),funcs(source)
+        assert all(old[n]==new[n] for n in names)
+    receipt=dict(passed=True,qualified=False,source_pin_checks=pin_checks,
+        native_stock_speed_reaction_identities=len(rows),continuous_sample_agreement=len(sample),
+        summary_checks=len(current['summaries'])+len(current['phase_summary']),max_summary_roundtrip_error=max_summary_difference,
+        original_helper_ast_preserved=True,unchanged_core_files=core_count,
+        new_native_runs=0,new_autonomous_forecasts=0,production_adopted=False,
+        failures_preserved=['scope_mismatch_failure.log','continuous_metadata_failure.log','partial_result_guard.log','continuous_result.failed.json','verification_float_failure.log'],
+        metadata_recovery='NumPy integer conversion; saved rows reused exactly, only inexpensive equation checks repeated.',
+        verifier_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+    e.save(out/'verification.json',receipt)
+    print(json.dumps(receipt,indent=2))
+
+
+if __name__=='__main__':
+    if len(sys.argv)>1 and sys.argv[1]=='current-regional':current_regional()
+    else:main()

@@ -1,0 +1,34 @@
+{
+  "schema": "selected-control-scenario/v1",
+  "selected_at": "2026-09-22T15:15:42.663955+09:00",
+  "user_selected": true,
+  "name": "FW80 urban90 / both-off-half / seed23 / 9000s",
+  "source_network": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\source\\baseline.inpx",
+  "source_network_sha256": "86af2ac85090e34bd3725c6e50230c356d1c2ffdd93ac5cf693c8167f074a83c",
+  "native_prepared_network_sha256": "22c36aa91562db335593b65215890528bb3bc7ff55eb527bc0d8a8a292636be7",
+  "reference_run": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\run",
+  "reference_heatmap": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\east_heatmap.png",
+  "seed": 23,
+  "terminal_sec": 9000,
+  "simres": 10,
+  "vehicle_record_interval_sec": 5,
+  "freeway_input_scale": 0.8,
+  "urban_input_scale": 0.9,
+  "routing": "10643 and10481 exits reduced; remaining mainline through per existing selected snapshot",
+  "demand_audit": "D:\\VISSIM_runs\\20260922_both_off_half\\fw080_urban090_nc9000\\demand_audit.json",
+  "tail_demand": "Saved final4500s interval continues through9000; not zero demand cooldown",
+  "controller_experiment": {
+    "queue_manifest": "D:\\VISSIM_runs\\20260922_fw080_urban090_controls\\queue.json",
+    "arms": [
+      "rm",
+      "vsl",
+      "both"
+    ],
+    "control_start_sec": 900,
+    "control_interval_sec": 150,
+    "rm": "Existing8 ALINEA meters: target15pct, gain70veh/h/pct/lane, RG10s,min2,max10,maxchange2s/update",
+    "vsl": "Existing8 rule zones:60/80/120 distribution IDs, threshold1600veh/h/lane,15pct,60/80kmh",
+    "plant_used": false
+  },
+  "qualification": "User selected experiment baseline. Not a claim of zero deletions/uninsertions or calibrated RM/VSL gain."
+}

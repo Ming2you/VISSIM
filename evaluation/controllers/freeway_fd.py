@@ -11,6 +11,36 @@ from dataclasses import dataclass
 from typing import Mapping
 
 
+def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
+    """Carlson/Frejo FD laws, Eqs 11/13 in Frejo et al. (2019).
+
+    These are desired-speed FD parameters, not extra sending capacity or a
+    command reward. The caller retains the original law when VSL is absent.
+    Carlson uses displayed/nominal speed, not a fitted speed ratio. Frejo adds
+    compliance and uses the nominal command (rather than v_free) for its cap.
+    """
+    if (not isinstance(spec, Mapping) or set(spec) != {'law', 'A', 'E', 'alpha'}
+            or spec['law'] not in ('carlson', 'frejo')):
+        raise ValueError('Explicit Carlson/Frejo FD parameters required')
+    values = [spec[k] for k in ('A', 'E', 'alpha')]
+    if (any(isinstance(x, bool) or not isinstance(x, (int, float))
+            or not math.isfinite(x) for x in values)
+            or spec['A'] < 0 or spec['E'] <= 0 or spec['alpha'] < 0
+            or (spec['law'] == 'carlson' and spec['alpha'] != 0)):
+        raise ValueError('Invalid literature VSL coefficients')
+    if (any(not math.isfinite(x) or x <= 0 for x in
+            (v_free, critical, shape, command, maximum)) or command > maximum):
+        raise ValueError('Invalid VSL FD state/command')
+    b = command / maximum
+    if spec['law'] == 'carlson':
+        speed = v_free * b
+    else:
+        b = min(b * (1. + spec['alpha']), 1.)
+        speed = min(maximum * b, v_free)
+    return (speed, critical * (1. + spec['A'] * (1. - b)),
+            shape * (spec['E'] - (spec['E'] - 1.) * b))
+
+
 def configure_state_response(cfg, tuning) -> dict[str, float]:
     """Explicit directional METANET response regimes; absent is an exact no-op.
 
@@ -25,32 +55,58 @@ def configure_state_response(cfg, tuning) -> dict[str, float]:
         return {'freeway_state_response_enabled': 0.0}
     if not isinstance(section, Mapping) or not section:
         raise ValueError('state_response requires an explicit nonempty direction map')
-    allowed = {'relaxation', 'anticipation', 'congested_nu_multiplier'}
+    allowed = {'relaxation', 'anticipation', 'congested_nu_multiplier', 'recovery_relaxation'}
     values = {}
-    for road, row in section.items():
-        if road not in cfg.network.freeway_links or not isinstance(row, Mapping) or not row or set(row)-allowed:
-            raise ValueError('Invalid state_response direction or fields: ' + str(road))
-        values[road] = {}
+    def parse(row):
+        if not isinstance(row, Mapping) or not row or set(row)-allowed:
+            raise ValueError('Invalid state_response fields')
+        result = {}
         for key, value in row.items():
             if key == 'congested_nu_multiplier':
                 members = {'factor': value}
             else:
                 expected = ({'acceleration_sec', 'deceleration_sec'} if key == 'relaxation'
+                            else {'acceleration_sec'} if key == 'recovery_relaxation'
                             else {'downstream_ge_local', 'downstream_lt_local'})
-                if not isinstance(value, Mapping) or set(value) != expected:
+                valid = isinstance(value, Mapping) and (set(value)==expected or
+                    (key=='recovery_relaxation' and set(value)==expected|{'speed_ceiling_kmh'}))
+                if not valid:
                     raise ValueError('State response requires both branches: ' + key)
                 members = value
             parsed = {}
             for name, number in members.items():
                 if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(number):
                     raise ValueError('State response values must be finite numeric values')
-                lower = cfg.simulation.T_f_h * 3600 if key == 'relaxation' else 0.0
+                lower = cfg.simulation.T_f_h * 3600 if key in ('relaxation','recovery_relaxation') and name!='speed_ceiling_kmh' else 0.0
                 if number < lower or (key != 'anticipation' and number <= 0):
                     raise ValueError('Invalid state response value: ' + name)
                 parsed[name] = float(number)
-            values[road][key] = parsed['factor'] if key == 'congested_nu_multiplier' else parsed
+            result[key] = parsed['factor'] if key == 'congested_nu_multiplier' else parsed
+        return result
+    for road, row in section.items():
+        if road not in cfg.network.freeway_links or not isinstance(row, Mapping) or not row or set(row)-allowed-{'cell_overrides'}:
+            raise ValueError('Invalid state_response direction or fields: ' + str(road))
+        common = {key:value for key,value in row.items() if key != 'cell_overrides'}
+        values[road] = parse(common) if common else {}
+        if 'cell_overrides' in row:
+            overrides = row['cell_overrides']
+            segments = (getattr(cfg.network, 'freeway_segment_params', {}) or {}).get(str(road), ())
+            if not isinstance(overrides, Mapping) or not overrides or not segments:
+                raise ValueError('Cell response overrides require explicit segment geometry')
+            resolved = {}
+            for index, local in overrides.items():
+                if not isinstance(index,str) or not index.isascii() or not index.isdecimal() or str(int(index)) != index or int(index) >= len(segments):
+                    raise ValueError('Invalid response cell index: ' + str(index))
+                resolved[index] = {**values[road], **parse(local)}
+            values[road]['cell_overrides'] = resolved
     cfg.network.freeway_state_response = values
     return {'freeway_state_response_enabled': 1.0, 'freeway_state_response_directions': float(len(values))}
+
+
+def cell_state_response(net, road, index):
+    """Select an explicitly calibrated cell response; other cells keep the common law."""
+    spec = (getattr(net, 'freeway_state_response', {}) or {}).get(str(road), {})
+    return spec.get('cell_overrides', {}).get(str(index), spec)
 
 
 def state_response_coefficients(spec, speed, desired, rho, downstream, critical, tau_h, nu):
@@ -69,6 +125,18 @@ def state_response_coefficients(spec, speed, desired, rho, downstream, critical,
         nu = spec['anticipation'][branch]
     if 'congested_nu_multiplier' in spec and rho > critical:
         nu *= spec['congested_nu_multiplier']
+    recovery = spec.get('recovery_relaxation')
+    if (recovery is not None and desired > speed
+            and downstream <= rho and downstream < critical
+            and ('speed_ceiling_kmh' not in recovery or speed < recovery['speed_ceiling_kmh'])):
+        # A causal opening downstream, not a time/control-specific bonus.
+        # METANET pressure also contains 1/tau: preserve nu/tau so this
+        # optional local change affects relaxation alone. It does not assert
+        # that the vehicle group has previously been congested.
+        recovery_h = recovery['acceleration_sec'] / 3600.0
+        if recovery_h != tau_h:
+            nu *= recovery_h / tau_h
+            tau_h = recovery_h
     return tau_h, nu
 
 
