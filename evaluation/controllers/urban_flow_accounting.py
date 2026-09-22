@@ -13,6 +13,8 @@ from src.models.demand import DemandStep
 from evaluation.controllers.control_area_objective import (
     emit_transfer, emit_input, integrate_residence, get_ledger,
 )
+from evaluation.controllers.lane_ramp_runtime import receiving_space as _ramp_receiving_space
+from evaluation.controllers.lane_urban_runtime import observe_ready as _lane_ready, is_local_movement
 
 def _resource_ledger(state):
     """Return the optional recorder; ordinary steps collect no resource maps."""
@@ -44,6 +46,7 @@ def _receive_corridor(state, cfg, movement, vehicles, urban_step_index):
 
 
 def _corridor_intended(state, control, cfg, movement, available, urban_step_index, ordinary):
+    physical_local=is_local_movement(state,movement)
     if getattr(cfg.network, 'route_choice_corridor', None):
         from evaluation.controllers.route_choice_corridor import intended_departure
         value = intended_departure(state, control, cfg, movement, available, urban_step_index)
@@ -52,7 +55,9 @@ def _corridor_intended(state, control, cfg, movement, available, urban_step_inde
     if getattr(cfg.network, 'native_internal_inputs', None):
         from evaluation.controllers.native_input_prehead import limit_intended
         ordinary = limit_intended(state, cfg, movement, available, ordinary, urban_step_index)
-    return ordinary
+    # Preserve receiver batch preparation, while assigning this movement's
+    # actual service exclusively to the physical lane transport's exit.
+    return 0. if physical_local else ordinary
 
 
 def _drain_offramp_storage_accounted(
@@ -79,8 +84,13 @@ def _drain_offramp_storage_accounted(
     net = cfg.network
     dt_h = cfg.simulation.T_u_h
     resource_ledger = _resource_ledger(state)
+    physical_ports=getattr(state,'lane_offramp_runtime',None)
+    if physical_ports is not None:
+        return physical_ports.drain(state,control,cfg,step_idx,routing)
     departures: Dict[str, float] = {}
     for off_ramp in net.off_ramps:
+        if getattr(state,'lane_urban_runtime',None) is not None and off_ramp == 'OR_F_E':
+            continue  # Physical10643 sending and local126 receiving are coupled once.
         storage_link = net.off_ramp_storage_link.get(off_ramp, "")
         if not storage_link or storage_link not in state.urban_link_storage:
             continue
@@ -246,7 +256,7 @@ def urban_substep_accounted(
             # 게이트가 cap만큼만 이탈시킨다(A″-1). available을 복원하면 점유가 사라져
             # (a) receiving 게이트에 backup이 안 잡히고 (b) sink로 기록되지 않아 차량이
             # 소멸한다(보존 위반). 내부 링크는 기존대로 복원해 다음 노드로 이동시킨다.
-            if link in sink_links:
+            if link in sink_links or link in getattr(net,'lane_plant_tail_stores',()):
                 continue
             cap = net.urban_link_storage_veh[link]
             state.urban_link_storage[link] = min(cap, state.urban_link_storage.get(link, cap) + released)
@@ -346,18 +356,28 @@ def urban_substep_accounted(
         if corridor and source == corridor['storage']:
             continue
         arrived = _uqm._pop_buffer(state.urban_arrival_buffer, source, step_idx)
+        local=getattr(state,'lane_urban_runtime',None)
+        if local is not None and source==local.origin:
+            local.consume_upstream(state,cfg,step_idx,arrived)
+            continue
         if hasattr(net,'physical_ramp_branches'):
             from evaluation.controllers.physical_ramp_branches import split_tagged_arrival
+            city_spec = net.physical_ramp_branches.get('shared_city_arrival',{})
+            city_amount = (getattr(state,'shared_approach_state',{}).get('city_arrival_tags',{}).get(step_idx,0.)
+                           if source == city_spec.get('receiver') else 0.)
             tagged=split_tagged_arrival(state,cfg,source,step_idx,arrived,targets)
             if tagged is not None:
                 for movement,amount in tagged:
                     state.urban_movement_queue[movement]+=amount
+                    _lane_ready(state,cfg,movement,amount,
+                        city_amount=city_amount*city_spec['conditional_shares'].get(movement,0.))
                     emit_transfer(state,cfg,'storage:'+source,'movement:'+movement,amount,route_key='arrival:'+movement)
                 continue
         if arrived <= 0.0:
             continue
         for movement, beta in targets:
             state.urban_movement_queue[movement] += beta * arrived
+            _lane_ready(state,cfg,movement,beta*arrived)
             emit_transfer(state, cfg, 'storage:' + source, 'movement:' + movement, beta * arrived, route_key='arrival:' + movement)
 
     # 게이트 수요는 그 교차로에 "해당 방향에서 도착"으로 주입 후 동일 β분할. 단 게이트를
@@ -369,6 +389,7 @@ def urban_substep_accounted(
         if landed > 0.0:
             for movement, beta in routing.get(origin, []):
                 state.urban_movement_queue[movement] += beta * landed
+                _lane_ready(state,cfg,movement,beta*landed)
                 emit_transfer(state, cfg, 'transit:gate:' + origin, 'movement:' + movement, beta * landed, route_key='arrival:' + movement)
         arrival = demand.urban_boundary.get(origin, 0.0) * sim.T_u_h
         targets = routing.get(origin, [])
@@ -413,14 +434,23 @@ def urban_substep_accounted(
         for ramp, release_flow in ramp_release_veh_h.items():
             requested = max(0.0, release_flow) * sim.T_u_h
             before = max(0.0, state.ramp_queue.get(ramp, 0.0))
-            actual = min(before, requested)
-            if resource_ledger is not None:
-                sources = {'ramp:' + ramp: actual}
-                resource_ledger.record_resource_allocation('urban_meter_release_stock', ramp, before, sources)
-                resource_ledger.record_resource_allocation('urban_meter_release_request', ramp, requested, sources)
+            physical = getattr(state, 'lane_ramp_runtime', None)
+            if physical is not None:
+                if physical.predebited is None or abs(requested-physical.predebited[ramp]*sim.T_u_h) > 1e-8:
+                    raise ValueError('Urban meter interface differs from accepted physical merge')
+                actual = requested
+                if resource_ledger is not None:
+                    resource_ledger.record_resource_allocation('urban_physical_merge_receipt', ramp,
+                        requested, {'ramp:'+ramp:actual})
+            else:
+                actual = min(before, requested)
+                if resource_ledger is not None:
+                    sources = {'ramp:' + ramp: actual}
+                    resource_ledger.record_resource_allocation('urban_meter_release_stock', ramp, before, sources)
+                    resource_ledger.record_resource_allocation('urban_meter_release_request', ramp, requested, sources)
+                state.ramp_queue[ramp] = max(0.0, before - actual)
+                emit_transfer(state, cfg, 'ramp:' + ramp, 'merge_pending:' + ramp, actual, preserve_area=True)
             shortfall = max(0.0, requested - actual)
-            state.ramp_queue[ramp] = max(0.0, before - actual)
-            emit_transfer(state, cfg, 'ramp:' + ramp, 'merge_pending:' + ramp, actual, preserve_area=True)
             ramp_metering_release_request_veh += requested
             ramp_metering_releases_veh += actual
             ramp_metering_release_shortfall_veh += shortfall
@@ -448,7 +478,7 @@ def urban_substep_accounted(
         # 차단이 늦게 시작되고 도시 역류를 과소평가한다.
         _cap_sp = (net.ramp_queue_cap(ramp) if hasattr(net, "ramp_queue_cap")
                    else float(net.ramp_queue_max_veh))
-        ramp_space = max(0.0, _cap_sp - state.ramp_queue.get(ramp, 0.0))
+        ramp_space = _ramp_receiving_space(state, cfg, ramp)
         scale = 1.0 if requested_total <= ramp_space else ramp_space / max(requested_total, 1.0e-9)
         released_total = 0.0
         accepted_sources = {} if resource_ledger is not None else None
@@ -519,20 +549,29 @@ def urban_substep_accounted(
     actual_departure: Dict[str, float] = dict(no_storage_intended)
     receiving_evidence = {} if resource_ledger is not None else None
     head_accepted = {} if resource_ledger is not None else None
-    for storage_link, intended in intended_by_storage.items():
-        if choice:
-            from evaluation.controllers.route_choice_corridor import limit_intended_batch
-            intended = limit_intended_batch(state, cfg, intended, step_idx)
-        intended = head_service_resources.regular_batch(cfg, intended, head_resource_context)
-        # S_eff: 하류 링크 끝 점큐를 점유로 반영(spec §3.3.2, 397행) → backup 전파.
-        available_space = _uqm._effective_available_space(state, cfg, storage_link)
-        if receiving_evidence is not None:
-            receiving_evidence[storage_link] = (available_space, {'movement:' + m: 0.0 for m in intended})
-        actual_departure.update(_uqm._allocate_receiving_counts(
-            cfg.urban_follower.receiving_space_rule,
-            intended,
-            available_space,
-        ))
+    if (getattr(net, 'sdmpc_options', None) or {}).get('spatial_receiving'):
+        from evaluation.controllers.sdmpc_tangent_spatial import regular_receivers
+        receivers = regular_receivers(state, cfg, intended_by_storage, step_idx,
+                                      head_resource_context, _uqm)
+        for storage_link, intended, available_space, accepted in receivers:
+            if receiving_evidence is not None:
+                receiving_evidence[storage_link] = (available_space, {'movement:' + m: 0.0 for m in intended})
+            actual_departure.update(accepted)
+    else:
+        for storage_link, intended in intended_by_storage.items():
+            if choice:
+                from evaluation.controllers.route_choice_corridor import limit_intended_batch
+                intended = limit_intended_batch(state, cfg, intended, step_idx)
+            intended = head_service_resources.regular_batch(cfg, intended, head_resource_context)
+            # S_eff: 하류 링크 끝 점큐를 점유로 반영(spec §3.3.2, 397행) → backup 전파.
+            available_space = _uqm._effective_available_space(state, cfg, storage_link)
+            if receiving_evidence is not None:
+                receiving_evidence[storage_link] = (available_space, {'movement:' + m: 0.0 for m in intended})
+            actual_departure.update(_uqm._allocate_receiving_counts(
+                cfg.urban_follower.receiving_space_rule,
+                intended,
+                available_space,
+            ))
 
     for movement, departed in actual_departure.items():
         if movement_limits is not None:
@@ -768,7 +807,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
         for ramp, share in (spec.get("ramps") or {}).items():
             sh = max(0.0, float(share))
             cap_r = float(net_a.ramp_queue_cap(str(ramp)))
-            space = max(0.0, cap_r - max(0.0, float(state.ramp_queue.get(str(ramp), 0.0))))
+            space = _ramp_receiving_space(state, cfg_arg, str(ramp))
             conn = max(0.0, float(conn_caps.get(str(ramp), 0.0) or 0.0)) * float(sim.T_u_h)
             entry_cap = min(space, conn) if conn > 0.0 else space
             request = reach * sh if known_requests is None else known_requests.get(str(ramp), 0.)
@@ -796,7 +835,7 @@ def legsplit_substep_accounted(state, control, demand, cfg_arg, urban_step_index
     resource_ledger = _resource_ledger(state)
     receiving_evidence = {} if resource_ledger is not None else None
     for ramp, requested in inject.items():
-        room = max(0.0, float(net_a.ramp_queue_cap(ramp)) - float(state.ramp_queue.get(ramp, 0.0)))
+        room = _ramp_receiving_space(state, cfg_arg, ramp)
         accepted = min(requested, room)
         if receiving_evidence is not None:
             receiving_evidence[ramp] = (room, {})
@@ -959,6 +998,13 @@ def install(adapter, cfg):
         if area_enabled and get_ledger(state) is None:
             raise ValueError('enabled urban accounting requires candidate-owned ledger')
         result = legsplit_substep_accounted(state, control, demand, cfg, *args, **kwargs)
+        local = getattr(state,'lane_urban_runtime',None)
+        if local is not None:
+            step = kwargs.get('urban_step_index')
+            if step is None:
+                step = args[0] if args else _uqm._urban_step_index(state,cfg)
+            physical = local.advance(state,control,cfg,step)
+            result[1].update(physical)
         if area_enabled:
             keys = [k for k in get_ledger(state).stocks if k.startswith(('storage:', 'movement:', 'ramp:', 'transit:'))]
             integrate_residence(state, cfg, keys, cfg.simulation.T_u_h)

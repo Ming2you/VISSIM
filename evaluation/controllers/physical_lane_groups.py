@@ -76,6 +76,29 @@ class StateDependentExchange:
 
 
 class PhysicalLaneGroups:
+    def __getstate__(self):
+        """Keep candidate state independent and transferable to spawn workers.
+
+        The accounting module is executable infrastructure, not mutable traffic
+        state. All lane stocks, destinations, clocks and histories remain in the
+        serialized state and are copied separately for each candidate.
+        """
+        import types
+        values = dict(self.__dict__)
+        if isinstance(values.get('a'), types.ModuleType):
+            values['_accounting_module_name'] = values.pop('a').__name__
+        return values
+
+    def __setstate__(self, values):
+        import importlib
+        values = dict(values)
+        module = values.pop('_accounting_module_name', None)
+        if module is not None:
+            if module != 'evaluation.controllers.area_freeway_accounting':
+                raise ValueError('Unexpected serialized lane accounting module')
+            values['a'] = importlib.import_module(module)
+        self.__dict__.update(values)
+
     def __init__(self, spec, state, cfg, accounting, *, exchange_model=None, interruption_gamma=None,
                  destination_policy=None, momentum_advection=False, port_travel=None,
                  position_aware_initial=False, upstream_exit_inventory=None, ramp_conflict_through_inventory=None,
@@ -388,7 +411,8 @@ class PhysicalLaneGroups:
                 if needed>1e-7:raise ArithmeticError('Could not conserve branch destination labels')
 
     def advance(self, state, control, demand, cfg, *, offramp_capacity_veh_h,
-                ramp_release_veh_h, offramp_group_capacity_veh_h=None, ramp_group_release_veh_h=None, **unused):
+                ramp_release_veh_h, offramp_group_capacity_veh_h=None, ramp_group_release_veh_h=None,
+                complete_allocator_scope=True, **unused):
         a,mn,net=self.a,self.a._mn,cfg.network
         if float(getattr(demand,'incident_capacity_factor',1.)) != 1.:
             raise ValueError('Lane-group candidate has not qualified incident capacity changes')
@@ -485,25 +509,32 @@ class PhysicalLaneGroups:
         outgoing=[[0.]*len(ns) for ns in self.n]
         intent_before=copy.deepcopy(self.upstream_off)
         inter=[]
-        for i,matrix in enumerate(self.matrices):
-            requests=[[through[i][g]*w for w in row] for g,row in enumerate(matrix)]
-            accepted=0.
-            for k in range(len(self.n[i+1])):
-                total=sum(r[k] for r in requests)
-                factor=min(1.,free[i+1][k]/total) if total else 0.
-                for g,row in enumerate(requests):
-                    x=row[k]*factor;outgoing[i][g]+=x;incoming[i+1][k]+=x;accepted+=x
-                    if i+1 in part_in_moment:
-                        source_v=part_before[i]['post_v'][g] if i in part_before else oldv[i][g]
-                        part_in_moment[i+1][k]+=x*source_v
-                    if incoming_moment is not None:incoming_moment[i+1][k]+=x*oldv[i][g]
-                    for o,stocks in intent_before.items():
-                        if i>=len(stocks):continue
-                        y=x*stocks[i][g]/before[i][g] if before[i][g] else 0.
-                        self.upstream_off[o][i][g]-=y
-                        target=self.off[o] if i+1==len(stocks) else self.upstream_off[o][i+1]
-                        target[k]+=y
-            inter.append(accepted)
+        from evaluation.controllers.sdmpc_prediction_cache import active as prediction_scope
+        scope=prediction_scope()
+        if scope is not None and scope.cfg.network.sdmpc_options.get('array_transport',False):
+            from evaluation.controllers.sdmpc_tangent_transport import longitudinal
+            inter=longitudinal(self,before,oldv,part_before,free,through,incoming,
+                outgoing,incoming_moment,part_in_moment,intent_before)
+        else:
+            for i,matrix in enumerate(self.matrices):
+                requests=[[through[i][g]*w for w in row] for g,row in enumerate(matrix)]
+                accepted=0.
+                for k in range(len(self.n[i+1])):
+                    total=sum(r[k] for r in requests)
+                    factor=min(1.,free[i+1][k]/total) if total else 0.
+                    for g,row in enumerate(requests):
+                        x=row[k]*factor;outgoing[i][g]+=x;incoming[i+1][k]+=x;accepted+=x
+                        if i+1 in part_in_moment:
+                            source_v=part_before[i]['post_v'][g] if i in part_before else oldv[i][g]
+                            part_in_moment[i+1][k]+=x*source_v
+                        if incoming_moment is not None:incoming_moment[i+1][k]+=x*oldv[i][g]
+                        for o,stocks in intent_before.items():
+                            if i>=len(stocks):continue
+                            y=x*stocks[i][g]/before[i][g] if before[i][g] else 0.
+                            self.upstream_off[o][i][g]-=y
+                            target=self.off[o] if i+1==len(stocks) else self.upstream_off[o][i+1]
+                            target[k]+=y
+                inter.append(accepted)
         terminal_cap=net.freeway_capacity_veh_h*sum(self.widths[-1])/net.freeway_lanes*dt
         terminal=sum(through[-1])
         if not getattr(net,'terminal_zero_gradient',False):terminal=min(terminal,terminal_cap)
@@ -809,6 +840,7 @@ class PhysicalLaneGroups:
         a._area.emit_transfer(state,cfg,'origin:'+road,'freeway:'+road,entry,target_inside=True)
         for ramp,q in ramp_release_veh_h.items():a._area.emit_transfer(state,cfg,'merge_pending:'+ramp,'freeway:'+road,q*dt,target_inside=True)
         a._area.emit_transfer(state,cfg,'freeway:'+road,'external:terminal:'+road,terminal,source_inside=True,target_inside=False)
-        ledger.complete_constraint_coverage('freeway_allocator')
+        if complete_allocator_scope:
+            ledger.complete_constraint_coverage('freeway_allocator')
         return sum(map(sum,self.n))*dt, {'density_projection_count':0,'speed_projection_count':projections,
             'density_exceedance_count':sum(r>net.rho_crit for r in state.freeway_density[road])}

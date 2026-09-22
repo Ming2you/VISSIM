@@ -145,6 +145,10 @@ class PhysicalRampBoundary:
             raise ValueError(f"Expected phase {expected}, got {self._phase}")
 
     def _stocks(self) -> dict[str, float]:
+        from evaluation.controllers.sdmpc_prediction_cache import ramp_stock_entry
+        cache,key,saved=ramp_stock_entry(self)
+        if saved is not None:
+            return dict(saved)
         stocks = {
             "upstream_travelling_veh": _sum((n for _, n in self._upstream), "upstream stock"),
             "head_ready_veh": self._head_ready,
@@ -152,10 +156,13 @@ class PhysicalRampBoundary:
             "merge_ready_veh": self._merge_ready,
         }
         stocks["connector_veh"] = _sum(stocks.values(), "connector stock")
+        if cache is not None:
+            cache.ramp_stocks[key]=dict(stocks)
         return stocks
 
-    def _check_conservation(self) -> float:
-        stock = self._stocks()["connector_veh"]
+    def _check_conservation(self, *, stock=None) -> float:
+        if stock is None:
+            stock = self._stocks()["connector_veh"]
         if stock > self.capacity_veh + _MASS_TOLERANCE:
             raise ValueError("Connector stock exceeds storage")
         expected = _sum((self._initial_total, self.cumulative_requested_veh), "mass source")
@@ -178,16 +185,19 @@ class PhysicalRampBoundary:
 
     def snapshot(self) -> dict:
         """Return counts without exposing mutable cohort buffers."""
+        from evaluation.controllers.sdmpc_prediction_cache import active
+        stocks = self._stocks()
         result = {
             "connector_id": self.connector_id, "time_sec": self.time_sec,
-            "phase": self._phase, **self._stocks(), "capacity_veh": self.capacity_veh,
+            "phase": self._phase, **stocks, "capacity_veh": self.capacity_veh,
             "outside_component_backlog_veh": self.backlog_veh,
             "cumulative_requested_veh": self.cumulative_requested_veh,
             "cumulative_admitted_veh": self.cumulative_admitted_veh,
             "cumulative_head_service_veh": self.cumulative_head_service_veh,
             "cumulative_merge_veh": self.cumulative_merge_veh,
             "connector_ttt_veh_h": self.connector_ttt_veh_h,
-            "conservation_residual_veh": self._check_conservation(),
+            "conservation_residual_veh": (self._check_conservation(stock=stocks['connector_veh'])
+                if active() is not None else self._check_conservation()),
         }
         if hasattr(self, '_lane_transfer_in'):
             result.update(cumulative_lane_entry_veh=self._lane_transfer_in,
@@ -232,6 +242,8 @@ class PhysicalRampBoundary:
         merge_ready = _sum((self._merge_ready, merge_arrived), "merge-ready stock")
         ttt = _number(before["connector_veh"] * duration / 3600.0, "interval TTT")
         total_ttt = _sum((self.connector_ttt_veh_h, ttt), "cumulative TTT")
+        from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+        invalidate_ramp(self)
         self._upstream, self._downstream = upstream, downstream
         self._head_ready, self._merge_ready = head_ready, merge_ready
         self._receipt = {
@@ -252,6 +264,8 @@ class PhysicalRampBoundary:
         if accepted > self._merge_ready:
             raise ValueError("Accepted merge exceeds eligible stock")
         total = _sum((self.cumulative_merge_veh, accepted), "cumulative merge")
+        from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+        invalidate_ramp(self)
         self._merge_ready -= accepted
         self.cumulative_merge_veh = total
         self._receipt["accepted_merge_veh"] = accepted
@@ -287,6 +301,8 @@ class PhysicalRampBoundary:
         if arrival <= self._receipt["end_sec"]:
             raise ValueError("Post-head travel is below clock precision")
         total = _sum((self.cumulative_head_service_veh, served), "cumulative head service")
+        from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+        invalidate_ramp(self)
         if served:
             self._downstream.append((arrival, served))
         self._head_ready -= served
@@ -313,6 +329,8 @@ class PhysicalRampBoundary:
         end = self._receipt["end_sec"]
         arrival = self._arrival(end, self.head_position_m)
         if admitted:
+            from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+            invalidate_ramp(self)
             if self.head_position_m == 0:
                 self._head_ready = _sum((self._head_ready, admitted), "head-ready stock")
             else:
@@ -330,6 +348,34 @@ class PhysicalRampBoundary:
         # The receipt's nested snapshots contain only scalars, so callers may keep
         # them without aliasing any subsequent buffer state.
         return dict(self._receipt)
+
+    def current_admission_space(self) -> float:
+        """Space for accepted coupled arrivals at this interval's completed end."""
+        self._require_phase('idle')
+        if self.backlog_veh:
+            raise ValueError('Coupled admission cannot own an upstream backlog')
+        return max(0., self.capacity_veh-self._stocks()['connector_veh'])
+
+    def admit_current(self, vehicles: float) -> None:
+        """Commit an already accepted urban transfer without advancing time.
+
+        This is the admission part of finish_interval. Coupled urban receivers
+        decide their accepted amount after the ramp's merge/head step. Rejected
+        traffic remains in that receiver's upstream stock, never a second queue.
+        """
+        amount = _number(vehicles, 'accepted coupled arrivals')
+        if amount > self.current_admission_space()+_MASS_TOLERANCE:
+            raise ValueError('Accepted coupled arrivals exceed finite ramp space')
+        if amount:
+            from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+            invalidate_ramp(self)
+            if self.head_position_m == 0:
+                self._head_ready += amount
+            else:
+                self._upstream.append((self._arrival(self.time_sec, self.head_position_m), amount))
+            self.cumulative_requested_veh += amount
+            self.cumulative_admitted_veh += amount
+        self._check_conservation()
 
     def advance_local_interval(self, *, start_sec: float, duration_sec: float,
                                cycle_sec: float, receiving_budget_veh: float,
@@ -543,6 +589,8 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
             ns=[fsum(n for eta,n in rows)+q for rows,q in zip(cohorts,queued)]
             matrix=transfers[stage]
             for i,b in enumerate(buffers):
+                from evaluation.controllers.sdmpc_prediction_cache import invalidate_ramp
+                invalidate_ramp(b)
                 outgoing=fsum(matrix[i]);fraction=outgoing/ns[i] if ns[i] else 0.
                 setattr(b,travel,[(eta,n*(1.-fraction)) for eta,n in cohorts[i]])
                 setattr(b,ready,queued[i]*(1.-fraction))
@@ -561,6 +609,20 @@ class LaneResolvedRampBoundary(PhysicalRampBoundary):
                 setattr(b,travel,[(eta,n) for eta,n in sorted(merged.items()) if n])
         for b in buffers:b._check_conservation()
         return transfers
+
+    def current_admission_space(self):
+        # A zero-share lane cannot lend storage to the declared arrival mixture.
+        return min((buffer.current_admission_space()/share
+                    for buffer, share in zip(self._lane_buffers, self.lane_arrival_shares)
+                    if share > 0), default=0.)
+
+    def admit_current(self, vehicles):
+        amount = _number(vehicles, 'accepted coupled arrivals')
+        if amount > self.current_admission_space()+_MASS_TOLERANCE:
+            raise ValueError('Accepted coupled arrivals exceed lane receiving')
+        for buffer, share in zip(self._lane_buffers, self.lane_arrival_shares):
+            buffer.admit_current(amount*share)
+        self.snapshot()
 
     def begin_interval(self, *args, **kwargs):
         raise ValueError('Lane-resolved ramps require advance_local_interval')

@@ -118,9 +118,15 @@ def empirical_source_choice(proof, source, forward, tree, links, raw):
     selected_connector=proof['connector'];sample=proof['resolved_source_vehicles']
     calibration_networks={value for key,value in calibration.get('source_sha256',{}).items()
                           if key.replace('\\','/').endswith('.inpx')}
+    expected_network=snapshot_network_sha256(raw)
+    if 'historical_prior_transfer' in proof:
+        from evaluation.controllers.scenario_prior_transfer import training_network
+        if proof['network']['sha256']!=expected_network:
+            raise ValueError('Historical source prior targets another current network')
+        expected_network=training_network(proof,proof['calibration'])['sha256']
     if (calibration.get('schema')!='native-input-observed-branch-calibration/v1'
             or calibration.get('seed')!=proof['calibration_seed']
-            or calibration_networks!={snapshot_network_sha256(raw)}
+            or calibration_networks!={expected_network}
             or proof.get('prior_probability')!=1. or proof.get('validation_scope')!='offline_seed13_requires_seed14_holdout'
             or topology.get('input_no')!=input_no or topology.get('source')!=source
             or topology.get('incoming_connectors') or topology.get('static_decisions')

@@ -290,7 +290,8 @@ def advance(state, control, demand, cfg, urban_step_index):
         ready = sum(amount for step, amount in bins.items() if step <= urban_step_index)
         target = branch['target']
         if branch['target_kind'] == 'ramp':
-            available = max(0.0, cfg.network.ramp_queue_cap(target) - state.ramp_queue.get(target, 0.0))
+            from evaluation.controllers.lane_ramp_runtime import receiving_space
+            available = receiving_space(state, cfg, target)
         else:
             available = uqm._effective_available_space(state, cfg, target)
         service = cfg.network.movement_capacity_veh_h * branch['lanes'] * dt_h
@@ -315,7 +316,13 @@ def advance(state, control, demand, cfg, urban_step_index):
                 state.urban_link_storage[target] -= accepted
                 emit_transfer(state, cfg, 'storage:' + source, 'storage:' + target, accepted, preserve_area=True)
                 handled = False
-                if getattr(cfg.network, 'route_choice_corridor', None):
+                lane_local=getattr(state,'lane_urban_runtime',None)
+                if lane_local is not None and target==lane_local.origin:
+                    if key!=cfg.network.physical_ramp_branches['shared_city_arrival']['branch']:
+                        raise ValueError('Unexpected shared source into the lane-resolved local roads')
+                    lane_local.schedule_upstream(state,cfg,urban_step_index,accepted,entry='city')
+                    handled=True
+                if not handled and getattr(cfg.network, 'route_choice_corridor', None):
                     from evaluation.controllers.route_choice_corridor import receive_shared_accepted
                     handled = receive_shared_accepted(state, cfg, source, key, accepted, urban_step_index)
                 if not handled:

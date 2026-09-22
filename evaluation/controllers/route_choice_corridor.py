@@ -141,9 +141,11 @@ def _calibrated_native_service(document,proof):
     pin=proof.get('calibrated_discharge')
     if pin is None:return None
     calibration=json.loads(_read_pinned(pin).read_text(encoding='utf-8'))
+    from evaluation.controllers.scenario_prior_transfer import training_network
+    source_network=training_network(document,pin)
     if (calibration.get('schema')!='native-fixed-service-calibration/v1'
             or calibration.get('selected_estimator')!='sum_gap_count / sum_block_duration_upper_sec * 3600'
-            or calibration.get('network_sha256')!=document['network']['sha256']
+            or calibration.get('network_sha256')!=source_network['sha256']
             or calibration.get('sig_sha256')!=proof['sig_file']['sha256']
             or set(document['generated_inputs'])!={pin['input_no']}):
         raise ValueError('Native source discharge calibration identity or estimator changed')
@@ -231,10 +233,12 @@ def _calibrated_turn_services(document, tree, links, heads, specs, per_lane):
     pin=document.get('service_resource_calibration')
     if pin is None:return {}
     calibration=json.loads(_read_pinned(pin).read_text(encoding='utf-8'))
+    from evaluation.controllers.scenario_prior_transfer import training_network
+    source_network=training_network(document,pin)
     if (calibration.get('schema')!='physical-shared-service-calibration/v1'
             or calibration.get('classification')!='offline_achieved_green_discharge_lower_bound'
             or calibration.get('selected_estimator')!='verified_crossing_count / full_train_native_green_seconds * 3600'
-            or calibration.get('network')!=document['network'] or calibration.get('seed')!=13):
+            or calibration.get('network')!=source_network or calibration.get('seed')!=13):
         raise ValueError('Shared service prior identity or estimator changed')
     row=calibration['resource']; connector=row['connector']; node=links[connector]
     source,target=node.find('fromLinkEndPt'),node.find('toLinkEndPt')
@@ -255,7 +259,9 @@ def _calibrated_turn_services(document, tree, links, heads, specs, per_lane):
     clock=calibration['native_clock']; sc=next(s for s in tree.findall('./signalControllers/signalController') if s.get('no')==row['controller'])
     sig=(_read_pinned(document['network']).parent/sc.get('supplyFile2').removeprefix('#data#')).resolve()
     if (sc.get('type')!='FIXEDTIME' or sc.get('active')!='true' or int(sc.get('progNo'))!=clock['program_no']
-            or float(sc.get('offset'))!=clock['controller_offset_sec'] or sig!=_read_pinned(clock['sig_file']).resolve()
+            or float(sc.get('offset'))!=clock['controller_offset_sec']
+            or (sig!=_read_pinned(clock['sig_file']).resolve() and
+                (not document.get('historical_prior_transfer') or hashlib.sha256(sig.read_bytes()).hexdigest()!=clock['sig_file']['sha256']))
             or clock['lsa_state_mismatch_seconds']):
         raise ValueError('Shared service prior native clock changed')
     program=_native_program(clock)

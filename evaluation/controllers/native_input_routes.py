@@ -227,6 +227,8 @@ def _transit_cohort(no, index, amount, step, state, cfg):
 
 
 def _check(state, cfg):
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.route_check(state,cfg)
     local = state.native_input_route_state
     inputs = _inputs(cfg)
     grouped = defaultdict(float)
@@ -281,6 +283,8 @@ def initialize(state, cfg, raw):
 def receive_generated(state, cfg, no, vehicles, step):
     inputs = _inputs(cfg)
     if no not in inputs: return False
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.route_generate(state,cfg,no,vehicles,step)
     local = state.native_input_route_state
     if local['last_step'] != step: raise ValueError('Native route generation requires current urban advance')
     first = inputs[no]['route_stages'][0]
@@ -293,6 +297,8 @@ def receive_generated(state, cfg, no, vehicles, step):
 def advance(state, cfg, step):
     inputs = _inputs(cfg)
     if not inputs: return {}
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.route_advance(state,cfg,step)
     from src.models import urban_queue_model as uqm
     local = state.native_input_route_state
     ledger = get_ledger(state)
@@ -347,6 +353,8 @@ def receive_accepted(state, cfg, movement, vehicles, step):
     """Called after the ordinary single queue debit, receipt and area event."""
     inputs = _inputs(cfg)
     if not inputs: return False
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.route_accept(state,cfg,movement,vehicles,step)
     local = state.native_input_route_state
     matching = [c for c in local['cohorts'] if c['queued'] and
                 inputs[c['input']]['route_stages'][c['stage']]['movement'] == movement]

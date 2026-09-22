@@ -90,7 +90,7 @@ def configure(cfg, tuning, raw):
             raise ValueError('SC2001 calibration shares do not match completed counts')
     tree = ET.parse(network).getroot()
     links = {node.get('no'): node for node in tree.findall('./links/link')}
-    area_path = ROOT / 'diagnostics/control_area_membership.json'
+    area_path = ROOT / document.get('membership_path','diagnostics/control_area_membership.json')
     area_document = json.loads(area_path.read_text(encoding='utf-8'))
     if area_document['network']['sha256'] != document['network']['sha256']:
         raise ValueError('SC2001 area and physical network fingerprints disagree')
@@ -296,7 +296,8 @@ def advance(state, control, demand, cfg, urban_step_index):
         service = sat*branch['lanes']*dt_h
         if branch['target_kind'] == 'ramp':
             target = branch['target']
-            receiving = max(0., cfg.network.ramp_queue_cap(target) - state.ramp_queue.get(target, 0.))
+            from evaluation.controllers.lane_ramp_runtime import receiving_space
+            receiving = receiving_space(state, cfg, target)
         else:
             cap_h = float(cfg.network.boundary_out_capacity_veh_h)
             if not math.isfinite(cap_h) or cap_h <= 0:

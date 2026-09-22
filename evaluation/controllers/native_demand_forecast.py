@@ -32,7 +32,7 @@ def _totals(spec, start, end):
                 internal += value
             else:
                 unmapped += value
-    if len(freeway) != 2 or not math.isclose(freeway[0], freeway[1], rel_tol=0, abs_tol=1e-6):
+    if len(freeway) != 2 or (not spec.get('freeway_link_by_input') and not math.isclose(freeway[0], freeway[1], rel_tol=0, abs_tol=1e-6)):
         raise ValueError('Native timetable requires the reviewed two symmetric freeway inputs')
     if not urban or not gates:
         raise ValueError('Native timetable lacks mapped urban inputs')
@@ -92,5 +92,8 @@ def forecast_states(raw, cfg, horizon_steps):
         view = dict(raw)
         view['demand'] = deepcopy(raw['demand'])
         view['demand'].update(_totals(spec, start + index * interval, start + (index + 1) * interval))
+        if spec.get('freeway_link_by_input'):
+            view['demand']['native_freeway_mainline_veh_h']={road:_rate(spec['inputs'][no]['schedule'],
+                start+index*interval,start+(index+1)*interval) for no,road in spec['freeway_link_by_input'].items()}
         output.append(view)
     return output

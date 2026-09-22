@@ -466,6 +466,7 @@ Function Num(v): Num=CStr(v): End Function
 Function JsonDoubleInvariant(v): JsonDoubleInvariant=CStr(v): End Function
 Function JsonEscape(v): JsonEscape=CStr(v): End Function
 Function PerfNow(): PerfNow=0: End Function
+Function EnvText(name): EnvText="": End Function
 Sub PerfAdd(name,t0): End Sub
 Sub PerfCount(name,amount): End Sub
 Sub AccumulateQueueWindow(counts,stops): queueSamples=queueSamples+1: End Sub

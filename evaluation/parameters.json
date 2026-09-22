@@ -1,5 +1,35 @@
 {
   "_schema": "vissim-canonical-parameters/1",
+  "sdmpc": {
+    "_note": "Opt-in prox-linear SDMPC; Numerical-Sim b53ebd7 structure with native VISSIM controls and actual450s merge NUF.",
+    "max_iterations": 2,
+    "line_search_steps": 3,
+    "restoration_iterations": 2,
+    "proximal": 10.0,
+    "fd_green_sec": 1.0,
+    "fd_offset_sec": 1.0,
+    "fd_meter_green_sec": 2.0,
+    "fd_vsl_kmh": 10.0,
+    "budget_scale_np_veh": 100.0,
+    "budget_scale_nuf_veh_h": 1000.0,
+    "dual_step": 1.0,
+    "qp_iterations": 100,
+    "qp_tolerance": 1e-10,
+    "objective_tolerance": 1e-7,
+    "territory_path": "outputs/urban_player_territory_v1_20260819.json"
+  },
+  "sdmpc_pfo_cap": {
+    "max_iterations": 2,
+    "nuf_tolerance_veh_h": 1e-7
+  },
+  "sdmpc_central": {
+    "active_tolerance": 1e-8,
+    "stationarity_tolerance": 1e-3,
+    "zero_jacobian_tolerance": 1e-12,
+    "duplicate_decimals": 12,
+    "np_step_veh": 50.0,
+    "nuf_step_veh_h": 1000.0
+  },
   "_why": [
     "2026-08-27. 값을 여러 곳에서 따로 정하다가 실효값이 의도와 달라지는 사고가 반복됐다.",
     "leader_value_depth 를 3 으로 두면 리더 롤아웃 깊이가 3 이 아니라 3+3=6 이 됐고,",
@@ -86,6 +116,10 @@
     "leader_mfd_far_weight": 1.0,
     "leader_candidate_count": 9,
     "max_nash_iter": 4
+  },
+  "sdmpc_tangent": {
+    "primal_abs_tolerance": 1e-8,
+    "signal_transition_width_sec": 2.0
   },
   "fd_candidates": {
     "_note": "고르는 자리가 아니라 기록이다. 쓰려면 network 블록에 옮겨 적고 A/B 를 돌린다.",

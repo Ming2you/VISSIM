@@ -44,6 +44,10 @@ Dim obsActual, obsHeld, obsPrevious, obsCross, obsQualified, obsGreen, obsUnknow
 Dim obsSeenVehicleHead, obsNativeSec, obsControlledSec, obsUnverifiedSec, obsClockComplete
 Dim obsFrameSec, obsSignalSec, obsHeldSec, obsWindowStart, obsTransitions
 Dim obsTableValid, obsTableSec, obsTables, obsTableMeta, obsBulkReads, obsCacheHits
+Dim obsSampleInterval, obsClockSec, obsIntervalGreen
+obsSampleInterval = 1 : obsClockSec = -1
+Set obsIntervalGreen = CreateObject("Scripting.Dictionary")
+If Trim(shell.ExpandEnvironmentStrings("%RW_VEHICLE_OBSERVATION_INTERVAL_SEC%")) = "5" Then obsSampleInterval = 5
 obsEnabled = (Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_OBSERVATION%")) = "1")
 obsConfigSha256 = LCase(Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_OBSERVATION_CONFIG_SHA256%")))
 obsTableValid = False : obsFrameSec = -1 : obsSignalSec = -1 : obsHeldSec = -1
@@ -667,6 +671,14 @@ Sub RecordStartupSimulationProgress()
 End Sub
 
 Sub RunStepwiseMode()
+    If EnvText("RW_LANE_PLANT_OBSERVATION") = "1" Then
+        Dim emptyLaneRows
+        emptyLaneRows = Empty
+        If Not obsEnabled Or CDbl(Vissim.Simulation.AttValue("SimSec")) <> 0 Or Vissim.Net.Vehicles.Count <> 0 Then
+            Err.Raise 513, , "Lane plant collector requires empty initialization and one-second head observation"
+        End If
+        WriteLanePlantObservation 0, 0, emptyLaneRows, emptyLaneRows, emptyLaneRows, emptyLaneRows, emptyLaneRows
+    End If
     WScript.Echo "STARTUP_STAGE=FIRST_STEP_BEGIN timer_sec=" & CStr(Timer)
     startupPerfT0 = PerfNow()
     Vissim.Simulation.RunSingleStep
@@ -1140,6 +1152,15 @@ Sub RunControllerDecision(simSec)
     Else
         decisionsOk = decisionsOk + 1
         lastActionJson = outJsonPath
+        ' SDMPC 가격 상태는 실제 ApplyActionCsv 성공 이후에만 확정 가능하다.
+        If fso.FileExists(outJsonPath & ".sdmpc_pending") Then
+            Dim sdmpcAppliedFile
+            Set sdmpcAppliedFile = fso.CreateTextFile(outJsonPath & ".applied", True, True)
+            sdmpcAppliedFile.WriteLine CStr(simSec)
+            sdmpcAppliedFile.WriteLine CStr(outCsvPath)
+            sdmpcAppliedFile.WriteLine CStr(fso.GetFile(outCsvPath).Size)
+            sdmpcAppliedFile.Close
+        End If
     End If
     PerfAdd "decision.total", perfT0
     ' A diagnostic intervention is fixed at its first decision. Continuing
@@ -1323,16 +1344,10 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
         If kind = "vsl" Then
             dsdNo = CLng(Trim(CStr(parts(2))))
             speed = CDbl(Trim(CStr(parts(6))))
-            On Error Resume Next
-            Set dsd = Vissim.Net.DesSpeedDecisions.ItemByKey(dsdNo)
-            If Err.Number <> 0 Then
-                WScript.Echo "ERROR=VSL_DSD_NOT_FOUND dsd=" & CStr(dsdNo) & " err=" & Err.Description
-                Err.Clear
-                On Error GoTo 0
+            If Not LookupVslDecision(simSec, dsdNo, dsd) Then
                 PerfAdd "action.apply", perfT0
                 Exit Function
             End If
-            On Error GoTo 0
             ok10 = SetClassSpeedChecked(dsd, 10, speed, rb10)
             ok20 = SetClassSpeedChecked(dsd, 20, speed, rb20)
             ok30 = SetClassSpeedChecked(dsd, 30, speed, rb30)
@@ -1377,6 +1392,34 @@ Function ApplyActionCsv(simSec, csvPath, effectiveController)
     Next
     ApplyActionCsv = True
     PerfAdd "action.apply", perfT0
+End Function
+
+Function LookupVslDecision(simSec, dsdNo, ByRef dsd)
+    Dim lookupErrNo, lookupErrDesc, lookupErrSource
+    LookupVslDecision = False
+    Set dsd = Nothing
+    On Error Resume Next
+    Err.Clear
+    Set dsd = Vissim.Net.DesSpeedDecisions.ItemByKey(dsdNo)
+    ' Snapshot before logging or any other COM call can replace IErrorInfo.
+    lookupErrNo = Err.Number
+    lookupErrDesc = Err.Description
+    lookupErrSource = Err.Source
+    Err.Clear
+    On Error GoTo 0
+    If lookupErrNo <> 0 Then
+        Set dsd = Nothing
+        WScript.Echo "ERROR=VSL_DSD_LOOKUP_FAILED sim_sec=" & CStr(simSec) & _
+            " dsd=" & CStr(dsdNo) & " err_no=" & CStr(lookupErrNo) & _
+            " err_hex=" & Hex(lookupErrNo) & " source=" & OneLine(lookupErrSource) & _
+            " err=" & OneLine(lookupErrDesc)
+        Exit Function
+    End If
+    If dsd Is Nothing Then
+        WScript.Echo "ERROR=VSL_DSD_NULL_OBJECT sim_sec=" & CStr(simSec) & " dsd=" & CStr(dsdNo)
+        Exit Function
+    End If
+    LookupVslDecision = True
 End Function
 
 Function ActionCsvHeaderValid(parts)
@@ -2664,6 +2707,13 @@ Sub WriteStateJson(simSec, path, resetWindows)
     If LCase(CStr(controllerName)) = "diagnostic-rule-profile" Then ts.WriteLine "  ""rule_observation"": " & RuleObservationJson(simSec) & ","
     ts.WriteLine "  ""network_path"": """ & JsonEscape(netPath) & ""","
     WriteB1aStateRunProvenance ts
+    If EnvText("RW_LANE_PLANT_OBSERVATION") = "1" Then
+        If obsSampleInterval = 5 Then
+            ts.WriteLine "  ""lane_plant_observation"": {""directory"": """ & JsonEscape(fso.BuildPath(decisionDir, "lane_observations")) & """, ""run_id"": """ & JsonEscape(runId) & """, ""time_s"": " & CStr(CLng(simSec)) & ",""sample_interval_sec"":5},"
+        Else
+            ts.WriteLine "  ""lane_plant_observation"": {""directory"": """ & JsonEscape(fso.BuildPath(decisionDir, "lane_observations")) & """, ""run_id"": """ & JsonEscape(runId) & """, ""time_s"": " & CStr(CLng(simSec)) & "},"
+        End If
+    End If
     ts.WriteLine "  ""total_vehicles"": " & CStr(total) & ","
     ts.WriteLine "  ""urban_vehicles"": " & CStr(urban) & ","
     ts.WriteLine "  ""freeway_vehicles"": " & CStr(freeway) & ","
@@ -6139,6 +6189,10 @@ Sub CountHeadCrossing(vehicle, headId)
     AddDictNumber obsCross, headId, 1
     key = CStr(h(3)) & "-" & CStr(h(4))
     before = obsHeld(key) : after = obsActual(key)
+    If obsSampleInterval = 5 Then
+        If Not obsIntervalGreen.Exists(key) Then Exit Sub
+        If Not CBool(obsIntervalGreen(key)) Then Exit Sub
+    End If
     ' Exclude clock-boundary brackets; interpolation cannot prove green crossing there.
     If CBool(before(2)) And CBool(after(2)) And CStr(before(0)) = "GREEN" And CStr(after(0)) = "GREEN" Then
         AddDictNumber obsQualified, headId, 1
@@ -6197,10 +6251,43 @@ Sub ObserveHeadTransition(vehicle, oldRow, current, present)
     End If
 End Sub
 
+Sub AccumulateHeadClock(simSec)
+    Dim key, h, value, sgKey, green
+    If obsClockSec = CLng(simSec) Then Exit Sub
+    If obsClockSec >= 0 And CLng(simSec) <> obsClockSec + 1 Then Err.Raise 513,,"Signal exposure clock gap"
+    If obsHeldSec >= 0 Then
+        If CLng(obsHeldSec) <> CLng(simSec)-1 Then Err.Raise 513,,"Previous signal second was not sealed"
+        For Each key In obsHeads.Keys
+            h=obsHeads(key): sgKey=CStr(h(3)) & "-" & CStr(h(4))
+            value=obsHeld(sgKey)
+            green=CBool(value(2)) And CStr(value(0))="GREEN"
+            If obsIntervalGreen.Exists(sgKey) Then green=green And CBool(obsIntervalGreen(sgKey))
+            obsIntervalGreen(sgKey)=green
+            If Not CBool(value(2)) Then
+                obsClockComplete=False
+                AddDictNumber obsUnverifiedSec,key,1
+            Else
+                If CStr(value(0))="GREEN" Then AddDictNumber obsGreen,key,1
+                If CBool(value(1)) Then
+                    AddDictNumber obsControlledSec,key,1
+                Else
+                    AddDictNumber obsNativeSec,key,1
+                End If
+            End If
+        Next
+        obsTransitions=obsTransitions+1
+    End If
+    obsClockSec=CLng(simSec)
+End Sub
+
 Sub CollectHeadObservation(simSec)
     Dim actualSec, capturePerfT0, historyPerfT0
     If Not obsEnabled Then Exit Sub
     actualSec = HeadObservationTime(simSec)
+    If obsSampleInterval = 5 Then
+        AccumulateHeadClock simSec
+        If CLng(simSec) <> 1 And CLng(simSec) Mod 5 <> 0 Then Exit Sub
+    End If
     Dim total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped
     Dim countE(), speedE(), stoppedE(), countW(), speedW(), stoppedW()
     ReDim countE(FwSegCount(RW_FW_E_SEG_BOUNDS)-1): ReDim speedE(UBound(countE)): ReDim stoppedE(UBound(countE))
@@ -6209,13 +6296,20 @@ Sub CollectHeadObservation(simSec)
     Dim vehs, links, lanes, positions, vehSpeeds, stoppedRows, laneRaw, fullCounts, fullStops
     Dim frame, i, key, oldRow, current, h, value, headId, present
     If actualSec = CLng(obsFrameSec) Then Exit Sub
-    If obsFrameSec >= 0 And CLng(simSec) <> CLng(obsFrameSec) + 1 Then Err.Raise 513, , "Head observation cadence gap"
+    If obsSampleInterval = 5 Then
+        If obsFrameSec >= 0 And CLng(simSec) <> (CLng(obsFrameSec) \ 5 + 1)*5 Then Err.Raise 513,,"Vehicle observation cadence gap"
+    Else
+        If obsFrameSec >= 0 And CLng(simSec) <> CLng(obsFrameSec) + 1 Then Err.Raise 513, , "Head observation cadence gap"
+    End If
     capturePerfT0 = PerfNow()
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
         countE, speedE, stoppedE, countW, speedW, stoppedW, counts, stops, speeds, tails, qTotal, qStopped, scanOk, _
         countBefore, countAfter, timeBefore, timeAfter, vehs, links, lanes, positions, vehSpeeds, stoppedRows, laneRaw, fullCounts, fullStops
     If Not scanOk Then AbortVehicleObservation simSec
     CaptureHeadSignalStates simSec
+    If EnvText("RW_LANE_PLANT_OBSERVATION") = "1" Then
+        WriteLanePlantObservation simSec, countBefore, vehs, links, lanes, positions, vehSpeeds
+    End If
     PerfAdd "head.capture", capturePerfT0
     historyPerfT0 = PerfNow()
     Set frame = CreateObject("Scripting.Dictionary")
@@ -6225,6 +6319,7 @@ Sub CollectHeadObservation(simSec)
         Next
     End If
     If obsFrameSec >= 0 Then
+      If obsSampleInterval <> 5 Then
         If CLng(obsHeldSec) <> CLng(obsFrameSec) Then Err.Raise 513, , "Previous actual signal state was not sealed"
         For Each key In obsHeads.Keys
             h = obsHeads(key)
@@ -6241,6 +6336,7 @@ Sub CollectHeadObservation(simSec)
                 End If
             End If
         Next
+      End If
         For Each key In obsPrevious.Keys
             oldRow = obsPrevious(key)
             present = frame.Exists(key)
@@ -6269,12 +6365,85 @@ Sub CollectHeadObservation(simSec)
             End If
         Next
         AccumulateQueueWindow counts, stops
-        obsTransitions = obsTransitions + 1
+        If obsSampleInterval <> 5 Then obsTransitions = obsTransitions + 1
     End If
     AccumulateFreewayExits vehs, links
     Set obsPrevious = frame
     obsFrameSec = CLng(simSec)
+    If obsSampleInterval = 5 Then obsIntervalGreen.RemoveAll
     PerfAdd "head.history", historyPerfT0
+End Sub
+
+' A config-enabled current-state collector for the lane plant. It observes
+' paused COM state only; no route/driver/signal attribute is written here.
+Sub WriteLanePlantObservation(simSec, expectedCount, vehs, links, lanes, positions, speeds)
+    Dim names, tables(5), attr, beforeSec, afterSec, beforeCount, afterCount
+    Dim rowLo, rowHi, keyCol, valCol, lo, hi, kc, vc, row, i, key, json, comma
+    Dim folder, finalPath, tempPath, stream, values, value, text, isText
+    names = Array("No", "Length", "RoutDecNo", "RouteNo", "RoutDecType", "NextLink\No")
+    beforeSec = Vissim.Simulation.AttValue("SimSec")
+    beforeCount = Vissim.Net.Vehicles.Count
+    For attr = 0 To UBound(names)
+        tables(attr) = Vissim.Net.Vehicles.GetMultiAttValues(names(attr))
+    Next
+    afterCount = Vissim.Net.Vehicles.Count
+    afterSec = Vissim.Simulation.AttValue("SimSec")
+    If CDbl(beforeSec) <> CDbl(simSec) Or CDbl(afterSec) <> CDbl(simSec) _
+            Or CLng(beforeCount) <> CLng(expectedCount) Or CLng(afterCount) <> CLng(expectedCount) Then
+        Err.Raise 513, , "Lane plant observation changed during capture"
+    End If
+    rowLo = 0: rowHi = -1
+    For attr = 0 To UBound(names)
+        If expectedCount = 0 Then
+            If Not IsB1aEmptyTableResult(tables(attr)) Then Err.Raise 513, , "Nonempty lane capture table"
+        Else
+            If Not TryExact2DTableBounds(tables(attr), lo, hi, kc, vc) Then Err.Raise 513, , "Invalid lane capture table"
+            If attr = 0 Then
+                rowLo = lo: rowHi = hi: keyCol = kc: valCol = vc
+            ElseIf lo <> rowLo Or hi <> rowHi Or kc <> keyCol Or vc <> valCol Then
+                Err.Raise 513, , "Lane capture table bounds mismatch"
+            End If
+            If hi-lo+1 <> expectedCount Then Err.Raise 513, , "Lane capture count mismatch"
+        End If
+    Next
+    json = "{""schema"":""lane-plant-frame/v1"",""complete"":true,""time_s"":" & CStr(CLng(simSec)) & _
+        ",""run_id"":""" & JsonEscape(runId) & """,""vehicles"":["
+    comma = ""
+    For row = rowLo To rowHi
+        i = row-rowLo
+        key = tables(0)(row,keyCol)
+        If CLng(tables(0)(row,valCol)) <> CLng(vehs(i)) Then Err.Raise 513, , "Lane capture vehicle order mismatch"
+        For attr = 1 To UBound(names)
+            If tables(attr)(row,keyCol) <> key Then Err.Raise 513, , "Lane capture attribute alignment mismatch"
+        Next
+        values = ""
+        For attr = 1 To UBound(names)
+            value = tables(attr)(row,valCol)
+            If IsNull(value) Or IsEmpty(value) Then
+                text = "null"
+            ElseIf attr = 4 Then
+                text = """" & JsonEscape(CStr(value)) & """"
+            Else
+                text = JsonDoubleInvariant(CDbl(value))
+            End If
+            values = values & "," & text
+        Next
+        json = json & comma & "[" & CStr(CLng(vehs(i))) & "," & CStr(CLng(links(i))) & "," & CStr(CLng(lanes(i))) & _
+            "," & JsonDoubleInvariant(CDbl(positions(i))) & "," & JsonDoubleInvariant(CDbl(speeds(i))) & _
+            values & ",null,null,null,null,null]"
+        comma = ","
+    Next
+    json = json & "]}"
+    If obsSampleInterval = 5 Then json = Left(json,Len(json)-1) & ",""sample_interval_sec"":5}"
+    folder = fso.BuildPath(decisionDir, "lane_observations")
+    EnsureFolder folder
+    finalPath = fso.BuildPath(folder, "frame_" & Pad6(CLng(simSec)) & ".json")
+    tempPath = finalPath & ".tmp"
+    If fso.FileExists(finalPath) Or fso.FileExists(tempPath) Then Err.Raise 513, , "Lane observation output already exists"
+    Set stream = fso.CreateTextFile(tempPath, False, True)
+    stream.Write json
+    stream.Close
+    fso.MoveFile tempPath, finalPath
 End Sub
 
 Function ObservationNumbersJson(values)
@@ -6304,6 +6473,10 @@ Function HeadObservationJson(simSec)
             ",""controlled_sec"":" & Num(DictNumber(obsControlledSec,key)) & ",""unverified_sec"":" & Num(DictNumber(obsUnverifiedSec,key)) & "}"
         comma = ","
     Next
-    HeadObservationJson = result & "]}"
+    If obsSampleInterval = 5 Then
+        HeadObservationJson = result & "],""vehicle_cadence_sec"":5}"
+    Else
+        HeadObservationJson = result & "]}"
+    End If
 End Function
 ' END PHYSICAL_HEAD_OBSERVATION_V1

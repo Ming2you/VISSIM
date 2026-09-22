@@ -37,6 +37,20 @@ class LaneGroupTests(unittest.TestCase):
         spec,state,cfg=self.fixture();spec['initial_groups'][8][0]['n_veh']+=1.
         with self.assertRaisesRegex(ValueError,'stock mismatch'):PhysicalLaneGroups(spec,state,cfg,ch.accounting)
 
+    def test_candidate_copy_and_spawn_serialization_preserve_independent_stocks(self):
+        import pickle
+        spec,state,cfg=self.fixture()
+        plant=PhysicalLaneGroups(spec,state,cfg,ch.accounting)
+        before=copy.deepcopy(plant.n)
+        for candidate in (copy.deepcopy(plant),pickle.loads(pickle.dumps(plant))):
+            self.assertIs(candidate.a,ch.accounting)
+            self.assertEqual(candidate.n,before)
+            self.assertEqual(candidate.spec,plant.spec)
+            candidate.n[8][0]+=1.
+            candidate.off[next(iter(candidate.off))][0]+=.25
+            self.assertEqual(plant.n,before)
+            self.assertNotEqual(candidate.off,plant.off)
+
     def test_future_snapshot_is_rejected(self):
         spec,state,cfg=self.fixture();spec['observation_end_s']+=1
         with self.assertRaisesRegex(ValueError,'cutoff'):PhysicalLaneGroups(spec,state,cfg,ch.accounting)

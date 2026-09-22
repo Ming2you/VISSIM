@@ -27,7 +27,7 @@ __all__ = (
     'generate_urban_requests', 'realize_urban_requests',
     'Domain', 'generate', 'owner_physical_fingerprints', 'build_current_freeway_domain',
     'make_joint_neighbor_callbacks',
-    'interleave_realized_neighbors',
+    'interleave_realized_neighbors', 'prioritize_lever_representatives',
     'FixedMoveBox', 'build_fixed_move_box',
 )
 
@@ -134,6 +134,53 @@ def interleave_realized_neighbors(ownership, owner, incumbent, neighborhood):
                 ordered.append(buckets[family][index])
     return addresses.Neighborhood(tuple(ordered), neighborhood.complete,
         neighborhood.domain_label + ';search_order=coupled-family-interleave/v1',
+        neighborhood.incomplete_reason)
+
+
+def prioritize_lever_representatives(ownership, owner, incumbent, neighborhood):
+    """Put each pure lever and a coupled representative before the same tail.
+
+    No realization, filtering, ownership, bound or payoff changes here. For
+    each pure family, choose the largest normalized coordinate displacement
+    already present in the finite domain (stable source order breaks ties).
+    Thus the first physical-meter probe can reach g8 from a g10 anchor when
+    g8 exists, instead of repeatedly stopping after a nonbinding g9 probe.
+    The coupled representative is the first existing coupled candidate; it
+    is never assembled from independently scored pure candidates. This order
+    is explicitly a search policy and must not order price-basis selection.
+    """
+    candidates = neighborhood.candidates
+    if not candidates or assert_owner_transition(ownership, owner, incumbent, candidates[0]):
+        raise ValueError('Expected realized incumbent first')
+    fields = {a.field for a in ownership.addresses if a.owner == owner and a.role == 'strategy'}
+    if fields and fields <= {'vsl', 'ramp_metering'}:
+        pure = ('vsl', 'ramp_metering')
+    elif fields and fields <= {'green_times', 'offsets'}:
+        pure = ('green_times', 'offsets')
+    else:
+        raise ValueError('Representative search requires urban or freeway lever owners')
+    families = (frozenset(pure[:1]), frozenset(pure[1:]), frozenset(pure))
+    buckets = {family: [] for family in families}
+    for index, candidate in enumerate(candidates[1:], 1):
+        changed_addresses = assert_owner_transition(ownership, owner, incumbent, candidate)
+        changed = frozenset(field for field, _ in changed_addresses)
+        if changed not in buckets:
+            raise ValueError('Realized neighbor is duplicate or outside its owner lever families')
+        # Relative displacement makes lane/service scales comparable while
+        # retaining the supplied physical candidate and its original payload.
+        displacement = max(abs(float(_field(candidate, field)[key])-float(_field(incumbent, field)[key]))
+                           / max(1., abs(float(_field(incumbent, field)[key])))
+                           for field, key in changed_addresses)
+        buckets[changed].append((index, displacement))
+    representatives = []
+    for family in families:
+        bucket = buckets[family]
+        if bucket:
+            representatives.append((max(bucket, key=lambda row: row[1]) if len(family) == 1 else bucket[0])[0])
+    selected = set(representatives)
+    order = [0, *representatives, *(i for i in range(1, len(candidates)) if i not in selected)]
+    return addresses.Neighborhood(tuple(candidates[i] for i in order), neighborhood.complete,
+        neighborhood.domain_label + ';search_order=pure-lever-representatives/v1',
         neighborhood.incomplete_reason)
 
 
@@ -1503,18 +1550,20 @@ def make_joint_neighbor_callbacks(
     # Context guards still run on every hit; serialized results prevent callers
     # from mutating a later proof. This cache cannot cross decisions/bindings.
     command_cache = {}
+    command_token_views = {}
     command_cache_counts = {'requests': 0, 'hits': 0, 'writer_checks': 0,
                             'retained_bytes': 0, 'entry_limit': 256}
-    def command_evidence(action, query_context=context):
+    def cached_command(action, query_context, *, tokens_only=False):
         command_cache_counts['requests'] += 1
         if not defer_unvisited_command_checks:
             command_cache_counts['writer_checks'] += 1
-            return uncached_command_evidence(action, query_context)
+            result = uncached_command_evidence(action, query_context)
+            return result['owner_physical_sha256'] if tokens_only else result
         guard(query_context)
         key = (type(action), pickle.dumps(vars(action), protocol=5))
         if key in command_cache:
             command_cache_counts['hits'] += 1
-            result = pickle.loads(command_cache[key])
+            result = dict(command_token_views[key]) if tokens_only else pickle.loads(command_cache[key])
         else:
             command_cache_counts['writer_checks'] += 1
             result = uncached_command_evidence(action, query_context)
@@ -1524,17 +1573,27 @@ def make_joint_neighbor_callbacks(
             if len(command_cache) >= command_cache_counts['entry_limit']:
                 old = next(iter(command_cache))
                 command_cache_counts['retained_bytes'] -= len(old[1]) + len(command_cache.pop(old))
+                command_token_views.pop(old)
             command_cache[key] = payload
+            # These scalar tokens are already verified by the complete writer.
+            # Keep insertion order and return a fresh dict on every small read;
+            # full evidence callers retain the original independently decoded API.
+            command_token_views[key] = tuple(result['owner_physical_sha256'].items())
             command_cache_counts['retained_bytes'] += len(key[1]) + len(payload)
+            if tokens_only:
+                result = dict(command_token_views[key])
         guard(query_context)
         return result
+
+    def command_evidence(action, query_context=context):
+        return cached_command(action, query_context)
 
     def physical_rows(action, query_context=context):
         return command_evidence(action, query_context)['physical_rows']
 
     def physical_fingerprint(action, query_context):
         guard(query_context)
-        return command_evidence(action, query_context)['owner_physical_sha256']
+        return cached_command(action, query_context, tokens_only=True)
 
     def prepare(action, owned):
         with scoped(context):
@@ -1646,6 +1705,7 @@ def make_joint_neighbor_callbacks(
     return {'ownership': ownership, 'neighbors': neighbors, 'neighbor_evidence': neighbor_evidence,
             'physical_fingerprint': physical_fingerprint, 'physical_rows': physical_rows,
             'command_evidence': command_evidence, 'provenance': deepcopy(provenance),
+            'guard_physical_proofs': guard,
             'move_box': move_box,
             'fixed_meter_proofs': deepcopy(fixed_proofs),
             'command_cache_stats': lambda: dict(command_cache_counts),

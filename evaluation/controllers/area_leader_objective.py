@@ -468,8 +468,9 @@ def verify_joint_written_action(response, control, cfg, mapping, segment_vsl_val
     require(isinstance(response, dict), 'Validated joint response required')
     game, score, evidence = (response.get(k) for k in ('game', 'final_score', 'command_evidence'))
     held = response.get('schema') == 'validated-decision-hold/v1'
+    sdmpc = response.get('schema') == 'validated-sdmpc-response/v1'
     require(all(isinstance(v, dict) for v in (score, evidence)), 'Scored response and command evidence required')
-    if held:
+    if held or sdmpc:
         require(response.get('feasible') is True and response.get('finite_neighborhood_certified') is False
                 and response.get('maximum_finite_candidate_gap') is None, 'Invalid validated hold status')
         coverage = score.get('model_constraint_coverage', {})
@@ -514,6 +515,8 @@ def verify_joint_written_action(response, control, cfg, mapping, segment_vsl_val
         'scope': 'Scored model fields and written command files only; no native application or traffic certificate'}
     if held:
         result.update(response_kind='validated_actual_hold', nash_result=False, final_gap_checked=False)
+    if sdmpc:
+        result.update(response_kind='validated_sdmpc', nash_result=False, final_gap_checked=False)
     if action_json_path is not None:
         json_path, csv_path = Path(action_json_path), Path(action_csv_path)
         json_bytes, csv_bytes = json_path.read_bytes(), csv_path.read_bytes()
@@ -621,7 +624,7 @@ def shared_urban_quantities(follower, response, *, start_sec, horizon_steps):
             continue
         movement = key[len('movement:'):]
         if movement not in all_catalog:
-            raise ValueError('Unknown accepted movement route')
+            raise ValueError('Unknown accepted movement route: '+key)
         offset = (_joint_number(row['start_sec'], 'event start') - start) / dt
         index = int(round(offset))
         if (row['stage'] != 'urban' or abs(offset-index) > 1e-8 or not 0 <= index < count
@@ -739,7 +742,7 @@ def shared_quantity_constraints(follower, action, quantities, *, start_sec, hori
     substitutes the sum of physical service ceilings or changes the target.
     All tolerances are caller-supplied absolute tolerances in the stated unit.
     """
-    if np_mode not in ('dual', 'inactive', 'cap') or nuf_mode not in ('dual', 'equality'):
+    if np_mode not in ('dual', 'inactive', 'cap') or nuf_mode not in ('dual', 'equality', 'cap'):
         raise ValueError('Explicit supported shared quantity policies required')
     signals, kinds, catalog, nonowner = _joint_catalog(follower)
     net, sim = follower.cfg.network, follower.cfg.simulation
@@ -792,16 +795,17 @@ def shared_quantity_constraints(follower, action, quantities, *, start_sec, hori
     nuf_tol = _joint_number(nuf_tolerance_veh_h, 'N_UF tolerance', nonnegative=True)
     np_residual = _joint_number(nin-target_np, 'N_P residual')
     nuf_residual = _joint_number(nuf-target_nuf, 'N_UF residual')
-    np_violation, nuf_violation = max(0., np_residual), abs(nuf_residual)
+    np_violation = max(0., np_residual)
+    nuf_violation = max(0., nuf_residual) if nuf_mode == 'cap' else abs(nuf_residual)
     np_ok = np_violation <= np_tol if np_mode == 'cap' else None
-    nuf_ok = nuf_violation <= nuf_tol if nuf_mode == 'equality' else None
+    nuf_ok = nuf_violation <= nuf_tol if nuf_mode in ('equality', 'cap') else None
     return {'schema': 'shared-quantity-constraints/v1',
             'np': {'mode': np_mode, 'unit': 'veh', 'actual': nin, 'target': target_np,
                    'residual': np_residual, 'violation': np_violation,
                    'tolerance': np_tol, 'constraint_checked': np_mode == 'cap', 'satisfied': np_ok},
             'nuf': {'mode': nuf_mode, 'unit': 'veh/h', 'actual': nuf, 'target': target_nuf,
                     'residual': nuf_residual, 'violation': nuf_violation,
-                    'tolerance': nuf_tol, 'constraint_checked': nuf_mode == 'equality', 'satisfied': nuf_ok},
+                    'tolerance': nuf_tol, 'constraint_checked': nuf_mode in ('equality', 'cap'), 'satisfied': nuf_ok},
             'feasible': np_ok is not False and nuf_ok is not False,
             'net_inflow_veh_by_owner': nin_by_owner,
             'meter_rate_veh_h_by_owner': nuf_by_owner,

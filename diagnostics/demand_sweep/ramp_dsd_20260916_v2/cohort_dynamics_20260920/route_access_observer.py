@@ -15,72 +15,7 @@ from diagnostics.demand_sweep.ramp_dsd_20260916_v2.gain_response_20260919.probe 
 HERE=Path(__file__).resolve().parent
 
 
-def geometry(network):
-    root=ET.parse(network).getroot();routes={};exits={}
-    for d in root.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic'):
-        for r in d.findall('./vehRoutSta/vehicleRouteStatic'):
-            routes[int(d.get('no')),int(r.get('no'))]=[int(d.get('link'))]+[int(v.get('key')) for v in r.findall('./linkSeq/intObjectRef')]+[int(r.get('destLink'))]
-    for link in root.findall('./links/link'):
-        p=link.find('./fromLinkEndPt')
-        if p is not None and int(p.get('lane').split()[0])==71:
-            first=int(p.get('lane').split()[1]);count=len(link.findall('./lanes/lane'))
-            exits[int(link.get('no'))]=dict(lanes=list(range(first,first+count)),position_m=float(p.get('pos')))
-    assert set(exits)=={10634,10635,10642}
-    return routes,exits
-
-
-def observe(frame,routes,exits):
-    def intent(row):
-        vid,link,lane,pos,speed,length,decision,number,kind,nextlink,*_=row
-        # Current next-link is direct evidence on71, even without an active
-        # static route. Else preserve only an explicitly assigned static path.
-        path=routes.get((decision,number)) if kind and kind.lower()=='static' else None
-        planned=None
-        if path and 71 in path:
-            i=path.index(71)
-            if i+1<len(path) and path[i+1] in exits:planned=path[i+1]
-        chosen=nextlink if link==71 and nextlink in exits else planned
-        conflict=link==71 and nextlink in exits and planned is not None and nextlink!=planned
-        if conflict:chosen=None
-        return dict(connector=chosen,source='next_link' if link==71 and nextlink in exits and not conflict else 'assigned_static_route' if chosen else 'unknown',
-            route_next_link_conflict=conflict,required_lanes=exits[chosen]['lanes'] if chosen else None)
-    observations=[]
-    for row in frame['vehicles']:
-        if row[1] not in (10643,126,10641,10700,71):continue
-        target=intent(row)
-        observations.append(dict(vehicle=row[0],link=row[1],lane=row[2],position_m=row[3],speed_kmh=row[4],length_m=row[5],
-            route_decision=row[6],route_number=row[7],route_type=row[8],next_link=row[9],
-            current_lane_change_destination=row[10],lane_change=row[11],interaction_state=row[12],
-            interaction_target_type=row[13],interaction_target_number=row[14],**target))
-    lanes={}
-    for lane in range(1,6):
-        current=[r for r in observations if r['link']==71 and r['lane']==lane]
-        head=max(current,key=lambda r:r['position_m']) if current else None
-        head_state=None
-        if head:
-            head_state=dict(head);required=head['required_lanes']
-            head_state['currently_in_required_lane']=lane in required if required else None
-            head_state['adjacent_gaps']={}
-            for other in (lane-1,lane+1):
-                if not 1<=other<=5:continue
-                neighbors=[r for r in observations if r['link']==71 and r['lane']==other]
-                front=min((r for r in neighbors if r['position_m']>=head['position_m']),key=lambda r:r['position_m'],default=None)
-                back=max((r for r in neighbors if r['position_m']<head['position_m']),key=lambda r:r['position_m'],default=None)
-                head_state['adjacent_gaps'][str(other)]=dict(front_vehicle=front['vehicle'] if front else None,
-                    front_net_gap_m=front['position_m']-front['length_m']-head['position_m'] if front else None,
-                    front_speed_kmh=front['speed_kmh'] if front else None,back_vehicle=back['vehicle'] if back else None,
-                    back_net_gap_m=head['position_m']-head['length_m']-back['position_m'] if back else None,
-                    back_speed_kmh=back['speed_kmh'] if back else None)
-        counts=Counter(str(r['connector']) if r['connector'] else 'unknown' for r in current)
-        assert sum(counts.values())==len(current)
-        lanes[str(lane)]=dict(n=len(current),intent_counts=dict(counts),head=head_state)
-    off={}
-    for lane in (1,2):
-        current=[r for r in observations if r['link']==10643 and r['lane']==lane]
-        counts=Counter(str(r['connector']) if r['connector'] else 'unknown' for r in current)
-        assert sum(counts.values())==len(current)
-        off[str(lane)]=dict(n=len(current),planned_71_exit_counts=dict(counts))
-    return dict(time_s=frame['time_s'],urban_lanes=lanes,off_lanes=off,vehicles=observations)
+from evaluation.controllers.physical_urban_transport import geometry, observe
 
 
 def cohort_truth(current,frames):

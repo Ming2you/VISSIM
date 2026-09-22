@@ -18,63 +18,7 @@ from diagnostics.demand_sweep.ramp_dsd_20260916_v2.cohort_dynamics_20260920.off_
 HERE=Path(__file__).resolve().parent
 
 
-class CumulativeLane:
-    """One conserved link with matching initial-condition sending/receiving.
-
-    The existing receiving envelope's triangular FD is used at both ends.
-    Supplied outlet service limits cumulative discharge once, not once per
-    fractional packet followed by another catch-up time. Initial microscopic
-    positions undergo the envelope's declared finite-spacing projection.
-    """
-    def __init__(self,capacity,length,speed,vehicles,start,wave):
-        self.envelope=ReceivingEnvelope(length,length/capacity,speed/3.6,wave,[p for p,v,size in vehicles])
-        self.capacity=capacity;self.initial=len(vehicles);self.length=length;self.vfree=speed/3.6
-        self.start=self.time=start;self.admitted=self.departed=self.residence_veh_h=0.
-        self.internal_in=self.internal_out=0.;self.counters=0
-        self.arrivals=[];self.departure_history=[0.];self.offer_dt=1.
-
-    @property
-    def stock(self):return self.initial+self.admitted-self.departed
-
-    def sending_bound(self,elapsed):
-        env=self.envelope;lo=max(0.,self.length-self.vfree*elapsed)
-        points=[p for p in env.points if p>=lo]+[lo]
-        initial=env.initial+env.qmax*elapsed-env.critical*self.length+min(-env.initial_prefix(x)+env.critical*x for x in points)
-        upstream_time=elapsed-self.length/self.vfree
-        if upstream_time>=0:
-            upstream=math.fsum(n for t,n in self.arrivals if t<=upstream_time+1e-9)
-            initial=min(initial,self.initial+upstream)
-        return initial
-
-    @property
-    def ready(self):return max(0.,min(self.stock,self.sending_bound(self.time-self.start)-self.departed))
-
-    def receiving(self,dt=10):
-        elapsed=self.time-self.start;self.offer_dt=min(dt,elapsed)
-        if not self.offer_dt:return 0.
-        past=self.departure_history[:int(elapsed-self.offer_dt)+1]
-        return max(0.,min(self.capacity-self.stock,self.envelope.offer(elapsed,self.offer_dt,self.admitted,past)))
-
-    def check(self):
-        if not -1e-7<=self.stock<=self.capacity+1e-7:raise ArithmeticError('Cumulative lane storage invalid')
-        if self.departed>self.initial+self.admitted+1e-7:raise ArithmeticError('Cumulative lane loses vehicles')
-        self.counters+=1
-
-    def release(self,t,dt,service):
-        if t!=self.time or dt!=1 or not math.isfinite(service) or service<0:raise ValueError('Contiguous1s service required')
-        before=self.stock
-        available=max(0.,min(before,self.envelope.qmax*dt,self.sending_bound(t+dt-self.start)-self.departed))
-        served=min(available,service*dt/3600.)
-        self.departed+=served;self.time=t+dt;self.departure_history.append(self.departed)
-        # Uniform flow within each1s numerical interval; no unused service bank.
-        self.residence_veh_h+=(before-served/2)*dt/3600.
-        self.check();return served
-
-    def accept(self,t,amount,**unused):
-        if t!=self.time or not math.isfinite(amount) or amount<0 or amount>self.receiving(self.offer_dt)+1e-7:
-            raise ArithmeticError('Cumulative admission exceeds causal receiving envelope')
-        self.admitted+=amount
-        self.arrivals.append((t-self.start,amount));self.check()
+from evaluation.controllers.physical_urban_transport import CumulativeLane
 
 
 class CumulativeTests(unittest.TestCase):

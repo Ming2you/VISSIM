@@ -33,7 +33,7 @@ def settings(section):
     """Configuration is the only switch; ON has explicit quality thresholds."""
     if not isinstance(section, dict) or type(section.get("enabled")) is not bool:
         raise ValueError("head_observation requires an object with boolean enabled")
-    if set(section) - {"enabled", "min_green_sec", "min_crossings"}:
+    if set(section) - {"enabled", "min_green_sec", "min_crossings", "sample_interval_sec"}:
         raise ValueError("Unknown head observation option")
     if not section["enabled"]:
         return {"enabled": False}
@@ -42,7 +42,13 @@ def settings(section):
     green, count = number(section["min_green_sec"]), number(section["min_crossings"])
     if green <= 0 or green != int(green) or count <= 0 or count != int(count):
         raise ValueError("Positive integer minimum green seconds/crossings required")
-    return {"enabled": True, "min_green_sec": green, "min_crossings": count}
+    result = {"enabled": True, "min_green_sec": green, "min_crossings": count}
+    if 'sample_interval_sec' in section:
+        interval = section['sample_interval_sec']
+        if type(interval) is not int or interval not in (1, 5):
+            raise ValueError('Vehicle observation sample_interval_sec must be1 or5')
+        result['sample_interval_sec'] = interval
+    return result
 
 
 def validate_provenance(raw, window, options):
@@ -56,6 +62,8 @@ def validate_provenance(raw, window, options):
         raise ValueError("Head observation effective configuration mismatch")
     if manifest["env"].get("RW_SIGNAL_OBSERVATION") != "1" or manifest["env"].get("RW_QUEUE_WINDOW") != "1":
         raise ValueError("Head collector transport was not configured by runner")
+    if options.get('sample_interval_sec',1)!=1 and manifest['env'].get('RW_VEHICLE_OBSERVATION_INTERVAL_SEC')!=str(options['sample_interval_sec']):
+        raise ValueError('Vehicle sampling transport differs from configured cadence')
     chain = evidence["config_chain"]
     if not chain or chain[0]["sha256"] != manifest["files"]["tuning"]["sha256"]:
         raise ValueError("Head observation tuning provenance mismatch")
@@ -145,6 +153,7 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
         steps = number(window["transition_count"])
         if (end != number(state_json["sim_sec"]) or end < start
                 or steps != end - start or window.get("cadence_sec") != 1
+                or window.get('vehicle_cadence_sec',1) != options.get('sample_interval_sec',1)
                 or window.get("exposure_method") != "actual_left_step_hold"):
             raise ValueError("Head observation time/exposure contract mismatch")
         valid = window.get("clock_complete") is True and steps > 0

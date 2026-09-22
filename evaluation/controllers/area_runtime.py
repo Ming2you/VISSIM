@@ -67,7 +67,7 @@ def pair_initial_arrival_releases(state, cfg):
     This is initialization only, before any candidate flow has been scheduled.
     """
     from src.models import urban_queue_model as uqm
-    sinks = set(uqm.sink_storage_links(cfg))
+    sinks = set(uqm.sink_storage_links(cfg)) | set(getattr(cfg.network,'lane_plant_tail_stores',()))
     off_stores = set(cfg.network.off_ramp_storage_link.values())
     added = removed_off = replaced = 0.0
     for source in cfg.network.urban_link_storage_veh:
@@ -105,10 +105,54 @@ def configure_initial_transit(cfg, tuning, state):
     return dict(metadata)
 
 
+def configure_final_audit_optimizations(network, tuning):
+    """Explicit proof reuse/pipelining without changing the default runtime graph."""
+    section = (tuning or {}).get('control_area_objective') or {}
+    names = ('reuse_final_audit_physical_proofs', 'audit_response_pipeline')
+    values = {name: section.get(name, False) for name in names}
+    for name, value in values.items():
+        if type(value) is not bool:
+            raise ValueError('control_area_objective.'+name+' must be boolean')
+    joint = (tuning or {}).get('adapter', {}).get('joint_owner_game') or {}
+    if any(values.values()) and joint.get('defer_candidate_final_audit') is not True:
+        raise ValueError('Final audit optimizations require deferred selected-candidate auditing')
+    if values['audit_response_pipeline']:
+        if (not values['reuse_final_audit_physical_proofs']
+                or joint.get('ignore_wall_time_limits') is not True
+                or joint.get('response_cache_enabled') is not True
+                or type(joint.get('response_parallel_workers')) is not int
+                or joint['response_parallel_workers'] not in (2, 3, 4, 8)
+                or section.get('response_scheduling') is None
+                or section.get('prefetch_complete_sweep_responses', False)):
+            raise ValueError('Audit pipeline requires proof reuse, unlimited time, parallel cache and bounded scheduling')
+        response_scheduling_options(section['response_scheduling'])
+    # A failed request must not partially install either optimization.
+    for name, value in values.items():
+        attr = 'control_area_'+name
+        if value:
+            setattr(network, attr, True)
+        elif hasattr(network, attr):
+            delattr(network, attr)
+
+
+def configure_compact_signal_clock(network, tuning):
+    section = (tuning or {}).get('control_area_objective') or {}
+    value = section.get('compact_signal_clock_cache', False)
+    if type(value) is not bool:
+        raise ValueError('control_area_objective.compact_signal_clock_cache must be boolean')
+    attr = 'control_area_compact_signal_clock_cache'
+    if value:
+        setattr(network, attr, True)
+    elif hasattr(network, attr):
+        delattr(network, attr)
+
+
 def configure(adapter, cfg, tuning, state, detector_mapping):
     section = (tuning or {}).get('control_area_objective') or {}
     if not section.get('enabled', False):
         return {}
+    configure_final_audit_optimizations(cfg.network, tuning)
+    configure_compact_signal_clock(cfg.network, tuning)
     if not getattr(cfg.network, 'conservative_initial_transit', False) or not hasattr(state, '_conservative_initial_transit_applied'):
         raise ValueError('area objective requires urban.conservative_initial_transit initialized before area configuration')
     if 'beta_seconds' not in section:
@@ -273,13 +317,18 @@ def install(adapter, cfg):
         # A copied rollout endpoint can be called on an already predicted state.
         # Retain its cohorts, but reset this evaluation window's accumulated score.
         candidate._control_area_ledger = ModelAreaLedger(copy.deepcopy(ledger.stocks),
-                                                       capture_response=capture_response)
+            capture_response=capture_response,
+            indexed_coverage=getattr(cfg.network, 'sdmpc_options', {}).get('indexed_coverage', False),
+            immutable_audit=getattr(cfg.network, 'sdmpc_options', {}).get('immutable_audit', False),
+            primal_audit=getattr(cfg.network, 'sdmpc_options', {}).get('primal_audit', False))
         spec = replace(objective_spec, abort_above=None, far_enabled=False,
                        price_hinge=False, leader_hinge=False, protected_queue=False)
         from evaluation.controllers import area_meter_finalization
         control = area_meter_finalization.for_endpoint(previous, action_schedule, spec)
         get_ledger(candidate).record_freeway_operands(candidate, control, initial=True)
-        result = original(candidate, control, forecast, (), spec)
+        from evaluation.controllers.sdmpc_prediction_cache import scope as prediction_scope
+        with prediction_scope(cfg):
+            result = original(candidate, control, forecast, (), spec)
         closing = get_ledger(result.states[-1]) if result.states else get_ledger(candidate)
         if result.states:
             closing.assert_stocks(model_inventory(result.states[-1], cfg))

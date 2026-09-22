@@ -9,6 +9,7 @@ import copy
 import importlib
 import json
 import math
+import struct
 from functools import lru_cache
 from collections import OrderedDict
 
@@ -420,7 +421,63 @@ def _immutable_plan(value):
     return True
 
 
-def _clock_key(control, cfg, signal, values, raw, contract):
+_PHASE_SET = frozenset(PHASES)
+
+
+_NATIVE_BASIS_KEYS = frozenset((
+    'schema_version', 'kind', 'cycle_sec', 'amber_sec', 'all_red_sec',
+    'phase_order', 'idle_after_phase_sec', 'native_green_sec',
+    'program_offset_sec', 'controller_offset_sec', 'reference_offset_sec',
+    'source_path', 'active_prog_no'))
+
+
+def _compact_native_signature(raw):
+    """Snapshot every native-payload operand, never a mutable object's identity.
+
+    This narrow fast path accepts only the captured native-clock-v1 shape and
+    exact JSON builtin types. Extra/missing fields, custom objects and unusual
+    representations fall back to the original JSON key and original guards.
+    Numeric bytes preserve signed zero as well as every finite float bit. The
+    source path/program/offset fields are included even when they do not change
+    the windows, so a source-basis mutation cannot reuse an earlier proof.
+    """
+    if type(raw) is not dict:
+        return None
+    basis = raw.get('native_clock_basis')
+    axis = raw.get('axis_green_sec')
+    if type(basis) is not dict or type(axis) is not dict:
+        return None
+    # Check key types before equality: subclasses may spoof builtin equality.
+    if (tuple(map(type, basis)) != (str,) * len(basis)
+            or basis.keys() != _NATIVE_BASIS_KEYS
+            or tuple(map(type, axis)) != (str,) * len(axis)
+            or axis.keys() != _PHASE_SET):
+        return None
+    order, idle, source = (basis['phase_order'], basis['idle_after_phase_sec'],
+                           basis['native_green_sec'])
+    if type(order) not in (list, tuple) or type(idle) is not dict or type(source) is not dict:
+        return None
+    order, idle_keys = tuple(order), tuple(idle)
+    if (tuple(map(type, order)) != (str,) * len(order)
+            or tuple(map(type, idle_keys)) != (str,) * len(idle_keys)
+            or tuple(map(type, source)) != (str,) * len(source)
+            or source.keys() != _PHASE_SET):
+        return None
+    strings = (basis['schema_version'], basis['kind'], basis['source_path'])
+    if tuple(map(type, strings)) != (str, str, str) or type(basis['active_prog_no']) is not int:
+        return None
+    numbers = (raw.get('native_cycle_sec'), *(axis[p] for p in PHASES),
+               basis['cycle_sec'], basis['amber_sec'], basis['all_red_sec'],
+               *(source[p] for p in PHASES), basis['program_offset_sec'],
+               basis['controller_offset_sec'], basis['reference_offset_sec'],
+               *idle.values())
+    if tuple(map(type, numbers)) != (float,) * len(numbers) or not all(map(math.isfinite, numbers)):
+        return None
+    return (strings, basis['active_prog_no'], order, idle_keys,
+            struct.pack('!' + str(len(numbers)) + 'd', *numbers))
+
+
+def _clock_key(control, cfg, signal, values, raw, contract, *, native_signature=None):
     net = cfg.network
     # Missing effective-total overrides can trigger the original cycle getter's
     # fallback diagnostics. Do not silently suppress those observable calls.
@@ -443,19 +500,25 @@ def _clock_key(control, cfg, signal, values, raw, contract):
     key = (signal, tuple(values[p] for p in PHASES), live, minimum, total,
            tuple(plant_cycle.SIGNAL_GREEN_WRITE_CLAMP_SEC), raw['_segments'], raw['_order'],
            contract['amber'], contract['all_red'], writer, offset_operand)
-    payload = _native_payload(raw)
+    payload = _native_payload(raw) if native_signature is None else native_signature
     if payload is not None:
         key += (payload, getattr(net, 'native_signal_minimum_policy', None), float(net.signal_cycle_length(signal)))
     return key
 
 
 def _validated_clock(control, cfg, signal, values, raw, contract, *, reusable_plans=True):
-    key = _clock_key(control, cfg, signal, values, raw, contract)
+    signature = None
+    if reusable_plans and getattr(cfg.network, 'control_area_compact_signal_clock_cache', False):
+        signature = _compact_native_signature(raw)
+    key = _clock_key(control, cfg, signal, values, raw, contract, native_signature=signature)
     # Check every operand before dictionary equality. A custom numeric object
     # can hash/compare equal to a builtin while converting to a different value.
     cacheable = key is not None
     if cacheable:
-        cacheable = (_immutable(key[:6] + key[8:]) and
+        # The compact native signature has already proved every leaf's exact
+        # type and snapshotted its value. Retain all original dynamic guards.
+        dynamic = key[:6] + key[8:] if signature is None else key[:6] + key[8:12] + key[13:]
+        cacheable = (_immutable(dynamic) and
                      _immutable_plan(key[6]) and _immutable_plan(key[7])) if reusable_plans else _immutable(key)
     if not cacheable:
         _STATS['clock_bypasses'] += 1

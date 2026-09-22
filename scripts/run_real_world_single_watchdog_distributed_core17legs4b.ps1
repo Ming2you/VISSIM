@@ -96,7 +96,7 @@ function Read-HeadObservationSettings([string]$TuningFile) {
       $value = $capacity.head_observation
       if ($value -isnot [PSCustomObject]) { throw "head_observation requires an object" }
       foreach ($property in $value.PSObject.Properties) {
-        if ($property.Name -notin @('enabled','min_green_sec','min_crossings')) { throw "Unknown head observation option" }
+        if ($property.Name -notin @('enabled','min_green_sec','min_crossings','sample_interval_sec')) { throw "Unknown head observation option" }
         $options[$property.Name] = $property.Value
       }
     }
@@ -107,6 +107,11 @@ function Read-HeadObservationSettings([string]$TuningFile) {
   }
   if ($options.enabled -isnot [bool]) { throw "head_observation.enabled must be boolean" }
   if ($options.enabled) {
+    if ($options.Contains('sample_interval_sec')) {
+      $v=$options.sample_interval_sec
+      if (($v -isnot [int] -and $v -isnot [long]) -or $v -notin @(1,5)) { throw 'Vehicle observation sample_interval_sec must be1 or5' }
+      $options.sample_interval_sec=[int]$v
+    }
     if ($measured -isnot [bool] -or -not $measured) { throw "head observation requires urban.capacity.measured=true" }
     foreach ($key in @('min_green_sec','min_crossings')) {
       $value = $options[$key]
@@ -116,7 +121,21 @@ function Read-HeadObservationSettings([string]$TuningFile) {
       $options[$key] = $number
     }
   } else { $options = [ordered]@{enabled=$false} }
-  return [ordered]@{config_key='urban.capacity.head_observation'; options=$options; config_chain=$chain}
+  $result = [ordered]@{config_key='urban.capacity.head_observation'; options=$options; config_chain=$chain}
+  $lanePlant = $null
+  for ($i=$documents.Count-1; $i -ge 0; $i--) {
+    if ($documents[$i].freeway -and $documents[$i].freeway.PSObject.Properties['lane_plant']) {
+      $lanePlant = $documents[$i].freeway.lane_plant
+    }
+  }
+  if ($null -ne $lanePlant) {
+    if ($lanePlant -isnot [string] -or [string]::IsNullOrWhiteSpace($lanePlant) -or -not $options.enabled) {
+      throw 'freeway.lane_plant requires a manifest and enabled head observation'
+    }
+    $manifestPath = Resolve-RepoPath $lanePlant
+    $result.lane_plant = [ordered]@{path=$manifestPath; sha256=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+  }
+  return $result
 }
 
 function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
@@ -127,6 +146,8 @@ function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
   # Transport only: inherited RW_* values can never activate this feature.
   $env:RW_SIGNAL_OBSERVATION = $(if ($current.options.enabled) { '1' } else { '0' })
   $env:RW_SIGNAL_OBSERVATION_CONFIG_SHA256 = $(if ($current.options.enabled) { $current.config_chain[0].sha256 } else { '' })
+  $env:RW_LANE_PLANT_OBSERVATION = $(if ($current.lane_plant) { '1' } else { '0' })
+  $env:RW_VEHICLE_OBSERVATION_INTERVAL_SEC = $(if ($current.options.enabled -and $current.options.Contains('sample_interval_sec')) { [string]$current.options.sample_interval_sec } else { '1' })
   if ($current.options.enabled) { $env:RW_QUEUE_WINDOW = '1' }
 }
 

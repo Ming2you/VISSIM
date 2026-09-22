@@ -17,50 +17,7 @@ from diagnostics.demand_sweep.ramp_dsd_20260916_v2.gain_response_20260919.probe 
 HERE=Path(__file__).resolve().parent
 
 
-class ReceivingEnvelope:
-    def __init__(self,length,spacing,v_free,wave,positions):
-        if any(not math.isfinite(x) or x<=0 for x in (length,spacing,v_free,wave)):
-            raise ValueError('Positive finite link geometry and wave speeds required')
-        p=sorted(positions);self.length=length;self.spacing=spacing;self.wave=wave
-        self.initial=len(p);self.capacity=length/spacing;self.jam=1/spacing
-        self.critical=self.jam*wave/(v_free+wave);self.qmax=v_free*self.critical
-        self.lag=length/wave
-        if len(p)>self.capacity+1e-8 or any(not 0<=x<=length for x in p):
-            raise ValueError('Initial vehicles exceed physical storage/position range')
-        # Isotonic least-squares projection: no lost vehicles, no extra storage.
-        # Adjacent microscopic gaps may be smaller than the mean jam spacing.
-        blocks=[]
-        for i,x in enumerate(p):
-            blocks.append([x-(i+1)*spacing,1])
-            while len(blocks)>1 and blocks[-2][0]/blocks[-2][1]>blocks[-1][0]/blocks[-1][1]:
-                b=blocks.pop();blocks[-1][0]+=b[0];blocks[-1][1]+=b[1]
-        offsets=[];room=length-len(p)*spacing
-        for total,n in blocks:offsets.extend([min(room,max(0.,total/n))]*n)
-        self.positions=[u+(i+1)*spacing for i,u in enumerate(offsets)]
-        self.projection_max_m=max((abs(a-b) for a,b in zip(p,self.positions)),default=0.)
-        self.points=sorted({0.,length,*self.positions,*(x-spacing for x in self.positions)})
-
-    def initial_prefix(self,x):
-        return sum(min(1.,max(0.,(x-(p-self.spacing))/self.spacing)) for p in self.positions)
-
-    def initial_bound(self,elapsed):
-        limit=min(self.length,self.wave*elapsed)
-        points=[p for p in self.points if p<=limit]+[limit]
-        return self.qmax*elapsed+min(-self.initial_prefix(x)+self.critical*x for x in points)
-
-    def offer(self,elapsed,dt,admitted,departures):
-        if not elapsed>=dt>0 or admitted<0:raise ValueError('Invalid causal receiving interval')
-        # departures is D(t), at every integer second since initialization;
-        # only observations <= the CURRENT interval start may be provided.
-        if len(departures)-1>elapsed-dt+1e-8:raise ValueError('Future departure observations supplied')
-        bound=self.initial_bound(elapsed)
-        lagged=elapsed-self.lag
-        if lagged>=0:
-            if lagged>len(departures)-1+1e-8:raise ValueError('Wave reaches beyond known departure history')
-            lo=int(lagged);hi=min(lo+1,len(departures)-1);f=lagged-lo
-            delayed=departures[lo]*(1-f)+departures[hi]*f
-            bound=min(bound,delayed+self.capacity-self.initial)
-        return max(0.,min(self.qmax*dt,bound-admitted))
+from evaluation.controllers.physical_urban_transport import ReceivingEnvelope
 
 
 class ReceivingTests(unittest.TestCase):

@@ -110,6 +110,10 @@ def configure_input(cfg,row,tree,links,physical,contract,raw):
 
 
 def _inputs(cfg):
+    from evaluation.controllers.sdmpc_prediction_cache import input_catalog
+    cached = input_catalog(cfg, 'native_choice_prehead')
+    if cached is not None:
+        return cached
     return {n:r for n,r in getattr(cfg.network,'native_internal_inputs',{}).get('inputs',{}).items() if r.get('kind')=='native_choice_prehead'}
 
 
@@ -121,6 +125,8 @@ def _due(state,cfg,origin,step,distance,speed=None):
 
 
 def _check(state,cfg):
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_check(state,cfg)
     local=state.native_input_prehead_state;inputs=_inputs(cfg);grouped=defaultdict(float)
     for cohort in local['cohorts']:
         n=cohort['vehicles']
@@ -165,6 +171,8 @@ def initialize(state,cfg,raw):
 def receive_generated(state,cfg,no,vehicles,step):
     inputs=_inputs(cfg)
     if no not in inputs:return False
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_generate(state,cfg,no,vehicles,step)
     local=state.native_input_prehead_state;spec=inputs[no]['prehead_spec']
     if local['last_step']!=step:raise ValueError('Native pre-head generation requires current advance')
     distance=sum(s['stop']-s['start'] for s in spec['segments_to_decision'])
@@ -176,6 +184,8 @@ def receive_generated(state,cfg,no,vehicles,step):
 def advance(state,cfg,step):
     inputs=_inputs(cfg)
     if not inputs:return {}
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_advance(state,cfg,step)
     from src.models import urban_queue_model as uqm
     local=state.native_input_prehead_state
     ledger=get_ledger(state)
@@ -214,6 +224,8 @@ def _blocked(local,inputs,movement,step):
 def limit_intended(state,cfg,movement,available,intended,step):
     inputs=_inputs(cfg)
     if not inputs:return intended
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_limit(state,cfg,movement,available,intended,step)
     blocked=_blocked(state.native_input_prehead_state,inputs,movement,step)
     return min(intended,max(0.,available-blocked))
 
@@ -221,6 +233,8 @@ def limit_intended(state,cfg,movement,available,intended,step):
 def receive_accepted(state,cfg,movement,vehicles,step):
     inputs=_inputs(cfg)
     if not inputs:return
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_accept(state,cfg,movement,vehicles,step)
     local=state.native_input_prehead_state
     if local['last_step']!=step:raise ValueError('Native pre-head accepted service has wrong step')
     if any(movement in r['prehead_spec']['wn_movements'] for r in inputs.values()):
@@ -240,6 +254,8 @@ def receive_accepted(state,cfg,movement,vehicles,step):
 def finish_step(state,control,cfg,step):
     inputs=_inputs(cfg)
     if not inputs:return {}
+    from evaluation.controllers import sdmpc_aggregate as aggregate
+    if aggregate.enabled(cfg):return aggregate.prehead_finish(state,control,cfg,step)
     from src.models import urban_queue_model as uqm
     local=state.native_input_prehead_state;additions=[];served=overdraw=0.
     ledger=get_ledger(state)

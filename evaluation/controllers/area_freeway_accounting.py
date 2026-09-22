@@ -96,7 +96,7 @@ def continuity_vehicle_counts(state, cfg):
             for link in net.freeway_links}
 
 
-def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction, demand: _mn.DemandStep, cfg: _mn.ExperimentConfig, offramp_capacity_veh_h: _mn.Dict[str, float] | None=None, ramp_release_veh_h: _mn.Dict[str, float] | None=None, ramp_release_diagnostics: _mn.Dict[str, float] | None=None, update_ramp_queues: bool=True, include_ramp_queue_ttt: bool=True) -> _mn.Tuple[float, _mn.Dict[str, float]]:
+def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction, demand: _mn.DemandStep, cfg: _mn.ExperimentConfig, offramp_capacity_veh_h: _mn.Dict[str, float] | None=None, ramp_release_veh_h: _mn.Dict[str, float] | None=None, ramp_release_diagnostics: _mn.Dict[str, float] | None=None, update_ramp_queues: bool=True, include_ramp_queue_ttt: bool=True, complete_allocator_scope: bool=True) -> _mn.Tuple[float, _mn.Dict[str, float]]:
     """Spec 3.1/3.2 METANET plant를 정확히 한 `T_f` step만 전진한다."""
     net = cfg.network
     sim = cfg.simulation
@@ -155,6 +155,8 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             state.ramp_queue[ramp] = max(0.0, min(cap_r, next_queue))
     lane_now_by_link, lane_diag_start = _mn.effective_lane_profile(state, cfg, demand)
     for link in net.freeway_links:
+        direction_params = (getattr(net, "metanet_parameters_by_direction", {}) or {}).get(link, {})
+        delta_m = float(direction_params.get("metanet_delta_merge", getattr(net, "metanet_delta_merge", 0.0)) or 0.0)
         rhos = list(state.freeway_density[link])
         speeds = list(state.freeway_speed[link])
         lengths = cell_lengths_km(cfg, link, len(rhos))
@@ -320,7 +322,9 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             v_eff = _mn.effective_desired_speed_kmh(rho, net.v_free, net.rho_crit, vsl_i, net.alpha_vsl, vsl_active_i, net.metanet_a_m, getattr(net, 'vsl_fd_two_branch', False), net.rho_max, float(getattr(net, 'rho_crit_two_branch', 0.0) or 0.0))
             v_new = _mn.metanet_speed_update_kmh(speeds[i], upstream_speed, rho, downstream_rho, v_eff, dt_h, lengths[i], net.metanet_tau_h, _mn.select_anticipation_nu(rho, net, vsl_i), net.metanet_kappa_veh_km_lane, net.v_min)
             if delta_m > 0.0 and ramp_in_by_link[link][i] > 0.0:
-                v_new = max(net.v_min, v_new - delta_m * dt_h * ramp_in_by_link[link][i] * speeds[i] / (lengths[i] * max(lanes_now[i], 1e-09) * (rho + net.metanet_kappa_veh_km_lane)))
+                merge_kappa = (net.freeway_segment_params[link][i]["metanet_kappa_veh_km_lane"]
+                    if direction_params else net.metanet_kappa_veh_km_lane)
+                v_new = max(net.v_min, v_new - delta_m * dt_h * ramp_in_by_link[link][i] * speeds[i] / (lengths[i] * max(lanes_now[i], 1e-09) * (rho + merge_kappa)))
             if v_new <= net.v_min + 1e-09:
                 speed_projection_count += 1
             if boundary_speed_cap is not None and v_new > boundary_speed_cap:
@@ -436,12 +440,15 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
     diagnostics['speed_projection_count'] = float(speed_projection_count)
     diagnostics['mainline_origin_queue_total_veh'] = float(sum((max(0.0, q) for q in state.mainline_origin_queue.values())))
     diagnostics['density_exceedance_count'] = float(sum((1 for values in state.freeway_density.values() for rho in values if rho > net.rho_crit)))
-    if capture:
+    if capture and complete_allocator_scope:
         ledger.complete_constraint_coverage('freeway_allocator')
     return (float(freeway_ttt), diagnostics)
 
 def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAction, demand: _cp.DemandStep, cfg: _cp.ExperimentConfig) -> _cp.CoupledStepResult:
     """Spec 3.4.3의 `T_c -> T_f -> T_u` nested order로 한 control interval을 전진한다."""
+    if getattr(cfg.network,'lane_plant_enabled',False):
+        from evaluation.controllers.lane_coupling import run_interval
+        return run_interval(state,control,demand,cfg)
     from evaluation.controllers import area_meter_finalization
     _routing.validate_origin_demand(state, cfg, demand)
     # Box-walk may change rates after the first interval; keep the same
@@ -535,7 +542,11 @@ def _run_coupled_interval_events(state: _cp.TrafficState, control: _cp.ControlAc
         diagnostics['offramp_route_inventory_enabled'] = 1.
     diagnostics.update(ur_diag)
     if getattr(cfg.network, 'control_area_pack_completed_response_records', False):
-        _area.get_ledger(state).pack_completed_response_records()
+        if (getattr(cfg.network,'sdmpc_options',None) or {}).get('compact_audit',False):
+            from evaluation.controllers.sdmpc_tangent_audit import compact_enabled
+            _area.get_ledger(state).pack_completed_response_records(compact=compact_enabled(cfg))
+        else:
+            _area.get_ledger(state).pack_completed_response_records()
     return _cp.CoupledStepResult(freeway_ttt=float(freeway_ttt), urban_ttt=float(urban_ttt), diagnostics=diagnostics)
 
 def install(adapter, cfg):

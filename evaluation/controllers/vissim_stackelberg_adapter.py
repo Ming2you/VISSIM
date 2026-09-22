@@ -8980,7 +8980,8 @@ def install_freeway_segment_runtime(cfg) -> dict[str, float]:
                 _FW_SEG_CTX["response_rho_crit"] = float(_FW_SEG_CTX["p"].get("rho_crit", cfg_.network.rho_crit))
                 # 차로감소항 재료. Δλ = λ_i − λ_{i+1} (감소일 때만 양수) 와 φ 를 여기서 실어 둔다 —
                 # metanet_speed_update_kmh 는 cfg 를 못 본다.
-                _phi = _as_float(getattr(cfg_.network, "freeway_lane_drop_phi", 0.0), 0.0)
+                _direction = (getattr(cfg_.network, "metanet_parameters_by_direction", {}) or {}).get(str(link), {})
+                _phi = _as_float(_direction.get("freeway_lane_drop_phi", getattr(cfg_.network, "freeway_lane_drop_phi", 0.0)), 0.0)
                 _dl = 0.0
                 if _phi > 0.0:
                     # 유효 차로(off-ramp 스필백·incident 감소가 반영된 값)를 쓴다. 정적 기하로 읽으면
@@ -9411,6 +9412,10 @@ def demand_from_state(
         for observed in forecast_states(state_json, cfg, horizon_steps):
             freeway, urban, ramps, _ = profiled_demand_rates(
                 observed, cfg, calibration, detector_mapping)
+            if cfg.network.native_input_schedule.get('freeway_link_by_input'):
+                freeway=dict(observed['demand']['native_freeway_mainline_veh_h'])
+                if set(freeway)!=set(cfg.network.freeway_links):
+                    raise ValueError('Directed forecast requires native demand for each physical freeway input')
             if not forecast:
                 first_peeloff_metadata = globals().get('_LAST_GATE_PEELOFF_META')
             forecast.append(DemandStep(freeway_mainline=freeway, urban_boundary=urban,
@@ -12332,7 +12337,9 @@ def joint_owner_game_settings(tuning, cfg, controller_variant):
         'shared_tolerance', 'np_tolerance_veh', 'nuf_tolerance_veh_h', 'traversal',
         'max_leader_candidates', 'leader_time_budget_sec', 'leader_candidate_order'}
     optional = {'decision_time_budget_sec', 'finalization_reserve_sec', 'response_cache_enabled',
-                'response_parallel_workers', 'ignore_wall_time_limits'}
+                'response_parallel_workers', 'ignore_wall_time_limits',
+                'retain_objective_comparison', 'representative_neighbors', 'search_owner_candidate_limit',
+                'defer_candidate_final_audit', 'skip_selected_final_audit'}
     if not isinstance(section, dict) or not required <= set(section) or set(section) - required - optional:
         raise ValueError('adapter.joint_owner_game requires all explicit work limits and tolerances')
     if controller_variant not in ('wu-link', 'no-control'):
@@ -12355,8 +12362,18 @@ def joint_owner_game_settings(tuning, cfg, controller_variant):
             raise ValueError('Finite nonnegative joint work limit/tolerance required: ' + key)
     if section['time_budget_sec'] == 0 or section['leader_time_budget_sec'] == 0:
         raise ValueError('Joint execution needs positive explicit time budgets')
-    if section['traversal'] not in ('sequential', 'round_robin', 'round_robin_balanced') or section['leader_candidate_order'] != 'diverse':
+    if (section['traversal'] not in ('sequential', 'round_robin', 'round_robin_balanced', 'sequential_balanced')
+            or section['leader_candidate_order'] not in ('diverse', 'hold_np_nearby')):
         raise ValueError('Unsupported explicit joint traversal or leader candidate order')
+    for key in ('retain_objective_comparison', 'representative_neighbors', 'defer_candidate_final_audit', 'skip_selected_final_audit'):
+        if key in section and type(section[key]) is not bool:
+            raise ValueError('Joint diagnostic/search flag must be boolean: ' + key)
+    if section.get('skip_selected_final_audit', False) and not section.get('defer_candidate_final_audit', False):
+        raise ValueError('skip_selected_final_audit requires defer_candidate_final_audit')
+    if 'search_owner_candidate_limit' in section:
+        limit = section['search_owner_candidate_limit']
+        if type(limit) is not int or limit < 1:
+            raise ValueError('search_owner_candidate_limit must be a positive integer')
     result = dict(section)
     if type(result.get('ignore_wall_time_limits', False)) is not bool:
         raise ValueError('ignore_wall_time_limits must be boolean')
@@ -12463,7 +12480,15 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
                              worker_state_json=None, worker_detector_mapping=None):
     """Select final shared follower responses and preserve a bounded decision receipt."""
     if getattr(cfg.network, "freeway_variable_cell_lengths", False):
-        raise NotImplementedError("Variable-cell geometry is validated for the freeway component only; the local GNE kernel must be updated before joint control")
+        # SDMPC differentiates the complete coupled endpoint and never calls
+        # the legacy uniform-cell local GNE dynamics. Only this explicit lane
+        # runtime may use variable geometry in joint selection.
+        if not (getattr(cfg.network, 'sdmpc_options', None) is not None
+                and getattr(cfg.network, 'lane_plant_enabled', False)
+                and all(hasattr(state, name) for name in ('lane_freeway_runtime',
+                    'lane_ramp_runtime', 'lane_offramp_runtime', 'lane_urban_runtime'))
+                and cfg.simulation.T_f_sec == cfg.simulation.T_u_sec == 1):
+            raise NotImplementedError("Variable-cell joint control requires the complete one-second lane runtime and SDMPC; the local GNE kernel remains unsupported")
     from evaluation.controllers import area_follower_objective as joint
     from src.controllers.nash_solver import NashResult
     from src.controllers.stackelberg_mpc import DecisionResult
@@ -12495,6 +12520,17 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
     try:
         historical['previous'], report['previous_vsl_expansion'] = joint.expand_shared_vsl_action(
             historical['previous'], cfg, segment_vsl_func=segment_vsl_func)
+        if getattr(getattr(cfg, 'network', None), 'sdmpc_options', None) is not None:
+            import copy
+            from evaluation.controllers import sdmpc
+            response, details = sdmpc.solve(controller, state, forecast, historical['previous'], mapping,
+                options=options, runtime_sources=sources, worker_bootstrap=bootstrap, budget=budget,
+                progress=progress, previous_path=previous_path)
+            report.update(schema='sdmpc-runtime-decision/v1', selection=details,
+                leader_objective=response['final_score']['objective_veh_h'], completed=True)
+            result = DecisionResult(control=copy.deepcopy(response['control']), leader_objective=report['leader_objective'],
+                nash=None, metadata={'sdmpc_active': 1.})
+            return result, response, report
         selection = joint.solve_runtime_joint_leader(controller, state, forecast,
             historical['previous'], mapping, runtime_sources=sources, options=options, progress=progress, budget=budget,
             worker_bootstrap=bootstrap)
@@ -12884,6 +12920,12 @@ def main() -> None:
         physical_projection_input=physical_projection_input,
     )
     joint_options = joint_owner_game_settings(tuning, cfg, args.controller)
+    from evaluation.controllers import sdmpc
+    sdmpc_options = sdmpc.configure(tuning, cfg, args.controller)
+    if sdmpc_options is not None:
+        if joint_options is None:
+            raise ValueError('SDMPC requires the existing physical joint execution envelope')
+        adapter_runtime_metadata['sdmpc_cost_ownership'] = sdmpc.install_cost_ownership(cfg, detector_mapping)
     if joint_options is not None:
         from evaluation.controllers.area_follower_objective import DecisionBudget
         decision_budget = DecisionBudget(joint_options['decision_time_budget_sec'],
@@ -13260,9 +13302,14 @@ def main() -> None:
                     worker_state_json=state_json, worker_detector_mapping=detector_mapping)
                 control = result.control
                 metadata['leader_objective'] = result.leader_objective
-                metadata['joint_owner_game_active'] = 1.
+                metadata['joint_owner_game_active'] = 0. if sdmpc_options is not None else 1.
                 metadata['joint_leader_selection'] = joint_report['selection']
-                if result.nash is None:
+                if sdmpc_options is not None:
+                    metadata['sdmpc_active'] = True
+                    metadata['sdmpc_state'] = joint_report['selection']['price_state']
+                    metadata['sdmpc_constraints'] = joint_report['selection']['final_constraints']
+                    metadata['nash_objective'] = None
+                elif result.nash is None:
                     metadata['joint_validated_actual_hold'] = joint_report['validated_actual_hold']
                     metadata['joint_hold_constraints'] = joint_report['selection']['actual_hold_validation']
                     metadata['nash_objective'] = None
@@ -13455,6 +13502,8 @@ def main() -> None:
             if written_joint_receipt is not None:
                 out_json.with_suffix('.joint_written.json').write_text(
                     json.dumps(written_joint_receipt, ensure_ascii=False, indent=2), encoding='utf-8')
+            if sdmpc_options is not None and metadata.get('sdmpc_active') is True:
+                Path(str(out_json)+'.sdmpc_pending').write_text('Native application required\n', encoding='utf-8')
             if decision_budget:
                 decision_budget.check('completed_action_output', final=True)
     except Exception as exc:

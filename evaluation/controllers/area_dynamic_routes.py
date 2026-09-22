@@ -42,7 +42,8 @@ def configure(cfg, detectors, tuning, *, state_json):
     if hashlib.sha256(calibration_path.read_bytes()).hexdigest() != document['calibration']['sha256']:
         raise ValueError('Frozen offline route calibration hash differs')
     calibration = json.loads(calibration_path.read_text(encoding='utf-8'))
-    if calibration['network'] != document['network']:
+    from evaluation.controllers.scenario_prior_transfer import training_network
+    if calibration['network'] != training_network(document,document['calibration']):
         raise ValueError('Calibration and topology network differ')
     specs = deepcopy(cfg.network.urban_movements)
     output = deepcopy(detectors)

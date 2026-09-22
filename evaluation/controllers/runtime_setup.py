@@ -48,6 +48,8 @@ def configure_freeway_runtime(adapter, cfg, tuning, mapping):
     metadata.update(configure_state_response(cfg, tuning))
     metadata.update(freeway_local_state.configure(cfg, tuning))
     metadata.update(link_predictor.configure(cfg, tuning))
+    from evaluation.controllers import metanet_parameter_transfer
+    metadata.update(metanet_parameter_transfer.configure(cfg, tuning, mapping))
     metadata.update(install_freeway_runtime(adapter, cfg, tuning))
     return metadata
 
@@ -67,6 +69,22 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     if timetable and not (tuning or {}).get('urban', {}).get('native_internal_inputs'):
         raise ValueError('Native timetable requires the verified native_internal_inputs source contract')
     a = adapter
+    lane_context=None
+    lane_manifest=(tuning or {}).get('freeway',{}).get('lane_plant')
+    spillback_projection=(tuning or {}).get('freeway',{}).get('lane_initial_spillback_projection',False)
+    if type(spillback_projection) is not bool or (spillback_projection and lane_manifest is None):
+        raise ValueError('freeway.lane_initial_spillback_projection requires a boolean and lane_plant')
+    if lane_manifest is not None:
+        if not isinstance(lane_manifest,str) or not lane_manifest:
+            raise ValueError('freeway.lane_plant requires an explicit pinned manifest')
+        from evaluation.controllers import lane_plant_runtime
+        lane_context=lane_plant_runtime.load_sources(lane_manifest)
+        lane_context['initial_spillback_projection']=spillback_projection
+        lane_observation=lane_plant_runtime.observe_live(lane_context,state_json)
+        state_json=lane_plant_runtime.bind_current_routes(state_json,lane_observation)
+    if (tuning or {}).get("freeway", {}).get("parameter_transfer"):
+        from evaluation.controllers import metanet_parameter_transfer
+        state_json = metanet_parameter_transfer.project_current(state_json, mapping)
     local_observation = bool(a._link_counts_from_local_observation(state_json)
                              and (detector_mapping or physical_projection_input is not None))
     metadata = dict(a.install_vissim_calibration_runtime_patches(cfg, calibration))
@@ -171,11 +189,13 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     detector_mapping, physical_ramp_metadata = physical_ramp_branches.configure(
         cfg, tuning, mapping, detector_mapping, state_json)
     metadata.update(physical_ramp_metadata)
-    metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
+    if lane_context is None:
+        metadata.update(offramp_routing.configure_inventory(cfg, tuning, state_json, mapping))
     state = a.traffic_state_from_vissim(
         state_json, cfg, TrafficState, detector_mapping, calibration,
         physical_projection_input=physical_projection_input)
-    metadata.update(offramp_routing.initialize_inventory(state, cfg, state_json))
+    if lane_context is None:
+        metadata.update(offramp_routing.initialize_inventory(state, cfg, state_json))
     metadata.update(a.install_monitor_fixed_signal_runtime_patch(
         cfg, state_json, detector_mapping) or {})
     if local_observation:
@@ -201,6 +221,10 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         metadata.update(native_input_routes.initialize(state, cfg, state_json))
         metadata.update(native_input_prehead.initialize(state, cfg, state_json))
         metadata.update(urban_flow_accounting.install(a, cfg))
+    from evaluation.controllers import metanet_parameter_transfer
+    metadata.update(metanet_parameter_transfer.configure_demand(cfg, mapping))
+    if lane_context is not None:
+        metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))
@@ -209,6 +233,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
             a, cfg, tuning, mapping, state_json, previous_action_path, state, calibration))
     from evaluation.controllers.route_choice_corridor import configure_known_legsplit
     metadata.update(configure_known_legsplit(cfg, tuning, state, state_json))
+    if lane_context is not None:
+        lane_plant_runtime.bind_area(state,cfg)
     return state, detector_mapping, metadata
 
 
