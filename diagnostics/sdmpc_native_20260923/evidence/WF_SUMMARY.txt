@@ -1,0 +1,181 @@
+========================================================================
+### evaluation/controllers/area_freeway_accounting.py
+  status=CONFLICT | collision=False | conf=high | refuted=True
+  [REFUTED] REFUTED on the headline finding (PRIMARY silent_breakage_risk). The mechanical resolution and most secondary claims HOLD.
+
+=== 1. PRIMARY silent-breakage claim is FALSE ===
+Claim: with lane_plant_enabled=True, the per-road cfgs are "starved" because lane_freeway_runtime.__init__ copies only `control_area_*` keys, so `freeway_hadiuzzaman` / `freeway_source_capacity_veh_h` / `freeway_terminal_capacity_veh_h` all resolve to {} and 100% of PLANT's boundary work goes inert.
+
+Three independent disproofs, all read directly:
+
+(a) `CanonicalFreewayModel._config` INSTALLS the literature itself.
+D:/VISSIM-merge/repo @00abbab:diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py
+  551: def _config(self, road, parameters):        <- next method def is 625 (rollout)
+  602:     net.freeway_hadiuzzaman = {road: dict(ctm=True, relaxation='command', ...)}
+Line 602 is IN
+  [RISK] PRIMARY — with `lane_plant_enabled=True`, 100% of PLANT's new freeway boundary/FD work goes inert, with no exception, no conflict marker, and no test failure.
+
+Chain I read end to end:
+  area_freeway_accounting.py:449 (CTRL) — `if getattr(cfg.network,'lane_plant_enabled',False): return lane_coupling.run_interval(state,control,demand,cfg)`
+  -> lane_coupling.run_interval calls `freeway.advance(...)` on `state.lane_freeway_runtime`. It never calls `_freeway_substep_events` itself.
+  -> lane_freeway_runtime.py `LaneFreewayRuntime.advance` (lines ~93-140): for a road WITH a lane model it calls `plant.advance(..., complete_allocator_scope=False)`; for a road WITHOUT one (the western aggregate) it calls `accounting._freeway_substep_events(state, control, demand, cfg, ...)` where `cfg = self.configs[road]` — NOT the live cfg.
+  -> `LaneFreewayRuntime.__init__` builds those per-road configs as `
+  [EXTRA] GENUINE SEMANTIC COLLISION ON A SHARED CONFIG ATTRIBUTE — `metanet_delta_merge` (and `freeway_lane_drop_phi`). The first pass declared "No variable is redefined by both sides", which is true only at the local-name level and false at the config-attribute level.
+
+PLANT WRITES it as a correctness requirement. canonical_harness.py:588-591, inside _config's literature branch:
+  # Paper speed equations are relaxation/convection/anticipation.
+  # Do not stack the previous empirical merge/drop decelerations.
+  net.metanet_delta_merge = 0.
+  net.freeway_lane_drop_phi = 0.
+
+CTRL RE-SOURCES THE READ so that write loses. area_freeway_accounting.py CTRL:160 (union:160):
+  delta_m = float(direction_params
+========================================================================
+### evaluation/controllers/physical_lane_groups.py
+  status=CONFLICT | collision=True | conf=high | refuted=False
+  [RISK] PRIMARY — junction inlet speed silently collapses under array transport. This is the finding worth the whole review.
+
+Resolve hunk 2 the obvious way (CTRL's if/else + PLANT's two lines in the else-branch) and everything looks right: no markers, imports resolve, every test passes. Now enable both cfg.network.freeway_port_response[road]['merge_speed']=True and sdmpc_options['array_transport']=True. The array branch runs. junction_moment was allocated (merged line 594) and was fed by ramp entry (merged line 617), but longitudinal() never touches it, so its mainline contribution stays zero while incoming[i][g] is fully populated by the kernel. At merged line 936:
+
+    up = junction_mean_speed(incoming[i][g], junction_moment[i][g], up)
+
+evaluates to (ramp_in * ramp_speed) / (ramp_in + mainline_in). junction_mean_speed only validates finite and non-negative, so it returns happily. With, say, 5
+  [EXTRA] Three items the first pass missed.
+
+A. momentum_advection nullifies the primary corruption in one regime. physical_lane_groups.py:939-942 overwrites `up` with `self.v[i][g]` immediately after the junction_mean_speed consumption at 936. With lane_momentum_advection=True the corrupted speed never reaches the METANET convection term — the numbers stay right and only the port_response_rows diagnostic lies. This cuts both ways: it narrows the primary finding's blast radius (the default is False, so the finding stands today), but it also means anyone who validates the fix by turning momentum advection on will see no difference and may wrongly conclude the bug is not real.
+
+B. The SECONDARY memory 
+========================================================================
+### evaluation/controllers/control_area_objective.py
+  status=AUTO_MERGED | collision=False | conf=high | refuted=False
+  [RISK] PRIMARY (verified): the merged test file silently covers only PLANT. `diagnostics/test_control_area_objective.py` in sim2 is 485 lines = PLANT's version byte-for-byte; CTRL's version is 441 lines = BASE unchanged. I ran it: `38 passed, 3 subtests passed in 0.46s`, fully green. It contains 12 references to `distance_hours_per_km`/`tvd_veh_km` and ZERO references to `indexed_coverage`, `immutable_audit`, `primal_audit` or `compact`. A grep for those three flags across ALL of `diagnostics/*.py` returns nothing at all. So CTRL's entire +52 lines in this file -- the coverage index, the three-way audit-packing dispatch, the primal unwrap, and the new index-identity invariant in `response()` -- are unexercised by any test in the repo. Compounding it, all three flags default to False and are read as `getattr(cfg.network, 'sdmpc_options', {}).get(..., False)` at `evaluation/controllers/area_runti
+  [EXTRA] TWO OUT-OF-FILE CONSUMERS PIN THIS FILE'S SOURCE TEXT AND RECORD KEY ORDER. The first pass's "no shared control flow" claim does not cover either, and neither is visible in any diff of this file. Both are consistent in the merged tree TODAY (I verified), but they make this file far more brittle to future PLANT-side edits than the analysis implies:
+
+(A) evaluation/controllers/sdmpc_tangent_fast.py:23-44 reads control_area_objective.py's raw bytes, ast.parse()s it, and requires EXACTLY four functions -- module-level _copy_response_tree and _nonnegative, plus ModelAreaLedger.record_resource_allocation and record_state_upper_bound -- raising ValueError('Canonical validation kernel source changed
+========================================================================
+### evaluation/controllers/vissim_stackelberg_adapter.py
+  status=AUTO_MERGED | collision=False | conf=high | refuted=True
+  [REFUTED] The merge verdict (AUTO_MERGED is correct, no semantic collision, take it unchanged) HOLDS and I independently reproduced its textual proof. But the analysis's TOP-RANKED finding — silent_breakage_risk #1, "PLANT'S CHANGE IS DEAD CODE ON EVERY SDMPC RUN" — is factually WRONG, and one sentence of the recommended_resolution is dangerous if followed literally.
+
+(1) REFUTATION OF RISK #1. The analysis concluded PLANT's hunk never executes under SDMPC from a grep over `sdmpc*.py` and `lane_*.py` only. I reproduced that grep (it is literally true: zero hits for segment_vsl/state_response/_FW_SEG_CTX/freeway_fd/metanet_speed_update in those 36 files). The inference is invalid, because the lane plant does not live in those files. Chain verified by reading code:
+  - D:/VISSIM-merge/sim2/evaluation/controllers/lane_freeway_runtime.py:16,49 -> `from evaluation.controllers.physical_lane_groups impor
+  [RISK] THREE, ranked. (1) PLANT'S CHANGE IS DEAD CODE ON EVERY SDMPC RUN. Verified by grep over the merged tree: no `evaluation/controllers/sdmpc*.py` and no `lane_*.py` module references `segment_vsl`, `state_response`, `_FW_SEG_CTX` or `freeway_fd` (only `lane_freeway_runtime.py` touches `physical_lane_groups`). CTRL's new branch at merged line 12524 returns from `sdmpc.solve(...)` before `joint.solve_runtime_joint_leader` is reached, and the whole legacy METANET segment wrapper that PLANT edited is only exercised by the aggregate-grid predictor. So with `sdmpc_options` configured, PLANT's per-cell state response (and `recovery_relaxation`, `cell_overrides`) never executes. This merges clean, PLANT's own tests (tests/test_receiving_speed_response.py, tests/test_literature_vsl_fd.py, diagnostics/.../test_state_response.py) all call `freeway_fd` directly and still pass, and the fidelity gain si
+  [EXTRA] TWO, both missed by the first pass.
+
+(A) A REAL INSTALL-TIME ORDERING DEPENDENCY BETWEEN THE TWO SIDES, which directly contradicts the analysis's stated basis for `semantic_collision: false` ("no ordering dependency ... both are lazy reads of cfg_.network at wrapper-call time, so config-install order in runtime_setup.configure_freeway_runtime is irrelevant"). That is true of the two adapter hunks but NOT of the feature pair. PLANT's `configure_state_response` (freeway_fd.py:44, called at runtime_setup.py:48) is an EAGER validator: at freeway_fd.py:92-98 it reads `segments = (getattr(cfg.network,'freeway_segment_params',{}) or {}).get(str(road), ())`, raises if `not segments`, and rejects any
+========================================================================
+### evaluation/controllers/physical_ramp_boundary.py
+  status=AUTO_MERGED | collision=False | conf=high | refuted=True
+  [REFUTED] The merge verdict holds, but the analysis's PRIMARY risk statement is factually wrong, with measured evidence.
+
+WHAT HOLDS (re-verified independently, not taken on trust):
+- Pure union. `diff -u -w CTRL merged` = exactly PLANT's two hunks, nothing else. `diff -u -w PLANT merged` = exactly CTRL's additions plus the three deliberately rewritten lines. Line counts: BASE 656 + 12 (PLANT 00abbab) + 62 (CTRL sim/ctrl-lf) = 730 = merged. Nothing dropped. `python -m py_compile` on the merged file passes, so `-w` is not hiding a reindentation break (I also read the merged `_check_conservation` raw: the `stock = self._stocks()[...]` line IS correctly reindented under `if stock is None:`).
+- semantic_collision: false is CORRECT. I re-derived the invalidation contract from the merged file rather than accepting the enumeration. Every mutator of `_upstream/_downstream/_head_ready/_merge_ready` is prec
+  [RISK] PRIMARY. PLANT converts a loud precondition into a silent numeric path, and the only thing still keeping it off the controller's path is a guard in a DIFFERENT file. `state.time_sec` is seeded from VISSIM's raw clock at vissim_stackelberg_adapter.py:9700 (`state.time_sec = float(state_json.get("sim_sec", 0.0))`), which at 0.1 s native resolution is fractional. Pre-merge, a fractional clock reaching `LaneRampRuntime.advance` raised `ValueError("Local interval must be one aligned integral-second meter cycle")` and the run stopped. Post-merge it is accepted and head service silently becomes overlap-weighted: for a .3 s offset inside the green, the boundary second delivers `service/green*0.7` instead of `service/green`, and on the wrap second the local mode flips GREEN->RED. Concrete trigger: any future call of `LaneRampRuntime.advance` that does not come through `lane_coupling.run_interval`
+  [EXTRA] CTRL-ONLY LATENT DEFECT the first pass did not mention, verified by running it: `LaneResolvedRampBoundary.admit_current` (merged 631-637) commits into the per-lane buffers but never resyncs the AGGREGATE object's public counters, so `self.cumulative_admitted_veh` / `cumulative_requested_veh` / `backlog_veh` diverge from `snapshot()` until the next `advance_local_interval` rebuilds them from the lanes. Measured on the merged file (2-lane ramp, shares [.5,.5]):
+  after advance_local_interval : attr = 0.000, snapshot = 0.000
+  after admit_current(2.0)     : attr = 0.000, snapshot = 2.000
+The single-lane `PhysicalRampBoundary.admit_current` DOES update these (merged 375-376), so the two classes 
+========================================================================
+### evaluation/controllers/freeway_fd.py
+  status=ONE_SIDED | collision=True | conf=high | refuted=True
+  [REFUTED] REFUTED on the central claim ("semantic_collision: true", "silent_breakage_risk: HIGH"). The file-level findings are all correct, but the collision that justifies the verdict is structurally impossible.
+
+1) THE MERGE-INDUCED PAIRING IS MUTUALLY EXCLUSIVE BY CONSTRUCTION.
+The analysis names exactly one genuinely merge-induced interaction: "PLANT adds a NEW per-cell consumer (_literature_target) at the same time CTRL adds a NEW key-stripping producer." Those two can never be active in the same run:
+ - `_literature_target` is a method of `PhysicalLaneGroups`. Grepping `PhysicalLaneGroups` across evaluation/, src/, tests/ gives exactly one production construction site: D:/VISSIM-merge/sim2/evaluation/controllers/lane_freeway_runtime.py:49, inside `LaneFreewayRuntime.__init__`.
+ - `LaneFreewayRuntime` is constructed at exactly one site: evaluation/controllers/lane_plant_runtime.py:157.
+ - `la
+  [RISK] HIGH — verified, and it is exactly the merges-clean / passes-tests / still-wrong case.
+
+When a config enables BOTH `freeway.segment_params` (per-cell rows, which carry `rho_max`) AND CTRL's new `freeway.parameter_transfer`, CTRL's `metanet_parameter_transfer.configure` overwrites `net.freeway_segment_params` with rows restricted to `CELL_KEYS`, which omits `rho_max`. PLANT's new `_literature_target` then evaluates `if critical >= row.get('rho_max', net.rho_max)` and silently falls back to the GLOBAL jam density. The VSL-induced-FD jam-density safety check that PLANT deliberately wrote degrades from per-cell to global. Where a cell's real jam density is below the global value, a VSL command that should raise `'VSL-induced FD critical density exceeds physical jam density'` now passes, and the desired speed `vf*exp(-((rho/critical)**shape)/shape)` is evaluated with a critical density above 
+  [EXTRA] CTRL also has an adapter hunk inside the SAME try-block as PLANT's freeway_fd change, and the first pass did not notice it. D:/VISSIM-merge/analysis/vissim_stackelberg_adapter.py.CTRL.diff opens with @@ -8980,7 +8980,8 @@ in install_freeway_segment_runtime, replacing the global-phi line with:
+  _direction = (getattr(cfg_.network, "metanet_parameters_by_direction", {}) or {}).get(str(link), {})
+  _phi = _as_float(_direction.get("freeway_lane_drop_phi", getattr(cfg_.network, "freeway_lane_drop_phi", 0.0)), 0.0)
+PLANT's only adapter hunk (@@ -8976,7 +8976,8 @@) swaps the line two above it for `cell_state_response`. Git auto-merged both; I verified merged lines 8979-8985 contain BOTH sides corre
+========================================================================
+### evaluation/parameters.json
+  status=ONE_SIDED | collision=False | conf=high | refuted=True
+  [REFUTED] The central verdict (ONE_SIDED, no collision, take CTRL, sim2 already correct) is CORRECT and I re-verified it end to end. But four specific claims are factually wrong, one of them in the recommended_resolution itself.
+
+(1) RESOLUTION COMMAND IS INVERTED — the most material error. The analysis offers `git checkout --theirs evaluation/parameters.json` "from the CTRL side, or equivalently `git show sim/ctrl-lf:evaluation/parameters.json > ...`". These are NOT equivalent, and the label is backwards. Verified in D:/VISSIM-merge/sim2: `git rev-parse HEAD` = 7b9700d on branch sim/ctrl-lf (CTRL), and `.git/worktrees/sim2/MERGE_HEAD` = 00abbabeb475aeaf51e69d27a0e800787122c034 (PLANT). In a merge of PLANT into CTRL, --ours = CTRL and --theirs = PLANT. And PLANT's parameters.json is byte-identical to BASE: `git show 00abbab:evaluation/parameters.json | sha256sum` = f9d79ff84ea7d77228cd19bb291764f2
+  [RISK] Three, in descending confidence. (1) PRIMARY — the four new sdmpc* sections sit entirely outside the repo's own parameter-verification gate. scripts/verify_parameters.py check 1/2 rely on parameters.audit_against(), whose targets are only network/mpc/leader plus runtime_overrides(), and check 3's duplicate loop is literally `for sec in ("network","mpc","leader")`. So `python scripts/verify_parameters.py <config>` prints "파라미터 검사 PASS" while asserting nothing about the 26 new SDMPC constants — no effective-value comparison, no duplicate-override detection. That matters because the tuning-override loop at sdmpc.py:115-125 lets `adapter.sdmpc_*` keys beat the parameters.json values (`options = dict(options, **{name:value})`), which is exactly the "tuning beats parameters, so editing parameters.json does nothing" failure mode check 3 exists to catch — and it is structurally blind here. Compo
+  [EXTRA] sdmpc.territory_path is the one key in the block that NO layer validates, and it is the one key whose value is a canonical-file pointer.
+
+configure() at evaluation/controllers/sdmpc.py:202-208 has exactly two type-checking loops: ('max_iterations','line_search_steps','restoration_iterations','qp_iterations') as positive ints, and ('proximal','fd_green_sec','fd_offset_sec','fd_meter_green_sec','fd_vsl_kmh','budget_scale_np_veh','budget_scale_nuf_veh_h','dual_step','qp_tolerance','objective_tolerance') as positive floats. That is 14 keys. The sdmpc block has 15 non-underscore keys. The 15th, territory_path, is never checked — not for existence, not for type, not for the file being resolvable. 
+========================================================================
+### AGENTS.md (merged copy at D:/VISSIM-merge/sim2/AGENTS.md; conflict markers at lines 1 / 7 / 134 of 140)
+  status=CONFLICT | collision=False | conf=high | refuted=False
+  [RISK] PRIMARY — a "take HEAD/CTRL" resolution silently reverts the demand scenario statement, with no marker and no test. Rule 2 lives in the auto-merged tail (merged line 137), neither side touched it, and it still reads "현재는 사용자 수정 망의 동측 본선 입력만 0.8배인 조건이다" — only the EAST mainline input at 0.8x. The ONLY line in the whole file that records the 2026-09-22 15:17 change to FW80 / urban90 (both freeway origin inputs 80%, all urban inputs 90%, authoritative pointer diagnostics/selected_control_demand/CURRENT_SCENARIO.json) is PLANT's block line 13, which sits INSIDE the conflict region. Taking HEAD is the tempting resolution — CTRL is the controller branch and its side is 6 lines against PLANT's 127 — and it deletes that line while the merged TREE still carries CURRENT_SCENARIO.json and all the FW80/urban90 calibration outputs. Result: merges clean, every test passes, and the next agent reads AGE
+  [EXTRA] PLANT-MODEL PROVENANCE OF CTRL'S HEADLINE NUMBERS — the first pass flagged the demand mismatch but not this one, and it bites the exact figures CTRL's new entry-point line advertises.
+
+CTRL's merged line 4 says the PFO/cap budget work is "900초 저장 상태 실측 완료", and the committed evidence `diagnostics/sdmpc_pfo_caps_20260922/summary.json` (a CTRL-only added file) pins NP cap 564.1103525762767 veh and NUF cap 5216.7923020188655 veh/h, with per-ramp accepted rates summing exactly to that NUF (203.5087+1716.0+315.7294+565.801+580.462+310.1654+950.9405+574.1852 = 5216.7923).
+
+Those caps are NOT constants. `evaluation/controllers/sdmpc_budget.py` gates on `nuf_definition == 'predicted_accepted_mainlin
+
+
+########################################################################
+API DRIFT
+modules_checked=39  mismatches=2
+  - evaluation/controllers/sdmpc_tangent_transport.py:193 (called from evaluation/controllers/physical_lane_groups.py:702-704) :: PhysicalLaneGroups.advance inter-cell transport loop / junction_moment
+    changed: PLANT added a new local `junction_moment` in advance (merged physical_lane_groups.py:594, created when cfg.network.freeway_port_response[<road>]['merge_speed'] is true), accumulated in two places: from ramps at line 617 and from mainline cell-to-cell flux inside the inter-cell loop at lines 734-735.
+    breaks : With sdmpc_options['array_transport'] = True AND freeway_port_response[<road>]['merge_speed'] = True, the array transport path fills `incoming` but contributes zero to `junction_moment`. junction_moment then holds only the ramp term from line 617, so junction_mean_speed returns ramp_moment / (mainli
+  - evaluation/controllers/lane_freeway_runtime.py:113 :: PhysicalLaneGroups.advance (complete_allocator_scope keyword)
+    changed: Both sides edited the advance() signature and git left it conflicted at physical_lane_groups.py:566-572. HEAD/CTRL side is `complete_allocator_scope=True, **unused`; PLANT side is `ramp_entry_speed_kmh=None, junction_ramp_speeds=None, offramp_start_state=None, **unused`. The CTRL-only body gate `if 
+    breaks : If the conflict is resolved by taking PLANT's side (or by dropping complete_allocator_scope), lane_freeway_runtime.py:113 passing complete_allocator_scope=False is swallowed by **unused, the name is never bound as a local, and line 1119 raises NameError on the first lane-group step. Conversely, taki
+clean: Scope: all 39 CTRL-only modules under evaluation/controllers (8 lane_*.py, 28 sdmpc*.py, metanet_parameter_transfer.py, physical_urban_transport.py, scenario_prior_transfer.py), grepped in D:/VISSIM-merge/sim2/evaluation/controllers/ against every API-surface item PLANT changed in the 6 shared files.
+
+Only 11 of the 39 new modules touch the 6 PLANT-changed files at all: lane_coupling.py, lane_freeway_runtime.py, lane_offramp_runtime.py, lane_plant_runtime.py, lane_ramp_runtime.py, lane_urban_runtime.py, sdmpc.py, sdmpc_aggregate.py, sdmpc_tangent.py, sdmpc_tangent_audit.py, sdmpc_tangent_constraints.py, sdmpc_tangent_fast.py, sdmpc_tangent_summary.py, sdmpc_tangent_worker.py.
+
+CLEAN per file:
+
+- control_area_objective.py: PLANT's changes are entirely confined to the ControlAreaObjective dataclass (new field distance_hours_per_km=0.0, new keyword-only tvd_veh_km / max_future_tvd_veh_km on score/lower_bound/can_prune). Zero call sites: grep for ControlAreaObjective, .score(, lower_bound,
+
+########################################################################
+COMPLETENESS CRITIC
+
+[missed_dual_edited_files]
+["diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/urban_route_transport.py"]
+
+[lost_work_risk]
+VERIFIED: 502168d is an ORPHAN, and part of it WILL be lost — but not the production code.
+
+Ancestry (verified): parent(502168d) = c4e6463 (2026-09-13 "Publish complete diagnostic evidence..."), which IS an ancestor of BASE 6d7612b. `git merge-base --is-ancestor 502168d sim/ctrl-lf` = NO. So 502168d branched off before BASE and was never merged into BASE, PLANT (00abbab), or sim/ctrl-lf. `git cat-file -e 6d7612b:evaluation/controllers/sdmpc.py` = absent, confirming it never reached the plant line.
+
+NOT lost (verified by symbol-set comparison, `comm -23` over `^\s*(def|class) \w+`): for evaluation/controllers/{sdmpc.py, area_follower_objective.py, joint_owner_game.py, joint_owner_neighbors.py, signal_actuation_contract.py}, every def/class in 502168d also exists in sim/ctrl-lf. sdmpc.py is 562 lines at 502168d vs 939 at ctrl-lf. evaluation/parameters.json: 502168d's 18-line "sdmpc" block is byte-identical to ctrl-lf's, and ctrl-lf adds three more blocks (sdmpc_pfo_cap, sdmpc_central, sdmpc_tangent). So ctrl-lf supersedes 502168d's source.
+
+LOST if 502168d is dropped (each verified absent from BASE, PLANT and sim/ctrl-lf via git cat-file -e):
+1. 12 new test files, ~1470 lines total: diagnostics/test_audit_response_pipeline.py, test_compact_signal_clock_cache.py, test_final_audit_optimization_config.py, test_final_audit_physical_proof_reuse.py, test_final_audit_token_order.py, test_joint_objective_audit_and_order.py, test_joint_owner_game_sequential_balanced.py, test_joint_unlimited_candidate.py, test_recorded_physical_meter_replay.py, test_sdmpc.py (103 lines), test_selected_
+
+[test_risk]
+No test FILE is touched by both sides — the two sets are disjoint. PLANT changes 19 test files (15 new, 4 modified); CTRL changes 3 (0 new, 3 modified). Full lists below. But there are three concrete risks.
+
+VERIFIED PASSING on the merged tree D:/VISSIM-merge/sim2 (PYTHONPATH=D:/VISSIM-merge/sim2, python 3.12.2):
+- diagnostics/test_control_area_objective.py (PLANT-modified, adds DistanceObjectiveTests) -> 38 passed, 3 subtests passed. This clears the biggest suspected cross-risk: PLANT adds ControlAreaObjective(distance_hours_per_km=...), score(tvd_veh_km=...), lower_bound/can_prune(max_future_tvd_veh_km=...) at BASE lines 791-827, while CTRL edits ModelAreaLedger at BASE lines 256-531. Hunks are disjoint; the auto-merge is correct and test-proven.
+- tests/test_action_csv_signal_group_rows.py (CTRL) -> 18 passed, 44 subtests.
+- diagnostics/test_signal_observation_window_patch.py (CTRL) -> 11 passed, 19 subtests. This exercises the adapter, which both sides changed and which auto-merged.
+- diagnostics/test_fast_fixed_profile.py (PLANT) -> 11 passed.
+- `python -m compileall -q evaluation/controllers` on sim2: only the two conflicted files fail (area_freeway_accounting.py line 46, physical_lane_groups.py line 571). Every auto-merged module compiles, so there is no hidden indentation breakage.
+
+RISK 1 — PLANT's gate tests are currently blocked by the unresolved conflict. tests/test_literature_vsl_fd.py and tests/test_receiving_speed_response.py (both PLANT-NEW) fail collection on sim2 with SyntaxError from physical_lane_groups.py's conflict markers. Against a PLANT-only tree th
+
+[contract_file_risk]
+VERIFIED: NO config/JSON file is changed by both sides. The full both-sides intersection is 7 paths and contains no .json. evaluation/parameters.json is CTRL-only (grep count 0 in the PLANT list, 1 in the CTRL list) — so despite being reviewed as one of the 8 paths, it carries no merge conflict risk at all. PLANT changed no .json outside diagnostics run-output directories (control_comparison_20260922/*, handoff_20260922_control_choice/*).
+
+There IS a one-sided contract risk that the review did not cover. CTRL alone rewrites 7 diagnostics JSONs that are consumed as fixtures/contracts, not produced as output:
+- diagnostics/head_service_resource_contract.json and head_service_resources_canonical_validation.json -> read by diagnostics/test_head_service_resources.py
+- diagnostics/physical_phase_authority_ver2.json -> read by diagnostics/test_physical_phase_authority.py, check_fixed_candidate_response.py, inventory_area_production_dependencies.py, probe_phase_authority_passages.py
+- diagnostics/sc1004_resource_service_calibration.json and route_choice_corridor_sc1004_calibrated.json -> read by diagnostics/test_sc1004_resource_service.py, prepare_sc1004_resource_service.py, probe_sc1004_physical_holdout.py, probe_sc1004_resource_service_holdout.py, fixtures/sc1004_holdout_before_integration.py
+- diagnostics/known_wout_routes_ver2_proposal.json -> read by diagnostics/test_known_wout_routes.py, probe_known_wout_replay.py
+- diagnostics/control_area_movement_join_physical_routes.json -> read by diagnostics/test_sc1005_native_bypass.py, probe_physical_movement_routes.py
+
+I verified for
+
+[other_gaps]
+1. ONE MISSED BOTH-SIDES FILE. Full intersection of `git diff --name-only 6d7612b 00abbab` and `... 6d7612b sim/ctrl-lf` is exactly 7 paths: AGENTS.md, area_freeway_accounting.py, control_area_objective.py, physical_lane_groups.py, physical_ramp_boundary.py, vissim_stackelberg_adapter.py, and diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/urban_route_transport.py. The last one is a source/test module, not output data, and was not reviewed. CTRL replaces BASE lines 23-524 with `from evaluation.controllers.physical_urban_transport import (FIFO, tagged, unassigned_continuation, UrbanTransport, CoupledPort, history_inputs)` — extracting ~500 lines into a CTRL-new module. PLANT edits lines 763-950, adding `trace_mainline_limits(include_cells=False)` cell snapshots and a `replay_context` parameter. Git auto-merged; I verified the merged sim2 file has both changes coherently and that the local names PLANT's tracer reads (pre_through, cross, through_requests, off_by_group, part_before, ramp_in) all still exist in merged physical_lane_groups.py. Low risk, but it was a genuine dual edit missing from the list.
+
+2. TWO OF THE 8 REVIEWED PATHS ARE NOT DUAL-EDITED. evaluation/controllers/freeway_fd.py is PLANT-only; evaluation/parameters.json is CTRL-only. Neither can conflict. The review's effective dual-edit coverage is 6 of 7, not 8 of 8.
+
+3. NO RENAMES OR DELETIONS on either side (`git diff --name-status -M` finds no R entries; no D entries for code on either side), so there is no rename/delete-vs-modify trap hiding behind the name-only comparison.
+
+4. METHODO

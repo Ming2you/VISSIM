@@ -1,0 +1,152 @@
+==========================================================================
+### ANGLE 1 — where the 544.5 s actually goes, reconstructed from the archived run (not estimated)
+  [반박] True  VERDICT: the PROFILE is not refuted — it is one of the most accurately sourced analyses I have checked. Three PROPOSALS are refuted on mechanism or on the config key they name, and the Level-3 roll-up does not reconcile.
+
+=== WHAT I COULD NOT BREAK (all re-read from the archive, exact) ===
+Level 1 i
+  [이미 적용됨] MEASURABLY WORKING, do not propose again:
+- sdmpc_tangent_backend=reverse-v1: the adjoint is 2.6466 / 2.7099 s, only 2.2% of a rollout (result.json:1277122, :2515625). There is at most 2.6 s left on the reverse side. Any further "speed up the derivatives" proposal that means the adjoint is aiming at 2% of the run.
+- sdmpc_surrogate_reuse + sdmpc_response_np_cache: 2 of 11 requests were cache hits 
+  [바닥] THE FLOOR IS ONE TAPED FORWARD PRIMAL, AND IT IS ALREADY OVER 150 s.
+
+Minimum honest sequence for any gradient-based decision: one taped rollout to get a Jacobian, then at least one trial evaluation of the step it proposes. The trial cannot start before the gradient exists, so these are serial. Measured, with the machine otherwise free:
+  1 tangent rollout alone            113.2527 s   (result.jso
+  [제안]
+    - Archive the inner timers for ALL nine rollouts, not two. In sdmpc_tangent_surrogate.py:245-248 the `rows.append(...)` already holds the worker receipt; add tangent_sec, reverse_sec, scalar_sec, state_
+        절감=0 s directly. It converts 417 s of the 544.5 s from one opaque number per rollout into the same 83% / 2.2% / 14.4% split
+        결정변경=no - pure record-keeping. The receipt is already computed in the child and already crosses the process boundary; the par
+        게이트=NEW - or no key at all; it is a 3-line unconditional change in sdmpc_tangent_sur
+    - Split the 17.1-17.5 s/rollout unattributed residual with two perf_counter pairs in sdmpc_tangent.py:_evaluate_single - one around pickle.dumps+write_bytes at :47-49, one around subprocess.run at :53-5
+        절감=0 s directly. It attributes ~139 s of aggregate rollout time (17.3 s x 8 tangent rollouts) that is currently a subtracti
+        결정변경=no - two clock reads outside the numeric path.
+        게이트=NEW - or unconditional; suggest adapter.sdmpc_spawn_timing.
+    - Add per-control-block timers inside the taped forward primal (control_blocks: 3 is already on the receipt), reported as tangent_block_sec: [b0, b1, b2]. 83.3% of every rollout is the single number tan
+        절감=0 s directly, but it is the only route to the one component that matters. The adjoint is already down to 2.65 s (2.2%) -
+        결정변경=no, IF the instrumentation sits outside the AD trace. A timer recorded as a taped value would corrupt the tape.
+        게이트=NEW - adapter.sdmpc_tangent_block_timing (default off, so the measured 14,064,35
+    - Drop pfo_cap_options.max_iterations from 2 to 1. This deletes batch C entirely (PFO iteration 1's trial batch). The batch-B winner's derivative is already cached (row 2, consumed_derivative: true), so
+        절감=-121.5 s measured (batch C 120.898 + its 0.585 and 0.052 gaps). 544.5 -> ~423.0 s. Still 2.82x over the 150 s interval.
+        결정변경=YES, certainly. PFO iteration 1 is an ACCEPTED step: owned_cost 264.432 -> 262.837 and omega 397.482 -> 395.535 (progres
+        게이트=evaluation/parameters.json sdmpc.pfo_cap_options.max_iterations
+    - Trade iterations for line-search width: lower max_iterations and raise line_search_steps. Justified by the measured concurrency curve - 3 concurrent rollouts cost 133.61 s vs 113.25 s for one (+18% ea
+        절감=Unknown sign without an experiment, but the exchange rate is measured: +1 trial inside an existing batch costs roughly +
+        결정변경=yes, in an unknown direction. A wider line search explores more step lengths at the same iterate (may find a better poin
+        게이트=evaluation/parameters.json sdmpc.line_search_steps (with sdmpc.max_iterations an
+    - Shrink the tape. tangent_sec = 100.54 s builds a 450,071,024-byte / 14,064,354-node tape over 231 axes and 22 outputs across 3 control blocks. The only levers that touch it are axis count, horizon len
+        절감=Axis pruning: unknown until gradient_rows is counted, but bounded by (pruned/231) x 100.5 s per rollout x 8 rollouts. co
+        결정변경=control_blocks 3->2: YES - it shortens the prediction horizon, which is the H450 = three 150 s blocks experiment design 
+        게이트=adapter.sdmpc_control_blocks (currently 3) for the horizon; NEW for axis pruning
+==========================================================================
+### ANGLE 2 — the PFO half (370.711 s of 544.512 s), from `evaluation/controllers/sdmpc_pfo.py` + its caller `eval
+  [반박] True  REFUTED — not on its qualitative conclusion (which survives and is in fact strengthened), but on (a) a replicate in the same folder that contradicts every timing constant the proposals are built on, (b) a misattributed pair of worker receipts, (c) a wrongly-cited decision-invariance certificate, and
+  [이미 적용됨] Speedups the task list says are on, checked against this run — two of them do nothing here, and one is aimed at a 2.7 s term:
+
+1. **`sdmpc_derivative_workers=8` is spent on a 2.2% term.** Measured `reverse_sec` = 2.647 / 2.710 s per prediction, of which the actual `sweep_sec` is 1.268 / 1.336 s and 1.311 / 1.442 s is numba cache load. The whole worker-split arithmetic at `sdmpc_tangent_surrogate.p
+  [바닥] **PFO costs exactly (1 + max_iterations) sequential AD prediction batches, and each batch's wall time is a single-threaded forward tape build that nothing in the current parallelism touches.**
+
+Measured components of that floor, per batch:
+- forward tape build `tangent_sec` **100.536 / 99.665 s**, single thread, 14.0 M tape nodes, 450 MB — unaffected by `derivative_workers`, unaffected by how many
+  [제안]
+    - Per-trial derivative flag in the PFO line search: AD only the k=0 candidate, scalar for k>=1; if k=0 loses, run one extra AD batch for the actual winner. This is the PFO analogue of the guard SDMPC al
+        절감=iter0 batch 135.122 -> ~115 s (1 AD at 113.303 + 2 scalar at 47.974 running concurrently), iter1 120.898 -> ~114 s. Abou
+        결정변경=no, to within the 1e-8 primal tolerance, but NOT certified bit-identical. The merit comparison uses primal owned costs o
+        게이트=NEW (e.g. adapter.sdmpc_pfo_speculative_trial_derivatives), parsed in the sdmpc.
+    - Reduce the line search width: `line_search_steps` 3 -> 2, or 3 -> 1.
+        절감=3->1: iter0 135.122 -> 113.303 (-21.819), iter1 120.898 -> 113.303 (-7.595) = **-29.4 s, 7.9% of PFO, 5.4% of the decisi
+        결정변경=no on THIS state, yes as an algorithm. Measured: k=0 (scale 1.0) was the accepted trial in both iterations and merit ros
+        게이트=evaluation/parameters.json -> sdmpc.line_search_steps (currently 3); NEW sdmpc_p
+    - Prespawn / pre-import the tangent worker process so the per-prediction startup is off the critical path. Each prediction today is a cold `subprocess.run([sys.executable,'-B',sdmpc_tangent_worker.py,..
+        절감=Measured residual per prediction = wall_sec_including_spawn 120.652 minus tangent_sec 100.536 minus reverse_sec 2.647 = 
+        결정변경=no, if the process still handles exactly one request. The worker is a pure function of the request pickle, its digest is
+        게이트=NEW (e.g. adapter.sdmpc_worker_prespawn)
+    - Cut PFO's iteration cap from 2 to 1, removing batch C entirely.
+        절감=-120.898 s = **32.6% of PFO, 22.2% of the whole decision**. PFO 370.711 -> ~249 s; whole decision 544.512 -> ~424 s.
+        결정변경=YES, explicitly. summary.json shows accepted_iterations = 2: iteration 1 was accepted and improved owned cost 264.43202 
+        게이트=evaluation/parameters.json -> sdmpc_pfo_cap.max_iterations (currently 2)
+    - Skip the branch-event bookkeeping in the reverse tape. `Trace.branch` (sdmpc_tangent_reverse.py:121-131) runs on every numeric comparison and only produces diagnostics (`exact_tie_axes`, `discrete_dep
+        절감=ESTIMATE, not measured. Measured call count is **8,869,202 / 8,922,564 primal_comparisons per prediction** against 14.0 
+        결정변경=no for the numbers; yes for the evidence. Costs/resources/Jacobian are untouched. What is lost is the conservative tie/d
+        게이트=NEW (e.g. adapter.sdmpc_tangent_skip_branch_events)
+    - Shorten the prediction the tape is built over: control_blocks 3 -> fewer, or the 450 s horizon -> 150 s. The tape build is ~100.5 s for 450 model seconds.
+        절감=Roughly linear in model seconds: a 150 s tape would be ~33 s, so a PFO batch would fall from ~113-135 s to ~55 s and PFO
+        결정변경=YES, unambiguously. A shorter prediction is a different optimization problem. It is also hard-blocked: sdmpc.py:492 rais
+        게이트=cfg.mpc.horizon_steps / adapter.sdmpc_control_blocks (blocked by sdmpc.py:492)
+==========================================================================
+### Angle 3 — parallelism and the worker pool (what is actually parallel today, what is left serial and why, and w
+  [반박] True  REFUTED. The numbers the analysis quotes are real — I verified essentially every one against the archive — but it missed a third live thread pool, and that omission inverts the angle's two headline conclusions.
+
+=== WHAT I VERIFIED AS CORRECT (so this is not a sloppiness complaint) ===
+Batch walls f
+  [이미 적용됨] The cross-prediction pool already works at near-ideal efficiency: batch B achieved 2.97x on 3 slots, batches C and D 1.99x on 2. There is no pool inefficiency to fix.
+
+Speculative batching of the line search is ALREADY ON and already fills the slots with everything available. 4 of the 9 rollouts were evaluated and thrown away: rows 2 and 3 in batch B, row 5 in batch C, row 7 in batch D all carry `
+  [바닥] One prediction = 100.536 s (and 99.665 s) of SINGLE-THREADED Python forward-tape construction: worker.py:393-400 times exactly one `predict(action)` call over 450 s of simulated time, producing a tape of 14,064,354 nodes / 450,071,024 bytes. No worker count, no backend flag, no pool setting touches it. It is 83.4% of a prediction and it is the same for PFO and SDMPC.
+
+On top of that sits a strictl
+  [제안]
+    - Delete the reverse-worker throttle. sdmpc_tangent_surrogate.py:210 computes `reverse_workers = max(1, 8//slots)` and :218-219 passes it as `reverse_worker_limit`, so a 3-prediction batch runs the reve
+        절감=Measured sweep_sec = 1.336 s and 1.268 s at 4 workers over 22 outputs. At 8 workers ~0.7 s; batch B ran at 2 workers, ~2
+        결정변경=no. Each output row is an independent `_COMPILED(p1,p2,w1,w2,node,sn,sa,sw,len)` njit call (sdmpc_tangent_reverse.py:161
+        게이트=NEW (the 8 at sdmpc_tangent_surrogate.py:210 is a bare literal; would need e.g. 
+    - Raise sdmpc_derivative_workers above 8 to use the 20 logical cores.
+        절감=ZERO, and it is not even reachable. Hard-capped twice: sdmpc.py:148-150 `not 1 <= derivative_workers <= 8` raises, and s
+        결정변경=no (it cannot run at all), but it is also worth 0 s. Do not spend an experiment slot on it.
+        게이트=adapter.sdmpc_derivative_workers (pinned to exactly 8 by sdmpc.py:178)
+    - Flip config_overrides.mpc.stackelberg_leader_parallel_backend and/or grid_parallel_backend off "serial".
+        절감=ZERO on this measurement. Those keys drive vendor/NumSim-mine/src/controllers/stackelberg_mpc.py:2110 and vendor/NumSim-
+        결정변경=YES / at minimum unknown, and the repo already fails the build if you try. tests/test_real_run_stays_serial.py:45-53 ass
+        게이트=config_overrides.mpc.stackelberg_leader_parallel_backend / config_overrides.mpc.
+    - Raise the batch slot cap: sdmpc_tangent_surrogate.py:209 hardcodes `slots = min(8, count)` rather than reading sdmpc_derivative_workers or the core count.
+        절감=ZERO today. Measured count per batch is 1, 3, 2, 2, 1 — the cap of 8 never binds. It would only bind if adapter.joint_ow
+        결정변경=no, because it is inert at the current candidate count. Worth fixing only as a latent limit before any multi-candidate w
+        게이트=NEW (bare literal 8 at sdmpc_tangent_surrogate.py:209)
+    - Reuse a warm tangent worker process across batches instead of a fresh `subprocess.run` inside a fresh TemporaryDirectory per prediction (sdmpc_tangent.py:44-54).
+        절감=The measured non-AD residual is 17.464 s and 17.121 s per prediction (wall 120.652 minus tangent 100.536 minus reverse 2
+        결정변경=unknown until measured. It should be no, but the fresh process is exactly what currently guarantees isolation: worker.py
+        게이트=NEW (e.g. adapter.sdmpc_persistent_tangent_worker)
+    - Before any code change: re-measure the same decision on an idle box. The 544.512 s run is dated 2026-09-22 19:21-19:30 and I cannot establish the machine was quiet; the number that would move is the 1
+        절감=Up to ~21.8 s on batch B alone if part of the +18% is co-resident load rather than intrinsic contention. Bounded above b
+        결정변경=no — it is a measurement, not a change. Zero code risk.
+        게이트=NEW (none required — same config_candidate.json, same saved state)
+==========================================================================
+### Angle 4 - iteration counts and tolerances in the sdmpc / sdmpc_central / sdmpc_pfo_cap / sdmpc_tangent paramet
+  [반박] True  SCOPE: the headline survives. I re-derived the time accounting from C:/Users/TRLAB/Documents/ChatGPT/VISSIM/.worktrees/sdmpc-tangent-20260921/diagnostics/sdmpc_pfo_caps_20260922/decision_v1.log and summary.json and every load-bearing number checks out to the digit (batch A 113.30270870006643, B 135.
+  [이미 적용됨] Within this angle specifically, the two iteration-related wins are already taken and their measured value should not be re-proposed:
+
+1. Last-iteration derivative skip. sdmpc.py:803 `derivatives = surrogate and iteration+1 < policy['max_iterations']` already turns off the derivative on SDMPC's final iteration. Measured worth: batch E (1 pred, `derivative_predictions: false`) 47.97435 s vs batch A 
+  [바닥] Three things cannot be removed by any setting in the sdmpc / sdmpc_central / sdmpc_pfo_cap / sdmpc_tangent blocks.
+
+1. The validators forbid going below one iteration. sdmpc.py:203-205 requires `max_iterations`, `line_search_steps`, `restoration_iterations`, `qp_iterations` to be `int >= 1`; sdmpc.py:88-89 separately requires `pfo_cap_options['max_iterations']` to be `int >= 1` ('Positive PFO iter
+  [제안]
+    - Nothing. Leave sdmpc_central.stationarity_tolerance at 1e-3. Explicitly do NOT relax it to make the receipt read 'converged'. sdmpc_central.py:94-95 writes `stationarity_pass` / `complementarity_pass`
+        절감=0.000 s. The entire routine it lives in measured 0.08897 s (decision_v1.log `sdmpc_central_recovery_done`), 0.016% of wa
+        결정변경=no - it cannot, nothing consumes the boolean. But relaxing 1e-3 to clear the measured 8.18447 would turn a true non-conv
+        게이트=evaluation/parameters.json sdmpc_central.stationarity_tolerance (line 27)
+    - Nothing. Leave sdmpc.qp_iterations at 100 and sdmpc.qp_tolerance at 1e-10. These are the textbook 'over-tight tolerance' suspects and both are refuted by measurement.
+        절감=qp_iterations: exactly 0.000 s - it never binds. All 76 SLSQP solves in decision_v1/result.json report `"message": "Opti
+        결정변경=unknown, and that is the point. A looser ftol perturbs the QP step d at the 1e-8 level, which is far below anything that
+        게이트=evaluation/parameters.json sdmpc.qp_iterations (line 16) / sdmpc.qp_tolerance (l
+    - Nothing. Leave sdmpc.restoration_iterations at 2.
+        절감=0.000 s in this run - the loop never ran. Proof by rollout arithmetic: sdmpc.py:811 enters the restoration block only wh
+        결정변경=no change today. But cutting 2 -> 1 (sdmpc.py:204 forbids 0) changes the decision on any future state where restoration 
+        게이트=evaluation/parameters.json sdmpc.restoration_iterations (line 7)
+    - Nothing. Leave sdmpc_tangent.primal_abs_tolerance at 1e-8. The expensive audit this tolerance is assumed to gate is ALREADY switched off on this path.
+        절감=0.000 s. This run takes the surrogate branch: result.json shows `"surrogate_evaluation": "ad"`, `"complete_primal_state_
+        결정변경=no. Loosening it cannot change the step; it can only convert a hard ValueError ('Surrogate Jacobian needs the same conti
+        게이트=evaluation/parameters.json sdmpc_tangent.primal_abs_tolerance (line 121)
+    - Nothing. Leave sdmpc.objective_tolerance at 1e-7. At max_iterations=2 it is structurally incapable of saving time, because the break fires AFTER the batch it would have avoided.
+        절감=0.000 s at the current caps. sdmpc.py:825 and sdmpc_pfo.py:83 both test the improvement only once `values = evaluate(...
+        결정변경=yes, and only for the worse. Measured margins: PFO iter1 improved owned cost by 1.59501 and omega by 1.94656; SDMPC iter
+        게이트=evaluation/parameters.json sdmpc.objective_tolerance (line 18)
+    - The only iteration-count change with real mass, and it is a quality trade: sdmpc_pfo_cap.max_iterations 2 -> 1 and sdmpc.max_iterations 2 -> 1. This is a DECISION change, stated plainly, not a free sp
+        절감=~239 s of 544.512 s -> ~306 s total, still 2.0x the 150 s interval. Components, all measured except the last: PFO 2->1 d
+        결정변경=yes, and the size is NOT readable off this archive. The naive read - PFO hands over 397.48152 instead of 395.53496, SDMP
+        게이트=evaluation/parameters.json sdmpc_pfo_cap.max_iterations (line 22) and sdmpc.max_
+    - sdmpc.line_search_steps 3 -> 2 (safer) or 3 -> 1 (aggressive). Measured on this state the backtracks were pure waste: the full step k=0 won both PFO line searches with a monotone ordering in k (iter0 
+        절감=3 -> 1: ~35.7 s = 6.6%. Batch B 135.12157 -> ~113.303 (-21.8), C 120.898 -> ~113.303 (-7.6), D 119.610 -> ~113.303 (-6.3
+        결정변경=no on THIS state, for 3 -> 1: the k=0 trial was selected in every line search, so the accepted iterates are bit-identica
+        게이트=evaluation/parameters.json sdmpc.line_search_steps (line 6)
+    - NEW key, e.g. sdmpc.predicted_decrease_tolerance: skip an iteration's rollout batch when the QP's own linear model predicts less improvement than the threshold. This is the only tolerance-shaped chang
+        절감=Up to one full batch per iteration it suppresses: 119.610 s (a with-derivative batch) or 47.974 s (a primal-only one). I
+        결정변경=unknown, and it is cheaply checkable offline before anyone writes code. Whether it would have fired here is decidable wi
+        게이트=NEW (e.g. evaluation/parameters.json sdmpc.predicted_decrease_tolerance)

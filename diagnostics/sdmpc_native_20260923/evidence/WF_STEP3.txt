@@ -1,0 +1,173 @@
+==========================================================================
+### D1 — "prediction has no ramp metering dynamics, so RM is invisible"
+  실재=False | 막는것=NEITHER — as a model-visibility defect. RM is visible to the prediction (measured 238.6 vs 840.0 vph across the green range) and VSL is visible too (vsl_commands are consumed at canonical_harness.py:802 control.vsl.update(step['vsl_commands']) and vsl_zone_heads is installed via adapter.install_freeway_vsl_zones at :703-705, with a per-cell binding audit at :733-741).
+
+What does block the goal is upstream of D1: (a) mpc_policy.json is absent from all three control arms, so the prediction model is not in the native decision loop at all (controller_connection_audit.json, mpc_decision_count 0 x3); (b) PROTOCOL.json is missing from metanet_calibration_v1/, so `import boundary_factory` — and therefore mpc_choice — raises FileNotFoundError in this tree.
+
+One adjacent item that DOES structurally degrade VSL and deserves its own defect ID: evaluate_response.py:222 forces w['vsl_zone_heads']={road:list(range(21))}, one zone per cell, while the actuated-window path asserts the physical sign zones {'FW_E':[0,5,10,13,15]} (metanet_terms_implementation_v2/test_ramp_harness.py:147). controller_connection_audit.json also flags that range(21) is stale against a 31-cell mesh. Per memory "VSL 은 표지판 구역이다", per-cell zones are a fiction the actuator cannot realize — the MPC would be optimizing over speed fields that no DSD can produce. That is a real VSL-side defect; it is not D1. | 규모=small — for what is actually warranted. Step 1 (restore PROTOCOL.json) is minutes. Steps 2-4 (hoist ~50 lines from evaluate_response.py:187-238 into boundary_factory.py behind one `ramp_profile=None` parameter + one config key) is a few hours including the byte-equality and replay tests, and adds no new physics. The briefed D1 fix — building a new ramp queue/capacity model from scratch — would be large and should not be done, because that model already exists, is wired, and demonstrably responds to green.
+
+The large item is the one D1 does not name: getting the model into the native loop (mpc_policy.json present, plus the three gaps recorded in controller_connection_audit.json — the range(21)/31-cell VSL zone map, the 0.1 s timestamp rejection in online_data, and the fixed 10 s factors in the cost integration now that mainline integration is 1 s). I have not traced those three end to end and am not proposing fixes for them here. | 반박=True
+  [REFUTED] SCOPE FIRST, so this is not misread: the DEFECT VERDICT SURVIVES. I independently confirmed that D1 as briefed does not exist — RM is visible to the prediction. What is refuted is the FIX DESIGN, whose declared prerequisite ("no design freedom") is unexecutable, plus two factual claims used to justify the hoist and the test plan.
+
+=== R1 (DECISIVE). Step 1 names the wrong file, and the right file does not exist anywhere. ===
+Step 1 says: "copy metanet_calibration_v1/res10_20260922/PROTOCOL.json -> metanet_calibration_v1/PROTOCOL.json ... Without this, boundary_factory.py:9 raises and nothing below can be tested."
+
+That copy does not work. res10_20260922/PROTOCOL.json is a DIFFERENT SCHEMA — 
+  [영향] As written, zero. The lever is visible to the model with a large, correctly-signed gradient: 238.6 vph predicted release at green 2 vs 840.0 vph at green 10 on a 900 vph ramp — a 3.5x span, with connector storage saturating at 35.7 veh and 47.0 veh of upstream backlog accumulating over 450 s at green 2. The MPC's cost separates those candidates through both ramp_ttt_veh_h and extra_ramp_wait_veh_h.
+
+The residual real impact is scoped and much smaller:
+
+1. Any caller of build_window that does NOT layer ramp_dynamics on top predicts a ramp release that is command-independent. In the merged tree 
+  [수정] Do NOT implement the D1 fix as briefed (adding a new ramp queue model). It would duplicate PhysicalRampBoundary and create a second, divergent ramp model — the exact pattern memory records as the root cause of 19 adapter copies.
+
+The correct, end-to-end-traceable change is a HOIST, not a new model: move the RM-aware ramp block out of the diagnostics script into the shared boundary factory, structurally off by default.
+
+Step 1 (prerequisite, no design freedom). Restore the missing protocol so the path is runnable:
+  copy metanet_calibration_v1/res10_20260922/PROTOCOL.json -> metanet_calibration_v1/PROTOCOL.json
+  and git-track it. Without this, boundary_factory.py:9 raises and nothing below c
+  [놓친것] 1. THE SECOND RM-AWARE WINDOW BUILDER. evaluate_native_response.py:47 actuated_window duplicates ramp_dynamics (:56-62), ramp_arrival_vph (:85) and ramp_head_service (:90-91), with a service formula that disagrees with evaluate_response.py:236 (dt/cycle-scaled vs unscaled per-cycle) and a VSL zone source that disagrees with :222 (physical model heads vs hardcoded range(21)). The review asserts evaluate_response is "the ONLY RM-aware window builder", which is false, and this is the live instance 
+==========================================================================
+### D2 — evaluate_response.py mpc_choice reads a manually pinned, stale (and in the merged tree, non-existent) model directory; new boundary/Hadi/Wang calibrations are never promoted
+  실재=True | 막는것=BOTH. RM: the pinned config lacks `physical_ramp_capacity_vph`, halving the modelled capacity of the two 2-lane meters that dominate RM headroom, and the RM green->service curve is read from an unpinned old config. VSL: the pinned config lacks the refreshed `segment_params` free speeds against which every VSL candidate's benefit is measured. And before either matters, three FileNotFoundErrors mean the MPC arm produces zero decisions (`controller_connection_audit.json`: mpc_decision_count 0 for rm, vsl and both). | 규모=medium — steps 1-3 are roughly 150 lines of new script plus one small JSON and are already proven to work (I executed the reconstruction, the heads regeneration and the port-profile regeneration; all three pass their consistency checks). Step 4 is a small optional-parameter change in `window()` plus contract/pin additions in `prepare_rules.py`. The real cost is T3/T4: ~24 rollouts per config rung x 4 rungs on archived observations, no VISSIM licence contention, but it needs a new offline replay harness of roughly 120 lines and careful pairing bookkeeping. Call it one focused day. It is NOT small: the defect hides three separate missing-file failures and a bundled three-way config change, and shipping it without the T4 ablation would produce an unattributable result. | 반박=True
+  [REFUTED] VERDICT: the *symptom* is real and I reproduced it, but the diagnosis, the quantified impact, and all four fix steps are refuted. The defect is "mpc-critical artifacts were never git-tracked and were lost in the merge", NOT "a stale config whose calibrations were never promoted". The originals are recoverable, byte-pinned, inside this tree.
+
+WHAT SURVIVES (verified by me, do not re-litigate)
+- All quoted file:line are exact. D:/VISSIM-merge/sim3/diagnostics/demand_sweep/ramp_dsd_20260916_v2/evaluate_response.py:26,27,187,188,222,236,548,549,550; prepare_rules.py:25,96,97,107,110,116; boundary_factory.py:9,84,86,89.
+- Import failure reproduced by execution: `import boundary_factory` -> FileNo
+  [영향] BOTH levers, and today the MPC arm cannot execute at all.
+
+Hard failures, in the order they fire (all reproduced by execution, no VISSIM needed):
+ 1. `import boundary_factory` -> FileNotFoundError (metanet_calibration_v1/PROTOCOL.json). evaluate_response.py is not importable, so `mpc_choice` never runs.
+ 2. `window()` line 187 -> FileNotFoundError (controller_response_v1/heads.json).
+ 3. `mpc_choice` line 550 -> FileNotFoundError (model_v3/selected_parameters.json).
+This is consistent with `controller_connection_audit.json`: `mpc_policy_present: false`, `mpc_decision_count: 0` for all three ar
+  [수정] Four steps. Steps 1-3 restore executability (proven by running them); step 4 makes promotion explicit and auditable. Config gate: one new `prepare_rules.py` flag, no behavioural switch inside the plant.
+
+STEP 1 — restore `metanet_calibration_v1/PROTOCOL.json` (4 runtime keys).
+File: `D:/VISSIM-merge/sim3/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/PROTOCOL.json` (new).
+Keys actually consumed: boundary_factory.py:84 `PROTOCOL['evaluation_modes']`, :86 `PROTOCOL['horizon_sec']`, :89 `PROTOCOL['history_sec']` and `PROTOCOL['model_step_sec']`; evaluate_response.py uses `BOUNDARY_PROTOCOL['history_sec']`.
+Values, grounded not guessed: `evaluation_modes: ["conditioned_diag
+  [놓친것] M1 (HIGHEST — the MPC arm still cannot run after the proposed fix, and the test plan is structurally blind to it). evaluate_response.py:468-469: `if not native_time.is_integer(): raise ValueError('MPC history requires integer-aligned native frames; do not round fractional times')`. I checked a real native output, D:/VISSIM_runs/20260922_both_off_half/p100_nc9000/run/vissim_eval/baseline_001.fzp: every SIMSEC is 0.1-phased (5.10, 10.10, 15.10, …, 100.10). So online_data aborts on the first frame 
+==========================================================================
+### D3 — VSL zone projection hardcodes range(21) while the merged tree's only geometry has 31 cells per direction
+  실재=True | 막는것=VSL. `vsl_zone_heads` feeds only `install_freeway_vsl_zones` -> `src.models.state.segment_vsl` (adapter :8596-8604) and the `local_vsl_costs` projection (:8612-8628); nothing on the ramp path reads it. RM is untouched by D3 — RM is blocked by the separate `kind=='ramp'` boundary-dynamics gap at `boundary_factory.py:140-141`. Within VSL, D3 blocks 2 of the 8 zone candidates completely (Δ ≡ 0) and corrupts 2 more (12x overstated). | 규모=small | 반박=False
+  [영향] Quantified with real rollouts on the merged tree (res10 `fw080_urban090_ports`, `boundary` family params, cutoff 2700.1, 1 s integration, 450 s horizon). Baseline hold TTT = 206.385059 veh·h, identical under both head maps.
+
+A. The most downstream VSL zone is STRUCTURALLY INVISIBLE. Restricting it to 80 km/h:
+   heads=range(21) [current code]:  TTT = 206.385059,  ΔTTT = 0.000000,  vsl_binding_cell_seconds = 0
+   correct zone heads:              TTT = 215.157931,  ΔTTT = +8.772872, vsl_binding_cell_seconds = 4940
+   identity heads range(31):        TTT = 215.157931,  ΔTTT = +8.772872, vsl_bindi
+  [수정] Two changes, both traced end to end. Nothing else needs to move.
+
+FIX 1 — stop hardcoding the cell count (the actual defect).
+File: `D:/VISSIM-merge/sim3/diagnostics/demand_sweep/ramp_dsd_20260916_v2/evaluate_response.py`, line 222, inside `window()`.
+Replace:
+    w['vsl_zone_heads']={road:list(range(21)) for road in model.roads}
+With:
+    w['vsl_zone_heads']={road:list(range(len(model.base.network.freeway_segment_lanes[road])))
+                         for road in model.roads}
+Why identity over the actual count, rather than the configured zone heads:
+- It is bit-identical to today's behaviour on any 21-cell geometry (range(21) == range(21)), so no legacy result changes.
+- I measured that id
+  [놓친것] 1. THE IMPACT IS UNDERSTATED — it is a blind STATE dimension, not just two blind candidates. The analysis frames D3 as "2 of 8 candidates score Delta = 0". But `mpc_choice` reconstructs the current VSL state from the plant at `evaluate_response.py:552` (`zones={z:history['vsl'].get(str(ids[0]),120) ...}`) and `window()` replays it into `vsl_commands` at :244/:578. My `run(25, ...)` row IS "hold with the downstream zone already at 80": range(21) gives 206.385059 — bit-identical to the all-120 bas
+==========================================================================
+### D4 — MPC online reader accepts integer seconds only; native FZP is on a 5 s grid with a 0.1 s phase
+  실재=True | 막는것=BOTH — for the model-based (MPC) path only; NEITHER for the rule-based arms currently running.
+
+mpc_choice() is the single entry point where RM and VSL are both evaluated: the candidate set at evaluate_response.py:555-565 builds meter-green candidates (arm in ('rm','both'), lines 556-560) and VSL-zone candidates (arm in ('vsl','both'), lines 561-565) and every one of them is scored by a rollout that begins with the same online_data() call at line 546. Because the failure is upstream of the candidate loop, both levers die together — there is no partial degradation where one arm survives.
+
+It does not block RM/VSL actuation per se: fast_fixed_profile.py:233-246 writes the meter GREEN/RED events and VSL DSD events from `history`, and with mpc=None that history comes from alinea_meter_step/rule_vsl_speed. So the levers can and do actuate natively today. What D4 blocks is the ability to ask the plant model whether those levers help — goal (b). Given the task's own priority rule ("a defect that makes a lever structurally invisible to the model is top priority"), D4 qualifies twice over: the hard raise makes both levers unevaluable, and the latent defaultdict-zero at line 262 would make RM specifically invisible even after the raise is removed. | 규모=medium — one file dominates (evaluate_response.py: ~14 edit sites across online_data, mpc_choice, window, component, refine_boundary_steps, event_time_weights), plus two constructor calls that already accept the parameter, plus one new contract key in prepare_rules.py. No new physics, no new state, no new module: every rewrite has a working offline analogue to copy (analyze_no_control_corridors.py:120-122, boundary_factory.py:90/94/126/147, extract_observations.py:265/472). Roughly 1-2 days including the new tests. Budget separately for the Step 0 prerequisite (restoring the missing metanet_calibration_v1/PROTOCOL.json), which is unknown-effort until someone locates a good copy, and for the first real fractional run surfacing further integer assumptions inside canonical_harness.py, which I did not audit. | 반박=False
+  [영향] Structural, not numerical: with the real 0.1 s-phase FZP the MPC selector cannot read a single observation frame. evaluate_response.py:468 raises on the first data line of D:/VISSIM_runs/.../baseline_001.fzp (SIMSEC 5.10), so online_data() never returns, mpc_choice() never builds a window, and zero RM or VSL candidates are ever scored. The failure is total (100% of decisions), not a degradation.
+
+Quantitatively, relative to the offline harness that does work at this phase: every absolute-time index in the MPC path is off by exactly 0.1 s, and the affected lookups are dict keys, so the error do
+  [수정] Principle: adopt the harness's contract verbatim in the MPC path — one declared `phase` in [0, interval), a grid test `abs((t-phase)/interval - round(...)) < 1e-8` instead of `.is_integer()`, float time keys normalized with `round(...,6)` on both the producing and consuming side, and `sec = int(sec)` retained only when phase == 0 so today's integer behaviour is bit-identical. This is analyze_no_control_corridors.py:120-122 and boundary_factory.py:90/94/126/147, copied rather than reinvented. Keep the command clock integer and make only the observation clock fractional — the same split res10_20260922/prepare.py:51 already makes offline (`cutoffs_s=[t+.1 for t in cutoffs]` from integer `times`
+  [놓친것] 1. test_online_native_clock.py — the governing contract test, never found. D:/VISSIM-merge/sim3/diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/test_online_native_clock.py exercises online_data() end to end on synthetic FZPs AND on the real res10 sample. This directly contradicts the analysis's fix_risk item 8 ("mpc_choice has never run against a real native FZP in this tree") — online_data has, under test, and the .1 rejection is its asserted outcome.
+
+2. Its rationale do
+==========================================================================
+### D5 - fixed 10-second weight in the MPC cost while mainline integration is 1 s
+  실재=True | 막는것=BOTH, with RM primary.
+
+RM: the ramp_wait term at :586 is RM-specific - `outside_component_backlog_veh` only grows when metering fills the ramp connector. Inflating it 10x is a pure, one-sided tax on the restriction direction of RM. Combined with the already-established fact that RM green cannot move the predicted ramp release (boundary_factory.py:141 `item['ramp_release_vph'][name]=rate` with `rate=recent[name]`), the MPC sees zero benefit and 10x cost for RM restriction. It is structurally impossible for the selector to prefer it in any state where the connector fills. NOTE: in the reference run the backlog happened to be 0.0 for all 81 candidates, so this term is inert at that particular cutoff - the 10x bites only in the congested regime, which is exactly the regime where RM has to pay for its benefit.
+
+VSL: blocked indirectly but severely. The fabricated ~900 veh.h source term dominates the objective and, because the clip no longer binds, it prices every vehicle of near-term origin admission at 0.12 veh.h. VSL restriction reduces upstream speed and therefore near-term entry admission, so it is charged for it. More fundamentally the term converts the objective into a myopic 450 s entry-throughput objective, which is the opposite of the "hold back now, avoid the breakdown later" logic both levers depend on.
+
+Honest caveat on direction: the ramp term's bias is unambiguously AGAINST control. The source term's sign at any single cutoff is state-dependent (RM restriction can free mainline capacity and thus slightly increase origin admission, which the fabricated term would reward). What is not state-dependent is that the term is fabricated, dominating, and myopic. Net: biases against control. | 규모=small | 반박=True
+  [REFUTED] The two literal constants are real, but the causal story, the impact numbers, the "blocks RM/VSL" verdict, and the prerequisite in the fix design are all wrong. Four independent hits.
+
+--- WHAT SURVIVES (verified by reading the merged tree) ---
+- D:/VISSIM-merge/sim3/diagnostics/demand_sweep/ramp_dsd_20260916_v2/evaluate_response.py:586 `...outside_component_backlog_veh'])*10/7200...` and :591 `...s['source_demand_vph'][road]*10/3600...`. Confirmed verbatim. :594 `*30/7200` is correct against the 30 s bin at :590.
+- canonical_harness.py:648 `tf = float(self.base.simulation.T_f_sec)`, :651 len check, :654 contiguity at index*tf. Confirmed, so dt-from-window == tf whenever simulate() returns.
+
+  [영향] Exactly a 10x scale error on both terms at tf=1 (2x at tf=5), verified numerically (scratchpad d5_stepinvariance.py, run):
+
+  tf     CURRENT ramp_wait / src_wait      FIXED ramp_wait / src_wait
+  10       4.0000  /   3.0544                4.0000 / 3.0544
+   5       8.0000  / 104.8669                4.0000 / 3.0544
+   1      40.0000  / 919.3669                4.0000 / 3.0544
+The fixed form is exactly step-invariant (rel. diff 0.00e+00 between tf=1 and tf=10).
+
+Real magnitudes, from the correctly-weighted reference run at the same plant and step (control_comparison_20260922/one_step_control/boun
+  [수정] Three lines in D:/VISSIM-merge/sim3/diagnostics/demand_sweep/ramp_dsd_20260916_v2/evaluate_response.py, inside `def evaluate(name,gs,zs)` in `mpc_choice` (function starts at :568, window built at :578).
+
+1) After `w=window(data,model,sec,'history_forecast',command)` (:578) and before `prediction=simulate(model,w,params)` (:579), derive the step from the window itself rather than naming a constant:
+     dt=float(w['boundary_steps'][0]['window_end_s']-w['boundary_steps'][0]['window_start_s'])
+     if any(abs(float(s['window_end_s'])-float(s['window_start_s'])-dt)>1e-9 for s in w['boundary_steps']):
+         raise ValueError('Non-uniform boundary step cannot carry a single cost weight')
+   This
+  [놓친것] 1. THE REAL BLOCKER IS BIGGER THAN "RESTORE A FILE". The MPC window step comes from PROTOCOL['model_step_sec'] (evaluate_response.py:130 -> boundary_factory.py:89) while the plant step comes from prepare_rules.py:99. Nothing ties them. The analysis noticed the symptom ("if it is restored with model_step_sec=10 while plant_step_sec=1, canonical_harness.py:651 will raise on every candidate") and then chose the resolution that breaks the calibration instead of the one that fixes the coupling. This 
+==========================================================================
+### M1 (PLANT zeroes metanet_delta_merge / freeway_lane_drop_phi for literature models; CTRL re-sources the read so PLANT's write loses)
+  실재=False | 막는것=NEITHER — as a defect it blocks nothing, because it does not fire in this tree. It is not on the critical path for making RM or VSL actuate in native VISSIM, and it is not why the plant fails to see RM benefit.
+
+Nuance worth carrying forward, none of which is this defect:
+- RM: the established build_window finding (kind=='ramp' has no dynamics; item['ramp_release_vph'][name] = recent[name]) remains the structural RM blindness. Fixing M1 would not move a single predicted ramp release.
+- RM, second order: in literature arms the merge term is off (accounting.py:363), so even a correct ramp-release prediction would produce a smaller mainline-speed response there than in the empirical arm. If the RM-benefit verdict is taken from a hadi/wang arm, it is biased toward "no benefit" by construction.
+- VSL: unaffected. The literature branch replaces the empirical capacity drop (capacity_drop_discharge_phi = 1. at line 592) with the paper's own theta inside hadi_receiving_vph (canonical_harness.py:600-604), and the VSL command still reaches the desired speed through accounting.py:359-361 (hadi_desired_speed on literature['relaxation_cells']). So VSL authority is present in both arms; it is not zeroed the way the merge term is. | 규모=small (three edits totaling under 15 lines, plus a ~60-line offline regression test; the diagnosis is already done and reproducible — scratchpad probe at C:/Users/TRLAB/AppData/Local/Temp/claude/C--Users-TRLAB-Desktop----/491ef689-f002-4605-9dc5-e6d363495788/scratchpad/m1_probe.py). Separately noted, not part of this item: D:/VISSIM-merge/sim3/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/boundary_factory.py:9 raises FileNotFoundError on import because it reads HERE/'PROTOCOL.json' and the only PROTOCOL.json in the tree is at res10_20260922/PROTOCOL.json — importing boundary_factory from its own directory is currently broken in the merged tree.) | 반박=True
+  [REFUTED] WHAT SURVIVES: the verdict `exists_in_merged_tree: false` is CORRECT and I re-confirmed it independently, statically, end to end. Every quoted file:line is accurate:
+- canonical_harness.py:583 `if self.literature is not None:` / :590-592 the three zeroing lines; :552 `cfg = copy.deepcopy(self.base)`; :553 `net = cfg.network`; :554 `net.freeway_links = [road]`; :623 `return cfg`.
+- area_freeway_accounting.py:159-160 and vissim_stackelberg_adapter.py:8984-8985 quoted verbatim correctly; both are `.get(..., <scalar>)`.
+- metanet_parameter_transfer.py:50 is the SOLE writer: `grep -rn "metanet_parameters_by_direction"` over the whole tree returns exactly 3 hits (accounting:159 read, transfer:50 w
+  [영향] The defect as written does not exist: CTRL's per-direction lookup degrades to the scalar default, so the literature arms run with delta_merge = 0, lane_drop_phi = 0, capacity_drop_discharge_phi = 1, exactly as canonical_harness.py:588-592 intends. There is no double-counting of the empirical merge/drop terms in hadi/wang arms, and no silent re-enabling in the empirical arm either (0.3 / 3.0 survive intact).
+
+Two true statements that fall out of the verification and matter for the RM/VSL goal:
+1. In the literature arms the merge-deceleration channel is switched off entirely (accounting.py:363 `
+  [수정] No behavior change is needed today. The correct fix is to make the dormant hazard impossible, plus honest provenance. Three edits, all in files I read, no new config key (a correctness invariant must not sit behind a flag).
+
+EDIT 1 — single source of truth for the per-road cfg. In D:/VISSIM-merge/sim3/diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/canonical_harness.py, in `_config`, immediately before `return cfg` (currently line 623, after the off-ramp block at 613-622):
+
+    # accounting.py:160 and vissim_stackelberg_adapter.py:8985 prefer a
+    # per-direction row over these scalars. This component's cfg is built per
+    # road, so the row must restate what this cfg 
+  [놓친것] A. HARD-FAIL ON RM SWEEPS IN LITERATURE ARMS — more directly on the user's critical path than M1. area_freeway_accounting.py:224-225:
+    224  if ramp_in_by_link[link][i] > receiving[i]+1e-8:
+    225      raise ValueError('Observed merge exceeds literature receiving budget')
+In hadi/wang arms the ramp inflow is not clipped to the literature receiving budget — it RAISES. Combined with the already-established build_window finding (kind=='ramp' has no dynamics; `item['ramp_release_vph'][name] = rat
+==========================================================================
+### M2 — metanet_parameter_transfer strips per-cell rho_max from freeway_segment_params, degrading per-cell jam density to the global net.rho_max
+  실재=True | 막는것=NEITHER — it blocks nothing today, because the code path never runs (freeway.parameter_transfer enabled in zero configs; the plant consumer additionally excluded by metanet_parameter_transfer.py:24-25 and by freeway_vsl_fd_response being set only in one diagnostic script).
+
+Directionally it is a VSL defect, not an RM defect. All three consumers of per-cell rho_max sit on the
+VSL-induced-FD path: FDParameters.critical/desired_speed under an active cap (freeway_fd.py:162-172),
+the Carlson/Frejo literature FD jam check (physical_lane_groups.py:453), and the adapter's
+VSL desired-speed patch (adapter:9030). Ramp metering touches rho_max only through the global
+net.rho_max in the receiving term (freeway_fd.py:300, area_freeway_accounting.py:63/200), which the
+transfer does not modify. So if this ever activated it would corrupt VSL prediction, not RM.
+
+It is therefore NOT the "lever structurally invisible to the model" defect the goal context prioritises.
+For that class, the established build_window ramp finding (kind=='ramp' has no dynamics) remains the
+live one; M2 is a latent data-fidelity hole to close before anyone authors a transfer document, not a
+reason the current RM/VSL benefit fails to appear. | 규모=small — ~12 lines in one file (evaluation/controllers/metanet_parameter_transfer.py, lines 15-16, 43, 48-53) plus the T1/T2/T5 unit tests and the T4 zero-delta comparison. No VISSIM run, no re-calibration, no downstream edits: the three consumers already use row.get('rho_max', <global>) and start working as soon as the key survives. Budget roughly half a day including the T4 before/after runs. | 반박=False
+  [영향] LATENT, NOT ACTIVE. Stated honestly as the task requires: no cell's rho_max is ever below the global net.rho_max in current calibrated data, because no calibrated segment-params row carries rho_max at all (0 out of 200 segment rows across six files), and freeway.parameter_transfer is enabled by zero configs. Today the defect changes no number in any run.
+
+What it would cost if it fired. The stripped key is not a guard-only quantity — it is a live FD parameter. Measured with the real global (net.rho_max = 95.020, rho_crit_two_branch = 15.164, v_free 96 kph), a cell whose true jam density is 60 
+  [수정] Single file, ~12 lines. Principle: the transfer's own docstring says it is a *coefficient* transfer onto "the unchanged aggregate freeway grid" — so physical/geometric per-cell facts must survive it, and the document may optionally restate them.
+
+FILE: D:/VISSIM-merge/sim3/evaluation/controllers/metanet_parameter_transfer.py
+
+1) Split the key set (replaces lines 15-16):
+     REQUIRED_CELL_KEYS = {'v_free', 'rho_crit', 'metanet_a_m', 'metanet_tau_h',
+                           'metanet_nu_km2_h', 'metanet_kappa_veh_km_lane'}
+     OPTIONAL_CELL_KEYS = {'rho_max', 'metanet_nu_cong_km2_h', 'segment_length_km'}
+     CELL_KEYS = REQUIRED_CELL_KEYS            # kept as an alias; nothing else import
+  [놓친것] 1. THE FIX OPENS A GEOMETRY HOLE THE ANALYSIS DOES NOT LIST. See corrected_fix Correction 1. The analysis cites segment_length_km only as "read at adapter:9012" — that citation is wrong on two counts: :9012 is `p=dict(_FW_SEG_CTX['p'])`, the read is at :9013 (a guard: subcell may not exceed the canonical segment length), and the consumer that actually matters is :9064, where the per-cell length enters the METANET speed update. Making that key declarable is a new degree of freedom over model dyna
