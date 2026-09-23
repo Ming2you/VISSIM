@@ -382,6 +382,7 @@ vslTraceFile.WriteLine "sim_sec,dsd_no,veh_class_no,requested_kph,readback_distr
 ' N4-0. 축 2값(sigMajor/sigMinor)이 현시 4값 한 칸(sigPhaseGreen)으로 바뀌었다.
 ' 사전 한 칸에 "g1|g2|g3|g4" 로 담는다 - VBScript 사전은 배열을 잘 담지 못한다.
 Dim sigPhaseGreen, sigOffset, signalControlled, rampGreen, lastActionJson, urbanDemandVph, freewayDemandVph
+Dim lastActionFieldsKey, lastActionStatusText, lastActionWallText
 Dim demandScheduleLoaded, demandUrbanBySec, demandFreewayBySec, demandForecastProfileName
 ' 게이트 앵커링 — 구간별 게이트 사전 + 게이트가 없는 유입의 사유별 버킷.
 Dim demandUrbanGateBySec, demandUrbanUnmappedBySec, demandUrbanInternalBySec
@@ -4843,17 +4844,34 @@ Sub ConfigureEvaluationOutput(path)
     WScript.Echo "EVAL_OUT_DIR=" & path
 End Sub
 
+' The state CSV row (every 30 sim-s) reads two fields of the last action JSON. An SDMPC
+' action JSON is ~58 MB, and each field used to re-read the whole file: two 58 MB reads
+' per row, ~6.7 s per row. Read it once per file version (path, size, modified time)
+' and reuse the two fields; a rewritten file is read again. Same values out.
+Sub RefreshLastActionFields()
+    Dim f, key, text
+    Set f = fso.GetFile(lastActionJson)
+    key = lastActionJson & "|" & CStr(f.Size) & "|" & CStr(CDbl(f.DateLastModified))
+    If key = lastActionFieldsKey Then Exit Sub
+    text = ReadAllText(lastActionJson)
+    lastActionStatusText = JsonFieldText(text, "controller_status")
+    lastActionWallText = JsonFieldNumber(text, "decision_wall_sec")
+    lastActionFieldsKey = key
+End Sub
+
 Function LastControllerStatus()
     LastControllerStatus = "unknown"
     If lastActionJson <> "" And fso.FileExists(lastActionJson) Then
-        LastControllerStatus = JsonFieldText(ReadAllText(lastActionJson), "controller_status")
+        RefreshLastActionFields
+        LastControllerStatus = lastActionStatusText
     End If
 End Function
 
 Function LastDecisionWallSec()
     LastDecisionWallSec = ""
     If lastActionJson <> "" And fso.FileExists(lastActionJson) Then
-        LastDecisionWallSec = JsonFieldNumber(ReadAllText(lastActionJson), "decision_wall_sec")
+        RefreshLastActionFields
+        LastDecisionWallSec = lastActionWallText
     End If
 End Function
 
@@ -6379,7 +6397,7 @@ End Sub
 Sub WriteLanePlantObservation(simSec, expectedCount, vehs, links, lanes, positions, speeds)
     Dim names, tables(5), attr, beforeSec, afterSec, beforeCount, afterCount
     Dim rowLo, rowHi, keyCol, valCol, lo, hi, kc, vc, row, i, key, json, comma
-    Dim folder, finalPath, tempPath, stream, values, value, text, isText
+    Dim folder, finalPath, tempPath, stream, values, value, text, isText, recs
     names = Array("No", "Length", "RoutDecNo", "RouteNo", "RoutDecType", "NextLink\No")
     beforeSec = Vissim.Simulation.AttValue("SimSec")
     beforeCount = Vissim.Net.Vehicles.Count
@@ -6408,7 +6426,10 @@ Sub WriteLanePlantObservation(simSec, expectedCount, vehs, links, lanes, positio
     Next
     json = "{""schema"":""lane-plant-frame/v1"",""complete"":true,""time_s"":" & CStr(CLng(simSec)) & _
         ",""run_id"":""" & JsonEscape(runId) & """,""vehicles"":["
-    comma = ""
+    ' One string per vehicle, joined once at the end. Appending each vehicle to the
+    ' growing frame (json = json & ...) re-copied the whole frame about 13 times per
+    ' vehicle: O(N^2), ~4 s of every simulated second at N=3000. Same bytes out.
+    If rowHi >= rowLo Then ReDim recs(rowHi - rowLo)
     For row = rowLo To rowHi
         i = row-rowLo
         key = tables(0)(row,keyCol)
@@ -6428,11 +6449,11 @@ Sub WriteLanePlantObservation(simSec, expectedCount, vehs, links, lanes, positio
             End If
             values = values & "," & text
         Next
-        json = json & comma & "[" & CStr(CLng(vehs(i))) & "," & CStr(CLng(links(i))) & "," & CStr(CLng(lanes(i))) & _
+        recs(i) = "[" & CStr(CLng(vehs(i))) & "," & CStr(CLng(links(i))) & "," & CStr(CLng(lanes(i))) & _
             "," & JsonDoubleInvariant(CDbl(positions(i))) & "," & JsonDoubleInvariant(CDbl(speeds(i))) & _
             values & ",null,null,null,null,null]"
-        comma = ","
     Next
+    If rowHi >= rowLo Then json = json & Join(recs, ",")
     json = json & "]}"
     If obsSampleInterval = 5 Then json = Left(json,Len(json)-1) & ",""sample_interval_sec"":5}"
     folder = fso.BuildPath(decisionDir, "lane_observations")
