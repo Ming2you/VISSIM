@@ -1,0 +1,51 @@
+--- run_real_world_stackelberg_controller.vbs
++++ run_real_world_stackelberg_controller.vbs (proposed)
+@@ -4102,9 +4102,15 @@
+     End If
+     If InStr(1, mantissa, ".", vbBinaryCompare) = 0 Then mantissa = mantissa & "."
+-    digits = B1aSignificantDigitCount(mantissa)
+-    Do While digits < 15
+-        mantissa = mantissa & "0"
+-        digits = digits + 1
++    ' Same count as B1aSignificantDigitCount (digits after sign, point and leading zeros;
++    ' all digits when every digit is 0). Fuzz-equal on 400,028 values incl. E-notation.
++    Dim digitsOnly, lead
++    digitsOnly = Replace(Replace(mantissa, ".", ""), "-", "")
++    lead = 1
++    Do While lead <= Len(digitsOnly)
++        If Mid(digitsOnly, lead, 1) <> "0" Then Exit Do
++        lead = lead + 1
+     Loop
++    If lead > Len(digitsOnly) Then digits = Len(digitsOnly) Else digits = Len(digitsOnly) - lead + 1
++    If digits < 15 Then mantissa = mantissa & String(15 - digits, "0")
+     If Right(mantissa, 1) = "." Then mantissa = mantissa & "0"
+     JsonDoubleInvariant = mantissa & exponentText
+@@ -6380,5 +6386,5 @@
+     Dim names, tables(5), attr, beforeSec, afterSec, beforeCount, afterCount
+     Dim rowLo, rowHi, keyCol, valCol, lo, hi, kc, vc, row, i, key, json, comma
+-    Dim folder, finalPath, tempPath, stream, values, value, text, isText
++    Dim folder, finalPath, tempPath, stream, values, value, text, isText, recs
+     names = Array("No", "Length", "RoutDecNo", "RouteNo", "RoutDecType", "NextLink\No")
+     beforeSec = Vissim.Simulation.AttValue("SimSec")
+@@ -6409,5 +6415,7 @@
+     json = "{""schema"":""lane-plant-frame/v1"",""complete"":true,""time_s"":" & CStr(CLng(simSec)) & _
+         ",""run_id"":""" & JsonEscape(runId) & """,""vehicles"":["
+-    comma = ""
++    ' One string per vehicle, joined once. "json = json & ..." re-copied the whole
++    ' frame ~13 times per vehicle (O(N^2)): ~4 s of every simulated second at N=3000.
++    If rowHi >= rowLo Then ReDim recs(rowHi - rowLo)
+     For row = rowLo To rowHi
+         i = row-rowLo
+@@ -6429,9 +6437,9 @@
+             values = values & "," & text
+         Next
+-        json = json & comma & "[" & CStr(CLng(vehs(i))) & "," & CStr(CLng(links(i))) & "," & CStr(CLng(lanes(i))) & _
++        recs(i) = "[" & CStr(CLng(vehs(i))) & "," & CStr(CLng(links(i))) & "," & CStr(CLng(lanes(i))) & _
+             "," & JsonDoubleInvariant(CDbl(positions(i))) & "," & JsonDoubleInvariant(CDbl(speeds(i))) & _
+             values & ",null,null,null,null,null]"
+-        comma = ","
+-    Next
++    Next
++    If rowHi >= rowLo Then json = json & Join(recs, ",")
+     json = json & "]}"
+     If obsSampleInterval = 5 Then json = Left(json,Len(json)-1) & ",""sample_interval_sec"":5}"

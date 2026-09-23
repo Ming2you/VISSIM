@@ -16,7 +16,11 @@ replayed offline (`lane_native_nc2850_s13_v3` is `controller = no-control`).
 | 3561a25 | decision time 600 s → 505 s, bit-identical (central Jacobian pruning, fused Dual operators, no deep copy, marshal cache) |
 | a5c2d64 | plant diagnostics runnable from a checkout (`--geometry-vbs`, `-AllowConcurrent`, evaluate_response D3-D5) |
 | 5a86363 | urban stock debit tolerance floor. The first 9000 s run died at 1050 s on it |
-| (this) | `tools/` and `evidence/` below |
+| e0164cc | `tools/` and `evidence/` below |
+| c3799d3 | budget audit: the live budget is already an upper-bound inequality (`evidence/BUDGET_AUDIT_20260923.md`) |
+| 20358cf | 215 tracked files kept byte-exact on checkout (a fresh worktree failed a sha256 pin) |
+| 2bf00cf | 16 inputs the decision opens by hard-coded path, found by tracing file opens |
+| 4b75fad | runner: lane frame built in linear time, state CSV reads the action JSON once (`evidence/STEP_COST_20260923.md`) |
 
 ## Running it
 
@@ -29,12 +33,19 @@ Gate map ver2 (not legs4b), mapping ver2n21, `-StallSec 2400`. The scripts carry
 absolute paths (D:\VISSIM-merge\sim3, the .review-deps PYTHONPATH).
 
 To check one decision without VISSIM, use `tools/replay_decision.ps1 -Dec <decisions dir> -Sec <t> -PrevSec <t-150>`.
-It takes about 8.5 min, where a native run needs 60+ min to reach 900 s. It reads the run's saved
+It takes about 9 min, where a native run needs 15+ min to reach 900 s. It reads the run's saved
 `state_<t>.json` and the previous action with its `.applied` marker, so it also exercises the
-consecutive-decision price inheritance.
+consecutive-decision price inheritance. Once a later decision has run in a folder, its
+`lane_observations/observer_checkpoint.json` is ahead and an earlier replay is refused
+("invalid/future cutoff"); `tools/make_replay_state.py` hard-links the frames into an isolated
+folder and rewrites only the state's frame directory (pass it with `-StateJson`). Never replay in a
+live run's folder: the replay writes that folder's checkpoint. `-Root <worktree>` replays another tree.
 
-**Line endings.** Git on this machine checks out with `core.autocrlf=true`. Every pinned input
-added here is marked `-text` in `.gitattributes`, so its bytes survive a checkout.
+**Line endings.** Git on this machine checks out with `core.autocrlf=true`, which rewrote files
+pinned by sha256. Every file whose bytes a checkout would change is `-text` in `.gitattributes`
+(20358cf, 2bf00cf); a fresh worktree is byte-identical to the run tree for all 10,001 tracked files
+and reproduces the 900 s objective exactly. `git add -u --renormalize` would restage ~427 files
+committed with CRLF; add files by name.
 
 ## Status
 
@@ -44,8 +55,12 @@ added here is marked `-text` in `.gitattributes`, so its bytes survive a checkou
   5a86363. The saved state now completes offline (obj 422.675 vs held 424.493). It inherits the
   900 s applied receipt (`committed: true`) and carries its prices forward.
   `evidence/FAIL_1050_20260923.md`.
-- 9000 s run `sdmpc_lp_9000b` relaunched 13:32 on 5a86363. Whether RM/VSL engage, and the TTT
-  against no-control, come from its later decisions.
+- 9000 s run `sdmpc_lp_9000b` (13:32, 5a86363) passed 900 s and 1050 s with the offline
+  objectives to the last digit (393.916, 422.675), then was stopped at ~1100 s for the runner fix:
+  at 26 min per 150 sim-s it would have needed 23-45 h.
+- 9000 s run `sdmpc_lp_9000c` launched 15:10 on 4b75fad. Its 0-900 s frames are checked against
+  9000b's (deterministic warmup). Whether RM/VSL engage, and the TTT against no-control, come from
+  its later decisions.
 
 ## tools/ and evidence/
 
