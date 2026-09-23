@@ -18,11 +18,19 @@ def _debit_stock(stock, amount):
 
     Only arithmetic roundoff may be zeroed. A physical overdraw still raises
     at the mutation site; the global stock/constraint validators stay strict.
+
+    The residual's scale is the stock's history, not its current value: a
+    mirror that held several vehicles and drained to 0.07 carries roundoff of
+    the larger magnitudes (native sdmpc_lp_9000, t=1050: stock 0.0693, overdraw
+    2.4e-16 = 17 ULPs of the stock, 16 allowed). Floor the tolerance at 1e-9
+    veh, a hundredth of the 1e-7 veh this module already treats as an exact
+    transfer match (LaneUrbanRuntime.advance). Both operands are floats, so the
+    floor adds no tape node or comparison in a taped rollout.
     """
     if not all(math.isfinite(v) and v >= 0 for v in (stock, amount)):
         raise ArithmeticError('Invalid local urban stock or accepted transfer')
     remainder=stock-amount
-    tolerance=16*max(math.ulp(stock),math.ulp(amount))
+    tolerance=max(16*max(math.ulp(stock),math.ulp(amount)),1e-9)
     if remainder < -tolerance:
         raise ArithmeticError(f'Local urban accepted transfer exceeds its source stock: {stock=:.17g}, {amount=:.17g}, {remainder=:.17g}, {tolerance=:.17g}')
     return max(0.,remainder)
