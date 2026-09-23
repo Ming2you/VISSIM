@@ -1,0 +1,164 @@
+{
+  "schema": "native-input-prehead/v1",
+  "network": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+    "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+  },
+  "membership": {
+    "path": "diagnostics/lane_plant_20260921/scenario/control_area_membership_6c3aee.json",
+    "sha256": "ac233267af8db377e48d6a021a6bb6f1a02f0f5ed282e9715446d8996a3eef5b"
+  },
+  "selected_plan": {
+    "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+    "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+  },
+  "input_path": [
+    "225",
+    "10359",
+    "1220012001"
+  ],
+  "empirical_first_connector": {
+    "calibration": {
+      "path": "diagnostics/native_1092_1093_branch_calibration.json",
+      "sha256": "1c942c05d98fee5f9046bb3ba626f299c50c494b4266c20d10bdd548956bc19a"
+    },
+    "input_no": "1093",
+    "calibration_seed": 13,
+    "connector": "10359",
+    "prior_probability": 1.0,
+    "resolved_source_vehicles": 67,
+    "validation_scope": "offline_seed13_requires_seed14_holdout",
+    "historical_prior_transfer": {
+      "path": "diagnostics/lane_plant_20260921/scenario/historical_prior_transfer.json",
+      "sha256": "9448a1e4debf753c6d66a83e36ae216dba7bff67bb1d4b5f8dc978183dd9c0f2"
+    },
+    "network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    }
+  },
+  "decision": "22",
+  "decision_position_m": 18.673777168535626,
+  "first_heads": {
+    "30603": {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "complRate": "1",
+      "dischRecAct": "false",
+      "isBlockSig": "false",
+      "lane": "1220012001 1",
+      "localNo": "0",
+      "name": "",
+      "no": "30603",
+      "pos": "410.748181",
+      "sg": "11 6",
+      "slowDownDist": "3",
+      "type": "CIRCULAR",
+      "vAmberBlock": "0"
+    },
+    "30604": {
+      "allPedTypes": "true",
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "complRate": "1",
+      "dischRecAct": "false",
+      "isBlockSig": "false",
+      "lane": "1220012001 2",
+      "localNo": "0",
+      "name": "",
+      "no": "30604",
+      "pos": "410.917953",
+      "sg": "11 6",
+      "slowDownDist": "3",
+      "type": "CIRCULAR",
+      "vAmberBlock": "0"
+    }
+  },
+  "first_head_lanes": 2,
+  "first_phase": "SC11_p3",
+  "left_movement": "SC11_E_SC12_to_S_SC7",
+  "left_head": "30602",
+  "left_head_attributes": {
+    "allPedTypes": "true",
+    "allVehTypes": "true",
+    "anmFlag": "false",
+    "complRate": "1",
+    "dischRecAct": "false",
+    "isBlockSig": "false",
+    "lane": "1210012001 2",
+    "localNo": "0",
+    "name": "",
+    "no": "30602",
+    "pos": "9.901426",
+    "sg": "11 1",
+    "slowDownDist": "3",
+    "type": "CIRCULAR",
+    "vAmberBlock": "0"
+  },
+  "capacity_reference_movement": "SC11_E_SC12_to_S_SC7",
+  "branches": {
+    "1": {
+      "native_path": [
+        "1220012001",
+        "10365",
+        "1210012001",
+        "10107",
+        "18",
+        "10106",
+        "1220008603",
+        "10342"
+      ],
+      "rel_flow": "2 0:35",
+      "movement": "SC11_E_SC12_to_S_SC7",
+      "receiving_storage": "SC11_to_SC7",
+      "phase": "SC11_p4"
+    },
+    "2": {
+      "native_path": [
+        "1220012001",
+        "10365",
+        "1210012001",
+        "10367",
+        "1220008203"
+      ],
+      "rel_flow": "2 0:242",
+      "movement": "SC11_E_SC12_to_W_SC1",
+      "receiving_storage": "SC11_to_SC1",
+      "phase": "SC11_p3"
+    },
+    "3": {
+      "native_path": [
+        "1220012001",
+        "10365",
+        "1210012001",
+        "10366",
+        "1220011101"
+      ],
+      "rel_flow": "2 0:84",
+      "movement": "SC11_E_SC12_to_N_SC5",
+      "receiving_storage": "SC11_to_SC5",
+      "phase": "SC11_p3"
+    }
+  },
+  "scope": [
+    "Only exclusive source225/10359 initial stock and future input1093 generation are tagged; already shared-road initial traffic keeps existing aggregate routing.",
+    "First connector10359 prior1.0 is offline seed13 evidence67/67, not native routing proof; seed14holdout required.",
+    "Future native22 chooses35:242:84 only when the tagged source cohort reaches its decision.",
+    "Existing W/N use their normal p3 service once. Their actual departures get priority in the upstreamSG6 two-lane budget; a left subset receives only the remaining budget and then waits at least one5sstep for p4.",
+    "Sequential same-clock p3heads on W use the existing aggregate movement; their short inter-head microscopic travel is not separately resolved.",
+    "First-head tag progress creates no stock, movement arrival or Omega entry/exit event. Existing left p4 accepted queue-to-receiver transfers retain single area accounting.",
+    "Existing W/N movement capacities can exceed the physical two-lane reference budget; overdraw is reported and leaves no added left first-head service rather than silently increasing capacity."
+  ],
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/native_input_1093_prehead_ver2.json",
+      "sha256": "9babfadf0c7725cea937e5eef200b344f619a8186e4b05bde9fdbc93956aa3a4"
+    },
+    "runtime_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "accuracy_validation": "pending"
+  }
+}
