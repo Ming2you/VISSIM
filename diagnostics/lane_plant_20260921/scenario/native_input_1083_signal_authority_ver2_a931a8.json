@@ -1,0 +1,125 @@
+{
+  "schema": "native-input-signal-authority/v1",
+  "network": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+    "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+  },
+  "selected_plan": {
+    "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+    "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+  },
+  "membership": {
+    "path": "diagnostics/lane_plant_20260921/scenario/control_area_membership_6c3aee.json",
+    "sha256": "ac233267af8db377e48d6a021a6bb6f1a02f0f5ed282e9715446d8996a3eef5b"
+  },
+  "inputs": {
+    "1083": {
+      "physical_source": "21",
+      "source_lanes": 2,
+      "source_heads": [
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "21 1",
+          "localNo": "0",
+          "name": "",
+          "no": "90030805",
+          "pos": "94.777881306223236",
+          "sg": "108 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        },
+        {
+          "allPedTypes": "true",
+          "allVehTypes": "true",
+          "anmFlag": "false",
+          "complRate": "1",
+          "dischRecAct": "false",
+          "isBlockSig": "false",
+          "lane": "21 2",
+          "localNo": "0",
+          "name": "",
+          "no": "90030806",
+          "pos": "95.050206019264692",
+          "sg": "108 2",
+          "slowDownDist": "3",
+          "type": "CIRCULAR",
+          "vAmberBlock": "0"
+        }
+      ],
+      "connector": "10112",
+      "connector_from": {
+        "lane": "21 1",
+        "pos": "168.10401945540298"
+      },
+      "connector_to": {
+        "lane": "174 1",
+        "pos": "75.408321876282187"
+      },
+      "connector_lanes": 2,
+      "physical_path": [
+        "21",
+        "10112",
+        "174"
+      ],
+      "receiver_support": [
+        "174",
+        "173"
+      ],
+      "pre_head_storage": "in_SC108_W",
+      "post_head_storage": "SC108_to_SC109",
+      "kept_movement": "SC108_W_to_E_SC109",
+      "phase": "SC108_p3",
+      "expected_movements": {
+        "SC108_W_to_E_SC109": {
+          "origin": "in_SC108_W",
+          "signal": "SC108",
+          "phase": "SC108_p3",
+          "receiving_link": "SC108_to_SC109",
+          "kind": "boundary_in",
+          "beta": 0.6000000000000001
+        },
+        "SC108_W_to_N_SC7": {
+          "origin": "in_SC108_W",
+          "signal": "SC108",
+          "phase": "SC108_p4",
+          "receiving_link": "SC108_to_SC7",
+          "kind": "boundary_in",
+          "beta": 0.2
+        },
+        "SC108_W_to_S": {
+          "origin": "in_SC108_W",
+          "signal": "SC108",
+          "phase": "SC108_p3",
+          "receiving_link": "SC108_S_out",
+          "kind": "boundary_in",
+          "beta": 0.2
+        }
+      },
+      "excluded_upstream_decision": {
+        "no": "1081",
+        "link": "174",
+        "pos": 11.92270445631143
+      },
+      "native_route_prior": "None: no source21 decision; unique first connector;174 decision1081 precedes the75.408m merge and is ineligible. Downstream canonical routing remains unchanged.",
+      "capacity_policy": "Preserve existing finite origin and kept movement capacity; do not claim source21-calibrated storage or saturation. Two physical source/connector lanes independently validate the existing two-lane service representation.",
+      "initial_partition_contract": "By complete record lane and position: pos<=own lane head belongs to prehead; pos>head and connector10112 belong downstream. No initial input/entry emission."
+    }
+  },
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/native_input_1083_signal_authority_ver2.json",
+      "sha256": "1e532a8df7831231e295fcc16da308e29b2c750d45af3ccbe6918aea5ffdb006"
+    },
+    "runtime_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "accuracy_validation": "pending"
+  }
+}

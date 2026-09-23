@@ -1,0 +1,337 @@
+{
+  "schema": "physical-movement-routes/v1",
+  "network": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+    "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+  },
+  "by_movement": {
+    "SC101_N_SC2005_to_W_SC1002": {
+      "path": [
+        "314",
+        "10504",
+        "316"
+      ],
+      "native_routes": [
+        "1013:3"
+      ],
+      "expected_spec": {
+        "signal": "SC101",
+        "approach": "N_SC2005",
+        "turn": "right",
+        "origin": "SC2005_to_SC101",
+        "receiving_link": "SC101_to_SC1002",
+        "kind": "internal"
+      },
+      "rationale": "Native right turn branches before canonical stopline1220016001; destination is actual SC101_to_SC1002 storage.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_N_SC1_to_S": {
+      "path": [
+        "1220006803",
+        "10597",
+        "1220006801"
+      ],
+      "native_routes": [
+        "1063:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "N_SC1",
+        "turn": "through",
+        "origin": "SC1_to_SC107",
+        "receiving_link": "SC107_S_out",
+        "kind": "boundary_out"
+      },
+      "rationale": "Native through movement is the grade-separated outbound tunnel branch, not canonical connector10610 which is a right turn.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_N_SC1_to_W_SC1004": {
+      "path": [
+        "1220043200",
+        "10610",
+        "385",
+        "10611",
+        "1220000102",
+        "10501"
+      ],
+      "native_routes": [
+        "1063:3",
+        "1128:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "N_SC1",
+        "turn": "right",
+        "origin": "SC1_to_SC107",
+        "receiving_link": "SC107_to_SC1004",
+        "kind": "internal"
+      },
+      "rationale": "SC1004 receiver is the real long bypass10501 after the SC107 right turn, not a SC1005 receiver alias.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_E_SC108_to_W_SC1004": {
+      "path": [
+        "183",
+        "10619",
+        "1220000102",
+        "10501"
+      ],
+      "native_routes": [
+        "1062:2",
+        "1128:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "E_SC108",
+        "turn": "through",
+        "origin": "SC108_to_SC107",
+        "receiving_link": "SC107_to_SC1004",
+        "kind": "internal"
+      },
+      "rationale": "Through then native bypass10501 to SC1004; preserve actual distinct receiver.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_S_to_W_SC1004": {
+      "path": [
+        "382",
+        "10618",
+        "1220000102",
+        "10501"
+      ],
+      "native_routes": [
+        "1064:1",
+        "1128:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "S",
+        "turn": "left",
+        "origin": "in_SC107_S",
+        "receiving_link": "SC107_to_SC1004",
+        "kind": "boundary_in"
+      },
+      "rationale": "Left then native bypass10501 to SC1004; preserve actual distinct receiver.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_S_to_E_SC108": {
+      "path": [
+        "378",
+        "10608",
+        "383"
+      ],
+      "native_routes": [
+        "1064:3"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "S",
+        "turn": "right",
+        "origin": "in_SC107_S",
+        "receiving_link": "SC107_to_SC108",
+        "kind": "boundary_in"
+      },
+      "rationale": "Native right turn leaves before left-only stopline382.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC1004_S_to_E_SC107": {
+      "path": [
+        "66",
+        "10632",
+        "56",
+        "10621"
+      ],
+      "native_routes": [
+        "1124:3",
+        "1129:1"
+      ],
+      "expected_spec": {
+        "signal": "SC1004",
+        "approach": "S",
+        "turn": "right",
+        "origin": "in_SC1004_S",
+        "receiving_link": "SC1004_to_SC107",
+        "kind": "boundary_in"
+      },
+      "rationale": "Native right then bypass10621 to SC107, distinct from surface SC1005 route.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_W_SC1004_to_E_SC108": {
+      "path": [
+        "1220000201",
+        "10023",
+        "1220000402"
+      ],
+      "native_routes": [
+        "1061:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1004",
+        "turn": "through",
+        "origin": "SC1004_to_SC107",
+        "receiving_link": "SC107_to_SC108",
+        "kind": "internal"
+      },
+      "rationale": "Native through route identity excludes external right connector10616, despite geometric heading E.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_W_SC1004_to_N_SC1": {
+      "path": [
+        "1220000201",
+        "10622",
+        "1220043300"
+      ],
+      "native_routes": [
+        "1061:1"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1004",
+        "turn": "left",
+        "origin": "SC1004_to_SC107",
+        "receiving_link": "SC107_to_SC1",
+        "kind": "internal"
+      },
+      "rationale": "Both west origins merge on387 then use this native left turn.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_W_SC1004_to_S": {
+      "path": [
+        "1220000201",
+        "10616",
+        "381"
+      ],
+      "native_routes": [
+        "1061:3"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1004",
+        "turn": "right",
+        "origin": "SC1004_to_SC107",
+        "receiving_link": "SC107_S_out",
+        "kind": "boundary_out"
+      },
+      "rationale": "Native right route is the external branch incorrectly grouped with through by compass heading.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation.",
+      "external_unobserved_destination": true
+    },
+    "SC107_W_SC1005_to_E_SC108": {
+      "path": [
+        "1220000201",
+        "10023",
+        "1220000402"
+      ],
+      "native_routes": [
+        "1061:2"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1005",
+        "turn": "through",
+        "origin": "SC1005_to_SC107",
+        "receiving_link": "SC107_to_SC108",
+        "kind": "internal"
+      },
+      "rationale": "Native through route identity excludes external right connector10616, despite geometric heading E.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_W_SC1005_to_N_SC1": {
+      "path": [
+        "1220000201",
+        "10622",
+        "1220043300"
+      ],
+      "native_routes": [
+        "1061:1"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1005",
+        "turn": "left",
+        "origin": "SC1005_to_SC107",
+        "receiving_link": "SC107_to_SC1",
+        "kind": "internal"
+      },
+      "rationale": "Both west origins merge on387 then use this native left turn.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation."
+    },
+    "SC107_W_SC1005_to_S": {
+      "path": [
+        "1220000201",
+        "10616",
+        "381"
+      ],
+      "native_routes": [
+        "1061:3"
+      ],
+      "expected_spec": {
+        "signal": "SC107",
+        "approach": "W_SC1005",
+        "turn": "right",
+        "origin": "SC1005_to_SC107",
+        "receiving_link": "SC107_S_out",
+        "kind": "boundary_out"
+      },
+      "rationale": "Native right route is the external branch incorrectly grouped with through by compass heading.",
+      "timing_assumption": "Accepted modeled service is placed at this physical path crossing. Upstream channelization and downstream bypass travel are spatially correct but temporally aggregated; signal service on the unmetered bypass is still a model approximation.",
+      "external_unobserved_destination": true
+    }
+  },
+  "topology_repair": {
+    "remove_movement": "SC107_S_to_N_SC1",
+    "expected_removed_spec": {
+      "origin": "in_SC107_S",
+      "turn": "through",
+      "receiving_link": "SC107_to_SC1",
+      "signal": "SC107",
+      "approach": "S"
+    },
+    "physical_source": "379",
+    "unreachable_northbound_input": "1220042300",
+    "primary_routes": [
+      "1064:1",
+      "1064:3"
+    ],
+    "west_continuation_routes": [
+      "1128:1",
+      "1128:2"
+    ],
+    "keep_movements": {
+      "SC107_S_to_W_SC1004": {
+        "primary": "1064:1",
+        "continuation": "1128:2"
+      },
+      "SC107_S_to_W_SC1005": {
+        "primary": "1064:1",
+        "continuation": "1128:1"
+      },
+      "SC107_S_to_E_SC108": {
+        "primary": "1064:3"
+      }
+    },
+    "physical_projection": {
+      "382": [
+        "SC107_S_to_W_SC1004",
+        "SC107_S_to_W_SC1005"
+      ]
+    },
+    "prior_limitations": [
+      "Native1064 has only left279 and right202; all its vehicle types use these routes throughout the single0sec interval. The independent northbound input1220042300 is physically unreachable from379.",
+      "The two empty relFlow values in1128 default to1 each; this conditional downstream choice is an explicit static prior, not measured vehicle-level truth. Congestion may alter realized split.",
+      "Stopline382 is already past the right branch10608, so all its observed movement queue belongs to the two left continuation targets. Shared upstream storage retains its physical cohort and future arriving demand uses the declared native prior.",
+      "This repair covers the reviewed SC107 south approach only. Other generated zero-flow or unmatched movements remain explicit coverage limitations."
+    ]
+  },
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/physical_movement_routes_ver2.json",
+      "sha256": "5498217abb523d35bc629b0cd31191783d0025592357f741615d281b96951e8f"
+    },
+    "runtime_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "accuracy_validation": "pending"
+  }
+}

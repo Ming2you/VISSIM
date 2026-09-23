@@ -1,0 +1,601 @@
+{
+  "schema": "sc2001-corridor/v1",
+  "network": {
+    "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+    "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+  },
+  "storage": "SC2001_S_out",
+  "initial_physical_links": [
+    "78",
+    "10703"
+  ],
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "native_input_evidence": {
+    "inputs": [
+      {
+        "anmFlag": "false",
+        "link": "80",
+        "name": "",
+        "no": "1106",
+        "intervals": [
+          {
+            "cont": "false",
+            "timeInt": "1 0",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "566.16"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 900000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "808.8"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 1800000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "849.24"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 2700000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "727.92"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 3600000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "566.16"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 4500000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "404.4"
+          }
+        ]
+      },
+      {
+        "anmFlag": "false",
+        "link": "76",
+        "name": "",
+        "no": "1107",
+        "intervals": [
+          {
+            "cont": "false",
+            "timeInt": "1 0",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "566.16"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 900000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "808.8"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 1800000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "849.24"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 2700000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "727.92"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 3600000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "566.16"
+          },
+          {
+            "cont": "false",
+            "timeInt": "1 4500000",
+            "vehComp": "1",
+            "volType": "STOCHASTIC",
+            "volume": "404.4"
+          }
+        ]
+      }
+    ],
+    "new_demand_added_by_corridor": false,
+    "note": "1106 on80 and1107 on76 already feed existing gates. No native input is placed on78/31/124. Source84 comes from upstreamSC2002. This module routes accepted existing movement flow only."
+  },
+  "native_upstream_routes": {
+    "1141": {
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "combineStaRoutDec": "false",
+      "link": "76",
+      "name": "",
+      "no": "1141",
+      "pos": "34.615870780536945",
+      "routeChoiceMeth": "STATIC",
+      "routes": [
+        {
+          "destLink": "81",
+          "destPos": "5.7132576180964625",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": "",
+          "path": [
+            "76",
+            "10724",
+            "81"
+          ]
+        },
+        {
+          "destLink": "82",
+          "destPos": "9.0414376930798941",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": "",
+          "path": [
+            "76",
+            "10722",
+            "82"
+          ]
+        },
+        {
+          "destLink": "78",
+          "destPos": "11.743546866053679",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": "",
+          "path": [
+            "76",
+            "10723",
+            "78"
+          ]
+        }
+      ]
+    },
+    "1142": {
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "combineStaRoutDec": "false",
+      "link": "80",
+      "name": "",
+      "no": "1142",
+      "pos": "20.649114679681798",
+      "routeChoiceMeth": "STATIC",
+      "routes": [
+        {
+          "destLink": "77",
+          "destPos": "249.95669283009696",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": "",
+          "path": [
+            "80",
+            "10727",
+            "77"
+          ]
+        },
+        {
+          "destLink": "78",
+          "destPos": "12.557519632288335",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": "",
+          "path": [
+            "80",
+            "10721",
+            "78"
+          ]
+        },
+        {
+          "destLink": "82",
+          "destPos": "9.553976135222964",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": "",
+          "path": [
+            "80",
+            "10728",
+            "82"
+          ]
+        }
+      ]
+    },
+    "1143": {
+      "allVehTypes": "true",
+      "anmFlag": "false",
+      "combineStaRoutDec": "false",
+      "link": "85",
+      "name": "",
+      "no": "1143",
+      "pos": "10.986531802502103",
+      "routeChoiceMeth": "STATIC",
+      "routes": [
+        {
+          "destLink": "81",
+          "destPos": "4.1968937724665789",
+          "formula": "",
+          "name": "",
+          "no": "1",
+          "relFlow": "",
+          "path": [
+            "85",
+            "10707",
+            "84",
+            "10725",
+            "81"
+          ]
+        },
+        {
+          "destLink": "77",
+          "destPos": "253.89405768281659",
+          "formula": "",
+          "name": "",
+          "no": "2",
+          "relFlow": "",
+          "path": [
+            "85",
+            "10707",
+            "84",
+            "10720",
+            "77"
+          ]
+        },
+        {
+          "destLink": "78",
+          "destPos": "13.391615021243505",
+          "formula": "",
+          "name": "",
+          "no": "3",
+          "relFlow": "",
+          "path": [
+            "85",
+            "10707",
+            "84",
+            "10726",
+            "78"
+          ]
+        }
+      ]
+    }
+  },
+  "calibration": {
+    "kind": "offline_empirical_completed_cohort_prior",
+    "run_id": "codex_nc_s13_6056c94_20260909_retry",
+    "simulation_seed": 13,
+    "policy": "NC",
+    "sampling_sec": 5,
+    "window_sec": [
+      1,
+      5396
+    ],
+    "audit_path": "diagnostics\\sc2001_corridor_audit.json",
+    "audit_sha256": "6b509cd64ab9bcfa9493906b489ed30dd137e6e97904fbf970039a8f73c336c0",
+    "fzp_path": "evaluation\\runs\\codex_nc_s13_6056c94_20260909_retry\\vissim_eval\\modi_eval_userfix Ver2_001.fzp",
+    "fzp_sha256": "fbfb3734fa9f9e5cbe7a0feac432319482971546bef25d14c2d816e27f5780c2",
+    "runtime_reads_training_fzp": false,
+    "priors": {
+      "W": {
+        "physical_sources": [
+          "76"
+        ],
+        "completed_denominator": 323,
+        "counts": {
+          "R_D_E": 213,
+          "R_D_W": 0,
+          "outside_125": 110
+        },
+        "shares": {
+          "R_D_E": 0.6594427244582043,
+          "R_D_W": 0.0,
+          "outside_125": 0.34055727554179566
+        },
+        "unresolved_or_censored": 4,
+        "censored_vehicle_ids": [
+          "35596",
+          "35601",
+          "35846",
+          "35940"
+        ],
+        "wilson_95_intervals_conditional_on_completed": {
+          "R_D_E": [
+            0.6061582462788486,
+            0.70897925302018
+          ],
+          "R_D_W": [
+            0.0,
+            0.011753278897220798
+          ],
+          "outside_125": [
+            0.2910207469798199,
+            0.3938417537211513
+          ]
+        },
+        "censoring_only_share_bounds": {
+          "R_D_E": [
+            0.6513761467889908,
+            0.6636085626911316
+          ],
+          "R_D_W": [
+            0.0,
+            0.012232415902140673
+          ],
+          "outside_125": [
+            0.3363914373088685,
+            0.3486238532110092
+          ]
+        }
+      },
+      "N": {
+        "physical_sources": [
+          "80"
+        ],
+        "completed_denominator": 337,
+        "counts": {
+          "R_D_E": 226,
+          "R_D_W": 0,
+          "outside_125": 111
+        },
+        "shares": {
+          "R_D_E": 0.6706231454005934,
+          "R_D_W": 0.0,
+          "outside_125": 0.3293768545994065
+        },
+        "unresolved_or_censored": 0,
+        "censored_vehicle_ids": [],
+        "wilson_95_intervals_conditional_on_completed": {
+          "R_D_E": [
+            0.6187680146066943,
+            0.7186322547088349
+          ],
+          "R_D_W": [
+            8.673617379884035e-19,
+            0.011270515136232284
+          ],
+          "outside_125": [
+            0.28136774529116515,
+            0.38123198539330583
+          ]
+        },
+        "censoring_only_share_bounds": {
+          "R_D_E": [
+            0.6706231454005934,
+            0.6706231454005934
+          ],
+          "R_D_W": [
+            0.0,
+            0.0
+          ],
+          "outside_125": [
+            0.3293768545994065,
+            0.3293768545994065
+          ]
+        }
+      },
+      "E_SC2002": {
+        "physical_sources": [
+          "84",
+          "85"
+        ],
+        "completed_denominator": 179,
+        "counts": {
+          "R_D_E": 19,
+          "R_D_W": 3,
+          "outside_125": 157
+        },
+        "shares": {
+          "R_D_E": 0.10614525139664804,
+          "R_D_W": 0.01675977653631285,
+          "outside_125": 0.8770949720670391
+        },
+        "unresolved_or_censored": 4,
+        "censored_vehicle_ids": [
+          "18997",
+          "34039",
+          "30860",
+          "30941"
+        ],
+        "wilson_95_intervals_conditional_on_completed": {
+          "R_D_E": [
+            0.06901248284853817,
+            0.1598276231677155
+          ],
+          "R_D_W": [
+            0.005715931246561997,
+            0.048109163369125144
+          ],
+          "outside_125": [
+            0.8209269770014109,
+            0.9174176023447291
+          ]
+        },
+        "censoring_only_share_bounds": {
+          "R_D_E": [
+            0.10382513661202186,
+            0.12568306010928962
+          ],
+          "R_D_W": [
+            0.01639344262295082,
+            0.03825136612021858
+          ],
+          "outside_125": [
+            0.8579234972677595,
+            0.8797814207650273
+          ]
+        }
+      },
+      "initial_unknown_origin": {
+        "physical_sources": [
+          "76",
+          "80",
+          "84",
+          "85"
+        ],
+        "completed_denominator": 839,
+        "counts": {
+          "R_D_E": 458,
+          "R_D_W": 3,
+          "outside_125": 378
+        },
+        "shares": {
+          "R_D_E": 0.5458879618593564,
+          "R_D_W": 0.003575685339690107,
+          "outside_125": 0.4505363528009535
+        },
+        "unresolved_or_censored": 8,
+        "censored_vehicle_ids": [
+          "35596",
+          "35601",
+          "35846",
+          "35940",
+          "18997",
+          "34039",
+          "30860",
+          "30941"
+        ],
+        "wilson_95_intervals_conditional_on_completed": {
+          "R_D_E": [
+            0.5120650774796088,
+            0.5792925547229392
+          ],
+          "R_D_W": [
+            0.0012167848373540423,
+            0.010459739516899153
+          ],
+          "outside_125": [
+            0.41717107437352896,
+            0.48435251688865966
+          ]
+        },
+        "censoring_only_share_bounds": {
+          "R_D_E": [
+            0.5407319952774499,
+            0.5501770956316411
+          ],
+          "R_D_W": [
+            0.0035419126328217238,
+            0.012987012987012988
+          ],
+          "outside_125": [
+            0.4462809917355372,
+            0.4557260920897285
+          ]
+        }
+      }
+    },
+    "same_seed_evaluation": "Exploratory calibration-set result; seed14 is reserved for holdout validation.",
+    "zero_count_semantics": "Empirical zero from this calibration sample, not physical impossibility; Wilson upper bounds remain positive.",
+    "rare_branch": "Only three completed R_D_W observations, all from84; source-conditional uncertainty is high."
+  },
+  "incoming_movements": {
+    "SC2001_W_to_S": {
+      "origin": "W",
+      "physical_source": "76",
+      "entry_connector": "10723",
+      "native_decision": "1141",
+      "native_route": "3"
+    },
+    "SC2001_N_to_S": {
+      "origin": "N",
+      "physical_source": "80",
+      "entry_connector": "10721",
+      "native_decision": "1142",
+      "native_route": "2"
+    },
+    "SC2001_E_SC2002_to_S": {
+      "origin": "E_SC2002",
+      "physical_source": "84",
+      "entry_connector": "10726",
+      "native_decision": "1143",
+      "native_route": "3"
+    }
+  },
+  "branches": {
+    "R_D_E": {
+      "path": [
+        "78",
+        "10703",
+        "31",
+        "10484"
+      ],
+      "target_kind": "ramp",
+      "target": "R_D_E"
+    },
+    "R_D_W": {
+      "path": [
+        "78",
+        "10703",
+        "31",
+        "10774",
+        "124",
+        "10480"
+      ],
+      "target_kind": "ramp",
+      "target": "R_D_W"
+    },
+    "outside_125": {
+      "path": [
+        "78",
+        "10703",
+        "31",
+        "10774",
+        "124",
+        "10775"
+      ],
+      "target_kind": "external",
+      "target": null
+    }
+  },
+  "excluded_native_prior": {
+    "decision": "1137",
+    "decision_position_on_31_m": 28.5473612813,
+    "entry_10703_position_on_31_m": 350.71798399597975,
+    "unreachable_return_connector": "10704",
+    "reason": "Both decision1137 and return79 divergence are upstream of the78 merge position."
+  },
+  "limitations": [
+    "Full NC seed13 FZP was used only offline to estimate these frozen constants. No current control-run future observations are read at runtime.",
+    "Five-second observations select completed, observed78 cohorts. Eight lost/end-censored cohorts and all denominators are retained; sampling and survival bias remain.",
+    "Incoming accepted movements retain W/N/E_SC2002 origin. Initial78/10703 origin is unobserved and uses the explicitly pooled calibration prior.",
+    "Existing31/124 stocks are not split using guessed origin and their capacity is not duplicated. New SC2001 cohorts remain in source78 storage throughout post78 branch travel.",
+    "Capacity uses physical78 length and two lanes only. This conservative spatial aggregation can cause upstream spillback too early and does not reproduce local31/124 occupancy or lane changes.",
+    "Each destination has its own FIFO cohorts. Shared two-lane source service and physical branch connector lane capacities constrain accepted transfers; full cross-lane FIFO blocking is not simulated.",
+    "Existing31 traffic and SC2001 traffic share actual finite ramp receiving queues. Exterior125 downstream congestion is represented only by the existing finite boundary service capacity.",
+    "Measured initial speed/position and the existing urban speed floor set travel delay; these do not predict subsequent within-corridor shockwaves.",
+    "Incoming turn connectors10723/10721/10726 are outsideOmega. Their short travel is represented in receiving78 stock after accepted movement, so modeled area entry timing is advanced by that connector travel; this is the existing receiving-stock timing approximation.",
+    "The learned zero W branch in sources76/80 is an empirical sample zero. It is not replaced with an invented pseudocount or declared structurally impossible."
+  ],
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/sc2001_corridor_nc13.json",
+      "sha256": "68a765084c141663ecdd078f10f9ca4a3cdc03fc10eff816b9f4b7f26f5a0a5d"
+    },
+    "runtime_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "accuracy_validation": "pending"
+  },
+  "membership_path": "diagnostics/lane_plant_20260921/scenario/control_area_membership_6c3aee.json"
+}

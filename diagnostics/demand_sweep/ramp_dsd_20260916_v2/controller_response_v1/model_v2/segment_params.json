@@ -1,0 +1,456 @@
+{
+  "schema": "freeway_segment_params_v1",
+  "generated": "2026-09-08",
+  "arm": "New geometry: free speed refresh only; shape/dynamics calibrated separately",
+  "aggregation_sec": 150.0,
+  "grid": {
+    "segments_per_link": 21
+  },
+  "source_calibration": {
+    "network_sha256": "4cd853ba366648eab448299c9c3d02f24a4285c3f6039106e77d8b01db59ca7b",
+    "latest_sec": 900,
+    "previous_file": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\outputs\\freeway_segment_params_dlit_20260908.json",
+    "previous_sha256": "d55e48a82b3fe7100f1bc15f9c21fc7726781fd15698196b09776defc9e229cb"
+  },
+  "source_v_free": "outputs/freeway_segment_params_ver2n21_v2_20260908.json (v_free_meas)",
+  "plain_class": {
+    "4": {
+      "rho_crit": 25,
+      "metanet_a_m": 2.0
+    },
+    "3": {
+      "rho_crit": 28,
+      "metanet_a_m": 1.70295
+    }
+  },
+  "dynamics": {
+    "metanet_tau_sec": 18,
+    "metanet_nu_km2_h": 30,
+    "metanet_kappa_veh_km_lane": 40,
+    "metanet_delta_merge": 0.3,
+    "freeway_lane_drop_phi": 3.0
+  },
+  "definition": "v_free 는 셀마다 실측, 형상(rho_crit·a)은 차로수별 급 공용. 동역학·δ·φ 는 문헌 범위로 묶은 한-스텝-앞 적합(홀드아웃 0.6833, 현행 0.8994 대비 -24.0%).",
+  "segments": {
+    "FW_E_S0": {
+      "lanes": 4.0,
+      "v_free": 85.97,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1303.6,
+      "v_free_source": "측정(150 s 창 자유가지 k<10 속도 p85)",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S1": {
+      "lanes": 4.0,
+      "v_free": 119.11181818181818,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1806.1242415347356,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S2": {
+      "lanes": 4.0,
+      "v_free": 114.89824374999999,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1742.2326895377612,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S3": {
+      "lanes": 4.0,
+      "v_free": 120.53977777777777,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1827.7767734292447,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S4": {
+      "lanes": 4.0,
+      "v_free": 116.898625,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1772.5650035187434,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S5": {
+      "lanes": 4.0,
+      "v_free": 114.97645476190473,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1743.4186239539458,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S6": {
+      "lanes": 4.0,
+      "v_free": 118.2865789473684,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1793.6109191024464,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S7": {
+      "lanes": 4.0,
+      "v_free": 124.56383333333332,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1888.7946002000292,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S8": {
+      "lanes": 4.0,
+      "v_free": 118.83391666666665,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1801.9103468017356,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_F_E1 · OFF OR_F_E1"
+    },
+    "FW_E_S9": {
+      "lanes": 4.0,
+      "v_free": 118.72989010989012,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1800.3329643990032,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_F_E2 · OFF OR_F_E2"
+    },
+    "FW_E_S10": {
+      "lanes": 4.0,
+      "v_free": 119.55214285714287,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1812.8010019300464,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S11": {
+      "lanes": 4.0,
+      "v_free": 122.12214285714285,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1851.7705968165828,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S12": {
+      "lanes": 4.0,
+      "v_free": 120.85102083333334,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1832.4962348246718,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S13": {
+      "lanes": 3.0,
+      "v_free": 120.14280681818182,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1869.922115356247,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_D_E1 · OFF OR_D_E1"
+    },
+    "FW_E_S14": {
+      "lanes": 3.0,
+      "v_free": 117.33977272727272,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1826.295238512754,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_D_E2 · OFF OR_D_E2"
+    },
+    "FW_E_S15": {
+      "lanes": 3.0,
+      "v_free": 119.10209134615384,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1853.724251093898,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S16": {
+      "lanes": 3.0,
+      "v_free": 119.25759090909091,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1856.1444714913146,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S17": {
+      "lanes": 3.0,
+      "v_free": 122.78428571428572,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1911.0345209665677,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S18": {
+      "lanes": 3.0,
+      "v_free": 118.27624999999999,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1840.870722548609,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S19": {
+      "lanes": 3.0,
+      "v_free": 121.84371428571427,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1896.3953148256655,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_E_S20": {
+      "lanes": 3.0,
+      "v_free": 124.11989583333332,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1931.8221733050075,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S0": {
+      "lanes": 3.0,
+      "v_free": 87.64,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1364.1,
+      "v_free_source": "측정(150 s 창 자유가지 k<10 속도 p85)",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S1": {
+      "lanes": 3.0,
+      "v_free": 107.9529875,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1680.1977920369131,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S2": {
+      "lanes": 3.0,
+      "v_free": 104.85575,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1631.9918856564723,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S3": {
+      "lanes": 3.0,
+      "v_free": 120.4346013986014,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1874.463653493386,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S4": {
+      "lanes": 3.0,
+      "v_free": 121.3801878787879,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1889.1809147103513,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S5": {
+      "lanes": 3.0,
+      "v_free": 111.8244727272727,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1740.4542155172467,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S6": {
+      "lanes": 3.0,
+      "v_free": 118.54431944444444,
+      "rho_crit": 28.0,
+      "metanet_a_m": 1.7029,
+      "q_cap_veh_h_lane": 1845.0429988245955,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_D_W1 · OFF OR_D_W1"
+    },
+    "FW_W_S7": {
+      "lanes": 4.0,
+      "v_free": 116.2654,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1762.9632440938303,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_D_W2 · OFF OR_D_W2"
+    },
+    "FW_W_S8": {
+      "lanes": 4.0,
+      "v_free": 121.48738461538461,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1842.1455884382915,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S9": {
+      "lanes": 4.0,
+      "v_free": 120.91199999999999,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1833.4208781793482,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S10": {
+      "lanes": 4.0,
+      "v_free": 121.11025000000001,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1836.4269957615493,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S11": {
+      "lanes": 4.0,
+      "v_free": 121.09857142857143,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1836.2499104707222,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_F_W1 · OFF OR_F_W1"
+    },
+    "FW_W_S12": {
+      "lanes": 4.0,
+      "v_free": 121.13387857142858,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1836.785282086965,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "OFF OR_F_W2"
+    },
+    "FW_W_S13": {
+      "lanes": 4.0,
+      "v_free": 120.97561607142856,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1834.3855056236455,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": "ON R_F_W2"
+    },
+    "FW_W_S14": {
+      "lanes": 4.0,
+      "v_free": 122.32540476190476,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1854.852711246325,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S15": {
+      "lanes": 4.0,
+      "v_free": 122.45137500000001,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1856.7628315367267,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S16": {
+      "lanes": 4.0,
+      "v_free": 120.742,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1830.8431228755696,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S17": {
+      "lanes": 4.0,
+      "v_free": 122.13821428571428,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1852.0142921709316,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S18": {
+      "lanes": 4.0,
+      "v_free": 121.39023076923078,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1840.672418778259,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S19": {
+      "lanes": 4.0,
+      "v_free": 121.68493333333332,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1845.141072293862,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    },
+    "FW_W_S20": {
+      "lanes": 4.0,
+      "v_free": 121.80172727272728,
+      "rho_crit": 25.0,
+      "metanet_a_m": 2.0,
+      "q_cap_veh_h_lane": 1846.9120499216383,
+      "v_free_source": "Current network pre900s N>=5,rho<10; sample p85; no controlled data",
+      "shape_source": "급 대표 (문헌 제약 적합, D-lit)",
+      "ramps": ""
+    }
+  }
+}
