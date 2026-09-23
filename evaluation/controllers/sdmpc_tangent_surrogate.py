@@ -79,19 +79,24 @@ def validate_prediction(item, action, context_token):
     if warm is not None:
         source, init = warm['source_action'], warm['initialization']
         raw['action_token'] = token(source)
-        if (warm.get('schema') != 'sdmpc-pfo-budget-binding/v1'
-                or init.get('schema') != 'decision-pfo-budget-initialization/v1'
+        if (warm.get('schema') != 'sdmpc-pfo-budget-binding/v2'
+                or init.get('schema') != 'decision-pfo-budget-initialization/v2'
                 or init['reference_action_token'] != token(source)
                 or init['reference_response_token'] != token(raw)
                 or init['frozen_context_token'] != context_token):
             raise ValueError('Invalid PFO budget source proof')
+        np_margin, nuf_margin = init['np_cap_margin_veh'], init['nuf_cap_margin_veh_h']
+        if any(type(m) is not float or not math.isfinite(m) or m < 0 for m in (np_margin, nuf_margin)):
+            raise ValueError('Invalid PFO budget margin')
         expected = copy.deepcopy(source)
         q = raw['quantities']
-        expected.N_P_star = math.fsum(q['owners'][s]['net_inflow_veh'] for s in sorted(q['owners']))
-        expected.N_UF_star = math.fsum(q['predicted_ramp_merge']['rate_veh_h_by_ramp'].values())
-        if (token(expected) != token(action) or expected.N_P_star != init['np_cap_veh']
+        achieved_np = math.fsum(q['owners'][s]['net_inflow_veh'] for s in sorted(q['owners']))
+        achieved_nuf = math.fsum(q['predicted_ramp_merge']['rate_veh_h_by_ramp'].values())
+        expected.N_P_star, expected.N_UF_star = achieved_np+np_margin, achieved_nuf+nuf_margin
+        if (achieved_np != init['achieved_np_veh'] or achieved_nuf != init['achieved_nuf_veh_h']
+                or token(expected) != token(action) or expected.N_P_star != init['np_cap_veh']
                 or expected.N_UF_star != init['nuf_cap_veh_h']):
-            raise ValueError('PFO budget binding changed physical inputs or achieved quantities')
+            raise ValueError('PFO budget binding changed physical inputs, achieved quantities or margins')
     binding = raw.pop('initial_target_binding', None)
     if binding is not None:
         source = binding['source_action']
@@ -147,9 +152,9 @@ class Query:
         validate_prediction(item, source, self.context_token)
         expected, initialization = sdmpc_budget.initialize(follower,state,source,item,options)
         if token(expected) != token(target):
-            raise ValueError('PFO target differs from its achieved budgets')
-        binding = dict(schema='sdmpc-pfo-budget-binding/v1',source_action=copy.deepcopy(source),
-            initialization=initialization,scope='Only achieved constraint budgets change; physical trajectory unchanged')
+            raise ValueError('PFO target differs from its achieved-plus-margin budgets')
+        binding = dict(schema='sdmpc-pfo-budget-binding/v2',source_action=copy.deepcopy(source),
+            initialization=initialization,scope='Only constraint budgets (PFO-achieved + configured margin) change; physical trajectory unchanged')
         derived = copy.deepcopy(item); derived.pop('response_token')
         derived.update(action_token=token(target),warm_budget_binding=binding)
         derived['response_token'] = token(derived)

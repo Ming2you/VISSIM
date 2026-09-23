@@ -1,0 +1,267 @@
+{
+ "arm": "m0",
+ "d900": {
+  "objective": 393.91612458424544,
+  "held": 395.5349589669397,
+  "init": {
+   "elapsed_sec": 351.46728439978324,
+   "stage": "sdmpc_pfo_budget_initialized",
+   "np_cap": 564.1103525762767,
+   "nuf_cap": 5216.7923020188655,
+   "achieved_np": 564.1103525762767,
+   "achieved_nuf": 5216.7923020188655,
+   "np_margin": 0.0,
+   "nuf_margin": 0.0,
+   "source": "current_interval_PFO_prediction",
+   "extra_rollouts": 0
+  },
+  "steps": [
+   {
+    "stage": "sdmpc_pfo_step_accepted",
+    "iteration": 0,
+    "objective": null,
+    "owned_cost": 264.43201555124995,
+    "omega_cost": 397.4815191528243
+   },
+   {
+    "stage": "sdmpc_pfo_step_accepted",
+    "iteration": 1,
+    "objective": null,
+    "owned_cost": 262.83700886273203,
+    "omega_cost": 395.5349589669397
+   },
+   {
+    "stage": "sdmpc_step_accepted",
+    "iteration": 0,
+    "objective": 394.40148570510166,
+    "owned_cost": null,
+    "omega_cost": null
+   },
+   {
+    "stage": "sdmpc_step_accepted",
+    "iteration": 1,
+    "objective": 393.91612458424544,
+    "owned_cost": null,
+    "omega_cost": null
+   }
+  ],
+  "policy_sha256": "69aaa9acd3d637c39f3dff197af20b96e145b89b4a6de27fc96951e2a4c28ec6",
+  "prices_scaled": [
+   0.0,
+   0.0
+  ],
+  "next_prices_scaled": [
+   2.3869628341616655,
+   0.1408151058737363
+  ],
+  "budget_initialization": {
+   "schema": "decision-pfo-budget-initialization/v2",
+   "achieved_np_veh": 564.1103525762767,
+   "achieved_nuf_veh_h": 5216.7923020188655,
+   "np_cap_margin_veh": 0.0,
+   "nuf_cap_margin_veh_h": 0.0,
+   "np_cap_veh": 564.1103525762767,
+   "nuf_cap_veh_h": 5216.7923020188655
+  },
+  "cap_np": 564.1103525762767,
+  "cap_nuf": 5216.7923020188655,
+  "final": {
+   "np": {
+    "actual": 556.6165976131688,
+    "target": 564.1103525762767,
+    "residual": -7.493754963107904,
+    "violation": 0.0,
+    "mode": "cap"
+   },
+   "nuf": {
+    "actual": 5213.646370020259,
+    "target": 5216.7923020188655,
+    "residual": -3.145931998606102,
+    "violation": 0.0,
+    "mode": "cap"
+   }
+  },
+  "iteration_dual_updates": [
+   {
+    "cap": 564.1103525762767,
+    "nuf_target": 5216.7923020188655,
+    "iteration": 0,
+    "before": [
+     0.0,
+     0.0
+    ],
+    "after": [
+     0.25993560415095884,
+     0.02403732276843987
+    ],
+    "prices_used": [
+     0.0,
+     0.0
+    ],
+    "raw_residual_scaled": [
+     0.25993560515095887,
+     0.024037322868439872
+    ],
+    "same_anchor_for_all_players": true
+   },
+   {
+    "cap": 564.1103525762767,
+    "nuf_target": 5216.7923020188655,
+    "iteration": 1,
+    "before": [
+     0.25993560415095884,
+     0.02403732276843987
+    ],
+    "after": [
+     2.3869628341616655,
+     0.1408151058737363
+    ],
+    "prices_used": [
+     0.25993560415095884,
+     0.02403732276843987
+    ],
+    "raw_residual_scaled": [
+     2.1270272310107066,
+     0.11677778320529641
+    ],
+    "same_anchor_for_all_players": true
+   }
+  ],
+  "selection_status": "best_observed_feasible_sdmpc",
+  "meters_below_ceiling": 0,
+  "vsl_below_120": 0,
+  "wall": 546.462872
+ },
+ "d1050": {
+  "objective": 422.6749131864695,
+  "held": 424.49311136680615,
+  "init": {
+   "elapsed_sec": 332.78201849991456,
+   "stage": "sdmpc_pfo_budget_initialized",
+   "np_cap": 513.1568431976831,
+   "nuf_cap": 4911.163260034308,
+   "achieved_np": 513.1568431976831,
+   "achieved_nuf": 4911.163260034308,
+   "np_margin": 0.0,
+   "nuf_margin": 0.0,
+   "source": "current_interval_PFO_prediction",
+   "extra_rollouts": 0
+  },
+  "steps": [
+   {
+    "stage": "sdmpc_pfo_step_accepted",
+    "iteration": 0,
+    "objective": null,
+    "owned_cost": 275.5201268857864,
+    "omega_cost": 424.3727073212028
+   },
+   {
+    "stage": "sdmpc_pfo_step_accepted",
+    "iteration": 1,
+    "objective": null,
+    "owned_cost": 275.2322319096026,
+    "omega_cost": 424.49311136680615
+   },
+   {
+    "stage": "sdmpc_step_accepted",
+    "iteration": 0,
+    "objective": 423.45019085120265,
+    "owned_cost": null,
+    "omega_cost": null
+   },
+   {
+    "stage": "sdmpc_step_accepted",
+    "iteration": 1,
+    "objective": 422.6749131864695,
+    "owned_cost": null,
+    "omega_cost": null
+   }
+  ],
+  "policy_sha256": "69aaa9acd3d637c39f3dff197af20b96e145b89b4a6de27fc96951e2a4c28ec6",
+  "prices_scaled": [
+   2.3869628341616655,
+   0.1408151058737363
+  ],
+  "next_prices_scaled": [
+   1.2288206364115695,
+   0.12234512221207197
+  ],
+  "budget_initialization": {
+   "schema": "decision-pfo-budget-initialization/v2",
+   "achieved_np_veh": 513.1568431976831,
+   "achieved_nuf_veh_h": 4911.163260034308,
+   "np_cap_margin_veh": 0.0,
+   "nuf_cap_margin_veh_h": 0.0,
+   "np_cap_veh": 513.1568431976831,
+   "nuf_cap_veh_h": 4911.163260034308
+  },
+  "cap_np": 513.1568431976831,
+  "cap_nuf": 4911.163260034308,
+  "final": {
+   "np": {
+    "actual": 488.54564530924677,
+    "target": 513.1568431976831,
+    "residual": -24.611197888436323,
+    "violation": 0.0,
+    "mode": "cap"
+   },
+   "nuf": {
+    "actual": 4906.913907071186,
+    "target": 4911.163260034308,
+    "residual": -4.249352963121964,
+    "violation": 0.0,
+    "mode": "cap"
+   }
+  },
+  "iteration_dual_updates": [
+   {
+    "cap": 513.1568431976831,
+    "nuf_target": 4911.163260034308,
+    "iteration": 0,
+    "before": [
+     2.3869628341616655,
+     0.1408151058737363
+    ],
+    "after": [
+     1.8045298690899134,
+     0.1417178286963151
+    ],
+    "prices_used": [
+     2.3869628341616655,
+     0.1408151058737363
+    ],
+    "raw_residual_scaled": [
+     -0.5824329640717523,
+     0.0009027229225788016
+    ],
+    "same_anchor_for_all_players": true
+   },
+   {
+    "cap": 513.1568431976831,
+    "nuf_target": 4911.163260034308,
+    "iteration": 1,
+    "before": [
+     1.8045298690899134,
+     0.1417178286963151
+    ],
+    "after": [
+     1.2288206364115695,
+     0.12234512221207197
+    ],
+    "prices_used": [
+     1.8045298690899134,
+     0.1417178286963151
+    ],
+    "raw_residual_scaled": [
+     -0.575709231678344,
+     -0.019372706384243134
+    ],
+    "same_anchor_for_all_players": true
+   }
+  ],
+  "selection_status": "best_observed_feasible_sdmpc",
+  "meters_below_ceiling": 0,
+  "vsl_below_120": 0,
+  "wall": 548.919146
+ }
+}

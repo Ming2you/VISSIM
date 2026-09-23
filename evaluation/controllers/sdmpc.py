@@ -87,6 +87,11 @@ def configure(tuning, cfg, controller='wu-link'):
             raise ValueError('Finite nonnegative NUF cap tolerance required')
         if type(pfo_cap_options['max_iterations']) is not int or pfo_cap_options['max_iterations'] < 1:
             raise ValueError('Positive PFO iteration limit required')
+        from evaluation.controllers import sdmpc_budget
+        if set(pfo_cap_options) != set(sdmpc_budget.PFO_CAP_KEYS):
+            raise ValueError('sdmpc_pfo_cap keys must be exactly: '+', '.join(sdmpc_budget.PFO_CAP_KEYS))
+        for key in sdmpc_budget.MARGIN_KEYS:
+            pfo_cap_options[key] = sdmpc_budget.checked_margin(pfo_cap_options[key], key)
         options = dict(options, budget_caps=True, pfo_each_interval=True, pfo_cap_options=pfo_cap_options)
     for name in ('response_np_cache', 'fast_primitives', 'prediction_cache', 'compact_audit', 'ramp_stock_cache',
                  'initial_derivative_overlap', 'trial_derivative_overlap', 'spatial_receiving', 'flow_update_cache', 'array_transport', 'persistent_urban_fifo', 'array_urban_pipeline', 'surrogate_reuse', 'initial_shared_prediction', 'prediction_hotpath'):
@@ -569,6 +574,8 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             anchor, initialization = sdmpc_budget.initialize(follower,state,warm_action,warm_item,options)
             query.bind_warm_budget(warm_action,anchor,options)
             emit('sdmpc_pfo_budget_initialized',np_cap=anchor.N_P_star,nuf_cap=anchor.N_UF_star,
+                 achieved_np=initialization['achieved_np_veh'],achieved_nuf=initialization['achieved_nuf_veh_h'],
+                 np_margin=initialization['np_cap_margin_veh'],nuf_margin=initialization['nuf_cap_margin_veh_h'],
                  source='current_interval_PFO_prediction',extra_rollouts=0)
         else:
             emit('sdmpc_hold_start', axes=len(coord.axes), owners=len(coord.owners))
@@ -924,7 +931,7 @@ def solve(controller, state, forecast, historical, mapping, *, options, runtime_
             metadata.pop('nuf_initialization'); metadata.pop('held_feasible')
             metadata.update(algorithm='sdmpc-central-pfo-cap/v3',pfo_warm_start=pfo_receipt,
                 budget_initialization=initialization,budget_constraint_policy='NP <= cap; actual_merge_NUF <= cap',
-                nuf_target_policy='fresh_PFO_achieved_budget_each_interval_then_leader_search',
+                nuf_target_policy='fresh_PFO_achieved_plus_margin_budget_each_interval_then_leader_search',
                 warm_start_feasible=hold_valid,warm_start_objective=held['objective_veh_h'],
                 held_objective=pfo_initial['objective_veh_h'],
                 prediction_ttt_reduction=pfo_initial['objective_veh_h']-item['objective_veh_h'],
