@@ -34,6 +34,29 @@ def save(p,x):
     with p.open('x',encoding='utf-8') as f:json.dump(x,f,indent=2,ensure_ascii=False)
 
 
+def online_travel_speed(data, cutoff, window_sec):
+    """Measured connector traversal speed over (cutoff-window, cutoff].
+
+    Same statistic as travel_profile (length*3.6/residence median) but on a trailing
+    window instead of the fixed pre-control 0..900s period, so a congested connector
+    is not modelled at its free-flow transit speed. Returns {} when unusable, and the
+    caller then keeps the calibrated constant, so an absent window is bit-identical.
+    """
+    lengths={str(x['connector']):x['length_m'] for x in data.definitions.values()
+             if x['kind'] in ('ramp','offramp')}
+    samples={c:[] for c in lengths}
+    if not hasattr(data,'port_events'):
+        data.port_events=rows(data.folder/'port_events.csv')
+    for r in data.port_events:
+        if r['kind']!='departure':continue
+        t=float(r['time_s'])
+        if not (cutoff-window_sec<t<=cutoff):continue
+        res=r.get('residence_s')
+        if res and float(res)>0:
+            samples[r['connector']].append(lengths[r['connector']]*3.6/float(res))
+    return {c:statistics.median(v) for c,v in samples.items() if v}
+
+
 def travel_profile(data):
     """Median complete native traversals before control, not congested future speeds."""
     samples={str(x['connector']):[] for x in data.definitions.values() if x['kind'] in ('ramp','offramp')}
@@ -95,14 +118,17 @@ def refine_boundary_steps(steps,seconds):
     seconds=int(seconds);result=[]
     for parent in steps:
         start,end=parent['window_start_s'],parent['window_end_s']
-        if int(start)!=start or end-start!=10:raise ValueError('Expected original10s boundary windows')
+        # D4 fix: a phased cutoff (native FZP is .1) gives fractional window bounds.
+        # Only the 10s duration matters here; the absolute phase is carried through.
+        if abs(end-start-10)>1e-9:raise ValueError('Expected original10s boundary windows')
         for ramp,profile in parent.get('ramp_arrival_profile',{}).items():
             if len(profile)!=10 or abs(sum(profile)-parent['ramp_arrival_vph'][ramp]*10/3600)>1e-7:
                 raise ValueError('Arrival profile and configured requests disagree')
-        for t in range(int(start),int(end),seconds):
-            child=copy.deepcopy(parent);child.update(window_start_s=t,window_end_s=t+seconds)
+        for k in range(0,10,seconds):
+            t=round(start+k,6)
+            child=copy.deepcopy(parent);child.update(window_start_s=t,window_end_s=round(t+seconds,6))
             for ramp,profile in parent.get('ramp_arrival_profile',{}).items():
-                values=profile[t-int(start):t-int(start)+seconds]
+                values=profile[k:k+seconds]
                 child['ramp_arrival_profile'][ramp]=values
                 child['ramp_arrival_vph'][ramp]=sum(values)*3600/seconds
             result.append(child)
@@ -186,13 +212,17 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
             'exchange':'Net30s lane residuals / past lane vehicle-seconds; opposing within-bin changes unresolved'}
     heads=load(HERE/'controller_response_v1/heads.json')
     meter=load(DEFAULT_CONFIG)['actuation']['real_world_ramp_metering']
+    # Optional: replace the fixed pre-control transit speed with a trailing measured one.
+    # profile['online_window_sec'] absent -> _online is {} -> behaviour is bit-identical.
+    _online=(online_travel_speed(data,cutoff,float(profile['online_window_sec']))
+             if profile.get('online_window_sec') else {})
     w['ramp_dynamics']={'schema':'physical-ramp-boundary/v1','local_step_sec':1,'meter_cycle_sec':10,'ramps':{}}
     for mid,r in model.ramps.items():
         c=str(r['connector'])
         w['ramp_dynamics']['ramps'][mid]={'connector_id':c,'length_m':r['length_m'],
             'head_position_m':min(heads[c].values()),'lanes':r['lanes'],
             'spacing_m':model.base.network.urban_avg_vehicle_length_m,
-            'travel_speed_kmh':profile['travel_speed_kmh'][c],'time_sec':cutoff,
+            'travel_speed_kmh':_online.get(c,profile['travel_speed_kmh'][c]),'time_sec':cutoff,
             'initial_cohorts':data.port_cohorts[str(cutoff)][c],'initial_backlog_veh':0.}
         if mid in model.ramp_travel_speeds:
             travel=model.ramp_travel_speeds[mid]
@@ -219,10 +249,21 @@ def window(data,model,cutoff,mode,profile,commands,*,port_origin_counts=None):
                 shares = [1./lanes]*lanes
             w['ramp_dynamics']['ramps'][mid]['lane_arrival_shares'] = shares
     dsds=physical_dsds(data.geometry)
-    w['vsl_zone_heads']={road:list(range(21)) for road in model.roads}
+    # D3 fix: the mesh is 31 cells per direction; a hardcoded range(21) leaves cells
+    # 21..30 with no head, so their vsl_commands are silently dropped and the most
+    # downstream zone scores delta==0. Identity heads are correct here because the
+    # zone grouping already happens in vsl_commands below (each cell inherits its
+    # upstream physical DSD). Bit-identical on any 21-cell geometry.
+    w['vsl_zone_heads']={road:sorted(c['cell'] for c in data.geometry['cells'] if c['road']==road)
+                         for road in model.roads}
     for step in w['boundary_steps']:
         t=step['window_start_s']
-        ends=[(t//30+1)*30] if mode=='conditioned_diagnostic' else list(range(cutoff-120,cutoff+1,30))
+        # D4 fix: observations carry data.phase_sec (0.1 for native FZP). range() on a
+        # fractional cutoff raises; the old form also silently assumed phase 0.
+        # Bit-identical when phase_sec == 0.
+        _ph=float(getattr(data,'phase_sec',0) or 0)
+        ends=([round((t-_ph)//30*30+_ph+30,6)] if mode=='conditioned_diagnostic'
+              else [round(cutoff-120+d,6) for d in range(0,121,30)])
         greens,ids=commands(t)
         step['ramp_arrival_vph']={};step['ramp_head_service']={}
         for mid,r in model.ramps.items():
@@ -299,7 +340,9 @@ def component(data,model,cutoff,pred=None):
         raise ValueError('Native component residence needs1s stock/event records;30s snapshots are insufficient. Use the native residence audit.')
     result={'freeway_ttt_veh_h':0.,'off_ttt_veh_h':0.,'ramp_ttt_veh_h':0.}
     last=None
-    for t in ([] if model.component_residence else range(cutoff,cutoff+451,30)):
+    # D4 fix: phased cutoffs need offset arithmetic, not range() on the absolute time.
+    _grid=[round(cutoff+d,6) for d in range(0,451,30)]
+    for t in ([] if model.component_residence else _grid):
         if pred is None or t==cutoff:
             cohorts=data.port_cohorts[str(t)]
             current=[sum(x['n_veh'] for x in data.cells[t]),sum(len(cohorts[c]) for c in model.offramps),
@@ -312,12 +355,13 @@ def component(data,model,cutoff,pred=None):
             for key,a,b in zip(result,last,current):result[key]+=(a+b)*30/7200
         last=current
     if pred is None:
-        merged={mid:sum(float(data.ports[t,str(r['connector'])]['departures_veh']) for t in range(cutoff+30,cutoff+451,30)) for mid,r in model.ramps.items()}
+        merged={mid:sum(float(data.ports[t,str(r['connector'])]['departures_veh'])
+                        for t in [round(cutoff+d,6) for d in range(30,451,30)]) for mid,r in model.ramps.items()}
         heads=rows(data.folder/'head_crossings.csv')
         served={mid:sum(cutoff<float(x['time_s'])<=cutoff+450 and x['ramp']==str(r['connector']) for x in heads) for mid,r in model.ramps.items()}
         backlog=None
     else:
-        end={x['ramp']:x['end'] for x in pred['ramps'] if x['end_sec']==cutoff+450}
+        end={x['ramp']:x['end'] for x in pred['ramps'] if abs(x['end_sec']-(cutoff+450))<1e-6}
         merged={k:v['cumulative_merge_veh'] for k,v in end.items()}
         served={k:v['cumulative_head_service_veh'] for k,v in end.items()}
         backlog={k:v['outside_component_backlog_veh'] for k,v in end.items()}
@@ -583,12 +627,20 @@ def mpc_choice(prepared,output,sec,history,policy):
             if r['density_projection_count'] or r['jam_density_exceedance_count'] or r['negative_density_count'] or r['continuity_residual_max_veh']>1e-6:
                 raise ArithmeticError('Invalid MPC candidate physical rollout')
         parts=component(data,model,sec,prediction)
-        ramp_wait=sum((r['start']['outside_component_backlog_veh']+r['end']['outside_component_backlog_veh'])*10/7200 for r in prediction['ramps'])
+        # D5 fix: these two weights were hardcoded to 10s, the ORIGINAL boundary window.
+        # window() refines the steps to cfg.simulation.T_f_sec (1s in the current
+        # calibration), so both terms were inflated by exactly 10x. Derive the weight
+        # from the window itself instead of naming a constant. Bit-identical at dt==10.
+        _bs=w['boundary_steps']
+        dt=float(_bs[0]['window_end_s']-_bs[0]['window_start_s'])
+        if any(abs(float(x['window_end_s'])-float(x['window_start_s'])-dt)>1e-9 for x in _bs):
+            raise ValueError('Non-uniform boundary step cannot carry a single cost weight')
+        ramp_wait=sum((r['start']['outside_component_backlog_veh']+r['end']['outside_component_backlog_veh'])*dt/7200 for r in prediction['ramps'])
         source_wait=0.
         for road in model.roads:
             backlog=0.
-            for end in range(sec+30,sec+451,30):
-                requested=sum(s['source_demand_vph'][road]*10/3600 for s in w['boundary_steps'] if end-30<=s['window_start_s']<end)
+            for end in range(int(sec)+30,int(sec)+451,30):
+                requested=sum(s['source_demand_vph'][road]*dt/3600 for s in w['boundary_steps'] if end-30<=s['window_start_s']<end)
                 admitted=sum(f['source_admissions'] for f in prediction['flows'] if f['road']==road and f['window_end_s']==end)
                 after=max(0.,backlog+requested-admitted)
                 source_wait+=(backlog+after)*30/7200;backlog=after

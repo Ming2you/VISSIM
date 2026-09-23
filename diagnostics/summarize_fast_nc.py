@@ -52,11 +52,31 @@ def write_csv(path, rows):
         writer.writerows(rows)
 
 
-def cell_geometry():
+def sha256_of(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def cell_geometry(vbs_path=None):
     # The parent has already verified common geometry. Read it; do not rehash
     # the network or its large dependency graph for every demand-sweep run.
-    item = load(REFERENCE)['files']['generated_vbs_config']
-    path = Path(item['path'])
+    #
+    # REFERENCE is a specific baseline run whose provenance is consulted for one
+    # thing only: the path of the generated VBS config carrying the fixed chain
+    # declarations. That run lives under evaluation/runs/, which is gitignored, so
+    # it is absent from checkouts assembled from source control. --geometry-vbs
+    # names the same VBS config directly. The declarations are then parsed and
+    # validated identically, and the proof records which route supplied them.
+    # Only the per-cell freeway breakdown uses this; the Omega TTT total comes
+    # from the membership document and is unaffected either way.
+    if vbs_path is None:
+        item = load(REFERENCE)['files']['generated_vbs_config']
+        path = Path(item['path'])
+        origin = {'reference_manifest': str(REFERENCE), 'recorded_sha256': item['sha256']}
+    else:
+        path = Path(vbs_path).resolve()
+        require(path.is_file(), 'Explicit geometry VBS not found: ' + str(path))
+        origin = {'reference_manifest': None, 'geometry_vbs_override': str(path),
+                  'recorded_sha256': sha256_of(path)}
     source = path.read_text(encoding='utf-8-sig')
     bounds, addresses = {}, {}
     for direction in ('E', 'W'):
@@ -72,8 +92,8 @@ def cell_geometry():
         for link, offset in zip(links, offsets):
             require(int(link) not in addresses and math.isfinite(offset), 'Duplicate/nonfinite chain address')
             addresses[int(link)] = (direction, offset)
-    return bounds, addresses, {'reference_manifest': str(REFERENCE), 'geometry_file': str(path),
-        'recorded_sha256': item['sha256'], 'common_identity_reverified_this_run': False}
+    return bounds, addresses, {**origin, 'geometry_file': str(path),
+        'common_identity_reverified_this_run': False}
 
 
 def terminal_candidate(old, length):
@@ -310,6 +330,7 @@ def main():
     parser.add_argument('--run', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--completion-receipt', type=Path, help='Explicit selected-control-completion/v1 receipt; omitted keeps fast NC input')
+    parser.add_argument('--geometry-vbs', type=Path, help='Generated VBS config carrying the fixed chain declarations; omitted reads it from the REFERENCE run provenance')
     args = parser.parse_args()
     run, out = args.run.resolve(), args.out.resolve()
     require(out.is_relative_to(ROOT / 'diagnostics') and not out.exists(), 'Require fresh diagnostics output')
@@ -322,7 +343,7 @@ def main():
     document = load(MEMBERSHIP)
     membership = physical_membership_from_ledger(document)
     require(sum(membership.values()) == 635 and len(membership) == 1236, 'Unexpected fixed area membership')
-    bounds, addresses, geometry_proof = cell_geometry()
+    bounds, addresses, geometry_proof = cell_geometry(args.geometry_vbs)
     warnings, err_proof = [], []
     for path in err_paths:
         data = path.read_bytes()

@@ -4,7 +4,8 @@ param(
   [ValidateRange(1,2147483647)][int]$Seed = 13,
   [switch]$Execute,
   [ValidateRange(0,1000)][double]$MinimumFreeGiB = 0,
-  [string]$Python = (Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe')
+  [string]$Python = (Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe'),
+  [switch]$AllowConcurrent
 )
 $ErrorActionPreference = 'Stop'
 $preparedPath = (Resolve-Path -LiteralPath $Prepared).Path
@@ -50,7 +51,12 @@ if ($requiredFreeBytes -gt 0) {
   }
 }
 if (Test-Path -LiteralPath $outputPath) { throw 'Require a new output directory' }
-if (@(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) { throw 'Existing VISSIM instance: do not share ownership' }
+# Ownership guard. Concurrency is NOT a licence limit (a second COM instance writes
+# Simulation attributes fine while a run is in flight); the constraint is that the
+# watchdog identifies its own process by start time + window title, so concurrent runs
+# need distinct network filenames. -AllowConcurrent opts out of the guard; default is
+# bit-identical to before.
+if (-not $AllowConcurrent -and @(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) { throw 'Existing VISSIM instance: do not share ownership' }
 $null = New-Item -ItemType Directory -Path $outputPath
 $evalPath = Join-Path $outputPath 'vissim_eval'
 $null = New-Item -ItemType Directory -Path $evalPath
