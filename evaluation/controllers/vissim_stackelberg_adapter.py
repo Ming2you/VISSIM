@@ -9875,6 +9875,40 @@ def control_from_json(path: Path, cfg, ControlAction):
     return physical_ramp_branches.read_recorded_control(signal_actuation_contract.prepare_control(control, cfg), cfg, path)
 
 
+def _json_evidence(value):
+    """Make decision evidence writable by json.dumps, leaving plain JSON untouched.
+
+    SDMPC metadata legitimately carries ControlAction objects, numpy arrays and
+    tuple-keyed mappings: diagnostics/sdmpc_json_records.py exists for exactly this
+    and is what the offline measurement harness runs before json.dumps. The native
+    output path never got the same treatment, so the first real SDMPC decision
+    solved, accepted its step and then died here with "Object of type ControlAction
+    is not JSON serializable" after 642 seconds of work.
+
+    This is the identity on anything json.dumps already accepts -- str-keyed dicts,
+    lists, and JSON scalars are rebuilt equal -- so every output that works today is
+    unchanged. Unknown types still raise, and now say what they were.
+    """
+    import numpy as np
+    from src.models.state import ControlAction
+    if isinstance(value, np.ndarray):
+        return _json_evidence(value.tolist())
+    if isinstance(value, np.generic):
+        return _json_evidence(value.item())
+    if isinstance(value, ControlAction):
+        return _json_evidence(vars(value))
+    if isinstance(value, Mapping):
+        if all(isinstance(k, (str, int, float, bool, type(None))) for k in value):
+            return {k: _json_evidence(v) for k, v in value.items()}
+        return {'__tuple_keyed_mapping__': [[_json_evidence(k), _json_evidence(v)]
+                                            for k, v in value.items()]}
+    if isinstance(value, (list, tuple)):
+        return [_json_evidence(v) for v in value]
+    if isinstance(value, (str, int, float, bool, type(None))):
+        return value
+    raise TypeError('Unsupported decision evidence type: ' + type(value).__name__)
+
+
 def control_to_json_dict(
     control,
     metadata: dict[str, Any],
@@ -9895,7 +9929,7 @@ def control_to_json_dict(
                         "mainline_plan_enabled": 1.0 if _mainline_plan_enabled() else 0.0,
                         "mainline_share_enabled": 1.0 if str(os.environ.get(
                             "RW_MAINLINE_SHARE_SG", "")).strip().lower() in {"1", "true", "on"} else 0.0},
-        "metadata": metadata,
+        "metadata": _json_evidence(metadata),
     }
     # Diagnostics are inherited with candidate controls. The authoritative
     # writer variant determines whether this output still describes native
@@ -12588,7 +12622,11 @@ def run_joint_owner_decision(controller, state, forecast, previous, cfg, mapping
         report['decision_budget'] = budget.report()
         if changes:
             report['completed'] = False
-        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding='utf-8')
+        # report['selection'] is the SDMPC metadata, which carries ControlAction and numpy
+        # evidence; see _json_evidence. This runs in `finally`, i.e. on success too, and
+        # before the action JSON is written -- so it is the first writer an SDMPC
+        # decision reaches.
+        report_path.write_text(json.dumps(_json_evidence(report), ensure_ascii=False, indent=2), encoding='utf-8')
         if changes:
             raise ValueError('Joint runtime source/input changed during selection: ' + ', '.join(changes))
         if cleanup_error is not None:
@@ -13502,7 +13540,7 @@ def main() -> None:
                 joint_json_path=out_json if joint_response is not None else None)
             if written_joint_receipt is not None:
                 out_json.with_suffix('.joint_written.json').write_text(
-                    json.dumps(written_joint_receipt, ensure_ascii=False, indent=2), encoding='utf-8')
+                    json.dumps(_json_evidence(written_joint_receipt), ensure_ascii=False, indent=2), encoding='utf-8')
             if sdmpc_options is not None and metadata.get('sdmpc_active') is True:
                 Path(str(out_json)+'.sdmpc_pending').write_text('Native application required\n', encoding='utf-8')
             if decision_budget:

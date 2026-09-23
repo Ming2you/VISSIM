@@ -115,5 +115,11 @@ def next_budget(center, recovery, attempted, limits, options):
     for d in directions:
         trial = np.clip(np.asarray(center)+radius*d, limits[0], limits[1])
         if not any(np.array_equal(trial, old) for old in attempted):
-            return trial
+            # Hand back plain floats. The consumer stores these on the action as
+            # N_P_star / N_UF_star, and area_leader_objective._joint_number rejects on
+            # `type(value) not in (int, float)`, so a numpy scalar fails there with the
+            # misleading message "N_P target must be a finite number" even though the
+            # value is finite. This is why the multi-budget search never ran past the
+            # first proposal.
+            return tuple(float(v) for v in trial)
     return None
