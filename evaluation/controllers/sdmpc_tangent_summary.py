@@ -44,6 +44,138 @@ def checked_operation(self,value,a,wa,b=None,wb=0.):
     return result
 
 
+def install_fused_operations():
+    """Reverse-Dual arithmetic and ordering that call checked_operation's body directly.
+
+    A taped rollout performs ~26M Dual operations. Each one used to go through the
+    Dual method, primal() on the other operand, the trace.operation attribute lookup
+    and checked_operation's two isinstance checks. For the operand types that occur on
+    the hot path -- another reverse Dual, a float or an int -- these methods compute
+    the same value with the same expression and then run checked_operation's body with
+    `a` fixed to `self` (always a reverse Dual, so da is True). Every other operand
+    type falls back to the original method, so no type gets new semantics.
+
+    The emitted node is the same one ad.Dual's own methods emit through
+    trace.operation: same parent order, same weights (the constant operand's weight is
+    still written to w2, as checked_operation does), same support, guard and freeze
+    checks, same result slots. Ordering calls trace.branch(self, other) and compares
+    primal values exactly as sdmpc_dual.Dual._cmp. THIS IS A SECOND COPY OF
+    checked_operation ABOVE: change both or neither. tools/verify_fused.py rolls one real
+    prediction both ways and compares the tape arrays byte for byte.
+
+    Installed only by install() below, i.e. only where checked_operation itself is
+    the installed Trace.operation.
+    """
+    import math
+    import operator
+    Dual = ad.Dual
+    originals = {name: getattr(Dual, name) for name in
+                 ('__add__', '__sub__', '__rsub__', '__mul__', '__truediv__',
+                  '__lt__', '__le__', '__gt__', '__ge__')}
+    new = object.__new__
+    isfinite = math.isfinite
+
+    def emit(trace, value, a, wa, b, wb, db):
+        if a.trace is not trace or (db and b.trace is not trace):
+            raise ValueError('Reverse arithmetic mixed prediction tapes')
+        if ad.PRIMAL_GUARD:
+            node = support = 0
+        else:
+            na = a.node if wa != 0. else 0
+            nb = b.node if db and wb != 0. else 0
+            if not na and not nb:
+                return float(value)
+            if na and not nb and wa == 1.:
+                node, support = na, a.support
+            elif nb and not na and wb == 1.:
+                node, support = nb, b.support
+            else:
+                if na == nb and wa == -wb and isfinite(wa):
+                    return float(value)
+                support = a.support if na else b.support
+                if na and nb and support != b.support:
+                    support |= b.support
+                if trace.frozen:
+                    raise ValueError('Reverse tape changed after derivative sweep')
+                node = len(trace.p1)
+                trace.p1.append(na); trace.p2.append(nb)
+                trace.w1.append(wa); trace.w2.append(wb)
+        result = new(Dual)
+        result.value, result.node, result.support = float(value), node, support
+        result.trace, result.risks, result.tangent = trace, (0, 0), None
+        return result
+
+    # ad.Dual.__add__: trace.operation(self.value+primal(other), self, 1., other, 1.)
+    def add(self, other):
+        t = type(other)
+        if t is Dual:
+            return emit(self.trace, self.value+other.value, self, 1., other, 1., True)
+        if t is float or t is int:
+            return emit(self.trace, self.value+float(other), self, 1., other, 1., False)
+        return originals['__add__'](self, other)
+
+    # ad.Dual.__sub__: trace.operation(self.value-primal(other), self, 1., other, -1.)
+    def sub(self, other):
+        t = type(other)
+        if t is Dual:
+            return emit(self.trace, self.value-other.value, self, 1., other, -1., True)
+        if t is float or t is int:
+            return emit(self.trace, self.value-float(other), self, 1., other, -1., False)
+        return originals['__sub__'](self, other)
+
+    # ad.Dual.__rsub__: trace.operation(primal(other)-self.value, self, -1., other, 1.)
+    def rsub(self, other):
+        t = type(other)
+        if t is float or t is int:
+            return emit(self.trace, float(other)-self.value, self, -1., other, 1., False)
+        return originals['__rsub__'](self, other)
+
+    # ad.Dual.__mul__: trace.operation(self.value*primal(other), self, primal(other), other, self.value)
+    def mul(self, other):
+        t = type(other)
+        if t is Dual:
+            ov = other.value
+            return emit(self.trace, self.value*ov, self, ov, other, self.value, True)
+        if t is float or t is int:
+            ov = float(other)
+            return emit(self.trace, self.value*ov, self, ov, other, self.value, False)
+        return originals['__mul__'](self, other)
+
+    # ad.Dual.__truediv__: d = primal(other);
+    #   trace.operation(self.value/d, self, 1./d, other, -self.value/d**2)
+    def truediv(self, other):
+        t = type(other)
+        if t is Dual or t is float or t is int:
+            d = other.value if t is Dual else float(other)
+            return emit(self.trace, self.value/d, self, 1./d, other, -self.value/d**2, t is Dual)
+        return originals['__truediv__'](self, other)
+
+    # sdmpc_dual.Dual._cmp: branch(self, other); op(self.value, primal(other))
+    def ordering(name, op):
+        fallback = originals[name]
+
+        def method(self, other):
+            t = type(other)
+            if t is Dual:
+                self.trace.branch(self, other)
+                return op(self.value, other.value)
+            if t is float or t is int:
+                self.trace.branch(self, other)
+                return op(self.value, float(other))
+            return fallback(self, other)
+        return method
+
+    Dual.__add__ = add; Dual.__radd__ = add
+    Dual.__sub__ = sub; Dual.__rsub__ = rsub
+    Dual.__mul__ = mul; Dual.__rmul__ = mul
+    Dual.__truediv__ = truediv
+    Dual.__lt__ = ordering('__lt__', operator.lt)
+    Dual.__le__ = ordering('__le__', operator.le)
+    Dual.__gt__ = ordering('__gt__', operator.gt)
+    Dual.__ge__ = ordering('__ge__', operator.ge)
+    return originals
+
+
 class CheckedRecords:
     """An append sink for checked rows, deliberately not an iterable ledger."""
     def __init__(self, family):
@@ -134,5 +266,6 @@ def install(finder,cfg,*,surrogate_mode):
     ModelAreaLedger.response=response
     ModelAreaLedger._sdmpc_stream_summary_installed=True
     ad.Trace.operation=checked_operation
+    install_fused_operations()
     path=Path(__file__).resolve()
     finder.source_hashes[str(path)]=hashlib.sha256(path.read_bytes()).hexdigest()

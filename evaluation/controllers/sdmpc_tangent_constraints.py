@@ -92,6 +92,96 @@ def _forward_column(p1, p2, w1, w2, sn, sa, sw, outputs, axis):
 _COMPILED_FORWARD = None
 
 
+def _forward_column_from(p1, p2, w1, w2, sn, sa, sw, outputs, axis, start):
+    """_forward_column, but the tape sweep begins at `start` instead of node 1."""
+    tangent = np.zeros(len(p1), dtype=np.float64)
+    for k in range(len(sn)):
+        if sa[k] == axis:
+            tangent[sn[k]] += sw[k]
+    for i in range(start, len(p1)):
+        tangent[i] += w1[i]*tangent[p1[i]] + w2[i]*tangent[p2[i]]
+    return tangent[outputs]
+
+
+def _mark_ancestors(p1, p2, live):
+    for i in range(len(p1)-1, 0, -1):
+        if live[i]:
+            live[p1[i]] = 1
+            live[p2[i]] = 1
+
+
+_COMPILED_FROM = None
+_COMPILED_MARK = None
+
+
+def _forward_columns(arrays, unique, n, workers):
+    """All n forward columns, evaluated only where they can reach an output.
+
+    The full sweep runs every axis over the whole tape (~14M nodes x 231 axes), yet
+    only ~31% of nodes are ancestors of a central output and ~33 axes reach none.
+    Three reductions, each exact:
+
+      1. Ancestor compaction. Parents precede children on the tape, so the ancestor
+         set of the outputs is closed under taking parents. Sweeping only those
+         nodes, in the original order, performs the same floating-point operations on
+         every node that can influence an output -- a non-finite weight on an
+         ancestor therefore still surfaces exactly as before.
+      2. Dead axes. An axis with no seed among the ancestors yields +0.0 at every
+         output in the full sweep (tangent starts at +0.0, and x += -0.0 stays +0.0),
+         which is what np.zeros returns.
+      3. First use. Before an axis's earliest seed node every tangent is exactly 0.0
+         when the weights are finite, so that axis's sweep starts there.
+
+    Steps 2 and 3 both rest on 0*w == 0, which fails for a non-finite w: 0*inf is NaN,
+    and it reaches the outputs even on an axis whose seeds reach none of them. So if
+    any compact weight is non-finite, every axis -- dead ones included -- is swept from
+    node 1 over the compact tape, which reproduces the full sweep's NaN/inf pattern
+    exactly (tools/verify_central_prune.py poisons a weight to check this).
+    """
+    global _COMPILED_FROM, _COMPILED_MARK
+    import numba
+    if _COMPILED_FROM is None:
+        _COMPILED_FROM = numba.njit(cache=True, nogil=True, fastmath=False)(_forward_column_from)
+        _COMPILED_MARK = numba.njit(cache=True, nogil=True)(_mark_ancestors)
+    p1, p2, w1, w2, sn, sa, sw = arrays
+    live = np.zeros(len(p1), dtype=np.uint8)
+    live[unique] = 1
+    _COMPILED_MARK(p1, p2, live)
+    live[0] = 1                                   # dummy slot 0 stays at compact index 0
+    keep = np.flatnonzero(live)
+    remap = np.zeros(len(p1), dtype=np.int64)
+    remap[keep] = np.arange(len(keep), dtype=np.int64)
+    seeds = live[sn].astype(bool)
+    compact = (np.ascontiguousarray(remap[p1[keep]]), np.ascontiguousarray(remap[p2[keep]]),
+               np.ascontiguousarray(w1[keep]), np.ascontiguousarray(w2[keep]),
+               np.ascontiguousarray(remap[sn[seeds]]), np.ascontiguousarray(sa[seeds]),
+               np.ascontiguousarray(sw[seeds]))
+    outputs = np.ascontiguousarray(remap[unique])
+    finite = bool(np.isfinite(compact[2]).all() and np.isfinite(compact[3]).all())
+    start = {}
+    for node, axis in zip(compact[4].tolist(), compact[5].tolist()):
+        start[axis] = min(start.get(axis, node), node)
+    if not finite:
+        start = {axis: 1 for axis in range(n)}
+    _COMPILED_FROM(*(a[:1] if i < 4 else a[:0] for i, a in enumerate(compact)),
+                   np.zeros(1, dtype=np.int64), 0, 1)
+    zero = np.zeros(len(outputs), dtype=np.float64)
+
+    def column(axis):
+        if axis not in start:
+            return zero
+        return _COMPILED_FROM(*compact, outputs, axis, max(1, start[axis]))
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        columns = list(pool.map(column, range(n)))
+    swept = sum(len(keep) - max(1, s) for s in start.values())
+    live_axes = len(set(compact[5].tolist()))
+    stats = dict(tape_nodes=int(len(p1)-1), ancestor_nodes=int(len(keep)-1), live_axes=live_axes,
+                 dead_axes=int(n-live_axes), finite_weights=finite,
+                 node_updates_ratio=swept/float(max(1, (len(p1)-1)*n)))
+    return np.asarray(columns).T, stats
+
+
 def jacobian(trace, values, workers):
     """Reuse the same tape, choosing its smaller input/output sweep dimension."""
     global _COMPILED_FORWARD
@@ -111,19 +201,15 @@ def jacobian(trace, values, workers):
         matrix = np.array([table[int(node)] for node in nodes])
         method, sweeps = 'reverse_unique_state_nodes', len(nonzero)
     else:
-        import numba
-        if _COMPILED_FORWARD is None:
-            _COMPILED_FORWARD = numba.njit(cache=True, nogil=True, fastmath=False)(_forward_column)
         arrays = tuple(np.frombuffer(v, dtype=dtype) for v, dtype in (
             (trace.p1, np.int64), (trace.p2, np.int64), (trace.w1, np.float64), (trace.w2, np.float64),
             (trace.seed_nodes, np.int64), (trace.seed_axes, np.int64), (trace.seed_weights, np.float64)))
-        _COMPILED_FORWARD(*(a[:1] if i < 4 else a[:0] for i,a in enumerate(arrays)), np.zeros(1,dtype=np.int64), 0)
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            columns = list(pool.map(lambda j: _COMPILED_FORWARD(*arrays, unique, j), range(n)))
-        matrix = np.asarray(columns).T[inverse]
+        columns, pruning = _forward_columns(arrays, unique, n, workers)
+        matrix = columns[inverse]
         method, sweeps = 'forward_columns_on_existing_reverse_tape', n
     if not np.isfinite(matrix).all():
         raise ValueError('Nonfinite physical state Jacobian')
     return matrix, dict(seconds=time.perf_counter()-started, method=method, sweeps=sweeps,
                         rows=len(values), unique_nonzero_nodes=len(nonzero), workers=workers,
-                        additional_traffic_rollouts=0, additional_optimization_iterations=0)
+                        additional_traffic_rollouts=0, additional_optimization_iterations=0,
+                        **({'forward_pruning': pruning} if method.startswith('forward') else {}))

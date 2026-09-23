@@ -276,7 +276,14 @@ class Query:
         for row in self.rows:
             if row['action_token'] == ad_source_token and row['derivatives']:
                 row['consumed_derivative'] = True
-        result = copy.deepcopy(receipt)
+        # The central state Jacobian is a ~5169 x 231 list of lists; deep-copying it took
+        # ~0.45 s per call, six calls a decision. Every consumer only reads it:
+        # sdmpc_central.recover extends a local list and immediately copies it into a
+        # fresh ndarray (np.asarray(rows)), and the metadata writers serialize it. So it is
+        # shared with the cached receipt instead of copied; everything else still is.
+        central = receipt.get('central_physical')
+        shared = central.get('jacobian') if isinstance(central, dict) else None
+        result = copy.deepcopy(receipt, {id(shared): shared} if isinstance(shared, list) else None)
         result['candidate_prediction_reused'] = dict(source_action_token=ad_source_token,
             requested_action_token=token(action), physical_inputs_exact=True, prediction_model=MODEL)
         if ad_source_token != token(source):

@@ -11,6 +11,8 @@ import builtins
 import hashlib
 import importlib.abc
 import importlib.machinery
+import marshal
+import os
 import sys
 from pathlib import Path
 
@@ -71,6 +73,48 @@ def namespace():
         _tangent_type=numeric_type)
 
 
+_CACHE_DIR = Path(__file__).resolve().parent / '__tangentcache__'
+_SELF_DIGEST = None
+
+
+def _self_digest():
+    global _SELF_DIGEST
+    if _SELF_DIGEST is None:
+        _SELF_DIGEST = hashlib.sha256(Path(__file__).resolve().read_bytes()).hexdigest()
+    return _SELF_DIGEST
+
+
+def _transformed_code(filename, source, digest):
+    """Marshal cache for the AST-transformed code object.
+
+    Parsing, transforming and compiling the ~97 instrumented modules costs about
+    four seconds, and every spawned prediction worker pays it again. The compiled
+    object is a pure function of the source, of this file's Transform, of the
+    interpreter and of the filename, so all four go into the key: compile() bakes
+    co_filename into the object, and without it two byte-identical sources (an
+    empty __init__.py, say) would share an entry and corrupt tracebacks. A miss,
+    a corrupt entry or an unwritable cache directory all fall back to compiling
+    in process, so the cache can only make this faster, never change what runs.
+    """
+    key = hashlib.sha256('\x00'.join((digest, _self_digest(),
+        sys.implementation.cache_tag or '', str(filename))).encode('utf-8')).hexdigest()
+    path = _CACHE_DIR / (key + '.mcode')
+    try:
+        return marshal.loads(path.read_bytes())
+    except (OSError, ValueError, EOFError, TypeError):
+        pass
+    tree = Transform().visit(ast.parse(source, filename=filename))
+    code = compile(ast.fix_missing_locations(tree), filename, 'exec')
+    try:
+        _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        staging = path.with_name(path.name + '.' + str(os.getpid()))
+        staging.write_bytes(marshal.dumps(code))
+        os.replace(staging, path)
+    except OSError:
+        pass
+    return code
+
+
 class Loader(importlib.abc.Loader):
     def __init__(self, original, filename, hashes):
         self.original, self.filename, self.hashes = original, filename, hashes
@@ -80,10 +124,10 @@ class Loader(importlib.abc.Loader):
 
     def exec_module(self, module):
         source = Path(self.filename).read_bytes()
-        self.hashes[self.filename] = hashlib.sha256(source).hexdigest()
-        tree = Transform().visit(ast.parse(source, filename=self.filename))
+        digest = hashlib.sha256(source).hexdigest()
+        self.hashes[self.filename] = digest
         module.__dict__.update(namespace())
-        exec(compile(ast.fix_missing_locations(tree), self.filename, 'exec'), module.__dict__)
+        exec(_transformed_code(self.filename, source, digest), module.__dict__)
 
 
 class Finder(importlib.abc.MetaPathFinder):

@@ -125,13 +125,31 @@ class Trace:
     def branch(self, a, b, *, discrete=False, output_connected=False):
         if PRIMAL_GUARD:
             return (0, 0)
-        self.counts['primal_comparisons'] += 1
-        support = (a.support if isinstance(a, Dual) else 0) | (b.support if isinstance(b, Dual) else 0)
-        if primal(a) == primal(b):
-            self.counts['exact_primal_ties'] += 1
+        # A taped rollout runs millions of these, so the body is written out
+        # instead of calling primal() twice. The two predicates below differ on
+        # purpose and must stay that way: only a reverse Dual carries .support,
+        # while primal() reads .value off any forward.Dual. Collapsing them would
+        # silently change the exact-tie test for a bare forward Dual.
+        counts = self.counts
+        counts['primal_comparisons'] += 1
+        if isinstance(a, Dual):
+            support, av = a.support, a.value
+        elif isinstance(a, forward.Dual):
+            support, av = 0, a.value
+        else:
+            support, av = 0, float(a)
+        if isinstance(b, Dual):
+            support |= b.support
+            bv = b.value
+        elif isinstance(b, forward.Dual):
+            bv = b.value
+        else:
+            bv = float(b)
+        if av == bv:
+            counts['exact_primal_ties'] += 1
             self.exact_support |= support
         if discrete:
-            self.counts['discrete_comparisons'] += 1
+            counts['discrete_comparisons'] += 1
             self.discrete_support |= support
         return (0, 0)
 
@@ -379,5 +397,44 @@ def extremum(is_max, *args, **kwargs):
     return selected
 
 
-def minimum(*args, **kwargs): return extremum(False, *args, **kwargs)
-def maximum(*args, **kwargs): return extremum(True, *args, **kwargs)
+_ABSENT = object()
+
+
+def _two_argument(is_max, a, b):
+    """The FAST_PRIMITIVES two-argument body, reached without an *args repack.
+
+    max/min is the hottest primitive in an instrumented rollout: the runtime
+    rewrites every `max(`/`min(` in ~90 modules to these functions, and a taped
+    rollout makes millions of the calls. The two-argument case therefore skips
+    the extremum() frame and its builtins lookup. The operand selected and the
+    comparison evidence recorded are exactly those of the path in extremum().
+    """
+    da = isinstance(a, Dual)
+    db = isinstance(b, Dual)
+    if not da and not db:
+        return (builtins.max if is_max else builtins.min)(a, b)
+    av = a.value if da else a
+    bv = b.value if db else b
+    if (bv > av) if is_max else (bv < av):
+        selected, other = b, a
+    else:
+        selected, other = a, b
+    if other is not selected:
+        (a.trace if da else b.trace).branch(other, selected, output_connected=True)
+    return selected
+
+
+def minimum(a=_ABSENT, b=_ABSENT, *rest, **kwargs):
+    if b is not _ABSENT and not rest and not kwargs and FAST_PRIMITIVES:
+        return _two_argument(False, a, b)
+    if a is _ABSENT: return extremum(False, **kwargs)
+    if b is _ABSENT: return extremum(False, a, **kwargs)
+    return extremum(False, a, b, *rest, **kwargs)
+
+
+def maximum(a=_ABSENT, b=_ABSENT, *rest, **kwargs):
+    if b is not _ABSENT and not rest and not kwargs and FAST_PRIMITIVES:
+        return _two_argument(True, a, b)
+    if a is _ABSENT: return extremum(True, **kwargs)
+    if b is _ABSENT: return extremum(True, a, **kwargs)
+    return extremum(True, a, b, *rest, **kwargs)
