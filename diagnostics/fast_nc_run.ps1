@@ -3,6 +3,7 @@ param(
   [Parameter(Mandatory=$true)][string]$Output,
   [ValidateRange(1,2147483647)][int]$Seed = 13,
   [switch]$Execute,
+  [switch]$AllowConcurrent,
   [ValidateRange(0,1000)][double]$MinimumFreeGiB = 0,
   [string]$Python = (Join-Path $env:USERPROFILE '.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe')
 )
@@ -25,6 +26,13 @@ if ($nativePreserve -or $fixedProfile) {
   }
 }
 $network = (Resolve-Path -LiteralPath $settings.network).Path
+if ($AllowConcurrent) {
+  $identityStem=[string]$settings.concurrent_identity_network_stem
+  if ($identityStem -notmatch '^[A-Za-z0-9][A-Za-z0-9_-]{7,80}$' -or
+      [IO.Path]::GetFileNameWithoutExtension($network) -cne $identityStem) {
+    throw 'Concurrent runs require an explicitly prepared unique network basename'
+  }
+}
 $outputPath = [IO.Path]::GetFullPath($Output)
 $script = Join-Path $PSScriptRoot 'fast_nc_runner.vbs'
 $cscript = Join-Path $env:SystemRoot 'System32\cscript.exe'
@@ -50,7 +58,14 @@ if ($requiredFreeBytes -gt 0) {
   }
 }
 if (Test-Path -LiteralPath $outputPath) { throw 'Require a new output directory' }
-if (@(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) { throw 'Existing VISSIM instance: do not share ownership' }
+$existingNative=@(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue)
+if (!$AllowConcurrent -and $existingNative.Count) { throw 'Existing VISSIM instance: do not share ownership' }
+if ($AllowConcurrent) {
+  if ($existingNative.Count -ge 4) { throw 'Four VISSIM instances already exist; no additional launch' }
+  if (@($existingNative | Where-Object { $_.MainWindowTitle.IndexOf([IO.Path]::GetFileName($network),[StringComparison]::OrdinalIgnoreCase) -ge 0 }).Count) {
+    throw 'Concurrent network identity is already open; do not share ownership'
+  }
+}
 $null = New-Item -ItemType Directory -Path $outputPath
 $evalPath = Join-Path $outputPath 'vissim_eval'
 $null = New-Item -ItemType Directory -Path $evalPath
@@ -73,6 +88,7 @@ $record = [ordered]@{network=$network; prepared=$preparedPath; output=$outputPat
   cscript_pid=$runner.Id; cscript_start=$runnerStart.ToString('o'); vissim=$null;
   started=$started.ToString('o'); first_native_progress=$null; completed=$false; error=$null}
 $record.native_preserve=$nativePreserve
+if ($AllowConcurrent) { $record.concurrent=$true; $record.identity_network_stem=$identityStem }
 if ($fzpOnly) { $record.fzp_only=$true }
 if ($requiredFreeBytes -gt 0) {
   $record.minimum_free_bytes_at_launch=$requiredFreeBytes
@@ -171,7 +187,7 @@ $lsa=@(Get-ChildItem -LiteralPath $evalPath -Filter '*.lsa' -File | Where-Object
 $terminalPattern = '(?m)^SIM_SEC=' + $terminalSec + '\r?$'
 $signalRecordingOK = $lsa.Count -eq 1 -or $fzpOnly
 $record.completed=(!$timedOut -and $runner.ExitCode -eq 0 -and !$record.owned_native_alive -and $log -match $terminalPattern -and $log -match '(?m)^STAGE=SIM_DONE\r?$' -and $fzp.Count -eq 1 -and $signalRecordingOK)
-if ($null -eq $owned -and @(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count) {
+if ($null -eq $owned -and ($AllowConcurrent -or @(Get-Process -Name 'VISSIM*' -ErrorAction SilentlyContinue).Count)) {
   $record.completed=$false; $record.error='Native identity was not established and a VISSIM process remains'
 }
 $record.terminal_sec=if ($log -match $terminalPattern) { $terminalSec } else { $null }

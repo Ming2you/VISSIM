@@ -224,6 +224,50 @@ def rule_vsl_speed(observation, spec):
     return fast if speed > high else medium if speed > low else slow
 
 
+def mtfc_vsl_step(bottleneck, controlled_flow, spec, previous=None):
+    """Carlson cascade equations, with explicit native measurement and actuator limits.
+
+    qhat = qhat_prev + Kp*(e-e_prev) + Ki*e; b = b_prev + Kflow*(qhat-q).
+    Density is an occupancy proxy using an offline-estimated effective vehicle length.
+    Gains are supplied for the actual control interval; no implicit rescaling here.
+    """
+    _, occupancy, _ = _observation(bottleneck)
+    flow, _, _ = _observation(controlled_flow)
+    keys = ('effective_length_m', 'target_density', 'kp', 'ki', 'flow_ki',
+            'flow_min', 'flow_max', 'reference_speed', 'max_speed_change')
+    p = {k: _number(spec[k], 'MTFC ' + k) for k in keys}
+    if not (p['effective_length_m'] > 0 and p['target_density'] > 0
+            and p['flow_min'] < p['flow_max'] and p['flow_ki'] > 0):
+        raise ValueError('Invalid MTFC density, length or flow parameters')
+    allowed = [_number(x, 'MTFC allowed speed') for x in spec['allowed_speeds']]
+    if not allowed or allowed != sorted(set(allowed)) or min(allowed) <= 0 or max(allowed) != p['reference_speed']:
+        raise ValueError('MTFC speed support must be distinct and end at reference')
+    density = occupancy * 10 / p['effective_length_m']
+    error = p['target_density'] - density
+    state = previous or {'error': error, 'target_flow': p['flow_max'], 'b': 1.0,
+                         'speed': p['reference_speed']}
+    last = _number(state['speed'], 'MTFC preceding actual command')
+    if last not in allowed:
+        raise ValueError('MTFC previous command outside actual support')
+    old_error = float(state['error'])
+    if not math.isfinite(old_error): raise ValueError('Nonfinite MTFC history')
+    target_raw = (_number(state['target_flow'], 'MTFC preceding flow')
+                  + p['kp'] * (error-old_error) + p['ki'] * error)
+    target = min(p['flow_max'], max(p['flow_min'], target_raw))
+    b_raw = _number(state['b'], 'MTFC preceding b', maximum=1) + p['flow_ki'] * (target-flow)
+    feasible = [v for v in allowed if abs(v-last) <= p['max_speed_change']]
+    if not feasible: raise ValueError('Empty MTFC actual-command trust region')
+    # Saturate the integral state at the available temporal actuator limits.
+    # Preserve sub-quantization increments within them, avoiding an artificial deadband.
+    b = min(max(feasible)/p['reference_speed'], max(min(feasible)/p['reference_speed'], b_raw))
+    speed = min(feasible, key=lambda v: (abs(v-b*p['reference_speed']), abs(v-last), -v))
+    next_state = {'error': error, 'target_flow': target, 'b': b, 'speed': speed}
+    audit = {'density_proxy': density, 'density_error': error, 'measured_flow': flow,
+             'target_raw': target_raw, 'target_flow': target, 'b_raw': b_raw, 'b_applied_state': b,
+             'previous_speed': last, 'speed': speed, 'feasible_speeds': feasible}
+    return speed, next_state, audit
+
+
 def alinea_meter_step(table, previous_green, previous_request, params, occupancy,
                       minimum_green, max_green_change):
     """Shared rule arithmetic, independent of plant initialization and COM."""

@@ -1,0 +1,6 @@
+# Native/evidence files are byte-pinned; never rewrite their line endings.
+** -text whitespace=cr-at-eol
+*.py diff
+*.json diff
+*.md diff
+network/* -whitespace

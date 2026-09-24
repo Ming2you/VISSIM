@@ -79,6 +79,44 @@ def native_record(folder, proof, end):
     return read_ldp_frames(files, groups, 1, end)
 
 
+def network_performance(path, end):
+    return network_performance_records(rows(path), end)
+
+
+def network_performance_records(records, end):
+    names = {'DelayLatent', 'DemandLatent', 'TravTmTot', 'VehAct', 'VehArr'}
+    require(len(records) == len(names) and {r['attribute'] for r in records} == names,
+            'Missing/duplicate network performance metrics')
+    result = {}
+    for row in records:
+        stamp, value = Decimal(row['sim_sec']), Decimal(row['value'])
+        require(stamp.is_finite() and stamp == end and value.is_finite() and value >= 0,
+                'Invalid network performance value/time')
+        if row['attribute'] in ('DemandLatent', 'VehAct', 'VehArr'):
+            require(value == value.to_integral_value(), 'Vehicle total is not integral')
+        result[row['attribute']] = float(value)
+    return result
+
+
+def network_performance_checkpoints(path, times, final):
+    records = rows(path)
+    require(len(records) == 5*len(times), 'Missing/extra performance checkpoint rows')
+    result = {}
+    previous = None
+    for t in times:
+        group = [r for r in records if Decimal(r['sim_sec']) == t]
+        value = network_performance_records(group, t)
+        if previous is not None:
+            require(all(value[k] >= previous[k] for k in ('DelayLatent', 'TravTmTot', 'VehArr')),
+                    'Cumulative performance decreased between checkpoints')
+        result[str(t)] = value
+        previous = value
+    if previous is not None:
+        require(all(final[k] >= previous[k] for k in ('DelayLatent', 'TravTmTot', 'VehArr')),
+                'Final cumulative performance precedes checkpoint')
+    return result
+
+
 def verify(prepared, run, reference=None):
     prepared, run = Path(prepared), Path(run)
     meta = json.loads((prepared/'prepared.json').read_text(encoding='utf-8-sig'))
@@ -190,6 +228,12 @@ def verify(prepared, run, reference=None):
               'unrecorded_signal_groups': proof['unrecorded_signal_groups'],
               'native_meter_samples_checked': samples, 'actual_green_windows': green_counts,
               'ldp_pins': ldp['pins'], 'native_lsa_scope': 'Recorded independently; LSA is not used to substitute for COM state readback or LDP'}
+    if meta.get('native_network_performance') == 'whole_network_final_only':
+        result['native_network_performance'] = network_performance(run/'native_netperf.csv', end)
+    if meta.get('native_network_performance_checkpoints_sec'):
+        result['native_network_performance_checkpoints'] = network_performance_checkpoints(
+            run/'native_netperf_checkpoints.csv', meta['native_network_performance_checkpoints_sec'],
+            result['native_network_performance'])
     if reference:
         reference = Path(reference)
         # A zero-command NC hypothesis run must match its entire observed run.

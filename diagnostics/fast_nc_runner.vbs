@@ -6,6 +6,7 @@ End If
 If WScript.Arguments.Count <> 4 And WScript.Arguments.Count <> 5 And WScript.Arguments.Count <> 6 Then WScript.Echo "Usage: network prepared output seed [terminal_sec] [native_preserve|fixed_profile]": WScript.Quit 2
 Dim fs, sim, net, prepared, output, seed, terminalSec, logFile, vi, item, arr, volumes, tailVolumes, row, parts, key, count, before, target, sc, nativePreserve
 Dim fixedProfile, fixedTrace, fixedExpected, fixedOwnership, fixedMeters, fixedEventCount, fixedBreakSec, fzpOnly
+Dim netperfCheckpoints, netperfLastCheckpoint
 Set fs = CreateObject("Scripting.FileSystemObject")
 net = WScript.Arguments(0): prepared = WScript.Arguments(1): output = WScript.Arguments(2): seed = CLng(WScript.Arguments(3))
 terminalSec = 5400
@@ -13,6 +14,8 @@ If WScript.Arguments.Count >= 5 Then terminalSec = CDbl(WScript.Arguments(4))
 nativePreserve = False
 fixedProfile = False
 fzpOnly = False
+netperfCheckpoints = Empty
+netperfLastCheckpoint = 0
 If WScript.Arguments.Count = 6 Then
     If WScript.Arguments(5) = "native_preserve" Then
         nativePreserve = True
@@ -264,6 +267,13 @@ Sub RunPreservedNative()
     End If
     SetChecked sim.Simulation, "UseMaxSimSpeed", True
     SetChecked sim.Simulation, "SimBreakAt", terminalSec
+    If fs.FileExists(fs.BuildPath(prepared,"native_netperf.txt")) Then
+        SetChecked sim.Evaluation, "VehNetPerfCollectData", True
+        SetChecked sim.Evaluation, "VehNetPerfFromTime", 0
+        SetChecked sim.Evaluation, "VehNetPerfToTime", terminalSec + 1
+        SetChecked sim.Evaluation, "VehNetPerfInterval", terminalSec + 1
+        LoadNetworkPerformanceCheckpoints
+    End If
     logFile.Close
     If fixedProfile Then
         RunFixedProfile
@@ -275,10 +285,61 @@ Sub RunPreservedNative()
     End If
     WScript.Echo "STAGE=SIM_DONE"
     WScript.Echo "SIM_SEC=" & CStr(terminalSec)
+    If fs.FileExists(fs.BuildPath(prepared,"native_netperf.txt")) Then WriteNetworkPerformance
     sim.Simulation.Stop
     Set saved = Nothing
     Set sim = Nothing
     WScript.Quit 0
+End Sub
+
+Sub WriteNetworkPerformance()
+    Dim stamp, stream
+    stamp = CDbl(sim.Simulation.AttValue("SimSec"))
+    If Abs(stamp-terminalSec) > 0.001 Then Die "Network performance final time differs"
+    Set stream = fs.CreateTextFile(fs.BuildPath(output,"native_netperf.csv"),False,False)
+    stream.WriteLine "sim_sec,attribute,value"
+    AppendNetworkPerformance stream, stamp
+    stream.Close
+End Sub
+
+Sub AppendNetworkPerformance(stream, stamp)
+    Dim result, metric, attribute, value
+    Set result = sim.Net.VehicleNetworkPerformanceMeasurement
+    For Each metric In Array("DelayLatent","DemandLatent","TravTmTot","VehAct","VehArr")
+        If metric="DelayLatent" Or metric="DemandLatent" Then
+            attribute = metric & "(Current,Current)"
+        Else
+            attribute = metric & "(Current,Current,All)"
+        End If
+        value = result.AttValue(attribute)
+        If IsEmpty(value) Or IsNull(value) Then Die "Missing network performance " & metric
+        If Not IsNumeric(value) Then Die "Non-numeric network performance " & metric
+        If CDbl(value)<0 Then Die "Negative network performance " & metric
+        stream.WriteLine CStr(stamp) & "," & metric & "," & CStr(value)
+    Next
+    Set result = Nothing
+End Sub
+
+Sub LoadNetworkPerformanceCheckpoints()
+    Dim path, input, values, n, value, previous
+    path = fs.BuildPath(prepared,"native_netperf_checkpoints.csv")
+    If Not fs.FileExists(path) Then Exit Sub
+    If Not fixedProfile Then Die "Performance checkpoints require fixed profile"
+    Set input = fs.OpenTextFile(path,1)
+    If input.ReadLine <> "time_s" Then Die "Performance checkpoint schema"
+    values = "": previous = 0: n = 0
+    Do Until input.AtEndOfStream
+        value = CDbl(input.ReadLine)
+        If value <> CLng(value) Or value <= previous Or value >= terminalSec Then Die "Performance checkpoint time"
+        If n > 0 Then values = values & ","
+        values = values & CStr(value): previous = value: n = n + 1
+    Loop
+    input.Close
+    If n = 0 Then Die "Empty performance checkpoint schedule"
+    netperfCheckpoints = Split(values,",")
+    Set input = fs.CreateTextFile(fs.BuildPath(output,"native_netperf_checkpoints.csv"),False,False)
+    input.WriteLine "sim_sec,attribute,value"
+    input.Close
 End Sub
 
 Sub ConfigureVehicleRecording()
@@ -308,9 +369,25 @@ Sub ConfigureVehicleRecording()
 End Sub
 
 Sub ContinueToTerminal()
-    Dim targetSec
+    Dim targetSec, checkpoint, actualSec, stream
     targetSec = terminalSec
     If fixedProfile Then targetSec = fixedBreakSec
+    If IsArray(netperfCheckpoints) Then
+        For Each checkpoint In netperfCheckpoints
+            If CDbl(checkpoint) > netperfLastCheckpoint And CDbl(checkpoint) <= targetSec Then
+                SetChecked sim.Simulation, "SimBreakAt", CDbl(checkpoint)
+                sim.Simulation.RunContinuous
+                actualSec = CDbl(sim.Simulation.AttValue("SimSec"))
+                If actualSec <> CDbl(checkpoint) Then Die "Performance checkpoint not reached"
+                netperfLastCheckpoint = actualSec
+                Set stream = fs.OpenTextFile(fs.BuildPath(output,"native_netperf_checkpoints.csv"),8)
+                AppendNetworkPerformance stream, actualSec
+                stream.Close
+                WScript.Echo "SIM_SEC=" & CStr(actualSec)
+            End If
+        Next
+        If netperfLastCheckpoint = targetSec Then Exit Sub
+    End If
     If fixedProfile Then SetChecked sim.Simulation, "SimBreakAt", targetSec
     sim.Simulation.RunContinuous
     If CDbl(sim.Simulation.AttValue("SimSec")) <> targetSec Then Die "Terminal differs from requested horizon"

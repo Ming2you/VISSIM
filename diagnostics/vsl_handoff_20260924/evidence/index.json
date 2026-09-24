@@ -1,0 +1,197 @@
+{
+  "schema": "vsl-handoff-evidence/v1",
+  "created_utc": "2026-09-24T06:18:52.6156390Z",
+  "scope": "Completed historical evidence only. No new simulation, fitting, raw FZP analysis, or qualification.",
+  "delta_convention": "controlled minus same-seed no-control; negative is lower cost",
+  "source_paths_relative_to": "repository root",
+  "notes": [
+    "Original files are unmodified; historical absolute paths and pending-language remain provenance only.",
+    "Training450 and new heldout450 use different frozen model generations. The latter is not an exact heldout rerun of A0.5_E4 alone.",
+    "No raw forecasts, FZP, observation CSV, or pending measurement replay results are included."
+  ],
+  "files": [
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_full_20260924/results/summary.json",
+      "evidence_path": "native9000_seed29/summary.json",
+      "sha256": "fc2e50fd3b0f86aa704f605803745ec2d24b37068e9c452fd5a5a1b8e04d9c39",
+      "bytes": 3964,
+      "scope": "Seed29 complete 0-9000s fixed bottleneck VSL90; native all-network cost includes cumulative external latent delay.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_full_20260924/FINAL_REVIEW_SEED29.md",
+      "evidence_path": "native9000_seed29/FINAL_REVIEW_SEED29.md",
+      "sha256": "e1c2c9790f453c7a083d54ad39743f645ec43ecf3a03023d3dee699171af46bc",
+      "bytes": 2713,
+      "scope": "Historical seed29 review before independent seed43 result; its pending statements are historical.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_full_20260924/full_audit_seed29.json",
+      "evidence_path": "native9000_seed29/full_audit_seed29.json",
+      "sha256": "864774c6596db5711a4704af820c3520648d2801898960c2bd64f4e208407966",
+      "bytes": 1546,
+      "scope": "Seed29 trajectory-prefix equality, demand account, net-cost delta; pending heldout wording is historical.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_full_20260924/settings.json",
+      "evidence_path": "native9000_seed29/settings.json",
+      "sha256": "2a042eee72df46c15a897b5c1d3f086475f3d1bdf84d0a62294a1d56a5a4b3a2",
+      "bytes": 414,
+      "scope": "Original native intervention settings; host paths are historical provenance, not portable launch instructions.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_full_20260924/results/east_heatmap.png",
+      "evidence_path": "native9000_seed29/east_heatmap.png",
+      "sha256": "5fe73ddeb4c04fb0f62746dc194a31b2c60def194c8d9dfb73ff7daa7722f9ea",
+      "bytes": 231523,
+      "scope": "Existing east mainline heatmap for the completed 9000s seed29 pair; regional visual, not full-cost proof.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_heldout43_20260924/results/summary.json",
+      "evidence_path": "native9000_seed43/summary.json",
+      "sha256": "c82dfb6af2a7636a2b995e34fb6d4897505a47c0f554bf6767881371a85cd943",
+      "bytes": 3995,
+      "scope": "Frozen-policy seed43 complete 0-9000s test; east local benefit but total TTS including external wait worsens.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_heldout43_20260924/README.md",
+      "evidence_path": "native9000_seed43/ORIGINAL_PROTOCOL.md",
+      "sha256": "728804d2074bcfba798027774654eec4447b34261b6b0e3a3898e1feb19af370",
+      "bytes": 1870,
+      "scope": "Original frozen policy and seed43 qualification protocol; pre-result language retained.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_heldout43_20260924/settings.json",
+      "evidence_path": "native9000_seed43/settings.json",
+      "sha256": "deeff04c04b9ade376d9e3aa8c8f116453322ed6643cb3346b9f3f50fe09e49a",
+      "bytes": 547,
+      "scope": "Original seed43 native settings; absolute local paths are provenance only.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_heldout43_20260924/postprocess_status.json",
+      "evidence_path": "native9000_seed43/postprocess_status.json",
+      "sha256": "1f568ae40cb92f0da4ed9d2efa2ff6500cc354a3bf93f5dfd11a2aceac597f8f",
+      "bytes": 462,
+      "scope": "Completed native pair postprocessing status.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/bottleneck90_heldout43_20260924/results/east_heatmap.png",
+      "evidence_path": "native9000_seed43/east_heatmap.png",
+      "sha256": "ed2b3412d5b00e635655b49d5f8e8f34cfab7ba6e3ec6e050f91a83c35633db0",
+      "bytes": 233640,
+      "scope": "Existing east mainline heatmap for the completed 9000s seed43 pair; not full-cost proof.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/REPORT.md",
+      "evidence_path": "training450_seed29/REPORT.md",
+      "sha256": "8e511312f4030028d46f7a63e41e412b18bd414685c34c0ab49ae477e284f102",
+      "bytes": 7397,
+      "scope": "Historical A0.5_E4 response-fit report. All450s are training; RM gain unresolved. Relative links inside original are unmodified.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/full_response_fit/protocol.json",
+      "evidence_path": "training450_seed29/protocol.json",
+      "sha256": "9c6864a849d68f509f9bddf7e522e6531df341ada3263018499f448c44362588",
+      "bytes": 605,
+      "scope": "Explicitly classifies2220.1-2670.1s as training, not heldout final150s.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/full_response_fit/selection.json",
+      "evidence_path": "training450_seed29/selection.json",
+      "sha256": "bc4900df04d9de3ddae23fa02bbd413b2cd0927d63412906888f8ae3e4765059",
+      "bytes": 3061,
+      "scope": "Selected A0.5_E4 and parameter values; independent_validation false. Small selection summary, no raw forecasts.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/full_response_fit/check_summary.json",
+      "evidence_path": "training450_seed29/check_summary.json",
+      "sha256": "9c29096cff24838e1b2bb70ec2007ec0e3923ee81aef813800f3ef4a5a6c7d2c",
+      "bytes": 1305,
+      "scope": "Common30s-integrated component costs for seed29 congested training and early intervention checks; objective is separate model local1s cost with incremental waiting.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/status.json",
+      "evidence_path": "training450_seed29/status.json",
+      "sha256": "e1204f54bfbe17ac12dc39f429ed6ed1899dbdbedf9fe62a089ed6b0717361e4",
+      "bytes": 424,
+      "scope": "VSL in-sample reproduced; RM, independent congested gain and controller all unqualified.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/response_recalibration_20260924/gain_response/seed43/summary.json",
+      "evidence_path": "early450_seed43/summary.json",
+      "sha256": "a20cdfda3a0f1a6a6290b4561cefafc25b775b633b3527664f2b9d98ba5a57d3",
+      "bytes": 245,
+      "scope": "Early870.1-1320.1s holdout: loss direction matched; not a congested gain test.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/metanet_net_gain_goal_20260924/heldout43/summary.json",
+      "evidence_path": "heldout450_seed43/summary.json",
+      "sha256": "9fb3fe951396dea14369d5cd04eba8ea59fa609ecc6225ec5c66ed78c0dadb24",
+      "bytes": 2077,
+      "scope": "New2250s intervention response with frozen prior/local_fd models: VSL actual harm but predicted benefit. native5s stocks exclude external latent delay.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/metanet_net_gain_goal_20260924/heldout43/protocol.json",
+      "evidence_path": "heldout450_seed43/protocol.json",
+      "sha256": "d506b2fde409b0164deeaf728463799a431e270a6ac8a74ade14c7a2bbb9761d",
+      "bytes": 743,
+      "scope": "Same initial2220.1s state,450s forecast,2250s intervention,3000s native runs; scope excludes full external wait.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/metanet_net_gain_goal_20260924/heldout43/status.json",
+      "evidence_path": "heldout450_seed43/status.json",
+      "sha256": "c62ac00ff4fd1ef85c4da5fb151c06cef853494c5a8b96cfcbaa87f8366d79c1",
+      "bytes": 1483,
+      "scope": "Completed response validation; supersedes AGENTS historical unknown/pending status.",
+      "copy_mode": "byte-for-byte"
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/east_only_review_20260924/summary.json",
+      "evidence_path": "accounting/east_link_sets_source.json",
+      "sha256": "1f21247e54291c9cd19a994fb26a0b93470cf66799ac38ce384ad6885a30a878",
+      "bytes": 24805,
+      "scope": "Only link_sets is used here: original exact link membership consumed by native9000 accounting. Other older experiment rows in this original file are outside handoff claims.",
+      "copy_mode": "byte-for-byte"
+    }
+  ],
+  "metric_method_sources": [
+    {
+      "source_path": "diagnostics/plant31_response_20260923/predict_heldout.py",
+      "sha256": "429ee6bfbec8f820d5ea5b6fce6a30d04ce90510e8bf4459146f4a66941dea64",
+      "copied": false
+    },
+    {
+      "source_path": "diagnostics/dsd110_20260923/mtfc_v1_20260924/experiment.py",
+      "sha256": "62856f57efff8b4cf754c20968866fc5d2904507512b7da59c8e5bce61cebe35",
+      "copied": false
+    },
+    {
+      "source_path": "diagnostics/metanet_net_gain_goal_20260924/heldout.py",
+      "sha256": "cc6219b3b9b8a8ebd6462372879c7a08ae3deddc083664a275c9b96995405d3d",
+      "copied": false
+    },
+    {
+      "source_path": "scripts/measure_control_area.py",
+      "sha256": "8f6df1cf9ef9bcd646799c81703a6cdcae4a0f42ae84484136f53889833d7327",
+      "copied": false
+    }
+  ],
+  "total_copied_bytes": null
+}

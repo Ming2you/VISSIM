@@ -1,0 +1,38 @@
+{
+  "schema": "vsl-handoff-verification/v1",
+  "created_utc": "2026-09-24T06:32:31.813155+00:00",
+  "native_runs_started_in_this_handoff": 0,
+  "offline": {
+    "current_code_matches_original_four_arrays_both_arms": true,
+    "future_truncation_equal_at_export": true,
+    "isolated_runtime_only_directory_passed": true,
+    "predicted_delta_veh_h": -0.26911923861615605,
+    "actual_delta_veh_h": -0.32499999999998863,
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "staged_index_checkout_manifest_and_exact_arrays_passed": true
+  },
+  "native_preparation": {
+    "profile_900_9000_exact_to_original_both_arms": true,
+    "profile_2250_3000_exact_to_original_vsl": true,
+    "seed_change_restoration_exact": true,
+    "source_network_unchanged_seed29": true,
+    "sidecars": 42,
+    "background_reuses_existing_tracked_asset": true,
+    "new_native_execution_test": false,
+    "staged_index_checkout_preparation_passed": true
+  },
+  "postprocess": {
+    "netperf_parser_exact_saved_global_delta_veh_h": -78.76369679908748,
+    "pipeline_stub_test_passed": true,
+    "unfinished_pair_rejected": true,
+    "existing_output_rejected": true,
+    "new_fzp_scan": false,
+    "omega_membership_proof_passed": true
+  },
+  "unit_tests": {
+    "command": "python -B -m unittest diagnostics.test_fast_fixed_profile tests.test_literature_vsl_fd",
+    "passed": 28
+  },
+  "qualification": "Training reproduction only. Cross-seed net benefit and RM gain remain unqualified."
+}

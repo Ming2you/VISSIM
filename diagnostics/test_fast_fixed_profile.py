@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from diagnostics.fast_fixed_profile import compile_profile, prepare, sha, SCHEMA
-from diagnostics.fast_fixed_profile_verify import native_recording_grid, prefix_digest, verify
+from diagnostics.fast_fixed_profile_verify import native_recording_grid, prefix_digest, verify, network_performance_checkpoints
 from diagnostics.test_native_signal_record import ldp
 
 
@@ -91,6 +91,40 @@ class FixedProfile(unittest.TestCase):
         self.assertEqual(prefix_digest(a,2),prefix_digest(b,2))
         b.write_bytes(b'1.00;1;2;3;7\n2.00;1;2;3;99\n')
         self.assertNotEqual(prefix_digest(a,2),prefix_digest(b,2))
+
+    def test_performance_checkpoints_preserve_traffic_events(self):
+        old = compile_profile(self.network, self.profile)
+        self.profile.update(collect_native_network_performance=True,
+                            native_network_performance_checkpoints_sec=[1200,1800])
+        profile=self.root/'profile.json';profile.write_text(json.dumps(self.profile))
+        meta=prepare(self.network,profile,self.root/'prepared')
+        self.assertEqual(old,compile_profile(self.network,self.profile))
+        self.assertEqual(meta['native_network_performance_checkpoints_sec'],[1200,1800])
+        self.assertEqual((self.root/'prepared/native_netperf_checkpoints.csv').read_text(),'time_s\n1200\n1800\n')
+        for values in ([1800,1200],[1200,1200],[True],[1200.1],[0],[2250]):
+            p=copy.deepcopy(self.profile);p['native_network_performance_checkpoints_sec']=values
+            profile.write_text(json.dumps(p))
+            with self.assertRaisesRegex(ValueError,'checkpoint'):prepare(self.network,profile,self.root/'unused')
+        self.profile['collect_native_network_performance']=False
+        profile.write_text(json.dumps(self.profile))
+        with self.assertRaisesRegex(ValueError,'require native'):prepare(self.network,profile,self.root/'unused')
+
+    def test_performance_checkpoints_reject_missing_and_nonmonotone_records(self):
+        path=self.root/'checkpoints.csv'
+        names=['DelayLatent','DemandLatent','TravTmTot','VehAct','VehArr']
+        records=[[t,k,t] for t in (1200,1800) for k in names]
+        def write(items):
+            with path.open('w',newline='') as f:
+                writer=csv.writer(f);writer.writerow(['sim_sec','attribute','value']);writer.writerows(items)
+        write(records)
+        final=dict.fromkeys(names,2250)
+        self.assertEqual(network_performance_checkpoints(path,[1200,1800],final)['1800']['DelayLatent'],1800)
+        write(records[:-1])
+        with self.assertRaises(ValueError):network_performance_checkpoints(path,[1200,1800],final)
+        wrong=copy.deepcopy(records);wrong[5][2]=1000;write(wrong)
+        with self.assertRaisesRegex(ValueError,'decreased'):network_performance_checkpoints(path,[1200,1800],final)
+        wrong=copy.deepcopy(records);wrong[5][1]='VehAct';write(wrong)
+        with self.assertRaisesRegex(ValueError,'duplicate'):network_performance_checkpoints(path,[1200,1800],final)
 
     def test_resolution_probe_is_explicit_and_preserves_integer_event_clock(self):
         self.profile['vsl_commands'] = []; self.profile['meter_commands'] = []

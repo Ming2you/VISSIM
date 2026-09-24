@@ -298,7 +298,13 @@ class CanonicalFreewayModel:
             cfg.simulation.T_f=integration
             cfg.simulation.T_u=min(cfg.simulation.T_u,integration)
             cfg.simulation.validate()
-        self.runtime_metadata = runtime_setup.configure_freeway_runtime(adapter, cfg, tuning, mapping)
+        runtime_tuning = tuning
+        if geometry.get('refined_partition') and 'state_response' in tuning.get('freeway', {}):
+            # Local overrides name the observed refined cells, not their parents.
+            # Validate them only after the physical partition is installed.
+            runtime_tuning = copy.deepcopy(tuning)
+            runtime_tuning['freeway'].pop('state_response')
+        self.runtime_metadata = runtime_setup.configure_freeway_runtime(adapter, cfg, runtime_tuning, mapping, component_validation=True)
         if geometry.get('refined_partition'):
             # Same parent-preserving physical partition used by the established
             # segment-resolution experiment, explicitly opted in by extraction.
@@ -315,7 +321,38 @@ class CanonicalFreewayModel:
                 old_heads = getattr(cfg.network,'freeway_vsl_zone_heads',{}).get(road,[0])
                 heads[road] = [parents.index(p) for p in old_heads]
             adapter.install_freeway_vsl_zones(cfg, {'freeway':{'vsl_zone_heads':heads}})
+            if runtime_tuning is not tuning:
+                self.runtime_metadata.update(runtime_setup.configure_state_response(cfg, tuning))
+        # Refined merge cells can have a separately identified FD. Parent
+        # geometry, actual lane counts and all other cells remain unchanged.
+        self.cell_fd = copy.deepcopy(tuning.get('freeway', {}).get('physical_cell_fd', {}))
+        if not isinstance(self.cell_fd, dict) or set(self.cell_fd)-set(cfg.network.freeway_links):
+            raise ValueError('Physical cell FD requires known freeway directions')
+        for road, overrides in self.cell_fd.items():
+            rows = cfg.network.freeway_segment_params[road]
+            if not isinstance(overrides, dict) or not overrides:
+                raise ValueError('Physical cell FD needs explicit cell overrides')
+            for index, values in overrides.items():
+                if (not isinstance(index, str) or not index.isascii() or not index.isdecimal()
+                        or str(int(index))!=index or int(index)>=len(rows)
+                        or not isinstance(values, dict) or not values
+                        or set(values)-{'v_free','rho_crit','metanet_a_m'}
+                        or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                               or not math.isfinite(v) or v<=0 for v in values.values())):
+                    raise ValueError('Invalid refined-cell FD parameter')
+                if values.get('rho_crit',0)>=cfg.network.rho_max:
+                    raise ValueError('Critical density must be below jam density')
+                rows[int(index)].update(values)
         self.base = cfg
+        transport=tuning.get('freeway',{}).get('component_vsl_transport')
+        if transport is not None:
+            from evaluation.controllers.freeway_fd import VSLExposure
+            if (not isinstance(transport,dict) or not transport or set(transport)-set(cfg.network.freeway_links)
+                    or getattr(cfg.network,'vsl_fd_two_branch',False) or tuning.get('freeway',{}).get('component_literature')):
+                raise ValueError('Component VSL exposure requires explicit exponential METANET directions')
+            for road,spec in transport.items():
+                VSLExposure([0.]*len(cfg.network.freeway_segment_params[road]),spec,max(cfg.freeway_follower.vsl_set))
+            cfg.network.component_vsl_transport=copy.deepcopy(transport)
         self.roads = tuple(cfg.network.freeway_links)
         self.component_boundary = copy.deepcopy(tuning.get('freeway',{}).get('component_boundary'))
         if self.component_boundary is not None:
@@ -547,6 +584,24 @@ class CanonicalFreewayModel:
             self.provenance['component_boundary'] = self.component_boundary
         if self.literature is not None:
             self.provenance['component_literature'] = self.literature
+        if tuning.get('freeway', {}).get('state_response') is not None:
+            self.provenance['state_response'] = copy.deepcopy(tuning['freeway']['state_response'])
+            self.provenance['state_response_cell_indexing'] = 'observed physical cells, zero based'
+        if self.cell_fd:
+            self.provenance['physical_cell_fd'] = copy.deepcopy(self.cell_fd)
+            self.provenance['physical_cell_fd_indexing'] = 'observed physical cells, zero based; calibrated direction multipliers still apply'
+
+    def _head_service(self, ramp, service, cycle_sec):
+        """Physical departures for executed green; never modifies commands."""
+        if ramp not in self.ramp_head_service_veh_per_cycle or service['mode']=='RED':
+            return service
+        if cycle_sec != 10.:
+            raise ValueError('Calibrated head-service curve requires its native10s meter cycle')
+        green = 10 if service['mode']=='OFF' else service['green_sec']
+        if (isinstance(green, bool) or not isinstance(green, (int, float))
+                or not math.isfinite(green) or green != int(green) or not 2<=green<=10):
+            raise ValueError('Calibrated head-service green outside measured2..10s range')
+        return {**service,'service_veh':self.ramp_head_service_veh_per_cycle[ramp][str(int(green))]}
 
     def _config(self, road, parameters):
         cfg = copy.deepcopy(self.base)
@@ -916,13 +971,16 @@ class CanonicalFreewayModel:
                         arrival_vph = float(step['ramp_arrival_vph'][ramp])
                         if not math.isfinite(arrival_vph) or arrival_vph < 0:
                             raise ValueError('Ramp approach requests must be finite and nonnegative')
+                        head_service = self._head_service(ramp, step['ramp_head_service'][ramp], meter_cycle)
                         receipt = buffer.advance_local_interval(start_sec=t, duration_sec=tf,
                             cycle_sec=meter_cycle, receiving_budget_veh=budget_rate*dt_h,
                             **({'allow_partial_cycle':True} if tf!=meter_cycle else {}),
                             request_arrivals_veh=arrival_vph*dt_h,
                             request_arrivals_by_second=step.get('ramp_arrival_profile',{}).get(ramp),
+                            **({'request_arrivals_by_lane_second':step['ramp_arrival_lane_profile'][ramp]}
+                               if ramp in step.get('ramp_arrival_lane_profile',{}) else {}),
                             **({'receiving_budget_by_lane_veh':[q*dt_h for q in lane_budgets]} if lane_budgets is not None else {}),
-                            **step['ramp_head_service'][ramp])
+                            **head_service)
                         accepted = receipt['accepted_merge_veh']
                         q = accepted/dt_h
                         coupling_roundoff = q*tf/3600.-accepted

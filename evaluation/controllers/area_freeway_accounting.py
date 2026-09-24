@@ -22,6 +22,7 @@ from src.simulation import coupling as _cp
 from evaluation.controllers import control_area_objective as _area
 from evaluation.controllers import offramp_routing as _routing
 from evaluation.controllers.freeway_geometry import cell_lengths_km as _net_cell_lengths_km
+from evaluation.controllers.freeway_fd import literature_desired_speed, VSLExposure
 
 VENDOR_FREEWAY_METHOD_SHA256 = "eb19ad40207a07bac75db9b67c03280be8558a310123e9eddacf655ac49e8762"
 VENDOR_COUPLING_METHOD_SHA256 = "ced88a0a6fef090f3eb78a43af4538f73c8b7d11de07c5633142fa9867ba59c0"
@@ -188,6 +189,14 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         vehicles = [max(0.0, rho) * length * max(lane, 1e-09) for rho, lane, length in zip(rhos, previous_lanes, lengths)]
         rho_for_flow = [n / max(length * max(lane, 1e-09), 1e-09) for n, lane, length in zip(vehicles, lanes_now, lengths)]
         vsl_max = max(cfg.freeway_follower.vsl_set)
+        exposure_spec=(getattr(net,'component_vsl_transport',{}) or {}).get(link)
+        exposure=None
+        if exposure_spec is not None:
+            if not hasattr(state,'_component_vsl_exposure'):state._component_vsl_exposure={}
+            if link not in state._component_vsl_exposure:
+                state._component_vsl_exposure[link]=VSLExposure(vehicles,exposure_spec,vsl_max)
+            exposure=state._component_vsl_exposure[link]
+        exposure_out=[];exposure_commands=[]
         q_values = [_mn.segment_flow_veh_h(rho, speed, lane) for rho, speed, lane in zip(rho_for_flow, speeds, lanes_now)]
         if phi_cd < 1.0:
             for _i in range(len(q_values)):
@@ -354,6 +363,12 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
             vsl_i = _mn.segment_vsl(control, link, i, cfg)
             vsl_active_i = vsl_i < vsl_max - 0.5
             v_eff = _mn.effective_desired_speed_kmh(rho, net.v_free, net.rho_crit, vsl_i, net.alpha_vsl, vsl_active_i, net.metanet_a_m, getattr(net, 'vsl_fd_two_branch', False), net.rho_max, float(getattr(net, 'rho_crit_two_branch', 0.0) or 0.0))
+            v_eff = literature_desired_speed(
+                (getattr(net, 'freeway_vsl_fd_response', {}) or {}).get(link),
+                cfg, link, i, rho, v_eff, vsl_i, vsl_active_i)
+            if exposure is not None:
+                v_eff=exposure.target(cfg,link,i,rho,v_eff,float(vsl_i))
+                exposure_out.append(q_out*dt_h);exposure_commands.append(float(vsl_i))
             if literature is not None and i in literature['relaxation_cells']:
                 v_eff = hadi_desired_speed(v_eff, float(vsl_i), literature['relaxation'], vsl_active_i)
                 literature_commands += int(literature['relaxation'] == 'command')
@@ -374,6 +389,10 @@ def _freeway_substep_events(state: _mn.TrafficState, control: _mn.ControlAction,
         state.freeway_speed[link] = next_speeds
         state.freeway_flow[link] = next_flows
         state.freeway_effective_lanes[link] = next_lanes
+        if exposure is not None:
+            exposure.advance(vehicles,next_vehicle_count,[q*dt_h for q in q_inter],
+                exposure_out,core_in0*dt_h,[q*dt_h for q in ramp_in_by_link[link]],exposure_commands)
+            _buffer_diag['vsl_exposure_conservation_max']=exposure.max_residual
         if literature is not None:
             _buffer_diag['literature_receiving_limited_cells'] = float(literature_limited)
             _buffer_diag['literature_receiving_total_vph'] = float(literature_total)

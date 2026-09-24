@@ -145,6 +145,18 @@ def compile_profile(network, profile):
 def prepare(network, profile_path, output):
     network, profile_path, output = Path(network).resolve(), Path(profile_path).resolve(), Path(output).resolve()
     profile = json.loads(profile_path.read_text(encoding='utf-8-sig'))
+    if type(profile.get('collect_native_network_performance', False)) is not bool:
+        raise ValueError('Network performance collection flag must be boolean')
+    checkpoints = profile.get('native_network_performance_checkpoints_sec', [])
+    if (not isinstance(checkpoints, list)
+            or any(type(t) is not int or not 0 < t < profile['terminal_sec'] for t in checkpoints)
+            or checkpoints != sorted(set(checkpoints))):
+        raise ValueError('Performance checkpoints require sorted distinct integer times within the run')
+    if checkpoints and not profile.get('collect_native_network_performance', False):
+        raise ValueError('Performance checkpoints require native network performance collection')
+    if profile.get('collect_native_network_performance', False):
+        if any(n.get('netPerfEvalAct', 'true') != 'true' for n in ET.parse(network).getroot().findall('./links/link')):
+            raise ValueError('Whole-network performance requires every link included')
     events, initial, proof = compile_profile(network, profile)
     with redirect_stdout(io.StringIO()):
         prepare_native_preserve(network, output, profile['terminal_sec'],
@@ -168,6 +180,19 @@ def prepare(network, profile_path, output):
                 fixed_profile_proof=proof)
     for name in ('fixed_events.csv', 'fixed_initial.csv', 'fixed_profile.json', 'fixed_profile_proof.json', 'native_simulation.csv'):
         meta['snapshot_sha256'][str(output/name)] = sha(output/name)
+    if profile.get('collect_native_network_performance', False):
+        marker = output/'native_netperf.txt'
+        marker.write_text('whole_network_final_only\n', encoding='ascii')
+        meta['snapshot_sha256'][str(marker)] = sha(marker)
+        meta['native_network_performance'] = 'whole_network_final_only'
+        if checkpoints:
+            checkpoint_path = output/'native_netperf_checkpoints.csv'
+            with checkpoint_path.open('x', encoding='ascii', newline='') as stream:
+                writer = csv.writer(stream)
+                writer.writerow(['time_s'])
+                writer.writerows([t] for t in checkpoints)
+            meta['snapshot_sha256'][str(checkpoint_path)] = sha(checkpoint_path)
+            meta['native_network_performance_checkpoints_sec'] = checkpoints
     path.write_text(json.dumps(meta, indent=2, ensure_ascii=False), encoding='utf-8')
     return meta
 
@@ -175,7 +200,7 @@ def prepare(network, profile_path, output):
 def rule_step(prepared, output, sec):
     """Generate just the next interval's events using the canonical pure rules."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-    from evaluation.controllers.diagnostic_profile import alinea_meter_step, rule_vsl_speed
+    from evaluation.controllers.diagnostic_profile import alinea_meter_step, rule_vsl_speed, mtfc_vsl_step
     prepared, output, sec = Path(prepared), Path(output), int(sec)
     cfg = json.loads((prepared/'rule_policy.json').read_text(encoding='utf-8'))
     meta = json.loads((prepared/'prepared.json').read_text(encoding='utf-8'))
@@ -236,14 +261,49 @@ def rule_step(prepared, output, sec):
                 if history['states'].get(mid) != value:
                     events.append([t, 'meter', meter['sc'], 1, value])
                     history['states'][mid] = value
+    vsl_feedback = {}
+    mtfc_audit = {}
     for station in cfg['detectors']['stations']:
-        if station['role'] != 'vsl_zones': continue
-        value = rule_vsl_speed(observations[station['target']], spec['vsl_rule']) if spec['arm'] in ('vsl','both') else spec['reference_speed_kph']
+        if station['role'] != 'vsl_zones' or station['target'] not in cfg['zone_dsds']: continue
+        targets = cfg.get('vsl_observation_targets', {}).get(station['target'], [station['target']])
+        if not isinstance(targets,list) or not targets or len(set(targets)) != len(targets):
+            raise ValueError('VSL feedback requires a nonempty distinct target list')
+        commands = {target:rule_vsl_speed(observations[target], spec['vsl_rule']) for target in targets} if spec['arm'] in ('vsl','both') else {}
+        value = min(commands.values()) if commands else spec['reference_speed_kph']
+        if station['target'] in cfg.get('vsl_mtfc', {}) and spec['arm'] in ('vsl', 'both'):
+            if mpc is not None:
+                raise ValueError('MTFC and MPC cannot command the same zone')
+            definition = cfg['vsl_mtfc'][station['target']]
+            memory = history.setdefault('mtfc', {})
+            value, memory[station['target']], mtfc_audit[station['target']] = mtfc_vsl_step(
+                observations[definition['bottleneck_target']], observations[definition['flow_target']],
+                definition, memory.get(station['target']))
+        if 'vsl_observation_targets' in cfg:
+            vsl_feedback[station['target']] = {'commands_by_target':commands,'selected':value}
         if mpc is not None:value=mpc['zones'][station['target']]
         for no in cfg['zone_dsds'][station['target']]:
             if history['vsl'].get(str(no), spec['reference_speed_kph']) != value:
                 for cls in CLASSES: events.append([sec, 'vsl', no, cls, value])
                 history['vsl'][str(no)] = value
+    # Explicit fixed VSL may accompany detector-driven RM. It owns disjoint
+    # DSDs and is emitted only when the command changes, exactly like rule VSL.
+    fixed_vsl = cfg.get('fixed_vsl_by_dsd', {})
+    dynamic_dsds = {str(i) for ids in cfg['zone_dsds'].values() for i in ids}
+    initial_dsds = {(r['no'], r['veh_class']): int(r['value']) for r in
+                    csv.DictReader((prepared/'fixed_initial.csv').open(encoding='ascii'))
+                    if r['kind'] == 'vsl'} if fixed_vsl else {}
+    allowed_distributions = meta.get('fixed_profile_proof', {}).get('speed_distributions', {})
+    for no, value in fixed_vsl.items():
+        if (str(no) in dynamic_dsds or type(value) is not int
+                or str(value) not in allowed_distributions
+                or any((str(no), str(cls)) not in initial_dsds for cls in CLASSES)):
+            raise ValueError('Invalid or overlapping fixed VSL declaration')
+        defaults = {initial_dsds[str(no), str(cls)] for cls in CLASSES}
+        if len(defaults) != 1:
+            raise ValueError('Fixed VSL requires one initial distribution across classes')
+        if history['vsl'].get(str(no), next(iter(defaults))) != value:
+            for cls in CLASSES: events.append([sec, 'vsl', int(no), cls, value])
+            history['vsl'][str(no)] = value
     events.sort(key=lambda r: (r[0], r[1], r[2], r[3]))
     with (output/'rule_events.csv').open('w', encoding='ascii', newline='') as f:
         writer=csv.writer(f); writer.writerow(['time_s','kind','no','veh_class','value']); writer.writerows(events)
@@ -255,6 +315,8 @@ def rule_step(prepared, output, sec):
     state_path.write_text(json.dumps(history), encoding='ascii')
     (output/f'decision_{sec}.json').write_text(json.dumps({'sec':sec, 'arm':spec['arm'],
         'observations':observations, 'meters':audit, 'history':history, 'events':events,
+        **({'vsl_feedback':vsl_feedback} if 'vsl_observation_targets' in cfg else {}),
+        **({'mtfc':mtfc_audit} if 'vsl_mtfc' in cfg else {}),
         **({'mpc':mpc} if mpc is not None else {})}, indent=2), encoding='ascii')
 
 

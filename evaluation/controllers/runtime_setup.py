@@ -11,7 +11,7 @@ from evaluation.controllers import link_predictor
 from evaluation.controllers import offramp_routing
 from evaluation.controllers import signal_actuation_contract
 from evaluation.controllers import observation_projection
-from evaluation.controllers.freeway_fd import install_freeway_fd_runtime, configure_state_response
+from evaluation.controllers.freeway_fd import install_freeway_fd_runtime, configure_state_response, configure_literature_vsl
 
 
 def install_freeway_runtime(adapter, cfg, tuning=None):
@@ -34,7 +34,9 @@ def install_freeway_runtime(adapter, cfg, tuning=None):
     return metadata
 
 
-def configure_freeway_runtime(adapter, cfg, tuning, mapping):
+def configure_freeway_runtime(adapter, cfg, tuning, mapping, *, component_validation=False):
+    if (tuning.get('freeway', {}) or {}).get('vsl_fd_response') and not component_validation:
+        raise ValueError('Calibrated VSL FD response is component-only; local follower equivalence is not qualified')
     metadata = dict(adapter.install_freeway_segment_lanes(cfg, tuning, mapping))
     freeway_settings = tuning.get("freeway", {}) or {}
     if "physical_vehicle_counts" in freeway_settings:
@@ -46,6 +48,7 @@ def configure_freeway_runtime(adapter, cfg, tuning, mapping):
     metadata.update(adapter.install_freeway_lane_drop(cfg, tuning))
     metadata.update(adapter.install_freeway_two_branch_fd(cfg, tuning))
     metadata.update(configure_state_response(cfg, tuning))
+    metadata.update(configure_literature_vsl(cfg, tuning))
     metadata.update(freeway_local_state.configure(cfg, tuning))
     metadata.update(link_predictor.configure(cfg, tuning))
     metadata.update(install_freeway_runtime(adapter, cfg, tuning))

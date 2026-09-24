@@ -5383,3 +5383,11 @@ diagnostics/test_source_run_comparison.py -text whitespace=cr-at-eol
 "vendor/NumSim-mine/src/models/metanet.py" -text whitespace=cr-at-eol
 "vendor/NumSim-mine/src/models/state.py" -text whitespace=cr-at-eol
 "vendor/NumSim-mine/src/simulation/coupling.py" -text whitespace=cr-at-eol
+# Portable VSL handoff: these existing ledger SHA pins describe CRLF bytes.
+# Their repository blobs are LF; make clean checkouts restore the pinned bytes.
+"network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx" text eol=crlf whitespace=cr-at-eol
+"outputs/urban_player_territory_v2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"outputs/pn_boundary_turns_v2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json" text eol=crlf whitespace=cr-at-eol
+"evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json" text eol=crlf whitespace=cr-at-eol
+"outputs/freeway_ramp_split_v2_20260907.json" text eol=crlf whitespace=cr-at-eol

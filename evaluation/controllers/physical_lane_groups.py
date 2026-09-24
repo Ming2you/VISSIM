@@ -418,18 +418,12 @@ class PhysicalLaneGroups:
             for n,w in zip(stock,self.widths[i])]
 
     def _literature_target(self, cell, rho, target, command, active, cfg):
+        from evaluation.controllers.freeway_fd import literature_desired_speed
+        # No road/config is needed for the exact disabled path.
         if self.vsl_fd_response is None or not active:
             return target
-        from evaluation.controllers.freeway_fd import literature_vsl_parameters
-        net=cfg.network
-        rows=(getattr(net,'freeway_segment_params',{}) or {}).get(self.road,())
-        row=rows[cell] if cell<len(rows) else {}
-        vf,critical,shape=literature_vsl_parameters(self.vsl_fd_response,
-            row.get('v_free',net.v_free),row.get('rho_crit',net.rho_crit),
-            row.get('metanet_a_m',net.metanet_a_m),float(command),max(cfg.freeway_follower.vsl_set))
-        if critical>=row.get('rho_max',net.rho_max):
-            raise ValueError('VSL-induced FD critical density exceeds physical jam density')
-        return vf*math.exp(-((max(0.,rho)/critical)**shape)/shape)
+        return literature_desired_speed(self.vsl_fd_response, cfg, self.road,
+                                        cell, rho, target, command, active)
 
     def _hadi_target(self, cell, fd_target, command, active):
         if self.hadi is None or cell not in self.hadi_scope:return fd_target

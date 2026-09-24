@@ -29,8 +29,9 @@ def table(p, rows):
     with p.open('w', encoding='utf-8-sig', newline='') as f:
         w=csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
 
-def raw_frames(path, evidence):
+def raw_frames(path, evidence, observers=()):
     digest=hashlib.sha256(); prefix=hashlib.sha256(); current={}; last=None; rows=0; hashes=[]
+    observed_frame={}
     framehash=hashlib.sha256()
     with path.open('rb') as f:
         columns=None
@@ -44,24 +45,28 @@ def raw_frames(path, evidence):
             p=raw.split(b';',7); t=float(p[0]); no=p[1].decode('ascii'); link=p[2].decode('ascii')
             if t != last:
                 if last is not None:
+                    for observer in observers: observer.advance(last,observed_frame)
                     hashes.append((last,framehash.hexdigest())); yield last,current
                     assert abs(t-last-5)<1e-7, (last,t)
                 last=t; current={}; framehash=hashlib.sha256()
+                observed_frame={}
             assert no not in current and 0<t<END
             current[no]=(link,float(p[4]),float(p[6]))
+            if observers: observed_frame[int(no)]=(int(link),int(p[3]),float(p[4]),float(p[6]))
             rows+=1
             if t<900: prefix.update(raw); framehash.update(raw)
         if last is not None:
+            for observer in observers: observer.advance(last,observed_frame)
             hashes.append((last,framehash.hexdigest())); yield last,current
     assert last >= END-5
     evidence.update(sha256=digest.hexdigest(), prefix_before900_sha256=prefix.hexdigest(),
                     rows=rows, frames=len(hashes), last_sec=last,
                     precontrol_frame_hashes=[h for h in hashes if h[0]<900])
 
-def analyze(arm, run, geometry):
+def analyze(arm, run, geometry, observers=(), *, seed=23):
     out=HERE/arm; out.mkdir(exist_ok=True)
     receipt=load(run/'run.json'); network=Path(receipt['network'])
-    assert receipt['completed'] and receipt['exit_code']==0 and receipt['terminal_sec']==END and receipt['seed']==23
+    assert receipt['completed'] and receipt['exit_code']==0 and receipt['terminal_sec']==END and receipt['seed']==seed
     assert receipt.get('owned_native_alive') is False and receipt.get('error') is None
     log=(run/'stdout.txt').read_text(encoding='utf-8-sig')
     assert 'STAGE=SIM_DONE' in log and float(re.findall(r'^SIM_SEC=([^\r\n]+)',log,re.M)[-1])==END
@@ -91,10 +96,12 @@ def analyze(arm, run, geometry):
     ys={d:np.append(np.arange(0,geometry['bounds'][d][-1],100),geometry['bounds'][d][-1]) for d in geometry['chains']}
     count={d:np.zeros((len(y)-1,300)) for d,y in ys.items()}; moment={d:np.zeros_like(n) for d,n in count.items()}
     audit=Counter(); all_ids=set(); ended=set(); unknown=[]; previous={}; previous_time=0; evidence={}; snapshot=[]
-    fzp=run/'vissim_eval/baseline_001.fzp'; before=fzp.stat()
+    fzps=list((run/'vissim_eval').glob('*.fzp'))
+    assert len(fzps)==1, 'Exactly one native FZP per isolated run is required'
+    fzp=fzps[0]; before=fzp.stat()
     def frames():
         nonlocal previous,previous_time
-        for t,current in raw_frames(fzp,evidence):
+        for t,current in raw_frames(fzp,evidence,observers):
             assert not (ended & current.keys()), 'Inferred terminal exit reappeared'
             dt=t-previous_time
             for no,(link,pos,speed) in previous.items():
@@ -151,11 +158,12 @@ def analyze(arm, run, geometry):
     print(arm, json.dumps(row), flush=True)
     return row
 
-def figures(geometry):
+def figures(geometry, *, seed=23):
     plt.rcParams.update({'font.family':'Malgun Gothic','axes.unicode_minus':False,'font.size':11})
     cmap=plt.get_cmap('RdYlBu').copy(); cmap.set_bad('#ececec')
     for d,label in [('FW_E','동측'),('FW_W','서측')]:
-        fig,axs=plt.subplots(2,2,figsize=(15,9.4),sharex=True,sharey=True,layout='constrained')
+        plot_rows=math.ceil(len(RUNS)/2)
+        fig,axs=plt.subplots(plot_rows,2,figsize=(15,4.7*plot_rows),sharex=True,sharey=True,layout='constrained',squeeze=False)
         for ax,arm in zip(axs.flat,RUNS):
             data=np.load(HERE/arm/'heatmap.npz'); n=data[d+'_count']; m=data[d+'_speed_sum']
             speed=np.divide(m,n,out=np.full_like(m,np.nan),where=n>0)
@@ -165,10 +173,11 @@ def figures(geometry):
                 if b['road']==d and b['kind'] in ('ramp','offramp'):
                     ax.axhline(b['chain_pos_m']/1000,ls='--',color='black',alpha=.25,lw=.65)
             ax.set_xticks(np.arange(0,9001,1800)); ax.set_xlim(0,9000)
+        for ax in list(axs.flat)[len(RUNS):]: ax.set_visible(False)
         for ax in axs[-1]: ax.set_xlabel('시뮬레이션 시간 [초]')
         for ax in axs[:,0]: ax.set_ylabel('본선 진입점부터 거리 [km] → 하류')
         fig.colorbar(im,ax=axs,label='차량 가중 평균속도 [km/h]',shrink=.88)
-        fig.suptitle(f'{label} 고속도로 · 80% / 도시 90% · seed 23\nFZP 5초 → 30초 × 100m | 세로선: 제어 시작 900초 · 가로선: 램프 접속 | 동일 색 범위',fontsize=15)
+        fig.suptitle(f'{label} 고속도로 · 80% / 도시 90% · seed {seed}\nFZP 5초 → 30초 × 100m | 세로선: 제어 시작 900초 · 가로선: 램프 접속 | 동일 색 범위',fontsize=15)
         fig.savefig(HERE/f'{d}_four_conditions.png',dpi=150); plt.close(fig)
 
 def main():
