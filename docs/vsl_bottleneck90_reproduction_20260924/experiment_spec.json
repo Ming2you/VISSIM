@@ -1,0 +1,284 @@
+{
+  "schema": "vsl-bottleneck-reproduction/v1",
+  "experiment_type": "Fixed local speed-distribution intervention; not MPC or ALINEA",
+  "tested_vissim_version": "2020.00 - 14 [95957]",
+  "seed_development": 29,
+  "seed_heldout": 43,
+  "reserved_elsewhere": [
+    31,
+    37,
+    41
+  ],
+  "simulation_end_s": 9000,
+  "intervention_s": 900,
+  "simulation_resolution_steps_per_s": 10,
+  "native_fzp_interval_s": 5,
+  "native_fzp_phase_s": 0.1,
+  "initial_and_entry_distribution_id": 110,
+  "west_vsl_distribution_id": 110,
+  "demand": {
+    "label": "E80/W80/U90",
+    "already_scaled": true,
+    "final_interval_start_s": 4500,
+    "final_interval_held_to_s": 9000,
+    "no_zero_demand_cooldown": true
+  },
+  "action": {
+    "dsd_ids": [
+      63,
+      64,
+      65,
+      66
+    ],
+    "vehicle_classes": [
+      10,
+      20,
+      30,
+      70
+    ],
+    "distribution_id": 90,
+    "write_time_s": 900,
+    "write_count": 16,
+    "hold_to_s": 9000
+  },
+  "spatial": {
+    "chain_reference": "east mainline origin",
+    "controlled_dsd_chain_km": 6.341743,
+    "lane_drop_chain_km": 6.841743,
+    "lane_drop_from": 4,
+    "lane_drop_to": 3,
+    "following_merges_km": [
+      7.243,
+      7.604
+    ],
+    "release_dsd_chain_km": 8.090751,
+    "upstream_dsds_stay_110": [
+      59,
+      60,
+      61,
+      62
+    ],
+    "release_dsds_stay_110": [
+      67,
+      68,
+      69
+    ]
+  },
+  "physical_dsd_addresses": [
+    {
+      "anmFlag": "false",
+      "lane": "2 1",
+      "name": "RW_VSL_RW_FW_E_S4_L2_LN1",
+      "no": "59",
+      "pos": "2652.0273490354593",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 2",
+      "name": "RW_VSL_RW_FW_E_S4_L2_LN2",
+      "no": "60",
+      "pos": "2652.0273490354593",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 3",
+      "name": "RW_VSL_RW_FW_E_S4_L2_LN3",
+      "no": "61",
+      "pos": "2652.0273490354593",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 4",
+      "name": "RW_VSL_RW_FW_E_S4_L2_LN4",
+      "no": "62",
+      "pos": "2652.0273490354593",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 1",
+      "name": "RW_VSL_RW_FW_E_S5_L2_LN1",
+      "no": "63",
+      "pos": "3607.216000000000",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 2",
+      "name": "RW_VSL_RW_FW_E_S5_L2_LN2",
+      "no": "64",
+      "pos": "3607.216000000000",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 3",
+      "name": "RW_VSL_RW_FW_E_S5_L2_LN3",
+      "no": "65",
+      "pos": "3607.216000000000",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "2 4",
+      "name": "RW_VSL_RW_FW_E_S5_L2_LN4",
+      "no": "66",
+      "pos": "3607.216000000000",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "24 1",
+      "name": "RW_VSL_RW_FW_E_S6_L24_LN1",
+      "no": "67",
+      "pos": "652.70413973982704",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "24 2",
+      "name": "RW_VSL_RW_FW_E_S6_L24_LN2",
+      "no": "68",
+      "pos": "652.70413973982704",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    },
+    {
+      "anmFlag": "false",
+      "lane": "24 3",
+      "name": "RW_VSL_RW_FW_E_S6_L24_LN3",
+      "no": "69",
+      "pos": "652.70413973982704",
+      "timeFrom": "0",
+      "timeTo": "99999"
+    }
+  ],
+  "distributions": [
+    {
+      "distribution_id": 90,
+      "cdf_points": [
+        [
+          0.0,
+          85.0
+        ],
+        [
+          0.05,
+          90.0
+        ],
+        [
+          0.8,
+          100.0
+        ],
+        [
+          0.95,
+          110.0
+        ],
+        [
+          1.0,
+          120.0
+        ]
+      ],
+      "min_kph": 85.0,
+      "max_kph": 120.0,
+      "mean_kph": 97.12499999999999,
+      "std_kph": 6.427885214698344
+    },
+    {
+      "distribution_id": 110,
+      "cdf_points": [
+        [
+          0.0,
+          75.0
+        ],
+        [
+          0.03,
+          95.0
+        ],
+        [
+          0.1,
+          100.0
+        ],
+        [
+          0.68,
+          115.0
+        ],
+        [
+          0.91,
+          130.0
+        ],
+        [
+          1.0,
+          145.0
+        ]
+      ],
+      "min_kph": 75.0,
+      "max_kph": 145.0,
+      "mean_kph": 112.275,
+      "std_kph": 12.253885438232736
+    }
+  ],
+  "local_evaluation_link_sets": {
+    "mainline": [
+      "10613",
+      "10699",
+      "10702",
+      "119",
+      "2",
+      "24",
+      "74"
+    ],
+    "on_connectors": [
+      "10484",
+      "10490",
+      "10639",
+      "10681"
+    ],
+    "off_connectors": [
+      "10481",
+      "10483",
+      "10643",
+      "10682"
+    ],
+    "on_approaches": [
+      "129",
+      "31",
+      "68",
+      "70"
+    ]
+  },
+  "excluded_shared_receiving_links": [
+    "121",
+    "124",
+    "126",
+    "127"
+  ],
+  "cost_definitions": {
+    "local": "East mainline +4on+4off+4directonapproach links;19links. Excludes shared off-receiving urban roads.",
+    "omega": "Freeways plus urban protected control network; TTT residence, TTD live boundary exit events plus validated normal terminals.",
+    "whole_network": "Native TravTmTot/3600 + DelayLatent/3600. Do not add all-network latent delay to Omega and call it the same scope."
+  },
+  "network_reference": {
+    "original_file": "mtfc_s29_none.inpx",
+    "sha256": "64cf5f55fe9990f3e25bc4fedebf4ab1e4634c8138dbcf5697a136c48cb559dc",
+    "bytes": 3168966,
+    "note": "Original full network and raw FZPs are not redistributed in this method-transfer document. Original archived run source is required for identical-network replication. Do not substitute a different80-90file."
+  },
+  "limitations": [
+    "Not a deterministic90km/h cap; actualCDFmean97.125,sd6.4279.",
+    "Mean and spread change together; lane-change facilitation or capacity increase has not been isolated.",
+    "Seed29 was selected after a search; seed43 does not reproduce full-cost benefit.",
+    "No qualified plant gain predictor or closed-loop MPC result is delivered here."
+  ]
+}
