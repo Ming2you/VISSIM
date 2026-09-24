@@ -1,0 +1,76 @@
+{
+  "schema": "native-input-route-sequence/v1",
+  "decision": "1102",
+  "route": "1",
+  "path": [
+    "201",
+    "10319",
+    "199",
+    "10314",
+    "194",
+    "10322",
+    "1210009600",
+    "10333",
+    "1220007402",
+    "10304",
+    "1220007401",
+    "10298",
+    "1220044400"
+  ],
+  "selected_plan": {
+    "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+    "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+  },
+  "stages": [
+    {
+      "movement": "SC7_E_SC16_to_S_SC108",
+      "heads": [
+        "140101"
+      ]
+    },
+    {
+      "movement": "SC108_N_SC7_to_S",
+      "heads": [
+        "1080401",
+        "1080402"
+      ],
+      "native_fixed_gate": {
+        "path": "diagnostics/native_1096_sc8_gate_ver2.json",
+        "sha256": "f8f3e23cb63b9e5833425ae16da2a2610470aba5b7bf4b15708eb44782b7afcd"
+      }
+    }
+  ],
+  "scope": "Native1102:1 route tags are subsets of existing finite approach stock. Initial tags cover only exclusive source201 and first connector10319; initial cars already on shared downstream roads retain existing aggregate routing. Selected SC7 and SC108 queues retain ordinary service and receiving. Between them, native SC8 SG4 imposes a timing-only GREEN passage and split transit delay in the same SC7_to_SC108 storage. This adds no saturation capacity and does not resolve shared ordinary traffic discharge competition. Proportional tagged service is an aggregate mixing approximation, not microscopic FIFO.",
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/lane_plant_20260921/scenario/native_input_1096_route_ver2_bac3da.json",
+      "sha256": "3c53eddffc5b6a0471c4958541ec938112e091d6170b7c0ade00f4c85a9fcef3"
+    },
+    "runtime_network": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "accuracy_validation": "pending",
+    "lineage": {
+      "source_declaration": {
+        "path": "diagnostics/native_input_1096_route_ver2.json",
+        "sha256": "7fc0e89f8a5cebca2bde4b32d9bda8c3da6f34848fd30f9ff9aaf46538611e2f"
+      },
+      "runtime_network": {
+        "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+        "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+      },
+      "accuracy_validation": "pending"
+    },
+    "repin": {
+      "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+      "plan": "SDMPC31_OBS150_PLAN_20260924 section 5",
+      "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+      "rewritten": {
+        "network_pin": 0,
+        "pack_pin": 0,
+        "pack_path": 0
+      }
+    }
+  }
+}

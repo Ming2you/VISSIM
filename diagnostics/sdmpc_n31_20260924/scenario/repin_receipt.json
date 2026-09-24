@@ -1,0 +1,1231 @@
+{
+  "schema": "sdmpc31-scenario-repin/v1",
+  "plan": "D:\\VISSIM-merge\\evidence\\SDMPC31_OBS150_PLAN_20260924.md section 5 (WP-E); user decision D-B",
+  "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+  "inputs": {
+    "pack": "diagnostics/lane_plant_20260921/scenario",
+    "source_config": {
+      "path": "diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json",
+      "sha256": "1c1dc201df2ef9183751fdb10607aeb06443e668e77ae391026bfd00f69a903e"
+    },
+    "previous_network": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+      "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+    },
+    "training_network": {
+      "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
+      "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
+    },
+    "network_source_folder": "D:\\VISSIM_runs\\20260923_stage1\\s31_v2nc\\prepared\\network"
+  },
+  "network": {
+    "inpx": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "sig_manifest": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
+      "sha256": "2cbbb269ded59d0c3d0ade18ff0948051161f918cba29654a551e694b5c1a243"
+    },
+    "sig_files": 42,
+    "sig_byte_equal_to": {
+      "folder": "network/real_world_gaepo_modi",
+      "files": 42,
+      "meaning": "the .sig files beside the training network the pack was derived on"
+    }
+  },
+  "native_changes_from_previous_pack": {
+    "dataCollectionMeasurements": {
+      "meaning": "RULE detector measurements",
+      "added": [
+        "910059",
+        "910060",
+        "910061",
+        "910062",
+        "910063",
+        "910064",
+        "910065",
+        "910066",
+        "910067",
+        "910068",
+        "910069",
+        "910070",
+        "910071",
+        "910072",
+        "910073",
+        "910074",
+        "910075",
+        "910076",
+        "910077",
+        "910078",
+        "910079",
+        "910080",
+        "910081",
+        "910082",
+        "910083",
+        "910084",
+        "910085",
+        "910086",
+        "910087",
+        "910088",
+        "910089",
+        "910090",
+        "910091",
+        "910092",
+        "910093",
+        "910094",
+        "910095",
+        "910096",
+        "910097",
+        "910098",
+        "910099",
+        "910100",
+        "910101",
+        "910102",
+        "910103",
+        "910104",
+        "910105",
+        "910106",
+        "910107",
+        "910108",
+        "910109",
+        "910110",
+        "910111",
+        "910112",
+        "910113",
+        "910114",
+        "910115",
+        "910116"
+      ]
+    },
+    "dataCollectionPoints": {
+      "meaning": "RULE detector points",
+      "added": [
+        "910059",
+        "910060",
+        "910061",
+        "910062",
+        "910063",
+        "910064",
+        "910065",
+        "910066",
+        "910067",
+        "910068",
+        "910069",
+        "910070",
+        "910071",
+        "910072",
+        "910073",
+        "910074",
+        "910075",
+        "910076",
+        "910077",
+        "910078",
+        "910079",
+        "910080",
+        "910081",
+        "910082",
+        "910083",
+        "910084",
+        "910085",
+        "910086",
+        "910087",
+        "910088",
+        "910089",
+        "910090",
+        "910091",
+        "910092",
+        "910093",
+        "910094",
+        "910095",
+        "910096",
+        "910097",
+        "910098",
+        "910099",
+        "910100",
+        "910101",
+        "910102",
+        "910103",
+        "910104",
+        "910105",
+        "910106",
+        "910107",
+        "910108",
+        "910109",
+        "910110",
+        "910111",
+        "910112",
+        "910113",
+        "910114",
+        "910115",
+        "910116"
+      ]
+    },
+    "desSpeedDecisions": {
+      "meaning": "desired speed distribution only",
+      "changed": [
+        "36",
+        "37",
+        "38",
+        "39",
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "54",
+        "55",
+        "56",
+        "57",
+        "58",
+        "59",
+        "60",
+        "61",
+        "62",
+        "63",
+        "64",
+        "65",
+        "66",
+        "67",
+        "68",
+        "69",
+        "71",
+        "72",
+        "73",
+        "75",
+        "76",
+        "77",
+        "79",
+        "80",
+        "81",
+        "83",
+        "84",
+        "85",
+        "87",
+        "88",
+        "89",
+        "90",
+        "91",
+        "92",
+        "93",
+        "94",
+        "95",
+        "96",
+        "97",
+        "98",
+        "99",
+        "100",
+        "101",
+        "102",
+        "103",
+        "104",
+        "105",
+        "106",
+        "107",
+        "108",
+        "109",
+        "110",
+        "111",
+        "112",
+        "113",
+        "114",
+        "115",
+        "116"
+      ],
+      "distribution_changes": [
+        {
+          "old": "120",
+          "new": "110"
+        }
+      ]
+    },
+    "desSpeedDistributions": {
+      "meaning": "new distributions",
+      "added": [
+        "110"
+      ]
+    },
+    "evaluation": {
+      "meaning": "evaluation output settings (the runner sets them over COM)",
+      "settings": [
+        {
+          "element": "dataColl",
+          "old": {
+            "collectData": "true"
+          },
+          "new": {
+            "collectData": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "delays",
+          "old": {
+            "collectData": "true"
+          },
+          "new": {
+            "collectData": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "linkResults",
+          "old": {
+            "collectData": "true"
+          },
+          "new": {
+            "collectData": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "nodeRawData",
+          "old": {
+            "writeFile": "true"
+          },
+          "new": {
+            "writeFile": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "queues",
+          "old": {
+            "collectData": "true"
+          },
+          "new": {
+            "collectData": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "scDetRec",
+          "old": {
+            "writeFile": "true"
+          },
+          "new": {
+            "writeFile": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "vehRec",
+          "old": {},
+          "new": {},
+          "content_changed": true
+        },
+        {
+          "element": "vehTravTmRawData",
+          "old": {
+            "writeFile": "true"
+          },
+          "new": {
+            "writeFile": "false"
+          },
+          "content_changed": false
+        },
+        {
+          "element": "vehTravTms",
+          "old": {
+            "collectData": "true"
+          },
+          "new": {
+            "collectData": "false"
+          },
+          "content_changed": false
+        }
+      ]
+    },
+    "signalControllers": {
+      "meaning": "detector-record output block (scDetRecConf) and child order only",
+      "changed": [
+        "2",
+        "3",
+        "4",
+        "5",
+        "7",
+        "8",
+        "9",
+        "10",
+        "13",
+        "14",
+        "15",
+        "17",
+        "18",
+        "19",
+        "102",
+        "103",
+        "104",
+        "106",
+        "2001",
+        "2002",
+        "2003",
+        "2004",
+        "2005",
+        "9001",
+        "9002",
+        "9003",
+        "9004"
+      ]
+    },
+    "simulation": {
+      "meaning": "saved seed and SimRes (runner sets the seed)",
+      "attributes": {
+        "randSeed": {
+          "old": "13",
+          "new": "31"
+        },
+        "simRes": {
+          "old": "1",
+          "new": "10"
+        }
+      }
+    },
+    "vehicleInputs": {
+      "meaning": "demand volumes only (FW80/U90)",
+      "changed": [
+        "114",
+        "194",
+        "282",
+        "1013",
+        "1023",
+        "1032",
+        "1033",
+        "1052",
+        "1053",
+        "1054",
+        "1064",
+        "1065",
+        "1074",
+        "1082",
+        "1083",
+        "1085",
+        "1086",
+        "1087",
+        "1091",
+        "1092",
+        "1093",
+        "1095",
+        "1096",
+        "1097",
+        "1098",
+        "1099",
+        "1100",
+        "1101",
+        "1102",
+        "1103",
+        "1104",
+        "1105",
+        "1106",
+        "1107"
+      ]
+    },
+    "vehicleRoutingDecisionsStatic": {
+      "meaning": "route relFlow only",
+      "changed": [
+        "1130",
+        "1131"
+      ],
+      "relflow": {
+        "1130": {
+          "1": {
+            "old": "2 0:2",
+            "new": "2 0:1"
+          },
+          "2": {
+            "old": "2 0:8",
+            "new": "2 0:9"
+          }
+        },
+        "1131": {
+          "1": {
+            "old": "2 0:8",
+            "new": "2 0:9.875"
+          },
+          "2": {
+            "old": "",
+            "new": "2 0:0.5"
+          }
+        }
+      }
+    }
+  },
+  "files": [
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/control_area_membership_6c3aee.json",
+        "sha256": "ac233267af8db377e48d6a021a6bb6f1a02f0f5ed282e9715446d8996a3eef5b"
+      },
+      "schema": "control-area-membership/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 14,
+        "lineage": [
+          {
+            "at": "/mixed_transfer_road_routes/3",
+            "decision": "1134",
+            "route": "1",
+            "copy": "2 0:12",
+            "previous_pack_network": "2 0:3",
+            "v2": "2 0:3"
+          },
+          {
+            "at": "/mixed_transfer_road_routes/4",
+            "decision": "1134",
+            "route": "2",
+            "copy": "",
+            "previous_pack_network": "2 0:3",
+            "v2": "2 0:3"
+          },
+          {
+            "at": "/mixed_transfer_road_routes/6",
+            "decision": "1134",
+            "route": "4",
+            "copy": "2 0:0.25",
+            "previous_pack_network": "",
+            "v2": ""
+          },
+          {
+            "at": "/mixed_transfer_road_routes/7",
+            "decision": "1135",
+            "route": "2",
+            "copy": "2 0:3",
+            "previous_pack_network": "",
+            "v2": ""
+          },
+          {
+            "at": "/mixed_transfer_road_routes/9",
+            "decision": "1135",
+            "route": "4",
+            "copy": "",
+            "previous_pack_network": "2 0:3",
+            "v2": "2 0:3"
+          }
+        ]
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+        "sha256": "37e14595c07051c9aaf5e96238e375279ddf2f8196fbc85319d99739b4cd94fb"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/dynamic_area_routes_ver2_13108c.json",
+        "sha256": "6308bc642d22ebbf16616236e3598935b2375b779a394fec9551fa2783ec1cc6"
+      },
+      "schema": "physical-movement-routes/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/historical_prior_transfer",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json",
+        "sha256": "1efa49d04450c8f0716e173c736a99166e4b98f7b22d0afc913ad9bc918652e2"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/head_free_service_10565_v1_d6d4f7.json",
+        "sha256": "4bfe414a13164fe6e65f4f8b134bb0ece66efd537bb3e80d32e685a2f8dbf50c"
+      },
+      "schema": "head-free-connector-service/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json",
+        "sha256": "16170e9b63ce5dab3ba4c93ce17ea01510c1a023d261135054c7c68a43508856"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/head_service_resource_contract_f40085.json",
+        "sha256": "d58259ce6437738b77a885583868cf1783c7054d1cc39af793f8f8efdda36a46"
+      },
+      "schema": "physical-head-resource-join/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/resources/10619/proof",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/resources/10629/proof",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/head_service_resource_contract_7b2da6.json",
+        "sha256": "65d0a2f5dd47eeadb1509d2ad44b7c3a75649935d6c6581e683a8d4e1b493154"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/known_wout_routes_ver2_proposal_c394e0.json",
+        "sha256": "f39b08fd36d870b1cd37b7cb2e5dd7d0ed74c3c5650b79c79f808719cc30d730"
+      },
+      "schema": "known-wout-routes/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
+        "sha256": "fdca22a2f141449baf1adb4486c60996b12ae4363cd616a048761baeb528efed"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/native_input_1083_signal_authority_ver2_a931a8.json",
+        "sha256": "efc8273792253f8f6bfc15fb467f00ea951388d41e72bf84b68de76e56cff3c4"
+      },
+      "schema": "native-input-signal-authority/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json",
+        "sha256": "e6006afbf1343613e3e21202313a3c6c8d56742fedd8f28f7b3de88dca2989d6"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/native_input_1093_prehead_ver2_067f5f.json",
+        "sha256": "d91ea40905d40edecec9cf00b090d83f866876b157fc8a9416a4119900ee3022"
+      },
+      "schema": "native-input-prehead/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/empirical_first_connector/historical_prior_transfer",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/empirical_first_connector/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 3,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json",
+        "sha256": "ab75ee9b9f995a30e58539b50a89ec521d9601be96339c6a5650f1116801a043"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/native_input_1096_route_ver2_bac3da.json",
+        "sha256": "3c53eddffc5b6a0471c4958541ec938112e091d6170b7c0ade00f4c85a9fcef3"
+      },
+      "schema": "native-input-route-sequence/v1",
+      "rewritten": [],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json",
+        "sha256": "c745e5c8b588d4fe6dee4a833077278c274cbbd15e5764c39b7bf442cc9d8bae"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/native_internal_inputs_f8b338.json",
+        "sha256": "0cafedcc6c0122143cf2eb7b60bb0b7926260026a40a64ddf09315d13694cc67"
+      },
+      "schema": "native-internal-inputs/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/demand_profile",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/inputs/1092/branch_coverage/217/historical_prior_transfer",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/inputs/1092/branch_coverage/217/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/inputs/1093/route_evidence",
+          "kind": "pack_pin"
+        },
+        {
+          "at": "/inputs/1096/route_evidence",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/native_internal_inputs_c92673.json",
+        "sha256": "272b4b1185a34466913b68daba73284e190f07b4696bd824e828300a11307796"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/physical_movement_routes_ver2_e5a98c.json",
+        "sha256": "d6c246dabc15f78c5c2214b504d7d4ef0d268be6f723ee0922435ce6121a0e20"
+      },
+      "schema": "physical-movement-routes/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
+        "sha256": "2f57458b2899c5d25a3ed5530119e4f94a2f13ea2da4546dd304711bf302f194"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/physical_phase_authority_local_504e5f.json",
+        "sha256": "9c2124755bcdaedbae1a7975d3d8ae3938fec914718159b65a04a1323f119c74"
+      },
+      "schema": "physical-phase-authority/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+        "sha256": "54da77d16211e55e21d7533432dcba333a3c7d083a762170875e1959bd8c9b18"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/physical_projection_support_635_proposal_cc280d.json",
+        "sha256": "9e7c4dde36d2b27e4c83ebfba1b72cbb5b1be2a73630601fdc9f5dd3b1bb8fbb"
+      },
+      "schema": "physical-projection-support/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/full_area_coverage_audit/prior_support_path",
+          "kind": "pack_path"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json",
+        "sha256": "8442122282f2f923badd99cf272e3c6f552aa008d6cbcfc5071aa533d6cc793e"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/physical_projection_support_ver2_41fb9b.json",
+        "sha256": "6dec57c1fc91bf57ab251a8715f612afb502f52a03a55cf0c1c1cc716e5de38c"
+      },
+      "schema": "physical-projection-support/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_ver2_b49a6f.json",
+        "sha256": "213704fc928b4e5f6e460d920c4effc8ec17613230f3082e5cc2f7db9ad2aa63"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_1099_sc15_calibrated_23ec67.json",
+        "sha256": "b00063b748352667307e2a8a48324d07064a6793f0c587e2b9c03da634402b43"
+      },
+      "schema": "route-choice-corridor/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership_path",
+          "kind": "pack_path"
+        },
+        {
+          "at": "/historical_prior_transfer",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
+        "sha256": "998db3e94bfec4f5304d823efcfe67f9a0a519a9375e2f36031dbd20016b7892"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_1100_sc15_calibrated_f2a618.json",
+        "sha256": "74239bbfeb84747ea088ebef31506a9846576df18016879f966ae98d6c66f91d"
+      },
+      "schema": "route-choice-corridor/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership_path",
+          "kind": "pack_path"
+        },
+        {
+          "at": "/historical_prior_transfer",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
+        "sha256": "a5ec4557d6dc3d88094de538aa44a20637088032e3ef045ba89ffe80c5f7df79"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_1128_ver2_75d663.json",
+        "sha256": "45ccfd00fe40004591bebaf2da8ef50ba9883e8f341268d2b232c503ab7ab347"
+      },
+      "schema": "route-choice-corridor/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership_path",
+          "kind": "pack_path"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
+        "sha256": "8c1f746841d3e69f438ccd5cd469ded7131f49aa96124ba738a040d53eb54e5c"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_sc1004_calibrated_6eb99c.json",
+        "sha256": "5fb5dae06fbcf0f2d4e4ae60ef6618da0b877289e01e106a61743d54864e4f37"
+      },
+      "schema": "route-choice-corridor/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership_path",
+          "kind": "pack_path"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
+        "sha256": "331670367041ff1f810b992777af7b388c4bb35dab993ec9441304b10f03c3d0"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/sc2001_corridor_nc13_f76cd6.json",
+        "sha256": "f39a0ca4ee613dcf5d24391b60f89602cee15228933c44bd0b5e32b06020424f"
+      },
+      "schema": "sc2001-corridor/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/membership_path",
+          "kind": "pack_path"
+        }
+      ],
+      "prior_mismatch": true,
+      "relflow_copies": {
+        "equal_v2": 9,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json",
+        "sha256": "c73126075fdfd71a174dd374b5e334c7bc051613fa4db797bd71b3cddf7afff5"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/shared_approach_c0716a.json",
+        "sha256": "c37697df55b76679e394d6bf7d98e3a5370145dc6838b2ac5ab8eeac75aa68ad"
+      },
+      "schema": "shared-approach/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        },
+        {
+          "at": "/demand_profile",
+          "kind": "pack_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json",
+        "sha256": "de95480f1f56db305b1342cca12cbb09f7be42c31fff636d927e30c7d7223746"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/topology_routes_v2_0e44f6.json",
+        "sha256": "a27ada1bd973a48412dd12a35bc602d38ae911335a4c75497bb53e14a7a9999a"
+      },
+      "schema": "physical-ramp-configuration/v1",
+      "rewritten": [
+        {
+          "at": "/network",
+          "kind": "network_pin"
+        }
+      ],
+      "prior_mismatch": false,
+      "relflow_copies": {
+        "equal_v2": 0,
+        "lineage": []
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json",
+        "sha256": "bd49eedf841715eb9294b9b555fa2fa1b3e7bd0f97648ac7cbcec6f404562865"
+      }
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/historical_prior_transfer.json",
+        "sha256": "9448a1e4debf753c6d66a83e36ae216dba7bff67bb1d4b5f8dc978183dd9c0f2"
+      },
+      "schema": "experimental-network-prior-transfer/v1",
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
+        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+      },
+      "action": "regenerated: training network kept, target v2, prior list checked equal"
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/profile.csv",
+        "sha256": "7b23853c8a28b18bc2d159186c7caed86ce6918b384ca464737819f5541cbf9f"
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/profile.csv",
+        "sha256": "7b23853c8a28b18bc2d159186c7caed86ce6918b384ca464737819f5541cbf9f"
+      },
+      "action": "byte copy"
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/lane_native.vbs",
+        "sha256": "8fb24550d674afb62f09444152a57d3bfacdadda7bdb2ae125d14a4cee6b459c"
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+        "sha256": "9a093ad6935284708c055fff858aa370e20e57fce51b328d2be58761a8760738"
+      },
+      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 60,80,110 (user decision 2026-09-24)"
+    },
+    {
+      "source": {
+        "path": "diagnostics/lane_plant_20260921/scenario/lane_native_sgplan.vbs",
+        "sha256": "ec731cab90138e78efd8eefbec671e9f6bc377f078bd329457a8c272397eece9"
+      },
+      "target": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110_sgplan.vbs",
+        "sha256": "ec731cab90138e78efd8eefbec671e9f6bc377f078bd329457a8c272397eece9"
+      },
+      "action": "byte copy; name follows the runner config (VBS LoadSignalGroupPlanConfig)"
+    }
+  ],
+  "config_base": {
+    "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
+    "sha256": "08168106c398e5b2d5aa51584f80509132575d0cc7d0fb22d45140ba2c5b37ab"
+  },
+  "runner_config_check": {
+    "elements_present": [
+      "RW_EXPECTED_VSL_DSD_IDS",
+      "RW_FREEWAY_LINKS",
+      "RW_FW_E_CHAIN_LINKS",
+      "RW_FW_W_CHAIN_LINKS",
+      "RW_RAMP_METER_CONNECTORS",
+      "RW_RAMP_METER_SCS",
+      "RW_SIGNAL_SCS"
+    ],
+    "allowed_vsl_speeds": [
+      60,
+      80,
+      110
+    ],
+    "allowed_speeds_without_distribution": [],
+    "seg_bounds_cells": {
+      "E": 21,
+      "W": 21
+    }
+  },
+  "pin_audit": {
+    "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json": {
+      "resolved": 1,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json": {
+      "resolved": 2,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json": {
+      "resolved": 8,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json": {
+      "resolved": 7,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json": {
+      "resolved": 3,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/head_service_resource_contract_7b2da6.json": {
+      "resolved": 4,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json": {
+      "resolved": 5,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json": {
+      "resolved": 2,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json": {
+      "resolved": 4,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json": {
+      "resolved": 10,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json": {
+      "resolved": 3,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/native_internal_inputs_c92673.json": {
+      "resolved": 19,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json": {
+      "resolved": 2,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json": {
+      "resolved": 4,
+      "external_provenance": [
+        {
+          "at": "/native_clock_derivation/source_evidence",
+          "path": "C:\\Users\\alsrj\\Desktop\\학술\\찐찐막\\Codex\\VISSIM\\.worktrees\\control-full-review\\diagnostics\\physical_phase_authority_ver2.json",
+          "sha256": "000ed69b25f751d963c6ac778f0b37d5a14b28dad5226c5290d65d49224146a4"
+        }
+      ]
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json": {
+      "resolved": 4,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_ver2_b49a6f.json": {
+      "resolved": 2,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json": {
+      "resolved": 10,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json": {
+      "resolved": 10,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json": {
+      "resolved": 3,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json": {
+      "resolved": 5,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json": {
+      "resolved": 5,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json": {
+      "resolved": 5,
+      "external_provenance": []
+    },
+    "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json": {
+      "resolved": 4,
+      "external_provenance": []
+    }
+  },
+  "integration": {
+    "plant_manifest_v2": {
+      "sources.network": {
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      },
+      "sources.runner_config": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+        "sha256": "9a093ad6935284708c055fff858aa370e20e57fce51b328d2be58761a8760738"
+      },
+      "sources.sig_manifest": {
+        "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
+        "sha256": "2cbbb269ded59d0c3d0ade18ff0948051161f918cba29654a551e694b5c1a243"
+      },
+      "membership": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+        "sha256": "37e14595c07051c9aaf5e96238e375279ddf2f8196fbc85319d99739b4cd94fb"
+      }
+    },
+    "tuning": {
+      "execution.signal_vbs_config": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+      "extends_or_base": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json"
+    },
+    "launcher": {
+      "DemandProfile": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/profile.csv",
+        "sha256": "7b23853c8a28b18bc2d159186c7caed86ce6918b384ca464737819f5541cbf9f"
+      },
+      "network_copy_tool": "D:\\VISSIM-merge\\tools\\prepare_sdmpc31_network.py"
+    }
+  },
+  "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+  "native_started": false
+}

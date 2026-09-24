@@ -53,6 +53,52 @@ obsConfigSha256 = LCase(Trim(shell.ExpandEnvironmentStrings("%RW_SIGNAL_OBSERVAT
 obsTableValid = False : obsFrameSec = -1 : obsSignalSec = -1 : obsHeldSec = -1
 obsWindowStart = 1 : obsTransitions = 0 : obsBulkReads = 0 : obsCacheHits = 0
 
+' obs150 (SDMPC31_OBS150_PLAN_20260924 section 2, diagnostics\sdmpc_n31_20260924\CONTRACT.md).
+' One exact read bundle per 150 s decision on the network's own SimRes; no per-second stepping.
+' Selected ONLY by RW_OBSERVATION_CADENCE=decision150, which the watchdog exports for a
+' coupled-lane-plant/v2 manifest. Every obs150 branch is inert otherwise, so the v1 path
+' (21 cells, per-second observation, SimRes 1) runs exactly as before. Procedures: OBS150_RUNNER.
+Const OBS150_DECISION_SEC = 150
+' D10 (plan A4, section 9; CONTRACT 2.3; WP-B1 V0-4 = obs150_signal_clock.COM_HEAD_DELAY_S).
+' VISSIM updates signal groups and heads once per simulation second, at its end (Vissim 2020
+' manual 2.17.3). A native SG read at the stop x holds its program state at phase (x - offset)
+' and its stopped lead vehicle moves at s+0.1 after a green start s. A COM write at the stop x
+' reads back at once but comes after the update at x: the heads take it at x+1 (probe: GREEN
+' written at 850, both meter lanes' lead vehicles moved at 851.1; the SimRes 1 replay: COM LDP(t)
+' = source(t-1)). So the native-clock emulation writes at x the state of x+1, which is exact:
+' the same 1 as the verified SimRes 1 value (SignalClockPosition). G1 D6 rechecks it at an urban
+' COM head (lead departs at t+1.1 after a GREEN written at t).
+Const OBS150_FRAME_ADVANCE = 1
+Const OBS150_KEY_MIN = 960001
+Const OBS150_KEY_MAX = 969999
+Const OBS150_POS_READBACK_TOL_M = 0.001
+Const OBS150_HELPER_TIMEOUT_SEC = 120
+Const OBS150_CAPTURE_TIMEOUT_SEC = 900
+Const OBS150_DETECTOR_HEADER = "dcp_no,dcm_no,role,ref,link,lane,pos,pos_mode,orientation,boundary_ref,segment_json,geometry_assert"
+Dim obs150Cadence, obs150Mode, simResSteps, obs150StopSec, obs150K
+Dim obs150DetectorsPath, obs150DetectorsSha256, obs150ExpectedSimRes, obs150VehRecSec, obs150GtText, obs150GtWindows
+Dim obs150Rows, obs150Cum, obs150Bundles, obs150FrameSha, obs150InstallSha256, obs150InstallPoints, obs150EvalJson
+Dim obs150Dir, obs150EvalOutDir, obs150ErrPath, obs150CaptureScript, obs150GtDir, obs150GtLinks
+Dim obs150DecisionDir, obs150HeadScs, obs150LinkEvalLinks, obs150SigScList, obs150LastEventCountValue
+Dim obs150SigReady, obs150SigKeys, obs150SigNow, obs150SigStart, obs150SigStartTaken, obs150SigEvents
+Dim obs150SigWindowStart, obs150SigLastT, obs150SigComplete, obs150SigUnverified, obs150SigBusy
+obs150Cadence = EnvText("RW_OBSERVATION_CADENCE")
+obs150Mode = (obs150Cadence = "decision150")
+simResSteps = 1 : obs150StopSec = 0 : obs150K = Empty : obs150SigReady = False : obs150SigBusy = False
+obs150Rows = Empty : obs150GtWindows = Empty : obs150InstallSha256 = "" : obs150EvalJson = ""
+Set obs150Cum = CreateObject("Scripting.Dictionary")
+Set obs150Bundles = CreateObject("Scripting.Dictionary")
+Set obs150FrameSha = CreateObject("Scripting.Dictionary")
+Set obs150InstallPoints = CreateObject("Scripting.Dictionary")
+Set obs150SigNow = CreateObject("Scripting.Dictionary")
+Set obs150SigStart = CreateObject("Scripting.Dictionary")
+Set obs150SigEvents = CreateObject("Scripting.Dictionary")
+Set obs150SigUnverified = CreateObject("Scripting.Dictionary")
+Set obs150GtLinks = CreateObject("Scripting.Dictionary")
+Set obs150HeadScs = CreateObject("Scripting.Dictionary")
+Set obs150LinkEvalLinks = CreateObject("Scripting.Dictionary")
+obs150SigScList = Empty : obs150LastEventCountValue = 0
+
 ' Signal COM handle caches - see CachedSignalController.
 Dim sigScCache, sigSgCache, sigSgCountCache, sigSgNameCache, sigRequestedState, signalTraceStage
 Dim sigPendingPostCheck, signalWriteOnChangeConfigured, signalWriteOnChangeEnabled
@@ -326,6 +372,8 @@ If CLng(stateLogIntervalSec) <= 0 Then
     WScript.Echo "ERROR=STATE_LOG_INTERVAL_MUST_BE_POSITIVE state_log_interval_sec=" & CStr(stateLogIntervalSec)
     WScript.Quit 2
 End If
+' obs150 (plan A1): refuse every combination that would read a mislabeled or partial window.
+ValidateObs150Startup
 
 ' Resolve and verify the controller interpreter BEFORE any VISSIM work. A bad
 ' interpreter here means every decision fails, so failing now costs seconds
@@ -358,6 +406,7 @@ signalPersistenceOk = 0
 signalTraceSimSec = 0
 ResolvePythonInterpreter
 ValidateB1aRequiredStartup
+If obs150Mode Then Obs150VerifyDetectorTable
 
 EnsureParentFolder stateOutPath
 EnsureParentFolder actionOutPath
@@ -445,9 +494,14 @@ Else
 End If
 PerfAdd "startup.demand", startupPerfT0
 WScript.Echo "STARTUP_STAGE=DEMAND_DONE timer_sec=" & CStr(Timer)
+' obs150 (plan A1): SimRes is the network's own value, read before anything is sized from it.
+If obs150Mode Then ReadObs150SimRes
 LoadFarMeasurementLinks
+' obs150 (plan A6): generated detectors, installed in memory before the evaluation is enabled.
+If obs150Mode Then Obs150InstallDetectors
 WScript.Echo "STARTUP_STAGE=EVALUATION_BEGIN timer_sec=" & CStr(Timer)
 ConfigureEvaluationOutput fso.BuildPath(fso.GetParentFolderName(stateOutPath), "vissim_eval")
+If obs150Mode Then Obs150WriteInstallRecord
 WScript.Echo "STARTUP_STAGE=EVALUATION_DONE timer_sec=" & CStr(Timer)
 LoadInpxDemandSchedule netPath, vehicleInputRolesPath, demandScale, demandProfilePath, urbanInputGateMapPath
 DemandForecastAtSimSec 0, urbanDemandVph, freewayDemandVph
@@ -461,7 +515,8 @@ If incidentEnabled Then InstallIncidentLaneClosure
 ApplyIncidentLaneClosure 0
 Vissim.Simulation.AttValue("RandSeed") = CLng(randSeed)
 Vissim.Simulation.AttValue("SimPeriod") = CDbl(simPeriod) + 1
-Vissim.Simulation.AttValue("SimRes") = 1
+' obs150 keeps the network SimRes (read and checked by ReadObs150SimRes); v1 forces 1.
+If Not obs150Mode Then Vissim.Simulation.AttValue("SimRes") = 1
 TrySetAtt Vissim.Simulation, "NumRuns", 1
 TrySetAtt Vissim.Simulation, "UseMaxSimSpeed", True
 ' UseMaxSimSpeed=True 가 바로 위에서 이미 최대속도를 보장한다. 그 상태에서 SimSpeed 는
@@ -509,6 +564,7 @@ If obsEnabled Then
     WScript.Echo "HEAD_OBSERVATION_BULK_READS=" & CStr(obsBulkReads)
     WScript.Echo "HEAD_OBSERVATION_CACHE_HITS=" & CStr(obsCacheHits)
 End If
+If obs150Mode Then WScript.Echo "OBS150_BUNDLES=" & CStr(obs150Bundles.Count)
 WScript.Echo "SIGNAL_FAILURES=" & CStr(signalFailures)
 WScript.Echo "SIGNAL_WRITE_ATTEMPTS=" & CStr(signalWriteAttempts)
 WScript.Echo "SIGNAL_WRITE_SKIPPED_UNCHANGED=" & CStr(signalWriteSkips)
@@ -586,11 +642,12 @@ Sub ActivateRampMeters()
 End Sub
 
 Sub InitializeComRampMeterControl()
-    Dim scs, i, scNo, sc, sg, contrReadback
+    Dim scs, i, scNo, sc, sg, contrReadback, sgFound
     scs = Split(RW_RAMP_METER_SCS, ",")
     For i = 0 To UBound(scs)
         scNo = Trim(scs(i))
         If scNo <> "" Then
+            sgFound = False
             On Error Resume Next
             Set sc = Vissim.Net.SignalControllers.ItemByKey(CLng(scNo))
             Set sg = sc.SGs.ItemByKey(1)
@@ -599,6 +656,7 @@ Sub InitializeComRampMeterControl()
                 WScript.Echo "ERROR=RAMP_SG_NOT_FOUND sc=" & scNo & " err=" & Err.Description
                 Err.Clear
             Else
+                sgFound = True
                 TrySetAtt sg, "ContrByCOM", True
                 contrReadback = SafeAtt(sg, "ContrByCOM")
                 If Not ComBoolean(contrReadback) Then
@@ -608,6 +666,12 @@ Sub InitializeComRampMeterControl()
                 TrySetAtt sg, "SigState", "GREEN"
             End If
             On Error GoTo 0
+            ' obs150 (plan A4): the ownership change and this direct GREEN write (it bypasses
+            ' SetSignalGroupState) enter the runner signal log, the GREEN one by readback.
+            If obs150Mode And sgFound Then
+                Obs150SignalOwn CLng(scNo), 1, sg, ComBoolean(contrReadback)
+                Obs150SignalDirectWrite CLng(scNo), 1, sg, "GREEN"
+            End If
         End If
     Next
 End Sub
@@ -615,7 +679,8 @@ End Sub
 Function UseContinuousStaticMode()
     Dim c
     c = LCase(CStr(controllerName))
-    UseContinuousStaticMode = (Not ForceStepwiseMode()) And (c = "no-control" Or c = "diagnostic-vsl60-only" Or c = "diagnostic-vsl80-only" Or c = "diagnostic-vsl-profile")
+    ' obs150 never runs static: no-control must decide every 150 s like the SDMPC warmup (NEW-11).
+    UseContinuousStaticMode = (Not obs150Mode) And (Not ForceStepwiseMode()) And (c = "no-control" Or c = "diagnostic-vsl60-only" Or c = "diagnostic-vsl80-only" Or c = "diagnostic-vsl-profile")
     If UseContinuousStaticMode Then
         WScript.Echo "RUN_MODE=CONTINUOUS_STATIC controller=" & controllerName
     End If
@@ -624,6 +689,13 @@ End Function
 Function UseEventContinuousMode()
     Dim c
     c = LCase(CStr(controllerName))
+    If obs150Mode Then
+        ' Every controller, warmup included, runs the event scheduler (plan A1, NEW-11).
+        UseEventContinuousMode = True
+        WScript.Echo "RUN_MODE=CONTINUOUS_EVENT_OBS150 controller=" & controllerName & _
+            " warmup_controller=" & warmupControllerName & " control_start_sec=" & CStr(controlStartSec)
+        Exit Function
+    End If
     UseEventContinuousMode = (Not ForceStepwiseMode()) And (Left(c, 11) = "diagnostic-" Or c = "stackelberg")
     If UseEventContinuousMode Then
         WScript.Echo "RUN_MODE=CONTINUOUS_EVENT controller=" & controllerName
@@ -774,6 +846,12 @@ Sub RunEventContinuousMode()
     Dim currentSec, targetSec, singleDecisionMode, mainControlApplied
     Dim nextControlSec, nextIncidentSec, dueToControlStart, dueToRepeatedControl, dueToLog, loggedAtCurrentSec
 
+    If obs150Mode Then
+        ' Plan A2: empty frame_000000, then one break to exactly t=1 (one RunSingleStep is 0.1 s
+        ' at SimRes 10). The meters go under COM right after the t=1 bundle (RunControllerDecision).
+        Obs150FirstStep
+        currentSec = 1
+    Else
     startupPerfT0 = PerfNow()
     Vissim.Simulation.RunSingleStep
     PerfAdd "sim.first_step", startupPerfT0
@@ -781,6 +859,7 @@ Sub RunEventContinuousMode()
     WScript.Echo "RUN_SINGLE_STEP sim_sec=1"
     RecordStartupSimulationProgress
     InitializeComRampMeterControl
+    End If
     RunControllerDecision 1
     ApplyRuntimeSignals 1
     ApplyRuntimeRampMeters 1
@@ -813,7 +892,12 @@ Sub RunEventContinuousMode()
         If CLng(targetSec) <= CLng(currentSec) Then targetSec = CLng(currentSec) + 1
         If CLng(targetSec) > CLng(simPeriod) Then targetSec = CLng(simPeriod)
 
-        RunContinuousTo CLng(targetSec)
+        If obs150Mode Then
+            ' Same scheduled stops; inside a ground-truth window the way there is 0.1 s steps (A9).
+            Obs150AdvanceTo CLng(currentSec), CLng(targetSec)
+        Else
+            RunContinuousTo CLng(targetSec)
+        End If
         currentSec = CLng(targetSec)
 
         ValidateRuntimeSignalPersistence CLng(currentSec)
@@ -872,12 +956,17 @@ End Function
 
 Sub RunContinuousTo(targetSec)
     Dim continuousPerfT0
-    If CLng(targetSec) <= CLng(SafeAtt(Vissim.Simulation, "SimSec")) Then Exit Sub
+    If CLng(targetSec) <= CLng(SafeAtt(Vissim.Simulation, "SimSec")) Then
+        ' obs150: every stop must be exactly the scheduled whole second (PRB c).
+        If obs150Mode Then Obs150AssertStop CLng(targetSec)
+        Exit Sub
+    End If
     TrySetAtt Vissim.Simulation, "SimBreakAt", CDbl(targetSec)
     continuousPerfT0 = PerfNow()
     Vissim.Simulation.RunContinuous
     PerfAdd "sim.continuous", continuousPerfT0
     WScript.Echo "RUN_CONTINUOUS_BREAK target_sim_sec=" & CStr(targetSec) & " actual_sim_sec=" & SafeAtt(Vissim.Simulation, "SimSec")
+    If obs150Mode Then Obs150AssertStop CLng(targetSec)
 End Sub
 
 Function NextRampTransitionAfter(sec)
@@ -1053,12 +1142,18 @@ Function SignalCycleForController(scNo, phaseText)
 End Function
 
 Function SignalClockPosition(scNo, simSec, offset, cycle)
-    Dim frameAdvance
+    Dim frameAdvance, clockSpec
     frameAdvance = 0
     ' Native program coordinates describe the next recorded simulation frame.
     ' A pre-step COM write at t is observed in frame t+1 (verified native replay).
     ' Preserve the existing legacy clock and the application order itself.
-    If nativeClockPlans.Exists(CStr(scNo)) Then frameAdvance = 1
+    ' That advance of 1 is the SimRes 1 value. An obs150 run (network SimRes 10) appends its
+    ' D10 advance as a fifth spec field (Obs150ApplyNativeFrameAdvance, OBS150_FRAME_ADVANCE).
+    If nativeClockPlans.Exists(CStr(scNo)) Then
+        frameAdvance = 1
+        clockSpec = Split(CStr(nativeClockPlans(CStr(scNo))), "|")
+        If UBound(clockSpec) = 4 Then frameAdvance = CLng(clockSpec(4))
+    End If
     SignalClockPosition = FMod(CDbl(simSec) + offset + frameAdvance, cycle)
 End Function
 
@@ -1106,6 +1201,10 @@ Sub RunControllerDecision(simSec)
     outJsonPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".json")
     outCsvPath = fso.BuildPath(decisionDir, "action_" & Pad6(simSec) & ".csv")
     WriteStateJson simSec, stateJsonPath, True
+    ' obs150 (CONTRACT 2.2/4.3): the t=1 bundle covers the open interval (0, 1] whose start state
+    ' is stop 0, all native. The meters therefore go under COM at t=1 only after that bundle and
+    ' before this decision's action rows write them; their own/write events belong to window 1.
+    If obs150Mode And CLng(simSec) = 1 Then InitializeComRampMeterControl
     effController = controllerName
     If controlStartSec >= 0 And simSec < controlStartSec Then
         effController = warmupControllerName
@@ -1879,7 +1978,7 @@ Sub RecordVslReadback(simSec, dsdNo, vehClassNo, requestedKph, actualReadback, o
 End Sub
 
 Function EnableSignalControllerForRuntime(scNo)
-    Dim sc, sg, sgNo, sgCount, enableOk, contrReadback
+    Dim sc, sg, sgNo, sgCount, enableOk, contrReadback, sgFound
     EnableSignalControllerForRuntime = ""
     On Error Resume Next
     Set sc = Vissim.Net.SignalControllers.ItemByKey(CLng(scNo))
@@ -1899,6 +1998,7 @@ Function EnableSignalControllerForRuntime(scNo)
             ' 미드블록은 COM 으로 넘기지 않는다 — VISSIM 자체 프로그램이 돈다.
             sgEnableMidblockSkips = sgEnableMidblockSkips + 1
         Else
+        sgFound = False
         On Error Resume Next
         Set sg = sc.SGs.ItemByKey(CLng(sgNo))
         If Err.Number <> 0 Then
@@ -1908,6 +2008,7 @@ Function EnableSignalControllerForRuntime(scNo)
                 " err=" & Err.Description
             Err.Clear
         Else
+            sgFound = True
             TrySetAtt sg, "ContrByCOM", True
             contrReadback = SafeAtt(sg, "ContrByCOM")
             If Not ComBoolean(contrReadback) Then
@@ -1918,6 +2019,8 @@ Function EnableSignalControllerForRuntime(scNo)
             End If
         End If
         On Error GoTo 0
+        ' obs150 (plan A4): an ownership change enters the runner signal log (own event).
+        If obs150Mode And sgFound Then Obs150SignalOwn CLng(scNo), CLng(sgNo), sg, ComBoolean(contrReadback)
         End If
     Next
     ' signalControlled 는 매초 신호 재생의 게이트다(:1199 참조). COM 인계가 실패한 SC 를
@@ -2672,6 +2775,8 @@ Sub WriteStateJson(simSec, path, resetWindows)
         captureStartNs = ReadRequiredMonotonicClock()
         tempPath = UniqueSiblingPath(finalPath, "state")
     End If
+    ' obs150 (plan A7): one bundle per decision stop, read at exactly this whole second.
+    If obs150Mode Then Obs150BeginBundle simSec
     CollectHeadObservation simSec
     ScanVehicleState simSec, total, urban, freeway, ramp, boundary, other, meanSpeed, freewayMeanSpeed, stopped, _
         countE, speedE, stoppedE, countW, speedW, stoppedW, localCounts, localStopped, localSpeedSums, localQueueTails, _
@@ -2696,6 +2801,14 @@ Sub WriteStateJson(simSec, path, resetWindows)
     scanCacheMeanSpeed = meanSpeed : scanCacheFreewayMeanSpeed = freewayMeanSpeed
     scanCacheStopped = stopped
     DemandForecastAtSimSec simSec, demandUrbanNow, demandFreewayNow
+    ' obs150 (plan A7): frame_T from this same scan, then detectors, link evaluation, the
+    ' .mer/.err increments, the runner signal log and the pins - all at this one stop.
+    Dim obs150Json
+    obs150Json = ""
+    If obs150Mode Then
+        obs150Json = Obs150Bundle(simSec, collectionCountBefore, recordVehNos, recordLinkNos, _
+            recordLaneNos, recordPositions, recordSpeeds)
+    End If
 
     Dim ts
     EnsureParentFolder tempPath
@@ -2708,8 +2821,12 @@ Sub WriteStateJson(simSec, path, resetWindows)
     If LCase(CStr(controllerName)) = "diagnostic-rule-profile" Then ts.WriteLine "  ""rule_observation"": " & RuleObservationJson(simSec) & ","
     ts.WriteLine "  ""network_path"": """ & JsonEscape(netPath) & ""","
     WriteB1aStateRunProvenance ts
+    If obs150Mode Then ts.WriteLine "  ""obs150"": " & obs150Json & ","
     If EnvText("RW_LANE_PLANT_OBSERVATION") = "1" Then
-        If obsSampleInterval = 5 Then
+        If obs150Mode Then
+            ' CONTRACT 4.6 (validate_lane_meta_v2): the frame is frame_T of this bundle.
+            ts.WriteLine "  ""lane_plant_observation"": {""directory"": """ & JsonEscape(fso.BuildPath(decisionDir, "lane_observations")) & """, ""run_id"": """ & JsonEscape(runId) & """, ""time_s"": " & CStr(CLng(simSec)) & ", ""cadence"": ""decision_150s""},"
+        ElseIf obsSampleInterval = 5 Then
             ts.WriteLine "  ""lane_plant_observation"": {""directory"": """ & JsonEscape(fso.BuildPath(decisionDir, "lane_observations")) & """, ""run_id"": """ & JsonEscape(runId) & """, ""time_s"": " & CStr(CLng(simSec)) & ",""sample_interval_sec"":5},"
         Else
             ts.WriteLine "  ""lane_plant_observation"": {""directory"": """ & JsonEscape(fso.BuildPath(decisionDir, "lane_observations")) & """, ""run_id"": """ & JsonEscape(runId) & """, ""time_s"": " & CStr(CLng(simSec)) & "},"
@@ -3676,23 +3793,44 @@ End Sub
 '   AVG 인 이유: 커넥터는 중간 유출입이 없어 구간마다 유량이 같다. 그래서 평균 = 통과유량.
 '   읽기 실패는 -1 로 낸다 - 조용한 0 은 '용량 0' 으로 읽혀 far 를 폭발시킨다.
 Function FarMeasurementJson()
-    Dim s2, key, lk, v, okCount
+    Dim s2, key, lk, v, okCount, linkEvalAttr, evalValue
     If Not FarMeasurementEnabled() Then
         FarMeasurementJson = "null"
         Exit Function
     End If
     s2 = "{""interval_sec"": " & CStr(CLng(controlInterval))
-    s2 = s2 & ", ""freeway_exit_count"": " & CStr(farFwExit)
+    If obs150Mode Then
+        ' obs150 (plan A7.7): the exact conservation count is merged in by merge_into_state (B7);
+        ' the runner writes null so a missing merge fails instead of reading a stale scan count.
+        s2 = s2 & ", ""freeway_exit_count"": null"
+    Else
+        s2 = s2 & ", ""freeway_exit_count"": " & CStr(farFwExit)
+    End If
     s2 = s2 & ", ""link_volume_veh_h"": {"
+    ' D-D (a): the same Edie-average meaning. obs150 reads the closed window k by its index
+    ' (plan A7.3); at t=1 there is no closed window and the value is -1 like a failed read.
+    linkEvalAttr = "AVG:LinkEvalSegs\Volume(Current,Last,All)"
+    If obs150Mode Then linkEvalAttr = Obs150LinkEvalAttribute()
     okCount = 0
     For Each key In farMeasLinks.Keys
         v = -1.0
         On Error Resume Next
         Set lk = Vissim.Net.Links.ItemByKey(CLng(key))
-        If Err.Number = 0 Then v = CDbl(lk.AttValue("AVG:LinkEvalSegs\Volume(Current,Last,All)"))
+        If obs150Mode Then
+            evalValue = Empty
+            If Err.Number = 0 And linkEvalAttr <> "" Then evalValue = lk.AttValue(linkEvalAttr)
+            If Err.Number <> 0 Then evalValue = Empty
+        ElseIf Err.Number = 0 Then
+            v = CDbl(lk.AttValue(linkEvalAttr))
+        End If
         If Err.Number <> 0 Then v = -1.0
         Err.Clear
         On Error GoTo 0
+        ' obs150: an Empty, Null or non-numeric read-back is a failed read (-1), never CDbl's silent 0
+        ' (the 'capacity 0' above), so this value and Obs150LinkEvalJson's null in the same bundle agree.
+        If obs150Mode Then
+            If Not TryB1aFiniteDouble(evalValue, 0.0, v) Then v = -1.0
+        End If
         If okCount > 0 Then s2 = s2 & ", "
         s2 = s2 & """" & JsonEscape(CStr(key)) & """: " & Num(v)
         okCount = okCount + 1
@@ -3955,6 +4093,8 @@ End Sub
 
 Sub RecordSignalReadback(scNo, sgNo, requestedState, readbackState, ok)
     ObservationSignalReadback scNo, sgNo, readbackState, ok
+    ' obs150 (plan A4): every SetSignalGroupState outcome and post-step readback mismatch.
+    If obs150Mode Then Obs150SignalReadback scNo, sgNo, requestedState, readbackState, ok
     If signalTraceStage = "post_step" Then
         signalPersistenceChecks = signalPersistenceChecks + 1
         If CBool(ok) Then signalPersistenceOk = signalPersistenceOk + 1
@@ -4768,6 +4908,12 @@ End Function
 ' 1 로 두면 4,400대 x 5,400초 = 약 2,400만 행이라 파일이 수 GB 가 된다.
 Function NativeVehRecResolution()
     Dim v
+    ' obs150 (plan A3): the FZP keeps a 5 s record (the TTT source, D5) at the network SimRes,
+    ' i.e. RW_OBS150_VEHREC_SEC x simResSteps steps. ReadObs150SimRes runs first.
+    If obs150Mode Then
+        NativeVehRecResolution = CLng(obs150VehRecSec) * CLng(simResSteps)
+        Exit Function
+    End If
     v = Trim(shell.ExpandEnvironmentStrings("%RW_VEHREC_RESOLUTION%"))
     If IsNumeric(v) Then
         NativeVehRecResolution = CLng(v)
@@ -4780,6 +4926,20 @@ End Function
 Sub ConfigureEvaluationOutput(path)
     EnsureFolder path
     TrySetEvaluationAtt "EvalOutDir", path
+    ' obs150 (plan A5): per-vehicle raw data (.mer) and 150 s interval counts of every data
+    ' collection measurement. Each value is read back; any mismatch stops the run before step 1.
+    If obs150Mode Then
+        obs150EvalOutDir = fso.GetAbsolutePathName(path)
+        Obs150RejectStaleEvaluation obs150EvalOutDir
+        obs150EvalJson = ""
+        Obs150SetEvaluation "DataCollCollectData", True
+        Obs150SetEvaluation "DataCollFromTime", 0
+        Obs150SetEvaluation "DataCollToTime", CLng(simPeriod)
+        Obs150SetEvaluation "DataCollInterval", OBS150_DECISION_SEC
+        Obs150SetEvaluation "DataCollRawWriteFile", True
+        Obs150SetEvaluation "DataCollRawFromTime", 0
+        Obs150SetEvaluation "DataCollRawToTime", CLng(simPeriod)
+    End If
         ' 의도는 "결과를 DB 로 내보내지 않는다" 인데, 모듈이 비활성이면 DB 출력 자체가 불가능하다.
     ' 실패가 곧 보장이다(실측 문구: "put_AttValue failed - module not active").
     TrySetUnreachableEvaluationAtt "DatabaseConnection", "", "database module inactive means no DB output is possible"
@@ -6501,3 +6661,1237 @@ Function HeadObservationJson(simSec)
     End If
 End Function
 ' END PHYSICAL_HEAD_OBSERVATION_V1
+' BEGIN OBS150_RUNNER
+' ==========================================================================
+' obs150 runner (SDMPC31_OBS150_PLAN_20260924 section 2, A1-A9; CONTRACT.md sections 1, 2, 4).
+' Active only when obs150Mode (RW_OBSERVATION_CADENCE=decision150). At every decision stop
+' T (t=1 and each multiple of 150 s) the runner reads, at that one paused second:
+'   frame_T (the decision scan), Vehs(Current,k,All) of every generated detector point,
+'   AVG:LinkEvalSegs\Volume(Current,k,All) for audit, the .mer/.err increments (through
+'   scripts\obs150_capture.py, WP-B1), and its own signal write/ownership log.
+' It writes them as the top-level "obs150" object of state_T.json (obs150-raw/v1). Nothing is
+' stepped per second and nothing is approximated: a failed read aborts the observation.
+' ==========================================================================
+
+' ---- startup (plan A1) ----------------------------------------------------
+Sub ValidateObs150Startup()
+    Dim reason
+    If obs150Cadence <> "" And Not obs150Mode Then
+        Obs150StartupFatal "UNKNOWN_CADENCE", "RW_OBSERVATION_CADENCE=" & obs150Cadence
+    End If
+    If Not obs150Mode Then Exit Sub
+    obs150DecisionDir = fso.GetAbsolutePathName(decisionDir)
+    obs150Dir = fso.BuildPath(obs150DecisionDir, "obs150")
+    obs150GtDir = fso.BuildPath(obs150DecisionDir, "obs150_gt")
+    obs150ErrPath = fso.BuildPath(fso.GetParentFolderName(fso.GetAbsolutePathName(netPath)), _
+        fso.GetBaseName(netPath) & "_001.err")
+    obs150CaptureScript = fso.BuildPath(workspaceRoot, "scripts\obs150_capture.py")
+    obs150DetectorsPath = EnvText("RW_OBS150_DETECTORS")
+    obs150DetectorsSha256 = EnvText("RW_OBS150_DETECTORS_SHA256")
+    obs150GtText = EnvText("RW_OBS150_GT")
+    reason = Obs150StartupRejectReason()
+    If reason <> "" Then Obs150StartupFatal "STARTUP_REJECTED", reason
+    obs150ExpectedSimRes = CLng(EnvText("RW_OBS150_EXPECTED_SIMRES"))
+    obs150VehRecSec = CLng(EnvText("RW_OBS150_VEHREC_SEC"))
+    WScript.Echo "OBS150_MODE=1 cadence=decision150 decision_sec=" & CStr(OBS150_DECISION_SEC) & _
+        " expected_simres=" & CStr(obs150ExpectedSimRes) & " vehrec_sec=" & CStr(obs150VehRecSec) & _
+        " detectors=" & obs150DetectorsPath & " gt=" & obs150GtText
+End Sub
+
+Sub Obs150StartupFatal(reason, detail)
+    WScript.Echo "ERROR=OBS150_" & reason & " " & OneLine(detail)
+    WScript.Quit 2
+End Sub
+
+' First violated rule, or "". Each rule closes a silent mislabeling path (plan A1, CONTRACT 1.5).
+Function Obs150StartupRejectReason()
+    Dim r, n
+    r = ""
+    If obsEnabled Then
+        r = "RW_SIGNAL_OBSERVATION=1: the per-second head observer and obs150 are exclusive"
+    ElseIf ForceStepwiseMode() Then
+        r = "RW_FORCE_STEPWISE: stepwise mode would label 0.1 s steps as seconds"
+    ElseIf CLng(controlInterval) <> OBS150_DECISION_SEC Then
+        r = "control_interval_sec=" & CStr(controlInterval) & " (the obs150 window is 150 s)"
+    ElseIf CLng(stateLogIntervalSec) <> CLng(controlInterval) Then
+        r = "state_log_interval_sec=" & CStr(stateLogIntervalSec) & " differs from control_interval_sec"
+    ElseIf CLng(simPeriod) < OBS150_DECISION_SEC Or (CLng(simPeriod) Mod OBS150_DECISION_SEC) <> 0 Then
+        r = "sim_period_sec=" & CStr(simPeriod) & " is not a positive multiple of 150"
+    ElseIf auditAnchorsSec <> "" Then
+        r = "RW_AUDIT_ANCHORS_SEC: a second WriteStateJson path"
+    ElseIf incidentEnabled Then
+        r = "incident closure: signal writes outside the runner log"
+    ElseIf UseSingleDecisionEventMode() Then
+        r = "single-decision diagnostic controller: no decision every 150 s"
+    ElseIf EnvText("RW_LANE_PLANT_OBSERVATION") <> "1" Then
+        r = "RW_LANE_PLANT_OBSERVATION must be 1 (frames are part of the bundle)"
+    ElseIf obsSampleInterval <> 1 Then
+        r = "RW_VEHICLE_OBSERVATION_INTERVAL_SEC must be 1"
+    ElseIf StateLogMode() <> "decision" Then
+        r = "RW_STATE_LOG must be decision"
+    ElseIf QueueWindowEnabled() Then
+        r = "RW_QUEUE_WINDOW=1: the scan windows are superseded by the bundle"
+    ElseIf Not FarMeasurementEnabled() Then
+        r = "RW_FAR_MEASUREMENT=0: far_measurement carries the merged exit count"
+    ElseIf Trim(shell.ExpandEnvironmentStrings("%RW_NATIVE_EVAL%")) = "0" Then
+        r = "RW_NATIVE_EVAL=0: the vehicle record is the TTT source"
+    ElseIf EnvText("RW_VEHREC_RESOLUTION") <> "" Then
+        r = "RW_VEHREC_RESOLUTION: obs150 derives it from RW_OBS150_VEHREC_SEC and SimRes"
+    ElseIf obs150DetectorsPath = "" Then
+        r = "RW_OBS150_DETECTORS is empty"
+    ElseIf Not fso.FileExists(obs150DetectorsPath) Then
+        r = "RW_OBS150_DETECTORS does not exist: " & obs150DetectorsPath
+    ElseIf Not Obs150IsSha256(obs150DetectorsSha256) Then
+        r = "RW_OBS150_DETECTORS_SHA256 is not a lower-case sha256"
+    ElseIf Not ParseB1aPositiveLongText(EnvText("RW_OBS150_EXPECTED_SIMRES"), n) Then
+        r = "RW_OBS150_EXPECTED_SIMRES is not a positive integer"
+    ElseIf Not ParseB1aPositiveLongText(EnvText("RW_OBS150_VEHREC_SEC"), n) Then
+        r = "RW_OBS150_VEHREC_SEC is not a positive integer"
+    ElseIf Not fso.FileExists(obs150CaptureScript) Then
+        r = "capture CLI missing: " & obs150CaptureScript
+    End If
+    If r = "" Then r = Obs150ParseGtWindows(obs150GtText)
+    If r = "" Then r = Obs150StaleOutputReason()
+    Obs150StartupRejectReason = r
+End Function
+
+' RW_OBS150_GT "750:900,1050:1200" (CONTRACT 1.3 parse_gt_windows). The runner also needs the
+' window to start after the first decision: (0, 1] is one continuous break (plan A2).
+Function Obs150ParseGtWindows(text)
+    Dim items, i, parts, a, b, lastEnd, list()
+    Obs150ParseGtWindows = ""
+    obs150GtWindows = Empty
+    If text = "" Then Exit Function
+    items = Split(text, ",")
+    ReDim list(UBound(items))
+    lastEnd = -1
+    For i = 0 To UBound(items)
+        parts = Split(items(i), ":")
+        If UBound(parts) <> 1 Then
+            Obs150ParseGtWindows = "RW_OBS150_GT item is not start:end: " & items(i)
+            Exit Function
+        End If
+        If Not ParseB1aPositiveLongText(parts(0), a) Or Not ParseB1aPositiveLongText(parts(1), b) Then
+            Obs150ParseGtWindows = "RW_OBS150_GT needs positive integer seconds: " & items(i)
+            Exit Function
+        End If
+        ' a = lastEnd is refused too: the next window would write the shared stop's gt_veh/gt_meta rows
+        ' a second time (Obs150GtStepTo). Adjacent windows are one window (750:900,900:1050 = 750:1050).
+        If a >= b Or (a Mod OBS150_DECISION_SEC) <> 0 Or (b Mod OBS150_DECISION_SEC) <> 0 _
+                Or a <= lastEnd Or b > CLng(simPeriod) Then
+            Obs150ParseGtWindows = "RW_OBS150_GT windows must be sorted, 150 s aligned, separated (merge adjacent ones) and inside the run: " & text
+            Exit Function
+        End If
+        list(i) = Array(CLng(a), CLng(b))
+        lastEnd = b
+    Next
+    obs150GtWindows = list
+End Function
+
+' A fresh run folder is part of the contract: the capture refuses existing chunks, the frame
+' writer refuses existing frames, and a stale <stem>_*.err would be read as this run's removals.
+Function Obs150StaleOutputReason()
+    Dim f, stem, folder
+    Obs150StaleOutputReason = ""
+    If fso.FolderExists(obs150Dir) Then
+        If fso.GetFolder(obs150Dir).Files.Count > 0 Then Obs150StaleOutputReason = "stale obs150 folder: " & obs150Dir
+    End If
+    If fso.FolderExists(obs150GtDir) Then
+        If fso.GetFolder(obs150GtDir).Files.Count > 0 Then Obs150StaleOutputReason = "stale ground-truth folder: " & obs150GtDir
+    End If
+    folder = fso.BuildPath(obs150DecisionDir, "lane_observations")
+    If fso.FolderExists(folder) Then
+        If fso.GetFolder(folder).Files.Count > 0 Then Obs150StaleOutputReason = "stale lane_observations folder: " & folder
+    End If
+    stem = LCase(fso.GetBaseName(netPath)) & "_"
+    folder = fso.GetParentFolderName(fso.GetAbsolutePathName(netPath))
+    If fso.FolderExists(folder) Then
+        For Each f In fso.GetFolder(folder).Files
+            If LCase(Left(f.Name, Len(stem))) = stem And LCase(fso.GetExtensionName(f.Name)) = "err" Then
+                Obs150StaleOutputReason = "stale runtime error file beside the network: " & f.Path
+            End If
+        Next
+    End If
+End Function
+
+' ---- detector table (plan 1.7, A6) ----------------------------------------
+' Rows as Array(dcp_no, role, ref, link, lane, pos_text, pos, boundary_ref). The first ten columns
+' hold no comma or quote (CONTRACT 7), so Split(line, ",", 11) is exact; the JSON columns are
+' checked by the contract parser in Obs150VerifyDetectorTable.
+Sub Obs150LoadDetectorCsv()
+    Dim text, lines, i, n, parts, dcp, dcm, link, lane, pos, lastKey, rows(), count, key, refKey, sgKey
+    text = ReadAllText(obs150DetectorsPath)
+    If InStr(1, text, vbCr, vbBinaryCompare) > 0 Or Right(text, 1) <> vbLf Then
+        Obs150StartupFatal "DETECTOR_TABLE", "the table must be LF text ending in LF: " & obs150DetectorsPath
+    End If
+    lines = Split(Left(text, Len(text) - 1), vbLf)
+    If UBound(lines) < 1 Or lines(0) <> OBS150_DETECTOR_HEADER Then
+        Obs150StartupFatal "DETECTOR_TABLE", "header or rows missing: " & obs150DetectorsPath
+    End If
+    ReDim rows(UBound(lines) - 1)
+    count = 0
+    lastKey = 0
+    obs150GtLinks.RemoveAll
+    obs150HeadScs.RemoveAll
+    obs150LinkEvalLinks.RemoveAll
+    For i = 1 To UBound(lines)
+        parts = Split(lines(i), ",", 11)
+        If UBound(parts) <> 10 Then Obs150StartupFatal "DETECTOR_TABLE", "row " & CStr(i) & " has too few columns"
+        If Not ParseB1aPositiveLongText(parts(0), dcp) Or Not ParseB1aPositiveLongText(parts(1), dcm) _
+                Or Not ParseB1aPositiveLongText(parts(4), link) Or Not ParseB1aPositiveLongText(parts(5), lane) Then
+            Obs150StartupFatal "DETECTOR_TABLE", "row " & CStr(i) & " has a non-integer key, link or lane"
+        End If
+        If dcp <> dcm Or dcp < OBS150_KEY_MIN Or dcp > OBS150_KEY_MAX Or dcp <= lastKey Then
+            Obs150StartupFatal "DETECTOR_TABLE", "row " & CStr(i) & " key " & CStr(dcp) & " (dcp=dcm, 960001-969999, ascending)"
+        End If
+        If Not Obs150ParseDecimal(parts(6), pos) Then
+            Obs150StartupFatal "DETECTOR_TABLE", "row " & CStr(i) & " pos is not written %.6f: " & parts(6)
+        End If
+        refKey = parts(3)
+        If parts(2) = "head" Or parts(2) = "meter_head" Then
+            If InStr(1, refKey, "|", vbBinaryCompare) < 2 Then Obs150StartupFatal "DETECTOR_TABLE", "head ref " & refKey
+            sgKey = Mid(refKey, InStr(1, refKey, "|", vbBinaryCompare) + 1)
+            refKey = Left(refKey, InStr(1, refKey, "|", vbBinaryCompare) - 1)
+            If InStr(1, sgKey, "-", vbBinaryCompare) < 2 Then Obs150StartupFatal "DETECTOR_TABLE", "head ref " & parts(3)
+            If Not ParseB1aPositiveLongText(Left(sgKey, InStr(1, sgKey, "-", vbBinaryCompare) - 1), n) Then
+                Obs150StartupFatal "DETECTOR_TABLE", "head ref " & parts(3)
+            End If
+            obs150HeadScs(CStr(n)) = True
+        ElseIf parts(2) = "off_entry" Or parts(2) = "headfree" Then
+            obs150LinkEvalLinks(parts(3)) = True
+        End If
+        If parts(9) <> parts(2) & ":" & refKey Then
+            Obs150StartupFatal "DETECTOR_TABLE", "row " & CStr(i) & " boundary_ref " & parts(9) & " differs from role:key"
+        End If
+        rows(count) = Array(CLng(dcp), parts(2), parts(3), CLng(link), CLng(lane), parts(6), CDbl(pos), parts(9))
+        obs150GtLinks(CStr(link)) = True
+        count = count + 1
+        lastKey = dcp
+    Next
+    obs150Rows = rows
+End Sub
+
+' The whole table through the contract parser (canonical bytes, roles, segments, key range)
+' and its sha against the pin the watchdog took from the manifest - before VISSIM starts.
+Sub Obs150VerifyDetectorTable()
+    Dim cmd, exitCode, outText, errText, expected
+    Obs150LoadDetectorCsv
+    cmd = pythonExe & " -B -c ""import sys;sys.path.insert(0,sys.argv[1]);" & _
+        "from evaluation.controllers import obs150_contract as oc;" & _
+        "rows,sha=oc.read_detector_csv(sys.argv[2],sys.argv[3]);print('OBS150_DETECTOR_TABLE_OK',len(rows),sha)"" " & _
+        Q(workspaceRoot) & " " & Q(obs150DetectorsPath) & " " & obs150DetectorsSha256
+    exitCode = RunCapture3Timeout(cmd, OBS150_HELPER_TIMEOUT_SEC, outText, errText)
+    expected = "OBS150_DETECTOR_TABLE_OK " & CStr(UBound(obs150Rows) + 1) & " " & obs150DetectorsSha256
+    If exitCode <> 0 Or OneLine(outText) <> expected Then
+        Obs150StartupFatal "DETECTOR_TABLE", "exit=" & CStr(exitCode) & " out=" & OneLine(outText) & " err=" & OneLine(errText)
+    End If
+    WScript.Echo "OBS150_DETECTOR_TABLE rows=" & CStr(UBound(obs150Rows) + 1) & " sha256=" & obs150DetectorsSha256 & _
+        " head_scs=" & CStr(obs150HeadScs.Count) & " linkeval_links=" & CStr(obs150LinkEvalLinks.Count)
+End Sub
+
+' ---- SimRes and the native frame advance (plan A1, A4/D10) -----------------
+Sub ReadObs150SimRes()
+    Dim value, steps, errNo
+    value = Empty
+    On Error Resume Next
+    value = Vissim.Simulation.AttValue("SimRes")
+    errNo = Err.Number
+    Err.Clear
+    On Error GoTo 0
+    If errNo <> 0 Or Not TryB1aFiniteDouble(value, 1.0, steps) Then
+        Obs150StartupFatal "SIMRES_UNREADABLE", "vartype=" & CStr(VarType(value))
+    End If
+    If steps <> Fix(steps) Or CLng(steps) <> CLng(obs150ExpectedSimRes) Then
+        Obs150StartupFatal "SIMRES_MISMATCH", "network=" & JsonDoubleInvariant(steps) & " expected=" & CStr(obs150ExpectedSimRes)
+    End If
+    simResSteps = CLng(steps)
+    WScript.Echo "SIMRES=" & CStr(simResSteps) & " source=network"
+    Obs150ApplyNativeFrameAdvance
+End Sub
+
+' Native-clock plans carry the run's frame advance as a fifth spec field (SignalClockPosition).
+' OBS150_FRAME_ADVANCE is the SimRes 10 value (D10, V0-4): any other resolution stops here.
+Sub Obs150ApplyNativeFrameAdvance()
+    Dim key
+    If CLng(simResSteps) <> 10 Then
+        Obs150StartupFatal "FRAME_ADVANCE_SIMRES", "OBS150_FRAME_ADVANCE is the SimRes 10 value (D10); network simres=" & CStr(simResSteps)
+    End If
+    For Each key In nativeClockPlans.Keys
+        If UBound(Split(CStr(nativeClockPlans(key)), "|")) <> 3 Then
+            Obs150StartupFatal "NATIVE_CLOCK_SPEC", "sc=" & CStr(key) & " spec=" & CStr(nativeClockPlans(key))
+        End If
+        nativeClockPlans(key) = CStr(nativeClockPlans(key)) & "|" & CStr(OBS150_FRAME_ADVANCE)
+    Next
+    WScript.Echo "SIGNAL_FRAME_ADVANCE=" & CStr(OBS150_FRAME_ADVANCE) & " simres=" & CStr(simResSteps) & _
+        " native_clock_scs=" & CStr(nativeClockPlans.Count) & " native_rule=program_state_at_step_end" & _
+        " com_head_delay=1 source=V0-4_probe_vehicles d10=decided g1_check=com_head_lead_departure_t+1.1"
+End Sub
+
+' ---- detectors installed in memory (plan A6) -------------------------------
+Sub Obs150InstallDetectors()
+    Dim dcps, dcms, i, row, key, lk, laneObj, dp, m, rbNo, rbLane, rbPos, mNo, rbPoints
+    Dim errNo, errDesc, n, linkNo, laneNo, posValue, countP0, countM0, countP1, countM1, total
+    Set dcps = Vissim.Net.DataCollectionPoints
+    Set dcms = Vissim.Net.DataCollectionMeasurements
+    countP0 = CLng(dcps.Count)
+    countM0 = CLng(dcms.Count)
+    total = UBound(obs150Rows) + 1
+    obs150InstallPoints.RemoveAll
+    For i = 0 To UBound(obs150Rows)
+        row = obs150Rows(i)
+        key = CLng(row(0))
+        ' A reused key would merge with a network detector; there is no key-0 fallback either.
+        If Obs150ItemExists(dcps, key) Or Obs150ItemExists(dcms, key) Then
+            Obs150StartupFatal "DETECTOR_KEY_REUSED", "key=" & CStr(key)
+        End If
+        rbNo = Empty: rbLane = Empty: rbPos = Empty: mNo = Empty: rbPoints = Empty
+        On Error Resume Next
+        Set lk = Vissim.Net.Links.ItemByKey(CLng(row(3)))
+        If Err.Number = 0 Then Set laneObj = lk.Lanes.ItemByKey(CLng(row(4)))
+        If Err.Number = 0 Then Set dp = dcps.AddDataCollectionPoint(key, laneObj, CDbl(row(6)))
+        If Err.Number = 0 Then rbNo = dp.AttValue("No")
+        If Err.Number = 0 Then rbLane = dp.AttValue("Lane")
+        If Err.Number = 0 Then rbPos = dp.AttValue("Pos")
+        If Err.Number = 0 Then Set m = dcms.AddDataCollectionMeasurement(key)
+        If Err.Number = 0 Then m.AttValue("DataCollectionPoints") = CStr(key)
+        If Err.Number = 0 Then rbPoints = m.AttValue("DataCollectionPoints")
+        If Err.Number = 0 Then mNo = m.AttValue("No")
+        errNo = Err.Number
+        errDesc = Err.Description
+        Err.Clear
+        On Error GoTo 0
+        If errNo <> 0 Then
+            Obs150StartupFatal "DETECTOR_INSTALL", "key=" & CStr(key) & " link=" & CStr(row(3)) & " lane=" & CStr(row(4)) & " err=" & errDesc
+        End If
+        If Not Obs150WholeNumber(rbNo, n) Then n = -1
+        If n <> key Then Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " point No differs"
+        If Not ParseB1aLaneId(rbLane, linkNo, laneNo) Then
+            Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " lane readback unparsable"
+        End If
+        If linkNo <> CLng(row(3)) Or laneNo <> CLng(row(4)) Then
+            Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " lane " & CStr(linkNo) & "-" & CStr(laneNo)
+        End If
+        If Not TryB1aFiniteDouble(rbPos, 0.0, posValue) Then
+            Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " pos readback unparsable"
+        End If
+        If Abs(posValue - CDbl(row(6))) > OBS150_POS_READBACK_TOL_M Then
+            Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " pos " & JsonDoubleInvariant(posValue) & " requested " & row(5)
+        End If
+        If Not Obs150WholeNumber(mNo, n) Then n = -1
+        If n <> key Then Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " measurement No differs"
+        If IsNull(rbPoints) Or IsEmpty(rbPoints) Then rbPoints = ""
+        If Trim(CStr(rbPoints)) <> CStr(key) Then
+            Obs150StartupFatal "DETECTOR_READBACK", "key=" & CStr(key) & " measurement points " & CStr(rbPoints)
+        End If
+        obs150InstallPoints.Add CStr(i), "{""dcp_no"":" & CStr(key) & ",""dcm_no"":" & CStr(key) & _
+            ",""link"":" & CStr(row(3)) & ",""lane"":" & CStr(row(4)) & ",""pos"":" & row(5) & _
+            ",""readback"":{""link"":" & CStr(linkNo) & ",""lane"":" & CStr(laneNo) & _
+            ",""pos"":" & JsonDoubleInvariant(posValue) & "}}"
+    Next
+    countP1 = CLng(dcps.Count)
+    countM1 = CLng(dcms.Count)
+    If countP1 - countP0 <> total Or countM1 - countM0 <> total Then
+        Obs150StartupFatal "DETECTOR_COUNT", "points " & CStr(countP0) & "->" & CStr(countP1) & _
+            " measurements " & CStr(countM0) & "->" & CStr(countM1) & " rows=" & CStr(total)
+    End If
+    WScript.Echo "OBS150_DETECTORS n=" & CStr(total) & " sha=" & obs150DetectorsSha256 & _
+        " points=" & CStr(countP0) & "->" & CStr(countP1) & " measurements=" & CStr(countM0) & "->" & CStr(countM1)
+End Sub
+
+Function Obs150ItemExists(container, key)
+    Dim item
+    Obs150ItemExists = False
+    On Error Resume Next
+    Set item = container.ItemByKey(CLng(key))
+    If Err.Number = 0 Then Obs150ItemExists = Not (item Is Nothing)
+    Err.Clear
+    On Error GoTo 0
+End Function
+
+' ---- evaluation (plan A5) -------------------------------------------------
+' Set and read back; a silent TrySetEvaluationAtt failure is not allowed here.
+Sub Obs150SetEvaluation(att, value)
+    Dim readback, errNo, errDesc, ok, number, text
+    readback = Empty
+    On Error Resume Next
+    Vissim.Evaluation.AttValue(att) = value
+    If Err.Number = 0 Then readback = Vissim.Evaluation.AttValue(att)
+    errNo = Err.Number
+    errDesc = Err.Description
+    Err.Clear
+    On Error GoTo 0
+    ok = (errNo = 0)
+    If VarType(value) = vbBoolean Then
+        text = JsonBoolean(value)
+        If ok Then ok = Not (IsNull(readback) Or IsEmpty(readback) Or IsArray(readback) Or IsObject(readback))
+        If ok Then ok = (ComBoolean(readback) = CBool(value))
+    Else
+        text = CStr(CLng(value))
+        If ok Then ok = TryB1aFiniteDouble(readback, 0.0, number)
+        If ok Then ok = (number = CDbl(value))
+    End If
+    If Not ok Then
+        Obs150StartupFatal "EVALUATION_READBACK", "att=" & att & " value=" & text & " vartype=" & CStr(VarType(readback)) & " err=" & errDesc
+    End If
+    If obs150EvalJson <> "" Then obs150EvalJson = obs150EvalJson & ","
+    obs150EvalJson = obs150EvalJson & """" & att & """:" & text
+    WScript.Echo "OBS150_EVALUATION att=" & att & " value=" & text & " readback=ok"
+End Sub
+
+' The capture takes the one .mer of this run from EvalOutDir.
+Sub Obs150RejectStaleEvaluation(evalDir)
+    Dim f
+    If Not fso.FolderExists(evalDir) Then Exit Sub
+    For Each f In fso.GetFolder(evalDir).Files
+        If LCase(fso.GetExtensionName(f.Name)) = "mer" Then Obs150StartupFatal "STALE_MER", "path=" & f.Path
+    Next
+End Sub
+
+' obs150/obs150_install.json (CONTRACT 4.6, validate_install_record): request against readback.
+Sub Obs150WriteInstallRecord()
+    Dim path, ts, i, points, shas, detail
+    EnsureFolder obs150Dir
+    path = fso.BuildPath(obs150Dir, "obs150_install.json")
+    If fso.FileExists(path) Then Obs150StartupFatal "INSTALL_RECORD_EXISTS", "path=" & path
+    points = Join(obs150InstallPoints.Items, ",")
+    Set ts = New Utf8LineWriter
+    ts.TargetPath = path
+    ts.WriteLine "{""schema"":""obs150-install/v1"",""run_id"":""" & JsonEscape(runId) & _
+        """,""detector_config"":{""path"":""" & JsonEscape(obs150DetectorsPath) & """,""sha256"":""" & _
+        obs150DetectorsSha256 & """,""rows"":" & CStr(UBound(obs150Rows) + 1) & "},""simres_steps_per_sec"":" & _
+        CStr(simResSteps) & ",""points"":[" & points & "],""evaluation"":{" & obs150EvalJson & "}}"
+    ts.Close
+    If Not Obs150Sha256Files(Array(path), shas, detail) Then Obs150StartupFatal "INSTALL_RECORD_SHA256", detail
+    obs150InstallSha256 = shas(path)
+    WScript.Echo "OBS150_INSTALL_RECORD path=" & path & " sha256=" & obs150InstallSha256
+End Sub
+
+' ---- clock: first step, exact stops, ground-truth stepping (plan A2, A9) ---
+Sub Obs150FirstStep()
+    Dim emptyRows, simNow
+    emptyRows = Empty
+    If Not TryB1aFiniteDouble(Vissim.Simulation.AttValue("SimSec"), 0.0, simNow) Then simNow = -1
+    If simNow <> 0 Or CLng(Vissim.Net.Vehicles.Count) <> 0 Then
+        Obs150Abort 0, "FIRST_FRAME", "frame_000000 needs SimSec 0 and no vehicles"
+    End If
+    WriteLanePlantObservation 0, 0, emptyRows, emptyRows, emptyRows, emptyRows, emptyRows
+    WScript.Echo "STARTUP_STAGE=FIRST_STEP_BEGIN timer_sec=" & CStr(Timer)
+    startupPerfT0 = PerfNow()
+    RunContinuousTo 1
+    PerfAdd "sim.first_step", startupPerfT0
+    WScript.Echo "STARTUP_STAGE=FIRST_STEP_DONE timer_sec=" & CStr(Timer)
+    RecordStartupSimulationProgress
+End Sub
+
+' SimBreakAt stops exactly on the whole second (PRB c); anything else mislabels the bundle.
+Sub Obs150AssertStop(targetSec)
+    Dim value, actual, errNo
+    value = Empty
+    On Error Resume Next
+    value = Vissim.Simulation.AttValue("SimSec")
+    errNo = Err.Number
+    Err.Clear
+    On Error GoTo 0
+    If errNo <> 0 Or Not TryB1aFiniteDouble(value, 0.0, actual) Then actual = -1
+    If actual <> CDbl(targetSec) Then
+        Obs150Abort targetSec, "STOP_MISSED", "target=" & CStr(targetSec) & " actual=" & JsonDoubleInvariant(actual)
+    End If
+    obs150StopSec = CLng(targetSec)
+End Sub
+
+Sub Obs150AdvanceTo(currentSec, targetSec)
+    Dim w
+    w = Obs150GtWindowIndex(currentSec, targetSec)
+    If w < 0 Then
+        RunContinuousTo targetSec
+    Else
+        Obs150GtStepTo currentSec, targetSec, obs150GtWindows(w)(0)
+    End If
+End Sub
+
+' Windows are 150 s aligned and every multiple of 150 is a scheduled stop, so a segment is
+' either inside one window or outside all of them.
+Function Obs150GtWindowIndex(currentSec, targetSec)
+    Dim i, a, b
+    Obs150GtWindowIndex = -1
+    If IsEmpty(obs150GtWindows) Then Exit Function
+    For i = 0 To UBound(obs150GtWindows)
+        a = obs150GtWindows(i)(0)
+        b = obs150GtWindows(i)(1)
+        If CLng(currentSec) >= a And CLng(targetSec) <= b Then
+            Obs150GtWindowIndex = i
+            Exit Function
+        End If
+        If CLng(currentSec) < b And CLng(targetSec) > a Then
+            Obs150Abort currentSec, "GT_WINDOW_STRADDLED", "segment " & CStr(currentSec) & "->" & CStr(targetSec)
+        End If
+    Next
+End Function
+
+' Plan A9 (dev runs only): inside a ground-truth window the way between two scheduled stops is
+' single steps; writes still happen only at the scheduled stops, so the trajectory is the
+' operational one. gt_sig holds the SigState READ BACK at t after the writes of that stop. For a
+' native SG that is the state governing (t, t+0.1] (V0-4). For a COM SG it is the read-back state
+' only: the heads take a COM write one update later (D10 = 1; the probe meter moved 1 s late); G1 D6
+' (obs150_verify_gt SignalTruth, D10Probe) applies that and re-checks it on gt_veh lead departures.
+' gt_veh holds the vehicles on every generated-detector link at t.
+Sub Obs150GtStepTo(currentSec, targetSec, windowStart)
+    Dim vehFile, sigFile, metaFile, steps, stepNo, t10, value, actual, vehRows, sigRows, stepT0
+    EnsureFolder obs150GtDir
+    Set vehFile = Obs150GtOpen("gt_veh.csv", "t10,veh,link,lane,pos,rout_dec_no,route_no")
+    Set sigFile = Obs150GtOpen("gt_sig.csv", "t10,sc,sg,sig_state")
+    Set metaFile = Obs150GtOpen("gt_meta.csv", "t10,sim_sec,veh_rows,sig_rows,step_wall_sec")
+    t10 = CLng(currentSec) * CLng(simResSteps)
+    If CLng(currentSec) = CLng(windowStart) Then
+        vehRows = Obs150GtWriteVehicles(vehFile, t10)
+        metaFile.WriteLine CStr(t10) & "," & CStr(currentSec) & "," & CStr(vehRows) & ",0,0"
+    End If
+    steps = (CLng(targetSec) - CLng(currentSec)) * CLng(simResSteps)
+    For stepNo = 1 To steps
+        sigRows = Obs150GtWriteSignals(sigFile, t10)
+        stepT0 = Timer
+        Vissim.Simulation.RunSingleStep
+        t10 = t10 + 1
+        value = Vissim.Simulation.AttValue("SimSec")
+        If Not TryB1aFiniteDouble(value, 0.0, actual) Then actual = -1
+        If Abs(actual * CDbl(simResSteps) - CDbl(t10)) > 0.000001 Then
+            Obs150Abort currentSec, "GT_STEP_CLOCK", "expected_t10=" & CStr(t10) & " sim_sec=" & JsonDoubleInvariant(actual)
+        End If
+        vehRows = Obs150GtWriteVehicles(vehFile, t10)
+        metaFile.WriteLine CStr(t10) & "," & JsonDoubleInvariant(actual) & "," & CStr(vehRows) & "," & CStr(sigRows) & "," & JsonDoubleInvariant(ElapsedSec(stepT0))
+    Next
+    vehFile.Close
+    sigFile.Close
+    metaFile.Close
+    Obs150AssertStop targetSec
+    WScript.Echo "OBS150_GT_SEGMENT from=" & CStr(currentSec) & " to=" & CStr(targetSec) & " steps=" & CStr(steps)
+End Sub
+
+Function Obs150GtOpen(name, header)
+    Dim path, isNew, file
+    path = fso.BuildPath(obs150GtDir, name)
+    isNew = Not fso.FileExists(path)
+    Set file = fso.OpenTextFile(path, 8, True)
+    If isNew Then file.WriteLine header
+    Set Obs150GtOpen = file
+End Function
+
+Function Obs150GtWriteVehicles(file, t10)
+    Dim vehs, aNo, aLane, aPos, aRd, aRt, lo, hi, kc, vc, row, linkNo, laneNo, veh, pos, buf(), count, errNo
+    Obs150GtWriteVehicles = 0
+    Set vehs = Vissim.Net.Vehicles
+    On Error Resume Next
+    aNo = vehs.GetMultiAttValues("No")
+    If Err.Number = 0 Then aLane = vehs.GetMultiAttValues("Lane")
+    If Err.Number = 0 Then aPos = vehs.GetMultiAttValues("Pos")
+    If Err.Number = 0 Then aRd = vehs.GetMultiAttValues("RoutDecNo")
+    If Err.Number = 0 Then aRt = vehs.GetMultiAttValues("RouteNo")
+    errNo = Err.Number
+    Err.Clear
+    On Error GoTo 0
+    If errNo <> 0 Then Obs150Abort obs150StopSec, "GT_VEHICLE_READ", "t10=" & CStr(t10)
+    If IsB1aEmptyTableResult(aNo) Then Exit Function
+    If Not Obs150SameTable(aNo, aLane, lo, hi, kc, vc) Or Not Obs150SameTable(aNo, aPos, lo, hi, kc, vc) _
+            Or Not Obs150SameTable(aNo, aRd, lo, hi, kc, vc) Or Not Obs150SameTable(aNo, aRt, lo, hi, kc, vc) Then
+        Obs150Abort obs150StopSec, "GT_VEHICLE_TABLE", "t10=" & CStr(t10)
+    End If
+    ReDim buf(hi - lo)
+    count = 0
+    For row = lo To hi
+        If Not ParseB1aLaneId(aLane(row, vc), linkNo, laneNo) Or Not Obs150WholeNumber(aNo(row, vc), veh) _
+                Or Not TryB1aFiniteDouble(aPos(row, vc), -B1A_ENTRY_TOLERANCE_M, pos) Then
+            Obs150Abort obs150StopSec, "GT_VEHICLE_ROW", "t10=" & CStr(t10) & " row=" & CStr(row)
+        End If
+        If obs150GtLinks.Exists(CStr(linkNo)) Then
+            buf(count) = CStr(t10) & "," & CStr(veh) & "," & CStr(linkNo) & "," & CStr(laneNo) & "," & _
+                JsonDoubleInvariant(pos) & "," & Obs150CsvCell(aRd(row, vc)) & "," & Obs150CsvCell(aRt(row, vc))
+            count = count + 1
+        End If
+    Next
+    If count > 0 Then
+        ReDim Preserve buf(count - 1)
+        file.WriteLine Join(buf, vbCrLf)
+    End If
+    Obs150GtWriteVehicles = count
+End Function
+
+Function Obs150GtWriteSignals(file, t10)
+    Dim scNo, sc, aNo, aState, lo, hi, kc, vc, row, sgNo, count, errNo
+    count = 0
+    For Each scNo In Obs150SortedKeys(obs150HeadScs)
+        Set sc = CachedSignalController(CLng(scNo))
+        If sc Is Nothing Then Obs150Abort obs150StopSec, "GT_SIGNAL_READ", "sc=" & CStr(scNo)
+        On Error Resume Next
+        aNo = sc.SGs.GetMultiAttValues("No")
+        If Err.Number = 0 Then aState = sc.SGs.GetMultiAttValues("SigState")
+        errNo = Err.Number
+        Err.Clear
+        On Error GoTo 0
+        If errNo <> 0 Or Not Obs150SameTable(aNo, aState, lo, hi, kc, vc) Then
+            Obs150Abort obs150StopSec, "GT_SIGNAL_READ", "sc=" & CStr(scNo)
+        End If
+        For row = lo To hi
+            If Not Obs150WholeNumber(aNo(row, vc), sgNo) Then Obs150Abort obs150StopSec, "GT_SIGNAL_READ", "sc=" & CStr(scNo)
+            ' Empty, Null or a blank name would be a silent blank truth cell.
+            If Trim(Obs150CsvCell(aState(row, vc))) = "" Then
+                Obs150Abort obs150StopSec, "GT_SIGNAL_STATE", "sc=" & CStr(scNo) & " sg=" & CStr(sgNo) & _
+                    " t10=" & CStr(t10) & " vartype=" & CStr(VarType(aState(row, vc)))
+            End If
+            file.WriteLine CStr(t10) & "," & CStr(scNo) & "," & CStr(sgNo) & "," & UCase(Obs150CsvCell(aState(row, vc)))
+            count = count + 1
+        Next
+    Next
+    Obs150GtWriteSignals = count
+End Function
+
+' ---- the bundle (plan A7, CONTRACT 4) ---------------------------------------
+Sub Obs150BeginBundle(simSec)
+    Dim T
+    T = CLng(simSec)
+    If obs150Bundles.Exists(CStr(T)) Then Err.Raise 513, , "obs150 bundle already written"
+    If Not (T = 1 Or (T >= OBS150_DECISION_SEC And (T Mod OBS150_DECISION_SEC) = 0)) Then
+        Obs150Abort T, "NOT_A_DECISION_STOP", "obs150 bundles exist at t=1 and every 150 s"
+    End If
+    If CLng(obs150StopSec) <> T Then Obs150Abort T, "BUNDLE_OFF_STOP", "last stop=" & CStr(obs150StopSec)
+    Obs150AssertStop T
+    obs150Bundles.Add CStr(T), True
+    If T = 1 Then
+        obs150K = Empty
+    Else
+        obs150K = T \ OBS150_DECISION_SEC
+    End If
+End Sub
+
+' The top-level "obs150" object of state_T.json (obs150-raw/v1), one line of JSON.
+Function Obs150Bundle(simSec, frameVehicles, vehs, links, lanes, positions, speeds)
+    Dim T, first, startS, framePath, zeroPath, capturePath, captureInner, captureSha, shas, detail, paths
+    Dim detJson, cumJson, lastEqual, ruleJson, fwE, fwW, sigJson, linkJson, s, prevSha
+    T = CLng(simSec)
+    first = (T = 1)
+    If first Then
+        startS = 0
+    Else
+        startS = T - OBS150_DECISION_SEC
+    End If
+    WriteLanePlantObservation T, frameVehicles, vehs, links, lanes, positions, speeds
+    Obs150ReadDetectors T, detJson, cumJson, lastEqual, ruleJson, fwE, fwW
+    linkJson = Obs150LinkEvalJson(T)
+    captureInner = Obs150Capture(T, captureSha)
+    sigJson = Obs150SignalLogJson(T)
+    framePath = Obs150FrameFile(T)
+    zeroPath = Obs150FrameFile(0)
+    capturePath = fso.BuildPath(obs150Dir, "capture_" & Pad6(T) & ".json")
+    If first Then
+        paths = Array(framePath, capturePath, zeroPath)
+    Else
+        paths = Array(framePath, capturePath)
+    End If
+    If Not Obs150Sha256Files(paths, shas, detail) Then Obs150Abort T, "SHA256", detail
+    If shas(capturePath) <> captureSha Then
+        Obs150Abort T, "CAPTURE_SHA256", "file=" & shas(capturePath) & " stdout=" & captureSha
+    End If
+    obs150FrameSha(CStr(T)) = shas(framePath)
+    If first Then obs150FrameSha("0") = shas(zeroPath)
+    If Not obs150FrameSha.Exists(CStr(startS)) Then Obs150Abort T, "PREVIOUS_FRAME", "no pin for frame " & CStr(startS)
+    prevSha = obs150FrameSha(CStr(startS))
+    s = "{""schema"":""obs150-raw/v1"",""sim_sec"":" & CStr(T) & ","
+    If first Then
+        s = s & """k"":null,""window"":null,"
+    Else
+        s = s & """k"":" & CStr(T \ OBS150_DECISION_SEC) & ",""window"":{""start_s"":" & CStr(startS) & _
+            ",""end_s"":" & CStr(T) & "},"
+    End If
+    s = s & """directory"":""" & JsonEscape(obs150DecisionDir) & """,""simres_steps_per_sec"":" & CStr(simResSteps) & _
+        ",""run_id"":""" & JsonEscape(runId) & """,""ground_truth_windows"":" & Obs150GtJson() & ","
+    s = s & """detector_config"":{""path"":""" & JsonEscape(obs150DetectorsPath) & """,""sha256"":""" & _
+        obs150DetectorsSha256 & """,""rows"":" & CStr(UBound(obs150Rows) + 1) & "},"
+    s = s & """install_record"":{""path"":""obs150/obs150_install.json"",""sha256"":""" & obs150InstallSha256 & """},"
+    s = s & """detectors"":" & detJson & ",""detectors_cum"":" & cumJson & ",""detectors_last_equal"":" & lastEqual & ","
+    s = s & """rule_crosscheck"":" & ruleJson & ",""linkeval_volume_veh_h"":" & linkJson & ","
+    s = s & captureInner & ",""signal_log"":" & sigJson & ","
+    s = s & """source_cumulative_vehs"":{""FW_E"":" & CStr(fwE) & ",""FW_W"":" & CStr(fwW) & "},"
+    s = s & """frames"":{""current"":{""path"":""lane_observations/frame_" & Pad6(T) & ".json"",""sha256"":""" & _
+        shas(framePath) & """,""vehicles"":" & CStr(CLng(frameVehicles)) & "},""previous"":{""path"":""lane_observations/frame_" & _
+        Pad6(startS) & ".json"",""sha256"":""" & prevSha & """}}"
+    If first Then s = s & ",""open_interval"":{""k"":1,""end_s"":1}"
+    Obs150Bundle = s & "}"
+    WScript.Echo "OBS150_BUNDLE sim_sec=" & CStr(T) & " vehicles=" & CStr(CLng(frameVehicles)) & _
+        " signal_events=" & CStr(Obs150LastEventCount) & " frame_sha256=" & shas(framePath)
+End Function
+
+Function Obs150FrameFile(t)
+    Obs150FrameFile = fso.BuildPath(fso.BuildPath(obs150DecisionDir, "lane_observations"), "frame_" & Pad6(CLng(t)) & ".json")
+End Function
+
+Function Obs150GtJson()
+    Dim i, parts()
+    Obs150GtJson = "[]"
+    If IsEmpty(obs150GtWindows) Then Exit Function
+    ReDim parts(UBound(obs150GtWindows))
+    For i = 0 To UBound(obs150GtWindows)
+        parts(i) = "[" & CStr(obs150GtWindows(i)(0)) & "," & CStr(obs150GtWindows(i)(1)) & "]"
+    Next
+    Obs150GtJson = "[" & Join(parts, ",") & "]"
+End Function
+
+' Vehs(Current,k,All) of every table point in one container read (open interval 1 at t=1),
+' equal to (Current,Last,All) at T >= 150 (PRB d); plus the RULE points 910030-910047.
+Sub Obs150ReadDetectors(T, ByRef detJson, ByRef cumJson, ByRef lastEqual, ByRef ruleJson, ByRef fwE, ByRef fwW)
+    Dim dcms, aNo, aK, aL, first, kRead, lo, hi, kc, vc, row, n, byNo, i, key, det, cum, vLast
+    Dim dparts(), cparts(), rparts, errNo, errDesc, rowSpec
+    first = (CLng(T) = 1)
+    If first Then
+        kRead = 1
+    Else
+        kRead = CLng(T) \ OBS150_DECISION_SEC
+    End If
+    Set dcms = Vissim.Net.DataCollectionMeasurements
+    aNo = Empty: aK = Empty: aL = Empty
+    On Error Resume Next
+    aNo = dcms.GetMultiAttValues("No")
+    If Err.Number = 0 Then aK = dcms.GetMultiAttValues("Vehs(Current," & CStr(kRead) & ",All)")
+    If Err.Number = 0 And Not first Then aL = dcms.GetMultiAttValues("Vehs(Current,Last,All)")
+    errNo = Err.Number
+    errDesc = Err.Description
+    Err.Clear
+    On Error GoTo 0
+    If errNo <> 0 Then Obs150Abort T, "DETECTOR_READ", errDesc
+    If Not Obs150SameTable(aNo, aK, lo, hi, kc, vc) Then Obs150Abort T, "DETECTOR_TABLE", "Vehs(Current,k,All) shape"
+    If Not first Then
+        If Not Obs150SameTable(aNo, aL, lo, hi, kc, vc) Then Obs150Abort T, "DETECTOR_TABLE", "Vehs(Current,Last,All) shape"
+    End If
+    Set byNo = CreateObject("Scripting.Dictionary")
+    For row = lo To hi
+        If Not Obs150WholeNumber(aNo(row, vc), n) Then Obs150Abort T, "DETECTOR_TABLE", "measurement No at row " & CStr(row)
+        byNo(CStr(n)) = row
+    Next
+    ReDim dparts(UBound(obs150Rows))
+    ReDim cparts(UBound(obs150Rows))
+    fwE = 0
+    fwW = 0
+    For i = 0 To UBound(obs150Rows)
+        rowSpec = obs150Rows(i)
+        key = CStr(rowSpec(0))
+        If Not byNo.Exists(key) Then Obs150Abort T, "DETECTOR_MISSING", "measurement " & key
+        row = byNo(key)
+        If Not Obs150WholeNumber(aK(row, vc), det) Then
+            Obs150Abort T, "DETECTOR_VALUE", "measurement " & key & " vartype=" & CStr(VarType(aK(row, vc)))
+        End If
+        If first Then
+            cum = det
+        Else
+            If Not Obs150WholeNumber(aL(row, vc), vLast) Then vLast = -1
+            If vLast <> det Then
+                Obs150Abort T, "DETECTORS_LAST_MISMATCH", "measurement " & key & " k=" & CStr(det) & " last=" & CStr(vLast)
+            End If
+            cum = det
+            If obs150Cum.Exists(key) Then cum = cum + CLng(obs150Cum(key))
+            obs150Cum(key) = cum
+        End If
+        dparts(i) = """" & key & """:" & CStr(det)
+        cparts(i) = """" & key & """:" & CStr(cum)
+        If rowSpec(1) = "source" Then
+            If rowSpec(2) = "FW_E" Then fwE = fwE + cum
+            If rowSpec(2) = "FW_W" Then fwW = fwW + cum
+        End If
+    Next
+    rparts = ""
+    For n = 910030 To 910047
+        If byNo.Exists(CStr(n)) Then
+            row = byNo(CStr(n))
+            If Not Obs150WholeNumber(aK(row, vc), det) Then Obs150Abort T, "DETECTOR_VALUE", "rule measurement " & CStr(n)
+            If rparts <> "" Then rparts = rparts & ","
+            rparts = rparts & """" & CStr(n) & """:" & CStr(det)
+        End If
+    Next
+    detJson = "{" & Join(dparts, ",") & "}"
+    cumJson = "{" & Join(cparts, ",") & "}"
+    ruleJson = "{" & rparts & "}"
+    If first Then
+        lastEqual = "null"
+    Else
+        lastEqual = "true"
+    End If
+End Sub
+
+' Both 2-D (index, value) tables of one container read, with identical bounds.
+Function Obs150SameTable(a, b, ByRef lo, ByRef hi, ByRef kc, ByRef vc)
+    Dim lo2, hi2, kc2, vc2
+    Obs150SameTable = False
+    If Not TryExact2DTableBounds(a, lo, hi, kc, vc) Then Exit Function
+    If Not TryExact2DTableBounds(b, lo2, hi2, kc2, vc2) Then Exit Function
+    Obs150SameTable = (lo = lo2 And hi = hi2 And kc = kc2 And vc = vc2)
+End Function
+
+Function Obs150LinkEvalAttribute()
+    If IsEmpty(obs150K) Then
+        Obs150LinkEvalAttribute = ""
+    Else
+        Obs150LinkEvalAttribute = "AVG:LinkEvalSegs\Volume(Current," & CStr(obs150K) & ",All)"
+    End If
+End Function
+
+' Audit only (D-D (a)): the off connectors and 10565/10570, Edie average of window k; null when
+' unreadable and at t=1.
+Function Obs150LinkEvalJson(T)
+    Dim attr, key, lk, value, number, parts, errNo
+    attr = Obs150LinkEvalAttribute()
+    parts = ""
+    For Each key In obs150LinkEvalLinks.Keys
+        value = Empty
+        errNo = 1
+        If attr <> "" Then
+            On Error Resume Next
+            Set lk = Vissim.Net.Links.ItemByKey(CLng(key))
+            If Err.Number = 0 Then value = lk.AttValue(attr)
+            errNo = Err.Number
+            Err.Clear
+            On Error GoTo 0
+        End If
+        If parts <> "" Then parts = parts & ","
+        If errNo = 0 And TryB1aFiniteDouble(value, 0.0, number) Then
+            parts = parts & """" & CStr(key) & """:" & JsonDoubleInvariant(number)
+        Else
+            parts = parts & """" & CStr(key) & """:null"
+        End If
+    Next
+    Obs150LinkEvalJson = "{" & parts & "}"
+End Function
+
+' .mer/.err increments through the WP-B1 CLI (CONTRACT 4.5). Returns the capture file with its
+' outer braces removed ("mer":...,"err":...) and its sha from the one stdout line.
+Function Obs150Capture(T, ByRef captureSha)
+    Dim cmd, exitCode, outText, errText, text, prefix, path
+    cmd = pythonExe & " -B " & Q(obs150CaptureScript) & " --eval-dir " & Q(obs150EvalOutDir) & _
+        " --err " & Q(obs150ErrPath) & " --out-dir " & Q(obs150Dir) & " --sim-sec " & CStr(CLng(T)) & _
+        " --detectors " & Q(obs150DetectorsPath) & " --detectors-sha256 " & obs150DetectorsSha256
+    exitCode = RunCapture3Timeout(cmd, OBS150_CAPTURE_TIMEOUT_SEC, outText, errText)
+    If exitCode <> 0 Then Obs150Abort T, "CAPTURE_FAILED", "exit=" & CStr(exitCode) & " stderr=" & errText
+    text = Obs150StripLineEnd(outText)
+    prefix = "OBS150_CAPTURE_OK meta=obs150/capture_" & Pad6(T) & ".json sha256="
+    captureSha = Mid(text, Len(prefix) + 1)
+    If InStr(1, text, vbLf, vbBinaryCompare) > 0 Or InStr(1, text, vbCr, vbBinaryCompare) > 0 _
+            Or Left(text, Len(prefix)) <> prefix Or Not Obs150IsSha256(captureSha) Then
+        Obs150Abort T, "CAPTURE_STDOUT", "stdout=" & outText
+    End If
+    path = fso.BuildPath(obs150Dir, "capture_" & Pad6(T) & ".json")
+    If Not fso.FileExists(path) Then Obs150Abort T, "CAPTURE_META_MISSING", "path=" & path
+    text = ReadAllText(path)
+    If Left(text, 7) <> "{""mer"":" Or Right(text, 1) <> "}" Or InStr(1, text, ",""err"":{", vbBinaryCompare) = 0 _
+            Or InStr(1, text, vbLf, vbBinaryCompare) > 0 Or InStr(1, text, vbCr, vbBinaryCompare) > 0 Then
+        Obs150Abort T, "CAPTURE_META", "path=" & path
+    End If
+    Obs150Capture = Mid(text, 2, Len(text) - 2)
+End Function
+
+Function Obs150StripLineEnd(text)
+    Dim s
+    s = CStr(text)
+    Do While Len(s) > 0
+        If Right(s, 1) <> vbLf And Right(s, 1) <> vbCr Then Exit Do
+        s = Left(s, Len(s) - 1)
+    Loop
+    Obs150StripLineEnd = s
+End Function
+
+' sha256 of files through the resolved interpreter (this WSH has no .NET 3.5 COM hashing).
+' Returns True and fills shas (path -> lower-case hex) or False with a detail.
+Function Obs150Sha256Files(paths, ByRef shas, ByRef detail)
+    Dim cmd, i, exitCode, outText, errText, lines, line, n
+    Obs150Sha256Files = False
+    detail = ""
+    Set shas = CreateObject("Scripting.Dictionary")
+    cmd = pythonExe & " -B -c ""import hashlib,sys;[print(hashlib.sha256(open(p,'rb').read()).hexdigest()) for p in sys.argv[1:]]"""
+    For i = 0 To UBound(paths)
+        cmd = cmd & " " & Q(paths(i))
+    Next
+    exitCode = RunCapture3Timeout(cmd, OBS150_HELPER_TIMEOUT_SEC, outText, errText)
+    If exitCode <> 0 Then
+        detail = "sha256 helper exit=" & CStr(exitCode) & " err=" & OneLine(errText)
+        Exit Function
+    End If
+    lines = Split(Replace(CStr(outText), vbCr, ""), vbLf)
+    n = 0
+    For Each line In lines
+        If Trim(line) <> "" Then
+            If n > UBound(paths) Or Not Obs150IsSha256(Trim(line)) Then
+                detail = "sha256 helper output: " & OneLine(outText)
+                Exit Function
+            End If
+            shas(CStr(paths(n))) = Trim(line)
+            n = n + 1
+        End If
+    Next
+    If n <> UBound(paths) + 1 Then
+        detail = "sha256 helper returned " & CStr(n) & " of " & CStr(UBound(paths) + 1)
+        Exit Function
+    End If
+    Obs150Sha256Files = True
+End Function
+
+Sub Obs150Abort(simSec, reason, detail)
+    WScript.Echo "ERROR=OBS150_" & reason & " sim_sec=" & CStr(simSec) & " " & OneLine(detail)
+    AbortVehicleObservation simSec
+End Sub
+
+' ---- runner signal log (plan A4, CONTRACT 4.3) -----------------------------
+' Per SG ("<sc>-<sg>"): Array(owner "native"|"com", state, verified). A write at stop t reaches the
+' heads at t+1 and acts on (t+1, t'+1] (CONTRACT 2.3; VISSIM updates heads once a second). Window
+' k = (S, S+150] starts with the state BEFORE the writes at stop S (snapshot in the bundle at S),
+' and S <= t < S+150 are its events.
+Sub Obs150InitSignalLog()
+    Dim scNo, sc, sgNos, j, key, sg, value, errNo
+    obs150SigScList = Obs150SignalScs()
+    obs150SigNow.RemoveAll
+    For Each scNo In obs150SigScList
+        Set sc = CachedSignalController(CLng(scNo))
+        If sc Is Nothing Then Obs150SignalFatal "SC " & CStr(scNo) & " not found"
+        sgNos = Obs150SignalGroupNumbers(sc, scNo)
+        For j = 0 To UBound(sgNos)
+            key = CStr(scNo) & "-" & CStr(sgNos(j))
+            Set sg = CachedSignalGroup(CLng(scNo), CLng(sgNos(j)))
+            If sg Is Nothing Then Obs150SignalFatal "SG " & key & " not found"
+            value = Empty
+            On Error Resume Next
+            value = sg.AttValue("ContrByCOM")
+            errNo = Err.Number
+            Err.Clear
+            On Error GoTo 0
+            If errNo <> 0 Or IsNull(value) Or IsEmpty(value) Then Obs150SignalFatal "ContrByCOM of " & key & " unreadable"
+            ' Nothing is written before the t=1 bundle: every listed SG must still be native.
+            If ComBoolean(value) Then Obs150SignalFatal "SG " & key & " is under COM before the first obs150 write"
+            obs150SigNow.Add key, Array("native", "", True)
+        Next
+    Next
+    obs150SigKeys = obs150SigNow.Keys
+    obs150SigStart.RemoveAll
+    obs150SigEvents.RemoveAll
+    obs150SigUnverified.RemoveAll
+    obs150SigWindowStart = 0
+    obs150SigLastT = 0
+    obs150SigStartTaken = False
+    obs150SigComplete = True
+    obs150SigReady = True
+    WScript.Echo "OBS150_SIGNAL_LOG scs=" & CStr(UBound(obs150SigScList) + 1) & " sgs=" & CStr(obs150SigNow.Count)
+End Sub
+
+' Every SC the runner may write (RW_SIGNAL_SCS, RW_RAMP_METER_SCS) and every head/meter-head SC.
+Function Obs150SignalScs()
+    Dim all, part, n
+    Set all = CreateObject("Scripting.Dictionary")
+    For Each part In Split(CStr(RW_SIGNAL_SCS) & "," & CStr(RW_RAMP_METER_SCS), ",")
+        If Trim(part) <> "" Then
+            If Not ParseB1aPositiveLongText(Trim(part), n) Then Obs150SignalFatal "SC list entry " & part
+            all(CStr(n)) = True
+        End If
+    Next
+    For Each part In obs150HeadScs.Keys
+        all(CStr(part)) = True
+    Next
+    Obs150SignalScs = Obs150SortedKeys(all)
+End Function
+
+' Ascending Long array of a dictionary's decimal keys (Array() when empty).
+Function Obs150SortedKeys(dict)
+    Dim keys, list(), i, j, v
+    If dict.Count = 0 Then
+        Obs150SortedKeys = Array()
+        Exit Function
+    End If
+    keys = dict.Keys
+    ReDim list(UBound(keys))
+    For i = 0 To UBound(keys)
+        v = CLng(keys(i))
+        j = i - 1
+        Do While j >= 0
+            If list(j) <= v Then Exit Do
+            list(j + 1) = list(j)
+            j = j - 1
+        Loop
+        list(j + 1) = v
+    Next
+    Obs150SortedKeys = list
+End Function
+
+Function Obs150SignalGroupNumbers(sc, scNo)
+    Dim arr, lo, hi, kc, vc, row, n, found, errNo
+    arr = Empty
+    On Error Resume Next
+    arr = sc.SGs.GetMultiAttValues("No")
+    errNo = Err.Number
+    Err.Clear
+    On Error GoTo 0
+    If errNo <> 0 Or Not TryExact2DTableBounds(arr, lo, hi, kc, vc) Then Obs150SignalFatal "SG list of SC " & CStr(scNo)
+    Set found = CreateObject("Scripting.Dictionary")
+    For row = lo To hi
+        If Not Obs150WholeNumber(arr(row, vc), n) Then Obs150SignalFatal "SG number of SC " & CStr(scNo)
+        If n < 1 Or found.Exists(CStr(n)) Then Obs150SignalFatal "SG number of SC " & CStr(scNo)
+        found(CStr(n)) = True
+    Next
+    Obs150SignalGroupNumbers = Obs150SortedKeys(found)
+End Function
+
+Function Obs150SignalKey(scNo, sgNo)
+    Dim key
+    key = CStr(CLng(scNo)) & "-" & CStr(CLng(sgNo))
+    If Not obs150SigReady Then Obs150SignalFatal "signal write before the t=1 bundle started the log"
+    If Not obs150SigNow.Exists(key) Then Obs150SignalFatal "signal write on unlisted SG " & key
+    Obs150SignalKey = key
+End Function
+
+' Moves the log clock to the current stop. Crossing past a stop closes it: an SG left unverified
+' makes the window incomplete. The start snapshot is taken by the bundle (Obs150SignalLogJson).
+Sub Obs150SignalAdvance()
+    Dim t
+    t = CLng(obs150StopSec)
+    If t < CLng(obs150SigLastT) Then Obs150SignalFatal "signal log clock moved backwards"
+    If t >= CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then
+        Obs150SignalFatal "signal write at stop " & CStr(t) & " before the bundle of its window start"
+    End If
+    If t > CLng(obs150SigLastT) Then Obs150SignalBoundary t
+End Sub
+
+Sub Obs150SignalBoundary(t)
+    Dim key
+    If Not obs150SigStartTaken Then
+        obs150SigStart.RemoveAll
+        For Each key In obs150SigKeys
+            obs150SigStart.Add key, obs150SigNow(key)
+        Next
+        obs150SigStartTaken = True
+    End If
+    If obs150SigUnverified.Count > 0 Then obs150SigComplete = False
+    obs150SigLastT = CLng(t)
+End Sub
+
+Sub Obs150SignalStore(key, value)
+    obs150SigNow(key) = value
+    If value(0) = "com" And Not CBool(value(2)) Then
+        obs150SigUnverified(key) = True
+    ElseIf obs150SigUnverified.Exists(key) Then
+        obs150SigUnverified.Remove key
+    End If
+End Sub
+
+Sub Obs150SignalAppend(eventJson)
+    If CLng(obs150StopSec) >= CLng(obs150SigWindowStart) Then
+        obs150SigEvents.Add CStr(obs150SigEvents.Count), eventJson
+    End If
+End Sub
+
+Function Obs150EventHead(scNo, sgNo)
+    Obs150EventHead = "[" & CStr(CLng(obs150StopSec)) & ",""" & CStr(CLng(scNo)) & """,""" & CStr(CLng(sgNo)) & ""","
+End Function
+
+' own: ContrByCOM readback after a write of it. Only a change of owner is an event.
+Sub Obs150SignalOwn(scNo, sgNo, sg, owned)
+    Dim key, cur, state
+    Obs150SignalEnter
+    key = Obs150SignalKey(scNo, sgNo)
+    cur = obs150SigNow(key)
+    If CBool(owned) = (cur(0) = "com") Then
+        obs150SigBusy = False
+        Exit Sub
+    End If
+    Obs150SignalAdvance
+    If CBool(owned) Then
+        ' Unverified until the next successful write (CONTRACT 4.3).
+        state = UCase(Trim(SafeAtt(sg, "SigState")))
+        If state = "" Then state = "UNKNOWN"
+        Obs150SignalStore key, Array("com", state, False)
+    Else
+        Obs150SignalStore key, Array("native", "", True)
+    End If
+    Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """own""," & JsonBoolean(owned) & "]"
+    obs150SigBusy = False
+End Sub
+
+' A SigState write that bypasses SetSignalGroupState (the meter GREEN at t=1): read it back.
+Sub Obs150SignalDirectWrite(scNo, sgNo, sg, requestedState)
+    Dim readback, ok
+    readback = UCase(Trim(SafeAtt(sg, "SigState")))
+    ok = (readback = UCase(Trim(CStr(requestedState))))
+    If Not ok Then
+        signalFailures = signalFailures + 1
+        WScript.Echo "ERROR=OBS150_DIRECT_WRITE_READBACK sc=" & CStr(scNo) & " sg=" & CStr(sgNo) & _
+            " requested=" & CStr(requestedState) & " readback=" & readback
+        readback = "ERR:readback=" & readback
+    End If
+    Obs150SignalWriteResult scNo, sgNo, requestedState, readback, ok
+End Sub
+
+' RecordSignalReadback hook: every SetSignalGroupState outcome and every post-step mismatch.
+' It is called from inside SetSignalGroupState's On Error Resume Next: a run-time error here would be
+' swallowed and the rest skipped. obs150SigBusy stays True then, and the next entry stops the run.
+Sub Obs150SignalReadback(scNo, sgNo, requestedState, readbackState, ok)
+    Obs150SignalEnter
+    If signalTraceStage = "post_step" Then
+        If Not CBool(ok) Then Obs150SignalPostStepMismatch scNo, sgNo, requestedState, readbackState
+    Else
+        Obs150SignalWriteResult scNo, sgNo, requestedState, readbackState, ok
+    End If
+    obs150SigBusy = False
+End Sub
+
+Sub Obs150SignalEnter()
+    If obs150SigBusy Then Obs150SignalFatal "an earlier signal log update was interrupted by a run-time error"
+    obs150SigBusy = True
+End Sub
+
+Sub Obs150SignalWriteResult(scNo, sgNo, requestedState, readbackState, ok)
+    Dim key, cur, requested, state, detail
+    key = Obs150SignalKey(scNo, sgNo)
+    Obs150SignalAdvance
+    cur = obs150SigNow(key)
+    If cur(0) <> "com" Then Obs150SignalFatal "write on native-owned SG " & key
+    requested = UCase(Trim(CStr(requestedState)))
+    If requested = "" Then Obs150SignalFatal "empty requested state on SG " & key
+    If CBool(ok) Then
+        Obs150SignalStore key, Array("com", requested, True)
+        Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """write"",""" & JsonEscape(requested) & """]"
+    Else
+        state = cur(1)
+        If state = "" Then state = requested
+        Obs150SignalStore key, Array("com", state, False)
+        detail = Trim(CStr(readbackState))
+        If detail = "" Then detail = "ERR:unknown"
+        If CLng(obs150StopSec) >= CLng(obs150SigWindowStart) Then obs150SigComplete = False
+        Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """fail"",""" & JsonEscape(requested) & """,""" & JsonEscape(detail) & """]"
+    End If
+End Sub
+
+' The state requested at an earlier stop did not persist: it deviated at an unknown time before
+' this stop. The window is incomplete and the SG unverified until its next successful write.
+Sub Obs150SignalPostStepMismatch(scNo, sgNo, requestedState, readbackState)
+    Dim key, cur, t
+    key = Obs150SignalKey(scNo, sgNo)
+    t = CLng(obs150StopSec)
+    cur = obs150SigNow(key)
+    If cur(0) <> "com" Then Obs150SignalFatal "post-step check on native-owned SG " & key
+    If t > CLng(obs150SigLastT) And t < CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then Obs150SignalBoundary t
+    obs150SigComplete = False
+    Obs150SignalStore key, Array("com", cur(1), False)
+    If t >= CLng(obs150SigWindowStart) And t < CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then
+        Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """fail"",""" & JsonEscape(UCase(Trim(CStr(requestedState)))) & _
+            """,""" & JsonEscape("ERR:post_step readback=" & Trim(CStr(readbackState))) & """]"
+    End If
+End Sub
+
+Function Obs150LastEventCount()
+    Obs150LastEventCount = CLng(obs150LastEventCountValue)
+End Function
+
+' signal_log of the bundle at T; after a closed window (T >= 150) the next window starts at T.
+Function Obs150SignalLogJson(T)
+    Dim s, key, cur, parts(), i, scParts()
+    If obs150SigBusy Then Obs150SignalFatal "an earlier signal log update was interrupted by a run-time error"
+    If Not obs150SigReady Then
+        If CLng(T) <> 1 Then Obs150SignalFatal "the signal log starts at the t=1 bundle"
+        Obs150InitSignalLog
+    End If
+    If CLng(T) <= CLng(obs150SigLastT) Then Obs150SignalFatal "a signal write happened at the bundle stop before its bundle"
+    Obs150SignalBoundary T
+    ReDim scParts(UBound(obs150SigScList))
+    For i = 0 To UBound(obs150SigScList)
+        scParts(i) = """" & CStr(obs150SigScList(i)) & """"
+    Next
+    ReDim parts(UBound(obs150SigKeys))
+    For i = 0 To UBound(obs150SigKeys)
+        key = obs150SigKeys(i)
+        cur = obs150SigStart(key)
+        If cur(0) = "native" Then
+            parts(i) = """" & key & """:{""owner"":""native""}"
+        Else
+            parts(i) = """" & key & """:{""owner"":""com"",""state"":""" & JsonEscape(cur(1)) & """,""verified"":" & JsonBoolean(cur(2)) & "}"
+        End If
+    Next
+    s = "{""scs"":[" & Join(scParts, ",") & "],""start"":{" & Join(parts, ",") & "},""events"":[" & _
+        Join(obs150SigEvents.Items, ",") & "],""complete"":" & JsonBoolean(obs150SigComplete) & "}"
+    obs150LastEventCountValue = obs150SigEvents.Count
+    If CLng(T) >= OBS150_DECISION_SEC Then
+        ' The writes at this stop reach the heads at T+1 (CONTRACT 2.3): the next window starts with
+        ' the state before them, taken here, and lists them as its events. An SG unverified now is
+        ' unverified in the slot (T, T+1] too.
+        obs150SigWindowStart = CLng(T)
+        obs150SigLastT = CLng(T)
+        obs150SigStart.RemoveAll
+        For Each key In obs150SigKeys
+            obs150SigStart.Add key, obs150SigNow(key)
+        Next
+        obs150SigStartTaken = True
+        obs150SigComplete = (obs150SigUnverified.Count = 0)
+        obs150SigEvents.RemoveAll
+    End If
+    Obs150SignalLogJson = s
+End Function
+
+Sub Obs150SignalFatal(detail)
+    Obs150Abort obs150StopSec, "SIGNAL_LOG", detail
+End Sub
+
+' ---- value helpers ---------------------------------------------------------
+' CONTRACT 4.2: VarType in {vbInteger, vbLong, vbDouble}, finite, whole and >= 0. Empty and Null
+' fail here - IsNumeric(Empty) is True, the probe trap.
+Function Obs150WholeNumber(ByVal value, ByRef parsed)
+    Dim number, probe
+    Obs150WholeNumber = False
+    parsed = 0
+    If IsArray(value) Or IsObject(value) Then Exit Function
+    Select Case VarType(value)
+        Case 2, 3, 5
+        Case Else
+            Exit Function
+    End Select
+    On Error Resume Next
+    number = CDbl(value)
+    probe = number * 0.0
+    If Err.Number <> 0 Then
+        Err.Clear
+        On Error GoTo 0
+        Exit Function
+    End If
+    On Error GoTo 0
+    If number <> number Or probe <> probe Then Exit Function
+    If number < 0 Or number > 2147483647.0 Or Fix(number) <> number Then Exit Function
+    parsed = CLng(number)
+    Obs150WholeNumber = True
+End Function
+
+Function Obs150IsSha256(text)
+    Dim i, ch
+    Obs150IsSha256 = False
+    If Len(CStr(text)) <> 64 Then Exit Function
+    For i = 1 To 64
+        ch = Mid(text, i, 1)
+        If Not ((ch >= "0" And ch <= "9") Or (ch >= "a" And ch <= "f")) Then Exit Function
+    Next
+    Obs150IsSha256 = True
+End Function
+
+' "(0|[1-9][0-9]*).dddddd" (CONTRACT 7, pos '%.6f'), parsed without the locale separator.
+Function Obs150ParseDecimal(ByVal text, ByRef parsed)
+    Dim dot, i, ch
+    Obs150ParseDecimal = False
+    parsed = 0
+    dot = InStr(1, text, ".", vbBinaryCompare)
+    If dot < 2 Or Len(text) - dot <> 6 Then Exit Function
+    If dot > 2 And Left(text, 1) = "0" Then Exit Function
+    For i = 1 To Len(text)
+        ch = Mid(text, i, 1)
+        If i <> dot And (ch < "0" Or ch > "9") Then Exit Function
+    Next
+    parsed = CDbl(Replace(text, ".", JSON_DECIMAL_SEPARATOR))
+    Obs150ParseDecimal = True
+End Function
+
+Function Obs150CsvCell(ByVal value)
+    Dim n
+    If IsNull(value) Or IsEmpty(value) Or IsArray(value) Or IsObject(value) Then
+        Obs150CsvCell = ""
+    ElseIf Obs150WholeNumber(value, n) Then
+        Obs150CsvCell = CStr(n)
+    Else
+        Obs150CsvCell = Replace(Replace(CStr(value), ",", ";"), vbLf, " ")
+    End If
+End Function
+' END OBS150_RUNNER

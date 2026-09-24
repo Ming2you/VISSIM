@@ -1,0 +1,151 @@
+{
+  "schema": "route-choice-corridor/v1",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+  },
+  "membership_path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "decision": "1100",
+  "decision_link": "341",
+  "decision_position_m": 29.906012052254486,
+  "prefix_storage": "native_1087_choice",
+  "prefix_links": [
+    "341"
+  ],
+  "local_storage": null,
+  "local_links": [],
+  "local_connector": null,
+  "bypass_storage": null,
+  "bypass_connector": null,
+  "post_stopline_projection": {},
+  "native_paths": {
+    "1": [
+      "341",
+      "10556",
+      "1220008502"
+    ],
+    "2": [
+      "341",
+      "10555"
+    ]
+  },
+  "branch_specs": {
+    "1": {
+      "mode": "free_storage",
+      "destination": "SC1_to_SC101",
+      "service_group": "native_source:341",
+      "physical_target_link": "1220008502"
+    },
+    "2": {
+      "mode": "free_storage",
+      "destination": "SC101_to_SC1",
+      "service_group": "native_source:341",
+      "physical_target_link": "1220008401"
+    }
+  },
+  "local_free_paths": {},
+  "local_movements": {},
+  "local_queue_heads": {},
+  "incoming_turns": {},
+  "generated_inputs": {
+    "1087": {
+      "physical_source": "341",
+      "storage": "native_1087_choice",
+      "native_decision": "1100"
+    }
+  },
+  "native_fixed_service": {
+    "controller": "15",
+    "signal_group": "1",
+    "head": "110101",
+    "program_no": 1,
+    "controller_offset_sec": 0.0,
+    "sig_file": {
+      "path": "network/real_world_gaepo_modi/개포동 test-bed11.sig",
+      "sha256": "d2cca87fb0c3afa006c759d1bbaeb87fa979a8ea622b8bf718fd5b4149cb4aae"
+    },
+    "selected_plan": {
+      "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
+      "sha256": "e88e48aecd072cdead6eca807b2fe2e10b6c942e3406c032deacfe834445f48e"
+    },
+    "calibrated_discharge": {
+      "path": "diagnostics\\native_sc15_service_calibration.json",
+      "sha256": "3119a382c0a207bea4bdd37f1a034b7a4d44f7b5eeae51e26510e2ea3898a80a",
+      "input_no": "1087"
+    }
+  },
+  "model_limitations": [
+    "Native200:150 is conditional on reaching the declared decision; measured current routes are preserved, missing past choices fail explicitly.",
+    "Only the source road is reassigned to this finite stock. Both branch connectors and shared downstream roads retain their existing unique receiver projection.",
+    "NativeSC15 source signal is a fixed clock, not an MPC lever. Its two route tags share one source-lane service budget at the existing model capacity scale.",
+    "Before-head cohorts are gated at accepted branch discharge (head-to-branch travel2–4m is not a separate reservoir); already past-head observed cohorts do not cross the source signal twice.",
+    "The downstream receiver resumes existing travel and approach turn dynamics after the declared native route ends; no unobserved longer route is invented.",
+    "Generation/backlog belong only to native_internal_input. Route receipt adds no demand and schedules no duplicate generic arrival."
+  ],
+  "historical_prior_transfer": {
+    "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
+    "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+  },
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_1100_sc15_calibrated_f2a618.json",
+      "sha256": "74239bbfeb84747ea088ebef31506a9846576df18016879f966ae98d6c66f91d"
+    },
+    "runtime_network": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "accuracy_validation": "pending",
+    "lineage": {
+      "source_declaration": {
+        "path": "diagnostics/route_choice_corridor_1100_sc15_calibrated.json",
+        "sha256": "b96fc6525cbdc5b0f1fafd7c6001b7de91f17b9c7cfe5ffa58da56d4b81d6372"
+      },
+      "runtime_network": {
+        "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+        "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+      },
+      "accuracy_validation": "pending"
+    },
+    "repin": {
+      "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+      "plan": "SDMPC31_OBS150_PLAN_20260924 section 5",
+      "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+      "rewritten": {
+        "network_pin": 1,
+        "pack_pin": 1,
+        "pack_path": 1
+      }
+    },
+    "prior_mismatch": {
+      "status": "transferred_without_refit",
+      "decision": "D-B (2026-09-24): carry the prior over with receipts, mark prior_mismatch, refit after the first 9000 s run",
+      "priors": [
+        {
+          "at": "/native_fixed_service/calibrated_discharge",
+          "path": "diagnostics\\native_sc15_service_calibration.json",
+          "sha256": "3119a382c0a207bea4bdd37f1a034b7a4d44f7b5eeae51e26510e2ea3898a80a"
+        }
+      ],
+      "receipt": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
+        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+      },
+      "target_network": {
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      },
+      "differences_since_previous_pack": [
+        "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only (2 elements)",
+        "desSpeedDecisions: desired speed distribution only (76 elements)"
+      ],
+      "differences_since_training": "receipt actual_native_differences (training network -> v2)",
+      "refit_after": "the first 9000 s SDMPC run (V5) and its paired no-control run (V4)"
+    }
+  }
+}

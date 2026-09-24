@@ -1,0 +1,6 @@
+# C1 (WP-C, SDMPC-31, 2026-09-24): byte copies of the B110 calibration artifacts.
+# plant_n31_v2.json, freeze.json code_pins and b110_copy_receipt.json pin their
+# CRLF bytes by sha256, so no eol conversion on add or checkout (plan 1.8 keeps the
+# root .gitattributes with WP-0; this folder is WP-C's, as in
+# diagnostics/performance_diagnosis_20260913/.gitattributes).
+* -text

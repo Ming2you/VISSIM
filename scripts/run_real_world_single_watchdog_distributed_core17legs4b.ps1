@@ -4,6 +4,10 @@ Run one real-world Gaepo modi VISSIM controller case with a no-progress watchdog
 Progress is the newest mtime among the run log, state CSV, action CSV, and
 decision action JSONs. If nothing moves for StallSec seconds, cscript/VISSIM are
 killed and the case is retried up to MaxAttempts.
+
+obs150 (a coupled-lane-plant/v2 manifest): one attempt, and never a kill by process
+name. Only the cscript this watchdog starts and the VISSIM it identifies are stopped,
+by PID and start time; the run always behaves as -NoGlobalKill.
 #>
 # 위치인자 바인딩을 끈다. 호출자가 실수로 위치인자를 흘리면(예: 문자열 splat —
 # `@("-ForceStepwise")` 가 String 으로 언롤돼 문자 14개로 쪼개진 2026-09-01 사고)
@@ -49,7 +53,12 @@ param(
   [int]$StallSec = 300,
   [int]$MaxAttempts = 3,
   [int]$DoneRows = 0,
-  [string]$AuditAnchorsSec = ""
+  [string]$AuditAnchorsSec = "",
+  # obs150 (SDMPC31_OBS150_PLAN_20260924 A8/A9): ground-truth windows such as "750:900,1050:1200".
+  # Only with a coupled-lane-plant/v2 manifest on a dev run named sdmpc31_g*; exported as RW_OBS150_GT.
+  [string]$GroundTruthWindows = "",
+  # Write run_provenance_<Name>.json (with the obs150 block for v2) and exit: no VISSIM is started.
+  [switch]$PreflightOnly
 )
 
 $ErrorActionPreference = "Continue"
@@ -134,8 +143,78 @@ function Read-HeadObservationSettings([string]$TuningFile) {
     }
     $manifestPath = Resolve-RepoPath $lanePlant
     $result.lane_plant = [ordered]@{path=$manifestPath; sha256=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+    # obs150 (plan 1.1/A8): the manifest schema is the one switch. v2 reads one 150 s window per decision
+    # from the generated detector table the manifest pins; a v1 manifest keeps the per-second path.
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+    if ($manifest.schema -ceq 'coupled-lane-plant/v2') {
+      if ($options.Contains('sample_interval_sec')) { throw 'obs150 (v2 manifest) rejects head_observation.sample_interval_sec' }
+      $result.obs150 = Read-Obs150Observation $manifest $manifestPath $result.lane_plant.sha256
+    } elseif ($manifest.schema -cne 'coupled-lane-plant/v1') {
+      throw "Unsupported lane plant manifest schema: $($manifest.schema)"
+    }
   }
   return $result
+}
+
+# A v2 manifest pin (CONTRACT _repo_pin): a repo-relative forward-slash path with no ':' and no '..'
+# segment, whose file bytes hash to the pinned lower-case sha256. Returns the resolved path and sha.
+function Resolve-Obs150RepoPin($Pin, [string]$What) {
+  if ($null -eq $Pin) { throw "v2 manifest lacks $What" }
+  $path = $Pin.path
+  if ($path -isnot [string] -or $path -eq '' -or $path.Contains('\') -or $path.Contains(':') -or
+      [IO.Path]::IsPathRooted($path) -or ($path.Split('/') -contains '..')) {
+    throw "$What.path must be a repo-relative forward-slash path"
+  }
+  if ($Pin.sha256 -isnot [string] -or $Pin.sha256 -cnotmatch '\A[0-9a-f]{64}\z') { throw "$What.sha256 must be a lower-case sha256" }
+  $file = Resolve-RepoPath $path
+  $actual = (Get-FileHash -LiteralPath $file -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()
+  if ($actual -cne $Pin.sha256) { throw "obs150 $What $file sha256 $actual differs from the manifest pin $($Pin.sha256)" }
+  return [ordered]@{path=$file; sha256=$actual}
+}
+
+# obs150 observation block of a coupled-lane-plant/v2 manifest (CONTRACT 1.1/1.3/1.4). The detector table
+# and the runner config bytes must match the manifest pins here, before anything is launched.
+function Read-Obs150Observation($Manifest, [string]$ManifestPath, [string]$ManifestSha) {
+  $observation = $Manifest.observation
+  if ($null -eq $observation -or $null -eq $observation.detectors) { throw 'v2 manifest lacks observation.detectors' }
+  $detectorPin = Resolve-Obs150RepoPin $observation.detectors 'observation.detectors'
+  $csv = $detectorPin.path
+  $actual = $detectorPin.sha256
+  $runnerConfig = Resolve-Obs150RepoPin $Manifest.sources.runner_config 'sources.runner_config'
+  $text = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes($csv))
+  if (-not $text.EndsWith("`n") -or $text.Contains("`r")) { throw "obs150 detector table must be LF text: $csv" }
+  $rows = ($text.Split("`n")).Count - 2
+  if ($rows -lt 1) { throw "obs150 detector table has no rows: $csv" }
+  foreach ($key in @('expected_simres', 'vehrec_interval_sec')) {
+    $value = $observation.$key
+    if (($value -isnot [int] -and $value -isnot [long]) -or $value -lt 1) { throw "observation.$key must be a positive integer" }
+  }
+  return [ordered]@{
+    plant_manifest = [ordered]@{path=$ManifestPath; sha256=$ManifestSha}
+    detectors = [ordered]@{path=$csv; sha256=$actual; rows=$rows}
+    expected_simres = [int]$observation.expected_simres
+    vehrec_interval_sec = [int]$observation.vehrec_interval_sec
+    runner_config = $runnerConfig
+  }
+}
+
+# RW_OBS150_GT windows "a:b,c:d" (CONTRACT parse_gt_windows): sorted, 150 s aligned, disjoint, inside the run.
+# The runner reaches t=1 in one break (plan A2), so a window starts at a decision stop >= 150. Adjacent
+# windows are refused too (the runner would write the shared stop's rows twice): 750:900,900:1050 = 750:1050.
+function ConvertTo-Obs150GtWindows([string]$Text, [int]$Period) {
+  $windows = New-Object System.Collections.ArrayList
+  if ($Text -eq '') { return ,$windows }
+  $last = -1
+  foreach ($item in $Text.Split(',')) {
+    if ($item -cnotmatch '\A([1-9][0-9]*):([1-9][0-9]*)\z') { throw "-GroundTruthWindows item must be start:end seconds: $item" }
+    $a = [int]$Matches[1]; $b = [int]$Matches[2]
+    if ($a -ge $b -or ($a % 150) -ne 0 -or ($b % 150) -ne 0 -or $a -le $last -or $b -gt $Period) {
+      throw "-GroundTruthWindows must be sorted, 150 s aligned, separated (merge adjacent ones) and end inside -SimPeriod: $Text"
+    }
+    [void]$windows.Add(@($a, $b))
+    $last = $b
+  }
+  return ,$windows
 }
 
 function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
@@ -143,12 +222,33 @@ function Set-HeadObservationTransport([string]$TuningFile, $Expected) {
   if (($current | ConvertTo-Json -Depth 8 -Compress) -cne ($Expected | ConvertTo-Json -Depth 8 -Compress)) {
     throw "Head observation tuning changed after provenance capture"
   }
+  $obs150Names = @('RW_OBSERVATION_CADENCE', 'RW_OBS150_DETECTORS', 'RW_OBS150_DETECTORS_SHA256',
+    'RW_OBS150_EXPECTED_SIMRES', 'RW_OBS150_VEHREC_SEC', 'RW_OBS150_GT')
+  if ($current.obs150) {
+    # obs150 (CONTRACT 1.3, expected_runner_env): one exact 150 s read per decision replaces the per-second
+    # observer. RW_OBSERVATION_CADENCE is what selects the runner's obs150 mode, and only a v2 manifest sets it.
+    $env:RW_SIGNAL_OBSERVATION = '0'
+    $env:RW_SIGNAL_OBSERVATION_CONFIG_SHA256 = $(if ($current.options.enabled) { $current.config_chain[0].sha256 } else { '' })
+    $env:RW_LANE_PLANT_OBSERVATION = '1'
+    $env:RW_VEHICLE_OBSERVATION_INTERVAL_SEC = '1'
+    $env:RW_QUEUE_WINDOW = '0'
+    $env:RW_OBSERVATION_CADENCE = 'decision150'
+    $env:RW_STATE_LOG = 'decision'
+    $env:RW_OBS150_DETECTORS = $current.obs150.detectors.path
+    $env:RW_OBS150_DETECTORS_SHA256 = $current.obs150.detectors.sha256
+    $env:RW_OBS150_EXPECTED_SIMRES = [string]$current.obs150.expected_simres
+    $env:RW_OBS150_VEHREC_SEC = [string]$current.obs150.vehrec_interval_sec
+    [Environment]::SetEnvironmentVariable('RW_OBS150_GT', $(if ($script:Obs150GtText) { $script:Obs150GtText } else { $null }), 'Process')
+    return
+  }
   # Transport only: inherited RW_* values can never activate this feature.
   $env:RW_SIGNAL_OBSERVATION = $(if ($current.options.enabled) { '1' } else { '0' })
   $env:RW_SIGNAL_OBSERVATION_CONFIG_SHA256 = $(if ($current.options.enabled) { $current.config_chain[0].sha256 } else { '' })
   $env:RW_LANE_PLANT_OBSERVATION = $(if ($current.lane_plant) { '1' } else { '0' })
   $env:RW_VEHICLE_OBSERVATION_INTERVAL_SEC = $(if ($current.options.enabled -and $current.options.Contains('sample_interval_sec')) { [string]$current.options.sample_interval_sec } else { '1' })
   if ($current.options.enabled) { $env:RW_QUEUE_WINDOW = '1' }
+  # Not v2: nothing inherited may switch the runner into the obs150 cadence.
+  foreach ($obs150Name in $obs150Names) { [Environment]::SetEnvironmentVariable($obs150Name, $null, 'Process') }
 }
 
 function Read-RampMeterTimingSettings([string]$TuningFile) {
@@ -351,6 +451,11 @@ function Log($m) {
 }
 
 function Kill-Vissim {
+  # By NAME: this stops every VISSIM and cscript on the machine, other runs included (it killed three
+  # live runs on 2026-09-24 03:15). The obs150 (v2) path never comes here: it forces NoGlobalKill and
+  # stops only what it launched, by PID and start time (Stop-RunProcesses). A future call site on
+  # that path fails here instead of killing.
+  if ($script:Obs150Run) { throw 'obs150 (v2) never stops processes by name (Kill-Vissim)' }
   Get-Process -Name "VISSIM200","VISSIM200CL","cscript" -ErrorAction SilentlyContinue |
     Stop-Process -Force -ErrorAction SilentlyContinue
   Start-Sleep -Seconds 3
@@ -445,11 +550,19 @@ function Test-SimulationStarted([string]$CsvPath, [string]$LogPath = '') {
   return $false
 }
 
+# The network file name as a whole path component of a window title ('...\net.inpx', 'net.inpx - ...'):
+# another run's 'a_net.inpx' or 'xnet.inpx' must not match 'net.inpx'.
+function Test-RunVissimTitle([string]$Title, [string]$NetworkFileName) {
+  if ($NetworkFileName -eq '') { return $false }
+  $pattern = '(?:^|(?<=[\\/\[(\s"'']))' + [regex]::Escape($NetworkFileName) + '(?![\w.-])'
+  return [regex]::IsMatch([string]$Title, $pattern, [Text.RegularExpressions.RegexOptions]::IgnoreCase)
+}
+
 function Find-RunVissimIdentity([int[]]$ExistingIds, [datetime]$AttemptStart, [string]$NetworkFileName) {
   $candidates = @(
     Get-Process -Name VISSIM200 -ErrorAction SilentlyContinue | Where-Object {
       $_.Id -notin $ExistingIds -and $_.StartTime -ge $AttemptStart -and
-      $_.MainWindowTitle.IndexOf($NetworkFileName, [StringComparison]::OrdinalIgnoreCase) -ge 0
+      (Test-RunVissimTitle $_.MainWindowTitle $NetworkFileName)
     }
   )
   if ($candidates.Count -eq 1) {
@@ -458,9 +571,35 @@ function Find-RunVissimIdentity([int[]]$ExistingIds, [datetime]$AttemptStart, [s
   return $null
 }
 
-function Stop-RunProcesses($RunnerProcess, $VissimIdentity) {
+# obs150: the processes the runner cscript started (adapter python, SDMPC workers, their consoles),
+# found from parent links while the runner still runs. A child counts only when it was created after
+# its parent, so a recycled parent PID cannot adopt an older process; identity = PID + start time.
+function Get-RunDescendantIdentities($RootIdentity) {
+  $found = New-Object System.Collections.ArrayList
+  if ($null -eq $RootIdentity) { return ,$found }
+  $root = Get-Process -Id $RootIdentity.Id -ErrorAction SilentlyContinue
+  if (-not $root -or $root.StartTime -ne $RootIdentity.StartTime) { return ,$found }
+  $all = @(Get-CimInstance -ClassName Win32_Process -ErrorAction SilentlyContinue)
+  $queue = New-Object System.Collections.Queue
+  $queue.Enqueue([pscustomobject]@{ Id = [int]$RootIdentity.Id; StartTime = $RootIdentity.StartTime })
+  while ($queue.Count -gt 0) {
+    $parent = $queue.Dequeue()
+    foreach ($child in $all) {
+      if ([int]$child.ParentProcessId -ne $parent.Id -or [int]$child.ProcessId -eq $parent.Id) { continue }
+      if ($null -eq $child.CreationDate -or $child.CreationDate -lt $parent.StartTime) { continue }
+      $live = Get-Process -Id ([int]$child.ProcessId) -ErrorAction SilentlyContinue
+      if (-not $live -or [math]::Abs(($live.StartTime - $child.CreationDate).TotalSeconds) -ge 1) { continue }
+      $identity = [pscustomobject]@{ Id = $live.Id; StartTime = $live.StartTime }
+      [void]$found.Add($identity)
+      $queue.Enqueue($identity)
+    }
+  }
+  return ,$found
+}
+
+function Stop-RunProcesses($RunnerProcess, $VissimIdentity, $Descendants = @()) {
   # Recheck creation times so a recycled PID cannot target another process.
-  foreach ($identity in @($RunnerProcess, $VissimIdentity)) {
+  foreach ($identity in @($RunnerProcess, $VissimIdentity) + @($Descendants)) {
     if ($null -eq $identity) { continue }
     $current = Get-Process -Id $identity.Id -ErrorAction SilentlyContinue
     if ($current -and $current.StartTime -eq $identity.StartTime) {
@@ -595,7 +734,39 @@ if (Test-Path -LiteralPath $numsimSnapshotPath -PathType Leaf) {
 #
 # 순수 추가다. 값을 바꾸지 않고 적기만 한다.
 $headObservation = Read-HeadObservationSettings $Tuning
+# obs150 (plan A8, CONTRACT 1.5): a v2 manifest refuses every argument that would label a window wrongly.
+# The runner VBS re-checks the same rules from the environment it receives.
+$script:Obs150GtText = ''
+$script:Obs150Run = [bool]$headObservation.obs150
+$obs150GtWindows = New-Object System.Collections.ArrayList
+if ($headObservation.obs150) {
+  # Never by process name: Kill-Vissim stops every VISSIM and cscript on the machine, the other live
+  # runs' included. The v2 path always behaves as -NoGlobalKill and stops only the cscript it starts
+  # and the VISSIM it identifies, by PID and start time (Stop-RunProcesses).
+  $NoGlobalKill = $true
+  if ($MaxAttempts -gt 1) {
+    throw "obs150 runs one attempt; got -MaxAttempts $MaxAttempts (a retry reuses the run folder, its obs150 chunks and the network's _001.err, which the runner refuses)"
+  }
+  Write-Output ("OBS150 kill_policy=pid_only no_global_kill={0} max_attempts={1}" -f [bool]$NoGlobalKill, $MaxAttempts)
+  if ($vbsConfig -ne $headObservation.obs150.runner_config.path) {
+    throw "obs150 -VbsConfig $vbsConfig is not the manifest runner_config $($headObservation.obs150.runner_config.path)"
+  }
+  if ($ForceStepwise) { throw 'obs150 (v2 manifest) rejects -ForceStepwise: 0.1 s steps would be labelled as seconds' }
+  if ($ControlIntervalSec -ne 150) { throw "obs150 decides every 150 s; got -ControlIntervalSec $ControlIntervalSec" }
+  if ($StateLogIntervalSec -ne $ControlIntervalSec) { throw "obs150 requires -StateLogIntervalSec equal to -ControlIntervalSec; got $StateLogIntervalSec" }
+  if ($SimPeriod -lt 150 -or ($SimPeriod % 150) -ne 0) { throw "obs150 requires -SimPeriod as a positive multiple of 150; got $SimPeriod" }
+  if (-not [string]::IsNullOrWhiteSpace($AuditAnchorsSec)) { throw 'obs150 rejects -AuditAnchorsSec (a second state writer)' }
+  if ($IncidentLink -gt 0) { throw 'obs150 rejects an incident closure (signal writes outside the runner log)' }
+  $obs150GtWindows = ConvertTo-Obs150GtWindows $GroundTruthWindows $SimPeriod
+  if ($obs150GtWindows.Count -gt 0 -and -not $Name.StartsWith('sdmpc31_g', [StringComparison]::Ordinal)) {
+    throw '-GroundTruthWindows is allowed only on dev runs named sdmpc31_g*'
+  }
+  $script:Obs150GtText = (@($obs150GtWindows | ForEach-Object { '{0}:{1}' -f $_[0], $_[1] }) -join ',')
+} elseif ($GroundTruthWindows -ne '') {
+  throw '-GroundTruthWindows needs a coupled-lane-plant/v2 manifest (obs150)'
+}
 Set-HeadObservationTransport $Tuning $headObservation
+if ($headObservation.obs150) { Write-Output 'OBS150 RW_QUEUE_WINDOW=0 (decision150 overrides the urban.capacity.measured line above)' }
 $rampMeterTiming = Read-RampMeterTimingSettings $Tuning
 Set-RampMeterTimingTransport $Tuning $rampMeterTiming
 $rwEnv = [ordered]@{}
@@ -634,6 +805,29 @@ $provenance = [ordered]@{
 }
 if ($headObservation.options.enabled) { $provenance.signal_observation = $headObservation }
 $provenance.ramp_meter_timing = $rampMeterTiming
+if ($headObservation.obs150) {
+  # CONTRACT 1.4 (validate_provenance_observation). A launch runs from a frozen tree only (NEW-14);
+  # PreflightOnly in the working tree has no FREEZE.json and records null.
+  $freezeFile = Join-Path $repo 'FREEZE.json'
+  $freezePin = $null
+  if (Test-Path -LiteralPath $freezeFile -PathType Leaf) {
+    $freezePin = [ordered]@{path=$freezeFile; sha256=(Get-FileHash -LiteralPath $freezeFile -Algorithm SHA256 -ErrorAction Stop).Hash.ToLowerInvariant()}
+  } elseif (-not $PreflightOnly) {
+    throw "An obs150 launch runs only from a frozen tree: $freezeFile is missing (freeze_worktree.ps1)"
+  }
+  $provenance.observation = [ordered]@{
+    schema = 'obs150-provenance/v1'
+    cadence = 'decision150'
+    plant_manifest = $headObservation.obs150.plant_manifest
+    detectors = $headObservation.obs150.detectors
+    expected_simres = $headObservation.obs150.expected_simres
+    vehrec_interval_sec = $headObservation.obs150.vehrec_interval_sec
+    ground_truth_windows = $obs150GtWindows
+    freeze = $freezePin
+  }
+  Write-Output ("OBS150 cadence=decision150 detectors={0} rows={1} gt={2} freeze={3}" -f $headObservation.obs150.detectors.path,
+    $headObservation.obs150.detectors.rows, $(if ($script:Obs150GtText) { $script:Obs150GtText } else { '-' }), $(if ($freezePin) { $freezePin.path } else { 'null' }))
+}
 if ($null -ne $recordingDoc) { $provenance.network_recording = $recordingDoc }
 $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
 [System.IO.File]::WriteAllText(
@@ -641,6 +835,11 @@ $provenancePath = Join-Path $OutDir "run_provenance_$Name.json"
   ($provenance | ConvertTo-Json -Depth 8),
   [System.Text.UTF8Encoding]::new($false)
 )
+if ($PreflightOnly) {
+  # Plan A8: the provenance (env, pins, obs150 block) exactly as a launch writes it; nothing is started.
+  Write-Output ("PREFLIGHT_ONLY provenance={0}" -f $provenancePath)
+  exit 0
+}
 
 function Archive-AttemptOutputs([int]$Attempt) {
   # Shorten run-specific paths without merging failures in a shared OutDir.
@@ -718,7 +917,12 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
   if (-not $proc -or -not $proc.Id) {
     throw "Failed to start cscript for $Name attempt=$attempt"
   }
+  # Recorded at launch: a stop targets this PID only while its start time still matches.
+  $runnerIdentity = [pscustomobject]@{ Id = $proc.Id; StartTime = $proc.StartTime }
   Log "START $Name attempt=$attempt pid=$($proc.Id)"
+  if ($script:Obs150Run) {
+    Log "KILL_POLICY $Name pid_only runner_pid=$($runnerIdentity.Id) runner_start=$($runnerIdentity.StartTime.ToString('o'))"
+  }
 
   while ($true) {
     Start-Sleep -Seconds 20
@@ -731,6 +935,15 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
       }
       Log "EXIT_NO_DONE $Name attempt=$attempt"
       Archive-AttemptOutputs $attempt
+      if ($script:Obs150Run) {
+        # One attempt and never a kill by name, so nothing else would free the seat of a VISSIM the exited
+        # runner left behind. Archive-AttemptOutputs has waited for its .err; stop it by PID and start time.
+        if ($null -eq $runVissimIdentity) {
+          $runVissimIdentity = Find-RunVissimIdentity $existingVissimIds $t0 ([IO.Path]::GetFileName($net))
+        }
+        Stop-RunProcesses $runnerIdentity $runVissimIdentity
+        if ($null -eq $runVissimIdentity) { Log "WARNING no unique VISSIM process identified after EXIT_NO_DONE" }
+      }
       break
     }
 
@@ -742,7 +955,8 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
       $simulationStarted = Test-SimulationStarted $stateCsv $log
       if (-not $simulationStarted -and ((Get-Date)-$t0).TotalSeconds -ge $StartupStallSec) {
         Log "STARTUP_TIMEOUT $Name attempt=$attempt limit=${StartupStallSec}s"
-        Stop-RunProcesses $proc $runVissimIdentity
+        $runDescendants = $(if ($script:Obs150Run) { Get-RunDescendantIdentities $runnerIdentity } else { @() })
+        Stop-RunProcesses $runnerIdentity $runVissimIdentity $runDescendants
         if ($null -eq $runVissimIdentity) { Log "WARNING no unique VISSIM process identified; stopped only this run's cscript" }
         Archive-AttemptOutputs $attempt
         break
@@ -773,7 +987,9 @@ for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
     $idle = [int]((Get-Date) - $lastT).TotalSeconds
     if ($idle -gt $StallSec) {
       Log "WATCHDOG_KILL $Name attempt=$attempt idle=${idle}s"
-      Stop-RunProcesses $proc $runVissimIdentity
+      $runDescendants = $(if ($script:Obs150Run) { Get-RunDescendantIdentities $runnerIdentity } else { @() })
+      Stop-RunProcesses $runnerIdentity $runVissimIdentity $runDescendants
+      if ($null -eq $runVissimIdentity) { Log "WARNING no unique VISSIM process identified; stopped only this run's cscript" }
       Archive-AttemptOutputs $attempt
       break
     }

@@ -1,0 +1,175 @@
+{
+  "schema": "route-choice-corridor/v1",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+  },
+  "membership_path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+  "jam_source": {
+    "path": "outputs/urban_storage_capacity_core17legs4b_20260819.json",
+    "sha256": "5440616f1b02e81d3aca0f6012250b54ed2448c4f57bbd77a0e88e89b32536fb"
+  },
+  "decision": "1129",
+  "decision_link": "56",
+  "decision_position_m": 253.17220072044452,
+  "prefix_storage": "SC1004_E_choice",
+  "prefix_links": [
+    "10627",
+    "10632",
+    "10634",
+    "10636",
+    "75",
+    "10701",
+    "56"
+  ],
+  "local_storage": "SC1004_to_SC1005",
+  "local_links": [
+    "10617",
+    "57"
+  ],
+  "bypass_storage": "SC1004_to_SC107",
+  "bypass_connector": "10621",
+  "local_connector": "10617",
+  "post_stopline_projection": {
+    "10624": "SC1005_to_SC107"
+  },
+  "shared_continuation": {
+    "source_storage": "shared_69",
+    "branch": "2",
+    "previous_target": "in_SC1005_W",
+    "path": [
+      "10636",
+      "75",
+      "10701",
+      "56"
+    ],
+    "native_route": "1134:2"
+  },
+  "native_paths": {
+    "1": [
+      "56",
+      "10621"
+    ],
+    "2": [
+      "56",
+      "10617",
+      "57",
+      "10624",
+      "61"
+    ],
+    "3": [
+      "56",
+      "10617",
+      "57",
+      "10623",
+      "404"
+    ]
+  },
+  "local_movements": {
+    "2": "SC1005_W_SC1004_to_E_SC107",
+    "3": "SC1005_W_SC1004_to_N_SC105"
+  },
+  "local_queue_heads": {
+    "2": "90030863",
+    "3": "90030862"
+  },
+  "incoming_turns": {
+    "N_SC1003": {
+      "keep": "SC1004_N_SC1003_to_E_SC1005",
+      "remove": "SC1004_N_SC1003_to_E_SC107",
+      "connector": "10627",
+      "source_link": "46",
+      "signal_controlled": true
+    },
+    "S": {
+      "keep": "SC1004_S_to_E_SC1005",
+      "remove": "SC1004_S_to_E_SC107",
+      "connector": "10632",
+      "source_link": "66",
+      "signal_controlled": false
+    },
+    "W": {
+      "keep": "SC1004_W_to_E_SC1005",
+      "remove": "SC1004_W_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    },
+    "offE": {
+      "keep": "SC1004_offE_to_E_SC1005",
+      "remove": "SC1004_offE_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    },
+    "offW": {
+      "keep": "SC1004_offW_to_E_SC1005",
+      "remove": "SC1004_offW_to_E_SC107",
+      "connector": "10634",
+      "source_link": "71",
+      "signal_controlled": true
+    }
+  },
+  "model_limitations": [
+    "Future native1129 probabilities are conditional on eligibility, not measured route IDs.",
+    "Missing post-choice route identities require explicit error or hold_diagnostic policy; no posterior is supplied.",
+    "Travel uses geometry and observed speed with the existing speed-delay floor; lane changes and queue-tail dynamics remain approximate.",
+    "Bypass transfer enters the existing SC1004_to_SC107 receiver and keeps that receiver's downstream prediction model."
+  ],
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/lane_plant_20260921/scenario/route_choice_corridor_sc1004_calibrated_6eb99c.json",
+      "sha256": "5fb5dae06fbcf0f2d4e4ae60ef6618da0b877289e01e106a61743d54864e4f37"
+    },
+    "runtime_network": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "accuracy_validation": "pending",
+    "lineage": {
+      "source_declaration": {
+        "path": "diagnostics/route_choice_corridor_sc1004_calibrated.json",
+        "sha256": "fd04d42be2588a93e7175e805c78bd4985801a90b8840c77ec0f7b078abf1bfc"
+      },
+      "runtime_network": {
+        "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+        "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+      },
+      "accuracy_validation": "pending"
+    },
+    "repin": {
+      "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+      "plan": "SDMPC31_OBS150_PLAN_20260924 section 5",
+      "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+      "rewritten": {
+        "network_pin": 1,
+        "pack_pin": 0,
+        "pack_path": 1
+      }
+    },
+    "prior_mismatch": {
+      "status": "transferred_without_refit",
+      "decision": "D-B (2026-09-24): carry the prior over with receipts, mark prior_mismatch, refit after the first 9000 s run",
+      "priors": [],
+      "receipt": {
+        "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
+        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+      },
+      "target_network": {
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      },
+      "differences_since_previous_pack": [
+        "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only (2 elements)",
+        "desSpeedDecisions: desired speed distribution only (76 elements)"
+      ],
+      "differences_since_training": "receipt actual_native_differences (training network -> v2)",
+      "refit_after": "the first 9000 s SDMPC run (V5) and its paired no-control run (V4)",
+      "embedded_prior": {
+        "at": null,
+        "note": "Calibrated by declaration (plan D-B); the declaration pins no separate prior file or training run."
+      }
+    }
+  }
+}

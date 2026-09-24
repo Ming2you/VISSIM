@@ -1,0 +1,29 @@
+--- a/evaluation/controllers/vissim_stackelberg_adapter.py	2026-09-24 02:34:32.299015900 +0900
++++ b/evaluation/controllers/vissim_stackelberg_adapter.py	2026-09-24 02:34:45.525171400 +0900
+@@ -9408,15 +9408,25 @@
+ ):
+     if getattr(cfg.network, 'native_input_schedule', None) is not None:
+         from evaluation.controllers.native_demand_forecast import forecast_states
++        # SDMPC-31 A1 (plan C6): a v2 lane plant replaces the declared mainline
++        # timetable by the calibrated admitted-interface recursion (BF:136-138),
++        # one block mean per control interval. None keeps the timetable: no or
++        # v1 lane plant, or a cutoff before the first complete 150 s history.
++        from evaluation.controllers.source_boundary import demand_blocks
++        admitted = demand_blocks(cfg, float(state_json['sim_sec']), horizon_steps)
+         forecast = []
+         first_peeloff_metadata = None
+-        for observed in forecast_states(state_json, cfg, horizon_steps):
++        for index, observed in enumerate(forecast_states(state_json, cfg, horizon_steps)):
+             freeway, urban, ramps, _ = profiled_demand_rates(
+                 observed, cfg, calibration, detector_mapping)
+             if cfg.network.native_input_schedule.get('freeway_link_by_input'):
+                 freeway=dict(observed['demand']['native_freeway_mainline_veh_h'])
+                 if set(freeway)!=set(cfg.network.freeway_links):
+                     raise ValueError('Directed forecast requires native demand for each physical freeway input')
++                if admitted is not None:
++                    freeway={road: admitted[road][index] for road in freeway}
++            elif admitted is not None:
++                raise ValueError('A1 source boundary requires the directed native freeway inputs')
+             if not forecast:
+                 first_peeloff_metadata = globals().get('_LAST_GATE_PEELOFF_META')
+             forecast.append(DemandStep(freeway_mainline=freeway, urban_boundary=urban,

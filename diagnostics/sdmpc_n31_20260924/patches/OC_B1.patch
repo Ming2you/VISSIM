@@ -1,0 +1,47 @@
+--- a/evaluation/controllers/obs150_contract.py
++++ b/evaluation/controllers/obs150_contract.py
+@@ -409,8 +409,13 @@
+ 
+ 
+ def lag_ok(max_t_any, end_s, sum_tail):
+-    """B3: with any tail, the file must already hold a record later than T-1+0.005."""
+-    if sum_tail == 0:
++    """B3: with any tail, the file must already hold a record later than T-1+0.005.
++
++    t=1 closes the open interval (0, 1], which is itself (T-1, T]: every tail
++    lies there by definition. The .mer is then often still inside its header
++    (max_t_any null) while a source station at 1.0 m already counts a passage.
++    """
++    if sum_tail == 0 or end_s == FIRST_DECISION_SEC:
+         return True
+     return max_t_any is not None and max_t_any > end_s - LAG_MARGIN_S + BOUNDARY_EPS_S + _FUZZ
+ 
+--- a/diagnostics/sdmpc_n31_20260924/CONTRACT.md
++++ b/diagnostics/sdmpc_n31_20260924/CONTRACT.md
+@@ -166,6 +166,9 @@
+ - **둘 다 있으면** 스텝 순서 전제가 깨진 것이므로 `ObsContractError`입니다.
+ - **탐색 범위:** 뒤로는 `t_file < s−0.2`, 앞으로는 `t_file > s+0.2`에서 멈춥니다.
+ - **청크 시작:** 청크 첫머리에서는 더 볼 행이 없으므로 보수적으로 모호가 될 수 있습니다.
++- **창 경계 (WP-B1 `obs150_head_window.classify_at_window_edge`):** T−150 또는 T(±0.005)의 기록은 파일 순서로 판정하지 않습니다.
++  - 서수 배정이 이미 (T−150, T]에 넣었으므로 스텝이 정해집니다: T−150이면 τ=T−150+0.05, T이면 τ=T입니다.
++  - 녹색이 창 경계에서 잘려 끝점이 돼도 모호로 세지 않습니다. 파일 순서가 반대 스텝을 가리키면 `ObsContractError`입니다.
+ 
+ **`classify_passage(rows, i, intervals)` (OC:396):** 진입 사건 하나를 판정해 `'green' | 'not_green' | 'ambiguous'`를 돌려줍니다.
+ - 녹색 구간 끝점이 아닌 정수 근처의 기록은 그냥 `in_green(t)`로 봅니다.
+@@ -177,6 +180,7 @@
+ - Σtail = 0이면 통과입니다.
+ - 아니면 `max_t_any > T − 1 + 0.005`여야 합니다. `max_t_any`는 파일 전체의 진입·이탈 열 최대 시각입니다.
+ - 위반하면 `ObsLagError`이고, 결정 실패입니다.
++- **t=1은 항상 통과입니다.** 열린 구간 (0, 1]이 곧 (T−1, T]입니다. 이때 `.mer`는 헤더 중간인 경우가 많고(`max_t_any` null), 1.0 m 원점 스테이션은 이미 1대를 셀 수 있습니다.
+ - `.err` 지연은 D11(G1 측정 뒤)에서 정합니다.
+ 
+ ### 2.6 서수 창 배정 (B3; `assign_window(obs, mer_rows) -> WindowAssignment`, OC:430)
+@@ -316,7 +320,7 @@
+ | index | `obs150/mer_index.json` |
+ | index_sha256 | 이 호출 인덱스 엔트리의 `entry_sha256` |
+ | prev_index_sha256 | 직전 엔트리의 `entry_sha256`. t=1은 null |
+-| byte_start, byte_end | 읽은 완결 줄 범위 [start, end). t=1은 start=0. 다음 호출의 start = 이번 end |
++| byte_start, byte_end | 읽은 완결 줄 범위 [start, end). t=1은 start=0. 다음 호출의 start = 이번 end. **t=1은 헤더만 소비합니다:** byte_end ≤ 열 제목 줄 끝이고 청크 0행, records 0, max_t_any null입니다. 창 1의 행((0, 1] 포함)은 모두 T=150 청크에 들어갑니다 |
+ | max_t_any | 소비한 파일 전체(모든 dcp, 진입·이탈 열)의 최대 시각. 없으면 null |
+ | records_cum_by_dcp | `{"<dcp>": 파일 전체의 진입 행 누계}`. 모든 CSV 키 |
+ 

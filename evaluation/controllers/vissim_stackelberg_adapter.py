@@ -8051,6 +8051,16 @@ def install_measured_far_reservoir_rates(cfg, tuning, state_json, previous_path)
     decay = _as_float(section.get("measured_decay"), 0.995)
 
     fm = _mapping(_mapping(state_json.get("local_observation")).get("far_measurement"))
+    # obs150 v2 (150 s 1회 관측, plan B7): 러너는 freeway_exit_count 를 null 로 내고
+    # obs150_observation.merge_into_state 가 보존 대수로 채운다. 없거나 음수면 아래 -1 이
+    # g_fw 갱신을 조용히 멈추므로 여기서 멈춘다. v1 상태(obs150 키 없음)는 비트 동일하고
+    # 새 import 도 없다. 키 이름은 obs150_contract.RAW_STATE_KEY 다(시험이 대조).
+    if "obs150" in state_json:
+        from evaluation.controllers import obs150_contract
+        merged_exit = fm.get("freeway_exit_count")
+        if (type(merged_exit) is not int or merged_exit < 0
+                or fm.get("freeway_exit_count_provenance") != obs150_contract.FREEWAY_EXIT_PROVENANCE):
+            raise ValueError("obs150 v2 far_measurement.freeway_exit_count must be the merged conservation count")
     if not fm:
         # 러너가 아직 이 채널을 안 싣는다(옛 VBS). 상수 그대로 두고 시끄럽게 남긴다.
         return {"far_measured_enabled": 1.0, "far_measured_channel_missing": 1.0}
@@ -9408,15 +9418,25 @@ def demand_from_state(
 ):
     if getattr(cfg.network, 'native_input_schedule', None) is not None:
         from evaluation.controllers.native_demand_forecast import forecast_states
+        # SDMPC-31 A1 (plan C6): a v2 lane plant replaces the declared mainline
+        # timetable by the calibrated admitted-interface recursion (BF:136-138),
+        # one block mean per control interval. None keeps the timetable: no or
+        # v1 lane plant, or a cutoff before the first complete 150 s history.
+        from evaluation.controllers.source_boundary import demand_blocks
+        admitted = demand_blocks(cfg, float(state_json['sim_sec']), horizon_steps)
         forecast = []
         first_peeloff_metadata = None
-        for observed in forecast_states(state_json, cfg, horizon_steps):
+        for index, observed in enumerate(forecast_states(state_json, cfg, horizon_steps)):
             freeway, urban, ramps, _ = profiled_demand_rates(
                 observed, cfg, calibration, detector_mapping)
             if cfg.network.native_input_schedule.get('freeway_link_by_input'):
                 freeway=dict(observed['demand']['native_freeway_mainline_veh_h'])
                 if set(freeway)!=set(cfg.network.freeway_links):
                     raise ValueError('Directed forecast requires native demand for each physical freeway input')
+                if admitted is not None:
+                    freeway={road: admitted[road][index] for road in freeway}
+            elif admitted is not None:
+                raise ValueError('A1 source boundary requires the directed native freeway inputs')
             if not forecast:
                 first_peeloff_metadata = globals().get('_LAST_GATE_PEELOFF_META')
             forecast.append(DemandStep(freeway_mainline=freeway, urban_boundary=urban,

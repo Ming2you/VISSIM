@@ -1,0 +1,130 @@
+{
+  "schema": "known-wout-routes/v1",
+  "network": {
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+  },
+  "storage": "SC1004_W_out",
+  "choice_position_m": 7.491513071180599,
+  "native_routes": {
+    "1123:2": {
+      "path": [
+        "52",
+        "10629",
+        "68"
+      ],
+      "dest_pos": 4.9506564983648245
+    },
+    "1125:1": {
+      "path": [
+        "46",
+        "10625",
+        "68"
+      ],
+      "dest_pos": 6.322767103712503
+    },
+    "1130:3": {
+      "path": [
+        "74",
+        "10699",
+        "2",
+        "10682",
+        "121",
+        "10773",
+        "123"
+      ],
+      "dest_pos": 295.92350735286266,
+      "target": "free"
+    },
+    "1135:2": {
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10646",
+        "120"
+      ],
+      "dest_pos": 2341.14835075021,
+      "target": "R_F_W"
+    },
+    "1135:3": {
+      "path": [
+        "68",
+        "10772",
+        "121",
+        "10773",
+        "123"
+      ],
+      "dest_pos": 179.06973212909716,
+      "target": "free"
+    },
+    "1135:4": {
+      "path": [
+        "68",
+        "10681",
+        "2"
+      ],
+      "dest_pos": 2308.37946082583,
+      "target": "R_F_E"
+    }
+  },
+  "prechoice_connectors": [
+    "10625",
+    "10629",
+    "10633"
+  ],
+  "incoming_movements": {
+    "SC1004_E_SC1005_to_W": "10629",
+    "SC1004_E_SC107_to_W": "10629",
+    "SC1004_N_SC1003_to_W": "10625",
+    "SC1004_S_to_W": "10633"
+  },
+  "limitations": [
+    "Keeps existing coarse sink travel, capacity and accepted-flow owner.",
+    "Existing priors apply once only to future eligible1135 choices; not fitted here.",
+    "Unknown after choice is held, never resampled; no new lane exchange or FW gate."
+  ],
+  "scenario_derivation": {
+    "source_declaration": {
+      "path": "diagnostics/lane_plant_20260921/scenario/known_wout_routes_ver2_proposal_c394e0.json",
+      "sha256": "f39b08fd36d870b1cd37b7cb2e5dd7d0ed74c3c5650b79c79f808719cc30d730"
+    },
+    "runtime_network": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "accuracy_validation": "pending",
+    "lineage": {
+      "source_declaration": {
+        "path": "diagnostics/known_wout_routes_ver2_proposal.json",
+        "sha256": "797b2c8af14f26a0330709958ae7963b7fde178df6dc44453e210c747b0eea4c"
+      },
+      "runtime_network": {
+        "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx",
+        "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
+      },
+      "accuracy_validation": "pending",
+      "actual_native_destination_updates": {
+        "1135:2": {
+          "old": 2272.2977955121637,
+          "current": 2341.14835075021
+        },
+        "1135:4": {
+          "old": 2289.198499870484,
+          "current": 2308.37946082583
+        }
+      }
+    },
+    "repin": {
+      "tool": "diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py",
+      "plan": "SDMPC31_OBS150_PLAN_20260924 section 5",
+      "runtime_validation": "G1 t=1 decision: every validator runs in configure() before the first no-control action",
+      "rewritten": {
+        "network_pin": 1,
+        "pack_pin": 0,
+        "pack_path": 0
+      }
+    },
+    "actual_native_destination_updates": {}
+  }
+}

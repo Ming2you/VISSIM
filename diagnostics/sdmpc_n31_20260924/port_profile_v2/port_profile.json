@@ -1,0 +1,56 @@
+{
+  "occupancy_lane_loss": false,
+  "travel_speed_kmh": {
+    "10480": 47.57748629061672,
+    "10482": 45.86227257158097,
+    "10646": 47.212621204713265,
+    "10644": 45.011546243151905,
+    "10639": 42.983695633905974,
+    "10681": 47.92815347877291,
+    "10490": 43.15690068333383,
+    "10484": 47.717071959444226,
+    "10481": 116.36066128033997,
+    "10483": 111.41244423876951,
+    "10491": 97.34507994550701,
+    "10479": 110.1288950632262,
+    "10643": 108.92570379332153,
+    "10682": 104.82141199984031,
+    "10638": 112.27479777309131,
+    "10645": 109.81467654766368
+  },
+  "sample_counts": {
+    "10480": 18,
+    "10482": 367,
+    "10646": 27,
+    "10644": 69,
+    "10639": 65,
+    "10681": 85,
+    "10490": 129,
+    "10484": 66,
+    "10481": 34,
+    "10483": 154,
+    "10491": 128,
+    "10479": 177,
+    "10643": 115,
+    "10682": 228,
+    "10638": 88,
+    "10645": 202
+  },
+  "latest_training_sec": 900,
+  "limits": "One constant speed per connector; complete-traversal median is a transit proxy, not saturation or startup-loss calibration.",
+  "provenance": {
+    "schema": "sdmpc31-port-profile/v2",
+    "plan": "SDMPC31_OBS150_PLAN_20260924 C12",
+    "selection": "interp",
+    "statistic": "median of length*3.6/residence over complete traversals departing at t <= 900 s (ER.travel_profile); residence resolved inside the 5 s recording bracket",
+    "v2_run": "D:\\VISSIM_runs\\20260923_stage1\\s31_v2nc",
+    "v2_fzp_sha256": "4eb8e041f04d50473974023a677abff887094fd0606378732d1cd395b6bb16df",
+    "recording_interval_sec": 5,
+    "port_travel": "obs/port_travel_v2.json",
+    "b120": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/merge_drain_response_20260919/decisions_v1/internal_cost/port_profile.json",
+      "sha256": "3d10231f22ccef77aa3aa97824b73a5e7c997cd02f41e60bd63e36d900033e84"
+    },
+    "occupancy_lane_loss": "kept from base-120 (plan C4(e): A/B in V3b)"
+  }
+}

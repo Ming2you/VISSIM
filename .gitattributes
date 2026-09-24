@@ -5661,3 +5661,9 @@ diagnostics/selected_control_demand/confidence_nc9000_s13_v1/comparison.csv -tex
 diagnostics/selected_control_demand/confidence_nc9000_s13_v1/native_internal_inputs.json -text
 diagnostics/selected_control_demand/confidence_nc9000_s13_v1/profile.csv -text
 diagnostics/selected_control_demand/confidence_nc9000_s13_v1/shared_approach.json -text
+
+# SDMPC-31 x obs150 (WP-0, 2026-09-24): sha-pinned plans, CSVs, chunks and fixtures stay byte-exact.
+diagnostics/sdmpc_n31_20260924/** -text
+diagnostics/obs150_20260924/** -text
+# The repin (repin_scenario_v2.py) reads this pack file byte for byte and pins it (was untracked).
+diagnostics/lane_plant_20260921/scenario/lane_native_sgplan.vbs -text

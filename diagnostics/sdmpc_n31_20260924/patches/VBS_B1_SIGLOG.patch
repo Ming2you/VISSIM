@@ -1,0 +1,113 @@
+--- a/scripts/run_real_world_stackelberg_controller.vbs
++++ b/scripts/run_real_world_stackelberg_controller.vbs
+@@ -7538,9 +7538,10 @@
+ End Sub
+ 
+ ' ---- runner signal log (plan A4, CONTRACT 4.3) -----------------------------
+-' Per SG ("<sc>-<sg>"): Array(owner "native"|"com", state, verified). A write at stop t acts on
+-' (t, t'] (PRB g). Window k = (S, S+150] starts with the state after the writes at stop S, so an
+-' event at t = S folds into the start snapshot and only S < t < S+150 are listed as events.
++' Per SG ("<sc>-<sg>"): Array(owner "native"|"com", state, verified). A write at stop t reaches the
++' heads at t+1 and acts on (t+1, t'+1] (CONTRACT 2.3; VISSIM updates heads once a second). Window
++' k = (S, S+150] starts with the state BEFORE the writes at stop S (snapshot in the bundle at S),
++' and S <= t < S+150 are its events.
+ Sub Obs150InitSignalLog()
+     Dim scNo, sc, sgNos, j, key, sg, value, errNo
+     obs150SigScList = Obs150SignalScs()
+@@ -7641,8 +7642,8 @@
+     Obs150SignalKey = key
+ End Function
+ 
+-' Moves the log clock to the current stop. Crossing past a stop closes it: the window start
+-' snapshot is taken once, and an SG left unverified makes the window incomplete.
++' Moves the log clock to the current stop. Crossing past a stop closes it: an SG left unverified
++' makes the window incomplete. The start snapshot is taken by the bundle (Obs150SignalLogJson).
+ Sub Obs150SignalAdvance()
+     Dim t
+     t = CLng(obs150StopSec)
+@@ -7676,7 +7677,7 @@
+ End Sub
+ 
+ Sub Obs150SignalAppend(eventJson)
+-    If CLng(obs150StopSec) > CLng(obs150SigWindowStart) Then
++    If CLng(obs150StopSec) >= CLng(obs150SigWindowStart) Then
+         obs150SigEvents.Add CStr(obs150SigEvents.Count), eventJson
+     End If
+ End Sub
+@@ -7757,7 +7758,7 @@
+         Obs150SignalStore key, Array("com", state, False)
+         detail = Trim(CStr(readbackState))
+         If detail = "" Then detail = "ERR:unknown"
+-        If CLng(obs150StopSec) > CLng(obs150SigWindowStart) Then obs150SigComplete = False
++        If CLng(obs150StopSec) >= CLng(obs150SigWindowStart) Then obs150SigComplete = False
+         Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """fail"",""" & JsonEscape(requested) & """,""" & JsonEscape(detail) & """]"
+     End If
+ End Sub
+@@ -7773,7 +7774,7 @@
+     If t > CLng(obs150SigLastT) And t < CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then Obs150SignalBoundary t
+     obs150SigComplete = False
+     Obs150SignalStore key, Array("com", cur(1), False)
+-    If t > CLng(obs150SigWindowStart) And t < CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then
++    If t >= CLng(obs150SigWindowStart) And t < CLng(obs150SigWindowStart) + OBS150_DECISION_SEC Then
+         Obs150SignalAppend Obs150EventHead(scNo, sgNo) & """fail"",""" & JsonEscape(UCase(Trim(CStr(requestedState)))) & _
+             """,""" & JsonEscape("ERR:post_step readback=" & Trim(CStr(readbackState))) & """]"
+     End If
+@@ -7811,10 +7812,17 @@
+         Join(obs150SigEvents.Items, ",") & "],""complete"":" & JsonBoolean(obs150SigComplete) & "}"
+     obs150LastEventCountValue = obs150SigEvents.Count
+     If CLng(T) >= OBS150_DECISION_SEC Then
++        ' The writes at this stop reach the heads at T+1 (CONTRACT 2.3): the next window starts with
++        ' the state before them, taken here, and lists them as its events. An SG unverified now is
++        ' unverified in the slot (T, T+1] too.
+         obs150SigWindowStart = CLng(T)
+         obs150SigLastT = CLng(T)
+-        obs150SigStartTaken = False
+-        obs150SigComplete = True
++        obs150SigStart.RemoveAll
++        For Each key In obs150SigKeys
++            obs150SigStart.Add key, obs150SigNow(key)
++        Next
++        obs150SigStartTaken = True
++        obs150SigComplete = (obs150SigUnverified.Count = 0)
+         obs150SigEvents.RemoveAll
+     End If
+     Obs150SignalLogJson = s
+--- a/diagnostics/obs150_20260924/tests/test_runner_obs150_vbs.py
++++ b/diagnostics/obs150_20260924/tests/test_runner_obs150_vbs.py
+@@ -267,7 +267,7 @@
+ Check "rewrite", SetSignalGroupState(5, 2, "GREEN"), "GREEN"
+ obs150StopSec = 150
+ SaveText {sig150}, Obs150SignalLogJson(150)
+-Check "fold_at_start", SetSignalGroupState(5, 1, "RED"), "RED"
++Check "event_at_start", SetSignalGroupState(5, 1, "RED"), "RED"
+ obs150StopSec = 200
+ Check "w_200", SetSignalGroupState(5, 1, "GREEN"), "GREEN"
+ obs150StopSec = 300
+@@ -300,11 +300,13 @@
+             [37, '5', '1', 'write', 'AMBER'], [62, '5', '2', 'fail', 'GREEN', 'ERR:readback=RED'],
+             [80, '5', '2', 'write', 'GREEN']])
+         self.assertFalse(second['complete'])
+-        self.assertEqual(third['start']['5-1'], {'owner': 'com', 'state': 'RED', 'verified': True})
++        # CONTRACT 2.2/4.3: the window starts with the state BEFORE the writes at its first stop;
++        # they reach the heads one second later (2.3), so they are this window's events.
++        self.assertEqual(third['start']['5-1'], {'owner': 'com', 'state': 'AMBER', 'verified': True})
+         self.assertEqual(third['start']['5-2'], {'owner': 'com', 'state': 'GREEN', 'verified': True})
+         self.assertEqual(third['start']['9106-1'], {'owner': 'com', 'state': 'GREEN', 'verified': True})
+         self.assertEqual(third['start']['1004-2'], {'owner': 'native'})
+-        self.assertEqual(third['events'], [[200, '5', '1', 'write', 'GREEN']])
++        self.assertEqual(third['events'], [[150, '5', '1', 'write', 'RED'], [200, '5', '1', 'write', 'GREEN']])
+         self.assertTrue(third['complete'])
+ 
+     def test_unverified_ownership_makes_the_window_incomplete(self):
+@@ -325,8 +327,10 @@
+         oc.validate_signal_log(third, 150, 300)
+         self.assertEqual(second['events'], [[40, '5', '1', 'own', True], [40, '5', '2', 'own', True]])
+         self.assertFalse(second['complete'])
+-        self.assertEqual(third['start']['5-1'], {'owner': 'com', 'state': 'GREEN', 'verified': True})
++        # the start is taken before the write at 150: both SGs are still unverified in (150, 151]
++        self.assertEqual(third['start']['5-1'], {'owner': 'com', 'state': 'RED', 'verified': False})
+         self.assertEqual(third['start']['5-2'], {'owner': 'com', 'state': 'RED', 'verified': False})
++        self.assertEqual(third['events'], [[150, '5', '1', 'write', 'GREEN']])
+         self.assertFalse(third['complete'])
+ 
+     def test_post_step_mismatch_marks_the_window(self):

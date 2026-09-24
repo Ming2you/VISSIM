@@ -80,7 +80,12 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers import lane_plant_runtime
         lane_context=lane_plant_runtime.load_sources(lane_manifest)
         lane_context['initial_spillback_projection']=spillback_projection
-        lane_observation=lane_plant_runtime.observe_live(lane_context,state_json)
+        if lane_context.get('plant_mode')=='v2':
+            # coupled-lane-plant/v2 (obs150): the effective tuning must match
+            # the manifest, and every consumer below reads the MERGED state.
+            from evaluation.controllers.obs150_contract import validate_tuning_v2
+            validate_tuning_v2(tuning,lane_context['document'])
+        state_json,lane_observation=lane_plant_runtime.observe_state(lane_context,state_json)
         state_json=lane_plant_runtime.bind_current_routes(state_json,lane_observation)
     if (tuning or {}).get("freeway", {}).get("parameter_transfer"):
         from evaluation.controllers import metanet_parameter_transfer

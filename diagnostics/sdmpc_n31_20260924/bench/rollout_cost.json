@@ -1,0 +1,71 @@
+{
+  "schema": "sdmpc31-rollout-cost/v1",
+  "cutoff_s": 2700.1,
+  "horizon_s": 450,
+  "geometry": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/observations/s31_v2nc_observations/geometry.json",
+  "component_config": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/boundary_literature_v1/boundary_config.json",
+  "observations": "D:\\VISSIM-merge\\sim3\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\res10_b110_20260923\\observations\\s31_v2nc_observations",
+  "primal": {
+    "model_step_sec": 1,
+    "31": {
+      "rollout_wall_sec": [
+        1.4625997999683022,
+        1.456739499932155,
+        1.5533702000975609,
+        1.5704278000630438,
+        1.529347199946642
+      ],
+      "min_sec": 1.456739499932155,
+      "median_sec": 1.529347199946642,
+      "cells_per_road": {
+        "FW_W": 31,
+        "FW_E": 31
+      },
+      "end_vehicles": 1629.0004153762438,
+      "vsl_key": "FW_E__seg14"
+    },
+    "21": {
+      "rollout_wall_sec": [
+        1.2225145001430064,
+        1.1559121999889612,
+        1.1114774998277426,
+        1.117023500148207,
+        1.2321279998868704
+      ],
+      "min_sec": 1.1114774998277426,
+      "median_sec": 1.1559121999889612,
+      "cells_per_road": {
+        "FW_W": 21,
+        "FW_E": 21
+      },
+      "end_vehicles": 1756.2804864911448,
+      "vsl_key": "FW_E__seg10"
+    },
+    "ratio_min": 1.310633368788771,
+    "ratio_median": 1.3230651947105039
+  },
+  "tape": {
+    "21": {
+      "cells": 21,
+      "tape_nodes": 471661,
+      "taped_rollout_wall_sec": 5.008632600074634,
+      "end_vehicles": 1756.2804864911452
+    },
+    "31": {
+      "cells": 31,
+      "tape_nodes": 690685,
+      "taped_rollout_wall_sec": 6.843672099988908,
+      "end_vehicles": 1629.0004153762436
+    },
+    "node_ratio": 1.4643674164283247
+  },
+  "decision_estimate": {
+    "basis_21cell_decision_sec": 505.0,
+    "component_ratio": 1.4643674164283247,
+    "upper_bound_sec": 739.5055452963039,
+    "scaled_sec": 512.8238975257067,
+    "freeway_share": 0.0333633795986401,
+    "freeway_share_source": "tape nodes of this bench 21-cell aggregate freeway rollout (471661) / graph nodes of the v1 21-cell lane-plant 450 s prediction + 231-axis Jacobian at t=900 (14137087, diagnostics/sdmpc_array_transport_20260922/final_sources/docs/SDMPC_ARRAY_TRANSPORT_20260922.md:51). Rough: v1 FW_E ran lane groups, and a node share is not a time share.",
+    "note": "upper bound assumes the whole decision scales with the freeway component; the urban/port share does not. A tape-node share is not a wall-time share; G1 measures the real decision time."
+  }
+}

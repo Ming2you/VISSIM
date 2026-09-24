@@ -3,6 +3,44 @@ from __future__ import annotations
 import math
 
 
+def split_10643(amount,group_capacity_veh_h,split):
+    """C5 / D-C (b): lane admissions [veh/step] of the aggregate 10643 off flow.
+
+    Without mainline lane groups the plant knows only the total. The split
+    holds the last closed window's observed lane shares over the horizon (a
+    closure assumption; the observation itself is exact) and water-fills into
+    the other lane when a share would exceed its lane's receiving room. The sum
+    is exact (land(), lane_offramp_runtime.py:133-136) and each lane stays in
+    its room whenever the total does, which caps['10643']=min(storage, sum of
+    lanes) guarantees (lane_offramp_runtime.py:116-117).
+    """
+    if not isinstance(split,dict) or split.get('mode')!='observed_lane_shares_held':
+        raise ValueError('10643 lane split requires the declared observed-share closure')
+    share=split['shares'][0]
+    rooms=[q/3600. for q in group_capacity_veh_h[:2]]
+    if math.fsum(group_capacity_veh_h[2:])>1e-8:
+        raise ArithmeticError('10643 lane room reported for an inaccessible lane')
+    if amount>rooms[0]+rooms[1]+1e-7:
+        raise ArithmeticError('10643 aggregate admission exceeds both lane rooms')
+    first=min(rooms[0],max(amount-rooms[1],amount*share))
+    return [first,amount-first]
+
+
+def lane_amounts_10643(freeway,off_flows,group_capacity,network):
+    """10643 lane admissions for land(): the FW_E lane groups report them
+    (v1); without lane groups (v2) the declared observed-share split makes
+    them (C5). Exactly one of the two sources must be declared."""
+    split=getattr(network,'lane_plant_10643_lane_split',None)
+    if ('FW_E' in freeway.lanes)==(split is not None):
+        raise ValueError('10643 lane amounts need exactly one source: FW_E lane groups or the declared lane split')
+    if split is None:
+        local=freeway.lanes['FW_E']
+        if math.fsum(local.last_off_sent['10643'][2:])>1e-8:
+            raise ArithmeticError('10643 admission came from an inaccessible mainline group')
+        return local.last_off_sent['10643'][:2]
+    return split_10643(off_flows['10643']/3600.,group_capacity['10643'],split)
+
+
 def run_interval(state,control,demand,cfg):
     from evaluation.controllers import area_freeway_accounting as accounting
     from evaluation.controllers import area_meter_finalization
@@ -72,10 +110,7 @@ def run_interval(state,control,demand,cfg):
             fw['ramp_queue_overflow_count']=float(sum(q>cfg.network.ramp_queue_cap(r)+1e-8
                 for r,q in state.ramp_queue.items()))
             fw_rows.append(fw)
-            local=freeway.lanes['FW_E']
-            lane_amounts={'10643':local.last_off_sent['10643'][:2]}
-            if math.fsum(local.last_off_sent['10643'][2:])>1e-8:
-                raise ArithmeticError('10643 admission came from an inaccessible mainline group')
+            lane_amounts={'10643':lane_amounts_10643(freeway,off_flows,group_capacity,cfg.network)}
             ledger.begin_response_step('landing',sec,sec+1)
             accepted+=ports.land(state,cfg,sec+1,off_flows,lane_amounts)
             integrate_residence(state,cfg,

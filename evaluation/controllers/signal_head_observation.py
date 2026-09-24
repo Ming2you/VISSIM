@@ -29,12 +29,14 @@ def serialized_head_position(value):
     return float(format(number(value), ".15g"))
 
 
-def settings(section):
+def settings(section, *, v2=False):
     """Configuration is the only switch; ON has explicit quality thresholds."""
     if not isinstance(section, dict) or type(section.get("enabled")) is not bool:
         raise ValueError("head_observation requires an object with boolean enabled")
     if set(section) - {"enabled", "min_green_sec", "min_crossings", "sample_interval_sec"}:
         raise ValueError("Unknown head observation option")
+    if v2 and "sample_interval_sec" in section:
+        raise ValueError("obs150 v2 reads one 150 s window; head_observation.sample_interval_sec is rejected")
     if not section["enabled"]:
         return {"enabled": False}
     if any(isinstance(section.get(k), (str, bool)) for k in ("min_green_sec", "min_crossings")):
@@ -60,7 +62,10 @@ def validate_provenance(raw, window, options):
     evidence = manifest["signal_observation"]
     if evidence["config_key"] != "urban.capacity.head_observation" or evidence["options"] != options:
         raise ValueError("Head observation effective configuration mismatch")
-    if manifest["env"].get("RW_SIGNAL_OBSERVATION") != "1" or manifest["env"].get("RW_QUEUE_WINDOW") != "1":
+    v2 = observation_mode(raw, manifest) == "v2"
+    if v2:
+        observation = validate_provenance_v2(raw, window, options, manifest)
+    elif manifest["env"].get("RW_SIGNAL_OBSERVATION") != "1" or manifest["env"].get("RW_QUEUE_WINDOW") != "1":
         raise ValueError("Head collector transport was not configured by runner")
     if options.get('sample_interval_sec',1)!=1 and manifest['env'].get('RW_VEHICLE_OBSERVATION_INTERVAL_SEC')!=str(options['sample_interval_sec']):
         raise ValueError('Vehicle sampling transport differs from configured cadence')
@@ -76,6 +81,8 @@ def validate_provenance(raw, window, options):
         raise ValueError("Head observation physical network mismatch")
     identity = {"run_id": reference["run_id"], "config_chain_sha256": [s["sha256"] for s in chain],
                 "network_sha256": manifest["files"]["network"]["sha256"], "quality": options}
+    if v2:
+        identity["obs150"] = observation
     return hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
 
 
@@ -106,7 +113,8 @@ def physical_groups(network_path, plan):
 
 def install(cfg, state_json, previous_path, caps, plan, distribute, options):
     """Carry a verified prior; accept min of two contiguous independent windows."""
-    options = settings(options)
+    v2 = observation_mode(state_json) == "v2"
+    options = settings(options, v2=v2)
     if not options["enabled"]:
         raise ValueError("Head observation consumer requires enabled configuration")
     window = state_json.get("local_observation", {}).get("signal_observation_window")
@@ -146,7 +154,21 @@ def install(cfg, state_json, previous_path, caps, plan, distribute, options):
     valid = False
     observed = {}
     start = end = 0.0
-    if window is not None:
+    if window is not None and v2:
+        # physical-head-window/v2 was fully validated in validate_provenance_v2.
+        start, end = number(window["start_sec"]), number(window["end_sec"])
+        valid = window["clock_complete"] is True
+        metadata["head_observation_invalid_window"] = float(not valid)
+        metadata["head_observation_window_v2"] = 1.0
+        observed = {str(row["head_id"]): row for row in window["heads"]}
+        # B5 builds the heads from the detector sidecar's pinned plan, this consumer from the
+        # adapter's actuation plan. A head in one and not the other would otherwise only count as
+        # short exposure below and drop its group silently (plan B7).
+        expected = {str(head["head_id"]) for heads in geometry.values() for head in heads}
+        if set(observed) != expected:
+            raise ValueError("obs150 head window heads differ from the INPX physical groups: missing "
+                             f"{sorted(expected - set(observed))}, extra {sorted(set(observed) - expected)}")
+    elif window is not None:
         if window.get("schema") != "physical-head-window/v1":
             raise ValueError("Unsupported physical head observation schema")
         start, end = number(window["start_sec"]), number(window["end_sec"])
@@ -408,3 +430,71 @@ def _install_head_free_service(cfg, raw, previous_path, options, context):
             "saturation_identified": False, "snapshot_sec": now}
     cfg.network.movement_capacity_by_movement_veh_h = caps
     return result
+
+
+def observation_mode(raw, manifest=None):
+    """'v2' when the state carries the obs150 raw bundle (150 s runner), else 'v1'.
+
+    With the run provenance manifest the two must agree: the 'observation' block
+    exists exactly for a v2 plant manifest (PS1 A8). Mixing never runs silently.
+    """
+    from evaluation.controllers import obs150_contract
+    v2 = obs150_contract.RAW_STATE_KEY in raw
+    if manifest is not None and ("observation" in manifest) != v2:
+        raise ValueError("Head observation state and run provenance disagree on the obs150 mode")
+    return "v2" if v2 else "v1"
+
+
+def validate_provenance_v2(raw, window, options, manifest):
+    """obs150 v2 provenance: runner env, plant manifest and detector-table pins (plan B7).
+
+    Returns the identity fragment added to the head provenance context.
+    """
+    from evaluation.controllers import obs150_contract as oc
+    if "sample_interval_sec" in options:
+        raise ValueError("obs150 v2 rejects head_observation.sample_interval_sec")
+    block = manifest["observation"]
+    # A decision state exists only for a launch, and a launch runs from a frozen tree
+    # (CONTRACT 1.4; PS1 lets freeze be null in PreflightOnly, which makes no decision).
+    oc.validate_provenance_observation(block, require_freeze=True)
+    plant = Path(block["plant_manifest"]["path"]).read_bytes()
+    if hashlib.sha256(plant).hexdigest() != block["plant_manifest"]["sha256"]:
+        raise ValueError("obs150 plant manifest changed after launch")
+    lane_plant = manifest["signal_observation"].get("lane_plant")
+    if lane_plant is not None and lane_plant.get("sha256") != block["plant_manifest"]["sha256"]:
+        raise ValueError("obs150 plant manifest differs from the signal_observation lane_plant pin")
+    document = json.loads(plant.decode("utf-8-sig"))
+    oc.validate_plant_manifest_v2(document)
+    detectors = block["detectors"]
+    if detectors["sha256"] != document["observation"]["detectors"]["sha256"]:
+        raise ValueError("obs150 detector table differs from the plant manifest pin")
+    if hashlib.sha256(Path(detectors["path"]).read_bytes()).hexdigest() != detectors["sha256"]:
+        raise ValueError("obs150 detector table changed after launch")
+    env = manifest["env"]
+    expected = oc.expected_runner_env(document, detectors["path"])
+    wrong = sorted(key for key, value in expected.items() if env.get(key) != value)
+    if wrong:
+        raise ValueError("obs150 runner env differs from the plant manifest: " + ", ".join(wrong))
+    windows = block["ground_truth_windows"]
+    if windows:
+        if env.get("RW_OBS150_GT") != oc.format_gt_windows(windows) or not str(manifest.get("name", "")).startswith(oc.GT_RUN_NAME_PREFIX):
+            raise ValueError("obs150 ground-truth windows need RW_OBS150_GT on a dev run")
+    elif env.get("RW_OBS150_GT", "") != "":
+        raise ValueError("RW_OBS150_GT is set without provenance ground-truth windows")
+    obs = raw[oc.RAW_STATE_KEY]
+    if (obs["detector_config"]["sha256"] != detectors["sha256"] or obs["detector_config"]["rows"] != detectors["rows"]
+            or obs["ground_truth_windows"] != windows or obs["simres_steps_per_sec"] != block["expected_simres"]
+            or obs["sim_sec"] != raw["sim_sec"] or obs["run_id"] != raw["run_provenance"]["run_id"]):
+        raise ValueError("obs150 bundle identity differs from the run provenance")
+    local = raw.get("local_observation", {})
+    if "signal_observation_window" not in local:
+        raise ValueError("obs150 v2 state lacks the merged signal_observation_window (merge_into_state)")
+    if obs["sim_sec"] == oc.FIRST_DECISION_SEC:
+        if window is not None:
+            raise ValueError("t=1 has no head window")
+    elif window is None:
+        raise ValueError("obs150 v2 decision lacks its head window")
+    else:
+        oc.validate_head_window_v2(window, end_sec=obs["sim_sec"], detector_config_sha256=detectors["sha256"])
+    return {"cadence": block["cadence"], "plant_manifest_sha256": block["plant_manifest"]["sha256"],
+            "detectors_sha256": detectors["sha256"]}

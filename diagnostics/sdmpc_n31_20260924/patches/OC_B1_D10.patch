@@ -1,0 +1,89 @@
+--- a/evaluation/controllers/obs150_contract.py
++++ b/evaluation/controllers/obs150_contract.py
+@@ -974,7 +974,9 @@
+         _require(isinstance(event, list) and len(event) >= 4, 'Signal event must be a list')
+         t, sc, sg, kind = event[:4]
+         _require(kind in SIGNAL_EVENT_KINDS and len(event) == SIGNAL_EVENT_KINDS[kind], 'Signal event kind/arity')
+-        _require(_is_int(t) and start_s < t < end_s, f'Signal event time {t} outside ({start_s}, {end_s})')
++        # CONTRACT 2.3: a COM write at the stop t reaches the heads at t+1, so the writes at the
++        # window's first stop T-150 are events of this window; those at T belong to the next.
++        _require(_is_int(t) and start_s <= t < end_s, f'Signal event time {t} outside [{start_s}, {end_s})')
+         _require(last_t is None or t >= last_t, 'Signal events must be time ordered')
+         last_t = t
+         key = f'{sc}-{sg}'
+--- a/diagnostics/sdmpc_n31_20260924/CONTRACT.md
++++ b/diagnostics/sdmpc_n31_20260924/CONTRACT.md
+@@ -142,12 +142,16 @@
+   - 참시각 τ의 통과는 `window_of_time(τ) = ⌈τ/150⌉` 창에 속합니다. τ=150k이면 창 k입니다.
+ - **t=1:** 열린 구간 (0, 1]입니다. `bundle_interval(1) = (0, 1, None)`이고 k는 None입니다.
+ - **쓰기 시점:** 결정 T에서의 쓰기는 창 k+1에 속합니다.
+-  - 창 k의 시작 상태 = 정지 T−150에서 쓴 **뒤**의 상태입니다.
+-  - 창 1의 시작은 정지 0(첫 스텝 전 초기화 쓰기 뒤)입니다.
++  - 창 k의 시작 상태 = 정지 T−150에서 쓰기 **전**의 상태입니다. 그 쓰기는 T−149부터 헤드에 반영되므로(2.3) 창 k의 사건입니다.
++  - 창 1의 시작은 t=1 번들 시점(정지 1의 쓰기 전)의 상태이고, 모든 SG가 네이티브입니다. 러너는 그 전에 쓰기가 없음을 강제합니다.
+ 
+ ### 2.3 신호 상태와 녹색 구간
+ 
+-- 정지 t에서 쓴 상태는 스텝 (t, t′]에 적용됩니다(PRB g).
++- **헤드 갱신은 매초 끝에 한 번입니다**(Vissim 2020 매뉴얼 §2.17.3, p.616). 차량은 그 다음 스텝부터 반응합니다. 그래서 슬롯 (t, t+1]의 상태는 t의 갱신 하나로 정해집니다.
++  - **네이티브 SG:** t의 갱신은 프로그램 상태(phase t − offset)입니다. 정지 t의 되읽기와 같습니다(V0-4).
++  - **COM SG (D10, WP-B1 `COM_HEAD_DELAY_S = 1`):** 정지 t의 쓰기는 되읽기에는 바로 보이지만, 정지가 t의 갱신 뒤라서 헤드에는 t+1에 올라갑니다. 그래서 t에 쓰고 t′에 바꾼 상태는 차량 시각 (t+1, t′+1]에 적용됩니다. `own`과 `fail`도 같은 1초 뒤에 적용됩니다.
++  - 근거: 탐색 런 850 GREEN 쓰기 뒤 미터 두 차로의 정지 선두차가 851.0까지 v=0이었고 851.1에 출발했습니다(네이티브는 s+0.1). SimRes 1 재생에서도 COM LDP(t)가 source(t−1)과 같았습니다. 계획 1.2의 "정지 t에서 쓴 상태는 (t, t′]"(PRB g, 되읽기 근거)를 이것으로 대체합니다.
++  - COM으로 네이티브 프로그램을 흉내 내는 러너는 정지 t에 t+1의 상태를 씁니다(`frameAdvance` 1, VBS `OBS150_FRAME_ADVANCE`).
+ - **녹색 구간은 정수 쌍 (a, b)입니다.** 참시각 τ의 통과는 `a < τ ≤ b`일 때 녹색입니다(`in_green`, OC:323).
+   - 구간은 절대 sim 초이고, T−150 ≤ a < b ≤ T입니다.
+   - 정렬돼 있고 서로 떨어져 있어야 하며, 붙은 구간은 합칩니다.
+@@ -293,13 +297,13 @@
+ ```
+ 
+ - **`scs`:** 러너가 쓸 수 있는 SC 전부와 헤드·미터 SC의 합집합입니다.
+-- **`start`:** 그 SC들의 **모든 SG**에 대해 창 시작 상태를 담습니다. 키 형식은 `"<sc>-<sg>"`입니다.
++- **`start`:** 그 SC들의 **모든 SG**에 대해 창 시작 상태, 곧 정지 T−150에서 쓰기 **전**의 상태를 담습니다(2.2). 키 형식은 `"<sc>-<sg>"`입니다.
+   - native: `{"owner":"native"}`만 둡니다.
+   - com: `{"owner":"com","state":<대문자 SigState>,"verified":bool}`입니다. verified=false는 직전 fail 뒤 아직 성공 write가 없다는 뜻입니다.
+-- **`events`:** 시각은 정수이고 T−150 < t < T만 담습니다. 시각순이고, 같은 t에서는 발생순입니다.
++- **`events`:** 시각은 정수이고 T−150 ≤ t < T만 담습니다. 정지 T−150의 쓰기(결정 쓰기 포함)는 이 창의 사건이고, 정지 T의 쓰기는 다음 창의 사건입니다. 시각순이고, 같은 t에서는 발생순입니다. 정지 t의 사건은 슬롯 (t+1, t+2]부터 적용됩니다(2.3).
+   - `write` 5칸: 되읽기 일치
+   - `fail` 6칸: 쓰기 실패 또는 되읽기 불일치. 마지막 칸은 요청값과 상세입니다
+-  - `own` 5칸: 마지막 칸이 ContrByCOM 되읽기 bool입니다. true면 그 t부터 COM 소유, false면 네이티브입니다
++  - `own` 5칸: 마지막 칸이 ContrByCOM 되읽기 bool입니다. true면 슬롯 (t+1, t+2]부터 COM 소유, false면 네이티브입니다(2.3)
+   - write와 fail은 그 시점에 COM이 소유한 SG에만 허용합니다.
+   - own(true) 뒤 같은 t에 write/fail이 없으면, 다음 성공 write까지 미검증입니다(B4).
+ - **`complete`:** fail이 있거나 verified=false인 start가 있으면 `false`여야 합니다. 러너는 다른 사유로도 false를 낼 수 있습니다.
+@@ -659,9 +663,10 @@
+ | 병합본 `obs150_derived` | lane_observation 입력 | 시그니처 `(context, raw)`를 지키면서 같은 결과를 씁니다 |
+ | `assign_window`, `evaluate_boundaries`, `classify_passage`를 OC에 둠 | 한 구현 | B1·B2가 같은 수를 내야 합니다(헤드 bypass, 403 이탈, 10643 대장) |
+ | 헤드 창 v2에서 `transition_count` 제거 | | 1초 전이 개념이 없습니다. 노출은 `end−start=150`으로 검사합니다 |
++| D10: COM 헤드 반영 1초 지연, `frameAdvance` 1 (WP-B1 V0-4, `patches/OC_B1_D10.patch`) | 2.2, 2.3, 4.3 | 매뉴얼의 초당 1회 헤드 갱신과 탐색 런 차량(851.1 출발), SimRes 1 재생(t−1)이 같은 결과입니다. 네이티브 흉내가 정확해지는 값이라 계획 §9 D10의 "여쭐 경우"(0.1초 늦음/0.9초 이름)에 해당하지 않습니다. G1 D6에서 도시 COM 헤드로 재확인합니다 |
+ 
+ **아직 열린 것 (결정 주체):**
+-- `NATIVE_STEP_RULE` 값과 D10 `frameAdvance` (V0-4)
++- D10 재확인: G1 1050–1200 도시 COM 헤드에서 GREEN 쓰기 t 뒤 선두차 출발 t+1.1, RED 쓰기 t′ 뒤 (t′, t′+1] 통과가 녹색으로 세어지는지 (D6)
+ - `.err` 실시간성과 제거 항 처리 (D11, G1)
+ - 10643 tail 식별 실패의 운영 처리 (D9, G1)
+ - `lane_exact=False` 빈도 (G1에서 0이 아니면 여쭘)
+--- a/diagnostics/obs150_20260924/tests/test_contract_raw.py
++++ b/diagnostics/obs150_20260924/tests/test_contract_raw.py
+@@ -78,9 +78,10 @@
+ 
+     def test_valid_sequences(self):
+         log = self.log()
+-        log['events'] = [[800, '1004', '2', 'own', True], [800, '1004', '2', 'write', 'GREEN'],
+-                         [830, '1004', '2', 'write', 'RED'], [899, '1004', '2', 'own', False]]
+-        c.validate_signal_log(log, 750, 900)
++        log['events'] = [[750, '9106', '1', 'write', 'RED'], [800, '1004', '2', 'own', True],
++                         [800, '1004', '2', 'write', 'GREEN'], [830, '1004', '2', 'write', 'RED'],
++                         [899, '1004', '2', 'own', False]]
++        c.validate_signal_log(log, 750, 900)       # the writes at the first stop T-150 are events (CONTRACT 2.3)
+         log['events'].append([899, '9106', '1', 'fail', 'RED', 'ERR:readback=GREEN'])
+         log['complete'] = False
+         c.validate_signal_log(log, 750, 900)
+@@ -88,7 +89,7 @@
+     def test_rejections(self):
+         base = self.log()
+         cases = []
+-        for events in ([[900, '9106', '1', 'write', 'RED']], [[750, '9106', '1', 'write', 'RED']],
++        for events in ([[900, '9106', '1', 'write', 'RED']], [[749, '9106', '1', 'write', 'RED']],
+                        [[800, '1004', '2', 'write', 'RED']], [[820, '9106', '1', 'write', 'RED'],
+                                                               [810, '9106', '1', 'write', 'GREEN']],
+                        [[800, '9106', '1', 'write', 'red']], [[800, '9106', '1', 'own', 'yes']],

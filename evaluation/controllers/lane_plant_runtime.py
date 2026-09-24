@@ -45,6 +45,7 @@ def load_sources(manifest):
     from evaluation.controllers.physical_urban_transport import geometry as urban_geometry
     path=(ROOT/manifest).resolve(strict=True)
     document=json.loads(path.read_text(encoding='utf-8-sig'))
+    if document.get('schema')=='coupled-lane-plant/v2':return _load_sources_v2(path,document)
     if document.get('schema')!='coupled-lane-plant/v1':raise ValueError('Unsupported lane plant declaration')
     paths={key:read_pin(pin) for key,pin in document['sources'].items()}
     load=lambda key:json.loads(paths[key].read_text(encoding='utf-8-sig'))
@@ -62,9 +63,108 @@ def load_sources(manifest):
         protocol=load('reference_protocol'),manifest_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
 
 
+V2_LANE_GROUP_FEATURES=('ramp_lane_coupling','ramp_lane_exchange','ramp_conflict_through_inventory','offramp_lanes',
+    'lane_port_travel','branch_partition','upstream_exit_inventory')
+
+
+def _load_sources_v2(path,document):
+    """coupled-lane-plant/v2: 31 refined cells, no lane groups, obs150 context.
+
+    The live network is re-extracted and refined by the pinned partition; it
+    must reproduce the calibration geometry (b110 boundary family) exactly.
+    """
+    from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.canonical_harness import CanonicalFreewayModel,resolve_geometry_profile
+    from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.extract_observations import physical_geometry
+    from evaluation.controllers.physical_urban_transport import geometry as urban_geometry
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers.freeway_geometry import geometry_fingerprint
+    from evaluation.controllers.freeway_refined_geometry import apply_refined_partition,parents
+    oc.validate_plant_manifest_v2(document)
+    sources=document['sources']
+    paths={key:read_pin(pin) for key,pin in sources.items()}
+    load=lambda key:json.loads(paths[key].read_text(encoding='utf-8-sig'))
+    archived=load('geometry')
+    if ((archived.get('network') or {}).get('sha256')!=sources['network']['sha256']
+            or (archived.get('refined_partition') or {}).get('sha256')!=sources['refined_partition']['sha256']):
+        raise ValueError('Calibration geometry was extracted from another network or partition')
+    profile=resolve_geometry_profile(archived['geometry_profile'])
+    geometry=physical_geometry(paths['network'],geometry_profile=profile)
+    geometry=apply_refined_partition(geometry,load('refined_partition'),pin=sources['refined_partition'])
+    ports=lambda g:{b['id']:(b.get('from_cell'),b.get('to_cell')) for b in g['boundaries']}
+    if (geometry_fingerprint(geometry)!=geometry_fingerprint(archived) or geometry['cells']!=archived['cells']
+            or geometry['bounds']!=archived['bounds'] or ports(geometry)!=ports(archived)):
+        raise ValueError('Live refined geometry differs from the calibration geometry')
+    component=CanonicalFreewayModel(geometry,paths['reference_config'])
+    if component.lane_groups_enabled or any(getattr(component,k) for k in V2_LANE_GROUP_FEATURES):
+        raise ValueError('v2 declares lane_groups false; the reference config enables a lane-group feature')
+    if component.component_boundary!={'source':'admitted_interface','terminal':'open_exit'}:
+        raise ValueError('v2 plant requires the calibrated admitted-interface source and open-exit terminal')
+    table=parents(geometry)
+    for road,cells in table.items():
+        if len(component.base.network.freeway_segment_lanes[road])!=len(cells):
+            raise ValueError('Component did not build the refined cells: '+road)
+    port_profile=load('port_profile')
+    connectors={str(r['connector']) for r in (*component.ramps.values(),*component.offramps.values())}
+    if set(port_profile['travel_speed_kmh'])!=connectors:
+        raise ValueError('Port profile must cover exactly the sixteen physical ports')
+    routes,exits=urban_geometry(paths['network'])
+    context=dict(document=document,paths=paths,component=component,geometry=geometry,lane_geometry={},
+        routes=routes,exits=exits,parameters=load('parameters')['parameters'],port_profile=port_profile,
+        protocol=load('reference_protocol'),manifest_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+        plant_mode='v2',parents=table,calibration_source_demand=copy.deepcopy(archived['desired_source_demand']))
+    # WP-B2 (contract 1.6): the obs150 context is built from the same pins; LPR
+    # only checks that it belongs to this manifest/network. The manifest FILE sha
+    # is the one manifest identity (context, lane observation source, metadata);
+    # the document alone cannot give it, so it is passed (keyword-only extra).
+    from evaluation.controllers import obs150_observation
+    obs=obs150_observation.load_context(document,paths,manifest_sha256=context['manifest_sha256'])
+    oc.validate_context(obs)
+    if obs.manifest_sha256!=context['manifest_sha256'] or obs.network_sha256!=sources['network']['sha256']:
+        raise ValueError('obs150 context belongs to another plant manifest or network')
+    if obs.detector_csv_sha256!=document['observation']['detectors']['sha256']:
+        raise ValueError('obs150 detector table differs from the manifest pin')
+    context['obs150']=obs
+    return context
+
+
+def observe_state(context,raw):
+    """(state, observation) for configure_runtime.
+
+    v1 returns the state unchanged. v2 derives the 150 s bundle, writes its
+    audit document and returns the MERGED state: every consumer after the lane
+    plant (head service, g_fw, projections) must read the merged fields.
+    """
+    if context.get('plant_mode')!='v2':return raw,observe_live(context,raw)
+    from evaluation.controllers import obs150_contract as oc
+    from evaluation.controllers import obs150_observation
+    from evaluation.controllers.network_provenance import snapshot_network_sha256
+    if snapshot_network_sha256(raw)!=context['document']['sources']['network']['sha256']:
+        raise ValueError('Lane plant network differs from current native observation')
+    oc.validate_lane_meta_v2(raw.get('lane_plant_observation'),raw)
+    bundle=raw.get(oc.RAW_STATE_KEY)
+    if (not isinstance(bundle,dict) or bundle.get('sim_sec')!=raw['sim_sec']
+            or bundle.get('run_id')!=raw['run_provenance']['run_id']):
+        raise ValueError('Current native state lacks its obs150 bundle')
+    derived=obs150_observation.derive(raw,context['obs150'])
+    oc.write_derived(raw,derived)
+    merged=obs150_observation.merge_into_state(raw,derived)
+    oc.validate_merged_state(raw,merged)
+    observation=obs150_observation.lane_observation(context['obs150'],merged)
+    oc.validate_lane_observation_v2(observation)
+    source=observation['source']
+    if (observation['information_cutoff_s']!=raw['sim_sec'] or source['run_id']!=bundle['run_id']
+            or source['manifest_sha256']!=context['manifest_sha256']
+            or source['derived_sha256']!=oc.canonical_sha256(derived)
+            or any(source[k]!=derived['inputs'][k] for k in oc.DERIVED_INPUT_KEYS)):
+        raise ValueError('v2 lane observation identity differs from its derived bundle')
+    return merged,observation
+
+
 def observe_live(context,raw,*,use_checkpoint=True):
     from evaluation.controllers.lane_plant_observation import LanePlantObserver,load_causal_snapshot
     from evaluation.controllers.network_provenance import snapshot_network_sha256
+    if context.get('plant_mode')=='v2':
+        raise ValueError('The v2 observation merges the state; call observe_state()')
     if snapshot_network_sha256(raw)!=context['document']['sources']['network']['sha256']:
         raise ValueError('Lane plant network differs from current native observation')
     meta=raw.get('lane_plant_observation',{})
@@ -159,6 +259,7 @@ def initialize(context,observation,cfg,state,detectors):
     from evaluation.controllers.control_area_objective import physical_membership_from_ledger
     from evaluation.controllers.observation_projection import audit_projection_provenance
     component=context['component'];net=cfg.network
+    v2=context.get('plant_mode')=='v2'
     if cfg.simulation.T_f_sec!=1 or cfg.simulation.T_u_sec!=1:
         raise ValueError('Declare one-second full-network integration before projection')
     cutoff=int(state.time_sec)
@@ -202,7 +303,8 @@ def initialize(context,observation,cfg,state,detectors):
         detectors.get('link_to_movements',{}).pop(str(link),None)
 
     current=observe(current_frame,context['routes'],context['exits'])
-    history=local_history(frames,cutoff,context['routes'],context['exits'],sample_interval_sec=observation.get('sample_interval_sec',1))
+    history=(_offramp_history_v2(observation,cutoff) if v2 else
+             local_history(frames,cutoff,context['routes'],context['exits'],sample_interval_sec=observation.get('sample_interval_sec',1)))
     side_current=[v for v in current['vehicles'] if v['link']==10700]
     current['vehicles']=[v for v in current['vehicles'] if v['link']!=10700]
     initial_projection=None
@@ -313,25 +415,32 @@ def initialize(context,observation,cfg,state,detectors):
         if cap<used-1e-7 or cap<=0:raise ValueError('Relocated road does not fit its remaining parent storage: '+key)
         net.urban_link_storage_veh[key]=cap;state.urban_link_storage[key]=cap-used
 
+    before_start={}
     for road in net.freeway_links:
-        cells=[c for c in context['geometry']['cells'] if c['road']==road]
-        bins=[[] for _ in cells]
-        for row in current_frame['vehicles']:
-            address=context['geometry']['addresses'].get(row[1],context['geometry']['addresses'].get(str(row[1])))
-            if address and address[0]==road:
-                p=float(address[1])+row[3]
-                i=min(len(cells)-1,bisect_right(context['geometry']['bounds'][road],p)-1)
-                bins[i].append(row)
-        state.freeway_density[road]=[len(rows)/(c['length_km']*c['effective_lanes']) for rows,c in zip(bins,cells)]
-        state.freeway_effective_lanes[road]=[c['effective_lanes'] for c in cells]
-        state.freeway_speed[road]=[math.fsum(r[4] for r in rows)/len(rows) if rows else state.freeway_speed[road][i]
+        cells,bins,dropped=bin_frame(context['geometry'],current_frame['vehicles'],road,drop_before_start=v2)
+        before_start[road]=[row[0] for row in dropped]
+        # v2: the refined kernel's own lane profile (canonical_harness:314,
+        # :713-715); the geometry's effective_lanes differs by 1 ulp in 8 cells.
+        lanes=[c['lane_km']/c['length_km'] for c in cells] if v2 else [c['effective_lanes'] for c in cells]
+        state.freeway_density[road]=[len(rows)/(c['length_km']*l) for rows,c,l in zip(bins,cells,lanes)]
+        state.freeway_effective_lanes[road]=lanes
+        # v2: an empty refined cell has no 21-cell counterpart; its speed is
+        # filled from its own calibrated cell FD below (canonical_harness:716-717).
+        state.freeway_speed[road]=[math.fsum(r[4] for r in rows)/len(rows) if rows else (None if v2 else state.freeway_speed[road][i])
                                     for i,rows in enumerate(bins)]
     freeway=LaneFreewayRuntime(component,state,cfg,observation,context['parameters'],off_splits=observation['off_split_ratio'])
+    binding=_bind_refined(context,observation,cfg,state,freeway) if v2 else None
+    if binding is not None:
+        # Audit: frame rows before Pos=0 of the source link, left to A1's backlog.
+        binding['dropped_before_start']={road:{'count':len(ids),'vehicles':ids} for road,ids in before_start.items()}
     for road,conf in freeway.configs.items():
         # Objective/resource consumers must see the very same cell FD and
         # anticipation parameters as each direction's physical transition.
         net.freeway_segment_params[road]=copy.deepcopy(conf.network.freeway_segment_params[road])
-        if road=='FW_E':conf.network.terminal_zero_gradient=True
+        # v1 implies the zero-gradient FW_E terminal; v2 declares it (the b110
+        # calibration used the component's open exit, canonical_harness:328-329).
+        if road=='FW_E' and context['document'].get('fw_e_terminal','zero_gradient')=='zero_gradient':
+            conf.network.terminal_zero_gradient=True
         for off in conf.network.off_ramps:
             conf.network.off_ramp_storage_link[off]=descriptions[off]['storage']
         conf.network.physical_vehicle_counts=True
@@ -345,7 +454,13 @@ def initialize(context,observation,cfg,state,detectors):
         specs[name]=dict(connector_id=str(no),length_m=length,head_position_m=min(heads[no]),lanes=r['lanes'],
             spacing_m=spacing,travel_speed_kmh=context['port_profile']['travel_speed_kmh'][str(no)],
             time_sec=cutoff,initial_cohorts=[[v[3],v[4],v[2]] for v in by_link[no]],initial_backlog_veh=0.)
-        if name in component.ramp_receiving_nodes:
+        if name in component.ramp_receiving_nodes and v2:
+            # obs150: exact per-lane entry counts of the closed window (B6),
+            # same equal-share closure when nothing arrived.
+            shares=list(observation['ramp_arrival_shares'].get(name,()))
+            if len(shares)!=r['lanes']:raise ValueError('Ramp arrival shares missing or differ from the connector lanes: '+name)
+            specs[name]['lane_arrival_shares']=shares
+        elif name in component.ramp_receiving_nodes:
             entries=Counter()
             start=max(0,cutoff-150)
             past={v[0]:v for v in frames[start]['vehicles']}
@@ -379,6 +494,7 @@ def initialize(context,observation,cfg,state,detectors):
     if sorted(directed.values())!=sorted(net.freeway_links):
         raise ValueError('Each freeway must have exactly one declared native upstream input')
     timetable['freeway_link_by_input']=directed
+    if v2:_bind_source_boundary(context,observation,net,timetable,binding)
     state.lane_ramp_runtime=LaneRampRuntime(component,specs,state,cycle_sec=net.physical_ramp_branches['cycle_sec'])
     local.sync_stores(state,cfg)
     state.lane_offramp_runtime.assert_mirrors(state,cfg)
@@ -389,7 +505,121 @@ def initialize(context,observation,cfg,state,detectors):
     net.lane_plant_sources=copy.deepcopy(context['document'])
     return {'lane_plant_enabled':True,'lane_plant_observed_sec':cutoff,
         **({'lane_initial_spillback_projection':initial_projection} if initial_projection is not None else {}),
+        **({'n31_binding':binding} if binding is not None else {}),
         'lane_plant_manifest_sha256':context['manifest_sha256']}
+
+
+def bin_frame(geometry,vehicles,road,*,drop_before_start=False):
+    """Frame rows of one road on the geometry's cells (count-agnostic, 21 or 31).
+
+    A just-inserted vehicle can be recorded slightly before Pos=0 (link 26
+    Pos=-0.09, analyze_no_control_corridors.py:133-134). bisect then gives -1,
+    which the v1 expression wraps to the LAST cell (v1 stays byte-identical).
+    A v2 frame has no such row: the runner clamps Pos in [-8,0) to 0
+    (B1A_ENTRY_CLAMPED, run_real_world_stackelberg_controller.vbs:3489-3502)
+    and the lane observation's frame must have Pos>=0 (obs150_contract.py:1095,
+    :1420). The clamped vehicle lies in cell 0 and in the source station [0,p)
+    of the same frame, so it is admitted once, not left in the backlog.
+    drop_before_start is the fail-safe for any other frame: a Pos<0 row goes
+    in no cell, as the calibration Observer does (extract_observations.py:
+    333-335), because it lies outside [0,p) and A1's backlog already carries
+    it; a cell would count it a second time. n31_binding records the count
+    ('dropped_before_start', 0 on a validated frame).
+    Returns (cells, bins, dropped rows).
+    """
+    cells=[c for c in geometry['cells'] if c['road']==road]
+    bins=[[] for _ in cells]
+    dropped=[]
+    for row in vehicles:
+        address=geometry['addresses'].get(row[1],geometry['addresses'].get(str(row[1])))
+        if address and address[0]==road:
+            p=float(address[1])+row[3]
+            i=min(len(cells)-1,bisect_right(geometry['bounds'][road],p)-1)
+            if drop_before_start and i<0:
+                dropped.append(row);continue
+            bins[i].append(row)
+    return cells,bins,dropped
+
+
+def _offramp_history_v2(observation,cutoff):
+    """C4(h): the exact 10643 vehicle ledger replaces the 1 s frame replay."""
+    history=copy.deepcopy(observation['offramp_10643_history'])
+    if history['information_cutoff_s']!=cutoff or history['history_start_s']!=max(0,cutoff-150):
+        raise ValueError('10643 destination history is not the current causal window')
+    history['off_composition']=[[(connector,share) for connector,share in lane] for lane in history['off_composition']]
+    return history
+
+
+def _bind_refined(context,observation,cfg,state,freeway):
+    """C4(a,c,d,g) for the refined plant; the full cfg keeps its 21-cell namespace.
+
+    Only the plant's per-road kernels and the continuity inputs change. The VSL
+    zone tables are rewritten in PARENT space so every refined cell reads the
+    21-key command of its parent zone (FW_E [0]*5+[5]*9+[10]*11+[15]*6).
+    """
+    from evaluation.controllers.freeway_refined_geometry import vsl_head_of_cell
+    net=cfg.network
+    if not getattr(net,'freeway_variable_cell_lengths',False):
+        raise ValueError('Refined plant continuity requires variable physical cell lengths')
+    # C6: A1 carries the source backlog inside the admitted-rate forecast, as
+    # the calibration did (BF:163 initial_origin_queue 0). A nonzero origin
+    # queue here would admit the same backlog a second time.
+    origin=getattr(state,'mainline_origin_queue',None) or {}
+    if any(float(origin.get(road,0.))!=0. for road in freeway.configs):
+        raise ValueError('v2 source backlog is carried by A1; the mainline origin queue must start empty')
+    heads=getattr(net,'freeway_vsl_zone_heads',None) or {}
+    binding={'parents':copy.deepcopy(context['parents']),'vsl_zone_head_of_cell':{},'empty_cells_v_free':{},
+             'ramp_to_cell':{k:r['to_cell'] for k,r in context['component'].ramps.items()},
+             'off_from_cell':{k:r['from_cell'] for k,r in context['component'].offramps.items()},
+             'vsl_command_space':context['document']['vsl_command_space']}
+    for road,conf in freeway.configs.items():
+        cells=[c for c in context['geometry']['cells'] if c['road']==road]
+        rows=conf.network.freeway_segment_params[road]
+        if len(rows)!=len(cells) or len(state.freeway_density[road])!=len(cells):
+            raise ValueError('Refined plant state and kernel cell counts differ: '+road)
+        if list(state.freeway_effective_lanes[road])!=list(conf.network.freeway_segment_lanes[road]):
+            raise ValueError('Refined plant state and kernel lane profiles differ: '+road)
+        empty=[]
+        for i,v in enumerate(state.freeway_speed[road]):
+            if v is None:
+                state.freeway_speed[road][i]=rows[i].get('v_free',conf.network.v_free);empty.append(i)
+        binding['empty_cells_v_free'][road]=empty
+        state.freeway_flow[road]=[d*v*lanes for d,v,lanes in zip(state.freeway_density[road],
+            state.freeway_speed[road],state.freeway_effective_lanes[road])]
+        net.freeway_segment_length_profile_km[road]=[c['length_km'] for c in cells]
+        if str(road) not in heads:raise ValueError('Parent VSL zones are required for the refined plant: '+road)
+        hs,head_of,zone_of=vsl_head_of_cell(context['parents'][road],heads[str(road)])
+        if hs!=sorted(int(h) for h in heads[str(road)]) or not set(head_of)<=set(hs):
+            raise ValueError('Refined VSL zone keys leave the controller namespace: '+road)
+        cn=conf.network
+        cn.freeway_vsl_zone_heads={**(getattr(cn,'freeway_vsl_zone_heads',None) or {}),str(road):hs}
+        cn.freeway_vsl_zone_head_of_cell={**(getattr(cn,'freeway_vsl_zone_head_of_cell',None) or {}),str(road):head_of}
+        cn.freeway_vsl_zone_of_cell={**(getattr(cn,'freeway_vsl_zone_of_cell',None) or {}),str(road):zone_of}
+        cn.freeway_vsl_zone_free=list(net.freeway_vsl_zone_free)
+        binding['vsl_zone_head_of_cell'][road]=head_of
+    # C5, D-C (b): the last closed window's observed 10643 lane shares are held
+    # over the horizon (closure assumption; the observation itself is exact).
+    shares=[float(x) for x in observation['offramp_10643_lane_shares']]
+    if len(shares)!=2 or any(not math.isfinite(x) or x<0 for x in shares) or abs(math.fsum(shares)-1)>1e-12:
+        raise ValueError('10643 lane shares must be two non-negative shares summing to one')
+    net.lane_plant_10643_lane_split={'mode':'observed_lane_shares_held','shares':shares,
+        'information_cutoff_s':int(state.time_sec)}
+    binding['offramp_10643_lane_shares']=shares
+    return binding
+
+
+def _bind_source_boundary(context,observation,net,timetable,binding):
+    """C4(i)/C6 input with the T7b schedule identities checked online."""
+    from evaluation.controllers import source_boundary
+    schedules=source_boundary.road_schedules(timetable)
+    calibration=source_boundary.geometry_schedules({'desired_source_demand':context['calibration_source_demand']})
+    for road,rows in schedules.items():
+        if not source_boundary.same_schedule(rows,calibration[road],tol=1e-6):
+            raise ValueError('Native mainline timetable differs from the calibration source demand: '+road)
+        if not source_boundary.same_schedule(rows,tuple(context['obs150'].source_schedule[road]),tol=1e-6):
+            raise ValueError('Native mainline timetable differs from the obs150 source schedule: '+road)
+    net.freeway_source_boundary_observed=source_boundary.observed_block(observation,schedules)
+    binding['source_boundary']=copy.deepcopy(net.freeway_source_boundary_observed)
 
 
 def _initialize_upstream(local,state,cfg,detectors,provenance,old_provenance,by_link,links,dimensions,context):

@@ -1,0 +1,64 @@
+{
+  "schema": "coupled-lane-plant/v2",
+  "sources": {
+    "network": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
+      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    },
+    "geometry": {
+      "path": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/observations/s31_v2nc_observations/geometry.json",
+      "sha256": "89011be004bcf386c4e7e8e703d3fb30074b3a6165beafdb4ed54e2b247dfb90"
+    },
+    "refined_partition": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json",
+      "sha256": "9769b3a4462f5d9c619709ffea7d6b14fc1faeecade0ff4cf73d9e9023906bea"
+    },
+    "reference_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json",
+      "sha256": "b049dcc05e3ea847894c68b4259d423ec2cfe8cd92067776b84451213f6c8547"
+    },
+    "parameters": {
+      "path": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json",
+      "sha256": "8e4f60470f0c182594a152949d76bf7327ed3b65c09cb034de19c7ce435490f7"
+    },
+    "port_profile": {
+      "path": "diagnostics/sdmpc_n31_20260924/port_profile_v2/port_profile.json",
+      "sha256": "e62df12c0902a70bade4c832068b4376baa6ca927d25b526455691a536dfade4"
+    },
+    "reference_protocol": {
+      "path": "diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/protocol.json",
+      "sha256": "32bb2d6a682323a878f0b90a1d7c8afc8a375420b9534b60221db54b3ed01aea"
+    },
+    "runner_config": {
+      "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
+      "sha256": "9a093ad6935284708c055fff858aa370e20e57fce51b328d2be58761a8760738"
+    },
+    "sig_manifest": {
+      "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
+      "sha256": "2cbbb269ded59d0c3d0ade18ff0948051161f918cba29654a551e694b5c1a243"
+    }
+  },
+  "membership": {
+    "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+    "sha256": "37e14595c07051c9aaf5e96238e375279ddf2f8196fbc85319d99739b4cd94fb"
+  },
+  "off_groups": "diagnostics/control_improvement/decision_common_anchor_20260911/ramp8_physical_v1/offramp_route_inventory_v1.json",
+  "observation": {
+    "detectors": {
+      "path": "diagnostics/sdmpc_n31_20260924/obs150/obs150_detectors_v2.csv",
+      "sha256": "108debbb4b021796b195927ba2140dafab571e1d976734190f5d8f5bd255cfbc"
+    },
+    "expected_simres": 10,
+    "vehrec_interval_sec": 5
+  },
+  "source_boundary": {
+    "mode": "calibrated_history_forecast",
+    "history_sec": 150,
+    "model_step_sec": 10
+  },
+  "lane_groups": false,
+  "fw_e_terminal": "component",
+  "vsl_command_space": "parent_21",
+  "future_observations": false,
+  "qualification": "NOT_QUALIFIED: 31-cell b110 boundary family with the baseline FD (no FD refit); held-out history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h; scenario pack priors carried over from fcb349d3 with prior_mismatch receipts (D-B); obs150 observation integrated and verified offline only (probe V0 + V1 code tests), not yet against native ground truth (G1 D6 pending); COM head delay D10=1 s pending the G1 D6 re-check; VSL wired with a zero derivative at 110 (deferred); no native9000 launch approval claimed"
+}

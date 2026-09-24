@@ -1,0 +1,62 @@
+--- a/scripts/run_real_world_stackelberg_controller.vbs
++++ b/scripts/run_real_world_stackelberg_controller.vbs
+@@ -59,20 +59,16 @@
+ ' coupled-lane-plant/v2 manifest. Every obs150 branch is inert otherwise, so the v1 path
+ ' (21 cells, per-second observation, SimRes 1) runs exactly as before. Procedures: OBS150_RUNNER.
+ Const OBS150_DECISION_SEC = 150
+-' D10 (plan A4, section 9) is OPEN until G1; the 0 below is PROVISIONAL. It follows the probe
+-' READ-BACK only: a COM write at the integer stop x reads back from x (PRB g) and every transition
+-' is on a whole second. V0-4 (obs150_signal_clock.NATIVE_STEP_RULE = 'program_state_at_step_end')
+-' settles the native side alone: a native SG read at x holds its program state at phase
+-' (x - offset), and its stopped lead vehicle moves at s+0.1 after a green start s. The probe
+-' VEHICLES at the COM meter disagree: after the GREEN written at 850 its stopped lead vehicles moved
+-' at 851.1 (test_clock_probe test_vehicle_start_after_com_green_is_recorded). If G1 shows the same
+-' at an urban COM head (lead departs at t+1.1, not t+0.1, after a GREEN written at t), a COM state
+-' reaches the vehicles one second late: the native-clock emulation then needs 1 (the verified
+-' SimRes 1 value) and the COM green intervals of CONTRACT 2.3 shift by 1 s. WP-B1 already reads the
+-' probe that way (obs150_signal_clock.COM_HEAD_DELAY_S = 1) and carries 0 -> 1 in its patches
+-' VBS_B1_D10 + OC_B1_D10, which the integrator applies together. The user decides D10, with that
+-' evidence, before V5. SimRes 1 keeps its verified 1 (SignalClockPosition).
+-Const OBS150_FRAME_ADVANCE = 0
++' D10 (plan A4, section 9; CONTRACT 2.3; WP-B1 V0-4 = obs150_signal_clock.COM_HEAD_DELAY_S).
++' VISSIM updates signal groups and heads once per simulation second, at its end (Vissim 2020
++' manual 2.17.3). A native SG read at the stop x holds its program state at phase (x - offset)
++' and its stopped lead vehicle moves at s+0.1 after a green start s. A COM write at the stop x
++' reads back at once but comes after the update at x: the heads take it at x+1 (probe: GREEN
++' written at 850, both meter lanes' lead vehicles moved at 851.1; the SimRes 1 replay: COM LDP(t)
++' = source(t-1)). So the native-clock emulation writes at x the state of x+1, which is exact:
++' the same 1 as the verified SimRes 1 value (SignalClockPosition). G1 D6 rechecks it at an urban
++' COM head (lead departs at t+1.1 after a GREEN written at t).
++Const OBS150_FRAME_ADVANCE = 1
+ Const OBS150_KEY_MIN = 960001
+ Const OBS150_KEY_MAX = 969999
+ Const OBS150_POS_READBACK_TOL_M = 0.001
+@@ -6914,7 +6910,7 @@
+ End Sub
+ 
+ ' Native-clock plans carry the run's frame advance as a fifth spec field (SignalClockPosition).
+-' OBS150_FRAME_ADVANCE is a SimRes 10 value (D10, provisional): any other resolution stops here.
++' OBS150_FRAME_ADVANCE is the SimRes 10 value (D10, V0-4): any other resolution stops here.
+ Sub Obs150ApplyNativeFrameAdvance()
+     Dim key
+     If CLng(simResSteps) <> 10 Then
+@@ -6928,7 +6924,7 @@
+     Next
+     WScript.Echo "SIGNAL_FRAME_ADVANCE=" & CStr(OBS150_FRAME_ADVANCE) & " simres=" & CStr(simResSteps) & _
+         " native_clock_scs=" & CStr(nativeClockPlans.Count) & " native_rule=program_state_at_step_end" & _
+-        " source=probe_readback d10=open_pending_G1 g1_check=com_head_lead_departure_t+0.1_or_t+1.1"
++        " com_head_delay=1 source=V0-4_probe_vehicles d10=decided g1_check=com_head_lead_departure_t+1.1"
+ End Sub
+ 
+ ' ---- detectors installed in memory (plan A6) -------------------------------
+--- a/diagnostics/obs150_20260924/tests/runner_harness.py
++++ b/diagnostics/obs150_20260924/tests/runner_harness.py
+@@ -25,7 +25,7 @@
+ # 0 is provisional (open until G1 / the user). When D10 is decided (WP-B1 proposes 1 in
+ # patches/VBS_B1_D10.patch), change it here together with the VBS constant; the open-D10 runlog
+ # markers are asserted only while it is 0.
+-D10_FRAME_ADVANCE = 0
++D10_FRAME_ADVANCE = 1
+ PS1_PATH = ROOT / 'scripts' / 'run_real_world_single_watchdog_distributed_core17legs4b.ps1'
+ MOCK_PATH = Path(__file__).resolve().parent / 'mock_vissim_runner.vbs'
+ CSCRIPT = shutil.which('cscript.exe') or shutil.which('cscript')
