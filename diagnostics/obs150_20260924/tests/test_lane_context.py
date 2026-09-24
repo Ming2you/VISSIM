@@ -176,6 +176,8 @@ class RealManifest(unittest.TestCase):
         c.validate_context(context)
         self.assertEqual(context.detector_csv_sha256, document['observation']['detectors']['sha256'])
         self.assertEqual(len(context.sig_table), 42)
+        # the eight ramp meters are fixed-time SCs without a .sig file (G1 09-24, sim 150)
+        self.assertEqual(context.programless_scs, frozenset(str(n) for n in range(9101, 9109)))
         self.assertTrue(all(Path(p.path).parent == sup.ROOT / 'diagnostics' / 'sdmpc_n31_20260924' / 'network'
                             for p in context.sig_table.values()))
 

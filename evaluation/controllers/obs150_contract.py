@@ -1655,6 +1655,7 @@ class Obs150Context:
     head_groups: Mapping[tuple, tuple]             # SHO.physical_groups: (link, phase) -> head dicts
     sig_table: Mapping[str, SigProgram]            # sc -> native program
     source_schedule: Mapping[str, tuple]           # road -> ScheduleRow
+    programless_scs: frozenset = frozenset()       # fixed-time SCs with no .sig supply file (ramp meters)
 
     def rows_by_role(self, role):
         return tuple(r for r in self.detectors if r.role == role)
@@ -1724,6 +1725,10 @@ def validate_context(context):
         for sg, intervals in program.green_s.items():
             for a, b in intervals:
                 _require(_is_int(a) and _is_int(b) and 0 <= a < b <= program.cycle_s, f'{sc}-{sg} green interval')
+    _require(isinstance(context.programless_scs, frozenset)
+             and all(isinstance(sc, str) for sc in context.programless_scs)
+             and not context.programless_scs & set(context.sig_table),
+             'programless_scs must be SC numbers (str) outside sig_table')
     _require(set(context.source_schedule) == set(ROADS), 'Both roads need a source schedule')
     for schedule in context.source_schedule.values():
         validate_schedule(schedule)

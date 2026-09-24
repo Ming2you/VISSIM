@@ -570,6 +570,14 @@ def sig_table(net, sig_manifest_path, sig_manifest_bytes):
     return out
 
 
+def programless_scs(net):
+    """Fixed-time SCs with no .sig supply file (the ramp meters 9101-9108): no native program exists.
+
+    The runner owns them by COM from t=1; the clock counts their native seconds before that as unverified.
+    """
+    return frozenset(sc for sc, c in net.controllers.items() if c['sig_file'] is None and c['type'] == 'FIXEDTIME')
+
+
 def load_context(document, paths, *, manifest_sha256=None):
     """Obs150Context of a coupled-lane-plant/v2 manifest (built once per decision process).
 
@@ -649,7 +657,8 @@ def load_context(document, paths, *, manifest_sha256=None):
         destination_refs={c: 'destination:' + c for c in oc.DESTINATION_CONNECTORS_10643},
         lane_map_10643=lane_map_10643(net), route_destinations_10643=route_destinations_10643(net),
         head_groups={key: tuple(members) for key, members in groups.items()},
-        sig_table=sig_table(net, sig_path, sig_bytes), source_schedule=schedules)
+        sig_table=sig_table(net, sig_path, sig_bytes), source_schedule=schedules,
+        programless_scs=programless_scs(net))
     oc.validate_context(context)
     return context
 
@@ -690,7 +699,8 @@ def derive(raw, context):
     boundaries = oc.evaluate_boundaries(obs, context.detectors, bundle.frame_end, bundle.frame_start, err_rows)
     assignment = oc.assign_window(obs, mer_rows)
     clocks = obs150_signal_clock.windows(obs['signal_log'], context.sig_table, obs['window'],
-                                         network_dir=Path(network_path).parent)
+                                         network_dir=Path(network_path).parent,
+                                         programless_scs=context.programless_scs)
     head_window = obs150_head_window.build(raw, context, clocks, mer_rows, bundle=bundle, boundaries=boundaries)
     lane = obs150_lane.derive(raw, context, mer_rows, err_rows, bundle.frame_end, bundle.frame_start,
                               boundaries=boundaries, assignment=assignment)

@@ -131,7 +131,7 @@ def verify_run_sig_files(sig_table, network_dir, scs):
 # --------------------------------------------------------------------------
 # Contract interface (plan 1.9)
 # --------------------------------------------------------------------------
-def windows(signal_log, sig_table, window, *, network_dir=None):
+def windows(signal_log, sig_table, window, *, network_dir=None, programless_scs=frozenset()):
     """Clocks of every SG listed in signal_log.start over window (T-150, T].
 
     Returns {'<sc>-<sg>': {'green': [(a, b)...], 'native_sec', 'controlled_sec',
@@ -142,8 +142,11 @@ def windows(signal_log, sig_table, window, *, network_dir=None):
     and returns {}. complete is False when the SG has unverified seconds or the
     runner marked the log incomplete. network_dir (keyword): the run's network
     folder; the .sig of every SC used natively in the window must be
-    byte-identical there.
+    byte-identical there. programless_scs (keyword): fixed-time SCs of the network
+    with no .sig supply file; their native seconds count as unverified. Any other
+    native SC missing from sig_table is an error.
     """
+    _require(not set(programless_scs) & set(sig_table), 'An SC cannot be both program-less and in sig_table')
     if window is None:
         return {}
     _require(isinstance(window, dict) and set(window) == {'start_s', 'end_s'}, 'window must be {start_s, end_s}')
@@ -176,7 +179,11 @@ def windows(signal_log, sig_table, window, *, network_dir=None):
                     state, verified = event[4], True
                 else:  # fail: the SG state is unknown until the next successful write
                     state, verified = None, False
-            if owner == 'native':
+            if owner == 'native' and sc in programless_scs:
+                # A fixed-time SC with no .sig supply file (the ramp meters 9101-9108) has no
+                # program to integrate; its native state before the runner owns it is unknown.
+                unverified += 1
+            elif owner == 'native':
                 if program is None:
                     program = sig_table.get(sc)
                     _require(program is not None, f'Native SG {key} has no .sig program in the table')

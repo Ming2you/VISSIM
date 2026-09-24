@@ -120,6 +120,22 @@ class Clock(unittest.TestCase):
                            TABLE, WINDOW)['9106-1']
         self.assertEqual((clock['green'], clock['unverified_sec'], clock['controlled_sec']), ([], 21, 129))
 
+    def test_programless_native_seconds_are_unverified(self):
+        # G1 (09-24, sim 150): the ramp meters 9101-9108 are fixed-time SCs with no .sig file.
+        # The runner owns them at the stop t=1 and the heads follow at t=2 (D10), so their
+        # native state in (0, 2] is unknown: unverified seconds, not an error.
+        window = {'start_s': 0, 'end_s': 150}
+        events = [(1, '9101', '1', 'own', True), (1, '9101', '1', 'write', 'GREEN')]
+        signal_log = {'scs': ['9101'], 'start': {'9101-1': {'owner': 'native'}},
+                      'events': [list(e) for e in events], 'complete': True}
+        clock = d10_windows(signal_log, TABLE, window, programless_scs=frozenset({'9101'}))['9101-1']
+        self.assertEqual(clock, {'green': [(2, 150)], 'native_sec': 0, 'controlled_sec': 148,
+                                 'unverified_sec': 2, 'complete': False})
+        with self.assertRaises(oc.ObsContractError):   # unmarked, a native SC without a program stays an error
+            d10_windows(signal_log, TABLE, window)
+        with self.assertRaises(oc.ObsContractError):   # an SC cannot be both program-less and programmed
+            d10_windows(signal_log, TABLE, window, programless_scs=frozenset({'1004'}))
+
     def test_ownership_changes(self):
         # own(true) with the write at the same stop: verified at once; own(false): the program again.
         # Both move the slot owner one second later, like a write.
