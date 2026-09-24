@@ -53,6 +53,44 @@ class InitialProjectionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'no physical upstream'):
             project(state,NETWORK,6.)
 
+    def test_link71_excess_moves_into_the_feeding_10641_lane(self):
+        # V5 sdmpc31_v2_s31 1950 s: 14 vehicles on 71 lane 3 against 81.24/6 = 13.5 storage
+        state={'time_s':1950,'vehicles':[vehicle(i,71,1.+5.8*i,lane=3) for i in range(14)]}
+        before=copy.deepcopy(state);moved,proof=project(state,NETWORK,6.)
+        self.assertEqual(state,before)
+        self.assertEqual([(m['vehicle'],m['source_link'],m['source_lane'],m['target_link'],m['lane'])
+                          for m in proof['moves']],[(0,71,3,10641,2)])
+        self.assertEqual(sum(v['link']==71 and v['lane']==3 for v in moved['vehicles']),13)
+        landed=[v for v in moved['vehicles'] if v['link']==10641]
+        self.assertEqual([(v['vehicle'],v['lane']) for v in landed],[(0,2)])
+        self.assertAlmostEqual(landed[0]['position_m'],proof['moves'][0]['target_position_m'])
+        self.assertFalse(proof['capacities_changed'])
+
+    def test_link71_excess_cascades_through_a_full_10641_into_126(self):
+        state={'time_s':1950,'vehicles':[vehicle(i,71,1.+5.8*i,lane=3) for i in range(14)]
+               +[vehicle(50+i,10641,5.+6*i,lane=2) for i in range(7)]}
+        moved,proof=project(state,NETWORK,6.)
+        self.assertEqual([(m['vehicle'],m['source_link'],m['target_link']) for m in proof['moves']],
+                         [(0,71,10641),(50,10641,126)])
+        count=lambda link,lane:sum(v['link']==link and v['lane']==lane for v in moved['vehicles'])
+        self.assertEqual((count(71,3),count(10641,2),count(126,2)),(13,7,1))
+        self.assertEqual(len(moved['vehicles']),len(state['vehicles']))
+
+    def test_real_v5_1950_frame_keeps_every_local_vehicle(self):
+        path=Path(r'D:\VISSIM_runs\20260924_sdmpc31\sdmpc31_v2_s31\decisions_sdmpc31_v2_s31\lane_observations\frame_001950.json')
+        if not path.exists():
+            self.skipTest('V5 1950 s frame not on this machine')
+        raw=json.loads(path.read_text(encoding='utf-16'))
+        rows=[dict(vehicle=v[0],link=v[1],lane=v[2],position_m=v[3],speed_kmh=v[4],length_m=v[5])
+              for v in raw['vehicles'] if v[1] in (126,10641,71)]
+        moved,proof=project({'time_s':1950,'vehicles':rows},NETWORK,6.)
+        self.assertEqual(len(moved['vehicles']),len(rows))
+        self.assertEqual([(m['source_link'],m.get('source_lane')) for m in proof['moves'] if m['source_link']==71],[(71,3)])
+        count=lambda link,lane:sum(v['link']==link and v['lane']==lane for v in moved['vehicles'])
+        self.assertEqual(count(71,3),13)
+        self.assertTrue(count(10641,1)<=7 and count(10641,2)<=7)   # floor(45.3/6); any excess went on into 126
+        self.assertEqual(sorted(v['vehicle'] for v in moved['vehicles']),sorted(r['vehicle'] for r in rows))
+
     def test_real_1950_observation_keeps_all_47_local_vehicles(self):
         path=ROOT.parent/'sdmpc-lane-plant-20260921/evaluation/runs/lane_native_nc2850_s13_v3/decisions_lane_native_nc2850_s13_v3/lane_observations/frame_001950.json'
         raw=json.loads(path.read_text(encoding='utf-16'))

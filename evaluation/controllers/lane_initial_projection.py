@@ -29,6 +29,26 @@ def project(current, network, spacing):
     upstream_end = float(origin.get('pos'))
     result = deepcopy(current)
     moves = []
+    # The 71 lanes that 10641 feeds (10641 lane k -> 71 lane k+1) can hold one more microscopic
+    # vehicle than their mean-spacing storage up to the last 71 exit, as the local model sees them
+    # (V5 sdmpc31_v2_s31, 1950 s: 14 on 71 lane 3, storage 81.24/6 = 13.5). Their upstreammost excess
+    # moves onto the downstream end of the feeding 10641 lane first; the 10641 step below then carries
+    # any 10641 excess on into 126. Other 71 lanes have no such connection and still fail closed.
+    end71 = max(float(x.find('./fromLinkEndPt').get('pos')) for x in links.values()
+                if x.find('./fromLinkEndPt') is not None
+                and x.find('./fromLinkEndPt').get('lane', '').split()[0] == '71')
+    for lane in (1, 2):
+        lane71 = lane + 1
+        source = sorted((v for v in result['vehicles'] if v['link'] == 71 and v['lane'] == lane71),
+                        key=lambda v: (v['position_m'], v['vehicle']))
+        excess = max(0, len(source)-math.floor(end71/spacing+1e-9))
+        for vehicle in source[:excess]:
+            if vehicle['position_m'] < 0:
+                raise ValueError('Invalid observed link 71 position')
+            moves.append(dict(vehicle=vehicle['vehicle'], lane=lane, source_link=71, source_lane=lane71,
+                target_link=10641, source_position_m=vehicle['position_m'], target_position_m=length,
+                backward_boundary_distance_m=vehicle['position_m'], vehicles=1.0))
+            vehicle['link'], vehicle['lane'], vehicle['position_m'] = 10641, lane, length
     for lane in (1, 2):
         source = sorted((v for v in result['vehicles'] if v['link'] == 10641 and v['lane'] == lane),
                         key=lambda v: (v['position_m'], v['vehicle']))
