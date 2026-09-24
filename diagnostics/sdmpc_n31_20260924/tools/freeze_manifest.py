@@ -32,7 +32,9 @@ from n31_common import FREEZE_NAME, FREEZE_SCHEMA, ToolError, file_sha256, long_
 
 # Same rules as the robocopy call in freeze_worktree.ps1 (/XD and /XF match case-insensitively at
 # every depth). FREEZE.json is excluded at the root only: nested boundary_fit/freeze.json are inputs.
-EXCLUDED_DIRS = ('__pycache__', '.pytest_cache', '.git')   # .git: a plain clone's folder (a worktree has a file)
+# __tangentcache__: the SDMPC tangent code cache, keyed by source sha. A run writes new entries into
+# FRZ (G1b wrote 87), which made FREEZE_VERIFIED fail although no input changed.
+EXCLUDED_DIRS = ('__pycache__', '.pytest_cache', '.git', '__tangentcache__')   # .git: a plain clone's folder (a worktree has a file)
 EXCLUDED_NAMES = ('.git',)
 EXCLUDED_SUFFIXES = ('.pyc',)
 PLAN_SUBTREES = ('evaluation/', 'scripts/', 'src/', 'plant/', 'diagnostics/sdmpc_n31_20260924/')

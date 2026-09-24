@@ -150,6 +150,9 @@ class Network:
             else:
                 link = Link(no, False, None, None, None, None, length, lanes=lanes)
             self.links[no] = link
+        # links with a vehicle input: inserted vehicles enter them at 0 even when a connector also
+        # feeds the link further down (link 26: input 1099, and connector 10480 joins at 3625.8 m)
+        self.input_links = {int(el.get('link')) for el in root.findall('./vehicleInputs/vehicleInput')}
         self.routes = {}
         for d in root.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic'):
             for r in d.findall('./vehRoutSta/vehicleRouteStatic'):
@@ -162,6 +165,7 @@ class Network:
         """Test/fixture constructor from Link rows."""
         self = cls.__new__(cls)
         self.links, self.out, self.into = {}, defaultdict(list), defaultdict(list)
+        self.input_links = set()
         for link in links:
             self.links[link.no] = link
             if link.connector:
@@ -388,8 +392,8 @@ class Engine:
             cands = [c.to_pos for c in into if c.no == pa.link or c.from_link == pa.link]
         else:
             cands = [c.to_pos for c in into if c.no not in self.tracked]
-            if not into:
-                cands.append(0.0)                     # an origin link: inputs start at 0
+            if not into or link in getattr(self.net, 'input_links', ()):
+                cands.append(0.0)                     # an origin or input link: inputs start at 0
         reach = self._reach(pb, veh)
         cands = [c for c in cands if pb.pos - reach <= c <= pb.pos + POS_TOL]
         return cands or None

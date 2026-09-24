@@ -119,6 +119,19 @@ class Engine(unittest.TestCase):
         ev = engine.step(100, {9: P(1, 1, 99.7)}, 101, {9: P(2, 1, 0.5)})
         self.assertEqual([(e.pid, e.kind) for e in ev], [('c', 'traverse')])
 
+    def test_input_link_fed_downstream_by_a_connector(self):
+        # G1b 09-24: link 26 carries input 1099 and connector 10480 joins it at 3625.8 m. A vehicle the
+        # input inserts is an entry at 0 although link 26 is not an origin link (all 189 FW_W sources).
+        pts = [g.Point('src', 1, 0.0, None)]
+        engine = g.Engine(net(), pts, (1, 2), {}, {})          # connector 13 joins link 1 at 30 m
+        self.assertEqual(engine.step(100, {}, 101, {9: P(1, 1, 0.5)}), [])
+        self.assertEqual([a['kind'] for a in engine.anomalies], ['unexplained_entry'])
+        n = net()
+        n.input_links = {1}
+        engine = g.Engine(n, pts, (1, 2), {}, {})
+        self.assertEqual([e.kind for e in engine.step(100, {}, 101, {9: P(1, 1, 0.5)})], ['entry'])
+        self.assertEqual(engine.anomalies, [])
+
     def test_chain_membership_pending_until_reappearance(self):
         n = net()
         engine = g.Engine(n, [], (1, 2), {}, {})

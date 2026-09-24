@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { throw 'git state capture failed' }
 $robolog = Join-Path (Split-Path -Parent $frz) ('robocopy_{0}.log' -f (Split-Path -Leaf $frz))
 # /XF matches names case-insensitively at every depth: FREEZE.json must NOT be listed here, because
 # nested boundary_fit\freeze.json files are runtime inputs. The root .git is the only file named .git.
-& robocopy $src $frz /E /COPY:DAT /DCOPY:T /XD __pycache__ .pytest_cache .git /XF .git *.pyc /R:2 /W:2 /MT:8 /NP /NFL /NDL /UNILOG:$robolog | Out-Null
+& robocopy $src $frz /E /COPY:DAT /DCOPY:T /XD __pycache__ .pytest_cache .git __tangentcache__ /XF .git *.pyc /R:2 /W:2 /MT:8 /NP /NFL /NDL /UNILOG:$robolog | Out-Null
 $rc = $LASTEXITCODE
 if ($rc -ge 8) { throw "robocopy failed with exit code $rc (see $robolog)" }
 Write-Output ("ROBOCOPY exit={0} log={1}" -f $rc, $robolog)

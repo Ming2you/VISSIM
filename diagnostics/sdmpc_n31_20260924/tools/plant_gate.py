@@ -292,6 +292,10 @@ def extract_observations(fzp, errs, geometry_path, cutoff, out, *, network_sha25
     started = time.monotonic()
     for sec, frame in native_frames(fzp, evidence, deadline=started + EXTRACT_DEADLINE_SEC,
                                     interval_sec=interval_sec, phase_sec=phase):
+        if sec <= observer.sec + 1e-8:
+            # The obs150 runner records a frame at 0.1 s (its first step), which the B110 fast-runner
+            # FZPs do not have. The observers start at the phase (0.1), so that frame is their start.
+            continue
         observer.advance(sec, frame)
         if ports is not None:
             ports.advance(sec, frame)
