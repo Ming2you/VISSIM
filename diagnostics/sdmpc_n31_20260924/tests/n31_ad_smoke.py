@@ -11,7 +11,13 @@ Cases:
                    (AFA:285-288): forward AD of total TTT and end vehicles w.r.t.
                    a FW_E ramp release, the FW_E source and the 10643 capacity
                    against central finite differences.
-  vsl_anchor_max   Dual(110 = vsl_max) on FW_E__seg10: zero tangent everywhere, no NaN.
+  vsl_anchor_max   Dual(110 = vsl_max) on FW_E__seg10 with the branch VSL model
+                   (Carlson A0.5/E4 + exposure transport): the one-sided (left)
+                   tangent, against left differences P(110) - P(110 - h) at h = 1, 2
+                   and their Richardson extrapolation (h >= 1 clears the 0.5 gate).
+                   FW_W has no fitted law: its 110 anchor stays a zero column.
+  vsl_below_max    Dual(80) on FW_E__seg10: forward AD against the central
+                   difference at h = 0.25 (both sides active Carlson).
   vsl_zone_reach   Dual(80) on FW_W__seg10, one step: speed tangents exactly on
                    the parent zone's refined cells 15-24.
 """
@@ -144,16 +150,50 @@ def merge_open_exit(component, confs):
             'finite': finite(ttt) and finite(vehicles) and all(finite(s) for s in speeds), 'checks': checks}
 
 
+VSL_CASE = dict(rho=lambda i: 22.0 + (7 * i) % 23, v=lambda i: 85.0, source=6800.0, ramp={}, cap={})
+
+
+def vsl_column(conf, road, key, anchor, steps=300):
+    trace = ad.Trace([1.0], track_stencils=False)
+    ttt, vehicles, speeds = rollout(conf, road, steps, **VSL_CASE, vsl={key: ad.Dual(anchor, {0: 1.0}, trace)})
+    return ttt, vehicles, speeds
+
+
+def plain(conf, road, key, value, steps=300):
+    ttt, vehicles, _ = rollout(conf, road, steps, **VSL_CASE, vsl={key: value})
+    return ad.primal(ttt), ad.primal(vehicles)
+
+
 def vsl_anchor_max(confs):
     conf = confs['FW_E']
     vsl_max = max(conf.freeway_follower.vsl_set)
-    trace = ad.Trace([1.0], track_stencils=False)
-    ttt, vehicles, speeds = rollout(conf, 'FW_E', 300, rho=lambda i: 15.0 + (3 * i) % 20, v=lambda i: 95.0,
-                                    source=5200.0, ramp={}, cap={},
-                                    vsl={'FW_E__seg10': ad.Dual(vsl_max, {0: 1.0}, trace)})
+    ttt, vehicles, speeds = vsl_column(conf, 'FW_E', 'FW_E__seg10', vsl_max)
+    base = plain(conf, 'FW_E', 'FW_E__seg10', vsl_max)
+    left = {h: plain(conf, 'FW_E', 'FW_E__seg10', vsl_max - h) for h in (1.0, 2.0)}
+    checks = []
+    for index, (name, value) in enumerate((('ttt', ttt), ('vehicles', vehicles))):
+        d1 = (base[index] - left[1.0][index]) / 1.0
+        d2 = (base[index] - left[2.0][index]) / 2.0
+        checks.append({'output': name, 'ad': ad.derivative(value).get(0, 0.0), 'left_h1': d1, 'left_h2': d2,
+                       'richardson': 2 * d1 - d2, 'primal': ad.primal(value), 'plain_110': base[index]})
     tangents = [ad.derivative(x).get(0, 0.0) for x in (ttt, vehicles, *speeds)]
-    return {'vsl_max': vsl_max, 'max_abs_tangent': max(abs(t) for t in tangents),
+    west = confs['FW_W']
+    w_ttt, w_vehicles, w_speeds = vsl_column(west, 'FW_W', 'FW_W__seg10', vsl_max)
+    west_tangents = [ad.derivative(x).get(0, 0.0) for x in (w_ttt, w_vehicles, *w_speeds)]
+    return {'vsl_max': vsl_max, 'max_abs_tangent': max(abs(t) for t in tangents), 'checks': checks,
+            'cells_with_tangent': [i for i, s in enumerate(speeds) if abs(ad.derivative(s).get(0, 0.0)) > 0.0],
+            'west_max_abs_tangent': max(abs(t) for t in west_tangents),
             'finite': finite(ttt) and finite(vehicles) and all(finite(s) for s in speeds)}
+
+
+def vsl_below_max(confs):
+    conf = confs['FW_E']
+    anchor, h = 80.0, 0.25
+    ttt, vehicles, _ = vsl_column(conf, 'FW_E', 'FW_E__seg10', anchor)
+    plus, minus = plain(conf, 'FW_E', 'FW_E__seg10', anchor + h), plain(conf, 'FW_E', 'FW_E__seg10', anchor - h)
+    return {'anchor': anchor, 'checks': [{'output': name, 'ad': ad.derivative(value).get(0, 0.0),
+                                          'fd': (plus[index] - minus[index]) / (2 * h)}
+                                         for index, (name, value) in enumerate((('ttt', ttt), ('vehicles', vehicles)))]}
 
 
 def vsl_zone_reach(confs):
@@ -164,10 +204,44 @@ def vsl_zone_reach(confs):
     return {'cells_with_tangent': [i for i, s in enumerate(speeds) if abs(ad.derivative(s).get(0, 0.0)) > 0.0]}
 
 
+def vsl_unit(confs):
+    """The two AD pieces of the port, checked in this instrumented process.
+
+    law_left: literature_desired_speed at the inactive 110 anchor keeps the
+      target value and carries d law/dc, equal to the one-sided difference of
+      the (ungated) Carlson law itself.
+    merge: same-valued cohorts from two command axes merge under one key with a
+      mass-weighted zero-valued sensitivity (first-order exact).
+    """
+    from evaluation.controllers import freeway_fd as fd
+    conf = confs['FW_E']
+    spec = conf.network.freeway_vsl_fd_response['FW_E']
+    trace = ad.Trace([1.0, 1.0], track_stencils=False)
+    rows = []
+    for cell in (10, 16):
+        for rho in (10.0, 30.0, 45.0):
+            target = 97.25
+            value = fd.literature_desired_speed(spec, conf, 'FW_E', cell, rho, target,
+                                                ad.Dual(110.0, {0: 1.0}, trace), False)
+            h = 1e-6
+            law = lambda c: fd._literature_speed(spec, conf, 'FW_E', cell, rho, c)
+            rows.append({'cell': cell, 'rho': rho, 'value': ad.primal(value), 'target': target,
+                         'ad': ad.derivative(value).get(0, 0.0), 'left_fd': (law(110.0) - law(110.0 - h)) / h,
+                         'nominal_equals_law_at_110': law(110.0)})
+    x = fd.VSLExposure([10.0, 10.0], dict(sign_cells=[0], initial_command=110.0, ramp_command=110.0), 110.0)
+    x.advance([10.0, 10.0], [10.0, 10.0], [2.0], [2.0, 2.0], 2.0, [0.0, 0.0], [ad.Dual(110.0, {0: 1.0}, trace), 110.0])
+    first = [{str(k): ad.derivative(v) for k, v in row.items()} for row in x.tangents]
+    x.advance([10.0, 10.0], [10.0, 10.0], [2.0], [2.0, 2.0], 2.0, [0.0, 0.0], [ad.Dual(110.0, {1: 1.0}, trace), 110.0])
+    second = [{str(k): ad.derivative(v) for k, v in row.items()} for row in x.tangents]
+    return {'law_left': rows, 'merge_keys': [sorted(c) for c in x.cohorts],
+            'merge_first': first, 'merge_second': second, 'cohorts': [{str(k): v for k, v in c.items()} for c in x.cohorts]}
+
+
 def main(out):
     component, confs = build()
     result = {'instrumented': '_tangent_float' in vars(sys.modules['evaluation.controllers.area_freeway_accounting']),
               'merge_open_exit': merge_open_exit(component, confs), 'vsl_anchor_max': vsl_anchor_max(confs),
+              'vsl_below_max': vsl_below_max(confs), 'vsl_unit': vsl_unit(confs),
               'vsl_zone_reach': vsl_zone_reach(confs)}
     Path(out).write_text(json.dumps(result, indent=1), encoding='utf-8')
     print('N31_AD_SMOKE_OK')

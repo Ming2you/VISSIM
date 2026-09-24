@@ -249,7 +249,7 @@ def local_history(frames,cutoff,routes,exits,*,sample_interval_sec=1):
                 history_start_s=start,endogenous_background=True)
 
 
-def initialize(context,observation,cfg,state,detectors):
+def initialize(context,observation,cfg,state,detectors,*,previous_action_path=None):
     from diagnostics.demand_sweep.user_native_20260914.metanet_calibration_v1.canonical_harness import DelayedPort
     from evaluation.controllers.physical_urban_transport import observe,history_inputs,CumulativeLane,CoupledPort,FIFO,tagged
     from evaluation.controllers.lane_urban_runtime import LaneUrbanRuntime,CandidateSignalProgram
@@ -433,6 +433,8 @@ def initialize(context,observation,cfg,state,detectors):
     if binding is not None:
         # Audit: frame rows before Pos=0 of the source link, left to A1's backlog.
         binding['dropped_before_start']={road:{'count':len(ids),'vehicles':ids} for road,ids in before_start.items()}
+        # VSL cohorts start from the last applied commands (user decision 2026-09-24).
+        binding['vsl_cohort_initialization']=_initialize_vsl_cohorts(freeway,previous_action_path)
     for road,conf in freeway.configs.items():
         # Objective/resource consumers must see the very same cell FD and
         # anticipation parameters as each direction's physical transition.
@@ -606,6 +608,60 @@ def _bind_refined(context,observation,cfg,state,freeway):
         'information_cutoff_s':int(state.time_sec)}
     binding['offramp_10643_lane_shares']=shares
     return binding
+
+
+def applied_vsl_from_previous(previous_action_path):
+    """(last APPLIED VSL command map or None, provenance).
+
+    The runner passes --previous-action-json only for the last action whose CSV
+    ApplyActionCsv accepted, which requires every VSL row written and read back
+    equal (run_real_world_stackelberg_controller.vbs:1225, :1249-1254, :1446-1462).
+    That JSON's top-level vsl is block zero, the written block (future SDMPC
+    blocks live in diagnostics and are never written), and the signs keep it
+    until the next applied action. No path: nothing applied yet (t=1), and the
+    v2 network's own DSDs show 110. A named but missing file is an error.
+    """
+    if not previous_action_path:
+        return None,{'source':'no_previous_action'}
+    path=Path(previous_action_path)
+    if not path.is_file():
+        raise ValueError('Previous applied action is missing: '+str(path))
+    data=path.read_bytes()
+    raw=json.loads(data.decode('utf-8-sig'))
+    vsl=raw.get('vsl') if isinstance(raw,dict) else None
+    if not isinstance(vsl,dict) or any(not isinstance(k,str) for k in vsl):
+        raise ValueError('Previous applied action lacks its VSL command map: '+str(path))
+    return dict(vsl),{'source':str(path),'sha256':hashlib.sha256(data).hexdigest(),
+        'sim_sec':(raw.get('metadata') or {}).get('sim_sec'),
+        'sdmpc_applied_receipt':Path(str(path)+'.applied').is_file()}
+
+
+def _initialize_vsl_cohorts(freeway,previous_action_path):
+    """Canonical v2 initial VSL cohort tags: the last applied commands, per road.
+
+    Each refined cell takes the command its governing upstream sign displayed in
+    the last applied action (freeway_fd.applied_cohort_commands); before any
+    applied action every cell is at the entry command 110. The per-road plant
+    config carries the tags; AFA _freeway_substep_events creates each rollout's
+    VSLExposure from them. All-110 tags equal the untagged cohorts exactly.
+    """
+    from evaluation.controllers.freeway_fd import applied_cohort_commands
+    roads={road:conf for road,conf in freeway.configs.items()
+           if (getattr(conf.network,'component_vsl_transport',None) or {}).get(road) is not None}
+    if not roads:
+        return {'enabled':False}
+    applied,provenance=applied_vsl_from_previous(previous_action_path)
+    commands={}
+    for road,conf in roads.items():
+        net=conf.network
+        head_of=net.freeway_vsl_zone_head_of_cell[str(road)]
+        values=applied_cohort_commands(net.component_vsl_transport[road],road,head_of,applied,
+                                       max(conf.freeway_follower.vsl_set))
+        net.component_vsl_initial_commands={**(getattr(net,'component_vsl_initial_commands',None) or {}),
+                                            road:tuple(values)}
+        commands[road]=values
+    return {'enabled':True,'rule':'governing upstream sign of the last applied action; entry command before any',
+            **provenance,'commands':commands}
 
 
 def _bind_source_boundary(context,observation,net,timetable,binding):

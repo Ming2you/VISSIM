@@ -298,7 +298,7 @@ class CanonicalFreewayModel:
             cfg.simulation.T_f=integration
             cfg.simulation.T_u=min(cfg.simulation.T_u,integration)
             cfg.simulation.validate()
-        self.runtime_metadata = runtime_setup.configure_freeway_runtime(adapter, cfg, tuning, mapping)
+        self.runtime_metadata = runtime_setup.configure_freeway_runtime(adapter, cfg, tuning, mapping, component_validation=True)
         if geometry.get('refined_partition'):
             # Same parent-preserving physical partition used by the established
             # segment-resolution experiment, explicitly opted in by extraction.
@@ -316,6 +316,17 @@ class CanonicalFreewayModel:
                 heads[road] = [parents.index(p) for p in old_heads]
             adapter.install_freeway_vsl_zones(cfg, {'freeway':{'vsl_zone_heads':heads}})
         self.base = cfg
+        # Passive VSL command cohorts (branch d80faf9). Sign cells index the
+        # physical (refined) cells, so they are checked after the partition.
+        transport=tuning.get('freeway',{}).get('component_vsl_transport')
+        if transport is not None:
+            from evaluation.controllers.freeway_fd import VSLExposure
+            if (not isinstance(transport,dict) or not transport or set(transport)-set(cfg.network.freeway_links)
+                    or getattr(cfg.network,'vsl_fd_two_branch',False) or tuning.get('freeway',{}).get('component_literature')):
+                raise ValueError('Component VSL exposure requires explicit exponential METANET directions')
+            for road,spec in transport.items():
+                VSLExposure([0.]*len(cfg.network.freeway_segment_params[road]),spec,max(cfg.freeway_follower.vsl_set))
+            cfg.network.component_vsl_transport=copy.deepcopy(transport)
         self.roads = tuple(cfg.network.freeway_links)
         self.component_boundary = copy.deepcopy(tuning.get('freeway',{}).get('component_boundary'))
         if self.component_boundary is not None:

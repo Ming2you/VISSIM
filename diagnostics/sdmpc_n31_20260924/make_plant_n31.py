@@ -61,8 +61,11 @@ QUALIFICATION = ('NOT_QUALIFIED: 31-cell b110 boundary family with the baseline 
                  'history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h; scenario pack priors carried over from '
                  'fcb349d3 with prior_mismatch receipts (D-B); obs150 observation integrated and verified offline '
                  'only (probe V0 + V1 code tests), not yet against native ground truth (G1 D6 pending); COM head '
-                 'delay D10=1 s pending the G1 D6 re-check; VSL wired with a zero derivative at 110 (deferred); no '
-                 'native9000 launch approval claimed')
+                 'delay D10=1 s pending the G1 D6 re-check; VSL model = branch d80faf9 candidate A0.5_E4 on FW_E (Carlson '
+                 'A0.5/E4/alpha0 base 110 + exposure transport, sign cells re-derived for this network; fitted on seed29 '
+                 'demand-v1 with a different 110 curve, refit on v2 pending; action set 50-110 step 10: 50-80 extrapolate and '
+                 '100 interpolates the 90-only fit; cohorts start from the last applied command; FW_W keeps '
+                 'the legacy cap, zero derivative at 110); no native9000 launch approval claimed')
 
 
 def sha256(path):

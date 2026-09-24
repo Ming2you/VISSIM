@@ -54,11 +54,42 @@ class AdSmokeTests(unittest.TestCase):
             self.assertGreater(abs(check['fd']), 1e-6, check)
             self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-5 * abs(check['fd']) + 1e-9, check)
 
-    def test_vsl_anchor_at_vsl_max_is_a_zero_column(self):
+    def test_vsl_anchor_at_vsl_max_is_one_sided_not_zero(self):
+        # Supersedes the zero column at 110 (branch VSL model, Carlson A0.5/E4 +
+        # exposure transport on FW_E): the left derivative, value unchanged.
         case = self.result['vsl_anchor_max']
         self.assertEqual(case['vsl_max'], 110.0)
-        self.assertEqual(case['max_abs_tangent'], 0.0)
         self.assertTrue(case['finite'])
+        self.assertGreater(case['max_abs_tangent'], 0.0)
+        for check in case['checks']:
+            self.assertEqual(check['primal'], check['plain_110'], check)
+            self.assertGreater(abs(check['ad']), 1e-6, check)
+            # O(h) left differences converge to AD; their Richardson value agrees to 1%.
+            self.assertLess(abs(check['ad'] - check['left_h1']), abs(check['ad'] - check['left_h2']), check)
+            self.assertLessEqual(abs(check['ad'] - check['richardson']), 1e-2 * abs(check['ad']), check)
+        self.assertEqual(case['west_max_abs_tangent'], 0.0)   # FW_W: no fitted law, legacy cap
+
+    def test_vsl_law_left_derivative_keeps_value(self):
+        for row in self.result['vsl_unit']['law_left']:
+            self.assertEqual(row['value'], row['target'], row)
+            self.assertNotEqual(row['ad'], 0.0, row)
+            self.assertLessEqual(abs(row['ad'] - row['left_fd']), 1e-4 * abs(row['ad']) + 1e-9, row)
+
+    def test_vsl_cohort_merge_is_mass_weighted(self):
+        unit = self.result['vsl_unit']
+        self.assertEqual(unit['merge_keys'], [[110.0], [110.0]])
+        self.assertEqual(unit['cohorts'], [{'110.0': 10.0}, {'110.0': 10.0}])
+        first, second = unit['merge_first'], unit['merge_second']
+        self.assertAlmostEqual(first[0]['110.0']['0'], 0.2)          # 2 of 10 tagged under axis 0
+        self.assertEqual(first[1]['110.0'], {})
+        self.assertAlmostEqual(second[0]['110.0']['0'], 0.16)        # 8 remain (0.2) + 2 new under axis 1
+        self.assertAlmostEqual(second[0]['110.0']['1'], 0.2)
+        self.assertAlmostEqual(second[1]['110.0']['0'], 0.04)        # 2 moved downstream carry 0.2
+
+    def test_vsl_below_max_equals_central_fd(self):
+        for check in self.result['vsl_below_max']['checks']:
+            self.assertGreater(abs(check['fd']), 1e-6, check)
+            self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-4 * abs(check['fd']), check)
 
     def test_zone_axis_reaches_its_parent_cells(self):
         self.assertEqual(self.result['vsl_zone_reach']['cells_with_tangent'], list(range(15, 25)))

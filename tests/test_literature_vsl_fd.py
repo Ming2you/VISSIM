@@ -2,6 +2,7 @@ import math
 import unittest
 from types import SimpleNamespace
 from evaluation.controllers.freeway_fd import literature_vsl_parameters as law
+from evaluation.controllers.freeway_fd import configure_literature_vsl, literature_desired_speed, VSLExposure
 from evaluation.controllers.physical_lane_groups import PhysicalLaneGroups
 
 
@@ -43,6 +44,60 @@ class LiteratureVSLTests(unittest.TestCase):
         self.assertAlmostEqual(p._literature_target(0,42.,90.,60.,True,cfg),60.*math.exp(-.2))
         net.freeway_segment_params['FW_E'][0]['rho_max']=40.
         with self.assertRaises(ValueError):p._literature_target(0,30.,90.,60.,True,cfg)
+
+    def test_runtime_direction_and_absence_isolation(self):
+        cfg=SimpleNamespace(network=SimpleNamespace(freeway_links=['FW_E','FW_W']))
+        tuning={'freeway':{'vsl_fd_response':{'FW_E':dict(law='carlson',A=.5,E=2.,alpha=0.)}}}
+        configure_literature_vsl(cfg,tuning)
+        self.assertEqual(set(cfg.network.freeway_vsl_fd_response),{'FW_E'})
+        tuning['freeway']['vsl_fd_response']['FW_E']['A']=3.
+        self.assertEqual(cfg.network.freeway_vsl_fd_response['FW_E']['A'],.5)
+        configure_literature_vsl(cfg,{})
+        self.assertFalse(hasattr(cfg.network,'freeway_vsl_fd_response'))
+        self.assertEqual(literature_desired_speed(None,None,None,0,30.,71.234,90.,True),71.234)
+
+    def test_competing_laws_and_unknown_direction_rejected(self):
+        cfg=SimpleNamespace(network=SimpleNamespace(freeway_links=['FW_E'],vsl_fd_two_branch=True))
+        tuning={'freeway':{'vsl_fd_response':{'FW_E':dict(law='carlson',A=.5,E=2.,alpha=0.)}}}
+        with self.assertRaises(ValueError):configure_literature_vsl(cfg,tuning)
+        cfg.network.vsl_fd_two_branch=False
+        tuning['freeway']['component_literature']={'family':'hadi'}
+        with self.assertRaises(ValueError):configure_literature_vsl(cfg,tuning)
+        tuning['freeway'].pop('component_literature')
+        tuning['freeway']['vsl_fd_response']['wrong']={}
+        with self.assertRaises(ValueError):configure_literature_vsl(cfg,tuning)
+
+    def test_capacity_is_not_automatically_increased(self):
+        # Peak exponential-FD flow per lane is vf*critical*exp(-1/shape).
+        spec=dict(law='carlson',A=0.,E=1.,alpha=0.)
+        vf,rc,a=law(spec,110.,30.,2.,90.,110.)
+        self.assertLess(vf*rc*math.exp(-1/a),110.*30.*math.exp(-.5))
+
+    def test_sign_changes_new_arrivals_not_resident_vehicles(self):
+        x=VSLExposure([10.,10.],dict(sign_cells=[0],initial_command=110.,ramp_command=110.),110.)
+        x.advance([10.,10.],[10.,10.],[2.],[2.,2.],2.,[0.,0.],[90.,90.])
+        self.assertEqual(x.cohorts,[{110.:8.,90.:2.},{110.:10.}])
+        x.advance([10.,10.],[10.,10.],[2.],[2.,2.],2.,[0.,0.],[90.,90.])
+        self.assertAlmostEqual(x.cohorts[1][90.],.4)
+        self.assertLess(x.max_residual,1e-10)
+
+    def test_ramp_bypasses_upstream_sign_and_downstream_sign_restores(self):
+        x=VSLExposure([10.,10.],dict(sign_cells=[1],initial_command=90.,ramp_command=110.),110.)
+        x.advance([10.,10.],[8.,11.],[2.],[2.,2.],0.,[0.,1.],[90.,110.])
+        self.assertEqual(x.cohorts[1],{90.:8.,110.:3.})
+        with self.assertRaises(ArithmeticError):x.advance([8.,11.],[0.,0.],[9.],[9.,11.],0.,[0.,0.],[90.,110.])
+
+    def test_empty_cell_can_receive_without_a_stale_cohort_key(self):
+        x=VSLExposure([0.,2.],dict(sign_cells=[0],initial_command=110.,ramp_command=110.),110.)
+        x.advance([0.,2.],[1.,1.],[0.],[0.,1.],1.,[0.,0.],[90.,110.])
+        self.assertEqual(x.cohorts,[{90.:1.},{110.:1.}])
+        self.assertEqual(x.max_residual,0.)
+
+    def test_tiny_positive_cohort_can_drain(self):
+        x=VSLExposure([1e-13],dict(sign_cells=[],initial_command=110.,ramp_command=110.),110.)
+        x.advance([1e-13],[0.],[],[1e-13],0.,[0.],[110.])
+        self.assertEqual(x.cohorts,[{}])
+        self.assertEqual(x.max_residual,0.)
 
 
 if __name__=='__main__':unittest.main()

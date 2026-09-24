@@ -20,14 +20,18 @@
 | HO | `diagnostics/vsl_handoff_20260924` (사용자 인계 폴더, d80faf9) |
 | PY / DEP / RUNS | Python 3.12 실행 파일 / 의존성 폴더 / 런 출력 루트 |
 
-> **작성 뒤 추가 (09-24 저녁, `sim3-n31`의 커밋 전 작업):**
-> - **VSL 모형 이식 완료 (미커밋):** 사용자 A0.5_E4 모형(Carlson FD, `VSLExposure` 수송)을 FW_E에 이식했습니다.
+> **작성 뒤 추가 (09-24 저녁, 바로 다음 커밋에 들어감):**
+> - **VSL 모형 이식:** 사용자 A0.5_E4 모형(Carlson FD, `VSLExposure` 수송)을 FW_E에 이식했습니다.
 >   - 표지판 셀은 v2 망에서 다시 뽑아 `[0,3,5,8,14,18,26,28]`입니다.
->   - 110을 유지하면 옛 결과와 비트 단위로 같습니다(G1b 900 상태, 수치 1,329만 개).
+>   - 명령이 모두 110이면 옛 결과와 비트 단위로 같습니다(G1b 900 상태, 수치 1,329만 개. V5b 3000 상태 목적값 538.152115708005).
 >   - 사용자 국소 보정(v_free 108.159, anticipation 18.375, head-service, physical_cell_fd)은 v2 보정을 덮어쓰므로 **넣지 않았습니다**.
->   - 커밋되면 §3(d)와 §7.1 일부를 대체합니다.
-> - **진행 중:** VSL 선택지를 {50,60,70,80,90,100,110}으로 넓힙니다. VSL 코호트는 결정마다 직전 적용 명령으로 초기화합니다.
-> - **RM:** V5b(9000 s)에서 3300 s까지 SDMPC가 **램프 미터를 한 번도 조이지 않았습니다**. 8개 모두 상한입니다. stage-1 v2에서는 규칙 RM이 FW_E 본선을 −375 veh·h(3시드 모두) 개선했는데, 플랜트가 이 이득을 보지 못합니다. 원인은 추적 중입니다. 사용자 브랜치의 "RM 이득 예측 미해결"과 같은 문제입니다.
+>   - 110에서 한쪽 도함수가 살아 있습니다(FW_E seg10 +0.034 veh·h/(km/h)). 아래 §3(d)-3 4번과 §7.1의 "110 불감대" 서술은 이식 전 기준입니다.
+> - **VSL 행동 집합 {50,60,70,80,90,100,110}:** 튜닝, reference, 러너 VBS가 같은 집합입니다(`make_config_n31.py:51`, `make_reference_config.py:55-56`, `repin_scenario_v2.py:131`).
+>   - 블록 0은 한 결정에 ±40까지 움직입니다(`max_vsl_step`). 110에서 {70..110}입니다.
+>   - v2 망에는 일곱 속도 모두 같은 번호의 희망속도 분포가 있습니다. 50·60·70은 좁은 균등, 80–110은 오른쪽 꼬리가 긴 분포라 한 계열이 아닙니다.
+> - **VSL 코호트 초기화:** 결정마다 직전에 실제 적용된 행동의 블록 0 VSL을 표지 셀과 그 하류 셀에 심습니다(없으면 110). 출처는 결정 metadata `n31_binding.vsl_cohort_initialization`에 남습니다.
+> - **현재 sha:** plant `17871460`, config `1e58e6bf`, reference `2c4857f4`, 러너 VBS `b74e05b2`, 검지기 CSV `108debbb`(그대로). 본문 표의 옛 sha는 이 값으로 읽으십시오.
+> - **RM:** V5b(9000 s)에서 SDMPC가 **램프 미터를 한 번도 조이지 않았습니다**. 추적 결과는 VISSIM stage-1의 FW_E 이득 대부분(82%)이 램프 대기로의 전가이고, Ω 전체로는 규칙 RM도 손해(+1530 veh·h, FW_W 역류)라는 것입니다. 플랜트가 틀린 것은 FW_E 내부 구성(B1 대기가 너무 빨리 풀림, 상류 진입 부족)입니다. 세부는 `N31D/RM_GAIN_TRACE_20260924.md`에 있습니다.
 
 ---
 
@@ -128,7 +132,7 @@ git worktree add -b <내-브랜치> <W> origin/claude/sdmpc-n31-20260924
 
 ### 2.2 v2 manifest 필드 (`validate_plant_manifest_v2`, OC:163-189)
 
-키 집합이 정확히 맞아야 합니다(OC:119-124). 핀은 모두 `{path, sha256}`이고, path는 저장소 상대경로에 `/`만 씁니다. 절대경로, `..`, `:`는 거부합니다(OC:146-152). 아래 값은 `N31D/plant_n31_v2.json`(`2dc45b2e`) 기준입니다.
+키 집합이 정확히 맞아야 합니다(OC:119-124). 핀은 모두 `{path, sha256}`이고, path는 저장소 상대경로에 `/`만 씁니다. 절대경로, `..`, `:`는 거부합니다(OC:146-152). 아래 값은 `N31D/plant_n31_v2.json`(`2dc45b2e`, VSL 이식 전) 기준입니다. 현재 값은 맨 위 추가 노트를 보십시오.
 
 | 필드 | 현재 값 | 만드는 곳 | 플랜트에서 하는 일 |
 |---|---|---|---|
@@ -139,7 +143,7 @@ git worktree add -b <내-브랜치> <W> origin/claude/sdmpc-n31-20260924
 | `sources.parameters` | `B110/train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json` (`8e4f6047`) | 보정 → `copy_b110.py` | `['parameters']['by_direction'][road]` → `component._config` (LPR:112, LFR:28) |
 | `sources.port_profile` | `N31D/port_profile_v2/port_profile.json` (`e62df12c`) | `port_profile_v2/extract_port_profile.py` | 커넥터 16개의 주행속도(LPR:106-109), 차로손실 on/off(LPR:447) |
 | `sources.reference_protocol` | `…/transport_step1_exchange_off_v2/protocol.json` | 고정 | 파속도, 도시 자유속도, 측방 접근 규칙(LPR:314-327) |
-| `sources.runner_config` | `N31D/scenario/lane_native_b110.vbs` (`9a093ad6`) | `repin_scenario_v2.py` | 러너 VBS 설정. 튜닝 `execution.signal_vbs_config`와 같아야 합니다(OC:205-206) |
+| `sources.runner_config` | `N31D/scenario/lane_native_b110.vbs` (`b74e05b2`) | `repin_scenario_v2.py` | 러너 VBS 설정. 튜닝 `execution.signal_vbs_config`와 같아야 합니다(OC:205-206) |
 | `sources.sig_manifest` | `N31D/network/sig_manifest.json` | `repin_scenario_v2.py` | `.sig` 42개 표 |
 | `membership` | `N31D/scenario/control_area_membership_213a5d.json` | repin 팩 | 권역 멤버십(LPR:274) |
 | `off_groups` | `…/ramp8_physical_v1/offramp_route_inventory_v1.json` | 고정 | 오프램프 신호·직결 그룹(LPR:353) |
@@ -254,7 +258,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
   - 경로 A에서는 `sources.geometry`를 B110 경로 그대로 둡니다(§3(a) 주의).
 - **preflight:** `make_config_n31.py`는 `preflight_tuning_paths`를 `--quiet`로 돌립니다. 성공하면 `CONFIG_N31_OK sha256=…` 한 줄만 찍고, 실패하면 `preflight_tuning_paths failed`로 멈춥니다(make_config_n31.py:154-158).
 - **config:** plant를 경로로만 가리키므로, segment_params 경로가 그대로면 config 바이트도 그대로일 수 있습니다(통합 기록 §2에 선례: `eddfd19f` 유지).
-- **이 PC의 현재 기준값:** plant `2dc45b2e`, config `eddfd19f`, 검지기 `108debbb`(294행), preflight PASS(43).
+- **이 PC의 현재 기준값:** plant `17871460`, config `1e58e6bf`, reference `2c4857f4`, 검지기 `108debbb`(294행). (VSL 이식 전에는 plant `2dc45b2e`, config `eddfd19f`, preflight PASS(43).)
 
 ### (c) 재핀
 
@@ -301,7 +305,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
      - obs150 관측은 핀된 reference config의 `physical_ramp_receiving_nodes`를 읽어 `RampArrivalRef.receiving`을 정합니다(obs150_observation.py:605, :623-639). 이 키가 없거나 비어 있으면 거부합니다(:625-627).
      - 램프 차로 분율은 수용 노드 램프에 대해서만 나옵니다(obs150_lane.py:102-108). 그래서 수용 노드가 4개가 되면 `derived_T.json`의 `ramp_arrival_shares` 키도 4개가 됩니다.
      - 그 결과 이전 플랜트의 결정을 재생하면 `derived.ok`가 설계상 false가 됩니다(§4 L4).
-2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 생성기(:57-59)와 make_config_n31(:51-52)는 [60,80,110], 110을 강제합니다.
+2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 이 브랜치는 이제 [50,60,70,80,90,100,110]을 씁니다(생성기 `make_reference_config.py:55-56`, `make_config_n31.py:51`). v_free는 110 그대로입니다.
    - 후보 README는 90 밖으로 외삽하지 않는다고 적었습니다. SDMPC 명령 집합에는 90이 없습니다.
    - 90을 넣으려면 핀 연쇄를 따라 함께 바꿉니다: `repin_scenario_v2.py:129 VSL_SPEEDS` → `lane_native_b110.vbs` → 검지기 manifest → plant → `make_config_n31.py:51`, `make_reference_config.py:58`. v2 망에는 분포 90이 있습니다.
    - `v_free`는 셀 행 값이 우선하지만, `net.v_free`는 셀 0의 상류 속도와 기본값으로 쓰입니다(AFA:347). 120으로 바꿀지는 결정이 필요합니다.
@@ -370,7 +374,7 @@ for f in ('evaluation/controllers/area_freeway_accounting.py', 'evaluation/contr
 4. **110 불감대:** 사용자 모형에서도 110 기준점의 VSL 도함수는 0입니다.
    - 커널의 `vsl_active_i = vsl_i < vsl_max - 0.5`(AFA:357)와 `literature_desired_speed`의 `if spec is None or not active: return target`((d80faf9) freeway_fd.py:71)이 같은 조건입니다.
    - `VSLExposure.target`도 모든 코호트 명령이 표시 명령과 같으면 기존 값을 돌려줍니다((d80faf9) freeway_fd.py:109-110).
-   - 이 불감대를 푸는 VSL 모형 이식은 별도 작업으로 진행 중이고, 아직 커밋되지 않았습니다(§7.1).
+   - (갱신) VSL 모형 이식이 이 브랜치에 커밋되었습니다. 110에서 한쪽 도함수가 살아 있습니다(맨 위 추가 노트).
 5. **결합 경로에서 코호트 보존 (확인 필요)**
    - `VSLExposure.advance`는 코호트 합과 셀 재고의 차가 1e-7을 넘으면 `ArithmeticError`를 냅니다((d80faf9) freeway_fd.py:128-139).
    - 보정 rollout에서는 통과했습니다. SDMPC 결합 경로(램프 방출과 오프 용량이 도시 쪽에서 오는 경로)에서 통과하는지는 돌려 본 적이 없습니다.
@@ -396,7 +400,7 @@ for f in ('evaluation/controllers/area_freeway_accounting.py', 'evaluation/contr
 
 - **순서 주의:** 기존 N31 시험 일부는 현재 b110 플랜트의 값을 단언합니다. 그래서 reference를 바꾸면 설계상 실패합니다. L1은 먼저 **병합만 하고 플랜트는 그대로인 트리**(L2 단계)에서 통과시킵니다. 플랜트를 바꾼 뒤에는 해당 단언을 새 값으로 고칩니다.
   - `tests/test_n31_plant_load.py:117`: 수용 노드 == {RM_C10681, RM_C10484}. 후보는 4개입니다.
-  - `tests/test_n31_generators.py`의 `test_c7_reference_config`(:63-79): reference freeway에서 수송 키를 뺀 것 == boundary freeway(:73-74), `vsl_set` == [60,80,110](:79)
+  - `tests/test_n31_generators.py`의 `test_c7_reference_config`(:63-79): reference freeway에서 수송 키를 뺀 것 == boundary freeway(:73-74), `vsl_set` == [50,60,70,80,90,100,110]
   - T9 `tests/test_n31_ad_smoke.py:57-61`: `vsl_max == 110.0`, `max_abs_tangent == 0.0`. `vsl_max`는 max(`vsl_set`)입니다(n31_ad_smoke.py:149).
 
 ```powershell
@@ -629,7 +633,7 @@ Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
 - 기준점 110에서는 VSL이 비활성입니다(AFA:357). 그래서 VSL 축의 도함수가 0이고 SDMPC는 VSL을 움직이지 않습니다.
 - T9가 이것을 단언합니다(`test_vsl_anchor_at_vsl_max_is_a_zero_column`). V3b의 유지 명령도 8개 구역 모두 110이었습니다.
 - 사용자 모형을 넣어도 불감대는 그대로입니다(§3(d)-3 4번).
-- 사용자 VSL 모형을 이식하는 작업이 별도로 진행 중이고, 아직 커밋되지 않았습니다. 커밋되면 이 안내서의 §3(d)와 §4 L3/L4를 갱신합니다.
+- (갱신) 사용자 VSL 모형 이식과 {50..110} 집합이 이 브랜치에 커밋되었습니다. 위 서술은 이식 전 상태입니다. 현재 동작은 맨 위 추가 노트를 보십시오.
 
 ### 7.2 사용자 망과 v2 망의 시나리오 차이
 

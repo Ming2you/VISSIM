@@ -11,7 +11,7 @@ from evaluation.controllers import link_predictor
 from evaluation.controllers import offramp_routing
 from evaluation.controllers import signal_actuation_contract
 from evaluation.controllers import observation_projection
-from evaluation.controllers.freeway_fd import install_freeway_fd_runtime, configure_state_response
+from evaluation.controllers.freeway_fd import install_freeway_fd_runtime, configure_state_response, configure_literature_vsl
 
 
 def install_freeway_runtime(adapter, cfg, tuning=None):
@@ -34,7 +34,18 @@ def install_freeway_runtime(adapter, cfg, tuning=None):
     return metadata
 
 
-def configure_freeway_runtime(adapter, cfg, tuning, mapping):
+def configure_freeway_runtime(adapter, cfg, tuning, mapping, *, component_validation=False):
+    # The calibrated VSL FD belongs to the coupled lane plant (CanonicalFreewayModel,
+    # component_validation=True), whose kernels every SDMPC prediction steps. The
+    # full follower/GNE/leader rollouts still use the legacy speed cap, so a full
+    # controller tuning that asks for it is refused rather than silently mixed.
+    # Only that component installs the cohort transport, so the key is refused
+    # here too instead of being carried as a dead setting.
+    freeway_model = tuning.get('freeway', {}) or {}
+    if freeway_model.get('vsl_fd_response') and not component_validation:
+        raise ValueError('Calibrated VSL FD response is component-only; local follower equivalence is not qualified')
+    if 'component_vsl_transport' in freeway_model and not component_validation:
+        raise ValueError('component_vsl_transport is component-only; only the lane-plant component installs it')
     metadata = dict(adapter.install_freeway_segment_lanes(cfg, tuning, mapping))
     freeway_settings = tuning.get("freeway", {}) or {}
     if "physical_vehicle_counts" in freeway_settings:
@@ -46,6 +57,7 @@ def configure_freeway_runtime(adapter, cfg, tuning, mapping):
     metadata.update(adapter.install_freeway_lane_drop(cfg, tuning))
     metadata.update(adapter.install_freeway_two_branch_fd(cfg, tuning))
     metadata.update(configure_state_response(cfg, tuning))
+    metadata.update(configure_literature_vsl(cfg, tuning))
     metadata.update(freeway_local_state.configure(cfg, tuning))
     metadata.update(link_predictor.configure(cfg, tuning))
     from evaluation.controllers import metanet_parameter_transfer
@@ -229,7 +241,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers import metanet_parameter_transfer
     metadata.update(metanet_parameter_transfer.configure_demand(cfg, mapping))
     if lane_context is not None:
-        metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping))
+        metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
+                                                      previous_action_path=previous_action_path))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):
         from evaluation.controllers import area_runtime
         metadata.update(area_runtime.configure(a, cfg, tuning, state, detector_mapping))

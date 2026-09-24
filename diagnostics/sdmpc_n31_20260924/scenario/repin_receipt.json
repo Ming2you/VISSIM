@@ -1054,9 +1054,9 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "9a093ad6935284708c055fff858aa370e20e57fce51b328d2be58761a8760738"
+        "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
       },
-      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 60,80,110 (user decision 2026-09-24)"
+      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 50,60,70,80,90,100,110 (user decision 2026-09-24)"
     },
     {
       "source": {
@@ -1085,8 +1085,12 @@
       "RW_SIGNAL_SCS"
     ],
     "allowed_vsl_speeds": [
+      50,
       60,
+      70,
       80,
+      90,
+      100,
       110
     ],
     "allowed_speeds_without_distribution": [],
@@ -1203,7 +1207,7 @@
       },
       "sources.runner_config": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "9a093ad6935284708c055fff858aa370e20e57fce51b328d2be58761a8760738"
+        "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
       },
       "sources.sig_manifest": {
         "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",

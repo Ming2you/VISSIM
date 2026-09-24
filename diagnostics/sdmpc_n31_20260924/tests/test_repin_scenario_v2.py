@@ -187,15 +187,19 @@ def test_set_vsl_speeds_changes_one_line_only(bom, eol):
     assert out.startswith(codecs.BOM_UTF8) == bom
     a, b = data.split(b'\n'), out.split(b'\n')
     assert len(a) == len(b) and [i for i, (x, y) in enumerate(zip(a, b)) if x != y] == [2]
-    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "60,80,110"' + (b'\r' if eol == '\r\n' else b'')
+    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,110"' + (b'\r' if eol == '\r\n' else b'')
 
 
 def test_vsl_speeds_are_the_user_decision():
-    assert rp.VSL_SPEEDS == (60, 80, 110)   # 2026-09-24: the plant/stage-1 set; 115 has no v2 distribution
+    assert rp.VSL_SPEEDS == (50, 60, 70, 80, 90, 100, 110)   # 2026-09-24: 10 km/h steps, c_max 110
+    # One action set: the runner list, the tuning vsl_set and the plant reference vsl_set.
+    config = _load('make_config_n31', N31D / 'make_config_n31.py')
+    reference = _load('make_reference_config', N31D / 'make_reference_config.py')
+    assert [float(v) for v in rp.VSL_SPEEDS] == config.VSL_SET == reference.VSL_SET
 
 
 @pytest.mark.parametrize('text', ['RW_X = "1"\n', 'RW_ALLOWED_VSL_SPEEDS = "50"\nRW_ALLOWED_VSL_SPEEDS = "60"\n',
-                                  'RW_ALLOWED_VSL_SPEEDS = "60,80,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
+                                  'RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
 def test_set_vsl_speeds_refuses(text):
     with pytest.raises(rp.RepinError):
         rp.set_vsl_speeds(text.encode(), rp.VSL_SPEEDS)
@@ -428,16 +432,27 @@ def test_config_base_repoints_every_pack_path_and_passes_the_path_preflight():
 
 
 @needs_build
-def test_runner_config_allows_exactly_60_80_110_each_with_a_v2_distribution():
+def test_runner_config_allows_exactly_50_to_110_each_with_a_v2_distribution():
     receipt = built_json(rp.RECEIPT_NAME)
     check = receipt['runner_config_check']
-    assert check['allowed_vsl_speeds'] == [60, 80, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
+    assert check['allowed_vsl_speeds'] == [50, 60, 70, 80, 90, 100, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
     assert check['allowed_speeds_without_distribution'] == []
     constants = rp.vbs_constants((ROOT / rp.SCENARIO_REL / rp.RUNNER_CONFIG[1]).read_bytes())
-    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '60,80,110'
+    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '50,60,70,80,90,100,110'
     tree = ET.parse(ROOT / rp.NETWORK_DIR_REL / rp.NET_INPX).getroot()
-    distributions = {x.get('no') for x in tree.findall('./desSpeedDistributions/desSpeedDistribution')}
-    assert {'60', '80', '110'} <= distributions
+    names = {x.get('no'): x.get('name') for x in tree.findall('./desSpeedDistributions/desSpeedDistribution')}
+    # The distribution NUMBER is the speed: the runner writes it as the DesSpeedDistr id.
+    assert all(names.get(str(v)) == f'{v} km/h' for v in rp.VSL_SPEEDS)
+
+
+def test_runner_writes_the_speed_as_the_distribution_number():
+    """run_real_world_stackelberg_controller.vbs: DesSpeedDistr(class) := CLng(speed), read back equal."""
+    text = (ROOT / 'scripts' / 'run_real_world_stackelberg_controller.vbs').read_text(encoding='utf-8', errors='replace')
+    assert 'attributeName = "DesSpeedDistr(" & CStr(vehClassNo) & ")"' in text
+    assert 'dsd.AttValue(attributeName) = CLng(speedKph)' in text
+    assert 'SetClassSpeedChecked = (CLng(CDbl(readback)) = CLng(CDbl(speedKph)))' in text
+    # Every row's speed must be in the runner config's allowed list before any write.
+    assert 'Not IsCsvFiniteNumber(parts(6), RW_ALLOWED_VSL_SPEEDS)' in text
 
 
 def test_lineage_relflow_copies_have_no_runtime_reader():

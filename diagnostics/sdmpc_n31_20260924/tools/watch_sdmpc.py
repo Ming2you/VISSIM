@@ -9,7 +9,7 @@ For every finished decisions/action_<T>.json it prints and appends to <summary_l
              cons=0 lane_inexact=0 edie_max=0.04 err_lag=0.4
 
 - VSL reference is max(vsl_set) of the run's effective tuning (provenance files.tuning), not a
-  fixed 120: the v2 config allows [60, 80, 110].
+  fixed 120: the v2 config allows [50, 60, ..., 110] (10 km/h steps).
 - A meter restricts when its rate is below the rate the latest no-control (warmup) decision wrote
   for it (no-control writes every meter open); before any warmup decision, the v1 table ceilings
   1512/3024 by lane count.

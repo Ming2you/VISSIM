@@ -10,6 +10,11 @@ import math
 from dataclasses import dataclass
 from typing import Mapping
 
+# Derivative-carrying scalars exist only in the isolated SDMPC tangent process
+# (sdmpc_tangent_runtime). Everywhere else every quantity here is a plain float
+# and the code below takes the branch model's exact float path.
+from evaluation.controllers.sdmpc_dual import Dual as _TangentScalar, primal as _primal
+
 
 def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
     """Carlson/Frejo FD laws, Eqs 11/13 in Frejo et al. (2019).
@@ -39,6 +44,232 @@ def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
         speed = min(maximum * b, v_free)
     return (speed, critical * (1. + spec['A'] * (1. - b)),
             shape * (spec['E'] - (spec['E'] - 1.) * b))
+
+
+def configure_literature_vsl(cfg, tuning):
+    """Opt-in FD response shared by conserved METANET and lane-group paths.
+
+    Coefficients must be calibrated. This is not an additive capacity bonus.
+    Keep competing two-branch/Hadi/Wang laws mutually exclusive.
+    """
+    section = (tuning.get('freeway', {}) or {}).get('vsl_fd_response')
+    if section is None:
+        if hasattr(cfg.network, 'freeway_vsl_fd_response'):
+            del cfg.network.freeway_vsl_fd_response
+        return {}
+    if (not isinstance(section, Mapping) or not section
+            or set(section)-set(cfg.network.freeway_links)):
+        raise ValueError('VSL FD response requires explicit freeway directions')
+    if (getattr(cfg.network, 'vsl_fd_two_branch', False)
+            or (tuning.get('freeway', {}) or {}).get('component_literature')):
+        raise ValueError('Do not stack competing VSL FD laws')
+    parsed = {}
+    for road, spec in section.items():
+        literature_vsl_parameters(spec, 100., 30., 2., 90., 110.)
+        parsed[road] = dict(spec)
+    cfg.network.freeway_vsl_fd_response = parsed
+    return {'freeway_literature_vsl_enabled': 1.0}
+
+
+def _carries_tangent(*values):
+    """True only for SDMPC tangent-process scalars; plain numbers never."""
+    return any(isinstance(value, _TangentScalar) for value in values)
+
+
+def _power(base, exponent):
+    """base**exponent, whose value is always the plain float base**exponent.
+
+    For a tangent scalar the first-order terms enter through zero-valued
+    differences (x - primal(x)), so the value cannot change. The Carlson shape
+    depends on the command, and neither AD backend defines float**tangent. At
+    base 0 (an empty cell) both partials vanish because the shape exceeds 1.
+    """
+    if not _carries_tangent(base, exponent):
+        return base ** exponent
+    x, a = _primal(base), _primal(exponent)
+    value = x ** a
+    if x == 0.:
+        return value
+    return value + a * x ** (a - 1.) * (base - x) + value * math.log(x) * (exponent - a)
+
+
+def _literature_speed(spec, cfg, road, cell, rho, command):
+    net = cfg.network
+    rows = (getattr(net, 'freeway_segment_params', {}) or {}).get(road, ())
+    row = rows[cell] if cell < len(rows) else {}
+    vf, critical, shape = literature_vsl_parameters(spec,
+        row.get('v_free', net.v_free), row.get('rho_crit', net.rho_crit),
+        row.get('metanet_a_m', net.metanet_a_m), float(command),
+        max(cfg.freeway_follower.vsl_set))
+    if critical >= row.get('rho_max', net.rho_max):
+        raise ValueError('VSL-induced FD critical density exceeds physical jam density')
+    return vf * math.exp(-_power(max(0., rho)/critical, shape)/shape)
+
+
+def literature_desired_speed(spec, cfg, road, cell, rho, target, command, active):
+    """Pure call-local target; absent/inactive reproduces the original exactly.
+
+    Inactive means the maximum command (110), where the law equals the nominal
+    FD (b = 1). Its value stays the original target. Only when the command is a
+    tangent-process scalar does it also carry the law's command sensitivity at
+    that anchor. The law is undefined above the maximum, so this is the left
+    derivative, the direction the SDMPC box allows from 110. It is added as
+    law(rho0, c) - law(rho0, primal(c)): value exactly 0, no density term twice.
+    """
+    if spec is None:
+        return target
+    if not active:
+        if not _carries_tangent(command):
+            return target
+        density = _primal(rho)
+        return target + (_literature_speed(spec, cfg, road, cell, density, command)
+                         - _literature_speed(spec, cfg, road, cell, density, _primal(command)))
+    return _literature_speed(spec, cfg, road, cell, rho, command)
+
+
+def applied_cohort_commands(spec, road, head_of_cell, applied_vsl, maximum):
+    """Per physical cell, the command its vehicles last saw: the initial cohort tags.
+
+    A vehicle is retagged only when it enters a sign cell (VSLExposure.advance),
+    so a cell's vehicles carry the command displayed at its governing sign, the
+    nearest sign cell at or upstream of it. That display is the last APPLIED
+    action's command, read as the plant reads a command (the zone-head key of
+    the sign's parent zone, then the link key, then the maximum) but without
+    the plant's segment_vsl hook and its per-cell context side effects.
+    Cells upstream of every sign keep the entry command. `applied_vsl` None
+    (no applied action yet, the first decision) tags every cell with the entry
+    command, the branch model's behaviour. On-ramp inflow keeps ramp_command.
+    Well-mixed approximation: a cell's stock is not split by entry point or by
+    the time it passed its sign.
+    """
+    entry = float(spec['initial_command'])
+    if applied_vsl is None:
+        return [entry] * len(head_of_cell)
+    signs = set(spec['sign_cells'])
+    commands, governing = [], None
+    for cell in range(len(head_of_cell)):
+        if cell in signs:
+            governing = cell
+        if governing is None:
+            commands.append(entry)
+            continue
+        head = int(head_of_cell[governing])
+        value = applied_vsl.get(f'{road}__seg{head}', applied_vsl.get(road, maximum))
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or not 0 < value <= maximum):
+            raise ValueError(f'Invalid applied VSL command for {road} sign cell {governing}: {value!r}')
+        commands.append(float(value))
+    return commands
+
+
+class VSLExposure:
+    """Passive desired-speed cohorts, advected by the existing accepted flows.
+
+    A sign retags incoming mainline vehicles only. Ramp vehicles keep their
+    specified entry distribution until a downstream sign. Well-mixed cell
+    approximation; no extra flow/capacity is generated by this state.
+
+    Cohorts are keyed by the plain command value, as in the branch model. The
+    SDMPC tangent process seeds commands as unhashable scalars, so each cohort
+    also keeps a zero-valued command sensitivity in `tangents` (plain 0.0
+    everywhere else). Merging same-valued cohorts averages it by mass, which is
+    first-order exact because merged cohorts share every later proportional
+    share. Values and keys never depend on it, so the scalar and tangent
+    trajectories have identical states.
+
+    `initial_commands` (one plain command per cell, see applied_cohort_commands)
+    tags each cell's initial stock with the command its vehicles last saw.
+    None tags every vehicle with spec['initial_command'] (the branch model).
+    """
+    def __init__(self, stocks, spec, maximum, initial_commands=None):
+        if (set(spec) != {'sign_cells', 'initial_command', 'ramp_command'}
+                or spec['sign_cells'] != sorted(set(spec['sign_cells']))
+                or any(type(i) is not int or not 0<=i<len(stocks) for i in spec['sign_cells'])):
+            raise ValueError('Explicit physical sign cells and initial/ramp commands required')
+        for key in ('initial_command','ramp_command'):
+            value=spec[key]
+            if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or not 0<value<=maximum:
+                raise ValueError('Invalid VSL cohort entry command')
+        self.signs=frozenset(spec['sign_cells']);self.spec=dict(spec)
+        if initial_commands is None:
+            commands=[float(spec['initial_command'])]*len(stocks)
+        else:
+            commands=list(initial_commands)
+            if len(commands)!=len(stocks):
+                raise ValueError('Initial VSL cohort commands must cover every cell')
+            for value in commands:
+                if (isinstance(value,bool) or not isinstance(value,(int,float))
+                        or not math.isfinite(value) or not 0<value<=maximum):
+                    raise ValueError('Invalid initial VSL cohort command')
+            commands=[float(value) for value in commands]
+        self.cohorts=[{command:float(n)} for command,n in zip(commands,stocks)]
+        self.tangents=[{command:0.} for command in commands]
+        self.max_residual=0.
+
+    def target(self, cfg, road, cell, rho, legacy, displayed):
+        row=(getattr(cfg.network,'freeway_segment_params',{}) or {})[road][cell]
+        maximum=max(cfg.freeway_follower.vsl_set);cohort=self.cohorts[cell];stock=sum(cohort.values())
+        if stock<=1e-12:return legacy
+        shown=_primal(displayed)
+        uniform=all(abs(command-shown)<1e-12 for command,n in cohort.items() if n>1e-12)
+        if uniform and not _carries_tangent(rho,legacy,displayed,*cohort.values(),*self.tangents[cell].values()):
+            return legacy
+        net=cfg.network;vf=row.get('v_free',net.v_free);critical=row.get('rho_crit',net.rho_crit);shape=row.get('metanet_a_m',net.metanet_a_m)
+        nominal=vf*math.exp(-_power(max(0.,rho)/critical,shape)/shape)
+        spec=(getattr(net,'freeway_vsl_fd_response',{}) or {}).get(road)
+        total=0.
+        for command,n in cohort.items():
+            value=command+self.tangents[cell][command]
+            active=command<maximum-.5
+            default=min(nominal,(1.+net.alpha_vsl)*value) if active else nominal
+            total+=n*literature_desired_speed(spec,cfg,road,cell,rho,default,value,active)
+        mixed=total/stock
+        if uniform:
+            # The branch value (legacy) with the cohort mixture's derivative:
+            # only vehicles tagged under a command respond to that command.
+            delta=mixed-legacy
+            return legacy+(delta-_primal(delta))
+        return mixed
+
+    @staticmethod
+    def _add(dest, carried, cmd, amount, tangent):
+        old=dest.get(cmd,0.);old_tangent=carried.get(cmd,0.)
+        dest[cmd]=old+amount
+        if _carries_tangent(tangent,old_tangent):
+            total=dest[cmd]
+            carried[cmd]=(old*old_tangent+amount*tangent)/total if _primal(total)>0. else old_tangent
+        else:
+            carried[cmd]=old_tangent
+
+    def advance(self, old_n, new_n, internal, total_out, entry, ramps, commands):
+        """All flow inputs are accepted vehicle amounts for this time step."""
+        count=len(self.cohorts)
+        if not (len(old_n)==len(new_n)==len(total_out)==len(ramps)==len(commands)==count and len(internal)==count-1):
+            raise ValueError('VSL cohort flow/stock dimensions differ')
+        shares=[];next_rows=[];next_tangents=[]
+        for i,row in enumerate(self.cohorts):
+            if (abs(_primal(sum(row.values()))-_primal(old_n[i]))>1e-7
+                    or _primal(total_out[i])>_primal(old_n[i])+1e-7):
+                raise ArithmeticError('VSL cohort stock/flux conservation failed')
+            shares.append({cmd:n/old_n[i] for cmd,n in row.items()} if old_n[i]>0. else {})
+        for i,row in enumerate(self.cohorts):
+            dest={cmd:max(0.,n-total_out[i]*shares[i].get(cmd,0.)) for cmd,n in row.items()}
+            carried=dict(self.tangents[i])
+            amount=entry if i==0 else internal[i-1]
+            if i in self.signs:
+                shown=_primal(commands[i]);incoming={shown:(1.,commands[i]-shown)}
+            elif i==0:
+                incoming={float(self.spec['initial_command']):(1.,0.)}
+            else:
+                incoming={cmd:(fraction,self.tangents[i-1][cmd]) for cmd,fraction in shares[i-1].items()}
+            for cmd,(fraction,tangent) in incoming.items():
+                self._add(dest,carried,cmd,amount*fraction,tangent)
+            self._add(dest,carried,float(self.spec['ramp_command']),ramps[i],0.)
+            residual=abs(_primal(sum(dest.values()))-_primal(new_n[i]));self.max_residual=max(self.max_residual,residual)
+            if residual>1e-7:raise ArithmeticError('Passive VSL cohorts do not sum to physical stock')
+            kept={cmd:n for cmd,n in dest.items() if n>1e-14}
+            next_rows.append(kept);next_tangents.append({cmd:carried[cmd] for cmd in kept})
+        self.cohorts=next_rows;self.tangents=next_tangents
 
 
 def configure_state_response(cfg, tuning) -> dict[str, float]:

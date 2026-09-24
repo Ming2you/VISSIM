@@ -7464,8 +7464,12 @@
       "vsl_smoothness_weight": 0.0,
       "max_vsl_step": 40.0,
       "vsl_set": [
+        50.0,
         60.0,
+        70.0,
         80.0,
+        90.0,
+        100.0,
         110.0
       ]
     },
@@ -8020,7 +8024,32 @@
         "followup_sec": 2.5,
         "lane_arrival_history_sec": 150
       }
-    }
+    },
+    "vsl_fd_response": {
+      "FW_E": {
+        "law": "carlson",
+        "A": 0.5,
+        "E": 4.0,
+        "alpha": 0.0
+      }
+    },
+    "component_vsl_transport": {
+      "FW_E": {
+        "sign_cells": [
+          0,
+          3,
+          5,
+          8,
+          14,
+          18,
+          26,
+          28
+        ],
+        "initial_command": 110,
+        "ramp_command": 110
+      }
+    },
+    "_vsl_model_note": "Branch VSL model: codex/control-full-review-20260909 d80faf9917fc, candidate A0.5_E4 (diagnostics/vsl_handoff_20260924/candidate.json sha256 a2fe3366bfae8de33796020f067c75ed17fe3451bb742b1a3475f6440f10b7dd): Carlson speed-limit FD A=0.5 E=4 alpha=0, base command 110, and VSL exposure transport on FW_E. Provenance: fitted on seed29 demand-v1 with a different 110 curve; refit on v2 pending. Sign cells re-derived from this network (nearest refined boundary of each FW_E DSD section): DSD63-66 at chain 6733.2 m -> 18 (handoff 16). Not taken: v_free 108.159 at parents 14/15, anticipation 18.375, physical_cell_fd, ramp head-service curves. FW_W keeps the legacy cap law."
   },
   "observation": {
     "physical_branch_projection": {
@@ -8188,5 +8217,5 @@
     }
   },
   "_b110_note": "res10_b110_20260923 study config (not production): free speed from diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/free_speed_b110/config.json; nominal command {'vsl_set': [80.0, 100.0, 120.0], 'network_v_free': 120.0} -> vsl_set [60.0, 80.0, 110.0], network v_free 110.0.",
-  "_n31_note": "SDMPC-31 v2 plant reference (plan C7): diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/boundary_literature_v1/boundary_config.json plus the five transport keys physical_component_residence, physical_offramp_interval_service, physical_ramp_capacity_vph, physical_ramp_head_service_veh_per_cycle, physical_ramp_receiving_nodes from diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/config.json; the twelve lane-group keys are omitted."
+  "_n31_note": "SDMPC-31 v2 plant reference (plan C7): diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/train_s31_v2nc/boundary_literature_v1/boundary_config.json plus the five transport keys physical_component_residence, physical_offramp_interval_service, physical_ramp_capacity_vph, physical_ramp_head_service_veh_per_cycle, physical_ramp_receiving_nodes from diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2/config.json; the twelve lane-group keys are omitted; the branch VSL model keys vsl_fd_response, component_vsl_transport (freeway._vsl_model_note); config_overrides.freeway_follower.vsl_set = the action set [50..110] step 10 (boundary [60,80,110]; max 110 unchanged)."
 }

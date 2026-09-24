@@ -683,8 +683,29 @@ observe_live v2 → obs150_observation.derive(raw, context)
 
 **사용자 결정 (2026-09-24, 통합 뒤 반영):**
 - C12 `port_profile_v2` 선택 = `interp`: off-ramp 체류시간을 5 s FZP 기록 구간 안에서 재구성합니다(b120과 ±5% 안). `port_profile_v2/extract_port_profile.py`의 기본값이고 `port_profile.json` provenance가 `selection: interp`입니다.
-- v2 러너 config `RW_ALLOWED_VSL_SPEEDS = "60,80,110"`: plant·stage-1 VSL 집합입니다. v2 망에는 115 속도분포가 없어 뺐습니다. `repin_scenario_v2.py`의 `VSL_SPEEDS`가 만들고, 세 속도 모두 v2 `desSpeedDistribution`이 있어야 합니다. 핀 연쇄: `scenario/lane_native_b110.vbs` → `obs150/obs150_detectors_v2.manifest.json`(CSV 그대로) → `plant_n31_v2.json`. `config_n31_v2.json`은 plant를 경로로만 가리켜 그대로입니다.
+- v2 VSL 행동 집합 = `{50,60,70,80,90,100,110}`(10 km/h 간격, c_max 110). 처음 정한 `"60,80,110"`을 같은 날 사용자 결정으로 바꿨습니다. 115·120은 v2에서 쓰지 않습니다.
+  - 정의하는 곳은 넷이고 값이 모두 같아야 합니다(`test_repin_scenario_v2`와 `test_n31_generators`가 대조): 러너 `RW_ALLOWED_VSL_SPEEDS`(`repin_scenario_v2.py`의 `VSL_SPEEDS`), 튜닝 `config_overrides.freeway_follower.vsl_set`(`make_config_n31.py`의 `VSL_SET`), plant reference config의 같은 키(`make_reference_config.py`의 `VSL_SET`; boundary의 `[60,80,110]`을 덮음), 그리고 SDMPC 좌표(`sdmpc.py` `Coordinates`가 튜닝 `vsl_set`을 그대로 읽음).
+  - plant는 `max(vsl_set)`=110만 읽습니다(Carlson 기준·비활성 명령). 그래서 명령이 모두 110이면 예측이 바뀌지 않습니다.
+  - 일곱 속도 모두 v2 망에 같은 번호의 `desSpeedDistribution`이 있습니다(`runner_config_check`). 러너는 `DesSpeedDistr(class) = CLng(speed)`를 쓰고 읽어 온 번호가 같아야 성공합니다(`run_real_world_stackelberg_controller.vbs:1937-1967`, 행 검사 `:1343`). 분포 모양은 한 계열이 아닙니다: 50·60·70은 좁은 균등(48–58, 58–68, 68–78), 80–110은 넓고 오른쪽 꼬리가 깁니다(중앙값 약 86/96/107/117).
+  - SDMPC: 블록 0의 VSL 상자는 직전 명령 ±`max_vsl_step` 40입니다. 110에서 {70,80,90,100,110}이고(전에는 {80,110}), 블록 1·2는 ±80·±120이라 50까지 갑니다. decode는 가장 가까운 허용값이고 동률이면 기준값 쪽입니다(`sdmpc.py:338`, `:390-391`). 축 수는 그대로입니다. follower의 k-best VSL 시퀀스 후보(`install_freeway_vsl_sequence_kbest`)는 SDMPC 결정 경로에 없습니다.
+  - 핀 연쇄: `scenario/lane_native_b110.vbs` → `obs150/obs150_detectors_v2.manifest.json`(CSV 그대로) → `plant_n31_v2.json`, 그리고 `reference_config_n31_v2.json` → `plant_n31_v2.json`. `config_n31_v2.json`은 `vsl_set` 때문에 바뀝니다.
 - D10 = 1 s (위 표). G1 D6의 `d10` 항목으로 재확인합니다.
+- VSL 모형을 먼저 plant에 옮깁니다(2026-09-24). 110 속도분포는 VSL을 돌려 본 뒤 정합니다. 분포와 망은 바꾸지 않았습니다.
+  - 브랜치 `codex/control-full-review-20260909` d80faf9, 후보 A0.5_E4(`diagnostics/vsl_handoff_20260924/candidate.json` sha `a2fe3366…`)를 브랜치 키 이름 그대로 `reference_config_n31_v2.json`의 `freeway`에 넣었습니다.
+    - `vsl_fd_response`: FW_E Carlson A 0.5, E 4, alpha 0, 기준 명령 = max(vsl_set) = 110
+    - `component_vsl_transport`: FW_E 표지 셀 `[0,3,5,8,14,18,26,28]`, initial/ramp 명령 110
+  - 생성기는 `make_reference_config.py`(`--check`)입니다. 표지 셀은 이 망의 FW_E DSD 단면마다 가장 가까운 정제 셀 경계로 다시 뽑습니다. 이 규칙은 handoff 망에서 handoff 값 `[…,16,…]`을 그대로 재현합니다. 이 망은 DSD63–66이 체인 6733.2 m(link 2 pos 3998.666)에 있어서 셀 18이 됩니다.
+  - 계수 출처: seed29, 수요 v1, 다른 110 곡선에서 적합한 값입니다. v2 재적합은 아직 하지 않았습니다. 적합은 90에서만 했으므로 50–80은 외삽이고 100은 90과 110 사이 내삽입니다. FW_W에는 적합한 법칙이 없어서 기존 속도상한 식을 쓰고, 110에서 도함수는 0입니다.
+  - 옮기지 않은 것: parent 14/15의 v_free 108.159, anticipation 18.375, `physical_cell_fd`, 램프 head-service 곡선. 모두 handoff 시나리오에 맞춘 국소 보정이라 v2 보정을 덮어씁니다. v2 재적합 때 후보로 봅니다.
+  - manifest 키 집합은 그대로입니다. `sources.reference_config` sha와 `qualification` 문장만 바뀝니다. `config_n31_v2.json`은 포트 때 바이트 그대로였습니다(`eddfd19f`). 행동 집합을 바꾼 뒤로는 `vsl_set` 때문에 달라집니다.
+  - full follower 가드(`runtime_setup.configure_freeway_runtime`)는 브랜치 가드를 두고 `component_vsl_transport`까지 넓혔습니다(브랜치와 다른 점, 2026-09-24 리뷰). 컨트롤러 튜닝에 `vsl_fd_response`나 `component_vsl_transport`를 넣으면 거부합니다. transport는 component만 설치하므로 다른 경로에서는 조용히 죽은 키가 되기 때문입니다. lane plant component(`CanonicalFreewayModel`)만 `component_validation=True`로 이 두 키를 씁니다. SDMPC의 모든 예측(스칼라 surrogate와 AD)은 lane plant의 도로별 커널(AFA `_freeway_substep_events`)을 거치므로 새 모형은 결정 경로 안에 있습니다. follower와 leader의 자체 VSL 롤아웃은 기존 식을 씁니다. SDMPC는 이 롤아웃을 결정에 쓰지 않습니다.
+  - 110 유지 비트 동일: 명령이 모두 110이면 스칼라 값이 옮기기 전과 비트 단위로 같습니다. 진단 키도 새로 늘리지 않았습니다.
+  - AD: 110에서는 Carlson 좌미분(한쪽 도함수)만 값 0인 차분으로 싣습니다. cohort 키는 명령의 plain 값이고, 명령 감도는 질량 가중으로 따로 들고 다닙니다(`VSLExposure.tangents`). 관측으로 초기화할 때 cohort의 시작 명령은 아래 결정을 따릅니다(브랜치는 매번 전부 110).
+- VSL cohort 초기화 = 직전에 **적용된** 명령(2026-09-24 사용자 결정, v2 정본, env 게이트 없음).
+  - 결정 시각의 각 정제 셀 차량은 자기 셀 또는 상류에서 가장 가까운 표지 셀이 직전 적용 행동에서 보여 준 명령으로 태그됩니다(`freeway_fd.applied_cohort_commands`). 차량은 표지 셀에 들어갈 때만 다시 태그되기 때문입니다(`VSLExposure.advance`). 표지 명령은 plant가 명령을 읽는 규칙(표지의 parent 구역 머리 키 → 링크 키 → 110)으로 읽되, `segment_vsl` 훅의 셀 문맥 부작용은 피합니다. on-ramp 유입은 계속 `ramp_command` 110입니다.
+  - 직전 적용 행동은 러너가 주는 `--previous-action-json`입니다. 러너는 `ApplyActionCsv`가 성공한 행동에만 이 경로를 넘기고(`run_real_world_stackelberg_controller.vbs:1225`, `:1249-1254`), 그 성공에는 VSL 행마다 쓰기와 읽기 값 일치가 들어 있습니다(`:1446-1462`). 쓰인 것은 top-level `vsl`(블록 0)뿐입니다. 경로가 없으면(t=1) 110이고, 이름은 있는데 파일이 없으면 오류입니다(`lane_plant_runtime.applied_vsl_from_previous`).
+  - `lane_plant_runtime.initialize`가 도로별 plant config에 `component_vsl_initial_commands`로 싣고(`_initialize_vsl_cohorts`), AFA가 rollout마다 `VSLExposure`를 만들 때 씁니다. 결정 metadata의 `n31_binding.vsl_cohort_initialization`에 출처(sha, sim_sec, `.applied` 영수증 유무)와 셀별 명령이 남습니다.
+  - 전부 110이면 태그 없는 cohort와 비트 단위로 같습니다. 근사: 셀 안을 잘 섞인 것으로 봅니다. 램프에서 들어온 차량이나 직전 명령 이전에 표지를 지난 차량을 따로 나누지 않습니다.
 
 ---
 

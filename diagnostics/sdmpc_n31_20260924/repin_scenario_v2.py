@@ -15,7 +15,7 @@ Outputs (all under diagnostics/sdmpc_n31_20260924/, byte-exact by .gitattributes
     scenario/<decl stem>_<sha6>.json        20 declarations; sha6 = sha256(PACK path)[:6]
     scenario/historical_prior_transfer.json regenerated receipt (training network -> v2)
     scenario/profile.csv                    byte copy (__default__,1.0: the v2 demand is inside the .inpx)
-    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 60,80,110 only
+    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 50,60,...,110 only
     scenario/lane_native_b110_sgplan.vbs    byte copy (the runner loads <config>_sgplan.vbs by name)
     scenario/config_n31_v2.base.json        OBS1 with every pack path and network pin re-pointed
     scenario/repin_receipt.json             what was copied, rewritten and checked
@@ -31,8 +31,10 @@ Rules (user decisions of 2026-09-24):
 - D-B: the 7 prior-calibrated declarations are carried over unchanged in their priors, with the transfer
   receipt and scenario_derivation.prior_mismatch. Refit after the first 9000 s run.
 - Training artifacts keep their original paths and bytes (scenario_prior_transfer.training_network).
-- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 60,80,110 (user decision 2026-09-24): the plant and stage-1
-  VSL set, each with a desSpeedDistribution in the v2 network. The pack's 115 has no v2 distribution.
+- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 50,60,70,80,90,100,110 (user decision 2026-09-24: 10 km/h
+  steps, c_max 110; it replaced the first 60,80,110): the SDMPC/plant action set, each speed with a
+  desSpeedDistribution of the same number in the v2 network (the runner writes DesSpeedDistr = CLng(speed)
+  and requires the read-back number to equal it). The pack's 115/120 have no v2 use.
 
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py build [--network-from copy]
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py verify [--no-net]
@@ -126,7 +128,7 @@ PRIOR_DECLARATIONS = (
     'route_choice_corridor_sc1004_calibrated_6eb99c.json',
     'sc2001_corridor_nc13_f76cd6.json',
 )
-VSL_SPEEDS = (60, 80, 110)   # user decision 2026-09-24: the plant/stage-1 VSL set; each needs a v2 distribution
+VSL_SPEEDS = (50, 60, 70, 80, 90, 100, 110)   # user decision 2026-09-24: 10 km/h steps; each needs a v2 distribution
 FIRST_RUNTIME_CHECK = 'G1 t=1 decision: every validator runs in configure() before the first no-control action'
 
 
