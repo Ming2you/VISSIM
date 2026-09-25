@@ -454,28 +454,47 @@ def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
             'message': str(result.message), 'constraint_violation': violation, 'iterations': int(result.nit)}
     if info['success']:
         return d, info
-    # SLSQP can stop with 'Inequality constraints incompatible' on a feasible QP (SDMPC v3b s31 1350 s: 21
-    # moves, 14 rows, zero move feasible, many upper bounds exactly 0; the same inputs solve in another
-    # process). Only then: the objective is separable, so the box projection of the unconstrained optimum is
-    # the exact solution whenever it also satisfies G; otherwise one SLSQP restart from the zero move, if that
-    # is feasible. A result is accepted only with violation <= 1e-7; anything else still fails closed.
+    # SLSQP can report failure on a feasible QP: 'Inequality constraints incompatible' (SDMPC v3b s31 1350 s:
+    # 21 moves, 14 rows, zero move feasible; the same inputs solve in a multi-threaded process) or 'Positive
+    # directional derivative for linesearch' (1500 s: 12 moves, 22 rows, its point already optimal to 4e-11
+    # but uncertified). Only then: the QP is the (proximal-weighted) projection of the unconstrained optimum
+    # onto box ∩ {glo <= G d <= ghi}, which Dykstra's alternating projections converge to exactly. When the box
+    # point already satisfies G the first sweep returns it unchanged. A result is accepted only with violation
+    # <= 1e-7; anything else (e.g. an empty feasible set) still fails closed.
     proximal_arr = np.broadcast_to(np.asarray(proximal, dtype=float), center.shape)
-    if np.all(proximal_arr > 0):
-        box = np.clip(center-gradient/proximal_arr, lower, upper)
-        if np.all(np.isfinite(box)) and violation_of(box) <= 1e-7:
-            return box, dict(info, success=True, constraint_violation=violation_of(box), fallback='box_projection',
-                             message='box projection after SLSQP: '+info['message'])
-    zero = np.zeros_like(center, dtype=float)
-    if violation_of(zero) <= 1e-7:
-        retry = minimize(lambda x: float(gradient@x + .5*proximal*np.sum((x-center)**2)),
-            zero, jac=lambda x: gradient+proximal*(x-center),
-            bounds=Bounds(lower, upper), constraints=constraints, method='SLSQP',
-            options={'maxiter': options['qp_iterations'], 'ftol': options['qp_tolerance']})
-        if retry.success and np.all(np.isfinite(retry.x)) and violation_of(retry.x) <= 1e-7:
-            return retry.x, dict(info, success=True, constraint_violation=violation_of(retry.x),
-                                 iterations=int(retry.nit), fallback='slsqp_restart_from_zero',
-                                 message='SLSQP restart from zero after: '+info['message'])
+    if np.all(proximal_arr > 0) and np.all(np.isfinite(proximal_arr)):
+        x, sweeps, converged = _dykstra_projection(center-gradient/proximal_arr, np.sqrt(proximal_arr),
+                                                   lower, upper, G, glo, ghi)
+        if np.all(np.isfinite(x)) and violation_of(x) <= 1e-7:
+            return x, dict(info, success=True, constraint_violation=violation_of(x), fallback='dykstra_projection',
+                           dykstra_sweeps=sweeps, dykstra_converged=converged,
+                           message='Dykstra projection after SLSQP: '+info['message'])
     return d, info
+
+
+def _dykstra_projection(target, scale, lower, upper, G, glo, ghi, max_sweeps=50000, tolerance=1e-14):
+    """Projection of target onto box ∩ {glo <= G x <= ghi} in the norm ||scale*(x-target)|| (Dykstra).
+
+    Works in y = scale*x, where the box stays a box and each row a slab; exact in the limit, and the box
+    projection itself when that already satisfies every row. Returns (x, sweeps, converged)."""
+    lower_y, upper_y = scale*lower, scale*upper
+    rows = [(G[i]/scale, glo[i], ghi[i]) for i in range(len(G))] if len(G) else []
+    rows = [(a, lo, hi, float(a@a)) for a, lo, hi in rows if np.any(a != 0)]
+    y = scale*target
+    increments = np.zeros((len(rows)+1, len(y)))
+    for sweep in range(1, max_sweeps+1):
+        previous, previous_increments = y.copy(), increments.copy()
+        z = y+increments[0]; y = np.clip(z, lower_y, upper_y); increments[0] = z-y
+        for k, (a, lo, hi, norm) in enumerate(rows, start=1):
+            z = y+increments[k]; s = float(a@z)
+            y = z if lo <= s <= hi else z+((hi if s > hi else lo)-s)/norm*a
+            increments[k] = z-y
+        # The iterate can repeat for a sweep while the correction terms still move (it is then neither
+        # feasible nor optimal): stop only when both are stationary.
+        if (float(np.max(np.abs(y-previous), initial=0.)) < tolerance
+                and float(np.max(np.abs(increments-previous_increments), initial=0.)) < tolerance):
+            return y/scale, sweep, True
+    return y/scale, max_sweeps, False
 
 
 def load_prices(previous_path, state, policy):
