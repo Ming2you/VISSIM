@@ -9,7 +9,9 @@ first, and the generator fails listing whatever is missing:
   membership                       WP-E  the re-pinned pack entry named by the E base
                                          config's control_area_objective.membership_path
   observation.detectors            WP-B2 N31D/obs150/obs150_detectors_v2.csv
-  geometry, parameters             WP-C  C1 b110 copies (copy_b110.py)
+  geometry                         the runtime network's own no-control s31 extraction (v3b since
+                                         2026-09-25: metanet_calibration_v1/v3b_nc_20260925, extract_observations.py)
+  parameters                       WP-C  C1 b110 copy (copy_b110.py): v2 prior, fitted on v2 NC s31 f475ce42
   refined_partition                tracked geometry_200_branch_guard.json (9769b3a4)
   reference_config                 WP-C  C7 reference_config_n31_v2.json
   port_profile                     WP-C  C12 port_profile_v2/port_profile.json
@@ -40,9 +42,11 @@ if str(ROOT) not in sys.path:
 N31D = 'diagnostics/sdmpc_n31_20260924'
 B110 = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923'
 TRANSPORT = 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2'
+# Network v3b (user decision 2026-09-25): its no-control runs s31/s41/s37, extracted with extract_observations.py.
+V3B_NC = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925'
 SOURCES = {
-    'network': N31D + '/network/baseline_s31_v2nc.inpx',
-    'geometry': B110 + '/observations/s31_v2nc_observations/geometry.json',
+    'network': N31D + '/network/baseline_s31_v3bnc.inpx',
+    'geometry': V3B_NC + '/observations/s31_v3bnc_observations/geometry.json',
     'refined_partition': 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json',
     'reference_config': N31D + '/reference_config_n31_v2.json',
     'parameters': B110 + '/train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json',
@@ -56,9 +60,13 @@ OFF_GROUPS = 'diagnostics/control_improvement/decision_common_anchor_20260911/ra
 DETECTORS = N31D + '/obs150/obs150_detectors_v2.csv'
 BASE_CONFIG = N31D + '/scenario/config_n31_v2.base.json'
 OUT = HERE / 'plant_n31_v2.json'
-NETWORK_SHA256 = 'f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b'
-QUALIFICATION = ('NOT_QUALIFIED: 31-cell b110 boundary family with the baseline FD (no FD refit); held-out '
-                 'history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h; scenario pack priors carried over from '
+NETWORK_SHA256 = 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'   # v3b (was v2 f475ce42)
+QUALIFICATION = ('NOT_QUALIFIED: network v3b be0075bf (differs from v2 f475ce42 only in static routes: 19 route '
+                 'destinations, 1061 pos, 32 relFlows; user decision 2026-09-25); the b110 segment_params, boundary fit '
+                 'and boundary_config are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3b; geometry, port '
+                 'profile and ramp-arrival forecast re-derived from the v3b NC runs; '
+                 '31-cell b110 boundary family with the baseline FD (no FD refit); held-out '
+                 'history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h (v2 NC, not re-scored on v3b); scenario pack priors carried over from '
                  'fcb349d3 with prior_mismatch receipts (D-B); obs150 observation integrated and verified offline '
                  'only (probe V0 + V1 code tests), not yet against native ground truth (G1 D6 pending); COM head '
                  'delay D10=1 s pending the G1 D6 re-check; VSL model = branch d80faf9 candidate A0.5_E4 on FW_E (Carlson '
@@ -98,7 +106,7 @@ def build(root=ROOT, *, sources=None, detectors=DETECTORS, base_config=BASE_CONF
         raise FileNotFoundError('Membership named by the base config is missing: ' + membership)
     pins = {key: {'path': rel, 'sha256': sha256(root / rel)} for key, rel in sources.items()}
     if pins['network']['sha256'] != network_sha256:
-        raise ValueError('Pinned network is not the v2 network')
+        raise ValueError('Pinned network is not the runtime network v3b be0075bf')
     geometry = load(root / sources['geometry'])
     if geometry['network']['sha256'] != pins['network']['sha256']:
         raise ValueError('C1 geometry was extracted from another network')

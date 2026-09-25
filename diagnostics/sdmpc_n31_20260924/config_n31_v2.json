@@ -1,6 +1,6 @@
 {
   "name": "sdmpc31_v2_repin_base_20260924",
-  "description": "WP-E base (plan section 5): diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json with the scenario pack and network pins re-pointed to the FW80/U90 v2 network f475ce42. Not launchable alone: freeway.lane_plant still selects the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | Latest lane plant with explicit historical urban priors; native source demand; SDMPC8workers. | head_observation.sample_interval_sec 5 -> 1. The lane plant counts ramp entries by differencing consecutive one-second frames (lane_plant_runtime.initialize, the range(start+1, cutoff+1) loop), so a 5-second cadence raises KeyError on the first missing second. The lane plant native run that produced plant.json declared no sample_interval_sec, i.e. 1, so 1 is the cadence it was built and validated under. Widening the loop instead would change what lane_arrival_shares measures: a vehicle entering and leaving within one 5-second step would stop being counted.",
+  "description": "WP-E base (plan section 5): diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json with the scenario pack and network pins re-pointed to the network v3b be0075bf (FW80/U90 v2 + v3/v3b route edits, 2026-09-25). Not launchable alone: freeway.lane_plant still selects the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | Latest lane plant with explicit historical urban priors; native source demand; SDMPC8workers. | head_observation.sample_interval_sec 5 -> 1. The lane plant counts ramp entries by differencing consecutive one-second frames (lane_plant_runtime.initialize, the range(start+1, cutoff+1) loop), so a 5-second cadence raises KeyError on the first missing second. The lane plant native run that produced plant.json declared no sample_interval_sec, i.e. 1, so 1 is the cadence it was built and validated under. Widening the loop instead would change what lane_arrival_shares measures: a vehicle entering and leaving within one 5-second step would stop being counted.",
   "mapping_json": "evaluation/real_world_modi_control_ver2n21_20260907/control_mapping_ver2n21.json",
   "detector_mapping_json": "evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json",
   "config_overrides": {
@@ -7614,17 +7614,26 @@
         "max_vph_per_ramp": 900.0,
         "multiplier": 1.0,
         "queue_drain_horizon_sec_by_ramp": {
-          "R_D_W": 33.5,
-          "R_F_W": 77.2,
-          "R_D_E": 30.7,
-          "R_F_E": 6.5
+          "RM_C10480": 17.4,
+          "RM_C10482": 43.3,
+          "RM_C10646": 30.9,
+          "RM_C10644": 88.0,
+          "RM_C10639": 42.6,
+          "RM_C10681": 161.7,
+          "RM_C10490": 33.3,
+          "RM_C10484": 43.3
         },
         "max_vph_by_ramp": {
-          "R_D_W": 865.0,
-          "R_F_W": 1394.0,
-          "R_D_E": 1079.0,
-          "R_F_E": 638.0
-        }
+          "RM_C10480": 219.0,
+          "RM_C10482": 2312.0,
+          "RM_C10646": 405.0,
+          "RM_C10644": 514.0,
+          "RM_C10639": 526.0,
+          "RM_C10681": 1216.0,
+          "RM_C10490": 839.0,
+          "RM_C10484": 611.0
+        },
+        "strict_ramp_keys": true
       },
       "audit_calibration": {
         "enabled": true,
@@ -7838,7 +7847,8 @@
     },
     "beta": {
       "measured": true,
-      "floor": 0.0
+      "floor": 0.0,
+      "source": "routing_v3b"
     },
     "movements": {
       "merge_exits": true,
@@ -7913,7 +7923,7 @@
     "preserve_known_wout_routes": true,
     "known_wout_route_evidence": {
       "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
-      "sha256": "fdca22a2f141449baf1adb4486c60996b12ae4363cd616a048761baeb528efed"
+      "sha256": "2847d3f1b30cc257799d488b4648a5cc5fa11548adddefa4f5e70ebcc7b91119"
     }
   },
   "_canonical": {
@@ -8111,8 +8121,8 @@
       "capacity_policy": "observed_lower_bound",
       "source": {
         "network": {
-          "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-          "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+          "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+          "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
         },
         "spacing": "evaluation/parameters.json network.urban_avg_vehicle_length_m",
         "description": "Existing latent signal/direct branches; observations only, ownership unchanged"
@@ -8348,5 +8358,5 @@
       "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json"
     ]
   },
-  "_n31_note": "SDMPC-31 v2 tuning (plan C9): diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set [50,60,70,80,90,100,110], v_free 110, native_signal_record false, lane_native_b110.vbs and the v2 branch-projection network. Generated by make_config_n31.py."
+  "_n31_note": "SDMPC-31 v2 tuning (plan C9) on network v3b be0075bf (user decision 2026-09-25): diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set [50,60,70,80,90,100,110], v_free 110, native_signal_record false, lane_native_b110.vbs, the branch-projection network v3b, the ramp-arrival forecast keyed by RM_C meter (v3b NC) and the v3b routing beta (urban.beta.source routing_v3b). The b110 segment_params and boundary fit are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3b. Generated by make_config_n31.py."
 }

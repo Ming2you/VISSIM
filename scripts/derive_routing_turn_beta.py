@@ -57,6 +57,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import hashlib
 import json
 import pathlib
 import sys
@@ -92,6 +93,30 @@ def _rel_flow(route: ET.Element) -> float:
     return total
 
 
+def _add_decision(dec, routes, app, how, owner, evidence, sources, skipped_stage) -> int:
+    """결정 하나의 경로 증거를 접근로 app 에 누적한다. 이름 없는 경로 수를 돌려준다.
+
+    목적지가 출발 접근로 자신이면 교차로 회전이 아니라 **구간 연장**이다 — 버린다.
+    (결정 112 '우리은행포이_WB' 의 직진 479대가 그렇다. 이걸 세면 그 접근로가
+     통째로 미매칭이 된다.)
+    """
+    kept, unnamed = 0.0, 0
+    for rt, vol in routes:
+        dest_owner = owner.get(str(rt.get("destLink")))
+        if dest_owner is not None and dest_owner == app:
+            skipped_stage[app] = skipped_stage.get(app, 0.0) + vol
+            continue
+        turn = TURN_OF_NAME.get((rt.get("name") or "").strip())
+        if turn is None:
+            unnamed += 1
+        evidence[app][(dest_owner[0] if dest_owner else None, turn)] += vol
+        kept += vol
+    if kept > 0.0:
+        sources[app].append({"no": dec.get("no"), "name": dec.get("name"),
+                             "link": dec.get("link"), "veh": round(kept, 1), "how": how})
+    return unnamed
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--network", default="network/real_world_gaepo_modi/modi_eval_userfix_20260814e.inpx")
@@ -99,6 +124,10 @@ def main() -> int:
     ap.add_argument("--movements-config",
                     default="evaluation/configs/real_world_modi_pstack_distributed_core17legs4b_20260819.json")
     ap.add_argument("--out", default="outputs/movement_beta_routing_20260824.json")
+    ap.add_argument("--generated", default="2026-08-24",
+                    help="doc.generated 날짜. 기본값은 0824 산출물을 바이트 그대로 재현한다")
+    ap.add_argument("--explicit-approach", default=None,
+                    help="결정 번호 -> 접근로 목록 JSON (아래 1차 주석). 없으면 역추론만 쓴다(0824 재현)")
     args = ap.parse_args()
 
     terr = json.loads((ROOT / args.territory).read_text(encoding="utf-8"))["territory"]["urban"]
@@ -153,8 +182,28 @@ def main() -> int:
     #
     # 그리고 한 접근로에 결정이 여럿 붙는다(15개 접근로). 상류 대기 결정과 교차로 결정이
     # 같은 leg 를 가리키기 때문이다. **덮어쓰지 말고 더해야** 한다.
+    #
+    # 역추론이 틀리는 곳은 명시 배정(--explicit-approach)으로 막는다(2026-09-25, 망 v3b). 램프 교차로에서
+    # 목적지 집합을 포함하는 접근로가 여럿(W / offW / offE ...)이면 "가장 좁은" 후보가 엉뚱한 접근로가 된다:
+    # SC1004 서측 결정 1124·1126·1138·1140 이 전부 E_SC107 에 붙었고, SC1001 서측 1117 은 W/offW/offE
+    # 동률로 버려졌다. 명시 배정은 결정 하나를 **여러 접근로에 같은 증거로** 붙인다 — 합류 링크의 결정은
+    # 출처(도시 경계·각 off-ramp)와 무관하게 모두에게 적용되기 때문이다(근거: 배정 파일의 FZP 출처별 분율).
     evidence: dict[tuple[str, str], dict[tuple[str | None, str | None], float]] =         collections.defaultdict(lambda: collections.defaultdict(float))
     sources: dict[tuple[str, str], list[dict]] = collections.defaultdict(list)
+
+    explicit: dict[str, list[tuple[str, str]]] = {}
+    if args.explicit_approach:
+        xdoc = json.loads((ROOT / args.explicit_approach).read_text(encoding="utf-8"))
+        pinned = xdoc.get("network_sha256")
+        if pinned and hashlib.sha256((ROOT / args.network).read_bytes()).hexdigest() != pinned:
+            raise SystemExit(f"명시 배정 파일은 망 {pinned[:8]} 용이다: {args.network}")
+        for no, pairs in xdoc["decisions"].items():
+            targets = [(str(sig), str(leg)) for sig, leg in pairs]
+            unknown = [t for t in targets if t not in by_app]
+            if unknown:
+                raise SystemExit(f"명시 배정 {no}: movements config 에 없는 접근로 {unknown}")
+            explicit[str(no)] = targets
+    explicit_seen: set[str] = set()
 
     for dec in root.iter("vehicleRoutingDecisionStatic"):
         routes = [(rt, _rel_flow(rt)) for rt in dec.iter("vehicleRouteStatic")]
@@ -166,6 +215,13 @@ def main() -> int:
         dests = {owner[str(rt.get("destLink"))][0] for rt, _ in routes
                  if str(rt.get("destLink")) in owner}
         by_link = owner.get(str(dec.get("link")))
+
+        if str(dec.get("no")) in explicit:
+            explicit_seen.add(str(dec.get("no")))
+            for i, app in enumerate(explicit[str(dec.get("no"))]):
+                unnamed = _add_decision(dec, routes, app, "명시 배정", owner, evidence, sources, skipped_stage)
+                unnamed_routes += unnamed if i == 0 else 0
+            continue
 
         app = None
         how = ""
@@ -188,23 +244,11 @@ def main() -> int:
             skipped["접근로 특정 실패"] += 1
             continue
 
-        # 목적지가 출발 접근로 자신이면 교차로 회전이 아니라 **구간 연장**이다 — 버린다.
-        # (결정 112 '우리은행포이_WB' 의 직진 479대가 그렇다. 이걸 세면 그 접근로가
-        #  통째로 미매칭이 된다.)
-        kept = 0.0
-        for rt, vol in routes:
-            dest_owner = owner.get(str(rt.get("destLink")))
-            if dest_owner is not None and dest_owner == app:
-                skipped_stage[app] = skipped_stage.get(app, 0.0) + vol
-                continue
-            turn = TURN_OF_NAME.get((rt.get("name") or "").strip())
-            if turn is None:
-                unnamed_routes += 1
-            evidence[app][(dest_owner[0] if dest_owner else None, turn)] += vol
-            kept += vol
-        if kept > 0.0:
-            sources[app].append({"no": dec.get("no"), "name": dec.get("name"),
-                                 "link": dec.get("link"), "veh": round(kept, 1), "how": how})
+        unnamed_routes += _add_decision(dec, routes, app, how, owner, evidence, sources, skipped_stage)
+
+    missing_explicit = sorted(set(explicit) - explicit_seen)
+    if missing_explicit:
+        raise SystemExit(f"명시 배정한 결정이 망에 없다(또는 경로가 비었다): {missing_explicit}")
 
     # ---- 2차: 증거를 beta 로 바꾼다 ----
     for app, ev in evidence.items():
@@ -277,7 +321,7 @@ def main() -> int:
 
     doc = {
         "schema": "movement_beta_routing/core17legs4b",
-        "generated": "2026-08-24",
+        "generated": args.generated,
         "source": str(args.network),
         "definition": ("VISSIM 정적 경로결정(vehicleRoutingDecisionStatic)의 relFlow. "
                        "결정 link 를 권역으로 접어 출발 접근로를, route destLink 를 권역으로 "
@@ -286,6 +330,12 @@ def main() -> int:
         "beta": out_beta,
         "approaches": records,
     }
+    if args.explicit_approach:
+        doc["explicit_approach"] = {
+            "file": str(args.explicit_approach),
+            "sha256": hashlib.sha256((ROOT / args.explicit_approach).read_bytes()).hexdigest(),
+            "decisions": {no: [list(t) for t in targets] for no, targets in explicit.items()},
+        }
     (ROOT / args.out).write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
 
     # --- 보고 ---

@@ -3965,9 +3965,15 @@ def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mappin
 #             그 중 internal 25개(우회전 17·직진 2)가 섞여 있었다. beta=0 은
 #             `urban_queue_model:1018 queue[m] += beta * arrived` 를 영구히 0 으로
 #             만들어 그 현시를 굶긴다 — 동서축 관측 실명과 같은 실패 모드다.
+#   routing_v3b : 같은 유도(scripts/derive_routing_turn_beta.py, movement 474개 config)를 SDMPC-31 의
+#             망 v3b(be0075bf, 2026-09-25 재핀)에 돌린 것. routing(0824)은 망 modi_eval_userfix_20260814e
+#             에서 뽑혀 v2 망과도 movement 25개, v3b 와는 48개가 다르다. 기본이 아니므로 파일이
+#             없으면 조용히 끄지 않고 실패한다. 램프 교차로 결정 5개(SC1001 1117, SC1004 1124·1126·
+#             1138·1140)는 역추론이 틀려 --explicit-approach 로 명시 배정했다(sha 핀: make_config_n31.py).
 BETA_EVIDENCE_JSON = {
     "routing": WORKSPACE_ROOT / "outputs/movement_beta_routing_20260824.json",
     "knr": WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json",
+    "routing_v3b": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3b_20260925.json",
 }
 
 
@@ -4000,6 +4006,8 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
     if path is None:
         raise ValueError(f"urban.beta.source 는 {sorted(BETA_EVIDENCE_JSON)} 중 하나여야 한다: {source!r}")
     if not path.is_file():
+        if source not in ("routing", "knr"):   # 망별로 명시한 증거가 없으면 조용히 끄지 않는다(2026-09-25)
+            raise FileNotFoundError(f"urban.beta.source {source!r} 의 증거 파일이 없다: {path}")
         return {"measured_beta_enabled": 0.0, "measured_beta_source_missing": 1.0}
     doc = json.loads(path.read_text(encoding="utf-8"))
     beta = _mapping(doc.get("beta"))
@@ -4018,7 +4026,7 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
         "measured_beta_movements": float(applied),
         "measured_beta_total_shift": float(round(changed, 3)),
         "measured_beta_floor": float(floor),
-        "measured_beta_source_routing": 1.0 if source == "routing" else 0.0,
+        "measured_beta_source_routing": 1.0 if source in ("routing", "routing_v3b") else 0.0,
     }
 
 
@@ -9163,6 +9171,20 @@ def emit_ramp_feed_observation(cfg, state, state_json) -> dict[str, float]:
         total = ctl + unc
         out["ramp_obs_%s_controllable_share" % ramp] = (ctl / total) if total > 1.0e-9 else 0.0
     return out
+def _require_ramp_forecast_keys(tables: Mapping[str, Mapping[str, Any]], runtime_ramps) -> None:
+    """strict_ramp_keys: each local_ramp_arrival_forecast table must be keyed by exactly the runtime ramps.
+
+    Without it a table keyed by other names (the legacy R_D_W... groups) silently falls back to the
+    scalar defaults in profiled_demand_rates (2026-09-25).
+    """
+    ramps = set(map(str, runtime_ramps))
+    for table_name, table in tables.items():
+        if set(map(str, table)) != ramps:
+            raise ValueError(
+                f"local_ramp_arrival_forecast.{table_name} keys {sorted(map(str, table))} "
+                f"differ from the runtime ramps {sorted(ramps)}")
+
+
 def profiled_demand_rates(
     state_json: Mapping[str, Any],
     cfg,
@@ -9380,6 +9402,14 @@ def profiled_demand_rates(
         # 미터가 수요를 구속하지 않아 dTTT/d(meter) 가 정의상 0 이 됐다(G6 램프 축 붕괴 원인).
         # max_vph_by_ramp 와 동일 규약 — dict 미지정이면 스칼라 폴백이라 비트동일.
         drain_by_ramp = _mapping(local_fc.get("queue_drain_horizon_sec_by_ramp"))
+        # 2026-09-25. 두 표의 키가 런타임 램프 키와 어긋나면 위 폴백(120 s·900 veh/h)이 조용히 먹는다 — 물리
+        # 램프(RM_C<커넥터>, physical_ramp_branches.py:139)에 옛 그룹 키(R_D_W…)를 둔 설정이 그랬고, 도착 예측
+        # 합이 V5b 실측(T+450 s)의 53-57%(FW_W 46-51%, FW_E 56-69%) 였다. strict_ramp_keys 를 켠 설정은 키
+        # 집합이 정확히 같아야 한다. 기본(꺼짐)은 비트동일 — 옛 그룹 키 설정(09-25 추적본 63벌)을 리플레이할 수 있어야 한다.
+        if bool(local_fc.get("strict_ramp_keys", False)):
+            _require_ramp_forecast_keys(
+                {"queue_drain_horizon_sec_by_ramp": drain_by_ramp, "max_vph_by_ramp": max_by_ramp},
+                observed_counts)
         blend = str(local_fc.get("blend", "max")).lower()
         for ramp, count in observed_counts.items():
             if count <= 0.0:

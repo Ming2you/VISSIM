@@ -1,8 +1,8 @@
 {
   "schema": "route-choice-corridor/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
   },
   "membership_path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
   "jam_source": {
@@ -88,7 +88,7 @@
   ],
   "historical_prior_transfer": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-    "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+    "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
   },
   "scenario_derivation": {
     "source_declaration": {
@@ -96,8 +96,8 @@
       "sha256": "b00063b748352667307e2a8a48324d07064a6793f0c587e2b9c03da634402b43"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -133,15 +133,15 @@
       ],
       "receipt": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+        "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
       },
       "target_network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+        "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
       },
       "differences_since_previous_pack": [
         "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
-        "vehicleRoutingDecisionsStatic: route relFlow only (2 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) (24 elements)",
         "desSpeedDecisions: desired speed distribution only (76 elements)"
       ],
       "differences_since_training": "receipt actual_native_differences (training network -> v2)",

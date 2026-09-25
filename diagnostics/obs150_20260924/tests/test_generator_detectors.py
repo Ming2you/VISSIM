@@ -1,4 +1,4 @@
-"""WP-B2 V0-9: the detector generator (plan B1) on the v2 network.
+"""WP-B2 V0-9: the detector generator (plan B1) on the pinned runtime network (v3b since 2026-09-25).
 
 The committed table N31D/obs150/obs150_detectors_v2.csv and its build manifest
 must be exactly what the generator makes from the sources the manifest records.
@@ -25,6 +25,20 @@ CSV = sup.ROOT / ob.DETECTOR_CSV_PATH
 SIDECAR = Path(str(CSV)[:-4] + ob.SIDECAR_SUFFIX)
 
 
+def _sidecar_network():
+    """The network the committed table was built from (the N31D copy; v3b be0075bf since the 2026-09-25 re-pin).
+
+    The probe ground truth (test_lane_support.NET, the v2 stage-1 copy f475ce42) stays v2: the table is
+    byte-identical on both networks, but the generator now refuses v2."""
+    try:
+        return sup.ROOT / json.loads(SIDECAR.read_text(encoding='utf-8'))['network']['path']
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+NETWORK = _sidecar_network()
+
+
 def generator():
     spec = importlib.util.spec_from_file_location('build_obs150_detectors', sup.ROOT / 'scripts' / 'build_obs150_detectors.py')
     module = importlib.util.module_from_spec(spec)
@@ -32,7 +46,7 @@ def generator():
     return module
 
 
-@unittest.skipUnless(sup.NET.is_file() and CSV.is_file(), 'v2 network or committed table missing')
+@unittest.skipUnless(NETWORK is not None and NETWORK.is_file() and CSV.is_file(), 'pinned network or committed table missing')
 class Generator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -46,7 +60,7 @@ class Generator(unittest.TestCase):
                                    sig_dir=sources['sig_dir'], out=cls.manifest['output']['path'], check=True)
         cls.out, cls.csv_bytes, cls.manifest_bytes, cls.built = cls.gen.build(cls.args)
         cls.rows = c.parse_detector_csv(cls.csv_bytes)
-        cls.net = sup.network()
+        cls.net = ob.InpxNetwork(NETWORK)
         cls.geometry = json.loads((sup.ROOT / sources['geometry']['path']).read_text(encoding='utf-8-sig'))
         cls.plan = json.loads((sup.ROOT / sources['plan']['path']).read_text(encoding='utf-8'))
         cls.runner = ob.parse_runner_config((sup.ROOT / sources['runner_config']['path']).read_bytes().decode('latin-1'))
@@ -93,7 +107,7 @@ class Generator(unittest.TestCase):
         heads = {r.ref.split('|')[0] for r in self.rows if r.role == 'head'}
         eligible = {h['head_id'] for members in
                     __import__('evaluation.controllers.signal_head_observation', fromlist=['x']).physical_groups(
-                        str(sup.NET), self.plan).values() for h in members}
+                        str(NETWORK), self.plan).values() for h in members}
         self.assertEqual(heads, eligible)
 
     def test_source_stations_share_the_rule_points(self):
@@ -199,15 +213,19 @@ class Generator(unittest.TestCase):
             self.assertEqual(self.gen._text_sha_lf(crlf), sup.sha(lf))
 
     def test_other_network_is_refused(self):
-        args = SimpleNamespace(**{**vars(self.args), 'network': str(sup.PROBE.parent / 'network' / 'obs150_probe.inpx')})
-        if not Path(args.network).is_file():
-            self.skipTest('probe network copy missing')
-        # The probe copy is byte-identical to v2 (PRB): it is accepted; a different file is not.
-        self.assertEqual(ob.InpxNetwork(args.network).sha256, self.gen.V2_NETWORK_SHA256)
-        args.network = str(sup.ROOT / 'diagnostics' / 'demand_sweep' / 'ramp_dsd_20260916_v2' / 'source_dsd' / 'baseline.inpx')
-        if Path(args.network).is_file():
-            with self.assertRaisesRegex(c.ObsContractError, 'not the v2 network'):
-                self.gen.build(args)
+        # The pinned copy is accepted; the probe copy (byte-identical to v2 f475ce42, PRB) and fcb349d3 are
+        # other networks since the v3b re-pin (2026-09-25) and are refused.
+        self.assertEqual(ob.InpxNetwork(NETWORK).sha256, self.gen.NETWORK_SHA256)
+        others = [sup.PROBE.parent / 'network' / 'obs150_probe.inpx',
+                  sup.ROOT / 'diagnostics' / 'demand_sweep' / 'ramp_dsd_20260916_v2' / 'source_dsd' / 'baseline.inpx']
+        others = [p for p in others if p.is_file()]
+        if not others:
+            self.skipTest('no other network copy available')
+        for other in others:
+            args = SimpleNamespace(**{**vars(self.args), 'network': str(other)})
+            with self.subTest(network=other.name):
+                with self.assertRaisesRegex(c.ObsContractError, 'not the runtime network'):
+                    self.gen.build(args)
 
 
 class Guards(unittest.TestCase):

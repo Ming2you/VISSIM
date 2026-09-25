@@ -172,7 +172,7 @@ class LaunchPlanUnit(unittest.TestCase):
         net = Path(plan['network_dir'])
         src = self.frz / 'diagnostics' / 'sdmpc_n31_20260924' / 'network'
         net.mkdir(parents=True)
-        shutil.copyfile(src / 'baseline_s31_v2nc.inpx', plan['network_file'])
+        shutil.copyfile(src / 'baseline_s31_v3bnc.inpx', plan['network_file'])
         for sig in src.glob('*.sig'):
             shutil.copyfile(sig, net / sig.name)
         lp.verify_network(plan)

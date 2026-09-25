@@ -195,15 +195,15 @@ def test_real_copy_passes_the_launch_plan_network_check(tmp_path, capsys):
             'sources': {'network': {'sha256': manifest['network']['sha256']}}, 'sig_files': lp.sig_table(manifest)}
     lp.verify_network(plan)
     assert 'NETWORK_OK' in capsys.readouterr().out
-    assert manifest['network']['sha256'].startswith('f475ce42')
+    assert manifest['network']['sha256'].startswith('be0075bf')   # network v3b (2026-09-25; was f475ce42)
     receipt = json.loads((out / tool.RECEIPT_NAME).read_text(encoding='utf-8'))
     assert receipt['tool_sha256'] == sha(TOOL.read_bytes())
 
 
-NET = Path(r'D:\VISSIM_runs\20260923_stage1\s31_v2nc\prepared\network')
+NET = Path(r'D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network')
 
 
-@pytest.mark.skipif(not (REAL_SOURCE / 'sig_manifest.json').is_file() or not (NET / 'baseline_s31_v2nc.inpx').is_file(),
+@pytest.mark.skipif(not (REAL_SOURCE / 'sig_manifest.json').is_file() or not (NET / 'baseline_s31_v3bnc.inpx').is_file(),
                     reason='repin network copy or NET absent')
 def test_real_copy_from_net_with_the_pinned_manifest(tmp_path, capsys):
     """NET (read only) holds run outputs and no manifest; only the .inpx and the 42 .sig are copied."""

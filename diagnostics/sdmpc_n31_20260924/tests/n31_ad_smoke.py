@@ -42,7 +42,8 @@ FINDER = runtime.install(ROOT, 'forward')
 ad = FINDER.ad
 
 B110 = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923'
-GEOMETRY = ROOT / B110 / 'observations/s31_v2nc_observations/geometry.json'
+GEOMETRY = ROOT / ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/'
+                   'observations/s31_v3bnc_observations/geometry.json')   # = make_plant_n31.SOURCES['geometry']
 PARAMETERS = ROOT / B110 / 'train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json'
 REFERENCE = ROOT / 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json'
 T0 = 900.0

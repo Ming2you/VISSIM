@@ -1,8 +1,8 @@
 {
   "schema": "physical-movement-routes/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
   },
   "by_movement": {
     "SC1004_N_SC1003_to_E_SC107": {
@@ -231,7 +231,7 @@
   ],
   "historical_prior_transfer": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-    "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+    "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
   },
   "scenario_derivation": {
     "source_declaration": {
@@ -239,8 +239,8 @@
       "sha256": "6308bc642d22ebbf16616236e3598935b2375b779a394fec9551fa2783ec1cc6"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -276,19 +276,64 @@
       ],
       "receipt": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+        "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
       },
       "target_network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+        "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
       },
       "differences_since_previous_pack": [
         "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
-        "vehicleRoutingDecisionsStatic: route relFlow only (2 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) (24 elements)",
         "desSpeedDecisions: desired speed distribution only (76 elements)"
       ],
       "differences_since_training": "receipt actual_native_differences (training network -> v2)",
       "refit_after": "the first 9000 s SDMPC run (V5) and its paired no-control run (V4)"
-    }
+    },
+    "route_path_change_review": [
+      {
+        "at": "/by_movement/SC1004_offW_to_E_SC107/native_routes/0",
+        "route": "1133:2",
+        "old_path": [
+          "120",
+          "10638",
+          "70",
+          "10776",
+          "126"
+        ],
+        "new_path": [
+          "120",
+          "10638",
+          "70"
+        ],
+        "review": "network v3b cuts 1133:2 to [120, 10638, 70] (destLink 126 -> 70; the v3 destination fix). It still proves (10638, 70); (70, 10776) and (10776, 126) are now proven only by the co-cited 1140:2 (v3b relFlow 804/1774/1980 on 1140:1/2/3). The physical path of SC1004 offW -> E_SC107 is unchanged, so load_evidence still passes, but its membership proof now rests on the 1140 split instead of one through route (plan risk R3). Reviewed 2026-09-25 (re-pin to v3b); the D-B prior of this declaration is carried over unchanged.",
+        "edge_proof_on_target": {
+          "10638->70": [
+            "1133:2"
+          ],
+          "70->10776": [
+            "1140:2"
+          ],
+          "10776->126": [
+            "1140:2"
+          ],
+          "126->10641": [
+            "1140:2"
+          ],
+          "10641->71": [
+            "1140:2"
+          ],
+          "71->10634": [
+            "1140:2"
+          ],
+          "10634->56": [
+            "1140:2"
+          ],
+          "56->10621": [
+            "1129:1"
+          ]
+        }
+      }
+    ]
   }
 }

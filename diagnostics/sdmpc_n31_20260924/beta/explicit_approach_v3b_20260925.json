@@ -1,0 +1,414 @@
+{
+ "schema": "routing_beta_explicit_approach/v1",
+ "created": "2026-09-25",
+ "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+ "network_sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc",
+ "why": "scripts/derive_routing_turn_beta.py attaches a routing decision to an approach by its destination set. At the two freeway-interchange signals the set is contained in several approaches (W / offW / offE / E_SC107), and the tightest one wins: on v3b the four SC1004 west-side decisions 1124, 1126, 1138, 1140 all landed on SC1004 E_SC107 (1140 alone 4558 of its 4567), and 1117 (SC1001 west, W/offW/offE tie) was dropped. This table attaches each of them to the approaches whose vehicles actually pass it; the beta values still come from the decisions' relFlow (exogenous), this file only says WHERE they apply.",
+ "decisions": {
+  "1117": [
+   [
+    "SC1001",
+    "W"
+   ],
+   [
+    "SC1001",
+    "offW"
+   ],
+   [
+    "SC1001",
+    "offE"
+   ]
+  ],
+  "1140": [
+   [
+    "SC1004",
+    "W"
+   ],
+   [
+    "SC1004",
+    "offW"
+   ]
+  ],
+  "1138": [
+   [
+    "SC1004",
+    "W"
+   ]
+  ],
+  "1126": [
+   [
+    "SC1004",
+    "offE"
+   ]
+  ],
+  "1124": [
+   [
+    "SC1004",
+    "S"
+   ]
+  ]
+ },
+ "physical": {
+  "1117": "link 127 pos 228.9 = the single SC1001 west approach link; fed by FW_E off-ramp (link 2 -> c10481, OR_D_E), and via link 129 (c10777) by the FW_W off-ramp (OR_D_W) and the urban west input on link 32 (in_SC1001_W). Exits 30 (to_E_SC1002) / 38 (to_N_SC2002) / 39 (to_S_SC1003).",
+  "1140": "link 70 pos 67.9 (entries c10637 at 2.0 m, c10638 at 40.3 m, both upstream of the decision) -> c10776 -> 126 -> c10641 -> 71 (SC1004 W stop line); carries the FW_W off-ramp (OR_F_W, via 120) and urban west traffic.",
+  "1126": "connector 10643 (link 2 -> 126) pos 23.3: the FW_E off-ramp to SC1004 (OR_F_E); 1130 route 1 ends on it at 15.6 m, before the decision.",
+  "1138": "connector 10640 (link 69 -> 71 lane 4): urban traffic from the input on link 69 straight into the SC1004 W approach (in_SC1004_W).",
+  "1124": "link 66 = territory SC1004 'S' leg (in_SC1004_S); not measured (only 1:1:1 unit weight, no FZP watch on 66)."
+ },
+ "evidence": {
+  "method": "v3b no-control FZP s31/s41/s37, vehicles passing the decision's element at t >= 900 s; exit = first of the decision's route destination links reached afterwards (robust to 5 s frames skipping the 80 m link 71). Source: FW_W = passed link 26 (input 1099), FW_E = passed link 74 (input 1098), else urban. share order = dest_links order.",
+  "fzp": {
+   "31": "D:/VISSIM_runs/20260925_v3b/s31_v3bnc/run/vissim_eval/baseline_s31_v3bnc_001.fzp",
+   "41": "D:/VISSIM_runs/20260925_v3b/s41_v3bnc/run/vissim_eval/baseline_s41_v3bnc_001.fzp",
+   "37": "D:/VISSIM_runs/20260925_v3b/s37_v3bnc/run/vissim_eval/baseline_s37_v3bnc_001.fzp"
+  },
+  "script": "scratchpad beta-assign/paths.py + evidence.py (session 491ef689, 2026-09-25)",
+  "by_decision": {
+   "1117": {
+    "element": "127",
+    "dest_links": [
+     "39",
+     "38",
+     "30"
+    ],
+    "relFlow_share": [
+     0.072,
+     0.209,
+     0.719
+    ],
+    "by_source": {
+     "FW_E(74)": {
+      "31": {
+       "n": 496,
+       "share": [
+        0.075,
+        0.181,
+        0.744
+       ],
+       "other": {
+        "other:none": 10
+       }
+      },
+      "41": {
+       "n": 516,
+       "share": [
+        0.052,
+        0.192,
+        0.756
+       ],
+       "other": {
+        "other:none": 9
+       }
+      },
+      "37": {
+       "n": 506,
+       "share": [
+        0.073,
+        0.235,
+        0.692
+       ],
+       "other": {
+        "other:none": 3
+       }
+      }
+     },
+     "FW_W(26)": {
+      "31": {
+       "n": 1721,
+       "share": [
+        0.071,
+        0.199,
+        0.729
+       ],
+       "other": {
+        "other:none": 38
+       }
+      },
+      "41": {
+       "n": 1718,
+       "share": [
+        0.077,
+        0.223,
+        0.7
+       ],
+       "other": {
+        "other:none": 53
+       }
+      },
+      "37": {
+       "n": 1713,
+       "share": [
+        0.069,
+        0.201,
+        0.73
+       ],
+       "other": {
+        "other:none": 33
+       }
+      }
+     },
+     "urban": {
+      "31": {
+       "n": 790,
+       "share": [
+        0.092,
+        0.228,
+        0.68
+       ],
+       "other": {
+        "other:none": 14
+       }
+      },
+      "41": {
+       "n": 790,
+       "share": [
+        0.071,
+        0.214,
+        0.715
+       ],
+       "other": {
+        "other:none": 19
+       }
+      },
+      "37": {
+       "n": 826,
+       "share": [
+        0.061,
+        0.246,
+        0.694
+       ],
+       "other": {
+        "other:none": 13
+       }
+      }
+     }
+    }
+   },
+   "1140": {
+    "element": "70",
+    "dest_links": [
+     "47",
+     "56",
+     "67"
+    ],
+    "relFlow_share": [
+     0.176,
+     0.389,
+     0.434
+    ],
+    "by_source": {
+     "FW_E(74)": {
+      "31": {
+       "n": 41,
+       "share": [
+        0.098,
+        0.512,
+        0.39
+       ],
+       "other": {}
+      },
+      "41": {
+       "n": 41,
+       "share": [
+        0.293,
+        0.293,
+        0.415
+       ],
+       "other": {
+        "other:none": 1
+       }
+      },
+      "37": {
+       "n": 43,
+       "share": [
+        0.233,
+        0.302,
+        0.465
+       ],
+       "other": {}
+      }
+     },
+     "FW_W(26)": {
+      "31": {
+       "n": 566,
+       "share": [
+        0.18,
+        0.383,
+        0.436
+       ],
+       "other": {
+        "other:none": 9
+       }
+      },
+      "41": {
+       "n": 569,
+       "share": [
+        0.181,
+        0.399,
+        0.42
+       ],
+       "other": {
+        "other:none": 12
+       }
+      },
+      "37": {
+       "n": 562,
+       "share": [
+        0.16,
+        0.402,
+        0.438
+       ],
+       "other": {
+        "other:none": 4
+       }
+      }
+     },
+     "urban": {
+      "31": {
+       "n": 862,
+       "share": [
+        0.153,
+        0.382,
+        0.465
+       ],
+       "other": {
+        "other:freeway": 836,
+        "other:none": 9
+       }
+      },
+      "41": {
+       "n": 883,
+       "share": [
+        0.183,
+        0.377,
+        0.439
+       ],
+       "other": {
+        "other:freeway": 811,
+        "other:none": 16
+       }
+      },
+      "37": {
+       "n": 828,
+       "share": [
+        0.167,
+        0.386,
+        0.447
+       ],
+       "other": {
+        "other:freeway": 809,
+        "other:none": 12
+       }
+      }
+     }
+    }
+   },
+   "1126": {
+    "element": "10643",
+    "dest_links": [
+     "47",
+     "56",
+     "67"
+    ],
+    "relFlow_share": [
+     0.333,
+     0.333,
+     0.333
+    ],
+    "by_source": {
+     "FW_E(74)": {
+      "31": {
+       "n": 1139,
+       "share": [
+        0.376,
+        0.393,
+        0.231
+       ],
+       "other": {
+        "other:none": 4
+       }
+      },
+      "41": {
+       "n": 1074,
+       "share": [
+        0.378,
+        0.377,
+        0.245
+       ],
+       "other": {
+        "other:none": 12
+       }
+      },
+      "37": {
+       "n": 1079,
+       "share": [
+        0.386,
+        0.399,
+        0.214
+       ],
+       "other": {
+        "other:none": 5
+       }
+      }
+     }
+    }
+   },
+   "1138": {
+    "element": "10640",
+    "dest_links": [
+     "47",
+     "56",
+     "67"
+    ],
+    "relFlow_share": [
+     0.333,
+     0.333,
+     0.333
+    ],
+    "by_source": {
+     "urban": {
+      "31": {
+       "n": 216,
+       "share": [
+        0.407,
+        0.315,
+        0.278
+       ],
+       "other": {
+        "other:none": 56
+       }
+      },
+      "41": {
+       "n": 220,
+       "share": [
+        0.45,
+        0.286,
+        0.264
+       ],
+       "other": {
+        "other:none": 67
+       }
+      },
+      "37": {
+       "n": 213,
+       "share": [
+        0.343,
+        0.333,
+        0.324
+       ],
+       "other": {
+        "other:none": 40
+       }
+      }
+     }
+    }
+   }
+  },
+  "notes": [
+   "1117: every source follows the relFlow split (0.072/0.209/0.719): FW_E 0.05-0.08/0.18-0.24/0.69-0.76, FW_W 0.07-0.08/0.20-0.22/0.70-0.73, urban 0.06-0.09/0.21-0.25/0.68-0.72 -> one split for W, offW and offE.",
+   "1140: FW_W and urban both follow relFlow 0.176/0.389/0.434 (0.15-0.18/0.38-0.40/0.42-0.47); 811-836 urban vehicles per seed leave link 70 onto the freeway (c10639, meter RM_C10639) on their own routes and are not SC1004 traffic.",
+   "1126: realized 0.38/0.39/0.21-0.25 against relFlow 1:1:1 - the exit to 67 (lane 1 of link 71 at 37.5 m, entered on lane 2) is under-served. Not used: beta stays exogenous (relFlow); revisit with the urban plant attribution work.",
+   "1138: realized 0.34-0.45/0.29-0.33/0.26-0.32 against 1:1:1, and 40-67 vehicles per seed reach none of the three exits. SC1004 W mixes 1140 (relFlow counts, 4558) with 1138 (unit weights, 3), so W is effectively 1140's split; the true urban mix is about 2/3 via link 70 and 1/3 via 10640 (s31 link-71 counts), i.e. W is off by <= 0.05 per movement. Left for the urban plant attribution work."
+  ]
+ }
+}

@@ -1,6 +1,9 @@
-"""WP-B2, plan 1.6: load_context on the real v2 sources.
+"""WP-B2, plan 1.6: load_context on the real sources.
 
-The manifest pins the v2 network (f475ce42), the b110 31-cell geometry, the n31
+The manifest pins the network the committed detector table was built from (its
+sidecar; the N31D copy of v3b be0075bf since the 2026-09-25 re-pin, before that
+v2 f475ce42: load_context refuses a table built from another network), that
+network's s31 no-control 31-cell geometry (the sidecar's), the n31
 reference config, a lane_native runner config (the chain lists are the ones
 lane_native_b110.vbs copies) and a sig_manifest.json whose 42 .sig byte copies
 sit next to it (written to a temporary folder here; WP-E owns the real one).
@@ -23,8 +26,19 @@ from test_lane_support import c, fx  # noqa: E402
 
 from evaluation.controllers import obs150_observation as ob  # noqa: E402
 
-GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/'
-            'observations/s31_v2nc_observations/geometry.json')
+SIDECAR = Path(str(sup.ROOT / ob.DETECTOR_CSV_PATH)[:-4] + ob.SIDECAR_SUFFIX)
+
+
+def _built_from():
+    """(network path, geometry rel) the committed table records; None when the sidecar is absent."""
+    try:
+        built = json.loads(SIDECAR.read_text(encoding='utf-8'))
+        return sup.ROOT / built['network']['path'], built['sources']['geometry']['path']
+    except (OSError, ValueError, KeyError):
+        return None, None
+
+
+NET, GEOMETRY = _built_from()
 REFERENCE = 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json'
 RUNNER = 'diagnostics/lane_plant_20260921/scenario/lane_native.vbs'
 
@@ -33,22 +47,23 @@ def sha_file(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-@unittest.skipUnless(sup.NET.is_file() and (sup.ROOT / ob.DETECTOR_CSV_PATH).is_file(), 'v2 network or table missing')
+@unittest.skipUnless(NET is not None and NET.is_file() and (sup.ROOT / ob.DETECTOR_CSV_PATH).is_file(),
+                     'pinned network or table missing')
 class LoadContext(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         folder = Path(cls.tmp.name)
-        net = sup.network()
+        net = ob.InpxNetwork(NET)
         files = {}
         for controller in net.controllers.values():
             name = controller['sig_file']
             if name:
-                shutil.copyfile(sup.NET.parent / name, folder / name)
+                shutil.copyfile(NET.parent / name, folder / name)
                 files[name] = sha_file(folder / name)
         (folder / 'sig_manifest.json').write_text(json.dumps({'schema': 'sdmpc31-sig-manifest/v1',
                                                               'files': dict(sorted(files.items()))}), encoding='utf-8')
-        cls.paths = {'network': sup.NET, 'geometry': sup.ROOT / GEOMETRY, 'reference_config': sup.ROOT / REFERENCE,
+        cls.paths = {'network': NET, 'geometry': sup.ROOT / GEOMETRY, 'reference_config': sup.ROOT / REFERENCE,
                      'runner_config': sup.ROOT / RUNNER, 'sig_manifest': folder / 'sig_manifest.json'}
         document = fx.manifest_v2()
         for key, path in cls.paths.items():

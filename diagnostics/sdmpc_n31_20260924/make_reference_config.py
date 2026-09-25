@@ -48,9 +48,11 @@ TRANSPORT = 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260
 OUT = HERE / 'reference_config_n31_v2.json'
 TRANSPORT_KEYS = ('physical_component_residence', 'physical_offramp_interval_service', 'physical_ramp_capacity_vph',
                   'physical_ramp_head_service_veh_per_cycle', 'physical_ramp_receiving_nodes')
-NETWORK = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx'
-GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/'
-            'observations/s31_v2nc_observations/geometry.json')
+# Network v3b (2026-09-25) and its own no-control s31 geometry (only the sign cells read them; the geometry equals
+# the v2 one except provenance, so the output bytes did not change with the re-pin).
+NETWORK = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx'
+GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/'
+            'observations/s31_v3bnc_observations/geometry.json')
 VSL_KEYS = ('vsl_fd_response', 'component_vsl_transport', '_vsl_model_note')
 BOUNDARY_VSL_SET = [60.0, 80.0, 110.0]
 VSL_SET = [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0]   # user decision 2026-09-24 (= make_config_n31.VSL_SET)

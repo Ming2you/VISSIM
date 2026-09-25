@@ -134,7 +134,16 @@ class PlantManifestTests(unittest.TestCase):
 C9_PATHS = {'freeway.lane_plant', 'freeway.segment_params', 'urban.capacity.head_observation.sample_interval_sec',
             'config_overrides.freeway_follower.vsl_set', 'config_overrides.network.v_free',
             '_canonical.fd_fit_20260828.values.v_free', 'execution.native_signal_record',
-            'execution.signal_vbs_config', 'observation.physical_branch_projection.source.network', '_n31_note'}
+            'execution.signal_vbs_config', 'observation.physical_branch_projection.source.network', '_n31_note',
+            'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
+            'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp',
+            'calibration_override.prediction.local_ramp_arrival_forecast.strict_ramp_keys',
+            'urban.beta.source'}
+# Differences replaced as a whole subtree: collapse their leaves onto the root.
+C9_SUBTREES = ('observation.physical_branch_projection.source.network',
+               'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
+               'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp')
+METERS = {'RM_C10480', 'RM_C10482', 'RM_C10646', 'RM_C10644', 'RM_C10639', 'RM_C10681', 'RM_C10490', 'RM_C10484'}
 
 
 def flatten(node, trail=''):
@@ -159,9 +168,34 @@ class TuningTests(unittest.TestCase):
     def test_exactly_the_c9_differences(self):
         before, after = flatten(self.base), flatten(self.tuning)
         changed = {k for k in set(before) | set(after) if before.get(k, '<absent>') != after.get(k, '<absent>')}
-        roots = {k if not k.startswith('observation.physical_branch_projection.source.network')
-                 else 'observation.physical_branch_projection.source.network' for k in changed}
+        roots = {next((root for root in C9_SUBTREES if k.startswith(root + '.') or k == root), k) for k in changed}
         self.assertEqual(roots, C9_PATHS)
+
+    def test_ramp_forecast_is_keyed_by_meter(self):
+        """Runtime ramps are the mapping's RM_C meters; the legacy group keys must not survive."""
+        forecast = self.tuning['calibration_override']['prediction']['local_ramp_arrival_forecast']
+        mapping = fx.load_json(fx.ROOT / self.tuning['mapping_json'])
+        self.assertEqual({m['id'] for m in mapping['ramp_meters']}, METERS)
+        for key in ('queue_drain_horizon_sec_by_ramp', 'max_vph_by_ramp'):
+            self.assertEqual(set(forecast[key]), METERS, key)
+            self.assertEqual(forecast[key], make_config_n31.RAMP_FORECAST[key])
+        self.assertIs(forecast['strict_ramp_keys'], True)
+        stale = copy.deepcopy(self.base)
+        stale['calibration_override']['prediction']['local_ramp_arrival_forecast']['max_vph_by_ramp'] = {'RM_C10480': 1.0}
+        with self.assertRaisesRegex(ValueError, 'legacy group table'):
+            make_config_n31.apply(stale, require_repinned=False)
+
+    def test_beta_source_is_the_pinned_network_routing_table(self):
+        """Network v3b re-pin (2026-09-25): the tuning names the v3b routing beta, not the 0824 e14 table."""
+        self.assertEqual(self.tuning['urban']['beta'], {'measured': True, 'floor': 0.0, 'source': 'routing_v3b'})
+        make_config_n31.check_beta(fx.ROOT)
+        document = fx.load_json(fx.ROOT / make_config_n31.BETA_FILE)
+        self.assertEqual(document['source'].replace('\\', '/'), make_config_n31.NETWORK)
+        self.assertEqual(len(document['beta']), 370)   # 345 before the explicit interchange assignment
+        with_source = copy.deepcopy(self.base)
+        with_source['urban']['beta']['source'] = 'knr'
+        with self.assertRaisesRegex(ValueError, 'default source'):
+            make_config_n31.apply(with_source, require_repinned=False)
 
     def test_values(self):
         t = self.tuning

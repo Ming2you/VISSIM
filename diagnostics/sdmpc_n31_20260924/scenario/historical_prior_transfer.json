@@ -5,8 +5,8 @@
     "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
   },
   "target_network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
   },
   "predictive_accuracy_validated": false,
   "unchanged_prior_files": [
@@ -1318,15 +1318,34 @@
       "added": [],
       "removed": [],
       "changed": [
+        "33",
+        "283",
+        "1011",
+        "1032",
+        "1044",
+        "1061",
+        "1111",
+        "1112",
         "1113",
+        "1115",
+        "1116",
+        "1117",
+        "1118",
+        "1119",
+        "1120",
+        "1122",
         "1124",
         "1127",
         "1128",
         "1130",
         "1131",
+        "1132",
+        "1133",
         "1134",
         "1135",
-        "1137"
+        "1136",
+        "1137",
+        "1140"
       ]
     },
     "signalControllers": {
@@ -1485,7 +1504,7 @@
     "Changed demand, route decisions and lane-change distances may change their accuracy.",
     "Runtime rechecks physical routes, heads and clocks; this proves identity, not predictive accuracy.",
     "The latest lane CTM owns10634; its old aggregate service calibration is retired in this scenario.",
-    "The v2 network (FW80/U90 demand, 1130/1131 split, DSD 110) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
+    "The runtime network v3b be0075bf (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b static-route edits: 19 route destinations, 1061 pos, 32 relFlows; user decision 2026-09-25) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
   ],
   "repin_step": {
     "previous_transfer": {
@@ -1497,8 +1516,8 @@
       "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
     },
     "to_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     },
     "native_changes": {
       "dataCollectionMeasurements": {
@@ -1896,12 +1915,397 @@
         ]
       },
       "vehicleRoutingDecisionsStatic": {
-        "meaning": "route relFlow only",
+        "meaning": "route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS)",
+        "route_edits": [
+          {
+            "decision": "33",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destLink",
+            "old": "1220012600",
+            "new": "10235"
+          },
+          {
+            "decision": "33",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "5.3268782501267298",
+            "new": "27.8"
+          },
+          {
+            "decision": "33",
+            "route": "2",
+            "kind": "seq_remove",
+            "attribute": "intObjectRef",
+            "old": "10235",
+            "new": null
+          },
+          {
+            "decision": "1032",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "25.233335178427286",
+            "new": "15.9"
+          },
+          {
+            "decision": "1111",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "148.36673969655124",
+            "new": "5.6"
+          },
+          {
+            "decision": "1111",
+            "route": "3",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "107.58886200286291",
+            "new": "7.9"
+          },
+          {
+            "decision": "1112",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "148.57002832288222",
+            "new": "5.7"
+          },
+          {
+            "decision": "1112",
+            "route": "3",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "108.93937022190227",
+            "new": "7.9"
+          },
+          {
+            "decision": "1113",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "15.12439885639796",
+            "new": "7.9"
+          },
+          {
+            "decision": "1115",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "14.017864006894648",
+            "new": "5.6"
+          },
+          {
+            "decision": "1116",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "13.756346030137177",
+            "new": "6.3"
+          },
+          {
+            "decision": "1116",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "21.491149525801195",
+            "new": "11.0"
+          },
+          {
+            "decision": "1117",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "19.421103498024895",
+            "new": "11.0"
+          },
+          {
+            "decision": "1118",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "17.164739376494001",
+            "new": "11.0"
+          },
+          {
+            "decision": "1119",
+            "route": "3",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "10.94653444911382",
+            "new": "6.0"
+          },
+          {
+            "decision": "1124",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "47.550969949665024",
+            "new": "6.6"
+          },
+          {
+            "decision": "1128",
+            "route": "1",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "21.603806553621194",
+            "new": "11.4"
+          },
+          {
+            "decision": "1131",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "334.36343025078986",
+            "new": "225.9"
+          },
+          {
+            "decision": "1132",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "481.22689085618731",
+            "new": "225.9"
+          },
+          {
+            "decision": "1133",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destLink",
+            "old": "126",
+            "new": "70"
+          },
+          {
+            "decision": "1133",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "151.451",
+            "new": "64.9"
+          },
+          {
+            "decision": "1133",
+            "route": "2",
+            "kind": "seq_remove",
+            "attribute": "intObjectRef",
+            "old": "70",
+            "new": null
+          },
+          {
+            "decision": "1133",
+            "route": "2",
+            "kind": "seq_remove",
+            "attribute": "intObjectRef",
+            "old": "10776",
+            "new": null
+          },
+          {
+            "decision": "1136",
+            "route": "2",
+            "kind": "route_attr",
+            "attribute": "destPos",
+            "old": "295.05510999273133",
+            "new": "225.9"
+          },
+          {
+            "decision": "1061",
+            "route": null,
+            "kind": "dec_attr",
+            "attribute": "pos",
+            "old": "2.3410221886153253",
+            "new": "6.0"
+          }
+        ],
+        "route_edit_receipts": [
+          {
+            "path": "D:\\VISSIM_runs\\20260925_v3\\v3_edit_receipt.json",
+            "sha256": "147bc73257d1f205b617bed01273a56424771e7a096869d4307ba41ebd52879d",
+            "rows": "intended_edits (26): f475ce42 -> v3 746dd349"
+          },
+          {
+            "path": "D:\\VISSIM_runs\\20260925_v3b\\v3b_edit_receipt.json",
+            "sha256": "e0d4bccbcfb1ec57511dda71f1d826a0b5129115611c5faa1ac5e53287b93e7f",
+            "rows": "networks.s31.edits (31 relFlow): v3 746dd349 -> v3b be0075bf"
+          }
+        ],
+        "path_changed_routes": [
+          "33:2",
+          "1133:2"
+        ],
         "changed": [
+          "33",
+          "283",
+          "1011",
+          "1032",
+          "1044",
+          "1061",
+          "1111",
+          "1112",
+          "1113",
+          "1115",
+          "1116",
+          "1117",
+          "1118",
+          "1119",
+          "1120",
+          "1122",
+          "1124",
+          "1128",
           "1130",
-          "1131"
+          "1131",
+          "1132",
+          "1133",
+          "1136",
+          "1140"
         ],
         "relflow": {
+          "33": {
+            "1": {
+              "old": "2 0:47",
+              "new": "2 0:234"
+            },
+            "2": {
+              "old": "2 0:477",
+              "new": "2 0:1322"
+            },
+            "3": {
+              "old": "2 0:75",
+              "new": "2 0:171"
+            }
+          },
+          "283": {
+            "1": {
+              "old": "2 0:55",
+              "new": "2 0:30"
+            },
+            "2": {
+              "old": "2 0:555",
+              "new": "2 0:1273"
+            },
+            "3": {
+              "old": "2 0:60",
+              "new": "2 0:20"
+            }
+          },
+          "1011": {
+            "1": {
+              "old": "2 0:218",
+              "new": "2 0:92"
+            },
+            "2": {
+              "old": "2 0:1055",
+              "new": "2 0:1202"
+            },
+            "3": {
+              "old": "2 0:245",
+              "new": "2 0:836"
+            }
+          },
+          "1032": {},
+          "1044": {
+            "1": {
+              "old": "2 0:160",
+              "new": "2 0:178"
+            },
+            "2": {
+              "old": "2 0:673",
+              "new": "2 0:1366"
+            },
+            "3": {
+              "old": "2 0:16",
+              "new": "2 0:611"
+            }
+          },
+          "1061": {
+            "1": {
+              "old": "2 0:117",
+              "new": "2 0:0"
+            },
+            "2": {
+              "old": "2 0:1026",
+              "new": "2 0:7128"
+            },
+            "3": {
+              "old": "2 0:57",
+              "new": "2 0:2324"
+            }
+          },
+          "1111": {},
+          "1112": {},
+          "1113": {},
+          "1115": {
+            "1": {
+              "old": "",
+              "new": "2 0:1211"
+            },
+            "2": {
+              "old": "",
+              "new": "2 0:1058"
+            },
+            "3": {
+              "old": "2 0:5",
+              "new": "2 0:5186"
+            }
+          },
+          "1116": {},
+          "1117": {
+            "1": {
+              "old": "2 0:5",
+              "new": "2 0:707"
+            },
+            "2": {
+              "old": "",
+              "new": "2 0:2065"
+            },
+            "3": {
+              "old": "",
+              "new": "2 0:7104"
+            }
+          },
+          "1118": {
+            "1": {
+              "old": "",
+              "new": "2 0:1245"
+            },
+            "2": {
+              "old": "2 0:10",
+              "new": "2 0:1356"
+            },
+            "3": {
+              "old": "2 0:5",
+              "new": "2 0:2691"
+            }
+          },
+          "1119": {
+            "1": {
+              "old": "2 0:10",
+              "new": "2 0:1"
+            }
+          },
+          "1120": {
+            "1": {
+              "old": "",
+              "new": "2 0:2096"
+            },
+            "2": {
+              "old": "",
+              "new": "2 0:798"
+            }
+          },
+          "1122": {
+            "1": {
+              "old": "",
+              "new": "2 0:2115"
+            },
+            "2": {
+              "old": "",
+              "new": "2 0:2646"
+            }
+          },
+          "1124": {},
+          "1128": {},
           "1130": {
             "1": {
               "old": "2 0:2",
@@ -1920,6 +2324,23 @@
             "2": {
               "old": "",
               "new": "2 0:0.5"
+            }
+          },
+          "1132": {},
+          "1133": {},
+          "1136": {},
+          "1140": {
+            "1": {
+              "old": "",
+              "new": "2 0:804"
+            },
+            "2": {
+              "old": "",
+              "new": "2 0:1774"
+            },
+            "3": {
+              "old": "",
+              "new": "2 0:1980"
             }
           }
         }

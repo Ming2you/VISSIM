@@ -26,12 +26,37 @@
 >   - 명령이 모두 110이면 옛 결과와 비트 단위로 같습니다(G1b 900 상태, 수치 1,329만 개. V5b 3000 상태 목적값 538.152115708005).
 >   - 사용자 국소 보정(v_free 108.159, anticipation 18.375, head-service, physical_cell_fd)은 v2 보정을 덮어쓰므로 **넣지 않았습니다**.
 >   - 110에서 한쪽 도함수가 살아 있습니다(FW_E seg10 +0.034 veh·h/(km/h)). 아래 §3(d)-3 4번과 §7.1의 "110 불감대" 서술은 이식 전 기준입니다.
-> - **VSL 행동 집합 {50,60,70,80,90,100,110}:** 튜닝, reference, 러너 VBS가 같은 집합입니다(`make_config_n31.py:51`, `make_reference_config.py:55-56`, `repin_scenario_v2.py:131`).
+> - **VSL 행동 집합 {50,60,70,80,90,100,110}:** 튜닝, reference, 러너 VBS가 같은 집합입니다(`make_config_n31.py:54`, `make_reference_config.py:55-56`, `repin_scenario_v2.py:131`).
 >   - 블록 0은 한 결정에 ±40까지 움직입니다(`max_vsl_step`). 110에서 {70..110}입니다.
 >   - v2 망에는 일곱 속도 모두 같은 번호의 희망속도 분포가 있습니다. 50·60·70은 좁은 균등, 80–110은 오른쪽 꼬리가 긴 분포라 한 계열이 아닙니다.
 > - **VSL 코호트 초기화:** 결정마다 직전에 실제 적용된 행동의 블록 0 VSL을 표지 셀과 그 하류 셀에 심습니다(없으면 110). 출처는 결정 metadata `n31_binding.vsl_cohort_initialization`에 남습니다.
-> - **현재 sha:** plant `17871460`, config `1e58e6bf`, reference `2c4857f4`, 러너 VBS `b74e05b2`, 검지기 CSV `108debbb`(그대로). 본문 표의 옛 sha는 이 값으로 읽으십시오.
+> - **현재 sha:** plant `17871460`, config `3a5cacef`, reference `2c4857f4`, 러너 VBS `b74e05b2`, 검지기 CSV `108debbb`(그대로). 본문 표의 옛 sha는 이 값으로 읽으십시오.
+>   - config는 2026-09-25에 `1e58e6bf` → `3a5cacef`로 바뀌었습니다. 램프 도착 예측 표(`local_ramp_arrival_forecast`의 drain·cap)의 키를 옛 그룹 `R_D_W…`에서 런타임 램프 키 `RM_C<커넥터>` 8개로 바꾸고 `strict_ramp_keys: true`를 넣었습니다(`make_config_n31.py`의 `RAMP_FORECAST`). 전에는 키가 맞지 않아 모든 미터가 120 s·900 veh/h로 폴백했습니다. plant·reference는 그대로입니다.
+>   - 미터별 drain·cap은 처음에 `f475ce42`의 무제어 런(s31/s41/s37)에서 뽑았습니다. 2026-09-25 v3b 재핀 때 v3b 무제어 런으로 다시 뽑았습니다(아래 절). `--check`가 `RAMP_FORECAST`와 대조합니다.
 > - **RM:** V5b(9000 s)에서 SDMPC가 **램프 미터를 한 번도 조이지 않았습니다**. 추적 결과는 VISSIM stage-1의 FW_E 이득 대부분(82%)이 램프 대기로의 전가이고, Ω 전체로는 규칙 RM도 손해(+1530 veh·h, FW_W 역류)라는 것입니다. 플랜트가 틀린 것은 FW_E 내부 구성(B1 대기가 너무 빨리 풀림, 상류 진입 부족)입니다. 세부는 `N31D/RM_GAIN_TRACE_20260924.md`에 있습니다.
+
+> **망 v3b 재핀 (2026-09-25, 사용자 결정 — 이 절이 위 "현재 sha"를 대신합니다):**
+> - **핀 망:** `N31D/network/baseline_s31_v3bnc.inpx` = `be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc`(원본 `D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network\`). 옛 `baseline_s31_v2nc.inpx`(`f475ce42`)는 트리에서 지웠습니다.
+>   - v3b는 `f475ce42`와 **정적 경로만** 다릅니다: route 목적지 19개(이 중 `33:2`, `1133:2`는 링크열도 짧아짐), 결정 1061 pos 2.341→6.0 m, relFlow 32개(RD 1119 + 되살린 결정 31개). 링크·신호·입력·검지기·`.sig` 42개는 같습니다.
+>   - 파일 이름의 "v2"(`config_n31_v2.json`, `plant_n31_v2.json`, `obs150_detectors_v2.csv`, `repin_scenario_v2.py`, `port_profile_v2/`)는 플랜트/시나리오 세대 이름이고 망 버전이 아닙니다.
+> - **재핀 도구(`repin_scenario_v2.py`):** `CHANGE_RULES`는 넓히지 않았습니다.
+>   - `V3B_ROUTE_EDITS`(:316): v3·v3b 편집 영수증(`147bc732…`, `e0d4bccb…`)을 그대로 옮긴 열거표입니다. 경로가 relFlow 밖에서 바뀐 결정이 이 표의 결정과 정확히 같고, 옛 값·새 값이 모두 맞을 때만 통과합니다(`characterize_changes(route_edits=…)`, :412).
+>   - `refresh_membership_relflow`(:791): membership의 relFlow 사본 중 바뀐 결정(1117·1140의 6개)을 v3b 값으로 채웁니다. 경로가 같을 때만 합니다. 런타임은 이 사본을 읽지 않습니다.
+>   - `route_path_audit`(:836) + `V3B_PATH_CHANGE_REVIEW`(:826): 경로가 바뀐 route를 인용하는 선언은 검토 표에 있어야 통과합니다. 해당은 `dynamic_area_routes`의 `SC1004_offW_to_E_SC107`(`1133:2`) 하나입니다. v3b에서 (70,10776)·(10776,126) 간선은 `1140:2`만 증명합니다.
+> - **v3b 무제어 런에서 다시 뽑은 것:**
+>   - 관측: `metanet_calibration_v1/v3b_nc_20260925/observations/s{31,41,37}_v3bnc_observations` (`extract_observations.py`, 영수증은 같은 폴더의 `s*_v3bnc_extraction_receipt.json`). s37에 FW_E 셀 30의 미설명 손실 1대(3460–3465 s)가 있습니다. 램프 행과는 무관합니다.
+>   - 플랜트 기하: s31 `geometry.json` `7d330bd2…`. v2 기하(`89011be0`)와 출처 키만 다릅니다.
+>   - 포트 프로필 `666fd1a8…`: 10491 +3.80, 10638 −3.33, 10646 −3.02 km/h, 나머지 |Δ| ≤ 1.47. 한 시드, 900 s입니다.
+>   - 램프 예측 `RAMP_FORECAST`(`make_config_n31.py:90`): drain 17.4/43.3/30.9/88.0/42.6/161.7/33.3/43.3 s, cap 219/2312/405/514/526/1216/839/611 veh/h (RM_C10480/10482/10646/10644/10639/10681/10490/10484). v2 값은 `derive_ramp_forecast_n31.py` docstring에 남겼습니다.
+>   - movement beta: `N31D/beta/movement_beta_routing_v3b_20260925.json`(`e81d545f…`, 370개), 튜닝 `urban.beta.source: routing_v3b`(어댑터 `BETA_EVIDENCE_JSON`). 유도 명령과 sha 핀은 `make_config_n31.py`의 `BETA_*` 상수에 있고, 재현은 `tests/test_n31_beta_source.py`가 확인합니다.
+>     - **명시 배정(사용자 결정 2026-09-25):** `scripts/derive_routing_turn_beta.py`의 목적지집합 역추론이 램프 교차로에서 틀렸습니다. SC1004 서측 결정 1124·1126·1138·1140이 전부 E_SC107에 붙었고(1140만 4558대), SC1001 서측 1117은 W/offW/offE 동률로 버려졌습니다. `--explicit-approach N31D/beta/explicit_approach_v3b_20260925.json`(`36162d50`)이 다음과 같이 붙입니다: 1117 → SC1001 W·offW·offE, 1140 → SC1004 W·offW, 1138 → SC1004 W, 1126 → SC1004 offE, 1124 → SC1004 S. 근거는 v3b 무제어 FZP 세 시드의 출처별 실측 출구 분율이며, 같은 파일에 들어 있습니다. 예를 들어 link 127은 출처와 무관하게 0.70/0.20/0.07로 나가고, 1117 relFlow는 0.72/0.21/0.07입니다. 값은 여전히 relFlow(외생)에서 뽑고, 명시 배정은 어느 접근로에 적용할지만 정합니다. 옵션이 없으면 0824 표(`a70222d8`)와 명시 배정 전 표(`f020e36c`)를 바이트 그대로 재현합니다.
+>     - 결과: SC1001 W 0.7193/0.2091/0.0716(기본값 0.5/0.25/0.25). SC1004 E_SC107은 설정 기본값으로 돌아갑니다. 0824 표 대비 24개 접근로 movement 73개(유효값 기준), v2 망 표 대비 18개 접근로 58개가 바뀌고 최대 |Δ|는 0.5입니다(예: RD 1119 `SC1001_S_SC1003_to_W` 0.8333→0.3333).
+>     - 남은 한계(도시 플랜트 수정 단계로 넘김): (1) 증거가 닿지 않는 movement는 기본 몫을 지킵니다. 예를 들어 `SC1001_offW/offE_to_W` 1/6은 link 127에 서쪽 출구가 없는데도 남습니다. (2) 이름 없는 경계 유출 경로는 그 접근로의 경계 유출 movement들에 균등 분배됩니다. (3) 1126은 실측 0.38/0.39/0.23으로 1:1:1과 다르고, 1138은 실측 약 20%가 세 출구 어디에도 닿지 않습니다. (4) SC1004 W는 1140(계수 4558)과 1138(단위 3)을 relFlow로 합칩니다. 실제 출처 비율은 약 2:1이라 movement당 0.05 이내로 어긋납니다. (5) 런타임 492개 중 474개 밖의 램프 movement 18개는 재정규화되지 않아 접근로 합이 1을 넘습니다.
+> - **v2 사전값 (재적합 안 함):** B110 `segment_params.json`(`6b40550a`), boundary fit `parameters.json`(`8e4f6047`)·`freeze.json`·`boundary_config.json`, reference의 수송 키와 VSL 모형은 **v2 NC s31(`f475ce42`)에서 맞춘 값**입니다. 관문 대역 FW_E 20–25 / FW_W 13–17 km/h도 v2 기록입니다. D-B 사전 7개도 그대로 이월했습니다.
+>   - 오프라인 확인(2026-09-25, 읽기 전용, `test_tools_plant_gate.RealComponent`와 같은 계산): b110 boundary family를 VSL 110으로 두고 history_forecast 450 s를 굴렸습니다. v2 s31 2700.1에서는 기록값 FW_E 23.92 / FW_W 15.89가 그대로 나옵니다. v3b 무제어 3시드 × 차단 시각 5개(900.1–4500.1 s), 15창의 결과는 다음과 같습니다. FW_E는 5창이 대역 밖이고 최대 29.86입니다. FW_W는 3창이 대역 밖이고 최대 22.50입니다. 2배를 넘는 창(STOP_ASK)은 없습니다. 같은 계산으로 v2 s31 5창은 FW_W만 2창이 대역 밖입니다(17.15, 24.20). 창마다 표본이 하나라 판정은 아닙니다. 5창 평균 속도 RMSE는 v2 s31 FW_W 16.3 / FW_E 22.7, v3b s31/s41/s37 FW_W 14.7/15.2/13.3 / FW_E 25.1/23.0/24.1 km/h로, 학습 런 자신과 비교해 뚜렷한 악화가 없습니다. 그래서 재적합하지 않고 v2 사전값을 유지합니다(2026-09-25 보고, 기존 결정 유지).
+> - **산출물 diff 없이 바뀌는 것:** LPR가 1140 relFlow를 실시간으로 읽습니다. 그래서 SC1004 동측 로컬 미래 분율이 1:1:1에서 804:1774:1980으로 바뀝니다.
+> - **현재 sha (재핀 뒤):** plant `a087aa67`, config `16c5f8bc`, reference `2c4857f4`(그대로), 러너 VBS `b74e05b2`(그대로), 검지기 CSV `108debbb`(그대로, 사이드카만 바뀜), sig_manifest `d9483693`, 포트 프로필 `666fd1a8`.
+> - **과거 런 재생:** V5b·G1b·V3처럼 `f475ce42`에서 돈 런은 재핀 전 트리(`75f0151` + 램프 키 수정)에서만 재생됩니다. LPR가 망 sha를 대조합니다.
 
 ---
 
@@ -185,7 +210,7 @@ git worktree add -b <내-브랜치> <W> origin/claude/sdmpc-n31-20260924
 | 원점 수요 | LPR:611-620; obs150_observation.py:641-647 | 망 시간표(input 1098/1099) = 보정 기하 `desired_source_demand` = obs150 스케줄 |
 | 검지기 CSV | OC:240-249; LPR:124-125 | manifest 핀 = 러너 `RW_OBS150_DETECTORS_SHA256`. 핀된 소스로 다시 유도한 표와도 바이트가 같아야 합니다 |
 | VSL 명령 공간 | OC:186; LPR:590-597; sdmpc.py:333-341 | `parent_21`. 튜닝 `freeway.vsl_zone_heads` {FW_E, FW_W: [0,5,10,15]}, `vsl_zone_free` [0,1,2](config_n31_v2.json:7987-8005). 구역 3(부모 머리 15, 정제셀 25–30)은 SDMPC 축이 아니라 vsl_max로 고정됩니다 |
-| VSL 속도 | `lane_native_b110.vbs:34`; make_config_n31.py:51-52; make_reference_config.py:58; repin_scenario_v2.py:129 | 60/80/110. 러너 허용 집합, 튜닝 `vsl_set`, reference `vsl_set`이 같아야 하고 망에 해당 분포가 있어야 합니다. `v_free`는 110입니다 |
+| VSL 속도 | `lane_native_b110.vbs:34`; make_config_n31.py:54-55; make_reference_config.py:58; repin_scenario_v2.py:129 | 60/80/110. 러너 허용 집합, 튜닝 `vsl_set`, reference `vsl_set`이 같아야 하고 망에 해당 분포가 있어야 합니다. `v_free`는 110입니다 |
 | 미터와 포트 | CH:349-361; LFR:98-99; LPR:106-109 | 온램프 8, 오프램프 8, 커넥터 16개의 주행속도. 2차로 램프 용량 3600(make_reference_config.py:52-54). 미터 주기 10 s |
 | 1초 적분 | CH:293-300; LPR:263-264; LFR:18-19 | reference `physical_integration_step_sec: 1`, 튜닝 T_f = T_u = 1 |
 | 성분 경계 | LPR:100-101; make_reference_config.py:55-56 | `component_boundary` = {admitted_interface, open_exit} |
@@ -248,7 +273,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
 & $PY -B scripts/build_obs150_detectors.py --geometry <같은 경로> --check
 & $PY -B diagnostics/sdmpc_n31_20260924/make_plant_n31.py                   # SOURCES geometry/parameters, FREEZE(:43-54), QUALIFICATION(:60-65)
 & $PY -B diagnostics/sdmpc_n31_20260924/make_plant_n31.py --check           # PLANT_N31_OK sha256=…
-& $PY -B diagnostics/sdmpc_n31_20260924/make_config_n31.py                  # SEGMENT_PARAMS(:44-45); 필요하면 VSL_SET, V_FREE(:51-52)
+& $PY -B diagnostics/sdmpc_n31_20260924/make_config_n31.py                  # SEGMENT_PARAMS(:47-48); 필요하면 VSL_SET, V_FREE(:54-55)
 & $PY -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --check          # CONFIG_N31_OK sha256=… (한 줄)
 & $PY -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py verify --no-net  # REPIN_VERIFY_OK files=70 pins=122 (망을 안 바꿨을 때)
 ```
@@ -256,9 +281,11 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
 - **검지기 표:** 기하의 **경로 또는** sha가 바뀌면 검지기 manifest(사이드카)가 바뀝니다. 사이드카는 `sources.geometry`를 `{path, sha256}`로 적고, `--check`는 CSV와 사이드카 바이트를 둘 다 비교합니다(build_obs150_detectors.py:158, :184-186). 셀과 포트가 같으면 CSV 바이트는 그대로(`108debbb`)여야 합니다.
   - 실행 중의 `read_sidecar`(obs150_observation.py:503-510)는 CSV sha만 보고 기하 경로는 보지 않습니다. 그래서 사이드카 불일치는 L0 `--check`에서만 걸립니다.
   - 경로 A에서는 `sources.geometry`를 B110 경로 그대로 둡니다(§3(a) 주의).
-- **preflight:** `make_config_n31.py`는 `preflight_tuning_paths`를 `--quiet`로 돌립니다. 성공하면 `CONFIG_N31_OK sha256=…` 한 줄만 찍고, 실패하면 `preflight_tuning_paths failed`로 멈춥니다(make_config_n31.py:154-158).
+- **preflight:** `make_config_n31.py`는 `preflight_tuning_paths`를 `--quiet`로 돌립니다. 성공하면 `CONFIG_N31_OK sha256=…` 한 줄만 찍고, 실패하면 `preflight_tuning_paths failed`로 멈춥니다(make_config_n31.py:202-206).
 - **config:** plant를 경로로만 가리키므로, segment_params 경로가 그대로면 config 바이트도 그대로일 수 있습니다(통합 기록 §2에 선례: `eddfd19f` 유지).
-- **이 PC의 현재 기준값:** plant `17871460`, config `1e58e6bf`, reference `2c4857f4`, 검지기 `108debbb`(294행). (VSL 이식 전에는 plant `2dc45b2e`, config `eddfd19f`, preflight PASS(43).)
+- **이 PC의 현재 기준값 (v3b 재핀 뒤):** plant `a087aa67`, config `16c5f8bc`, reference `2c4857f4`, 검지기 `108debbb`(294행), routing beta `e81d545f`. (v3b 재핀 전 v2 망에서는 plant `17871460`, config `3a5cacef`. VSL 이식 전에는 plant `2dc45b2e`, config `eddfd19f`, preflight PASS(43). 램프 예측 키 수정 전(2026-09-25)에는 config `1e58e6bf`.)
+  - 램프 예측 표는 망에 묶여 있습니다. 망을 바꾸면(경로 B) 무제어 런을 새로 돌린 뒤 `derive_ramp_forecast_n31.py`의 입력 핀을 바꾸고 다시 뽑아 `RAMP_FORECAST`에 옮기고, `make_config_n31.py --check`와 `derive_ramp_forecast_n31.py --check`를 둘 다 통과시키십시오.
+  - `derive_ramp_forecast_n31.py`의 입력은 v3b 무제어 세 시드의 `metanet_calibration_v1/v3b_nc_20260925/observations/s*_v3bnc_observations/boundaries_30s.csv`입니다. 이 셋과 manifest, 추출 영수증, 플랜트가 핀하는 s31 `geometry.json`만 git에 추적합니다. `cells_30s.csv`, `flows_30s.csv`, 전이·제외 증거(시드당 약 4.5 MB)는 추적하지 않으므로 필요하면 영수증의 명령으로 FZP에서 다시 뽑으십시오. v2 입력(stage-2 `control_response_v2/`)은 추적되지 않은 기록입니다.
 
 ### (c) 재핀
 
@@ -271,7 +298,7 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
     3. 1098/1099의 `vehComp` 변경: 규칙은 `volume`만 허용합니다.
     - 이 안내서를 쓰며 읽기 전용으로 확인했습니다: 원본 `CHANGE_RULES`로는 1번에서 거부되고, 세 규칙을 차례로 넓히면 2번, 3번에서 거부된 뒤 셋을 모두 넓히면 `characterize_changes`가 통과합니다(메모리 안에서 규칙만 바꿔 호출, 파일은 쓰지 않음). `stale_evidence_audit` 등 다른 검사는 돌려 보지 않았습니다.
     - 각 변경이 팩 선언(경로, 헤드, 커넥터 기반)에 무해한지 검토한 뒤에 규칙을 넓힙니다.
-  - **망 sha가 상수로 박힌 곳 (파일 5개, `git grep f475ce42b0afaceccfd`):** `repin_scenario_v2.py:76-79`(`NET_DIR`, `NET_INPX`, `V2_SHA256`), `make_plant_n31.py:59`, `make_config_n31.py:48`, `scripts/build_obs150_detectors.py:50`, `N31D/port_profile_v2/extract_port_profile.py:60`(`NETWORK_SHA256`, :91과 :94에서 검사)
+  - **망 sha가 상수로 박힌 곳 (v3b 재핀 뒤, `git grep be0075bf4d5e9e239ffc`):** `repin_scenario_v2.py:89-91`(`NET_DIR`, `NET_INPX`, `V2_SHA256`; 망 경로 변경은 `V3B_ROUTE_EDITS`처럼 열거표로 허용), `make_plant_n31.py:63`, `make_config_n31.py:57`, `scripts/build_obs150_detectors.py:52`(`NETWORK_SHA256`), `N31D/port_profile_v2/extract_port_profile.py:64`(:95, :98에서 검사). 망 파일 이름은 `make_plant_n31.py:48`, `make_config_n31.py:56`, `make_reference_config.py:53`, `repin_scenario_v2.py:90`, 시험 `tests/n31_fixtures.py:35`, `tests/test_prepare_sdmpc31_network.py`, `tools/tests/launch_world.py`, `tools/tests/test_tools_launch.py`에 있습니다. v3b 재핀에서는 여기에 더해 기하(`make_plant_n31.py:49`, `make_reference_config.py:54`), 램프 예측 입력(`derive_ramp_forecast_n31.py:37-43`), routing beta(`make_config_n31.py:62-63`, 어댑터 `BETA_EVIDENCE_JSON`)를 바꿨습니다(위 머리 노트).
   - **다시 만들 것:**
     - 포트 프로필: 새 망의 무제어 FZP ≤ 900 s로 `extract_port_profile.py`를 돌립니다. RUN(:56)과 함께 GEOMETRY(:57), NETWORK_SHA256(:60), FZP_SHA256(:61, :118에서 검사)을 고칩니다. `:56`만 고치면 `scan()`이 망 sha 검사(:91)에서 멈춥니다.
     - 보정 기하: 핀할 망 파일에서 추출
@@ -305,9 +332,9 @@ $env:PYTHONPATH = "$DEP\sdmpc;$DEP\sdmpc-numba"; $env:PYTHONUTF8 = '1'; $env:PYT
      - obs150 관측은 핀된 reference config의 `physical_ramp_receiving_nodes`를 읽어 `RampArrivalRef.receiving`을 정합니다(obs150_observation.py:605, :623-639). 이 키가 없거나 비어 있으면 거부합니다(:625-627).
      - 램프 차로 분율은 수용 노드 램프에 대해서만 나옵니다(obs150_lane.py:102-108). 그래서 수용 노드가 4개가 되면 `derived_T.json`의 `ramp_arrival_shares` 키도 4개가 됩니다.
      - 그 결과 이전 플랜트의 결정을 재생하면 `derived.ok`가 설계상 false가 됩니다(§4 L4).
-2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 이 브랜치는 이제 [50,60,70,80,90,100,110]을 씁니다(생성기 `make_reference_config.py:55-56`, `make_config_n31.py:51`). v_free는 110 그대로입니다.
+2. **VSL 집합과 v_free:** 후보는 `vsl_set` [60,80,90,100,110], `v_free` 120입니다. 이 브랜치는 이제 [50,60,70,80,90,100,110]을 씁니다(생성기 `make_reference_config.py:55-56`, `make_config_n31.py:54`). v_free는 110 그대로입니다.
    - 후보 README는 90 밖으로 외삽하지 않는다고 적었습니다. SDMPC 명령 집합에는 90이 없습니다.
-   - 90을 넣으려면 핀 연쇄를 따라 함께 바꿉니다: `repin_scenario_v2.py:129 VSL_SPEEDS` → `lane_native_b110.vbs` → 검지기 manifest → plant → `make_config_n31.py:51`, `make_reference_config.py:58`. v2 망에는 분포 90이 있습니다.
+   - 90을 넣으려면 핀 연쇄를 따라 함께 바꿉니다: `repin_scenario_v2.py:129 VSL_SPEEDS` → `lane_native_b110.vbs` → 검지기 manifest → plant → `make_config_n31.py:54`, `make_reference_config.py:58`. v2 망에는 분포 90이 있습니다.
    - `v_free`는 셀 행 값이 우선하지만, `net.v_free`는 셀 0의 상류 속도와 기본값으로 쓰입니다(AFA:347). 120으로 바꿀지는 결정이 필요합니다.
 3. **표지판 셀 (`component_vsl_transport.FW_E.sign_cells`):** 망의 표지판 위치에서 나옵니다.
    - 사용자 값 [0,3,5,8,14,16,26,28]은 "각 DSD에서 가장 가까운 셀 경계" 규칙과 8개 모두 일치합니다. 이 규칙은 코드에 없고, 결과를 보고 추정한 것입니다.

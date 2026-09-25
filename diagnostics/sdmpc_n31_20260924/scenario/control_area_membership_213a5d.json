@@ -2,8 +2,8 @@
   "schema": "control-area-membership/v1",
   "definition": "Physical union of canonical PN internal links (perimeter priority), controlled freeway and verified IC transfer corridors. Canonical inflow/outflow turn connectors place the PN boundary at stoplines; corridor closure makes urban↔freeway transfer internal. Each vehicle is counted once by physical link. Ownership files are unchanged.",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
   },
   "sources": [
     {
@@ -6356,7 +6356,7 @@
       "sequence": [
         "10368"
       ],
-      "relflow_raw": "2 0:5"
+      "relflow_raw": "2 0:707"
     },
     {
       "decision": "1117",
@@ -6366,7 +6366,7 @@
       "sequence": [
         "10695"
       ],
-      "relflow_raw": ""
+      "relflow_raw": "2 0:2065"
     },
     {
       "decision": "1117",
@@ -6376,7 +6376,7 @@
       "sequence": [
         "10118"
       ],
-      "relflow_raw": ""
+      "relflow_raw": "2 0:7104"
     },
     {
       "decision": "1134",
@@ -6532,7 +6532,7 @@
         "71",
         "10635"
       ],
-      "relflow_raw": ""
+      "relflow_raw": "2 0:804"
     },
     {
       "decision": "1140",
@@ -6546,7 +6546,7 @@
         "71",
         "10634"
       ],
-      "relflow_raw": ""
+      "relflow_raw": "2 0:1774"
     },
     {
       "decision": "1140",
@@ -6560,7 +6560,7 @@
         "71",
         "10642"
       ],
-      "relflow_raw": ""
+      "relflow_raw": "2 0:1980"
     }
   ],
   "unresolved": [],
@@ -6588,8 +6588,8 @@
       "sha256": "ac233267af8db377e48d6a021a6bb6f1a02f0f5ed282e9715446d8996a3eef5b"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -6612,6 +6612,55 @@
         "pack_pin": 0,
         "pack_path": 0
       }
-    }
+    },
+    "actual_native_relflow_updates": {
+      "/mixed_transfer_road_routes/0": {
+        "decision": "1117",
+        "route": "1",
+        "old": "2 0:5",
+        "new": "2 0:707"
+      },
+      "/mixed_transfer_road_routes/1": {
+        "decision": "1117",
+        "route": "2",
+        "old": "",
+        "new": "2 0:2065"
+      },
+      "/mixed_transfer_road_routes/2": {
+        "decision": "1117",
+        "route": "3",
+        "old": "",
+        "new": "2 0:7104"
+      },
+      "/mixed_transfer_road_routes/16": {
+        "decision": "1140",
+        "route": "1",
+        "old": "",
+        "new": "2 0:804"
+      },
+      "/mixed_transfer_road_routes/17": {
+        "decision": "1140",
+        "route": "2",
+        "old": "",
+        "new": "2 0:1774"
+      },
+      "/mixed_transfer_road_routes/18": {
+        "decision": "1140",
+        "route": "3",
+        "old": "",
+        "new": "2 0:1980"
+      }
+    },
+    "actual_native_relflow_rechecked": [
+      "/mixed_transfer_road_routes/0",
+      "/mixed_transfer_road_routes/1",
+      "/mixed_transfer_road_routes/2",
+      "/mixed_transfer_road_routes/10",
+      "/mixed_transfer_road_routes/11",
+      "/mixed_transfer_road_routes/12",
+      "/mixed_transfer_road_routes/16",
+      "/mixed_transfer_road_routes/17",
+      "/mixed_transfer_road_routes/18"
+    ]
   }
 }

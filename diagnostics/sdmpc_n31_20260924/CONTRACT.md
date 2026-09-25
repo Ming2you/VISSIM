@@ -598,6 +598,7 @@ diagnostics/obs150_20260924/** -text
 - `git check-attr text`는 두 폴더에서 `unset`입니다(시험으로 확인).
 - 다른 WP는 이 파일을 건드리지 않습니다. `git add -u --renormalize`는 금지입니다.
 - (통합 추가) C1 사본 폴더 `diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/`는 하위 `.gitattributes`(`* -text`, WP-C)로 CRLF 핀을 지킵니다. 폴더째 커밋하면 이 파일도 함께 들어갑니다(`test_pinned_inputs_are_byte_exact_in_git`).
+- (2026-09-25, 망 v3b 재핀) v3b 무제어 관측 폴더 `diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/`도 하위 `.gitattributes`(`* -text`)를 둡니다. plant가 핀하는 s31 `geometry.json`(CRLF)과 램프 예측이 핀하는 `boundaries_30s.csv` 세 개가 이 폴더에 있습니다. 새 routing beta는 `N31D/beta/`(루트 규칙으로 `-text`)에 둡니다. `outputs/`는 text 속성이라 핀할 파일을 두지 않습니다.
 
 ---
 
@@ -690,6 +691,11 @@ observe_live v2 → obs150_observation.derive(raw, context)
   - SDMPC: 블록 0의 VSL 상자는 직전 명령 ±`max_vsl_step` 40입니다. 110에서 {70,80,90,100,110}이고(전에는 {80,110}), 블록 1·2는 ±80·±120이라 50까지 갑니다. decode는 가장 가까운 허용값이고 동률이면 기준값 쪽입니다(`sdmpc.py:338`, `:390-391`). 축 수는 그대로입니다. follower의 k-best VSL 시퀀스 후보(`install_freeway_vsl_sequence_kbest`)는 SDMPC 결정 경로에 없습니다.
   - 핀 연쇄: `scenario/lane_native_b110.vbs` → `obs150/obs150_detectors_v2.manifest.json`(CSV 그대로) → `plant_n31_v2.json`, 그리고 `reference_config_n31_v2.json` → `plant_n31_v2.json`. `config_n31_v2.json`은 `vsl_set` 때문에 바뀝니다.
 - D10 = 1 s (위 표). G1 D6의 `d10` 항목으로 재확인합니다.
+- **망 v3b 재핀 (2026-09-25 사용자 결정).** 이 문서의 인터페이스와 스키마는 바뀌지 않습니다. 핀 값만 바뀝니다.
+  - `sources.network`는 `N31D/network/baseline_s31_v3bnc.inpx`(`be0075bf…`)입니다. v2 `f475ce42`와 정적 경로만 다릅니다(route 목적지 19개, 결정 1061 pos, relFlow 32개). `.sig` 42개, 링크, 신호, 입력, 검지기 위치는 같습니다. 재핀 도구와 절차는 `PLANT_PORTING_GUIDE.md` 머리 노트에 있습니다.
+  - 검지기 CSV는 바이트 그대로입니다(`108debbb`, 294행). 사이드카(`obs150_detectors_v2.manifest.json`)는 망, 기하, 헤드 계약 sha를 v3b로 적습니다. `load_context`는 사이드카 망과 manifest 망이 다르면 거부합니다(obs150_observation.py:612). 그래서 v2 망(probe 사본 포함)으로는 더 이상 context를 만들 수 없습니다.
+  - 시험: `test_lane_context`와 `test_generator_detectors`는 사이드카가 적은 망과 기하를 따라갑니다. probe 정답 시험(`test_lane_support`, `test_lane_probe`, `test_lane_source_boundary`)은 v2 probe 런의 정답이므로 v2 망 그대로 둡니다. 생성기는 v2 probe 망을 거부해야 합니다(`test_other_network_is_refused`).
+  - plant `geometry`는 v3b s31 무제어 추출(`7d330bd2`, v2 기하와 출처 키만 다름)입니다. `parameters`와 reference의 b110 보정은 v2 NC s31에서 맞춘 사전값이고 재적합하지 않았습니다(`qualification`에 적음).
 - VSL 모형을 먼저 plant에 옮깁니다(2026-09-24). 110 속도분포는 VSL을 돌려 본 뒤 정합니다. 분포와 망은 바꾸지 않았습니다.
   - 브랜치 `codex/control-full-review-20260909` d80faf9, 후보 A0.5_E4(`diagnostics/vsl_handoff_20260924/candidate.json` sha `a2fe3366…`)를 브랜치 키 이름 그대로 `reference_config_n31_v2.json`의 `freeway`에 넣었습니다.
     - `vsl_fd_response`: FW_E Carlson A 0.5, E 4, alpha 0, 기준 명령 = max(vsl_set) = 110

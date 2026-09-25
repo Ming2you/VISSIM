@@ -95,7 +95,7 @@ FAKE_PREPARE = textwrap.dedent(r'''
     src = Path(os.environ['N31_TEST_NET_SRC'])
     out = Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=False)
-    shutil.copyfile(src / 'baseline_s31_v2nc.inpx', out / f'sdmpc31_{a.name}.inpx')
+    shutil.copyfile(src / 'baseline_s31_v3bnc.inpx', out / f'sdmpc31_{a.name}.inpx')
     for sig in src.glob('*.sig'):
         shutil.copyfile(sig, out / sig.name)
     if os.environ.get('N31_TEST_NET_EXTRA'):
@@ -159,7 +159,7 @@ class World:
               (REAL_ROOT / 'evaluation' / 'controllers' / 'obs150_contract.py').read_bytes())
         write(w, launch_plan.WATCHDOG_REL, FAKE_WATCHDOG)
         net = f'{N31D}/network'
-        write(w, f'{net}/baseline_s31_v2nc.inpx', '<network/>\n')
+        write(w, f'{net}/baseline_s31_v3bnc.inpx', '<network/>\n')
         sigs = {}
         for i in range(launch_plan.SIG_COUNT):
             sigs[f'{1000 + i}.sig'] = sha(write(w, f'{net}/{1000 + i}.sig', f'<sc no="{1000 + i}"/>\n'))

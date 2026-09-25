@@ -1,12 +1,12 @@
 {
   "schema": "native-input-prehead/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-    "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
   },
   "membership": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-    "sha256": "37e14595c07051c9aaf5e96238e375279ddf2f8196fbc85319d99739b4cd94fb"
+    "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
   },
   "selected_plan": {
     "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
@@ -30,11 +30,11 @@
     "validation_scope": "offline_seed13_requires_seed14_holdout",
     "historical_prior_transfer": {
       "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-      "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+      "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
     },
     "network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     }
   },
   "decision": "22",
@@ -156,8 +156,8 @@
       "sha256": "d91ea40905d40edecec9cf00b090d83f866876b157fc8a9416a4119900ee3022"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -193,15 +193,15 @@
       ],
       "receipt": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "daea9c5a76b5d4481348d5173bf325aea9bd44169774313c624cb3c885b8ed56"
+        "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
       },
       "target_network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-        "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+        "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
       },
       "differences_since_previous_pack": [
         "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
-        "vehicleRoutingDecisionsStatic: route relFlow only (2 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) (24 elements)",
         "desSpeedDecisions: desired speed distribution only (76 elements)"
       ],
       "differences_since_training": "receipt actual_native_differences (training network -> v2)",

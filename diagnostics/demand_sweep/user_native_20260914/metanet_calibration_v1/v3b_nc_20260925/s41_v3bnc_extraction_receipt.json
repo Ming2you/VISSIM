@@ -1,0 +1,39 @@
+{
+  "id": "s41_v3bnc",
+  "run": "D:\\VISSIM_runs\\20260925_v3b\\s41_v3bnc\\run",
+  "observations": "D:\\VISSIM-merge\\sim3-n31\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3b_nc_20260925\\observations\\s41_v3bnc_observations",
+  "command": [
+    "D:\\VISSIM-merge\\sim3-n31\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\extract_observations.py",
+    "--run",
+    "D:\\VISSIM_runs\\20260925_v3b\\s41_v3bnc\\run",
+    "--out",
+    "D:\\VISSIM-merge\\sim3-n31\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3b_nc_20260925\\observations\\s41_v3bnc_observations",
+    "--phase-sec",
+    "0.1",
+    "--geometry-profile",
+    "D:\\VISSIM-merge\\sim3-n31\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\controller_response_v1\\geometry_profile.json",
+    "--refined-geometry",
+    "D:\\VISSIM-merge\\sim3-n31\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json"
+  ],
+  "finished": "2026-09-25T15:01:07",
+  "elapsed_s": 71.0,
+  "extractor_sha256": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+  "manifest_sha256": "598843715357bff0ed56dd107ad9b174476c59c6052e7a7169f150ce402bdc7f",
+  "purpose": "SDMPC-31 re-pin to network v3b (2026-09-25): plant geometry (s31), ramp-arrival forecast inputs (boundaries_30s.csv, 3 seeds)",
+  "verification": {
+    "seed": 41,
+    "checks": 18538,
+    "last_frame": 8995.1,
+    "last_complete_30s_window_s": 8970.1,
+    "position_verified": 4604,
+    "network_sha256": "261a1fb04f0c3eedd64be2ed39ebc8f0cc62b323be3c841afc75432e06939a97",
+    "fzp_sha256": "5a876c5d755bcad45b9fe16e5005190ee75d23415869dac820afa552bc721c91",
+    "unexplained_entries": 0.0,
+    "unexplained_losses": 0.0,
+    "native_removals": 2.0,
+    "source_admissions": 27688.0,
+    "ramp_merges": 11634.0,
+    "off_departures": 15616.0,
+    "terminal_exits_inferred": 22654.0
+  }
+}

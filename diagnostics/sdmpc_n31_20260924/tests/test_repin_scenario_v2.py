@@ -295,6 +295,99 @@ def test_refresh_known_wout_records_destination_updates_and_refuses_path_changes
         rp.refresh_known_wout({'native_routes': {'1130:1': {'path': ['1', '2'], 'dest_pos': 4.5}}}, tree)
 
 
+# --------------------------------------------------------------------------- network v3b (2026-09-25): R1-R3
+def route(tree, decision, number):
+    return tree.find(f"./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic[@no='{decision}']"
+                     f"/vehRoutSta/vehicleRouteStatic[@no='{number}']")
+
+
+def edited_network():
+    """network() with 1130:1 destPos 4.5 -> 3.0 and its linkSeq emptied, 1130:2 relFlow 2 0:8 -> 2 0:6."""
+    new = network(relflow=('2 0:2', '2 0:6'))
+    first = route(new, '1130', '1')
+    first.set('destPos', '3.0')
+    first.find('./linkSeq').remove(first.find('./linkSeq/intObjectRef'))
+    return new
+
+
+EDITS = (('1130', '1', 'route_attr', 'destPos', '4.5', '3.0'),
+         ('1130', '1', 'seq_remove', 'intObjectRef', '10', None),
+         ('1130', '2', 'route_attr', 'relFlow', '2 0:8', '2 0:6'))
+
+
+def test_route_edits_admit_exactly_the_enumerated_edits():
+    old, new = network(), edited_network()
+    with pytest.raises(rp.RepinError, match='differ beyond "route relFlow only"'):
+        rp.characterize_changes(old, new)                                  # CHANGE_RULES is not widened
+    report = rp.characterize_changes(old, new, route_edits=EDITS)['vehicleRoutingDecisionsStatic']
+    assert report['changed'] == ['1130'] and report['path_changed_routes'] == ['1130:1']
+    assert [e['attribute'] for e in report['route_edits']] == ['destPos', 'intObjectRef']
+    assert report['relflow'] == {'1130': {'2': {'old': '2 0:8', 'new': '2 0:6'}}}
+    with pytest.raises(rp.RepinError, match='old value'):                  # the old network must hold the old value
+        rp.characterize_changes(old, new, route_edits=(('1130', '1', 'route_attr', 'destPos', '9.9', '3.0'),) + EDITS[1:])
+    with pytest.raises(rp.RepinError, match='enumerated route edits name'):   # an edit the network did not make
+        rp.characterize_changes(old, new, route_edits=EDITS + (('22', '1', 'route_attr', 'destPos', '1.0', '2.0'),))
+    with pytest.raises(rp.RepinError, match='differ from the old network with the enumerated route edits applied'):
+        rp.characterize_changes(old, new, route_edits=EDITS[:1] + EDITS[2:])   # the linkSeq change is not listed
+    with pytest.raises(rp.RepinError, match='relFlow: target'):
+        rp.characterize_changes(old, new, route_edits=EDITS[:2] + (('1130', '2', 'route_attr', 'relFlow', '2 0:8', '2 0:7'),))
+    moved = edited_network()
+    route(moved, '1130', '2').set('destLink', '1')                         # an unlisted rewiring still refuses
+    with pytest.raises(rp.RepinError, match='differ from the old network'):
+        rp.characterize_changes(old, moved, route_edits=EDITS)
+    reflowed = edited_network()
+    route(reflowed, '22', '1').set('relFlow', '2 0:36')                    # an unlisted relFlow change refuses too
+    with pytest.raises(rp.RepinError, match=r'relFlow changed outside 1130/1131 and the enumerated route edits: \[\'22\'\]'):
+        rp.characterize_changes(old, reflowed, route_edits=EDITS)
+
+
+def test_v3b_route_edits_are_the_two_receipts():
+    edits = rp.V3B_ROUTE_EDITS
+    assert len(edits) == 26 + 31 and sum(e[3] == 'relFlow' for e in edits) == 1 + 31
+    assert rp.path_changed_routes(edits) == ['33:2', '1133:2']
+    assert {e[0] for e in edits if e[3] != 'relFlow'} == {
+        '33', '1032', '1061', '1111', '1112', '1113', '1115', '1116', '1117', '1118', '1119', '1124', '1128', '1131',
+        '1132', '1133', '1136'}
+    assert [r['sha256'][:8] for r in rp.V3B_EDIT_RECEIPTS] == ['147bc732', 'e0d4bccb']
+
+
+def test_refresh_membership_relflow_refills_changed_decisions_on_an_unchanged_path():
+    tree = network(relflow=('2 0:1', '2 0:9'))
+    row = {'decision': '1130', 'from_link': '1', 'route': '1', 'destination': '2', 'sequence': ['10'], 'relflow_raw': '2 0:2'}
+    other = {'decision': '22', 'from_link': '2', 'route': '1', 'destination': '1', 'sequence': [], 'relflow_raw': '2 0:35'}
+    doc = {'schema': rp.MEMBERSHIP_SCHEMA, 'mixed_transfer_road_routes': [dict(row), dict(other)]}
+    updates, checked = rp.refresh_membership_relflow(doc, tree, {'1130'})
+    assert updates == {'/mixed_transfer_road_routes/0': {'decision': '1130', 'route': '1', 'old': '2 0:2', 'new': '2 0:1'}}
+    assert checked == ['/mixed_transfer_road_routes/0'] and doc['mixed_transfer_road_routes'][0]['relflow_raw'] == '2 0:1'
+    changes = {'vehicleRoutingDecisionsStatic': {'changed': ['1130']}}
+    with pytest.raises(rp.RepinError, match='relFlow copy of a changed decision'):
+        rp.stale_evidence_audit('m', doc, changes)
+    rp.stale_evidence_audit('m', doc, changes, checked)
+    with pytest.raises(rp.RepinError, match='relFlow copy of a changed decision'):   # only the membership schema
+        rp.stale_evidence_audit('x', {**doc, 'schema': 'x'}, changes, checked)
+    moved = {'schema': rp.MEMBERSHIP_SCHEMA, 'mixed_transfer_road_routes': [dict(row, sequence=['11'])]}
+    with pytest.raises(rp.RepinError, match='changes its physical path'):
+        rp.refresh_membership_relflow(moved, tree, {'1130'})
+
+
+def test_route_path_audit_requires_a_review_and_reproves_the_path(monkeypatch):
+    old, new = network(), edited_network()                                 # 1130:1 loses link 10
+    doc = {'by_movement': {'m': {'path': ['1', '10', '2'], 'native_routes': ['1130:1', '1130:2']}}}
+    monkeypatch.setattr(rp, 'V3B_PATH_CHANGE_REVIEW', {})
+    with pytest.raises(rp.RepinError, match='without a review'):
+        rp.route_path_audit('d.json', doc, old, new, {'1130:1'})
+    monkeypatch.setattr(rp, 'V3B_PATH_CHANGE_REVIEW', {('d.json', '/by_movement/m/native_routes/0'): 'reviewed'})
+    [row] = rp.route_path_audit('d.json', doc, old, new, {'1130:1'})
+    assert row['old_path'] == ['1', '10', '2'] and row['new_path'] == ['1', '2']
+    assert row['edge_proof_on_target'] == {'1->10': ['1130:2'], '10->2': ['1130:2']}
+    alone = {'by_movement': {'m': {'path': ['1', '10', '2'], 'native_routes': ['1130:1']}}}
+    with pytest.raises(rp.RepinError, match='lack cited native routing evidence'):
+        rp.route_path_audit('d.json', alone, old, new, {'1130:1'})
+    with pytest.raises(rp.RepinError, match='reviews without their citation'):
+        rp.route_path_audit('d.json', {'by_movement': {}}, old, new, {'1130:1'})
+    assert rp.route_path_audit('d.json', doc, old, new, set()) == []
+
+
 # --------------------------------------------------------------------------- the built pack (real data)
 def built_json(name):
     return json.loads((ROOT / rp.SCENARIO_REL / name).read_text(encoding='utf-8'))
@@ -360,7 +453,26 @@ def test_transfer_receipt_keeps_training_network_and_prior_set():
     key = lambda pins: {json.dumps(p, sort_keys=True) for p in pins}  # noqa: E731
     assert key(transfer['unchanged_prior_files']) == key(old['unchanged_prior_files'])
     assert transfer['repin_step']['from_network'] == rp.OLD_PIN
-    assert set(transfer['repin_step']['native_changes']['vehicleRoutingDecisionsStatic']['changed']) == {'1130', '1131'}
+    routing = transfer['repin_step']['native_changes']['vehicleRoutingDecisionsStatic']
+    # fcb -> v2 (NEW-1: 1130/1131 relFlow) plus every decision the v3/v3b receipts edit (network v3b, 2026-09-25)
+    assert set(routing['changed']) == {'1130', '1131'} | {e[0] for e in rp.V3B_ROUTE_EDITS}
+    assert len(routing['route_edits']) == 25 and routing['path_changed_routes'] == ['33:2', '1133:2']
+
+
+@needs_build
+def test_v3b_membership_relflow_and_path_review_are_recorded():
+    receipt = built_json(rp.RECEIPT_NAME)
+    names = {Path(r['source']['path']).name: Path(r['target']['path']).name for r in receipt['files']}
+    membership = built_json(names['control_area_membership_6c3aee.json'])['scenario_derivation']
+    updates = membership['actual_native_relflow_updates']
+    assert sorted((u['decision'], u['route'], u['new']) for u in updates.values()) == [
+        ('1117', '1', '2 0:707'), ('1117', '2', '2 0:2065'), ('1117', '3', '2 0:7104'),
+        ('1140', '1', '2 0:804'), ('1140', '2', '2 0:1774'), ('1140', '3', '2 0:1980')]
+    assert len(membership['actual_native_relflow_rechecked']) == 9          # 1117, 1136, 1140 x 3 routes
+    [review] = built_json(names['dynamic_area_routes_ver2_13108c.json'])['scenario_derivation']['route_path_change_review']
+    assert (review['at'], review['route'], review['new_path']) == (
+        '/by_movement/SC1004_offW_to_E_SC107/native_routes/0', '1133:2', ['120', '10638', '70'])
+    assert review['edge_proof_on_target']['70->10776'] == ['1140:2']
 
 
 @needs_build
