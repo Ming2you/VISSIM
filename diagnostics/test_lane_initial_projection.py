@@ -76,6 +76,34 @@ class InitialProjectionTests(unittest.TestCase):
         self.assertEqual((count(71,3),count(10641,2),count(126,2)),(13,7,1))
         self.assertEqual(len(moved['vehicles']),len(state['vehicles']))
 
+    def test_126_lane_excess_moves_sideways(self):
+        # R-obs sdmpc31_v3b_nc_s31 3150 s: 26 vehicles on 126 lane 2 against 152.46/6 = 25.4, 6 on lane 1
+        state={'time_s':3150,'vehicles':[vehicle(i,126,1.+5.8*i,lane=2) for i in range(26)]
+               +[vehicle(100+i,126,100.+6*i,lane=1) for i in range(6)]}
+        before=copy.deepcopy(state);moved,proof=project(state,NETWORK,6.)
+        self.assertEqual(state,before)
+        self.assertEqual([(m['vehicle'],m['source_link'],m['source_lane'],m['target_link'],m['lane'])
+                          for m in proof['moves']],[(0,126,2,126,1)])
+        count=lambda link,lane:sum(v['link']==link and v['lane']==lane for v in moved['vehicles'])
+        self.assertEqual((count(126,1),count(126,2)),(7,25))
+        self.assertEqual(moved['vehicles'][0]['position_m'],1.)
+        self.assertFalse(proof['capacities_changed'])
+
+    def test_10641_excess_into_a_full_126_lane_balances_sideways(self):
+        state={'time_s':1950,'vehicles':[vehicle(i,10641,5.+5.4*i) for i in range(8)]
+               +[vehicle(100+i,126,1.+6*i) for i in range(25)]}
+        moved,proof=project(state,NETWORK,6.)
+        self.assertEqual([(m['vehicle'],m['source_link'],m['target_link'],m['lane']) for m in proof['moves']],
+                         [(0,10641,126,2),(100,126,126,1)])
+        count=lambda link,lane:sum(v['link']==link and v['lane']==lane for v in moved['vehicles'])
+        self.assertEqual((count(10641,2),count(126,1),count(126,2)),(7,1,25))
+
+    def test_both_126_lanes_full_is_still_failure(self):
+        state={'time_s':3150,'vehicles':[vehicle(i,126,1.+5.8*i,lane=2) for i in range(26)]
+               +[vehicle(100+i,126,1.+6*i,lane=1) for i in range(25)]}
+        with self.assertRaisesRegex(ValueError,'no physical upstream'):
+            project(state,NETWORK,6.)
+
     def test_real_v5_1950_frame_keeps_every_local_vehicle(self):
         path=Path(r'D:\VISSIM_runs\20260924_sdmpc31\sdmpc31_v2_s31\decisions_sdmpc31_v2_s31\lane_observations\frame_001950.json')
         if not path.exists():

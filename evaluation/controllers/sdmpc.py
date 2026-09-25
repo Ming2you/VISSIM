@@ -446,10 +446,36 @@ def solve_qp(center, gradient, proximal, lower, upper, G, glo, ghi, options):
         bounds=Bounds(lower, upper), constraints=constraints, method='SLSQP',
         options={'maxiter': options['qp_iterations'], 'ftol': options['qp_tolerance']})
     d = result.x
-    violation = max(float(np.max(lower-d, initial=0)), float(np.max(d-upper, initial=0)),
-                    float(np.max(glo-G@d, initial=0)), float(np.max(G@d-ghi, initial=0)))
-    return d, {'success': bool(result.success and np.all(np.isfinite(d)) and violation <= 1e-7),
-               'message': str(result.message), 'constraint_violation': violation, 'iterations': int(result.nit)}
+    def violation_of(x):
+        return max(float(np.max(lower-x, initial=0)), float(np.max(x-upper, initial=0)),
+                   float(np.max(glo-G@x, initial=0)) if len(G) else 0., float(np.max(G@x-ghi, initial=0)) if len(G) else 0.)
+    violation = violation_of(d)
+    info = {'success': bool(result.success and np.all(np.isfinite(d)) and violation <= 1e-7),
+            'message': str(result.message), 'constraint_violation': violation, 'iterations': int(result.nit)}
+    if info['success']:
+        return d, info
+    # SLSQP can stop with 'Inequality constraints incompatible' on a feasible QP (SDMPC v3b s31 1350 s: 21
+    # moves, 14 rows, zero move feasible, many upper bounds exactly 0; the same inputs solve in another
+    # process). Only then: the objective is separable, so the box projection of the unconstrained optimum is
+    # the exact solution whenever it also satisfies G; otherwise one SLSQP restart from the zero move, if that
+    # is feasible. A result is accepted only with violation <= 1e-7; anything else still fails closed.
+    proximal_arr = np.broadcast_to(np.asarray(proximal, dtype=float), center.shape)
+    if np.all(proximal_arr > 0):
+        box = np.clip(center-gradient/proximal_arr, lower, upper)
+        if np.all(np.isfinite(box)) and violation_of(box) <= 1e-7:
+            return box, dict(info, success=True, constraint_violation=violation_of(box), fallback='box_projection',
+                             message='box projection after SLSQP: '+info['message'])
+    zero = np.zeros_like(center, dtype=float)
+    if violation_of(zero) <= 1e-7:
+        retry = minimize(lambda x: float(gradient@x + .5*proximal*np.sum((x-center)**2)),
+            zero, jac=lambda x: gradient+proximal*(x-center),
+            bounds=Bounds(lower, upper), constraints=constraints, method='SLSQP',
+            options={'maxiter': options['qp_iterations'], 'ftol': options['qp_tolerance']})
+        if retry.success and np.all(np.isfinite(retry.x)) and violation_of(retry.x) <= 1e-7:
+            return retry.x, dict(info, success=True, constraint_violation=violation_of(retry.x),
+                                 iterations=int(retry.nit), fallback='slsqp_restart_from_zero',
+                                 message='SLSQP restart from zero after: '+info['message'])
+    return d, info
 
 
 def load_prices(previous_path, state, policy):
