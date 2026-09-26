@@ -36,6 +36,15 @@ def prepare_request(follower, state, forecast, reference, action, coord, bootstr
         costs_order=(*coord.owners, 'PASSIVE_OMEGA'))
 
 
+def _worker_failure(process, limit=6000):
+    """A failed worker's exit status and stderr, keeping both its head and its tail."""
+    text = process.stderr or ''
+    if len(text) > limit:
+        head = limit//3
+        text = f'{text[:head]}\n[... {len(text)-limit} characters omitted ...]\n{text[head-limit:]}'
+    return f'returncode={process.returncode}, stderr:\n{text}'
+
+
 def _evaluate_single(request):
     """A missing/unsupported derivative is an error, never an implicit zero."""
     root = Path(__file__).resolve().parents[2]
@@ -53,12 +62,16 @@ def _evaluate_single(request):
         process = subprocess.run([sys.executable, '-B', str(worker), str(request_path),
             str(result_path), digest, backend], cwd=root, env=env, capture_output=True, text=True)
         if not result_path.is_file():
-            raise RuntimeError('Tangent worker failed: '+process.stderr[-6000:])
-        result = pickle.loads(result_path.read_bytes())
+            raise RuntimeError('Tangent worker failed: '+_worker_failure(process))
+        try:
+            result = pickle.loads(result_path.read_bytes())
+        except Exception as exc:  # e.g. a worker killed while writing its result
+            raise RuntimeError(f'Tangent worker failed: unreadable result ({type(exc).__name__}: {exc}); '
+                               +_worker_failure(process)) from exc
         if result.get('request_sha256') != digest:
             raise ValueError('Tangent worker response identity mismatch')
         if process.returncode or 'error' in result:
-            raise RuntimeError('Tangent prediction failed:\n'+result.get('error', process.stderr))
+            raise RuntimeError('Tangent prediction failed:\n'+result.get('error', _worker_failure(process)))
     result['wall_sec_including_spawn'] = time.perf_counter()-started
     return result
 

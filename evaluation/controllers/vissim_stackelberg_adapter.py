@@ -14056,4 +14056,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    # The runner reads our stdio pipes only after exit; a full traceback on
+    # stderr can fill the pipe and block forever (decision 7650, s31d).
+    from evaluation.controllers.decision_failure_report import run as _run_decision
+    _run_decision(main)

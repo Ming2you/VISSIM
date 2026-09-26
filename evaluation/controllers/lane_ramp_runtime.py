@@ -12,6 +12,35 @@ from evaluation.controllers.physical_ramp_boundary import (
     PhysicalRampBoundary, LaneResolvedRampBoundary, gap_acceptance_supply_vph)
 
 
+# The mirror and its buffer are one stock within this (assert_mirror,
+# receiving_space, finish).
+MIRROR_TOLERANCE_VEH = 1e-7
+
+
+def _debit_mirror(stock, merged):
+    """The mirrored ramp stock after an actual merge; never below zero by drift.
+
+    The mirror is a running difference while the buffer sums its cohorts, so
+    the two roundings of one stock drift apart (by ULPs in practice). A merge
+    that empties the buffer can then leave the mirror just below 0 (decision
+    7650 of sdmpc31_v3b_s31d, RM_C10681 at t=7678: 0.0978995213945203 -
+    0.09789952139452118 = -8.9e-16), which model_stock_values rejects.
+
+    Only a primal in [-MIRROR_TOLERANCE_VEH, 0) is replaced, by an exact 0.
+    (no tangent, as for an emptied stock). The buffer is nonnegative, so 0. is
+    at least as close to it as the former value: every advance that passed its
+    closing assert_mirror still passes. Any other difference is the very
+    object the former `stock -= merged` produced; its primal is read without a
+    comparison event or tape node. A mirror below -MIRROR_TOLERANCE_VEH thus
+    stays, and fails that closing assert_mirror exactly as before.
+    """
+    remainder = stock-merged
+    primal = getattr(remainder, '_validation_primal', remainder)
+    if primal < 0. and primal >= -MIRROR_TOLERANCE_VEH:
+        return 0.
+    return remainder
+
+
 class LaneRampRuntime:
     def __init__(self, component, specs, state, *, cycle_sec):
         if set(specs) != set(component.ramps):
@@ -31,14 +60,14 @@ class LaneRampRuntime:
     def assert_mirror(self, state):
         for name, buffer in self.buffers.items():
             snapshot = buffer.snapshot()
-            if (abs(snapshot['connector_veh']-state.ramp_queue[name]) > 1e-7
+            if (abs(snapshot['connector_veh']-state.ramp_queue[name]) > MIRROR_TOLERANCE_VEH
                     or snapshot['outside_component_backlog_veh'] > 1e-8):
                 raise ArithmeticError('Physical ramp and sole urban stock owner disagree: '+name)
 
     def receiving_space(self, state, name):
         buffer = self.buffers[name]
         pending = state.ramp_queue[name]-buffer.snapshot()['connector_veh']
-        if pending < -1e-7:
+        if pending < -MIRROR_TOLERANCE_VEH:
             raise ArithmeticError('Urban receiver removed uncommitted ramp stock')
         return max(0., buffer.current_admission_space()-max(0., pending))
 
@@ -103,7 +132,7 @@ class LaneRampRuntime:
                     **({'receiving_budget_by_lane_veh':[q*dt for q in lanes]} if lanes is not None else {}),
                     request_arrivals_veh=0., allow_partial_cycle=True, **service[name])
                 merged = receipt['accepted_merge_veh']
-                state.ramp_queue[name] -= merged
+                state.ramp_queue[name] = _debit_mirror(state.ramp_queue[name], merged)
                 emit_transfer(state,cfg,'ramp:'+name,'merge_pending:'+name,merged,preserve_area=True)
                 releases[name] = merged/dt
                 if mapping is not None:
@@ -129,7 +158,7 @@ class LaneRampRuntime:
             raise ValueError('Physical ramp heads were not advanced')
         for name, buffer in self.buffers.items():
             pending = state.ramp_queue[name]-buffer.snapshot()['connector_veh']
-            if pending < -1e-7:
+            if pending < -MIRROR_TOLERANCE_VEH:
                 raise ArithmeticError('Urban transfer over-drew physical ramp stock')
             buffer.admit_current(max(0.,pending))
         self.predebited = None
