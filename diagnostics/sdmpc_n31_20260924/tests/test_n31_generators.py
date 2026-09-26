@@ -138,11 +138,12 @@ C9_PATHS = {'freeway.lane_plant', 'freeway.segment_params', 'urban.capacity.head
             'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
             'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp',
             'calibration_override.prediction.local_ramp_arrival_forecast.strict_ramp_keys',
-            'urban.beta.source'}
+            'urban.beta.source', 'urban.ramp.offramp_direct_share'}
 # Differences replaced as a whole subtree: collapse their leaves onto the root.
 C9_SUBTREES = ('observation.physical_branch_projection.source.network',
                'calibration_override.prediction.local_ramp_arrival_forecast.queue_drain_horizon_sec_by_ramp',
-               'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp')
+               'calibration_override.prediction.local_ramp_arrival_forecast.max_vph_by_ramp',
+               'urban.ramp.offramp_direct_share')
 METERS = {'RM_C10480', 'RM_C10482', 'RM_C10646', 'RM_C10644', 'RM_C10639', 'RM_C10681', 'RM_C10490', 'RM_C10484'}
 
 

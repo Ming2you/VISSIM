@@ -1,0 +1,39 @@
+{
+ "schema": "offramp-static-route-prior/v1",
+ "created": "2026-09-25",
+ "network": {
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+  "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+ },
+ "prior_semantics": "Static-route relFlow share of the direct landing among the vehicles that the group decision sends to the two branches of one off-ramp group (direct / signal connector of the lane plant off_groups offramp_route_inventory_v1). evaluation/controllers/offramp_routing.derive_prior re-derives it from the pinned network and refuses a mismatch. It replaces the per-signal code default {SC1001: 0.468, SC1004: 0.484} (a realised 30-decision average of an older network) by an exogenous value per group (user decision 2026-09-25: relFlow values, realised shares only for validation).",
+ "groups": {
+  "OR_D_E": {
+   "decision": "1131",
+   "decision_link": "2",
+   "direct_connector": "10483",
+   "signal_connector": "10481",
+   "direct_share": 0.8
+  },
+  "OR_D_W": {
+   "decision": "1132",
+   "decision_link": "26",
+   "direct_connector": "10479",
+   "signal_connector": "10491",
+   "direct_share": 0.5
+  },
+  "OR_F_E": {
+   "decision": "1130",
+   "decision_link": "74",
+   "direct_connector": "10682",
+   "signal_connector": "10643",
+   "direct_share": 0.6666666666666666
+  },
+  "OR_F_W": {
+   "decision": "1133",
+   "decision_link": "120",
+   "direct_connector": "10645",
+   "signal_connector": "10638",
+   "direct_share": 0.75
+  }
+ }
+}

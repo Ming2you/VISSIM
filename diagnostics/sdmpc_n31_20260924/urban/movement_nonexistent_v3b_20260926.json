@@ -1,0 +1,42 @@
+{
+ "schema": "movement-nonexistent-declaration/v1",
+ "generated": "2026-09-26",
+ "network": {
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+  "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+ },
+ "supersedes": {
+  "path": "outputs/movement_phase_correction_20260828.json",
+  "section": "known_nonexistent_movements",
+  "sha256": "fc8f207022310cae9afa0bd967ea20317256cb48e762ba9ce7b2ff067947377f",
+  "scope": "urban plant batch-1 candidates only (urban.movements.nonexistent_declaration); a tuning without the key keeps reading the old section"
+ },
+ "why": "망 v3b 기준 비존재 선언. 물리 경로가 없는 movement 만 둔다(사용자 규칙: 물리 경로가 없을 때만 β 0, 있으면 relFlow). 옛 선언(2026-09-01, v2 망 해석)의 SC7 두 개는 v3b 에 물리 경로가 있어 'corrected' 로 옮겼다(사용자 결정 2026-09-26). scripts/derive_routing_beta_physical.py 는 선언된 movement 에 물리 커넥터가 닿으면 실패하고, corrected movement 에 닿지 않아도 실패한다.",
+ "known_nonexistent_movements": {
+  "SC109_N_SC16_to_W_SC108": "v3b: N_SC16 정지선 1210009402 에서 나가는 커넥터는 10283(→ 1220000803, E 경계 유출) 하나뿐이다. W_SC108 로 가는 물리 경로 없음(옛 문구와 같음: N_SC16 진출은 10283 → 1220000803(망 이탈) 하나뿐. W_SC108 행 없음)."
+ },
+ "corrected": {
+  "SC7_E_SC16_to_N_SC11": {
+   "was": "E_SC16 진출은 10332 → SC7_S_SC108, 10333 → SC108_N_SC7 둘뿐. N_SC11 행 없음",
+   "v3b": "E_SC16 정지선 1210009600(1차로)에서 나가는 커넥터는 10332(→ 1220008701 → 10334 → SC11, 우회전)와 10333(→ 1220007402, SC108 방향 좌회전) 둘이다. 옛 문구 '10332 → SC7_S_SC108' 은 v2 망 해석이다. 정적 경로 252:3(relFlow 63)이 10332 를, 252:1(84)이 10333 을 지난다.",
+   "physical_path": [
+    "1210009600",
+    "10332",
+    "1220008701"
+   ],
+   "head": "140101 (1210009600 차로 1, pos 114.46 m, 두 커넥터 상류; SC7 SG 1 = 계획 p4, 녹색 24 s; .sig 개포동 test-bed14.sig prog 1)",
+   "decision": "사용자 결정 2026-09-26: 선언을 v3b 로 고치고, 실제 헤드의 현시(p4)로 옮기고, relFlow 값을 쓴다."
+  },
+  "SC7_E_to_N_SC11": {
+   "was": "위와 같음(경계 leg 판)",
+   "v3b": "경계 leg 판(병합 대표 E_SC16, 같은 정지선 1210009600). 위와 같다.",
+   "physical_path": [
+    "1210009600",
+    "10332",
+    "1220008701"
+   ],
+   "head": "140101 (위와 같음)",
+   "decision": "사용자 결정 2026-09-26: 위와 같다."
+  }
+ }
+}

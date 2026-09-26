@@ -2,16 +2,24 @@
 
 Frozen offline NC13 source-specific observations provide prediction priors.
 Ownership files remain unchanged. Apply before projecting the original snapshot.
+
+With a complete routing-beta source (urban.beta.source routing_v3b2, evaluation/controllers/beta_source.py) the
+retained branches keep the installed table values (static-route relFlow; the removed own-leg U-turn is 0 there):
+the offline NC13 prior is a realised share and is not a beta value under that source (user decision 2026-09-25).
+The pinned prior is still verified; only its use as values is replaced. Without that source nothing changes.
 """
 from copy import deepcopy
 import math
 import hashlib
 import json
 import xml.etree.ElementTree as ET
+from evaluation.controllers.beta_source import complete_beta_source, require_zero_moved_beta
 from evaluation.controllers.physical_movement_routes import (
     ROOT, load_evidence, path_membership, invalidate_topology_cache)
 from evaluation.controllers.control_area_objective import physical_membership_from_ledger
 from evaluation.controllers.network_provenance import snapshot_network_sha256
+
+COMPLETE_KEEP_SUM_TOL = 1.0e-9
 
 
 def checked_evidence(path):
@@ -48,6 +56,7 @@ def configure(cfg, detectors, tuning, *, state_json):
     specs = deepcopy(cfg.network.urban_movements)
     output = deepcopy(detectors)
     removed_names, metadata = [], []
+    complete = complete_beta_source(tuning)
     for repair in document['topology_repairs']:
         removed = repair['remove_movement']
         old = specs.get(removed, {})
@@ -73,6 +82,15 @@ def configure(cfg, detectors, tuning, *, state_json):
         if not math.isclose(total, 1.0, abs_tol=1e-12):
             raise ValueError('Completed observed choices do not cover the retained movements')
         betas = {name: weight / total for name, weight in weights.items()}
+        if complete:
+            # The complete table already carries this approach: the removed U-turn is 0 and the retained branches
+            # hold the whole approach (sum 1), so removing the U-turn moves nothing and the prior is not a value.
+            require_zero_moved_beta(tuning, 'area_dynamic_routes(%s)' % removed, {removed: old.get('beta', 0.0)})
+            table = {name: float(specs[name].get('beta', 0.0) or 0.0) for name in repair['keep_movements']}
+            if abs(math.fsum(table.values()) - 1.0) > COMPLETE_KEEP_SUM_TOL:
+                raise ValueError('area_dynamic_routes(%s): complete beta source gives the retained branches %r, '
+                                 'not the whole approach' % (removed, table))
+            betas = table
         affected = []
         for link, rows in output.get('link_to_movements', {}).items():
             if not any(row['movement'] == removed for row in rows):
@@ -84,7 +102,8 @@ def configure(cfg, detectors, tuning, *, state_json):
             total_weight = sum(float(row['weight']) for row in rows)
             output['link_to_movements'][link] = [
                 {'movement': name, 'weight': total_weight * beta, 'approach': old['approach'],
-                 'source': 'offline_nc13_route_prior_without_phantom'} for name, beta in betas.items()]
+                 'source': 'complete_routing_table' if complete else 'offline_nc13_route_prior_without_phantom'}
+                for name, beta in betas.items()]
             affected.append({'link': link, 'before_weight': total_weight,
                              'after_weight': sum(row['weight'] for row in output['link_to_movements'][link])})
         if set(row['link'] for row in affected) != set(repair['physical_projection_links']):
@@ -93,8 +112,13 @@ def configure(cfg, detectors, tuning, *, state_json):
         for name, beta in betas.items():
             specs[name]['beta'] = beta
         removed_names.append(removed)
-        metadata.append({'removed_movement': removed, 'offline_calibrated_betas': betas,
-                         'projection': affected, 'limitations': repair['prior_limitations']})
+        row = {'removed_movement': removed, 'offline_calibrated_betas': betas,
+               'projection': affected, 'limitations': repair['prior_limitations']}
+        if complete:
+            row['offline_calibrated_betas'] = {name: weight / total for name, weight in weights.items()}
+            row['installed_betas'] = betas
+            row['beta_values_source'] = 'complete_routing_table'
+        metadata.append(row)
     origin_changes = []
     for repair in document.get('origin_repairs', []):
         link, target = repair['physical_link'], repair['target_origin']

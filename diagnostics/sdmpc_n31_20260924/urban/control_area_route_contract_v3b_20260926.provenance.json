@@ -1,0 +1,59 @@
+{
+  "generator": "scripts/derive_area_routes_v3b.py",
+  "generated": "2026-09-26",
+  "base": {
+    "path": "diagnostics/control_area_route_contract_physical_routes.json",
+    "sha256": "11d0db7977961a9a0dbca220e12d6db6f46085d2ec051b929f788595658224a9"
+  },
+  "membership": {
+    "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
+    "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
+  },
+  "detector_mapping": {
+    "path": "evaluation/real_world_modi_control_ver2_20260907/detector_local_mapping_ver2_20260907.json",
+    "sha256": "f8c90e5769c7c92e8c698134dbf61b5f35f2205bf634841f4562f37967e72b3e"
+  },
+  "inputs": {
+    "movements": {
+      "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
+      "sha256": "063b2e3e8d935fe6da2728c4982f4b47cdda1bff44798ca300ccdf0dd417df82"
+    },
+    "declaration": {
+      "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3b_20260926.json",
+      "sha256": "3135dcdaf7b01feb426eb1bb48df15470d31c06934a3f84ebb048df231b61fce"
+    },
+    "phase_authority": {
+      "path": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3b_20260926.json",
+      "sha256": "e729cdc4ec22414877295bed8ba98c7dc43e14b2202fe7222516fe0ee8c7d907"
+    },
+    "turns": {
+      "path": "outputs/pn_boundary_turns_v2_20260907.json",
+      "sha256": "6266a7ae6373d5cf53230fa3367206b8a43e3c9a2acde78c65cf044d9afbd633"
+    }
+  },
+  "added": {
+    "SC7_E_SC16_to_N_SC11": {
+      "path": [
+        "1210009600",
+        "10332",
+        "1220008701"
+      ],
+      "continuation": [
+        "1220008701",
+        "10334"
+      ],
+      "receiver": "SC7_to_SC11",
+      "source_inside": true,
+      "target_inside": true
+    }
+  },
+  "left_unresolved": {
+    "SC7_E_to_N_SC11": {
+      "reason": "approach_unresolved_in_default_contract",
+      "siblings": [
+        "SC7_E_to_E_SC16",
+        "SC7_E_to_S_SC108"
+      ]
+    }
+  }
+}

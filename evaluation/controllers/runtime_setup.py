@@ -113,7 +113,7 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     metadata.update(a.install_vsl_metanet_rollout_runtime_patch(cfg, tuning))
     metadata.update(a.install_urban_stopline_storage(cfg, tuning))
     metadata.update(a.install_measured_turn_beta(cfg, tuning))
-    metadata.update(a._relabel(a.apply_dead_phase_beta_zero(cfg), "after_measured_beta"))
+    metadata.update(a._relabel(a.apply_dead_phase_beta_zero(cfg, tuning=tuning), "after_measured_beta"))
     metadata.update(configure_freeway_runtime(a, cfg, tuning, mapping))
     metadata.update(a.install_leg_ramp_split_fold(cfg, tuning))
     detector_mapping, merged = a.install_merged_movements(cfg, tuning, detector_mapping)
@@ -122,6 +122,8 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
         from evaluation.controllers.physical_movement_routes import configure_phase_authority
         metadata.update(configure_phase_authority(
             cfg, tuning, a.load_signal_group_actuation_plan(), state_json=state_json))
+    metadata.update(a.install_unsignalized_turns(cfg, tuning, state_json))
+    metadata.update(a.check_complete_beta_runtime(cfg, tuning, state_json))
     metadata.update(a.install_phase_vector_green_patch(cfg, tuning))
     metadata.update(a.install_movement_capacity_by_lanes(cfg, tuning))
     metadata.update(a.install_gate_onramp_queue(cfg, tuning))

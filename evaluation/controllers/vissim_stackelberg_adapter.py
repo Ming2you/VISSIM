@@ -51,6 +51,9 @@ from evaluation.controllers import freeway_geometry
 from evaluation.controllers import plant_cycle
 from evaluation.controllers import signal_group_plan
 from evaluation.controllers import signal_actuation_contract
+from evaluation.controllers.beta_source import (
+    COMPLETE_BETA_SCHEMA, COMPLETE_BETA_SOURCES, complete_beta_source,
+    require_unit_approach_sums as _require_unit_approach_sums, require_zero_moved_beta as _require_zero_moved_beta)
 from vissim_strict.run_evidence import (
     MAX_APPROVAL_BYTES,
     MAX_RUN_MANIFEST_BYTES,
@@ -2809,6 +2812,8 @@ def install_leg_ramp_split_fold(cfg, tuning: Mapping[str, Any]) -> dict[str, flo
                 kept_gate_onramp.append(_n)
                 ramp_specs.pop(_n)
                 _sp = dict(specs[_n]); _sp["unsignalized"] = True; specs[_n] = _sp
+    _require_zero_moved_beta(tuning, "install_leg_ramp_split_fold",
+                             {n: _as_float(sp.get("beta"), 0.0) for n, sp in ramp_specs.items()})
     for name, spec in ramp_specs.items():
         beta = max(0.0, _as_float(spec.get("beta"), 0.0))
         origin = str(spec.get("origin", ""))
@@ -3113,6 +3118,11 @@ def install_leg_ramp_split_runtime(cfg) -> dict[str, float]:
     return out
 
 
+# urban.ramp.offramp_direct_share when the key is absent. SDMPC-31 states it explicitly (config_n31_v2.json, the same
+# value; make_config_n31.OFFRAMP_DIRECT_SHARE); the fallback remains only for the older tunings that predate the key.
+OFFRAMP_DIRECT_SHARE_LEGACY_DEFAULT = {"SC1001": 0.468, "SC1004": 0.484}
+
+
 def install_offramp_direct_landing(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
     """B4a (2026-09-05): off-ramp 착지 분할 — 유입 시점에 가른다. `urban.ramp.offramp_direct` 없으면 no-op.
 
@@ -3130,10 +3140,16 @@ def install_offramp_direct_landing(cfg, tuning: Mapping[str, Any]) -> dict[str, 
         return {"offramp_direct_enabled": 0.0}
     net = cfg.network
     specs = dict(getattr(net, "urban_movements", {}) or {})
-    shares = _mapping(section.get("offramp_direct_share")) or {"SC1001": 0.468, "SC1004": 0.484}
-    tail_cap = _as_float(section.get("offramp_direct_tail_storage_veh"), 200.0)
     targets = {"SC1001": ("SC1001_offW_to_W_RAMP", "SC1001_offE_to_W_RAMP"),
                "SC1004": ("SC1004_offW_to_W", "SC1004_offE_to_W")}
+    if "offramp_direct_share" in section:
+        # 키가 있으면 두 교차로를 모두 명시해야 한다. 빈 값·일부 값이 조용히 옛 기본값이나 0 으로 떨어지지 않는다.
+        shares = _mapping(section.get("offramp_direct_share"))
+        if set(map(str, shares)) != set(targets):
+            raise ValueError("urban.ramp.offramp_direct_share must state exactly %s: %r" % (sorted(targets), shares))
+    else:
+        shares = dict(OFFRAMP_DIRECT_SHARE_LEGACY_DEFAULT)    # older tunings without the key only
+    tail_cap = _as_float(section.get("offramp_direct_tail_storage_veh"), 200.0)
     storage = dict(getattr(net, "urban_link_storage_veh", {}) or {})
     out_links = list(getattr(net, "boundary_out_links", []) or [])
     off_idx = {k: list(v) for k, v in dict(getattr(net, "off_ramp_to_movement", {}) or {}).items()}
@@ -3155,6 +3171,7 @@ def install_offramp_direct_landing(cfg, tuning: Mapping[str, Any]) -> dict[str, 
             origin = str(spec.get("origin", ""))
             sibs = [m for m, sp in specs.items() if m != name and str(sp.get("origin", "")) == origin]
             old = max(0.0, _as_float(spec.get("beta"), 0.0))
+            _require_zero_moved_beta(tuning, "install_offramp_direct_landing", {name: old})
             sib_tot = sum(max(0.0, _as_float(specs[m].get("beta"), 0.0)) for m in sibs)
             for m in sibs:
                 sp2 = dict(specs[m])
@@ -3608,6 +3625,10 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
         raise ValueError("movement 병합 충돌 %d건: %s" % (len(conflicts), conflicts[:5]))
 
     # 접근로 합이 1 을 넘지 않게 재정규화한다. beta 를 더했으니 합이 변한다.
+    # 완결 β 원천(routing_v3b2)에서는 병합 전 합이 이미 1 이고 버린 자기 leg U턴은 0 이다 — 재정규화는 항등이어야 한다.
+    _require_zero_moved_beta(tuning, "install_merged_movements(dropped)",
+                             {n: _as_float(movements[n].get("beta"), 0.0) for n in dropped})
+    _require_unit_approach_sums(tuning, "install_merged_movements", merged_specs)
     by_app: dict[tuple[str, str], list[str]] = {}
     for new, spec in merged_specs.items():
         by_app.setdefault((str(spec.get("signal", "")), str(spec.get("approach", ""))), []).append(new)
@@ -3974,7 +3995,14 @@ BETA_EVIDENCE_JSON = {
     "routing": WORKSPACE_ROOT / "outputs/movement_beta_routing_20260824.json",
     "knr": WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json",
     "routing_v3b": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3b_20260925.json",
+    "routing_v3b2": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3b2_20260925.json",
 }
+#   routing_v3b2 : scripts/derive_routing_beta_physical.py (2026-09-25, 도시 plant 묶음 1 U1). movement 492개 **전부**에
+#             값이 있고(물리 경로가 없으면 0, 있으면 정적 경로 relFlow 몫), 접근로 합이 재정규화 **전에** 정확히 1 이다.
+#             그래서 이 원천에서는 leg_split 되접기·출구 병합·off-ramp 직행·경로선택 회랑이 옮기는 β 가 0 이어야 하고
+#             재정규화가 항등이어야 한다 — 아니면 실패한다(evaluation/controllers/beta_source.py 의 가드 둘).
+#             2026-09-26: 표는 v3b 선언(urban.movements.nonexistent_declaration)과 확장된 물리 현시 권한(SC7 E·E_SC16
+#             -> N_SC11 = 헤드 140101 의 p4)으로 유도되며, 튜닝이 같은 둘을 써야 설치된다(_check_complete_table_declarations).
 
 
 def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:
@@ -4012,6 +4040,29 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
     doc = json.loads(path.read_text(encoding="utf-8"))
     beta = _mapping(doc.get("beta"))
     floor = _as_float(section.get("floor"), 0.0)
+    # 같은 술어: 가드(beta_source)와 설치가 완결 원천을 똑같이 판정한다(measured 는 위에서 이미 켜짐).
+    complete = complete_beta_source(tuning)
+    if complete != (source in COMPLETE_BETA_SOURCES):
+        raise ValueError(f"urban.beta.measured {section.get('measured')!r}: 설치와 가드의 완결 원천 판정이 다르다")
+    # urban.beta.sha256: 표 파일 핀. 완결 원천은 필수, 다른 원천은 있으면 확인한다(키 없으면 비트 동일).
+    pin = section.get("sha256")
+    if pin is not None or complete:
+        if not pin:
+            raise ValueError(f"urban.beta.source {source!r}: 완결 β 표는 urban.beta.sha256 핀이 필요하다")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != str(pin):
+            raise ValueError(f"urban.beta.source {source!r}: 표 파일이 urban.beta.sha256 핀과 다르다: {path}")
+    if complete:
+        # 완결 원천: 표와 런타임 movement 집합이 같아야 하고 floor 는 0 이어야 한다(floor 가 합 1 을 깬다).
+        # 망 sha 는 상태를 받는 check_complete_beta_runtime 이 스냅샷과 대조한다.
+        if doc.get("schema") != COMPLETE_BETA_SCHEMA or doc.get("approach_sum") != "exact":
+            raise ValueError(f"urban.beta.source {source!r}: 완결 β 표 스키마가 아니다: {doc.get('schema')!r}")
+        if floor != 0.0:
+            raise ValueError(f"urban.beta.source {source!r}: 완결 β 표에는 floor 를 둘 수 없다: {floor!r}")
+        runtime = set((cfg.network.urban_movements or {}))
+        if set(map(str, beta)) != runtime:
+            raise ValueError(f"urban.beta.source {source!r}: 표 movement {len(beta)}개가 런타임 {len(runtime)}개와 다르다 "
+                             f"(표에만 {sorted(set(map(str, beta)) - runtime)[:4]}, 런타임에만 {sorted(runtime - set(map(str, beta)))[:4]})")
+        _check_complete_table_declarations(tuning, doc, source)
     applied, changed = 0, 0.0
     for movement, value in beta.items():
         spec = (cfg.network.urban_movements or {}).get(str(movement))
@@ -4021,13 +4072,108 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
         changed += abs(new - _as_float(spec.get("beta"), 0.0))
         spec["beta"] = new
         applied += 1
-    return {
+    out = {
         "measured_beta_enabled": 1.0,
         "measured_beta_movements": float(applied),
         "measured_beta_total_shift": float(round(changed, 3)),
         "measured_beta_floor": float(floor),
-        "measured_beta_source_routing": 1.0 if source in ("routing", "routing_v3b") else 0.0,
+        "measured_beta_source_routing": 1.0 if source in ("routing", "routing_v3b", "routing_v3b2") else 0.0,
     }
+    if complete:
+        _require_unit_approach_sums(tuning, "install_measured_turn_beta", cfg.network.urban_movements or {})
+        out["measured_beta_complete"] = 1.0
+    return out
+
+
+def _check_complete_table_declarations(tuning: Mapping[str, Any], doc: Mapping[str, Any], source: str) -> None:
+    """완결 β 표는 런타임과 **같은** movement 선언·현시로 유도됐어야 한다(2026-09-26, SC7 정정).
+
+    표의 0 과 relFlow 는 어느 movement 가 존재하는지(선언)와 굶김 판정에 쓴 런타임 현시(2026-08-28 현시 보정 +
+    물리 현시 권한, 병합 가족 단위)에 달려 있다. 튜닝이 다른 선언이나 다른 현시 권한을 쓰면 표가 relFlow 를 준
+    movement 가 녹색 없는 현시에 남거나(옛 SC7 p3), 선언이 0 으로 둔 movement 에 값이 간다. 그래서
+    urban.movements.nonexistent_declaration(핀)·physical_phase_authority(파일 sha)·phase_correction·merge_exits 가
+    표의 inputs / runtime_phases 와 같아야 하고, 선언 현시로 판정하는 dead_phase_beta_zero 는 꺼져 있어야 한다."""
+    inputs = _mapping(doc.get("inputs"))
+    section = _mapping(_mapping(tuning.get("urban")).get("movements"))
+    want = _mapping(inputs.get("nonexistent_declaration"))
+    have = _mapping(section.get("nonexistent_declaration"))
+    if not want or str(have.get("path") or "") != str(want.get("path")) or str(have.get("sha256") or "") != str(want.get("sha256")):
+        raise ValueError(f"urban.beta.source {source!r}: urban.movements.nonexistent_declaration 이 표를 유도한 선언 "
+                         f"({want.get('path')}, {str(want.get('sha256'))[:8]})과 다르다")
+    want = _mapping(inputs.get("phase_authority"))
+    rel = str(section.get("physical_phase_authority") or "")
+    if (not want or rel != str(want.get("path"))
+            or hashlib.sha256((WORKSPACE_ROOT / rel).read_bytes()).hexdigest() != str(want.get("sha256"))):
+        raise ValueError(f"urban.beta.source {source!r}: urban.movements.physical_phase_authority 가 표를 유도한 현시 권한 "
+                         f"({want.get('path')}, {str(want.get('sha256'))[:8]})과 다르다")
+    phases = _mapping(doc.get("runtime_phases"))
+    if (_is_enabled_value(section.get("phase_correction")) != bool(phases.get("phase_correction_applied"))
+            or _is_enabled_value(section.get("merge_exits")) != bool(phases.get("merge_exits"))
+            or section.get("phase_correction_skip_added")):
+        raise ValueError(f"urban.beta.source {source!r}: phase_correction / merge_exits 가 표의 런타임 현시 가정과 다르다")
+    # dead_phase_beta_zero 는 물리 현시 권한보다 **먼저**(측정 β 바로 뒤, 병합·권한 전) 선언 현시로 죽은 현시를 판정한다.
+    # 완결 표와 check_complete_beta_runtime 은 녹색을 런타임 현시로 본다. 그래서 이 조합에서 그 스위치는 권한이 산 현시로
+    # 옮길 movement 의 relFlow 몫만 옮긴다(SC7 E / E_SC16 -> N_SC11: 선언 p3, 서비스 p4) — 뒤의 옮긴-몫 가드보다 여기서
+    # 원인과 함께 거부한다(2026-09-26 검토). 키가 false/없음이면 아무 일도 없다.
+    if _is_enabled_value(section.get("dead_phase_beta_zero")):
+        raise ValueError(f"urban.beta.source {source!r}: urban.movements.dead_phase_beta_zero 는 완결 β 원천과 함께 쓸 수 "
+                         "없다 — 물리 현시 권한 전의 선언 현시로 판정해 권한이 옮길 movement 의 relFlow 몫을 옮긴다. "
+                         "녹색 없는 현시의 흐름은 check_complete_beta_runtime 이 런타임 현시로 거부한다")
+
+
+def check_complete_beta_runtime(cfg, tuning: Mapping[str, Any], state_json: Mapping[str, Any]) -> dict[str, float]:
+    """완결 β 원천(routing_v3b2)의 런타임 확인 세 가지. 다른 원천이면 no-op(아무것도 돌려주지 않는다 = 비트 동일).
+
+    1. 표를 유도한 망(inputs.network.sha256)이 이 스냅샷의 망과 같다. 다른 망의 relFlow 가 조용히 설치되지 않는다.
+    2. 최종 현시(현시 보정·물리 현시 권한·무신호 설치 뒤)에서 movement β 가 전부 0 인 현시가 표의
+       phases_without_flow 안에 있다. 유도기도 런타임 현시(병합 가족 단위의 현시 보정 + 표에 핀된 현시 권한)로
+       판정하지만, 그 뒤 런타임 단계가 현시를 바꿔 새로 굶는 현시가 생기면 여기서 멈춘다(configure_runtime:
+       install_unsignalized_turns 바로 뒤).
+    3. 흐름(β > 0)이 있는 신호 movement 는 선택 계획에서 네이티브 녹색이 있는 현시(plan_live_phases)에 있다.
+       녹색 없는 현시의 흐름은 영원히 서비스되지 않는다(2026-09-26 SC7 E -> N_SC11: relFlow 0.429 를 받으면서
+       녹색 0 인 p3 에 있던 것을 실제 헤드 140101 의 p4 로 옮겼다). 무신호 movement 는 제외한다."""
+    if not complete_beta_source(tuning):
+        return {}
+    from evaluation.controllers.network_provenance import snapshot_network_sha256
+    section = _mapping(_mapping(tuning.get("urban")).get("beta"))
+    doc = json.loads(BETA_EVIDENCE_JSON[str(section.get("source"))].read_text(encoding="utf-8"))
+    table_net = _mapping(_mapping(doc.get("inputs")).get("network")).get("sha256")
+    if table_net != snapshot_network_sha256(state_json):
+        raise ValueError("urban.beta.source %r was derived on another network (%s) than this snapshot"
+                         % (section.get("source"), str(table_net)[:8]))
+    by_phase: dict[str, float] = {}
+    for spec in (cfg.network.urban_movements or {}).values():
+        phase = str(_mapping(spec).get("phase") or "")
+        if phase:
+            by_phase[phase] = by_phase.get(phase, 0.0) + max(0.0, _as_float(_mapping(spec).get("beta"), 0.0))
+    flowless = sorted(p for p, b in by_phase.items() if b <= 1.0e-12)
+    extra = sorted(set(flowless) - set(doc.get("phases_without_flow") or []))
+    if extra:
+        raise ValueError("complete beta source: runtime phases without any flow outside the derivation's list: %s"
+                         % extra)
+    plan = load_signal_group_actuation_plan()
+    if plan is None:
+        raise ValueError("complete beta source: the selected signal plan is needed to check green for every flow")
+    controllers = _mapping(plan.get("controllers"))
+    live: dict[str, tuple[str, ...]] = {}
+    starving = []
+    for name, spec in sorted((cfg.network.urban_movements or {}).items()):
+        spec = _mapping(spec)
+        signal = str(spec.get("signal") or "")
+        if (_as_float(spec.get("beta"), 0.0) <= 1.0e-12 or spec.get("unsignalized")
+                or signal.removeprefix("SC") not in controllers):
+            continue
+        if signal not in live:
+            live[signal] = plan_live_phases(plan, int(signal.removeprefix("SC")))
+        if str(spec.get("phase") or "").rpartition("_")[2] not in live[signal]:
+            starving.append((name, spec.get("phase"), round(_as_float(spec.get("beta"), 0.0), 6)))
+    if starving:
+        raise ValueError("complete beta source: flow in a phase without native green in the selected plan: %s"
+                         % starving[:6])
+    return {"complete_beta_network_checked": 1.0, "complete_beta_flowless_phases": float(len(flowless)),
+            "complete_beta_green_checked_movements": float(sum(
+                1 for s in (cfg.network.urban_movements or {}).values()
+                if str(_mapping(s).get("signal") or "").removeprefix("SC") in controllers))}
 
 
 def _native_live_phases_by_signal(cfg) -> dict[str, list[str]]:
@@ -4425,6 +4571,10 @@ def _distribute_lane_group_capacity_to_movements(cfg, groups, est_lg, caps) -> i
         if _lk not in sigs and _sg:
             sigs[_lk] = _sg
     origin_links = _origin_links_by_signal()
+    # urban.movements.unsignalized_evidence (install_unsignalized_turns): a head-free exclusive-lane turn is not a
+    # member of its old phase's head lane group -- the heads it would share a floor with stand on other lanes and
+    # never see it; it keeps its own connector-lane capacity (install_movement_capacity_by_lanes). Key absent: empty.
+    _head_free = getattr(cfg.network, "unsignalized_evidence_movements", None) or frozenset()
     applied = 0
     for (link, pid), total in est_lg.items():
         sig = sigs.get(link)
@@ -4441,6 +4591,7 @@ def _distribute_lane_group_capacity_to_movements(cfg, groups, est_lg, caps) -> i
             and str(spec.get("phase", "")).endswith("_" + pid)
             and (str(spec.get("kind", "")) in _kinds)
             and (str(spec.get("origin", "")) in _origins_here or link in olinks.get(str(spec.get("origin", "")), set()))
+            and m not in _head_free
         ]
         if not members:
             continue
@@ -4947,6 +5098,26 @@ _CFG_MISSING: set = set()  # config 에 없어 False 로 떨어진 스위치 이
 
 
 _CFG_STRINGS: dict = {}
+_ROUTE_ATTRIBUTION: dict = {}   # urban.queue.attribution "route" 의 증거(install_config_switches 가 채운다)
+ROUTE_ATTRIBUTION_SCHEMA = "route-queue-attribution/v2"
+
+
+def _load_route_attribution(pin: Any) -> dict:
+    """urban.queue.route_evidence = {path, sha256}: 정지선 커넥터·차로 표 + 정적 경로 linkSeq (sha 핀 필수)."""
+    pin = _mapping(pin)
+    rel, digest = str(pin.get("path") or ""), str(pin.get("sha256") or "")
+    if not rel or not digest:
+        raise ValueError("urban.queue.attribution 'route' requires urban.queue.route_evidence {path, sha256}")
+    path = Path(rel) if Path(rel).is_absolute() else WORKSPACE_ROOT / rel
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != digest:
+        raise ValueError("urban.queue.route_evidence differs from its sha256 pin: " + rel)
+    doc = json.loads(data.decode("utf-8"))
+    if doc.get("schema") != ROUTE_ATTRIBUTION_SCHEMA:
+        raise ValueError("Unsupported route attribution evidence schema: %r" % doc.get("schema"))
+    return {"anchors": doc["anchors"], "routes": doc["routes"], "route_end_anchors": doc["route_end_anchors"],
+            "link_lengths_m": doc["link_lengths_m"], "origins": doc["origins"],
+            "network_sha256": doc["network"]["sha256"], "path": rel, "sha256": digest}
 
 
 def _switch(name: str, env_name: str) -> bool:
@@ -4983,8 +5154,12 @@ def install_config_switches(tuning: Mapping[str, Any]) -> dict[str, float]:
     _CFG_STRINGS["queue_window_stat"] = str(
         _mapping(urban.get("queue")).get("window_stat", "") or "").strip().lower()
     # 2026-09-06 큐 귀속 가중: "" = detector_mapping weight(비트 동일), "beta" = movement β(목적지 분율).
+    # 2026-09-25 "route" = 차량별 정적 경로 -> 차로 -> β (urban.queue.route_evidence 핀 파일 필수, _route_queue_shares).
     _CFG_STRINGS["queue_attribution"] = str(
         _mapping(urban.get("queue")).get("attribution", "") or "").strip().lower()
+    _ROUTE_ATTRIBUTION.clear()
+    if _CFG_STRINGS["queue_attribution"] == "route":
+        _ROUTE_ATTRIBUTION.update(_load_route_attribution(_mapping(urban.get("queue")).get("route_evidence")))
     _CFG_STRINGS['signal_actuation_plan_json'] = str(
         _mapping(urban.get('plan')).get('actuation_plan_json', '') or '').strip()
     out: dict[str, float] = {}
@@ -5046,6 +5221,160 @@ def _link_lengths_m() -> dict[str, float]:
 _ARRIVAL_TAU_MOVING_SEC = 15.0
 _ARRIVAL_TAU_STOPPED_SEC = 105.0
 _ARRIVAL_MAX_HORIZON_SEC = 450.0
+
+def _route_queue_members(vehicles: list, link: str) -> tuple[list, str]:
+    """Vehicles that make up the observed stop-line queue of a link, per lane from the link end: the contiguous
+    stopped run whose head lies within _QUEUE_HEAD_WINDOW_M of the end (the queue_bins walk on the vehicle records);
+    without one, every stopped vehicle; without any, every vehicle. Returns (members, which rule chose them).
+    The link length is the pinned network's polyline length carried by the route evidence (link_lengths_m); the
+    older FZP length table (_link_lengths_m) predates network v3b (127 absent, 1220000201 22 m too long)."""
+    length = float(_ROUTE_ATTRIBUTION.get("link_lengths_m", {}).get(str(link), 0.0))
+    lanes: dict[int, list] = {}
+    for v in vehicles:
+        lanes.setdefault(int(v["lane_no"]), []).append(v)
+    walk = []
+    for rows in lanes.values():
+        rows = sorted(rows, key=lambda v: -float(v["position_m"]))
+        if length > 0.0 and (length - float(rows[0]["position_m"])) > _QUEUE_HEAD_WINDOW_M:
+            continue
+        for v in rows:
+            if not v.get("stopped"):
+                break
+            walk.append(v)
+    if walk:
+        return walk, "contiguous"
+    stopped = [v for v in vehicles if v.get("stopped")]
+    if stopped:
+        return stopped, "stopped"
+    return list(vehicles), "all"
+
+
+def _route_queue_shares(cfg, link: str, usable: list, vehicles: list, routes: Mapping[int, Mapping[str, Any]],
+                        diag: dict) -> tuple[dict[str, float], float]:
+    """urban.queue.attribution "route": (shares of a link's observed queue over its usable movements, the share
+    of that queue that leaves the approach and belongs to the link's storage instead).
+
+    Per queue vehicle (_route_queue_members), in order (scripts/derive_route_queue_attribution.py):
+      1. its current static route (RoutDecNo:RouteNo of the bound obs150 frame) when the route's linkSeq holds this
+         link: a. the first anchor crossing (stop line or reviewed upstream branch -> connector) after this link;
+         b. no crossing, and the route ends where a stop line of this link's movements is reached before any
+         other (route_end_anchors, e.g. it ends ON the stop-line link): that stop line's movements by routing beta;
+         c. no crossing and no such stop line: the vehicle diverges before the approach -> storage share;
+      2. no usable route, on an anchor link: the connectors that leave from the vehicle's lane, by routing beta;
+      3. otherwise: routing beta within each approach (origin), the detector weights across approaches.
+    A crossing whose movements all carry beta 0 (declared nonexistent) and, on the anchor link itself, a crossing
+    of an unsignalized movement from a lane its connector does not leave fall through to the lane rule (2).
+    A crossing maps to the movement of every approach that uses that stop line; co-located approaches (twins) keep
+    their detector-weight split. off_ramp movements never receive stop-line queue: the plant never discharges their
+    queue (urban_flow_accounting skips kind off_ramp; the lane plant owns the off-ramp storage as its physical port),
+    so a queued vehicle of off-ramp origin is attributed to the served movement of the same exit. The off-ramp
+    origin counter (evidence 'origins', diag['offramp_origin_veh']) is diagnostic only."""
+    ev = _ROUTE_ATTRIBUTION
+    specs = cfg.network.urban_movements
+    weights = {str(item.get("movement", "")): max(0.0, _as_float(item.get("weight", 1.0))) for item in usable}
+    served = [m for m in weights if str(_mapping(specs.get(m)).get("kind", "")) != "off_ramp"] or list(weights)
+    served_set = set(served)
+
+    def beta_of(m: str) -> float:
+        return max(0.0, _as_float(_mapping(specs.get(m)).get("beta"), 0.0))
+
+    # rule 3: routing beta within each approach (origin), the detector weights across approaches
+    w_origin: dict[str, float] = {}
+    b_origin: dict[str, float] = {}
+    for m in served:
+        o = str(_mapping(specs.get(m)).get("origin", ""))
+        w_origin[o] = w_origin.get(o, 0.0) + weights[m]
+        b_origin[o] = b_origin.get(o, 0.0) + beta_of(m)
+    split: dict[str, float] = {}
+    for m in served:
+        o = str(_mapping(specs.get(m)).get("origin", ""))
+        split[m] = (w_origin[o] * beta_of(m) / b_origin[o]) if b_origin[o] > 1.0e-12 else weights[m]
+    tot = sum(split.values())
+    beta_split = ({m: w / tot for m, w in split.items()} if tot > 1.0e-12
+                  else {m: 1.0 / len(served) for m in served})
+    members, rule = _route_queue_members(vehicles, link)
+    diag["members_rule"] = rule
+    diag["members"] = float(len(members))
+    if not members:
+        diag["beta_veh"] = 0.0
+        return beta_split, 0.0
+    anchors = ev["anchors"]
+
+    def movements_of(anchor: str, conn: str) -> dict[str, float]:
+        row = anchors.get(anchor, {}).get(conn)
+        if not row:
+            return {}
+        movs = [m for m in row["movements"].values() if m in weights and m in served_set]
+        tot_w = sum(weights[m] for m in movs)
+        return {m: (weights[m] / tot_w if tot_w > 1.0e-12 else 1.0 / len(movs)) for m in movs}
+
+    def by_beta(anchor: str, conns: list) -> dict[str, float]:
+        per = {c: movements_of(anchor, c) for c in conns}
+        per = {c: m for c, m in per.items() if m}
+        bw = {c: sum(beta_of(x) for x in m) for c, m in per.items()}
+        tot_b = sum(bw.values())
+        out: dict[str, float] = {}
+        for c, m in per.items():
+            cw = (bw[c] / tot_b) if tot_b > 1.0e-12 else 1.0 / len(per)
+            for x, w in m.items():
+                out[x] = out.get(x, 0.0) + cw * w
+        return out
+
+    acc: dict[str, float] = {}
+    counts = {"route_veh": 0.0, "route_end_veh": 0.0, "route_leaves_veh": 0.0, "lane_veh": 0.0, "beta_veh": 0.0,
+              "route_to_lane_veh": 0.0, "offramp_origin_veh": 0.0}
+    leaves_stopped = 0.0
+    for v in members:
+        share: dict[str, float] = {}
+        how = ""
+        r = routes.get(int(v["veh_no"])) or {}
+        rd, rn = r.get("route_decision_no"), r.get("route_no")
+        key = "%s:%s" % (rd, rn) if rd is not None and rn is not None else None
+        seq = ev["routes"].get(key) if key else None
+        if key in ev["origins"] and "|off" in ev["origins"][key]:
+            counts["offramp_origin_veh"] += 1.0
+        if seq and link in seq:
+            crossing = None
+            for j in range(seq.index(link), len(seq) - 1):
+                if seq[j] in anchors and seq[j + 1] in anchors[seq[j]]:
+                    crossing = (seq[j], seq[j + 1])
+                    break
+            if crossing is not None:
+                share = movements_of(*crossing)
+                row = anchors[crossing[0]][crossing[1]]
+                if share and (all(beta_of(m) <= 1.0e-12 for m in share)
+                              or (crossing[0] == link and int(v["lane_no"]) not in row["lanes"]
+                                  and any(_mapping(specs.get(m)).get("unsignalized") for m in share))):
+                    share = {}
+                    counts["route_to_lane_veh"] += 1.0
+                how = "route_veh" if share else ""
+            else:
+                ends = [a for a in ev["route_end_anchors"].get(key, [])
+                        if any(m in served_set for row in anchors.get(a, {}).values() for m in row["movements"].values())]
+                if ends:
+                    for a in ends:
+                        for m, w in by_beta(a, list(anchors[a])).items():
+                            share[m] = share.get(m, 0.0) + w / len(ends)
+                    how = "route_end_veh" if share else ""
+                else:
+                    counts["route_leaves_veh"] += 1.0
+                    leaves_stopped += 1.0 if v.get("stopped") else 0.0
+                    continue
+        if not share and link in anchors:
+            share = by_beta(link, [c for c, row in anchors[link].items() if int(v["lane_no"]) in row["lanes"]])
+            how = "lane_veh" if share else ""
+        if not share:
+            share, how = beta_split, "beta_veh"
+        counts[how] += 1.0
+        for m, w in share.items():
+            acc[m] = acc.get(m, 0.0) + w / len(members)
+    diag.update(counts)
+    storage_share = counts["route_leaves_veh"] / len(members)
+    diag["route_leaves_stopped_share"] = (leaves_stopped / counts["route_leaves_veh"]
+                                          if counts["route_leaves_veh"] > 0.0 else 0.0)
+    total = sum(acc.values())
+    return ({m: w / total for m, w in acc.items()} if total > 1.0e-12 else beta_split), storage_share
+
 
 
 def _contiguous_stopline_queue(state_json: Mapping[str, Any]) -> dict[str, float]:
@@ -5221,17 +5550,28 @@ def apply_nonexistent_movement_beta_zero(cfg, tuning=None) -> dict[str, float]:
 
     목록은 `outputs/movement_phase_correction_20260828.json` 의
     `known_nonexistent_movements` 절이다. 없으면 no-op(비트 동일).
+
+    망 v3b 정정(사용자 결정 2026-09-26): 위 SC7 두 줄은 v2 망 해석이다. v3b 에서는 10332 가 1210009600 의
+    단일 차로에서 1220008701 -> 10334 -> SC11 로 가는 우회전이다(정적 경로 252:3 relFlow 63, 헤드 140101 =
+    SC7 SG 1 = 계획 p4). `urban.movements.nonexistent_declaration` = {path, sha256} 이 있으면 그 핀된 v3b 선언
+    (`movement-nonexistent-declaration/v1`, 도시 묶음 1 후보 전용)의 `known_nonexistent_movements` 를 대신 읽고,
+    옛 절은 읽지 않는다. 키가 없으면 옛 절 그대로(비트 동일). 완결 β 원천에서는 install_measured_turn_beta 가
+    표를 유도한 선언과 이 키가 같은지 확인한다.
     """
     # A/B 분해(2026-09-02). 키가 없으면 켜짐 = 현행 비트 동일.
     _sec = _mapping(_mapping(_mapping(tuning).get("urban")).get("movements"))
     if "nonexistent_beta_zero" in _sec and not _is_enabled_value(_sec["nonexistent_beta_zero"]):
         return {"nonexistent_movement_beta_zero": 0.0, "nonexistent_movement_disabled": 1.0}
-    if not MOVEMENT_PHASE_CORRECTION_JSON.is_file():
-        return {"nonexistent_movement_beta_zero": 0.0}
-    try:
-        doc = json.loads(MOVEMENT_PHASE_CORRECTION_JSON.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"nonexistent_movement_beta_zero": 0.0}
+    pinned = _sec.get("nonexistent_declaration")
+    if pinned is not None:
+        doc = _load_movement_declaration(pinned)
+    else:
+        if not MOVEMENT_PHASE_CORRECTION_JSON.is_file():
+            return {"nonexistent_movement_beta_zero": 0.0}
+        try:
+            doc = json.loads(MOVEMENT_PHASE_CORRECTION_JSON.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {"nonexistent_movement_beta_zero": 0.0}
     names = [str(k) for k in _mapping(doc.get("known_nonexistent_movements"))
              if not str(k).startswith("_")]
     if not names:
@@ -5259,9 +5599,34 @@ def apply_nonexistent_movement_beta_zero(cfg, tuning=None) -> dict[str, float]:
         specs[name]["beta"] = 0.0
         zeroed += 1
         moved += beta
-    return {"nonexistent_movement_beta_zero": 1.0,
-            "nonexistent_movement_zeroed": float(zeroed),
-            "nonexistent_movement_beta_moved": float(moved)}
+    out = {"nonexistent_movement_beta_zero": 1.0,
+           "nonexistent_movement_zeroed": float(zeroed),
+           "nonexistent_movement_beta_moved": float(moved)}
+    if pinned is not None:
+        out["nonexistent_movement_declaration_pinned"] = 1.0
+        out["nonexistent_movement_declared"] = float(len(names))
+    return out
+
+
+MOVEMENT_DECLARATION_SCHEMA = "movement-nonexistent-declaration/v1"
+
+
+def _load_movement_declaration(pin: Any) -> dict:
+    """urban.movements.nonexistent_declaration = {path, sha256}: the pinned v3b movement declaration (the batch-1
+    candidates; scripts/derive_routing_beta_physical.py reads the same file). Refuses a missing pin or schema."""
+    pin = _mapping(pin)
+    rel, digest = str(pin.get("path") or ""), str(pin.get("sha256") or "")
+    if not rel or not digest:
+        raise ValueError("urban.movements.nonexistent_declaration requires {path, sha256}")
+    data = (WORKSPACE_ROOT / rel).read_bytes()
+    if hashlib.sha256(data).hexdigest() != digest:
+        raise ValueError("urban.movements.nonexistent_declaration differs from its sha256 pin: " + rel)
+    doc = json.loads(data.decode("utf-8"))
+    if doc.get("schema") != MOVEMENT_DECLARATION_SCHEMA:
+        raise ValueError("Unsupported movement declaration schema: %r" % doc.get("schema"))
+    return doc
+
+
 def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None) -> dict:
     """movement 의 선언 `phase` 를 신호두 근거로 고친다. 꺼져 있으면 no-op(비트 동일).
 
@@ -5377,7 +5742,8 @@ def apply_movement_phase_correction(cfg, tuning: Mapping[str, Any] | None = None
     return out
 
 
-def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None) -> dict:
+def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None, *,
+                               tuning: Mapping[str, Any] | None = None) -> dict:
     """구조적으로 죽은 현시를 계획 정본에서 판정해 그 movement 의 beta 를 0 으로 돌린다.
 
     판정은 **계획 정본**으로 한다 — 런 기록(커밋 녹색)으로 하면 순환이다.
@@ -5385,6 +5751,8 @@ def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None)
     2026-08-26 에 커밋 녹색 전수 스캔(37결정)과 5/5 일치를 확인했다.
 
     beta 를 뺀 뒤 같은 origin 의 나머지 movement 에 **재정규화**한다 — 흐름을 버리지 않는다.
+    `tuning` 을 주면(측정 β 설치 뒤 호출) 완결 β 원천에서는 옮기는 β 가 0 이고 재정규화가 항등이어야 한다
+    (evaluation/controllers/beta_source.py 가드). 설치 전 호출은 config 기본 β 라 tuning 을 주지 않는다.
     """
     if not _dead_phase_beta_zero_enabled():
         return {"dead_phase_beta_zero_enabled": 0.0}
@@ -5403,10 +5771,13 @@ def apply_dead_phase_beta_zero(cfg, plan_table: Mapping[str, Any] | None = None)
     if not trapped:
         return {"dead_phase_beta_zero_enabled": 1.0, "dead_phase_count": float(len(dead)),
                 "dead_phase_movements": 0.0}
+    _require_zero_moved_beta(tuning, "apply_dead_phase_beta_zero",
+                             {k: _as_float(_mapping(mv[k]).get("beta"), 0.0) for k in trapped})
     removed = 0.0
     for k in trapped:
         removed += max(0.0, _as_float(_mapping(mv[k]).get("beta"), 0.0))
         mv[k]["beta"] = 0.0
+    _require_unit_approach_sums(tuning, "apply_dead_phase_beta_zero", mv)
     by_origin: dict = {}
     for k, v in mv.items():
         by_origin.setdefault(str(_mapping(v).get("origin") or ""), []).append(k)
@@ -5635,11 +6006,6 @@ def _movements_by_origin(cfg) -> dict:
     return idx
 
 
-def _queue_origin_filter_enabled() -> bool:
-    """movement 큐를 그 링크의 저류에서 출발하는 것으로 좁힐지. 기본 꺼짐."""
-    return _switch("queue_origin_filter", "RW_QUEUE_ORIGIN_FILTER")
-
-
 def _lane_delay_correction_enabled() -> bool:
     """저류 통과지연을 차로수로 나눌지. 기본 꺼짐.
 
@@ -5750,13 +6116,6 @@ def _apply_lane_delay_correction(state, cfg, local_summary: dict) -> None:
         "mean_lanes_applied": (lane_weighted / applied) if applied else 0.0,
         "evidence": STORAGE_CAPACITY_EVIDENCE_JSON.name,
     }
-
-
-def _movement_origin(cfg, movement: str) -> str:
-    spec = cfg.network.urban_movements.get(movement)
-    if isinstance(spec, Mapping):
-        return str(spec.get("origin", ""))
-    return str(getattr(spec, "origin", "") or "")
 
 
 def _observed_stopped_counts(state_json: Mapping[str, Any]) -> dict[str, float]:
@@ -5948,8 +6307,7 @@ def build_local_observation_summary(
     # 관측 링크속도를 모델 storage 링크 키로 접기 위한 대수 가중 누산기(v3 N3-1b).
     speed_weight_by_storage: dict[str, float] = {}
     speed_moment_by_storage: dict[str, float] = {}
-    # 링크별 저류 목록. 아래 movement 큐 분배가 "그 링크의 저류에서 출발하는 movement"
-    # 로 좁힐 때 쓴다(RW_QUEUE_ORIGIN_FILTER).
+    # 링크별 저류 목록(아래 origin_binding 이 후보 저류로 쓴다).
     storage_links_by_link: dict[str, list[str]] = {}
     for link, count in link_counts.items():
         if link in freeway_links or link in ramp_links or link in exit_links:
@@ -6083,40 +6441,69 @@ def build_local_observation_summary(
 
     movement_queue = {movement: 0.0 for movement in cfg.network.urban_movements}
     movement_assigned_by_link: dict[str, float] = {}
+    _attr_route = str(_CFG_STRINGS.get("queue_attribution", "")).strip().lower() == "route"
+    route_attribution_diag: dict[str, dict] = {}
+    if _attr_route:
+        # 차량 단위 귀속 재료: 완전 스냅샷(차로·위치·정지)과 같은 초의 경로(lane plant bind_current_routes).
+        from evaluation.controllers.projection_support import complete_records as _complete_records
+        from evaluation.controllers.vehicle_routes import complete_vehicle_routes as _complete_routes
+        from evaluation.controllers.network_provenance import snapshot_network_sha256 as _snapshot_sha
+        if _ROUTE_ATTRIBUTION.get("network_sha256") != _snapshot_sha(state_json):
+            raise ValueError("urban.queue.route_evidence was derived on another network than this snapshot")
+        _vehicles_by_link: dict[str, list] = {}
+        for _rec in _complete_records(state_json):
+            _vehicles_by_link.setdefault(str(_rec["link_no"]), []).append(_rec)
+        _vehicle_routes = _complete_routes(state_json, required=True)
     for link, entries in detector_mapping.get("link_to_movements", {}).items():
         count = queue_count_by_link.get(str(link), link_counts.get(str(link), 0.0))
         if count <= 0.0 or not isinstance(entries, list):
             continue
         movement_assigned_by_link[str(link)] = 0.0
-        # 배정 대상만 먼저 추린다. 두 가지를 고친다(둘 다 RW_QUEUE_ORIGIN_FILTER 로 켠다).
-        #
-        # (a) **링크와 무관한 movement 로 흩뿌리지 않는다.** detector_mapping 의
-        #     link_to_movements 는 링크별이 아니라 **교차로별**이다 - SC1 의 네 접근 링크가
-        #     전부 SC1 의 movement 전체를 받는다. 그래서 SC15 쪽 접근에 선 차가 SC107 /
-        #     SC9001 / SC11 쪽 큐로도 나뉜다. 62개 링크가 이 상태이고 분수 귀속으로
-        #     설명되는 것은 2개뿐이다. 접근 링크에 선 차는 **그 링크의 저류에서 출발하는**
-        #     movement 의 큐다 - origin 으로 좁힌다.
-        #
-        # (b) **건너뛴 movement 몫이 증발하지 않게 한다.** 옛 코드는 weight_sum 을 전체
-        #     entries 로 잡고 `movement not in movement_queue` 인 것을 건너뛰어서, 배정
-        #     총합이 count 에 못 미쳤다. 모델에 없는 off-ramp movement 를 가리키는 링크가
-        #     8개 있고(D_offW_to_N 등) 그만큼 질량이 사라진다(관측의 0.57%).
+        # 배정 대상만 먼저 추린다. **건너뛴 movement 몫이 증발하지 않게 한다.** 옛 코드는
+        # weight_sum 을 전체 entries 로 잡고 `movement not in movement_queue` 인 것을 건너뛰어서,
+        # 배정 총합이 count 에 못 미쳤다. 모델에 없는 off-ramp movement 를 가리키는 링크가
+        # 8개 있고(D_offW_to_N 등) 그만큼 질량이 사라진다(관측의 0.57%).
+        # (2026-09-25 삭제: origin 필터 `_queue_origin_filter_enabled` — config 키가 install_config_switches 에
+        #  없어 한 번도 켜질 수 없던 죽은 분기. 링크별 귀속은 urban.queue.attribution "route" 가 대신한다.)
         usable = [
             item
             for item in entries
             if isinstance(item, Mapping) and str(item.get("movement", "")) in movement_queue
         ]
-        if _queue_origin_filter_enabled():
-            allowed = set(storage_links_by_link.get(str(link)) or [])
-            if allowed:
-                scoped = [
-                    item
-                    for item in usable
-                    if str(_movement_origin(cfg, str(item.get("movement", "")))) in allowed
-                ]
-                # origin 이 하나도 안 맞으면 좁히지 않는다 - 질량을 버리는 것보다 낫다.
-                if scoped:
-                    usable = scoped
+        if _attr_route and usable:
+            _diag: dict = {"queue_veh": float(count)}
+            _shares, _leaves = _route_queue_shares(cfg, str(link), usable, _vehicles_by_link.get(str(link), []),
+                                                   _vehicle_routes, _diag)
+            route_attribution_diag[str(link)] = _diag
+            # Queue vehicles whose route diverges before the approach are the link's storage, not its stop-line
+            # queue: they go to the link's storage links (capacity-clipped; the clipped rest stays in the queue).
+            _stored = 0.0
+            _slinks = storage_links_by_link.get(str(link)) or []
+            if _leaves > 0.0 and _slinks:
+                _want = count * _leaves / len(_slinks)
+                for storage_link in _slinks:
+                    capacity = float(cfg.network.urban_link_storage_veh.get(storage_link, 0.0))
+                    current = urban_link_storage_occupancy.get(storage_link, 0.0)
+                    assigned = max(0.0, min(_want, capacity - current))
+                    if assigned <= 0.0:
+                        continue
+                    urban_link_storage_occupancy[storage_link] = current + assigned
+                    urban_link_storage_stopped[storage_link] = (
+                        urban_link_storage_stopped.get(storage_link, 0.0)
+                        + assigned * float(_diag.get("route_leaves_stopped_share", 0.0)))
+                    storage_assigned_by_link[str(link)] = storage_assigned_by_link.get(str(link), 0.0) + assigned
+                    storage_assigned_veh += assigned
+                    _stored += assigned
+                    if exact_stock_projection:
+                        observation_projection.record_projection_assignment(physical_stock_assignment, link, "storage:" + storage_link, assigned)
+            _diag["route_storage_veh"] = _stored
+            for movement, share in _shares.items():
+                assigned = (count - _stored) * share
+                movement_queue[movement] += assigned
+                movement_assigned_by_link[str(link)] += assigned
+                if exact_stock_projection:
+                    observation_projection.record_projection_assignment(physical_stock_assignment, link, "movement:" + movement, assigned)
+            continue
         # β 귀속(2026-09-06): 같은 origin(접근로) 안에서는 β 로, origin 이 여럿이면 origin 별 weight 합 × 그 안의 β 분율.
         _attr_beta = str(_CFG_STRINGS.get("queue_attribution", "")).strip().lower() == "beta"
         if _attr_beta and usable:
@@ -6394,7 +6781,18 @@ def build_local_observation_summary(
     projection_diagnostics.update(observation_projection.audit_physical_branch_projection(
         detector_mapping, link_counts, urban_link_storage_occupancy))
 
+    extra: dict[str, Any] = {}
+    if _attr_route:
+        extra["queue_attribution_route"] = {
+            "evidence": {"path": _ROUTE_ATTRIBUTION["path"], "sha256": _ROUTE_ATTRIBUTION["sha256"]},
+            "by_link": route_attribution_diag,
+            "totals": {k: float(sum(float(d.get(k, 0.0)) for d in route_attribution_diag.values()))
+                       for k in ("queue_veh", "members", "route_veh", "route_end_veh", "route_leaves_veh",
+                                 "route_to_lane_veh", "lane_veh", "beta_veh", "route_storage_veh",
+                                 "offramp_origin_veh")},
+        }
     return {
+        **extra,
         "mode": "detector_local_v2_storage_split",
         "link_counts": link_counts,
         "link_speeds_kph": link_speeds_kph,
@@ -6755,6 +7153,51 @@ def repo_imports(repo_root: Path):
             )
 
     return StackelbergMPCController, DemandStep, ControlAction, ExperimentConfig, TrafficState, segment_vsl
+
+
+UNSIGNALIZED_TURNS_SCHEMA = "unsignalized-turns/v1"
+
+
+def install_unsignalized_turns(cfg, tuning: Mapping[str, Any], state_json: Mapping[str, Any] | None = None) -> dict[str, float]:
+    """`urban.movements.unsignalized_evidence` = {path, sha256}: movements whose every physical connector has no
+    signal head on its source lanes (none at or upstream of the diverge, none on the connector) and exclusive source
+    lanes (scripts/derive_unsignalized_turns.py). Their spec gets `unsignalized: True`, which every green-fraction
+    path already honours (signal_actuation_contract.phase_fraction, sdmpc_continuous.phase_fraction, the patched
+    _phase_green_fraction used by the route-bins aggregate). Key absent: no-op, nothing returned (bit identical).
+    Runs after the exit merge and the physical phase authority (names and phases are final) and before
+    signal_actuation_contract.configure, which keys service by (phase, unsignalized)."""
+    pin = _mapping(_mapping(_mapping(tuning).get("urban")).get("movements")).get("unsignalized_evidence")
+    if pin is None:
+        return {}
+    pin = _mapping(pin)
+    rel, digest = str(pin.get("path") or ""), str(pin.get("sha256") or "")
+    if not rel or not digest:
+        raise ValueError("urban.movements.unsignalized_evidence requires {path, sha256}")
+    data = (WORKSPACE_ROOT / rel).read_bytes()
+    if hashlib.sha256(data).hexdigest() != digest:
+        raise ValueError("urban.movements.unsignalized_evidence differs from its sha256 pin: " + rel)
+    doc = json.loads(data.decode("utf-8"))
+    if doc.get("schema") != UNSIGNALIZED_TURNS_SCHEMA:
+        raise ValueError("Unsupported unsignalized-turn evidence schema: %r" % doc.get("schema"))
+    if state_json is not None:
+        from evaluation.controllers.network_provenance import snapshot_network_sha256
+        if snapshot_network_sha256(state_json) != doc["network"]["sha256"]:
+            raise ValueError("Unsignalized-turn evidence was derived on another network than this snapshot")
+    specs = dict(cfg.network.urban_movements or {})
+    changed = []
+    for name, row in sorted(doc["movements"].items()):
+        spec = specs.get(name)
+        if not isinstance(spec, Mapping) or any(spec.get(k) != v for k, v in row["expected_spec"].items()):
+            raise ValueError("Unsignalized-turn evidence names a movement whose runtime semantics differ: " + name)
+        if spec.get("unsignalized"):
+            raise ValueError("Unsignalized-turn evidence repeats an already unsignalized movement: " + name)
+        specs[name] = dict(spec, unsignalized=True)
+        changed.append(name)
+    cfg.network.urban_movements = specs
+    # These turns leave the head lane-group capacity split of their old phase (_distribute_lane_group_capacity_to_
+    # movements, also the head observation's member set): the heads of that group do not stand on their lanes.
+    cfg.network.unsignalized_evidence_movements = frozenset(changed)
+    return {"unsignalized_turns_enabled": 1.0, "unsignalized_turns_movements": float(len(changed))}
 
 
 def install_phase_vector_green_patch(cfg, tuning: Mapping[str, Any]) -> dict[str, float]:

@@ -1,0 +1,1521 @@
+{
+ "schema": "unsignalized-turns/v1",
+ "generated": "2026-09-25",
+ "definition": "A movement is unsignalized when every physical connector it uses has no signal head on its source lanes at or upstream of the diverge, none on the connector itself, and source lanes that no other connector uses. See scripts/derive_unsignalized_turns.py.",
+ "network": {
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+  "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+ },
+ "inputs": {
+  "network": {
+   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+   "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+  },
+  "beta": {
+   "path": "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3b2_20260925.json",
+   "sha256": "41b3113ff8e64b40175e45e64ae983bd138e80dbdd7f913253627b3db2662cb6"
+  },
+  "movements": {
+   "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
+   "sha256": "063b2e3e8d935fe6da2728c4982f4b47cdda1bff44798ca300ccdf0dd417df82"
+  },
+  "validation": {
+   "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_validation_v3bnc_20260925.json",
+   "sha256": "b5dedf800c8bf11b52a8cc3cfee7ad787f89278e891bdff8a4d603088fdb44b9"
+  }
+ },
+ "movements": {
+  "SC1_S_to_E_SC11": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 450,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 450
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1",
+    "approach": "S",
+    "kind": "boundary_in",
+    "origin": "in_SC1_S",
+    "receiving_link": "SC1_to_SC11"
+   },
+   "connectors": [
+    {
+     "connector": "10572",
+     "source_link": "1220006903",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 99.63940647038193,
+     "target_link": "1220008301",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.07811843763124737
+  },
+  "SC1_S_SC107_to_E_SC11": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 450,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 450
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1",
+    "approach": "S_SC107",
+    "kind": "internal",
+    "origin": "SC107_to_SC1",
+    "receiving_link": "SC1_to_SC11"
+   },
+   "connectors": [
+    {
+     "connector": "10572",
+     "source_link": "1220006903",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 99.63940647038193,
+     "target_link": "1220008301",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.07811843763124737
+  },
+  "SC1001_E_SC1002_to_N_SC2002": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0055,
+     "stopped_before_n": 2728,
+     "red_bin_share_c150": 0.27,
+     "red_bin_share_c160": 0.0,
+     "crossings": 2728
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1001",
+    "approach": "E_SC1002",
+    "kind": "internal",
+    "origin": "SC1002_to_SC1001",
+    "receiving_link": "SC1001_to_SC2002"
+   },
+   "connectors": [
+    {
+     "connector": "10122",
+     "source_link": "29",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 536.5861791354279,
+     "target_link": "38",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.5085034013605442
+  },
+  "SC1001_S_SC1003_to_E_SC1002": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 987,
+     "red_bin_share_c150": 0.07,
+     "red_bin_share_c160": 0.0,
+     "crossings": 987
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1001",
+    "approach": "S_SC1003",
+    "kind": "internal",
+    "origin": "SC1003_to_SC1001",
+    "receiving_link": "SC1001_to_SC1002"
+   },
+   "connectors": [
+    {
+     "connector": "10377",
+     "source_link": "40",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 1249.689207073028,
+     "target_link": "30",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC1002_E_SC101_to_N_SC2004": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0191,
+     "stopped_before_n": 890,
+     "red_bin_share_c150": 0.27,
+     "red_bin_share_c160": 0.0,
+     "crossings": 891
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1002",
+    "approach": "E_SC101",
+    "kind": "internal",
+    "origin": "SC101_to_SC1002",
+    "receiving_link": "SC1002_to_SC2004"
+   },
+   "connectors": [
+    {
+     "connector": "10692",
+     "source_link": "329",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 118.65832846557308,
+     "target_link": "73",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.14285714285714285
+  },
+  "SC1002_N_SC2004_to_W_SC1001": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 318,
+     "red_bin_share_c150": 0.33,
+     "red_bin_share_c160": 0.0,
+     "crossings": 318
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1002",
+    "approach": "N_SC2004",
+    "kind": "internal",
+    "origin": "SC2004_to_SC1002",
+    "receiving_link": "SC1002_to_SC1001"
+   },
+   "connectors": [
+    {
+     "connector": "10684",
+     "source_link": "72",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 704.3545906017584,
+     "target_link": "29",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.14285714285714285
+  },
+  "SC1002_S_SC105_to_E_SC101": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 597,
+     "red_bin_share_c150": 0.2,
+     "red_bin_share_c160": 0.0,
+     "crossings": 597
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1002",
+    "approach": "S_SC105",
+    "kind": "internal",
+    "origin": "SC105_to_SC1002",
+    "receiving_link": "SC1002_to_SC101"
+   },
+   "connectors": [
+    {
+     "connector": "10688",
+     "source_link": "427",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 519.364216121127,
+     "target_link": "328",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.14285714285714285
+  },
+  "SC1002_W_SC1001_to_S_SC105": {
+   "validation": [
+    {
+     "stopped_before_share": 0.046,
+     "stopped_before_n": 5397,
+     "red_bin_share_c150": 0.13,
+     "red_bin_share_c160": 0.0,
+     "crossings": 5397
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1002",
+    "approach": "W_SC1001",
+    "kind": "internal",
+    "origin": "SC1001_to_SC1002",
+    "receiving_link": "SC1002_to_SC105"
+   },
+   "connectors": [
+    {
+     "connector": "10686",
+     "source_link": "30",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 525.715362439405,
+     "target_link": "420",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.6956405097250168
+  },
+  "SC1003_S_SC1004_to_E_SC105": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0007,
+     "stopped_before_n": 2683,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 2683
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC1003",
+    "approach": "S_SC1004",
+    "kind": "internal",
+    "origin": "SC1004_to_SC1003",
+    "receiving_link": "SC1003_to_SC105"
+   },
+   "connectors": [
+    {
+     "connector": "10494",
+     "source_link": "47",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 935.9634263067618,
+     "target_link": "426",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.555765595463138
+  },
+  "SC101_N_SC2005_to_W_SC1002": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 161,
+     "red_bin_share_c150": 0.33,
+     "red_bin_share_c160": 0.0,
+     "crossings": 355
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC101",
+    "approach": "N_SC2005",
+    "kind": "internal",
+    "origin": "SC2005_to_SC101",
+    "receiving_link": "SC101_to_SC1002"
+   },
+   "connectors": [
+    {
+     "connector": "10504",
+     "source_link": "314",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 73.136596,
+     "target_link": "316",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.13320586360739325
+  },
+  "SC103_S_SC6_to_E": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0491,
+     "stopped_before_n": 3297,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.19,
+     "crossings": 3297
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC103",
+    "approach": "S_SC6",
+    "kind": "boundary_out",
+    "origin": "SC6_to_SC103",
+    "receiving_link": "SC103_E_out"
+   },
+   "connectors": [
+    {
+     "connector": "10096",
+     "source_link": "1210021904",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 150.62130720400626,
+     "target_link": "1220024301",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC107_S_to_E_SC108": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 1340,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 1340
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC107",
+    "approach": "S",
+    "kind": "boundary_in",
+    "origin": "in_SC107_S",
+    "receiving_link": "SC107_to_SC108"
+   },
+   "connectors": [
+    {
+     "connector": "10608",
+     "source_link": "378",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 75.766281,
+     "target_link": "383",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.41995841995842
+  },
+  "SC2002_E_SC2003_to_N": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0042,
+     "stopped_before_n": 949,
+     "red_bin_share_c150": 0.47,
+     "red_bin_share_c160": 0.0,
+     "crossings": 949
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2002",
+    "approach": "E_SC2003",
+    "kind": "boundary_out",
+    "origin": "SC2003_to_SC2002",
+    "receiving_link": "SC2002_N_out"
+   },
+   "connectors": [
+    {
+     "connector": "10734",
+     "source_link": "88",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 170.77430757787167,
+     "target_link": "89",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2002_N_to_W_SC2001": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 624,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 624
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2002",
+    "approach": "N",
+    "kind": "boundary_in",
+    "origin": "in_SC2002_N",
+    "receiving_link": "SC2002_to_SC2001"
+   },
+   "connectors": [
+    {
+     "connector": "10735",
+     "source_link": "90",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 368.17375630982156,
+     "target_link": "85",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2004_E_SC2005_to_N": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0007,
+     "stopped_before_n": 1406,
+     "red_bin_share_c150": 0.07,
+     "red_bin_share_c160": 0.0,
+     "crossings": 1406
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2004",
+    "approach": "E_SC2005",
+    "kind": "boundary_out",
+    "origin": "SC2005_to_SC2004",
+    "receiving_link": "SC2004_N_out"
+   },
+   "connectors": [
+    {
+     "connector": "10754",
+     "source_link": "108",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 482.1654029418063,
+     "target_link": "109",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2004_N_to_W_SC2003": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 196,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 196
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2004",
+    "approach": "N",
+    "kind": "boundary_in",
+    "origin": "in_SC2004_N",
+    "receiving_link": "SC2004_to_SC2003"
+   },
+   "connectors": [
+    {
+     "connector": "10757",
+     "source_link": "112",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 363.3271116883325,
+     "target_link": "101",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2004_S_SC1002_to_E_SC2005": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0042,
+     "stopped_before_n": 1652,
+     "red_bin_share_c150": 0.2,
+     "red_bin_share_c160": 0.0,
+     "crossings": 1652
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2004",
+    "approach": "S_SC1002",
+    "kind": "internal",
+    "origin": "SC1002_to_SC2004",
+    "receiving_link": "SC2004_to_SC2005"
+   },
+   "connectors": [
+    {
+     "connector": "10751",
+     "source_link": "73",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 705.7358730991427,
+     "target_link": "107",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2004_W_SC2003_to_S_SC1002": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0012,
+     "stopped_before_n": 827,
+     "red_bin_share_c150": 0.53,
+     "red_bin_share_c160": 0.0,
+     "crossings": 832
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2004",
+    "approach": "W_SC2003",
+    "kind": "internal",
+    "origin": "SC2003_to_SC2004",
+    "receiving_link": "SC2004_to_SC1002"
+   },
+   "connectors": [
+    {
+     "connector": "10747",
+     "source_link": "104",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 115.69059827680209,
+     "target_link": "72",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2005_E_SC102_to_N": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0018,
+     "stopped_before_n": 1128,
+     "red_bin_share_c150": 0.2,
+     "red_bin_share_c160": 0.0,
+     "crossings": 1128
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2005",
+    "approach": "E_SC102",
+    "kind": "boundary_out",
+    "origin": "SC102_to_SC2005",
+    "receiving_link": "SC2005_N_out"
+   },
+   "connectors": [
+    {
+     "connector": "10762",
+     "source_link": "298",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 106.14781467271193,
+     "target_link": "115",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2005_N_to_W_SC2004": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 814,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 814
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2005",
+    "approach": "N",
+    "kind": "boundary_in",
+    "origin": "in_SC2005_N",
+    "receiving_link": "SC2005_to_SC2004"
+   },
+   "connectors": [
+    {
+     "connector": "10766",
+     "source_link": "117",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 382.5308736201093,
+     "target_link": "108",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2005_S_SC101_to_E_SC102": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0283,
+     "stopped_before_n": 2618,
+     "red_bin_share_c150": 0.13,
+     "red_bin_share_c160": 0.0,
+     "crossings": 2626
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2005",
+    "approach": "S_SC101",
+    "kind": "internal",
+    "origin": "SC101_to_SC2005",
+    "receiving_link": "SC2005_to_SC102"
+   },
+   "connectors": [
+    {
+     "connector": "10759",
+     "source_link": "310",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 95.71727617256677,
+     "target_link": "297",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC2005_W_SC2004_to_S_SC101": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 890,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.0,
+     "crossings": 895
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC2005",
+    "approach": "W_SC2004",
+    "kind": "internal",
+    "origin": "SC2004_to_SC2005",
+    "receiving_link": "SC2005_to_SC101"
+   },
+   "connectors": [
+    {
+     "connector": "10768",
+     "source_link": "107",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 480.8122331350662,
+     "target_link": "308",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
+  "SC5_E_SC6_to_N_SC102": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 629,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.31,
+     "crossings": 629
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC5",
+    "approach": "E_SC6",
+    "kind": "internal",
+    "origin": "SC6_to_SC5",
+    "receiving_link": "SC5_to_SC102"
+   },
+   "connectors": [
+    {
+     "connector": "10428",
+     "source_link": "1220018401",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 164.95892593227313,
+     "target_link": "1220019301",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.12433220009713453
+  }
+ },
+ "not_included_shared_lane": [
+  {
+   "movement": "SC1001_N_SC2002_to_W",
+   "reason": "shared_source_lane",
+   "connector": "10121",
+   "source_link": "37",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 501.3197511551374,
+   "target_link": "31",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10124"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030840"
+   ]
+  },
+  {
+   "movement": "SC1003_E_SC105_to_N_SC1001",
+   "reason": "shared_source_lane",
+   "connector": "10492",
+   "source_link": "425",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 276.13508457782103,
+   "target_link": "40",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10497"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030874"
+   ]
+  },
+  {
+   "movement": "SC1004_E_SC1005_to_N_SC1003",
+   "reason": "shared_source_lane",
+   "connector": "10628",
+   "source_link": "52",
+   "source_lanes": [
+    1,
+    2
+   ],
+   "source_pos_m": 401.3367617831182,
+   "target_link": "47",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10629"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030884",
+    "90030885"
+   ]
+  },
+  {
+   "movement": "SC1004_E_SC107_to_N_SC1003",
+   "reason": "shared_source_lane",
+   "connector": "10628",
+   "source_link": "52",
+   "source_lanes": [
+    1,
+    2
+   ],
+   "source_pos_m": 401.3367617831182,
+   "target_link": "47",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10629"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030884",
+    "90030885"
+   ]
+  },
+  {
+   "movement": "SC1004_N_SC1003_to_W",
+   "reason": "shared_source_lane",
+   "connector": "10625",
+   "source_link": "46",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 949.2075539887308,
+   "target_link": "68",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10626"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030891"
+   ]
+  },
+  {
+   "movement": "SC1004_S_to_E_SC1005",
+   "reason": "shared_source_lane",
+   "connector": "10632",
+   "source_link": "66",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 2630.062020340991,
+   "target_link": "56",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10631"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030878"
+   ]
+  },
+  {
+   "movement": "SC1005_E_SC107_to_N_SC105",
+   "reason": "shared_source_lane",
+   "connector": "10603",
+   "source_link": "62",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 391.83413472426645,
+   "target_link": "404",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10612"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030864"
+   ]
+  },
+  {
+   "movement": "SC101_E_SC5_to_N_SC2005",
+   "reason": "shared_source_lane",
+   "connector": "10510",
+   "source_link": "1220014201",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 154.476171,
+   "target_link": "319",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10534"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1010601"
+   ]
+  },
+  {
+   "movement": "SC101_S_to_E_SC5",
+   "reason": "shared_source_lane",
+   "connector": "10528",
+   "source_link": "1220011503",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 193.00471499999998,
+   "target_link": "336",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10538"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1010803"
+   ]
+  },
+  {
+   "movement": "SC101_S_SC1_to_E_SC5",
+   "reason": "shared_source_lane",
+   "connector": "10528",
+   "source_link": "1220011503",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 193.00471499999998,
+   "target_link": "336",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10538"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1010803"
+   ]
+  },
+  {
+   "movement": "SC101_W_SC1002_to_S_SC1",
+   "reason": "shared_source_lane",
+   "connector": "10527",
+   "source_link": "1220012502",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 208.519836,
+   "target_link": "332",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10532"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1010204"
+   ]
+  },
+  {
+   "movement": "SC103_E_to_N",
+   "reason": "shared_source_lane",
+   "connector": "10177",
+   "source_link": "1220024201",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 113.96357980361289,
+   "target_link": "1220024901",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10176"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1030601"
+   ]
+  },
+  {
+   "movement": "SC104_E_to_N",
+   "reason": "shared_source_lane",
+   "connector": "10091",
+   "source_link": "1220061200",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 83.781436,
+   "target_link": "64",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10125"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1040601"
+   ]
+  },
+  {
+   "movement": "SC104_N_to_W_SC6",
+   "reason": "shared_source_lane",
+   "connector": "10088",
+   "source_link": "1220002202",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 111.411939,
+   "target_link": "63",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10128"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1040404"
+   ]
+  },
+  {
+   "movement": "SC104_S_SC106_to_E",
+   "reason": "shared_source_lane",
+   "connector": "10171",
+   "source_link": "1220002001",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 132.11605585532007,
+   "target_link": "65",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10167"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1040801"
+   ]
+  },
+  {
+   "movement": "SC106_E_to_N_SC104",
+   "reason": "shared_source_lane",
+   "connector": "10037",
+   "source_link": "1220017202",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 147.678023,
+   "target_link": "27",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10057"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1060601"
+   ]
+  },
+  {
+   "movement": "SC107_E_SC108_to_N_SC1",
+   "reason": "shared_source_lane",
+   "connector": "10600",
+   "source_link": "183",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 53.237756,
+   "target_link": "374",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10619"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1070601"
+   ]
+  },
+  {
+   "movement": "SC109_E_to_N_SC16",
+   "reason": "shared_source_lane",
+   "connector": "10274",
+   "source_link": "1220000704",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 314.050129,
+   "target_link": "172",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10282"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "1090601"
+   ]
+  },
+  {
+   "movement": "SC11_E_to_N_SC5",
+   "reason": "shared_source_lane",
+   "connector": "10366",
+   "source_link": "1210012001",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 1.814227,
+   "target_link": "1220011101",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10367"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "30601"
+   ]
+  },
+  {
+   "movement": "SC11_E_SC12_to_N_SC5",
+   "reason": "shared_source_lane",
+   "connector": "10366",
+   "source_link": "1210012001",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 1.814227,
+   "target_link": "1220011101",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10367"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "30601"
+   ]
+  },
+  {
+   "movement": "SC11_S_SC7_to_E_SC12",
+   "reason": "shared_source_lane",
+   "connector": "10108",
+   "source_link": "1210008703",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 10.843038078437097,
+   "target_link": "19",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10376"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "30802"
+   ]
+  },
+  {
+   "movement": "SC2001_E_SC2002_to_N",
+   "reason": "shared_source_lane",
+   "connector": "10725",
+   "source_link": "84",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 44.84512624802564,
+   "target_link": "81",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10720"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030909"
+   ]
+  },
+  {
+   "movement": "SC2001_N_to_W",
+   "reason": "shared_source_lane",
+   "connector": "10727",
+   "source_link": "80",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 377.5290389804266,
+   "target_link": "77",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10721"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030911"
+   ]
+  },
+  {
+   "movement": "SC2001_S_to_E_SC2002",
+   "reason": "shared_source_lane",
+   "connector": "10718",
+   "source_link": "79",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 472.7709029351018,
+   "target_link": "82",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10717"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030906"
+   ]
+  },
+  {
+   "movement": "SC2001_W_to_S",
+   "reason": "shared_source_lane",
+   "connector": "10723",
+   "source_link": "76",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 275.04177873289234,
+   "target_link": "78",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10722"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030904"
+   ]
+  },
+  {
+   "movement": "SC2002_S_SC1001_to_E_SC2003",
+   "reason": "shared_source_lane",
+   "connector": "10739",
+   "source_link": "38",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 545.1350254212251,
+   "target_link": "86",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10730"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030975"
+   ]
+  },
+  {
+   "movement": "SC2002_W_SC2001_to_S_SC1001",
+   "reason": "shared_source_lane",
+   "connector": "10737",
+   "source_link": "83",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 185.2168751808769,
+   "target_link": "37",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10729"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030978"
+   ]
+  },
+  {
+   "movement": "SC2003_E_SC2004_to_N",
+   "reason": "shared_source_lane",
+   "connector": "10745",
+   "source_link": "102",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 361.9407857119845,
+   "target_link": "95",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10741"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030932"
+   ]
+  },
+  {
+   "movement": "SC2003_N_to_W_SC2002",
+   "reason": "shared_source_lane",
+   "connector": "10742",
+   "source_link": "99",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 348.0423664222138,
+   "target_link": "93",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10743"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90030926"
+   ]
+  },
+  {
+   "movement": "SC5_N_SC102_to_W_SC101",
+   "reason": "shared_source_lane",
+   "connector": "10423",
+   "source_link": "1220019201",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 241.89437777224344,
+   "target_link": "1220014203",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10421"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "70401"
+   ]
+  },
+  {
+   "movement": "SC5_W_SC101_to_S_SC11",
+   "reason": "shared_source_lane",
+   "connector": "10426",
+   "source_link": "1220014303",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 159.735917031147,
+   "target_link": "1220014000",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10424"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "70204"
+   ]
+  },
+  {
+   "movement": "SC6_E_SC104_to_N_SC103",
+   "reason": "shared_source_lane",
+   "connector": "10142",
+   "source_link": "1220021201",
+   "source_lanes": [
+    1
+   ],
+   "source_pos_m": 53.78324258575253,
+   "target_link": "96",
+   "controlling_heads": [],
+   "heads_on_connector": [],
+   "lane_sharing_connectors": [
+    "10200"
+   ],
+   "downstream_heads_on_source_lanes": [
+    "90601"
+   ]
+  }
+ ],
+ "already_unsignalized_by_phase_authority": {
+  "SC1004_W_to_S": {
+   "source": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+   "section": "unsignalized_movements",
+   "path": [
+    "71",
+    "10642",
+    "67"
+   ]
+  },
+  "SC1004_offW_to_S": {
+   "source": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+   "section": "unsignalized_movements",
+   "path": [
+    "71",
+    "10642",
+    "67"
+   ]
+  },
+  "SC1004_offE_to_S": {
+   "source": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+   "section": "unsignalized_movements",
+   "path": [
+    "71",
+    "10642",
+    "67"
+   ]
+  },
+  "SC107_N_SC1_to_S": {
+   "source": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
+   "section": "head_free_movements",
+   "path": [
+    "1220006803",
+    "10597",
+    "1220006801",
+    "10594",
+    "1220042200"
+   ]
+  },
+  "SC1005_N_SC105_to_W_SC1004": {
+   "source": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
+   "section": "urban_movements (config unsignalized)"
+  }
+ },
+ "screened_signalized_movements": 287,
+ "not_included_fzp_validation": [
+  {
+   "movement": "SC107_N_SC1_to_W_SC1005",
+   "connectors": [
+    "10610"
+   ],
+   "validation": [
+    {
+     "stopped_before_share": null,
+     "stopped_before_n": 0,
+     "red_bin_share_c150": 0.07,
+     "red_bin_share_c160": 0.0,
+     "crossings": 332
+    }
+   ]
+  }
+ ],
+ "downstream_head_not_included": [
+  {
+   "movement": "SC1002_N_SC2004_to_S_SC105",
+   "connectors": [
+    "10683"
+   ],
+   "downstream_heads": [
+    "90030858",
+    "90030859"
+   ]
+  },
+  {
+   "movement": "SC107_W_SC1004_to_S",
+   "connectors": [
+    "10616"
+   ],
+   "downstream_heads": [
+    "1070204"
+   ]
+  },
+  {
+   "movement": "SC107_W_SC1005_to_S",
+   "connectors": [
+    "10616"
+   ],
+   "downstream_heads": [
+    "1070204"
+   ]
+  }
+ ],
+ "validation_rule": {
+  "max_stopped_before_share": 0.05,
+  "min_observed_transitions": 100
+ }
+}

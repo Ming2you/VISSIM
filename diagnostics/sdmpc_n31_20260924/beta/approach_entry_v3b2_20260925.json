@@ -1,0 +1,82 @@
+{
+ "schema": "routing_beta_approach_entry/v1",
+ "created": "2026-09-25",
+ "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+ "network_sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc",
+ "why": "scripts/derive_routing_beta_physical.py takes the evidence of an approach from the static routes that cross its stop line (vehicleRouteStatic linkSeq -> the connector taken at the stop line). That is exact wherever one population uses a stop line. At the two interchange signals several runtime approaches share one stop line (SC1001 W/offW/offE -> link 127, SC1004 W/offW/offE -> link 71) and the gate approaches lose part of their vehicles to on-ramp peel-offs upstream of the stop line (32 -> 10482 / 129 -> 10490, 69 -> 10644 / 70 -> 10639). For these six approaches this file names the route(s) that START the approach's population; the derivation follows each route to its end and continues with the routing decision that re-routes the vehicle there (destLink = that decision's link, destPos before its pos), until the route crosses the stop line or leaves by a named peel-off connector. The values still come from relFlow only. Three other approaches are pinned to the stop line their vehicles physically use: two have no stop line of their own in the connector map, and SC108 W (native input 1083) is not at the stop line of its merge-plan representative.",
+ "entries": {
+  "SC1001|W": {
+   "start": ["1136"],
+   "stoplines": ["127"],
+   "peel_off": {"10482": "SC1001_W_to_onW", "10490": "SC1001_W_to_onE"},
+   "excluded": {},
+   "why": "Gate in_SC1001_W enters on link 32; decision 1136 (link 32) sends 6:1:2 to 10482 (onW), 129->127 (stop line; re-routed by 1117 on 127 at pos 228.9 > destPos 225.9) and 129->10490 (onE). Both peel-offs are kept runtime movements (adapter GATE_ONRAMP_QUEUE_MOVEMENTS)."
+  },
+  "SC1001|offW": {
+   "start": ["1132:2"],
+   "stoplines": ["127"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "OR_D_W off-ramp vehicles for the signal: route 1132:2 (26 -> 10491 -> 129 -> 127, destPos 225.9), re-routed by 1117."
+  },
+  "SC1001|offE": {
+   "start": ["1131:2"],
+   "stoplines": ["127"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "OR_D_E off-ramp vehicles for the signal: route 1131:2 (2 -> 10481 -> 127, destPos 225.9), re-routed by 1117."
+  },
+  "SC1004|W": {
+   "start": ["1134"],
+   "stoplines": ["71"],
+   "peel_off": {"10639": "SC1004_W_to_onE"},
+   "excluded": {
+    "10644": "69 -> 10644 is the RM_C10644 on-ramp branch (R_F_W). The runtime has no kept movement for it: install_leg_ramp_split_fold removes SC1004_W_to_onW, and the lane plant carries this flow as the physical ramp branch. Excluded from the approach population so that the fold removes a zero share.",
+    "10636": "69 -> 10636 -> 75 is the underpass to SC1005 (territory decision log, link 69 split); not an SC1004 movement."
+   },
+   "why": "Link 69 (no signal head) is the unowned stem of the west gate. Decision 1134 (link 69) sends 3:3:3:1 to 10644 (on-ramp), 10636 (underpass), 10637->70->10639 (on-ramp R_F_E, kept) and 10640 (-> 71; re-routed by 1138 on 10640 at pos 213.65 > destPos 210.68)."
+  },
+  "SC1004|offW": {
+   "start": ["1133:2"],
+   "stoplines": ["71"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "OR_F_W off-ramp vehicles for the signal: route 1133:2 (120 -> 10638 -> 70, destPos 64.9), re-routed by 1140 on 70 (pos 67.9)."
+  },
+  "SC1004|offE": {
+   "start": ["1130:1"],
+   "stoplines": ["71"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "OR_F_E off-ramp vehicles for the signal: route 1130:1 (74 -> 2 -> 10643, destPos 15.59), re-routed by 1126 on 10643 (pos 23.34)."
+  },
+  "SC1004|E_SC107": {
+   "start": [],
+   "stoplines": ["52"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "Vehicles from SC107 enter by 10501 onto link 52, the E_SC1005 stop line (movement_connector_map_ver2 has no stop line for this approach)."
+  },
+  "SC108|W": {
+   "start": [],
+   "stoplines": ["21"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "Gate in_SC108_W is native input 1083 on link 21, which carries its own heads (sg 108 2) and one connector 10112 -> 174 (SC109). It is not the W_SC107 stop line 178 that the merge plan names as the leg representative (native_input_1083_signal_authority_ver2_022a16.json, 'unique first connector')."
+  },
+  "SC107|W_SC1004": {
+   "start": [],
+   "stoplines": ["1220000201"],
+   "peel_off": {},
+   "excluded": {},
+   "why": "The approach is the single connector 10621 (territory v2) from SC1004's exit link 56; it joins the W_SC1005 stop line 1220000201 (movement_connector_map_ver2 has no stop line for this approach)."
+  }
+ },
+ "ramp_connectors": {
+  "R_D_W": ["10482", "10480"],
+  "R_D_E": ["10490", "10484"],
+  "R_F_W": ["10644", "10646"],
+  "R_F_E": ["10639", "10681"],
+  "why": "control_mapping_ver2n21 ramp_meters RM_C<connector> with to_model_link FW_W/FW_E; the D pair belongs to SC1001 (from 32/129 and from W_out 124/31), the F pair to SC1004 (from 69/70 and from W_out 121/68). Used only to label on-ramp movements that reach their ramp through W_out."
+ }
+}

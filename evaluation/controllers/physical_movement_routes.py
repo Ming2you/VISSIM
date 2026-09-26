@@ -16,6 +16,7 @@ from pathlib import Path
 import re
 import xml.etree.ElementTree as ET
 
+from evaluation.controllers.beta_source import complete_beta_source
 from evaluation.controllers.control_area_objective import physical_membership_from_ledger
 from evaluation.controllers.network_provenance import snapshot_network_sha256
 
@@ -523,9 +524,17 @@ def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_jso
     siblings = {name for name, spec in specs.items() if spec.get('origin') == origin}
     if siblings != set(row['expected_movements']):
         raise ValueError('Native signal origin acquired an unreviewed movement')
+    # The pinned 'beta' of each expected movement is the routing table's value when this evidence was reviewed. A
+    # complete beta source (urban.beta.source routing_v3b2) already gives this single-connector origin its physical
+    # split, so there the check is: the kept movement carries 1 and every sibling 0 (the result committed below).
+    complete = complete_beta_source(tuning)
     for name, expected in row['expected_movements'].items():
-        if any(specs[name].get(k) != v for k, v in expected.items()) or specs[name].get('unsignalized'):
+        if (any(specs[name].get(k) != v for k, v in expected.items() if not (complete and k == 'beta'))
+                or specs[name].get('unsignalized')):
             raise ValueError('Native signal movement semantics changed: ' + name)
+        if complete and not math.isclose(float(specs[name].get('beta', 0.0)), 1.0 if name == kept else 0.0,
+                                         rel_tol=0.0, abs_tol=1e-9):
+            raise ValueError('Complete beta source disagrees with the single native turn: ' + name)
     for link, origins in detectors.get('link_to_origins', {}).items():
         if origin in origins:
             raise ValueError('Native signal origin still has another physical observation: ' + str(link))
