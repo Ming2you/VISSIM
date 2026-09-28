@@ -49,9 +49,9 @@ import xml.etree.ElementTree as ET
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 N31D = "diagnostics/sdmpc_n31_20260924"
 DEFAULTS = {
-    "network": N31D + "/network/baseline_s31_v3bnc.inpx",
-    "beta": N31D + "/beta/movement_beta_routing_v3b2_20260925.json",
-    "entry": N31D + "/beta/approach_entry_v3b2_20260925.json",
+    "network": N31D + "/network/baseline_s31_v3c1nc.inpx",
+    "beta": N31D + "/beta/movement_beta_routing_v3c1_2_20260928.json",
+    "entry": N31D + "/beta/approach_entry_v3c1_20260928.json",
     "movements": N31D + "/scenario/config_n31_v2.base.json",
     "merge_plan": "outputs/movement_merge_plan_20260824.json",
 }
@@ -170,7 +170,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     for k, v in DEFAULTS.items():
         ap.add_argument("--" + k.replace("_", "-"), dest=k, default=v)
-    ap.add_argument("--generated", default="2026-09-25")
+    ap.add_argument("--generated", default="2026-09-28")
     ap.add_argument("--out", required=True)
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()

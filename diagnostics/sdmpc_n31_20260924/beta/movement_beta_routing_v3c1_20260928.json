@@ -1,7 +1,7 @@
 {
  "schema": "movement_beta_routing/core17legs4b",
- "generated": "2026-09-25",
- "source": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+ "generated": "2026-09-28",
+ "source": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
  "definition": "VISSIM 정적 경로결정(vehicleRoutingDecisionStatic)의 relFlow. 결정 link 를 권역으로 접어 출발 접근로를, route destLink 를 권역으로 접어 하류 신호를 얻는다. 신호 타이밍과 무관한 외생 입력이다.",
  "supersedes": "outputs/movement_beta_measured_20260824.json",
  "beta": {
@@ -23,9 +23,9 @@
   "SC1_N_SC101_to_E": 0.1,
   "SC1_N_SC101_to_N": 0.1,
   "SC1_N_SC101_to_W": 0.1,
-  "SC1_N_SC101_to_E_SC11": 0.0098,
-  "SC1_N_SC101_to_S_SC107": 0.3932,
-  "SC1_N_SC101_to_W_SC105": 0.047,
+  "SC1_N_SC101_to_E_SC11": 0.0274,
+  "SC1_N_SC101_to_S_SC107": 0.3477,
+  "SC1_N_SC101_to_W_SC105": 0.0749,
   "SC1_S_SC107_to_N": 0.25,
   "SC1_S_SC107_to_S": 0.1,
   "SC1_S_SC107_to_E": 0.1,
@@ -88,9 +88,9 @@
   "SC16_E_to_N_SC12": 0.2192,
   "SC16_N_SC12_to_S": 0.25,
   "SC16_N_SC12_to_W": 0.1667,
-  "SC16_N_SC12_to_E": 0.0132,
-  "SC16_N_SC12_to_S_SC109": 0.5613,
-  "SC16_N_SC12_to_W_SC7": 0.0088,
+  "SC16_N_SC12_to_E": 0.0918,
+  "SC16_N_SC12_to_S_SC109": 0.4871,
+  "SC16_N_SC12_to_W_SC7": 0.0044,
   "SC16_S_SC109_to_S": 0.125,
   "SC16_S_SC109_to_W": 0.125,
   "SC16_S_SC109_to_W_SC7": 0.0193,
@@ -109,9 +109,9 @@
   "SC101_N_SC2005_to_S_SC1": 0.5335,
   "SC101_N_SC2005_to_W_SC1002": 0.0999,
   "SC101_S_SC1_to_S": 0.1667,
-  "SC101_S_SC1_to_W_SC1002": 0.1944,
-  "SC101_S_SC1_to_N_SC2005": 0.6023,
-  "SC101_S_SC1_to_E_SC5": 0.0366,
+  "SC101_S_SC1_to_W_SC1002": 0.1925,
+  "SC101_S_SC1_to_N_SC2005": 0.5599,
+  "SC101_S_SC1_to_E_SC5": 0.0809,
   "SC5_W_SC101_to_S": 0.1667,
   "SC5_W_SC101_to_N_SC102": 0.1189,
   "SC5_W_SC101_to_E_SC6": 0.6528,
@@ -125,9 +125,9 @@
   "SC5_N_SC102_to_S_SC11": 0.3715,
   "SC5_N_SC102_to_W_SC101": 0.1938,
   "SC5_S_SC11_to_S": 0.1667,
-  "SC5_S_SC11_to_W_SC101": 0.1891,
-  "SC5_S_SC11_to_N_SC102": 0.5415,
-  "SC5_S_SC11_to_E_SC6": 0.1028,
+  "SC5_S_SC11_to_W_SC101": 0.1433,
+  "SC5_S_SC11_to_N_SC102": 0.4371,
+  "SC5_S_SC11_to_E_SC6": 0.2529,
   "SC6_W_SC5_to_S": 0.1667,
   "SC6_W_SC5_to_N_SC103": 0.1795,
   "SC6_W_SC5_to_E_SC104": 0.6051,
@@ -204,8 +204,8 @@
   "SC108_S_to_W_SC107": 0.0438,
   "SC108_S_to_N_SC7": 0.7856,
   "SC108_S_to_E_SC109": 0.0039,
-  "SC109_W_SC108_to_N_SC16": 0.2379,
-  "SC109_W_SC108_to_E": 0.7621,
+  "SC109_W_SC108_to_N_SC16": 0.174,
+  "SC109_W_SC108_to_E": 0.826,
   "SC109_E_to_W_SC108": 0.9625,
   "SC109_E_to_N_SC16": 0.0375,
   "SC109_N_SC16_to_E": 0.8588,
@@ -374,7 +374,10 @@
   "SC2005_E_SC102_to_S_SC101": 0.3333,
   "SC2005_S_SC101_to_W_SC2004": 0.3333,
   "SC2005_S_SC101_to_N": 0.3333,
-  "SC2005_S_SC101_to_E_SC102": 0.3333
+  "SC2005_S_SC101_to_E_SC102": 0.3333,
+  "SC104_S_SC106_to_W_SC6": 0.0584,
+  "SC104_S_SC106_to_N": 0.653,
+  "SC104_S_SC106_to_E": 0.2886
  },
  "approaches": [
   {
@@ -457,17 +460,31 @@
      "link": "1210008402",
      "veh": 2059.0,
      "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1164",
+     "name": "v3c_V5a",
+     "link": "10555",
+     "veh": 519.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1165",
+     "name": "v3c_V5b",
+     "link": "1220008401",
+     "veh": 515.0,
+     "how": "명시 배정"
     }
    ],
-   "veh": 2059.0,
+   "veh": 3093.0,
    "unmatched": 0.0,
    "staging_dropped": 0.0,
    "held_mass": 0.55,
    "beta": {
-    "SC1_N_SC101_to_S_SC107": 0.3932,
+    "SC1_N_SC101_to_S_SC107": 0.3477,
     "SC1_N_SC101_to_S": 0.25,
-    "SC1_N_SC101_to_E_SC11": 0.0098,
-    "SC1_N_SC101_to_W_SC105": 0.047,
+    "SC1_N_SC101_to_E_SC11": 0.0274,
+    "SC1_N_SC101_to_W_SC105": 0.0749,
     "SC1_N_SC101_to_E": 0.1,
     "SC1_N_SC101_to_N": 0.1,
     "SC1_N_SC101_to_W": 0.1
@@ -878,17 +895,24 @@
      "link": "10235",
      "veh": 1323.0,
      "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1163",
+     "name": "v3c_V4",
+     "link": "1220012600",
+     "veh": 1345.0,
+     "how": "권역"
     }
    ],
-   "veh": 1323.0,
+   "veh": 2668.0,
    "unmatched": 0.0,
    "staging_dropped": 0.0,
    "held_mass": 0.4167,
    "beta": {
-    "SC16_N_SC12_to_S_SC109": 0.5613,
+    "SC16_N_SC12_to_S_SC109": 0.4871,
     "SC16_N_SC12_to_S": 0.25,
-    "SC16_N_SC12_to_W_SC7": 0.0088,
-    "SC16_N_SC12_to_E": 0.0132,
+    "SC16_N_SC12_to_W_SC7": 0.0044,
+    "SC16_N_SC12_to_E": 0.0918,
     "SC16_N_SC12_to_W": 0.1667
    },
    "beta_prev": {
@@ -1027,16 +1051,30 @@
      "link": "1220008501",
      "veh": 2868.0,
      "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1166",
+     "name": "v3c_V6a",
+     "link": "10553",
+     "veh": 519.0,
+     "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1167",
+     "name": "v3c_V6b",
+     "link": "1220008502",
+     "veh": 496.0,
+     "how": "목적지집합+권역 합치"
     }
    ],
-   "veh": 2868.0,
+   "veh": 3883.0,
    "unmatched": 0.0,
    "staging_dropped": 0.0,
    "held_mass": 0.1667,
    "beta": {
-    "SC101_S_SC1_to_N_SC2005": 0.6023,
-    "SC101_S_SC1_to_E_SC5": 0.0366,
-    "SC101_S_SC1_to_W_SC1002": 0.1944,
+    "SC101_S_SC1_to_N_SC2005": 0.5599,
+    "SC101_S_SC1_to_E_SC5": 0.0809,
+    "SC101_S_SC1_to_W_SC1002": 0.1925,
     "SC101_S_SC1_to_S": 0.1667
    },
    "beta_prev": {
@@ -1143,16 +1181,23 @@
      "link": "1220011101",
      "veh": 908.0,
      "how": "목적지집합+권역 합치"
+    },
+    {
+     "no": "1162",
+     "name": "v3c_V3",
+     "link": "256",
+     "veh": 400.0,
+     "how": "목적지집합 역추론"
     }
    ],
-   "veh": 908.0,
+   "veh": 1308.0,
    "unmatched": 0.0,
    "staging_dropped": 0.0,
    "held_mass": 0.1667,
    "beta": {
-    "SC5_S_SC11_to_N_SC102": 0.5415,
-    "SC5_S_SC11_to_E_SC6": 0.1028,
-    "SC5_S_SC11_to_W_SC101": 0.1891,
+    "SC5_S_SC11_to_N_SC102": 0.4371,
+    "SC5_S_SC11_to_E_SC6": 0.2529,
+    "SC5_S_SC11_to_W_SC101": 0.1433,
     "SC5_S_SC11_to_S": 0.1667
    },
    "beta_prev": {
@@ -1737,15 +1782,22 @@
      "link": "174",
      "veh": 1711.0,
      "how": "권역"
+    },
+    {
+     "no": "1160",
+     "name": "v3c_V1",
+     "link": "21",
+     "veh": 846.0,
+     "how": "권역"
     }
    ],
-   "veh": 1711.0,
+   "veh": 2557.0,
    "unmatched": 0.0,
    "staging_dropped": 0.0,
    "held_mass": 0,
    "beta": {
-    "SC109_W_SC108_to_E": 0.7621,
-    "SC109_W_SC108_to_N_SC16": 0.2379
+    "SC109_W_SC108_to_E": 0.826,
+    "SC109_W_SC108_to_N_SC16": 0.174
    },
    "beta_prev": {
     "SC109_W_SC108_to_E": 0.5,
@@ -3258,11 +3310,38 @@
     "SC2005_S_SC101_to_E_SC102": 0.25,
     "SC2005_S_SC101_to_W_SC2004": 0.25
    }
+  },
+  {
+   "signal": "SC104",
+   "approach": "S_SC106",
+   "decisions": [
+    {
+     "no": "1168",
+     "name": "v3c_V7",
+     "link": "1220001602",
+     "veh": 10353.0,
+     "how": "권역"
+    }
+   ],
+   "veh": 10353.0,
+   "unmatched": 0.0,
+   "staging_dropped": 0.0,
+   "held_mass": 0,
+   "beta": {
+    "SC104_S_SC106_to_N": 0.653,
+    "SC104_S_SC106_to_W_SC6": 0.0584,
+    "SC104_S_SC106_to_E": 0.2886
+   },
+   "beta_prev": {
+    "SC104_S_SC106_to_N": 0.5,
+    "SC104_S_SC106_to_W_SC6": 0.25,
+    "SC104_S_SC106_to_E": 0.25
+   }
   }
  ],
  "explicit_approach": {
-  "file": "diagnostics/sdmpc_n31_20260924/beta/explicit_approach_v3b_20260925.json",
-  "sha256": "36162d5032b899369e33e6cab5ebad932119587733f0721cabc691d557942c65",
+  "file": "diagnostics/sdmpc_n31_20260924/beta/explicit_approach_v3c1_20260928.json",
+  "sha256": "c74dfebe98f960d6f8ef6bfaf8482af7e2e49e4395ed22a25fae42ed712b21be",
   "decisions": {
    "1117": [
     [
@@ -3304,6 +3383,12 @@
     [
      "SC1004",
      "S"
+    ]
+   ],
+   "1165": [
+    [
+     "SC1",
+     "N_SC101"
     ]
    ]
   }

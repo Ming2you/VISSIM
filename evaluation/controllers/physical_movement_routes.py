@@ -439,6 +439,50 @@ def configure_topology_repair(cfg, detectors, tuning, *, state_json=None):
         'prior_limitations': repair['prior_limitations']}
 
 
+def source_decision_record(node):
+    """The reviewed identity of a routing decision element: number, link, position, each route's link path."""
+    return {'no': node.get('no'), 'link': node.get('link'), 'pos': node.get('pos'),
+            'routes': [{'no': route.get('no'),
+                        'path': ([node.get('link')] + [x.get('key') for x in route.findall('./linkSeq/intObjectRef')]
+                                 + [route.get('destLink')])}
+                       for route in node.findall('./vehRoutSta/vehicleRouteStatic')]}
+
+
+def check_source_routing_decisions(decisions, row):
+    """Routing decisions on a native input's physical source link: only the reviewed ones.
+
+    A decision there could send the source's vehicles through another turn than the single physical one this
+    authority binds. The default (no 'reviewed_source_decisions' key) admits none, exactly the rule before
+    network v3c1. Network v3c1 (user approval 2026-09-28, item V1) puts decision 1160 on source 21; the
+    declaration names it with its link, position and every route's link path, and it is admitted only when the
+    network holds exactly the named decisions on the source, each equal to its record, and every route leaves
+    through the declared connector to the declared receiver (the source keeps its single physical turn).
+    Returns the admitted decision numbers."""
+    source, connector, receiver = row['physical_path']
+    reviewed = row.get('reviewed_source_decisions', [])
+    if not isinstance(reviewed, list):
+        raise ValueError('reviewed_source_decisions must be a list')
+    records = {}
+    for record in reviewed:
+        number = record.get('no') if isinstance(record, dict) else None
+        if (not isinstance(number, str) or number in records or record.get('link') != source
+                or not isinstance(record.get('routes'), list) or not record['routes']):
+            raise ValueError('Reviewed source routing decision record is malformed')
+        records[number] = record
+    present = {x.get('no'): x for x in decisions if x.get('link') == source}
+    if set(present) - set(records):
+        raise ValueError('Native signal source acquired an unreviewed routing decision')
+    if set(records) - set(present):
+        raise ValueError('Reviewed source routing decision is missing from the network: '
+                         + ','.join(sorted(set(records) - set(present))))
+    for number, record in sorted(records.items()):
+        if source_decision_record(present[number]) != {k: record.get(k) for k in ('no', 'link', 'pos', 'routes')}:
+            raise ValueError('Reviewed source routing decision differs from the network: ' + number)
+        if any(route['path'][:3] != [source, connector, receiver] for route in record['routes']):
+            raise ValueError('Reviewed source routing decision leaves through another turn: ' + number)
+    return sorted(records)
+
+
 def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_json):
     """Bind input1083 to its first selected head, before physical projection.
 
@@ -509,8 +553,7 @@ def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_jso
     if phases != ['p3'] or row['phase'] != 'SC108_p3':
         raise ValueError('Native signal source SG does not uniquely own p3')
     decisions = tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic')
-    if any(x.get('link') == source for x in decisions):
-        raise ValueError('Native signal source acquired an unreviewed routing decision')
+    check_source_routing_decisions(decisions, row)
     excluded = row['excluded_upstream_decision']
     decision = next((x for x in decisions if x.get('no') == excluded['no']), None)
     if (decision is None or decision.get('link') != receiver
@@ -525,7 +568,7 @@ def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_jso
     if siblings != set(row['expected_movements']):
         raise ValueError('Native signal origin acquired an unreviewed movement')
     # The pinned 'beta' of each expected movement is the routing table's value when this evidence was reviewed. A
-    # complete beta source (urban.beta.source routing_v3b2) already gives this single-connector origin its physical
+    # complete beta source (urban.beta.source routing_v3c1_2) already gives this single-connector origin its physical
     # split, so there the check is: the kept movement carries 1 and every sibling 0 (the result committed below).
     complete = complete_beta_source(tuning)
     for name, expected in row['expected_movements'].items():

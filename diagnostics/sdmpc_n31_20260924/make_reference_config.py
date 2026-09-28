@@ -9,18 +9,23 @@ physical_ramp_head_service_veh_per_cycle, physical_ramp_receiving_nodes.
 Omit the twelve lane-group keys; canonical_harness:384-448 rejects them when
 lane groups are off. component_boundary {admitted_interface, open_exit} and
 v_free 110 come from the boundary config unchanged. Its vsl_set [60,80,110]
-is replaced by the action set [50,60,70,80,90,100,110] (user decision
-2026-09-24, = make_config_n31.VSL_SET); the plant reads only max(vsl_set),
-which stays the boundary's 110 (the Carlson base and the inactive command).
+is replaced by the action set [80,90,100,110] (user approval 2026-09-28 with
+the N1 L1 law, = make_config_n31.VSL_SET = repin_scenario_v2.VSL_SPEEDS; it was
+[50,...,110] from 2026-09-24); the plant reads only max(vsl_set), which stays
+the boundary's 110 (the Carlson base b = command / 110 and the inactive command).
 
-VSL model (2026-09-24, user decision: port the branch VSL model into the plant
-first): the two model keys of branch codex/control-full-review-20260909 commit
-d80faf9, candidate A0.5_E4 (diagnostics/vsl_handoff_20260924/candidate.json,
-sha256 a2fe3366...), under the branch's own key names:
-  freeway.vsl_fd_response          FW_E Carlson A 0.5, E 4, alpha 0 (base = max vsl_set = 110)
+VSL model: the two model keys of branch codex/control-full-review-20260909 commit
+d80faf9 (diagnostics/vsl_handoff_20260924/candidate.json, sha256 a2fe3366...),
+under the branch's own key names, ported 2026-09-24:
+  freeway.vsl_fd_response          FW_E Carlson law, base = max vsl_set = 110
   freeway.component_vsl_transport  FW_E sign cells + initial/ramp command 110
-The coefficients are the branch's initial values: fitted on seed 29, demand v1,
-with a different 110 km/h curve; a refit on v2 is pending. The sign cells are
+Since 2026-09-28 (user approval, REPIN_PLAN §5 / D7) the law's coefficients are
+the N1 selection L1: A 0.94, E 1.44, alpha 0 (D:/VISSIM_runs/20260927_n1_vsl,
+fit_results.json k4_core.fits.L1, sha256 a81eb5cf..., plan n1_plan_v3.json
+0db0d1c6...), fitted on the v3b no-control seeds 41/43/47/53 at 80-110 on FW_E
+and carried over to network v3c1 as a prior (v3c1 edits urban routing decisions
+only; the FW_E cell FD is unchanged). They replaced the branch's initial A 0.5 /
+E 4 (seed 29, demand v1, a different 110 km/h curve). The sign cells are
 re-derived here from this network's FW_E DSDs with the rule that reproduces
 the handoff's cells (nearest refined cell boundary): DSD63-66 sit at chain
 6733.2 m here (link 2 pos 3998.666), so its cell is 18, not the handoff's 16.
@@ -48,22 +53,28 @@ TRANSPORT = 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260
 OUT = HERE / 'reference_config_n31_v2.json'
 TRANSPORT_KEYS = ('physical_component_residence', 'physical_offramp_interval_service', 'physical_ramp_capacity_vph',
                   'physical_ramp_head_service_veh_per_cycle', 'physical_ramp_receiving_nodes')
-# Network v3b (2026-09-25) and its own no-control s31 geometry (only the sign cells read them; the geometry equals
-# the v2 one except provenance, so the output bytes did not change with the re-pin).
-NETWORK = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx'
-GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/'
-            'observations/s31_v3bnc_observations/geometry.json')
+# Network v3c1 (2026-09-28) and its own no-control s31 geometry (only the sign cells read them; the geometry equals
+# the v2 and v3b ones except provenance, so the sign cells did not change with the re-pins).
+NETWORK = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx'
+GEOMETRY = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/'
+            'observations/s31_v3c1nc_observations/geometry.json')
 VSL_KEYS = ('vsl_fd_response', 'component_vsl_transport', '_vsl_model_note')
 BOUNDARY_VSL_SET = [60.0, 80.0, 110.0]
-VSL_SET = [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0]   # user decision 2026-09-24 (= make_config_n31.VSL_SET)
-VSL_FD_RESPONSE = {'FW_E': {'law': 'carlson', 'A': 0.5, 'E': 4.0, 'alpha': 0.0}}
+VSL_SET = [80.0, 90.0, 100.0, 110.0]   # user approval 2026-09-28 (= make_config_n31.VSL_SET; 50..110 before)
+# N1 L1 (user approval 2026-09-28, REPIN_PLAN §5.1): the branch candidate A0.5_E4 before.
+VSL_FD_RESPONSE = {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}}
 VSL_ROAD = 'FW_E'
 HANDOFF_SIGN_CELLS = [0, 3, 5, 8, 14, 16, 26, 28]   # handoff network: DSD63-66 at chain 6341.7 m
 EXPECTED_SIGN_CELLS = [0, 3, 5, 8, 14, 18, 26, 28]  # this network: DSD63-66 at chain 6733.2 m
-VSL_MODEL_NOTE = ('Branch VSL model: codex/control-full-review-20260909 d80faf9917fc, candidate A0.5_E4 '
-                  '(diagnostics/vsl_handoff_20260924/candidate.json sha256 a2fe3366bfae8de33796020f067c75ed17fe3451bb742b1a3475f6440f10b7dd): '
-                  'Carlson speed-limit FD A=0.5 E=4 alpha=0, base command 110, and VSL exposure transport on FW_E. '
-                  'Provenance: fitted on seed29 demand-v1 with a different 110 curve; refit on v2 pending. '
+VSL_MODEL_NOTE = ('VSL law N1 L1 (user approval 2026-09-28): Carlson speed-limit FD A=0.94 E=1.44 alpha=0 on FW_E, base '
+                  'command 110 = max(vsl_set); D:/VISSIM_runs/20260927_n1_vsl/reports/fit_results.json sha256 '
+                  'a81eb5cf7a090d3da6184bc9572e873ece255f1cce024823a1c468df4fdf5117 k4_core.fits.L1, plan n1_plan_v3.json '
+                  'sha256 0db0d1c6e50ed2688066d3bf59e9d06116661df71930e83988df0cc6af37c511, selection L1 (held-out loss '
+                  '149.66 vs L2 141.67, within 10 %, fewer parameters); fitted on the v3b NC seeds 41/43/47/53 at 80-110 and '
+                  'carried over to network v3c1 as a prior; the Carlson family is formally rejected by rule (b)(i) '
+                  '(chi2/dof 4.19) and was selected by user decision; action set 80-110. Exposure transport from branch '
+                  'codex/control-full-review-20260909 d80faf9917fc (diagnostics/vsl_handoff_20260924/candidate.json sha256 '
+                  'a2fe3366bfae8de33796020f067c75ed17fe3451bb742b1a3475f6440f10b7dd, its A0.5/E4 replaced by L1). '
                   'Sign cells re-derived from this network (nearest refined boundary of each FW_E DSD section): '
                   'DSD63-66 at chain 6733.2 m -> 18 (handoff 16). Not taken: v_free 108.159 at parents 14/15, '
                   'anticipation 18.375, physical_cell_fd, ramp head-service curves. FW_W keeps the legacy cap law.')
@@ -140,7 +151,7 @@ def build():
     out['_n31_note'] = ('SDMPC-31 v2 plant reference (plan C7): ' + BOUNDARY + ' plus the five transport keys '
                         + ', '.join(TRANSPORT_KEYS) + ' from ' + TRANSPORT + '; the twelve lane-group keys are omitted; '
                         + 'the branch VSL model keys ' + ', '.join(VSL_KEYS[:2]) + ' (freeway._vsl_model_note); '
-                        + 'config_overrides.freeway_follower.vsl_set = the action set [50..110] step 10 '
+                        + 'config_overrides.freeway_follower.vsl_set = the action set [80,90,100,110] '
                         + '(boundary [60,80,110]; max 110 unchanged).')
     return out
 

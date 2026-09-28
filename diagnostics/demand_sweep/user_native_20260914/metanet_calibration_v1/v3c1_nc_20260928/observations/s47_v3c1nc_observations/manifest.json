@@ -1,0 +1,87 @@
+{
+  "schema": "metanet-spatial-observations/v1",
+  "seed": 47,
+  "terminal_sec": 8995.1,
+  "cell_index_base": 0,
+  "fzp": {
+    "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\run\\vissim_eval\\baseline_s47_v3c1nc_001.fzp",
+    "bytes": 1166246282,
+    "native_phase_sec": 0.1,
+    "observation_interval_sec": 5,
+    "header": "$VEHICLE:SIMSEC;NO;LANE\\LINK\\NO;LANE\\INDEX;POS;POSLAT;SPEED;TMINNETTOT;DELAYTM;DESSPEED;LENGTH;ROUTDECNO;ROUTENO;ROUTDECTYPE;NEXTLINK\\NO;DESTLANE;LNCHG;INTERACTSTATE;INTERACTTARGTYPE;INTERACTTARGNO;COORDFRONTX;COORDFRONTY;COORDREARX;COORDREARY;ACCELERATION",
+    "file_sha256": "4ff9875af8955ac1bb14909b252f2ad8a11d76f44e8514d194a8ffe3068d4d71",
+    "payload_sha256": "1503ebde5026884a62dda9310cc59659ec66f60778b98653799c1e93ae5c08e8",
+    "rows": 6814870
+  },
+  "observation_interval_sec": 5,
+  "native_phase_sec": 0.1,
+  "requested_terminal_sec": 9000,
+  "position_verified_transition_count": 4410,
+  "last_complete_30s_window_s": 8970.1,
+  "run_receipt": {
+    "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\run\\run.json",
+    "sha256": "6649928ce89c38d2345437939f2b8093422ee69c229a967fd7684636c39d8398"
+  },
+  "prepared": {
+    "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\prepared\\prepared.json",
+    "sha256": "366708bce09eeeee97a2aa6c9c4b3ca418c91815d98ab740e5e9d21a523e0084"
+  },
+  "network": {
+    "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\prepared\\network\\baseline_s47_v3c1nc.inpx",
+    "sha256": "ec0cd81d76def2c0bb7f33dd40027c239f77586b341dec5afba7c053f125944e"
+  },
+  "errors": [
+    {
+      "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\run\\baseline_s47_v3c1nc.err",
+      "sha256": "d1ee825cc378d0bd972d0345512d40d2831c0d2fdfd2b68411ac09bcb8f78620"
+    },
+    {
+      "path": "D:\\VISSIM_runs\\20260927_v3c1\\s47_v3c1nc\\run\\baseline_s47_v3c1nc_001.err",
+      "sha256": "26e245b16e3d0d14bd08dc410b5179c111449cd1ed5458e75acceaa616313257"
+    }
+  ],
+  "extractor_sha256": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+  "network_evidence_relocation": null,
+  "cell_window_conservation_checks": 18538,
+  "max_conservation_residual_veh": 0,
+  "elapsed_sec_not_benchmark": 88.25,
+  "synthetic_tests": {
+    "status": "PASS",
+    "checks": [
+      "same_link_two_boundary_crossing",
+      "cutoff_30_vs_31_no_future_leak",
+      "source_birth_and_cell_conservation",
+      "internal_disappearance_excluded_from_flow",
+      "merge_divergence_crossing_intermediate_cells",
+      "short_connector_skip_excluded",
+      "native_removal_overrides_terminal_inference"
+    ]
+  },
+  "clock": {
+    "states": "Exact FZP frame at t; t=0 explicitly empty initialization.",
+    "flows": "(window_start_s,window_end_s]; each transition bracket is (t-5,t]. No exact within-interval event time claimed.",
+    "forecast_use": "Future observed boundaries are diagnostic replay only. Genuine forecasts must use records ending at/before their initialization cutoff.",
+    "end": "Last-frame vehicles remain stock; no tail extrapolation or terminal disappearance invented."
+  },
+  "definitions": {
+    "rho": "snapshot N / actual cell lane-km",
+    "speed": "vehicle arithmetic mean; null empty; score only n>=5",
+    "mainline_crossing": "Forward canonical position crosses spatial edge, including within same physical link and multi-cell movement.",
+    "off_departure": "Mainline vehicle observed next on named off-ramp connector; separate from downstream mainline crossings. Unique endpoint-to-endpoint connector skips also counted and flagged.",
+    "ramp_merge": "Named ramp connector vehicle observed next on mainline; queued connector stock measured separately. Unique endpoint-to-endpoint connector skips also counted and flagged.",
+    "source_admission": "First-appearance insertion on source chain, or source negative-to-nonnegative coordinate crossing; excludes seen-ID reappearance.",
+    "birth": "First-ever observation on mainline; evidence, not an additional additive inflow.",
+    "terminal_exit": "5-second kinematic inference at final physical chain end after excluding native removal; not directly observed beyond-network passage or certified Omega TTD.",
+    "excluded": "Unverified entries/losses retained in conservation; only unique physical connector skips inferred, without a claimed lane or exact crossing time."
+  },
+  "files": {
+    "boundaries_30s.csv": "9365a93dfe4aa5dcfd3e0dcc96472a048bf2a1e7e9118e00a383c4e3620cdf46",
+    "cells_30s.csv": "c6bc0c8919c1912476b2e7ca31c242ddf835f6e104dab0a0ce91a99d9c111431",
+    "desired_source_demand.csv": "89fe45116bf200f9d868cc4bb61f4cbf08d68bf8b464024be16504e9b82e9cb1",
+    "exclusion_evidence.json": "72008fa030eb1cc79f8057b860e46bdb78f046165d7fdb91e5ba8a8f9ec8f579",
+    "extractor_source_snapshot.py.txt": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+    "flows_30s.csv": "31830b394c09be2de09f9f41aeaf5e0ca61c770196b1c78bc368200a7167ef98",
+    "geometry.json": "5bed4aeed3495b29d494725f30fb1bfa199af8044deb745ecf130bc9ef4bb0ee",
+    "position_verified_transitions.json": "20c4e85e4eef9071b6688a71fee310c1fb5e0f602dfc85ba32658e7038a81eb1"
+  }
+}

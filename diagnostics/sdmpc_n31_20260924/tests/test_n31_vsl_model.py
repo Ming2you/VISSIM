@@ -1,4 +1,5 @@
-"""The branch VSL model (d80faf9 A0.5_E4) in the v2 plant kernels (2026-09-24 port).
+"""The branch VSL model (d80faf9 keys, 2026-09-24 port) with the N1 L1 law (A 0.94 / E 1.44, 2026-09-28) in the v2
+plant kernels.
 
 - The reference config carries the two model keys and the component installs them.
 - 110 hold: both roads, 450 s, two synthetic states, stepping the aggregate
@@ -108,9 +109,10 @@ class VSLModelTests(unittest.TestCase):
     def test_component_installs_the_branch_keys(self):
         for road, conf in self.confs.items():
             net = conf.network
-            self.assertEqual(net.freeway_vsl_fd_response, {'FW_E': {'law': 'carlson', 'A': 0.5, 'E': 4.0, 'alpha': 0.0}})
+            self.assertEqual(net.freeway_vsl_fd_response, {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
             self.assertEqual(net.component_vsl_transport['FW_E']['sign_cells'], [0, 3, 5, 8, 14, 18, 26, 28])
             self.assertEqual(max(conf.freeway_follower.vsl_set), 110.0)
+            self.assertEqual(list(conf.freeway_follower.vsl_set), [80.0, 90.0, 100.0, 110.0])
         for conf in self.legacy.values():
             self.assertFalse(hasattr(conf.network, 'freeway_vsl_fd_response'))
             self.assertFalse(hasattr(conf.network, 'component_vsl_transport'))

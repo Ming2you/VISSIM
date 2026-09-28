@@ -1,8 +1,8 @@
 """WP-B2, plan 1.6: load_context on the real sources.
 
 The manifest pins the network the committed detector table was built from (its
-sidecar; the N31D copy of v3b be0075bf since the 2026-09-25 re-pin, before that
-v2 f475ce42: load_context refuses a table built from another network), that
+sidecar; the N31D copy of v3c1 2577209b since the 2026-09-28 re-pin, v3b be0075bf
+2026-09-25..28, before that v2 f475ce42: load_context refuses a table built from another network), that
 network's s31 no-control 31-cell geometry (the sidecar's), the n31
 reference config, a lane_native runner config (the chain lists are the ones
 lane_native_b110.vbs copies) and a sig_manifest.json whose 42 .sig byte copies

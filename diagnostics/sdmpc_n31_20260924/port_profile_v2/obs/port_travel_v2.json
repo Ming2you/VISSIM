@@ -3,33 +3,34 @@
   "statistic": "evaluate_response.travel_profile (ER:60-71)",
   "latest_training_sec": 900,
   "source": {
-    "run": "D:\\VISSIM_runs\\20260925_v3b\\s31_v3bnc",
+    "run": "D:\\VISSIM_runs\\20260927_v3c1\\s31_v3c1nc",
     "network": {
-      "path": "D:\\VISSIM_runs\\20260925_v3b\\s31_v3bnc\\prepared\\network\\baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+      "path": "D:\\VISSIM_runs\\20260927_v3c1\\s31_v3c1nc\\prepared\\network\\baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
     },
     "fzp": {
-      "path": "D:\\VISSIM_runs\\20260925_v3b\\s31_v3bnc\\run\\vissim_eval\\baseline_s31_v3bnc_001.fzp",
-      "bytes": 1149679385,
-      "sha256": "7c1efeb08c306f04bc7cc5990b0a8699e5d807cd3d7ed2195428cb87f9fc1983",
+      "path": "D:\\VISSIM_runs\\20260927_v3c1\\s31_v3c1nc\\run\\vissim_eval\\baseline_s31_v3c1nc_001.fzp",
+      "bytes": 1183596769,
+      "sha256": "5c9e43e867846e0db3e05a03ce308bcb3f4d86c9ac5ead06341f8aee74fb5beb",
       "recording_interval_sec": 5,
       "phase_sec": 0.1,
       "last_frame_scanned_s": 900.1
     },
     "geometry": {
-      "path": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/observations/s31_v3bnc_observations/geometry.json",
-      "sha256": "7d330bd2cb3eb4734807a4a1fd1d1cb727fc2bc69de4e8fdeeee9d7f572c692e"
+      "path": "diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/observations/s31_v3c1nc_observations/geometry.json",
+      "sha256": "8752f0cd613f7a17e01e81bbbe3bf8feeed268daefc33c9bcbc728e89acca108"
     },
     "port_observer": "extract_observations.PortObserver"
   },
   "connectors": {
     "10480": {
       "length_m": 249.7561298130956,
-      "samples": 15,
-      "travel_speed_kmh_interp": 49.05055168416433,
+      "samples": 14,
+      "travel_speed_kmh_interp": 47.461797526029194,
       "travel_speed_kmh_quantized": 44.95610336635721,
       "median_residence_s_quantized": 20.0,
       "residence_values_s_quantized": [
+        10.0,
         15.0,
         20.0,
         25.0
@@ -37,8 +38,8 @@
     },
     "10482": {
       "length_m": 528.8695435771186,
-      "samples": 369,
-      "travel_speed_kmh_interp": 45.52151380605569,
+      "samples": 368,
+      "travel_speed_kmh_interp": 45.60877357366542,
       "travel_speed_kmh_quantized": 47.59825892194068,
       "median_residence_s_quantized": 40.0,
       "residence_values_s_quantized": [
@@ -52,17 +53,16 @@
     },
     "10646": {
       "length_m": 395.87871688654496,
-      "samples": 27,
-      "travel_speed_kmh_interp": 44.19695241669571,
+      "samples": 29,
+      "travel_speed_kmh_interp": 46.17353952885537,
       "travel_speed_kmh_quantized": 47.50544602638539,
       "median_residence_s_quantized": 30.0,
       "residence_values_s_quantized": [
         15.0,
         20.0,
+        25.0,
         30.0,
-        35.0,
-        40.0,
-        45.0
+        35.0
       ]
     },
     "10644": {
@@ -97,10 +97,10 @@
     },
     "10681": {
       "length_m": 437.51715237726154,
-      "samples": 81,
-      "travel_speed_kmh_interp": 47.848512277280946,
-      "travel_speed_kmh_quantized": 52.50205828527138,
-      "median_residence_s_quantized": 30.0,
+      "samples": 79,
+      "travel_speed_kmh_interp": 47.71582987749761,
+      "travel_speed_kmh_quantized": 45.00176424451833,
+      "median_residence_s_quantized": 35.0,
       "residence_values_s_quantized": [
         15.0,
         20.0,
@@ -114,11 +114,12 @@
     },
     "10490": {
       "length_m": 368.37979076458265,
-      "samples": 133,
-      "travel_speed_kmh_interp": 44.19427340981455,
+      "samples": 135,
+      "travel_speed_kmh_interp": 43.966187431292994,
       "travel_speed_kmh_quantized": 44.20557489174992,
       "median_residence_s_quantized": 30.0,
       "residence_values_s_quantized": [
+        10.0,
         15.0,
         25.0,
         30.0,
@@ -128,8 +129,8 @@
     },
     "10484": {
       "length_m": 541.9109347095974,
-      "samples": 60,
-      "travel_speed_kmh_interp": 46.899358992493624,
+      "samples": 61,
+      "travel_speed_kmh_interp": 47.21601756140382,
       "travel_speed_kmh_quantized": 48.77198412386377,
       "median_residence_s_quantized": 40.0,
       "residence_values_s_quantized": [
@@ -138,13 +139,14 @@
         40.0,
         45.0,
         50.0,
-        55.0
+        55.0,
+        60.0
       ]
     },
     "10481": {
       "length_m": 454.41600765394736,
-      "samples": 35,
-      "travel_speed_kmh_interp": 116.27397423745437,
+      "samples": 34,
+      "travel_speed_kmh_interp": 115.67740494033166,
       "travel_speed_kmh_quantized": 109.05984183694736,
       "median_residence_s_quantized": 15.0,
       "residence_values_s_quantized": [
@@ -154,8 +156,8 @@
     },
     "10483": {
       "length_m": 302.31648261877154,
-      "samples": 156,
-      "travel_speed_kmh_interp": 111.27768914150086,
+      "samples": 155,
+      "travel_speed_kmh_interp": 113.34965467098898,
       "travel_speed_kmh_quantized": 108.83393374275776,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [
@@ -166,8 +168,8 @@
     },
     "10491": {
       "length_m": 231.4942209152161,
-      "samples": 131,
-      "travel_speed_kmh_interp": 101.14255235654916,
+      "samples": 124,
+      "travel_speed_kmh_interp": 100.78062675726227,
       "travel_speed_kmh_quantized": 83.33791952947779,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [
@@ -178,7 +180,7 @@
     },
     "10479": {
       "length_m": 258.4144458027135,
-      "samples": 182,
+      "samples": 178,
       "travel_speed_kmh_interp": 110.52335436470071,
       "travel_speed_kmh_quantized": 93.02920048897685,
       "median_residence_s_quantized": 10.0,
@@ -190,35 +192,34 @@
     },
     "10643": {
       "length_m": 318.99832762775236,
-      "samples": 114,
-      "travel_speed_kmh_interp": 108.83308757905709,
+      "samples": 112,
+      "travel_speed_kmh_interp": 108.83840312801996,
       "travel_speed_kmh_quantized": 114.83939794599084,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [
         10.0,
-        15.0,
-        20.0,
-        60.0,
-        70.0,
-        75.0
+        15.0
       ]
     },
     "10682": {
       "length_m": 226.52430853584795,
-      "samples": 233,
-      "travel_speed_kmh_interp": 103.54315162578087,
+      "samples": 229,
+      "travel_speed_kmh_interp": 105.32035448666225,
       "travel_speed_kmh_quantized": 81.54875107290526,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [
         5.0,
         10.0,
-        15.0
+        15.0,
+        20.0,
+        25.0,
+        30.0
       ]
     },
     "10638": {
       "length_m": 288.1513265118135,
-      "samples": 88,
-      "travel_speed_kmh_interp": 108.94683283497525,
+      "samples": 90,
+      "travel_speed_kmh_interp": 108.43374288896737,
       "travel_speed_kmh_quantized": 103.73447754425288,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [
@@ -229,8 +230,8 @@
     },
     "10645": {
       "length_m": 350.3857194776235,
-      "samples": 206,
-      "travel_speed_kmh_interp": 108.62070050952491,
+      "samples": 209,
+      "travel_speed_kmh_interp": 109.54282011102312,
       "travel_speed_kmh_quantized": 126.13885901194446,
       "median_residence_s_quantized": 10.0,
       "residence_values_s_quantized": [

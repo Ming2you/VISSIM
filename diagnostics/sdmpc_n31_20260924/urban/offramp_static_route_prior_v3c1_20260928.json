@@ -2,8 +2,8 @@
  "schema": "offramp-static-route-prior/v1",
  "created": "2026-09-25",
  "network": {
-  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-  "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+  "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
  },
  "prior_semantics": "Static-route relFlow share of the direct landing among the vehicles that the group decision sends to the two branches of one off-ramp group (direct / signal connector of the lane plant off_groups offramp_route_inventory_v1). evaluation/controllers/offramp_routing.derive_prior re-derives it from the pinned network and refuses a mismatch. It replaces the per-signal code default {SC1001: 0.468, SC1004: 0.484} (a realised 30-decision average of an older network) by an exogenous value per group (user decision 2026-09-25: relFlow values, realised shares only for validation).",
  "groups": {
@@ -34,6 +34,13 @@
    "direct_connector": "10645",
    "signal_connector": "10638",
    "direct_share": 0.75
+  }
+ },
+ "repin": {
+  "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin only; decisions 1130-1133 are not edited by v3c1 (offramp_routing.derive_prior re-derives the four shares at install)",
+  "previous": {
+   "path": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3b_20260925.json",
+   "sha256": "d9a4a8f17c0b9e9eb567d60275f177c5152954d71be849fa00f97b84f62733ee"
   }
  }
 }

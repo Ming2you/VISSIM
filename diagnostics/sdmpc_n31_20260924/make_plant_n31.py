@@ -9,8 +9,9 @@ first, and the generator fails listing whatever is missing:
   membership                       WP-E  the re-pinned pack entry named by the E base
                                          config's control_area_objective.membership_path
   observation.detectors            WP-B2 N31D/obs150/obs150_detectors_v2.csv
-  geometry                         the runtime network's own no-control s31 extraction (v3b since
-                                         2026-09-25: metanet_calibration_v1/v3b_nc_20260925, extract_observations.py)
+  geometry                         the runtime network's own no-control s31 extraction (v3c1 since
+                                         2026-09-28: metanet_calibration_v1/v3c1_nc_20260928, extract_observations.py;
+                                         v3b_nc_20260925 before)
   parameters                       WP-C  C1 b110 copy (copy_b110.py): v2 prior, fitted on v2 NC s31 f475ce42
   refined_partition                tracked geometry_200_branch_guard.json (9769b3a4)
   reference_config                 WP-C  C7 reference_config_n31_v2.json
@@ -42,11 +43,12 @@ if str(ROOT) not in sys.path:
 N31D = 'diagnostics/sdmpc_n31_20260924'
 B110 = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923'
 TRANSPORT = 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/cohort_dynamics_20260920/transport_step1_exchange_off_v2'
-# Network v3b (user decision 2026-09-25): its no-control runs s31/s41/s37, extracted with extract_observations.py.
-V3B_NC = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925'
+# Network v3c1 (user approval 2026-09-28): its no-control fit-seed runs s31/s41/s43/s47/s53 (s37 held out), extracted
+# with extract_observations.py (the v3b extractions of 2026-09-25 stay in v3b_nc_20260925 as the v3b record).
+V3C1_NC = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928'
 SOURCES = {
-    'network': N31D + '/network/baseline_s31_v3bnc.inpx',
-    'geometry': V3B_NC + '/observations/s31_v3bnc_observations/geometry.json',
+    'network': N31D + '/network/baseline_s31_v3c1nc.inpx',
+    'geometry': V3C1_NC + '/observations/s31_v3c1nc_observations/geometry.json',
     'refined_partition': 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/segment_resolution_20260921/geometry_200_branch_guard.json',
     'reference_config': N31D + '/reference_config_n31_v2.json',
     'parameters': B110 + '/train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json',
@@ -60,20 +62,23 @@ OFF_GROUPS = 'diagnostics/control_improvement/decision_common_anchor_20260911/ra
 DETECTORS = N31D + '/obs150/obs150_detectors_v2.csv'
 BASE_CONFIG = N31D + '/scenario/config_n31_v2.base.json'
 OUT = HERE / 'plant_n31_v2.json'
-NETWORK_SHA256 = 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'   # v3b (was v2 f475ce42)
-QUALIFICATION = ('NOT_QUALIFIED: network v3b be0075bf (differs from v2 f475ce42 only in static routes: 19 route '
-                 'destinations, 1061 pos, 32 relFlows; user decision 2026-09-25); the b110 segment_params, boundary fit '
-                 'and boundary_config are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3b; geometry, port '
-                 'profile and ramp-arrival forecast re-derived from the v3b NC runs; '
+NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'   # v3c1 (v3b be0075bf until 2026-09-28)
+NETWORK_LABEL = 'v3c1 2577209b'
+QUALIFICATION = ('NOT_QUALIFIED: network v3c1 2577209b (v3b be0075bf + decisions 1160, 1162-1168; V2 held; user approval '
+                 '2026-09-28; v3b = v2 f475ce42 + static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user '
+                 'decision 2026-09-25); the b110 segment_params, boundary fit and boundary_config are v2 priors fitted on '
+                 'v2 NC s31 (f475ce42), not refit on v3b or v3c1; geometry, port profile and ramp-arrival forecast '
+                 're-derived from the v3c1 NC fit seeds 31/41/43/47/53 (s37 held out); '
                  '31-cell b110 boundary family with the baseline FD (no FD refit); held-out '
-                 'history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h (v2 NC, not re-scored on v3b); scenario pack priors carried over from '
-                 'fcb349d3 with prior_mismatch receipts (D-B); obs150 observation integrated and verified offline '
-                 'only (probe V0 + V1 code tests), not yet against native ground truth (G1 D6 pending); COM head '
-                 'delay D10=1 s pending the G1 D6 re-check; VSL model = branch d80faf9 candidate A0.5_E4 on FW_E (Carlson '
-                 'A0.5/E4/alpha0 base 110 + exposure transport, sign cells re-derived for this network; fitted on seed29 '
-                 'demand-v1 with a different 110 curve, refit on v2 pending; action set 50-110 step 10: 50-80 extrapolate and '
-                 '100 interpolates the 90-only fit; cohorts start from the last applied command; FW_W keeps '
-                 'the legacy cap, zero derivative at 110); no native9000 launch approval claimed')
+                 'history_forecast speed RMSE FW_E 20-25 / FW_W 13-17 km/h (v2 NC, not re-scored on v3b or v3c1); scenario pack '
+                 'priors carried over from fcb349d3 with prior_mismatch receipts (D-B); obs150 observation integrated and '
+                 'verified offline only (probe V0 + V1 code tests), not yet against native ground truth (G1 D6 pending); '
+                 'COM head delay D10=1 s pending the G1 D6 re-check; VSL law = N1 L1 Carlson A 0.94 / E 1.44 / alpha 0 on '
+                 'FW_E (fit on v3b NC s41/43/47/53, 80-110; Carlson family formally rejected by rule (b)(i) chi2/dof 4.19, '
+                 'selected by user decision 2026-09-28; carried over to v3c1 as a prior) with the branch d80faf9 exposure '
+                 'transport (base 110, sign cells re-derived for this network), FW_W legacy cap (zero derivative at 110); '
+                 'action set 80-110 step 10 (the range N1 measured); cohorts start from the last applied command; no '
+                 'native9000 launch approval claimed')
 
 
 def sha256(path):
@@ -106,7 +111,7 @@ def build(root=ROOT, *, sources=None, detectors=DETECTORS, base_config=BASE_CONF
         raise FileNotFoundError('Membership named by the base config is missing: ' + membership)
     pins = {key: {'path': rel, 'sha256': sha256(root / rel)} for key, rel in sources.items()}
     if pins['network']['sha256'] != network_sha256:
-        raise ValueError('Pinned network is not the runtime network v3b be0075bf')
+        raise ValueError('Pinned network is not the runtime network ' + NETWORK_LABEL)
     geometry = load(root / sources['geometry'])
     if geometry['network']['sha256'] != pins['network']['sha256']:
         raise ValueError('C1 geometry was extracted from another network')

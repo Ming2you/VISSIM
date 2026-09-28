@@ -1,12 +1,12 @@
 {
   "schema": "native-internal-inputs/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+    "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
   },
   "membership": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-    "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
+    "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
   },
   "gate_map": {
     "path": "evaluation/real_world_modi_inventory/urban_input_gate_map_ver2_20260907.csv",
@@ -292,11 +292,11 @@
           "validation_scope": "offline_seed13_requires_seed14_holdout",
           "historical_prior_transfer": {
             "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-            "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
+            "sha256": "6f5c18343fc2f17e3d559e8d3cca639958f15d4fddb4ac92bed3afbefd51a32d"
           },
           "network": {
-            "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-            "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+            "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+            "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
           }
         },
         "1210012103": {
@@ -351,7 +351,7 @@
       ],
       "route_evidence": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json",
-        "sha256": "cd80b0490659f619cef2b9c842ca17f90b0fd776de5a91d313fb7946bb20c694"
+        "sha256": "2213d7c200f169b09aa323885d1bd5eedf8fa868fef96c0efd1d7722bdaf5cfc"
       },
       "initial_events": "Exclusive observed source/connector stock starts inside Omega with no generation/entry/exit event. Tagged pre-head stages are subsets of existing storage/queues."
     },
@@ -374,7 +374,7 @@
       ],
       "route_evidence": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json",
-        "sha256": "485bffbcc0a5f93277cfd482879d5bb9173b19b6cb03b354e82b4a98412454ec"
+        "sha256": "831e77abbf4f765779b50a906a0d1df453fbfc2dfe978c37f9eeae123caf7a96"
       },
       "initial_events": "Only exclusive source201/10319 initial stock and future generated vehicles receive known native1102 route tags. No initial generation/entry/exit event; initial shared downstream traffic keeps its aggregate route approximation."
     }
@@ -387,8 +387,8 @@
       "sha256": "0cafedcc6c0122143cf2eb7b60bb0b7926260026a40a64ddf09315d13694cc67"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -424,15 +424,15 @@
       ],
       "receipt": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
+        "sha256": "6f5c18343fc2f17e3d559e8d3cca639958f15d4fddb4ac92bed3afbefd51a32d"
       },
       "target_network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-        "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+        "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
       },
       "differences_since_previous_pack": [
         "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
-        "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) (24 elements)",
+        "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS) (24 elements, 8 added)",
         "desSpeedDecisions: desired speed distribution only (76 elements)"
       ],
       "differences_since_training": "receipt actual_native_differences (training network -> v2)",

@@ -55,7 +55,7 @@ class AdSmokeTests(unittest.TestCase):
             self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-5 * abs(check['fd']) + 1e-9, check)
 
     def test_vsl_anchor_at_vsl_max_is_one_sided_not_zero(self):
-        # Supersedes the zero column at 110 (branch VSL model, Carlson A0.5/E4 +
+        # Supersedes the zero column at 110 (reference VSL model: N1 L1 Carlson A0.94/E1.44 +
         # exposure transport on FW_E): the left derivative, value unchanged.
         case = self.result['vsl_anchor_max']
         self.assertEqual(case['vsl_max'], 110.0)
@@ -87,9 +87,23 @@ class AdSmokeTests(unittest.TestCase):
         self.assertAlmostEqual(second[1]['110.0']['0'], 0.04)        # 2 moved downstream carry 0.2
 
     def test_vsl_below_max_equals_central_fd(self):
-        for check in self.result['vsl_below_max']['checks']:
+        case = self.result['vsl_below_max']
+        # The interior points of the action set 80..110 (user approval 2026-09-28), two outputs each.
+        self.assertEqual(case['anchors'], [80.0, 90.0, 100.0])
+        self.assertEqual(case['vsl_set'], [80.0, 90.0, 100.0, 110.0])
+        self.assertEqual(sorted({c['anchor'] for c in case['checks']}), [80.0, 90.0, 100.0])
+        self.assertEqual(len(case['checks']), 6)
+        for check in case['checks']:
             self.assertGreater(abs(check['fd']), 1e-6, check)
             self.assertLessEqual(abs(check['ad'] - check['fd']), 1e-4 * abs(check['fd']), check)
+
+    def test_reference_law_is_n1_l1(self):
+        """A silent return to another law (e.g. the branch A0.5/E4) fails here (REPIN_PLAN 5.3 (ii))."""
+        reference = json.loads((fx.ROOT / 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json').read_text(encoding='utf-8'))
+        self.assertEqual(reference['freeway']['vsl_fd_response'],
+                         {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
+        self.assertNotIn('FW_W', reference['freeway']['vsl_fd_response'])
+        self.assertEqual(reference['config_overrides']['freeway_follower']['vsl_set'], [80.0, 90.0, 100.0, 110.0])
 
     def test_zone_axis_reaches_its_parent_cells(self):
         self.assertEqual(self.result['vsl_zone_reach']['cells_with_tangent'], list(range(15, 25)))

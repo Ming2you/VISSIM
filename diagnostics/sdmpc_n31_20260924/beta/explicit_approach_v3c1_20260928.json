@@ -1,8 +1,8 @@
 {
  "schema": "routing_beta_explicit_approach/v1",
- "created": "2026-09-25",
- "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
- "network_sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc",
+ "created": "2026-09-28",
+ "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+ "network_sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7",
  "why": "scripts/derive_routing_turn_beta.py attaches a routing decision to an approach by its destination set. At the two freeway-interchange signals the set is contained in several approaches (W / offW / offE / E_SC107), and the tightest one wins: on v3b the four SC1004 west-side decisions 1124, 1126, 1138, 1140 all landed on SC1004 E_SC107 (1140 alone 4558 of its 4567), and 1117 (SC1001 west, W/offW/offE tie) was dropped. This table attaches each of them to the approaches whose vehicles actually pass it; the beta values still come from the decisions' relFlow (exogenous), this file only says WHERE they apply.",
  "decisions": {
   "1117": [
@@ -46,6 +46,12 @@
     "SC1004",
     "S"
    ]
+  ],
+  "1165": [
+   [
+    "SC1",
+    "N_SC101"
+   ]
   ]
  },
  "physical": {
@@ -53,7 +59,8 @@
   "1140": "link 70 pos 67.9 (entries c10637 at 2.0 m, c10638 at 40.3 m, both upstream of the decision) -> c10776 -> 126 -> c10641 -> 71 (SC1004 W stop line); carries the FW_W off-ramp (OR_F_W, via 120) and urban west traffic.",
   "1126": "connector 10643 (link 2 -> 126) pos 23.3: the FW_E off-ramp to SC1004 (OR_F_E); 1130 route 1 ends on it at 15.6 m, before the decision.",
   "1138": "connector 10640 (link 69 -> 71 lane 4): urban traffic from the input on link 69 straight into the SC1004 W approach (in_SC1004_W).",
-  "1124": "link 66 = territory SC1004 'S' leg (in_SC1004_S); not measured (only 1:1:1 unit weight, no FZP watch on 66)."
+  "1124": "link 66 = territory SC1004 'S' leg (in_SC1004_S); not measured (only 1:1:1 unit weight, no FZP watch on 66).",
+  "1165": "v3c1 item V5b (user approval 2026-09-28): link 1220008401 pos 11.5, the SC1 north approach from SC101 (template decision 13), routes 1165:1 E (relFlow 0) / :2 S (217) / :3 W (298) through 10558 / 10557 -> 1210008401 -> 10568 / 10567 / 10569 = the SC1 N stop line exits. Without this row the destination-set inference attaches it to SC1005|W_SC1004 (REPIN_PLAN §0 (d), NA-3)."
  },
  "evidence": {
   "method": "v3b no-control FZP s31/s41/s37, vehicles passing the decision's element at t >= 900 s; exit = first of the decision's route destination links reached afterwards (robust to 5 s frames skipping the 80 m link 71). Source: FW_W = passed link 26 (input 1099), FW_E = passed link 74 (input 1098), else urban. share order = dest_links order.",
@@ -410,5 +417,13 @@
    "1126: realized 0.38/0.39/0.21-0.25 against relFlow 1:1:1 - the exit to 67 (lane 1 of link 71 at 37.5 m, entered on lane 2) is under-served. Not used: beta stays exogenous (relFlow); revisit with the urban plant attribution work.",
    "1138: realized 0.34-0.45/0.29-0.33/0.26-0.32 against 1:1:1, and 40-67 vehicles per seed reach none of the three exits. SC1004 W mixes 1140 (relFlow counts, 4558) with 1138 (unit weights, 3), so W is effectively 1140's split; the true urban mix is about 2/3 via link 70 and 1/3 via 10640 (s31 link-71 counts), i.e. W is off by <= 0.05 per movement. Left for the urban plant attribution work."
   ]
+ },
+ "v3c1_repin": {
+  "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin to v3c1 and the 1165 row; the v3b rows and their FZP evidence are unchanged (the interchange decisions are not edited by v3c1).",
+  "previous": {
+   "path": "diagnostics/sdmpc_n31_20260924/beta/explicit_approach_v3b_20260925.json",
+   "sha256": "36162d5032b899369e33e6cab5ebad932119587733f0721cabc691d557942c65"
+  },
+  "reviewed_added_decisions": "the other v3c1 decisions 1160, 1162-1164, 1166-1168 attach by the destination-set inference to their own approaches (checked in the derived table sources, REPIN_V3C1_REPORT.md)"
  }
 }

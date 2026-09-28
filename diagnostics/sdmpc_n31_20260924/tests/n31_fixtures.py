@@ -31,8 +31,9 @@ import contract_fixtures as cf  # noqa: E402
 import make_plant_n31  # noqa: E402
 from evaluation.controllers import obs150_contract as oc  # noqa: E402
 
-# The pinned runtime network's original (v3b since 2026-09-25; was the v2 stage-1 s31_v2nc copy f475ce42).
-NET_INPX = Path(r'D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network\baseline_s31_v3bnc.inpx')
+# The pinned runtime network's original (v3c1 since 2026-09-28; v3b s31_v3bnc be0075bf 2026-09-25..28; before that the
+# v2 stage-1 s31_v2nc copy f475ce42).
+NET_INPX = Path(r'D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network\baseline_s31_v3c1nc.inpx')
 E_INPX = ROOT / make_plant_n31.SOURCES['network']
 V1_PLANT = 'diagnostics/lane_plant_20260921/plant.json'
 V1_MEMBERSHIP = 'diagnostics/lane_plant_20260921/scenario/control_area_membership_6c3aee.json'
@@ -42,7 +43,7 @@ PARAMETERS = ROOT / make_plant_n31.SOURCES['parameters']
 REFERENCE = ROOT / make_plant_n31.SOURCES['reference_config']
 DETECTORS = ROOT / make_plant_n31.DETECTORS
 # The v2 (f475ce42) B110 calibration observations: kept for the source-boundary equivalence test (code parity,
-# any observation set); the plant geometry now comes from the v3b extraction (make_plant_n31.SOURCES).
+# any observation set); the plant geometry now comes from the v3c1 extraction (make_plant_n31.SOURCES).
 B110_OBSERVATIONS = Path(r'D:\VISSIM-merge\sim3') / make_plant_n31.B110 / 'observations/s31_v2nc_observations'
 OBS_MODULE = 'evaluation.controllers.obs150_observation'
 

@@ -47,9 +47,9 @@ from evaluation.controllers import obs150_observation as ob  # noqa: E402
 N31D = 'diagnostics/sdmpc_n31_20260924'
 DEFAULT_TUNING = N31D + '/config_n31_v2.json'
 SOURCES = ('network', 'geometry', 'runner_config', 'plan', 'head_resource_contract', 'head_free_contract', 'sig_dir')
-# The runtime network: v3b be0075bf since the 2026-09-25 re-pin (v2 f475ce42 before; the detector table is
-# byte-identical on both, only the sidecar's source pins moved).
-NETWORK_SHA256 = 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'
+# The runtime network: v3c1 2577209b since the 2026-09-28 re-pin (v3b be0075bf 2026-09-25..28, v2 f475ce42 before;
+# the detector table is byte-identical on all three, only the sidecar's source pins moved).
+NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
 
 
 def resolve_sources(args):
@@ -132,7 +132,7 @@ def build(args):
     network_path = ob.resolve_repo(sources['network'])
     net = ob.InpxNetwork(network_path)
     if net.sha256 != NETWORK_SHA256:
-        raise oc.ObsContractError('Network is not the runtime network v3b be0075bf: ' + str(network_path))
+        raise oc.ObsContractError('Network is not the runtime network v3c1 2577209b: ' + str(network_path))
     geometry_pin, geometry_bytes = _pin(ob.resolve_repo(sources['geometry']))
     plan_pin, plan_bytes = _pin(ob.resolve_repo(sources['plan']))
     runner_pin, runner_bytes = _pin(ob.resolve_repo(sources['runner_config']))

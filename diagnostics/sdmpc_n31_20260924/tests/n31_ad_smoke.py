@@ -11,12 +11,13 @@ Cases:
                    (AFA:285-288): forward AD of total TTT and end vehicles w.r.t.
                    a FW_E ramp release, the FW_E source and the 10643 capacity
                    against central finite differences.
-  vsl_anchor_max   Dual(110 = vsl_max) on FW_E__seg10 with the branch VSL model
-                   (Carlson A0.5/E4 + exposure transport): the one-sided (left)
+  vsl_anchor_max   Dual(110 = vsl_max) on FW_E__seg10 with the reference VSL model
+                   (N1 L1 Carlson A0.94/E1.44 + exposure transport): the one-sided (left)
                    tangent, against left differences P(110) - P(110 - h) at h = 1, 2
                    and their Richardson extrapolation (h >= 1 clears the 0.5 gate).
                    FW_W has no fitted law: its 110 anchor stays a zero column.
-  vsl_below_max    Dual(80) on FW_E__seg10: forward AD against the central
+  vsl_below_max    Dual(c) on FW_E__seg10 at c = 80, 90, 100 (the interior points of
+                   the action set 80..110): forward AD against the central
                    difference at h = 0.25 (both sides active Carlson).
   vsl_zone_reach   Dual(80) on FW_W__seg10, one step: speed tangents exactly on
                    the parent zone's refined cells 15-24.
@@ -42,8 +43,8 @@ FINDER = runtime.install(ROOT, 'forward')
 ad = FINDER.ad
 
 B110 = 'diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923'
-GEOMETRY = ROOT / ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3b_nc_20260925/'
-                   'observations/s31_v3bnc_observations/geometry.json')   # = make_plant_n31.SOURCES['geometry']
+GEOMETRY = ROOT / ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/v3c1_nc_20260928/'
+                   'observations/s31_v3c1nc_observations/geometry.json')   # = make_plant_n31.SOURCES['geometry']
 PARAMETERS = ROOT / B110 / 'train_s31_v2nc/boundary_literature_v1/boundary_fit/parameters.json'
 REFERENCE = ROOT / 'diagnostics/sdmpc_n31_20260924/reference_config_n31_v2.json'
 T0 = 900.0
@@ -187,14 +188,17 @@ def vsl_anchor_max(confs):
             'finite': finite(ttt) and finite(vehicles) and all(finite(s) for s in speeds)}
 
 
-def vsl_below_max(confs):
+def vsl_below_max(confs, anchors=(80.0, 90.0, 100.0)):
     conf = confs['FW_E']
-    anchor, h = 80.0, 0.25
-    ttt, vehicles, _ = vsl_column(conf, 'FW_E', 'FW_E__seg10', anchor)
-    plus, minus = plain(conf, 'FW_E', 'FW_E__seg10', anchor + h), plain(conf, 'FW_E', 'FW_E__seg10', anchor - h)
-    return {'anchor': anchor, 'checks': [{'output': name, 'ad': ad.derivative(value).get(0, 0.0),
-                                          'fd': (plus[index] - minus[index]) / (2 * h)}
-                                         for index, (name, value) in enumerate((('ttt', ttt), ('vehicles', vehicles)))]}
+    h = 0.25
+    checks = []
+    for anchor in anchors:
+        ttt, vehicles, _ = vsl_column(conf, 'FW_E', 'FW_E__seg10', anchor)
+        plus, minus = plain(conf, 'FW_E', 'FW_E__seg10', anchor + h), plain(conf, 'FW_E', 'FW_E__seg10', anchor - h)
+        checks.extend({'anchor': anchor, 'output': name, 'ad': ad.derivative(value).get(0, 0.0),
+                       'fd': (plus[index] - minus[index]) / (2 * h)}
+                      for index, (name, value) in enumerate((('ttt', ttt), ('vehicles', vehicles))))
+    return {'anchors': list(anchors), 'vsl_set': list(conf.freeway_follower.vsl_set), 'checks': checks}
 
 
 def vsl_zone_reach(confs):

@@ -1,4 +1,4 @@
-"""WP-B2 V0-9: the detector generator (plan B1) on the pinned runtime network (v3b since 2026-09-25).
+"""WP-B2 V0-9: the detector generator (plan B1) on the pinned runtime network (v3c1 since 2026-09-28, v3b 2026-09-25..28).
 
 The committed table N31D/obs150/obs150_detectors_v2.csv and its build manifest
 must be exactly what the generator makes from the sources the manifest records.
@@ -26,7 +26,8 @@ SIDECAR = Path(str(CSV)[:-4] + ob.SIDECAR_SUFFIX)
 
 
 def _sidecar_network():
-    """The network the committed table was built from (the N31D copy; v3b be0075bf since the 2026-09-25 re-pin).
+    """The network the committed table was built from (the N31D copy; v3c1 2577209b since the 2026-09-28 re-pin, v3b
+    be0075bf 2026-09-25..28).
 
     The probe ground truth (test_lane_support.NET, the v2 stage-1 copy f475ce42) stays v2: the table is
     byte-identical on both networks, but the generator now refuses v2."""
@@ -214,7 +215,7 @@ class Generator(unittest.TestCase):
 
     def test_other_network_is_refused(self):
         # The pinned copy is accepted; the probe copy (byte-identical to v2 f475ce42, PRB) and fcb349d3 are
-        # other networks since the v3b re-pin (2026-09-25) and are refused.
+        # other networks since the v3b re-pin (2026-09-25; v3c1 since 2026-09-28) and are refused.
         self.assertEqual(ob.InpxNetwork(NETWORK).sha256, self.gen.NETWORK_SHA256)
         others = [sup.PROBE.parent / 'network' / 'obs150_probe.inpx',
                   sup.ROOT / 'diagnostics' / 'demand_sweep' / 'ramp_dsd_20260916_v2' / 'source_dsd' / 'baseline.inpx']

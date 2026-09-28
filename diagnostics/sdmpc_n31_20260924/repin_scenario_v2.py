@@ -1,23 +1,25 @@
 r"""Re-pin the SDMPC lane-plant scenario pack onto the runtime network (plan section 5, WP-E): since
-2026-09-25 network v3b be0075bf (FW80/U90 v2 f475ce42 + the v3/v3b static-route edits), before that v2 f475ce42.
+2026-09-28 network v3c1 2577209b (v3b be0075bf + the eight added routing decisions 1160, 1162-1168), 2026-09-25
+to 2026-09-28 v3b be0075bf (FW80/U90 v2 f475ce42 + the v3/v3b static-route edits), before that v2 f475ce42.
 
 Generalises diagnostics/metanet_compare_20260921/prepare_scenario.py from "original declarations ->
 one network" to "an existing pack -> the next network":
 
     source pack  diagnostics/lane_plant_20260921/scenario/   (21 files pinned to fcb349d3, "PACK")
     source tuning diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json      ("OBS1")
-    network       D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network\          ("NET", read-only)
+    network       D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network\        ("NET", read-only)
 
 Outputs (all under diagnostics/sdmpc_n31_20260924/, byte-exact by .gitattributes):
 
-    network/baseline_s31_v3bnc.inpx         byte copy of the NET .inpx (be0075bf; until 2026-09-25
+    network/baseline_s31_v3c1nc.inpx        byte copy of the NET .inpx (2577209b; 2026-09-25..28
+                                            baseline_s31_v3bnc.inpx be0075bf, before that
                                             baseline_s31_v2nc.inpx f475ce42)
     network/<42 .sig>                       byte copies of the supply files the .inpx references
     network/sig_manifest.json               name, sha256, bytes and controllers of each .sig
     scenario/<decl stem>_<sha6>.json        20 declarations; sha6 = sha256(PACK path)[:6]
     scenario/historical_prior_transfer.json regenerated receipt (training network -> v2)
     scenario/profile.csv                    byte copy (__default__,1.0: the v2 demand is inside the .inpx)
-    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 50,60,...,110 only
+    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 80,90,100,110 only
     scenario/lane_native_b110_sgplan.vbs    byte copy (the runner loads <config>_sgplan.vbs by name)
     scenario/config_n31_v2.base.json        OBS1 with every pack path and network pin re-pointed
     scenario/repin_receipt.json             what was copied, rewritten and checked
@@ -31,6 +33,14 @@ Rules (user decisions of 2026-09-24):
 - Network v3b (user decision 2026-09-25) adds exactly the enumerated route edits V3B_ROUTE_EDITS (from the v3
   and v3b edit receipts: 19 route destinations, 33:2 and 1133:2 also shortened, 1061 pos, 32 relFlows);
   characterize_changes(route_edits=...) admits those and nothing else (CHANGE_RULES is not widened).
+- Network v3c1 (user approval 2026-09-28) adds exactly the eight enumerated routing decisions V3C1_ADDED_DECISIONS
+  (1160, 1162-1168; V2 = 1161 held) as one inserted byte block pinned by V3C1_INSERTED_BLOCK (the v3c1 edit
+  receipt); characterize_changes(added_decisions=...) admits those additions and nothing else, and
+  added_block_audit re-proves the bytes. CHANGE_RULES is still not widened.
+- Declaration amendments (network v3c1): V3C1_DECLARATION_AMENDMENTS enumerates the only edits the re-pin makes
+  inside a transferred declaration (the reviewed decision 1160 on the input-1083 source link, NA-7; the native
+  route ids 1162:1, 1164:1, 1165:1 of two projection-support rows, NA-9), each with the pack value it replaces, a
+  check against the target network and a review; a hand edit of an output is refused by verify.
 - Embedded copies of changed XML are refreshed from the target XML (SC2001 native input volumes; membership
   relFlow copies of changed decisions, refresh_membership_relflow) or re-read and compared (known W_out
   destinations, relFlow copies). stale_evidence_audit() refuses any other copy. route_path_audit() refuses a
@@ -38,10 +48,11 @@ Rules (user decisions of 2026-09-24):
 - D-B: the 7 prior-calibrated declarations are carried over unchanged in their priors, with the transfer
   receipt and scenario_derivation.prior_mismatch. Refit after the first 9000 s run.
 - Training artifacts keep their original paths and bytes (scenario_prior_transfer.training_network).
-- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 50,60,70,80,90,100,110 (user decision 2026-09-24: 10 km/h
-  steps, c_max 110; it replaced the first 60,80,110): the SDMPC/plant action set, each speed with a
-  desSpeedDistribution of the same number in the v2 network (the runner writes DesSpeedDistr = CLng(speed)
-  and requires the read-back number to equal it). The pack's 115/120 have no v2 use.
+- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 80,90,100,110 (user approval 2026-09-28 with the N1 L1 VSL law:
+  N1 measured 80-110 only; it replaced 50,60,...,110 of 2026-09-24, which replaced the first 60,80,110): the
+  SDMPC/plant action set, each speed with a desSpeedDistribution of the same number in the runtime network (the
+  runner writes DesSpeedDistr = CLng(speed) and requires the read-back number to equal it). The pack's 115/120
+  have no v2 use.
 
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py build [--network-from copy]
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py verify [--no-net]
@@ -82,16 +93,21 @@ NETWORK_DIR_REL = N31D_REL + '/network'
 PACK_REL = 'diagnostics/lane_plant_20260921/scenario'
 OBS1_REL = 'diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json'
 
-# The CURRENT runtime network: v3b (user decision 2026-09-25) = v2 f475ce42 + the enumerated route edits
-# V3B_ROUTE_EDITS. The names V2_SHA256 / V2_PIN are kept (tests and callers use rp.V2_PIN); "v2" here is the
-# plant/scenario generation, not the network version. Before 2026-09-25 this pinned the v2 network
-# D:\VISSIM_runs\20260923_stage1\s31_v2nc\prepared\network\baseline_s31_v2nc.inpx (f475ce42...).
-NET_DIR = Path(r'D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network')
-NET_INPX = 'baseline_s31_v3bnc.inpx'
-V2_SHA256 = 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'
+# The CURRENT runtime network: v3c1 (user approval 2026-09-28) = v3b be0075bf + the enumerated added decisions
+# V3C1_ADDED_DECISIONS; v3b (user decision 2026-09-25) = v2 f475ce42 + the enumerated route edits V3B_ROUTE_EDITS.
+# The names V2_SHA256 / V2_PIN are kept (tests and callers use rp.V2_PIN); "v2" here is the plant/scenario
+# generation, not the network version. 2026-09-25..28 this pinned v3b
+# D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network\baseline_s31_v3bnc.inpx (be0075bf...), before that the v2
+# network D:\VISSIM_runs\20260923_stage1\s31_v2nc\prepared\network\baseline_s31_v2nc.inpx (f475ce42...).
+NET_DIR = Path(r'D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network')
+NET_INPX = 'baseline_s31_v3c1nc.inpx'
+V2_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
 V2_PIN = {'path': NETWORK_DIR_REL + '/' + NET_INPX, 'sha256': V2_SHA256}
-PREVIOUS_RUNTIME_NETWORK = {'path': NETWORK_DIR_REL + '/baseline_s31_v2nc.inpx',
-                            'sha256': 'f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b'}
+NETWORK_LABEL = 'v3c1 2577209b'
+PREVIOUS_RUNTIME_NETWORK = {'path': NETWORK_DIR_REL + '/baseline_s31_v3bnc.inpx',
+                            'sha256': 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'}
+PREVIOUS_RUNTIME_NOTE = ('v3b be0075bf, the runtime network 2026-09-25..2026-09-28 (replaced, file removed; v3b replays '
+                         'run from a frozen tree); v2 f475ce42 before 2026-09-25')
 OLD_PIN = {'path': 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx',
            'sha256': 'fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4'}
 SIG_COUNT = 42
@@ -141,7 +157,9 @@ PRIOR_DECLARATIONS = (
     'route_choice_corridor_sc1004_calibrated_6eb99c.json',
     'sc2001_corridor_nc13_f76cd6.json',
 )
-VSL_SPEEDS = (50, 60, 70, 80, 90, 100, 110)   # user decision 2026-09-24: 10 km/h steps; each needs a v2 distribution
+# User approval 2026-09-28 (with the N1 L1 VSL law): 80..110, the range N1 measured (was 50..110, 2026-09-24);
+# each speed needs a desSpeedDistribution of the same number in the runtime network.
+VSL_SPEEDS = (80, 90, 100, 110)
 FIRST_RUNTIME_CHECK = 'G1 t=1 decision: every validator runs in configure() before the first no-control action'
 
 
@@ -379,6 +397,63 @@ V3B_ROUTE_EDITS = (
     ('1140', '3', 'route_attr', 'relFlow', '', '2 0:1980'),
 )
 
+# Network v3c1 (user approval 2026-09-28; 5-seed NC gates passed, reports/gates_5seed/GATES_5SEED.md): v3b be0075bf
+# plus the eight routing decisions below, inserted as one byte block after decision 1159 (the last child of
+# vehicleRoutingDecisionsStatic); V2 (decision 1161) is held and not inserted. Nothing else differs from v3b
+# (receipt checks line_diff_vs_v3b_only_inserted_block, struct_diff_vs_v3b_equals_intended). characterize_changes
+# admits exactly these additions (CHANGE_RULES is not widened: an addition to any other section, or another added
+# decision, still refuses), and added_block_audit requires the inserted bytes to be the receipt's block.
+V3C1_EDIT_RECEIPT = {'path': r'D:\VISSIM_runs\20260927_v3c1\v3c1_edit_receipt.json',
+                     'sha256': '8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4',
+                     'rows': 'edits.decisions (8): v3b be0075bf -> v3c1 2577209b (V2 = decision 1161 held)'}
+# (decision, item, link, pos, routes): the receipt's edits.decisions, as characterize_changes checks them.
+V3C1_ADDED_DECISIONS = (
+    ('1160', 'V1', '21', '20.0', 2),
+    ('1162', 'V3', '256', '20.0', 3),
+    ('1163', 'V4', '1220012600', '22.0', 3),
+    ('1164', 'V5a', '10555', '38.0', 3),
+    ('1165', 'V5b', '1220008401', '11.5', 3),
+    ('1166', 'V6a', '10553', '16.0', 3),
+    ('1167', 'V6b', '1220008502', '31.5', 3),
+    ('1168', 'V7', '1220001602', '41.5', 3),
+)
+V3C1_INSERTED_BLOCK = {'after_decision': '1159', 'bytes': 9293,
+                       'sha256': '2b77ab010cd89de02af3c446ad082168915fd47efc6ea7e69a98918dcf8d639f'}
+
+# Declaration amendments (network v3c1, user approval 2026-09-28, REPIN_PLAN NA-7 / NA-9 and decisions D2 / D4):
+# (pack declaration, JSON pointer, kind, pack value, new value, review). 'replace' requires the pack value at the
+# pointer; 'add' requires the key to be absent. build applies them after the rewrite, re-proves each against the
+# target network (amendment_check) and records them in scenario_derivation.declaration_amendments. No other
+# edit of a transferred declaration exists; verify refuses a hand edit of an output.
+_V1_ROUTES = [{'no': '1', 'path': ['21', '10112', '174', '10281', '173', '10286', '1220009502']},
+              {'no': '2', 'path': ['21', '10112', '174', '10280', '173', '10285', '1220000803']}]
+V3C1_DECLARATION_AMENDMENTS = (
+    ('native_input_1083_signal_authority_ver2_a931a8.json', '/inputs/1083/native_route_prior', 'replace',
+     'None: no source21 decision; unique first connector;174 decision1081 precedes the75.408m merge and is ineligible. '
+     'Downstream canonical routing remains unchanged.',
+     'Reviewed decision 1160 (network v3c1 item V1, user approval 2026-09-28) on source 21 at 20.0 m: both routes '
+     '(1160:1 L to 1220009502, 1160:2 T to 1220000803) leave through the unique first connector 10112 to 174, so the '
+     'source keeps one physical turn at its heads (SG 108 2, kept movement SC108_W_to_E_SC109) and the routes split '
+     'only downstream at SC109 W. 174 decision 1081 precedes the 75.408 m merge and is ineligible. Any other source-21 '
+     'decision is refused (reviewed_source_decisions).',
+     'NA-7: the text described the v3b network (no decision on link 21); v3c1 V1 adds 1160 there.'),
+    ('native_input_1083_signal_authority_ver2_a931a8.json', '/inputs/1083/reviewed_source_decisions', 'add', None,
+     [{'no': '1160', 'link': '21', 'pos': '20.0', 'routes': _V1_ROUTES,
+       'review': ('network v3c1 V1 (template decision 1081; relFlow L 38 / T 808), user approval 2026-09-28 decision D2: '
+                  'the only admitted routing decision on the input-1083 source link; every route leaves through '
+                  'connector 10112 to 174 (physical_movement_routes.check_source_routing_decisions)')}],
+     'C-11 / D2: physical_movement_routes.configure_native_input_signal_authority refused any routing decision on '
+     'the source link; it now admits exactly the decisions named here, each equal to the network element.'),
+    ('physical_projection_support_635_proposal_cc280d.json', '/evidence/10419/native_route_ids', 'replace',
+     ['1024:1'], ['1024:1', '1162:1'],
+     'NA-9 / D4 (evidence completeness, not a refusal): v3c1 route 1162:1 (V3, W branch) also traverses '
+     '1220014100 -> 10419 -> 1220014203.'),
+    ('physical_projection_support_635_proposal_cc280d.json', '/evidence/10568/native_route_ids', 'replace',
+     ['13:1'], ['13:1', '1164:1', '1165:1'],
+     'NA-9 / D4 (evidence completeness, not a refusal): v3c1 routes 1164:1 and 1165:1 (V5a/V5b, E branch; 1165:1 '
+     'relFlow 0) also traverse 1210008401 -> 10568 -> 1220008301.'),
+)
+
 
 def path_changed_routes(route_edits):
     """'decision:route' keys whose link path (linkSeq or destLink) an edit changes."""
@@ -413,12 +488,29 @@ def apply_route_edits(old_decisions, route_edits):
     return patched
 
 
-def characterize_changes(old_root, new_root, route_edits=()):
+def added_decision_rows(new_root, added_decisions):
+    """added_decisions rows (decision, item, link, pos, routes) checked against the target network's elements."""
+    rows = []
+    for number, item, link, pos, routes in added_decisions:
+        node = new_root.find(f"./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic[@no='{number}']")
+        require(node is not None, f'added decision {number} ({item}) missing from the target network')
+        found = node.findall('./vehRoutSta/vehicleRouteStatic')
+        require((node.get('link'), node.get('pos'), len(found)) == (link, pos, routes),
+                f'added decision {number} ({item}): link/pos/routes {(node.get("link"), node.get("pos"), len(found))} '
+                f'are not the enumerated {(link, pos, routes)}')
+        rows.append({'decision': number, 'item': item, 'link': link, 'pos': pos,
+                     'routes': [decision_evidence(new_root, number)['routes'][i]['path'] for i in range(routes)]})
+    return rows
+
+
+def characterize_changes(old_root, new_root, route_edits=(), added_decisions=()):
     """Prove the v2 difference is exactly the NEW-1 kinds (plus seed/SimRes); refuse anything else.
 
     route_edits (build: V3B_ROUTE_EDITS) additionally admits exactly those enumerated static-route edits: the
     routing decisions that differ beyond relFlow must be exactly the decisions of its non-relFlow rows, and the
-    old network with every row applied must equal the target (relFlow compared per row)."""
+    old network with every row applied must equal the target (relFlow compared per row).
+    added_decisions (build: V3C1_ADDED_DECISIONS) admits exactly those added routing decisions (numbers equal, each
+    element's link, pos and route count as enumerated); CHANGE_RULES still refuses any other added element."""
     diff = section_diff(old_root, new_root)
     report = {}
     for tag, row in diff.items():
@@ -426,6 +518,14 @@ def characterize_changes(old_root, new_root, route_edits=()):
         rule = CHANGE_RULES[tag]
         require('presence' not in row, f'{tag}: section present in one network only')
         entry = {'meaning': rule['meaning']}
+        if tag == 'vehicleRoutingDecisionsStatic' and added_decisions:
+            enumerated = sorted((r[0] for r in added_decisions), key=int_key)
+            require(row.get('added', []) == enumerated,
+                    f'{tag}: elements added {row.get("added", [])}, the enumerated added decisions are {enumerated}')
+            entry['meaning'] = rule['meaning'] + ' + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS)'
+            entry['added_decisions'] = added_decision_rows(new_root, added_decisions)
+            entry['added_decision_receipt'] = dict(V3C1_EDIT_RECEIPT)
+            row = {k: v for k, v in row.items() if k != 'added'}
         if 'attributes' in row:
             require(set(row['attributes']) <= set(rule.get('attributes', ())), f'{tag}: attributes changed {row["attributes"]}')
             entry['attributes'] = row['attributes']
@@ -463,7 +563,8 @@ def characterize_changes(old_root, new_root, route_edits=()):
                     if attr == 'relFlow':
                         require(route_relflow(new_root, dec, route) == new, f'route edit {dec}:{route} relFlow: target is not {new!r}')
                 still = []
-                entry['meaning'] = rule['meaning'] + ' + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS)'
+                entry['meaning'] = rule['meaning'] + ' + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS)' + (
+                    ' + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS)' if added_decisions else '')
                 entry['route_edits'] = [{'decision': dec, 'route': route, 'kind': kind, 'attribute': attr, 'old': old, 'new': new}
                                         for dec, route, kind, attr, old, new in route_edits if attr != 'relFlow']
                 entry['route_edit_receipts'] = [dict(r) for r in V3B_EDIT_RECEIPTS]
@@ -482,6 +583,32 @@ def characterize_changes(old_root, new_root, route_edits=()):
                 entry['distribution_changes'] = [{'old': o, 'new': n} for o, n in sorted(values)]
         report[tag] = entry
     return report
+
+
+def added_block_audit(network, added_decisions=V3C1_ADDED_DECISIONS, block=V3C1_INSERTED_BLOCK):
+    """The added decisions are one contiguous byte block: from the line that opens the first added decision to the
+    closing tag of vehicleRoutingDecisionsStatic, right after the closing line of block['after_decision'], with the
+    edit receipt's length and sha256, holding exactly the added decisions in order."""
+    numbers = [r[0] for r in added_decisions]
+    opens = [m.start() + 1 for m in re.finditer(rb'\n[ \t]*<vehicleRoutingDecisionStatic [^>]*\bno="' + numbers[0].encode()
+                                                + rb'"', network)]
+    require(len(opens) == 1, f'added decision {numbers[0]} opens {len(opens)} times in the network bytes')
+    closes = [m.start() + 1 for m in re.finditer(rb'\n[ \t]*</vehicleRoutingDecisionsStatic>', network)]
+    require(len(closes) == 1, 'vehicleRoutingDecisionsStatic closes more than once')
+    start, end = opens[0], closes[0]
+    data = network[start:end]
+    require((len(data), sha256_bytes(data)) == (block['bytes'], block['sha256']),
+            f'inserted decision block is {len(data)} bytes sha256 {sha256_bytes(data)[:8]}, the edit receipt pins '
+            f'{block["bytes"]} bytes {block["sha256"][:8]}')
+    wrapped = ET.fromstring(b'<vehicleRoutingDecisionsStatic>' + data + b'</vehicleRoutingDecisionsStatic>')
+    require([x.get('no') for x in wrapped] == numbers, 'the inserted block does not hold exactly the added decisions')
+    before = network.rfind(b'\n', 0, start - 1) + 1
+    previous = network[network.rfind(b'<vehicleRoutingDecisionStatic ', 0, start):start]
+    require(network[before:start].strip() == b'</vehicleRoutingDecisionStatic>'
+            and re.search(rb'\bno="' + block['after_decision'].encode() + rb'"', previous.split(b'>', 1)[0]) is not None,
+            f'the inserted block does not follow decision {block["after_decision"]}')
+    return {'after_decision': block['after_decision'], 'bytes': len(data), 'sha256': sha256_bytes(data),
+            'decisions': numbers, 'receipt': dict(V3C1_EDIT_RECEIPT)}
 
 
 def native_diff(old_root, new_root):
@@ -595,7 +722,7 @@ class Sources:
         else:
             self.network = read_pinned(V2_PIN, root)
             self.sig_dir = repo_path(NETWORK_DIR_REL, root)
-        require(sha256_bytes(self.network) == V2_SHA256, 'runtime network sha differs from v3b be0075bf (user decision 2026-09-25)')
+        require(sha256_bytes(self.network) == V2_SHA256, f'runtime network sha differs from {NETWORK_LABEL} (user approval 2026-09-28)')
         self.old_tree = ET.fromstring(self.old_network)
         self.new_tree = ET.fromstring(self.network)
         self.training_tree = ET.fromstring(self.training_network)
@@ -983,12 +1110,81 @@ def pin_audit(rel, document, outputs, sources, exempt):
     return {'resolved': count, 'external_provenance': external}
 
 
+def json_parent(document, pointer, label):
+    """(parent dict, key) of a JSON pointer whose parent exists."""
+    parts = [p.replace('~1', '/').replace('~0', '~') for p in pointer.split('/')[1:]]
+    node = document
+    try:
+        for part in parts[:-1]:
+            node = node[int(part)] if isinstance(node, list) else node[part]
+    except (KeyError, IndexError, ValueError, TypeError):
+        raise RepinError(f'{label}{pointer}: amendment target missing') from None
+    require(isinstance(node, dict) and parts, f'{label}{pointer}: amendment target is not an object member')
+    return node, parts[-1]
+
+
+def route_paths(tree):
+    """{'decision:route': link path} of every static route of a network."""
+    return {f'{d["no"]}:{r["no"]}': r['path']
+            for d in (decision_evidence(tree, x.get('no'))
+                      for x in tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic'))
+            for r in d['routes']}
+
+
+def amendment_check(label, document, tree, pointers):
+    """Re-prove the amended declaration against the target network, with the runtime's own rule where one exists:
+    native-input signal authority -> physical_movement_routes.check_source_routing_decisions; amended
+    native_route_ids of a {physical_triplet} evidence row -> every named route traverses the triplet."""
+    if document.get('schema') == 'native-input-signal-authority/v1':
+        from evaluation.controllers.physical_movement_routes import check_source_routing_decisions
+        decisions = tree.findall('./vehicleRoutingDecisionsStatic/vehicleRoutingDecisionStatic')
+        for number, row in document['inputs'].items():
+            try:
+                check_source_routing_decisions(decisions, row)
+            except ValueError as error:
+                raise RepinError(f'{label}/inputs/{number}: {error}') from None
+    paths = None
+    for pointer in pointers:
+        owner, key = json_parent(document, pointer, label)
+        if key != 'native_route_ids' or 'physical_triplet' not in owner:
+            continue
+        paths = route_paths(tree) if paths is None else paths
+        triplet = [str(x) for x in owner['physical_triplet']]
+        for name in owner['native_route_ids']:
+            path = paths.get(name, [])
+            require(any(path[i:i + 3] == triplet for i in range(len(path) - 2)),
+                    f'{label}{pointer}: route {name} does not traverse {triplet} on the target network')
+
+
+def apply_amendments(name, document, tree, amendments=None):
+    """Apply the enumerated amendments of one pack declaration; each must find its pack value (or no key for 'add')."""
+    amendments = V3C1_DECLARATION_AMENDMENTS if amendments is None else amendments
+    applied = []
+    for declaration, pointer, kind, old, new, review in amendments:
+        if declaration != name:
+            continue
+        parent, key = json_parent(document, pointer, name)
+        if kind == 'replace':
+            require(key in parent and parent[key] == old,
+                    f'{name}{pointer}: pack value {parent.get(key)!r} is not the value the amendment replaces')
+        elif kind == 'add':
+            require(key not in parent, f'{name}{pointer}: amendment adds a key the pack already has')
+        else:
+            raise RepinError(f'{name}{pointer}: unknown amendment kind {kind}')
+        parent[key] = copy.deepcopy(new)
+        applied.append({'at': pointer, 'kind': kind, 'old': copy.deepcopy(old), 'new': copy.deepcopy(new), 'review': review})
+    if applied:
+        amendment_check(name, document, tree, [row['at'] for row in applied])
+    return applied
+
+
 # --------------------------------------------------------------------------- the build
 DERIVATION_EXEMPT = ('/scenario_derivation/lineage', '/scenario_derivation/source_declaration')
 
 
 def prior_block(name, document, priors, transfer_pin, changes):
-    known = [f'{tag}: {changes[tag]["meaning"]} ({len(changes[tag].get("changed", changes[tag].get("added", [])))} elements)'
+    known = [f'{tag}: {changes[tag]["meaning"]} ({len(changes[tag].get("changed", changes[tag].get("added", [])))} elements'
+             + (f', {len(changes[tag]["added_decisions"])} added)' if changes[tag].get('added_decisions') else ')')
              for tag in ('vehicleInputs', 'vehicleRoutingDecisionsStatic', 'desSpeedDecisions') if tag in changes]
     block = {
         'status': 'transferred_without_refit',
@@ -1028,7 +1224,9 @@ def pack_closure(obs1, documents):
 def build_outputs(sources):
     """Every output as bytes (copies included), plus the receipt. Pure: reads sources only."""
     pack_bytes = {f'{PACK_REL}/{name}': data for name, data in sources.pack.items()}
-    changes = characterize_changes(sources.old_tree, sources.new_tree, route_edits=V3B_ROUTE_EDITS)
+    changes = characterize_changes(sources.old_tree, sources.new_tree, route_edits=V3B_ROUTE_EDITS,
+                                   added_decisions=V3C1_ADDED_DECISIONS)
+    added_block = added_block_audit(sources.network)
     simres = sources.new_tree.find('simulation').get('simRes')
     require(simres == str(EXPECTED_SIMRES), f'v2 network SimRes {simres} differs from the contract ({EXPECTED_SIMRES})')
     outputs = copies(sources)
@@ -1083,14 +1281,16 @@ def build_outputs(sources):
         'unchanged_prior_files': unchanged,
         'actual_native_differences': native_diff(sources.training_tree, sources.new_tree),
         'limitations': list(sources.old_transfer['limitations']) + [
-            'The runtime network v3b be0075bf (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b '
-            'static-route edits: 19 route destinations, 1061 pos, 32 relFlows; user decision 2026-09-25) differs again '
-            'from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes.'],
+            'The runtime network v3c1 2577209b (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b '
+            'static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user decision 2026-09-25; plus the eight '
+            'v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28) differs again from the pack network '
+            'fcb349d3; see repin_step. The priors keep their training network and bytes.'],
         'repin_step': {
             'previous_transfer': old_transfer_pin,
             'from_network': dict(OLD_PIN),
             'to_network': dict(V2_PIN),
             'native_changes': changes,
+            'added_decision_block': added_block,
         },
         'prior_mismatch': {
             'status': 'transferred_without_refit',
@@ -1105,7 +1305,7 @@ def build_outputs(sources):
     rows, active = {}, set()
     changed_decisions = set(changes.get('vehicleRoutingDecisionsStatic', {}).get('changed', []))
     path_changed = set(changes.get('vehicleRoutingDecisionsStatic', {}).get('path_changed_routes', []))
-    reviewed = set()
+    reviewed, amended = set(), set()
 
     def convert(name):
         source_rel = f'{PACK_REL}/{name}'
@@ -1119,6 +1319,7 @@ def build_outputs(sources):
         rewrite = Rewriter(path_map, pin_map, pack_bytes)
         lineage = document.pop('scenario_derivation')
         document = rewrite(document)
+        amendments = apply_amendments(name, document, sources.new_tree)
         row = {'source': pin_of(source_rel, sources.pack[name]), 'schema': document.get('schema'),
                'rewritten': rewrite.edits, 'prior_mismatch': name in PRIOR_DECLARATIONS}
         derivation = {'source_declaration': row['source'], 'runtime_network': dict(V2_PIN),
@@ -1127,6 +1328,10 @@ def build_outputs(sources):
                                 'runtime_validation': FIRST_RUNTIME_CHECK,
                                 'rewritten': {kind: sum(e['kind'] == kind for e in rewrite.edits)
                                               for kind in ('network_pin', 'pack_pin', 'pack_path')}}}
+        if amendments:
+            derivation['declaration_amendments'] = amendments
+            row['declaration_amendments'] = [a['at'] for a in amendments]
+            amended.add(name)
         if document.get('schema') == 'known-wout-routes/v1':
             derivation['actual_native_destination_updates'] = refresh_known_wout(document, sources.new_tree)
         if document.get('schema') == 'sc2001-corridor/v1':
@@ -1163,13 +1368,16 @@ def build_outputs(sources):
         convert(name)
     require(reviewed == set(V3B_PATH_CHANGE_REVIEW) or not path_changed,
             f'Route path-change reviews without a citation: {sorted(set(V3B_PATH_CHANGE_REVIEW) - reviewed)}')
+    require(amended == {row[0] for row in V3C1_DECLARATION_AMENDMENTS},
+            f'Declaration amendments of no pack declaration: {sorted({row[0] for row in V3C1_DECLARATION_AMENDMENTS} - amended)}')
 
     # the base tuning: OBS1 with every pack path and network pin re-pointed
     rewrite = Rewriter(path_map, pin_map, pack_bytes)
     config = rewrite(obs1)
     config['name'] = 'sdmpc31_v2_repin_base_20260924'
     config['description'] = ('WP-E base (plan section 5): ' + OBS1_REL + ' with the scenario pack and network pins re-pointed '
-                             'to the network v3b be0075bf (FW80/U90 v2 + v3/v3b route edits, 2026-09-25). Not launchable alone: freeway.lane_plant still selects '
+                             'to the network v3c1 2577209b (FW80/U90 v2 + v3/v3b route edits 2026-09-25 + the v3c1 routing decisions '
+                             '2026-09-28). Not launchable alone: freeway.lane_plant still selects '
                              'the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | ' + obs1['description'])
     config['_repin'] = {'schema': 'sdmpc31-config-base/v1', 'source_config': pin_of(OBS1_REL, sources.obs1),
                         'tool': TOOL_REL, 'rewritten': rewrite.edits,
@@ -1195,7 +1403,7 @@ def build_outputs(sources):
                   'action': 'regenerated: training network kept, target v2, prior list checked equal'})
     for name, action in ((PROFILE_NAME, 'byte copy'),
                          (RUNNER_CONFIG[0], f'copy; RW_ALLOWED_VSL_SPEEDS {",".join(map(str, old_speeds))} -> '
-                                            f'{",".join(map(str, VSL_SPEEDS))} (user decision 2026-09-24)'),
+                                            f'{",".join(map(str, VSL_SPEEDS))} (user approval 2026-09-28, N1 L1 action set)'),
                          (SG_PLAN[0], 'byte copy; name follows the runner config (VBS LoadSignalGroupPlanConfig)')):
         files.append({'source': pin_of(f'{PACK_REL}/{name}', sources.pack[name]), 'target': pin_map[f'{PACK_REL}/{name}'],
                       'action': action})
@@ -1207,7 +1415,7 @@ def build_outputs(sources):
         'inputs': {'pack': PACK_REL, 'source_config': pin_of(OBS1_REL, sources.obs1), 'previous_network': dict(OLD_PIN),
                    'training_network': dict(sources.training_pin), 'network_source_folder': str(NET_DIR),
                    'previous_runtime_network': dict(PREVIOUS_RUNTIME_NETWORK,
-                                                    note='v2 f475ce42, the runtime network until 2026-09-25 (replaced, file removed)')},
+                                                    note=PREVIOUS_RUNTIME_NOTE)},
         'network': {'inpx': dict(V2_PIN), 'sig_manifest': manifest_pin, 'sig_files': len(sources.sig),
                     'sig_byte_equal_to': {'folder': sources.sig_reference, 'files': len(sources.sig),
                                           'meaning': 'the .sig files beside the training network the pack was derived on'}},

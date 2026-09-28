@@ -696,6 +696,14 @@ observe_live v2 → obs150_observation.derive(raw, context)
   - 검지기 CSV는 바이트 그대로입니다(`108debbb`, 294행). 사이드카(`obs150_detectors_v2.manifest.json`)는 망, 기하, 헤드 계약 sha를 v3b로 적습니다. `load_context`는 사이드카 망과 manifest 망이 다르면 거부합니다(obs150_observation.py:612). 그래서 v2 망(probe 사본 포함)으로는 더 이상 context를 만들 수 없습니다.
   - 시험: `test_lane_context`와 `test_generator_detectors`는 사이드카가 적은 망과 기하를 따라갑니다. probe 정답 시험(`test_lane_support`, `test_lane_probe`, `test_lane_source_boundary`)은 v2 probe 런의 정답이므로 v2 망 그대로 둡니다. 생성기는 v2 probe 망을 거부해야 합니다(`test_other_network_is_refused`).
   - plant `geometry`는 v3b s31 무제어 추출(`7d330bd2`, v2 기하와 출처 키만 다름)입니다. `parameters`와 reference의 b110 보정은 v2 NC s31에서 맞춘 사전값이고 재적합하지 않았습니다(`qualification`에 적음).
+- **망 v3c1 재핀 + VSL L1 + 행동 집합 {80,90,100,110} (2026-09-28 사용자 승인, `D:/VISSIM_runs/20260927_v3c1/reports/REPIN_PLAN.md`).** 인터페이스와 스키마는 바뀌지 않습니다. 핀 값, 행동 집합, VSL 법칙 계수만 바뀝니다.
+  - `sources.network`는 `N31D/network/baseline_s31_v3c1nc.inpx`(`2577209b…`)입니다. v3b `be0075bf`에 경로결정 8개(1160, 1162–1168)를 한 블록(`2b77ab01…`, 9293 B)으로 더한 망이고 V2(1161)는 보류입니다. `.sig` 42개, 링크, 신호, 입력, 검지기 위치는 같습니다. v3b 사본과 v3b 표(`routing_v3b`/`routing_v3b2` 원천 포함)는 트리에서 뺐습니다. v3b 재생은 동결 트리에서 합니다.
+  - 재핀 도구(`repin_scenario_v2.py`)는 추가 결정을 열거표 `V3C1_ADDED_DECISIONS`와 삽입 블록 sha로만 받습니다(`CHANGE_RULES`는 넓히지 않음). 전달 선언의 편집은 열거표 `V3C1_DECLARATION_AMENDMENTS` 넷뿐입니다: 1083 선언의 `native_route_prior` 문구와 `reviewed_source_decisions`(1160만, 결정 D2), 635 projection support의 `native_route_ids` 두 행(1162:1, 1164:1·1165:1, 결정 D4).
+  - 런타임: `physical_movement_routes.check_source_routing_decisions`가 입력 1083 원천 링크 21의 경로결정을 선언이 적은 것(1160, 링크·pos·경로 전부 일치, 모든 경로가 10112 → 174)만 받습니다. 키가 없으면 전과 같이 어떤 결정도 거부합니다(비트 동일).
+  - 검지기 CSV는 바이트 그대로입니다(`108debbb`, 294행). 사이드카는 망, 기하, 러너, 헤드 계약 sha를 v3c1로 적습니다.
+  - plant `geometry`는 v3c1 s31 무제어 추출(`8752f0cd`, v3b 기하와 출처 키만 다름)입니다. port profile과 램프 도착 예측은 v3c1 fit 5시드(31/41/43/47/53, s37 봉인)에서 다시 뽑았습니다. b110 보정은 여전히 v2 NC s31 사전값입니다.
+  - VSL 행동 집합은 `{80,90,100,110}`입니다(2026-09-24의 `{50,…,110}`을 대체). 위 네 곳(러너, 튜닝, reference, SDMPC 좌표)이 같은 값입니다. 최댓값 110이 그대로라 Carlson 기준 b = 명령/110과 all-110 예측은 바뀌지 않습니다. 블록 0 상자는 110에서 {80..110}입니다.
+  - VSL 법칙은 N1 L1 Carlson `A 0.94 / E 1.44 / alpha 0`(FW_E)입니다(`D:/VISSIM_runs/20260927_n1_vsl/reports/fit_results.json` `a81eb5cf…` k4_core.fits.L1). v3b NC s41/43/47/53, 80–110에서 맞췄고 v3c1에 이월 사전값으로 씁니다(결정 D7). 규칙 (b)(i)로는 Carlson 계열이 χ²/자유도 4.19로 형식상 기각이며 사용자 결정으로 골랐습니다(`qualification`에 적음). 아래 A0.5_E4 항목의 계수는 이것으로 대체됐고, 노출 transport와 표지 셀은 그대로입니다.
 - VSL 모형을 먼저 plant에 옮깁니다(2026-09-24). 110 속도분포는 VSL을 돌려 본 뒤 정합니다. 분포와 망은 바꾸지 않았습니다.
   - 브랜치 `codex/control-full-review-20260909` d80faf9, 후보 A0.5_E4(`diagnostics/vsl_handoff_20260924/candidate.json` sha `a2fe3366…`)를 브랜치 키 이름 그대로 `reference_config_n31_v2.json`의 `freeway`에 넣었습니다.
     - `vsl_fd_response`: FW_E Carlson A 0.5, E 4, alpha 0, 기준 명령 = max(vsl_set) = 110

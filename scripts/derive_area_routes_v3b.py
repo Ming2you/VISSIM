@@ -43,8 +43,8 @@ from evaluation.controllers.control_area_objective import physical_membership_fr
 N31D = "diagnostics/sdmpc_n31_20260924"
 DEFAULTS = {
     "movements": N31D + "/scenario/config_n31_v2.base.json",
-    "declaration": N31D + "/urban/movement_nonexistent_v3b_20260926.json",
-    "phase_authority": N31D + "/urban/physical_phase_authority_v3b_20260926.json",
+    "declaration": N31D + "/urban/movement_nonexistent_v3c1_20260928.json",
+    "phase_authority": N31D + "/urban/physical_phase_authority_v3c1_20260928.json",
     "turns": "outputs/pn_boundary_turns_v2_20260907.json",
 }
 DECLARATION_SCHEMA = "movement-nonexistent-declaration/v1"
@@ -160,7 +160,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     for k, v in DEFAULTS.items():
         ap.add_argument("--" + k.replace("_", "-"), dest=k, default=v)
-    ap.add_argument("--generated", default="2026-09-26")
+    ap.add_argument("--generated", default="2026-09-28")
     ap.add_argument("--out", required=True)
     ap.add_argument("--check", action="store_true", help="compare with --out (and its .provenance.json) instead")
     args = ap.parse_args()

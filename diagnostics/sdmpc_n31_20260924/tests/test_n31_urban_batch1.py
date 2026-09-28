@@ -1,9 +1,10 @@
-"""Urban plant batch 1 (U1 routing beta, U2 route queue attribution, U3 unsignalized turns), 2026-09-25.
+"""Urban plant batch 1 (U1 routing beta, U2 route queue attribution, U3 unsignalized turns), 2026-09-25; re-pinned
+to network v3c1 2026-09-28 (sources routing_v3c1 / routing_v3c1_2, *_v3c1_20260928 inputs).
 
 Every new switch is a config key; with the keys absent the adapter must behave exactly as before (the full-decision
 bit identity is proven by replaying the logged v3b no-control decisions, see the batch report). These tests pin:
   - the three generators rebuild their pinned files byte for byte (reproducibility);
-  - routing_v3b2 covers every runtime movement, each approach sums to 1, and the physical-path rules hold on the
+  - routing_v3c1_2 covers every runtime movement, each approach sums to 1, and the physical-path rules hold on the
     interchange approaches; a boundary exit follows the physical out-link table (SC104 10171 -> E, review
     2026-09-26); the runtime guards refuse a moved or renormalised share only for the complete source, decided by
     the adapter's own predicate; the table is pinned (urban.beta.sha256), installed only with the declaration and
@@ -55,7 +56,7 @@ def _load_script(name):
 
 def _args(module, **over):
     values = dict(module.DEFAULTS)
-    values['generated'] = '2026-09-25'
+    values['generated'] = '2026-09-28'       # the v3c1 re-pin date of every batch-1 table
     values.update(over)
     return types.SimpleNamespace(**values)
 
@@ -79,9 +80,9 @@ def cfg_with(movements):
 
 DECLARED = {'merge_exits': True, 'phase_correction': True, 'physical_phase_authority': mc.URBAN_B1_PHASE_AUTHORITY,
             'nonexistent_declaration': {'path': mc.URBAN_B1_DECLARATION, 'sha256': mc.URBAN_B1_DECLARATION_SHA256}}
-COMPLETE = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3b2', 'sha256': mc.URBAN_B1_BETA_SHA256},
+COMPLETE = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1_2', 'sha256': mc.URBAN_B1_BETA_SHA256},
                       'movements': dict(DECLARED)}}
-DEFAULT = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3b'}}}
+DEFAULT = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1'}}}
 PLAN_SWITCHES = {'urban': {'plan': {'mainline_only': True, 'actuation_plan_json':
                  'diagnostics/controller_confidence_20260913/local_native_clock_v2/native_clock_plan_local.json'}}}
 
@@ -136,11 +137,11 @@ class GeneratorReproductionTests(unittest.TestCase):
 
     def test_phase_authority_rebuilds_the_pin(self):
         g = _load_script('derive_phase_authority_v3b')
-        self.assertEqual(sha(g.dumps(g.derive(_args(g, generated='2026-09-26')))), mc.URBAN_B1_PHASE_AUTHORITY_SHA256)
+        self.assertEqual(sha(g.dumps(g.derive(_args(g)))), mc.URBAN_B1_PHASE_AUTHORITY_SHA256)
 
     def test_area_routes_rebuild_the_pin(self):
         g = _load_script('derive_area_routes_v3b')
-        doc, record = g.derive(_args(g, generated='2026-09-26'))
+        doc, record = g.derive(_args(g))
         self.assertEqual(sha(g.dumps(doc)), mc.URBAN_B1_AREA_ROUTES_SHA256)
         self.assertEqual(sha(g.dumps(record)), mc.URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256)
 
@@ -270,9 +271,13 @@ class RoutingBetaPhysicalTests(unittest.TestCase):
         rec = next(r for r in self.doc['approaches'] if (r['signal'], r['approach']) == ('SC104', 'S_SC106'))
         self.assertEqual(rec['physical_connectors'], {'SC104_S_SC106_to_N': ['10167'], 'SC104_S_SC106_to_W_SC6': ['10170'],
                                                       'SC104_S_SC106_to_E': ['10171']})
-        # no static route crosses the stop line: the config default of every physical movement (0.5 / 0.25 / 0.25)
-        self.assertEqual(rec['beta'], {'SC104_S_SC106_to_N': 0.5, 'SC104_S_SC106_to_W_SC6': 0.25, 'SC104_S_SC106_to_E': 0.25})
-        self.assertEqual(set(rec['reason'].values()), {'no_route_evidence_config_default'})
+        # network v3c1 item V7 (decision 1168 on 1220001602, 605 : 6760 : 2988): the stop line now has route evidence
+        # (on v3b no route crossed it and the config default 0.5 / 0.25 / 0.25 applied)
+        self.assertEqual(rec['sources'], {'1168:1': 605.0, '1168:2': 6760.0, '1168:3': 2988.0})
+        self.assertEqual(rec['beta'], {'SC104_S_SC106_to_N': 6760 / 10353, 'SC104_S_SC106_to_W_SC6': 605 / 10353,
+                                       'SC104_S_SC106_to_E': 2988 / 10353})
+        self.assertEqual(set(rec['reason'].values()), {'relflow'})
+        self.assertEqual(self.doc['no_route_evidence_approaches'], [])
         self.assertEqual(self.doc['boundary_exits_decided_by_out_link_table'], [
             {'signal': 'SC104', 'connector': '10171', 'headings': ['N', 'E'], 'heading_rule': 'SC104_N_out',
              'out_link_table': 'SC104_E_out', 'terminal': '1220061100'}])
@@ -363,7 +368,7 @@ class RoutingBetaPhysicalTests(unittest.TestCase):
     def test_default_source_is_unchanged(self):
         meta = ad.install_measured_turn_beta(cfg_with(self.um), DEFAULT)
         self.assertNotIn('measured_beta_complete', meta)
-        self.assertEqual(meta['measured_beta_movements'], 370.0)
+        self.assertEqual(meta['measured_beta_movements'], 373.0)       # v3b 370 + SC104 S_SC106 (v3c1 decision 1168)
 
 
 class GuardTests(unittest.TestCase):
@@ -373,7 +378,7 @@ class GuardTests(unittest.TestCase):
         self.assertFalse(beta_source.complete_beta_source(DEFAULT))
         self.assertFalse(beta_source.complete_beta_source({}))
         self.assertFalse(beta_source.complete_beta_source(
-            {'urban': {'beta': {'measured': False, 'source': 'routing_v3b2'}}}))
+            {'urban': {'beta': {'measured': False, 'source': 'routing_v3c1_2'}}}))
         beta_source.require_zero_moved_beta(DEFAULT, 'x', {'a': 0.3})
         beta_source.require_unit_approach_sums(DEFAULT, 'x', {'a': {'signal': 'S', 'approach': 'A', 'beta': 0.3}})
         with self.assertRaisesRegex(ValueError, 'non-zero share'):
@@ -452,7 +457,7 @@ class GuardTests(unittest.TestCase):
         ok = copy.deepcopy(cfg)
         ok.network.boundary_out_link_length_km = {}
         ok.network.wout_travel_speed_km_h = 40.0
-        ad.install_leg_ramp_split_fold(ok, tuning)          # every folded share is 0 in routing_v3b2
+        ad.install_leg_ramp_split_fold(ok, tuning)          # every folded share is 0 in routing_v3c1_2
         bad = copy.deepcopy(cfg)
         bad.network.wout_travel_speed_km_h = 40.0
         bad.network.urban_movements['SC1001_S_SC1003_to_onW']['beta'] = 0.1
@@ -817,7 +822,7 @@ class SC7DeclarationTests(unittest.TestCase):
     """User decision 2026-09-26: correct the v2-reading declaration of SC7 E / E_SC16 -> N_SC11 to v3b, serve the two in
     the phase of their real head (140101, SC7 SG 1 = p4) and give the relFlow value; nothing else changes."""
 
-    NET = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx'
+    NET = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx'
     SIG = 'diagnostics/sdmpc_n31_20260924/network/개포동 test-bed14.sig'
     PLAN = PLAN_SWITCHES['urban']['plan']['actuation_plan_json']
     SC7_N = ('SC7_E_to_N_SC11', 'SC7_E_SC16_to_N_SC11')
@@ -994,7 +999,7 @@ class ConfigTests(unittest.TestCase):
     def test_batch1_candidate_adds_exactly_its_keys(self):
         base = self.default_tuning()
         cand = mc.apply_urban_batch1(base)
-        self.assertEqual(cand['urban']['beta']['source'], 'routing_v3b2')
+        self.assertEqual(cand['urban']['beta']['source'], 'routing_v3c1_2')
         self.assertEqual(cand['urban']['beta']['sha256'], mc.URBAN_B1_BETA_SHA256)
         self.assertEqual(cand['urban']['queue']['attribution'], 'route')
         self.assertEqual(cand['urban']['queue']['route_evidence']['sha256'], mc.URBAN_B1_ROUTE_EVIDENCE_SHA256)
@@ -1006,7 +1011,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(cand['urban']['ramp']['offramp_direct_route_prior'], mc.URBAN_B1_OFFRAMP_PRIOR)
         rest = copy.deepcopy(cand)
         rest.pop('_n31_urban_b1_note')
-        rest['urban']['beta']['source'] = 'routing_v3b'
+        rest['urban']['beta']['source'] = 'routing_v3c1'
         rest['urban']['beta'].pop('sha256')
         for key in ('attribution', 'route_evidence'):
             rest['urban']['queue'].pop(key)

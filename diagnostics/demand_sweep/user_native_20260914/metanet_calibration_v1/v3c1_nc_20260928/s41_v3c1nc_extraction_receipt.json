@@ -1,0 +1,40 @@
+{
+  "id": "s41_v3c1nc",
+  "run": "D:\\VISSIM_runs\\20260927_v3c1\\s41_v3c1nc\\run",
+  "observations": "D:\\VISSIM-merge\\sim3-n31-v3c1\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c1_nc_20260928\\observations\\s41_v3c1nc_observations",
+  "command": [
+    "D:\\VISSIM-merge\\sim3-n31-v3c1\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\extract_observations.py",
+    "--run",
+    "D:\\VISSIM_runs\\20260927_v3c1\\s41_v3c1nc\\run",
+    "--out",
+    "D:\\VISSIM-merge\\sim3-n31-v3c1\\diagnostics\\demand_sweep\\user_native_20260914\\metanet_calibration_v1\\v3c1_nc_20260928\\observations\\s41_v3c1nc_observations",
+    "--phase-sec",
+    "0.1",
+    "--geometry-profile",
+    "D:\\VISSIM-merge\\sim3-n31-v3c1\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\controller_response_v1\\geometry_profile.json",
+    "--refined-geometry",
+    "D:\\VISSIM-merge\\sim3-n31-v3c1\\diagnostics\\demand_sweep\\ramp_dsd_20260916_v2\\segment_resolution_20260921\\geometry_200_branch_guard.json"
+  ],
+  "finished": "2026-09-28T11:50:16",
+  "elapsed_s": 90.9,
+  "priority": "BELOW_NORMAL (0x4000 read back on the child)",
+  "extractor_sha256": "5fa270475255183688db196ffee7508b44faad4c04c91b09b461fcf4cacc2a75",
+  "manifest_sha256": "5866df778ded315e628af40fa2b4c4139b2fe212e37eb12a40214e76a5d1f0ef",
+  "purpose": "SDMPC-31 re-pin to network v3c1 (2026-09-28): plant geometry (s31), ramp-arrival forecast inputs (boundaries_30s.csv, fit seeds 31/41/43/47/53; s37 held out, never extracted)",
+  "verification": {
+    "seed": 41,
+    "checks": 18538,
+    "last_frame": 8995.1,
+    "last_complete_30s_window_s": 8970.1,
+    "position_verified": 4158,
+    "network_sha256": "226baa376b557b3792d8580658966a7f3046948ec7ed185f7ad96f8aed7c5506",
+    "fzp_sha256": "b7e9186fcf33506d1bfa78687430692f3af6fa08a958f152b13a916f95aab796",
+    "unexplained_entries": 0.0,
+    "unexplained_losses": 0.0,
+    "native_removals": 2.0,
+    "source_admissions": 27778.0,
+    "ramp_merges": 11580.0,
+    "off_departures": 15657.0,
+    "terminal_exits_inferred": 22633.0
+  }
+}

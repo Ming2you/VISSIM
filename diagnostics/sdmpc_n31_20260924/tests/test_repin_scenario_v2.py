@@ -9,6 +9,7 @@ v2 network copy; it never writes into the tree and never starts VISSIM.
 from __future__ import annotations
 
 import codecs
+import copy
 import importlib.util
 import json
 import re
@@ -187,11 +188,11 @@ def test_set_vsl_speeds_changes_one_line_only(bom, eol):
     assert out.startswith(codecs.BOM_UTF8) == bom
     a, b = data.split(b'\n'), out.split(b'\n')
     assert len(a) == len(b) and [i for i, (x, y) in enumerate(zip(a, b)) if x != y] == [2]
-    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,110"' + (b'\r' if eol == '\r\n' else b'')
+    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "80,90,100,110"' + (b'\r' if eol == '\r\n' else b'')
 
 
 def test_vsl_speeds_are_the_user_decision():
-    assert rp.VSL_SPEEDS == (50, 60, 70, 80, 90, 100, 110)   # 2026-09-24: 10 km/h steps, c_max 110
+    assert rp.VSL_SPEEDS == (80, 90, 100, 110)   # 2026-09-28 (N1 L1 action set; 50..110 of 2026-09-24 before)
     # One action set: the runner list, the tuning vsl_set and the plant reference vsl_set.
     config = _load('make_config_n31', N31D / 'make_config_n31.py')
     reference = _load('make_reference_config', N31D / 'make_reference_config.py')
@@ -199,7 +200,7 @@ def test_vsl_speeds_are_the_user_decision():
 
 
 @pytest.mark.parametrize('text', ['RW_X = "1"\n', 'RW_ALLOWED_VSL_SPEEDS = "50"\nRW_ALLOWED_VSL_SPEEDS = "60"\n',
-                                  'RW_ALLOWED_VSL_SPEEDS = "50,60,70,80,90,100,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
+                                  'RW_ALLOWED_VSL_SPEEDS = "80,90,100,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
 def test_set_vsl_speeds_refuses(text):
     with pytest.raises(rp.RepinError):
         rp.set_vsl_speeds(text.encode(), rp.VSL_SPEEDS)
@@ -388,6 +389,108 @@ def test_route_path_audit_requires_a_review_and_reproves_the_path(monkeypatch):
     assert rp.route_path_audit('d.json', doc, old, new, set()) == []
 
 
+# --------------------------------------------------------------------------- network v3c1 (2026-09-28): added decisions
+ADDED_XML = ('<vehicleRoutingDecisionStatic no="1160" link="1" pos="20.0"><vehRoutSta>'
+             '<vehicleRouteStatic no="1" destLink="2" destPos="1.0" relFlow="2 0:3"><linkSeq><intObjectRef key="10"/>'
+             '</linkSeq></vehicleRouteStatic></vehRoutSta></vehicleRoutingDecisionStatic>')
+ADDED = (('1160', 'V1', '1', '20.0', 1),)
+
+
+def added_network(*xml):
+    new = network()
+    for text in xml or (ADDED_XML,):
+        new.find('vehicleRoutingDecisionsStatic').append(ET.fromstring(text))
+    return new
+
+
+def test_added_decisions_admit_exactly_the_enumerated_additions():
+    old, new = network(), added_network()
+    with pytest.raises(rp.RepinError, match=r"elements added \['1160'\]"):
+        rp.characterize_changes(old, new)                                  # CHANGE_RULES is not widened
+    report = rp.characterize_changes(old, new, added_decisions=ADDED)['vehicleRoutingDecisionsStatic']
+    assert report['added_decisions'] == [{'decision': '1160', 'item': 'V1', 'link': '1', 'pos': '20.0',
+                                          'routes': [['1', '10', '2']]}]
+    assert 'changed' not in report and report['meaning'].endswith('(V3C1_ADDED_DECISIONS)')
+    with pytest.raises(rp.RepinError, match='the enumerated added decisions are'):   # an addition the network lacks
+        rp.characterize_changes(old, new, added_decisions=ADDED + (('1161', 'V2', '1', '20.0', 1),))
+    with pytest.raises(rp.RepinError, match='are not the enumerated'):               # a moved addition
+        rp.characterize_changes(old, new, added_decisions=(('1160', 'V1', '1', '21.0', 1),))
+    extra = added_network(ADDED_XML, ADDED_XML.replace('no="1160"', 'no="1169"'))
+    with pytest.raises(rp.RepinError, match='the enumerated added decisions are'):   # an unlisted addition
+        rp.characterize_changes(old, extra, added_decisions=ADDED)
+    rewired = added_network()
+    route(rewired, '22', '1').set('destLink', '2')                         # a change beside the additions still refuses
+    with pytest.raises(rp.RepinError, match='differ beyond'):
+        rp.characterize_changes(old, rewired, added_decisions=ADDED)
+    linked = added_network()
+    linked.find('links').append(ET.fromstring('<link no="3"><lanes><lane/></lanes></link>'))
+    with pytest.raises(rp.RepinError, match='unreviewed section: links'):
+        rp.characterize_changes(old, linked, added_decisions=ADDED)
+
+
+def test_added_block_audit_pins_the_inserted_bytes():
+    head = (b'<network>\n\t<vehicleRoutingDecisionsStatic>\n\t\t<vehicleRoutingDecisionStatic link="2" no="1159" pos="1">\n'
+            b'\t\t</vehicleRoutingDecisionStatic>\n')
+    block = b'\t\t<vehicleRoutingDecisionStatic link="1" no="1160" pos="20.0">\n\t\t</vehicleRoutingDecisionStatic>\n'
+    tail = b'\t</vehicleRoutingDecisionsStatic>\n</network>\n'
+    pin = {'after_decision': '1159', 'bytes': len(block), 'sha256': rp.sha256_bytes(block)}
+    added = (('1160', 'V1', '1', '20.0', 0),)
+    row = rp.added_block_audit(head + block + tail, added, pin)
+    assert (row['decisions'], row['bytes'], row['sha256']) == (['1160'], len(block), pin['sha256'])
+    with pytest.raises(rp.RepinError, match='edit receipt pins'):
+        rp.added_block_audit(head + block.replace(b'20.0', b'21.0') + tail, added, pin)
+    with pytest.raises(rp.RepinError, match='does not follow decision 1158'):
+        rp.added_block_audit(head + block + tail, added, dict(pin, after_decision='1158'))
+    with pytest.raises(rp.RepinError, match='opens 0 times'):
+        rp.added_block_audit(head + tail, added, pin)
+
+
+V3C1_RECEIPT = Path(rp.V3C1_EDIT_RECEIPT['path'])
+
+
+@pytest.mark.skipif(not V3C1_RECEIPT.is_file(), reason='v3c1 edit receipt absent')
+def test_v3c1_tables_are_the_edit_receipt():
+    data = V3C1_RECEIPT.read_bytes()
+    assert rp.sha256_bytes(data) == rp.V3C1_EDIT_RECEIPT['sha256']
+    edits = json.loads(data.decode('utf-8-sig'))['edits']
+    assert [(str(d['no']), d['key'], str(d['link']), d['pos'], len(d['routes'])) for d in edits['decisions']] == [
+        tuple(r) for r in rp.V3C1_ADDED_DECISIONS]
+    assert (edits['inserted_block_sha256'], edits['inserted_bytes']) == (
+        rp.V3C1_INSERTED_BLOCK['sha256'], rp.V3C1_INSERTED_BLOCK['bytes'])
+    assert '1161' not in {r[0] for r in rp.V3C1_ADDED_DECISIONS}         # V2 held
+
+
+def test_declaration_amendments_replace_only_the_pack_value():
+    tree = network()
+    doc = {'schema': 'x', 'a': {'b': 'old'}}
+    rows = (('d.json', '/a/b', 'replace', 'old', 'new', 'review'), ('d.json', '/a/c', 'add', None, [1], 'review'))
+    applied = rp.apply_amendments('d.json', doc, tree, rows)
+    assert doc == {'schema': 'x', 'a': {'b': 'new', 'c': [1]}} and [a['at'] for a in applied] == ['/a/b', '/a/c']
+    assert rp.apply_amendments('other.json', {'a': {'b': 'old'}}, tree, rows) == []
+    with pytest.raises(rp.RepinError, match='is not the value the amendment replaces'):
+        rp.apply_amendments('d.json', {'schema': 'x', 'a': {'b': 'hand edit'}}, tree, rows)
+    with pytest.raises(rp.RepinError, match='already has'):
+        rp.apply_amendments('d.json', {'schema': 'x', 'a': {'b': 'old', 'c': 0}}, tree, rows)
+    with pytest.raises(rp.RepinError, match='amendment target missing'):
+        rp.apply_amendments('d.json', {'schema': 'x'}, tree, rows)
+    support = {'evidence': {'10': {'physical_triplet': ['1', '10', '2'], 'native_route_ids': ['1130:1']}}}
+    ok = (('p.json', '/evidence/10/native_route_ids', 'replace', ['1130:1'], ['1130:1', '1130:2'], 'review'),)
+    rp.apply_amendments('p.json', copy.deepcopy(support), tree, ok)       # both routes traverse 1 -> 10 -> 2
+    bad = (('p.json', '/evidence/10/native_route_ids', 'replace', ['1130:1'], ['1130:1', '22:1'], 'review'),)
+    with pytest.raises(rp.RepinError, match='route 22:1 does not traverse'):
+        rp.apply_amendments('p.json', copy.deepcopy(support), tree, bad)
+
+
+def test_v3c1_amendments_are_enumerated_na7_and_na9():
+    assert [(r[0], r[1], r[2]) for r in rp.V3C1_DECLARATION_AMENDMENTS] == [
+        ('native_input_1083_signal_authority_ver2_a931a8.json', '/inputs/1083/native_route_prior', 'replace'),
+        ('native_input_1083_signal_authority_ver2_a931a8.json', '/inputs/1083/reviewed_source_decisions', 'add'),
+        ('physical_projection_support_635_proposal_cc280d.json', '/evidence/10419/native_route_ids', 'replace'),
+        ('physical_projection_support_635_proposal_cc280d.json', '/evidence/10568/native_route_ids', 'replace')]
+    [reviewed] = rp.V3C1_DECLARATION_AMENDMENTS[1][4]
+    assert reviewed['no'] == '1160' and reviewed['link'] == '21'      # decision D2: the allowlist is 1160 only
+
+
 # --------------------------------------------------------------------------- the built pack (real data)
 def built_json(name):
     return json.loads((ROOT / rp.SCENARIO_REL / name).read_text(encoding='utf-8'))
@@ -476,6 +579,31 @@ def test_v3b_membership_relflow_and_path_review_are_recorded():
 
 
 @needs_build
+def test_v3c1_added_decisions_and_amendments_are_recorded():
+    receipt = built_json(rp.RECEIPT_NAME)
+    routing = receipt['native_changes_from_previous_pack']['vehicleRoutingDecisionsStatic']
+    assert [r['decision'] for r in routing['added_decisions']] == [r[0] for r in rp.V3C1_ADDED_DECISIONS]
+    assert routing['added_decision_receipt']['sha256'] == rp.V3C1_EDIT_RECEIPT['sha256']
+    block = built_json(rp.TRANSFER_NAME)['repin_step']['added_decision_block']
+    assert (block['sha256'], block['bytes']) == (rp.V3C1_INSERTED_BLOCK['sha256'], rp.V3C1_INSERTED_BLOCK['bytes'])
+    assert rp.added_block_audit((ROOT / rp.V2_PIN['path']).read_bytes()) == block
+    names = {Path(r['source']['path']).name: Path(r['target']['path']).name for r in receipt['files']}
+    amended = {Path(r['source']['path']).name: r['declaration_amendments'] for r in receipt['files']
+               if r.get('declaration_amendments')}
+    assert amended == {name: [row[1] for row in rp.V3C1_DECLARATION_AMENDMENTS if row[0] == name]
+                       for name in {row[0] for row in rp.V3C1_DECLARATION_AMENDMENTS}}
+    authority = built_json(names['native_input_1083_signal_authority_ver2_a931a8.json'])
+    assert [r['no'] for r in authority['inputs']['1083']['reviewed_source_decisions']] == ['1160']
+    support = built_json(names['physical_projection_support_635_proposal_cc280d.json'])['evidence']
+    assert support['10419']['native_route_ids'] == ['1024:1', '1162:1']
+    assert support['10568']['native_route_ids'] == ['13:1', '1164:1', '1165:1']
+    # the membership lineage copies of 1134/1135 (derivation network 085a10c7) stay as they were (REPIN_PLAN 4.3)
+    membership = next(r for r in receipt['files'] if r['source']['path'].endswith('control_area_membership_6c3aee.json'))
+    assert sorted((c['decision'], c['route']) for c in membership['relflow_copies']['lineage']) == [
+        ('1134', '1'), ('1134', '2'), ('1134', '4'), ('1135', '2'), ('1135', '4')]
+
+
+@needs_build
 def test_runtime_prior_transfer_and_native_service_checks_accept_the_pack():
     """The real runtime functions (scenario_prior_transfer, route_choice_corridor) on the built files."""
     from evaluation.controllers.scenario_prior_transfer import training_network
@@ -544,13 +672,13 @@ def test_config_base_repoints_every_pack_path_and_passes_the_path_preflight():
 
 
 @needs_build
-def test_runner_config_allows_exactly_50_to_110_each_with_a_v2_distribution():
+def test_runner_config_allows_exactly_80_to_110_each_with_a_v2_distribution():
     receipt = built_json(rp.RECEIPT_NAME)
     check = receipt['runner_config_check']
-    assert check['allowed_vsl_speeds'] == [50, 60, 70, 80, 90, 100, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
+    assert check['allowed_vsl_speeds'] == [80, 90, 100, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
     assert check['allowed_speeds_without_distribution'] == []
     constants = rp.vbs_constants((ROOT / rp.SCENARIO_REL / rp.RUNNER_CONFIG[1]).read_bytes())
-    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '50,60,70,80,90,100,110'
+    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '80,90,100,110'
     tree = ET.parse(ROOT / rp.NETWORK_DIR_REL / rp.NET_INPX).getroot()
     names = {x.get('no'): x.get('name') for x in tree.findall('./desSpeedDistributions/desSpeedDistribution')}
     # The distribution NUMBER is the speed: the runner writes it as the DesSpeedDistr id.

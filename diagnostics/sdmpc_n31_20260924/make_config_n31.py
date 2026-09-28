@@ -1,23 +1,25 @@
 """C9: config_n31_v2.json = the WP-E base tuning plus the v2 plant differences.
 
 The base (N31D/scenario/config_n31_v2.base.json, written by repin_scenario_v2.py) is OBS1
-with the scenario pack re-pinned to the runtime network (v3b since 2026-09-25). This script adds exactly the
+with the scenario pack re-pinned to the runtime network (v3c1 since 2026-09-28; v3b 2026-09-25..28). This script
+adds exactly the
 plan C9 differences and nothing else:
 
   freeway.lane_plant                                  -> plant_n31_v2.json          (OBS1:8082)
   freeway.segment_params                              -> C1 b110 21-row copy        (NEW-10)
   urban.capacity.head_observation.sample_interval_sec    deleted                    (OBS1:7831)
-  config_overrides.freeway_follower.vsl_set           -> [50, 60, ..., 110] step 10 (OBS1:7466)
+  config_overrides.freeway_follower.vsl_set           -> [80, 90, 100, 110]          (OBS1:7466; user approval
+                                                         2026-09-28 with the N1 L1 VSL law, was 50..110)
   config_overrides.network.v_free                     -> 110                        (OBS1:7433)
   _canonical.fd_fit_20260828.values.v_free            -> 110                        (OBS1:7961, record only)
   execution.native_signal_record                      -> false                      (NEW-2)
   execution.signal_vbs_config                         -> N31D/scenario/lane_native_b110.vbs
-  observation.physical_branch_projection.source.network -> the pinned network (v3b) (OBS1:8109-8113)
+  observation.physical_branch_projection.source.network -> the pinned network (v3c1) (OBS1:8109-8113)
   calibration_override.prediction.local_ramp_arrival_forecast
       .queue_drain_horizon_sec_by_ramp, .max_vph_by_ramp -> keyed by the eight RM_C meters (RAMP_FORECAST)
       .strict_ramp_keys                                  -> true (no silent 120 s / 900 veh/h fallback)
-  urban.beta.source                                   -> routing_v3b (BETA_SOURCE: the routing beta of the pinned
-                                                         network v3b, N31D/beta/; OBS1 used the 0824 e14 table)
+  urban.beta.source                                   -> routing_v3c1 (BETA_SOURCE: the routing beta of the pinned
+                                                         network v3c1, N31D/beta/; OBS1 used the 0824 e14 table)
   urban.ramp.offramp_direct_share                     -> {SC1001: 0.468, SC1004: 0.484}, the adapter's former code
                                                          default made explicit (install_offramp_direct_landing); the
                                                          runtime is unchanged
@@ -26,9 +28,10 @@ Urban plant batch 1 (U1 + U2 + U3, 2026-09-25/26) is a SEPARATE candidate, not t
   python -B diagnostics/sdmpc_n31_20260924/make_config_n31.py --urban-batch1 [--components U1,U3] [--check]
 writes config_n31_v2_urban_b1.json (all three; config_n31_v2_urban_b1_u1u3.json etc. for a subset, U1 always) =
 config_n31_v2.json plus (apply_urban_batch1, URBAN_B1_* pins)
-  urban.beta.source / sha256                 -> routing_v3b2 (complete physical routing beta, 492 movements) + pin
-  urban.movements.nonexistent_declaration    -> the pinned v3b movement declaration (U1; user decision 2026-09-26:
-                                                SC7 E / E_SC16 -> N_SC11 exist on v3b, connector 10332, relFlow 0.429)
+  urban.beta.source / sha256                 -> routing_v3c1_2 (complete physical routing beta, 492 movements) + pin
+  urban.movements.nonexistent_declaration    -> the pinned movement declaration (U1; user decision 2026-09-26:
+                                                SC7 E / E_SC16 -> N_SC11 exist, connector 10332, relFlow 0.429;
+                                                re-pinned to v3c1 2026-09-28, rows unchanged)
   urban.movements.physical_phase_authority   -> the default evidence plus those two rows in their head's phase
                                                 (head 140101 = SC7 SG 1 = plan p4; was p3, no green) (U1)
   control_area_objective.route_contract_path -> the default contract plus the departure area route of
@@ -37,9 +40,11 @@ config_n31_v2.json plus (apply_urban_batch1, URBAN_B1_* pins)
   urban.movements.unsignalized_evidence      -> the pinned head-free exclusive-lane turns (FZP-validated)
   urban.ramp.offramp_direct_route_prior      -> the pinned relFlow direct share per off-ramp group
 
-Network v3b (user decision 2026-09-25): the pinned network is be0075bf; the b110 segment_params (and the plant's
-boundary fit) are v2 priors fitted on v2 NC s31 (f475ce42) and are NOT refit; the ramp-arrival forecast and the
-routing beta are re-derived on v3b.
+Network v3c1 (user approval 2026-09-28): the pinned network is 2577209b (v3b be0075bf + the eight routing decisions
+1160, 1162-1168; V2 held). The b110 segment_params (and the plant's boundary fit) are v2 priors fitted on v2 NC s31
+(f475ce42) and are NOT refit; the ramp-arrival forecast is re-derived from the v3c1 NC fit seeds 31/41/43/47/53
+(s37 held out), the routing beta tables and every batch-1 input on v3c1 (new *_v3c1_* files; the v3b files and the
+routing_v3b / routing_v3b2 sources left this tree, v3b replays run from a frozen tree).
 
 The pack paths themselves are WP-E's (C9 row "팩 경로"): the generator refuses a
 base that still names diagnostics/lane_plant_20260921/scenario/ anywhere, and
@@ -71,65 +76,72 @@ PLANT = N31D + '/plant_n31_v2.json'
 SEGMENT_PARAMS = ('diagnostics/demand_sweep/user_native_20260914/metanet_calibration_v1/res10_b110_20260923/'
                   'train_s31_v2nc/free_speed_b110/segment_params.json')
 RUNNER_CONFIG = N31D + '/scenario/lane_native_b110.vbs'
-NETWORK = N31D + '/network/baseline_s31_v3bnc.inpx'
-NETWORK_SHA256 = 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'   # v3b (was v2 f475ce42)
-# Routing beta of the pinned network (adapter BETA_EVIDENCE_JSON['routing_v3b']): scripts/derive_routing_turn_beta.py
+NETWORK = N31D + '/network/baseline_s31_v3c1nc.inpx'
+NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'   # v3c1 (v3b be0075bf until 2026-09-28)
+NETWORK_LABEL = 'v3c1 2577209b'
+# Routing beta of the pinned network (adapter BETA_EVIDENCE_JSON['routing_v3c1']): scripts/derive_routing_turn_beta.py
 # with the 474-movement core17legs4b config (N31D/beta/movements_core17legs4b_20260819.json = git 4898446^ blob) on
-# the v3b network. The default 'routing' table (outputs/movement_beta_routing_20260824.json) was derived on network
-# modi_eval_userfix_20260814e: 25 movements differ on v2, 48 on v3b (before the explicit assignment below).
+# the v3c1 network. The default 'routing' table (outputs/movement_beta_routing_20260824.json) was derived on network
+# modi_eval_userfix_20260814e (25 movements differ on v2, 48 on v3b before the explicit assignment below).
 # The destination-set inference of that script mis-attaches the interchange decisions (SC1004 1124/1126/1138/1140 all
-# on E_SC107, SC1001 1117 dropped as a W/offW/offE tie); BETA_EXPLICIT attaches them to the approaches whose vehicles
-# pass them in the v3b NC FZP (--explicit-approach, user decision 2026-09-25). Both files are pinned, because the
-# adapter reads BETA_FILE by path. Re-derive (worktree root):
+# on E_SC107, SC1001 1117 dropped as a W/offW/offE tie) and, on v3c1, decision 1165 (V5b, on SC1005|W_SC1004 instead of
+# SC1|N_SC101); BETA_EXPLICIT attaches them to the approaches whose vehicles pass them (--explicit-approach, user
+# decisions 2026-09-25 and 2026-09-28). Both files are pinned, because the adapter reads BETA_FILE by path. Re-derive
+# (worktree root):
 #   python -B scripts/derive_routing_turn_beta.py --network <NETWORK> --movements-config <BETA_MOVEMENTS>
-#       --out <BETA_FILE> --generated 2026-09-25 --explicit-approach <BETA_EXPLICIT>
-BETA_SOURCE = 'routing_v3b'
-BETA_FILE = N31D + '/beta/movement_beta_routing_v3b_20260925.json'
-BETA_SHA256 = 'e81d545fce294c0850ed821810bf47a36b042eb25a6e0989b2e14d18db0f1a6d'
-BETA_EXPLICIT = N31D + '/beta/explicit_approach_v3b_20260925.json'
-BETA_EXPLICIT_SHA256 = '36162d5032b899369e33e6cab5ebad932119587733f0721cabc691d557942c65'
+#       --out <BETA_FILE> --generated 2026-09-28 --explicit-approach <BETA_EXPLICIT>
+BETA_SOURCE = 'routing_v3c1'
+BETA_FILE = N31D + '/beta/movement_beta_routing_v3c1_20260928.json'
+BETA_SHA256 = 'c5484fff4ed3364e1d2f98dc5f7d2ff664472d5b187461d0f4286ddb2130fff8'
+BETA_EXPLICIT = N31D + '/beta/explicit_approach_v3c1_20260928.json'
+BETA_EXPLICIT_SHA256 = 'c74dfebe98f960d6f8ef6bfaf8482af7e2e49e4395ed22a25fae42ed712b21be'
 BETA_MOVEMENTS = N31D + '/beta/movements_core17legs4b_20260819.json'
-# Urban plant batch 1 (U1/U2/U3, 2026-09-25): pinned inputs of the separate candidate config_n31_v2_urban_b1.json.
+# Urban plant batch 1 (U1/U2/U3, 2026-09-25; re-pinned to network v3c1 2026-09-28): pinned inputs of the separate
+# candidate config_n31_v2_urban_b1.json.
 # Re-derive (worktree root, in this order; each generator also has --check):
 #   python -B scripts/derive_phase_authority_v3b.py --out <URBAN_B1_PHASE_AUTHORITY>
 #   python -B scripts/derive_area_routes_v3b.py --out <URBAN_B1_AREA_ROUTES>      (also writes its .provenance.json)
 #   python -B scripts/derive_routing_beta_physical.py --out <URBAN_B1_BETA_FILE>
 #   python -B scripts/derive_unsignalized_turns.py --out <URBAN_B1_UNSIGNALIZED>
 #   python -B scripts/derive_route_queue_attribution.py --out <URBAN_B1_ROUTE_EVIDENCE>
-#   python -B scripts/derive_unsignalized_validation.py --out <URBAN_B1_UNSIGNALIZED_VALIDATION>   (reads the three
-#       v3b no-control FZPs, about 3.5 GB; the FZP validation table the unsignalized-turn derivation reads)
-# The relFlow off-ramp prior (URBAN_B1_OFFRAMP_PRIOR, re-derived by offramp_routing.derive_prior at install) and the v3b
-# movement declaration (URBAN_B1_DECLARATION, a reviewed decision record that the two derivations verify against the
-# network) are pinned inputs.
-URBAN_B1_BETA_SOURCE = 'routing_v3b2'
-URBAN_B1_BETA_FILE = N31D + '/beta/movement_beta_routing_v3b2_20260925.json'
-URBAN_B1_BETA_SHA256 = '41b3113ff8e64b40175e45e64ae983bd138e80dbdd7f913253627b3db2662cb6'
-URBAN_B1_ENTRY = N31D + '/beta/approach_entry_v3b2_20260925.json'
-URBAN_B1_ENTRY_SHA256 = '56a1bb3c955e936771bf676fe96a53415e6894a43e6a08aba7415810bc1477b6'
+#   python -B scripts/derive_unsignalized_validation.py --out <URBAN_B1_UNSIGNALIZED_VALIDATION>   (reads the five
+#       v3c1 no-control fit-seed FZPs 31/41/43/47/53, about 5.9 GB; the FZP validation table the unsignalized-turn
+#       derivation reads; s37 is held out)
+# (derive_unsignalized_turns reads the validation table: run the validation before it.) The relFlow off-ramp prior
+# (URBAN_B1_OFFRAMP_PRIOR, re-derived by offramp_routing.derive_prior at install) and the movement declaration
+# (URBAN_B1_DECLARATION, a reviewed decision record that the two derivations verify against the network) are pinned
+# inputs.
+URBAN_B1_BETA_SOURCE = 'routing_v3c1_2'
+URBAN_B1_BETA_FILE = N31D + '/beta/movement_beta_routing_v3c1_2_20260928.json'
+URBAN_B1_BETA_SHA256 = '4979c05ccc4d65855a4050529a0555c8bc29e1d4176df275c5f54801d61eb62b'
+URBAN_B1_ENTRY = N31D + '/beta/approach_entry_v3c1_20260928.json'
+URBAN_B1_ENTRY_SHA256 = '8c44404eed8330d6ac68ebdd07742139bc3b7114e7a54d4c17d6a3387d34eade'
 # User decision 2026-09-26 (U1): the runtime's nonexistence declaration of SC7_E_to_N_SC11 / SC7_E_SC16_to_N_SC11 is the
 # v2 reading; on v3b 10332 is their right turn (relFlow 63 / 147 = 0.429). The candidates read the v3b declaration and
 # serve the two in the phase of their real head (140101, SC7 SG 1 = plan p4) through the extended phase authority
 # (the default tuning's URBAN_B1_PHASE_AUTHORITY_BASE plus two rows).
-URBAN_B1_DECLARATION = N31D + '/urban/movement_nonexistent_v3b_20260926.json'
-URBAN_B1_DECLARATION_SHA256 = '3135dcdaf7b01feb426eb1bb48df15470d31c06934a3f84ebb048df231b61fce'
+URBAN_B1_DECLARATION = N31D + '/urban/movement_nonexistent_v3c1_20260928.json'
+URBAN_B1_DECLARATION_SHA256 = 'e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec'
 URBAN_B1_PHASE_AUTHORITY_BASE = N31D + '/scenario/physical_phase_authority_local_1df35c.json'
-URBAN_B1_PHASE_AUTHORITY = N31D + '/urban/physical_phase_authority_v3b_20260926.json'
-URBAN_B1_PHASE_AUTHORITY_SHA256 = 'e729cdc4ec22414877295bed8ba98c7dc43e14b2202fe7222516fe0ee8c7d907'
+URBAN_B1_PHASE_AUTHORITY = N31D + '/urban/physical_phase_authority_v3c1_20260928.json'
+URBAN_B1_PHASE_AUTHORITY_SHA256 = '77d43c5c8ca52a8ad3be82e285367b0769c0b8e26d7781c7d13b775bce962e9a'
 # ... and a departing SC7_E_SC16_to_N_SC11 needs its physical area route (the default contract left it 'no_match'):
 # scripts/derive_area_routes_v3b.py writes the default contract plus that route (and a .provenance.json sidecar).
+# The contract carries old-network XML copies of decisions 1061, 1128:2 and 1124 inherited from the default contract
+# (REPIN_PLAN §4.3 2, decision D5 2026-09-28: kept as is and recorded; their rows carry no branch weight).
 URBAN_B1_AREA_ROUTES_BASE = 'diagnostics/control_area_route_contract_physical_routes.json'
-URBAN_B1_AREA_ROUTES = N31D + '/urban/control_area_route_contract_v3b_20260926.json'
+URBAN_B1_AREA_ROUTES = N31D + '/urban/control_area_route_contract_v3c1_20260928.json'
 URBAN_B1_AREA_ROUTES_SHA256 = 'fdc21f06fcb36f64195e57f51eed189439024c99f157452f8811ab05266a6da1'
-URBAN_B1_AREA_ROUTES_PROVENANCE = N31D + '/urban/control_area_route_contract_v3b_20260926.provenance.json'
-URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256 = 'db5826a103c61bad58381b80c7d7e4d4206f9c54fa7472c78ad0444f071b5f7e'
-URBAN_B1_ROUTE_EVIDENCE = N31D + '/urban/route_queue_attribution_v3b_20260925.json'
-URBAN_B1_ROUTE_EVIDENCE_SHA256 = 'ec8697a4a24e8fe945edf717e96e78f2416abb4cde3b3dff5ea0cae9c4b155dc'
-URBAN_B1_UNSIGNALIZED = N31D + '/urban/unsignalized_turns_v3b_20260925.json'
-URBAN_B1_UNSIGNALIZED_SHA256 = '6febd53fcb732c2297fd37497cb3d2e9e47dfaea491ed6d5d9bbd84d477a34cd'
-URBAN_B1_UNSIGNALIZED_VALIDATION = N31D + '/urban/unsignalized_validation_v3bnc_20260925.json'
-URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = 'b5dedf800c8bf11b52a8cc3cfee7ad787f89278e891bdff8a4d603088fdb44b9'
-URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3b_20260925.json'
-URBAN_B1_OFFRAMP_PRIOR_SHA256 = 'd9a4a8f17c0b9e9eb567d60275f177c5152954d71be849fa00f97b84f62733ee'
+URBAN_B1_AREA_ROUTES_PROVENANCE = N31D + '/urban/control_area_route_contract_v3c1_20260928.provenance.json'
+URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256 = '5ce65a45c3a01e602f8a183088094b46b476e94e166d3bb91b2c100db68d781a'
+URBAN_B1_ROUTE_EVIDENCE = N31D + '/urban/route_queue_attribution_v3c1_20260928.json'
+URBAN_B1_ROUTE_EVIDENCE_SHA256 = '01d58ca8d08ccf93418713e0e89a1c963ba88aea0cb62bb0e18325c45f9a19f9'
+URBAN_B1_UNSIGNALIZED = N31D + '/urban/unsignalized_turns_v3c1_20260928.json'
+URBAN_B1_UNSIGNALIZED_SHA256 = '95ea27326d99cab1dee8557df1a8044287958082b6918c12e7e34354619867e2'
+URBAN_B1_UNSIGNALIZED_VALIDATION = N31D + '/urban/unsignalized_validation_v3c1nc_20260928.json'
+URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = '42515ae9669fbd0ef8adc3df220054510ebe1e49725652187dfca5c74f2763e9'
+URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3c1_20260928.json'
+URBAN_B1_OFFRAMP_PRIOR_SHA256 = '2f916a87c7112e31f4a7d7434112a6f7b0ddc80e250a62748dcaa2c3c37bdf32'
 OUT_URBAN_B1 = HERE / 'config_n31_v2_urban_b1.json'
 # The adapter's former code default of urban.ramp.offramp_direct_share (install_offramp_direct_landing), lifted
 # into the config unchanged. The relFlow value per off-ramp group (URBAN_B1_OFFRAMP_PRIOR: OR_D_W 0.5, OR_D_E 0.8,
@@ -137,20 +149,23 @@ OUT_URBAN_B1 = HERE / 'config_n31_v2_urban_b1.json'
 OFFRAMP_DIRECT_SHARE = {'SC1001': 0.468, 'SC1004': 0.484}
 OLD_PACK = 'diagnostics/lane_plant_20260921/scenario/'
 NEW_PACK = N31D + '/scenario/'
-VSL_SET = [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0]   # user decision 2026-09-24: 10 km/h steps, c_max 110
+# User approval 2026-09-28 with the N1 L1 VSL law: 80..110, the range N1 measured (50..110 of 2026-09-24 before; the
+# first 60/80/110 before that). = repin_scenario_v2.VSL_SPEEDS = make_reference_config.VSL_SET.
+VSL_SET = [80.0, 90.0, 100.0, 110.0]
 V_FREE = 110.0
 # Ramp-arrival forecast per physical meter. The adapter turns connector occupancy into arrivals as
 # count * 3600 / drain_sec, clipped at max_vph (vissim_stackelberg_adapter.py:9373-9412), and looks the
 # two tables up by the runtime ramp keys. With physical ramp branches those keys are the mapping's
 # ramp_meters ids RM_C<connector> (physical_ramp_branches.py:139), but OBS1 still keys both tables by the
 # legacy groups R_D_W/R_F_W/R_D_E/R_F_E, so every lookup fell back to 120 s / 900 veh/h.
-# Values: network v3b NC s31/s41/s37 (be0075bf / 261a1fb0 / f5c3d640; extract_observations.py into
-# metanet_calibration_v1/v3b_nc_20260925), boundaries_30s.csv per meter (the 2026-08-30
-# method of scripts/calibrate_ramp_arrival_20260830.py, per meter instead of per group):
-#   drain_sec = mean snapshot count on the connector * 3600 / merges per hour, 900-5400 s, 3 seeds pooled
+# Values: network v3c1 NC fit seeds s31/s41/s43/s47/s53 (2577209b / 226baa37 / b8e7cf1f / ec0cd81d / 385f40da;
+# extract_observations.py into metanet_calibration_v1/v3c1_nc_20260928; s37 held out), boundaries_30s.csv per meter
+# (the 2026-08-30 method of scripts/calibrate_ramp_arrival_20260830.py, per meter instead of per group):
+#   drain_sec = mean snapshot count on the connector * 3600 / merges per hour, 900-5400 s, 5 seeds pooled
 #               (Little's law)
 #   max_vph   = 1.15 x the highest per-seed mean merge rate over 900-5400 s (the 08-30 cap rule)
-# The v2 (f475ce42) derivation gave drain 16.6/43.4/30.2/88.0/42.9/160.7/34.6/47.7 s, cap 277/2310/413/514/
+# The v3b (be0075bf, NC s31/s41/s37) derivation gave drain 17.4/43.3/30.9/88.0/42.6/161.7/33.3/43.3 s, cap
+# 219/2312/405/514/526/1216/839/611 veh/h. The v2 (f475ce42) derivation gave drain 16.6/43.4/30.2/88.0/42.9/160.7/34.6/47.7 s, cap 277/2310/413/514/
 # 526/1217/819/686 veh/h (same meter order as below); the seed-CV figures (<= 0.092 population / 0.113
 # sample, both at 10480; 10681 by 900 s block 84/171/176/183/177 s) and the V5b replay below are v2 numbers.
 # Replayed on the V5b decisions (T = 2700/3000/3300, all meters open), the summed forecast against the
@@ -158,16 +173,16 @@ V_FREE = 110.0
 # the summed-ratio gain comes mostly from the drain horizon (drain only: 0.88-0.93, cap only: 0.60-0.63),
 # while the per-meter |error| drops only with both (2938-2996 -> 453-806 veh/h); 15 of the 24 meter-times
 # sit on the cap (1.15 x NC mean merge). A meter that actually holds vehicles is not yet validated.
-# NETWORK-SPECIFIC: every value below comes from the pinned network's (v3b be0075bf) no-control runs. A
+# NETWORK-SPECIFIC: every value below comes from the pinned network's (v3c1 2577209b) no-control runs. A
 # network change re-runs its no-control seeds, re-extracts them, re-points derive_ramp_forecast_n31.py
 # (OBS, PATTERN, INPUTS) and re-derives. Derivation: derive_ramp_forecast_n31.py.
 RAMP_FORECAST = {
     'queue_drain_horizon_sec_by_ramp': {
-        'RM_C10480': 17.4, 'RM_C10482': 43.3, 'RM_C10646': 30.9, 'RM_C10644': 88.0,
-        'RM_C10639': 42.6, 'RM_C10681': 161.7, 'RM_C10490': 33.3, 'RM_C10484': 43.3},
+        'RM_C10480': 16.0, 'RM_C10482': 43.6, 'RM_C10646': 30.2, 'RM_C10644': 88.5,
+        'RM_C10639': 40.8, 'RM_C10681': 159.6, 'RM_C10490': 33.4, 'RM_C10484': 44.4},
     'max_vph_by_ramp': {
-        'RM_C10480': 219.0, 'RM_C10482': 2312.0, 'RM_C10646': 405.0, 'RM_C10644': 514.0,
-        'RM_C10639': 526.0, 'RM_C10681': 1216.0, 'RM_C10490': 839.0, 'RM_C10484': 611.0},
+        'RM_C10480': 220.0, 'RM_C10482': 2347.0, 'RM_C10646': 408.0, 'RM_C10644': 545.0,
+        'RM_C10639': 551.0, 'RM_C10681': 1248.0, 'RM_C10490': 843.0, 'RM_C10484': 592.0},
 }
 LEGACY_RAMP_GROUPS = {'R_D_W', 'R_F_W', 'R_D_E', 'R_F_E'}
 
@@ -234,12 +249,13 @@ def apply(base, *, network_sha256=NETWORK_SHA256, require_repinned=True):
     if ramp.get('offramp_direct') is not True or 'offramp_direct_share' in ramp:
         raise ValueError('Base urban.ramp must enable offramp_direct with the code-default share')
     ramp['offramp_direct_share'] = dict(OFFRAMP_DIRECT_SHARE)
-    doc['_n31_note'] = ('SDMPC-31 v2 tuning (plan C9) on network v3b be0075bf (user decision 2026-09-25): ' + BASE
+    doc['_n31_note'] = ('SDMPC-31 v2 tuning (plan C9) on network v3c1 2577209b (user approval 2026-09-28): ' + BASE
                         + ' plus lane_plant v2, b110 segment_params, no head sample interval, vsl_set '
-                        '[50,60,70,80,90,100,110], v_free 110, native_signal_record false, lane_native_b110.vbs, the '
-                        'branch-projection network v3b, the ramp-arrival forecast keyed by RM_C meter (v3b NC) and the '
-                        'v3b routing beta (urban.beta.source routing_v3b). The b110 segment_params and boundary fit are '
-                        'v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3b. Generated by make_config_n31.py.')
+                        '[80,90,100,110] (N1 L1 action set), v_free 110, native_signal_record false, lane_native_b110.vbs, '
+                        'the branch-projection network v3c1, the ramp-arrival forecast keyed by RM_C meter (v3c1 NC fit '
+                        'seeds 31/41/43/47/53) and the v3c1 routing beta (urban.beta.source routing_v3c1). The b110 '
+                        'segment_params and boundary fit are v2 priors fitted on v2 NC s31 (f475ce42), not refit on v3c1. '
+                        'Generated by make_config_n31.py.')
     return doc
 
 
@@ -257,7 +273,7 @@ def apply_urban_batch1(doc, components=URBAN_B1_COMPONENTS):
     out = copy.deepcopy(doc)
     urban = out['urban']
     if urban['beta'].get('source') != BETA_SOURCE or 'sha256' in urban['beta']:
-        raise ValueError('Urban batch 1 starts from the default routing_v3b tuning')
+        raise ValueError('Urban batch 1 starts from the default %s tuning' % BETA_SOURCE)
     for key in ('attribution', 'route_evidence'):
         if key in urban['queue']:
             raise ValueError('Urban batch 1 expects no urban.queue.%s in the default tuning' % key)
@@ -285,8 +301,8 @@ def apply_urban_batch1(doc, components=URBAN_B1_COMPONENTS):
         urban['queue']['route_evidence'] = {'path': URBAN_B1_ROUTE_EVIDENCE, 'sha256': URBAN_B1_ROUTE_EVIDENCE_SHA256}
     if 'U3' in components:
         urban['movements']['unsignalized_evidence'] = {'path': URBAN_B1_UNSIGNALIZED, 'sha256': URBAN_B1_UNSIGNALIZED_SHA256}
-    parts = {'U1': ('U1 urban.beta.source routing_v3b2 pinned by urban.beta.sha256 (every runtime movement: 0 without a '
-                    'physical path, else static-route relFlow; approach sums exactly 1 before renormalisation), the v3b '
+    parts = {'U1': ('U1 urban.beta.source routing_v3c1_2 pinned by urban.beta.sha256 (every runtime movement: 0 without a '
+                    'physical path, else static-route relFlow; approach sums exactly 1 before renormalisation), the '
                     'movement declaration (urban.movements.nonexistent_declaration) with the phase authority that serves '
                     'SC7 E / E_SC16 -> N_SC11 (10332, relFlow 0.429) in their head\'s phase p4 '
                     '(urban.movements.physical_phase_authority) and the area route of the departing one '
@@ -322,25 +338,25 @@ def check_urban_batch1(root):
             raise ValueError('%s differs from its pin %s' % (rel, pin[:8]))
     beta = json.loads((root / URBAN_B1_BETA_FILE).read_text(encoding='utf-8'))
     if beta['inputs']['network']['sha256'] != NETWORK_SHA256 or beta['inputs']['entry']['sha256'] != URBAN_B1_ENTRY_SHA256:
-        raise ValueError('routing_v3b2 was derived from another network or entry table')
+        raise ValueError('%s was derived from another network or entry table' % URBAN_B1_BETA_SOURCE)
     if (beta['inputs']['nonexistent_declaration'] != {'path': URBAN_B1_DECLARATION, 'sha256': URBAN_B1_DECLARATION_SHA256}
             or beta['inputs']['phase_authority'] != {'path': URBAN_B1_PHASE_AUTHORITY,
                                                      'sha256': URBAN_B1_PHASE_AUTHORITY_SHA256}):
-        raise ValueError('routing_v3b2 was derived from another movement declaration or phase authority')
+        raise ValueError('%s was derived from another movement declaration or phase authority' % URBAN_B1_BETA_SOURCE)
     authority = json.loads((root / URBAN_B1_PHASE_AUTHORITY).read_text(encoding='utf-8'))['v3b_corrections']
     if (authority['base'] != {'path': URBAN_B1_PHASE_AUTHORITY_BASE, 'sha256': sha256(root / URBAN_B1_PHASE_AUTHORITY_BASE)}
             or authority['declaration'] != {'path': URBAN_B1_DECLARATION, 'sha256': URBAN_B1_DECLARATION_SHA256}):
-        raise ValueError('the v3b phase authority extends another base or declaration')
+        raise ValueError('the batch-1 phase authority extends another base or declaration')
     routes = json.loads((root / URBAN_B1_AREA_ROUTES_PROVENANCE).read_text(encoding='utf-8'))
     if (routes['base'] != {'path': URBAN_B1_AREA_ROUTES_BASE, 'sha256': sha256(root / URBAN_B1_AREA_ROUTES_BASE)}
             or routes['inputs']['phase_authority'] != {'path': URBAN_B1_PHASE_AUTHORITY,
                                                        'sha256': URBAN_B1_PHASE_AUTHORITY_SHA256}
             or routes['inputs']['declaration'] != {'path': URBAN_B1_DECLARATION, 'sha256': URBAN_B1_DECLARATION_SHA256}):
-        raise ValueError('the v3b area route contract extends another base, declaration or phase authority')
+        raise ValueError('the batch-1 area route contract extends another base, declaration or phase authority')
     for rel in (URBAN_B1_ROUTE_EVIDENCE, URBAN_B1_UNSIGNALIZED):
         document = json.loads((root / rel).read_text(encoding='utf-8'))
         if document['inputs']['beta']['sha256'] != URBAN_B1_BETA_SHA256:
-            raise ValueError('%s was derived from another routing_v3b2 table' % rel)
+            raise ValueError('%s was derived from another %s table' % (rel, URBAN_B1_BETA_SOURCE))
     from evaluation.controllers.offramp_routing import derive_prior
     derive_prior(json.loads((root / URBAN_B1_OFFRAMP_PRIOR).read_text(encoding='utf-8')))
 
@@ -391,7 +407,7 @@ def build(root=ROOT):
         if not (root / rel).is_file():
             raise FileNotFoundError('config_n31_v2 input missing (owner package pending): ' + rel)
     if sha256(root / NETWORK) != NETWORK_SHA256:
-        raise ValueError('network copy differs from v3b be0075bf')
+        raise ValueError('network copy differs from ' + NETWORK_LABEL)
     check_beta(root)
     base = json.loads((root / BASE).read_text(encoding='utf-8-sig'))
     doc = apply(base)

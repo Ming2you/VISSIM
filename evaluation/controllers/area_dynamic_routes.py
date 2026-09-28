@@ -3,7 +3,7 @@
 Frozen offline NC13 source-specific observations provide prediction priors.
 Ownership files remain unchanged. Apply before projecting the original snapshot.
 
-With a complete routing-beta source (urban.beta.source routing_v3b2, evaluation/controllers/beta_source.py) the
+With a complete routing-beta source (urban.beta.source routing_v3c1_2, evaluation/controllers/beta_source.py) the
 retained branches keep the installed table values (static-route relFlow; the removed own-leg U-turn is 0 there):
 the offline NC13 prior is a realised share and is not a beta value under that source (user decision 2026-09-25).
 The pinned prior is still verified; only its use as values is replaced. Without that source nothing changes.

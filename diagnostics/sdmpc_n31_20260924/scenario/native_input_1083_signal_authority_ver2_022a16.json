@@ -1,8 +1,8 @@
 {
   "schema": "native-input-signal-authority/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+    "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
   },
   "selected_plan": {
     "path": "outputs/signal_group_actuation_plan_mainline_20260825.json",
@@ -10,7 +10,7 @@
   },
   "membership": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-    "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
+    "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
   },
   "inputs": {
     "1083": {
@@ -106,9 +106,43 @@
         "link": "174",
         "pos": 11.92270445631143
       },
-      "native_route_prior": "None: no source21 decision; unique first connector;174 decision1081 precedes the75.408m merge and is ineligible. Downstream canonical routing remains unchanged.",
+      "native_route_prior": "Reviewed decision 1160 (network v3c1 item V1, user approval 2026-09-28) on source 21 at 20.0 m: both routes (1160:1 L to 1220009502, 1160:2 T to 1220000803) leave through the unique first connector 10112 to 174, so the source keeps one physical turn at its heads (SG 108 2, kept movement SC108_W_to_E_SC109) and the routes split only downstream at SC109 W. 174 decision 1081 precedes the 75.408 m merge and is ineligible. Any other source-21 decision is refused (reviewed_source_decisions).",
       "capacity_policy": "Preserve existing finite origin and kept movement capacity; do not claim source21-calibrated storage or saturation. Two physical source/connector lanes independently validate the existing two-lane service representation.",
-      "initial_partition_contract": "By complete record lane and position: pos<=own lane head belongs to prehead; pos>head and connector10112 belong downstream. No initial input/entry emission."
+      "initial_partition_contract": "By complete record lane and position: pos<=own lane head belongs to prehead; pos>head and connector10112 belong downstream. No initial input/entry emission.",
+      "reviewed_source_decisions": [
+        {
+          "no": "1160",
+          "link": "21",
+          "pos": "20.0",
+          "routes": [
+            {
+              "no": "1",
+              "path": [
+                "21",
+                "10112",
+                "174",
+                "10281",
+                "173",
+                "10286",
+                "1220009502"
+              ]
+            },
+            {
+              "no": "2",
+              "path": [
+                "21",
+                "10112",
+                "174",
+                "10280",
+                "173",
+                "10285",
+                "1220000803"
+              ]
+            }
+          ],
+          "review": "network v3c1 V1 (template decision 1081; relFlow L 38 / T 808), user approval 2026-09-28 decision D2: the only admitted routing decision on the input-1083 source link; every route leaves through connector 10112 to 174 (physical_movement_routes.check_source_routing_decisions)"
+        }
+      ]
     }
   },
   "scenario_derivation": {
@@ -117,8 +151,8 @@
       "sha256": "efc8273792253f8f6bfc15fb467f00ea951388d41e72bf84b68de76e56cff3c4"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -141,6 +175,55 @@
         "pack_pin": 1,
         "pack_path": 0
       }
-    }
+    },
+    "declaration_amendments": [
+      {
+        "at": "/inputs/1083/native_route_prior",
+        "kind": "replace",
+        "old": "None: no source21 decision; unique first connector;174 decision1081 precedes the75.408m merge and is ineligible. Downstream canonical routing remains unchanged.",
+        "new": "Reviewed decision 1160 (network v3c1 item V1, user approval 2026-09-28) on source 21 at 20.0 m: both routes (1160:1 L to 1220009502, 1160:2 T to 1220000803) leave through the unique first connector 10112 to 174, so the source keeps one physical turn at its heads (SG 108 2, kept movement SC108_W_to_E_SC109) and the routes split only downstream at SC109 W. 174 decision 1081 precedes the 75.408 m merge and is ineligible. Any other source-21 decision is refused (reviewed_source_decisions).",
+        "review": "NA-7: the text described the v3b network (no decision on link 21); v3c1 V1 adds 1160 there."
+      },
+      {
+        "at": "/inputs/1083/reviewed_source_decisions",
+        "kind": "add",
+        "old": null,
+        "new": [
+          {
+            "no": "1160",
+            "link": "21",
+            "pos": "20.0",
+            "routes": [
+              {
+                "no": "1",
+                "path": [
+                  "21",
+                  "10112",
+                  "174",
+                  "10281",
+                  "173",
+                  "10286",
+                  "1220009502"
+                ]
+              },
+              {
+                "no": "2",
+                "path": [
+                  "21",
+                  "10112",
+                  "174",
+                  "10280",
+                  "173",
+                  "10285",
+                  "1220000803"
+                ]
+              }
+            ],
+            "review": "network v3c1 V1 (template decision 1081; relFlow L 38 / T 808), user approval 2026-09-28 decision D2: the only admitted routing decision on the input-1083 source link; every route leaves through connector 10112 to 174 (physical_movement_routes.check_source_routing_decisions)"
+          }
+        ],
+        "review": "C-11 / D2: physical_movement_routes.configure_native_input_signal_authority refused any routing decision on the source link; it now admits exactly the decisions named here, each equal to the network element."
+      }
+    ]
   }
 }

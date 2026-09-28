@@ -5,8 +5,8 @@
     "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
   },
   "target_network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-    "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+    "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
   },
   "predictive_accuracy_validated": false,
   "unchanged_prior_files": [
@@ -1315,7 +1315,16 @@
       ]
     },
     "vehicleRoutingDecisionsStatic": {
-      "added": [],
+      "added": [
+        "1160",
+        "1162",
+        "1163",
+        "1164",
+        "1165",
+        "1166",
+        "1167",
+        "1168"
+      ],
       "removed": [],
       "changed": [
         "33",
@@ -1345,7 +1354,15 @@
         "1135",
         "1136",
         "1137",
-        "1140"
+        "1140",
+        "1160",
+        "1162",
+        "1163",
+        "1164",
+        "1165",
+        "1166",
+        "1167",
+        "1168"
       ]
     },
     "signalControllers": {
@@ -1504,7 +1521,7 @@
     "Changed demand, route decisions and lane-change distances may change their accuracy.",
     "Runtime rechecks physical routes, heads and clocks; this proves identity, not predictive accuracy.",
     "The latest lane CTM owns10634; its old aggregate service calibration is retired in this scenario.",
-    "The runtime network v3b be0075bf (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b static-route edits: 19 route destinations, 1061 pos, 32 relFlows; user decision 2026-09-25) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
+    "The runtime network v3c1 2577209b (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user decision 2026-09-25; plus the eight v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
   ],
   "repin_step": {
     "previous_transfer": {
@@ -1516,8 +1533,8 @@
       "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
     },
     "to_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
     },
     "native_changes": {
       "dataCollectionMeasurements": {
@@ -1915,7 +1932,261 @@
         ]
       },
       "vehicleRoutingDecisionsStatic": {
-        "meaning": "route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS)",
+        "meaning": "route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS)",
+        "added_decisions": [
+          {
+            "decision": "1160",
+            "item": "V1",
+            "link": "21",
+            "pos": "20.0",
+            "routes": [
+              [
+                "21",
+                "10112",
+                "174",
+                "10281",
+                "173",
+                "10286",
+                "1220009502"
+              ],
+              [
+                "21",
+                "10112",
+                "174",
+                "10280",
+                "173",
+                "10285",
+                "1220000803"
+              ]
+            ]
+          },
+          {
+            "decision": "1162",
+            "item": "V3",
+            "link": "256",
+            "pos": "20.0",
+            "routes": [
+              [
+                "256",
+                "10415",
+                "1220014100",
+                "10419",
+                "1220014203"
+              ],
+              [
+                "256",
+                "10415",
+                "1220014100",
+                "10418",
+                "1220019301"
+              ],
+              [
+                "256",
+                "10415",
+                "1220014100",
+                "10420",
+                "1220018501"
+              ]
+            ]
+          },
+          {
+            "decision": "1163",
+            "item": "V4",
+            "link": "1220012600",
+            "pos": "22.0",
+            "routes": [
+              [
+                "1220012600",
+                "10234",
+                "1210012600",
+                "10250",
+                "1220011300"
+              ],
+              [
+                "1220012600",
+                "10233",
+                "1210012600",
+                "10248",
+                "1220009403"
+              ],
+              [
+                "1220012600",
+                "10233",
+                "1210012600",
+                "10252",
+                "1220009600"
+              ]
+            ]
+          },
+          {
+            "decision": "1164",
+            "item": "V5a",
+            "link": "10555",
+            "pos": "38.0",
+            "routes": [
+              [
+                "10555",
+                "1220008401",
+                "10558",
+                "1210008401",
+                "10568",
+                "1220008301"
+              ],
+              [
+                "10555",
+                "1220008401",
+                "10557",
+                "1210008401",
+                "10567",
+                "1220006803"
+              ],
+              [
+                "10555",
+                "1220008401",
+                "10557",
+                "1210008401",
+                "10569",
+                "1220007004"
+              ]
+            ]
+          },
+          {
+            "decision": "1165",
+            "item": "V5b",
+            "link": "1220008401",
+            "pos": "11.5",
+            "routes": [
+              [
+                "1220008401",
+                "10558",
+                "1210008401",
+                "10568",
+                "1220008301"
+              ],
+              [
+                "1220008401",
+                "10557",
+                "1210008401",
+                "10567",
+                "1220006803"
+              ],
+              [
+                "1220008401",
+                "10557",
+                "1210008401",
+                "10569",
+                "1220007004"
+              ]
+            ]
+          },
+          {
+            "decision": "1166",
+            "item": "V6a",
+            "link": "10553",
+            "pos": "16.0",
+            "routes": [
+              [
+                "10553",
+                "1220008502",
+                "10545",
+                "1220011503",
+                "10539",
+                "1220012402"
+              ],
+              [
+                "10553",
+                "1220008502",
+                "10544",
+                "1220011503",
+                "10538",
+                "1220016101"
+              ],
+              [
+                "10553",
+                "1220008502",
+                "10544",
+                "1220011503",
+                "10528",
+                "336",
+                "10529",
+                "1210014303"
+              ]
+            ]
+          },
+          {
+            "decision": "1167",
+            "item": "V6b",
+            "link": "1220008502",
+            "pos": "31.5",
+            "routes": [
+              [
+                "1220008502",
+                "10545",
+                "1220011503",
+                "10539",
+                "1220012402"
+              ],
+              [
+                "1220008502",
+                "10544",
+                "1220011503",
+                "10538",
+                "1220016101"
+              ],
+              [
+                "1220008502",
+                "10544",
+                "1220011503",
+                "10528",
+                "336",
+                "10529",
+                "1210014303"
+              ]
+            ]
+          },
+          {
+            "decision": "1168",
+            "item": "V7",
+            "link": "1220001602",
+            "pos": "41.5",
+            "routes": [
+              [
+                "1220001602",
+                "10039",
+                "28",
+                "10042",
+                "1220002001",
+                "10170",
+                "1220021204"
+              ],
+              [
+                "1220001602",
+                "10039",
+                "28",
+                "10041",
+                "1220002001",
+                "10167",
+                "1220002302"
+              ],
+              [
+                "1220001602",
+                "10039",
+                "28",
+                "10041",
+                "1220002001",
+                "10171",
+                "65",
+                "10092",
+                "1220061100"
+              ]
+            ]
+          }
+        ],
+        "added_decision_receipt": {
+          "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
+          "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4",
+          "rows": "edits.decisions (8): v3b be0075bf -> v3c1 2577209b (V2 = decision 1161 held)"
+        },
         "route_edits": [
           {
             "decision": "33",
@@ -2344,6 +2615,26 @@
             }
           }
         }
+      }
+    },
+    "added_decision_block": {
+      "after_decision": "1159",
+      "bytes": 9293,
+      "sha256": "2b77ab010cd89de02af3c446ad082168915fd47efc6ea7e69a98918dcf8d639f",
+      "decisions": [
+        "1160",
+        "1162",
+        "1163",
+        "1164",
+        "1165",
+        "1166",
+        "1167",
+        "1168"
+      ],
+      "receipt": {
+        "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
+        "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4",
+        "rows": "edits.decisions (8): v3b be0075bf -> v3c1 2577209b (V2 = decision 1161 held)"
       }
     }
   },

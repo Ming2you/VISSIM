@@ -73,21 +73,21 @@ class CopyAndReferenceTests(unittest.TestCase):
         self.assertEqual({k: v for k, v in freeway.items()
                           if k not in make_reference_config.TRANSPORT_KEYS + make_reference_config.VSL_KEYS},
                          boundary['freeway'])
-        # Branch VSL model (d80faf9 A0.5_E4) under its own keys; sign cells re-derived here.
-        self.assertEqual(freeway['vsl_fd_response'], {'FW_E': {'law': 'carlson', 'A': 0.5, 'E': 4.0, 'alpha': 0.0}})
+        # Branch VSL model keys (d80faf9) with the N1 L1 law (user approval 2026-09-28); sign cells re-derived here.
+        self.assertEqual(freeway['vsl_fd_response'], {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}})
         self.assertEqual(freeway['component_vsl_transport'],
                          {'FW_E': {'sign_cells': [0, 3, 5, 8, 14, 18, 26, 28], 'initial_command': 110, 'ramp_command': 110}})
-        self.assertIn('refit on v2 pending', freeway['_vsl_model_note'])
+        self.assertIn('N1 L1', freeway['_vsl_model_note'])
+        self.assertIn('a81eb5cf7a090d3da6184bc9572e873ece255f1cce024823a1c468df4fdf5117', freeway['_vsl_model_note'])
         self.assertEqual(make_reference_config.sign_cells(), make_reference_config.EXPECTED_SIGN_CELLS)
         # Outside freeway the reference is the boundary config except the action set (max 110 kept).
         expected = copy.deepcopy({k: v for k, v in boundary.items() if k != 'freeway'})
         self.assertEqual(expected['config_overrides']['freeway_follower']['vsl_set'], [60.0, 80.0, 110.0])
-        expected['config_overrides']['freeway_follower']['vsl_set'] = [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0]
+        expected['config_overrides']['freeway_follower']['vsl_set'] = [80.0, 90.0, 100.0, 110.0]
         self.assertEqual({k: v for k, v in reference.items() if k not in ('freeway', '_n31_note')}, expected)
         self.assertEqual(freeway['physical_ramp_capacity_vph']['RM_C10482'], 3600.0)
         self.assertEqual(freeway['component_boundary'], {'source': 'admitted_interface', 'terminal': 'open_exit'})
-        self.assertEqual(reference['config_overrides']['freeway_follower']['vsl_set'],
-                         [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0])
+        self.assertEqual(reference['config_overrides']['freeway_follower']['vsl_set'], [80.0, 90.0, 100.0, 110.0])
         self.assertEqual(make_reference_config.VSL_SET, make_config_n31.VSL_SET)
 
 
@@ -187,12 +187,13 @@ class TuningTests(unittest.TestCase):
             make_config_n31.apply(stale, require_repinned=False)
 
     def test_beta_source_is_the_pinned_network_routing_table(self):
-        """Network v3b re-pin (2026-09-25): the tuning names the v3b routing beta, not the 0824 e14 table."""
-        self.assertEqual(self.tuning['urban']['beta'], {'measured': True, 'floor': 0.0, 'source': 'routing_v3b'})
+        """Network v3c1 re-pin (2026-09-28; v3b 2026-09-25): the tuning names the pinned network's routing beta, not
+        the 0824 e14 table."""
+        self.assertEqual(self.tuning['urban']['beta'], {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1'})
         make_config_n31.check_beta(fx.ROOT)
         document = fx.load_json(fx.ROOT / make_config_n31.BETA_FILE)
         self.assertEqual(document['source'].replace('\\', '/'), make_config_n31.NETWORK)
-        self.assertEqual(len(document['beta']), 370)   # 345 before the explicit interchange assignment
+        self.assertEqual(len(document['beta']), 373)   # v3b 370 (345 before the explicit assignment) + SC104 S_SC106
         with_source = copy.deepcopy(self.base)
         with_source['urban']['beta']['source'] = 'knr'
         with self.assertRaisesRegex(ValueError, 'default source'):
@@ -204,8 +205,7 @@ class TuningTests(unittest.TestCase):
         self.assertEqual(t['freeway']['segment_params'], make_config_n31.SEGMENT_PARAMS)
         self.assertTrue((fx.ROOT / t['freeway']['segment_params']).is_file())
         self.assertNotIn('sample_interval_sec', t['urban']['capacity']['head_observation'])
-        self.assertEqual(t['config_overrides']['freeway_follower']['vsl_set'],
-                         [50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0])
+        self.assertEqual(t['config_overrides']['freeway_follower']['vsl_set'], [80.0, 90.0, 100.0, 110.0])
         self.assertEqual(t['config_overrides']['network']['v_free'], 110.0)
         self.assertIs(t['execution']['native_signal_record'], False)
         self.assertEqual(t['execution']['signal_vbs_config'], make_config_n31.RUNNER_CONFIG)

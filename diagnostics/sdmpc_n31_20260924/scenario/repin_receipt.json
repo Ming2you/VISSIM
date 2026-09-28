@@ -16,21 +16,21 @@
       "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
       "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
     },
-    "network_source_folder": "D:\\VISSIM_runs\\20260925_v3b\\s31_v3bnc\\prepared\\network",
+    "network_source_folder": "D:\\VISSIM_runs\\20260927_v3c1\\s31_v3c1nc\\prepared\\network",
     "previous_runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v2nc.inpx",
-      "sha256": "f475ce42b0afaceccfd7974066a7b040600ddb93849bcf09174cd794bc0b255b",
-      "note": "v2 f475ce42, the runtime network until 2026-09-25 (replaced, file removed)"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
+      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc",
+      "note": "v3b be0075bf, the runtime network 2026-09-25..2026-09-28 (replaced, file removed; v3b replays run from a frozen tree); v2 f475ce42 before 2026-09-25"
     }
   },
   "network": {
     "inpx": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
     },
     "sig_manifest": {
       "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
-      "sha256": "d948369355d13b72c27e4d84581dd6a7ad5f5686a9f93c889c77c6a846304ac8"
+      "sha256": "9888a7b827c669b50dfbe0fcaf430ceba9f391ecb6e9b5508ab6ef7bf68eb218"
     },
     "sig_files": 42,
     "sig_byte_equal_to": {
@@ -435,7 +435,261 @@
       ]
     },
     "vehicleRoutingDecisionsStatic": {
-      "meaning": "route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS)",
+      "meaning": "route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS)",
+      "added_decisions": [
+        {
+          "decision": "1160",
+          "item": "V1",
+          "link": "21",
+          "pos": "20.0",
+          "routes": [
+            [
+              "21",
+              "10112",
+              "174",
+              "10281",
+              "173",
+              "10286",
+              "1220009502"
+            ],
+            [
+              "21",
+              "10112",
+              "174",
+              "10280",
+              "173",
+              "10285",
+              "1220000803"
+            ]
+          ]
+        },
+        {
+          "decision": "1162",
+          "item": "V3",
+          "link": "256",
+          "pos": "20.0",
+          "routes": [
+            [
+              "256",
+              "10415",
+              "1220014100",
+              "10419",
+              "1220014203"
+            ],
+            [
+              "256",
+              "10415",
+              "1220014100",
+              "10418",
+              "1220019301"
+            ],
+            [
+              "256",
+              "10415",
+              "1220014100",
+              "10420",
+              "1220018501"
+            ]
+          ]
+        },
+        {
+          "decision": "1163",
+          "item": "V4",
+          "link": "1220012600",
+          "pos": "22.0",
+          "routes": [
+            [
+              "1220012600",
+              "10234",
+              "1210012600",
+              "10250",
+              "1220011300"
+            ],
+            [
+              "1220012600",
+              "10233",
+              "1210012600",
+              "10248",
+              "1220009403"
+            ],
+            [
+              "1220012600",
+              "10233",
+              "1210012600",
+              "10252",
+              "1220009600"
+            ]
+          ]
+        },
+        {
+          "decision": "1164",
+          "item": "V5a",
+          "link": "10555",
+          "pos": "38.0",
+          "routes": [
+            [
+              "10555",
+              "1220008401",
+              "10558",
+              "1210008401",
+              "10568",
+              "1220008301"
+            ],
+            [
+              "10555",
+              "1220008401",
+              "10557",
+              "1210008401",
+              "10567",
+              "1220006803"
+            ],
+            [
+              "10555",
+              "1220008401",
+              "10557",
+              "1210008401",
+              "10569",
+              "1220007004"
+            ]
+          ]
+        },
+        {
+          "decision": "1165",
+          "item": "V5b",
+          "link": "1220008401",
+          "pos": "11.5",
+          "routes": [
+            [
+              "1220008401",
+              "10558",
+              "1210008401",
+              "10568",
+              "1220008301"
+            ],
+            [
+              "1220008401",
+              "10557",
+              "1210008401",
+              "10567",
+              "1220006803"
+            ],
+            [
+              "1220008401",
+              "10557",
+              "1210008401",
+              "10569",
+              "1220007004"
+            ]
+          ]
+        },
+        {
+          "decision": "1166",
+          "item": "V6a",
+          "link": "10553",
+          "pos": "16.0",
+          "routes": [
+            [
+              "10553",
+              "1220008502",
+              "10545",
+              "1220011503",
+              "10539",
+              "1220012402"
+            ],
+            [
+              "10553",
+              "1220008502",
+              "10544",
+              "1220011503",
+              "10538",
+              "1220016101"
+            ],
+            [
+              "10553",
+              "1220008502",
+              "10544",
+              "1220011503",
+              "10528",
+              "336",
+              "10529",
+              "1210014303"
+            ]
+          ]
+        },
+        {
+          "decision": "1167",
+          "item": "V6b",
+          "link": "1220008502",
+          "pos": "31.5",
+          "routes": [
+            [
+              "1220008502",
+              "10545",
+              "1220011503",
+              "10539",
+              "1220012402"
+            ],
+            [
+              "1220008502",
+              "10544",
+              "1220011503",
+              "10538",
+              "1220016101"
+            ],
+            [
+              "1220008502",
+              "10544",
+              "1220011503",
+              "10528",
+              "336",
+              "10529",
+              "1210014303"
+            ]
+          ]
+        },
+        {
+          "decision": "1168",
+          "item": "V7",
+          "link": "1220001602",
+          "pos": "41.5",
+          "routes": [
+            [
+              "1220001602",
+              "10039",
+              "28",
+              "10042",
+              "1220002001",
+              "10170",
+              "1220021204"
+            ],
+            [
+              "1220001602",
+              "10039",
+              "28",
+              "10041",
+              "1220002001",
+              "10167",
+              "1220002302"
+            ],
+            [
+              "1220001602",
+              "10039",
+              "28",
+              "10041",
+              "1220002001",
+              "10171",
+              "65",
+              "10092",
+              "1220061100"
+            ]
+          ]
+        }
+      ],
+      "added_decision_receipt": {
+        "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
+        "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4",
+        "rows": "edits.decisions (8): v3b be0075bf -> v3c1 2577209b (V2 = decision 1161 held)"
+      },
       "route_edits": [
         {
           "decision": "33",
@@ -927,7 +1181,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-        "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
+        "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
       }
     },
     {
@@ -956,7 +1210,7 @@
       ],
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json",
-        "sha256": "4fe0b19d7c7c3f7b0b2a4c78698ed80b3b9a29bf8c5c47b53aa405b21c46314d"
+        "sha256": "24ec90e136de237131e91db9505eb8c4418d709c89385de8ab1f3a87de967ea5"
       }
     },
     {
@@ -978,7 +1232,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json",
-        "sha256": "21f3aabdac437d1f7f145dbe000adb4bf9dc1452c48e95e5adb268a048e56c9b"
+        "sha256": "5787a7bd5397980a686ada0f6c96d43504808416a82293daf5e157e00a3fc5fd"
       }
     },
     {
@@ -1008,7 +1262,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/head_service_resource_contract_7b2da6.json",
-        "sha256": "3a2637a6f741e1853828acf04eb6513d289644931a79806d0b6fd98663eaf496"
+        "sha256": "b2652f096508fc6607b37594d44bf4248a70eb86ec724e2833888df0e0fb1847"
       }
     },
     {
@@ -1030,7 +1284,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
-        "sha256": "2847d3f1b30cc257799d488b4648a5cc5fa11548adddefa4f5e70ebcc7b91119"
+        "sha256": "1a42dc9a084f8a0917039112a0253681694df7fe21577635426dee399da29e54"
       }
     },
     {
@@ -1050,13 +1304,17 @@
         }
       ],
       "prior_mismatch": false,
+      "declaration_amendments": [
+        "/inputs/1083/native_route_prior",
+        "/inputs/1083/reviewed_source_decisions"
+      ],
       "relflow_copies": {
         "equal_v2": 0,
         "lineage": []
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json",
-        "sha256": "76694bab85798f9bf12549499e6492be104d4363c1f770abecc08323e36fe411"
+        "sha256": "229279e30e7e141d41cd7a183a14f5be1b820aa080eb706b9eb8e76d71eb4fe2"
       }
     },
     {
@@ -1090,7 +1348,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json",
-        "sha256": "cd80b0490659f619cef2b9c842ca17f90b0fd776de5a91d313fb7946bb20c694"
+        "sha256": "2213d7c200f169b09aa323885d1bd5eedf8fa868fef96c0efd1d7722bdaf5cfc"
       }
     },
     {
@@ -1107,7 +1365,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json",
-        "sha256": "485bffbcc0a5f93277cfd482879d5bb9173b19b6cb03b354e82b4a98412454ec"
+        "sha256": "831e77abbf4f765779b50a906a0d1df453fbfc2dfe978c37f9eeae123caf7a96"
       }
     },
     {
@@ -1153,7 +1411,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_internal_inputs_c92673.json",
-        "sha256": "5b82d93395db673461693b7be6ed1e35d6202fd16f0c5f40474aba61d330bb16"
+        "sha256": "618a58b7842e467f49ae9185d8d069037948922f9caaaa0646194d51b065bad2"
       }
     },
     {
@@ -1175,7 +1433,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
-        "sha256": "21d815a85d13c4fbf427187af4659b13fae5750d1c611095425b3bf89c81f2f7"
+        "sha256": "62111d42e830aab9f1c86a239676ec4613bf53746a2ad6460047aa8bad4fffe2"
       }
     },
     {
@@ -1197,7 +1455,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
-        "sha256": "010fb031977bd3d240fb3402ebc7a9a6db8346f0c57e1fcecf53ca6e0addcb3b"
+        "sha256": "d8a267be1a78977408d0eea9499c74f4062f38f6b72ea289ecaa7202fae2519f"
       }
     },
     {
@@ -1217,13 +1475,17 @@
         }
       ],
       "prior_mismatch": false,
+      "declaration_amendments": [
+        "/evidence/10419/native_route_ids",
+        "/evidence/10568/native_route_ids"
+      ],
       "relflow_copies": {
         "equal_v2": 0,
         "lineage": []
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json",
-        "sha256": "f8a4ea7b4bdf078f56181a18bf2ac194c1e79edb3f1b5cdc7ac0789e6ca41ce5"
+        "sha256": "e22c1a0703cdd5cb75c4f71840b40ef20c275fe5c81f7c7a58f6592d74f7d289"
       }
     },
     {
@@ -1245,7 +1507,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_ver2_b49a6f.json",
-        "sha256": "8e27f664d6a2e355718dbbd782cf704f1e53e364448cf3dae05fcf92c7924efb"
+        "sha256": "cc393bac821d3203d86362b3f3bec2bd21d4dde9830e879a0acf3c1586a3344c"
       }
     },
     {
@@ -1275,7 +1537,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
-        "sha256": "f6cc83c254357603f246a0418b03512b65d23635538aad85126989c99ead7387"
+        "sha256": "790027f14d767f6f0e7456043f70de04dd665643e39498e1f70eb351a9bc7641"
       }
     },
     {
@@ -1305,7 +1567,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
-        "sha256": "c77815fe94ab9072f472b565deceb0f426a29ec4062a676ca86ae0a4fc3412d7"
+        "sha256": "8f9de5cceeb9d1da82e3d7557a8e817d7ea0aa2501706c2bed0f38e2556da6e0"
       }
     },
     {
@@ -1331,7 +1593,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
-        "sha256": "dbe9850ac77e9d2ca52ad6c92f3a96b52b74dda9f87092c40e64e850824d58e7"
+        "sha256": "4cb76d3fad7db18b41d4a01764e1c07408d95d7acc5ab4f338a007b1580cf528"
       }
     },
     {
@@ -1357,7 +1619,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
-        "sha256": "39e883d16c18f2e2684456aaaf62138332508e495b62c3e4a4146941c6b3ae76"
+        "sha256": "36097238b09372bdc96c7e450895dd2f5b4bc3510c4c493a172fe3c11a1212bb"
       }
     },
     {
@@ -1383,7 +1645,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json",
-        "sha256": "462e3b299231b36db2515e398c835c68f52815910d35950accd0ecbf6ab766de"
+        "sha256": "a4eee33469f1e83ca0fdce79aa7bd538dd36226420c9428b905595d057b8a1e1"
       }
     },
     {
@@ -1409,7 +1671,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json",
-        "sha256": "ec977cfad1a4f32282c737d6b1b630b4d2ba4cc05ad1d499373d18d175befad2"
+        "sha256": "97e16ead6e0813af535fb559da34b271f36f0628871b5a9ebdfe5bf3485a76d3"
       }
     },
     {
@@ -1431,7 +1693,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json",
-        "sha256": "eb67af9be6842118e7db7f6c060dce2539ed713f2932a62b5b1ed95702a79bd1"
+        "sha256": "3f8916d1a709b7288718e6af2f6f04e1c91e7f7c76c97deab9c007c250e6949c"
       }
     },
     {
@@ -1442,7 +1704,7 @@
       "schema": "experimental-network-prior-transfer/v1",
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "d735e14a85b42d4853b38c247c40abcfd91db3eabb3b57c11a6d0c22d7bedc2c"
+        "sha256": "6f5c18343fc2f17e3d559e8d3cca639958f15d4fddb4ac92bed3afbefd51a32d"
       },
       "action": "regenerated: training network kept, target v2, prior list checked equal"
     },
@@ -1464,9 +1726,9 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
+        "sha256": "f0ed036e46c7b9a83af10d4ba973c2544f3ac9547e0cab26a13d4d7a23add62c"
       },
-      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 50,60,70,80,90,100,110 (user decision 2026-09-24)"
+      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 80,90,100,110 (user approval 2026-09-28, N1 L1 action set)"
     },
     {
       "source": {
@@ -1482,7 +1744,7 @@
   ],
   "config_base": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
-    "sha256": "063b2e3e8d935fe6da2728c4982f4b47cdda1bff44798ca300ccdf0dd417df82"
+    "sha256": "254ca150bb555840dfcd4f40b988c0cf83f399fe4caa2328b01234d8cf3a9c1e"
   },
   "runner_config_check": {
     "elements_present": [
@@ -1495,9 +1757,6 @@
       "RW_SIGNAL_SCS"
     ],
     "allowed_vsl_speeds": [
-      50,
-      60,
-      70,
       80,
       90,
       100,
@@ -1538,6 +1797,11 @@
       "resolved": 5,
       "external_provenance": [
         {
+          "at": "/repin_step/native_changes/vehicleRoutingDecisionsStatic/added_decision_receipt",
+          "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
+          "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4"
+        },
+        {
           "at": "/repin_step/native_changes/vehicleRoutingDecisionsStatic/route_edit_receipts/0",
           "path": "D:\\VISSIM_runs\\20260925_v3\\v3_edit_receipt.json",
           "sha256": "147bc73257d1f205b617bed01273a56424771e7a096869d4307ba41ebd52879d"
@@ -1546,6 +1810,11 @@
           "at": "/repin_step/native_changes/vehicleRoutingDecisionsStatic/route_edit_receipts/1",
           "path": "D:\\VISSIM_runs\\20260925_v3b\\v3b_edit_receipt.json",
           "sha256": "e0d4bccbcfb1ec57511dda71f1d826a0b5129115611c5faa1ac5e53287b93e7f"
+        },
+        {
+          "at": "/repin_step/added_decision_block/receipt",
+          "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
+          "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4"
         }
       ]
     },
@@ -1623,20 +1892,20 @@
   "integration": {
     "plant_manifest_v2": {
       "sources.network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-        "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+        "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
       },
       "sources.runner_config": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "b74e05b2a1dc910d39989894a30c373c791a7f0dc7f3c52620763995b58a9956"
+        "sha256": "f0ed036e46c7b9a83af10d4ba973c2544f3ac9547e0cab26a13d4d7a23add62c"
       },
       "sources.sig_manifest": {
         "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
-        "sha256": "d948369355d13b72c27e4d84581dd6a7ad5f5686a9f93c889c77c6a846304ac8"
+        "sha256": "9888a7b827c669b50dfbe0fcaf430ceba9f391ecb6e9b5508ab6ef7bf68eb218"
       },
       "membership": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-        "sha256": "98c9753922dec5830cc91fd6a6e3709652cf99c10a72d4094ddedcc3864813e0"
+        "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
       }
     },
     "tuning": {

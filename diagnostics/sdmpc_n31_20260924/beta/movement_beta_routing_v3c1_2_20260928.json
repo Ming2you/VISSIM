@@ -1,12 +1,12 @@
 {
  "schema": "movement_beta_routing_physical/v1",
- "generated": "2026-09-25",
+ "generated": "2026-09-28",
  "definition": "beta = share of the static routes' relFlow over the physical exits of the approach's stop line (0 without a physical path); see scripts/derive_routing_beta_physical.py. Every approach sums to 1 before any runtime renormalisation.",
  "approach_sum": "exact",
  "inputs": {
   "network": {
-   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-   "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc"
+   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+   "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
   },
   "territory": {
    "path": "outputs/urban_player_territory_v2_20260907.json",
@@ -14,7 +14,7 @@
   },
   "movements": {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
-   "sha256": "063b2e3e8d935fe6da2728c4982f4b47cdda1bff44798ca300ccdf0dd417df82"
+   "sha256": "254ca150bb555840dfcd4f40b988c0cf83f399fe4caa2328b01234d8cf3a9c1e"
   },
   "connector_map": {
    "path": "outputs/movement_connector_map_ver2_20260907.json",
@@ -25,20 +25,20 @@
    "sha256": "d1d1905dffa61ae8157b76caa6f7718952f897684430700e43bb8c9f43ecb843"
   },
   "entry": {
-   "path": "diagnostics/sdmpc_n31_20260924/beta/approach_entry_v3b2_20260925.json",
-   "sha256": "56a1bb3c955e936771bf676fe96a53415e6894a43e6a08aba7415810bc1477b6"
+   "path": "diagnostics/sdmpc_n31_20260924/beta/approach_entry_v3c1_20260928.json",
+   "sha256": "8c44404eed8330d6ac68ebdd07742139bc3b7114e7a54d4c17d6a3387d34eade"
   },
   "phase_correction": {
    "path": "outputs/movement_phase_correction_20260828.json",
    "sha256": "fc8f207022310cae9afa0bd967ea20317256cb48e762ba9ce7b2ff067947377f"
   },
   "nonexistent_declaration": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3b_20260926.json",
-   "sha256": "3135dcdaf7b01feb426eb1bb48df15470d31c06934a3f84ebb048df231b61fce"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c1_20260928.json",
+   "sha256": "e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec"
   },
   "phase_authority": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3b_20260926.json",
-   "sha256": "e729cdc4ec22414877295bed8ba98c7dc43e14b2202fe7222516fe0ee8c7d907"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3c1_20260928.json",
+   "sha256": "77d43c5c8ca52a8ad3be82e285367b0769c0b8e26d7781c7d13b775bce962e9a"
   },
   "out_links": {
    "path": "outputs/out_link_storage_ver2_20260909.json",
@@ -48,24 +48,24 @@
  "route_choice_corridors": [
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
-   "sha256": "39e883d16c18f2e2684456aaaf62138332508e495b62c3e4a4146941c6b3ae76"
+   "sha256": "36097238b09372bdc96c7e450895dd2f5b4bc3510c4c493a172fe3c11a1212bb"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
-   "sha256": "dbe9850ac77e9d2ca52ad6c92f3a96b52b74dda9f87092c40e64e850824d58e7"
+   "sha256": "4cb76d3fad7db18b41d4a01764e1c07408d95d7acc5ab4f338a007b1580cf528"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
-   "sha256": "f6cc83c254357603f246a0418b03512b65d23635538aad85126989c99ead7387"
+   "sha256": "790027f14d767f6f0e7456043f70de04dd665643e39498e1f70eb351a9bc7641"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
-   "sha256": "c77815fe94ab9072f472b565deceb0f426a29ec4062a676ca86ae0a4fc3412d7"
+   "sha256": "8f9de5cceeb9d1da82e3d7557a8e817d7ea0aa2501706c2bed0f38e2556da6e0"
   }
  ],
  "physical_route_topology": {
   "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
-  "sha256": "21d815a85d13c4fbf427187af4659b13fae5750d1c611095425b3bf89c81f2f7"
+  "sha256": "62111d42e830aab9f1c86a239676ec4613bf53746a2ad6460047aa8bad4fffe2"
  },
  "movements": 492,
  "beta": {
@@ -175,14 +175,14 @@
   "SC101_N_SC2005_to_S": 0.0,
   "SC101_N_SC2005_to_S_SC1": 0.7112810707456979,
   "SC101_N_SC2005_to_W_SC1002": 0.13320586360739325,
-  "SC101_S_SC1_to_E_SC5": 0.043933054393305436,
-  "SC101_S_SC1_to_N_SC2005": 0.7228033472803347,
+  "SC101_S_SC1_to_E_SC5": 0.09708987895956735,
+  "SC101_S_SC1_to_N_SC2005": 0.6719031676538759,
   "SC101_S_SC1_to_S": 0.0,
-  "SC101_S_SC1_to_W_SC1002": 0.23326359832635984,
-  "SC101_S_to_E_SC5": 0.043933054393305436,
-  "SC101_S_to_N_SC2005": 0.7228033472803347,
+  "SC101_S_SC1_to_W_SC1002": 0.23100695338655677,
+  "SC101_S_to_E_SC5": 0.09708987895956735,
+  "SC101_S_to_N_SC2005": 0.6719031676538759,
   "SC101_S_to_S_SC1": 0.0,
-  "SC101_S_to_W_SC1002": 0.23326359832635984,
+  "SC101_S_to_W_SC1002": 0.23100695338655677,
   "SC101_W_SC1002_to_E_SC5": 0.564319248826291,
   "SC101_W_SC1002_to_N_SC2005": 0.0431924882629108,
   "SC101_W_SC1002_to_S": 0.0,
@@ -217,9 +217,9 @@
   "SC104_N_to_E": 0.0,
   "SC104_N_to_S_SC106": 1.0,
   "SC104_N_to_W_SC6": 0.0,
-  "SC104_S_SC106_to_E": 0.25,
-  "SC104_S_SC106_to_N": 0.5,
-  "SC104_S_SC106_to_W_SC6": 0.25,
+  "SC104_S_SC106_to_E": 0.28861199652274705,
+  "SC104_S_SC106_to_N": 0.6529508355066165,
+  "SC104_S_SC106_to_W_SC6": 0.05843716797063653,
   "SC104_W_SC6_to_E": 1.0,
   "SC104_W_SC6_to_N": 0.0,
   "SC104_W_SC6_to_S_SC106": 0.0,
@@ -307,8 +307,8 @@
   "SC109_E_to_W_SC108": 0.9625468164794008,
   "SC109_N_SC16_to_E": 1.0,
   "SC109_N_SC16_to_W_SC108": 0.0,
-  "SC109_W_SC108_to_E": 0.7621274108708358,
-  "SC109_W_SC108_to_N_SC16": 0.23787258912916423,
+  "SC109_W_SC108_to_E": 0.8259679311693391,
+  "SC109_W_SC108_to_N_SC16": 0.17403206883066094,
   "SC11_E_SC12_to_E": 0.0,
   "SC11_E_SC12_to_N_SC5": 0.23268698060941828,
   "SC11_E_SC12_to_S_SC7": 0.09695290858725762,
@@ -374,11 +374,11 @@
   "SC16_E_to_S_SC109": 0.33121019108280253,
   "SC16_E_to_W": 0.0,
   "SC16_E_to_W_SC7": 0.2929936305732484,
-  "SC16_N_SC12_to_E": 0.022675736961451247,
+  "SC16_N_SC12_to_E": 0.15742128935532235,
   "SC16_N_SC12_to_S": 0.0,
-  "SC16_N_SC12_to_S_SC109": 0.9622071050642479,
+  "SC16_N_SC12_to_S_SC109": 0.8350824587706147,
   "SC16_N_SC12_to_W": 0.0,
-  "SC16_N_SC12_to_W_SC7": 0.015117157974300832,
+  "SC16_N_SC12_to_W_SC7": 0.0074962518740629685,
   "SC16_S_SC109_to_E": 0.021604938271604937,
   "SC16_S_SC109_to_N_SC12": 0.9526748971193416,
   "SC16_S_SC109_to_S": 0.0,
@@ -414,19 +414,19 @@
   "SC1_E_to_W": 0.0,
   "SC1_E_to_W_SC105": 0.3263546798029557,
   "SC1_N_SC101_to_E": 0.0,
-  "SC1_N_SC101_to_E_SC11": 0.021855269548324428,
+  "SC1_N_SC101_to_E_SC11": 0.060782411897833816,
   "SC1_N_SC101_to_N": 0.0,
   "SC1_N_SC101_to_S": 0.0,
-  "SC1_N_SC101_to_S_SC107": 0.8737251092763477,
+  "SC1_N_SC101_to_S_SC107": 0.7727125767862916,
   "SC1_N_SC101_to_W": 0.0,
-  "SC1_N_SC101_to_W_SC105": 0.10441962117532783,
+  "SC1_N_SC101_to_W_SC105": 0.16650501131587456,
   "SC1_N_to_E": 0.0,
-  "SC1_N_to_E_SC11": 0.021855269548324428,
+  "SC1_N_to_E_SC11": 0.060782411897833816,
   "SC1_N_to_N_SC101": 0.0,
   "SC1_N_to_S": 0.0,
-  "SC1_N_to_S_SC107": 0.8737251092763477,
+  "SC1_N_to_S_SC107": 0.7727125767862916,
   "SC1_N_to_W": 0.0,
-  "SC1_N_to_W_SC105": 0.10441962117532783,
+  "SC1_N_to_W_SC105": 0.16650501131587456,
   "SC1_S_SC107_to_E": 0.0,
   "SC1_S_SC107_to_E_SC11": 0.07811843763124737,
   "SC1_S_SC107_to_N": 0.0,
@@ -517,14 +517,14 @@
   "SC5_N_SC102_to_S": 0.0,
   "SC5_N_SC102_to_S_SC11": 0.4952893674293405,
   "SC5_N_SC102_to_W_SC101": 0.25841184387617766,
-  "SC5_S_SC11_to_E_SC6": 0.12334801762114538,
-  "SC5_S_SC11_to_N_SC102": 0.6497797356828194,
+  "SC5_S_SC11_to_E_SC6": 0.30351681957186544,
+  "SC5_S_SC11_to_N_SC102": 0.5244648318042814,
   "SC5_S_SC11_to_S": 0.0,
-  "SC5_S_SC11_to_W_SC101": 0.22687224669603523,
-  "SC5_S_to_E_SC6": 0.12334801762114538,
-  "SC5_S_to_N_SC102": 0.6497797356828194,
+  "SC5_S_SC11_to_W_SC101": 0.1720183486238532,
+  "SC5_S_to_E_SC6": 0.30351681957186544,
+  "SC5_S_to_N_SC102": 0.5244648318042814,
   "SC5_S_to_S_SC11": 0.0,
-  "SC5_S_to_W_SC101": 0.22687224669603523,
+  "SC5_S_to_W_SC101": 0.1720183486238532,
   "SC5_W_SC101_to_E_SC6": 0.783303730017762,
   "SC5_W_SC101_to_N_SC102": 0.14268798105387803,
   "SC5_W_SC101_to_S": 0.0,
@@ -711,9 +711,9 @@
   "SC104_N_to_E": "physical_no_route_evidence",
   "SC104_N_to_S_SC106": "relflow",
   "SC104_N_to_W_SC6": "physical_no_route_evidence",
-  "SC104_S_SC106_to_E": "no_route_evidence_config_default",
-  "SC104_S_SC106_to_N": "no_route_evidence_config_default",
-  "SC104_S_SC106_to_W_SC6": "no_route_evidence_config_default",
+  "SC104_S_SC106_to_E": "relflow",
+  "SC104_S_SC106_to_N": "relflow",
+  "SC104_S_SC106_to_W_SC6": "relflow",
   "SC104_W_SC6_to_E": "relflow",
   "SC104_W_SC6_to_N": "physical_no_route_evidence",
   "SC104_W_SC6_to_S_SC106": "physical_no_route_evidence",
@@ -793,7 +793,7 @@
   "SC108_W_SC107_to_N_SC7": "relflow",
   "SC108_W_SC107_to_S": "relflow",
   "SC108_W_SC107_to_W": "own_leg_u_turn",
-  "SC108_W_to_E_SC109": "no_route_evidence_config_default",
+  "SC108_W_to_E_SC109": "relflow",
   "SC108_W_to_N_SC7": "no_physical_path",
   "SC108_W_to_S": "no_physical_path",
   "SC108_W_to_W_SC107": "own_leg_u_turn",
@@ -1056,10 +1056,7 @@
   "SC7_S_SC108_to_E_SC16": "relflow",
   "SC7_S_SC108_to_N_SC11": "relflow"
  },
- "no_route_evidence_approaches": [
-  "SC104|S_SC106",
-  "SC108|W"
- ],
+ "no_route_evidence_approaches": [],
  "starvation_guard": [],
  "phases_without_flow": [
   "SC109_p1"
@@ -1458,16 +1455,21 @@
    "reviewed_branches": {},
    "entry": null,
    "sources": {
+    "1164:1": 143.0,
+    "1164:2": 374.0,
+    "1164:3": 2.0,
+    "1165:2": 217.0,
+    "1165:3": 298.0,
     "13:1": 45.0,
     "13:2": 1799.0,
     "13:3": 215.0
    },
    "connectors": {
-    "10567": 1799.0,
-    "10568": 45.0,
-    "10569": 215.0
+    "10567": 2390.0,
+    "10568": 188.0,
+    "10569": 515.0
    },
-   "matched": 2059.0,
+   "matched": 3093.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -1487,11 +1489,11 @@
     "SC1_N_to_W": []
    },
    "beta": {
-    "SC1_N_to_S_SC107": 0.8737251092763477,
+    "SC1_N_to_S_SC107": 0.7727125767862916,
     "SC1_N_to_S": 0.0,
-    "SC1_N_to_E_SC11": 0.021855269548324428,
+    "SC1_N_to_E_SC11": 0.060782411897833816,
     "SC1_N_to_N_SC101": 0.0,
-    "SC1_N_to_W_SC105": 0.10441962117532783,
+    "SC1_N_to_W_SC105": 0.16650501131587456,
     "SC1_N_to_E": 0.0,
     "SC1_N_to_W": 0.0
    },
@@ -1514,16 +1516,21 @@
    "reviewed_branches": {},
    "entry": null,
    "sources": {
+    "1164:1": 143.0,
+    "1164:2": 374.0,
+    "1164:3": 2.0,
+    "1165:2": 217.0,
+    "1165:3": 298.0,
     "13:1": 45.0,
     "13:2": 1799.0,
     "13:3": 215.0
    },
    "connectors": {
-    "10567": 1799.0,
-    "10568": 45.0,
-    "10569": 215.0
+    "10567": 2390.0,
+    "10568": 188.0,
+    "10569": 515.0
    },
-   "matched": 2059.0,
+   "matched": 3093.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -1543,10 +1550,10 @@
     "SC1_N_SC101_to_W": []
    },
    "beta": {
-    "SC1_N_SC101_to_S_SC107": 0.8737251092763477,
+    "SC1_N_SC101_to_S_SC107": 0.7727125767862916,
     "SC1_N_SC101_to_S": 0.0,
-    "SC1_N_SC101_to_E_SC11": 0.021855269548324428,
-    "SC1_N_SC101_to_W_SC105": 0.10441962117532783,
+    "SC1_N_SC101_to_E_SC11": 0.060782411897833816,
+    "SC1_N_SC101_to_W_SC105": 0.16650501131587456,
     "SC1_N_SC101_to_E": 0.0,
     "SC1_N_SC101_to_N": 0.0,
     "SC1_N_SC101_to_W": 0.0
@@ -3001,14 +3008,20 @@
    "sources": {
     "1014:1": 669.0,
     "1014:2": 2073.0,
-    "1014:3": 126.0
+    "1014:3": 126.0,
+    "1166:1": 206.0,
+    "1166:2": 301.0,
+    "1166:3": 12.0,
+    "1167:1": 22.0,
+    "1167:2": 235.0,
+    "1167:3": 239.0
    },
    "connectors": {
-    "10528": 126.0,
-    "10538": 2073.0,
-    "10539": 669.0
+    "10528": 377.0,
+    "10538": 2609.0,
+    "10539": 897.0
    },
-   "matched": 2868.0,
+   "matched": 3883.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -3025,10 +3038,10 @@
     ]
    },
    "beta": {
-    "SC101_S_to_N_SC2005": 0.7228033472803347,
-    "SC101_S_to_E_SC5": 0.043933054393305436,
+    "SC101_S_to_N_SC2005": 0.6719031676538759,
+    "SC101_S_to_E_SC5": 0.09708987895956735,
     "SC101_S_to_S_SC1": 0.0,
-    "SC101_S_to_W_SC1002": 0.23326359832635984
+    "SC101_S_to_W_SC1002": 0.23100695338655677
    },
    "reason": {
     "SC101_S_to_N_SC2005": "relflow",
@@ -3048,14 +3061,20 @@
    "sources": {
     "1014:1": 669.0,
     "1014:2": 2073.0,
-    "1014:3": 126.0
+    "1014:3": 126.0,
+    "1166:1": 206.0,
+    "1166:2": 301.0,
+    "1166:3": 12.0,
+    "1167:1": 22.0,
+    "1167:2": 235.0,
+    "1167:3": 239.0
    },
    "connectors": {
-    "10528": 126.0,
-    "10538": 2073.0,
-    "10539": 669.0
+    "10528": 377.0,
+    "10538": 2609.0,
+    "10539": 897.0
    },
-   "matched": 2868.0,
+   "matched": 3883.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -3072,9 +3091,9 @@
     "SC101_S_SC1_to_S": []
    },
    "beta": {
-    "SC101_S_SC1_to_N_SC2005": 0.7228033472803347,
-    "SC101_S_SC1_to_E_SC5": 0.043933054393305436,
-    "SC101_S_SC1_to_W_SC1002": 0.23326359832635984,
+    "SC101_S_SC1_to_N_SC2005": 0.6719031676538759,
+    "SC101_S_SC1_to_E_SC5": 0.09708987895956735,
+    "SC101_S_SC1_to_W_SC1002": 0.23100695338655677,
     "SC101_S_SC1_to_S": 0.0
    },
    "reason": {
@@ -3571,9 +3590,17 @@
    ],
    "reviewed_branches": {},
    "entry": null,
-   "sources": {},
-   "connectors": {},
-   "matched": 0.0,
+   "sources": {
+    "1168:1": 605.0,
+    "1168:2": 6760.0,
+    "1168:3": 2988.0
+   },
+   "connectors": {
+    "10167": 6760.0,
+    "10170": 605.0,
+    "10171": 2988.0
+   },
+   "matched": 10353.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -3589,14 +3616,14 @@
     ]
    },
    "beta": {
-    "SC104_S_SC106_to_N": 0.5,
-    "SC104_S_SC106_to_W_SC6": 0.25,
-    "SC104_S_SC106_to_E": 0.25
+    "SC104_S_SC106_to_N": 0.6529508355066165,
+    "SC104_S_SC106_to_W_SC6": 0.05843716797063653,
+    "SC104_S_SC106_to_E": 0.28861199652274705
    },
    "reason": {
-    "SC104_S_SC106_to_N": "no_route_evidence_config_default",
-    "SC104_S_SC106_to_W_SC6": "no_route_evidence_config_default",
-    "SC104_S_SC106_to_E": "no_route_evidence_config_default"
+    "SC104_S_SC106_to_N": "relflow",
+    "SC104_S_SC106_to_W_SC6": "relflow",
+    "SC104_S_SC106_to_E": "relflow"
    }
   },
   {
@@ -4489,9 +4516,14 @@
    ],
    "reviewed_branches": {},
    "entry": "SC108|W",
-   "sources": {},
-   "connectors": {},
-   "matched": 0.0,
+   "sources": {
+    "1160:1": 38.0,
+    "1160:2": 808.0
+   },
+   "connectors": {
+    "10112": 846.0
+   },
+   "matched": 846.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -4510,7 +4542,7 @@
     "SC108_W_to_S": 0.0
    },
    "reason": {
-    "SC108_W_to_E_SC109": "no_route_evidence_config_default",
+    "SC108_W_to_E_SC109": "relflow",
     "SC108_W_to_N_SC7": "no_physical_path",
     "SC108_W_to_W_SC107": "own_leg_u_turn",
     "SC108_W_to_S": "no_physical_path"
@@ -4643,13 +4675,15 @@
    "entry": null,
    "sources": {
     "1081:1": 407.0,
-    "1081:2": 1304.0
+    "1081:2": 1304.0,
+    "1160:1": 38.0,
+    "1160:2": 808.0
    },
    "connectors": {
-    "10285": 1304.0,
-    "10286": 407.0
+    "10285": 2112.0,
+    "10286": 445.0
    },
-   "matched": 1711.0,
+   "matched": 2557.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -4662,8 +4696,8 @@
     ]
    },
    "beta": {
-    "SC109_W_SC108_to_E": 0.7621274108708358,
-    "SC109_W_SC108_to_N_SC16": 0.23787258912916423
+    "SC109_W_SC108_to_E": 0.8259679311693391,
+    "SC109_W_SC108_to_N_SC16": 0.17403206883066094
    },
    "reason": {
     "SC109_W_SC108_to_E": "relflow",
@@ -5331,16 +5365,18 @@
    "reviewed_branches": {},
    "entry": null,
    "sources": {
+    "1163:1": 390.0,
+    "1163:2": 955.0,
     "283:1": 30.0,
     "283:2": 1273.0,
     "283:3": 20.0
    },
    "connectors": {
-    "10248": 1273.0,
-    "10250": 30.0,
+    "10248": 2228.0,
+    "10250": 420.0,
     "10252": 20.0
    },
-   "matched": 1323.0,
+   "matched": 2668.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -5358,10 +5394,10 @@
     "SC16_N_SC12_to_W": []
    },
    "beta": {
-    "SC16_N_SC12_to_S_SC109": 0.9622071050642479,
+    "SC16_N_SC12_to_S_SC109": 0.8350824587706147,
     "SC16_N_SC12_to_S": 0.0,
-    "SC16_N_SC12_to_W_SC7": 0.015117157974300832,
-    "SC16_N_SC12_to_E": 0.022675736961451247,
+    "SC16_N_SC12_to_W_SC7": 0.0074962518740629685,
+    "SC16_N_SC12_to_E": 0.15742128935532235,
     "SC16_N_SC12_to_W": 0.0
    },
    "reason": {
@@ -6492,14 +6528,17 @@
    "sources": {
     "1024:1": 206.0,
     "1024:2": 590.0,
-    "1024:3": 112.0
+    "1024:3": 112.0,
+    "1162:1": 19.0,
+    "1162:2": 96.0,
+    "1162:3": 285.0
    },
    "connectors": {
-    "10418": 590.0,
-    "10419": 206.0,
-    "10420": 112.0
+    "10418": 686.0,
+    "10419": 225.0,
+    "10420": 397.0
    },
-   "matched": 908.0,
+   "matched": 1308.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -6516,10 +6555,10 @@
     ]
    },
    "beta": {
-    "SC5_S_to_N_SC102": 0.6497797356828194,
-    "SC5_S_to_E_SC6": 0.12334801762114538,
+    "SC5_S_to_N_SC102": 0.5244648318042814,
+    "SC5_S_to_E_SC6": 0.30351681957186544,
     "SC5_S_to_S_SC11": 0.0,
-    "SC5_S_to_W_SC101": 0.22687224669603523
+    "SC5_S_to_W_SC101": 0.1720183486238532
    },
    "reason": {
     "SC5_S_to_N_SC102": "relflow",
@@ -6539,14 +6578,17 @@
    "sources": {
     "1024:1": 206.0,
     "1024:2": 590.0,
-    "1024:3": 112.0
+    "1024:3": 112.0,
+    "1162:1": 19.0,
+    "1162:2": 96.0,
+    "1162:3": 285.0
    },
    "connectors": {
-    "10418": 590.0,
-    "10419": 206.0,
-    "10420": 112.0
+    "10418": 686.0,
+    "10419": 225.0,
+    "10420": 397.0
    },
-   "matched": 908.0,
+   "matched": 1308.0,
    "unmatched": {},
    "excluded": {},
    "unplaced": {},
@@ -6563,9 +6605,9 @@
     "SC5_S_SC11_to_S": []
    },
    "beta": {
-    "SC5_S_SC11_to_N_SC102": 0.6497797356828194,
-    "SC5_S_SC11_to_E_SC6": 0.12334801762114538,
-    "SC5_S_SC11_to_W_SC101": 0.22687224669603523,
+    "SC5_S_SC11_to_N_SC102": 0.5244648318042814,
+    "SC5_S_SC11_to_E_SC6": 0.30351681957186544,
+    "SC5_S_SC11_to_W_SC101": 0.1720183486238532,
     "SC5_S_SC11_to_S": 0.0
    },
    "reason": {
