@@ -1,0 +1,185 @@
+{
+  "local_linear_delta_ranges": [
+    {
+      "case": "s29_early",
+      "arm": "vsl",
+      "actual_delta": -0.32499999999998863,
+      "linearization_point_delta": -0.0653646962643677,
+      "local_linear_box_min": -0.8023278078685271,
+      "local_linear_box_max": 0.700367319633196,
+      "gradient_norm": 0.92572392253986
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "actual_delta": -0.8249999999999886,
+      "linearization_point_delta": -0.03404725581265211,
+      "local_linear_box_min": -0.10348655800404989,
+      "local_linear_box_max": 0.032389078381593495,
+      "gradient_norm": 0.06306658805549933
+    },
+    {
+      "case": "s29_early",
+      "arm": "both",
+      "actual_delta": -0.8291666666666799,
+      "linearization_point_delta": -0.10071302708504959,
+      "local_linear_box_min": -0.860901288416044,
+      "local_linear_box_max": 0.6836669053041969,
+      "gradient_norm": 0.8959608832569912
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "actual_delta": 4.70416666666668,
+      "linearization_point_delta": 1.1501209870046125,
+      "local_linear_box_min": -10.84586996271732,
+      "local_linear_box_max": 13.378942860881793,
+      "gradient_norm": 14.913372451546213
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90",
+      "actual_delta": 0.7833333333333599,
+      "linearization_point_delta": 0.12005355995015066,
+      "local_linear_box_min": -2.05000042219746,
+      "local_linear_box_max": 2.3423538344524952,
+      "gradient_norm": 1.4802059469671391
+    },
+    {
+      "case": "s29_late",
+      "arm": "release_vsl90",
+      "actual_delta": 4.75,
+      "linearization_point_delta": 1.1164973341914788,
+      "local_linear_box_min": -9.882520875950641,
+      "local_linear_box_max": 12.374917152959789,
+      "gradient_norm": 14.551463709542185
+    }
+  ],
+  "selected_cost_decomposition": [
+    {
+      "case": "s29_early",
+      "arm": "vsl",
+      "actual": {
+        "ttt": -0.32499999999998863,
+        "mainline_ttt": -0.375,
+        "ramp_ttt": -0.08333333333333393,
+        "off_ttt": 0.1333333333333333,
+        "exits": 32.0,
+        "merge": 0.0
+      },
+      "predicted": {
+        "ttt": -0.06208233426616516,
+        "mainline_ttt": -0.06554739192029047,
+        "ramp_ttt": -0.0006979817965486745,
+        "off_ttt": 0.004163039450672201,
+        "exits": 3.362985780279132,
+        "merge": 0.0008062649339990458
+      }
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "actual": {
+        "ttt": -0.8249999999999886,
+        "mainline_ttt": -1.0,
+        "ramp_ttt": 0.24583333333333357,
+        "off_ttt": -0.0708333333333333,
+        "exits": 22.0,
+        "merge": -3.0
+      },
+      "predicted": {
+        "ttt": -0.03178608665319871,
+        "mainline_ttt": -0.2129106852361815,
+        "ramp_ttt": 0.17750495582974146,
+        "off_ttt": 0.0036196427532606545,
+        "exits": 1.5036195174957356,
+        "merge": -6.373792148950486
+      }
+    },
+    {
+      "case": "s29_early",
+      "arm": "both",
+      "actual": {
+        "ttt": -0.8291666666666799,
+        "mainline_ttt": -1.1000000000000085,
+        "ramp_ttt": 0.21666666666666679,
+        "off_ttt": 0.054166666666666696,
+        "exits": 30.0,
+        "merge": -7.0
+      },
+      "predicted": {
+        "ttt": -0.08981493876660807,
+        "mainline_ttt": -0.27520239080701003,
+        "ramp_ttt": 0.17776917503667455,
+        "off_ttt": 0.007618277003728524,
+        "exits": 4.726272149808665,
+        "merge": -6.388376701467337
+      }
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "actual": {
+        "ttt": 4.70416666666668,
+        "mainline_ttt": 9.466666666666683,
+        "ramp_ttt": -4.812500000000002,
+        "off_ttt": 0.050000000000000044,
+        "exits": -90.0,
+        "merge": 75.0
+      },
+      "predicted": {
+        "ttt": 1.3022673128435258,
+        "mainline_ttt": 7.123553538611105,
+        "ramp_ttt": -5.677107912703965,
+        "off_ttt": -0.14417831306363005,
+        "exits": -41.393952651608515,
+        "merge": 92.59325509768644
+      }
+    },
+    {
+      "case": "s29_late",
+      "arm": "hold_vsl90",
+      "actual": {
+        "ttt": 0.7833333333333599,
+        "mainline_ttt": 0.6125000000000114,
+        "ramp_ttt": 0.00833333333333286,
+        "off_ttt": 0.1625000000000001,
+        "exits": -7.0,
+        "merge": 0.0
+      },
+      "predicted": {
+        "ttt": 0.3649317460887289,
+        "mainline_ttt": 0.4068076108751768,
+        "ramp_ttt": -0.0026460997040800294,
+        "off_ttt": -0.03922976508238074,
+        "exits": -10.554320180767718,
+        "merge": 0.037132412316168484
+      }
+    },
+    {
+      "case": "s29_late",
+      "arm": "release_vsl90",
+      "actual": {
+        "ttt": 4.75,
+        "mainline_ttt": 9.387500000000003,
+        "ramp_ttt": -4.695833333333335,
+        "off_ttt": 0.05833333333333335,
+        "exits": -100.0,
+        "merge": 74.0
+      },
+      "predicted": {
+        "ttt": 1.3330944375915976,
+        "mainline_ttt": 7.160373148781531,
+        "ramp_ttt": -5.676978485142248,
+        "off_ttt": -0.15030022604770443,
+        "exits": -39.694291584271696,
+        "merge": 92.59613722897825
+      }
+    }
+  ],
+  "interpretation": "Coordinate-wise optimistic first-order box range around previous SPSA best, allowing each parameter to vary within30% of initial coefficient scale and engineering bounds. NOT a valid global physical bound, NOT proof of impossibility, NOT a feasible common command. Ignores nonlinear and state-loss constraints. Reuses already calculated Jacobian; zero new rollouts.",
+  "early_rm_source_admissions_delta": {
+    "actual_source": -7.0,
+    "predicted_source": 0.0
+  }
+}

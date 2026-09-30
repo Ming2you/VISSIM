@@ -1,0 +1,339 @@
+{
+  "time": "2026-09-30T13:59:34.300152+09:00",
+  "classification": "PROGRESS: saved-response local sensitivity and ramp disaggregation",
+  "factors": [
+    "delta_merge21",
+    "tau24-25",
+    "nu_downstream_lt24-25"
+  ],
+  "derivative_step": 0.02,
+  "pairs": [
+    {
+      "case": "s29_early",
+      "arm": "vsl",
+      "actual_veh_h": -3.566666666666663,
+      "baseline_veh_h": -3.039697596861231,
+      "gradient_per_unit_multiplier": [
+        0.19927872797183,
+        -0.3998933965846163,
+        -1.08466953656432
+      ],
+      "max_linear_delta_with_25pct_box": 0.42096041528019157,
+      "measured_full_step_veh_h": -3.1517945155446228,
+      "linear_full_step_veh_h": -3.282169695682351,
+      "linearization_error_veh_h": 0.1303751801377282,
+      "baseline_absolute_gap": 0.5269690698054319
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "actual_veh_h": -1.0,
+      "baseline_veh_h": -0.24922951963191053,
+      "gradient_per_unit_multiplier": [
+        -0.011265949791550156,
+        -0.0024689560113699827,
+        -0.014482595726406089
+      ],
+      "max_linear_delta_with_25pct_box": 0.007054375382331557,
+      "measured_full_step_veh_h": -0.24999258230458565,
+      "linear_full_step_veh_h": -0.2508820462731642,
+      "linearization_error_veh_h": 0.0008894639685785299,
+      "baseline_absolute_gap": 0.7507704803680895
+    },
+    {
+      "case": "s29_early",
+      "arm": "both",
+      "actual_veh_h": -1.1000000000000085,
+      "baseline_veh_h": -0.6708105892906246,
+      "gradient_per_unit_multiplier": [
+        0.14598315104024095,
+        -0.3472619671960331,
+        0.2973594349789721
+      ],
+      "max_linear_delta_with_25pct_box": 0.19765113830381154,
+      "measured_full_step_veh_h": -0.5442388617404106,
+      "linear_full_step_veh_h": -0.5676728123692467,
+      "linearization_error_veh_h": 0.02343395062883613,
+      "baseline_absolute_gap": 0.4291894107093839
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "actual_veh_h": 9.466666666666683,
+      "baseline_veh_h": 8.501907471337105,
+      "gradient_per_unit_multiplier": [
+        -0.46357107452408286,
+        1.2345361101544938,
+        -1.4072589390472956
+      ],
+      "max_linear_delta_with_25pct_box": 0.7763415309314681,
+      "measured_full_step_veh_h": 8.046350493594971,
+      "linear_full_step_veh_h": 8.039773572129317,
+      "linearization_error_veh_h": 0.006576921465654806,
+      "baseline_absolute_gap": 0.9647591953295773
+    }
+  ],
+  "ramps": [
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "actual",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": 0.0,
+      "downstream_delta_veh": -1.0,
+      "cell_delta_ttt": -0.0875
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "actual",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -1.0,
+      "downstream_delta_veh": 0.0,
+      "cell_delta_ttt": 0.025
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "actual",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": -3.0,
+      "downstream_delta_veh": 5.0,
+      "cell_delta_ttt": -0.004166666666666666
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "actual",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": 1.0,
+      "downstream_delta_veh": 20.0,
+      "cell_delta_ttt": -0.05833333333333334
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "baseline",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": -0.584300077372446,
+      "downstream_delta_veh": -0.3666885445030914,
+      "cell_delta_ttt": -0.014111604607329638
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "baseline",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -0.3047503980931179,
+      "downstream_delta_veh": -0.8101455231152173,
+      "cell_delta_ttt": 0.0053135200452776015
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "baseline",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": -3.693233162161805,
+      "downstream_delta_veh": 2.9049006640833,
+      "cell_delta_ttt": 0.017104686994392916
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "baseline",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": -1.6999191946256582,
+      "downstream_delta_veh": 3.219608578680642,
+      "cell_delta_ttt": -0.05161100104912523
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "regional",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": -0.5844038417798192,
+      "downstream_delta_veh": -0.36957653885904307,
+      "cell_delta_ttt": -0.014091437077614444
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "regional",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -0.30593152292754944,
+      "downstream_delta_veh": -0.8359869810106133,
+      "cell_delta_ttt": 0.0054991019515418255
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "regional",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": -3.7427341212033562,
+      "downstream_delta_veh": 2.9918290065062365,
+      "cell_delta_ttt": 0.013822142004439607
+    },
+    {
+      "case": "s29_early",
+      "arm": "rm",
+      "version": "regional",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": -1.7131074947374474,
+      "downstream_delta_veh": 3.4928103253090157,
+      "cell_delta_ttt": -0.05288934636193264
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "actual",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": 44.0,
+      "downstream_delta_veh": 12.0,
+      "cell_delta_ttt": 0.9708333333333333
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "actual",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -13.0,
+      "downstream_delta_veh": 24.0,
+      "cell_delta_ttt": 0.12916666666666665
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "actual",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": 0.0,
+      "downstream_delta_veh": -95.0,
+      "cell_delta_ttt": 0.6583333333333333
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "actual",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": 44.0,
+      "downstream_delta_veh": -82.0,
+      "cell_delta_ttt": 0.9083333333333333
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "baseline",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": 48.487954008582264,
+      "downstream_delta_veh": 40.780711910628696,
+      "cell_delta_ttt": 0.40784881393699846
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "baseline",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -4.35007918570618,
+      "downstream_delta_veh": 27.869726856168064,
+      "cell_delta_ttt": 0.4477615059613172
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "baseline",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": 0.024371331916880123,
+      "downstream_delta_veh": -112.61756649237371,
+      "cell_delta_ttt": 0.7004544896288059
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "baseline",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": 47.895031298130846,
+      "downstream_delta_veh": -98.62298390012299,
+      "cell_delta_ttt": 1.2484188773649456
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "regional",
+      "cell": 10,
+      "ramp": "10639",
+      "merge_delta_veh": 48.48781314873302,
+      "downstream_delta_veh": 40.84823471361416,
+      "cell_delta_ttt": 0.40732591902549037
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "regional",
+      "cell": 12,
+      "ramp": "10681",
+      "merge_delta_veh": -4.375422407422324,
+      "downstream_delta_veh": 28.402397621800574,
+      "cell_delta_ttt": 0.44326418691499475
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "regional",
+      "cell": 21,
+      "ramp": "10490",
+      "merge_delta_veh": 0.023731421601497438,
+      "downstream_delta_veh": -92.15608410285773,
+      "cell_delta_ttt": 0.6619472004624115
+    },
+    {
+      "case": "s29_late",
+      "arm": "release",
+      "version": "regional",
+      "cell": 23,
+      "ramp": "10484",
+      "merge_delta_veh": 47.88119381059353,
+      "downstream_delta_veh": -77.1858564406867,
+      "cell_delta_ttt": 1.222150355987334
+    }
+  ],
+  "interpretation": "Finite-difference local sensitivity only. 25% tangent range is neither a valid global bound nor proof of impossibility. No response-only optimum or additional forecast has been computed.",
+  "unchanged": {
+    "coefficient_sha256": "c4abfccb63110bb4f7458a666d5e87b7ae367a07c12ae8403169ec3d674ce6dc",
+    "old_stop_sha256": "91b2163b02b01447242909dee8e7f773d18e76a6594bd9db8de64d2a48246fc3"
+  },
+  "pins": {
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_00\\result.json": "99264f5d8eca364a149cc74684d5b4bf8128a7a60959978fc360cb871e577d5d",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_01\\result.json": "5933b4c65f975ea41bf0d0763a457db866fec5d1b248ba8fbb062795e254acb5",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_02\\result.json": "b49b87be4521e6c5eb4880a07503c3c43fd7464178dbf6665d355e482ec4e2a0",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_03\\result.json": "42b11bc237e89005ad184ba26669ad17f9492eda61fe676ed42ec1a5507908df",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_04\\result.json": "62e204c88c03f7244d2791ee1ee4eb2c6642e476f30dcd3e6f1c70fb348257ca",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\eval_05\\result.json": "58e88b0ba45964e7e1735dadbe95e5b7e258108b716cac3f4a653fe05e4b98a7",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\protocol.json": "15d991f3056dd119c4a6be161c40615884a6918d52c5254e525d2fe7b00ed681",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\local_step.json": "dda023a2c527e30ddeeb44a0fd3b43165db4f4f3e12438333712ead651a863df",
+    "diagnostics\\sdmpc_n31_20260924\\integration_20260926\\baseline_reproduction_20260929\\cellwise_calibration\\freeway_first\\regional_joint\\flow_components_450\\summary.json": "b06c1d82b498e4a8d4ccaa6c4e6e0a0a5cfb392d355c693484ecbcafd90a2d59"
+  },
+  "new_forecasts": 0,
+  "new_native": 0,
+  "fzp_reads": 0,
+  "adoption": false,
+  "qualification": false
+}

@@ -1,0 +1,1039 @@
+{
+  "status": {
+    "stage": "complete_jacobian_step",
+    "selected": "trust_0.15",
+    "new_training_rollouts": 1352,
+    "new_check_rollouts": 4,
+    "elapsed_sec": 513.2442591000581,
+    "core_unchanged": true,
+    "production_adopted": false,
+    "gain_qualified": false,
+    "new_native": 0
+  },
+  "selected": "trust_0.15",
+  "train": {
+    "state": 0.6115226865020662,
+    "response": 0.2662200847008584,
+    "prior": 0.0225983405760475,
+    "pairs": [
+      {
+        "case": "s29_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": -0.06208233426616516,
+          "ramp_ttt": -0.0006979817965486745,
+          "exits": 3.362985780279132
+        },
+        "actual": {
+          "ttt": -0.32499999999998863,
+          "ramp_ttt": -0.08333333333333393,
+          "exits": 32.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0008062649339990458
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": -0.03178608665319871,
+          "ramp_ttt": 0.17750495582974146,
+          "exits": 1.5036195174957356
+        },
+        "actual": {
+          "ttt": -0.8249999999999886,
+          "ramp_ttt": 0.24583333333333357,
+          "exits": 22.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.7285723526453438,
+          "RM_C10490": -3.7716218288425267,
+          "RM_C10639": -0.5843723016371882,
+          "RM_C10681": -0.28922566582542686
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -3.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -1.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": -0.08981493876660807,
+          "ramp_ttt": 0.17776917503667455,
+          "exits": 4.726272149808665
+        },
+        "actual": {
+          "ttt": -0.8291666666666799,
+          "ramp_ttt": 0.21666666666666679,
+          "exits": 30.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.7303633755373795,
+          "RM_C10490": -3.7809914330854326,
+          "RM_C10639": -0.5844038020912024,
+          "RM_C10681": -0.29261809075333645
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -5.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -3.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release",
+        "predicted": {
+          "ttt": 1.3022673128435258,
+          "ramp_ttt": -5.677107912703965,
+          "exits": -41.393952651608515
+        },
+        "actual": {
+          "ttt": 4.70416666666668,
+          "ramp_ttt": -4.812500000000002,
+          "exits": -90.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.87209018407995,
+          "RM_C10490": 0.01671857266354948,
+          "RM_C10639": 48.490396239725385,
+          "RM_C10681": -3.7859498987824054
+        },
+        "actual_merges": {
+          "RM_C10484": 44.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "hold_vsl90",
+        "predicted": {
+          "ttt": 0.3649317460887289,
+          "ramp_ttt": -0.0026460997040800294,
+          "exits": -10.554320180767718
+        },
+        "actual": {
+          "ttt": 0.7833333333333599,
+          "ramp_ttt": 0.00833333333333286,
+          "exits": -7.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.004066272280581984,
+          "RM_C10490": 0.012307253356198089,
+          "RM_C10639": 6.575362476723967e-11,
+          "RM_C10681": 0.020758886613634786
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release_vsl90",
+        "predicted": {
+          "ttt": 1.3330944375915976,
+          "ramp_ttt": -5.676978485142248,
+          "exits": -39.694291584271696
+        },
+        "actual": {
+          "ttt": 4.75,
+          "ramp_ttt": -4.695833333333335,
+          "exits": -100.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.870720338118645,
+          "RM_C10490": 0.01671857266354948,
+          "RM_C10639": 48.490396547012196,
+          "RM_C10681": -3.7816982288161114
+        },
+        "actual_merges": {
+          "RM_C10484": 42.0,
+          "RM_C10490": 1.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      }
+    ],
+    "state_objective": 0.613782520559671,
+    "response_objective": 1.1462226899613879,
+    "meaningful_signs_pass": true,
+    "mean_n_rmse": 9.707115550178948,
+    "mean_q_rmse": 930.4802966256223
+  },
+  "check": {
+    "state": 0.6347332887382219,
+    "response": 0.2903745363505627,
+    "prior": 0.0225983405760475,
+    "pairs": [
+      {
+        "case": "s43_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": 0.44429384397531635,
+          "ramp_ttt": -0.0008117080779488361,
+          "exits": -9.824272354319646
+        },
+        "actual": {
+          "ttt": 0.7916666666666856,
+          "ramp_ttt": -0.041666666666666075,
+          "exits": -11.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.020096263778626167
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 1.0,
+          "RM_C10681": 1.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": 0.017792186841859348,
+          "ramp_ttt": 0.1357735586692801,
+          "exits": -0.428128069676859
+        },
+        "actual": {
+          "ttt": -1.1708333333333485,
+          "ramp_ttt": 0.22916666666666607,
+          "exits": -8.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.9330585275480132,
+          "RM_C10490": -3.065817355245997,
+          "RM_C10639": -0.5520529111534813,
+          "RM_C10681": -0.06835552496839625
+        },
+        "actual_merges": {
+          "RM_C10484": 2.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 5.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": 0.47125870358419775,
+          "ramp_ttt": 0.1347736221882414,
+          "exits": -10.673737883480726
+        },
+        "actual": {
+          "ttt": -1.2749999999999773,
+          "ramp_ttt": 0.14583333333333393,
+          "exits": -18.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.9314966958119157,
+          "RM_C10490": -3.066146420926401,
+          "RM_C10639": -0.5520152669218703,
+          "RM_C10681": -0.048101144573564625
+        },
+        "actual_merges": {
+          "RM_C10484": 3.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 9.0
+        }
+      }
+    ],
+    "state_objective": 0.6369931227958266,
+    "response_objective": 1.217742195496952,
+    "meaningful_signs_pass": false,
+    "mean_n_rmse": 11.258163172676497,
+    "mean_q_rmse": 1068.2212927210526
+  },
+  "prior_train": {
+    "state": 0.7202207279099014,
+    "response": 0.29451614846495777,
+    "prior": 0.007065229307273454,
+    "pairs": [
+      {
+        "case": "s29_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": -0.0653646962643677,
+          "ramp_ttt": 0.0,
+          "exits": 1.474204945393467
+        },
+        "actual": {
+          "ttt": -0.32499999999998863,
+          "ramp_ttt": -0.08333333333333393,
+          "exits": 32.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": -0.03404725581265211,
+          "ramp_ttt": 0.1964342650671682,
+          "exits": 1.5478739911861794
+        },
+        "actual": {
+          "ttt": -0.8249999999999886,
+          "ramp_ttt": 0.24583333333333357,
+          "exits": 22.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.720373752950465,
+          "RM_C10490": -3.744443420766615,
+          "RM_C10639": -0.5979043143044294,
+          "RM_C10681": -0.7482377278961962
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -3.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -1.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": -0.10071302708504959,
+          "ramp_ttt": 0.19663253945384795,
+          "exits": 3.0912741959018604
+        },
+        "actual": {
+          "ttt": -0.8291666666666799,
+          "ramp_ttt": 0.21666666666666679,
+          "exits": 30.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.719960362029056,
+          "RM_C10490": -3.743625840108905,
+          "RM_C10639": -0.597903634161014,
+          "RM_C10681": -0.7490286688635592
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -5.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -3.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release",
+        "predicted": {
+          "ttt": 1.1501209870046125,
+          "ramp_ttt": -5.721141158674895,
+          "exits": -41.44547317857064
+        },
+        "actual": {
+          "ttt": 4.70416666666668,
+          "ramp_ttt": -4.812500000000002,
+          "exits": -90.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.88188640394895,
+          "RM_C10490": 0.014703871603046537,
+          "RM_C10639": 48.48999999999999,
+          "RM_C10681": -3.028754440207905
+        },
+        "actual_merges": {
+          "RM_C10484": 44.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "hold_vsl90",
+        "predicted": {
+          "ttt": 0.12005355995015066,
+          "ramp_ttt": -0.00026648444763566204,
+          "exits": -3.8819822563639264
+        },
+        "actual": {
+          "ttt": 0.7833333333333599,
+          "ramp_ttt": 0.00833333333333286,
+          "exits": -7.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0019022123709007133,
+          "RM_C10490": -0.0008373435583735045,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.004453799318241636
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release_vsl90",
+        "predicted": {
+          "ttt": 1.1164973341914788,
+          "ramp_ttt": -5.720933282257665,
+          "exits": -39.877215926953795
+        },
+        "actual": {
+          "ttt": 4.75,
+          "ramp_ttt": -4.695833333333335,
+          "exits": -100.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.881979126782376,
+          "RM_C10490": 0.014703871603046537,
+          "RM_C10639": 48.48999999999999,
+          "RM_C10681": -3.0299888313442693
+        },
+        "actual_merges": {
+          "RM_C10484": 42.0,
+          "RM_C10490": 1.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      }
+    ],
+    "state_objective": 0.7209272508406288,
+    "response_objective": 1.3099595477705444,
+    "meaningful_signs_pass": true,
+    "mean_n_rmse": 10.939195705534779,
+    "mean_q_rmse": 991.0131003157212
+  },
+  "prior_check": {
+    "state": 0.6221228051330813,
+    "response": 0.30327843551860895,
+    "prior": 0.007065229307273454,
+    "pairs": [
+      {
+        "case": "s43_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": 0.08441084070554439,
+          "ramp_ttt": -6.142819586330006e-11,
+          "exits": -1.7041861070804316
+        },
+        "actual": {
+          "ttt": 0.7916666666666856,
+          "ramp_ttt": -0.041666666666666075,
+          "exits": -11.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 6.054818868506118e-10
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 1.0,
+          "RM_C10681": 1.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": -0.00455615501863349,
+          "ramp_ttt": 0.14297515147285722,
+          "exits": 0.17773755473581332
+        },
+        "actual": {
+          "ttt": -1.1708333333333485,
+          "ramp_ttt": 0.22916666666666607,
+          "exits": -8.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.9327513883910541,
+          "RM_C10490": -3.0658311958744804,
+          "RM_C10639": -0.568962224237211,
+          "RM_C10681": -0.1850798162418954
+        },
+        "actual_merges": {
+          "RM_C10484": 2.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 5.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": 0.08997426122823526,
+          "ramp_ttt": 0.1429686978628677,
+          "exits": -1.8124868976724429
+        },
+        "actual": {
+          "ttt": -1.2749999999999773,
+          "ramp_ttt": 0.14583333333333393,
+          "exits": -18.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.9326959429282198,
+          "RM_C10490": -3.0663756855638127,
+          "RM_C10639": -0.5689613800880977,
+          "RM_C10681": -0.18489956226052584
+        },
+        "actual_merges": {
+          "RM_C10484": 3.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 9.0
+        }
+      }
+    ],
+    "state_objective": 0.6228293280638086,
+    "response_objective": 1.2293861991010266,
+    "meaningful_signs_pass": false,
+    "mean_n_rmse": 11.037380344294156,
+    "mean_q_rmse": 1110.518190663577
+  },
+  "original_train": {
+    "state": 0.7303521672679096,
+    "response": 0.324277781636219,
+    "prior": 0.0,
+    "pairs": [
+      {
+        "case": "s29_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": -0.0028982452782315704,
+          "ramp_ttt": 0.0,
+          "exits": -0.008845637207286927
+        },
+        "actual": {
+          "ttt": -0.32499999999998863,
+          "ramp_ttt": -0.08333333333333393,
+          "exits": 32.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": -0.029775970857116363,
+          "ramp_ttt": 0.19043490177794986,
+          "exits": 1.4223916501562144
+        },
+        "actual": {
+          "ttt": -0.8249999999999886,
+          "ramp_ttt": 0.24583333333333357,
+          "exits": 22.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.7246970919231615,
+          "RM_C10490": -3.755193526548396,
+          "RM_C10639": -0.5985602575920268,
+          "RM_C10681": -0.6054698029938095
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -3.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -1.0
+        }
+      },
+      {
+        "case": "s29_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": -0.03149998449933378,
+          "ramp_ttt": 0.1907428822957975,
+          "exits": 1.3693150086194237
+        },
+        "actual": {
+          "ttt": -0.8291666666666799,
+          "ramp_ttt": 0.21666666666666679,
+          "exits": 30.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -1.7252712494855729,
+          "RM_C10490": -3.7577471152051913,
+          "RM_C10639": -0.5985724855809451,
+          "RM_C10681": -0.6087274640551357
+        },
+        "actual_merges": {
+          "RM_C10484": 1.0,
+          "RM_C10490": -5.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": -3.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release",
+        "predicted": {
+          "ttt": 0.8912843778925037,
+          "ramp_ttt": -5.713609132695986,
+          "exits": -29.793929684831937
+        },
+        "actual": {
+          "ttt": 4.70416666666668,
+          "ramp_ttt": -4.812500000000002,
+          "exits": -90.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.868944467695826,
+          "RM_C10490": 0.0,
+          "RM_C10639": 48.48986690491436,
+          "RM_C10681": -3.0505788646434553
+        },
+        "actual_merges": {
+          "RM_C10484": 44.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "hold_vsl90",
+        "predicted": {
+          "ttt": 0.2318635307007355,
+          "ramp_ttt": -0.0002457061160967555,
+          "exits": -7.325547762441602
+        },
+        "actual": {
+          "ttt": 0.7833333333333599,
+          "ramp_ttt": 0.00833333333333286,
+          "exits": -7.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0018441897587919698,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0010613533529522101
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        }
+      },
+      {
+        "case": "s29_late",
+        "arm": "release_vsl90",
+        "predicted": {
+          "ttt": 0.9410279228814034,
+          "ramp_ttt": -5.713474228508,
+          "exits": -30.526565091881366
+        },
+        "actual": {
+          "ttt": 4.75,
+          "ramp_ttt": -4.695833333333335,
+          "exits": -100.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 47.86863829811834,
+          "RM_C10490": 0.0,
+          "RM_C10639": 48.48986690491436,
+          "RM_C10681": -3.0434130723729993
+        },
+        "actual_merges": {
+          "RM_C10484": 42.0,
+          "RM_C10490": 1.0,
+          "RM_C10639": 44.0,
+          "RM_C10681": -13.0
+        }
+      }
+    ],
+    "state_objective": 0.7303521672679096,
+    "response_objective": 1.3789077305403477,
+    "meaningful_signs_pass": true,
+    "mean_n_rmse": 11.079822012488533,
+    "mean_q_rmse": 1002.4905781346579
+  },
+  "original_check": {
+    "state": 0.5756955490444485,
+    "response": 0.2851656852855871,
+    "prior": 0.0,
+    "pairs": [
+      {
+        "case": "s43_early",
+        "arm": "vsl",
+        "predicted": {
+          "ttt": 0.22562977751022117,
+          "ramp_ttt": 0.0,
+          "exits": -5.4168569261921675
+        },
+        "actual": {
+          "ttt": 0.7916666666666856,
+          "ramp_ttt": -0.041666666666666075,
+          "exits": -11.0
+        },
+        "predicted_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 0.0,
+          "RM_C10681": 0.0
+        },
+        "actual_merges": {
+          "RM_C10484": 0.0,
+          "RM_C10490": 0.0,
+          "RM_C10639": 1.0,
+          "RM_C10681": 1.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "rm",
+        "predicted": {
+          "ttt": -0.00875493552558737,
+          "ramp_ttt": 0.1428402758638878,
+          "exits": 0.6117526702448686
+        },
+        "actual": {
+          "ttt": -1.1708333333333485,
+          "ramp_ttt": 0.22916666666666607,
+          "exits": -8.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.927920941683368,
+          "RM_C10490": -3.0549423310927324,
+          "RM_C10639": -0.5692642046404615,
+          "RM_C10681": -0.23300191880687748
+        },
+        "actual_merges": {
+          "RM_C10484": 2.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 5.0
+        }
+      },
+      {
+        "case": "s43_early",
+        "arm": "both",
+        "predicted": {
+          "ttt": 0.22295690982357996,
+          "ramp_ttt": 0.14258439405831425,
+          "exits": -5.071037678993207
+        },
+        "actual": {
+          "ttt": -1.2749999999999773,
+          "ramp_ttt": 0.14583333333333393,
+          "exits": -18.0
+        },
+        "predicted_merges": {
+          "RM_C10484": -0.9263572874783819,
+          "RM_C10490": -3.0515823344611306,
+          "RM_C10639": -0.5692608557765908,
+          "RM_C10681": -0.23245119553615723
+        },
+        "actual_merges": {
+          "RM_C10484": 3.0,
+          "RM_C10490": -2.0,
+          "RM_C10639": -3.0,
+          "RM_C10681": 9.0
+        }
+      }
+    ],
+    "state_objective": 0.5756955490444485,
+    "response_objective": 1.1460269196156228,
+    "meaningful_signs_pass": false,
+    "mean_n_rmse": 10.437509076070954,
+    "mean_q_rmse": 1091.2313629792748
+  },
+  "train_response_improvement": 0.1790369252016496,
+  "check_response_improvement": -0.01826605140011517,
+  "provisional_gate_passed": false,
+  "max_mass_residual": 1.0658141036401503e-12,
+  "max_scalar_vector_difference": 6.661338147750939e-16,
+  "invalid_candidates": [],
+  "insensitive_variables": [
+    {
+      "index": 49,
+      "cell": 9,
+      "parameter": "nu_lt",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 54,
+      "cell": 10,
+      "parameter": "nu_lt",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 64,
+      "cell": 12,
+      "parameter": "nu_ge",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 70,
+      "cell": 13,
+      "parameter": "nu_ge",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 121,
+      "cell": 23,
+      "parameter": "nu_ge",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 127,
+      "cell": 24,
+      "parameter": "nu_ge",
+      "initial": 18.375,
+      "lower": 4.59375,
+      "upper": 73.5,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 137,
+      "cell": 26,
+      "parameter": "nu_ge",
+      "initial": 36.75,
+      "lower": 9.1875,
+      "upper": 147.0,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 157,
+      "cell": 30,
+      "parameter": "nu_ge",
+      "initial": 36.75,
+      "lower": 9.1875,
+      "upper": 147.0,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    },
+    {
+      "index": 158,
+      "cell": 30,
+      "parameter": "nu_lt",
+      "initial": 36.75,
+      "lower": 9.1875,
+      "upper": 147.0,
+      "data_column_norm": 0.0,
+      "response_column_norm": 0.0
+    }
+  ],
+  "strongest_response_columns": [
+    {
+      "index": 118,
+      "cell": 23,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 2.484951396293685
+    },
+    {
+      "index": 113,
+      "cell": 22,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 0.3865144024391913
+    },
+    {
+      "index": 97,
+      "cell": 19,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 0.381494700988809
+    },
+    {
+      "index": 92,
+      "cell": 18,
+      "parameter": "rho_crit",
+      "initial": 35.0,
+      "lower": 22.75,
+      "upper": 56.0,
+      "norm": 0.3668330617465562
+    },
+    {
+      "index": 102,
+      "cell": 20,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 0.3479541659551341
+    },
+    {
+      "index": 122,
+      "cell": 23,
+      "parameter": "nu_lt",
+      "initial": 4.59375,
+      "lower": 1.1484375,
+      "upper": 18.375,
+      "norm": 0.3350323531667733
+    },
+    {
+      "index": 124,
+      "cell": 24,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 0.2935425169856181
+    },
+    {
+      "index": 123,
+      "cell": 23,
+      "parameter": "delta_merge",
+      "initial": 2.0,
+      "lower": 0.0,
+      "upper": 6.0,
+      "norm": 0.2130763856904658
+    },
+    {
+      "index": 130,
+      "cell": 25,
+      "parameter": "metanet_a_m",
+      "initial": 1.7029,
+      "lower": 1.2771750000000002,
+      "upper": 2.5543500000000003,
+      "norm": 0.2041454740293622
+    },
+    {
+      "index": 154,
+      "cell": 30,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "norm": 0.19683250988763765
+    }
+  ],
+  "half_step_checks": [
+    {
+      "index": 122,
+      "cell": 23,
+      "parameter": "nu_lt",
+      "initial": 4.59375,
+      "lower": 1.1484375,
+      "upper": 18.375,
+      "relative_column_difference": 0.1787443042181897
+    },
+    {
+      "index": 150,
+      "cell": 29,
+      "parameter": "metanet_a_m",
+      "initial": 1.7029,
+      "lower": 1.2771750000000002,
+      "upper": 2.5543500000000003,
+      "relative_column_difference": 0.020276240830894396
+    },
+    {
+      "index": 144,
+      "cell": 28,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "relative_column_difference": 0.0065907383888456185
+    },
+    {
+      "index": 155,
+      "cell": 30,
+      "parameter": "metanet_a_m",
+      "initial": 1.7029,
+      "lower": 1.2771750000000002,
+      "upper": 2.5543500000000003,
+      "relative_column_difference": 0.004303974361551585
+    },
+    {
+      "index": 154,
+      "cell": 30,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "relative_column_difference": 0.0050086158480969895
+    },
+    {
+      "index": 118,
+      "cell": 23,
+      "parameter": "rho_crit",
+      "initial": 39.199999999999996,
+      "lower": 25.479999999999997,
+      "upper": 62.72,
+      "relative_column_difference": 0.08641830222200814
+    }
+  ],
+  "core_unchanged": true,
+  "truth_pins_unchanged": true,
+  "production_adopted": false,
+  "gain_qualified": false,
+  "new_native": 0
+}
