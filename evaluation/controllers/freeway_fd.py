@@ -16,6 +16,102 @@ from typing import Mapping
 from evaluation.controllers.sdmpc_dual import Dual as _TangentScalar, primal as _primal
 
 
+LAW_KEYS = frozenset(('law', 'A', 'E', 'alpha'))
+SPEED_SCALE_KEYS = frozenset(('form', 'levels', 'maximum'))
+SPEED_SCALE_FORMS = ('cubic_lagrange',)
+
+
+def speed_scale_knots(scale):
+    """L2 speed_scale -> ((command, m_v), ..., (maximum, 1.0)), ascending plain floats (structure only).
+
+    {'form': 'cubic_lagrange', 'levels': {'80': m80, '90': m90, '100': m100}, 'maximum': 110.0}: three
+    measured speed scales m_v in (0, 1) at commands below the maximum, plus (maximum, 1). The cubic through
+    these four knots is the speed ratio b(command). validate_speed_scale adds the monotonicity check.
+    """
+    if (not isinstance(scale, Mapping) or set(scale) != SPEED_SCALE_KEYS
+            or scale['form'] not in SPEED_SCALE_FORMS):
+        raise ValueError("speed_scale must be exactly {'form': 'cubic_lagrange', 'levels': {...}, 'maximum': ...}")
+    maximum, levels = scale['maximum'], scale['levels']
+    if isinstance(maximum, bool) or not isinstance(maximum, (int, float)) or not math.isfinite(maximum) or maximum <= 0:
+        raise ValueError('speed_scale.maximum must be a positive finite command')
+    if not isinstance(levels, Mapping) or len(levels) != 3:
+        raise ValueError('cubic_lagrange speed_scale needs exactly three levels below the maximum')
+    knots = []
+    for key, value in levels.items():
+        try:
+            command = float(key) if isinstance(key, str) else math.nan
+        except ValueError:
+            command = math.nan
+        if (not math.isfinite(command) or not 0 < command < maximum
+                or isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or not 0 < value < 1):
+            raise ValueError(f'speed_scale level must map a command below the maximum to (0, 1): {key!r} -> {value!r}')
+        knots.append((command, float(value)))
+    knots.sort()
+    knots.append((float(maximum), 1.0))
+    if len({x for x, _ in knots}) != len(knots):
+        raise ValueError('speed_scale levels repeat a command')
+    return tuple(knots)
+
+
+def _lagrange_slope(knots, x):
+    total = 0.
+    for i, (xi, yi) in enumerate(knots):
+        for m, (xm, _) in enumerate(knots):
+            if m == i:
+                continue
+            term = yi / (xi - xm)
+            for j, (xj, _) in enumerate(knots):
+                if j != i and j != m:
+                    term *= (x - xj) / (xi - xj)
+            total += term
+    return total
+
+
+def validate_speed_scale(scale):
+    """speed_scale_knots plus: the cubic strictly increases between its lowest level and the maximum.
+
+    Its derivative is a quadratic: checked at both ends and at its vertex. Below the lowest level the cubic
+    extrapolates (b(75) = 0.674 for the L2 fit), so a central difference at 80 stays defined."""
+    knots = speed_scale_knots(scale)
+    lo, hi = knots[0][0], knots[-1][0]
+    q = [_lagrange_slope(knots, x) for x in (lo, (lo + hi) / 2, hi)]
+    a = (q[0] - 2 * q[1] + q[2]) / (2 * ((hi - lo) / 2) ** 2)
+    points = [lo, hi]
+    if a != 0:
+        vertex = -((q[2] - q[0]) / (hi - lo) - a * (lo + hi)) / (2 * a)
+        if lo < vertex < hi:
+            points.append(vertex)
+    if min(_lagrange_slope(knots, x) for x in points) <= 0:
+        raise ValueError('speed_scale cubic is not strictly increasing between its lowest level and the maximum')
+    return knots
+
+
+def speed_scale_ratio(knots, command):
+    """b(command): the Lagrange-form cubic through the knots, exactly the knot value at a knot command.
+
+    Only + - * / with constants, so a tangent-process command carries its derivative; at the maximum that is
+    the left derivative (0.01084/km/h for L2), the direction the SDMPC box allows from 110."""
+    total = 0.
+    for i, (xi, yi) in enumerate(knots):
+        term = yi
+        for j, (xj, _) in enumerate(knots):
+            if j != i:
+                term = term * ((command - xj) / (xi - xj))
+        total = total + term
+    return total
+
+
+def literature_validation_maximum(spec, default):
+    """The maximum a validation-only call of literature_vsl_parameters must use: the speed_scale's own
+    maximum when the spec carries one (the law refuses any other), else the caller's default."""
+    scale = spec.get('speed_scale') if isinstance(spec, Mapping) else None
+    maximum = scale.get('maximum') if isinstance(scale, Mapping) else None
+    if isinstance(maximum, (int, float)) and not isinstance(maximum, bool):
+        return float(maximum)
+    return default
+
+
 def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
     """Carlson/Frejo FD laws, Eqs 11/13 in Frejo et al. (2019).
 
@@ -23,8 +119,14 @@ def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
     command reward. The caller retains the original law when VSL is absent.
     Carlson uses displayed/nominal speed, not a fitted speed ratio. Frejo adds
     compliance and uses the nominal command (rather than v_free) for its cap.
+
+    Optional Carlson key speed_scale (L2, repin plan 2026-10-01 K4): the ratio
+    b is the measured speed scale at the command (the cubic through the levels
+    and (maximum, 1), speed_scale_ratio) instead of command/maximum, in all
+    three terms. The law's maximum must be the scale's. Key absent: the very
+    same operations as before (no added tangent operation or comparison).
     """
-    if (not isinstance(spec, Mapping) or set(spec) != {'law', 'A', 'E', 'alpha'}
+    if (not isinstance(spec, Mapping) or set(spec) not in (LAW_KEYS, LAW_KEYS | {'speed_scale'})
             or spec['law'] not in ('carlson', 'frejo')):
         raise ValueError('Explicit Carlson/Frejo FD parameters required')
     values = [spec[k] for k in ('A', 'E', 'alpha')]
@@ -36,7 +138,15 @@ def literature_vsl_parameters(spec, v_free, critical, shape, command, maximum):
     if (any(not math.isfinite(x) or x <= 0 for x in
             (v_free, critical, shape, command, maximum)) or command > maximum):
         raise ValueError('Invalid VSL FD state/command')
-    b = command / maximum
+    if 'speed_scale' in spec:
+        if spec['law'] != 'carlson':
+            raise ValueError('speed_scale is a Carlson (L2) term; Frejo has its own compliance')
+        knots = speed_scale_knots(spec['speed_scale'])
+        if float(maximum) != knots[-1][0]:
+            raise ValueError('speed_scale maximum differs from the law maximum')
+        b = speed_scale_ratio(knots, command)
+    else:
+        b = command / maximum
     if spec['law'] == 'carlson':
         speed = v_free * b
     else:
@@ -65,7 +175,15 @@ def configure_literature_vsl(cfg, tuning):
         raise ValueError('Do not stack competing VSL FD laws')
     parsed = {}
     for road, spec in section.items():
-        literature_vsl_parameters(spec, 100., 30., 2., 90., 110.)
+        if isinstance(spec, Mapping) and 'speed_scale' in spec:
+            # L2: a monotone cubic whose knots are exactly this vsl_set (levels below the maximum, 1 at it).
+            knots = validate_speed_scale(spec['speed_scale'])
+            commands = sorted(float(v) for v in cfg.freeway_follower.vsl_set)
+            if [x for x, _ in knots] != commands:
+                raise ValueError(f'{road} speed_scale knots {[x for x, _ in knots]} differ from the vsl_set {commands}')
+            literature_vsl_parameters(spec, 100., 30., 2., commands[-2], commands[-1])
+        else:
+            literature_vsl_parameters(spec, 100., 30., 2., 90., 110.)
         parsed[road] = dict(spec)
     cfg.network.freeway_vsl_fd_response = parsed
     return {'freeway_literature_vsl_enabled': 1.0}

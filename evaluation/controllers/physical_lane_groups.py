@@ -208,8 +208,10 @@ class PhysicalLaneGroups:
             if self.hadi is None or not self.hadi.get('ctm'):
                 raise ValueError('Receiving-speed response requires the explicit receiving model')
         if self.vsl_fd_response is not None:
-            from evaluation.controllers.freeway_fd import literature_vsl_parameters
-            literature_vsl_parameters(self.vsl_fd_response,100.,30.,2.,100.,120.)
+            from evaluation.controllers.freeway_fd import literature_vsl_parameters,literature_validation_maximum
+            # Validation call; an L2 speed_scale carries its own maximum (key absent: 100/120 as before).
+            maximum=literature_validation_maximum(self.vsl_fd_response,120.)
+            literature_vsl_parameters(self.vsl_fd_response,100.,30.,2.,min(100.,maximum),maximum)
             if getattr(cfg.network,'vsl_fd_two_branch',False):
                 raise ValueError('Literature exponential FD cannot also use two-branch FD')
         self.hadi_audit=None
