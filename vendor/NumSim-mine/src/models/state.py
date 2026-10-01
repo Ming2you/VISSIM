@@ -1303,7 +1303,9 @@ class TrafficState:
         agent/누적으로 귀속된다. 램프 storage link 집합은 `net.off_ramp_storage_link`의 값.
         """
         total = 0.0
-        for storage_link in set(net.off_ramp_storage_link.values()):
+        # Fixed (sorted) order: a set iterates in PYTHONHASHSEED order, and this float sum then differed
+        # by 1-2 ulp between processes (T5 R-obs 4050/4500; repin plan 2026-10-01 K1/H-1).
+        for storage_link in sorted(set(net.off_ramp_storage_link.values()), key=str):
             capacity = net.urban_link_storage_veh.get(storage_link)
             if capacity is None:
                 continue
