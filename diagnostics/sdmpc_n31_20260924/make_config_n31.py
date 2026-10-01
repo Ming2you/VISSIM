@@ -79,9 +79,9 @@ RUNNER_CONFIG = N31D + '/scenario/lane_native_b110.vbs'
 NETWORK = N31D + '/network/baseline_s31_v3c1nc.inpx'
 NETWORK_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'   # v3c1 (v3b be0075bf until 2026-09-28)
 NETWORK_LABEL = 'v3c1 2577209b'
-# Routing beta of the pinned network (adapter BETA_EVIDENCE_JSON['routing_v3c1']): scripts/derive_routing_turn_beta.py
+# Routing beta of the pinned network (adapter BETA_EVIDENCE_JSON['routing_v3c3']): scripts/derive_routing_turn_beta.py
 # with the 474-movement core17legs4b config (N31D/beta/movements_core17legs4b_20260819.json = git 4898446^ blob) on
-# the v3c1 network. The default 'routing' table (outputs/movement_beta_routing_20260824.json) was derived on network
+# the v3c3 network (the beta values equal the v3c1 table's: v3c3 edits no routing decision). The default 'routing' table (outputs/movement_beta_routing_20260824.json) was derived on network
 # modi_eval_userfix_20260814e (25 movements differ on v2, 48 on v3b before the explicit assignment below).
 # The destination-set inference of that script mis-attaches the interchange decisions (SC1004 1124/1126/1138/1140 all
 # on E_SC107, SC1001 1117 dropped as a W/offW/offE tie) and, on v3c1, decision 1165 (V5b, on SC1005|W_SC1004 instead of
@@ -89,15 +89,15 @@ NETWORK_LABEL = 'v3c1 2577209b'
 # decisions 2026-09-25 and 2026-09-28). Both files are pinned, because the adapter reads BETA_FILE by path. Re-derive
 # (worktree root):
 #   python -B scripts/derive_routing_turn_beta.py --network <NETWORK> --movements-config <BETA_MOVEMENTS>
-#       --out <BETA_FILE> --generated 2026-09-28 --explicit-approach <BETA_EXPLICIT>
-BETA_SOURCE = 'routing_v3c1'
-BETA_FILE = N31D + '/beta/movement_beta_routing_v3c1_20260928.json'
-BETA_SHA256 = 'c5484fff4ed3364e1d2f98dc5f7d2ff664472d5b187461d0f4286ddb2130fff8'
-BETA_EXPLICIT = N31D + '/beta/explicit_approach_v3c1_20260928.json'
-BETA_EXPLICIT_SHA256 = 'c74dfebe98f960d6f8ef6bfaf8482af7e2e49e4395ed22a25fae42ed712b21be'
+#       --out <BETA_FILE> --generated 2026-10-01 --explicit-approach <BETA_EXPLICIT>
+BETA_SOURCE = 'routing_v3c3'
+BETA_FILE = N31D + '/beta/movement_beta_routing_v3c3_20261001.json'
+BETA_SHA256 = '506ec5c1d67654a11c2d3f3d9af804535f6d89c6e21685ca879eb7714fb8cb17'
+BETA_EXPLICIT = N31D + '/beta/explicit_approach_v3c3_20261001.json'
+BETA_EXPLICIT_SHA256 = 'a3957146a606319215b5771525442bf20d73c6a196eeea784d75e00731edca3f'
 BETA_MOVEMENTS = N31D + '/beta/movements_core17legs4b_20260819.json'
-# Urban plant batch 1 (U1/U2/U3, 2026-09-25; re-pinned to network v3c1 2026-09-28): pinned inputs of the separate
-# candidate config_n31_v2_urban_b1.json.
+# Urban plant batch 1 (U1/U2/U3, 2026-09-25; re-pinned to network v3c1 2026-09-28 and to v3c3 2026-10-01): pinned
+# inputs of the separate candidate config_n31_v2_urban_b1.json.
 # Re-derive (worktree root, in this order; each generator also has --check):
 #   python -B scripts/derive_phase_authority_v3b.py --out <URBAN_B1_PHASE_AUTHORITY>
 #   python -B scripts/derive_area_routes_v3b.py --out <URBAN_B1_AREA_ROUTES>      (also writes its .provenance.json)
@@ -105,43 +105,44 @@ BETA_MOVEMENTS = N31D + '/beta/movements_core17legs4b_20260819.json'
 #   python -B scripts/derive_unsignalized_turns.py --out <URBAN_B1_UNSIGNALIZED>
 #   python -B scripts/derive_route_queue_attribution.py --out <URBAN_B1_ROUTE_EVIDENCE>
 #   python -B scripts/derive_unsignalized_validation.py --out <URBAN_B1_UNSIGNALIZED_VALIDATION>   (reads the five
-#       v3c1 no-control fit-seed FZPs 31/41/43/47/53, about 5.9 GB; the FZP validation table the unsignalized-turn
-#       derivation reads; s37 is held out)
+#       no-control fit-seed FZPs: v3c3 31/41/43/47 and the v3c2 s53 run as the declared substitute, about 5.9 GB; the
+#       FZP validation table the unsignalized-turn derivation reads; s37 is held out). On v3c3 the turn set lost
+#       SC103_S_SC6_to_E (connector 10096, stopped_before_share 0.0472 on v3c1 -> 0.0544 > 0.05): 22 turns (v3c1 23).
 # (derive_unsignalized_turns reads the validation table: run the validation before it.) The relFlow off-ramp prior
 # (URBAN_B1_OFFRAMP_PRIOR, re-derived by offramp_routing.derive_prior at install) and the movement declaration
 # (URBAN_B1_DECLARATION, a reviewed decision record that the two derivations verify against the network) are pinned
 # inputs.
-URBAN_B1_BETA_SOURCE = 'routing_v3c1_2'
-URBAN_B1_BETA_FILE = N31D + '/beta/movement_beta_routing_v3c1_2_20260928.json'
-URBAN_B1_BETA_SHA256 = '4979c05ccc4d65855a4050529a0555c8bc29e1d4176df275c5f54801d61eb62b'
-URBAN_B1_ENTRY = N31D + '/beta/approach_entry_v3c1_20260928.json'
-URBAN_B1_ENTRY_SHA256 = '8c44404eed8330d6ac68ebdd07742139bc3b7114e7a54d4c17d6a3387d34eade'
+URBAN_B1_BETA_SOURCE = 'routing_v3c3_2'
+URBAN_B1_BETA_FILE = N31D + '/beta/movement_beta_routing_v3c3_2_20261001.json'
+URBAN_B1_BETA_SHA256 = '4290d180d09e9ae3a1da7de16a0af6ea917b3aaac623a46eec7cd9c2f013422d'
+URBAN_B1_ENTRY = N31D + '/beta/approach_entry_v3c3_20261001.json'
+URBAN_B1_ENTRY_SHA256 = '514ae8e064154efa22c4d4e81fb7c3a113fdb63abfaeee6442ce0c707d79f56b'
 # User decision 2026-09-26 (U1): the runtime's nonexistence declaration of SC7_E_to_N_SC11 / SC7_E_SC16_to_N_SC11 is the
 # v2 reading; on v3b 10332 is their right turn (relFlow 63 / 147 = 0.429). The candidates read the v3b declaration and
 # serve the two in the phase of their real head (140101, SC7 SG 1 = plan p4) through the extended phase authority
 # (the default tuning's URBAN_B1_PHASE_AUTHORITY_BASE plus two rows).
-URBAN_B1_DECLARATION = N31D + '/urban/movement_nonexistent_v3c1_20260928.json'
-URBAN_B1_DECLARATION_SHA256 = 'e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec'
+URBAN_B1_DECLARATION = N31D + '/urban/movement_nonexistent_v3c3_20261001.json'
+URBAN_B1_DECLARATION_SHA256 = '04fce57ca7c6a4f8e13331d0bfce6134011da9f52a144ad8b999acab539d2a28'
 URBAN_B1_PHASE_AUTHORITY_BASE = N31D + '/scenario/physical_phase_authority_local_1df35c.json'
-URBAN_B1_PHASE_AUTHORITY = N31D + '/urban/physical_phase_authority_v3c1_20260928.json'
-URBAN_B1_PHASE_AUTHORITY_SHA256 = '77d43c5c8ca52a8ad3be82e285367b0769c0b8e26d7781c7d13b775bce962e9a'
+URBAN_B1_PHASE_AUTHORITY = N31D + '/urban/physical_phase_authority_v3c3_20261001.json'
+URBAN_B1_PHASE_AUTHORITY_SHA256 = '9ba47f3bebf383025a00af05d1f8643a8ea0c60db17b02b53fde50e47a0f72ab'
 # ... and a departing SC7_E_SC16_to_N_SC11 needs its physical area route (the default contract left it 'no_match'):
 # scripts/derive_area_routes_v3b.py writes the default contract plus that route (and a .provenance.json sidecar).
 # The contract carries old-network XML copies of decisions 1061, 1128:2 and 1124 inherited from the default contract
 # (REPIN_PLAN §4.3 2, decision D5 2026-09-28: kept as is and recorded; their rows carry no branch weight).
 URBAN_B1_AREA_ROUTES_BASE = 'diagnostics/control_area_route_contract_physical_routes.json'
-URBAN_B1_AREA_ROUTES = N31D + '/urban/control_area_route_contract_v3c1_20260928.json'
+URBAN_B1_AREA_ROUTES = N31D + '/urban/control_area_route_contract_v3c3_20261001.json'
 URBAN_B1_AREA_ROUTES_SHA256 = 'fdc21f06fcb36f64195e57f51eed189439024c99f157452f8811ab05266a6da1'
-URBAN_B1_AREA_ROUTES_PROVENANCE = N31D + '/urban/control_area_route_contract_v3c1_20260928.provenance.json'
-URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256 = '5ce65a45c3a01e602f8a183088094b46b476e94e166d3bb91b2c100db68d781a'
-URBAN_B1_ROUTE_EVIDENCE = N31D + '/urban/route_queue_attribution_v3c1_20260928.json'
-URBAN_B1_ROUTE_EVIDENCE_SHA256 = '01d58ca8d08ccf93418713e0e89a1c963ba88aea0cb62bb0e18325c45f9a19f9'
-URBAN_B1_UNSIGNALIZED = N31D + '/urban/unsignalized_turns_v3c1_20260928.json'
-URBAN_B1_UNSIGNALIZED_SHA256 = '95ea27326d99cab1dee8557df1a8044287958082b6918c12e7e34354619867e2'
-URBAN_B1_UNSIGNALIZED_VALIDATION = N31D + '/urban/unsignalized_validation_v3c1nc_20260928.json'
-URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = '42515ae9669fbd0ef8adc3df220054510ebe1e49725652187dfca5c74f2763e9'
-URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3c1_20260928.json'
-URBAN_B1_OFFRAMP_PRIOR_SHA256 = '2f916a87c7112e31f4a7d7434112a6f7b0ddc80e250a62748dcaa2c3c37bdf32'
+URBAN_B1_AREA_ROUTES_PROVENANCE = N31D + '/urban/control_area_route_contract_v3c3_20261001.provenance.json'
+URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256 = 'f912429ded82c7161d9969181afd9d0ca1fb0b0c69559c91402fce1f692d39c5'
+URBAN_B1_ROUTE_EVIDENCE = N31D + '/urban/route_queue_attribution_v3c3_20261001.json'
+URBAN_B1_ROUTE_EVIDENCE_SHA256 = '181a452a967d8e37516a18a8300b02e87dabbeb4b017380930cc2fc3886be1ae'
+URBAN_B1_UNSIGNALIZED = N31D + '/urban/unsignalized_turns_v3c3_20261001.json'
+URBAN_B1_UNSIGNALIZED_SHA256 = '83326aca4f2565d9ae3f9ec1378bd0f1b405714eec6a3370081d6d366e644a43'
+URBAN_B1_UNSIGNALIZED_VALIDATION = N31D + '/urban/unsignalized_validation_v3c3nc_20261001.json'
+URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = 'd8718b9db9e924f148c91da3aed45d71881f0ad488d81f48a4bbb60381298504'
+URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3c3_20261001.json'
+URBAN_B1_OFFRAMP_PRIOR_SHA256 = 'c2ef5b0fb0379fb827ca7c3899ebf6713b69ef4d232525e01b198a08392cfec7'
 OUT_URBAN_B1 = HERE / 'config_n31_v2_urban_b1.json'
 # The adapter's former code default of urban.ramp.offramp_direct_share (install_offramp_direct_landing), lifted
 # into the config unchanged. The relFlow value per off-ramp group (URBAN_B1_OFFRAMP_PRIOR: OR_D_W 0.5, OR_D_E 0.8,

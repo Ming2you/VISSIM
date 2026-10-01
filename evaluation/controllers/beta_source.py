@@ -37,9 +37,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-# Network v3c1 re-pin (2026-09-28): the complete table of the runtime network is routing_v3c1_2 (routing_v3b2, the
-# v3b table, left this tree; v3b replays run from a frozen tree).
-COMPLETE_BETA_SOURCES = frozenset({"routing_v3c1_2"})
+# Network v3c3 re-pin (2026-10-01): the complete table of the runtime network is routing_v3c3_2 (routing_v3c1_2, the
+# v3c1 table of 2026-09-28..10-01 with the same beta values, and routing_v3b2 before it left this tree; their replays
+# run from a frozen tree).
+COMPLETE_BETA_SOURCES = frozenset({"routing_v3c3_2"})
 COMPLETE_BETA_SCHEMA = "movement_beta_routing_physical/v1"
 COMPLETE_BETA_TOL = 1.0e-9
 

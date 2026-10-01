@@ -17,7 +17,7 @@ What this derivation does instead
 1. Stop lines and their connectors. The stop line of an approach is the one of
    outputs/movement_connector_map_ver2_20260907.json (key signal|representative leg of the merge plan); every
    connector that leaves that link in the pinned .inpx is a physical turn. Eight interchange approaches get their
-   stop line and population start from the pinned entry table (N31D/beta/approach_entry_v3c1_20260928.json).
+   stop line and population start from the pinned entry table (N31D/beta/approach_entry_v3c3_20261001.json).
 2. Exit of a connector. Walk downstream from the connector's to-link: the first link owned (territory v2) by
    another signal is an internal exit to that signal; a freeway link or the end of the network is a boundary exit.
    A boundary exit is named by the physical out-link table (outputs/out_link_storage_ver2_20260909.json, the links
@@ -49,7 +49,7 @@ What this derivation does instead
    only zero shares and that no share sits in a phase without native green (check_complete_beta_runtime), and
    refuses a tuning whose declaration or phase authority differs from this table's inputs.
 Declarations (user decision 2026-09-26). The movements declared nonexistent come from the v3b declaration
-(N31D/urban/movement_nonexistent_v3c1_20260928.json, the candidates' urban.movements.nonexistent_declaration), not
+(N31D/urban/movement_nonexistent_v3c3_20261001.json, the candidates' urban.movements.nonexistent_declaration), not
 from the older phase-correction section (a v2 reading). A declared movement that a physical connector reaches fails
 the derivation (there is no exception list any more), and so does a 'corrected' movement that no physical connector
 reaches or whose connector / runtime phase the phase authority does not name: SC7_E_to_N_SC11 and
@@ -81,15 +81,15 @@ from evaluation.controllers.beta_source import is_enabled_value  # noqa: E402  (
 
 N31D = "diagnostics/sdmpc_n31_20260924"
 DEFAULTS = {
-    "network": N31D + "/network/baseline_s31_v3c1nc.inpx",
+    "network": N31D + "/network/baseline_s31_v3c3nc.inpx",
     "territory": "outputs/urban_player_territory_v2_20260907.json",
     "movements": N31D + "/scenario/config_n31_v2.base.json",
     "connector_map": "outputs/movement_connector_map_ver2_20260907.json",
     "merge_plan": "outputs/movement_merge_plan_20260824.json",
-    "entry": N31D + "/beta/approach_entry_v3c1_20260928.json",
+    "entry": N31D + "/beta/approach_entry_v3c3_20261001.json",
     "phase_correction": "outputs/movement_phase_correction_20260828.json",
-    "nonexistent_declaration": N31D + "/urban/movement_nonexistent_v3c1_20260928.json",
-    "phase_authority": N31D + "/urban/physical_phase_authority_v3c1_20260928.json",
+    "nonexistent_declaration": N31D + "/urban/movement_nonexistent_v3c3_20261001.json",
+    "phase_authority": N31D + "/urban/physical_phase_authority_v3c3_20261001.json",
     "out_links": "outputs/out_link_storage_ver2_20260909.json",
 }
 SCHEMA = "movement_beta_routing_physical/v1"
@@ -807,7 +807,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     for k, v in DEFAULTS.items():
         ap.add_argument("--" + k.replace("_", "-"), dest=k, default=v)
-    ap.add_argument("--generated", default="2026-09-28")
+    ap.add_argument("--generated", default="2026-10-01")
     ap.add_argument("--out", required=True)
     ap.add_argument("--check", action="store_true", help="compare with --out instead of writing it")
     args = ap.parse_args()

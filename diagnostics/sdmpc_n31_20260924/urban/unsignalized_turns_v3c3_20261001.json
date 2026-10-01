@@ -1,27 +1,27 @@
 {
  "schema": "unsignalized-turns/v1",
- "generated": "2026-09-28",
+ "generated": "2026-10-01",
  "definition": "A movement is unsignalized when every physical connector it uses has no signal head on its source lanes at or upstream of the diverge, none on the connector itself, and source lanes that no other connector uses. See scripts/derive_unsignalized_turns.py.",
  "network": {
-  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-  "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+  "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
  },
  "inputs": {
   "network": {
-   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-   "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+   "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
   },
   "beta": {
-   "path": "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c1_2_20260928.json",
-   "sha256": "4979c05ccc4d65855a4050529a0555c8bc29e1d4176df275c5f54801d61eb62b"
+   "path": "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c3_2_20261001.json",
+   "sha256": "4290d180d09e9ae3a1da7de16a0af6ea917b3aaac623a46eec7cd9c2f013422d"
   },
   "movements": {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
-   "sha256": "254ca150bb555840dfcd4f40b988c0cf83f399fe4caa2328b01234d8cf3a9c1e"
+   "sha256": "e65d08b970167f1ae8fd81a77af6cd4ae2de3fa30568b6ae11100ae51772051f"
   },
   "validation": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_validation_v3c1nc_20260928.json",
-   "sha256": "42515ae9669fbd0ef8adc3df220054510ebe1e49725652187dfca5c74f2763e9"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_validation_v3c3nc_20261001.json",
+   "sha256": "d8718b9db9e924f148c91da3aed45d71881f0ad488d81f48a4bbb60381298504"
   }
  },
  "movements": {
@@ -29,10 +29,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0013,
-     "stopped_before_n": 767,
+     "stopped_before_n": 766,
      "red_bin_share_c150": 0.0,
      "red_bin_share_c160": 0.0,
-     "crossings": 767
+     "crossings": 766
     }
    ],
    "expected_spec": {
@@ -63,10 +63,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0013,
-     "stopped_before_n": 767,
+     "stopped_before_n": 766,
      "red_bin_share_c150": 0.0,
      "red_bin_share_c160": 0.0,
-     "crossings": 767
+     "crossings": 766
     }
    ],
    "expected_spec": {
@@ -96,11 +96,11 @@
   "SC1001_E_SC1002_to_N_SC2002": {
    "validation": [
     {
-     "stopped_before_share": 0.0072,
-     "stopped_before_n": 4694,
+     "stopped_before_share": 0.0077,
+     "stopped_before_n": 4700,
      "red_bin_share_c150": 0.27,
      "red_bin_share_c160": 0.0,
-     "crossings": 4694
+     "crossings": 4700
     }
    ],
    "expected_spec": {
@@ -131,10 +131,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 1707,
+     "stopped_before_n": 1697,
      "red_bin_share_c150": 0.13,
      "red_bin_share_c160": 0.0,
-     "crossings": 1707
+     "crossings": 1697
     }
    ],
    "expected_spec": {
@@ -164,11 +164,11 @@
   "SC1002_E_SC101_to_N_SC2004": {
    "validation": [
     {
-     "stopped_before_share": 0.0158,
-     "stopped_before_n": 1520,
-     "red_bin_share_c150": 0.4,
+     "stopped_before_share": 0.0164,
+     "stopped_before_n": 1521,
+     "red_bin_share_c150": 0.33,
      "red_bin_share_c160": 0.0,
-     "crossings": 1522
+     "crossings": 1526
     }
    ],
    "expected_spec": {
@@ -199,10 +199,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 561,
-     "red_bin_share_c150": 0.4,
+     "stopped_before_n": 558,
+     "red_bin_share_c150": 0.47,
      "red_bin_share_c160": 0.0,
-     "crossings": 561
+     "crossings": 558
     }
    ],
    "expected_spec": {
@@ -232,11 +232,11 @@
   "SC1002_S_SC105_to_E_SC101": {
    "validation": [
     {
-     "stopped_before_share": 0.001,
-     "stopped_before_n": 997,
-     "red_bin_share_c150": 0.27,
+     "stopped_before_share": 0.0,
+     "stopped_before_n": 998,
+     "red_bin_share_c150": 0.07,
      "red_bin_share_c160": 0.0,
-     "crossings": 997
+     "crossings": 998
     }
    ],
    "expected_spec": {
@@ -266,11 +266,11 @@
   "SC1002_W_SC1001_to_S_SC105": {
    "validation": [
     {
-     "stopped_before_share": 0.0472,
-     "stopped_before_n": 9054,
+     "stopped_before_share": 0.0421,
+     "stopped_before_n": 9025,
      "red_bin_share_c150": 0.13,
      "red_bin_share_c160": 0.0,
-     "crossings": 9054
+     "crossings": 9025
     }
    ],
    "expected_spec": {
@@ -301,10 +301,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 4566,
+     "stopped_before_n": 4587,
      "red_bin_share_c150": 0.0,
      "red_bin_share_c160": 0.0,
-     "crossings": 4566
+     "crossings": 4587
     }
    ],
    "expected_spec": {
@@ -335,10 +335,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 254,
+     "stopped_before_n": 284,
      "red_bin_share_c150": 0.33,
      "red_bin_share_c160": 0.0,
-     "crossings": 587
+     "crossings": 582
     }
    ],
    "expected_spec": {
@@ -364,40 +364,6 @@
     }
    ],
    "routing_beta": 0.13320586360739325
-  },
-  "SC103_S_SC6_to_E": {
-   "validation": [
-    {
-     "stopped_before_share": 0.0472,
-     "stopped_before_n": 5611,
-     "red_bin_share_c150": 0.0,
-     "red_bin_share_c160": 0.19,
-     "crossings": 5611
-    }
-   ],
-   "expected_spec": {
-    "signal": "SC103",
-    "approach": "S_SC6",
-    "kind": "boundary_out",
-    "origin": "SC6_to_SC103",
-    "receiving_link": "SC103_E_out"
-   },
-   "connectors": [
-    {
-     "connector": "10096",
-     "source_link": "1210021904",
-     "source_lanes": [
-      1
-     ],
-     "source_pos_m": 150.62130720400626,
-     "target_link": "1220024301",
-     "controlling_heads": [],
-     "heads_on_connector": [],
-     "lane_sharing_connectors": [],
-     "downstream_heads_on_source_lanes": []
-    }
-   ],
-   "routing_beta": 0.3333333333333333
   },
   "SC107_S_to_E_SC108": {
    "validation": [
@@ -436,11 +402,11 @@
   "SC2002_E_SC2003_to_N": {
    "validation": [
     {
-     "stopped_before_share": 0.0033,
-     "stopped_before_n": 1524,
+     "stopped_before_share": 0.0039,
+     "stopped_before_n": 1523,
      "red_bin_share_c150": 0.47,
      "red_bin_share_c160": 0.0,
-     "crossings": 1524
+     "crossings": 1523
     }
    ],
    "expected_spec": {
@@ -505,10 +471,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0008,
-     "stopped_before_n": 2415,
-     "red_bin_share_c150": 0.07,
+     "stopped_before_n": 2419,
+     "red_bin_share_c150": 0.27,
      "red_bin_share_c160": 0.0,
-     "crossings": 2415
+     "crossings": 2419
     }
    ],
    "expected_spec": {
@@ -572,11 +538,11 @@
   "SC2004_S_SC1002_to_E_SC2005": {
    "validation": [
     {
-     "stopped_before_share": 0.0048,
-     "stopped_before_n": 2892,
+     "stopped_before_share": 0.0024,
+     "stopped_before_n": 2890,
      "red_bin_share_c150": 0.07,
      "red_bin_share_c160": 0.0,
-     "crossings": 2892
+     "crossings": 2890
     }
    ],
    "expected_spec": {
@@ -607,10 +573,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 1375,
+     "stopped_before_n": 1379,
      "red_bin_share_c150": 0.53,
      "red_bin_share_c160": 0.0,
-     "crossings": 1387
+     "crossings": 1384
     }
    ],
    "expected_spec": {
@@ -640,11 +606,11 @@
   "SC2005_E_SC102_to_N": {
    "validation": [
     {
-     "stopped_before_share": 0.0,
-     "stopped_before_n": 1910,
+     "stopped_before_share": 0.0016,
+     "stopped_before_n": 1914,
      "red_bin_share_c150": 0.27,
      "red_bin_share_c160": 0.0,
-     "crossings": 1910
+     "crossings": 1914
     }
    ],
    "expected_spec": {
@@ -708,11 +674,11 @@
   "SC2005_S_SC101_to_E_SC102": {
    "validation": [
     {
-     "stopped_before_share": 0.0076,
-     "stopped_before_n": 4337,
-     "red_bin_share_c150": 0.27,
+     "stopped_before_share": 0.0401,
+     "stopped_before_n": 4340,
+     "red_bin_share_c150": 0.2,
      "red_bin_share_c160": 0.0,
-     "crossings": 4349
+     "crossings": 4345
     }
    ],
    "expected_spec": {
@@ -742,7 +708,7 @@
   "SC2005_W_SC2004_to_S_SC101": {
    "validation": [
     {
-     "stopped_before_share": 0.0034,
+     "stopped_before_share": 0.0,
      "stopped_before_n": 1453,
      "red_bin_share_c150": 0.0,
      "red_bin_share_c160": 0.0,
@@ -777,10 +743,10 @@
    "validation": [
     {
      "stopped_before_share": 0.0,
-     "stopped_before_n": 1064,
+     "stopped_before_n": 1063,
      "red_bin_share_c150": 0.0,
      "red_bin_share_c160": 0.31,
-     "crossings": 1064
+     "crossings": 1063
     }
    ],
    "expected_spec": {
@@ -1469,6 +1435,21 @@
  "screened_signalized_movements": 287,
  "not_included_fzp_validation": [
   {
+   "movement": "SC103_S_SC6_to_E",
+   "connectors": [
+    "10096"
+   ],
+   "validation": [
+    {
+     "stopped_before_share": 0.0544,
+     "stopped_before_n": 5602,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.19,
+     "crossings": 5602
+    }
+   ]
+  },
+  {
    "movement": "SC107_N_SC1_to_W_SC1005",
    "connectors": [
     "10610"
@@ -1477,9 +1458,9 @@
     {
      "stopped_before_share": null,
      "stopped_before_n": 0,
-     "red_bin_share_c150": 0.13,
+     "red_bin_share_c150": 0.07,
      "red_bin_share_c160": 0.0,
-     "crossings": 553
+     "crossings": 552
     }
    ]
   }

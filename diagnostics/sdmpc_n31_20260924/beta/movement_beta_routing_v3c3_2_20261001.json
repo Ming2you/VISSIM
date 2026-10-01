@@ -1,12 +1,12 @@
 {
  "schema": "movement_beta_routing_physical/v1",
- "generated": "2026-09-28",
+ "generated": "2026-10-01",
  "definition": "beta = share of the static routes' relFlow over the physical exits of the approach's stop line (0 without a physical path); see scripts/derive_routing_beta_physical.py. Every approach sums to 1 before any runtime renormalisation.",
  "approach_sum": "exact",
  "inputs": {
   "network": {
-   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-   "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+   "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+   "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
   },
   "territory": {
    "path": "outputs/urban_player_territory_v2_20260907.json",
@@ -14,7 +14,7 @@
   },
   "movements": {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
-   "sha256": "254ca150bb555840dfcd4f40b988c0cf83f399fe4caa2328b01234d8cf3a9c1e"
+   "sha256": "e65d08b970167f1ae8fd81a77af6cd4ae2de3fa30568b6ae11100ae51772051f"
   },
   "connector_map": {
    "path": "outputs/movement_connector_map_ver2_20260907.json",
@@ -25,20 +25,20 @@
    "sha256": "d1d1905dffa61ae8157b76caa6f7718952f897684430700e43bb8c9f43ecb843"
   },
   "entry": {
-   "path": "diagnostics/sdmpc_n31_20260924/beta/approach_entry_v3c1_20260928.json",
-   "sha256": "8c44404eed8330d6ac68ebdd07742139bc3b7114e7a54d4c17d6a3387d34eade"
+   "path": "diagnostics/sdmpc_n31_20260924/beta/approach_entry_v3c3_20261001.json",
+   "sha256": "514ae8e064154efa22c4d4e81fb7c3a113fdb63abfaeee6442ce0c707d79f56b"
   },
   "phase_correction": {
    "path": "outputs/movement_phase_correction_20260828.json",
    "sha256": "fc8f207022310cae9afa0bd967ea20317256cb48e762ba9ce7b2ff067947377f"
   },
   "nonexistent_declaration": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c1_20260928.json",
-   "sha256": "e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c3_20261001.json",
+   "sha256": "04fce57ca7c6a4f8e13331d0bfce6134011da9f52a144ad8b999acab539d2a28"
   },
   "phase_authority": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3c1_20260928.json",
-   "sha256": "77d43c5c8ca52a8ad3be82e285367b0769c0b8e26d7781c7d13b775bce962e9a"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/physical_phase_authority_v3c3_20261001.json",
+   "sha256": "9ba47f3bebf383025a00af05d1f8643a8ea0c60db17b02b53fde50e47a0f72ab"
   },
   "out_links": {
    "path": "outputs/out_link_storage_ver2_20260909.json",
@@ -48,24 +48,24 @@
  "route_choice_corridors": [
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
-   "sha256": "36097238b09372bdc96c7e450895dd2f5b4bc3510c4c493a172fe3c11a1212bb"
+   "sha256": "3156fa53411176feeab2efd75425a5c6508ab00e07f61c5560c94b1d32aa1b6e"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
-   "sha256": "4cb76d3fad7db18b41d4a01764e1c07408d95d7acc5ab4f338a007b1580cf528"
+   "sha256": "dceb222f114a267c44451547029b639a4f655192a9bf23a1013bfa39bb018a61"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
-   "sha256": "790027f14d767f6f0e7456043f70de04dd665643e39498e1f70eb351a9bc7641"
+   "sha256": "2fd1b191eab9f5ac727cfdcccfe3abd9279626869800cd46eb3e72d1194795dc"
   },
   {
    "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
-   "sha256": "8f9de5cceeb9d1da82e3d7557a8e817d7ea0aa2501706c2bed0f38e2556da6e0"
+   "sha256": "9efa8a75288f55cfa9e2b598d38abfb2d70cdf3a3c515100aeafa707390af4f0"
   }
  ],
  "physical_route_topology": {
   "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
-  "sha256": "62111d42e830aab9f1c86a239676ec4613bf53746a2ad6460047aa8bad4fffe2"
+  "sha256": "967a11a8605c3810012dc36765898dde0f8c981a7c15230dcb0fab7bf56dd053"
  },
  "movements": 492,
  "beta": {

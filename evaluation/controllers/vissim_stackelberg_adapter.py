@@ -3625,7 +3625,7 @@ def install_merged_movements(cfg, tuning: Mapping[str, Any],
         raise ValueError("movement 병합 충돌 %d건: %s" % (len(conflicts), conflicts[:5]))
 
     # 접근로 합이 1 을 넘지 않게 재정규화한다. beta 를 더했으니 합이 변한다.
-    # 완결 β 원천(routing_v3c1_2)에서는 병합 전 합이 이미 1 이고 버린 자기 leg U턴은 0 이다 — 재정규화는 항등이어야 한다.
+    # 완결 β 원천(routing_v3c3_2)에서는 병합 전 합이 이미 1 이고 버린 자기 leg U턴은 0 이다 — 재정규화는 항등이어야 한다.
     _require_zero_moved_beta(tuning, "install_merged_movements(dropped)",
                              {n: _as_float(movements[n].get("beta"), 0.0) for n in dropped})
     _require_unit_approach_sums(tuning, "install_merged_movements", merged_specs)
@@ -3986,19 +3986,21 @@ def filter_midblock_links_from_detector_mapping(detector_mapping, tuning: Mappin
 #             그 중 internal 25개(우회전 17·직진 2)가 섞여 있었다. beta=0 은
 #             `urban_queue_model:1018 queue[m] += beta * arrived` 를 영구히 0 으로
 #             만들어 그 현시를 굶긴다 — 동서축 관측 실명과 같은 실패 모드다.
-#   routing_v3c1 : 같은 유도(scripts/derive_routing_turn_beta.py, movement 474개 config)를 SDMPC-31 의
-#             망 v3c1(2577209b, 2026-09-28 재핀; v3b be0075bf + 경로결정 8개 1160·1162–1168)에 돌린 것. routing(0824)은
-#             망 modi_eval_userfix_20260814e 에서 뽑혀 v2 망과도 movement 25개가 다르다. 기본이 아니므로 파일이
-#             없으면 조용히 끄지 않고 실패한다. 램프 교차로 결정 5개(SC1001 1117, SC1004 1124·1126·1138·1140)와
+#   routing_v3c3 : 같은 유도(scripts/derive_routing_turn_beta.py, movement 474개 config)를 SDMPC-31 의
+#             망 v3c3(3de889f0, 2026-10-01 재핀; v3c1 2577209b + 구성 14·분포 81/91/101, 경로결정은 v3c1 그대로)에 돌린 것.
+#             routing(0824)은 망 modi_eval_userfix_20260814e 에서 뽑혀 v2 망과도 movement 25개가 다르다. 기본이 아니므로
+#             파일이 없으면 조용히 끄지 않고 실패한다. 램프 교차로 결정 5개(SC1001 1117, SC1004 1124·1126·1138·1140)와
 #             v3c1 의 1165(→ SC1 N_SC101)는 역추론이 틀려 --explicit-approach 로 명시 배정했다(sha 핀: make_config_n31.py).
-#             2026-09-25..28 의 routing_v3b(망 v3b 표)는 이 트리에서 뺐다 — v3b 재생은 동결 트리에서 한다.
+#             2026-09-28..10-01 의 routing_v3c1(망 v3c1 표, β 값은 v3c3 와 같고 망 핀만 다름)과 그 전의 routing_v3b 는
+#             이 트리에서 뺐다 — v3c1·v3b 재생은 동결 트리에서 한다.
 BETA_EVIDENCE_JSON = {
     "routing": WORKSPACE_ROOT / "outputs/movement_beta_routing_20260824.json",
     "knr": WORKSPACE_ROOT / "outputs/movement_beta_measured_20260824.json",
-    "routing_v3c1": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c1_20260928.json",
-    "routing_v3c1_2": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c1_2_20260928.json",
+    "routing_v3c3": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c3_20261001.json",
+    "routing_v3c3_2": WORKSPACE_ROOT / "diagnostics/sdmpc_n31_20260924/beta/movement_beta_routing_v3c3_2_20261001.json",
 }
-#   routing_v3c1_2 : scripts/derive_routing_beta_physical.py (도시 plant 묶음 1 U1, 2026-09-25; 망 v3c1 재핀 2026-09-28).
+#   routing_v3c3_2 : scripts/derive_routing_beta_physical.py (도시 plant 묶음 1 U1, 2026-09-25; 망 v3c1 재핀 2026-09-28,
+#             망 v3c3 재핀 2026-10-01).
 #             movement 492개 **전부**에 값이 있고(물리 경로가 없으면 0, 있으면 정적 경로 relFlow 몫), 접근로 합이
 #             재정규화 **전에** 정확히 1 이다. 그래서 이 원천에서는 leg_split 되접기·출구 병합·off-ramp 직행·경로선택
 #             회랑이 옮기는 β 가 0 이어야 하고 재정규화가 항등이어야 한다 — 아니면 실패한다(evaluation/controllers/
@@ -4079,7 +4081,7 @@ def install_measured_turn_beta(cfg, tuning: Mapping[str, Any]) -> dict[str, floa
         "measured_beta_movements": float(applied),
         "measured_beta_total_shift": float(round(changed, 3)),
         "measured_beta_floor": float(floor),
-        "measured_beta_source_routing": 1.0 if source in ("routing", "routing_v3c1", "routing_v3c1_2") else 0.0,
+        "measured_beta_source_routing": 1.0 if source in ("routing", "routing_v3c3", "routing_v3c3_2") else 0.0,
     }
     if complete:
         _require_unit_approach_sums(tuning, "install_measured_turn_beta", cfg.network.urban_movements or {})
@@ -4124,7 +4126,7 @@ def _check_complete_table_declarations(tuning: Mapping[str, Any], doc: Mapping[s
 
 
 def check_complete_beta_runtime(cfg, tuning: Mapping[str, Any], state_json: Mapping[str, Any]) -> dict[str, float]:
-    """완결 β 원천(routing_v3c1_2)의 런타임 확인 세 가지. 다른 원천이면 no-op(아무것도 돌려주지 않는다 = 비트 동일).
+    """완결 β 원천(routing_v3c3_2)의 런타임 확인 세 가지. 다른 원천이면 no-op(아무것도 돌려주지 않는다 = 비트 동일).
 
     1. 표를 유도한 망(inputs.network.sha256)이 이 스냅샷의 망과 같다. 다른 망의 relFlow 가 조용히 설치되지 않는다.
     2. 최종 현시(현시 보정·물리 현시 권한·무신호 설치 뒤)에서 movement β 가 전부 0 인 현시가 표의

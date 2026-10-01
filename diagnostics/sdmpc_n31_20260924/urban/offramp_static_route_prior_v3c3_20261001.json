@@ -2,8 +2,8 @@
  "schema": "offramp-static-route-prior/v1",
  "created": "2026-09-25",
  "network": {
-  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-  "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+  "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
  },
  "prior_semantics": "Static-route relFlow share of the direct landing among the vehicles that the group decision sends to the two branches of one off-ramp group (direct / signal connector of the lane plant off_groups offramp_route_inventory_v1). evaluation/controllers/offramp_routing.derive_prior re-derives it from the pinned network and refuses a mismatch. It replaces the per-signal code default {SC1001: 0.468, SC1004: 0.484} (a realised 30-decision average of an older network) by an exogenous value per group (user decision 2026-09-25: relFlow values, realised shares only for validation).",
  "groups": {
@@ -37,10 +37,17 @@
   }
  },
  "repin": {
-  "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin only; decisions 1130-1133 are not edited by v3c1 (offramp_routing.derive_prior re-derives the four shares at install)",
+  "what": "network v3c3 re-pin 2026-10-01 (REPIN_V3C2_PLAN 3.7 K7, user approval 2026-10-01): network pin only; v3c3 = v3c1 + vehicle composition 14 on inputs 1098/1099 (v3c2) + desired-speed distributions 81/91/101, no routing decision, link, connector or signal edited; decisions 1130-1133 are not edited (offramp_routing.derive_prior re-derives the four shares at install)",
   "previous": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3b_20260925.json",
-   "sha256": "d9a4a8f17c0b9e9eb567d60275f177c5152954d71be849fa00f97b84f62733ee"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3c1_20260928.json",
+   "sha256": "2f916a87c7112e31f4a7d7434112a6f7b0ddc80e250a62748dcaa2c3c37bdf32"
+  },
+  "earlier": {
+   "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin only; decisions 1130-1133 are not edited by v3c1 (offramp_routing.derive_prior re-derives the four shares at install)",
+   "previous": {
+    "path": "diagnostics/sdmpc_n31_20260924/urban/offramp_static_route_prior_v3b_20260925.json",
+    "sha256": "d9a4a8f17c0b9e9eb567d60275f177c5152954d71be849fa00f97b84f62733ee"
+   }
   }
  }
 }

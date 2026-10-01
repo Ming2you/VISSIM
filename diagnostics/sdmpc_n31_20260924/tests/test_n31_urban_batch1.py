@@ -1,10 +1,11 @@
 """Urban plant batch 1 (U1 routing beta, U2 route queue attribution, U3 unsignalized turns), 2026-09-25; re-pinned
-to network v3c1 2026-09-28 (sources routing_v3c1 / routing_v3c1_2, *_v3c1_20260928 inputs).
+to network v3c1 2026-09-28 and to network v3c3 2026-10-01 (sources routing_v3c3 / routing_v3c3_2, *_v3c3_20261001
+inputs; the beta values and the batch-1 tables are those of v3c1, only network pins and dates moved).
 
 Every new switch is a config key; with the keys absent the adapter must behave exactly as before (the full-decision
 bit identity is proven by replaying the logged v3b no-control decisions, see the batch report). These tests pin:
   - the three generators rebuild their pinned files byte for byte (reproducibility);
-  - routing_v3c1_2 covers every runtime movement, each approach sums to 1, and the physical-path rules hold on the
+  - routing_v3c3_2 covers every runtime movement, each approach sums to 1, and the physical-path rules hold on the
     interchange approaches; a boundary exit follows the physical out-link table (SC104 10171 -> E, review
     2026-09-26); the runtime guards refuse a moved or renormalised share only for the complete source, decided by
     the adapter's own predicate; the table is pinned (urban.beta.sha256), installed only with the declaration and
@@ -56,7 +57,7 @@ def _load_script(name):
 
 def _args(module, **over):
     values = dict(module.DEFAULTS)
-    values['generated'] = '2026-09-28'       # the v3c1 re-pin date of every batch-1 table
+    values['generated'] = '2026-10-01'       # the v3c3 re-pin date of every batch-1 table (v3c1: 2026-09-28)
     values.update(over)
     return types.SimpleNamespace(**values)
 
@@ -80,9 +81,9 @@ def cfg_with(movements):
 
 DECLARED = {'merge_exits': True, 'phase_correction': True, 'physical_phase_authority': mc.URBAN_B1_PHASE_AUTHORITY,
             'nonexistent_declaration': {'path': mc.URBAN_B1_DECLARATION, 'sha256': mc.URBAN_B1_DECLARATION_SHA256}}
-COMPLETE = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1_2', 'sha256': mc.URBAN_B1_BETA_SHA256},
+COMPLETE = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c3_2', 'sha256': mc.URBAN_B1_BETA_SHA256},
                       'movements': dict(DECLARED)}}
-DEFAULT = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c1'}}}
+DEFAULT = {'urban': {'beta': {'measured': True, 'floor': 0.0, 'source': 'routing_v3c3'}}}
 PLAN_SWITCHES = {'urban': {'plan': {'mainline_only': True, 'actuation_plan_json':
                  'diagnostics/controller_confidence_20260913/local_native_clock_v2/native_clock_plan_local.json'}}}
 
@@ -368,7 +369,7 @@ class RoutingBetaPhysicalTests(unittest.TestCase):
     def test_default_source_is_unchanged(self):
         meta = ad.install_measured_turn_beta(cfg_with(self.um), DEFAULT)
         self.assertNotIn('measured_beta_complete', meta)
-        self.assertEqual(meta['measured_beta_movements'], 373.0)       # v3b 370 + SC104 S_SC106 (v3c1 decision 1168)
+        self.assertEqual(meta['measured_beta_movements'], 373.0)       # v3b 370 + SC104 S_SC106 (v3c1 decision 1168, kept in v3c3)
 
 
 class GuardTests(unittest.TestCase):
@@ -378,7 +379,7 @@ class GuardTests(unittest.TestCase):
         self.assertFalse(beta_source.complete_beta_source(DEFAULT))
         self.assertFalse(beta_source.complete_beta_source({}))
         self.assertFalse(beta_source.complete_beta_source(
-            {'urban': {'beta': {'measured': False, 'source': 'routing_v3c1_2'}}}))
+            {'urban': {'beta': {'measured': False, 'source': 'routing_v3c3_2'}}}))
         beta_source.require_zero_moved_beta(DEFAULT, 'x', {'a': 0.3})
         beta_source.require_unit_approach_sums(DEFAULT, 'x', {'a': {'signal': 'S', 'approach': 'A', 'beta': 0.3}})
         with self.assertRaisesRegex(ValueError, 'non-zero share'):
@@ -457,7 +458,7 @@ class GuardTests(unittest.TestCase):
         ok = copy.deepcopy(cfg)
         ok.network.boundary_out_link_length_km = {}
         ok.network.wout_travel_speed_km_h = 40.0
-        ad.install_leg_ramp_split_fold(ok, tuning)          # every folded share is 0 in routing_v3c1_2
+        ad.install_leg_ramp_split_fold(ok, tuning)          # every folded share is 0 in routing_v3c3_2
         bad = copy.deepcopy(cfg)
         bad.network.wout_travel_speed_km_h = 40.0
         bad.network.urban_movements['SC1001_S_SC1003_to_onW']['beta'] = 0.1
@@ -656,11 +657,14 @@ class UnsignalizedTurnTests(unittest.TestCase):
         self.assertIn('SC1002_N_SC2004_to_S_SC105', down)
         self.assertEqual(down['SC1002_N_SC2004_to_S_SC105']['connectors'], ['10683'])
         self.assertIn('SC107_W_SC1004_to_S', down)
-        self.assertEqual({x['movement'] for x in doc['not_included_fzp_validation']}, {'SC107_N_SC1_to_W_SC1005'})
+        # v3c3 re-pin (2026-10-01): the v3c3 fit-seed FZPs put SC103_S_SC6_to_E (connector 10096) at stopped_before_share
+        # 0.0544 > 0.05 (v3c1 0.0472), so the unchanged rule now leaves it out: 22 turns (v3c1 23).
+        self.assertEqual({x['movement'] for x in doc['not_included_fzp_validation']},
+                         {'SC107_N_SC1_to_W_SC1005', 'SC103_S_SC6_to_E'})
         excluded = set(down) | {x['movement'] for x in doc['not_included_fzp_validation']} | {
             x['movement'] for x in doc['not_included_shared_lane']}
         self.assertFalse(excluded & set(doc['movements']))
-        self.assertEqual(len(doc['movements']), 23)
+        self.assertEqual(len(doc['movements']), 22)
         for name, row in doc['movements'].items():
             for v in row['validation']:
                 self.assertGreaterEqual(v['stopped_before_n'], doc['validation_rule']['min_observed_transitions'], name)
@@ -822,7 +826,7 @@ class SC7DeclarationTests(unittest.TestCase):
     """User decision 2026-09-26: correct the v2-reading declaration of SC7 E / E_SC16 -> N_SC11 to v3b, serve the two in
     the phase of their real head (140101, SC7 SG 1 = p4) and give the relFlow value; nothing else changes."""
 
-    NET = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx'
+    NET = 'diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx'
     SIG = 'diagnostics/sdmpc_n31_20260924/network/개포동 test-bed14.sig'
     PLAN = PLAN_SWITCHES['urban']['plan']['actuation_plan_json']
     SC7_N = ('SC7_E_to_N_SC11', 'SC7_E_SC16_to_N_SC11')
@@ -999,7 +1003,7 @@ class ConfigTests(unittest.TestCase):
     def test_batch1_candidate_adds_exactly_its_keys(self):
         base = self.default_tuning()
         cand = mc.apply_urban_batch1(base)
-        self.assertEqual(cand['urban']['beta']['source'], 'routing_v3c1_2')
+        self.assertEqual(cand['urban']['beta']['source'], 'routing_v3c3_2')
         self.assertEqual(cand['urban']['beta']['sha256'], mc.URBAN_B1_BETA_SHA256)
         self.assertEqual(cand['urban']['queue']['attribution'], 'route')
         self.assertEqual(cand['urban']['queue']['route_evidence']['sha256'], mc.URBAN_B1_ROUTE_EVIDENCE_SHA256)
@@ -1011,7 +1015,7 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(cand['urban']['ramp']['offramp_direct_route_prior'], mc.URBAN_B1_OFFRAMP_PRIOR)
         rest = copy.deepcopy(cand)
         rest.pop('_n31_urban_b1_note')
-        rest['urban']['beta']['source'] = 'routing_v3c1'
+        rest['urban']['beta']['source'] = 'routing_v3c3'
         rest['urban']['beta'].pop('sha256')
         for key in ('attribution', 'route_evidence'):
             rest['urban']['queue'].pop(key)

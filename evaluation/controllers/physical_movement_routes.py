@@ -453,7 +453,7 @@ def check_source_routing_decisions(decisions, row):
 
     A decision there could send the source's vehicles through another turn than the single physical one this
     authority binds. The default (no 'reviewed_source_decisions' key) admits none, exactly the rule before
-    network v3c1. Network v3c1 (user approval 2026-09-28, item V1) puts decision 1160 on source 21; the
+    network v3c1. Network v3c1 (user approval 2026-09-28, item V1; kept in v3c3) puts decision 1160 on source 21; the
     declaration names it with its link, position and every route's link path, and it is admitted only when the
     network holds exactly the named decisions on the source, each equal to its record, and every route leaves
     through the declared connector to the declared receiver (the source keeps its single physical turn).
@@ -568,7 +568,7 @@ def configure_native_input_signal_authority(cfg, tuning, detectors, *, state_jso
     if siblings != set(row['expected_movements']):
         raise ValueError('Native signal origin acquired an unreviewed movement')
     # The pinned 'beta' of each expected movement is the routing table's value when this evidence was reviewed. A
-    # complete beta source (urban.beta.source routing_v3c1_2) already gives this single-connector origin its physical
+    # complete beta source (urban.beta.source routing_v3c3_2) already gives this single-connector origin its physical
     # split, so there the check is: the kept movement carries 1 and every sibling 0 (the result committed below).
     complete = complete_beta_source(tuning)
     for name, expected in row['expected_movements'].items():

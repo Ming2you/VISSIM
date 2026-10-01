@@ -1,8 +1,8 @@
 {
  "schema": "routing_beta_explicit_approach/v1",
- "created": "2026-09-28",
- "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
- "network_sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7",
+ "created": "2026-10-01",
+ "network": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+ "network_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
  "why": "scripts/derive_routing_turn_beta.py attaches a routing decision to an approach by its destination set. At the two freeway-interchange signals the set is contained in several approaches (W / offW / offE / E_SC107), and the tightest one wins: on v3b the four SC1004 west-side decisions 1124, 1126, 1138, 1140 all landed on SC1004 E_SC107 (1140 alone 4558 of its 4567), and 1117 (SC1001 west, W/offW/offE tie) was dropped. This table attaches each of them to the approaches whose vehicles actually pass it; the beta values still come from the decisions' relFlow (exogenous), this file only says WHERE they apply.",
  "decisions": {
   "1117": [
@@ -425,5 +425,12 @@
    "sha256": "36162d5032b899369e33e6cab5ebad932119587733f0721cabc691d557942c65"
   },
   "reviewed_added_decisions": "the other v3c1 decisions 1160, 1162-1164, 1166-1168 attach by the destination-set inference to their own approaches (checked in the derived table sources, REPIN_V3C1_REPORT.md)"
+ },
+ "v3c3_repin": {
+  "what": "network v3c3 re-pin 2026-10-01 (REPIN_V3C2_PLAN 3.7 K7, user approval 2026-10-01): network pin only; v3c3 = v3c1 + vehicle composition 14 on inputs 1098/1099 (v3c2) + desired-speed distributions 81/91/101, no routing decision, link, connector or signal edited; every decision row and its evidence are unchanged (decisions 1160-1168 included)",
+  "previous": {
+   "path": "diagnostics/sdmpc_n31_20260924/beta/explicit_approach_v3c1_20260928.json",
+   "sha256": "c74dfebe98f960d6f8ef6bfaf8482af7e2e49e4395ed22a25fae42ed712b21be"
+  }
  }
 }

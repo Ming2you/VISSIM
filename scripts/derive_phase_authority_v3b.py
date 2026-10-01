@@ -3,7 +3,7 @@
 User decision 2026-09-26: the runtime declaration that SC7_E_to_N_SC11 / SC7_E_SC16_to_N_SC11 do not exist is the v2
 reading. On v3b connector 10332 leaves the single lane of 1210009600 to 1220008701 -> 10334 -> SC11 (static route
 252:3, relFlow 63), and head 140101 (SC7 SG 1) stands upstream of it and of its sibling 10333. The candidates
-therefore use the v3b declaration (N31D/urban/movement_nonexistent_v3c1_20260928.json since the v3c1 re-pin: its 'corrected' movements
+therefore use the v3b declaration (N31D/urban/movement_nonexistent_v3c3_20261001.json since the v3c3 re-pin: its 'corrected' movements
 exist) and serve each corrected movement in the phase of its real head. This script writes that phase authority:
 the default tuning's reviewed evidence (its urban.movements.physical_phase_authority, copied unchanged: the three
 reviewed rows, the unsignalized and head-free sections, the network and plan pins) plus one by_movement row per
@@ -52,9 +52,9 @@ if hasattr(sys.stdout, "reconfigure"):
 
 N31D = "diagnostics/sdmpc_n31_20260924"
 DEFAULTS = {
-    "network": N31D + "/network/baseline_s31_v3c1nc.inpx",
+    "network": N31D + "/network/baseline_s31_v3c3nc.inpx",
     "movements": N31D + "/scenario/config_n31_v2.base.json",
-    "declaration": N31D + "/urban/movement_nonexistent_v3c1_20260928.json",
+    "declaration": N31D + "/urban/movement_nonexistent_v3c3_20261001.json",
     "phase_correction": "outputs/movement_phase_correction_20260828.json",
 }
 SCHEMA = "physical-phase-authority/v1"
@@ -262,7 +262,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     for k, v in DEFAULTS.items():
         ap.add_argument("--" + k.replace("_", "-"), dest=k, default=v)
-    ap.add_argument("--generated", default="2026-09-28")
+    ap.add_argument("--generated", default="2026-10-01")
     ap.add_argument("--out", required=True)
     ap.add_argument("--check", action="store_true", help="compare with --out instead of writing it")
     args = ap.parse_args()

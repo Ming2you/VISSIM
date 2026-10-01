@@ -2,8 +2,8 @@
  "schema": "movement-nonexistent-declaration/v1",
  "generated": "2026-09-26",
  "network": {
-  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-  "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+  "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+  "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
  },
  "supersedes": {
   "path": "outputs/movement_phase_correction_20260828.json",
@@ -40,10 +40,17 @@
   }
  },
  "repin": {
-  "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin only; the user decision of 2026-09-26 and every row are unchanged (the v3c1 decisions do not touch SC109 N_SC16 or SC7 E_SC16; the \"v3b\" row keys name the network the rows were written for)",
+  "what": "network v3c3 re-pin 2026-10-01 (REPIN_V3C2_PLAN 3.7 K7, user approval 2026-10-01): network pin only; v3c3 = v3c1 + vehicle composition 14 on inputs 1098/1099 (v3c2) + desired-speed distributions 81/91/101, no routing decision, link, connector or signal edited; the user decision of 2026-09-26 and every row are unchanged",
   "previous": {
-   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3b_20260926.json",
-   "sha256": "3135dcdaf7b01feb426eb1bb48df15470d31c06934a3f84ebb048df231b61fce"
+   "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3c1_20260928.json",
+   "sha256": "e822196bcdff181a5ce29d9c5090c43560b49a4b18ce6aa3dfc33e6406c96aec"
+  },
+  "earlier": {
+   "what": "network v3c1 re-pin 2026-09-28 (REPIN_PLAN §6 P6, user approval 2026-09-28): network pin only; the user decision of 2026-09-26 and every row are unchanged (the v3c1 decisions do not touch SC109 N_SC16 or SC7 E_SC16; the \"v3b\" row keys name the network the rows were written for)",
+   "previous": {
+    "path": "diagnostics/sdmpc_n31_20260924/urban/movement_nonexistent_v3b_20260926.json",
+    "sha256": "3135dcdaf7b01feb426eb1bb48df15470d31c06934a3f84ebb048df231b61fce"
+   }
   }
  }
 }

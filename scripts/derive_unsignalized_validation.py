@@ -1,12 +1,14 @@
-"""FZP validation table of the unsignalized-turn evidence (scripts/derive_unsignalized_turns.py), network v3c1.
+"""FZP validation table of the unsignalized-turn evidence (scripts/derive_unsignalized_turns.py), network v3c3.
 
 Validation only: no value of the model is taken from here. derive_unsignalized_turns.py includes a head-free
 exclusive-lane turn only when this table shows that at most 5% of the vehicles that took its connector stopped on
 the source link before it (over >= 100 observed transitions).
 
-Source: the v3c1 no-control FZPs of the fit seeds 31 / 41 / 43 / 47 / 53 (5 s frames), streamed once each (sha256
-recorded; network v3c1 re-pin 2026-09-28; the held-out seed 37 is never read; until 2026-09-28 the v3b FZPs of
-seeds 31 / 41 / 37).
+Source: the v3c3 no-control FZPs of the fit seeds 31 / 41 / 43 / 47 and the v3c2 one of seed 53 (5 s frames),
+streamed once each (sha256 recorded; network v3c3 re-pin 2026-10-01; the v3c3 s53 run never completed, its v3c2
+twin is the declared substitute: v3c3 adds only DSD 81/91/101 that no vehicle uses without control, GB-1 PASS
+on 31/41/43/47; the held-out seed 37 is never read). 2026-09-28..10-01 the v3c1 FZPs of the same fit seeds,
+until 2026-09-28 the v3b FZPs of seeds 31 / 41 / 37.
 Per vehicle, the observed element sequence (consecutive frames on one element merged: element, first / last
 time, route, lane, count of frames below 5 km/h) is formed as in the 2026-09-25 extraction (scratchpad
 urban-b1/fzp_paths.py, fzp_crossings.py, periodicity.py, turn_stops.py), which this script replaces.
@@ -39,11 +41,12 @@ import xml.etree.ElementTree as ET
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 N31D = "diagnostics/sdmpc_n31_20260924"
 DEFAULTS = {
-    "network": N31D + "/network/baseline_s31_v3c1nc.inpx",
+    "network": N31D + "/network/baseline_s31_v3c3nc.inpx",
     "territory": "outputs/urban_player_territory_v2_20260907.json",
 }
-FZPS = {s: "D:/VISSIM_runs/20260927_v3c1/s%s_v3c1nc/run/vissim_eval/baseline_s%s_v3c1nc_001.fzp" % (s, s)
-        for s in ("31", "41", "43", "47", "53")}   # v3c1 NC fit seeds (s37 held out, never read)
+FZPS = {s: "D:/VISSIM_runs/20261001_v3c3/s%s_v3c3nc/run/vissim_eval/baseline_s%s_v3c3nc_001.fzp" % (s, s)
+        for s in ("31", "41", "43", "47")}   # v3c3 NC fit seeds (GB-1 PASS; s37 held out, never read)
+FZPS["53"] = "D:/VISSIM_runs/20260930_v3c2/s53_v3c2nc/run/vissim_eval/baseline_s53_v3c2nc_001.fzp"   # substitute
 SCHEMA = "unsignalized-turn-validation/v2"
 T_FROM = 900.0
 STOPPED_KPH = 5.0
@@ -206,7 +209,7 @@ def derive(args) -> dict:
     return {
         "schema": SCHEMA,
         "generated": args.generated,
-        "what": ("v3c1 no-control FZP (5 s frames, t >= 900 s, fit seeds 31/41/43/47/53 pooled), every connector leaving an urban "
+        "what": ("v3c3 no-control FZP (5 s frames, t >= 900 s, fit seeds 31/41/43/47/53 pooled; s53 = the v3c2 run), every connector leaving an urban "
                  "approach link of territory v2. stopped_before_share: share of vehicles with a frame below 5 km/h on "
                  "the source link before taking the connector (stopped_before_n direct observed transitions). "
                  "red_bin_share_c<C>: share of 10 s bins of crossing time mod C below 20% of the mean count (5 s gaps "
@@ -227,7 +230,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     for k, v in DEFAULTS.items():
         ap.add_argument("--" + k, dest=k, default=v)
-    ap.add_argument("--generated", default="2026-09-28")
+    ap.add_argument("--generated", default="2026-10-01")
     ap.add_argument("--out", required=True)
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
