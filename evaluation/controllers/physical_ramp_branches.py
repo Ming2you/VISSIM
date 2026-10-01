@@ -30,6 +30,62 @@ def _read(pin):
     return content
 
 
+SERVICE_NORMALISATION_RULE = 'keep_lowest_admissible_green'
+
+
+def normalise_service_table(table, minimum_green_sec):
+    """One green per service value, so the decode (candidate_from_services) is unique.
+
+    A measured head curve can serve the same vehicles per cycle at two greens
+    (RM_C10490: greens 2 and 3 both 1.0 veh/cycle). The decode then refuses
+    that service for either green, and every SDMPC leader seed lattice that
+    holds one of them failed the decision (hybrid s31 3000 s). Of each
+    equal-service group only the lowest ADMISSIBLE green stays (0, or
+    >= minimum_green_sec: the greens prepare_control accepts). It delivers
+    that service with the shortest green, and the +/-2 s lattice keeps a path
+    0 <-> 2 <-> 4 through the group. The decode's refusal itself is unchanged.
+
+    An order-preserving filter of table.items(): kept keys and values are the
+    table's own (no re-keying, no re-sorting); a table without a shared
+    service is returned as the very same object. Returns (table, dropped),
+    dropped = {dropped green: kept green} in table order. Refuses a shared
+    group without an admissible green, and dropping a green of the largest
+    service (the full-service green, e.g. the all-green '10' of no-control,
+    must stay decodable).
+    """
+    minimum = float(minimum_green_sec)
+    if not math.isfinite(minimum) or minimum <= 0:
+        raise ValueError('Physical meter service normalisation needs a positive minimum green')
+    groups = {}
+    for green, service in table.items():
+        if type(service) not in (int, float) or not math.isfinite(service) or service < 0:
+            raise ValueError('Invalid physical meter service: %r -> %r' % (green, service))
+        groups.setdefault(service, []).append(green)
+    keep = {}
+    for greens in groups.values():
+        if len(greens) < 2:
+            continue
+        admissible = [g for g in greens if int(g) == 0 or int(g) >= minimum]
+        if not admissible:
+            raise ValueError('Shared physical meter service has no admissible green: ' + ','.join(greens))
+        kept = min(admissible, key=int)
+        keep.update((g, kept) for g in greens if g != kept)
+    if not keep:
+        return table, {}
+    top = max(table.values())
+    if any(table[g] == top for g in keep):
+        raise ValueError('The full-service physical meter green shares its service: ' + ','.join(groups[top]))
+    result = {g: s for g, s in table.items() if g not in keep}
+    if len(set(result.values())) != len(result):
+        raise ValueError('Physical meter service table is not unique after normalisation')
+    return result, {g: keep[g] for g in table if g in keep}
+
+
+def measured_head_service_table(curve, minimum_green_sec):
+    """Installed table of a measured head curve (veh per 10 s cycle): lane_plant_runtime's install path."""
+    return normalise_service_table({'0': 0., **{g: n*3600/10 for g, n in curve.items()}}, minimum_green_sec)
+
+
 def configure(cfg, tuning, mapping, detectors, raw):
     path = tuning.get('urban', {}).get('physical_ramp_branches')
     if path is None:
@@ -77,6 +133,14 @@ def configure(cfg, tuning, mapping, detectors, raw):
             'service_by_green_veh_h': {'0': 0., **{g: lanes*float(n)*3600/settings['cycle_sec'] for g,n in table.items()}}}
     if len(rows) != 8 or any(sum(r['to_model_link'] == owner for r in rows.values()) != 4 for owner in ('FW_E','FW_W')):
         raise ValueError('Exactly eight physical ramps, four per freeway required')
+    # One green per service (normalise_service_table); the transport table is
+    # strictly increasing, so this is the identity (same objects) here.
+    normalised = {}
+    for mid, row in rows.items():
+        row['service_by_green_veh_h'], dropped = normalise_service_table(
+            row['service_by_green_veh_h'], settings['min_green_sec'])
+        if dropped:
+            normalised[mid] = dropped
     net = cfg.network
     city = copy.deepcopy(spec.get('shared_city_arrival'))
     if city is not None:
@@ -163,7 +227,9 @@ def configure(cfg, tuning, mapping, detectors, raw):
     invalidate_topology_cache(net)
     return copied, {'physical_ramp_branch_count': 8, 'physical_ramp_approach_stocks_duplicated': False,
                     'physical_ramp_observed_regions': observed_regions(raw, rows, tree),
-                    'physical_ramp_source_limitations': net.physical_ramp_branches['unresolved']}
+                    'physical_ramp_source_limitations': net.physical_ramp_branches['unresolved'],
+                    'physical_ramp_service_normalisation': {'rule': SERVICE_NORMALISATION_RULE,
+                        'minimum_green_sec': float(settings['min_green_sec']), 'dropped': normalised}}
 
 
 def observed_regions(raw, ramps, tree):

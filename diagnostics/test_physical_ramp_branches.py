@@ -373,4 +373,187 @@ class PhysicalRampTests(unittest.TestCase):
         self.assertEqual(pickle.dumps(state,protocol=5),before)
 
 
+
+# ---------------------------------------------------------------- K3 (REPIN_V3C2 plan section 3.3, R-4)
+# Fixture-free: the installed SDMPC-31 tables (per-lane transport table, RM_C10490 measured head curve) as
+# configure and lane_plant_runtime build them, on a SimpleNamespace cfg. No VISSIM, no plant rollout.
+N31_PER_LANE = {'2': 0.71, '3': 0.99, '4': 1.44, '5': 1.89, '6': 2.34, '7': 2.79, '8': 3.24, '9': 3.69, '10': 4.2}
+N31_HEAD_10490 = {'2': 1.0, '3': 1.0, '4': 1.44, '5': 1.89, '6': 2.34, '7': 2.79, '8': 3.24, '9': 3.69, '10': 4.2}
+N31_METERS = ('RM_C10480', 'RM_C10482', 'RM_C10646', 'RM_C10644', 'RM_C10639', 'RM_C10681', 'RM_C10490', 'RM_C10484')
+N31_LANES = {'RM_C10482': 2, 'RM_C10681': 2}
+N31_OWNER = {'RM_C10480': 'FW_E', 'RM_C10482': 'FW_E', 'RM_C10646': 'FW_W', 'RM_C10644': 'FW_W',
+             'RM_C10639': 'FW_W', 'RM_C10681': 'FW_W', 'RM_C10490': 'FW_E', 'RM_C10484': 'FW_E'}
+
+
+def n31_transport_table(lanes):
+    # physical_ramp_branches.configure :77, same expression
+    return {'0': 0., **{g: lanes*float(n)*3600/10 for g, n in N31_PER_LANE.items()}}
+
+
+class _Action:
+    def __init__(self):
+        self.vsl, self.ramp_metering, self.diagnostics = {}, {}, {}
+        self.N_UF_star, self.N_P_star = 0.0, 0.0
+
+    def copy(self):
+        return copy.deepcopy(self)
+
+
+def n31_cfg(head_table):
+    rows = {}
+    for i, mid in enumerate(N31_METERS):
+        rows[mid] = {'id': mid, 'sc_no': 900+i, 'sg_no': 1, 'capacity_vph': 1800.0*N31_LANES.get(mid, 1),
+                     'cycle_sec': 10, 'service_by_green_veh_h': n31_transport_table(N31_LANES.get(mid, 1))}
+    rows['RM_C10490']['service_by_green_veh_h'] = head_table
+    spec = {'ramps': rows, 'cycle_sec': 10, 'max_green_change_sec': 2, 'minimum_green_sec': 2.0,
+            'legacy_groups': ['R_D_W', 'R_F_W', 'R_D_E', 'R_F_E']}
+    net = SimpleNamespace(physical_ramp_branches=spec, ramps=list(rows), ramp_to_freeway=dict(N31_OWNER),
+                          freeway_links=['FW_E', 'FW_W'])
+    return SimpleNamespace(network=net)
+
+
+def n31_action(cfg, greens=None):
+    action = _Action()
+    for mid, row in cfg.network.physical_ramp_branches['ramps'].items():
+        green = (greens or {}).get(mid, 10.0)
+        action.diagnostics['rw_meter_green_'+mid] = float(green)
+        action.ramp_metering[mid] = row['service_by_green_veh_h'][str(int(green))]
+    return action
+
+
+def old_head_table():
+    # lane_plant_runtime.py:484 before K3
+    return {'0': 0., **{g: n*3600/10 for g, n in N31_HEAD_10490.items()}}
+
+
+class ServiceNormalisationTests(unittest.TestCase):
+    def test_rm_c10490_keeps_the_lowest_admissible_green_in_table_order(self):
+        old = old_head_table()
+        new, dropped = ramps.measured_head_service_table(N31_HEAD_10490, 2.0)
+        self.assertEqual(dropped, {'3': '2'})
+        self.assertEqual(list(new.items()), [item for item in old.items() if item[0] != '3'])
+        self.assertEqual(list(new), ['0', '2', '4', '5', '6', '7', '8', '9', '10'])
+        self.assertTrue(all(type(k) is str for k in new))
+        self.assertEqual(len(set(new.values())), len(new))
+        self.assertEqual(new['10'], old['10'])
+
+    def test_unique_tables_are_returned_unchanged_as_the_same_object(self):
+        for lanes in (1, 2):
+            table = n31_transport_table(lanes)
+            before = list(table.items())
+            got, dropped = ramps.normalise_service_table(table, 2.0)
+            self.assertIs(got, table)
+            self.assertEqual(dropped, {})
+            self.assertEqual(list(got.items()), before)
+        # strictly increasing transport table: no two greens share a service
+        values = list(N31_PER_LANE.values())
+        self.assertEqual(values, sorted(values))
+        self.assertEqual(len(set(values)), len(values))
+
+    def test_lowest_admissible_not_lowest_green(self):
+        table = {'0': 0., '1': 360., '2': 360., '3': 360., '4': 518.4, '10': 1512.}
+        got, dropped = ramps.normalise_service_table(table, 2.0)
+        self.assertEqual(dropped, {'1': '2', '3': '2'})
+        self.assertEqual(list(got), ['0', '2', '4', '10'])
+        got, dropped = ramps.normalise_service_table({'0': 0., '2': 0., '4': 5., '10': 9.}, 2.0)
+        self.assertEqual((list(got), dropped), (['0', '4', '10'], {'2': '0'}))
+
+    def test_refusals(self):
+        with self.assertRaisesRegex(ValueError, 'full-service'):
+            ramps.normalise_service_table({'0': 0., '8': 3., '9': 4., '10': 4.}, 2.0)
+        with self.assertRaisesRegex(ValueError, 'no admissible green'):
+            ramps.normalise_service_table({'0': 0., '1': 2., '2': 2., '10': 4.}, 3.0)
+        for bad in (float('nan'), -1., True, '3'):
+            with self.assertRaises(ValueError):
+                ramps.normalise_service_table({'0': 0., '2': bad, '10': 4.}, 2.0)
+        with self.assertRaises(ValueError):
+            ramps.normalise_service_table({'0': 0., '10': 4.}, 0.)
+        # the lane-plant install path (lane_plant_runtime.initialize) refuses through the same helper
+        with self.assertRaisesRegex(ValueError, 'full-service'):
+            ramps.measured_head_service_table(dict(N31_HEAD_10490, **{'9': 4.2}), 2.0)
+
+    def test_old_table_reproduces_the_hybrid_3000s_failure_and_the_new_one_decodes(self):
+        # GA-4 (b): applied RM_C10490 green 5 at 2850 s; the +/-2 s lattice holds 3 (hybrid s31 3000 s).
+        from itertools import product
+        from evaluation.controllers.joint_owner_neighbors import _physical_meter_points
+        for table, fails in ((old_head_table(), True), (ramps.measured_head_service_table(N31_HEAD_10490, 2.0)[0], False)):
+            cfg = n31_cfg(table)
+            anchor = n31_action(cfg, {'RM_C10490': 5.0, 'RM_C10484': 8.0, 'RM_C10639': 7.0})
+            groups = [_physical_meter_points(SimpleNamespace(cfg=cfg), owner, anchor, anchor)[0]
+                      for owner in ('FW_E', 'FW_W')]
+            labels = [label for points in groups for label, _ in points]
+            self.assertEqual('physical:RM_C10490:g3' in labels, fails)
+            def decode_all():
+                return [ramps.candidate_from_services(anchor, anchor, cfg,
+                        {r: v for _, rates in pair for r, v in rates.items()}) for pair in product(*groups)]
+            if fails:
+                with self.assertRaisesRegex(ValueError, 'no unique physical green: RM_C10490'):
+                    decode_all()
+            else:
+                got = {c.diagnostics['rw_meter_green_RM_C10490'] for c in decode_all()}
+                self.assertEqual(got, {4.0, 5.0, 6.0, 7.0})
+
+    def test_every_anchor_decodes_every_seed_after_normalisation(self):
+        from itertools import product
+        from evaluation.controllers.joint_owner_neighbors import _physical_meter_points
+        table = ramps.measured_head_service_table(N31_HEAD_10490, 2.0)[0]
+        cfg = n31_cfg(table)
+        for green in (0, 2, 4, 5, 6, 10):
+            anchor = n31_action(cfg, {'RM_C10490': float(green)})
+            groups = [_physical_meter_points(SimpleNamespace(cfg=cfg), owner, anchor, anchor)[0]
+                      for owner in ('FW_E', 'FW_W')]
+            seen = set()
+            for pair in product(*groups):
+                got = ramps.candidate_from_services(anchor, anchor, cfg,
+                                                    {r: v for _, rates in pair for r, v in rates.items()})
+                seen.add(got.diagnostics['rw_meter_green_RM_C10490'])
+            box = {float(g) for g in (int(k) for k in table) if abs(g-green) <= 2}
+            self.assertEqual(seen, box, green)
+            self.assertNotIn(3.0, seen)
+
+    def test_identity_wherever_no_shared_green_lies_in_the_box(self):
+        from evaluation.controllers.joint_owner_neighbors import _physical_meter_points
+        old, new = n31_cfg(old_head_table()), n31_cfg(ramps.measured_head_service_table(N31_HEAD_10490, 2.0)[0])
+        for green in (6, 7, 8, 9, 10):
+            a_old, a_new = n31_action(old, {'RM_C10490': float(green)}), n31_action(new, {'RM_C10490': float(green)})
+            for owner in ('FW_E', 'FW_W'):
+                p_old = _physical_meter_points(SimpleNamespace(cfg=old), owner, a_old, a_old)
+                p_new = _physical_meter_points(SimpleNamespace(cfg=new), owner, a_new, a_new)
+                self.assertEqual(pickle.dumps(p_old[0]), pickle.dumps(p_new[0]))
+        # the other seven tables are untouched
+        for mid in N31_METERS:
+            if mid != 'RM_C10490':
+                self.assertEqual(list(old.network.physical_ramp_branches['ramps'][mid]['service_by_green_veh_h'].items()),
+                                 list(new.network.physical_ramp_branches['ramps'][mid]['service_by_green_veh_h'].items()))
+
+    def test_sdmpc_meter_axis_allowed_sets(self):
+        # sdmpc.py:325-331 enumeration over the installed table (the move box limit is +/-2 s)
+        table = ramps.measured_head_service_table(N31_HEAD_10490, 2.0)[0]
+        def allowed(a):
+            return [int(g) for g in table if abs(int(g)-a) <= 2 and (int(g) == 0 or int(g) >= 2.0)]
+        self.assertEqual(allowed(10), [8, 9, 10])
+        self.assertEqual(allowed(5), [4, 5, 6, 7])
+        self.assertEqual(allowed(4), [2, 4, 5, 6])
+        self.assertEqual(allowed(2), [0, 2, 4])
+        self.assertEqual(allowed(0), [0, 2])
+
+    def test_recorded_green_3_is_refused_and_alinea_cannot_pick_it(self):
+        from evaluation.controllers.diagnostic_profile import alinea_meter_step
+        cfg = n31_cfg(ramps.measured_head_service_table(N31_HEAD_10490, 2.0)[0])
+        bad = n31_action(cfg)
+        bad.diagnostics['rw_meter_green_RM_C10490'] = 3.0
+        bad.ramp_metering['RM_C10490'] = 360.0
+        with self.assertRaisesRegex(ValueError, 'Explicit quantized physical green required: RM_C10490'):
+            ramps.prepare_control(bad, cfg)
+        table = cfg.network.physical_ramp_branches['ramps']['RM_C10490']['service_by_green_veh_h']
+        # N3: the rule-profile ALINEA step chooses among the table's greens. Previous 5, a request below the
+        # box (gain 70, occupancy 27.6 over target 18.5 -> request 0): the old table gives 3, the new one 4.
+        params = {'gain_vph_per_pct': 70.0, 'target_occupancy_pct': 18.5, 'min_rate_vph': 0.0, 'max_rate_vph': 1512.0}
+        green_old = alinea_meter_step(old_head_table(), 5.0, 608.2475, params, 27.60908, 2.0, 2)[0]
+        green_new = alinea_meter_step(table, 5.0, 608.2475, params, 27.60908, 2.0, 2)[0]
+        self.assertEqual((green_old, green_new), (3, 4))
+        with self.assertRaisesRegex(ValueError, 'not representable'):
+            alinea_meter_step(table, 3.0, 360.0, params, 20.0, 2.0, 2)
+
+
 if __name__=='__main__':unittest.main()

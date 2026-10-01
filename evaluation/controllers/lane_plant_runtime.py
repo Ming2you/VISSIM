@@ -258,6 +258,7 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
     from evaluation.controllers.lane_offramp_runtime import LaneOfframpRuntime
     from evaluation.controllers.control_area_objective import physical_membership_from_ledger
     from evaluation.controllers.observation_projection import audit_projection_provenance
+    from evaluation.controllers import physical_ramp_branches
     component=context['component'];net=cfg.network
     v2=context.get('plant_mode')=='v2'
     if cfg.simulation.T_f_sec!=1 or cfg.simulation.T_u_sec!=1:
@@ -448,6 +449,7 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
         conf.network.physical_vehicle_counts=True
         conf.freeway_offramp_capacity_drop.enabled=context['port_profile']['occupancy_lane_loss']
     specs={}
+    head_service_dropped={}
     heads=defaultdict(list)
     for node in tree.findall('./signalHeads/signalHead'):
         road,lane=map(int,node.get('lane').split());heads[road].append(float(node.get('pos')))
@@ -481,7 +483,11 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
         row['storage_veh']=r['storage_capacity_veh']
         if name in component.ramp_head_service_veh_per_cycle:
             curve=component.ramp_head_service_veh_per_cycle[name]
-            row['service_by_green_veh_h']={'0':0.,**{g:n*3600/10 for g,n in curve.items()}}
+            # One green per service (RM_C10490: greens 2 and 3 both 1.0 veh/cycle -> keep 2); a table that
+            # stays non-unique or loses its full-service green refuses here, every decision (K3, review N3).
+            row['service_by_green_veh_h'],dropped=physical_ramp_branches.measured_head_service_table(
+                curve,net.physical_ramp_branches['minimum_green_sec'])
+            if dropped:head_service_dropped[name]=dropped
             row['service_capacity_veh_h']=row['service_by_green_veh_h']['10']
             net.ramp_capacity_veh_h[name]=row['service_capacity_veh_h']
     state.lane_freeway_runtime=freeway
@@ -508,7 +514,9 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
     return {'lane_plant_enabled':True,'lane_plant_observed_sec':cutoff,
         **({'lane_initial_spillback_projection':initial_projection} if initial_projection is not None else {}),
         **({'n31_binding':binding} if binding is not None else {}),
-        'lane_plant_manifest_sha256':context['manifest_sha256']}
+        'lane_plant_manifest_sha256':context['manifest_sha256'],
+        'lane_ramp_head_service_normalisation':{'rule':physical_ramp_branches.SERVICE_NORMALISATION_RULE,
+            'minimum_green_sec':float(net.physical_ramp_branches['minimum_green_sec']),'dropped':head_service_dropped}}
 
 
 def bin_frame(geometry,vehicles,road,*,drop_before_start=False):
