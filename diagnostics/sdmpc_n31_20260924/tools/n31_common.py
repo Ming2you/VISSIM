@@ -216,3 +216,36 @@ def effective_vsl_max(tuning):
     require(isinstance(values, list) and values and all(isinstance(v, (int, float)) for v in values),
             'Tuning lacks config_overrides.freeway_follower.vsl_set')
     return float(max(values))
+
+
+def effective_vsl_written_set(tuning):
+    """Sorted action-CSV speed_kph values a VSL row may carry (repin plan 2026-10-01 K2/P-2): the image of
+    config_overrides.freeway_follower.vsl_set under actuation.vsl_command_distribution, the identity when that
+    key is absent (evaluation/controllers/vsl_command_distribution.written_set)."""
+    from evaluation.controllers import vsl_command_distribution as vcd
+    try:
+        return vcd.written_set(tuning)
+    except ValueError as error:
+        raise ToolError(f'VSL command map: {error}') from error
+
+
+def tuning_vsl_contract(tuning_path, tuning):
+    """{written_set, runner_allowed, runner_config} of a tuning file (K2/P-1).
+
+    runner_config is the execution.signal_vbs_config of the tuning, found in the tuning's own tree (the nearest
+    ancestor of the tuning file holding that repo-relative path); runner_allowed is its RW_ALLOWED_VSL_SPEEDS."""
+    from evaluation.controllers import vsl_command_distribution as vcd
+    written = effective_vsl_written_set(tuning)
+    relative = (tuning.get('execution') or {}).get('signal_vbs_config')
+    require(isinstance(relative, str) and relative, 'Tuning lacks execution.signal_vbs_config')
+    path = Path(tuning_path).resolve()
+    runner = next((repo_path(root, relative) for root in path.parents
+                   if os.path.isfile(long_path(repo_path(root, relative)))), None)
+    require(runner is not None, f'Runner config {relative} not found in the tree of {path}')
+    with io.open(long_path(runner), encoding='utf-8-sig') as handle:
+        text = handle.read()
+    try:
+        allowed = vcd.runner_allowed_speeds(text)
+    except ValueError as error:
+        raise ToolError(f'{runner}: {error}') from error
+    return {'written_set': written, 'runner_allowed': allowed, 'runner_config': str(runner)}

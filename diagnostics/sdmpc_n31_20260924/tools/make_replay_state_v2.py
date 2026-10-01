@@ -1,7 +1,7 @@
 r"""Isolated input for replaying one obs150 (coupled-lane-plant/v2) decision offline (plan D1).
 
     make_replay_state_v2.py prepare <decisions_dir> <sim_sec> <out_dir> [--previous-sec P]
-    make_replay_state_v2.py compare <out_dir> [--vsl-expected 110]
+    make_replay_state_v2.py compare <out_dir> [--vsl-expected 110] [--tuning <effective tuning file>]
 
 prepare
     A v2 decision reads, besides its state_<T>.json, the obs150 bundle the state pins
@@ -36,9 +36,15 @@ compare
     missing file on either side is DIFFERENT), action CSV bytes, the control fields of
     action_T.json, the SDMPC objective/held_objective of the progress log (repr-exact;
     required on both sides when either action has metadata.sdmpc_active true, absent on
-    both sides only for a decision without SDMPC), and the action contract (66 VSL rows at
-    --vsl-expected, 8 meter rows). Writes <out_dir>/replay_compare.json; last line
-    REPLAY_COMPARE verdict=IDENTICAL|DIFFERENT; exit 0 only when identical.
+    both sides only for a decision without SDMPC), and the action contract: 66 VSL rows and
+    8 meter rows; with --vsl-expected every VSL row equals that one value (a single-value
+    assertion); with --tuning every VSL row is a MEMBER of the written set, the image of the
+    tuning's vsl_set under actuation.vsl_command_distribution (identity when absent), and
+    that set equals RW_ALLOWED_VSL_SPEEDS of the runner config in the tuning's tree
+    (repin plan 2026-10-01 K2: --tuning used to demand every row == max(vsl_set), which
+    refused every SDMPC decision that writes a command below 110). Writes
+    <out_dir>/replay_compare.json; last line REPLAY_COMPARE verdict=IDENTICAL|DIFFERENT;
+    exit 0 only when identical.
 """
 from __future__ import annotations
 
@@ -231,18 +237,29 @@ def _json_diff(a, b, path='', out=None, limit=40):
     return out
 
 
-def action_contract(csv_path, vsl_expected):
+def action_contract(csv_path, vsl_expected, *, vsl_contract=None):
+    """Row counts; vsl_expected (positional, unchanged): every VSL row equals it; vsl_contract
+    (n31_common.tuning_vsl_contract): every VSL row is in its written_set and that set is its runner_allowed."""
     with open(csv_path, newline='', encoding='utf-8-sig') as handle:
         rows = list(csv.DictReader(handle))
     vsl = [r for r in rows if r.get('kind') == 'vsl']
     meters = [r for r in rows if r.get('kind') == 'ramp_meter']
     speeds = sorted({float(r['speed_kph']) for r in vsl})
     ok = len(vsl) == VSL_ROWS and len(meters) == METER_ROWS and (vsl_expected is None or speeds == [vsl_expected])
-    return {'ok': ok, 'vsl_rows': len(vsl), 'vsl_speeds': speeds, 'vsl_expected': vsl_expected,
-            'meter_rows': len(meters)}
+    result = {'ok': ok, 'vsl_rows': len(vsl), 'vsl_speeds': speeds, 'vsl_expected': vsl_expected,
+              'meter_rows': len(meters)}
+    if vsl_contract is not None:
+        written = sorted(float(v) for v in vsl_contract['written_set'])
+        runner = sorted(float(v) for v in vsl_contract['runner_allowed'])
+        member = set(speeds) <= set(written)
+        same = written == runner
+        result.update(ok=ok and member and same, vsl_written_set=written, vsl_runner_allowed=runner,
+                      vsl_runner_config=vsl_contract.get('runner_config'), vsl_in_written_set=member,
+                      vsl_written_set_equals_runner=same)
+    return result
 
 
-def compare(out_dir, vsl_expected=None):
+def compare(out_dir, vsl_expected=None, *, vsl_contract=None):
     out_dir = Path(out_dir).resolve()
     manifest = read_json(out_dir / MANIFEST_NAME)
     require(manifest.get('schema') == MANIFEST_SCHEMA, f'Not a replay folder: {out_dir}')
@@ -297,7 +314,7 @@ def compare(out_dir, vsl_expected=None):
                             and repr(obj_a['objective']) == repr(obj_b['objective'])
                             and repr(obj_a['held_objective']) == repr(obj_b['held_objective'])),
                            'sdmpc_active': active, 'required': required, 'original': obj_a, 'replay': obj_b}
-    checks['action_contract'] = action_contract(csv_b, vsl_expected)
+    checks['action_contract'] = action_contract(csv_b, vsl_expected, vsl_contract=vsl_contract)
     # None is left only for the objective of a decision without SDMPC (warmup).
     verdict = 'IDENTICAL' if all(c['ok'] in (True, None) for c in checks.values()) else 'DIFFERENT'
     report = {'schema': 'sdmpc31-replay-compare/v1', 'sim_sec': t, 'verdict': verdict, 'checks': checks}
@@ -319,16 +336,19 @@ def main(argv):
     c = sub.add_parser('compare')
     c.add_argument('out_dir')
     c.add_argument('--vsl-expected', type=float, default=None)
-    c.add_argument('--tuning', default=None, help='effective tuning whose max(vsl_set) is the expected VSL')
+    c.add_argument('--tuning', default=None,
+                   help='effective tuning: VSL rows must lie in the image of its vsl_set under '
+                        'actuation.vsl_command_distribution (identity when absent), which must equal the '
+                        'RW_ALLOWED_VSL_SPEEDS of the runner config in its tree')
     args = parser.parse_args(argv)
     if args.command == 'prepare':
         prepare(args.decisions_dir, args.sim_sec, args.out_dir, args.previous_sec)
         return 0
-    expected = args.vsl_expected
-    if expected is None and args.tuning:
-        from n31_common import effective_vsl_max, load_effective_tuning
-        expected = effective_vsl_max(load_effective_tuning(args.tuning)[0])
-    return 0 if compare(args.out_dir, expected)['verdict'] == 'IDENTICAL' else 1
+    contract = None
+    if args.tuning:
+        from n31_common import load_effective_tuning, tuning_vsl_contract
+        contract = tuning_vsl_contract(args.tuning, load_effective_tuning(args.tuning)[0])
+    return 0 if compare(args.out_dir, args.vsl_expected, vsl_contract=contract)['verdict'] == 'IDENTICAL' else 1
 
 
 if __name__ == '__main__':
