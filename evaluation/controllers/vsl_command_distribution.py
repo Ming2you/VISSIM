@@ -15,6 +15,7 @@ against RW_ALLOWED_VSL_SPEEDS of the runner config). Two families:
 parse() validates a map against a vsl_set: exactly the vsl_set commands as positive-integer string keys, positive
 integer values, injective, the maximum command (VSL off) written as itself. written_set() is the image of the
 tuning vsl_set: the only speed_kph values a VSL row may carry. runner_allowed_speeds() reads the runner constant.
+written_value() is the strict writer value (K5); check_family() the V-9 agreement of map, plant law and runner.
 """
 from __future__ import annotations
 
@@ -24,6 +25,7 @@ from typing import Mapping
 
 KEY = 'vsl_command_distribution'
 MODELS = ('single_value',)
+TOLERANCE_KMH = 1e-9
 _INTEGER = re.compile(r'[1-9][0-9]*')
 _RUNNER = re.compile(r'RW_ALLOWED_VSL_SPEEDS\s*=\s*"([0-9]+(?:,[0-9]+)*)"')
 
@@ -94,3 +96,69 @@ def runner_allowed_speeds(text):
     if match is None:
         raise ValueError('Runner config must declare RW_ALLOWED_VSL_SPEEDS exactly once as a plain integer list')
     return sorted(float(v) for v in match.group(1).split(','))
+
+
+def written_value(mapping, raw):
+    """Strict single-value writer value (plan N5): no nearest snap, no 120 extension.
+
+    raw must be one mapped command to within TOLERANCE_KMH (an SDMPC block-0 value is exactly an allowed
+    command, sdmpc.py:391); anything else is refused instead of being rounded to a neighbour."""
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(raw):
+        raise ValueError(f'VSL command must be a finite number: {raw!r}')
+    hits = [command for command in mapping if abs(float(raw) - command) <= TOLERANCE_KMH]
+    if len(hits) != 1:
+        raise ValueError(f'VSL command {raw!r} is not one of the mapped commands {sorted(mapping)}')
+    return float(mapping[hits[0]])
+
+
+def validate_tuning(tuning):
+    """Tuning-only part (no files): a present map must be valid for the tuning's own vsl_set. Absent: no-op."""
+    actuation = tuning.get('actuation') if isinstance(tuning, Mapping) else None
+    if not isinstance(actuation, Mapping) or KEY not in actuation:
+        return None
+    return parse(actuation, tuning_vsl_set(tuning))
+
+
+def check_family(tuning, reference, runner_text):
+    """V-9: the tuning map, the plant law and the runner allow-list describe one VSL family.
+
+    - the reference (plant) vsl_set equals the tuning vsl_set (both command space)
+    - runner RW_ALLOWED_VSL_SPEEDS == image of the tuning vsl_set under the map (identity when absent)
+    - a plant law with speed_scale  <=>  the map is single_value
+    - speed_scale levels == vsl_set - {max}, speed_scale maximum == max(vsl_set)
+    Returns a small record; raises ValueError on any disagreement.
+    """
+    commands = tuning_vsl_set(tuning)
+    if sorted(tuning_vsl_set(reference)) != sorted(commands):
+        raise ValueError('Plant reference and tuning vsl_set differ (both are command space)')
+    actuation = tuning.get('actuation')
+    mapping = parse(actuation if isinstance(actuation, Mapping) else None, commands)
+    image = sorted(float(mapping[c]) if mapping is not None else c for c in commands)
+    runner = runner_allowed_speeds(runner_text)
+    if runner != image:
+        raise ValueError(f'Runner RW_ALLOWED_VSL_SPEEDS {runner} is not the written image {image} of the vsl_set')
+    freeway = reference.get('freeway') if isinstance(reference, Mapping) else None
+    laws = (freeway or {}).get('vsl_fd_response') or {}
+    if not isinstance(laws, Mapping):
+        raise ValueError('Plant reference freeway.vsl_fd_response must be an object')
+    scaled = {road: spec['speed_scale'] for road, spec in laws.items()
+              if isinstance(spec, Mapping) and 'speed_scale' in spec}
+    if (mapping is not None) != bool(scaled):
+        raise ValueError('A single-value command map requires a plant law with speed_scale and vice versa '
+                         f'(map {"present" if mapping is not None else "absent"}, speed_scale on {sorted(scaled)})')
+    top = max(commands)
+    for road, scale in scaled.items():
+        levels = scale.get('levels') if isinstance(scale, Mapping) else None
+        if (not isinstance(levels, Mapping) or sorted(float(k) for k in levels) != sorted(c for c in commands if c != top)
+                or float(scale.get('maximum')) != top):
+            raise ValueError(f'{road} speed_scale levels/maximum differ from the vsl_set {sorted(commands)}')
+    return {'family': 'single_value' if mapping is not None else 'distribution', 'commands': sorted(commands),
+            'written': image, 'speed_scale_roads': sorted(scaled)}
+
+
+def check_family_files(tuning, reference_path, runner_path):
+    """check_family on files (generator, launcher, runtime)."""
+    import json
+    from pathlib import Path
+    reference = json.loads(Path(reference_path).read_text(encoding='utf-8-sig'))
+    return check_family(tuning, reference, Path(runner_path).read_text(encoding='utf-8-sig'))

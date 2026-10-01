@@ -243,6 +243,12 @@ def configure_runtime(adapter, cfg, tuning, mapping, state_json,
     from evaluation.controllers import metanet_parameter_transfer
     metadata.update(metanet_parameter_transfer.configure_demand(cfg, mapping))
     if lane_context is not None:
+        if lane_context.get('plant_mode')=='v2':
+            # V-9 (repin plan 2026-10-01 K5): the tuning's VSL command map, the plant law (speed_scale) and
+            # the runner allow-list are one family; the pinned reference and runner of this manifest.
+            from evaluation.controllers import vsl_command_distribution
+            vsl_command_distribution.check_family_files(tuning,lane_context['paths']['reference_config'],
+                                                        lane_context['paths']['runner_config'])
         metadata.update(lane_plant_runtime.initialize(lane_context,lane_observation,cfg,state,detector_mapping,
                                                       previous_action_path=previous_action_path))
     if (tuning or {}).get('control_area_objective', {}).get('enabled', False):

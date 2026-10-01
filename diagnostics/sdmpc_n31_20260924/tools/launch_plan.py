@@ -14,8 +14,9 @@ constant of the SDMPC-31 scenario below; nothing is guessed and nothing falls ba
 
 Refusals (exit 1, one line 'LAUNCH_PLAN_ERROR <reason>'): tuning outside a frozen tree, a v1
 manifest (v1 reproduction stays with run_sdmpc_laneplant.ps1), any manifest pin whose bytes differ,
-validate_tuning_v2 failure, no <runner config stem>_sgplan.vbs beside the runner config, a
-ground-truth window on a non-dev name, an existing run folder.
+validate_tuning_v2 failure, a VSL family disagreement (vsl_command_distribution.check_family: the tuning's
+command map, the pinned plant reference's law and the pinned runner's RW_ALLOWED_VSL_SPEEDS), no <runner config
+stem>_sgplan.vbs beside the runner config, a ground-truth window on a non-dev name, an existing run folder.
 check-provenance also requires files.signal_group_plan = that file and no RW_ADAPTER_MODE in env.
 """
 from __future__ import annotations
@@ -131,6 +132,13 @@ def build_plan(args):
     oc.validate_tuning_v2(tuning, document)   # also validates the manifest (section 1.1)
 
     pins = {key: _pin(root, pin, 'sources.' + key) for key, pin in document['sources'].items()}
+    # V-9 (repin plan 2026-10-01 K5): one VSL family across the tuning map, the plant law and the runner list.
+    from evaluation.controllers import vsl_command_distribution
+    try:
+        vsl_command_distribution.check_family_files(tuning, pins['reference_config']['path'],
+                                                    pins['runner_config']['path'])
+    except ValueError as error:
+        raise ToolError(f'VSL family: {error}') from error
     membership = _pin(root, document['membership'], 'membership')
     detectors = _pin(root, document['observation']['detectors'], 'observation.detectors')
     rows, _ = oc.read_detector_csv(detectors['path'], detectors['sha256'])   # (rows, sha256)

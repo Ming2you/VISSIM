@@ -415,6 +415,10 @@ def build(root=ROOT):
     check_ramp_keys(root, doc)
     plant = json.loads((root / PLANT).read_text(encoding='utf-8-sig'))
     oc.validate_tuning_v2(doc, plant)
+    # V-9 (repin plan 2026-10-01 K5): the generated map/vsl_set, the plant law and the runner list agree.
+    from evaluation.controllers import vsl_command_distribution
+    vsl_command_distribution.check_family_files(doc, root / plant['sources']['reference_config']['path'],
+                                                root / plant['sources']['runner_config']['path'])
     if plant['membership']['path'] != doc['control_area_objective']['membership_path']:
         raise ValueError('Plant and tuning name different area memberships')
     return doc

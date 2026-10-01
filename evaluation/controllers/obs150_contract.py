@@ -204,6 +204,14 @@ def validate_tuning_v2(tuning, document):
     _require(execution.get('native_signal_record') is False, 'v2 requires execution.native_signal_record false')
     _require(execution.get('signal_vbs_config') == document['sources']['runner_config']['path'],
              'execution.signal_vbs_config must equal the manifest runner_config pin')
+    # actuation.vsl_command_distribution (repin plan 2026-10-01 K5): a present map must map exactly this
+    # tuning's vsl_set, injectively, the maximum to itself. Absent: nothing is read. The cross-file family
+    # check (runner list, plant law) is vsl_command_distribution.check_family (generator, launcher, runtime).
+    from evaluation.controllers import vsl_command_distribution
+    try:
+        vsl_command_distribution.validate_tuning(tuning)
+    except ValueError as error:
+        raise ObsContractError(str(error)) from error
 
 
 def parse_gt_windows(text):

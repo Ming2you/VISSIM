@@ -12649,12 +12649,20 @@ def iter_action_csv_rows(
     if tuple(ramp_actions) != expected_ramps:
         raise ValueError("Resolved meters must cover the ordered physical meter mapping")
     vsl_set = [float(v) for v in cfg.freeway_follower.vsl_set]
-    if 120.0 not in vsl_set:
+    # actuation.vsl_command_distribution (repin plan 2026-10-01 K5, single-value VSL family): speed_kph is the
+    # desired-speed DISTRIBUTION the runner writes for the command, strictly (no nearest, no 120 extension).
+    # Absent: every command is written as itself, nearest over vsl_set + {120} exactly as before.
+    from evaluation.controllers import vsl_command_distribution
+    distribution = vsl_command_distribution.parse(actuation, vsl_set)
+    if distribution is None and 120.0 not in vsl_set:
         vsl_set = sorted(set(vsl_set + [120.0]))
     csv_metadata = _action_csv_metadata(metadata)
     for segment_index, seg in enumerate(mapping["segments"]):
         segment_id = seg["segment_id"]
-        value = nearest(segment_vsl_values[segment_index], vsl_set)
+        if distribution is None:
+            value = nearest(segment_vsl_values[segment_index], vsl_set)
+        else:
+            value = vsl_command_distribution.written_value(distribution, segment_vsl_values[segment_index])
         for dsd in _segment_dsd_controls(seg):
             lane = dsd.get("lane", "")
             yield ({
