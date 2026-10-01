@@ -1,0 +1,3588 @@
+{
+ "runlog_values": {
+  "DECISIONS_OK": [
+   "61"
+  ],
+  "DECISIONS_FAILED": [
+   "0"
+  ],
+  "STAGE": [
+   "COM_CREATED",
+   "NET_LOADED",
+   "SIM_DONE"
+  ],
+  "SIM_SEC": [
+   "9000"
+  ],
+  "OBSERVATION_FAILURES": [
+   "0"
+  ],
+  "SIGNAL_FAILURES": [
+   "0"
+  ],
+  "ACTION_FORMAT_FAILURES": [
+   "0"
+  ],
+  "COM_FAILURES": [
+   "0"
+  ],
+  "SIGNAL_WRITE_ATTEMPTS": [
+   "8"
+  ],
+  "SIGNAL_MIDBLOCK_COM_SKIPS": [
+   "0"
+  ],
+  "SIGNAL_MIDBLOCK_PLAN_SKIPS": [
+   "24"
+  ],
+  "SIGNAL_NAME_RULE_FALLBACKS": [
+   "0"
+  ]
+ },
+ "runlog_ok": {
+  "DECISIONS_OK": true,
+  "DECISIONS_FAILED": true,
+  "STAGE": true,
+  "SIM_SEC": true,
+  "OBSERVATION_FAILURES": true,
+  "SIGNAL_FAILURES": true,
+  "ACTION_FORMAT_FAILURES": true,
+  "COM_FAILURES": true,
+  "SIGNAL_WRITE_ATTEMPTS": true,
+  "SIGNAL_MIDBLOCK_COM_SKIPS": true,
+  "SIGNAL_MIDBLOCK_PLAN_SKIPS": true,
+  "SIGNAL_NAME_RULE_FALLBACKS": true
+ },
+ "STAGE_values": [
+  "COM_CREATED",
+  "NET_LOADED",
+  "SIM_DONE"
+ ],
+ "error_lines": [],
+ "runlog_err_file_bytes": 0,
+ "decision_failed_lines": [],
+ "v3c1_robs_signal_counters": {
+  "SIGNAL_WRITE_ATTEMPTS": "8",
+  "SIGNAL_MIDBLOCK_COM_SKIPS": "0",
+  "SIGNAL_MIDBLOCK_PLAN_SKIPS": "24"
+ },
+ "launcher_exit_lines": [
+  "2026-10-01 21:07:00  EXIT sdmpc31_v3c3_nc_s31 code=0",
+  "2026-10-01 21:07:00  EXIT sdmpc31_v3c3_nc_s31 code=0"
+ ],
+ "launcher_exit_ok": true,
+ "watchdog_exit": [
+  "2026-10-01 21:07:00  WATCHDOG_EXIT code=0 wall_sec=6993"
+ ],
+ "freeze_verified": [
+  "2026-10-01 19:10:22  FREEZE FREEZE_VERIFIED path=D:\\VISSIM-merge\\frozen\\sdmpc31_6c4c7400_202610011831\\FREEZE.json sha256=cacdd3b0a8bdc15943574a6ef65afb6741287ae8cc0c5b0b041167483ec1d385 files=10332 head=6c4c740009f7ad9c6c0c275f8715839614ec6838"
+ ],
+ "freeze_verified_ok": true,
+ "netcopy": [
+  "2026-10-01 19:10:24  NETCOPY NETWORK_COPY_OK inpx=D:\\VISSIM_runs\\20261001_sdmpc31_v3c3\\sdmpc31_v3c3_nc_s31\\network\\sdmpc31_sdmpc31_v3c3_nc_s31.inpx sha256=3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e sig=42 verify_only=0"
+ ],
+ "netcopy_ok": true,
+ "launcher_warnings": [
+  "2026-10-01 21:07:00  WD 10-01 21:07:00  WARNING runtime error log is still open; archive may be incomplete: sdmpc31_sdmpc31_v3c3_nc_s31_001.err"
+ ],
+ "decisions": {
+  "n_json": 61,
+  "n_csv": 61,
+  "n_budget": 61,
+  "error_txt": [],
+  "error_txt_any": [],
+  "controllers": [
+   "no-control"
+  ],
+  "vsl_values": [
+   110.0
+  ],
+  "csv_vsl_values": [
+   110.0
+  ],
+  "csv_vsl_rows": [
+   66
+  ],
+  "budget_ok": true,
+  "install_check_all": true,
+  "ramp_head_dropped_all": true,
+  "meter_green_values": [
+   "10.0"
+  ],
+  "tuning_names": [
+   "sdmpc31_v2_repin_base_20260924"
+  ]
+ },
+ "t1_configure": {
+  "controller_decision_line": [
+   "CONTROLLER_DECISION sim_sec=1 wall_sec=19.52 result=exit=0 stdout={\"status\": \"ok\", \"out_action_json\": \"D:\\\\VISSIM_runs\\\\20261001_sdmpc31_v3c3\\\\sdmpc31_v3c3_nc_s31\\\\decisions_sdmpc31_v3c3_nc_s31\\\\action_000001.json\", \"out"
+  ],
+  "json": true,
+  "csv": true,
+  "error_txt": false,
+  "install_check": {
+   "compared": [
+    "vsl_fd_response",
+    "component_vsl_transport"
+   ],
+   "declared": [
+    "vsl_fd_response",
+    "component_vsl_transport"
+   ],
+   "refused_if_present": [
+    "physical_cell_fd",
+    "state_response"
+   ]
+  },
+  "budget_fields": {
+   "unlimited_time": true,
+   "expired_stage": null,
+   "output_completed": true,
+   "output_error": null
+  }
+ },
+ "t1_configure_ok": true,
+ "signal_readback": {
+  "rows": 488,
+  "sg_no_ge_9": 0,
+  "not_ok": 0,
+  "sc_nos": [
+   "9101",
+   "9102",
+   "9103",
+   "9104",
+   "9105",
+   "9106",
+   "9107",
+   "9108"
+  ]
+ },
+ "vsl_readback": {
+  "rows": 16104,
+  "requested_values": [
+   110.0
+  ],
+  "readback_values": [
+   110.0
+  ],
+  "mismatch": 0,
+  "not_ok": 0,
+  "times": 61,
+  "dsds": 66,
+  "classes": [
+   "10",
+   "20",
+   "30",
+   "70"
+  ],
+  "stages": [
+   "immediate"
+  ]
+ },
+ "vsl_readback_ok": true,
+ "rw_leak": {
+  "env_keys": [
+   "RW_DECISION_FAIL_FAST",
+   "RW_LANE_PLANT_OBSERVATION",
+   "RW_MAINLINE_SG_ONLY",
+   "RW_OBS150_DETECTORS",
+   "RW_OBS150_DETECTORS_SHA256",
+   "RW_OBS150_EXPECTED_SIMRES",
+   "RW_OBS150_VEHREC_SEC",
+   "RW_OBSERVATION_CADENCE",
+   "RW_OFFSET_WRITER",
+   "RW_PYTHON",
+   "RW_QUEUE_COUNTER",
+   "RW_QUEUE_WINDOW",
+   "RW_RAMP_AMBER_SEC",
+   "RW_SIGNAL_OBSERVATION",
+   "RW_SIGNAL_OBSERVATION_CONFIG_SHA256",
+   "RW_STATE_LOG",
+   "RW_VEHICLE_OBSERVATION_INTERVAL_SEC"
+  ],
+  "v3c1_env_keys": [
+   "RW_DECISION_FAIL_FAST",
+   "RW_LANE_PLANT_OBSERVATION",
+   "RW_MAINLINE_SG_ONLY",
+   "RW_OBS150_DETECTORS",
+   "RW_OBS150_DETECTORS_SHA256",
+   "RW_OBS150_EXPECTED_SIMRES",
+   "RW_OBS150_VEHREC_SEC",
+   "RW_OBSERVATION_CADENCE",
+   "RW_OFFSET_WRITER",
+   "RW_PYTHON",
+   "RW_QUEUE_COUNTER",
+   "RW_QUEUE_WINDOW",
+   "RW_RAMP_AMBER_SEC",
+   "RW_SIGNAL_OBSERVATION",
+   "RW_SIGNAL_OBSERVATION_CONFIG_SHA256",
+   "RW_STATE_LOG",
+   "RW_VEHICLE_OBSERVATION_INTERVAL_SEC"
+  ],
+  "keys_equal_v3c1": true,
+  "expected_env_subset_equal": true,
+  "expected_env_mismatch": {},
+  "tuning_sha_in_env": "319d07aac77472d4318ddf6266003916cb7afab98da35a06254952e393542bb8",
+  "adapter_mode_present": false,
+  "rw_tokens_runlog": [],
+  "rw_tokens_launch": [
+   "RW_DECISION_FAIL_FAST",
+   "RW_MAINLINE_SG_ONLY",
+   "RW_OFFSET_WRITER",
+   "RW_PYTHON",
+   "RW_QUEUE_COUNTER",
+   "RW_QUEUE_WINDOW"
+  ],
+  "launch_rw_tokens_subset_env": true
+ },
+ "rw_leak_ok": true,
+ "provenance": {
+  "tuning_sha256_plan": "319d07aac77472d4318ddf6266003916cb7afab98da35a06254952e393542bb8",
+  "tuning_sha256_frz7": "319d07aac77472d4318ddf6266003916cb7afab98da35a06254952e393542bb8",
+  "workspace_root": "D:\\VISSIM-merge\\frozen\\sdmpc31_6c4c7400_202610011831",
+  "freeze_head_plan": "6c4c740009f7ad9c6c0c275f8715839614ec6838",
+  "network_copy_sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e",
+  "controller_plan": [
+   "no-control",
+   "no-control",
+   900
+  ]
+ },
+ "provenance_ok": true,
+ "j1a_not_applicable": [
+  "SIGNAL_MIDBLOCK_COM_SKIPS>0 (control runs only; no-control R-obs3 expects 0, GB-5)",
+  "sdmpc_active true for T>=900 (no-control: all 61 decisions NoControl by design)",
+  "J1-V pairing (covered by GB-6 for R-obs3)"
+ ],
+ "gb5_items": {
+  "launcher_EXIT_code0": true,
+  "DECISIONS_OK_61_FAILED_0": true,
+  "no_ERROR_lines": true,
+  "SIM_DONE_9000": true,
+  "failure_counters_0": true,
+  "t1_configure": true,
+  "signal_counters_8_0_24": true,
+  "signal_readback_sg_ge_9_zero": true,
+  "vsl_readback_16104_all_110_ok": true,
+  "no_RW_leak": true
+ },
+ "s_items": {
+  "DECISIONS_FAILED_0": true,
+  "no_ERROR_lines": true,
+  "launcher_EXIT_code0": true,
+  "STAGE_SIM_DONE": true,
+  "ACTION_FORMAT_COM_SIGNAL_OBS_failures_0": true,
+  "SIGNAL_NAME_RULE_FALLBACKS_0": true,
+  "no_error_txt": true,
+  "no_DECISION_FAILED_lines": true
+ },
+ "j1a_applicable_items": {
+  "decisions_61_files": true,
+  "decision_budget_unlimited_null_completed": true,
+  "FREEZE_VERIFIED_head_K7": true,
+  "tuning_sha_K7": true,
+  "network_copy_sha_3de889f0": true,
+  "vsl_box_all_110": true,
+  "meter_green_no_3": true,
+  "signal_readback_sg_ge_9_zero": true
+ },
+ "gb5_pass": true,
+ "s_pass": true,
+ "j1a_applicable_pass": true,
+ "decision_rows": [
+  {
+   "T": 1,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 150,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 300,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 450,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 600,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 750,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 900,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1050,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1200,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1350,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1500,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1650,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1800,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 1950,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2100,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2250,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2400,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2550,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2700,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 2850,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3000,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3150,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3300,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3450,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3600,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3750,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 3900,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4050,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4200,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4350,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4500,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4650,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4800,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 4950,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5100,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5250,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5400,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5550,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5700,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 5850,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6000,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6150,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6300,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6450,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6600,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6750,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 6900,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7050,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7200,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7350,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7500,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7650,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7800,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 7950,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8100,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8250,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8400,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8550,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8700,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 8850,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  },
+  {
+   "T": 9000,
+   "json": true,
+   "csv": true,
+   "budget": true,
+   "error_txt": false,
+   "controller": "no-control",
+   "vsl_values": [
+    110.0
+   ],
+   "tuning_name": "sdmpc31_v2_repin_base_20260924",
+   "install_check": {
+    "compared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "declared": [
+     "vsl_fd_response",
+     "component_vsl_transport"
+    ],
+    "refused_if_present": [
+     "physical_cell_fd",
+     "state_response"
+    ]
+   },
+   "ramp_head_dropped": {
+    "RM_C10490": {
+     "3": "2"
+    }
+   },
+   "ramp_metering": {
+    "RM_C10480": 1512.0,
+    "RM_C10482": 3024.0,
+    "RM_C10646": 1512.0,
+    "RM_C10644": 1512.0,
+    "RM_C10639": 1512.0,
+    "RM_C10681": 3024.0,
+    "RM_C10490": 1512.0,
+    "RM_C10484": 1512.0
+   },
+   "budget_fields": {
+    "unlimited_time": true,
+    "expired_stage": null,
+    "output_completed": true,
+    "output_error": null
+   },
+   "csv_vsl": [
+    110.0
+   ],
+   "csv_vsl_rows": 66,
+   "csv_meter_green": [
+    "10.0"
+   ]
+  }
+ ]
+}

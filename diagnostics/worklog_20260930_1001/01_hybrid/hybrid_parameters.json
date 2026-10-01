@@ -1,0 +1,292 @@
+{
+ "schema": "hybrid-freeway-rule-urban-sdmpc/v1-draft",
+ "status": "design only; no code written, no run launched (2026-09-29)",
+ "run": {
+  "network": "v3c1 (s31 sha 2577209b)",
+  "base_commit": "9ed2ef0 (claude/repin-v3c1-20260928)",
+  "seed": 31,
+  "sim_period_s": 9000,
+  "control_start_s": 900,
+  "cadence_s": 150,
+  "controller": "wu-link (SDMPC) with warmup no-control; freeway rows from the rule layer",
+  "urban_tuning_base": "diagnostics/sdmpc_n31_20260924/config_n31_v2.json",
+  "pair": "R-obs sdmpc31_v3c1_nc_s31 (FZP = NC s31 bytes); first 900 s must be identical",
+  "launch_env": {
+   "PYTHONHASHSEED": "0 (set inside the WMI command line; WMI does not inherit the caller env)"
+  }
+ },
+ "measurement": {
+  "source": "state_json.rule_observation (VISSIM DataCollection OccupRate/Vehs/SpeedAvgArith, (Current,k,All), 150 s)",
+  "select_lane_rows_by_measurement_no": true,
+  "never_use_station_aggregates": "network has two RULE sets with identical names: 910001-910058 (upstream of merge) and 910059-910116 (merge end + 50 m); VBS station aggregate mixes them",
+  "stations": {
+   "RM_C10480": {
+    "link": 26,
+    "pos_m": 3675.8,
+    "lanes": [
+     1,
+     2,
+     3
+    ],
+    "measurements": [
+     910059,
+     910060,
+     910061
+    ]
+   },
+   "RM_C10482": {
+    "link": 120,
+    "pos_m": 208.63,
+    "lanes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "measurements": [
+     910062,
+     910063,
+     910064,
+     910065
+    ]
+   },
+   "RM_C10646": {
+    "link": 120,
+    "pos_m": 2390.15,
+    "lanes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "measurements": [
+     910066,
+     910067,
+     910068,
+     910069
+    ]
+   },
+   "RM_C10644": {
+    "link": 120,
+    "pos_m": 3208.63,
+    "lanes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "measurements": [
+     910070,
+     910071,
+     910072,
+     910073
+    ]
+   },
+   "RM_C10639": {
+    "link": 2,
+    "pos_m": 2014.22,
+    "lanes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "measurements": [
+     910074,
+     910075,
+     910076,
+     910077
+    ]
+   },
+   "RM_C10681": {
+    "link": 2,
+    "pos_m": 2357.38,
+    "lanes": [
+     1,
+     2,
+     3,
+     4
+    ],
+    "measurements": [
+     910078,
+     910079,
+     910080,
+     910081
+    ]
+   },
+   "RM_C10490": {
+    "link": 119,
+    "pos_m": 445.11,
+    "lanes": [
+     1,
+     2,
+     3
+    ],
+    "measurements": [
+     910082,
+     910083,
+     910084
+    ]
+   },
+   "RM_C10484": {
+    "link": 24,
+    "pos_m": 215.7,
+    "lanes": [
+     1,
+     2,
+     3
+    ],
+    "measurements": [
+     910085,
+     910086,
+     910087
+    ],
+    "fw_e_chainage_m": 7653.7,
+    "note": "inside B2 cell 23, 50 m downstream of the 10484 merge nose, 9 m upstream of the q23 line; used by ALINEA 10484 and by MTFC"
+   }
+  },
+  "occupancy": "lane mean of per-lane occupancy_pct"
+ },
+ "mtfc_vsl": {
+  "law": "b~(k) = clip_[b_min,1]( b~(k-1) + K_P*(o(k-1)-o(k)) + K_I*(o_hat-o(k)) );  v_cmd(k) = rate_limit( nearest{80,90,100,110}(110*b~(k)), 20 km/h )",
+  "o_station": "RM_C10484",
+  "o_hat_pct": 18.5,
+  "o_hat_source": "O1 at RM_C10484 station, v3c1 NC fit5, 150 s windows; seed-bootstrap 5-95% [14.5, 18.5]; O2 median 16.6 [15.9, 19.5]",
+  "rho_hat_veh_km_lane_cells22_23": 31.0,
+  "rho_hat_uncertainty": {
+   "boot_5_95": [
+    25.0,
+    35.0
+   ],
+   "O2_median": 35.3,
+   "O2_range": [
+    31.0,
+    38.8
+   ],
+   "O3_triangular": 25.2,
+   "per_seed_O1": {
+    "31": 49,
+    "41": 31,
+    "43": 29,
+    "47": 49,
+    "53": 31
+   }
+  },
+  "o_vs_rho_B2": "o_10484 = 3.65 + 0.356*rho_22_23 (r 0.93, n 295); rho 31 -> o 14.7 %",
+  "K_P_per_pct": 0.0133,
+  "K_I_per_pct": 0.0813,
+  "gain_status": "PROVISIONAL, primary source not verified: secondary snippet of Carlson cascade gains (outer 9 and 55 km/h, inner 0.0015 h/veh), converted to single-loop b-gains with Q_app 1900 veh/h/lane (K_P 0.00474, K_I 0.0289 km*lane/veh) and to occupancy with 0.356 %/(veh/km/lane); per-step gains not rescaled to 150 s",
+  "b_min": 0.72727,
+  "levels_kmh": [
+   80,
+   90,
+   100,
+   110
+  ],
+  "rate_limit_kmh_per_decision": 20,
+  "first_decision": "t=900, P-term 0, b~=1",
+  "application_area": {
+   "road": "FW_E",
+   "sign": "S4 = DSD 59-62, link 2 pos 2652.0, chainage 5386.5 m",
+   "until": "S5 at 6733.2 m",
+   "length_m": 1346.7,
+   "zone_head_21cell": 10
+  },
+  "acceleration_area": {
+   "sign_fixed_110": "S5 = DSD 63-66, link 2 pos 3998.7, chainage 6733.2 m",
+   "to_B2_cell22_start_m": 601.3,
+   "to_10484_merge_nose_m": 870.5,
+   "to_detector_m": 920.5,
+   "zone_head_21cell": 12
+  },
+  "zone_split_config": {
+   "freeway.vsl_zone_heads": {
+    "FW_E": [
+     0,
+     5,
+     10,
+     12,
+     15
+    ],
+    "FW_W": [
+     0,
+     5,
+     10,
+     15
+    ]
+   },
+   "why_12": "plant sign cell 18 (DSD 63-66, 6733.2 m) has parent 12; writer segment RW_FW_E_S13 idx 13 -> head_of_cell[13]=12; both read head 12"
+  },
+  "other_zones": "FW_E heads 0,5,12,15 = 110; FW_W all 110"
+ },
+ "alinea": {
+  "law": "r~(k) = clip( r~(k-1) + K_R*(o_hat - o(k)) ); green = nearest table value within +/-2 s of previous actual green (0 or >=2); reuse diagnostic_profile.alinea_meter_step",
+  "K_R_veh_h_per_pct": {
+   "per_meter_lane": 70,
+   "RM_C10482": 140,
+   "RM_C10681": 140,
+   "others": 70
+  },
+  "min_rate_vph": "table[2] = 255.6 x meter lanes",
+  "max_rate_vph": "table[10] = 1512 x meter lanes",
+  "max_green_change_s": 2,
+  "queue_override": "none (existing rule policy had none)",
+  "first_decision": "t=900, previous green 10, r~ = table[10]",
+  "o_hat_pct": {
+   "RM_C10480": {
+    "value": 18.0,
+    "status": "unidentified -> fallback median of identified",
+    "nc_max_obs": 6.8
+   },
+   "RM_C10482": {
+    "value": 18.0,
+    "status": "unidentified -> fallback",
+    "nc_max_obs": 9.1
+   },
+   "RM_C10646": {
+    "value": 18.0,
+    "status": "unidentified -> fallback",
+    "nc_max_obs": 18.1
+   },
+   "RM_C10644": {
+    "value": 18.0,
+    "status": "unidentified -> fallback",
+    "nc_max_obs": 6.3
+   },
+   "RM_C10639": {
+    "value": 10.5,
+    "status": "identified but bimodal; boot [10.5, 25.5]; per-seed 21.5-27.5 (median 25.5); O2 12.5 [9.0, 24.6]; station 293 m upstream of B1 merge, inside B1 queue; USER DECISION (10.5 declared / 25.5 / leave open)"
+   },
+   "RM_C10681": {
+    "value": 17.5,
+    "status": "identified; boot [16.5, 19.5]; per-seed 15.5-18.5; O2 17.5 [16.6, 18.2]; O3 10.2"
+   },
+   "RM_C10490": {
+    "value": 19.5,
+    "status": "identified (flat envelope); boot [13.5, 20.5]; per-seed 12.5-19.5; O2 17.7 [14.4, 22.7]; O3 11.9"
+   },
+   "RM_C10484": {
+    "value": 18.5,
+    "status": "identified (flat envelope); boot [14.5, 18.5]; per-seed 13.5-19.5; O2 16.6 [15.9, 19.5]"
+   }
+  }
+ },
+ "new_config_keys": {
+  "adapter.sdmpc_freeway_rule": "mapping with the mtfc_vsl and alinea blocks above (absent = bit-identical)",
+  "freeway.vsl_zone_heads.FW_E": "[0,5,10,12,15] in the hybrid tuning only",
+  "execution.signal_vbs_config": "hybrid copy of lane_native_b110.vbs declaring RW_RULE_OBSERVATION = True (main VBS: Dim + gate at :2821)"
+ },
+ "integration": {
+  "where": "sdmpc.py:558 reference override by rule command before callbacks (:562) and Coordinates (:573)",
+  "freeway_axes": "zero-width (allowed=[a]) for meter and VSL axes; horizon = zero-order hold of rule command over 3x150 s",
+  "writer": "unchanged write_action_csv; verify_joint_written_action",
+  "history": "diagnostics.hybrid_rule_next_history in action JSON; read from --previous-action-json (applied only)",
+  "observation": "VBS :2821 gate extended by config variable RW_RULE_OBSERVATION (Dim at :226-229); lane rows selected by measurement_no",
+  "python_hash_seed": "recorded in diagnostics only when hybrid key present"
+ },
+ "calibration_files": {
+  "predeclaration": "calib/PREDECLARATION_CALIB.md sha256 e94a7de5 (change 1: zone space occupancy primary, before any FD computation)",
+  "estimates": "calib/critical_estimates.json",
+  "openloop": "calib/openloop_replay.json"
+ }
+}
