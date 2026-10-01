@@ -66,6 +66,28 @@ def load_sources(manifest):
 V2_LANE_GROUP_FEATURES=('ramp_lane_coupling','ramp_lane_exchange','ramp_conflict_through_inventory','offramp_lanes',
     'lane_port_travel','branch_partition','upstream_exit_inventory')
 
+# E2 install check (repin plan 2026-10-01 K6; codex review E2; PLANT_PORTING_GUIDE (d)-3 1). A plant reference
+# key that the component does not install must not be ignored silently: a tree without the installer would
+# run the nominal FD without an error. Each key below must equal the attribute the component installed
+# (absent on both sides is equal, speed_scale included). physical_cell_fd has no installer in this tree, and
+# state_response is refused in a v2 reference as the plan decided (its component index order is unreviewed).
+REFERENCE_INSTALLED_KEYS=(('vsl_fd_response','freeway_vsl_fd_response'),('component_vsl_transport','component_vsl_transport'))
+REFERENCE_REFUSED_KEYS=('physical_cell_fd','state_response')
+
+
+def reference_install_check(reference,network):
+    """{'compared','declared','refused_if_present'} for a v2 plant reference and the component's network."""
+    freeway=reference.get('freeway',{}) if isinstance(reference,dict) else None
+    if not isinstance(freeway,dict):raise ValueError('Plant reference freeway section must be an object')
+    present=[key for key in REFERENCE_REFUSED_KEYS if key in freeway]
+    if present:raise ValueError('v2 plant reference declares freeway keys without a v2 component installer: '+', '.join(present))
+    for key,attribute in REFERENCE_INSTALLED_KEYS:
+        if freeway.get(key)!=getattr(network,attribute,None):
+            raise ValueError(f'Plant reference freeway.{key} differs from what the component installed ({attribute})')
+    return {'compared':[key for key,_ in REFERENCE_INSTALLED_KEYS],
+            'declared':[key for key,_ in REFERENCE_INSTALLED_KEYS if key in freeway],
+            'refused_if_present':list(REFERENCE_REFUSED_KEYS)}
+
 
 def _load_sources_v2(path,document):
     """coupled-lane-plant/v2: 31 refined cells, no lane groups, obs150 context.
@@ -99,6 +121,7 @@ def _load_sources_v2(path,document):
         raise ValueError('v2 declares lane_groups false; the reference config enables a lane-group feature')
     if component.component_boundary!={'source':'admitted_interface','terminal':'open_exit'}:
         raise ValueError('v2 plant requires the calibrated admitted-interface source and open-exit terminal')
+    install_check=reference_install_check(load('reference_config'),component.base.network)
     table=parents(geometry)
     for road,cells in table.items():
         if len(component.base.network.freeway_segment_lanes[road])!=len(cells):
@@ -111,7 +134,8 @@ def _load_sources_v2(path,document):
     context=dict(document=document,paths=paths,component=component,geometry=geometry,lane_geometry={},
         routes=routes,exits=exits,parameters=load('parameters')['parameters'],port_profile=port_profile,
         protocol=load('reference_protocol'),manifest_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
-        plant_mode='v2',parents=table,calibration_source_demand=copy.deepcopy(archived['desired_source_demand']))
+        plant_mode='v2',parents=table,calibration_source_demand=copy.deepcopy(archived['desired_source_demand']),
+        install_check=install_check)
     # WP-B2 (contract 1.6): the obs150 context is built from the same pins; LPR
     # only checks that it belongs to this manifest/network. The manifest FILE sha
     # is the one manifest identity (context, lane observation source, metadata);
@@ -515,6 +539,7 @@ def initialize(context,observation,cfg,state,detectors,*,previous_action_path=No
         **({'lane_initial_spillback_projection':initial_projection} if initial_projection is not None else {}),
         **({'n31_binding':binding} if binding is not None else {}),
         'lane_plant_manifest_sha256':context['manifest_sha256'],
+        **({'lane_plant_install_check':copy.deepcopy(context['install_check'])} if 'install_check' in context else {}),
         'lane_ramp_head_service_normalisation':{'rule':physical_ramp_branches.SERVICE_NORMALISATION_RULE,
             'minimum_green_sec':float(net.physical_ramp_branches['minimum_green_sec']),'dropped':head_service_dropped}}
 

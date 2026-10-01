@@ -217,6 +217,18 @@ class RealPlantTests(unittest.TestCase):
         for road in oc.ROADS:
             self.assertIn(obs.source_refs[road], obs.boundaries)
 
+    def test_install_check_compares_the_declared_vsl_keys(self):
+        # K6 (repin plan 2026-10-01, E2): the real reference declares both VSL keys and the component installed
+        # them exactly (GA_PREDECLARATION.md section 2.2, metadata lane_plant_install_check).
+        self.assertEqual(self.context['install_check'],
+                         {'compared': ['vsl_fd_response', 'component_vsl_transport'],
+                          'declared': ['vsl_fd_response', 'component_vsl_transport'],
+                          'refused_if_present': ['physical_cell_fd', 'state_response']})
+        network = self.context['component'].base.network
+        reference = fx.load_json(fx.ROOT / self.document['sources']['reference_config']['path'])
+        self.assertEqual(network.freeway_vsl_fd_response, reference['freeway']['vsl_fd_response'])
+        self.assertEqual(network.component_vsl_transport, reference['freeway']['component_vsl_transport'])
+
     def test_tuning_selects_this_manifest(self):
         tuning_path = fx.N31D / 'config_n31_v2.json'
         if not tuning_path.is_file():
@@ -224,6 +236,48 @@ class RealPlantTests(unittest.TestCase):
         tuning = fx.load_json(tuning_path)
         self.assertEqual(tuning['freeway']['lane_plant'], REAL_PLANT)
         oc.validate_tuning_v2(tuning, self.document)
+
+
+class InstallCheckTests(unittest.TestCase):
+    """K6: lpr.reference_install_check against a stub installer (no plant build)."""
+
+    LAW = {'FW_E': {'law': 'carlson', 'A': 0.94, 'E': 1.44, 'alpha': 0.0}}
+    TRANSPORT = {'FW_E': {'sign_cells': [0, 3, 5, 8, 14, 18, 26, 28], 'initial_command': 110, 'ramp_command': 110}}
+
+    def network(self, **attributes):
+        import types
+        return types.SimpleNamespace(**attributes)
+
+    def test_installed_equal_passes_and_absent_on_both_sides_passes(self):
+        reference = {'freeway': {'vsl_fd_response': copy.deepcopy(self.LAW),
+                                 'component_vsl_transport': copy.deepcopy(self.TRANSPORT)}}
+        got = lpr.reference_install_check(reference, self.network(freeway_vsl_fd_response=copy.deepcopy(self.LAW),
+                                                                  component_vsl_transport=copy.deepcopy(self.TRANSPORT)))
+        self.assertEqual(got['declared'], ['vsl_fd_response', 'component_vsl_transport'])
+        self.assertEqual(lpr.reference_install_check({'freeway': {}}, self.network())['declared'], [])
+
+    def test_a_key_the_installer_dropped_or_changed_refuses(self):
+        reference = {'freeway': {'vsl_fd_response': copy.deepcopy(self.LAW)}}
+        with self.assertRaisesRegex(ValueError, 'vsl_fd_response differs'):
+            lpr.reference_install_check(reference, self.network())                 # silently not installed
+        scaled = copy.deepcopy(self.LAW)
+        scaled['FW_E']['speed_scale'] = {'form': 'cubic_lagrange', 'maximum': 110.0,
+                                         'levels': {'80': 0.72, '90': 0.81, '100': 0.9}}
+        with self.assertRaisesRegex(ValueError, 'vsl_fd_response differs'):       # installed without speed_scale
+            lpr.reference_install_check({'freeway': {'vsl_fd_response': scaled}},
+                                        self.network(freeway_vsl_fd_response=copy.deepcopy(self.LAW)))
+        with self.assertRaisesRegex(ValueError, 'component_vsl_transport differs'):
+            lpr.reference_install_check({'freeway': {'component_vsl_transport': copy.deepcopy(self.TRANSPORT)}},
+                                        self.network())
+        with self.assertRaisesRegex(ValueError, 'vsl_fd_response differs'):       # installed but not declared
+            lpr.reference_install_check({'freeway': {}}, self.network(freeway_vsl_fd_response=copy.deepcopy(self.LAW)))
+
+    def test_keys_without_an_installer_refuse(self):
+        for key in ('physical_cell_fd', 'state_response'):
+            with self.assertRaisesRegex(ValueError, key):
+                lpr.reference_install_check({'freeway': {key: {'FW_E': {}}}}, self.network())
+        with self.assertRaises(ValueError):
+            lpr.reference_install_check({'freeway': []}, self.network())
 
 
 class V1PathTests(unittest.TestCase):
