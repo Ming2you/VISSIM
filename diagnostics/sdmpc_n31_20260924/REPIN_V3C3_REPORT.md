@@ -9,7 +9,7 @@
 
 1. 목록 52항목과 검토 N7·N8·N11, K5에서 미룬 V-6·V-11을 모두 넣었습니다. 생성기 `--check` 연쇄, `repin verify`, `configure-check` t=1/150/900, preflight ×3이 통과합니다 [실행].
 2. 배포 튜닝 `config_n31_v2.json`은 단일값 가족입니다: `actuation.vsl_command_distribution` {80→81, 90→91, 100→101, 110→110}, reference 법칙 L2(정확값), 러너 81,91,101,110. `check_family_files` = `{'family': 'single_value', 'commands': [80,90,100,110], 'written': [81,91,101,110], 'speed_scale_roads': ['FW_E']}` [실행].
-3. 계획과 다르게 나온 것 셋(§4): (a) s53은 v3c2 런을 대체로 썼습니다(v3c3 s53 런 미완료). (b) 무신호 회전에서 `SC103_S_SC6_to_E`가 규칙 문턱을 넘어 빠졌습니다(U3 후보 튜닝에만 영향). (c) T9의 80/90/100 중앙차분 간격을 0.25 → 0.0625로 줄였습니다(허용 오차 1e-4 그대로).
+3. 계획과 다르게 나온 것 셋(§4): (a) s53은 v3c2 런을 대체로 썼습니다(v3c3 s53 런 미완료). (b) 무신호 회전에서 `SC103_S_SC6_to_E`가 규칙 문턱을 넘었습니다. 사용자 결정(K7 수정 선언 1)으로 소속은 v3c1 23개로 고정하고 이 회전을 알려진 초과로 적었습니다(U3 후보 튜닝에만 영향). (c) T9의 80/90/100 중앙차분 간격을 0.25 → 0.0625로 줄였습니다(허용 오차 1e-4 그대로).
 
 ## 1. 무엇을 했나
 
@@ -27,7 +27,7 @@
 ### 손 기록·도시 유도·β (DA-1, DA-2, RA-5, C-8/9/10) [실행]
 - 손 기록 넷(explicit, entry, nonexistent, offramp prior)은 망 핀만 바꾼 `*_v3c3_20261001`이고, 각 파일이 v3c1 앞 파일을 기록합니다.
 - v3c1 순서로 다시 유도했습니다. v3c1 표 대비(핀 사상 뒤): phase authority, `routing_v3c3_2`, route queue, area provenance, `routing_v3c3`은 `generated`만 다르고 β 값은 같습니다. area 계약은 바이트 같음(`fdc21f06`).
-- unsignalized validation(FZP 5개, `--check` 두 번 같은 sha `d8718b9d`)은 수치가 바뀌었고, unsignalized turns는 22개가 됐습니다(§4 b).
+- unsignalized validation(FZP 5개, `--check` 두 번 같은 sha `d8718b9d`)은 수치가 바뀌었습니다. unsignalized turns는 규칙대로면 22개지만 소속을 v3c1 23개로 고정했습니다(§4 b).
 - 어댑터 β 원천 `routing_v3c3`/`routing_v3c3_2`, `COMPLETE_BETA_SOURCES = {routing_v3c3_2}`. v3c1 키와 파일은 뺐습니다(U8-a).
 
 ### plant 연쇄 [실행]
@@ -64,7 +64,7 @@
 ## 4. 계획과 다르게 나온 것
 
 - **(a) s53 = v3c2 런.** v3c3 s53 NC 런은 시뮬레이션은 끝났지만 run.json `completed`를 쓰지 못했습니다(메인 세션 `gb1_amendment_1.md`, 16:19 재발사). 그래서 RA-1·RA-4·RA-5의 s53 입력은 v3c2 s53 런입니다(과제 지시 10-01, 선언 O-0 대체). 근거는 GB-1 s31/41/43/47 PASS와 N1F G0 8/8이고 s53 자체의 동일성 판정은 아닙니다. 참고로 재발사 전 v3c3 s53 FZP의 payload sha는 v3c2 s53과 같았습니다(`72385aa5…`, 행 6,850,613; GB-1 판정 아님) [실행]. v3c3 s53 런이 완료되면 GB-1 s53과 재추출 바이트 동일을 확인해야 합니다.
-- **(b) 무신호 회전 22개(v3c1 23개).** 같은 규칙(정지 비율 ≤ 0.05, 전이 ≥ 100)에서 `SC103_S_SC6_to_E`(커넥터 10096)가 0.0472 → 0.0544로 문턱을 넘었습니다. 문턱 근처 다른 회전: `SC1002_W_SC1001_to_S_SC105` 0.0421, `SC2005_S_SC101_to_E_SC102` 0.0401. 이 표는 U3 후보(`config_n31_v2_urban_b1*.json`)만 읽고 배포 튜닝 `config_n31_v2.json`은 읽지 않습니다 [읽음].
+- **(b) 무신호 회전: 소속을 v3c1 23개로 고정.** 같은 규칙(정지 비율 ≤ 0.05, 전이 ≥ 100)에서 `SC103_S_SC6_to_E`(커넥터 10096)가 0.0472 → 0.0544로 문턱을 넘어, 첫 K7 유도는 22개였습니다. 오프라인 관문 O-3(DA-2)이 이 소속 변화를 구속 실패로 잡았습니다. 사용자 결정(10-01 17:3x)으로 소속은 v3c1 표(K6 `54d821c` blob `c2558392`, sha256 `95ea2732`)의 23개로 고정합니다(`D:/VISSIM_runs/20261001_v3c3/reports/k7/K7_AMENDMENT_1.md`). 생성기 `MEMBERSHIP_PIN`이 소속과 알려진 초과 집합을 고정하고, 다른 소속·초과는 거부합니다. 검증 수치는 v3c3 값이고, 이 회전은 표의 `membership_pin.known_validation_exceedances`에 v3c3 0.0544(n 5602)와 v3c1 0.0472(n 5611)로 적힙니다. 표 `43247697`, 후보 config `4e85cfd6`·`c60bde7c`. 문턱 근처 다른 회전: `SC1002_W_SC1001_to_S_SC105` 0.0421, `SC2005_S_SC101_to_E_SC102` 0.0401. 이 표는 U3 후보(`config_n31_v2_urban_b1*.json`)만 읽고 배포 튜닝 `config_n31_v2.json`은 읽지 않습니다 [읽음].
 - **(c) T9 중앙차분 간격.** L2에서 80/90/100의 AD 대 h 0.25 중앙차분이 100(ttt)에서 상대 2.5e-4로 1e-4를 넘었습니다. h를 0.5→0.0078로 줄이면 오차가 4배씩 줄고(4.8e-6, 1.2e-6, 3.0e-7, 7.5e-8, …) 좌·우 한쪽 차분이 양쪽에서 AD로 모입니다. 꺾임이 아니라 O(h²) 절단 오차이고 AD가 극한값입니다 [실행 `reports/k7/evidence/t9_probe.json`]. 간격을 0.0625로 줄였고 허용 오차 1e-4는 그대로입니다(계획 R9 "원인 조사(곡률, h)").
 
 ## 5. grep 기록 (N17, W @ K7 작업본, `vendor` 제외) [실행]

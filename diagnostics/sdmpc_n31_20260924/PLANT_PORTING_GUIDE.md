@@ -107,10 +107,10 @@
 >   - 플랜트 기하: s31 `geometry.json` `2e3d8bfe…`(v3c1 기하와 출처 키 6개만 다름).
 >   - 포트 프로필: v3c1 대비 |Δ| ≤ 3.30 km/h(10491 −3.30, 10481 −2.91, 10479 −2.49, 10480 +2.45).
 >   - 램프 예측: drain 17.4/43.0/31.1/88.4/38.6/154.3/33.1/44.6 s, cap 220/2353/413/545/551/1262/850/600 veh/h.
->   - 무신호 검증표 `urban/unsignalized_validation_v3c3nc_20261001.json`. 같은 규칙에서 `SC103_S_SC6_to_E`(10096, 정지 비율 0.0472 → 0.0544 > 0.05)가 빠져 무신호 회전은 22개입니다(U3 후보 튜닝에만 영향).
+>   - 무신호 검증표 `urban/unsignalized_validation_v3c3nc_20261001.json`. 같은 규칙이면 `SC103_S_SC6_to_E`(10096, 정지 비율 0.0472 → 0.0544 > 0.05)가 빠집니다. 사용자 결정(10-01, K7 수정 선언 1)으로 무신호 회전 소속은 v3c1 23개로 고정하고, 이 회전은 표의 `membership_pin`에 알려진 초과로 적습니다(생성기 `MEMBERSHIP_PIN`; U3 후보 튜닝에만 영향).
 > - **β 원천(U8-a):** `routing_v3c3`(`beta/movement_beta_routing_v3c3_20261001.json`), 묶음 1 `routing_v3c3_2`. β 값은 v3c1 표와 같고(경로결정 불변) 망 핀과 날짜만 바뀝니다. `routing_v3c1`/`routing_v3c1_2` 키와 파일은 뺐습니다.
 > - **VSL:** 명령 {80,90,100,110}(튜닝·reference·SDMPC·action JSON), 러너 81,91,101,110, 튜닝 사상 `actuation.vsl_command_distribution`, reference 법칙 L2(Carlson 1.33/0.87 + 측정 속도 척도, 3차 Lagrange). 세부와 가족 검사, L1 가족 옵션은 `CONTRACT.md`의 v3c3 항목에 있습니다.
-> - **현재 sha (v3c3 재핀 뒤):** plant `b119d6d9`, config `319d07aa`, 후보 U1+U2+U3 `7c43f881`, U1+U3 `371c6b75`, reference `add58bc4`, 러너 VBS `37c5021f`, 검지기 CSV `108debbb`(그대로, 사이드카만 바뀜), sig_manifest `5421dc93`, 포트 프로필 `de0b575f`.
+> - **현재 sha (v3c3 재핀 뒤):** plant `b119d6d9`, config `319d07aa`, 후보 U1+U2+U3 `4e85cfd6`, U1+U3 `c60bde7c`, reference `add58bc4`, 러너 VBS `37c5021f`, 검지기 CSV `108debbb`(그대로, 사이드카만 바뀜), sig_manifest `5421dc93`, 포트 프로필 `de0b575f`.
 > - **과거 런 재생:** v3c1 망의 런(R-obs `sdmpc31_v3c1_nc_s31`, hybrid 등)은 v3c1 트리의 동결본에서만 재생됩니다.
 
 ---

@@ -365,6 +365,40 @@
    ],
    "routing_beta": 0.13320586360739325
   },
+  "SC103_S_SC6_to_E": {
+   "validation": [
+    {
+     "stopped_before_share": 0.0544,
+     "stopped_before_n": 5602,
+     "red_bin_share_c150": 0.0,
+     "red_bin_share_c160": 0.19,
+     "crossings": 5602
+    }
+   ],
+   "expected_spec": {
+    "signal": "SC103",
+    "approach": "S_SC6",
+    "kind": "boundary_out",
+    "origin": "SC6_to_SC103",
+    "receiving_link": "SC103_E_out"
+   },
+   "connectors": [
+    {
+     "connector": "10096",
+     "source_link": "1210021904",
+     "source_lanes": [
+      1
+     ],
+     "source_pos_m": 150.62130720400626,
+     "target_link": "1220024301",
+     "controlling_heads": [],
+     "heads_on_connector": [],
+     "lane_sharing_connectors": [],
+     "downstream_heads_on_source_lanes": []
+    }
+   ],
+   "routing_beta": 0.3333333333333333
+  },
   "SC107_S_to_E_SC108": {
    "validation": [
     {
@@ -1435,21 +1469,6 @@
  "screened_signalized_movements": 287,
  "not_included_fzp_validation": [
   {
-   "movement": "SC103_S_SC6_to_E",
-   "connectors": [
-    "10096"
-   ],
-   "validation": [
-    {
-     "stopped_before_share": 0.0544,
-     "stopped_before_n": 5602,
-     "red_bin_share_c150": 0.0,
-     "red_bin_share_c160": 0.19,
-     "crossings": 5602
-    }
-   ]
-  },
-  {
    "movement": "SC107_N_SC1_to_W_SC1005",
    "connectors": [
     "10610"
@@ -1498,5 +1517,62 @@
  "validation_rule": {
   "max_stopped_before_share": 0.05,
   "min_observed_transitions": 100
+ },
+ "membership_pin": {
+  "decision": "user decision 2026-10-01 (K7 amendment 1, O-3): the turn set stays the v3c1 list of 23; the FZP validation numbers are re-measured on v3c3 and recorded; SC103_S_SC6_to_E (connector 10096) is a known exceedance of the stopped-share threshold on v3c3",
+  "source": {
+   "path": "diagnostics/sdmpc_n31_20260924/urban/unsignalized_turns_v3c1_20260928.json",
+   "git_commit": "54d821c1e7140d23635f295283849d5a1197624c",
+   "git_blob": "c2558392fed0d22f5bf53cac380d906c065b3465",
+   "sha256": "95ea27326d99cab1dee8557df1a8044287958082b6918c12e7e34354619867e2"
+  },
+  "movements": [
+   "SC1001_E_SC1002_to_N_SC2002",
+   "SC1001_S_SC1003_to_E_SC1002",
+   "SC1002_E_SC101_to_N_SC2004",
+   "SC1002_N_SC2004_to_W_SC1001",
+   "SC1002_S_SC105_to_E_SC101",
+   "SC1002_W_SC1001_to_S_SC105",
+   "SC1003_S_SC1004_to_E_SC105",
+   "SC101_N_SC2005_to_W_SC1002",
+   "SC103_S_SC6_to_E",
+   "SC107_S_to_E_SC108",
+   "SC1_S_SC107_to_E_SC11",
+   "SC1_S_to_E_SC11",
+   "SC2002_E_SC2003_to_N",
+   "SC2002_N_to_W_SC2001",
+   "SC2004_E_SC2005_to_N",
+   "SC2004_N_to_W_SC2003",
+   "SC2004_S_SC1002_to_E_SC2005",
+   "SC2004_W_SC2003_to_S_SC1002",
+   "SC2005_E_SC102_to_N",
+   "SC2005_N_to_W_SC2004",
+   "SC2005_S_SC101_to_E_SC102",
+   "SC2005_W_SC2004_to_S_SC101",
+   "SC5_E_SC6_to_N_SC102"
+  ],
+  "known_validation_exceedances": [
+   {
+    "movement": "SC103_S_SC6_to_E",
+    "connectors": [
+     "10096"
+    ],
+    "validation": [
+     {
+      "stopped_before_share": 0.0544,
+      "stopped_before_n": 5602,
+      "red_bin_share_c150": 0.0,
+      "red_bin_share_c160": 0.19,
+      "crossings": 5602
+     }
+    ],
+    "v3c1_validation": [
+     {
+      "stopped_before_share": 0.0472,
+      "stopped_before_n": 5611
+     }
+    ]
+   }
+  ]
  }
 }

@@ -18,6 +18,13 @@ head on its lanes that fails the lane test (shared lane) with the other connecto
 Movements that are already unsignalized through the reviewed physical phase authority (urban.movements.
 physical_phase_authority: unsignalized_movements / head_free_movements) are reported, not repeated.
 
+Membership pin (user decision 2026-10-01, K7 amendment 1, O-3): the turn set is the v3c1 list (MEMBERSHIP_PIN, 23
+movements). On the v3c3 fit-seed FZPs the unchanged rule would drop SC103_S_SC6_to_E (connector 10096,
+stopped_before_share 0.0472 on v3c1 -> 0.0544 > 0.05); it stays in as the one declared known exceedance, with its
+v3c3 numbers in its row and in membership_pin.known_validation_exceedances. The screens above still run on every
+connector: a pinned movement may fail only the stopped-share threshold, and only when it is a declared exceedance.
+The derivation refuses any other turn set or exceedance set (changing either needs a new decision).
+
 Run from the worktree root:
   python -B scripts/derive_unsignalized_turns.py --out <file> [--check]
 """
@@ -42,6 +49,28 @@ DEFAULTS = {
 MAX_STOPPED_SHARE = 0.05
 MIN_OBSERVED = 100
 SCHEMA = "unsignalized-turns/v1"
+# User decision 2026-10-01 (K7 amendment 1, O-3): keep the v3c1 turn set. Source: the v3c1 table, a git object of
+# K6 54d821c (the file left the tree with the v3c3 re-pin).
+MEMBERSHIP_PIN = {
+    "decision": ("user decision 2026-10-01 (K7 amendment 1, O-3): the turn set stays the v3c1 list of 23; the FZP "
+                 "validation numbers are re-measured on v3c3 and recorded; SC103_S_SC6_to_E (connector 10096) is a "
+                 "known exceedance of the stopped-share threshold on v3c3"),
+    "source": {"path": N31D + "/urban/unsignalized_turns_v3c1_20260928.json",
+               "git_commit": "54d821c1e7140d23635f295283849d5a1197624c",
+               "git_blob": "c2558392fed0d22f5bf53cac380d906c065b3465",
+               "sha256": "95ea27326d99cab1dee8557df1a8044287958082b6918c12e7e34354619867e2"},
+    "movements": [
+        "SC1001_E_SC1002_to_N_SC2002", "SC1001_S_SC1003_to_E_SC1002", "SC1002_E_SC101_to_N_SC2004",
+        "SC1002_N_SC2004_to_W_SC1001", "SC1002_S_SC105_to_E_SC101", "SC1002_W_SC1001_to_S_SC105",
+        "SC1003_S_SC1004_to_E_SC105", "SC101_N_SC2005_to_W_SC1002", "SC103_S_SC6_to_E", "SC107_S_to_E_SC108",
+        "SC1_S_SC107_to_E_SC11", "SC1_S_to_E_SC11", "SC2002_E_SC2003_to_N", "SC2002_N_to_W_SC2001",
+        "SC2004_E_SC2005_to_N", "SC2004_N_to_W_SC2003", "SC2004_S_SC1002_to_E_SC2005", "SC2004_W_SC2003_to_S_SC1002",
+        "SC2005_E_SC102_to_N", "SC2005_N_to_W_SC2004", "SC2005_S_SC101_to_E_SC102", "SC2005_W_SC2004_to_S_SC101",
+        "SC5_E_SC6_to_N_SC102"],
+    "known_validation_exceedances": {
+        "SC103_S_SC6_to_E": {"connectors": ["10096"],
+                             "v3c1_validation": [{"stopped_before_share": 0.0472, "stopped_before_n": 5611}]}},
+}
 
 
 def sha256(path: pathlib.Path) -> str:
@@ -102,7 +131,8 @@ def derive(args) -> dict:
         for key in ("unsignalized_movements", "head_free_movements"):
             for m, row in (auth.get(key) or {}).items():
                 already[m] = {"source": authority_rel, "section": key, "path": row.get("path")}
-    included, shared, signalized, unvalidated, downstream = {}, [], 0, [], []
+    included, shared, signalized, unvalidated, downstream, exceeded = {}, [], 0, [], [], []
+    known = MEMBERSHIP_PIN["known_validation_exceedances"]
     for rec in beta["approaches"]:
         for m, conns in sorted(rec["physical_connectors"].items()):
             if not conns:
@@ -128,12 +158,26 @@ def derive(args) -> dict:
             checks = [validation["connectors"].get(f["connector"], {}) for f in facts]
             if any((x.get("stopped_before_n") or 0) < MIN_OBSERVED or x.get("stopped_before_share") is None
                    or x["stopped_before_share"] > MAX_STOPPED_SHARE for x in checks):
-                unvalidated.append({"movement": m, "connectors": [f["connector"] for f in facts], "validation": checks})
-                continue
+                measured = all((x.get("stopped_before_n") or 0) >= MIN_OBSERVED
+                               and x.get("stopped_before_share") is not None for x in checks)
+                if not (m in known and measured):
+                    unvalidated.append({"movement": m, "connectors": [f["connector"] for f in facts], "validation": checks})
+                    continue
+                exceeded.append({"movement": m, "connectors": [f["connector"] for f in facts], "validation": checks,
+                                 "v3c1_validation": known[m]["v3c1_validation"]})
             spec = um[m]
             included[m] = {"validation": checks, "expected_spec": {k: spec.get(k) for k in ("signal", "approach", "kind", "origin",
                                                                        "receiving_link")},
                            "connectors": facts, "routing_beta": beta["beta"][m]}
+    pinned = MEMBERSHIP_PIN["movements"]
+    if sorted(included) != sorted(pinned):
+        raise SystemExit("unsignalized turn set differs from its v3c1 membership pin (user decision 2026-10-01): "
+                         "missing %s, extra %s" % (sorted(set(pinned) - set(included)), sorted(set(included) - set(pinned))))
+    exceeded.sort(key=lambda x: x["movement"])
+    if [x["movement"] for x in exceeded] != sorted(known) or any(
+            x["connectors"] != known[x["movement"]]["connectors"] for x in exceeded):
+        raise SystemExit("FZP validation exceedances of the pinned turns %s differ from the declared %s"
+                         % ([(x["movement"], x["connectors"]) for x in exceeded], sorted(known)))
     return {
         "schema": SCHEMA,
         "generated": args.generated,
@@ -149,6 +193,8 @@ def derive(args) -> dict:
         "not_included_fzp_validation": unvalidated,
         "downstream_head_not_included": downstream,
         "validation_rule": {"max_stopped_before_share": MAX_STOPPED_SHARE, "min_observed_transitions": MIN_OBSERVED},
+        "membership_pin": {"decision": MEMBERSHIP_PIN["decision"], "source": MEMBERSHIP_PIN["source"],
+                           "movements": sorted(pinned), "known_validation_exceedances": exceeded},
     }
 
 
@@ -177,6 +223,9 @@ def main() -> int:
     print("shared-lane / mixed (not included):", sorted({(x["movement"], x["connector"], x["reason"]) for x in doc["not_included_shared_lane"]}))
     print("already unsignalized:", sorted(doc["already_unsignalized_by_phase_authority"]))
     print("not included (FZP validation):", [(x["movement"], x["connectors"]) for x in doc["not_included_fzp_validation"]])
+    print("membership pinned to v3c1 (%d); known FZP exceedances:" % len(doc["membership_pin"]["movements"]),
+          [(x["movement"], x["connectors"], [v["stopped_before_share"] for v in x["validation"]])
+           for x in doc["membership_pin"]["known_validation_exceedances"]])
     print("not included (head just downstream of the diverge):", [(x["movement"], x["connectors"])
                                                                   for x in doc["downstream_head_not_included"]])
     print("UNSIGNALIZED_TURNS_OK sha256=" + hashlib.sha256(data).hexdigest())

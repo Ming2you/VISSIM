@@ -21,7 +21,8 @@ bit identity is proven by replaying the logged v3b no-control decisions, see the
     beta; diverging routes go to storage; never to an off_ramp movement; zero-beta crossings and foreign-lane
     unsignalized crossings fall to the lane rule;
   - urban.movements.unsignalized_evidence sets the flag only for its pinned movements, every green-fraction
-    path returns 1 for them, and they leave the head lane-group capacity split;
+    path returns 1 for them, and they leave the head lane-group capacity split; the turn set is the v3c1 list
+    (user decision 2026-10-01, K7 amendment 1, O-3) and the derivation refuses any other set;
   - the dead queue origin filter is gone; the offramp direct share is explicit in the default config and a present
     key must name both interchanges;
   - the batch-1 candidate config is a separate file that adds exactly the batch-1 keys (subsets by --components).
@@ -34,6 +35,7 @@ import hashlib
 import importlib.util
 import json
 import math
+import subprocess
 import sys
 import tempfile
 import types
@@ -658,17 +660,69 @@ class UnsignalizedTurnTests(unittest.TestCase):
         self.assertEqual(down['SC1002_N_SC2004_to_S_SC105']['connectors'], ['10683'])
         self.assertIn('SC107_W_SC1004_to_S', down)
         # v3c3 re-pin (2026-10-01): the v3c3 fit-seed FZPs put SC103_S_SC6_to_E (connector 10096) at stopped_before_share
-        # 0.0544 > 0.05 (v3c1 0.0472), so the unchanged rule now leaves it out: 22 turns (v3c1 23).
-        self.assertEqual({x['movement'] for x in doc['not_included_fzp_validation']},
-                         {'SC107_N_SC1_to_W_SC1005', 'SC103_S_SC6_to_E'})
+        # 0.0544 > 0.05 (v3c1 0.0472). User decision 2026-10-01 (K7 amendment 1, O-3): the turn set stays the v3c1 23;
+        # SC103_S_SC6_to_E is the one declared known exceedance, every other included turn meets the rule.
+        self.assertEqual({x['movement'] for x in doc['not_included_fzp_validation']}, {'SC107_N_SC1_to_W_SC1005'})
         excluded = set(down) | {x['movement'] for x in doc['not_included_fzp_validation']} | {
             x['movement'] for x in doc['not_included_shared_lane']}
         self.assertFalse(excluded & set(doc['movements']))
-        self.assertEqual(len(doc['movements']), 22)
+        self.assertEqual(len(doc['movements']), 23)
+        known = {x['movement'] for x in doc['membership_pin']['known_validation_exceedances']}
+        self.assertEqual(known, {'SC103_S_SC6_to_E'})
+        rule = doc['validation_rule']
         for name, row in doc['movements'].items():
             for v in row['validation']:
-                self.assertGreaterEqual(v['stopped_before_n'], doc['validation_rule']['min_observed_transitions'], name)
-                self.assertLessEqual(v['stopped_before_share'], doc['validation_rule']['max_stopped_before_share'], name)
+                self.assertGreaterEqual(v['stopped_before_n'], rule['min_observed_transitions'], name)
+                if name in known:
+                    self.assertGreater(v['stopped_before_share'], rule['max_stopped_before_share'], name)
+                else:
+                    self.assertLessEqual(v['stopped_before_share'], rule['max_stopped_before_share'], name)
+
+    def test_membership_is_pinned_to_the_v3c1_list(self):
+        """User decision 2026-10-01 (K7 amendment 1, O-3): the turn set is the v3c1 table's (a git object of K6 54d821c,
+        read only when the repository has it); the rows keep their v3c1 facts, the FZP numbers are the v3c3 ones and
+        SC103_S_SC6_to_E is recorded as the known exceedance."""
+        g = _load_script('derive_unsignalized_turns')
+        doc = load(mc.URBAN_B1_UNSIGNALIZED)
+        pin = doc['membership_pin']
+        self.assertEqual(sorted(doc['movements']), sorted(g.MEMBERSHIP_PIN['movements']))
+        self.assertEqual(pin['movements'], sorted(g.MEMBERSHIP_PIN['movements']))
+        self.assertEqual(len(pin['movements']), 23)
+        self.assertEqual(pin['source'], g.MEMBERSHIP_PIN['source'])
+        (ex,) = pin['known_validation_exceedances']
+        self.assertEqual((ex['movement'], ex['connectors']), ('SC103_S_SC6_to_E', ['10096']))
+        self.assertEqual(ex['validation'], doc['movements']['SC103_S_SC6_to_E']['validation'])
+        self.assertEqual((ex['validation'][0]['stopped_before_share'], ex['validation'][0]['stopped_before_n']), (0.0544, 5602))
+        self.assertEqual(ex['v3c1_validation'], [{'stopped_before_share': 0.0472, 'stopped_before_n': 5611}])
+        done = subprocess.run(['git', '-C', str(ROOT), 'show', pin['source']['git_commit'] + ':' + pin['source']['path']],
+                              capture_output=True)
+        if done.returncode:
+            self.skipTest('K6 commit 54d821c not in this repository')
+        self.assertEqual(sha(done.stdout), pin['source']['sha256'])
+        old = json.loads(done.stdout.decode('utf-8'))
+        self.assertEqual(list(doc['movements']), list(old['movements']))
+        for name, row in old['movements'].items():
+            self.assertEqual({k: v for k, v in doc['movements'][name].items() if k != 'validation'},
+                             {k: v for k, v in row.items() if k != 'validation'}, name)
+        self.assertEqual(old['movements']['SC103_S_SC6_to_E']['validation'][0]['stopped_before_share'], 0.0472)
+
+    def test_derivation_refuses_another_membership(self):
+        g = _load_script('derive_unsignalized_turns')
+        base = copy.deepcopy(g.MEMBERSHIP_PIN)
+        known = base['known_validation_exceedances']
+        cases = {
+            'drop a turn': dict(base, movements=[m for m in base['movements'] if m != 'SC1_S_to_E_SC11']),
+            'add an unvalidated turn': dict(base, movements=base['movements'] + ['SC107_N_SC1_to_W_SC1005']),
+            'no declared exceedance': dict(base, known_validation_exceedances={}),
+            'a declared exceedance that is not one': dict(base, known_validation_exceedances=dict(
+                known, SC1_S_to_E_SC11={'connectors': ['x'], 'v3c1_validation': []})),
+        }
+        for label, pin in cases.items():
+            g.MEMBERSHIP_PIN = pin
+            with self.subTest(label), self.assertRaises(SystemExit):
+                g.derive(_args(g))
+        g.MEMBERSHIP_PIN = base
+        self.assertEqual(sha(g.dumps(g.derive(_args(g)))), mc.URBAN_B1_UNSIGNALIZED_SHA256)
 
     def test_every_green_fraction_path_returns_one(self):
         from evaluation.controllers import sdmpc_continuous, signal_actuation_contract

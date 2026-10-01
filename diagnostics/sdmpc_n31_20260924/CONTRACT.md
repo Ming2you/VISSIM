@@ -720,7 +720,7 @@ observe_live v2 → obs150_observation.derive(raw, context)
   - **L1 분포형 가족(U5-a, N16).** 트리에는 단일값 가족만 둡니다. 분포형 가족(사상 없음, N1 L1, 러너 80,90,100,110)은 생성기 옵션으로 트리 밖 폴더 F에만 만듭니다: `repin_scenario_v2.py runner-family --vsl-family distribution --out-root F` → `scripts/build_obs150_detectors.py --out-root F` → `make_reference_config.py`, `make_plant_n31.py`, `make_config_n31.py`(각각 `--vsl-family distribution --out-root F`). F의 파일은 트리와 같은 상대 경로이고 핀도 상대 경로입니다. 이 가족을 발사하려면 F를 작업 트리 위에 덮어 커밋하고 동결합니다(발사기는 동결한 git head만 읽음). `configure-check --overlay-root F`가 그 가족을 검사합니다.
   - 재생 action_contract(K2): 쓰는 허용 집합 = 튜닝 `vsl_set`의 사상 상이고, 그것이 튜닝 트리 러너 목록과 같아야 합니다(`n31_common.tuning_vsl_contract`).
   - 핀 연쇄는 그대로입니다: `scenario/lane_native_b110.vbs` → 검지기 사이드카 → `plant_n31_v2.json`, `reference_config_n31_v2.json` → `plant_n31_v2.json`, 튜닝은 `validate_tuning_v2`와 가족 검사로.
-  - 현재 sha: plant `b119d6d9`, config `319d07aa`, 후보 U1+U2+U3 `7c43f881`, U1+U3 `371c6b75`, reference `add58bc4`, 러너 VBS `37c5021f`, sig_manifest `5421dc93`, 포트 프로필 `de0b575f`, 검지기 CSV `108debbb`.
+  - 현재 sha: plant `b119d6d9`, config `319d07aa`, 후보 U1+U2+U3 `4e85cfd6`, U1+U3 `c60bde7c`(K7 수정 선언 1: U3 무신호 회전 소속을 v3c1 23개로 고정, 표 `43247697`), reference `add58bc4`, 러너 VBS `37c5021f`, sig_manifest `5421dc93`, 포트 프로필 `de0b575f`, 검지기 CSV `108debbb`.
 - VSL 모형을 먼저 plant에 옮깁니다(2026-09-24). 110 속도분포는 VSL을 돌려 본 뒤 정합니다. 분포와 망은 바꾸지 않았습니다.
   - 브랜치 `codex/control-full-review-20260909` d80faf9, 후보 A0.5_E4(`diagnostics/vsl_handoff_20260924/candidate.json` sha `a2fe3366…`)를 브랜치 키 이름 그대로 `reference_config_n31_v2.json`의 `freeway`에 넣었습니다.
     - `vsl_fd_response`: FW_E Carlson A 0.5, E 4, alpha 0, 기준 명령 = max(vsl_set) = 110

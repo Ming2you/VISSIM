@@ -125,8 +125,10 @@ BETA_MOVEMENTS = N31D + '/beta/movements_core17legs4b_20260819.json'
 #   python -B scripts/derive_route_queue_attribution.py --out <URBAN_B1_ROUTE_EVIDENCE>
 #   python -B scripts/derive_unsignalized_validation.py --out <URBAN_B1_UNSIGNALIZED_VALIDATION>   (reads the five
 #       no-control fit-seed FZPs: v3c3 31/41/43/47 and the v3c2 s53 run as the declared substitute, about 5.9 GB; the
-#       FZP validation table the unsignalized-turn derivation reads; s37 is held out). On v3c3 the turn set lost
-#       SC103_S_SC6_to_E (connector 10096, stopped_before_share 0.0472 on v3c1 -> 0.0544 > 0.05): 22 turns (v3c1 23).
+#       FZP validation table the unsignalized-turn derivation reads; s37 is held out). On v3c3 the unchanged rule
+#       would drop SC103_S_SC6_to_E (connector 10096, stopped_before_share 0.0472 on v3c1 -> 0.0544 > 0.05); by the
+#       user decision of 2026-10-01 (K7 amendment 1, O-3) the turn set stays the v3c1 23 (derive_unsignalized_turns
+#       MEMBERSHIP_PIN) and SC103_S_SC6_to_E is recorded as the known exceedance (membership_pin).
 # (derive_unsignalized_turns reads the validation table: run the validation before it.) The relFlow off-ramp prior
 # (URBAN_B1_OFFRAMP_PRIOR, re-derived by offramp_routing.derive_prior at install) and the movement declaration
 # (URBAN_B1_DECLARATION, a reviewed decision record that the two derivations verify against the network) are pinned
@@ -157,7 +159,7 @@ URBAN_B1_AREA_ROUTES_PROVENANCE_SHA256 = 'f912429ded82c7161d9969181afd9d0ca1fb0b
 URBAN_B1_ROUTE_EVIDENCE = N31D + '/urban/route_queue_attribution_v3c3_20261001.json'
 URBAN_B1_ROUTE_EVIDENCE_SHA256 = '181a452a967d8e37516a18a8300b02e87dabbeb4b017380930cc2fc3886be1ae'
 URBAN_B1_UNSIGNALIZED = N31D + '/urban/unsignalized_turns_v3c3_20261001.json'
-URBAN_B1_UNSIGNALIZED_SHA256 = '83326aca4f2565d9ae3f9ec1378bd0f1b405714eec6a3370081d6d366e644a43'
+URBAN_B1_UNSIGNALIZED_SHA256 = '43247697899a156ad6d078349cf32a3fa2180f0cef922e876fbeaf428ebafa16'
 URBAN_B1_UNSIGNALIZED_VALIDATION = N31D + '/urban/unsignalized_validation_v3c3nc_20261001.json'
 URBAN_B1_UNSIGNALIZED_VALIDATION_SHA256 = 'd8718b9db9e924f148c91da3aed45d71881f0ad488d81f48a4bbb60381298504'
 URBAN_B1_OFFRAMP_PRIOR = N31D + '/urban/offramp_static_route_prior_v3c3_20261001.json'
