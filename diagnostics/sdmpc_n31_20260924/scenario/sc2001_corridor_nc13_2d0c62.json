@@ -1,8 +1,8 @@
 {
   "schema": "sc2001-corridor/v1",
   "network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-    "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+    "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
   },
   "storage": "SC2001_S_out",
   "initial_physical_links": [
@@ -593,8 +593,8 @@
       "sha256": "f39a0ca4ee613dcf5d24391b60f89602cee15228933c44bd0b5e32b06020424f"
     },
     "runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+      "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
     },
     "accuracy_validation": "pending",
     "lineage": {
@@ -664,14 +664,14 @@
       "priors": [],
       "receipt": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "6f5c18343fc2f17e3d559e8d3cca639958f15d4fddb4ac92bed3afbefd51a32d"
+        "sha256": "4de66d407553518380b73c1258b736dc6277929c77aaaa210e48a98836c93ddf"
       },
       "target_network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-        "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+        "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
       },
       "differences_since_previous_pack": [
-        "vehicleInputs: demand volumes only (FW80/U90) (34 elements)",
+        "vehicleInputs: demand volumes only (FW80/U90) + the enumerated v3c2 vehComp rows (V3C2_INPUT_COMPOSITION_EDITS) (34 elements)",
         "vehicleRoutingDecisionsStatic: route relFlow only + the enumerated v3/v3b route edits (V3B_ROUTE_EDITS) + the enumerated v3c1 added decisions (V3C1_ADDED_DECISIONS) (24 elements, 8 added)",
         "desSpeedDecisions: desired speed distribution only (76 elements)"
       ],

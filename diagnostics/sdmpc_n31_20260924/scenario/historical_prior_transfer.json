@@ -5,8 +5,8 @@
     "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
   },
   "target_network": {
-    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-    "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+    "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+    "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
   },
   "predictive_accuracy_validated": false,
   "unchanged_prior_files": [
@@ -1521,7 +1521,7 @@
     "Changed demand, route decisions and lane-change distances may change their accuracy.",
     "Runtime rechecks physical routes, heads and clocks; this proves identity, not predictive accuracy.",
     "The latest lane CTM owns10634; its old aggregate service calibration is retired in this scenario.",
-    "The runtime network v3c1 2577209b (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user decision 2026-09-25; plus the eight v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
+    "The runtime network v3c3 3de889f0 (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user decision 2026-09-25; plus the eight v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28; plus the v3c2 vehicle composition 14 on the 12 freeway-entry intervals of inputs 1098/1099, user decision 2026-09-30; plus the v3c3 single-value distributions 81/91/101, user approval 2026-10-01) differs again from the pack network fcb349d3; see repin_step. The priors keep their training network and bytes."
   ],
   "repin_step": {
     "previous_transfer": {
@@ -1533,8 +1533,8 @@
       "sha256": "fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4"
     },
     "to_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+      "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
     },
     "native_changes": {
       "dataCollectionMeasurements": {
@@ -1751,8 +1751,16 @@
         ]
       },
       "desSpeedDistributions": {
-        "meaning": "new distributions",
+        "meaning": "new distributions (exactly the enumerated v2 110 + V3C3_ADDED_DISTRIBUTIONS)",
+        "added_distribution_receipt": {
+          "path": "D:\\VISSIM_runs\\20261001_v3c3\\v3c3_edit_receipt.json",
+          "sha256": "b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f",
+          "rows": "edits.desSpeedDistributions_inserted (81 / 91 / 101): v3c2 597191ac -> v3c3 3de889f0"
+        },
         "added": [
+          "81",
+          "91",
+          "101",
           "110"
         ]
       },
@@ -1892,8 +1900,110 @@
           }
         }
       },
+      "vehicleCompositions": {
+        "meaning": "the enumerated v3c2 composition (V3C2_ADDED_COMPOSITION; not a CHANGE_RULES section)",
+        "added": [
+          "14"
+        ],
+        "added_composition_receipt": {
+          "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+          "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb",
+          "rows": "edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): v3c1 2577209b -> v3c2 597191ac"
+        }
+      },
       "vehicleInputs": {
-        "meaning": "demand volumes only (FW80/U90)",
+        "meaning": "demand volumes only (FW80/U90) + the enumerated v3c2 vehComp rows (V3C2_INPUT_COMPOSITION_EDITS)",
+        "composition_edits": [
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 0",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 900000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 1800000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 2700000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 3600000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1098",
+            "link": "74",
+            "timeInt": "1 4500000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 0",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 900000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 1800000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 2700000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 3600000",
+            "old": "1",
+            "new": "14"
+          },
+          {
+            "input": "1099",
+            "link": "26",
+            "timeInt": "1 4500000",
+            "old": "1",
+            "new": "14"
+          }
+        ],
+        "composition_edit_receipt": {
+          "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+          "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb",
+          "rows": "edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): v3c1 2577209b -> v3c2 597191ac"
+        },
         "changed": [
           "114",
           "194",
@@ -2636,6 +2746,46 @@
         "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4",
         "rows": "edits.decisions (8): v3b be0075bf -> v3c1 2577209b (V2 = decision 1161 held)"
       }
+    },
+    "added_composition_block": {
+      "element": "vehicleComposition",
+      "no": "14",
+      "after": "13",
+      "bytes": 391,
+      "sha256": "82c11cd54b3c11da2899974ff737c52589eb8ed428ecf3efd468ab6411838f4d",
+      "receipt": {
+        "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+        "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb",
+        "rows": "edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): v3c1 2577209b -> v3c2 597191ac"
+      }
+    },
+    "added_distribution_blocks": [
+      {
+        "element": "desSpeedDistribution",
+        "no": "81",
+        "after": "80",
+        "bytes": 217,
+        "sha256": "ae06360d5713e1c6c010919d0008df0f4ff80b15140258ba83fa4c6dc8752810"
+      },
+      {
+        "element": "desSpeedDistribution",
+        "no": "91",
+        "after": "90",
+        "bytes": 217,
+        "sha256": "fbb7066f0bb84b2ea489ec281e092508d07610ae2bc8817c0be2ec10aa048bb9"
+      },
+      {
+        "element": "desSpeedDistribution",
+        "no": "101",
+        "after": "100",
+        "bytes": 221,
+        "sha256": "f3d776c20610286ed4a942c626e9070a904fcc5285d84a2c2904c2532b7ea76d"
+      }
+    ],
+    "added_distribution_receipt": {
+      "path": "D:\\VISSIM_runs\\20261001_v3c3\\v3c3_edit_receipt.json",
+      "sha256": "b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f",
+      "rows": "edits.desSpeedDistributions_inserted (81 / 91 / 101): v3c2 597191ac -> v3c3 3de889f0"
     }
   },
   "prior_mismatch": {

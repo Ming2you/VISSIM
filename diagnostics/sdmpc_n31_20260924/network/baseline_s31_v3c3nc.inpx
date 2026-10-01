@@ -4997,6 +4997,12 @@
 				<speedDistributionDataPoint fx="1" x="110" />
 			</speedDistrDatPts>
 		</desSpeedDistribution>
+		<desSpeedDistribution name="81 km/h" no="81">
+			<speedDistrDatPts>
+				<speedDistributionDataPoint fx="0" x="80" />
+				<speedDistributionDataPoint fx="1" x="82" />
+			</speedDistrDatPts>
+		</desSpeedDistribution>
 		<desSpeedDistribution name="85 km/h" no="85">
 			<speedDistrDatPts>
 				<speedDistributionDataPoint fx="0" x="84" />
@@ -5012,6 +5018,12 @@
 				<speedDistributionDataPoint fx="1" x="120" />
 			</speedDistrDatPts>
 		</desSpeedDistribution>
+		<desSpeedDistribution name="91 km/h" no="91">
+			<speedDistrDatPts>
+				<speedDistributionDataPoint fx="0" x="90" />
+				<speedDistributionDataPoint fx="1" x="92" />
+			</speedDistrDatPts>
+		</desSpeedDistribution>
 		<desSpeedDistribution name="100 km/h" no="100">
 			<speedDistrDatPts>
 				<speedDistributionDataPoint fx="0" x="88" />
@@ -5020,6 +5032,12 @@
 				<speedDistributionDataPoint fx="0.7" x="110" />
 				<speedDistributionDataPoint fx="0.91" x="120" />
 				<speedDistributionDataPoint fx="1" x="130" />
+			</speedDistrDatPts>
+		</desSpeedDistribution>
+		<desSpeedDistribution name="101 km/h" no="101">
+			<speedDistrDatPts>
+				<speedDistributionDataPoint fx="0" x="100" />
+				<speedDistributionDataPoint fx="1" x="102" />
 			</speedDistrDatPts>
 		</desSpeedDistribution>
 		<desSpeedDistribution name="110 km/h" no="110">
@@ -31192,6 +31210,13 @@
 				<vehicleCompositionRelativeFlow desSpeedDistr="70" relFlow="1" vehType="300" />
 			</vehCompRelFlows>
 		</vehicleComposition>
+		<vehicleComposition name="Freeway entry DSD110" no="14">
+			<vehCompRelFlows>
+				<vehicleCompositionRelativeFlow desSpeedDistr="110" relFlow="0.806" vehType="100" />
+				<vehicleCompositionRelativeFlow desSpeedDistr="110" relFlow="0.1" vehType="150" />
+				<vehicleCompositionRelativeFlow desSpeedDistr="110" relFlow="0.094" vehType="200" />
+			</vehCompRelFlows>
+		</vehicleComposition>
 	</vehicleCompositions>
 	<vehicleInputs>
 		<vehicleInput anmFlag="false" link="364" name="우리은행포이_NB" no="114">
@@ -31436,22 +31461,22 @@
 		</vehicleInput>
 		<vehicleInput anmFlag="false" link="74" name="경부_EB" no="1098">
 			<timeIntVehVols>
-				<timeIntervalVehVolume cont="false" timeInt="1 0" vehComp="1" volType="STOCHASTIC" volume="7096.32" />
-				<timeIntervalVehVolume cont="false" timeInt="1 900000" vehComp="1" volType="STOCHASTIC" volume="10137.6" />
-				<timeIntervalVehVolume cont="false" timeInt="1 1800000" vehComp="1" volType="STOCHASTIC" volume="10644.48" />
-				<timeIntervalVehVolume cont="false" timeInt="1 2700000" vehComp="1" volType="STOCHASTIC" volume="9123.84" />
-				<timeIntervalVehVolume cont="false" timeInt="1 3600000" vehComp="1" volType="STOCHASTIC" volume="7096.32" />
-				<timeIntervalVehVolume cont="false" timeInt="1 4500000" vehComp="1" volType="STOCHASTIC" volume="5068.8" />
+				<timeIntervalVehVolume cont="false" timeInt="1 0" vehComp="14" volType="STOCHASTIC" volume="7096.32" />
+				<timeIntervalVehVolume cont="false" timeInt="1 900000" vehComp="14" volType="STOCHASTIC" volume="10137.6" />
+				<timeIntervalVehVolume cont="false" timeInt="1 1800000" vehComp="14" volType="STOCHASTIC" volume="10644.48" />
+				<timeIntervalVehVolume cont="false" timeInt="1 2700000" vehComp="14" volType="STOCHASTIC" volume="9123.84" />
+				<timeIntervalVehVolume cont="false" timeInt="1 3600000" vehComp="14" volType="STOCHASTIC" volume="7096.32" />
+				<timeIntervalVehVolume cont="false" timeInt="1 4500000" vehComp="14" volType="STOCHASTIC" volume="5068.8" />
 			</timeIntVehVols>
 		</vehicleInput>
 		<vehicleInput anmFlag="false" link="26" name="경부_NB" no="1099">
 			<timeIntVehVols>
-				<timeIntervalVehVolume cont="false" timeInt="1 0" vehComp="1" volType="STOCHASTIC" volume="4300" />
-				<timeIntervalVehVolume cont="false" timeInt="1 900000" vehComp="1" volType="STOCHASTIC" volume="5600" />
-				<timeIntervalVehVolume cont="false" timeInt="1 1800000" vehComp="1" volType="STOCHASTIC" volume="6000" />
-				<timeIntervalVehVolume cont="false" timeInt="1 2700000" vehComp="1" volType="STOCHASTIC" volume="5200" />
-				<timeIntervalVehVolume cont="false" timeInt="1 3600000" vehComp="1" volType="STOCHASTIC" volume="3900" />
-				<timeIntervalVehVolume cont="false" timeInt="1 4500000" vehComp="1" volType="STOCHASTIC" volume="3450" />
+				<timeIntervalVehVolume cont="false" timeInt="1 0" vehComp="14" volType="STOCHASTIC" volume="4300" />
+				<timeIntervalVehVolume cont="false" timeInt="1 900000" vehComp="14" volType="STOCHASTIC" volume="5600" />
+				<timeIntervalVehVolume cont="false" timeInt="1 1800000" vehComp="14" volType="STOCHASTIC" volume="6000" />
+				<timeIntervalVehVolume cont="false" timeInt="1 2700000" vehComp="14" volType="STOCHASTIC" volume="5200" />
+				<timeIntervalVehVolume cont="false" timeInt="1 3600000" vehComp="14" volType="STOCHASTIC" volume="3900" />
+				<timeIntervalVehVolume cont="false" timeInt="1 4500000" vehComp="14" volType="STOCHASTIC" volume="3450" />
 			</timeIntVehVols>
 		</vehicleInput>
 		<vehicleInput anmFlag="false" link="66" name="" no="1100">

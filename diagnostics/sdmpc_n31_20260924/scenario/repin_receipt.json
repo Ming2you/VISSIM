@@ -16,21 +16,21 @@
       "path": "network/real_world_gaepo_modi/modi_eval_userfix Ver2.inpx",
       "sha256": "085a10c71874e897083c97097af8fa3f1f08da1ef7416fef2f7cfbedabdfc317"
     },
-    "network_source_folder": "D:\\VISSIM_runs\\20260927_v3c1\\s31_v3c1nc\\prepared\\network",
+    "network_source_folder": "D:\\VISSIM_runs\\20261001_v3c3\\s31_v3c3nc\\prepared\\network",
     "previous_runtime_network": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3bnc.inpx",
-      "sha256": "be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc",
-      "note": "v3b be0075bf, the runtime network 2026-09-25..2026-09-28 (replaced, file removed; v3b replays run from a frozen tree); v2 f475ce42 before 2026-09-25"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
+      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7",
+      "note": "v3c1 2577209b, the runtime network 2026-09-28..2026-10-01 (replaced, file removed; v3c1 replays run from a frozen tree: sdmpc31_5323faa4 for 5323faa, sdmpc31_54d821c1 for K1-K6); v3b be0075bf 2026-09-25..28; v2 f475ce42 before 2026-09-25"
     }
   },
   "network": {
     "inpx": {
-      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-      "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+      "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+      "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
     },
     "sig_manifest": {
       "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
-      "sha256": "9888a7b827c669b50dfbe0fcaf430ceba9f391ecb6e9b5508ab6ef7bf68eb218"
+      "sha256": "5421dc93b290ad6361a729b1137a7e32f3ca5083eef837e39408dd95653e4661"
     },
     "sig_files": 42,
     "sig_byte_equal_to": {
@@ -254,8 +254,16 @@
       ]
     },
     "desSpeedDistributions": {
-      "meaning": "new distributions",
+      "meaning": "new distributions (exactly the enumerated v2 110 + V3C3_ADDED_DISTRIBUTIONS)",
+      "added_distribution_receipt": {
+        "path": "D:\\VISSIM_runs\\20261001_v3c3\\v3c3_edit_receipt.json",
+        "sha256": "b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f",
+        "rows": "edits.desSpeedDistributions_inserted (81 / 91 / 101): v3c2 597191ac -> v3c3 3de889f0"
+      },
       "added": [
+        "81",
+        "91",
+        "101",
         "110"
       ]
     },
@@ -395,8 +403,110 @@
         }
       }
     },
+    "vehicleCompositions": {
+      "meaning": "the enumerated v3c2 composition (V3C2_ADDED_COMPOSITION; not a CHANGE_RULES section)",
+      "added": [
+        "14"
+      ],
+      "added_composition_receipt": {
+        "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+        "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb",
+        "rows": "edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): v3c1 2577209b -> v3c2 597191ac"
+      }
+    },
     "vehicleInputs": {
-      "meaning": "demand volumes only (FW80/U90)",
+      "meaning": "demand volumes only (FW80/U90) + the enumerated v3c2 vehComp rows (V3C2_INPUT_COMPOSITION_EDITS)",
+      "composition_edits": [
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 0",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 900000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 1800000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 2700000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 3600000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1098",
+          "link": "74",
+          "timeInt": "1 4500000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 0",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 900000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 1800000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 2700000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 3600000",
+          "old": "1",
+          "new": "14"
+        },
+        {
+          "input": "1099",
+          "link": "26",
+          "timeInt": "1 4500000",
+          "old": "1",
+          "new": "14"
+        }
+      ],
+      "composition_edit_receipt": {
+        "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+        "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb",
+        "rows": "edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): v3c1 2577209b -> v3c2 597191ac"
+      },
       "changed": [
         "114",
         "194",
@@ -1181,7 +1291,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-        "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
+        "sha256": "30abb1db4f549068cb7069971c60e7ade8205a882c7999a0d0f2ede4460e5f85"
       }
     },
     {
@@ -1210,7 +1320,7 @@
       ],
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/dynamic_area_routes_ver2_dbaf86.json",
-        "sha256": "24ec90e136de237131e91db9505eb8c4418d709c89385de8ab1f3a87de967ea5"
+        "sha256": "158736a7599af6e037cbd22aba430b883af29415d669bebd913a86633f4d8fbe"
       }
     },
     {
@@ -1232,7 +1342,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/head_free_service_10565_v1_71c2bf.json",
-        "sha256": "5787a7bd5397980a686ada0f6c96d43504808416a82293daf5e157e00a3fc5fd"
+        "sha256": "fa44f5c8ee98cb75923335a9263f6847f7606fac71565b49eed9d5948a38cda3"
       }
     },
     {
@@ -1262,7 +1372,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/head_service_resource_contract_7b2da6.json",
-        "sha256": "b2652f096508fc6607b37594d44bf4248a70eb86ec724e2833888df0e0fb1847"
+        "sha256": "9de01c7d11b02b6e753bdd43430f98eed0a1500eba376562431dbad097afe604"
       }
     },
     {
@@ -1284,7 +1394,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/known_wout_routes_ver2_proposal_a424b4.json",
-        "sha256": "1a42dc9a084f8a0917039112a0253681694df7fe21577635426dee399da29e54"
+        "sha256": "a120dd7412c5eace23dbf50e7dc13face651622b64f35fd983dea97917d17e5f"
       }
     },
     {
@@ -1314,7 +1424,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1083_signal_authority_ver2_022a16.json",
-        "sha256": "229279e30e7e141d41cd7a183a14f5be1b820aa080eb706b9eb8e76d71eb4fe2"
+        "sha256": "62d65f9eb80fd06f7151cc071677ec87b286f68a8d28248b19d0d9caf3bffdb3"
       }
     },
     {
@@ -1348,7 +1458,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1093_prehead_ver2_9b761e.json",
-        "sha256": "2213d7c200f169b09aa323885d1bd5eedf8fa868fef96c0efd1d7722bdaf5cfc"
+        "sha256": "f735a1a260df0af02bda49e63bf8fbe872feca9d0bbb67e7930397976265fcb6"
       }
     },
     {
@@ -1365,7 +1475,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_input_1096_route_ver2_2de3e0.json",
-        "sha256": "831e77abbf4f765779b50a906a0d1df453fbfc2dfe978c37f9eeae123caf7a96"
+        "sha256": "1e7e5f9c3a7fcec07e55e6a4dfe098375b25ff49157c0be5fb0aa6eb4ec9b6a1"
       }
     },
     {
@@ -1411,7 +1521,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/native_internal_inputs_c92673.json",
-        "sha256": "618a58b7842e467f49ae9185d8d069037948922f9caaaa0646194d51b065bad2"
+        "sha256": "9eb1c378b511cc6357a859d8c32c204321da15a17ca0bc8f22191cec4eb17ddb"
       }
     },
     {
@@ -1433,7 +1543,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_movement_routes_ver2_35eb21.json",
-        "sha256": "62111d42e830aab9f1c86a239676ec4613bf53746a2ad6460047aa8bad4fffe2"
+        "sha256": "967a11a8605c3810012dc36765898dde0f8c981a7c15230dcb0fab7bf56dd053"
       }
     },
     {
@@ -1455,7 +1565,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_phase_authority_local_1df35c.json",
-        "sha256": "d8a267be1a78977408d0eea9499c74f4062f38f6b72ea289ecaa7202fae2519f"
+        "sha256": "41d4d853b3ce01c45d6569439e06422e371fced31fbc8e286e35c4e50b0e807c"
       }
     },
     {
@@ -1485,7 +1595,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_635_proposal_ec2393.json",
-        "sha256": "e22c1a0703cdd5cb75c4f71840b40ef20c275fe5c81f7c7a58f6592d74f7d289"
+        "sha256": "8d02ed64d43461236ef15f657aeab553440cc981540fbc390fa01c2d0eea7d50"
       }
     },
     {
@@ -1507,7 +1617,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/physical_projection_support_ver2_b49a6f.json",
-        "sha256": "cc393bac821d3203d86362b3f3bec2bd21d4dde9830e879a0acf3c1586a3344c"
+        "sha256": "bfac02130b7030eba00d4ce4417ea17f6a2b465105843649b53afddb2420eba4"
       }
     },
     {
@@ -1537,7 +1647,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1099_sc15_calibrated_e02d01.json",
-        "sha256": "790027f14d767f6f0e7456043f70de04dd665643e39498e1f70eb351a9bc7641"
+        "sha256": "2fd1b191eab9f5ac727cfdcccfe3abd9279626869800cd46eb3e72d1194795dc"
       }
     },
     {
@@ -1567,7 +1677,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1100_sc15_calibrated_05ed35.json",
-        "sha256": "8f9de5cceeb9d1da82e3d7557a8e817d7ea0aa2501706c2bed0f38e2556da6e0"
+        "sha256": "9efa8a75288f55cfa9e2b598d38abfb2d70cdf3a3c515100aeafa707390af4f0"
       }
     },
     {
@@ -1593,7 +1703,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_1128_ver2_0fd58c.json",
-        "sha256": "4cb76d3fad7db18b41d4a01764e1c07408d95d7acc5ab4f338a007b1580cf528"
+        "sha256": "dceb222f114a267c44451547029b639a4f655192a9bf23a1013bfa39bb018a61"
       }
     },
     {
@@ -1619,7 +1729,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/route_choice_corridor_sc1004_calibrated_9e6354.json",
-        "sha256": "36097238b09372bdc96c7e450895dd2f5b4bc3510c4c493a172fe3c11a1212bb"
+        "sha256": "3156fa53411176feeab2efd75425a5c6508ab00e07f61c5560c94b1d32aa1b6e"
       }
     },
     {
@@ -1645,7 +1755,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/sc2001_corridor_nc13_2d0c62.json",
-        "sha256": "a4eee33469f1e83ca0fdce79aa7bd538dd36226420c9428b905595d057b8a1e1"
+        "sha256": "4b6f0875b83e4a891ef65d3744945a155a524dbf8f0a9482cc795b6fe15c1562"
       }
     },
     {
@@ -1671,7 +1781,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/shared_approach_f34fb1.json",
-        "sha256": "97e16ead6e0813af535fb559da34b271f36f0628871b5a9ebdfe5bf3485a76d3"
+        "sha256": "b98aa27813a6777fc110e64cb6ff21255d176e3925dd1f131163e9e10b1f3e58"
       }
     },
     {
@@ -1693,7 +1803,7 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/topology_routes_v2_8ac6fd.json",
-        "sha256": "3f8916d1a709b7288718e6af2f6f04e1c91e7f7c76c97deab9c007c250e6949c"
+        "sha256": "089238ededc1877023dada24f73de1b7eabbab4e025de23d06f3fb81821036b4"
       }
     },
     {
@@ -1704,7 +1814,7 @@
       "schema": "experimental-network-prior-transfer/v1",
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/historical_prior_transfer.json",
-        "sha256": "6f5c18343fc2f17e3d559e8d3cca639958f15d4fddb4ac92bed3afbefd51a32d"
+        "sha256": "4de66d407553518380b73c1258b736dc6277929c77aaaa210e48a98836c93ddf"
       },
       "action": "regenerated: training network kept, target v2, prior list checked equal"
     },
@@ -1726,9 +1836,9 @@
       },
       "target": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "f0ed036e46c7b9a83af10d4ba973c2544f3ac9547e0cab26a13d4d7a23add62c"
+        "sha256": "37c5021f05555ec8111ea5a3139873fe876d1047998c7cec90ea3dab28d6de59"
       },
-      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 80,90,100,110 (user approval 2026-09-28, N1 L1 action set)"
+      "action": "copy; RW_ALLOWED_VSL_SPEEDS 50,60,70,80,90,100,115,120 -> 81,91,101,110 (VSL family single_value: the image of the commands 80,90,100,110 under the tuning map; user decision 2026-10-01, single-value VSL with plant law L2)"
     },
     {
       "source": {
@@ -1744,7 +1854,7 @@
   ],
   "config_base": {
     "path": "diagnostics/sdmpc_n31_20260924/scenario/config_n31_v2.base.json",
-    "sha256": "254ca150bb555840dfcd4f40b988c0cf83f399fe4caa2328b01234d8cf3a9c1e"
+    "sha256": "e65d08b970167f1ae8fd81a77af6cd4ae2de3fa30568b6ae11100ae51772051f"
   },
   "runner_config_check": {
     "elements_present": [
@@ -1757,9 +1867,9 @@
       "RW_SIGNAL_SCS"
     ],
     "allowed_vsl_speeds": [
-      80,
-      90,
-      100,
+      81,
+      91,
+      101,
       110
     ],
     "allowed_speeds_without_distribution": [],
@@ -1797,6 +1907,21 @@
       "resolved": 5,
       "external_provenance": [
         {
+          "at": "/repin_step/native_changes/desSpeedDistributions/added_distribution_receipt",
+          "path": "D:\\VISSIM_runs\\20261001_v3c3\\v3c3_edit_receipt.json",
+          "sha256": "b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f"
+        },
+        {
+          "at": "/repin_step/native_changes/vehicleCompositions/added_composition_receipt",
+          "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+          "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb"
+        },
+        {
+          "at": "/repin_step/native_changes/vehicleInputs/composition_edit_receipt",
+          "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+          "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb"
+        },
+        {
           "at": "/repin_step/native_changes/vehicleRoutingDecisionsStatic/added_decision_receipt",
           "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
           "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4"
@@ -1815,6 +1940,16 @@
           "at": "/repin_step/added_decision_block/receipt",
           "path": "D:\\VISSIM_runs\\20260927_v3c1\\v3c1_edit_receipt.json",
           "sha256": "8e69013d442b04cad4b8fa8869b019174481e5e53b01ecc111fd4b6a413567a4"
+        },
+        {
+          "at": "/repin_step/added_composition_block/receipt",
+          "path": "D:\\VISSIM_runs\\20260930_v3c2\\v3c2_edit_receipt.json",
+          "sha256": "cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb"
+        },
+        {
+          "at": "/repin_step/added_distribution_receipt",
+          "path": "D:\\VISSIM_runs\\20261001_v3c3\\v3c3_edit_receipt.json",
+          "sha256": "b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f"
         }
       ]
     },
@@ -1892,20 +2027,20 @@
   "integration": {
     "plant_manifest_v2": {
       "sources.network": {
-        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c1nc.inpx",
-        "sha256": "2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7"
+        "path": "diagnostics/sdmpc_n31_20260924/network/baseline_s31_v3c3nc.inpx",
+        "sha256": "3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e"
       },
       "sources.runner_config": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/lane_native_b110.vbs",
-        "sha256": "f0ed036e46c7b9a83af10d4ba973c2544f3ac9547e0cab26a13d4d7a23add62c"
+        "sha256": "37c5021f05555ec8111ea5a3139873fe876d1047998c7cec90ea3dab28d6de59"
       },
       "sources.sig_manifest": {
         "path": "diagnostics/sdmpc_n31_20260924/network/sig_manifest.json",
-        "sha256": "9888a7b827c669b50dfbe0fcaf430ceba9f391ecb6e9b5508ab6ef7bf68eb218"
+        "sha256": "5421dc93b290ad6361a729b1137a7e32f3ca5083eef837e39408dd95653e4661"
       },
       "membership": {
         "path": "diagnostics/sdmpc_n31_20260924/scenario/control_area_membership_213a5d.json",
-        "sha256": "35d7fd33282e4faa6339180b6a777206d0e3a0dc205ebe1040a5eb206c889dfc"
+        "sha256": "30abb1db4f549068cb7069971c60e7ade8205a882c7999a0d0f2ede4460e5f85"
       }
     },
     "tuning": {

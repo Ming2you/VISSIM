@@ -1,17 +1,20 @@
 r"""Re-pin the SDMPC lane-plant scenario pack onto the runtime network (plan section 5, WP-E): since
-2026-09-28 network v3c1 2577209b (v3b be0075bf + the eight added routing decisions 1160, 1162-1168), 2026-09-25
-to 2026-09-28 v3b be0075bf (FW80/U90 v2 f475ce42 + the v3/v3b static-route edits), before that v2 f475ce42.
+2026-10-01 network v3c3 3de889f0 (v3c2 597191ac = v3c1 + vehicle composition 14 on the freeway entries 1098/1099,
+plus the single-value desired-speed distributions 81/91/101), 2026-09-28 to 2026-10-01 v3c1 2577209b (v3b be0075bf +
+the eight added routing decisions 1160, 1162-1168), 2026-09-25 to 2026-09-28 v3b be0075bf (FW80/U90 v2 f475ce42 +
+the v3/v3b static-route edits), before that v2 f475ce42.
 
 Generalises diagnostics/metanet_compare_20260921/prepare_scenario.py from "original declarations ->
 one network" to "an existing pack -> the next network":
 
     source pack  diagnostics/lane_plant_20260921/scenario/   (21 files pinned to fcb349d3, "PACK")
     source tuning diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json      ("OBS1")
-    network       D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network\        ("NET", read-only)
+    network       D:\VISSIM_runs\20261001_v3c3\s31_v3c3nc\prepared\network\        ("NET", read-only)
 
 Outputs (all under diagnostics/sdmpc_n31_20260924/, byte-exact by .gitattributes):
 
-    network/baseline_s31_v3c1nc.inpx        byte copy of the NET .inpx (2577209b; 2026-09-25..28
+    network/baseline_s31_v3c3nc.inpx        byte copy of the NET .inpx (3de889f0; 2026-09-28..10-01
+                                            baseline_s31_v3c1nc.inpx 2577209b, 2026-09-25..28
                                             baseline_s31_v3bnc.inpx be0075bf, before that
                                             baseline_s31_v2nc.inpx f475ce42)
     network/<42 .sig>                       byte copies of the supply files the .inpx references
@@ -19,7 +22,9 @@ Outputs (all under diagnostics/sdmpc_n31_20260924/, byte-exact by .gitattributes
     scenario/<decl stem>_<sha6>.json        20 declarations; sha6 = sha256(PACK path)[:6]
     scenario/historical_prior_transfer.json regenerated receipt (training network -> v2)
     scenario/profile.csv                    byte copy (__default__,1.0: the v2 demand is inside the .inpx)
-    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 80,90,100,110 only
+    scenario/lane_native_b110.vbs           lane_native.vbs with RW_ALLOWED_VSL_SPEEDS set to 81,91,101,110 only
+                                            (the single-value family; runner-family --vsl-family distribution
+                                            writes the 80,90,100,110 runner of the L1 family elsewhere)
     scenario/lane_native_b110_sgplan.vbs    byte copy (the runner loads <config>_sgplan.vbs by name)
     scenario/config_n31_v2.base.json        OBS1 with every pack path and network pin re-pointed
     scenario/repin_receipt.json             what was copied, rewritten and checked
@@ -37,6 +42,14 @@ Rules (user decisions of 2026-09-24):
   (1160, 1162-1168; V2 = 1161 held) as one inserted byte block pinned by V3C1_INSERTED_BLOCK (the v3c1 edit
   receipt); characterize_changes(added_decisions=...) admits those additions and nothing else, and
   added_block_audit re-proves the bytes. CHANGE_RULES is still not widened.
+- Network v3c2 (user decision 2026-09-30) adds exactly vehicle composition 14 after composition 13
+  (V3C2_ADDED_COMPOSITION, a 391-byte block re-proven by element_block_audit) and switches exactly the 12 freeway-entry
+  intervals of inputs 1098 / 1099 from composition 1 to 14 (V3C2_INPUT_COMPOSITION_EDITS; volumes unchanged). Network
+  v3c3 (user approval 2026-10-01) adds exactly the desired-speed distributions 81 / 91 / 101 right after 80 / 90 / 100
+  (V3C3_ADDED_DISTRIBUTIONS, byte blocks). characterize_changes(added_compositions=..., composition_edits=...,
+  added_distributions=...) admits those and nothing else: vehicleCompositions stays outside CHANGE_RULES (only the
+  enumerated addition passes), the input rule stays "volume only" except on the enumerated rows, and the
+  desSpeedDistributions 'added' list must equal the enumeration (v2 110 + v3c3 81/91/101; review N8).
 - Declaration amendments (network v3c1): V3C1_DECLARATION_AMENDMENTS enumerates the only edits the re-pin makes
   inside a transferred declaration (the reviewed decision 1160 on the input-1083 source link, NA-7; the native
   route ids 1162:1, 1164:1, 1165:1 of two projection-support rows, NA-9), each with the pack value it replaces, a
@@ -48,15 +61,19 @@ Rules (user decisions of 2026-09-24):
 - D-B: the 7 prior-calibrated declarations are carried over unchanged in their priors, with the transfer
   receipt and scenario_derivation.prior_mismatch. Refit after the first 9000 s run.
 - Training artifacts keep their original paths and bytes (scenario_prior_transfer.training_network).
-- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 80,90,100,110 (user approval 2026-09-28 with the N1 L1 VSL law:
-  N1 measured 80-110 only; it replaced 50,60,...,110 of 2026-09-24, which replaced the first 60,80,110): the
-  SDMPC/plant action set, each speed with a desSpeedDistribution of the same number in the runtime network (the
-  runner writes DesSpeedDistr = CLng(speed) and requires the read-back number to equal it). The pack's 115/120
-  have no v2 use.
+- RW_ALLOWED_VSL_SPEEDS on the v2 path is exactly 81,91,101,110 since 2026-10-01 (user decision: single-value VSL
+  compliance with the plant law L2; VSL_FAMILIES['single_value']): the image of the SDMPC/plant command set
+  80,90,100,110 under the tuning map actuation.vsl_command_distribution (80->81, 90->91, 100->101, 110->110), each a
+  desSpeedDistribution of the same number in the runtime network (the runner writes DesSpeedDistr = CLng(speed) and
+  requires the read-back number to equal it). 2026-09-28..10-01 it was 80,90,100,110 (the N1 L1 distribution family,
+  still built on request: runner-family --vsl-family distribution), before that 50..110 and first 60,80,110. The
+  pack's 115/120 have no v2 use.
 
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py build [--network-from copy]
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py verify [--no-net]
     python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py configure-check [--sec 1 --sec 150 ...]
+           [--workdir <empty folder>] [--tuning <config>] [--overlay-root <family folder>]
+    python -B diagnostics/sdmpc_n31_20260924/repin_scenario_v2.py runner-family --vsl-family distribution --out-root <dir>
 
 build writes the outputs (identical bytes are left alone); --network-from copy rebuilds from the pinned
 N31D network copy instead of NET (same bytes, verified), so a rebuild need not read the stage-1 run folder.
@@ -64,8 +81,14 @@ verify regenerates every output in memory and compares bytes, then checks every 
 the "copy equals NET" check and skips that check with a note when NET is absent or --no-net is given. configure-check runs runtime_setup.configure_runtime (every pack
 validator) on saved states of the fcb run sdmpc_lp_9000c twice, as recorded (OBS1 + fcb pack, the control)
 and re-pointed at the v2 network (base config + v2 pack), without a lane plant on either side, and requires
-the same enabled model pieces; it writes only to a temporary folder. One stdout line on success:
-REPIN_OK / REPIN_VERIFY_OK / REPIN_CONFIGURE_OK.
+the same enabled model pieces; it writes only to a temporary folder (or --workdir). Before the donor states it
+re-runs the network enumeration (characterize_changes with every enumerated table + the byte audits, on the pinned
+copy) and the VSL family check of the deployed tuning (vsl_command_distribution.check_family_files, the function
+runtime_setup.configure_runtime calls once the lane plant is v2; configure() itself runs here without a lane plant,
+so that runtime line is first reached at the native t=1 decision). --tuning / --overlay-root point the family stage
+at another tuning or a generator family folder (repo-relative paths resolve there first). runner-family writes the
+runner config of a VSL family (VSL_FAMILIES) under --out-root at its repo-relative path, nothing in the tree.
+One stdout line on success: REPIN_OK / REPIN_VERIFY_OK / REPIN_CONFIGURE_OK / REPIN_RUNNER_FAMILY_OK.
 The runtime validators still decide at the first native decision (G1 t=1); this is not a native run.
 """
 from __future__ import annotations
@@ -93,21 +116,25 @@ NETWORK_DIR_REL = N31D_REL + '/network'
 PACK_REL = 'diagnostics/lane_plant_20260921/scenario'
 OBS1_REL = 'diagnostics/sdmpc_pfo_caps_20260922/config_candidate_obs1.json'
 
-# The CURRENT runtime network: v3c1 (user approval 2026-09-28) = v3b be0075bf + the enumerated added decisions
-# V3C1_ADDED_DECISIONS; v3b (user decision 2026-09-25) = v2 f475ce42 + the enumerated route edits V3B_ROUTE_EDITS.
-# The names V2_SHA256 / V2_PIN are kept (tests and callers use rp.V2_PIN); "v2" here is the plant/scenario
-# generation, not the network version. 2026-09-25..28 this pinned v3b
-# D:\VISSIM_runs\20260925_v3b\s31_v3bnc\prepared\network\baseline_s31_v3bnc.inpx (be0075bf...), before that the v2
-# network D:\VISSIM_runs\20260923_stage1\s31_v2nc\prepared\network\baseline_s31_v2nc.inpx (f475ce42...).
-NET_DIR = Path(r'D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network')
-NET_INPX = 'baseline_s31_v3c1nc.inpx'
-V2_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
+# The CURRENT runtime network: v3c3 (user approval 2026-10-01) = v3c2 597191ac + the enumerated distributions
+# V3C3_ADDED_DISTRIBUTIONS; v3c2 (user decision 2026-09-30) = v3c1 2577209b + the enumerated composition
+# V3C2_ADDED_COMPOSITION and input edits V3C2_INPUT_COMPOSITION_EDITS; v3c1 (user approval 2026-09-28) = v3b be0075bf
+# + the enumerated added decisions V3C1_ADDED_DECISIONS; v3b (user decision 2026-09-25) = v2 f475ce42 + the enumerated
+# route edits V3B_ROUTE_EDITS. The names V2_SHA256 / V2_PIN are kept (tests and callers use rp.V2_PIN); "v2" here is
+# the plant/scenario generation, not the network version. 2026-09-28..10-01 this pinned v3c1
+# D:\VISSIM_runs\20260927_v3c1\s31_v3c1nc\prepared\network\baseline_s31_v3c1nc.inpx (2577209b...), 2026-09-25..28
+# v3b (be0075bf...), before that the v2 network D:\VISSIM_runs\20260923_stage1\s31_v2nc\prepared\network\
+# baseline_s31_v2nc.inpx (f475ce42...).
+NET_DIR = Path(r'D:\VISSIM_runs\20261001_v3c3\s31_v3c3nc\prepared\network')
+NET_INPX = 'baseline_s31_v3c3nc.inpx'
+V2_SHA256 = '3de889f0257d998bed50611f798ea388bcf69396dbc40e5726b1e88ebdd31c2e'
 V2_PIN = {'path': NETWORK_DIR_REL + '/' + NET_INPX, 'sha256': V2_SHA256}
-NETWORK_LABEL = 'v3c1 2577209b'
-PREVIOUS_RUNTIME_NETWORK = {'path': NETWORK_DIR_REL + '/baseline_s31_v3bnc.inpx',
-                            'sha256': 'be0075bf4d5e9e239ffc1e9efb6d70d11c6ec6136e46f1a92d910bc79d813cdc'}
-PREVIOUS_RUNTIME_NOTE = ('v3b be0075bf, the runtime network 2026-09-25..2026-09-28 (replaced, file removed; v3b replays '
-                         'run from a frozen tree); v2 f475ce42 before 2026-09-25')
+NETWORK_LABEL = 'v3c3 3de889f0'
+PREVIOUS_RUNTIME_NETWORK = {'path': NETWORK_DIR_REL + '/baseline_s31_v3c1nc.inpx',
+                            'sha256': '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'}
+PREVIOUS_RUNTIME_NOTE = ('v3c1 2577209b, the runtime network 2026-09-28..2026-10-01 (replaced, file removed; v3c1 replays '
+                         'run from a frozen tree: sdmpc31_5323faa4 for 5323faa, sdmpc31_54d821c1 for K1-K6); v3b be0075bf '
+                         '2026-09-25..28; v2 f475ce42 before 2026-09-25')
 OLD_PIN = {'path': 'diagnostics/demand_sweep/ramp_dsd_20260916_v2/source_dsd/baseline.inpx',
            'sha256': 'fcb349d341e69a9f5c0847ecfa242dd19db13bfab738d6331fbcd72a6f009bf4'}
 SIG_COUNT = 42
@@ -157,9 +184,18 @@ PRIOR_DECLARATIONS = (
     'route_choice_corridor_sc1004_calibrated_6eb99c.json',
     'sc2001_corridor_nc13_f76cd6.json',
 )
-# User approval 2026-09-28 (with the N1 L1 VSL law): 80..110, the range N1 measured (was 50..110, 2026-09-24);
-# each speed needs a desSpeedDistribution of the same number in the runtime network.
-VSL_SPEEDS = (80, 90, 100, 110)
+# The runner allow-list per VSL family (plan REPIN_V3C2 3.5, U3-a / U5-a). Commands stay 80,90,100,110 in both
+# (tuning / reference vsl_set, SDMPC axes, action JSON); the runner list is their image under the tuning map
+# actuation.vsl_command_distribution, each a desSpeedDistribution of the same number in the runtime network:
+#   single_value  user decision 2026-10-01: commands written as the single-value distributions 81/91/101 (80-82,
+#                 90-92, 100-102) and 110 (98-140 = VSL off), plant law L2 (speed_scale). The live family.
+#   distribution  user approval 2026-09-28: commands written as the spread distributions 80/90/100/110 (identity map),
+#                 plant law N1 L1. Built on request only (runner-family; make_reference_config / make_plant_n31 /
+#                 make_config_n31 --vsl-family distribution --out-root), never in the tree.
+VSL_FAMILIES = {'single_value': (81, 91, 101, 110), 'distribution': (80, 90, 100, 110)}
+VSL_FAMILY = 'single_value'
+VSL_COMMANDS = (80, 90, 100, 110)
+VSL_SPEEDS = VSL_FAMILIES[VSL_FAMILY]
 FIRST_RUNTIME_CHECK = 'G1 t=1 decision: every validator runs in configure() before the first no-control action'
 
 
@@ -420,6 +456,43 @@ V3C1_ADDED_DECISIONS = (
 V3C1_INSERTED_BLOCK = {'after_decision': '1159', 'bytes': 9293,
                        'sha256': '2b77ab010cd89de02af3c446ad082168915fd47efc6ea7e69a98918dcf8d639f'}
 
+# Network v3c2 (user decision 2026-09-30, D:/VISSIM_runs/20260930_v3c2/reports/DECISION_v3c2_adopt.md de71def6): v3c1
+# 2577209b plus vehicle composition 14 "Freeway entry DSD110" (vehicle types 100/150/200, relFlow 0.806/0.1/0.094, all
+# DSD 110), appended to vehicleCompositions after composition 13 as one 391-byte block, and the 12 freeway-entry
+# intervals of inputs 1098 (link 74) and 1099 (link 26) switched from composition 1 to 14 (vehComp only; volume and
+# every other attribute unchanged). Nothing else differs from v3c1 (receipt checks). characterize_changes admits exactly
+# this addition (vehicleCompositions is NOT added to CHANGE_RULES) and exactly these input rows (the input rule stays
+# "volume only" everywhere else); element_block_audit re-proves the composition bytes.
+V3C2_EDIT_RECEIPT = {'path': r'D:\VISSIM_runs\20260930_v3c2\v3c2_edit_receipt.json',
+                     'sha256': 'cf8b0cb2675cff36b314a4e5af88bbc83c7d30ae92d7f7620f7df5ffed0f9fcb',
+                     'rows': 'edits.composition (14 after 13, 391 B) + edits.replaced_attributes (12 vehComp 1 -> 14): '
+                             'v3c1 2577209b -> v3c2 597191ac'}
+V3C2_ADDED_COMPOSITION = {'section': 'vehicleCompositions', 'element': 'vehicleComposition', 'no': '14', 'after': '13',
+                          'bytes': 391, 'sha256': '82c11cd54b3c11da2899974ff737c52589eb8ed428ecf3efd468ab6411838f4d'}
+# (input, timeInt, old vehComp, new vehComp): the receipt's edits.replaced_attributes, in its order.
+V3C2_INPUT_COMPOSITION_EDITS = tuple(
+    (number, '1 %d' % start, '1', '14') for number in ('1098', '1099')
+    for start in (0, 900000, 1800000, 2700000, 3600000, 4500000))
+# Network v3c3 (user approval 2026-10-01; REPIN_V3C2_PLAN U1): v3c2 plus the N1F stage-2 single-value distributions,
+# each inserted as whole lines right after the line closing distribution 80 / 90 / 100 (bytes = the N1F plan
+# d0e8fdba dsd_blocks). The only distribution the pack fcb349d3 -> v2 step added is 110 (DSD 120 -> 110, NEW-1).
+V3C3_EDIT_RECEIPT = {'path': r'D:\VISSIM_runs\20261001_v3c3\v3c3_edit_receipt.json',
+                     'sha256': 'b1bd1fd5d6b80ce95eefcfb1c2e45afed1ffe1284439098b9fea05156c108b0f',
+                     'rows': 'edits.desSpeedDistributions_inserted (81 / 91 / 101): v3c2 597191ac -> v3c3 3de889f0'}
+V2_ADDED_DISTRIBUTIONS = ('110',)
+# (number, after, bytes, sha256)
+V3C3_ADDED_DISTRIBUTIONS = (
+    ('81', '80', 217, 'ae06360d5713e1c6c010919d0008df0f4ff80b15140258ba83fa4c6dc8752810'),
+    ('91', '90', 217, 'fbb7066f0bb84b2ea489ec281e092508d07610ae2bc8817c0be2ec10aa048bb9'),
+    ('101', '100', 221, 'f3d776c20610286ed4a942c626e9070a904fcc5285d84a2c2904c2532b7ea76d'),
+)
+
+
+def enumerated_distributions(added=V3C3_ADDED_DISTRIBUTIONS):
+    """The desSpeedDistributions a target may add to the pack network: v2's 110 plus the enumerated ones (sorted)."""
+    return sorted(set(V2_ADDED_DISTRIBUTIONS) | {row[0] for row in added}, key=int_key)
+
+
 # Declaration amendments (network v3c1, user approval 2026-09-28, REPIN_PLAN NA-7 / NA-9 and decisions D2 / D4):
 # (pack declaration, JSON pointer, kind, pack value, new value, review). 'replace' requires the pack value at the
 # pointer; 'add' requires the key to be absent. build applies them after the rewrite, re-proves each against the
@@ -503,17 +576,55 @@ def added_decision_rows(new_root, added_decisions):
     return rows
 
 
-def characterize_changes(old_root, new_root, route_edits=(), added_decisions=()):
+def composition_edit_rows(old_root, new_root, composition_edits):
+    """composition_edits rows (input, timeInt, old vehComp, new vehComp) checked against both networks: each input's
+    intervals are exactly its enumerated rows, every old/new vehComp as enumerated, and nothing but volume and
+    vehComp differs on those inputs."""
+    rows = []
+    by_input = {}
+    for number, interval, old, new in composition_edits:
+        by_input.setdefault(number, []).append((interval, old, new))
+    for number, expected in by_input.items():
+        a = old_root.find(f"./vehicleInputs/vehicleInput[@no='{number}']")
+        b = new_root.find(f"./vehicleInputs/vehicleInput[@no='{number}']")
+        require(a is not None and b is not None, f'composition edit: input {number} missing')
+        require(canonical(a, strip=('volume', 'vehComp')) == canonical(b, strip=('volume', 'vehComp')),
+                f'input {number} differs beyond volume and vehComp')
+        ia = a.findall('./timeIntVehVols/timeIntervalVehVolume')
+        ib = b.findall('./timeIntVehVols/timeIntervalVehVolume')
+        found = [(x.get('timeInt'), x.get('vehComp'), y.get('vehComp')) for x, y in zip(ia, ib)]
+        require(len(ia) == len(ib) and found == expected,
+                f'input {number}: vehComp rows {found} are not the enumerated {expected}')
+        rows.extend({'input': number, 'link': b.get('link'), 'timeInt': t, 'old': o, 'new': n} for t, o, n in found)
+    return rows
+
+
+def characterize_changes(old_root, new_root, route_edits=(), added_decisions=(), added_compositions=(),
+                         composition_edits=(), added_distributions=None):
     """Prove the v2 difference is exactly the NEW-1 kinds (plus seed/SimRes); refuse anything else.
 
     route_edits (build: V3B_ROUTE_EDITS) additionally admits exactly those enumerated static-route edits: the
     routing decisions that differ beyond relFlow must be exactly the decisions of its non-relFlow rows, and the
     old network with every row applied must equal the target (relFlow compared per row).
     added_decisions (build: V3C1_ADDED_DECISIONS) admits exactly those added routing decisions (numbers equal, each
-    element's link, pos and route count as enumerated); CHANGE_RULES still refuses any other added element."""
+    element's link, pos and route count as enumerated); CHANGE_RULES still refuses any other added element.
+    added_compositions (build: (V3C2_ADDED_COMPOSITION,)) admits exactly those added vehicle compositions;
+    vehicleCompositions is not a CHANGE_RULES section, so anything else there (or any composition without this
+    argument) still refuses. composition_edits (build: V3C2_INPUT_COMPOSITION_EDITS) admits exactly those vehComp
+    rows; every other input still differs in volume only. added_distributions (build: V3C3_ADDED_DISTRIBUTIONS;
+    review N8) requires the desSpeedDistributions 'added' list to equal enumerated_distributions() exactly (the
+    CHANGE_RULES 'added' alone would admit any new distribution)."""
     diff = section_diff(old_root, new_root)
     report = {}
     for tag, row in diff.items():
+        if tag == 'vehicleCompositions' and added_compositions:
+            enumerated = sorted((c['no'] for c in added_compositions), key=int_key)
+            require(set(row) == {'added', 'removed', 'changed'} and not row['removed'] and not row['changed']
+                    and row['added'] == enumerated,
+                    f'{tag}: {row} is not exactly the enumerated added compositions {enumerated}')
+            report[tag] = {'meaning': 'the enumerated v3c2 composition (V3C2_ADDED_COMPOSITION; not a CHANGE_RULES section)',
+                           'added': row['added'], 'added_composition_receipt': dict(V3C2_EDIT_RECEIPT)}
+            continue
         require(tag in CHANGE_RULES, f'v2 network differs in an unreviewed section: {tag} {row}')
         rule = CHANGE_RULES[tag]
         require('presence' not in row, f'{tag}: section present in one network only')
@@ -539,6 +650,12 @@ def characterize_changes(old_root, new_root, route_edits=(), added_decisions=())
                                   'content_changed': [canonical(x) for x in ca] != [canonical(y) for y in cb]}
                                  for ca, cb in zip(a, b) if canonical(ca) != canonical(cb)]
         require(not row.get('removed'), f'{tag}: elements removed {row.get("removed")}')
+        if tag == 'desSpeedDistributions' and added_distributions is not None:
+            enumerated = enumerated_distributions(added_distributions)
+            require(row.get('added', []) == enumerated,
+                    f'{tag}: elements added {row.get("added", [])}, the enumerated distributions are {enumerated}')
+            entry['meaning'] = rule['meaning'] + ' (exactly the enumerated v2 110 + V3C3_ADDED_DISTRIBUTIONS)'
+            entry['added_distribution_receipt'] = dict(V3C3_EDIT_RECEIPT)
         if row.get('added'):
             require(rule.get('added'), f'{tag}: elements added {row["added"]}')
             entry['added'] = row['added']
@@ -546,6 +663,14 @@ def characterize_changes(old_root, new_root, route_edits=(), added_decisions=())
             require('changed' in rule, f'{tag}: elements changed {row["changed"]}')
             a, b = keyed(old_root.find(tag)), keyed(new_root.find(tag))
             still = [k for k in row['changed'] if canonical(a[k], **rule['changed']) != canonical(b[k], **rule['changed'])]
+            if tag == 'vehicleInputs' and composition_edits:
+                enumerated = sorted({r[0] for r in composition_edits}, key=int_key)
+                require(sorted(still, key=int_key) == enumerated,
+                        f'{tag}: {still} differ beyond "{rule["meaning"]}"; the enumerated composition edits name {enumerated}')
+                entry['meaning'] = rule['meaning'] + ' + the enumerated v3c2 vehComp rows (V3C2_INPUT_COMPOSITION_EDITS)'
+                entry['composition_edits'] = composition_edit_rows(old_root, new_root, composition_edits)
+                entry['composition_edit_receipt'] = dict(V3C2_EDIT_RECEIPT)
+                still = []
             if tag == 'vehicleRoutingDecisionsStatic' and route_edits:
                 edited = sorted({row_[0] for row_ in route_edits if row_[3] != 'relFlow'}, key=int_key)
                 require(sorted(still, key=int_key) == edited,
@@ -582,6 +707,13 @@ def characterize_changes(old_root, new_root, route_edits=(), added_decisions=())
                           if x.get('desSpeedDistr') != y.get('desSpeedDistr')}
                 entry['distribution_changes'] = [{'old': o, 'new': n} for o, n in sorted(values)]
         report[tag] = entry
+    require(not added_compositions or 'vehicleCompositions' in report,
+            'the enumerated added compositions are absent from the target network')
+    require(not composition_edits or 'composition_edits' in report.get('vehicleInputs', {}),
+            'the enumerated composition edits are absent from the target network')
+    require(added_distributions is None or not enumerated_distributions(added_distributions)
+            or 'added_distribution_receipt' in report.get('desSpeedDistributions', {}),
+            'the enumerated distributions are absent from the target network')
     return report
 
 
@@ -609,6 +741,42 @@ def added_block_audit(network, added_decisions=V3C1_ADDED_DECISIONS, block=V3C1_
             f'the inserted block does not follow decision {block["after_decision"]}')
     return {'after_decision': block['after_decision'], 'bytes': len(data), 'sha256': sha256_bytes(data),
             'decisions': numbers, 'receipt': dict(V3C1_EDIT_RECEIPT)}
+
+
+def element_block_audit(network, section, element, number, after, size, digest):
+    """One added element as whole lines: from the line opening <element ... no="number"> through the line closing it,
+    right after the line closing element `after` of the same kind, with the edit receipt's length and sha256."""
+    opens = [m.start() + 1 for m in re.finditer(rb'\n[ \t]*<' + element.encode() + rb' [^>]*\bno="' + number.encode()
+                                                + rb'"', network)]
+    require(len(opens) == 1, f'{element} {number} opens {len(opens)} times in the network bytes')
+    start = opens[0]
+    close = network.find(b'</' + element.encode() + b'>', start)
+    require(close > 0, f'{element} {number} does not close')
+    end = network.find(b'\n', close) + 1
+    data = network[start:end]
+    require((len(data), sha256_bytes(data)) == (size, digest),
+            f'{element} {number} block is {len(data)} bytes sha256 {sha256_bytes(data)[:8]}, the edit receipt pins '
+            f'{size} bytes {digest[:8]}')
+    before = network.rfind(b'\n', 0, start - 1) + 1
+    previous = network[network.rfind(b'<' + element.encode() + b' ', 0, start):start]
+    require(network[before:start].strip() == b'</' + element.encode() + b'>'
+            and re.search(rb'\bno="' + after.encode() + rb'"', previous.split(b'>', 1)[0]) is not None,
+            f'{element} {number} does not follow {element} {after}')
+    wrapped = ET.fromstring(b'<' + section.encode() + b'>' + data + b'</' + section.encode() + b'>')
+    require([x.get('no') for x in wrapped] == [number], f'the {element} {number} block holds other elements')
+    return {'element': element, 'no': number, 'after': after, 'bytes': len(data), 'sha256': sha256_bytes(data)}
+
+
+def v3c3_block_audit(network):
+    """element_block_audit of the v3c2 composition and the v3c3 distributions (build and configure-check)."""
+    c = V3C2_ADDED_COMPOSITION
+    return {'added_composition_block': dict(element_block_audit(network, c['section'], c['element'], c['no'], c['after'],
+                                                                c['bytes'], c['sha256']),
+                                            receipt=dict(V3C2_EDIT_RECEIPT)),
+            'added_distribution_blocks': [element_block_audit(network, 'desSpeedDistributions', 'desSpeedDistribution',
+                                                              number, after, size, digest)
+                                          for number, after, size, digest in V3C3_ADDED_DISTRIBUTIONS],
+            'added_distribution_receipt': dict(V3C3_EDIT_RECEIPT)}
 
 
 def native_diff(old_root, new_root):
@@ -856,8 +1024,16 @@ def vbs_constants(data):
     return {m.group(1): m.group(2) for m in re.finditer(r'^(RW_[A-Z0-9_]+) = "([^"\r\n]*)"', text, re.M)}
 
 
-def runner_config_check(data, tree):
-    """The runner config names only elements the v2 network has; VSL speeds map to distributions."""
+def runner_family_bytes(pack_runner, family):
+    """The runner config of a VSL family: the pack runner with RW_ALLOWED_VSL_SPEEDS = VSL_FAMILIES[family]."""
+    require(family in VSL_FAMILIES, f'unknown VSL family {family!r}: {sorted(VSL_FAMILIES)}')
+    return set_vsl_speeds(pack_runner, VSL_FAMILIES[family])
+
+
+def runner_config_check(data, tree, speeds=None):
+    """The runner config names only elements the v2 network has; VSL speeds map to distributions (review N7: the image
+    of the command map lies inside the pinned network's distributions). speeds: the family list (VSL_SPEEDS)."""
+    speeds = tuple(VSL_SPEEDS if speeds is None else speeds)
     constants = vbs_constants(data)
     links = {x.get('no') for x in tree.findall('./links/link')}
     scs = {x.get('no') for x in tree.findall('./signalControllers/signalController')}
@@ -871,9 +1047,9 @@ def runner_config_check(data, tree):
     for key in ('RW_RAMP_METER_SCS', 'RW_SIGNAL_SCS'):
         require(set(lists[key]) <= scs, f'{key} names controllers the v2 network lacks')
     require(set(lists['RW_EXPECTED_VSL_DSD_IDS']) <= dsds, 'RW_EXPECTED_VSL_DSD_IDS names absent decisions')
-    require([int(v) for v in lists['RW_ALLOWED_VSL_SPEEDS']] == list(VSL_SPEEDS),
-            f'RW_ALLOWED_VSL_SPEEDS is {lists["RW_ALLOWED_VSL_SPEEDS"]}, expected {list(VSL_SPEEDS)}')
-    missing = [v for v in VSL_SPEEDS if str(v) not in distributions]
+    require([int(v) for v in lists['RW_ALLOWED_VSL_SPEEDS']] == list(speeds),
+            f'RW_ALLOWED_VSL_SPEEDS is {lists["RW_ALLOWED_VSL_SPEEDS"]}, expected {list(speeds)}')
+    missing = [v for v in speeds if str(v) not in distributions]
     require(not missing, f'v2 network lacks desSpeedDistribution {missing}')
     return {
         'elements_present': sorted(k for k in lists if k != 'RW_ALLOWED_VSL_SPEEDS'),
@@ -1225,8 +1401,11 @@ def build_outputs(sources):
     """Every output as bytes (copies included), plus the receipt. Pure: reads sources only."""
     pack_bytes = {f'{PACK_REL}/{name}': data for name, data in sources.pack.items()}
     changes = characterize_changes(sources.old_tree, sources.new_tree, route_edits=V3B_ROUTE_EDITS,
-                                   added_decisions=V3C1_ADDED_DECISIONS)
+                                   added_decisions=V3C1_ADDED_DECISIONS, added_compositions=(V3C2_ADDED_COMPOSITION,),
+                                   composition_edits=V3C2_INPUT_COMPOSITION_EDITS,
+                                   added_distributions=V3C3_ADDED_DISTRIBUTIONS)
     added_block = added_block_audit(sources.network)
+    v3c3_blocks = v3c3_block_audit(sources.network)
     simres = sources.new_tree.find('simulation').get('simRes')
     require(simres == str(EXPECTED_SIMRES), f'v2 network SimRes {simres} differs from the contract ({EXPECTED_SIMRES})')
     outputs = copies(sources)
@@ -1249,7 +1428,7 @@ def build_outputs(sources):
 
     # profile, runner config, SG plan
     outputs[path_map[f'{PACK_REL}/{PROFILE_NAME}']] = sources.pack[PROFILE_NAME]
-    runner_bytes, old_speeds = set_vsl_speeds(sources.pack[RUNNER_CONFIG[0]], VSL_SPEEDS)
+    runner_bytes, old_speeds = runner_family_bytes(sources.pack[RUNNER_CONFIG[0]], VSL_FAMILY)
     outputs[f'{SCENARIO_REL}/{RUNNER_CONFIG[1]}'] = runner_bytes
     outputs[f'{SCENARIO_REL}/{SG_PLAN[1]}'] = sources.pack[SG_PLAN[0]]
     runner_check = runner_config_check(runner_bytes, sources.new_tree)
@@ -1281,16 +1460,19 @@ def build_outputs(sources):
         'unchanged_prior_files': unchanged,
         'actual_native_differences': native_diff(sources.training_tree, sources.new_tree),
         'limitations': list(sources.old_transfer['limitations']) + [
-            'The runtime network v3c1 2577209b (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b '
+            'The runtime network v3c3 3de889f0 (= v2 f475ce42: FW80/U90 demand, 1130/1131 split, DSD 110; plus the v3/v3b '
             'static-route edits: 19 route destinations, 1061 pos, 32 relFlows, user decision 2026-09-25; plus the eight '
-            'v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28) differs again from the pack network '
-            'fcb349d3; see repin_step. The priors keep their training network and bytes.'],
+            'v3c1 routing decisions 1160, 1162-1168, user approval 2026-09-28; plus the v3c2 vehicle composition 14 on '
+            'the 12 freeway-entry intervals of inputs 1098/1099, user decision 2026-09-30; plus the v3c3 single-value '
+            'distributions 81/91/101, user approval 2026-10-01) differs again from the pack network fcb349d3; see '
+            'repin_step. The priors keep their training network and bytes.'],
         'repin_step': {
             'previous_transfer': old_transfer_pin,
             'from_network': dict(OLD_PIN),
             'to_network': dict(V2_PIN),
             'native_changes': changes,
             'added_decision_block': added_block,
+            **v3c3_blocks,
         },
         'prior_mismatch': {
             'status': 'transferred_without_refit',
@@ -1376,8 +1558,9 @@ def build_outputs(sources):
     config = rewrite(obs1)
     config['name'] = 'sdmpc31_v2_repin_base_20260924'
     config['description'] = ('WP-E base (plan section 5): ' + OBS1_REL + ' with the scenario pack and network pins re-pointed '
-                             'to the network v3c1 2577209b (FW80/U90 v2 + v3/v3b route edits 2026-09-25 + the v3c1 routing decisions '
-                             '2026-09-28). Not launchable alone: freeway.lane_plant still selects '
+                             'to the network v3c3 3de889f0 (FW80/U90 v2 + v3/v3b route edits 2026-09-25 + the v3c1 routing decisions '
+                             '2026-09-28 + the v3c2 entry composition 2026-09-30 + the v3c3 single-value distributions 2026-10-01). '
+                             'Not launchable alone: freeway.lane_plant still selects '
                              'the v1 manifest; WP-C make_config_n31.py layers the v2 differences. | ' + obs1['description'])
     config['_repin'] = {'schema': 'sdmpc31-config-base/v1', 'source_config': pin_of(OBS1_REL, sources.obs1),
                         'tool': TOOL_REL, 'rewritten': rewrite.edits,
@@ -1403,7 +1586,9 @@ def build_outputs(sources):
                   'action': 'regenerated: training network kept, target v2, prior list checked equal'})
     for name, action in ((PROFILE_NAME, 'byte copy'),
                          (RUNNER_CONFIG[0], f'copy; RW_ALLOWED_VSL_SPEEDS {",".join(map(str, old_speeds))} -> '
-                                            f'{",".join(map(str, VSL_SPEEDS))} (user approval 2026-09-28, N1 L1 action set)'),
+                                            f'{",".join(map(str, VSL_SPEEDS))} (VSL family {VSL_FAMILY}: the image of '
+                                            f'the commands {",".join(map(str, VSL_COMMANDS))} under the tuning map; user '
+                                            f'decision 2026-10-01, single-value VSL with plant law L2)'),
                          (SG_PLAN[0], 'byte copy; name follows the runner config (VBS LoadSignalGroupPlanConfig)')):
         files.append({'source': pin_of(f'{PACK_REL}/{name}', sources.pack[name]), 'target': pin_map[f'{PACK_REL}/{name}'],
                       'action': action})
@@ -1574,12 +1759,69 @@ def configure_one(mode, sec, donor, workdir):
     print(json.dumps({'mode': mode, 'sec': sec, 'metadata_keys': len(metadata), 'flags': flags}, sort_keys=True))
 
 
-def configure_check(donor, seconds):
+DEPLOYED_TUNING_REL = N31D_REL + '/config_n31_v2.json'
+
+
+def overlay_path(rel, overlay_root=None):
+    """A repo-relative path, resolved in the family folder first (generator --out-root layout), else in the tree."""
+    if overlay_root is not None:
+        candidate = Path(overlay_root) / rel.replace('\\', '/')
+        if candidate.is_file():
+            return candidate
+    return repo_path(rel)
+
+
+def family_check(tuning_path=None, overlay_root=None):
+    """The VSL family of a tuning: its map, the plant law of its manifest's reference and the manifest's runner
+    (vsl_command_distribution.check_family_files, the runtime's own V-9 check), on the pinned files."""
+    from evaluation.controllers import vsl_command_distribution
+    path = Path(tuning_path) if tuning_path else overlay_path(DEPLOYED_TUNING_REL, overlay_root)
+    tuning = load_json(path.read_bytes())
+    require('extends' not in tuning, f'family check needs a flattened tuning: {path}')
+    plant_rel = tuning.get('freeway', {}).get('lane_plant')
+    require(isinstance(plant_rel, str) and plant_rel, f'{path}: freeway.lane_plant missing')
+    plant = load_json(overlay_path(plant_rel, overlay_root).read_bytes())
+    files = {}
+    for key in ('reference_config', 'runner_config'):
+        pin = plant['sources'][key]
+        file = overlay_path(pin['path'], overlay_root)
+        require(sha256_bytes(file.read_bytes()) == pin['sha256'], f'plant {key} differs from its pin: {file}')
+        files[key] = file
+    try:
+        family = vsl_command_distribution.check_family_files(tuning, files['reference_config'], files['runner_config'])
+    except ValueError as error:
+        raise RepinError(f'VSL family: {error}') from None
+    return {'tuning': str(path), 'plant': plant_rel, **family}
+
+
+def enumeration_check():
+    """characterize_changes with every enumerated table and the byte audits, on the pinned N31D network copy."""
+    sources = Sources(network_from='copy')
+    changes = characterize_changes(sources.old_tree, sources.new_tree, route_edits=V3B_ROUTE_EDITS,
+                                   added_decisions=V3C1_ADDED_DECISIONS, added_compositions=(V3C2_ADDED_COMPOSITION,),
+                                   composition_edits=V3C2_INPUT_COMPOSITION_EDITS,
+                                   added_distributions=V3C3_ADDED_DISTRIBUTIONS)
+    added_block_audit(sources.network)
+    blocks = v3c3_block_audit(sources.network)
+    return {'sections': sorted(changes), 'compositions': changes['vehicleCompositions']['added'],
+            'distributions': changes['desSpeedDistributions']['added'],
+            'composition_edits': len(changes['vehicleInputs']['composition_edits']),
+            'distribution_blocks': [b['no'] for b in blocks['added_distribution_blocks']]}
+
+
+def configure_check(donor, seconds, workdir=None):
     """Control (OBS1 + fcb pack) and v2 (base config + v2 pack) through configure(); flags must agree."""
+    import contextlib
     import subprocess
     import tempfile
     results = []
-    with tempfile.TemporaryDirectory(prefix='repin_configure_') as workdir:
+    if workdir is None:
+        context = tempfile.TemporaryDirectory(prefix='repin_configure_')
+    else:
+        Path(workdir).mkdir(parents=True, exist_ok=True)
+        require(not any(Path(workdir).iterdir()), f'--workdir must be empty: {workdir}')
+        context = contextlib.nullcontext(str(workdir))
+    with context as workdir:
         for sec in seconds:
             outcome = {}
             for mode in ('control', 'v2'):
@@ -1598,7 +1840,7 @@ def configure_check(donor, seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    parser.add_argument('command', choices=('build', 'verify', 'configure-check', 'configure-one'))
+    parser.add_argument('command', choices=('build', 'verify', 'configure-check', 'configure-one', 'runner-family'))
     parser.add_argument('--donor', default=str(DONOR_RUN), help='configure-check: a fcb SDMPC run folder with saved states')
     parser.add_argument('--sec', type=int, action='append', help='configure-check: decision times (default 1,150,900)')
     parser.add_argument('--mode', choices=('control', 'v2'))
@@ -1606,14 +1848,40 @@ def main(argv=None):
     parser.add_argument('--network-from', choices=('net', 'copy'), default='net',
                         help='build: read the v2 network from NET (default) or from the pinned N31D copy')
     parser.add_argument('--no-net', action='store_true', help='verify: skip the "copy equals NET" check (NET not read)')
+    parser.add_argument('--tuning', help='configure-check: the tuning of the VSL family stage (default the deployed '
+                                         + DEPLOYED_TUNING_REL + ', in --overlay-root first)')
+    parser.add_argument('--overlay-root', help='configure-check: a generator family folder (repo-relative layout) '
+                                               'whose files replace the tree ones in the family stage')
+    parser.add_argument('--vsl-family', choices=sorted(VSL_FAMILIES), default=VSL_FAMILY,
+                        help='runner-family: the VSL family whose runner config to write')
+    parser.add_argument('--out-root', help='runner-family: folder that receives <repo-relative runner path>')
     args = parser.parse_args(argv)
     try:
         if args.command == 'configure-one':
             configure_one(args.mode, args.sec[0], Path(args.donor), args.workdir)
             return 0
         if args.command == 'configure-check':
-            results = configure_check(Path(args.donor), args.sec or CONFIGURE_SECONDS)
-            print('REPIN_CONFIGURE_OK ' + ' '.join(f't={sec}:keys={keys},enabled={on}' for sec, keys, on in results))
+            enumeration = enumeration_check()
+            family = family_check(args.tuning, args.overlay_root)
+            results = configure_check(Path(args.donor), args.sec or CONFIGURE_SECONDS, args.workdir)
+            print('REPIN_CONFIGURE_OK enumeration=compositions:' + ','.join(enumeration['compositions'])
+                  + ';vehcomp_rows:' + str(enumeration['composition_edits'])
+                  + ';distributions:' + ','.join(enumeration['distributions'])
+                  + f' family={family["family"]}:written=' + ','.join('%g' % v for v in family['written'])
+                  + ' ' + ' '.join(f't={sec}:keys={keys},enabled={on}' for sec, keys, on in results))
+            return 0
+        if args.command == 'runner-family':
+            require(args.out_root, 'runner-family needs --out-root (it never writes into the tree)')
+            out_root = Path(args.out_root).resolve()
+            require(not out_root.is_relative_to(ROOT.resolve()), 'runner-family --out-root must lie outside the tree')
+            pack = (ROOT / PACK_REL / RUNNER_CONFIG[0]).read_bytes()
+            data, old = runner_family_bytes(pack, args.vsl_family)
+            check = runner_config_check(data, ET.fromstring(read_pinned(V2_PIN)), VSL_FAMILIES[args.vsl_family])
+            target = out_root / SCENARIO_REL / RUNNER_CONFIG[1]
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            print(f'REPIN_RUNNER_FAMILY_OK family={args.vsl_family} speeds={",".join(map(str, check["allowed_vsl_speeds"]))} '
+                  f'sha256={sha256_bytes(data)} path={target}')
             return 0
         if args.command == 'build':
             sources = Sources(network_from=args.network_from)

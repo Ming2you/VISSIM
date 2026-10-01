@@ -188,19 +188,34 @@ def test_set_vsl_speeds_changes_one_line_only(bom, eol):
     assert out.startswith(codecs.BOM_UTF8) == bom
     a, b = data.split(b'\n'), out.split(b'\n')
     assert len(a) == len(b) and [i for i, (x, y) in enumerate(zip(a, b)) if x != y] == [2]
-    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "80,90,100,110"' + (b'\r' if eol == '\r\n' else b'')
+    assert b[2] == b'RW_ALLOWED_VSL_SPEEDS = "81,91,101,110"' + (b'\r' if eol == '\r\n' else b'')
 
 
 def test_vsl_speeds_are_the_user_decision():
-    assert rp.VSL_SPEEDS == (80, 90, 100, 110)   # 2026-09-28 (N1 L1 action set; 50..110 of 2026-09-24 before)
-    # One action set: the runner list, the tuning vsl_set and the plant reference vsl_set.
+    # 2026-10-01: the single-value family (commands 80/90/100 written as distributions 81/91/101, 110 as itself);
+    # 80..110 (N1 L1 distribution family) 2026-09-28..10-01, 50..110 of 2026-09-24 before.
+    assert rp.VSL_FAMILY == 'single_value' and rp.VSL_SPEEDS == (81, 91, 101, 110)
+    assert rp.VSL_FAMILIES == {'single_value': (81, 91, 101, 110), 'distribution': (80, 90, 100, 110)}
+    # One command set: the tuning vsl_set and the plant reference vsl_set; the runner list is its image.
     config = _load('make_config_n31', N31D / 'make_config_n31.py')
     reference = _load('make_reference_config', N31D / 'make_reference_config.py')
-    assert [float(v) for v in rp.VSL_SPEEDS] == config.VSL_SET == reference.VSL_SET
+    assert [float(v) for v in rp.VSL_COMMANDS] == config.VSL_SET == reference.VSL_SET
+    image = {int(k): v for k, v in config.VSL_COMMAND_DISTRIBUTION['distribution_by_command'].items()}
+    assert tuple(image[c] for c in rp.VSL_COMMANDS) == rp.VSL_SPEEDS
+
+
+def test_runner_family_bytes_write_each_family_list():
+    pack = (ROOT / rp.PACK_REL / rp.RUNNER_CONFIG[0]).read_bytes()
+    for family, speeds in rp.VSL_FAMILIES.items():
+        data, old = rp.runner_family_bytes(pack, family)
+        assert rp.vbs_constants(data)['RW_ALLOWED_VSL_SPEEDS'] == ','.join(map(str, speeds))
+        assert [i for i, (x, y) in enumerate(zip(pack.split(b'\n'), data.split(b'\n'))) if x != y] != []
+    with pytest.raises(rp.RepinError, match='unknown VSL family'):
+        rp.runner_family_bytes(pack, 'spread')
 
 
 @pytest.mark.parametrize('text', ['RW_X = "1"\n', 'RW_ALLOWED_VSL_SPEEDS = "50"\nRW_ALLOWED_VSL_SPEEDS = "60"\n',
-                                  'RW_ALLOWED_VSL_SPEEDS = "80,90,100,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
+                                  'RW_ALLOWED_VSL_SPEEDS = "81,91,101,110"\n', 'RW_ALLOWED_VSL_SPEEDS = "fast"\n'])
 def test_set_vsl_speeds_refuses(text):
     with pytest.raises(rp.RepinError):
         rp.set_vsl_speeds(text.encode(), rp.VSL_SPEEDS)
@@ -672,17 +687,24 @@ def test_config_base_repoints_every_pack_path_and_passes_the_path_preflight():
 
 
 @needs_build
-def test_runner_config_allows_exactly_80_to_110_each_with_a_v2_distribution():
+def test_runner_config_allows_exactly_the_single_value_family_each_with_a_v3c3_distribution():
     receipt = built_json(rp.RECEIPT_NAME)
     check = receipt['runner_config_check']
-    assert check['allowed_vsl_speeds'] == [80, 90, 100, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
+    assert check['allowed_vsl_speeds'] == [81, 91, 101, 110] and check['seg_bounds_cells'] == {'E': 21, 'W': 21}
     assert check['allowed_speeds_without_distribution'] == []
     constants = rp.vbs_constants((ROOT / rp.SCENARIO_REL / rp.RUNNER_CONFIG[1]).read_bytes())
-    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '80,90,100,110'
+    assert constants['RW_ALLOWED_VSL_SPEEDS'] == '81,91,101,110'
     tree = ET.parse(ROOT / rp.NETWORK_DIR_REL / rp.NET_INPX).getroot()
-    names = {x.get('no'): x.get('name') for x in tree.findall('./desSpeedDistributions/desSpeedDistribution')}
-    # The distribution NUMBER is the speed: the runner writes it as the DesSpeedDistr id.
-    assert all(names.get(str(v)) == f'{v} km/h' for v in rp.VSL_SPEEDS)
+    distributions = {x.get('no'): x for x in tree.findall('./desSpeedDistributions/desSpeedDistribution')}
+    # The distribution NUMBER is what the runner writes as the DesSpeedDistr id; 81/91/101 are the single-value
+    # (80-82 / 90-92 / 100-102) distributions of v3c3, 110 the VSL-off 98-140 one.
+    assert all(distributions[str(v)].get('name') == f'{v} km/h' for v in rp.VSL_SPEEDS)
+    points = {no: [(p.get('fx'), p.get('x')) for p in distributions[no].iter('speedDistributionDataPoint')]
+              for no in ('81', '91', '101')}
+    assert points == {'81': [('0', '80'), ('1', '82')], '91': [('0', '90'), ('1', '92')], '101': [('0', '100'), ('1', '102')]}
+    # the other family's runner list also maps to distributions of this network (the L1 family stays buildable)
+    rp.runner_config_check(rp.runner_family_bytes((ROOT / rp.PACK_REL / rp.RUNNER_CONFIG[0]).read_bytes(),
+                                                  'distribution')[0], tree, rp.VSL_FAMILIES['distribution'])
 
 
 def test_runner_writes_the_speed_as_the_distribution_number():
@@ -693,6 +715,143 @@ def test_runner_writes_the_speed_as_the_distribution_number():
     assert 'SetClassSpeedChecked = (CLng(CDbl(readback)) = CLng(CDbl(speedKph)))' in text
     # Every row's speed must be in the runner config's allowed list before any write.
     assert 'Not IsCsvFiniteNumber(parts(6), RW_ALLOWED_VSL_SPEEDS)' in text
+
+
+# --------------------------------------------------------------------------- network v3c2 / v3c3 enumerations (N8)
+def _real_networks():
+    """(fcb pack tree, v3c3 bytes, v3c2 bytes, v3c1 bytes): v3c2 and v3c1 rebuilt from the pinned v3c3 copy by removing
+    the enumerated blocks (and reverting the 12 vehComp rows); their sha256 must be the published ones."""
+    v3c3 = (ROOT / rp.V2_PIN['path']).read_bytes()
+    assert rp.sha256_bytes(v3c3) == rp.V2_SHA256
+    v3c2 = v3c3
+    for number, _, size, digest in rp.V3C3_ADDED_DISTRIBUTIONS:
+        start = v3c2.index(b'\t\t<desSpeedDistribution name="%s km/h" no="%s">' % (number.encode(), number.encode()))
+        assert rp.sha256_bytes(v3c2[start:start + size]) == digest
+        v3c2 = v3c2[:start] + v3c2[start + size:]
+    assert rp.sha256_bytes(v3c2) == V3C2_S31_SHA256
+    start = v3c2.index(b'\t\t<vehicleComposition name="Freeway entry DSD110" no="14">')
+    v3c1 = v3c2[:start] + v3c2[start + rp.V3C2_ADDED_COMPOSITION['bytes']:]
+    for number in ('1098', '1099'):
+        [match] = list(re.finditer(rb'<vehicleInput [^>]*\bno="%s"' % number.encode(), v3c1))
+        a, b = match.start(), v3c1.index(b'</vehicleInput>', match.start())
+        assert v3c1[a:b].count(b'vehComp="14"') == 6
+        v3c1 = v3c1[:a] + v3c1[a:b].replace(b'vehComp="14"', b'vehComp="1"') + v3c1[b:]
+    assert rp.sha256_bytes(v3c1) == V3C1_S31_SHA256
+    old = ET.fromstring(rp.read_pinned(rp.OLD_PIN))
+    return old, v3c3, v3c2, v3c1
+
+
+V3C2_S31_SHA256 = '597191ac2f9afb051888421e8d2f52a04b21ceafd6f994f874841194383eab69'
+V3C1_S31_SHA256 = '2577209bcbddb3ad2d462419139c5f19901be04a62015df3fd54f119198ea9f7'
+ENUMERATED = dict(route_edits=rp.V3B_ROUTE_EDITS, added_decisions=rp.V3C1_ADDED_DECISIONS,
+                  added_compositions=(rp.V3C2_ADDED_COMPOSITION,), composition_edits=rp.V3C2_INPUT_COMPOSITION_EDITS,
+                  added_distributions=rp.V3C3_ADDED_DISTRIBUTIONS)
+
+
+@pytest.fixture(scope='module')
+def real_networks():
+    if not (ROOT / rp.V2_PIN['path']).is_file():
+        pytest.skip('pinned v3c3 network copy absent')
+    return _real_networks()
+
+
+def test_v3c3_enumerations_admit_v3c3_and_refuse_its_neighbours(real_networks):
+    old, v3c3, v3c2, v3c1 = real_networks
+    report = rp.characterize_changes(old, ET.fromstring(v3c3), **ENUMERATED)
+    assert report['vehicleCompositions']['added'] == ['14']
+    assert report['desSpeedDistributions']['added'] == ['81', '91', '101', '110']
+    assert [(r['input'], r['timeInt'], r['old'], r['new']) for r in report['vehicleInputs']['composition_edits']] == [
+        tuple(r) for r in rp.V3C2_INPUT_COMPOSITION_EDITS]
+    blocks = rp.v3c3_block_audit(v3c3)
+    assert [b['no'] for b in blocks['added_distribution_blocks']] == ['81', '91', '101']
+    assert blocks['added_composition_block']['sha256'] == rp.V3C2_ADDED_COMPOSITION['sha256']
+    # v3c2: 81/91/101 absent -> the distribution list is not the enumeration, and the runner list has no distribution
+    with pytest.raises(rp.RepinError, match=r"elements added \['110'\], the enumerated distributions are"):
+        rp.characterize_changes(old, ET.fromstring(v3c2), **ENUMERATED)
+    runner = (ROOT / rp.SCENARIO_REL / rp.RUNNER_CONFIG[1]).read_bytes()
+    with pytest.raises(rp.RepinError, match=r'lacks desSpeedDistribution \[81, 91, 101\]'):
+        rp.runner_config_check(runner, ET.fromstring(v3c2))
+    # v3c1: no composition 14 (and composition 1 on the entries)
+    with pytest.raises(rp.RepinError, match='enumerated added compositions are absent|enumerated composition edits'):
+        rp.characterize_changes(old, ET.fromstring(v3c1), **dict(ENUMERATED, added_distributions=None))
+    # without the composition enumeration the v3c3 network is refused (vehicleCompositions is no CHANGE_RULES section)
+    with pytest.raises(rp.RepinError, match='unreviewed section: vehicleCompositions'):
+        rp.characterize_changes(old, ET.fromstring(v3c3), **dict(ENUMERATED, added_compositions=()))
+
+
+def test_v3c3_enumerations_refuse_an_extra_or_missing_distribution(real_networks):
+    old, v3c3, _, _ = real_networks
+    number, after, size, digest = rp.V3C3_ADDED_DISTRIBUTIONS[1]                       # 91
+    start = v3c3.index(b'\t\t<desSpeedDistribution name="91 km/h" no="91">')
+    block = v3c3[start:start + size]
+    extra = v3c3[:start + size] + block.replace(b'91', b'94').replace(b'x="90"', b'x="93"') + v3c3[start + size:]
+    with pytest.raises(rp.RepinError, match=r"elements added \['81', '91', '94', '101', '110'\]"):
+        rp.characterize_changes(old, ET.fromstring(extra), **ENUMERATED)
+    start = v3c3.index(b'\t\t<desSpeedDistribution name="101 km/h" no="101">')
+    missing = v3c3[:start] + v3c3[start + rp.V3C3_ADDED_DISTRIBUTIONS[2][2]:]
+    with pytest.raises(rp.RepinError, match=r"elements added \['81', '91', '110'\]"):
+        rp.characterize_changes(old, ET.fromstring(missing), **ENUMERATED)
+    with pytest.raises(rp.RepinError, match='desSpeedDistribution 101 opens 0 times'):
+        rp.v3c3_block_audit(missing)
+
+
+def test_v3c3_enumerations_refuse_a_tampered_composition_or_a_13th_vehcomp_row(real_networks):
+    old, v3c3, _, _ = real_networks
+    start = v3c3.index(b'<vehicleComposition name="Freeway entry DSD110" no="14">')
+    tampered = v3c3[:start] + v3c3[start:].replace(b'relFlow="0.806" vehType="100"', b'relFlow="0.807" vehType="100"', 1)
+    assert tampered != v3c3 and tampered[:start] == v3c3[:start]
+    rp.characterize_changes(old, ET.fromstring(tampered), **ENUMERATED)               # XML: still one added composition
+    other = v3c3.replace(b'relFlow="0.806" vehType="100"', b'relFlow="0.807" vehType="100"', 1)    # composition 1
+    assert other.index(b'relFlow="0.807"') < start
+    with pytest.raises(rp.RepinError, match=r"vehicleCompositions: .*'changed': \['1'\].* is not exactly the enumerated"):
+        rp.characterize_changes(old, ET.fromstring(other), **ENUMERATED)
+    with pytest.raises(rp.RepinError, match='vehicleComposition 14 block is 391 bytes sha256'):
+        rp.v3c3_block_audit(tampered)                                                   # bytes: refused
+    # a 13th vehComp row (another input switched to 14) is outside the enumeration
+    tree = ET.fromstring(v3c3)
+    rows = tree.find("./vehicleInputs/vehicleInput[@no='1097']").findall('./timeIntVehVols/timeIntervalVehVolume')
+    rows[0].set('vehComp', '14')
+    with pytest.raises(rp.RepinError, match=r"differ beyond .*the enumerated composition edits name \['1098', '1099'\]"):
+        rp.characterize_changes(old, tree, **ENUMERATED)
+    tree = ET.fromstring(v3c3)                                                          # an enumerated row with another value
+    tree.find("./vehicleInputs/vehicleInput[@no='1099']").findall('./timeIntVehVols/timeIntervalVehVolume')[5].set('vehComp', '13')
+    with pytest.raises(rp.RepinError, match='are not the enumerated'):
+        rp.characterize_changes(old, tree, **ENUMERATED)
+
+
+V3C2_RECEIPT = Path(rp.V3C2_EDIT_RECEIPT['path'])
+V3C3_RECEIPT = Path(rp.V3C3_EDIT_RECEIPT['path'])
+
+
+@pytest.mark.skipif(not (V3C2_RECEIPT.is_file() and V3C3_RECEIPT.is_file()), reason='v3c2 / v3c3 edit receipts absent')
+def test_v3c2_v3c3_tables_are_the_edit_receipts():
+    data = V3C2_RECEIPT.read_bytes()
+    assert rp.sha256_bytes(data) == rp.V3C2_EDIT_RECEIPT['sha256']
+    edits = json.loads(data.decode('utf-8-sig'))['edits']
+    composition = edits['composition']
+    assert (str(composition['no']), composition['inserted_block_bytes'], composition['inserted_block_sha256']) == (
+        rp.V3C2_ADDED_COMPOSITION['no'], rp.V3C2_ADDED_COMPOSITION['bytes'], rp.V3C2_ADDED_COMPOSITION['sha256'])
+    assert [(str(r['input']), r['timeInt'], '1', '14') for r in edits['replaced_attributes']] == [
+        tuple(r) for r in rp.V3C2_INPUT_COMPOSITION_EDITS]
+    assert all('vehComp="1"' in r['old_line'] and 'vehComp="14"' in r['new_line'] for r in edits['replaced_attributes'])
+    data = V3C3_RECEIPT.read_bytes()
+    assert rp.sha256_bytes(data) == rp.V3C3_EDIT_RECEIPT['sha256']
+    rows = json.loads(data.decode('utf-8-sig'))['edits']['desSpeedDistributions_inserted']
+    assert [(str(r['distribution']), str(r['after_distribution']), r['bytes'], r['sha256']) for r in rows] == [
+        tuple(r) for r in rp.V3C3_ADDED_DISTRIBUTIONS]
+
+
+@needs_build
+def test_v3c2_v3c3_changes_are_recorded():
+    receipt = built_json(rp.RECEIPT_NAME)
+    changes = receipt['native_changes_from_previous_pack']
+    assert changes['vehicleCompositions']['added'] == ['14']
+    assert changes['desSpeedDistributions']['added'] == ['81', '91', '101', '110']
+    assert len(changes['vehicleInputs']['composition_edits']) == 12
+    step = built_json(rp.TRANSFER_NAME)['repin_step']
+    assert step['native_changes'] == changes
+    assert step == {**step, **rp.v3c3_block_audit((ROOT / rp.V2_PIN['path']).read_bytes())}
+    assert receipt['inputs']['previous_runtime_network']['sha256'] == V3C1_S31_SHA256
 
 
 def test_lineage_relflow_copies_have_no_runtime_reader():
